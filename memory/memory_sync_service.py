@@ -35,9 +35,13 @@ class MemorySyncService:
 
     async def sync_now(self, direction: SyncDirection) -> SyncResult:
         if direction == SyncDirection.FORESIGHT_TO_LETTA:
-            return SyncResult(foresight_to_foresight=0, foresight_to_letta=0, letta_to_foresight=0, conflicts_resolved=0, errors=0)
+            return SyncResult(
+                foresight_to_foresight=0, foresight_to_letta=0, letta_to_foresight=0, conflicts_resolved=0, errors=0
+            )
         if direction == SyncDirection.LETTA_TO_FORESIGHT:
-            return SyncResult(foresight_to_foresight=0, foresight_to_letta=0, letta_to_foresight=0, conflicts_resolved=0, errors=0)
+            return SyncResult(
+                foresight_to_foresight=0, foresight_to_letta=0, letta_to_foresight=0, conflicts_resolved=0, errors=0
+            )
         return SyncResult(
             foresight_to_foresight=0,
             foresight_to_letta=0,
@@ -47,4 +51,4 @@ class MemorySyncService:
         )
 
 
-__all__ = ["SyncDirection", "SyncResult", "MemorySyncService"]
+__all__ = ["MemorySyncService", "SyncDirection", "SyncResult"]

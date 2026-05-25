@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException, Query
@@ -261,9 +261,7 @@ def create_review_router() -> APIRouter:
         item_id: str | None = Query(default=None),
     ) -> list[AuditEntryResponse]:
         queue = get_queue()
-        items = [
-            _get_existing_item(queue, item_id)
-        ] if item_id else queue.list_items()
+        items = [_get_existing_item(queue, item_id)] if item_id else queue.list_items()
 
         entries: list[dict[str, Any]] = []
         for item in items:
@@ -282,7 +280,7 @@ def create_review_router() -> APIRouter:
         gate_result = item.gate_result or {}
         metadata = gate_result.setdefault("metadata", {})
         metadata["confidence_display"] = confidence_data
-        metadata["confidence_updated_at"] = datetime.now(timezone.utc).isoformat()
+        metadata["confidence_updated_at"] = datetime.now(UTC).isoformat()
         item.gate_result = gate_result
         item.audit_trail.append(
             {

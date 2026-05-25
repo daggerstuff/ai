@@ -3,13 +3,14 @@ Access & Acquisition Manager
 
 Handles dataset access requests, downloads, and secure storage for acquired datasets.
 """
+
 import hashlib
 import json
 import logging
 import shutil
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import requests
@@ -107,11 +108,11 @@ class DownloadProgress:
         elif self.total_bytes and self.downloaded_bytes >= self.total_bytes:
             self.status = "completed"
             if self.end_time is None:
-                self.end_time = datetime.now(timezone.utc)
+                self.end_time = datetime.now(UTC)
 
         # Calculate download speed
         if self.start_time and self.downloaded_bytes > 0:
-            elapsed = (datetime.now(timezone.utc) - self.start_time).total_seconds()
+            elapsed = (datetime.now(UTC) - self.start_time).total_seconds()
             if elapsed > 0:
                 self.download_speed = self.downloaded_bytes / elapsed
 
@@ -273,20 +274,20 @@ class AccessAcquisitionManager:
         # Estimate access date based on method
         estimated_access_date = None
         if access_method == "direct":
-            estimated_access_date = datetime.now(timezone.utc) + timedelta(hours=1)
+            estimated_access_date = datetime.now(UTC) + timedelta(hours=1)
         elif access_method == "api":
-            estimated_access_date = datetime.now(timezone.utc) + timedelta(hours=24)
+            estimated_access_date = datetime.now(UTC) + timedelta(hours=24)
         elif access_method == "request_form":
-            estimated_access_date = datetime.now(timezone.utc) + timedelta(days=7)
+            estimated_access_date = datetime.now(UTC) + timedelta(days=7)
         elif access_method == "collaboration":
-            estimated_access_date = datetime.now(timezone.utc) + timedelta(days=30)
+            estimated_access_date = datetime.now(UTC) + timedelta(days=30)
         elif access_method == "registration":
-            estimated_access_date = datetime.now(timezone.utc) + timedelta(days=2)
+            estimated_access_date = datetime.now(UTC) + timedelta(days=2)
 
         access_request = AccessRequest(
             source_id=source.source_id,
             access_method=access_method,
-            request_date=datetime.now(timezone.utc),
+            request_date=datetime.now(UTC),
             status="pending",
             access_url=source.url,
             credentials_required=credentials_required,
@@ -304,8 +305,7 @@ class AccessAcquisitionManager:
         self.access_requests[source.source_id] = access_request
 
         logger.info(
-            f"Access request submitted for {source.source_id}: "
-            f"method={access_method}, status={access_request.status}"
+            f"Access request submitted for {source.source_id}: method={access_method}, status={access_request.status}"
         )
 
         return access_request
@@ -341,28 +341,22 @@ class AccessAcquisitionManager:
 
         # Check if download is possible
         if access_request.access_method not in ["direct", "api"]:
-            raise ValueError(
-                f"Download not possible for access method: {access_request.access_method}"
-            )
+            raise ValueError(f"Download not possible for access method: {access_request.access_method}")
 
         # Initialize download progress
         progress = DownloadProgress(
             source_id=source.source_id,
             url=source.url,
             status="downloading",
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
         )
         self.download_progress[source.source_id] = progress
 
         try:
             if access_request.access_method == "direct":
-                file_path = self._download_direct(
-                    source, access_request, progress, progress_callback
-                )
+                file_path = self._download_direct(source, access_request, progress, progress_callback)
             else:  # api
-                file_path = self._download_via_api(
-                    source, access_request, progress, progress_callback
-                )
+                file_path = self._download_via_api(source, access_request, progress, progress_callback)
 
             # Calculate file size and checksum
             file_size_mb = file_path.stat().st_size / (1024 * 1024)
@@ -371,7 +365,7 @@ class AccessAcquisitionManager:
             # Create acquired dataset record
             acquired_dataset = AcquiredDataset(
                 source_id=source.source_id,
-                acquisition_date=datetime.now(timezone.utc),
+                acquisition_date=datetime.now(UTC),
                 storage_path=str(file_path),
                 file_format=file_path.suffix[1:] if file_path.suffix else "unknown",
                 file_size_mb=file_size_mb,
@@ -406,7 +400,7 @@ class AccessAcquisitionManager:
             raise
 
         finally:
-            progress.end_time = datetime.now(timezone.utc)
+            progress.end_time = datetime.now(UTC)
 
     def _download_direct(
         self,
@@ -459,9 +453,7 @@ class AccessAcquisitionManager:
             for chunk in response.iter_content(chunk_size=self.config.chunk_size):
                 if chunk:
                     f.write(chunk)
-                    progress.update(
-                        progress.downloaded_bytes + len(chunk), total_bytes=total_bytes
-                    )
+                    progress.update(progress.downloaded_bytes + len(chunk), total_bytes=total_bytes)
                     if progress_callback:
                         progress_callback(progress)
 
@@ -490,10 +482,7 @@ class AccessAcquisitionManager:
 
         # For now, treat API URLs as direct downloads
         # In production, implement repository-specific API clients
-        logger.warning(
-            f"API download not fully implemented for {source.source_id}, "
-            "falling back to direct download"
-        )
+        logger.warning(f"API download not fully implemented for {source.source_id}, falling back to direct download")
         return self._download_direct(source, access_request, progress, progress_callback)
 
     def _calculate_checksum(self, file_path: Path) -> str:
@@ -530,9 +519,7 @@ class AccessAcquisitionManager:
         logger.info(f"Integrity verified for {dataset.source_id}")
         return True
 
-    def organize_storage(
-        self, dataset: AcquiredDataset, source: DatasetSource
-    ) -> Path:
+    def organize_storage(self, dataset: AcquiredDataset, source: DatasetSource) -> Path:
         """
         Organize storage for an acquired dataset.
 
@@ -563,9 +550,7 @@ class AccessAcquisitionManager:
             if organized_path.exists():
                 organized_path.unlink()
             shutil.move(current_path, organized_path)
-            logger.info(
-                f"Organized storage: {current_path} -> {organized_path}"
-            )
+            logger.info(f"Organized storage: {current_path} -> {organized_path}")
 
         return organized_path
 
@@ -598,9 +583,7 @@ class AccessAcquisitionManager:
             },
         }
 
-        metadata_path = (
-            self.storage_path / "metadata" / f"{dataset.source_id}.json"
-        )
+        metadata_path = self.storage_path / "metadata" / f"{dataset.source_id}.json"
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
 
@@ -608,9 +591,7 @@ class AccessAcquisitionManager:
         """Get an access request by source ID."""
         return self.access_requests.get(source_id)
 
-    def update_access_request_status(
-        self, source_id: str, status: str, notes: str = ""
-    ) -> None:
+    def update_access_request_status(self, source_id: str, status: str, notes: str = "") -> None:
         """
         Update the status of an access request.
 
@@ -633,9 +614,7 @@ class AccessAcquisitionManager:
         """Get download progress for a source ID."""
         return self.download_progress.get(source_id)
 
-    def list_access_requests(
-        self, status: str | None = None
-    ) -> list[AccessRequest]:
+    def list_access_requests(self, status: str | None = None) -> list[AccessRequest]:
         """
         List access requests, optionally filtered by status.
 
@@ -658,7 +637,7 @@ class AccessAcquisitionManager:
             List of access requests needing follow-up
         """
         pending_requests = []
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.config.follow_up_reminder_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=self.config.follow_up_reminder_days)
 
         for request in self.access_requests.values():
             if request.status == "pending":
@@ -678,7 +657,7 @@ class AccessAcquisitionManager:
         report_lines = [
             "# Access Request Report",
             "",
-            f"**Generated**: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Generated**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Summary",
             "",
@@ -696,9 +675,7 @@ class AccessAcquisitionManager:
 
         # List requests by status
         for status in ["pending", "approved", "downloaded", "denied", "error"]:
-            status_requests = [
-                r for r in self.access_requests.values() if r.status == status
-            ]
+            status_requests = [r for r in self.access_requests.values() if r.status == status]
             if status_requests:
                 report_lines.extend(
                     [
@@ -724,4 +701,3 @@ class AccessAcquisitionManager:
                     report_lines.append("")
 
         return "\n".join(report_lines)
-

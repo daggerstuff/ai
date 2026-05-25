@@ -3,6 +3,7 @@
 Resume Orchestrator for Pixelated Empathy AI
 Manages coordination and orchestration of multiple resumable processes
 """
+
 import asyncio
 import logging
 import threading
@@ -10,7 +11,7 @@ import time
 from collections import defaultdict, deque
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -76,15 +77,14 @@ class ProcessMetrics:
         """Update metrics for successful resume"""
         self.total_resumes += 1
         self.successful_resumes += 1
-        self.last_resume_time = datetime.now(timezone.utc)
+        self.last_resume_time = datetime.now(UTC)
 
         # Update average resume time
         if self.avg_resume_time_seconds == 0:
             self.avg_resume_time_seconds = resume_time_seconds
         else:
             self.avg_resume_time_seconds = (
-                self.avg_resume_time_seconds * (self.successful_resumes - 1)
-                + resume_time_seconds
+                self.avg_resume_time_seconds * (self.successful_resumes - 1) + resume_time_seconds
             ) / self.successful_resumes
 
         # Update reliability score
@@ -142,9 +142,7 @@ class ResumeOrchestrator:
         self.orchestrator_active = True
 
         # Start orchestration thread
-        self.orchestrator_thread = threading.Thread(
-            target=self._orchestration_loop, daemon=True
-        )
+        self.orchestrator_thread = threading.Thread(target=self._orchestration_loop, daemon=True)
         self.orchestrator_thread.start()
 
         logger.info("Resume orchestrator started")
@@ -171,9 +169,7 @@ class ResumeOrchestrator:
         """Register a process for orchestrated resumption"""
 
         # Register with resume engine
-        self.resume_engine.register_process(
-            process_id, task_id, resume_handler, metadata
-        )
+        self.resume_engine.register_process(process_id, task_id, resume_handler, metadata)
 
         # Store orchestrator-specific information
         self.registered_processes[process_id] = {
@@ -182,16 +178,14 @@ class ResumeOrchestrator:
             "priority": priority,
             "resource_requirements": resource_requirements or {},
             "metadata": metadata or {},
-            "registered_at": datetime.now(timezone.utc),
+            "registered_at": datetime.now(UTC),
         }
 
         self.process_priorities[process_id] = priority
         self.process_metrics[process_id] = ProcessMetrics(process_id=process_id)
         self.resume_locks[process_id] = asyncio.Lock()
 
-        logger.info(
-            f"Registered resumable process {process_id} with priority {priority.value}"
-        )
+        logger.info(f"Registered resumable process {process_id} with priority {priority.value}")
 
     def add_process_dependency(
         self,
@@ -214,9 +208,7 @@ class ResumeOrchestrator:
         self.process_dependencies.append(dependency)
         self.dependency_graph[dependency_process].append(dependent_process)
 
-        logger.info(
-            f"Added dependency: {dependent_process} depends on {dependency_process}"
-        )
+        logger.info(f"Added dependency: {dependent_process} depends on {dependency_process}")
 
     async def request_resume(
         self,
@@ -242,7 +234,7 @@ class ResumeOrchestrator:
             "process_id": process_id,
             "priority": priority,
             "interruption_context": interruption_context,
-            "requested_at": datetime.now(timezone.utc),
+            "requested_at": datetime.now(UTC),
             "force_immediate": force_immediate,
         }
 
@@ -261,9 +253,7 @@ class ResumeOrchestrator:
             if not inserted:
                 self.resume_queue.append(resume_request)
 
-        logger.info(
-            f"Queued resume request for {process_id} with priority {priority.value}"
-        )
+        logger.info(f"Queued resume request for {process_id} with priority {priority.value}")
         return True
 
     async def resume_process_with_dependencies(
@@ -292,9 +282,7 @@ class ResumeOrchestrator:
             resume_start_time = time.time()
 
             # Perform actual resume
-            success = await self.resume_engine.resume_process(
-                process_id, interruption_context
-            )
+            success = await self.resume_engine.resume_process(process_id, interruption_context)
 
             # Calculate resume time
             resume_time = time.time() - resume_start_time
@@ -302,9 +290,7 @@ class ResumeOrchestrator:
             # Update metrics
             if success:
                 self.process_metrics[process_id].update_resume_success(resume_time)
-                logger.info(
-                    f"Successfully resumed {process_id} in {resume_time:.2f} seconds"
-                )
+                logger.info(f"Successfully resumed {process_id} in {resume_time:.2f} seconds")
             else:
                 self.process_metrics[process_id].update_resume_failure()
                 logger.error(f"Failed to resume {process_id}")
@@ -315,10 +301,8 @@ class ResumeOrchestrator:
                     "process_id": process_id,
                     "success": success,
                     "resume_time_seconds": resume_time,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "interruption_type": interruption_context.interruption_type.value
-                    if interruption_context
-                    else None,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "interruption_type": interruption_context.interruption_type.value if interruption_context else None,
                 }
             )
 
@@ -339,19 +323,14 @@ class ResumeOrchestrator:
         while self.orchestrator_active:
             try:
                 # Process resume queue
-                if (
-                    self.resume_queue
-                    and len(self.active_resumes) < self.max_concurrent_resumes
-                ):
+                if self.resume_queue and len(self.active_resumes) < self.max_concurrent_resumes:
                     # Get next resume request
                     resume_request = self.resume_queue.popleft()
                     process_id = resume_request["process_id"]
 
                     # Schedule resume in async context
                     asyncio.run_coroutine_threadsafe(
-                        self.resume_process_with_dependencies(
-                            process_id, resume_request.get("interruption_context")
-                        ),
+                        self.resume_process_with_dependencies(process_id, resume_request.get("interruption_context")),
                         asyncio.get_event_loop(),
                     )
 
@@ -374,9 +353,7 @@ class ResumeOrchestrator:
         for dependency in self.process_dependencies:
             if dependency.dependent_process == process_id:
                 # Check if dependency process has completed required percentage
-                dependency_state = self.checkpoint_manager.active_processes.get(
-                    dependency.dependency_process
-                )
+                dependency_state = self.checkpoint_manager.active_processes.get(dependency.dependency_process)
 
                 if dependency_state:
                     completion_percent = dependency_state.progress_percentage
@@ -391,14 +368,10 @@ class ResumeOrchestrator:
                         process_id=dependency.dependency_process
                     )
 
-                    completion_checkpoints = [
-                        c for c in checkpoints if "completion" in c.description.lower()
-                    ]
+                    completion_checkpoints = [c for c in checkpoints if "completion" in c.description.lower()]
 
                     if not completion_checkpoints:
-                        logger.debug(
-                            f"Dependency {dependency.dependency_process} not completed"
-                        )
+                        logger.debug(f"Dependency {dependency.dependency_process} not completed")
                         return False
 
         return True
@@ -409,14 +382,10 @@ class ResumeOrchestrator:
         if process_id not in self.registered_processes:
             return True
 
-        requirements = self.registered_processes[process_id].get(
-            "resource_requirements", {}
-        )
+        requirements = self.registered_processes[process_id].get("resource_requirements", {})
 
         for resource_type, required_amount in requirements.items():
-            available = self.resource_pools.get(
-                resource_type, 0
-            ) - self.resource_usage.get(resource_type, 0)
+            available = self.resource_pools.get(resource_type, 0) - self.resource_usage.get(resource_type, 0)
             if available < required_amount:
                 return False
 
@@ -428,9 +397,7 @@ class ResumeOrchestrator:
         if process_id not in self.registered_processes:
             return
 
-        requirements = self.registered_processes[process_id].get(
-            "resource_requirements", {}
-        )
+        requirements = self.registered_processes[process_id].get("resource_requirements", {})
 
         for resource_type, required_amount in requirements.items():
             self.resource_usage[resource_type] += required_amount
@@ -443,20 +410,14 @@ class ResumeOrchestrator:
         if process_id not in self.registered_processes:
             return
 
-        requirements = self.registered_processes[process_id].get(
-            "resource_requirements", {}
-        )
+        requirements = self.registered_processes[process_id].get("resource_requirements", {})
 
         for resource_type, required_amount in requirements.items():
-            self.resource_usage[resource_type] = max(
-                0, self.resource_usage[resource_type] - required_amount
-            )
+            self.resource_usage[resource_type] = max(0, self.resource_usage[resource_type] - required_amount)
 
         logger.debug(f"Released resources for {process_id}: {requirements}")
 
-    def _compare_priority(
-        self, priority1: ProcessPriority, priority2: ProcessPriority
-    ) -> int:
+    def _compare_priority(self, priority1: ProcessPriority, priority2: ProcessPriority) -> int:
         """Compare two priorities (returns positive if priority1 > priority2)"""
 
         priority_values = {
@@ -477,10 +438,7 @@ class ResumeOrchestrator:
                 req["process_id"] for req in self.resume_queue
             ]:
                 # Check if this process has unsatisfied dependencies that might now be satisfied
-                has_dependencies = any(
-                    dep.dependent_process == process_id
-                    for dep in self.process_dependencies
-                )
+                has_dependencies = any(dep.dependent_process == process_id for dep in self.process_dependencies)
 
                 if has_dependencies:
                     # Check if we should queue this process for resume
@@ -502,11 +460,9 @@ class ResumeOrchestrator:
         """Clean up old data to prevent memory leaks"""
 
         # Clean up old resume history (keep last 24 hours)
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=24)
         self.resume_history = [
-            entry
-            for entry in self.resume_history
-            if datetime.fromisoformat(entry["timestamp"]) > cutoff_time
+            entry for entry in self.resume_history if datetime.fromisoformat(entry["timestamp"]) > cutoff_time
         ]
 
     def get_orchestrator_status(self) -> dict[str, Any]:
@@ -521,17 +477,12 @@ class ResumeOrchestrator:
         recent_history = [
             entry
             for entry in self.resume_history
-            if datetime.fromisoformat(entry["timestamp"])
-            > datetime.now(timezone.utc) - timedelta(hours=1)
+            if datetime.fromisoformat(entry["timestamp"]) > datetime.now(UTC) - timedelta(hours=1)
         ]
 
         successful_resumes = sum(1 for entry in recent_history if entry["success"])
         total_recent_resumes = len(recent_history)
-        success_rate = (
-            (successful_resumes / total_recent_resumes * 100)
-            if total_recent_resumes > 0
-            else 0
-        )
+        success_rate = (successful_resumes / total_recent_resumes * 100) if total_recent_resumes > 0 else 0
 
         # Resource utilization
         resource_utilization = {}
@@ -552,9 +503,7 @@ class ResumeOrchestrator:
             "max_concurrent_resumes": self.max_concurrent_resumes,
             "success_rate_percent": round(success_rate, 2),
             "resource_utilization": resource_utilization,
-            "process_metrics": {
-                pid: asdict(metrics) for pid, metrics in self.process_metrics.items()
-            },
+            "process_metrics": {pid: asdict(metrics) for pid, metrics in self.process_metrics.items()},
             "dependency_count": len(self.process_dependencies),
             "resume_history_count": len(self.resume_history),
         }
@@ -575,8 +524,7 @@ class ResumeOrchestrator:
         dependencies = [
             dep
             for dep in self.process_dependencies
-            if dep.dependent_process == process_id
-            or dep.dependency_process == process_id
+            if dep.dependent_process == process_id or dep.dependency_process == process_id
         ]
 
         return {
@@ -586,9 +534,7 @@ class ResumeOrchestrator:
             "registered_at": process_info["registered_at"].isoformat(),
             "is_active": process_id in self.active_resumes,
             "is_queued": process_id in [req["process_id"] for req in self.resume_queue],
-            "current_progress": current_state.progress_percentage
-            if current_state
-            else None,
+            "current_progress": current_state.progress_percentage if current_state else None,
             "metrics": asdict(metrics) if metrics else None,
             "dependencies": [asdict(dep) for dep in dependencies],
             "resource_requirements": process_info.get("resource_requirements", {}),
@@ -600,22 +546,17 @@ class ResumeOrchestrator:
 async def example_orchestrated_resume():
     """Example of using the resume orchestrator"""
 
-
     # Initialize systems
     checkpoint_manager = CheckpointManager()
     orchestrator = ResumeOrchestrator(checkpoint_manager)
 
     # Example resume handlers
-    async def data_processor_handler(
-        resume_point: dict[str, Any], _interruption_context: InterruptionContext = None
-    ):
+    async def data_processor_handler(resume_point: dict[str, Any], _interruption_context: InterruptionContext = None):
         # Simulate data processing resume
         await asyncio.sleep(2)
         return True
 
-    async def model_trainer_handler(
-        resume_point: dict[str, Any], _interruption_context: InterruptionContext = None
-    ):
+    async def model_trainer_handler(resume_point: dict[str, Any], _interruption_context: InterruptionContext = None):
         # Simulate model training resume
         await asyncio.sleep(3)
         return True

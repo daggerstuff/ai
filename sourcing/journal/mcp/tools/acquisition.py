@@ -94,10 +94,7 @@ class AcquireDatasetsTool(MCPTool):
             auto_integrate = params.get("auto_integrate", True)
 
             if self.pipeline_bridge and auto_integrate:
-                logger.info(
-                    f"Auto-integrating {len(acquisitions_list)} acquired datasets "
-                    "into training pipeline"
-                )
+                logger.info(f"Auto-integrating {len(acquisitions_list)} acquired datasets into training pipeline")
 
                 # Get orchestrator to access evaluations and integration plans
                 orchestrator = self.service.orchestrator
@@ -125,23 +122,27 @@ class AcquireDatasetsTool(MCPTool):
                             evaluation=evaluation,
                             integration_plan=integration_plan,
                         )
-                        integration_results.append({
-                            "source_id": acquisition.source_id,
-                            "integration_status": integration_result.get("status"),
-                            "auto_integrated": integration_result.get("auto_integrated", False),
-                        })
+                        integration_results.append(
+                            {
+                                "source_id": acquisition.source_id,
+                                "integration_status": integration_result.get("status"),
+                                "auto_integrated": integration_result.get("auto_integrated", False),
+                            }
+                        )
 
                     except Exception as e:
                         logger.error(
                             f"Error auto-integrating dataset {acquisition.source_id}: {e}",
                             exc_info=True,
                         )
-                        integration_results.append({
-                            "source_id": acquisition.source_id,
-                            "integration_status": "failed",
-                            "auto_integrated": False,
-                            "error": str(e),
-                        })
+                        integration_results.append(
+                            {
+                                "source_id": acquisition.source_id,
+                                "integration_status": "failed",
+                                "auto_integrated": False,
+                                "error": str(e),
+                            }
+                        )
 
             # Convert acquisitions to dicts
             acquisitions_data = []
@@ -158,8 +159,7 @@ class AcquireDatasetsTool(MCPTool):
                     "enabled": self.pipeline_bridge is not None and auto_integrate,
                     "results": integration_results,
                     "total_integrated": sum(
-                        1 for r in integration_results
-                        if r.get("integration_status") == "completed"
+                        1 for r in integration_results if r.get("integration_status") == "completed"
                     ),
                 },
             }
@@ -316,9 +316,7 @@ class GetAcquisitionsTool(MCPTool):
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _apply_filters(
-        self, acquisitions: list[AcquiredDataset], filters: dict[str, Any]
-    ) -> list[AcquiredDataset]:
+    def _apply_filters(self, acquisitions: list[AcquiredDataset], filters: dict[str, Any]) -> list[AcquiredDataset]:
         """Apply filters to acquisitions list."""
         filtered = acquisitions
 
@@ -578,4 +576,3 @@ class UpdateAcquisitionTool(MCPTool):
             "hipaa_compliant": acquisition.hipaa_compliant,
             "privacy_assessed": acquisition.privacy_assessed,
         }
-

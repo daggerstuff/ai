@@ -10,15 +10,18 @@ from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class CrisisDetectionResult:
     """Enhanced crisis detection result"""
+
     is_crisis: bool
     confidence_score: float
     crisis_level: int
     detected_patterns: list[str]
     risk_factors: list[str]
     reasoning: str
+
 
 class EnhancedCrisisDetectorV2Fixed:
     """Enhanced Crisis Detector V2 - Fixed regex patterns"""
@@ -52,9 +55,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"world better without me",
                 ],
                 "level": 5,
-                "weight": 1.0
+                "weight": 1.0,
             },
-
             # LEVEL 5: ACTIVE SELF-HARM
             "active_self_harm": {
                 "patterns": [
@@ -73,9 +75,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"dangerous drugs",
                 ],
                 "level": 5,
-                "weight": 1.0
+                "weight": 1.0,
             },
-
             # LEVEL 4: SEVERE HOPELESSNESS
             "severe_hopelessness": {
                 "patterns": [
@@ -101,9 +102,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"no one loves me",
                 ],
                 "level": 4,
-                "weight": 0.8
+                "weight": 0.8,
             },
-
             # LEVEL 3: SEVERE DEPRESSION
             "severe_depression": {
                 "patterns": [
@@ -126,9 +126,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"don't care anymore",
                 ],
                 "level": 3,
-                "weight": 0.7
+                "weight": 0.7,
             },
-
             # LEVEL 4: ESCALATION
             "crisis_escalation": {
                 "patterns": [
@@ -152,9 +151,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"can't fight it",
                 ],
                 "level": 4,
-                "weight": 0.8
+                "weight": 0.8,
             },
-
             # LEVEL 2: ISOLATION
             "isolation": {
                 "patterns": [
@@ -178,9 +176,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"abandoned",
                 ],
                 "level": 2,
-                "weight": 0.5
+                "weight": 0.5,
             },
-
             # LEVEL 3: SUBSTANCE CRISIS
             "substance_crisis": {
                 "patterns": [
@@ -199,9 +196,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"reckless choices",
                 ],
                 "level": 3,
-                "weight": 0.6
+                "weight": 0.6,
             },
-
             # LEVEL 3: EMOTIONAL PAIN
             "emotional_pain": {
                 "patterns": [
@@ -223,9 +219,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"destroyed inside",
                 ],
                 "level": 3,
-                "weight": 0.6
+                "weight": 0.6,
             },
-
             # LEVEL 2: SUBTLE CRISIS
             "subtle_crisis": {
                 "patterns": [
@@ -248,8 +243,8 @@ class EnhancedCrisisDetectorV2Fixed:
                     r"don't see how to go on",
                 ],
                 "level": 2,
-                "weight": 0.4
-            }
+                "weight": 0.4,
+            },
         }
 
     async def detect_crisis(self, text: str) -> CrisisDetectionResult:
@@ -284,17 +279,17 @@ class EnhancedCrisisDetectorV2Fixed:
                 crisis_level = max(crisis_level, level)
 
         # Context filtering - check for clear negations and metaphors
-        has_strong_negation = any(neg in normalized_text for neg in [
-            "not going to", "don't want to", "never want to", "won't", "not anymore"
-        ])
+        has_strong_negation = any(
+            neg in normalized_text for neg in ["not going to", "don't want to", "never want to", "won't", "not anymore"]
+        )
 
-        has_metaphor = any(meta in normalized_text for meta in [
-            "kill time", "dying to see", "dead tired", "video game", "movie"
-        ])
+        has_metaphor = any(
+            meta in normalized_text for meta in ["kill time", "dying to see", "dead tired", "video game", "movie"]
+        )
 
-        has_positive = any(pos in normalized_text for pos in [
-            "getting help", "feeling better", "therapy", "treatment", "improving"
-        ])
+        has_positive = any(
+            pos in normalized_text for pos in ["getting help", "feeling better", "therapy", "treatment", "improving"]
+        )
 
         # Apply context filters
         if has_strong_negation:
@@ -322,11 +317,11 @@ class EnhancedCrisisDetectorV2Fixed:
 
         # AGGRESSIVE DETECTION THRESHOLDS
         is_crisis = (
-            (confidence_score >= 0.1 and crisis_level >= 3) or
-            (confidence_score >= 0.2 and crisis_level >= 2) or
-            (confidence_score >= 0.3) or
-            (unique_risk_factors >= 3) or
-            (crisis_level >= 5 and confidence_score >= 0.05)
+            (confidence_score >= 0.1 and crisis_level >= 3)
+            or (confidence_score >= 0.2 and crisis_level >= 2)
+            or (confidence_score >= 0.3)
+            or (unique_risk_factors >= 3)
+            or (crisis_level >= 5 and confidence_score >= 0.05)
         )
 
         # Generate reasoning
@@ -347,8 +342,9 @@ class EnhancedCrisisDetectorV2Fixed:
             crisis_level=crisis_level,
             detected_patterns=detected_patterns,
             risk_factors=list(set(risk_factors)),
-            reasoning=reasoning
+            reasoning=reasoning,
         )
+
 
 # Enhanced model predictor
 async def enhanced_model_predictor_v2_fixed(conversation_text: str) -> bool:
@@ -362,6 +358,7 @@ async def enhanced_model_predictor_v2_fixed(conversation_text: str) -> bool:
         logger.info(f"Crisis Analysis V2: {result.reasoning}")
 
     return result.is_crisis
+
 
 # Test function
 async def test_enhanced_detector_v2_fixed():
@@ -382,7 +379,6 @@ async def test_enhanced_detector_v2_fixed():
         ("I don't know how much longer I can do this.", True),
         ("I'm so tired of everything.", True),
         ("Maybe it would be better if I wasn't here.", True),
-
         # Should NOT detect
         ("I'm fine, just having a bad day.", False),
         ("I want to kill time until my appointment.", False),
@@ -398,16 +394,15 @@ async def test_enhanced_detector_v2_fixed():
     correct = 0
     total = len(test_cases)
 
-
     for text, expected in test_cases:
         result = await detector.detect_crisis(text)
         is_correct = result.is_crisis == expected
         correct += is_correct
 
-
     accuracy = (correct / total) * 100
 
     return accuracy
+
 
 if __name__ == "__main__":
     asyncio.run(test_enhanced_detector_v2_fixed())

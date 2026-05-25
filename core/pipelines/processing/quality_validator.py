@@ -15,4 +15,4 @@ class QualityValidator(_CoreQualityValidator):
         super().__init__(config=config)
 
 
-__all__ = ["QualityValidator", "QualityResult"]
+__all__ = ["QualityResult", "QualityValidator"]

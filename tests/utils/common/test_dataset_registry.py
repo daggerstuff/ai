@@ -17,11 +17,13 @@ def test_get_default_registry_path():
     assert path.name == "dataset_registry.json"
     assert path.parent.name == "data"
 
+
 @patch("builtins.open", new_callable=mock_open, read_data='{"datasets": {}}')
 def test_load_registry(mock_file):
     registry = load_registry()
     assert registry == {"datasets": {}}
     mock_file.assert_called_once_with(get_default_registry_path(), encoding="utf-8")
+
 
 @patch("builtins.open", new_callable=mock_open, read_data='{"datasets": {"section": {}}}')
 def test_load_registry_custom_path(mock_file):
@@ -30,6 +32,7 @@ def test_load_registry_custom_path(mock_file):
     assert registry == {"datasets": {"section": {}}}
     mock_file.assert_called_once_with(custom_path, encoding="utf-8")
 
+
 def test_iter_registry_groups():
     registry = {
         "datasets": {
@@ -37,7 +40,7 @@ def test_iter_registry_groups():
         },
         "edge_case_sources": {"ds2": {}},
         "voice_persona": {"ds3": {}},
-        "other": {"ignored": {}}
+        "other": {"ignored": {}},
     }
 
     groups = list(_iter_registry_groups(registry))
@@ -49,10 +52,12 @@ def test_iter_registry_groups():
     assert "edge_case_sources" in names
     assert "voice_persona" in names
 
+
 def test_iter_registry_groups_missing():
     registry = {}
     groups = list(_iter_registry_groups(registry))
     assert len(groups) == 0
+
 
 def test_iter_dataset_refs():
     registry = {
@@ -65,21 +70,21 @@ def test_iter_dataset_refs():
                     "type": "audio",
                     "focus": "speech",
                     "fallback_paths": {"local": "/local/ds1", "gdrive": "gdrive://ds1"},
-                    "legacy_paths": ["/legacy/ds1"]
+                    "legacy_paths": ["/legacy/ds1"],
                 },
                 "non_s3": {
                     "path": "/local/only",
                 },
-                "not_a_dict": "ignore_me"
+                "not_a_dict": "ignore_me",
             }
         },
         "edge_case_sources": {
             "valid2": {
                 "path": "s3://bucket/ds2",
                 "fallback_paths": "not_a_dict",  # Should be handled
-                "legacy_paths": "not_a_list"     # Should be handled
+                "legacy_paths": "not_a_list",  # Should be handled
             }
-        }
+        },
     }
 
     refs = list(iter_dataset_refs(registry))
@@ -103,6 +108,7 @@ def test_iter_dataset_refs():
     assert ref2.fallback_paths == {}
     assert ref2.legacy_paths == []
 
+
 def test_resolve_fallback_path():
     dataset = DatasetRef(
         key="test",
@@ -111,12 +117,8 @@ def test_resolve_fallback_path():
         quality_profile=None,
         type=None,
         focus=None,
-        fallback_paths={
-            "local": "/path/local",
-            "gdrive": "/path/gdrive",
-            "custom": "/path/custom"
-        },
-        legacy_paths=[]
+        fallback_paths={"local": "/path/local", "gdrive": "/path/gdrive", "custom": "/path/custom"},
+        legacy_paths=[],
     )
 
     # Default preference (local, then gdrive)
@@ -129,6 +131,7 @@ def test_resolve_fallback_path():
     # Preference not found, fallback to alphabetical
     assert resolve_fallback_path(dataset, prefer=["missing"]) == "/path/custom"
 
+
 def test_resolve_fallback_path_no_fallbacks():
     dataset = DatasetRef(
         key="test",
@@ -138,6 +141,6 @@ def test_resolve_fallback_path_no_fallbacks():
         type=None,
         focus=None,
         fallback_paths={},
-        legacy_paths=[]
+        legacy_paths=[],
     )
     assert resolve_fallback_path(dataset) is None

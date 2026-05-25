@@ -6,9 +6,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from .dual_storage_provider import DualStorageProvider
 from .foresight_provider import ForesightMemoryProvider
 from .letta_provider import LettaMemoryProvider
-from .dual_storage_provider import DualStorageProvider
 from .reflection_types import Memory, MemoryCategory, MemoryMetadata
 from .unified_memory import MemoryProvider
 

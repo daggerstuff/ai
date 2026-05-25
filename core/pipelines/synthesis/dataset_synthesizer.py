@@ -66,4 +66,4 @@ class DatasetSynthesizer:
         return {"train": result.train, "val": result.val, "test": result.test}
 
 
-__all__ = ["DatasetSynthesizer", "DatasetSplit"]
+__all__ = ["DatasetSplit", "DatasetSynthesizer"]

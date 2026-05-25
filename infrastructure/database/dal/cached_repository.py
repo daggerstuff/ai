@@ -87,17 +87,13 @@ class CMSCacheLayer:
 
     def invalidate_document(self, document_id: str) -> None:
         """Remove a document from cache and related stat caches."""
-        keys = get_invalidation_keys(
-            "document_updated", documentId=document_id, period="daily"
-        )
+        keys = get_invalidation_keys("document_updated", documentId=document_id, period="daily")
         if keys:
             self._redis.delete(*keys)
 
     def delete_document_cache(self, document_id: str) -> None:
         """Remove a document from cache after deletion."""
-        keys = get_invalidation_keys(
-            "document_deleted", documentId=document_id, period="daily"
-        )
+        keys = get_invalidation_keys("document_deleted", documentId=document_id, period="daily")
         if keys:
             self._redis.delete(*keys)
 

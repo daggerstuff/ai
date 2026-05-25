@@ -59,12 +59,7 @@ class AnnotationAgent:
     def __init__(self, persona_name: str, model: str | None = None):
         self.persona_name = persona_name
         # Prioritize: CLI arg > NVIDIA_OPENAI_MODEL > OPENAI_MODEL > fallback
-        self.model = (
-            model
-            or os.getenv("NVIDIA_OPENAI_MODEL")
-            or os.getenv("OPENAI_MODEL")
-            or "gpt-4-turbo-preview"
-        )
+        self.model = model or os.getenv("NVIDIA_OPENAI_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4-turbo-preview"
         self.system_prompt = self._get_system_prompt(persona_name)
         self.guidelines = self._load_guidelines()
 
@@ -156,8 +151,7 @@ format:
             return json.loads(content)
         except Exception as exc:
             print(
-                f"LLM call failed for {self.persona_name} on model '{self.model}': "
-                f"{type(exc).__name__}: {exc}",
+                f"LLM call failed for {self.persona_name} on model '{self.model}': {type(exc).__name__}: {exc}",
                 file=sys.stderr,
             )
             if self.strict_llm:
@@ -165,9 +159,7 @@ format:
             # Fallback to generative mock instead of error
             return self._mock_annotation(data, error=False)
 
-    def _mock_annotation(
-        self, data: dict[str, Any], error: bool = False
-    ) -> dict[str, Any]:
+    def _mock_annotation(self, data: dict[str, Any], error: bool = False) -> dict[str, Any]:
         # Simulate thinking time
         time.sleep(0.01)
 
@@ -192,9 +184,7 @@ format:
         return {
             "crisis_label": random.randint(1, 4) if is_crisis else 0,
             "crisis_confidence": random.randint(3, 5),
-            "primary_emotion": random.choice(
-                ["Sadness", "Fear", "Anger", "Joy", "Neutral"]
-            ),
+            "primary_emotion": random.choice(["Sadness", "Fear", "Anger", "Joy", "Neutral"]),
             "secondary_emotions": ["Fear"] if random.random() < 0.3 else [],
             "emotion_intensity": min(10, max(1, int(random.gauss(avg_intensity, 2)))),
             "valence": round(random.uniform(-1.0, 1.0), 2),
@@ -208,7 +198,6 @@ format:
 def process_batch(input_file: str, output_file: str, agent: AnnotationAgent):
     input_path = Path(input_file)
     output_path = Path(output_file)
-
 
     if not input_path.exists():
         return
@@ -230,9 +219,7 @@ def process_batch(input_file: str, output_file: str, agent: AnnotationAgent):
                 # Create result record
                 result = {
                     "task_id": task.get("task_id", task.get("id")),
-                    "annotator_id": agent.persona_name.lower()
-                    .replace(" ", "_")
-                    .replace(".", ""),
+                    "annotator_id": agent.persona_name.lower().replace(" ", "_").replace(".", ""),
                     "annotations": annotations,
                     "metadata": {"model": agent.model, "timestamp": time.time()},
                 }
@@ -247,17 +234,12 @@ def process_batch(input_file: str, output_file: str, agent: AnnotationAgent):
                 continue
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run AI Annotation Agent")
     parser.add_argument("--input", required=True, help="Input batch JSONL file")
     parser.add_argument("--output", required=True, help="Output results JSONL file")
-    parser.add_argument(
-        "--persona", choices=["Dr. A", "Dr. B"], required=True, help="Agent persona"
-    )
-    parser.add_argument(
-        "--model", default="gpt-4-turbo-preview", help="LLM model to use"
-    )
+    parser.add_argument("--persona", choices=["Dr. A", "Dr. B"], required=True, help="Agent persona")
+    parser.add_argument("--model", default="gpt-4-turbo-preview", help="LLM model to use")
 
     args = parser.parse_args()
 

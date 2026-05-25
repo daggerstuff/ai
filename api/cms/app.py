@@ -93,7 +93,7 @@ def _add_error_handlers(app: FastAPI) -> None:
 
 
 def _register_routes(app: FastAPI) -> None:
-    from ai.api.cms.routes import documents, projects, strategies, sales, workflows, knowledge
+    from ai.api.cms.routes import documents, knowledge, projects, sales, strategies, workflows
 
     app.include_router(documents.router, prefix="/api/v1/documents", tags=["Documents"])
     app.include_router(projects.router, prefix="/api/v1/projects", tags=["Projects"])

@@ -358,9 +358,7 @@ class TestTokenManager:
         """Test setting tokens"""
         token_manager = TokenManager()
 
-        token_manager.set_tokens(
-            access_token="test_access", refresh_token="test_refresh", expires_in=3600
-        )
+        token_manager.set_tokens(access_token="test_access", refresh_token="test_refresh", expires_in=3600)
 
         assert token_manager._access_token == "test_access"
         assert token_manager._refresh_token == "test_refresh"

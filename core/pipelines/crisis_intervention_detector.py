@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -138,7 +138,7 @@ class CrisisInterventionDetector:
 
     def audit_event(self, result: CrisisInterventionResult) -> dict[str, Any]:
         return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "crisis_type": result.crisis_type,
             "severity": result.severity,
             "score": result.score,

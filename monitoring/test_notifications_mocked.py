@@ -7,7 +7,7 @@ Tests all notification channels and priority levels
 import asyncio
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 from notification_integrations import (
@@ -25,22 +25,15 @@ from notification_integrations import (
     "notification_integrations.PagerDutyNotifier.send_notification",
     new_callable=AsyncMock,
 )
-@patch(
-    "notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock
-)
-@patch(
-    "notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock
-)
-async def test_individual_channels(
-    mock_email, mock_slack, mock_pagerduty, mock_webhook
-):
+@patch("notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock)
+@patch("notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
+async def test_individual_channels(mock_email, mock_slack, mock_pagerduty, mock_webhook):
     """Test each notification channel individually"""
     mock_email.return_value = True
     mock_slack.return_value = True
     mock_pagerduty.return_value = True
     mock_webhook.return_value = True
     manager = NotificationManager()
-
 
     # Test Email
     await manager.send_alert(
@@ -50,7 +43,7 @@ async def test_individual_channels(
         channels=[NotificationChannel.EMAIL],
         metadata={
             "test_type": "email_channel",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system_status": "testing",
         },
     )
@@ -63,7 +56,7 @@ async def test_individual_channels(
         channels=[NotificationChannel.SLACK],
         metadata={
             "test_type": "slack_channel",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system_status": "testing",
         },
     )
@@ -76,7 +69,7 @@ async def test_individual_channels(
         channels=[NotificationChannel.PAGERDUTY],
         metadata={
             "test_type": "pagerduty_channel",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system_status": "testing",
         },
     )
@@ -89,7 +82,7 @@ async def test_individual_channels(
         channels=[NotificationChannel.WEBHOOK],
         metadata={
             "test_type": "webhook_channel",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system_status": "testing",
         },
     )
@@ -103,12 +96,8 @@ async def test_individual_channels(
     "notification_integrations.PagerDutyNotifier.send_notification",
     new_callable=AsyncMock,
 )
-@patch(
-    "notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock
-)
-@patch(
-    "notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock
-)
+@patch("notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock)
+@patch("notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
 async def test_priority_levels(mock_email, mock_slack, mock_pagerduty, mock_webhook):
     """Test different priority levels with appropriate channel routing"""
     mock_email.return_value = True
@@ -116,7 +105,6 @@ async def test_priority_levels(mock_email, mock_slack, mock_pagerduty, mock_webh
     mock_pagerduty.return_value = True
     mock_webhook.return_value = True
     manager = NotificationManager()
-
 
     priority_tests = [
         {
@@ -146,7 +134,6 @@ async def test_priority_levels(mock_email, mock_slack, mock_pagerduty, mock_webh
     ]
 
     for test in priority_tests:
-
         results = await manager.send_alert(
             title=test["title"],
             message=test["message"],
@@ -154,7 +141,7 @@ async def test_priority_levels(mock_email, mock_slack, mock_pagerduty, mock_webh
             metadata={
                 "test_type": "priority_routing",
                 "priority_level": test["priority"].value,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
 
@@ -162,9 +149,7 @@ async def test_priority_levels(mock_email, mock_slack, mock_pagerduty, mock_webh
             pass
 
 
-@patch(
-    "notification_integrations.NotificationManager.send_alert", new_callable=AsyncMock
-)
+@patch("notification_integrations.NotificationManager.send_alert", new_callable=AsyncMock)
 async def test_concurrent_notifications(mock_send_alert):
     """Test sending multiple notifications concurrently"""
     mock_send_alert.return_value = {
@@ -172,7 +157,6 @@ async def test_concurrent_notifications(mock_send_alert):
         NotificationChannel.SLACK: True,
     }
     manager = NotificationManager()
-
 
     # Create multiple notification tasks
     tasks = []
@@ -184,15 +168,15 @@ async def test_concurrent_notifications(mock_send_alert):
             metadata={
                 "test_type": "concurrent",
                 "test_number": i + 1,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
         tasks.append(task)
 
     # Execute all tasks concurrently
-    start_time = datetime.now(timezone.utc)
+    start_time = datetime.now(UTC)
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    end_time = datetime.now(timezone.utc)
+    end_time = datetime.now(UTC)
 
     (end_time - start_time).total_seconds()
 
@@ -207,10 +191,7 @@ async def test_concurrent_notifications(mock_send_alert):
             pass
 
 
-
-@patch(
-    "notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock
-)
+@patch("notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
 async def test_error_handling(mock_email):
     """Test error handling with invalid configurations"""
     mock_email.return_value = False
@@ -239,7 +220,6 @@ async def test_alert_grouping(mock_send_notification):
     mock_send_notification.return_value = {NotificationChannel.SLACK: True}
     manager = NotificationManager()
     manager.alert_grouper.group_interval = timedelta(seconds=1)
-
 
     # Send a burst of similar alerts
     for i in range(5):
@@ -272,9 +252,7 @@ def print_configuration_status():
         ("Slack Channel", os.getenv("SLACK_CHANNEL", "#alerts")),
         (
             "PagerDuty Key",
-            "Configured"
-            if os.getenv("PAGERDUTY_INTEGRATION_KEY")
-            else "Not configured",
+            "Configured" if os.getenv("PAGERDUTY_INTEGRATION_KEY") else "Not configured",
         ),
         (
             "Webhook URLs",
@@ -321,8 +299,6 @@ async def main():
         await test_concurrent_notifications()
         await test_error_handling()
         await test_alert_grouping()
-
-
 
 
 if __name__ == "__main__":

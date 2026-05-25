@@ -10,6 +10,7 @@ Coordinates the full PIX-32 pipeline:
   5. Provenance metadata attachment
   6. Output to normalized JSONL with rejection report
 """
+
 from __future__ import annotations
 
 import glob as glob_mod
@@ -110,9 +111,7 @@ class PipelineResult:
         ]
         if self.rejection_reasons:
             lines.append("  Rejection reasons:")
-            for reason, count in sorted(
-                self.rejection_reasons.items(), key=lambda x: -x[1]
-            ):
+            for reason, count in sorted(self.rejection_reasons.items(), key=lambda x: -x[1]):
                 lines.append(f"    {reason}: {count}")
         if self.errors:
             lines.append("  Errors:")
@@ -253,10 +252,7 @@ class SimilarityDeduplicator:
                         content_hash=hasher.hash_conversation(conv),
                         retained_id=kept_conv.conversation_id,
                         duplicate_id=conv.conversation_id,
-                        reason=(
-                            f"similarity_{sim:.3f}_gte_"
-                            f"{self.similarity_threshold:.3f}"
-                        ),
+                        reason=(f"similarity_{sim:.3f}_gte_{self.similarity_threshold:.3f}"),
                     )
                     break
 
@@ -351,7 +347,6 @@ class StageAwareDeduplicator:
         """Deduplicate using primary hash + stage priority conflict resolution."""
         if not conversations:
             return []
-
 
         hash_groups: dict[str, list[Conversation]] = defaultdict(list)
         for conv in conversations:
@@ -505,16 +500,12 @@ class NormalizationPipeline:
                                     conv = Conversation.from_dict(data)
                                     all_conversations.append(conv)
                                 except (json.JSONDecodeError, TypeError) as exc:
-                                    result.errors.append(
-                                        f"Failed to parse normalized record: {exc}"
-                                    )
+                                    result.errors.append(f"Failed to parse normalized record: {exc}")
                     norm_file.unlink()
 
             # Merge rejection reasons
             for reason, count in file_result.rejected_reasons.items():
-                result.rejection_reasons[reason] = (
-                    result.rejection_reasons.get(reason, 0) + count
-                )
+                result.rejection_reasons[reason] = result.rejection_reasons.get(reason, 0) + count
 
             if self.on_progress:
                 self.on_progress(processed, total)
@@ -546,10 +537,7 @@ class NormalizationPipeline:
                         "duplicates_removed": result.duplicates_removed,
                         "final_records": result.final_records,
                         "rejection_reasons": result.rejection_reasons,
-                        "duplicate_evidence": [
-                            evidence.to_dict()
-                            for evidence in result.duplicate_evidence
-                        ],
+                        "duplicate_evidence": [evidence.to_dict() for evidence in result.duplicate_evidence],
                     },
                     ensure_ascii=False,
                 )
@@ -570,7 +558,6 @@ class NormalizationPipeline:
             elif p.is_dir():
                 files.extend(sorted(p.rglob("*.jsonl")))
             elif "*" in str(p) or "?" in str(p):
-
                 for match in sorted(glob_mod.glob(str(p))):
                     mp = Path(match)
                     if mp.is_file():
@@ -611,18 +598,14 @@ class NormalizationPipeline:
         self._last_duplicate_evidence = list(dedup.duplicate_evidence)
         return unique
 
-    def _dedup_similarity(
-        self, conversations: list[Conversation]
-    ) -> list[Conversation]:
+    def _dedup_similarity(self, conversations: list[Conversation]) -> list[Conversation]:
         """Similarity-based dedup using multi-metric comparison."""
         dedup = SimilarityDeduplicator(similarity_threshold=self.similarity_threshold)
         result = dedup.deduplicate(conversations)
         self._last_duplicate_evidence = list(dedup.duplicate_evidence)
         return result
 
-    def _dedup_stage_aware(
-        self, conversations: list[Conversation]
-    ) -> list[Conversation]:
+    def _dedup_stage_aware(self, conversations: list[Conversation]) -> list[Conversation]:
         """Stage-aware hash dedup with priority conflict resolution."""
         dedup = StageAwareDeduplicator()
         result = dedup.deduplicate(conversations)

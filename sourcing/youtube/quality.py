@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class AudioFormat(StrEnum):
     """Audio format types."""
+
     MP3 = "mp3"
     WAV = "wav"
     AAC = "aac"
@@ -30,8 +31,9 @@ class AudioFormat(StrEnum):
 @dataclass
 class AudioQualityMetrics:
     """Quality metrics for audio analysis."""
+
     sample_rate: int | None = None  # e.g., 48000, 44100
-    bitrate: int | None = None      # e.g., 128000 bps
+    bitrate: int | None = None  # e.g., 128000 bps
     format: AudioFormat | None = None
     has_speech: bool = False
     has_music: bool = False
@@ -72,6 +74,7 @@ class AudioQualityMetrics:
 @dataclass
 class VideoContentMetrics:
     """Content analysis metrics."""
+
     title_length: int | None = None
     description_length: int | None = None
     tags_count: int = 0
@@ -104,6 +107,7 @@ class VideoContentMetrics:
 @dataclass
 class ChannelEngagementMetrics:
     """Engagement metrics for a channel."""
+
     average_view_count: float = 0.0
     average_like_count: float = 0.0
     average_comment_count: float = 0.0
@@ -143,6 +147,7 @@ class ChannelEngagementMetrics:
 @dataclass
 class ProfessionalIndicators:
     """Indicators of professional status."""
+
     verified_credentials: bool = False
     organization_affiliation: bool = False
     educational_institution: bool = False
@@ -302,21 +307,26 @@ def detect_transcript_features(description: str) -> dict:
 
     # Speaker diarization
     diarization_keywords = [
-        "speaker", "diarization", "speaker label", "speaker:",
-        "person:", "person 1", "person 2", "interview",
+        "speaker",
+        "diarization",
+        "speaker label",
+        "speaker:",
+        "person:",
+        "person 1",
+        "person 2",
+        "interview",
     ]
-    features["has_speaker_diarization"] = any(
-        kw in text for kw in diarization_keywords
-    )
+    features["has_speaker_diarization"] = any(kw in text for kw in diarization_keywords)
 
     # Emotion markers
     emotion_keywords = [
-        "emotion", "emotional tone", "emotional response",
-        "tone analysis", "sentiment analysis",
+        "emotion",
+        "emotional tone",
+        "emotional response",
+        "tone analysis",
+        "sentiment analysis",
     ]
-    features["has_emotion_markers"] = any(
-        kw in text for kw in emotion_keywords
-    )
+    features["has_emotion_markers"] = any(kw in text for kw in emotion_keywords)
 
     # Scene descriptions
     features["has_scene_descriptions"] = len(text.split(":")) > 10
@@ -378,10 +388,7 @@ def analyze_video_content(
 
 
 def analyze_channel_professional(
-    description: str,
-    credentials: list[str],
-    _channel_id: str,
-    channel_url: str
+    description: str, credentials: list[str], _channel_id: str, channel_url: str
 ) -> ProfessionalIndicators:
     """Analyze professional indicators."""
     indicators = ProfessionalIndicators()
@@ -399,16 +406,28 @@ def analyze_channel_professional(
 
     # Check for educational institution indicators
     edu_keywords = [
-        "university", "university of", "college", "institute",
-        "school of", "department of", "lab", "research",
+        "university",
+        "university of",
+        "college",
+        "institute",
+        "school of",
+        "department of",
+        "lab",
+        "research",
     ]
     indicators.educational_institution = any(kw in text for kw in edu_keywords)
 
     # Check for peer-reviewed publications
     review_keywords = [
-        "peer reviewed", "peer-reviewed", "journal publication",
-        "conference presentation", "conference paper", "proceedings",
-        "citation:", "cited by", "references",
+        "peer reviewed",
+        "peer-reviewed",
+        "journal publication",
+        "conference presentation",
+        "conference paper",
+        "proceedings",
+        "citation:",
+        "cited by",
+        "references",
     ]
     indicators.peer_review_publications = any(kw in text for kw in review_keywords)
 
@@ -417,10 +436,17 @@ def analyze_channel_professional(
 
     # Check organization affiliation
     org_keywords = [
-        "university of", "university at",
-        "hospital", "medical center", "clinic", "institute",
-        "foundation", "association", "research lab",
-        "department of psychology", "center for",
+        "university of",
+        "university at",
+        "hospital",
+        "medical center",
+        "clinic",
+        "institute",
+        "foundation",
+        "association",
+        "research lab",
+        "department of psychology",
+        "center for",
     ]
     indicators.organization_affiliation = any(kw in text for kw in org_keywords)
 

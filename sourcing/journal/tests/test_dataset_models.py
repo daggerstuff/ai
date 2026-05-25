@@ -501,4 +501,3 @@ class TestResearchLog:
             )
             errors = log.validate()
             assert len(errors) == 0, f"Activity type {activity_type} should be valid"
-

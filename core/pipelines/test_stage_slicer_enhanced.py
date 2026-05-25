@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from ai.core.pipelines.human_review_queue import HumanReviewQueue
 from ai.core.pipelines.processing.stage_slicer_enhanced import (
     STAGE_CONFIGS,
     ValidationResult,
     route_low_clinical_validity_records_to_human_review,
     validate_stage_slice,
 )
-from ai.core.pipelines.human_review_queue import HumanReviewQueue
 
 
 def _record(text: str, record_id: str) -> dict[str, str]:
@@ -32,7 +32,8 @@ def test_validate_stage_slice_passes_with_strong_scores():
     assert result.passed is True
     assert result.violations == []
     assert "Clinical validity" not in "".join(result.violations)
-    assert result.metrics["clinical_validity_avg"] == result.metrics["safety_avg"]
+    assert result.metrics["clinical_validity_avg"] == 1.0
+    assert result.metrics["safety_avg"] == 1.0
     assert result.clinical_validity_record_scores["r-strong-1"] == 1.0
 
 
@@ -67,9 +68,7 @@ def test_validate_stage_slice_warns_when_clinical_validity_near_floor():
     ]
     result = validate_stage_slice(records, STAGE_CONFIGS["stage1_foundation"])
     assert result.passed is True
-    assert any(
-        "Clinical validity close to floor" in warning for warning in result.warnings
-    )
+    assert any("Clinical validity close to floor" in warning for warning in result.warnings)
     assert result.metrics["clinical_validity_avg"] > 0.7
     assert result.metrics["clinical_validity_avg"] < 0.80
 
@@ -88,8 +87,7 @@ def test_route_low_clinical_validity_records_to_human_review(tmp_path):
             "r-route-1",
         ),
         _record(
-            "I understand and support you. Diagnosis treatment and intervention can help "
-            "with this case.",
+            "I understand and support you. Diagnosis treatment and intervention can help with this case.",
             "r-route-2",
         ),
         _record(
@@ -110,9 +108,5 @@ def test_route_low_clinical_validity_records_to_human_review(tmp_path):
     )
     assert enqueued_ids
     assert len(enqueued_ids) == 2
-    enqueued_set = {
-        queue.get_item(item_id).source_id
-        for item_id in enqueued_ids
-        if queue.get_item(item_id)
-    }
+    enqueued_set = {queue.get_item(item_id).source_id for item_id in enqueued_ids if queue.get_item(item_id)}
     assert enqueued_set == {"r-route-2", "r-route-3"}

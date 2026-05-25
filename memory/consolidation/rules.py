@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Consolidation Trigger Engine — Sprint 3, Task 5.
 
 Defines and manages consolidation triggers: MANUAL, STEP_COUNT,
@@ -10,12 +9,11 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List, Optional
 
-from ..schema import MemoryBlock
 from ..consolidation_rules import ConsolidationConfig, ConsolidationRules
+from ..schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 
@@ -32,7 +30,7 @@ class TriggerType(str, Enum):
 class TriggerEvent:
     trigger_type: TriggerType
     timestamp_ms: int
-    context: Dict[str, object]
+    context: dict[str, object]
     priority: int
 
 
@@ -48,20 +46,20 @@ class ConsolidationTriggerEngine:
 
     def __init__(
         self,
-        config: Optional[TriggerConfig] = None,
-        consolidation_config: Optional[ConsolidationConfig] = None,
+        config: TriggerConfig | None = None,
+        consolidation_config: ConsolidationConfig | None = None,
     ) -> None:
         self._config = config or TriggerConfig()
         self._consolidation_config = consolidation_config or ConsolidationConfig()
         self._rules = ConsolidationRules(self._consolidation_config)
         self._step_counter: int = 0
-        self._pending_triggers: List[TriggerEvent] = []
-        self._crisis_reflection_prompts: Dict[str, str] = {
+        self._pending_triggers: list[TriggerEvent] = []
+        self._crisis_reflection_prompts: dict[str, str] = {
             "immediate": "Process recent crisis content for safety review.",
             "post_session": "Reflect on crisis patterns from this session.",
         }
 
-    def record_step(self) -> Optional[TriggerEvent]:
+    def record_step(self) -> TriggerEvent | None:
         """Record an interaction step. Returns trigger if threshold reached."""
         self._step_counter += 1
         if self._step_counter >= self._config.step_interval:
@@ -77,7 +75,7 @@ class ConsolidationTriggerEngine:
             return event
         return None
 
-    def check_compaction(self, memories: List[MemoryBlock]) -> Optional[TriggerEvent]:
+    def check_compaction(self, memories: list[MemoryBlock]) -> TriggerEvent | None:
         """Check if memory count exceeds compaction threshold."""
         if len(memories) >= self._config.compaction_threshold:
             event = TriggerEvent(
@@ -91,7 +89,7 @@ class ConsolidationTriggerEngine:
             return event
         return None
 
-    def detect_crisis_trigger(self, memories: List[MemoryBlock]) -> Optional[TriggerEvent]:
+    def detect_crisis_trigger(self, memories: list[MemoryBlock]) -> TriggerEvent | None:
         """Check for crisis content that needs post-crisis processing."""
         crisis_memories = [m for m in memories if m.gating.crisisFlag]
         if crisis_memories:
@@ -117,7 +115,7 @@ class ConsolidationTriggerEngine:
         self._pending_triggers.append(event)
         return event
 
-    def request_manual(self, context: Optional[Dict[str, object]] = None) -> TriggerEvent:
+    def request_manual(self, context: dict[str, object] | None = None) -> TriggerEvent:
         """Request manual consolidation."""
         event = TriggerEvent(
             trigger_type=TriggerType.MANUAL,
@@ -128,14 +126,12 @@ class ConsolidationTriggerEngine:
         self._pending_triggers.append(event)
         return event
 
-    def get_next_trigger(self) -> Optional[TriggerEvent]:
+    def get_next_trigger(self) -> TriggerEvent | None:
         """Get the highest-priority pending trigger. Crisis takes precedence."""
         if not self._pending_triggers:
             return None
         if self._config.crisis_takes_precedence:
-            crisis_triggers = [
-                t for t in self._pending_triggers if t.trigger_type == TriggerType.CRISIS
-            ]
+            crisis_triggers = [t for t in self._pending_triggers if t.trigger_type == TriggerType.CRISIS]
             if crisis_triggers:
                 return crisis_triggers[0]
         self._pending_triggers.sort(key=lambda t: t.priority)
@@ -145,11 +141,9 @@ class ConsolidationTriggerEngine:
         self._pending_triggers.clear()
 
     def get_crisis_reflection_prompt(self, context: str = "immediate") -> str:
-        return self._crisis_reflection_prompts.get(
-            context, self._crisis_reflection_prompts["immediate"]
-        )
+        return self._crisis_reflection_prompts.get(context, self._crisis_reflection_prompts["immediate"])
 
-    def should_trigger(self, memories: List[MemoryBlock]) -> bool:
+    def should_trigger(self, memories: list[MemoryBlock]) -> bool:
         """Check if consolidation should run based on current state."""
         if self._rules.should_trigger_consolidation(memories):
             return True

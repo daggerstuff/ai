@@ -20,20 +20,17 @@ class TestModule(unittest.TestCase):
 
         payload = {
             "model": model_name,
-            "messages": [
-                {"role": "user", "content": crisis_prompt}
-            ],
+            "messages": [{"role": "user", "content": crisis_prompt}],
             "max_tokens": 50,
-            "temperature": 0.7
+            "temperature": 0.7,
         }
-
 
         try:
             response = requests.post(
                 api_url,
                 json=payload,
                 headers={"Content-Type": "application/json"},
-                timeout=300  # 5 minutes
+                timeout=300,  # 5 minutes
             )
 
             if response.status_code == 200:
@@ -42,6 +39,7 @@ class TestModule(unittest.TestCase):
                 pass
         except Exception:
             pass
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,7 +3,7 @@
 
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -13,12 +13,11 @@ def monitor_v5():
     try:
         while True:
             status = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "status": "healthy",
                 "system": "Enhanced V5",
-                "uptime": "active"
+                "uptime": "active",
             }
-
 
             # Log status
             log_file = Path("../logs/monitor.log")
@@ -29,6 +28,7 @@ def monitor_v5():
 
     except KeyboardInterrupt:
         pass
+
 
 if __name__ == "__main__":
     monitor_v5()

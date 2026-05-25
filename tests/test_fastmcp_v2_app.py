@@ -8,6 +8,7 @@ These tests verify:
 - Error message quality
 - New tools (get_memory, list_memories)
 """
+
 import asyncio
 import json
 
@@ -39,6 +40,7 @@ from ai.api.memory.null_memory import NullMemoryManager
 # Test Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def null_manager():
     """Provide a NullMemoryManager for testing."""
@@ -48,17 +50,20 @@ def null_manager():
 @pytest.fixture
 def authorized_context(null_manager):
     """Create an authorized context for testing."""
+
     def _create(user_id: str = "test-user", **scope_kwargs):
         return AuthorizedToolContext(
             manager=null_manager,
             scope=scope_from_kwargs(user_id=user_id, **scope_kwargs),
         )
+
     return _create
 
 
 # =============================================================================
 # Input Model Tests
 # =============================================================================
+
 
 class TestInputModels:
     """Test Pydantic input models."""
@@ -94,32 +99,21 @@ class TestInputModels:
 
     def test_response_format_enum(self):
         """Response format should accept valid values."""
-        params = MemoryStoreInput(
-            content="test",
-            user_id="user-1",
-            response_format="json"
-        )
+        params = MemoryStoreInput(content="test", user_id="user-1", response_format="json")
         assert params.response_format == ResponseFormat.JSON
 
-        params = MemoryStoreInput(
-            content="test",
-            user_id="user-1",
-            response_format="markdown"
-        )
+        params = MemoryStoreInput(content="test", user_id="user-1", response_format="markdown")
         assert params.response_format == ResponseFormat.MARKDOWN
 
         # Invalid format
         with pytest.raises(ValueError):
-            MemoryStoreInput(
-                content="test",
-                user_id="user-1",
-                response_format="xml"
-            )
+            MemoryStoreInput(content="test", user_id="user-1", response_format="xml")
 
 
 # =============================================================================
 # Tool Output Format Tests
 # =============================================================================
+
 
 class TestOutputFormats:
     """Test JSON and Markdown output formatting."""
@@ -127,17 +121,14 @@ class TestOutputFormats:
     @pytest.mark.asyncio
     async def test_store_memory_returns_json_when_requested(self, monkeypatch, null_manager):
         """Store should return structured JSON when format is json."""
+
         def mock_context(**kwargs):
             return AuthorizedToolContext(
                 manager=null_manager,
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
 
         params = MemoryStoreInput(
             content="Test memory content",
@@ -170,11 +161,7 @@ class TestOutputFormats:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
 
         params = MemoryQueryInput(
             query="project",
@@ -206,11 +193,7 @@ class TestOutputFormats:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
 
         params = MemoryListInput(
             user_id="test-user",
@@ -228,6 +211,7 @@ class TestOutputFormats:
 # =============================================================================
 # Error Message Tests
 # =============================================================================
+
 
 class TestErrorMessages:
     """Test error message quality and suggestions."""
@@ -248,6 +232,7 @@ class TestErrorMessages:
     @pytest.mark.asyncio
     async def test_get_memory_returns_actionable_error_when_not_found(self, monkeypatch, null_manager):
         """Get memory should provide helpful error when memory doesn't exist."""
+
         def mock_context(**_kwargs):
             return AuthorizedToolContext(
                 manager=null_manager,
@@ -255,16 +240,8 @@ class TestErrorMessages:
             )
 
         # Mock memory_in_scope to return False
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "memory_in_scope",
-            lambda **kw: False
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "memory_in_scope", lambda **kw: False)
 
         params = MemoryGetInput(
             memory_id="nonexistent-id",
@@ -283,6 +260,7 @@ class TestErrorMessages:
 # Pagination Tests
 # =============================================================================
 
+
 class TestPagination:
     """Test pagination functionality."""
 
@@ -299,11 +277,7 @@ class TestPagination:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
 
         params = MemoryListInput(
             user_id="test-user",
@@ -331,11 +305,7 @@ class TestPagination:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
 
         params = MemoryQueryInput(
             query="test",
@@ -355,6 +325,7 @@ class TestPagination:
 # =============================================================================
 # Tool Registration Tests
 # =============================================================================
+
 
 class TestToolRegistration:
     """Test that tools are properly registered."""
@@ -384,13 +355,13 @@ class TestToolRegistration:
 
         for func in funcs:
             # Function names should start with foresight_
-            assert func.__name__.startswith("foresight_"), \
-                f"Tool {func.__name__} should have foresight_ prefix"
+            assert func.__name__.startswith("foresight_"), f"Tool {func.__name__} should have foresight_ prefix"
 
 
 # =============================================================================
 # Integration Tests
 # =============================================================================
+
 
 class TestIntegration:
     """Integration tests with NullMemoryManager."""
@@ -405,18 +376,10 @@ class TestIntegration:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
 
         # Also mock the status tool to use the same context
-        monkeypatch.setattr(
-            fastmcp_shared,
-            "stdio_trusted_tool_context",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_shared, "stdio_trusted_tool_context", lambda **kw: mock_context(**kw))
 
         # Create
         store_params = MemoryStoreInput(
@@ -451,17 +414,14 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_concurrent_operations_are_safe(self, monkeypatch, null_manager):
         """Multiple operations should not interfere with each other."""
+
         def mock_context(**kwargs):
             return AuthorizedToolContext(
                 manager=null_manager,
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(
-            fastmcp_v2_tools,
-            "authorized_tool_context_from_json",
-            lambda **kw: mock_context(**kw)
-        )
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
 
         # Run multiple stores concurrently
         async def store_one(i):

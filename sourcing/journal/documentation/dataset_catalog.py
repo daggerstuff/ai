@@ -7,7 +7,7 @@ Provides functionality to export dataset catalogs in multiple formats
 
 import csv
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from ai.sourcing.journal.models.dataset_models import (
@@ -59,7 +59,7 @@ class DatasetCatalog:
         lines = [
             "# Dataset Catalog",
             "",
-            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "## Summary Statistics",
             "",
@@ -212,23 +212,15 @@ class DatasetCatalog:
             output_path: Path to write the JSON catalog
         """
         catalog_data = {
-            "generated": datetime.now(timezone.utc).isoformat(),
+            "generated": datetime.now(UTC).isoformat(),
             "statistics": self.get_statistics(),
             "sources": [self._source_to_dict(source) for source in self.sources],
-            "evaluations": [
-                self._evaluation_to_dict(eval) for eval in self.evaluations
-            ],
-            "acquired_datasets": [
-                self._acquired_dataset_to_dict(ds) for ds in self.acquired_datasets
-            ],
-            "integration_plans": [
-                self._integration_plan_to_dict(plan) for plan in self.integration_plans
-            ],
+            "evaluations": [self._evaluation_to_dict(eval) for eval in self.evaluations],
+            "acquired_datasets": [self._acquired_dataset_to_dict(ds) for ds in self.acquired_datasets],
+            "integration_plans": [self._integration_plan_to_dict(plan) for plan in self.integration_plans],
         }
 
-        output_path.write_text(
-            json.dumps(catalog_data, indent=2, default=str), encoding="utf-8"
-        )
+        output_path.write_text(json.dumps(catalog_data, indent=2, default=str), encoding="utf-8")
 
     def get_statistics(self) -> dict[str, any]:
         """
@@ -248,17 +240,13 @@ class DatasetCatalog:
         # Source type breakdown
         source_types: dict[str, int] = {}
         for source in self.sources:
-            source_types[source.source_type] = (
-                source_types.get(source.source_type, 0) + 1
-            )
+            source_types[source.source_type] = source_types.get(source.source_type, 0) + 1
         stats["sources_by_type"] = source_types
 
         # Data availability breakdown
         availability_counts: dict[str, int] = {}
         for source in self.sources:
-            availability_counts[source.data_availability] = (
-                availability_counts.get(source.data_availability, 0) + 1
-            )
+            availability_counts[source.data_availability] = availability_counts.get(source.data_availability, 0) + 1
         stats["sources_by_availability"] = availability_counts
 
         # Evaluation score statistics
@@ -273,9 +261,7 @@ class DatasetCatalog:
             # Priority tier breakdown
             priority_counts: dict[str, int] = {}
             for eval in self.evaluations:
-                priority_counts[eval.priority_tier] = (
-                    priority_counts.get(eval.priority_tier, 0) + 1
-                )
+                priority_counts[eval.priority_tier] = priority_counts.get(eval.priority_tier, 0) + 1
             stats["evaluations_by_priority"] = priority_counts
 
         # Total dataset size
@@ -317,9 +303,7 @@ class DatasetCatalog:
             lines.append("")
 
         if stats.get("total_acquired_size_mb", 0) > 0:
-            lines.append(
-                f"- **Total Acquired Dataset Size**: {stats['total_acquired_size_mb']:.2f} MB"
-            )
+            lines.append(f"- **Total Acquired Dataset Size**: {stats['total_acquired_size_mb']:.2f} MB")
 
         return lines
 
@@ -475,4 +459,3 @@ class DatasetCatalog:
             "integration_priority": plan.integration_priority,
             "created_date": plan.created_date.isoformat(),
         }
-

@@ -82,9 +82,7 @@ class MemoryMetadata:
     def from_dict(cls, data: dict[str, Any]) -> MemoryMetadata:
         return cls(
             category=MemoryCategory(data.get("category", MemoryCategory.GENERAL.value)),
-            crisis_severity=CrisisSeverity(
-                data.get("crisis_severity", CrisisSeverity.NONE.value)
-            ),
+            crisis_severity=CrisisSeverity(data.get("crisis_severity", CrisisSeverity.NONE.value)),
             user_id=data.get("user_id"),
             session_id=data.get("session_id"),
             tags=list(data.get("tags", [])),

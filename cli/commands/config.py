@@ -4,6 +4,7 @@ Configuration Management Commands for Pixelated AI CLI
 This module provides commands for managing CLI configuration, including profiles,
 environment variables, and settings.
 """
+
 import json
 import os
 import sys
@@ -14,8 +15,8 @@ import click
 import psutil
 import yaml
 
-from ai.cli.config import CLIConfig, get_config, save_config
-from ai.cli.utils import get_logger, setup_logging
+from cli.config import CLIConfig, get_config, save_config
+from cli.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
@@ -237,8 +238,7 @@ def validate(_ctx, profile: str | None, strict: bool):
 @config_group.command()
 @click.option("--profile", "-p", help="Profile to export")
 @click.option("--output", "-o", type=click.Path(), required=True, help="Output file path")
-@click.option("--format", type=click.Choice(["json", "yaml"]), default="yaml",
-              help="Export format")
+@click.option("--format", type=click.Choice(["json", "yaml"]), default="yaml", help="Export format")
 @click.option("--include-secrets", is_flag=True, help="Include sensitive configuration values")
 @click.pass_context
 def export(_ctx, profile: str | None, output: str, format: str, include_secrets: bool):
@@ -273,8 +273,7 @@ def export(_ctx, profile: str | None, output: str, format: str, include_secrets:
 
 
 @config_group.command()
-@click.option("--file", "-f", type=click.Path(exists=True), required=True,
-              help="Configuration file to import")
+@click.option("--file", "-f", type=click.Path(exists=True), required=True, help="Configuration file to import")
 @click.option("--profile", "-p", help="Target profile name")
 @click.option("--overwrite", is_flag=True, help="Overwrite existing profile")
 @click.pass_context
@@ -342,11 +341,7 @@ def env_info(_ctx):
 
         # Check required environment variables
         click.echo("\n🔐 Required Environment Variables:")
-        required_vars = [
-            "PIXELATED_API_URL",
-            "PIXELATED_API_KEY",
-            "PIXELATED_REDIS_URL"
-        ]
+        required_vars = ["PIXELATED_API_URL", "PIXELATED_API_KEY", "PIXELATED_REDIS_URL"]
 
         for var in required_vars:
             value = os.getenv(var)
@@ -362,11 +357,7 @@ def env_info(_ctx):
 
         # Check optional variables
         click.echo("\n🔧 Optional Environment Variables:")
-        optional_vars = [
-            "PIXELATED_LOG_LEVEL",
-            "PIXELATED_CONFIG_DIR",
-            "PIXELATED_CACHE_DIR"
-        ]
+        optional_vars = ["PIXELATED_LOG_LEVEL", "PIXELATED_CONFIG_DIR", "PIXELATED_CACHE_DIR"]
 
         for var in optional_vars:
             value = os.getenv(var)
@@ -406,6 +397,7 @@ def env_info(_ctx):
 
 # Helper functions
 
+
 def _interactive_config(config: CLIConfig) -> None:
     """Interactive configuration mode."""
     click.echo("🔄 Interactive Configuration Mode")
@@ -427,17 +419,8 @@ def _interactive_config(config: CLIConfig) -> None:
 
     # Apply updates
     updates = {
-        "api": {
-            "base_url": api_url,
-            "timeout": api_timeout,
-            "max_retries": api_retries
-        },
-        "logging": {
-            "level": log_level,
-            "file": log_file,
-            "max_size_mb": log_size,
-            "backup_count": log_backups
-        }
+        "api": {"base_url": api_url, "timeout": api_timeout, "max_retries": api_retries},
+        "logging": {"level": log_level, "file": log_file, "max_size_mb": log_size, "backup_count": log_backups},
     }
 
     _apply_config_updates(config, updates)
@@ -504,36 +487,25 @@ def _validate_config(config: CLIConfig, strict: bool) -> dict[str, Any]:
         # Additional validation for encrypted credentials
         pass
 
-    return {
-        "valid": len(errors) == 0,
-        "errors": errors,
-        "warnings": warnings
-    }
+    return {"valid": len(errors) == 0, "errors": errors, "warnings": warnings}
 
 
 def _prepare_export_data(config: CLIConfig, include_secrets: bool) -> dict[str, Any]:
     """Prepare configuration data for export."""
     data = {
         "profile_name": config.profile_name,
-        "api": {
-            "base_url": config.api.base_url,
-            "timeout": config.api.timeout,
-            "max_retries": config.api.max_retries
-        },
+        "api": {"base_url": config.api.base_url, "timeout": config.api.timeout, "max_retries": config.api.max_retries},
         "logging": {
             "level": config.logging.level,
             "file": config.logging.file,
             "max_size_mb": config.logging.max_size_mb,
-            "backup_count": config.logging.backup_count
+            "backup_count": config.logging.backup_count,
         },
-        "upload": {
-            "max_file_size_mb": config.upload.max_file_size_mb,
-            "allowed_types": config.upload.allowed_types
-        },
+        "upload": {"max_file_size_mb": config.upload.max_file_size_mb, "allowed_types": config.upload.allowed_types},
         "security": {
             "encrypt_credentials": config.security.encrypt_credentials,
-            "validate_certificates": config.security.validate_certificates
-        }
+            "validate_certificates": config.security.validate_certificates,
+        },
     }
 
     if include_secrets:

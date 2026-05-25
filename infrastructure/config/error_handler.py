@@ -3,6 +3,7 @@
 Configuration Error Handling System for Pixelated Empathy AI
 Provides robust error handling and recovery mechanisms for configuration issues
 """
+
 import json
 import logging
 import os
@@ -20,9 +21,7 @@ from typing import Any
 from urllib.parse import urlparse, urlunparse
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -119,18 +118,14 @@ class ConfigErrorHandler:
             for strategy in self.recovery_strategies[error.category]:
                 try:
                     if strategy(error):
-                        logger.info(
-                            f"Successfully recovered from error: {error.message}"
-                        )
+                        logger.info(f"Successfully recovered from error: {error.message}")
                         return True
                 except Exception as e:
                     logger.warning(f"Recovery strategy failed: {e}")
 
         # If critical error and no recovery, exit
         if error.severity == ErrorSeverity.CRITICAL:
-            logger.critical(
-                f"Critical configuration error with no recovery: {error.message}"
-            )
+            logger.critical(f"Critical configuration error with no recovery: {error.message}")
             self._generate_error_report()
             sys.exit(1)
 
@@ -209,9 +204,7 @@ class ConfigErrorHandler:
 
         if error.field in default_values:
             os.environ[error.field] = default_values[error.field]
-            logger.info(
-                f"Set default value for {error.field}: {default_values[error.field]}"
-            )
+            logger.info(f"Set default value for {error.field}: {default_values[error.field]}")
             return True
 
         return False
@@ -221,9 +214,7 @@ class ConfigErrorHandler:
         # Try to fix common validation issues
         if error.field and "URL" in error.field:
             # Try to fix URL format
-            if error.value and not str(error.value).startswith(
-                ("http://", "https://", "postgresql://", "redis://")
-            ):
+            if error.value and not str(error.value).startswith(("http://", "https://", "postgresql://", "redis://")):
                 # Add default scheme
                 if "DATABASE" in error.field:
                     fixed_value = f"postgresql://{error.value}"
@@ -279,12 +270,9 @@ class ConfigErrorHandler:
             if "localhost" not in db_url and "127.0.0.1" not in db_url:
                 # Try localhost version
                 try:
-
                     parsed = urlparse(db_url)
                     localhost_url = urlunparse(
-                        parsed._replace(
-                            netloc=f"{parsed.username}:{parsed.password}@localhost:{parsed.port or 5432}"
-                        )
+                        parsed._replace(netloc=f"{parsed.username}:{parsed.password}@localhost:{parsed.port or 5432}")
                     )
                     os.environ["DATABASE_URL"] = localhost_url
                     logger.info("Trying localhost database connection")
@@ -321,9 +309,7 @@ class ConfigErrorHandler:
                 logger.info(f"Fixed permissions for {error.field}")
                 return True
             except PermissionError:
-                logger.error(
-                    f"Cannot fix permissions for {error.field} - insufficient privileges"
-                )
+                logger.error(f"Cannot fix permissions for {error.field} - insufficient privileges")
 
         return False
 
@@ -341,9 +327,7 @@ class ConfigErrorHandler:
             if current_batch > 10:
                 new_batch = max(10, current_batch // 2)
                 os.environ["BATCH_SIZE"] = str(new_batch)
-                logger.info(
-                    f"Reduced batch size to {new_batch} due to memory constraints"
-                )
+                logger.info(f"Reduced batch size to {new_batch} due to memory constraints")
                 return True
 
         return False
@@ -360,9 +344,7 @@ class ConfigErrorHandler:
                 logger.info(f"Created missing directory: {error.field}")
                 return True
             except PermissionError:
-                logger.error(
-                    f"Cannot create directory {error.field} - insufficient privileges"
-                )
+                logger.error(f"Cannot create directory {error.field} - insufficient privileges")
 
         return False
 
@@ -501,15 +483,11 @@ backup:
         for error in self.errors:
             # Count by category
             category = error.category.value
-            summary["by_category"][category] = (
-                summary["by_category"].get(category, 0) + 1
-            )
+            summary["by_category"][category] = summary["by_category"].get(category, 0) + 1
 
             # Count by severity
             severity = error.severity.value
-            summary["by_severity"][severity] = (
-                summary["by_severity"].get(severity, 0) + 1
-            )
+            summary["by_severity"][severity] = summary["by_severity"].get(severity, 0) + 1
 
         return summary
 
@@ -546,9 +524,7 @@ def handle_validation_error(message: str, field: str = None, value: Any = None) 
     return handler.handle_error(error)
 
 
-def handle_security_error(
-    message: str, field: str = None, severity: ErrorSeverity = ErrorSeverity.CRITICAL
-) -> bool:
+def handle_security_error(message: str, field: str = None, severity: ErrorSeverity = ErrorSeverity.CRITICAL) -> bool:
     """Handle a security error"""
     handler = ConfigErrorHandler()
     error = ConfigError(

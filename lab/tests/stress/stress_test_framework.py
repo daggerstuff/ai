@@ -3,6 +3,7 @@
 Stress Testing Framework
 Tests system performance under heavy load with large datasets.
 """
+
 import logging
 import random
 import statistics
@@ -111,9 +112,7 @@ class StressTestFramework:
             "conversation": template["messages"],
         }
 
-    def insert_conversation_batch(
-        self, conversations: list[dict[str, Any]]
-    ) -> dict[str, Any]:
+    def insert_conversation_batch(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
         """Insert a batch of conversations and measure performance."""
         start_time = time.time()
 
@@ -176,12 +175,8 @@ class StressTestFramework:
                 "duration": duration,
                 "conversations_inserted": conversations_inserted,
                 "messages_inserted": messages_inserted,
-                "conversations_per_second": conversations_inserted / duration
-                if duration > 0
-                else 0,
-                "messages_per_second": messages_inserted / duration
-                if duration > 0
-                else 0,
+                "conversations_per_second": conversations_inserted / duration if duration > 0 else 0,
+                "messages_per_second": messages_inserted / duration if duration > 0 else 0,
             }
 
         except Exception as e:
@@ -191,9 +186,7 @@ class StressTestFramework:
                 "duration": time.time() - start_time,
             }
 
-    def concurrent_insert_test(
-        self, total_conversations: int, batch_size: int, num_threads: int
-    ) -> dict[str, Any]:
+    def concurrent_insert_test(self, total_conversations: int, batch_size: int, num_threads: int) -> dict[str, Any]:
         """Test concurrent conversation insertion."""
         logger.info(
             f"Starting concurrent insert test: {total_conversations} conversations, {batch_size} batch size, {num_threads} threads"
@@ -202,9 +195,7 @@ class StressTestFramework:
         # Generate all test data
         all_conversations = []
         for i in range(total_conversations):
-            conv = self.generate_test_conversation(
-                f"stress_test_{i}_{int(time.time())}"
-            )
+            conv = self.generate_test_conversation(f"stress_test_{i}_{int(time.time())}")
             all_conversations.append(conv)
 
         # Split into batches
@@ -218,10 +209,7 @@ class StressTestFramework:
         results = []
 
         with ThreadPoolExecutor(max_workers=num_threads) as executor:
-            futures = [
-                executor.submit(self.insert_conversation_batch, batch)
-                for batch in batches
-            ]
+            futures = [executor.submit(self.insert_conversation_batch, batch) for batch in batches]
 
             for future in futures:
                 result = future.result()
@@ -234,36 +222,25 @@ class StressTestFramework:
         successful_results = [r for r in results if r.get("success", False)]
         failed_results = [r for r in results if not r.get("success", False)]
 
-        total_conversations_inserted = sum(
-            r.get("conversations_inserted", 0) for r in successful_results
-        )
-        total_messages_inserted = sum(
-            r.get("messages_inserted", 0) for r in successful_results
-        )
+        total_conversations_inserted = sum(r.get("conversations_inserted", 0) for r in successful_results)
+        total_messages_inserted = sum(r.get("messages_inserted", 0) for r in successful_results)
 
         return {
             "total_duration": total_duration,
             "total_conversations_inserted": total_conversations_inserted,
             "total_messages_inserted": total_messages_inserted,
-            "overall_conversations_per_second": total_conversations_inserted
-            / total_duration
+            "overall_conversations_per_second": total_conversations_inserted / total_duration
             if total_duration > 0
             else 0,
-            "overall_messages_per_second": total_messages_inserted / total_duration
-            if total_duration > 0
-            else 0,
+            "overall_messages_per_second": total_messages_inserted / total_duration if total_duration > 0 else 0,
             "successful_batches": len(successful_results),
             "failed_batches": len(failed_results),
             "batch_results": results,
         }
 
-    def query_performance_test(
-        self, num_queries: int, concurrent_queries: int
-    ) -> dict[str, Any]:
+    def query_performance_test(self, num_queries: int, concurrent_queries: int) -> dict[str, Any]:
         """Test database query performance under load."""
-        logger.info(
-            f"Starting query performance test: {num_queries} queries, {concurrent_queries} concurrent"
-        )
+        logger.info(f"Starting query performance test: {num_queries} queries, {concurrent_queries} concurrent")
 
         test_queries = [
             "SELECT COUNT(*) FROM conversations",
@@ -300,9 +277,7 @@ class StressTestFramework:
         all_results = []
 
         with ThreadPoolExecutor(max_workers=concurrent_queries) as executor:
-            futures = [
-                executor.submit(execute_query_batch) for _ in range(concurrent_queries)
-            ]
+            futures = [executor.submit(execute_query_batch) for _ in range(concurrent_queries)]
 
             for future in futures:
                 batch_results = future.result()
@@ -315,9 +290,7 @@ class StressTestFramework:
             return {
                 "total_duration": total_duration,
                 "total_queries": len(all_results),
-                "queries_per_second": len(all_results) / total_duration
-                if total_duration > 0
-                else 0,
+                "queries_per_second": len(all_results) / total_duration if total_duration > 0 else 0,
                 "avg_query_time": statistics.mean(all_results),
                 "median_query_time": statistics.median(all_results),
                 "min_query_time": min(all_results),
@@ -331,7 +304,6 @@ class StressTestFramework:
     def memory_usage_test(self, dataset_size: int) -> dict[str, Any]:
         """Test memory usage with large datasets."""
         logger.info(f"Starting memory usage test with {dataset_size} conversations")
-
 
         process = psutil.Process()
 
@@ -349,9 +321,7 @@ class StressTestFramework:
             # Check memory every 1000 conversations
             if i % 1000 == 0 and i > 0:
                 current_memory = process.memory_info().rss / 1024 / 1024
-                logger.info(
-                    f"Generated {i} conversations, memory usage: {current_memory:.1f} MB"
-                )
+                logger.info(f"Generated {i} conversations, memory usage: {current_memory:.1f} MB")
 
         generation_time = time.time() - start_time
         peak_memory = process.memory_info().rss / 1024 / 1024
@@ -365,9 +335,7 @@ class StressTestFramework:
             "baseline_memory_mb": baseline_memory,
             "peak_memory_mb": peak_memory,
             "memory_increase_mb": peak_memory - baseline_memory,
-            "memory_per_conversation_kb": (peak_memory - baseline_memory)
-            * 1024
-            / dataset_size
+            "memory_per_conversation_kb": (peak_memory - baseline_memory) * 1024 / dataset_size
             if dataset_size > 0
             else 0,
         }
@@ -386,9 +354,7 @@ class StressTestFramework:
 
         # Test 2: Query performance under load
         logger.info("\n📊 Test 2: Query Performance Under Load")
-        results["query_performance"] = self.query_performance_test(
-            num_queries=500, concurrent_queries=10
-        )
+        results["query_performance"] = self.query_performance_test(num_queries=500, concurrent_queries=10)
 
         # Test 3: Memory usage test
         logger.info("\n📊 Test 3: Memory Usage Test")
@@ -420,9 +386,7 @@ class StressTestFramework:
             messages_deleted = cursor.rowcount
 
             # Delete test conversations
-            cursor.execute(
-                "DELETE FROM conversations WHERE id LIKE 'stress_test_%' OR id LIKE 'memory_test_%'"
-            )
+            cursor.execute("DELETE FROM conversations WHERE id LIKE 'stress_test_%' OR id LIKE 'memory_test_%'")
             conversations_deleted = cursor.rowcount
 
             conn.commit()
@@ -452,19 +416,13 @@ def main():
             logger.error(f"  ❌ Failed: {result['error']}")
         else:
             if "overall_conversations_per_second" in result:
-                logger.info(
-                    f"  📊 Conversations/sec: {result['overall_conversations_per_second']:.1f}"
-                )
+                logger.info(f"  📊 Conversations/sec: {result['overall_conversations_per_second']:.1f}")
             if "queries_per_second" in result:
                 logger.info(f"  📊 Queries/sec: {result['queries_per_second']:.1f}")
             if "avg_query_time" in result:
-                logger.info(
-                    f"  ⏱️ Avg query time: {result['avg_query_time'] * 1000:.1f}ms"
-                )
+                logger.info(f"  ⏱️ Avg query time: {result['avg_query_time'] * 1000:.1f}ms")
             if "memory_increase_mb" in result:
-                logger.info(
-                    f"  💾 Memory increase: {result['memory_increase_mb']:.1f} MB"
-                )
+                logger.info(f"  💾 Memory increase: {result['memory_increase_mb']:.1f} MB")
 
 
 if __name__ == "__main__":

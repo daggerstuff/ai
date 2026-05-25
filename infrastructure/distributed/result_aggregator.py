@@ -3,6 +3,7 @@
 Quality Validation Result Aggregation System for Pixelated Empathy AI
 Aggregates and analyzes results from distributed quality validation workers
 """
+
 import argparse
 import json
 import logging
@@ -11,20 +12,18 @@ import statistics
 import threading
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class AggregatedResult:
     """Aggregated validation results"""
+
     batch_id: str
     total_files: int
     processed_files: int
@@ -110,25 +109,28 @@ class ResultAggregator:
         """Store result in database"""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT INTO validation_results (
                         batch_id, task_id, file_path, validation_type, success,
                         quality_score, metrics, issues, processing_time,
                         worker_id, timestamp
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    batch_id,
-                    result.get("task_id", ""),
-                    result.get("file_path", ""),
-                    result.get("validation_type", ""),
-                    result.get("success", False),
-                    result.get("quality_score", 0.0),
-                    json.dumps(result.get("metrics", {})),
-                    json.dumps(result.get("issues", [])),
-                    result.get("processing_time", 0.0),
-                    result.get("worker_id", ""),
-                    result.get("timestamp", datetime.now(timezone.utc).isoformat())
-                ))
+                """,
+                    (
+                        batch_id,
+                        result.get("task_id", ""),
+                        result.get("file_path", ""),
+                        result.get("validation_type", ""),
+                        result.get("success", False),
+                        result.get("quality_score", 0.0),
+                        json.dumps(result.get("metrics", {})),
+                        json.dumps(result.get("issues", [])),
+                        result.get("processing_time", 0.0),
+                        result.get("worker_id", ""),
+                        result.get("timestamp", datetime.now(UTC).isoformat()),
+                    ),
+                )
         except Exception as e:
             logger.error(f"Failed to store result in database: {e}")
 
@@ -156,14 +158,17 @@ class ResultAggregator:
         """Load results from database"""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT task_id, file_path, validation_type, success,
                            quality_score, metrics, issues, processing_time,
                            worker_id, timestamp
                     FROM validation_results
                     WHERE batch_id = ?
                     ORDER BY timestamp
-                """, (batch_id,))
+                """,
+                    (batch_id,),
+                )
 
                 results = []
                 for row in cursor.fetchall():
@@ -177,7 +182,7 @@ class ResultAggregator:
                         "issues": json.loads(row[6]) if row[6] else [],
                         "processing_time": row[7],
                         "worker_id": row[8],
-                        "timestamp": row[9]
+                        "timestamp": row[9],
                     }
                     results.append(result)
 
@@ -229,16 +234,16 @@ class ResultAggregator:
             common_issues=common_issues,
             processing_time_stats=processing_time_stats,
             worker_performance=worker_performance,
-            timestamp=datetime.now(timezone.utc).isoformat()
+            timestamp=datetime.now(UTC).isoformat(),
         )
 
     def _calculate_quality_distribution(self, results: list[dict[str, Any]]) -> dict[str, int]:
         """Calculate quality score distribution"""
         distribution = {
             "excellent": 0,  # 0.9-1.0
-            "good": 0,       # 0.7-0.9
-            "fair": 0,       # 0.5-0.7
-            "poor": 0        # 0.0-0.5
+            "good": 0,  # 0.7-0.9
+            "fair": 0,  # 0.5-0.7
+            "poor": 0,  # 0.0-0.5
         }
 
         for result in results:
@@ -275,7 +280,7 @@ class ResultAggregator:
                     "std_dev": statistics.stdev(values) if len(values) > 1 else 0.0,
                     "min": min(values),
                     "max": max(values),
-                    "count": len(values)
+                    "count": len(values),
                 }
 
         return metric_stats
@@ -294,24 +299,28 @@ class ResultAggregator:
                 # Create a key for grouping similar issues
                 issue_key = f"{issue_type}:{issue_message[:50]}"
                 issue_counter[issue_key] += 1
-                issue_details[issue_key].append({
-                    "file_path": result.get("file_path", ""),
-                    "severity": issue.get("severity", "unknown"),
-                    "full_message": issue_message
-                })
+                issue_details[issue_key].append(
+                    {
+                        "file_path": result.get("file_path", ""),
+                        "severity": issue.get("severity", "unknown"),
+                        "full_message": issue_message,
+                    }
+                )
 
         # Get top 10 most common issues
         common_issues = []
         for issue_key, count in issue_counter.most_common(10):
             issue_type, message_preview = issue_key.split(":", 1)
 
-            common_issues.append({
-                "type": issue_type,
-                "message_preview": message_preview,
-                "count": count,
-                "percentage": (count / len(results)) * 100,
-                "examples": issue_details[issue_key][:3]  # First 3 examples
-            })
+            common_issues.append(
+                {
+                    "type": issue_type,
+                    "message_preview": message_preview,
+                    "count": count,
+                    "percentage": (count / len(results)) * 100,
+                    "examples": issue_details[issue_key][:3],  # First 3 examples
+                }
+            )
 
         return common_issues
 
@@ -320,14 +329,7 @@ class ResultAggregator:
         processing_times = [r.get("processing_time", 0.0) for r in results if r.get("processing_time")]
 
         if not processing_times:
-            return {
-                "mean": 0.0,
-                "median": 0.0,
-                "std_dev": 0.0,
-                "min": 0.0,
-                "max": 0.0,
-                "total": 0.0
-            }
+            return {"mean": 0.0, "median": 0.0, "std_dev": 0.0, "min": 0.0, "max": 0.0, "total": 0.0}
 
         return {
             "mean": statistics.mean(processing_times),
@@ -335,25 +337,24 @@ class ResultAggregator:
             "std_dev": statistics.stdev(processing_times) if len(processing_times) > 1 else 0.0,
             "min": min(processing_times),
             "max": max(processing_times),
-            "total": sum(processing_times)
+            "total": sum(processing_times),
         }
 
     def _analyze_worker_performance(self, results: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
         """Analyze performance by worker"""
-        worker_stats = defaultdict(lambda: {
-            "tasks_completed": 0,
-            "success_rate": 0.0,
-            "avg_quality_score": 0.0,
-            "avg_processing_time": 0.0,
-            "total_processing_time": 0.0
-        })
+        worker_stats = defaultdict(
+            lambda: {
+                "tasks_completed": 0,
+                "success_rate": 0.0,
+                "avg_quality_score": 0.0,
+                "avg_processing_time": 0.0,
+                "total_processing_time": 0.0,
+            }
+        )
 
-        worker_data = defaultdict(lambda: {
-            "total_tasks": 0,
-            "successful_tasks": 0,
-            "quality_scores": [],
-            "processing_times": []
-        })
+        worker_data = defaultdict(
+            lambda: {"total_tasks": 0, "successful_tasks": 0, "quality_scores": [], "processing_times": []}
+        )
 
         # Collect data by worker
         for result in results:
@@ -388,25 +389,28 @@ class ResultAggregator:
         """Store aggregated result in database"""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT OR REPLACE INTO aggregated_results (
                         batch_id, total_files, processed_files, success_rate,
                         overall_quality_score, quality_distribution, metric_statistics,
                         common_issues, processing_time_stats, worker_performance, timestamp
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    aggregated.batch_id,
-                    aggregated.total_files,
-                    aggregated.processed_files,
-                    aggregated.success_rate,
-                    aggregated.overall_quality_score,
-                    json.dumps(aggregated.quality_distribution),
-                    json.dumps(aggregated.metric_statistics),
-                    json.dumps(aggregated.common_issues),
-                    json.dumps(aggregated.processing_time_stats),
-                    json.dumps(aggregated.worker_performance),
-                    aggregated.timestamp
-                ))
+                """,
+                    (
+                        aggregated.batch_id,
+                        aggregated.total_files,
+                        aggregated.processed_files,
+                        aggregated.success_rate,
+                        aggregated.overall_quality_score,
+                        json.dumps(aggregated.quality_distribution),
+                        json.dumps(aggregated.metric_statistics),
+                        json.dumps(aggregated.common_issues),
+                        json.dumps(aggregated.processing_time_stats),
+                        json.dumps(aggregated.worker_performance),
+                        aggregated.timestamp,
+                    ),
+                )
         except Exception as e:
             logger.error(f"Failed to store aggregated result: {e}")
 
@@ -414,9 +418,12 @@ class ResultAggregator:
         """Get summary for a specific batch"""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT * FROM aggregated_results WHERE batch_id = ?
-                """, (batch_id,))
+                """,
+                    (batch_id,),
+                )
 
                 row = cursor.fetchone()
                 if row:
@@ -431,7 +438,7 @@ class ResultAggregator:
                         "common_issues": json.loads(row[8]),
                         "processing_time_stats": json.loads(row[9]),
                         "worker_performance": json.loads(row[10]),
-                        "timestamp": row[11]
+                        "timestamp": row[11],
                     }
 
                 return None
@@ -453,14 +460,16 @@ class ResultAggregator:
 
                 batches = []
                 for row in cursor.fetchall():
-                    batches.append({
-                        "batch_id": row[0],
-                        "total_files": row[1],
-                        "processed_files": row[2],
-                        "success_rate": row[3],
-                        "overall_quality_score": row[4],
-                        "timestamp": row[5]
-                    })
+                    batches.append(
+                        {
+                            "batch_id": row[0],
+                            "total_files": row[1],
+                            "processed_files": row[2],
+                            "success_rate": row[3],
+                            "overall_quality_score": row[4],
+                            "timestamp": row[5],
+                        }
+                    )
 
                 return batches
 
@@ -479,7 +488,7 @@ class ResultAggregator:
         report_lines = [
             f"Quality Validation Report - Batch {batch_id}",
             "=" * 60,
-            f"Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}",
+            f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}",
             "",
             "SUMMARY",
             "-" * 20,
@@ -489,18 +498,14 @@ class ResultAggregator:
             f"Overall Quality Score: {aggregated['overall_quality_score']:.3f}",
             "",
             "QUALITY DISTRIBUTION",
-            "-" * 20
+            "-" * 20,
         ]
 
         for category, count in aggregated["quality_distribution"].items():
             percentage = (count / aggregated["processed_files"]) * 100 if aggregated["processed_files"] > 0 else 0
             report_lines.append(f"{category.capitalize()}: {count} ({percentage:.1f}%)")
 
-        report_lines.extend([
-            "",
-            "METRIC STATISTICS",
-            "-" * 20
-        ])
+        report_lines.extend(["", "METRIC STATISTICS", "-" * 20])
 
         for metric, stats in aggregated["metric_statistics"].items():
             report_lines.append(f"{metric.capitalize()}:")
@@ -510,26 +515,25 @@ class ResultAggregator:
             report_lines.append(f"  Range: {stats['min']:.3f} - {stats['max']:.3f}")
             report_lines.append("")
 
-        report_lines.extend([
-            "COMMON ISSUES",
-            "-" * 20
-        ])
+        report_lines.extend(["COMMON ISSUES", "-" * 20])
 
         for issue in aggregated["common_issues"][:5]:  # Top 5 issues
             report_lines.append(f"• {issue['type']}: {issue['message_preview']}")
             report_lines.append(f"  Occurrences: {issue['count']} ({issue['percentage']:.1f}%)")
             report_lines.append("")
 
-        report_lines.extend([
-            "PROCESSING PERFORMANCE",
-            "-" * 20,
-            f"Total Processing Time: {aggregated['processing_time_stats']['total']:.2f} seconds",
-            f"Average Processing Time: {aggregated['processing_time_stats']['mean']:.2f} seconds",
-            f"Median Processing Time: {aggregated['processing_time_stats']['median']:.2f} seconds",
-            "",
-            "WORKER PERFORMANCE",
-            "-" * 20
-        ])
+        report_lines.extend(
+            [
+                "PROCESSING PERFORMANCE",
+                "-" * 20,
+                f"Total Processing Time: {aggregated['processing_time_stats']['total']:.2f} seconds",
+                f"Average Processing Time: {aggregated['processing_time_stats']['mean']:.2f} seconds",
+                f"Median Processing Time: {aggregated['processing_time_stats']['median']:.2f} seconds",
+                "",
+                "WORKER PERFORMANCE",
+                "-" * 20,
+            ]
+        )
 
         for worker_id, stats in aggregated["worker_performance"].items():
             report_lines.append(f"Worker: {worker_id}")

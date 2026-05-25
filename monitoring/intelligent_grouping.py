@@ -9,7 +9,7 @@ import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import numpy as np
@@ -21,14 +21,17 @@ from sklearn.metrics.pairwise import cosine_similarity
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class AlertFeatures:
     """Extracted features from an alert for grouping"""
+
     text_features: np.ndarray
     categorical_features: dict[str, str]
     numerical_features: dict[str, float]
     temporal_features: dict[str, float]
     pattern_features: dict[str, Any]
+
 
 class TextPatternExtractor:
     """Extract patterns from alert text for intelligent grouping"""
@@ -40,26 +43,24 @@ class TextPatternExtractor:
             (r"exception\s*:?\s*([A-Za-z][A-Za-z0-9_]*Exception)", "exception_type"),
             (r"failed\s+to\s+([a-z_]+)", "failure_action"),
             (r"timeout\s+(?:after\s+)?(\d+(?:\.\d+)?)\s*(ms|s|seconds?|minutes?)", "timeout_duration"),
-
             # Resource patterns
             (r"cpu\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?", "cpu_usage"),
             (r"memory\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?", "memory_usage"),
             (r"disk\s+usage\s*:?\s*(\d+(?:\.\d+)?)%?", "disk_usage"),
             (r"(\d+(?:\.\d+)?)\s*%\s+(?:cpu|memory|disk)", "resource_percentage"),
-
             # Network patterns
-            (r"connection\s+(?:to\s+)?([a-zA-Z0-9.-]+)(?:\s+port\s+(\d+))?\s+(?:failed|refused|timeout)", "connection_target"),
+            (
+                r"connection\s+(?:to\s+)?([a-zA-Z0-9.-]+)(?:\s+port\s+(\d+))?\s+(?:failed|refused|timeout)",
+                "connection_target",
+            ),
             (r"(\d+\.\d+\.\d+\.\d+)(?::(\d+))?", "ip_address"),
             (r"status\s+code\s*:?\s*(\d{3})", "http_status"),
-
             # Service patterns
             (r"service\s+([a-zA-Z0-9_-]+)\s+(?:is\s+)?(?:down|unavailable|failed)", "failed_service"),
             (r"([a-zA-Z0-9_-]+)\s+service\s+(?:is\s+)?(?:down|unavailable|failed)", "failed_service"),
-
             # Database patterns
             (r"database\s+connection\s+(?:to\s+)?([a-zA-Z0-9_-]+)\s+failed", "db_connection_target"),
             (r"query\s+timeout\s+(?:after\s+)?(\d+(?:\.\d+)?)\s*(ms|s|seconds?)", "query_timeout"),
-
             # Queue patterns
             (r"queue\s+([a-zA-Z0-9_-]+)\s+(?:has\s+)?(\d+)\s+(?:pending\s+)?(?:items?|messages?)", "queue_info"),
             (r"(\d+)\s+(?:items?|messages?)\s+(?:in\s+)?queue", "queue_size"),
@@ -69,7 +70,7 @@ class TextPatternExtractor:
             "critical": ["critical", "fatal", "emergency", "disaster"],
             "high": ["error", "failed", "failure", "exception", "crash"],
             "medium": ["warning", "warn", "degraded", "slow", "timeout"],
-            "low": ["info", "notice", "debug", "trace"]
+            "low": ["info", "notice", "debug", "trace"],
         }
 
     def extract_patterns(self, text: str) -> dict[str, Any]:
@@ -112,16 +113,12 @@ class TextPatternExtractor:
 
         return patterns
 
+
 class AlertFeatureExtractor:
     """Extract comprehensive features from alerts for ML-based grouping"""
 
     def __init__(self):
-        self.text_vectorizer = TfidfVectorizer(
-            max_features=1000,
-            stop_words="english",
-            ngram_range=(1, 2),
-            min_df=2
-        )
+        self.text_vectorizer = TfidfVectorizer(max_features=1000, stop_words="english", ngram_range=(1, 2), min_df=2)
         self.pattern_extractor = TextPatternExtractor()
         self.fitted = False
 
@@ -153,8 +150,9 @@ class AlertFeatureExtractor:
             "source": alert.get("source", "unknown"),
             "alert_type": alert.get("alert_type", alert.get("title", "unknown")),
             "priority": alert.get("priority", alert.get("severity", "medium")),
-            "service": alert.get("metadata", {}).get("service_name",
-                      alert.get("metadata", {}).get("service", "unknown"))
+            "service": alert.get("metadata", {}).get(
+                "service_name", alert.get("metadata", {}).get("service", "unknown")
+            ),
         }
 
         # Numerical features
@@ -167,7 +165,7 @@ class AlertFeatureExtractor:
                 numerical_features[key] = float(value)
 
         # Temporal features
-        timestamp = alert.get("timestamp", datetime.now(timezone.utc))
+        timestamp = alert.get("timestamp", datetime.now(UTC))
         if isinstance(timestamp, str):
             timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
 
@@ -175,7 +173,7 @@ class AlertFeatureExtractor:
             "hour_of_day": timestamp.hour,
             "day_of_week": timestamp.weekday(),
             "is_weekend": timestamp.weekday() >= 5,
-            "is_business_hours": 9 <= timestamp.hour <= 17
+            "is_business_hours": 9 <= timestamp.hour <= 17,
         }
 
         # Pattern features
@@ -190,7 +188,7 @@ class AlertFeatureExtractor:
             categorical_features=categorical_features,
             numerical_features=numerical_features,
             temporal_features=temporal_features,
-            pattern_features=pattern_features
+            pattern_features=pattern_features,
         )
 
     def _extract_text_content(self, alert: dict[str, Any]) -> str:
@@ -215,6 +213,7 @@ class AlertFeatureExtractor:
 
         return " ".join(parts)
 
+
 class IntelligentGroupingEngine:
     """Main engine for intelligent alert grouping using multiple algorithms"""
 
@@ -224,7 +223,7 @@ class IntelligentGroupingEngine:
             "similarity_clustering": self._similarity_clustering,
             "pattern_matching": self._pattern_matching,
             "temporal_clustering": self._temporal_clustering,
-            "hybrid_approach": self._hybrid_approach
+            "hybrid_approach": self._hybrid_approach,
         }
         self.alert_history = []
         self.group_cache = {}
@@ -236,8 +235,7 @@ class IntelligentGroupingEngine:
             self.feature_extractor.fit(historical_alerts)
             logger.info(f"Initialized grouping engine with {len(historical_alerts)} historical alerts")
 
-    async def suggest_groups(self, alerts: list[dict[str, Any]],
-                           algorithm: str = "hybrid_approach") -> list[list[int]]:
+    async def suggest_groups(self, alerts: list[dict[str, Any]], algorithm: str = "hybrid_approach") -> list[list[int]]:
         """Suggest groupings for a list of alerts"""
 
         if not alerts:
@@ -260,8 +258,9 @@ class IntelligentGroupingEngine:
         logger.info(f"Grouped {len(alerts)} alerts into {len(groups)} groups using {algorithm}")
         return groups
 
-    async def _similarity_clustering(self, alerts: list[dict[str, Any]],
-                                   features: list[AlertFeatures]) -> list[list[int]]:
+    async def _similarity_clustering(
+        self, alerts: list[dict[str, Any]], features: list[AlertFeatures]
+    ) -> list[list[int]]:
         """Group alerts using similarity-based clustering"""
 
         if len(alerts) < 2:
@@ -287,7 +286,7 @@ class IntelligentGroupingEngine:
         clustering = DBSCAN(
             eps=0.3,  # Maximum distance between samples in the same cluster
             min_samples=2,  # Minimum samples in a cluster
-            metric="precomputed"
+            metric="precomputed",
         )
 
         cluster_labels = clustering.fit_predict(distance_matrix)
@@ -329,8 +328,7 @@ class IntelligentGroupingEngine:
 
         return similarity_matrix
 
-    async def _pattern_matching(self, _alerts: list[dict[str, Any]],
-                              features: list[AlertFeatures]) -> list[list[int]]:
+    async def _pattern_matching(self, _alerts: list[dict[str, Any]], features: list[AlertFeatures]) -> list[list[int]]:
         """Group alerts using pattern matching"""
 
         groups = defaultdict(list)
@@ -351,10 +349,7 @@ class IntelligentGroupingEngine:
                 # Try to merge with existing groups
                 merged = False
                 for existing_group in filtered_groups:
-                    if self._should_merge_groups(
-                        [features[group[0]]],
-                        [features[existing_group[0]]]
-                    ):
+                    if self._should_merge_groups([features[group[0]]], [features[existing_group[0]]]):
                         existing_group.extend(group)
                         merged = True
                         break
@@ -393,8 +388,7 @@ class IntelligentGroupingEngine:
 
         return "|".join(sorted(sig_parts))
 
-    def _should_merge_groups(self, group1_features: list[AlertFeatures],
-                           group2_features: list[AlertFeatures]) -> bool:
+    def _should_merge_groups(self, group1_features: list[AlertFeatures], group2_features: list[AlertFeatures]) -> bool:
         """Determine if two groups should be merged"""
 
         # Sample features from each group
@@ -407,28 +401,32 @@ class IntelligentGroupingEngine:
 
         for key in set(f1.categorical_features.keys()) | set(f2.categorical_features.keys()):
             cat_total += 1
-            if (key in f1.categorical_features and key in f2.categorical_features and
-                f1.categorical_features[key] == f2.categorical_features[key]):
+            if (
+                key in f1.categorical_features
+                and key in f2.categorical_features
+                and f1.categorical_features[key] == f2.categorical_features[key]
+            ):
                 cat_similarity += 1
 
         categorical_score = cat_similarity / cat_total if cat_total > 0 else 0
 
         # Check pattern similarity
-        pattern_similarity = len(
-            set(f1.pattern_features.keys()) & set(f2.pattern_features.keys())
-        ) / max(len(f1.pattern_features), len(f2.pattern_features), 1)
+        pattern_similarity = len(set(f1.pattern_features.keys()) & set(f2.pattern_features.keys())) / max(
+            len(f1.pattern_features), len(f2.pattern_features), 1
+        )
 
         # Merge if similarity is high enough
         return categorical_score >= 0.7 and pattern_similarity >= 0.5
 
-    async def _temporal_clustering(self, alerts: list[dict[str, Any]],
-                                 _features: list[AlertFeatures]) -> list[list[int]]:
+    async def _temporal_clustering(
+        self, alerts: list[dict[str, Any]], _features: list[AlertFeatures]
+    ) -> list[list[int]]:
         """Group alerts using temporal clustering"""
 
         # Sort alerts by timestamp
         alert_times = []
         for i, alert in enumerate(alerts):
-            timestamp = alert.get("timestamp", datetime.now(timezone.utc))
+            timestamp = alert.get("timestamp", datetime.now(UTC))
             if isinstance(timestamp, str):
                 timestamp = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
             alert_times.append((i, timestamp))
@@ -445,8 +443,9 @@ class IntelligentGroupingEngine:
                 current_group = [alert_idx]
             else:
                 # Check if within time window of the first alert in current group
-                first_timestamp = alert_times[alert_times.index((current_group[0],
-                    next(t for idx, t in alert_times if idx == current_group[0])))][1]
+                first_timestamp = alert_times[
+                    alert_times.index((current_group[0], next(t for idx, t in alert_times if idx == current_group[0])))
+                ][1]
 
                 if timestamp - first_timestamp <= time_window:
                     current_group.append(alert_idx)
@@ -471,8 +470,7 @@ class IntelligentGroupingEngine:
 
         return groups
 
-    async def _hybrid_approach(self, alerts: list[dict[str, Any]],
-                             features: list[AlertFeatures]) -> list[list[int]]:
+    async def _hybrid_approach(self, alerts: list[dict[str, Any]], features: list[AlertFeatures]) -> list[list[int]]:
         """Hybrid approach combining multiple grouping strategies"""
 
         # Start with similarity clustering
@@ -516,8 +514,9 @@ class IntelligentGroupingEngine:
 
         return final_groups
 
-    async def evaluate_grouping_quality(self, alerts: list[dict[str, Any]],
-                                      groups: list[list[int]]) -> dict[str, float]:
+    async def evaluate_grouping_quality(
+        self, alerts: list[dict[str, Any]], groups: list[list[int]]
+    ) -> dict[str, float]:
         """Evaluate the quality of alert grouping"""
 
         if not groups or not alerts:
@@ -546,7 +545,7 @@ class IntelligentGroupingEngine:
         # Calculate inter-group separation
         separation_scores = []
         for i, group1 in enumerate(groups):
-            for _j, group2 in enumerate(groups[i+1:], i+1):
+            for _j, group2 in enumerate(groups[i + 1 :], i + 1):
                 if len(group1) == 0 or len(group2) == 0:
                     continue
 
@@ -568,8 +567,9 @@ class IntelligentGroupingEngine:
             "cohesion": float(avg_cohesion),
             "separation": float(avg_separation),
             "num_groups": len(groups),
-            "avg_group_size": np.mean([len(g) for g in groups]) if groups else 0.0
+            "avg_group_size": np.mean([len(g) for g in groups]) if groups else 0.0,
         }
+
 
 # Example usage and testing
 async def example_usage():
@@ -586,7 +586,7 @@ async def example_usage():
             "priority": "medium",
             "source": "monitoring",
             "timestamp": "2025-08-27T00:30:00Z",
-            "metadata": {"server": "server-01", "cpu_usage": 87}
+            "metadata": {"server": "server-01", "cpu_usage": 87},
         },
         {
             "title": "High CPU Usage",
@@ -594,7 +594,7 @@ async def example_usage():
             "priority": "medium",
             "source": "monitoring",
             "timestamp": "2025-08-27T00:32:00Z",
-            "metadata": {"server": "server-01", "cpu_usage": 89}
+            "metadata": {"server": "server-01", "cpu_usage": 89},
         },
         {
             "title": "Database Connection Failed",
@@ -602,7 +602,7 @@ async def example_usage():
             "priority": "high",
             "source": "application",
             "timestamp": "2025-08-27T00:31:00Z",
-            "metadata": {"database": "db-prod", "error": "timeout"}
+            "metadata": {"database": "db-prod", "error": "timeout"},
         },
         {
             "title": "Database Connection Failed",
@@ -610,7 +610,7 @@ async def example_usage():
             "priority": "high",
             "source": "application",
             "timestamp": "2025-08-27T00:33:00Z",
-            "metadata": {"database": "db-prod", "error": "timeout"}
+            "metadata": {"database": "db-prod", "error": "timeout"},
         },
         {
             "title": "Memory Usage Warning",
@@ -618,8 +618,8 @@ async def example_usage():
             "priority": "medium",
             "source": "monitoring",
             "timestamp": "2025-08-27T00:35:00Z",
-            "metadata": {"server": "server-02", "memory_usage": 82}
-        }
+            "metadata": {"server": "server-02", "memory_usage": 82},
+        },
     ]
 
     # Initialize with historical data (in practice, this would be real historical alerts)
@@ -637,6 +637,7 @@ async def example_usage():
 
         # Evaluate grouping quality
         await engine.evaluate_grouping_quality(test_alerts, groups)
+
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

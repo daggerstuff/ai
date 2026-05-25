@@ -4,12 +4,14 @@ Reflection Prompts - Crisis-aware prompts for reflection subagent.
 This module provides prompts for the reflection subagent that ensure
 crisis content is handled appropriately during memory consolidation.
 """
+
 from dataclasses import dataclass
 
 
 @dataclass
 class ReflectionPrompt:
     """A reflection prompt template."""
+
     name: str
     template: str
     priority: int  # 1 = highest, 5 = lowest
@@ -107,7 +109,7 @@ Return a JSON object with:
 Begin analysis.
 """,
     priority=1,
-    categories=["crisis", "therapeutic", "consolidation"]
+    categories=["crisis", "therapeutic", "consolidation"],
 )
 
 # Standard reflection prompt (non-crisis)
@@ -141,7 +143,7 @@ Return a JSON object with:
 Begin analysis.
 """,
     priority=3,
-    categories=["general", "consolidation"]
+    categories=["general", "consolidation"],
 )
 
 # Crisis detection prompt
@@ -188,13 +190,12 @@ Return a JSON object with:
 Begin analysis.
 """,
     priority=1,
-    categories=["crisis", "detection"]
+    categories=["crisis", "detection"],
 )
 
 
 def get_reflection_prompt(
-    crisis_detected: bool | None = False,
-    include_crisis_context: bool = True
+    crisis_detected: bool | None = False, include_crisis_context: bool = True
 ) -> ReflectionPrompt:
     """
     Get appropriate reflection prompt based on context.

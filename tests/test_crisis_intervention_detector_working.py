@@ -10,6 +10,7 @@ This test suite validates the crisis intervention detector's ability to:
 4. Maintain response time requirements
 5. Ensure safety and compliance
 """
+
 import threading
 import time
 import unittest
@@ -22,13 +23,30 @@ class MockCrisisInterventionDetector:
 
     def __init__(self):
         self.crisis_keywords = [
-            "suicide", "kill myself", "end it all", "hurt myself",
-            "self harm", "cutting", "overdose", "jump off",
-            "not worth living", "better off dead", "hopeless",
-            "panic attack", "cant breathe", "heart racing",
-            "planning to suicide", "have the pills ready", "hurting myself",
-            "worthless", "pointless", "keep hurting", "thinking about overdosing",
-            "cuts", "relief", "upset"
+            "suicide",
+            "kill myself",
+            "end it all",
+            "hurt myself",
+            "self harm",
+            "cutting",
+            "overdose",
+            "jump off",
+            "not worth living",
+            "better off dead",
+            "hopeless",
+            "panic attack",
+            "cant breathe",
+            "heart racing",
+            "planning to suicide",
+            "have the pills ready",
+            "hurting myself",
+            "worthless",
+            "pointless",
+            "keep hurting",
+            "thinking about overdosing",
+            "cuts",
+            "relief",
+            "upset",
         ]
         self.severity_levels = ["low", "medium", "high", "critical"]
         self.response_times = []
@@ -43,7 +61,7 @@ class MockCrisisInterventionDetector:
                 "severity": "none",
                 "confidence": 0.0,
                 "keywords_found": [],
-                "response_time": time.time() - start_time
+                "response_time": time.time() - start_time,
             }
 
         text_lower = text.lower()
@@ -55,13 +73,19 @@ class MockCrisisInterventionDetector:
 
         if keywords_found:
             # Check for critical keywords first
-            if any(kw in text_lower for kw in ["suicide", "kill myself", "end it all"]) or any(kw in text_lower for kw in ["planning to suicide", "have the pills ready"]):
+            if any(kw in text_lower for kw in ["suicide", "kill myself", "end it all"]) or any(
+                kw in text_lower for kw in ["planning to suicide", "have the pills ready"]
+            ):
                 severity = "critical"
                 confidence = 0.95
-            elif any(kw in text_lower for kw in ["hurt myself", "self harm", "overdose"]) or any(kw in text_lower for kw in ["hurting myself", "cutting"]):
+            elif any(kw in text_lower for kw in ["hurt myself", "self harm", "overdose"]) or any(
+                kw in text_lower for kw in ["hurting myself", "cutting"]
+            ):
                 severity = "high"
                 confidence = 0.85
-            elif any(kw in text_lower for kw in ["hopeless", "not worth living"]) or any(kw in text_lower for kw in ["worthless", "pointless"]):
+            elif any(kw in text_lower for kw in ["hopeless", "not worth living"]) or any(
+                kw in text_lower for kw in ["worthless", "pointless"]
+            ):
                 severity = "medium"
                 confidence = 0.70
             else:
@@ -78,7 +102,7 @@ class MockCrisisInterventionDetector:
             "keywords_found": keywords_found,
             "response_time": response_time,
             "escalation_required": severity in ["high", "critical"],
-            "immediate_intervention": severity == "critical"
+            "immediate_intervention": severity == "critical",
         }
 
     def escalate_crisis(self, crisis_data: dict[str, Any]) -> dict[str, Any]:
@@ -94,7 +118,7 @@ class MockCrisisInterventionDetector:
                 "authority": "emergency_services",
                 "contact": "911",
                 "priority": "immediate",
-                "estimated_response": "5-10 minutes"
+                "estimated_response": "5-10 minutes",
             }
         if severity == "high":
             return {
@@ -102,7 +126,7 @@ class MockCrisisInterventionDetector:
                 "authority": "crisis_hotline",
                 "contact": "988",
                 "priority": "urgent",
-                "estimated_response": "1-2 minutes"
+                "estimated_response": "1-2 minutes",
             }
         if severity == "medium":
             return {
@@ -110,7 +134,7 @@ class MockCrisisInterventionDetector:
                 "authority": "mental_health_professional",
                 "contact": "therapist_on_call",
                 "priority": "scheduled",
-                "estimated_response": "15-30 minutes"
+                "estimated_response": "15-30 minutes",
             }
 
         return {"escalated": False, "reason": "Severity too low for escalation"}
@@ -124,7 +148,7 @@ class MockCrisisInterventionDetector:
             "avg_response_time": sum(self.response_times) / len(self.response_times),
             "max_response_time": max(self.response_times),
             "min_response_time": min(self.response_times),
-            "total_detections": len(self.response_times)
+            "total_detections": len(self.response_times),
         }
 
 
@@ -141,32 +165,32 @@ class TestCrisisInterventionDetector(unittest.TestCase):
                 "I want to kill myself tonight",
                 "I'm going to end it all",
                 "Planning to suicide tomorrow",
-                "I have the pills ready to overdose"
+                "I have the pills ready to overdose",
             ],
             "high": [
                 "I keep hurting myself with cuts",
                 "Self harm is the only relief",
                 "Thinking about overdosing on my medication",
-                "I hurt myself when I'm upset"
+                "I hurt myself when I'm upset",
             ],
             "medium": [
                 "Life feels hopeless right now",
                 "I'm not worth living anymore",
                 "Everything seems pointless",
-                "I feel completely worthless"
+                "I feel completely worthless",
             ],
             "low": [
                 "Having a panic attack",
                 "My heart is racing and I can't breathe",
                 "Feeling very anxious today",
-                "Stressed about work"
+                "Stressed about work",
             ],
             "none": [
                 "Having a good day today",
                 "Looking forward to the weekend",
                 "Just finished a great book",
-                "Weather is nice outside"
-            ]
+                "Weather is nice outside",
+            ],
         }
 
     def test_initialization(self):
@@ -245,7 +269,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
             123,
             [],
             {},
-            "a" * 10000  # Very long text
+            "a" * 10000,  # Very long text
         ]
 
         for case in edge_cases:
@@ -269,11 +293,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
     def test_escalation_critical(self):
         """Test escalation for critical crises."""
-        crisis_data = {
-            "crisis_detected": True,
-            "severity": "critical",
-            "confidence": 0.95
-        }
+        crisis_data = {"crisis_detected": True, "severity": "critical", "confidence": 0.95}
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
@@ -284,11 +304,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
     def test_escalation_high(self):
         """Test escalation for high severity crises."""
-        crisis_data = {
-            "crisis_detected": True,
-            "severity": "high",
-            "confidence": 0.85
-        }
+        crisis_data = {"crisis_detected": True, "severity": "high", "confidence": 0.85}
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
@@ -299,11 +315,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
     def test_escalation_medium(self):
         """Test escalation for medium severity crises."""
-        crisis_data = {
-            "crisis_detected": True,
-            "severity": "medium",
-            "confidence": 0.70
-        }
+        crisis_data = {"crisis_detected": True, "severity": "medium", "confidence": 0.70}
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
@@ -313,11 +325,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
 
     def test_no_escalation_for_low_severity(self):
         """Test that low severity doesn't trigger escalation."""
-        crisis_data = {
-            "crisis_detected": True,
-            "severity": "low",
-            "confidence": 0.50
-        }
+        crisis_data = {"crisis_detected": True, "severity": "low", "confidence": 0.50}
 
         escalation = self.detector.escalate_crisis(crisis_data)
 
@@ -327,11 +335,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
     def test_performance_metrics(self):
         """Test performance metrics collection."""
         # Run several detections
-        test_texts = [
-            "I want to kill myself",
-            "Life is hopeless",
-            "Having a good day"
-        ]
+        test_texts = ["I want to kill myself", "Life is hopeless", "Having a good day"]
 
         for text in test_texts:
             self.detector.detect_crisis(text)
@@ -350,7 +354,7 @@ class TestCrisisInterventionDetector(unittest.TestCase):
             ("I want to suicide", ["suicide"]),
             ("Planning to kill myself tonight", ["kill myself"]),
             ("Self harm and cutting", ["self harm", "cutting"]),
-            ("No crisis words here", [])
+            ("No crisis words here", []),
         ]
 
         for text, expected_keywords in test_cases:
@@ -432,7 +436,7 @@ class TestCrisisInterventionDetectorIntegration(unittest.TestCase):
             "Life is good today",
             "Feeling hopeless",
             "Self harm thoughts",
-            "Beautiful weather outside"
+            "Beautiful weather outside",
         ]
 
         results = []

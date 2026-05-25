@@ -29,9 +29,7 @@ from ai.infrastructure.database.conversation_schema import (
     ProcessingStatus,
 )
 
-_ENTERPRISE_CONFIG_PATH = (
-    Path(__file__).resolve().parents[2] / "config" / "production" / "enterprise_config"
-)
+_ENTERPRISE_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "production" / "enterprise_config"
 
 
 def _load_enterprise_module(module_name: str) -> ModuleType:
@@ -100,9 +98,7 @@ class ConversationDatabase:
         # Initialize database
         self._initialize_database()
 
-        self.logger.info(
-            f"Conversation database initialized: {self.db_config.database_path}"
-        )
+        self.logger.info(f"Conversation database initialized: {self.db_config.database_path}")
 
     def _initialize_database(self):
         """Initialize database with schema and optimizations."""
@@ -248,50 +244,20 @@ class ConversationDatabase:
 
         indexes = [
             # Conversations indexes
-            (
-                "CREATE INDEX IF NOT EXISTS idx_conversations_dataset_source "
-                "ON conversations(dataset_source)"
-            ),
+            ("CREATE INDEX IF NOT EXISTS idx_conversations_dataset_source ON conversations(dataset_source)"),
             "CREATE INDEX IF NOT EXISTS idx_conversations_tier ON conversations(tier)",
-            (
-                "CREATE INDEX IF NOT EXISTS idx_conversations_status "
-                "ON conversations(processing_status)"
-            ),
-            (
-                "CREATE INDEX IF NOT EXISTS idx_conversations_created_at "
-                "ON conversations(created_at)"
-            ),
-            (
-                "CREATE INDEX IF NOT EXISTS idx_conversations_batch_id "
-                "ON conversations(batch_id)"
-            ),
+            ("CREATE INDEX IF NOT EXISTS idx_conversations_status ON conversations(processing_status)"),
+            ("CREATE INDEX IF NOT EXISTS idx_conversations_created_at ON conversations(created_at)"),
+            ("CREATE INDEX IF NOT EXISTS idx_conversations_batch_id ON conversations(batch_id)"),
             # Quality indexes
-            (
-                "CREATE INDEX IF NOT EXISTS idx_quality_conversation_id "
-                "ON conversation_quality(conversation_id)"
-            ),
-            (
-                "CREATE INDEX IF NOT EXISTS idx_quality_overall "
-                "ON conversation_quality(overall_quality)"
-            ),
-            (
-                "CREATE INDEX IF NOT EXISTS idx_quality_therapeutic "
-                "ON conversation_quality(therapeutic_accuracy)"
-            ),
+            ("CREATE INDEX IF NOT EXISTS idx_quality_conversation_id ON conversation_quality(conversation_id)"),
+            ("CREATE INDEX IF NOT EXISTS idx_quality_overall ON conversation_quality(overall_quality)"),
+            ("CREATE INDEX IF NOT EXISTS idx_quality_therapeutic ON conversation_quality(therapeutic_accuracy)"),
             # Tags indexes
-            (
-                "CREATE INDEX IF NOT EXISTS idx_tags_conversation_id "
-                "ON conversation_tags(conversation_id)"
-            ),
-            (
-                "CREATE INDEX IF NOT EXISTS idx_tags_type_value "
-                "ON conversation_tags(tag_type, tag_value)"
-            ),
+            ("CREATE INDEX IF NOT EXISTS idx_tags_conversation_id ON conversation_tags(conversation_id)"),
+            ("CREATE INDEX IF NOT EXISTS idx_tags_type_value ON conversation_tags(tag_type, tag_value)"),
             # Search index
-            (
-                "CREATE INDEX IF NOT EXISTS idx_search_conversation_id "
-                "ON conversation_search(conversation_id)"
-            ),
+            ("CREATE INDEX IF NOT EXISTS idx_search_conversation_id ON conversation_search(conversation_id)"),
         ]
 
         for index_sql in indexes:
@@ -388,11 +354,7 @@ class ConversationDatabase:
                     self._insert_quality_metrics(conn, conversation)
 
                 # Insert tags if available
-                if (
-                    conversation.tags
-                    or conversation.categories
-                    or conversation.therapeutic_techniques
-                ):
+                if conversation.tags or conversation.categories or conversation.therapeutic_techniques:
                     self._insert_tags(conn, conversation)
 
                 conn.commit()
@@ -411,9 +373,7 @@ class ConversationDatabase:
             )
             return False
 
-    def _insert_quality_metrics(
-        self, conn: sqlite3.Connection, conversation: ConversationSchema
-    ):
+    def _insert_quality_metrics(self, conn: sqlite3.Connection, conversation: ConversationSchema):
         """Insert quality metrics for a conversation."""
 
         quality_id = str(uuid.uuid4())
@@ -649,15 +609,11 @@ class ConversationDatabase:
 
             inserted = results["inserted"]
             failed = results["failed"]
-            self.logger.info(
-                f"Batch insert complete: {inserted} inserted, {failed} failed"
-            )
+            self.logger.info(f"Batch insert complete: {inserted} inserted, {failed} failed")
             return results
 
         except Exception as e:
-            handle_error(
-                e, "conversation_database", {"operation": "batch_insert_conversations"}
-            )
+            handle_error(e, "conversation_database", {"operation": "batch_insert_conversations"})
             return results
 
     def get_conversation(self, conversation_id: str) -> dict[str, Any] | None:
@@ -680,12 +636,8 @@ class ConversationDatabase:
                 conversation: dict[str, Any] = dict(row)
 
                 # Parse JSON fields
-                conversation["conversations"] = json.loads(
-                    conversation["conversations_json"]
-                )
-                conversation["metadata"] = json.loads(
-                    conversation["metadata_json"] or "{}"
-                )
+                conversation["conversations"] = json.loads(conversation["conversations_json"])
+                conversation["metadata"] = json.loads(conversation["metadata_json"] or "{}")
 
                 # Get quality metrics
                 cursor = conn.execute(
@@ -787,7 +739,6 @@ class ConversationDatabase:
                 cursor = conn.execute(query, params)
                 return [dict(row) for row in cursor.fetchall()]
 
-
         except Exception as e:
             handle_error(
                 e,
@@ -847,9 +798,7 @@ class ConversationDatabase:
                 return stats
 
         except Exception as e:
-            handle_error(
-                e, "conversation_database", {"operation": "get_database_statistics"}
-            )
+            handle_error(e, "conversation_database", {"operation": "get_database_statistics"})
             return {}
 
     def close(self):
@@ -866,7 +815,6 @@ class ConversationDatabase:
 if __name__ == "__main__":
     # Test the database integration
     db = ConversationDatabase()
-
 
     try:
         # Create test conversation
@@ -902,4 +850,3 @@ if __name__ == "__main__":
 
     finally:
         db.close()
-

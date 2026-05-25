@@ -4,6 +4,7 @@ Utility functions for Pixelated AI CLI
 This module provides utility functions for logging setup, environment validation,
 banner printing, and other common operations.
 """
+
 import base64
 import json
 import logging
@@ -12,7 +13,7 @@ import os
 import platform
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -23,9 +24,7 @@ import requests
 from cli.config import CLIConfig
 
 
-def setup_logging(
-    level: str = "INFO", config: CLIConfig | None = None
-) -> logging.Logger:
+def setup_logging(level: str = "INFO", config: CLIConfig | None = None) -> logging.Logger:
     """
     Setup logging configuration for the CLI
 
@@ -47,9 +46,7 @@ def setup_logging(
     if config and config.logging.format:
         formatter = logging.Formatter(config.logging.format)
     else:
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
@@ -382,7 +379,6 @@ def get_system_info() -> dict[str, Any]:
         Dictionary with system information
     """
 
-
     return {
         "platform": platform.platform(),
         "python_version": platform.python_version(),
@@ -390,7 +386,7 @@ def get_system_info() -> dict[str, Any]:
         "memory_total": psutil.virtual_memory().total,
         "memory_available": psutil.virtual_memory().available,
         "disk_usage": psutil.disk_usage("/").percent,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 

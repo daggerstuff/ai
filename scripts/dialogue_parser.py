@@ -18,7 +18,7 @@ class DialogueParser:
         speaker_patterns = [
             r"(HOST|INTERVIEWER|GUEST|TIM|DR\.|THERAPIST):\s*(.+?)(?=(?:HOST|INTERVIEWER|GUEST|TIM|DR\.|THERAPIST):|$)",
             r"(Q|QUESTION):\s*(.+?)(?=(?:A|ANSWER):|$)",
-            r"(A|ANSWER):\s*(.+?)(?=(?:Q|QUESTION):|$)"
+            r"(A|ANSWER):\s*(.+?)(?=(?:Q|QUESTION):|$)",
         ]
 
         segments = []
@@ -28,12 +28,7 @@ class DialogueParser:
             for match in matches:
                 speaker = match.group(1).strip()
                 content = match.group(2).strip()
-                segments.append({
-                    "speaker": speaker,
-                    "content": content,
-                    "start": match.start(),
-                    "end": match.end()
-                })
+                segments.append({"speaker": speaker, "content": content, "start": match.start(), "end": match.end()})
 
         # If no explicit markers, try to detect dialogue flow
         if not segments:
@@ -57,28 +52,22 @@ class DialogueParser:
                 continue
 
             # Detect questions
-            if "?" in sentence or any(word in sentence.lower() for word in ["how", "what", "why", "when", "can you", "would you"]):
+            if "?" in sentence or any(
+                word in sentence.lower() for word in ["how", "what", "why", "when", "can you", "would you"]
+            ):
                 # This might be a question
                 if current_content and current_speaker != "interviewer":
                     # Save previous content
-                    segments.append({
-                        "speaker": current_speaker,
-                        "content": ". ".join(current_content),
-                        "start": 0,
-                        "end": 0
-                    })
+                    segments.append(
+                        {"speaker": current_speaker, "content": ". ".join(current_content), "start": 0, "end": 0}
+                    )
 
                 current_speaker = "interviewer"
                 current_content = [sentence]
             # This is likely a response
             elif current_speaker == "interviewer":
                 # Save question
-                segments.append({
-                    "speaker": "interviewer",
-                    "content": ". ".join(current_content),
-                    "start": 0,
-                    "end": 0
-                })
+                segments.append({"speaker": "interviewer", "content": ". ".join(current_content), "start": 0, "end": 0})
                 current_speaker = "tim_fletcher"
                 current_content = [sentence]
             else:
@@ -86,12 +75,7 @@ class DialogueParser:
 
         # Add final segment
         if current_content:
-            segments.append({
-                "speaker": current_speaker,
-                "content": ". ".join(current_content),
-                "start": 0,
-                "end": 0
-            })
+            segments.append({"speaker": current_speaker, "content": ". ".join(current_content), "start": 0, "end": 0})
 
         return segments
 
@@ -105,10 +89,11 @@ class DialogueParser:
             next_segment = segments[i + 1]
 
             # Look for question followed by answer
-            if (self.is_question(current["content"]) and
-                self.is_answer(next_segment["content"]) and
-                current["speaker"] != next_segment["speaker"]):
-
+            if (
+                self.is_question(current["content"])
+                and self.is_answer(next_segment["content"])
+                and current["speaker"] != next_segment["speaker"]
+            ):
                 question = current["content"].strip()
                 answer = next_segment["content"].strip()
 
@@ -127,7 +112,18 @@ class DialogueParser:
             return True
 
         # Question words
-        question_starters = ["how", "what", "why", "when", "where", "who", "can you", "would you", "could you", "do you"]
+        question_starters = [
+            "how",
+            "what",
+            "why",
+            "when",
+            "where",
+            "who",
+            "can you",
+            "would you",
+            "could you",
+            "do you",
+        ]
         if any(text_lower.startswith(starter) for starter in question_starters):
             return True
 
@@ -157,7 +153,48 @@ class DialogueParser:
         a_words = set(re.findall(r"\b\w+\b", answer.lower()))
 
         # Remove common words
-        common_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "is", "are", "was", "were", "be", "been", "have", "has", "had", "do", "does", "did", "will", "would", "could", "should", "may", "might", "can", "you", "i", "we", "they", "he", "she", "it"}
+        common_words = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "may",
+            "might",
+            "can",
+            "you",
+            "i",
+            "we",
+            "they",
+            "he",
+            "she",
+            "it",
+        }
 
         q_keywords = q_words - common_words
         a_keywords = a_words - common_words
@@ -195,8 +232,8 @@ class DialogueParser:
                 "parsing_info": {
                     "method": "dialogue_extraction",
                     "segments_found": len(dialogue_segments),
-                    "qa_pairs_found": len(qa_pairs)
-                }
+                    "qa_pairs_found": len(qa_pairs),
+                },
             }
 
         # If no dialogue structure found, create contextual question
@@ -235,11 +272,9 @@ class DialogueParser:
             "quality": segment["quality"],
             "source": segment["source"],
             "file": segment["file"],
-            "parsing_info": {
-                "method": "contextual_fallback",
-                "reason": "no_dialogue_structure_detected"
-            }
+            "parsing_info": {"method": "contextual_fallback", "reason": "no_dialogue_structure_detected"},
         }
+
 
 def test_dialogue_parser():
     """Test the dialogue parser with the problematic segment"""
@@ -251,7 +286,7 @@ def test_dialogue_parser():
         "confidence": 3.0,
         "quality": 0.7,
         "source": "interview",
-        "file": "test.txt"
+        "file": "test.txt",
     }
 
     parser.process_segment(test_segment)

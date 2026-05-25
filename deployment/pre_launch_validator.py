@@ -12,7 +12,7 @@ import os
 import sqlite3
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 
@@ -144,7 +144,7 @@ class PreLaunchValidator:
             status=status,
             score=score,
             details=details,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             execution_time_ms=execution_time,
         )
 
@@ -191,7 +191,7 @@ class PreLaunchValidator:
             status=status,
             score=score,
             details=details,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             execution_time_ms=execution_time,
         )
 
@@ -238,7 +238,7 @@ class PreLaunchValidator:
             status=status,
             score=score,
             details=details,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             execution_time_ms=execution_time,
         )
 
@@ -285,7 +285,7 @@ class PreLaunchValidator:
             status=status,
             score=score,
             details=details,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             execution_time_ms=execution_time,
         )
 
@@ -332,7 +332,7 @@ class PreLaunchValidator:
             status=status,
             score=score,
             details=details,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             execution_time_ms=execution_time,
         )
 
@@ -379,7 +379,7 @@ class PreLaunchValidator:
             status=status,
             score=score,
             details=details,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             execution_time_ms=execution_time,
         )
 
@@ -690,9 +690,7 @@ class PreLaunchValidator:
         total_score = sum(result.score for result in validations)
         average_score = total_score / len(validations)
 
-        passed_validations = sum(
-            result.status == ValidationStatus.PASSED for result in validations
-        )
+        passed_validations = sum(result.status == ValidationStatus.PASSED for result in validations)
         total_validations = len(validations)
 
         # Determine overall status
@@ -700,7 +698,7 @@ class PreLaunchValidator:
         go_live_ready = overall_status == ValidationStatus.PASSED
 
         # Generate report
-        now_utc = datetime.now(timezone.utc)
+        now_utc = datetime.now(UTC)
         report = {
             "report_id": f"pre_launch_validation_{now_utc.strftime('%Y%m%d_%H%M%S')}",
             "timestamp": now_utc.isoformat(),
@@ -716,9 +714,7 @@ class PreLaunchValidator:
         }
 
         # Save report
-        report_file = (
-            f"pre_launch_validation_report_{now_utc.strftime('%Y%m%d_%H%M%S')}.json"
-        )
+        report_file = f"pre_launch_validation_report_{now_utc.strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
@@ -728,16 +724,12 @@ class PreLaunchValidator:
 
         return report
 
-    def _generate_recommendations(
-        self, validations: list[ValidationResult], overall_score: float
-    ) -> list[str]:
+    def _generate_recommendations(self, validations: list[ValidationResult], overall_score: float) -> list[str]:
         """Generate recommendations based on validation results."""
         recommendations = []
 
         if overall_score >= 95:
-            recommendations.append(
-                "All pre-launch validations passed - system ready for production deployment"
-            )
+            recommendations.append("All pre-launch validations passed - system ready for production deployment")
         else:
             recommendations.append(
                 f"Overall score {overall_score:.1f}% below 95% threshold - address failed validations"
@@ -746,13 +738,12 @@ class PreLaunchValidator:
         # Add specific recommendations for failed validations
         recommendations.extend(
             f"Address {validation.name} validation failures before launch"
-            for validation in validations if validation.status == ValidationStatus.FAILED
+            for validation in validations
+            if validation.status == ValidationStatus.FAILED
         )
 
         if overall_score < 90:
-            recommendations.append(
-                "Critical issues detected - do not proceed with production launch"
-            )
+            recommendations.append("Critical issues detected - do not proceed with production launch")
 
         return recommendations
 
@@ -772,6 +763,7 @@ def main():
         logger.error(f"Pre-launch validation failed: {e!s}")
         return {"error": str(e)}
 
+
 def _log_results(results):
     """Log validation summary and recommendations (extracted for clarity)."""
     logger.info("\nPRE-LAUNCH VALIDATION RESULTS")
@@ -786,4 +778,3 @@ def _log_results(results):
 
 if __name__ == "__main__":
     main()
-

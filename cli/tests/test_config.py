@@ -148,9 +148,7 @@ profiles:
         config_file = temp_config_dir / "secure_config.yaml"
 
         config = CLIConfig(config_file=config_file)
-        config.auth = AuthConfig(
-            client_id="test_client_id", client_secret="test_client_secret"
-        )
+        config.auth = AuthConfig(client_id="test_client_id", client_secret="test_client_secret")
 
         # Save with encryption
         config.save(encrypt=True)
@@ -253,9 +251,7 @@ class TestAPIConfig:
 
     def test_api_config_creation(self):
         """Test API configuration creation"""
-        api_config = APIConfig(
-            base_url="http://api.example.com", timeout=60, max_retries=5, rate_limit=100
-        )
+        api_config = APIConfig(base_url="http://api.example.com", timeout=60, max_retries=5, rate_limit=100)
 
         assert api_config.base_url == "http://api.example.com"
         assert api_config.timeout == 60
@@ -301,9 +297,7 @@ class TestConfigProfile:
     def test_config_profile_validation(self):
         """Test configuration profile validation"""
         # Valid profile
-        profile = ConfigProfile(
-            name="valid_profile", api_base_url="http://valid.example.com"
-        )
+        profile = ConfigProfile(name="valid_profile", api_base_url="http://valid.example.com")
         assert profile.validate() is True
 
         # Invalid profile - empty name

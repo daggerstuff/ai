@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Dream-Reflection Integration — Sprint 4, Task 4.
 
 Connects dream consolidation output to reflection prompts,
@@ -10,11 +9,9 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from dataclasses import dataclass
 
-from ..schema import MemoryBlock
-from ..consolidation.rem_dream import DreamResult, Schema
+from ..consolidation.rem_dream import DreamResult
 from .pattern_detection import PatternReport
 from .session_consolidation import SessionSummary
 
@@ -27,14 +24,14 @@ class DreamReflectionInsight:
     source: str  # "dream" | "reflection" | "pattern"
     content: str
     confidence: float
-    related_memory_ids: List[str]
+    related_memory_ids: list[str]
 
 
 @dataclass
 class DreamReflectionResult:
-    insights: List[DreamReflectionInsight]
-    dream_priorities: Dict[str, float]
-    reflection_enhancements: List[str]
+    insights: list[DreamReflectionInsight]
+    dream_priorities: dict[str, float]
+    reflection_enhancements: list[str]
     elapsed_ms: float
 
 
@@ -48,23 +45,19 @@ class DreamReflectionIntegrator:
         self,
         dream_result: DreamResult,
         session_summary: SessionSummary,
-        pattern_report: Optional[PatternReport] = None,
+        pattern_report: PatternReport | None = None,
     ) -> DreamReflectionResult:
         """Integrate dream insights with session reflection."""
         t0 = time.perf_counter()
 
-        insights: List[DreamReflectionInsight] = []
+        insights: list[DreamReflectionInsight] = []
         insights.extend(self._extract_dream_insights(dream_result))
         insights.extend(self._extract_session_insights(session_summary))
         if pattern_report:
             insights.extend(self._extract_pattern_insights(pattern_report))
 
-        dream_priorities = self._compute_dream_priorities(
-            dream_result, session_summary, pattern_report
-        )
-        reflection_enhancements = self._build_reflection_enhancements(
-            insights, session_summary
-        )
+        dream_priorities = self._compute_dream_priorities(dream_result, session_summary, pattern_report)
+        reflection_enhancements = self._build_reflection_enhancements(insights, session_summary)
 
         elapsed = (time.perf_counter() - t0) * 1000
 
@@ -82,10 +75,8 @@ class DreamReflectionIntegrator:
         )
         return result
 
-    def _extract_dream_insights(
-        self, dream_result: DreamResult
-    ) -> List[DreamReflectionInsight]:
-        insights: List[DreamReflectionInsight] = []
+    def _extract_dream_insights(self, dream_result: DreamResult) -> list[DreamReflectionInsight]:
+        insights: list[DreamReflectionInsight] = []
 
         for schema in dream_result.schemas:
             self._insight_counter += 1
@@ -114,10 +105,8 @@ class DreamReflectionIntegrator:
 
         return insights
 
-    def _extract_session_insights(
-        self, summary: SessionSummary
-    ) -> List[DreamReflectionInsight]:
-        insights: List[DreamReflectionInsight] = []
+    def _extract_session_insights(self, summary: SessionSummary) -> list[DreamReflectionInsight]:
+        insights: list[DreamReflectionInsight] = []
 
         if summary.unresolved_topics:
             self._insight_counter += 1
@@ -146,10 +135,8 @@ class DreamReflectionIntegrator:
 
         return insights
 
-    def _extract_pattern_insights(
-        self, report: PatternReport
-    ) -> List[DreamReflectionInsight]:
-        insights: List[DreamReflectionInsight] = []
+    def _extract_pattern_insights(self, report: PatternReport) -> list[DreamReflectionInsight]:
+        insights: list[DreamReflectionInsight] = []
 
         for theme in report.recurring_themes:
             if theme.frequency >= 3:
@@ -182,10 +169,10 @@ class DreamReflectionIntegrator:
         self,
         dream_result: DreamResult,
         summary: SessionSummary,
-        pattern_report: Optional[PatternReport] = None,
-    ) -> Dict[str, float]:
+        pattern_report: PatternReport | None = None,
+    ) -> dict[str, float]:
         """Compute priorities for next dream cycle based on reflection."""
-        priorities: Dict[str, float] = {}
+        priorities: dict[str, float] = {}
 
         for topic in summary.unresolved_topics:
             priorities[topic] = 0.9
@@ -206,16 +193,14 @@ class DreamReflectionIntegrator:
 
     def _build_reflection_enhancements(
         self,
-        insights: List[DreamReflectionInsight],
+        insights: list[DreamReflectionInsight],
         summary: SessionSummary,
-    ) -> List[str]:
-        enhancements: List[str] = []
+    ) -> list[str]:
+        enhancements: list[str] = []
 
         dream_insights = [i for i in insights if i.source == "dream"]
         if dream_insights:
-            enhancements.append(
-                f"Dream analysis identified {len(dream_insights)} patterns to reflect on"
-            )
+            enhancements.append(f"Dream analysis identified {len(dream_insights)} patterns to reflect on")
 
         pattern_insights = [i for i in insights if i.source == "pattern"]
         if pattern_insights:
@@ -224,8 +209,6 @@ class DreamReflectionIntegrator:
             )
 
         if summary.emotional_arc.volatility > 0.3:
-            enhancements.append(
-                "High emotional volatility detected — prioritize stability in next session"
-            )
+            enhancements.append("High emotional volatility detected — prioritize stability in next session")
 
         return enhancements

@@ -8,7 +8,7 @@ events including tool executions, resource access, and authentication/authorizat
 import json
 import logging
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -121,7 +121,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTH_SUCCESS,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             user_role=user_role,
             success=True,
@@ -148,7 +148,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTH_FAILURE,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             success=False,
             error_message=reason,
@@ -177,7 +177,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTHORIZATION_GRANTED,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=resource,
@@ -209,7 +209,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.AUTHORIZATION_DENIED,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=resource,
@@ -242,7 +242,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.TOOL_EXECUTION_START,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=tool_name,
@@ -280,7 +280,7 @@ class AuditLogger:
 
         event = AuditEvent(
             event_type=AuditEventType.TOOL_EXECUTION_SUCCESS,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=tool_name,
@@ -314,7 +314,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.TOOL_EXECUTION_FAILURE,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=tool_name,
@@ -348,14 +348,10 @@ class AuditLogger:
             request_id: Optional request ID
             session_id: Optional session ID
         """
-        event_type = (
-            AuditEventType.RESOURCE_ACCESS
-            if success
-            else AuditEventType.RESOURCE_ACCESS_DENIED
-        )
+        event_type = AuditEventType.RESOURCE_ACCESS if success else AuditEventType.RESOURCE_ACCESS_DENIED
         event = AuditEvent(
             event_type=event_type,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             user_role=user_role,
             resource=resource_uri,
@@ -383,7 +379,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.RATE_LIMIT_EXCEEDED,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             success=False,
             error_message=f"Rate limit exceeded for identifier: {identifier}",
@@ -412,7 +408,7 @@ class AuditLogger:
         """
         event = AuditEvent(
             event_type=AuditEventType.SECURITY_VIOLATION,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             resource=resource,
             success=False,
@@ -434,4 +430,3 @@ def create_audit_logger(config: LoggingConfig) -> AuditLogger:
         AuditLogger instance
     """
     return AuditLogger(config)
-

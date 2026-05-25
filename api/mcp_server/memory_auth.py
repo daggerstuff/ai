@@ -6,7 +6,7 @@ import json
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import lru_cache
 from threading import Lock
 from time import time
@@ -111,7 +111,7 @@ def _parse_request_timestamp(raw_timestamp: str | None) -> tuple[str, float]:
         except ValueError as exc:
             raise HTTPException(status_code=400, detail="Invalid X-Memory-Timestamp header") from exc
         if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
+            parsed = parsed.replace(tzinfo=UTC)
         return value, parsed.timestamp()
 
 
@@ -192,28 +192,16 @@ def _parse_actor_policy(actor_id: str, raw_policy: object) -> MemoryActorPolicy:
     if raw_policy is False:
         return MemoryActorPolicy()
     if isinstance(raw_policy, list):
-        return MemoryActorPolicy(
-            allowed_users=frozenset(str(item).strip() for item in raw_policy if str(item).strip())
-        )
+        return MemoryActorPolicy(allowed_users=frozenset(str(item).strip() for item in raw_policy if str(item).strip()))
     if not isinstance(raw_policy, Mapping):
-        raise RuntimeError(
-            f"Policy for actor '{actor_id}' must be an object, list, boolean, or null"
-        )
-    allowed_users = frozenset(
-        str(item).strip()
-        for item in raw_policy.get("allowed_users", [])
-        if str(item).strip()
-    )
+        raise RuntimeError(f"Policy for actor '{actor_id}' must be an object, list, boolean, or null")
+    allowed_users = frozenset(str(item).strip() for item in raw_policy.get("allowed_users", []) if str(item).strip())
     allowed_prefixes = tuple(
-        str(item).strip()
-        for item in raw_policy.get("allowed_user_prefixes", [])
-        if str(item).strip()
+        str(item).strip() for item in raw_policy.get("allowed_user_prefixes", []) if str(item).strip()
     )
     allow_any_user = bool(raw_policy.get("allow_any_user", False))
     if not (allow_any_user or allowed_users or allowed_prefixes):
-        raise RuntimeError(
-            f"Policy for actor '{actor_id}' must allow at least one user scope"
-        )
+        raise RuntimeError(f"Policy for actor '{actor_id}' must allow at least one user scope")
     return MemoryActorPolicy(
         allow_any_user=allow_any_user,
         allowed_users=allowed_users,
@@ -228,9 +216,7 @@ def configured_actor_policies() -> dict[str, MemoryActorPolicy]:
     if not raw_json:
         if not tokens:
             return {}
-        raise RuntimeError(
-            "LOCAL_MEMORY_ACTOR_POLICIES_JSON must be configured for every shared-memory actor"
-        )
+        raise RuntimeError("LOCAL_MEMORY_ACTOR_POLICIES_JSON must be configured for every shared-memory actor")
     try:
         payload = json.loads(raw_json)
     except json.JSONDecodeError as exc:
@@ -243,13 +229,10 @@ def configured_actor_policies() -> dict[str, MemoryActorPolicy]:
         if not key:
             continue
         policies[key] = _parse_actor_policy(key, raw_policy)
-    missing_actors = sorted(
-        actor_id for actor_id in tokens if actor_id not in policies
-    )
+    missing_actors = sorted(actor_id for actor_id in tokens if actor_id not in policies)
     if missing_actors:
         raise RuntimeError(
-            "LOCAL_MEMORY_ACTOR_POLICIES_JSON is missing policies for actors: "
-            + ", ".join(missing_actors)
+            "LOCAL_MEMORY_ACTOR_POLICIES_JSON is missing policies for actors: " + ", ".join(missing_actors)
         )
     return policies
 
@@ -270,9 +253,7 @@ def readiness_details() -> dict[str, object]:
         "actor_policy_mode": "scoped" if actor_policies else "invalid",
         "actor_policies_configured": bool(actor_policies),
         "actor_policies_valid": policy_error is None,
-        "foresight_bearer_compat_enabled": _env_flag(
-            "HINDSIGHT_COMPAT_ENABLE_BEARER", False
-        ),
+        "foresight_bearer_compat_enabled": _env_flag("HINDSIGHT_COMPAT_ENABLE_BEARER", False),
         "configuration_error": policy_error,
         "signature_required": True,
         "nonce_ttl_seconds": _NONCE_TTL_SECONDS,
@@ -306,8 +287,7 @@ def _default_compat_user_id() -> str:
     raise HTTPException(
         status_code=400,
         detail=(
-            "Missing X-Memory-User-Id header. "
-            "Set HINDSIGHT_COMPAT_DEFAULT_USER_ID for bearer-compatible local callers."
+            "Missing X-Memory-User-Id header. Set HINDSIGHT_COMPAT_DEFAULT_USER_ID for bearer-compatible local callers."
         ),
     )
 
@@ -394,10 +374,7 @@ def _authorize_bearer_compat(
     if not policy.allows_user(resolved_user_id):
         raise HTTPException(
             status_code=403,
-            detail=(
-                f"Actor '{compat_actor_id}' is not allowed to act for user "
-                f"'{resolved_user_id}'"
-            ),
+            detail=(f"Actor '{compat_actor_id}' is not allowed to act for user '{resolved_user_id}'"),
         )
 
     return MemoryAccessContext(

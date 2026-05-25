@@ -12,8 +12,8 @@ from fastapi import FastAPI
 
 from ai.api.mcp_server.memory_auth import validate_memory_auth_configuration
 from ai.api.mcp_server.routes import (
-    create_health_router,
     create_foresight_router,
+    create_health_router,
     create_legacy_router,
     create_mcp_router,
 )

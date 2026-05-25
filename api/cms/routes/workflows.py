@@ -39,10 +39,9 @@ def _comment_repo(request: Request) -> CommentRepository:
 
 # --- Approval Workflows ---
 
+
 @router.get("/workflows")
-async def list_workflows(
-    request: Request, resource_type: str | None = None
-) -> dict[str, Any]:
+async def list_workflows(request: Request, resource_type: str | None = None) -> dict[str, Any]:
     repo = _workflow_repo(request)
     if resource_type:
         workflows = repo.find_by_resource_type(resource_type)
@@ -61,6 +60,7 @@ async def get_workflow(request: Request, workflow_id: str) -> dict[str, Any]:
 
 
 # --- Approval Requests ---
+
 
 @router.get("/requests")
 async def list_requests(
@@ -118,10 +118,9 @@ async def reject_step(request: Request, step_id: str) -> dict[str, Any]:
 
 # --- Notifications ---
 
+
 @router.get("/notifications/{user_id}")
-async def list_notifications(
-    request: Request, user_id: str, limit: int = 50
-) -> dict[str, Any]:
+async def list_notifications(request: Request, user_id: str, limit: int = 50) -> dict[str, Any]:
     repo = _notification_repo(request)
     docs = repo.find_unread(user_id, limit=limit)
     return {"success": True, "data": docs}
@@ -160,10 +159,9 @@ async def mark_all_read(request: Request, user_id: str) -> dict[str, Any]:
 
 # --- Comments ---
 
+
 @router.get("/comments/{document_id}")
-async def list_comments(
-    request: Request, document_id: str, limit: int = 100
-) -> dict[str, Any]:
+async def list_comments(request: Request, document_id: str, limit: int = 100) -> dict[str, Any]:
     repo = _comment_repo(request)
     docs = repo.find_by_document(document_id, limit=limit)
     return {"success": True, "data": docs}

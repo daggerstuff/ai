@@ -1,9 +1,10 @@
 """
 Unit tests for the Research Orchestrator.
 """
+
 import time
 from collections.abc import Callable
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -35,7 +36,7 @@ def _create_dataset_source(source_id: str, **overrides) -> DatasetSource:
         "keywords": ["therapy", "conversation"],
         "open_access": True,
         "data_availability": "available",
-        "discovery_date": datetime.now(timezone.utc),
+        "discovery_date": datetime.now(UTC),
         "discovery_method": "repository_api",
     }
     defaults.update(overrides)
@@ -87,7 +88,7 @@ class FakeEvaluationEngine:
             ethical_notes="Open access and anonymized",
             overall_score=self.score,
             priority_tier="high",
-            evaluation_date=datetime.now(timezone.utc),
+            evaluation_date=datetime.now(UTC),
             evaluator=evaluator,
             competitive_advantages=["Contains therapy transcripts"],
         )
@@ -105,12 +106,12 @@ class FakeAcquisitionManager:
         return AccessRequest(
             source_id=source.source_id,
             access_method=access_method or "direct",
-            request_date=datetime.now(timezone.utc),
+            request_date=datetime.now(UTC),
             status="pending",
             access_url=source.url,
             credentials_required=False,
             institutional_affiliation_required=False,
-            estimated_access_date=datetime.now(timezone.utc) + timedelta(hours=1),
+            estimated_access_date=datetime.now(UTC) + timedelta(hours=1),
             notes=notes,
         )
 
@@ -123,7 +124,7 @@ class FakeAcquisitionManager:
         self.downloads += 1
         return AcquiredDataset(
             source_id=source.source_id,
-            acquisition_date=datetime.now(timezone.utc),
+            acquisition_date=datetime.now(UTC),
             storage_path=f"/tmp/{source.source_id}.zip",
             file_format="zip",
             file_size_mb=25.0,
@@ -141,9 +142,7 @@ class FakeIntegrationEngine:
         self.feasible = feasible
         self.requests = 0
 
-    def create_integration_plan(
-        self, dataset: AcquiredDataset, _target_format: str = "chatml"
-    ) -> IntegrationPlan:
+    def create_integration_plan(self, dataset: AcquiredDataset, _target_format: str = "chatml") -> IntegrationPlan:
         self.requests += 1
         return IntegrationPlan(
             source_id=dataset.source_id,
@@ -316,9 +315,7 @@ class TestResearchOrchestrator:
         assert len(restored_state.sources) == len(sample_sources)
         assert len(restored_orchestrator.progress_history[session.session_id]) >= 1
 
-        visualization = restored_orchestrator.generate_progress_visualization_data(
-            session.session_id
-        )
+        visualization = restored_orchestrator.generate_progress_visualization_data(session.session_id)
         assert visualization["current_metrics"]["datasets_evaluated"] >= len(sample_sources)
         assert visualization["series"]
 
@@ -403,9 +400,7 @@ class TestResearchOrchestrator:
         # Should have logged the fallback
         activity_log = orchestrator.get_activity_log(session.session_id)
         fallback_activities = [
-            log
-            for log in activity_log
-            if "fallback" in log.description.lower() or "fallback" in log.outcome.lower()
+            log for log in activity_log if "fallback" in log.description.lower() or "fallback" in log.outcome.lower()
         ]
         assert len(fallback_activities) > 0
 
@@ -435,4 +430,3 @@ class TestResearchOrchestrator:
         # Should raise when fallback is disabled
         with pytest.raises(RuntimeError, match="Discovery service unavailable"):
             orchestrator.run_session(session.session_id)
-

@@ -53,7 +53,7 @@ class TherapeuticPromptGenerator:
                 "I need a clear plan for addressing {topic}. What do you recommend?",
                 "What are the most effective approaches for dealing with {topic}?",
                 "Can you outline practical steps someone can take to heal from {topic}?",
-            ]
+            ],
         }
 
         # Topic extraction patterns
@@ -67,7 +67,7 @@ class TherapeuticPromptGenerator:
             r"family|parents|childhood|scapegoat|dysfunction",
             r"codependency|people pleasing|validation|approval",
             r"anger|rage|emotional regulation|triggers",
-            r"stress|burnout|overwhelm|exhaustion"
+            r"stress|burnout|overwhelm|exhaustion",
         ]
 
     def extract_key_topics(self, text: str) -> list[str]:
@@ -88,7 +88,7 @@ class TherapeuticPromptGenerator:
                 # Look for key therapeutic terms
                 for word in words:
                     if any(term in word.lower() for term in ["trauma", "heal", "therap", "relation", "emotion"]):
-                        context = " ".join(words[max(0, words.index(word)-2):words.index(word)+3])
+                        context = " ".join(words[max(0, words.index(word) - 2) : words.index(word) + 3])
                         topics.append(context.strip())
                         break
 
@@ -117,7 +117,6 @@ class TherapeuticPromptGenerator:
         # Generate the prompt
         return template.format(topic=topic)
 
-
     def create_training_pair(self, segment: dict) -> dict:
         """Convert a segment into a training pair"""
         prompt = self.generate_prompt(segment)
@@ -129,7 +128,7 @@ class TherapeuticPromptGenerator:
             "confidence": segment["confidence"],
             "quality": segment["quality"],
             "source": segment["source"],
-            "file": segment["file"]
+            "file": segment["file"],
         }
 
     def process_segments_file(self, input_path: Path, output_path: Path) -> dict:
@@ -154,6 +153,7 @@ class TherapeuticPromptGenerator:
 
         return stats
 
+
 def main():
     """Convert all segment files to training pairs"""
     generator = TherapeuticPromptGenerator()
@@ -168,7 +168,6 @@ def main():
     for segment_file in segments_dir.glob("*.json"):
         if segment_file.name == "enhanced_summary.json":
             continue
-
 
         output_file = output_dir / f"training_{segment_file.name}"
         stats = generator.process_segments_file(segment_file, output_file)

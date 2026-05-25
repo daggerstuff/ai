@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Reflexion Framework — Sprint 4, Task 1.
 
 Implements the Reflexion pattern (Shinn et al., 2023):
@@ -9,11 +8,9 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List, Optional
-
-from ..schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 
@@ -37,22 +34,22 @@ class ActionFeedbackPair:
 @dataclass(frozen=True)
 class VerbalReflection:
     reflection_id: str
-    what_went_well: List[str]
-    what_went_wrong: List[str]
-    what_to_change: List[str]
-    source_pairs: List[ActionFeedbackPair]
+    what_went_well: list[str]
+    what_went_wrong: list[str]
+    what_to_change: list[str]
+    source_pairs: list[ActionFeedbackPair]
     confidence: float
 
 
 @dataclass
 class ReflexionResult:
-    reflections: List[VerbalReflection]
-    context_updates: List[str]
-    memories_to_update: List[str]
+    reflections: list[VerbalReflection]
+    context_updates: list[str]
+    memories_to_update: list[str]
     elapsed_ms: float
 
 
-ReflectionGeneratorFn = Callable[[List[ActionFeedbackPair]], str]
+ReflectionGeneratorFn = Callable[[list[ActionFeedbackPair]], str]
 
 
 class ReflexionEngine:
@@ -60,12 +57,12 @@ class ReflexionEngine:
 
     def __init__(
         self,
-        generator: Optional[ReflectionGeneratorFn] = None,
+        generator: ReflectionGeneratorFn | None = None,
         min_pairs_for_reflection: int = 3,
     ) -> None:
         self._generator = generator or self._default_generator
         self._min_pairs = min_pairs_for_reflection
-        self._trajectories: Dict[str, List[ActionFeedbackPair]] = {}
+        self._trajectories: dict[str, list[ActionFeedbackPair]] = {}
 
     def record_action(
         self,
@@ -83,7 +80,7 @@ class ReflexionEngine:
         )
         self._trajectories.setdefault(session_id, []).append(pair)
 
-    def reflect(self, session_id: str) -> Optional[ReflexionResult]:
+    def reflect(self, session_id: str) -> ReflexionResult | None:
         """Generate reflection for a session's trajectory."""
         t0 = time.perf_counter()
         pairs = self._trajectories.get(session_id, [])
@@ -111,25 +108,23 @@ class ReflexionEngine:
         )
         return result
 
-    def reflect_all(self) -> Dict[str, ReflexionResult]:
+    def reflect_all(self) -> dict[str, ReflexionResult]:
         """Generate reflections for all sessions with sufficient trajectory."""
-        results: Dict[str, ReflexionResult] = {}
+        results: dict[str, ReflexionResult] = {}
         for session_id in self._trajectories:
             result = self.reflect(session_id)
             if result is not None:
                 results[session_id] = result
         return results
 
-    def get_trajectory(self, session_id: str) -> List[ActionFeedbackPair]:
+    def get_trajectory(self, session_id: str) -> list[ActionFeedbackPair]:
         return list(self._trajectories.get(session_id, []))
 
     def clear_session(self, session_id: str) -> None:
         self._trajectories.pop(session_id, None)
 
     @staticmethod
-    def _parse_reflection(
-        raw: str, pairs: List[ActionFeedbackPair]
-    ) -> VerbalReflection:
+    def _parse_reflection(raw: str, pairs: list[ActionFeedbackPair]) -> VerbalReflection:
         lines = [l.strip() for l in raw.splitlines() if l.strip()]
         went_well = []
         went_wrong = []
@@ -140,10 +135,10 @@ class ReflexionEngine:
             if "went well" in lower or "success" in lower or "positive" in lower:
                 section = "well"
                 continue
-            elif "went wrong" in lower or "fail" in lower or "negative" in lower:
+            if "went wrong" in lower or "fail" in lower or "negative" in lower:
                 section = "wrong"
                 continue
-            elif "change" in lower or "differently" in lower or "improve" in lower:
+            if "change" in lower or "differently" in lower or "improve" in lower:
                 section = "change"
                 continue
             if section == "well" and line.startswith("-"):
@@ -166,7 +161,7 @@ class ReflexionEngine:
         )
 
     @staticmethod
-    def _default_generator(pairs: List[ActionFeedbackPair]) -> str:
+    def _default_generator(pairs: list[ActionFeedbackPair]) -> str:
         successes = [p for p in pairs if p.feedback_type == FeedbackType.SUCCESS]
         failures = [p for p in pairs if p.feedback_type == FeedbackType.FAILURE]
         partials = [p for p in pairs if p.feedback_type == FeedbackType.PARTIAL]

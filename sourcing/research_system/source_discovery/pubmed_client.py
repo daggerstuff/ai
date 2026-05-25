@@ -7,7 +7,7 @@ with support for MeSH terms, open access filtering, and pagination.
 
 import logging
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.sourcing.research_system.models import DatasetSource
@@ -35,12 +35,7 @@ class PubMedClient(BaseAPIClient):
         if not self.email:
             logger.warning("NCBI_EMAIL not configured. This is required for API usage.")
 
-    def _make_pubmed_request(
-        self,
-        endpoint: str,
-        params: dict[str, str],
-        use_cache: bool = True
-    ) -> Any:
+    def _make_pubmed_request(self, endpoint: str, params: dict[str, str], use_cache: bool = True) -> Any:
         """
         Make PubMed-specific request with API key and email.
 
@@ -69,7 +64,7 @@ class PubMedClient(BaseAPIClient):
         keywords: list[str],
         mesh_terms: list[str] | None = None,
         open_access_only: bool = True,
-        has_data_availability: bool = True
+        has_data_availability: bool = True,
     ) -> str:
         """
         Build PubMed search query with keywords and filters.
@@ -119,7 +114,7 @@ class PubMedClient(BaseAPIClient):
         mesh_terms: list[str] | None = None,
         max_results: int = 100,
         open_access_only: bool = True,
-        has_data_availability: bool = True
+        has_data_availability: bool = True,
     ) -> list[str]:
         """
         Search PubMed for articles matching criteria.
@@ -138,18 +133,12 @@ class PubMedClient(BaseAPIClient):
             keywords=keywords,
             mesh_terms=mesh_terms,
             open_access_only=open_access_only,
-            has_data_availability=has_data_availability
+            has_data_availability=has_data_availability,
         )
 
         logger.info(f"Searching PubMed with query: {query}")
 
-        params = {
-            "db": "pubmed",
-            "term": query,
-            "retmax": str(max_results),
-            "retmode": "xml",
-            "usehistory": "y"
-        }
+        params = {"db": "pubmed", "term": query, "retmax": str(max_results), "retmode": "xml", "usehistory": "y"}
 
         try:
             response = self._make_pubmed_request("esearch.fcgi", params)
@@ -205,14 +194,10 @@ class PubMedClient(BaseAPIClient):
         all_articles = []
 
         for i in range(0, len(pmids), batch_size):
-            batch = pmids[i:i + batch_size]
+            batch = pmids[i : i + batch_size]
             pmid_str = ",".join(batch)
 
-            params = {
-                "db": "pubmed",
-                "id": pmid_str,
-                "retmode": "xml"
-            }
+            params = {"db": "pubmed", "id": pmid_str, "retmode": "xml"}
 
             try:
                 response = self._make_pubmed_request("efetch.fcgi", params, use_cache=True)
@@ -340,7 +325,7 @@ class PubMedClient(BaseAPIClient):
             "publication_date": pub_date,
             "doi": doi,
             "keywords": keywords,
-            "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
+            "url": f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/",
         }
 
     def _parse_pub_date(self, pub_date_elem: ET.Element | None) -> datetime:
@@ -354,14 +339,14 @@ class PubMedClient(BaseAPIClient):
             Publication date or current date if parsing fails
         """
         if pub_date_elem is None:
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
 
         year_elem = pub_date_elem.find("Year")
         month_elem = pub_date_elem.find("Month")
         day_elem = pub_date_elem.find("Day")
 
         try:
-            year = int(year_elem.text) if year_elem is not None else datetime.now(timezone.utc).year
+            year = int(year_elem.text) if year_elem is not None else datetime.now(UTC).year
 
             # Parse month (can be numeric or text)
             month = 1
@@ -371,9 +356,18 @@ class PubMedClient(BaseAPIClient):
                 except ValueError:
                     # Month name
                     month_names = {
-                        "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4,
-                        "May": 5, "Jun": 6, "Jul": 7, "Aug": 8,
-                        "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12
+                        "Jan": 1,
+                        "Feb": 2,
+                        "Mar": 3,
+                        "Apr": 4,
+                        "May": 5,
+                        "Jun": 6,
+                        "Jul": 7,
+                        "Aug": 8,
+                        "Sep": 9,
+                        "Oct": 10,
+                        "Nov": 11,
+                        "Dec": 12,
                     }
                     month = month_names.get(month_elem.text[:3], 1)
 
@@ -382,7 +376,7 @@ class PubMedClient(BaseAPIClient):
             return datetime(year, month, day)
 
         except (ValueError, TypeError):
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
 
     def convert_to_dataset_source(self, article: dict) -> DatasetSource:
         """
@@ -409,15 +403,12 @@ class PubMedClient(BaseAPIClient):
             keywords=article["keywords"],
             open_access=True,  # Filtered by search
             data_availability="unknown",  # Needs manual verification
-            discovery_date=datetime.now(timezone.utc),
-            discovery_method="pubmed_search"
+            discovery_date=datetime.now(UTC),
+            discovery_method="pubmed_search",
         )
 
     def search_and_fetch(
-        self,
-        keywords: list[str],
-        mesh_terms: list[str] | None = None,
-        max_results: int = 100
+        self, keywords: list[str], mesh_terms: list[str] | None = None, max_results: int = 100
     ) -> list[DatasetSource]:
         """
         Search PubMed and fetch full article details.
@@ -431,11 +422,7 @@ class PubMedClient(BaseAPIClient):
             List of DatasetSource objects
         """
         # Search for PMIDs
-        pmids = self.search(
-            keywords=keywords,
-            mesh_terms=mesh_terms,
-            max_results=max_results
-        )
+        pmids = self.search(keywords=keywords, mesh_terms=mesh_terms, max_results=max_results)
 
         if not pmids:
             logger.info("No PubMed results found")

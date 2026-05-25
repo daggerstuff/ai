@@ -8,7 +8,7 @@ discovery, and lifecycle management, with sub-50ms performance targets.
 import logging
 import uuid
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -18,25 +18,31 @@ from ai.api.mcp_server.integration.redis_client import MCPRedisClient
 
 logger = logging.getLogger(__name__)
 
+
 class AgentStatus(Enum):
     """Enumeration of agent lifecycle statuses."""
+
     ACTIVE = "active"
     INACTIVE = "inactive"
     BUSY = "busy"
     OFFLINE = "offline"
     ERROR = "error"
 
+
 @dataclass
 class AgentRegistrationData:
     """Data required for agent registration."""
+
     name: str
     type: str
     capabilities: list[str]
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class AgentDiscoveryCriteria:
     """Criteria for discovering agents based on capabilities."""
+
     capabilities: list[str] | None = None
     agent_type: str | None = None
     status: AgentStatus | None = None
@@ -44,19 +50,17 @@ class AgentDiscoveryCriteria:
     @classmethod
     def from_request(cls, args: dict[str, str]) -> "AgentDiscoveryCriteria":
         """Create criteria from request arguments."""
-        capabilities = (
-            args.get("capabilities", "").split(",")
-            if args.get("capabilities")
-            else None
-        )
+        capabilities = args.get("capabilities", "").split(",") if args.get("capabilities") else None
         agent_type = args.get("type")
         status_val = args.get("status")
         status = AgentStatus(status_val) if status_val else None
         return cls(capabilities=capabilities, agent_type=agent_type, status=status)
 
+
 @dataclass
 class Agent:
     """Agent instance model."""
+
     id: str
     name: str
     type: str
@@ -73,6 +77,7 @@ class Agent:
         data["registered_at"] = self.registered_at.isoformat()
         data["last_seen"] = self.last_seen.isoformat()
         return data
+
 
 class AgentRegistry:
     """In-memory and persistent registry for agents."""
@@ -104,11 +109,7 @@ class AgentRegistry:
     async def update_agent(self, agent: Agent) -> None:
         """Update agent in registry and persistence."""
         self._local_cache[agent.id] = agent
-        await self.mongodb.update_one(
-            self.collection,
-            {"id": agent.id},
-            {"$set": agent.to_dict()}
-        )
+        await self.mongodb.update_one(self.collection, {"id": agent.id}, {"$set": agent.to_dict()})
         logger.debug(f"Agent {agent.id} updated in registry")
 
     async def find_agents(self, criteria: AgentDiscoveryCriteria) -> list[Agent]:
@@ -132,14 +133,11 @@ class AgentRegistry:
             type=data.get("type", "generic"),
             capabilities=data.get("capabilities", []),
             status=AgentStatus(data.get("status", AgentStatus.ACTIVE.value)),
-            registered_at=datetime.fromisoformat(
-                data.get("registered_at", datetime.now(timezone.utc).isoformat())
-            ),
-            last_seen=datetime.fromisoformat(
-                data.get("last_seen", datetime.now(timezone.utc).isoformat())
-            ),
-            metadata=data.get("metadata", {})
+            registered_at=datetime.fromisoformat(data.get("registered_at", datetime.now(UTC).isoformat())),
+            last_seen=datetime.fromisoformat(data.get("last_seen", datetime.now(UTC).isoformat())),
+            metadata=data.get("metadata", {}),
         )
+
 
 class AgentHealthChecker:
     """Handles health check logic for agents."""
@@ -147,43 +145,39 @@ class AgentHealthChecker:
     async def check_health(self, agent: Agent) -> dict[str, Any]:
         """Perform health check on agent."""
         # Baseline health check logic
-        is_alive = (datetime.now(timezone.utc) - agent.last_seen).total_seconds() < 300
-        health_status = (
-            "healthy"
-            if is_alive and agent.status == AgentStatus.ACTIVE
-            else "degraded"
-        )
+        is_alive = (datetime.now(UTC) - agent.last_seen).total_seconds() < 300
+        health_status = "healthy" if is_alive and agent.status == AgentStatus.ACTIVE else "degraded"
         return {
             "agent_id": agent.id,
             "status": agent.status.value,
             "overall_health": health_status,
-            "last_health_check": datetime.now(timezone.utc).isoformat(),
+            "last_health_check": datetime.now(UTC).isoformat(),
             "last_seen": agent.last_seen.isoformat(),
         }
+
 
 class CapabilityValidator:
     """Validates agent capabilities against system standards."""
 
     def __init__(self):
         self.allowed_capabilities: set[str] = {
-            "ingestion", "standardization", "validation",
-            "processing", "quality_assessment", "export",
-            "bias_detection", "therapeutic_analysis"
+            "ingestion",
+            "standardization",
+            "validation",
+            "processing",
+            "quality_assessment",
+            "export",
+            "bias_detection",
+            "therapeutic_analysis",
         }
 
     async def validate(self, capabilities: list[str]) -> list[str]:
         """Validate and return normalized capabilities."""
-        validated = [
-            cap.lower()
-            for cap in capabilities
-            if cap.lower() in self.allowed_capabilities
-        ]
+        validated = [cap.lower() for cap in capabilities if cap.lower() in self.allowed_capabilities]
         if not validated and capabilities:
-            logger.warning(
-                "None of the provided capabilities matched system standards: "
-                f"{capabilities}"
-            )
+            logger.warning(f"None of the provided capabilities matched system standards: {capabilities}")
         return validated
+
 
 class AgentManager:
     """Manage agent registration, discovery, and lifecycle."""
@@ -200,9 +194,7 @@ class AgentManager:
         logger.info(f"Registering new agent: {agent_data.name}")
 
         # Validate agent capabilities
-        validated_capabilities = await self.capability_validator.validate(
-            agent_data.capabilities
-        )
+        validated_capabilities = await self.capability_validator.validate(agent_data.capabilities)
 
         # Create agent instance
         agent = Agent(
@@ -211,8 +203,8 @@ class AgentManager:
             type=agent_data.type,
             capabilities=validated_capabilities,
             status=AgentStatus.ACTIVE,
-            registered_at=datetime.now(timezone.utc),
-            metadata=agent_data.metadata
+            registered_at=datetime.now(UTC),
+            metadata=agent_data.metadata,
         )
 
         # Store in registry
@@ -231,13 +223,11 @@ class AgentManager:
         """Update agent status and health metrics."""
         agent = await self.agent_registry.get_agent(agent_id)
         if not agent:
-            logger.warning(
-                f"Attempted to update status for non-existent agent: {agent_id}"
-            )
+            logger.warning(f"Attempted to update status for non-existent agent: {agent_id}")
             return False
 
         agent.status = status
-        agent.last_seen = datetime.now(timezone.utc)
+        agent.last_seen = datetime.now(UTC)
 
         await self.agent_registry.update_agent(agent)
 

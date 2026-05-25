@@ -12,9 +12,9 @@ from typing import Any
 
 import click
 
-from ai.cli.auth import AuthManager
-from ai.cli.config import get_config
-from ai.cli.utils import format_file_size, get_logger, setup_logging
+from cli.auth import AuthManager
+from cli.config import get_config
+from cli.utils import format_file_size, get_logger, setup_logging
 
 logger = get_logger(__name__)
 
@@ -51,9 +51,7 @@ def cli_interface_group(ctx):
     help="Pipeline type to run",
 )
 @click.option("--output", "-o", type=click.Path(), help="Output directory")
-@click.option(
-    "--config", "-c", type=click.Path(exists=True), help="Pipeline configuration file"
-)
+@click.option("--config", "-c", type=click.Path(exists=True), help="Pipeline configuration file")
 @click.option("--batch-size", default=100, help="Batch size for processing")
 @click.option("--parallel", default=1, help="Number of parallel workers")
 @click.option("--dry-run", is_flag=True, help="Preview without executing")
@@ -113,9 +111,7 @@ def run(
         if pipeline_id:
             click.echo("✅ Pipeline started successfully!")
             click.echo(f"🆔 Pipeline ID: {pipeline_id}")
-            click.echo(
-                f"📊 Monitor progress with: pixelated cli-interface status --pipeline-id {pipeline_id}"
-            )
+            click.echo(f"📊 Monitor progress with: pixelated cli-interface status --pipeline-id {pipeline_id}")
         else:
             click.echo("❌ Pipeline execution failed", err=True)
 
@@ -135,9 +131,7 @@ def run(
 )
 @click.option("--limit", default=10, help="Maximum number of results")
 @click.pass_context
-def status(
-    _ctx, pipeline_id: str | None, list_all: bool, status: str | None, limit: int
-):
+def status(_ctx, pipeline_id: str | None, list_all: bool, status: str | None, limit: int):
     """Check pipeline status and results."""
     try:
         config_obj = get_config()
@@ -166,9 +160,7 @@ def status(
 
 
 @cli_interface_group.command()
-@click.option(
-    "--input", "-i", type=click.Path(exists=True), required=True, help="Input data file"
-)
+@click.option("--input", "-i", type=click.Path(exists=True), required=True, help="Input data file")
 @click.option("--output", "-o", type=click.Path(), help="Output file")
 @click.option(
     "--format",
@@ -193,13 +185,7 @@ def process(_ctx, input: str, output: str | None, format: str, validate_only: bo
         if output:
             output_path = Path(output)
         else:
-            suffix = (
-                ".json"
-                if format == "json"
-                else ".csv"
-                if format == "csv"
-                else ".parquet"
-            )
+            suffix = ".json" if format == "json" else ".csv" if format == "csv" else ".parquet"
             output_path = input_path.with_suffix(suffix)
 
         click.echo("📊 Processing data file...")
@@ -312,13 +298,9 @@ def list_resources(_ctx, models: bool, datasets: bool, pipelines: bool, detailed
 )
 @click.option("--output", "-o", type=click.Path(), help="Batch results output file")
 @click.option("--parallel", default=1, help="Number of parallel operations")
-@click.option(
-    "--continue-on-error", is_flag=True, help="Continue processing on individual errors"
-)
+@click.option("--continue-on-error", is_flag=True, help="Continue processing on individual errors")
 @click.pass_context
-def batch(
-    _ctx, input: str, output: str | None, parallel: int, continue_on_error: bool
-):
+def batch(_ctx, input: str, output: str | None, parallel: int, continue_on_error: bool):
     """Execute batch operations from a configuration file."""
     try:
         config_obj = get_config()
@@ -333,9 +315,7 @@ def batch(
         with open(input_path) as f:
             batch_config = json.load(f)
 
-        output_path = (
-            Path(output) if output else input_path.with_suffix(".results.json")
-        )
+        output_path = Path(output) if output else input_path.with_suffix(".results.json")
 
         click.echo("📋 Executing batch operations...")
         click.echo(f"📁 Input: {input_path}")
@@ -344,9 +324,7 @@ def batch(
         click.echo(f"🔧 Operations: {len(batch_config.get('operations', []))}")
 
         # Execute batch operations
-        results = _execute_batch_operations(
-            auth_manager, batch_config, parallel, continue_on_error
-        )
+        results = _execute_batch_operations(auth_manager, batch_config, parallel, continue_on_error)
 
         # Save results
         with open(output_path, "w") as f:
@@ -433,9 +411,7 @@ def _execute_pipeline(
     return f"pipeline_{int(time.time())}"
 
 
-def _get_pipeline_status(
-    _auth_manager: AuthManager, pipeline_id: str
-) -> dict[str, Any] | None:
+def _get_pipeline_status(_auth_manager: AuthManager, pipeline_id: str) -> dict[str, Any] | None:
     """Get pipeline status information."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -451,9 +427,7 @@ def _get_pipeline_status(
     }
 
 
-def _list_pipelines(
-    _auth_manager: AuthManager, _status: str | None, _limit: int
-) -> list[dict[str, Any]]:
+def _list_pipelines(_auth_manager: AuthManager, _status: str | None, _limit: int) -> list[dict[str, Any]]:
     """List pipelines with optional status filter."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -496,21 +470,11 @@ def _display_pipelines_list(pipelines: list[dict[str, Any]]) -> None:
 
     click.echo("📋 Recent Pipelines:")
     for pipeline in pipelines:
-        status_icon = (
-            "🟢"
-            if pipeline["status"] == "completed"
-            else "🟡"
-            if pipeline["status"] == "running"
-            else "🔴"
-        )
-        click.echo(
-            f"  {status_icon} {pipeline['id']} - {pipeline['type']} - {pipeline['status']}"
-        )
+        status_icon = "🟢" if pipeline["status"] == "completed" else "🟡" if pipeline["status"] == "running" else "🔴"
+        click.echo(f"  {status_icon} {pipeline['id']} - {pipeline['type']} - {pipeline['status']}")
 
 
-def _process_data_file(
-    _auth_manager: AuthManager, input_path: Path, output_path: Path, _format: str
-) -> dict[str, Any]:
+def _process_data_file(_auth_manager: AuthManager, input_path: Path, output_path: Path, _format: str) -> dict[str, Any]:
     """Process a data file and return results."""
     logger.info(f"Processing data file: {input_path} -> {output_path}")
 
@@ -551,9 +515,7 @@ def _display_validation_results(validation: dict[str, Any]) -> None:
             click.echo(f"    - {warning}")
 
 
-def _search_resources(
-    _auth_manager: AuthManager, _query: str, _type: str, _limit: int
-) -> list[dict[str, Any]]:
+def _search_resources(_auth_manager: AuthManager, _query: str, _type: str, _limit: int) -> list[dict[str, Any]]:
     """Search for resources."""
     # This would call the actual API endpoint
     # For now, return mock results
@@ -674,14 +636,10 @@ def _display_batch_summary(results: dict[str, Any]) -> None:
         click.echo("  ⚠️  Failed operations:")
         for result in results["results"]:
             if result["status"] == "failed":
-                click.echo(
-                    f"    - {result['operation']}: {result.get('error', 'Unknown error')}"
-                )
+                click.echo(f"    - {result['operation']}: {result.get('error', 'Unknown error')}")
 
 
-def _get_activity_data(
-    _auth_manager: AuthManager, days: int, _type: str
-) -> dict[str, Any]:
+def _get_activity_data(_auth_manager: AuthManager, days: int, _type: str) -> dict[str, Any]:
     """Get activity data for specified period."""
     # This would call the actual API endpoint
     # For now, return mock data
@@ -707,12 +665,8 @@ def _display_activity_report(activity_data: dict[str, Any], type: str) -> None:
     if type in ["all", "data"]:
         click.echo(f"  📊 Datasets processed: {activity_data['datasets_processed']}")
 
-    click.echo(
-        f"  ⏱️  Total processing time: {activity_data['total_processing_time'] / 3600:.1f} hours"
-    )
-    click.echo(
-        f"  ⚡ Average pipeline duration: {activity_data['average_pipeline_duration'] / 60:.1f} minutes"
-    )
+    click.echo(f"  ⏱️  Total processing time: {activity_data['total_processing_time'] / 3600:.1f} hours")
+    click.echo(f"  ⚡ Average pipeline duration: {activity_data['average_pipeline_duration'] / 60:.1f} minutes")
     click.echo(f"  ✅ Success rate: {activity_data['success_rate'] * 100:.1f}%")
 
 

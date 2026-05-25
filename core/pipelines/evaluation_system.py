@@ -39,4 +39,4 @@ class EvaluationSystem:
         return [self.evaluate(payload) for payload in payloads]
 
 
-__all__ = ["EvaluationSystem", "EvaluationRecord"]
+__all__ = ["EvaluationRecord", "EvaluationSystem"]

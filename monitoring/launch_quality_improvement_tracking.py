@@ -5,11 +5,12 @@ Quality Improvement Tracking Launcher (Task 5.6.2.4)
 Enterprise-grade launcher for the quality improvement tracking system
 with comprehensive setup, validation, and execution capabilities.
 """
+
 import argparse
 import logging
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from quality_improvement_reporter import QualityImprovementReporter
@@ -58,7 +59,14 @@ class QualityImprovementTrackingLauncher:
 
         for package in self.required_packages:
             try:
-                if package == "sqlite3" or package == "pandas" or package == "numpy" or package == "scipy" or package == "plotly" or package == "jinja2":
+                if (
+                    package == "sqlite3"
+                    or package == "pandas"
+                    or package == "numpy"
+                    or package == "scipy"
+                    or package == "plotly"
+                    or package == "jinja2"
+                ):
                     pass
 
                 logger.info(f"  ✅ {package}: Available")
@@ -69,10 +77,7 @@ class QualityImprovementTrackingLauncher:
 
         if missing_packages:
             logger.error(f"❌ Missing packages: {', '.join(missing_packages)}")
-            logger.info(
-                "💡 Install missing packages with: pip install "
-                + " ".join(missing_packages)
-            )
+            logger.info("💡 Install missing packages with: pip install " + " ".join(missing_packages))
             return False
 
         logger.info("✅ All dependencies available")
@@ -88,7 +93,6 @@ class QualityImprovementTrackingLauncher:
             return False
 
         try:
-
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
 
@@ -118,12 +122,8 @@ class QualityImprovementTrackingLauncher:
             total_conversations, earliest_date, latest_date = result
 
             if total_conversations < 50:
-                logger.error(
-                    f"❌ Insufficient data for improvement tracking: only {total_conversations} conversations"
-                )
-                logger.info(
-                    "💡 Need at least 50 conversations with quality data for improvement tracking"
-                )
+                logger.error(f"❌ Insufficient data for improvement tracking: only {total_conversations} conversations")
+                logger.info("💡 Need at least 50 conversations with quality data for improvement tracking")
                 conn.close()
                 return False
 
@@ -159,15 +159,11 @@ class QualityImprovementTrackingLauncher:
 
                 if filename == "quality_improvement_tracker.py":
                     if "QualityImprovementTracker" not in content:
-                        logger.error(
-                            f"❌ QualityImprovementTracker class not found in {filename}"
-                        )
+                        logger.error(f"❌ QualityImprovementTracker class not found in {filename}")
                         return False
                 elif filename == "quality_improvement_reporter.py":
                     if "QualityImprovementReporter" not in content:
-                        logger.error(
-                            f"❌ QualityImprovementReporter class not found in {filename}"
-                        )
+                        logger.error(f"❌ QualityImprovementReporter class not found in {filename}")
                         return False
 
             except Exception as e:
@@ -194,7 +190,6 @@ class QualityImprovementTrackingLauncher:
         try:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
-
 
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
@@ -234,7 +229,6 @@ class QualityImprovementTrackingLauncher:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
 
-
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
 
@@ -268,7 +262,6 @@ class QualityImprovementTrackingLauncher:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
 
-
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
 
@@ -283,9 +276,7 @@ class QualityImprovementTrackingLauncher:
                     "status": "progress_recorded",
                     "message": "Progress measurement recorded successfully",
                 }
-            logger.error(
-                f"❌ Failed to record progress for intervention: {intervention_id}"
-            )
+            logger.error(f"❌ Failed to record progress for intervention: {intervention_id}")
             return {
                 "success": False,
                 "intervention_id": intervention_id,
@@ -303,7 +294,6 @@ class QualityImprovementTrackingLauncher:
         try:
             # Import improvement tracker
             sys.path.append(str(self.monitoring_dir))
-
 
             # Initialize tracker
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
@@ -326,18 +316,10 @@ class QualityImprovementTrackingLauncher:
 
                 if analysis:
                     result["analysis"] = {
-                        "improvement_achieved": analysis.improvement_metrics[
-                            "absolute_improvement"
-                        ],
-                        "target_achievement": analysis.improvement_metrics[
-                            "target_achievement"
-                        ],
+                        "improvement_achieved": analysis.improvement_metrics["absolute_improvement"],
+                        "target_achievement": analysis.improvement_metrics["target_achievement"],
                         "statistical_significance": len(
-                            [
-                                t
-                                for t in analysis.statistical_tests
-                                if t.get("significant", False)
-                            ]
+                            [t for t in analysis.statistical_tests if t.get("significant", False)]
                         )
                         > 0,
                         "recommendations_count": len(analysis.recommendations),
@@ -355,16 +337,13 @@ class QualityImprovementTrackingLauncher:
             logger.error(f"❌ Error completing intervention: {e}")
             return {"success": False, "error": str(e)}
 
-    def generate_improvement_report(
-        self, report_period_days: int = 90, output_format: str = "both"
-    ) -> dict:
+    def generate_improvement_report(self, report_period_days: int = 90, output_format: str = "both") -> dict:
         """Generate comprehensive improvement tracking report."""
         logger.info(f"📊 Generating improvement report ({report_period_days} days)")
 
         try:
             # Import improvement components
             sys.path.append(str(self.monitoring_dir))
-
 
             # Initialize components
             tracker = QualityImprovementTracker(db_path=str(self.db_path))
@@ -400,7 +379,9 @@ class QualityImprovementTrackingLauncher:
 
                 # Save visualizations as HTML files
                 for viz_name, fig in visualizations.items():
-                    viz_filename = f"improvement_visualization_{viz_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.html"
+                    viz_filename = (
+                        f"improvement_visualization_{viz_name}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.html"
+                    )
                     viz_path = self.reports_dir / viz_filename
                     fig.write_html(str(viz_path))
                     visualization_files.append(str(viz_path))
@@ -435,7 +416,6 @@ class QualityImprovementTrackingLauncher:
         """Display report summary to console."""
         if not summary.get("success", False):
             return
-
 
         if summary["overall_impact"]:
             summary["overall_impact"]
@@ -490,9 +470,7 @@ class QualityImprovementTrackingLauncher:
         elif action == "start":
             result = self.start_intervention(kwargs.get("intervention_id"))
         elif action == "progress":
-            result = self.record_progress(
-                kwargs.get("intervention_id"), kwargs.get("notes", "")
-            )
+            result = self.record_progress(kwargs.get("intervention_id"), kwargs.get("notes", ""))
         elif action == "complete":
             result = self.complete_intervention(kwargs.get("intervention_id"))
         elif action == "report":
@@ -506,9 +484,7 @@ class QualityImprovementTrackingLauncher:
             return False
 
         if result.get("success", False):
-            logger.info(
-                "🎉 Quality Improvement Tracking action completed successfully!"
-            )
+            logger.info("🎉 Quality Improvement Tracking action completed successfully!")
             return True
         logger.error("❌ Quality Improvement Tracking action failed")
         return False
@@ -516,9 +492,7 @@ class QualityImprovementTrackingLauncher:
 
 def main():
     """Main function to launch quality improvement tracking."""
-    parser = argparse.ArgumentParser(
-        description="Launch Quality Improvement Tracking System"
-    )
+    parser = argparse.ArgumentParser(description="Launch Quality Improvement Tracking System")
     parser.add_argument(
         "action",
         choices=["create", "start", "progress", "complete", "report"],
@@ -530,21 +504,15 @@ def main():
     parser.add_argument("--description", help="Intervention description (for create)")
     parser.add_argument("--type", help="Intervention type (for create)")
     parser.add_argument("--component", help="Target component (for create)")
-    parser.add_argument(
-        "--improvement", type=float, help="Expected improvement (for create)"
-    )
+    parser.add_argument("--improvement", type=float, help="Expected improvement (for create)")
     parser.add_argument("--tier", help="Target tier (for create)")
     parser.add_argument("--dataset", help="Target dataset (for create)")
     parser.add_argument("--created-by", default="user", help="Created by (for create)")
 
     # General arguments
-    parser.add_argument(
-        "--intervention-id", help="Intervention ID (for start, progress, complete)"
-    )
+    parser.add_argument("--intervention-id", help="Intervention ID (for start, progress, complete)")
     parser.add_argument("--notes", help="Progress notes (for progress)")
-    parser.add_argument(
-        "--days", type=int, default=90, help="Report period days (for report)"
-    )
+    parser.add_argument("--days", type=int, default=90, help="Report period days (for report)")
     parser.add_argument(
         "--format",
         choices=["json", "html", "both"],
@@ -559,9 +527,7 @@ def main():
     # Prepare kwargs based on action
     kwargs = {}
     if args.action == "create":
-        if not all(
-            [args.name, args.description, args.type, args.component, args.improvement]
-        ):
+        if not all([args.name, args.description, args.type, args.component, args.improvement]):
             sys.exit(1)
         kwargs = {
             "name": args.name,

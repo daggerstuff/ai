@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Session Consolidation — Sprint 4, Task 2.
 
 End-of-session consolidation: theme extraction, emotional arc computation,
@@ -10,8 +9,8 @@ from __future__ import annotations
 import logging
 import time
 from collections import Counter
-from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional
+from collections.abc import Callable
+from dataclasses import dataclass
 
 from ..schema import MemoryBlock
 
@@ -33,24 +32,24 @@ class EmotionalArc:
 class SessionSummary:
     session_id: str
     tenant_id: str
-    themes: List[str]
+    themes: list[str]
     emotional_arc: EmotionalArc
-    unresolved_topics: List[str]
+    unresolved_topics: list[str]
     summary_text: str
     memory_count: int
     timestamp_ms: int
 
 
-SummarizerFn = Callable[[List[MemoryBlock], List[str], EmotionalArc], str]
+SummarizerFn = Callable[[list[MemoryBlock], list[str], EmotionalArc], str]
 
 
 class SessionConsolidator:
     """Consolidate a session's memories into a structured summary."""
 
-    def __init__(self, summarizer: Optional[SummarizerFn] = None) -> None:
+    def __init__(self, summarizer: SummarizerFn | None = None) -> None:
         self._summarizer = summarizer or self._default_summarizer
 
-    def consolidate(self, memories: List[MemoryBlock]) -> SessionSummary:
+    def consolidate(self, memories: list[MemoryBlock]) -> SessionSummary:
         """Run full session consolidation."""
         t0 = time.perf_counter()
         if not memories:
@@ -85,18 +84,16 @@ class SessionConsolidator:
         return result
 
     @staticmethod
-    def _extract_themes(memories: List[MemoryBlock]) -> List[str]:
+    def _extract_themes(memories: list[MemoryBlock]) -> list[str]:
         """Extract key themes from emotional categories."""
         category_counter: Counter[str] = Counter()
         for m in memories:
             for cat in m.emotions.categories or ["general"]:
                 category_counter[cat] += 1
-        return [
-            cat for cat, _ in category_counter.most_common(10)
-        ]
+        return [cat for cat, _ in category_counter.most_common(10)]
 
     @staticmethod
-    def _compute_emotional_arc(memories: List[MemoryBlock]) -> EmotionalArc:
+    def _compute_emotional_arc(memories: list[MemoryBlock]) -> EmotionalArc:
         """Compute valence trajectory over time."""
         sorted_memories = sorted(memories, key=lambda m: m.timestamp)
         valences = [m.emotions.valence for m in sorted_memories]
@@ -112,9 +109,7 @@ class SessionConsolidator:
 
         if len(valences) >= 3:
             first_half = sum(valences[: len(valences) // 2]) / (len(valences) // 2)
-            second_half = sum(valences[len(valences) // 2 :]) / (
-                len(valences) - len(valences) // 2
-            )
+            second_half = sum(valences[len(valences) // 2 :]) / (len(valences) - len(valences) // 2)
             if second_half > first_half + 0.1:
                 trend = "improving"
             elif second_half < first_half - 0.1:
@@ -124,9 +119,7 @@ class SessionConsolidator:
         else:
             trend = "stable"
 
-        volatility = (
-            sum((v - avg) ** 2 for v in valences) / len(valences)
-        ) ** 0.5
+        volatility = (sum((v - avg) ** 2 for v in valences) / len(valences)) ** 0.5
 
         return EmotionalArc(
             start_valence=round(start, 3),
@@ -139,18 +132,15 @@ class SessionConsolidator:
         )
 
     @staticmethod
-    def _identify_unresolved(memories: List[MemoryBlock]) -> List[str]:
+    def _identify_unresolved(memories: list[MemoryBlock]) -> list[str]:
         """Identify topics mentioned but not resolved."""
         crisis_memories = [m for m in memories if m.gating.crisisFlag]
         high_arousal = [m for m in memories if m.emotions.arousal > 0.7]
         negative_end = [
-            m
-            for m in memories
-            if m.emotions.valence < -0.3
-            and m.timestamp == max(x.timestamp for x in memories)
+            m for m in memories if m.emotions.valence < -0.3 and m.timestamp == max(x.timestamp for x in memories)
         ]
 
-        unresolved: List[str] = []
+        unresolved: list[str] = []
         if crisis_memories:
             unresolved.append("crisis_content_requires_followup")
         if high_arousal:
@@ -168,8 +158,8 @@ class SessionConsolidator:
 
     @staticmethod
     def _default_summarizer(
-        memories: List[MemoryBlock],
-        themes: List[str],
+        memories: list[MemoryBlock],
+        themes: list[str],
         arc: EmotionalArc,
     ) -> str:
         top_themes = ", ".join(themes[:3]) if themes else "no clear themes"

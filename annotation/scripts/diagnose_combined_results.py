@@ -37,18 +37,13 @@ def analyze_combined_results(results_file: str):
             a_crisis = dr_a.get("crisis_label")
             b_crisis = dr_b.get("crisis_label")
             if a_crisis != b_crisis:
-                disagreements["crisis_label"].append(
-                    {"task_id": task_id, "dr_a": a_crisis, "dr_b": b_crisis}
-                )
+                disagreements["crisis_label"].append({"task_id": task_id, "dr_a": a_crisis, "dr_b": b_crisis})
 
             # Emotion Disagreement
             a_emotion = dr_a.get("primary_emotion")
             b_emotion = dr_b.get("primary_emotion")
             if a_emotion != b_emotion:
-                disagreements["primary_emotion"].append(
-                    {"task_id": task_id, "dr_a": a_emotion, "dr_b": b_emotion}
-                )
-
+                disagreements["primary_emotion"].append({"task_id": task_id, "dr_a": a_emotion, "dr_b": b_emotion})
 
     for _category, items in disagreements.items():
         count = len(items)
@@ -59,15 +54,10 @@ def analyze_combined_results(results_file: str):
                 pass
 
 
-
 if __name__ == "__main__":
     import sys
 
-    input_file = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else "ai/annotation/results/batch_001_annotated.jsonl"
-    )
+    input_file = sys.argv[1] if len(sys.argv) > 1 else "ai/annotation/results/batch_001_annotated.jsonl"
     analyze_combined_results(input_file)
 
 
@@ -75,19 +65,11 @@ def _resolve_agent_pair(individual: list[dict]):
     # Identify agents by their known IDs or roles
     # Fallback to positional index only if IDs are not found
     dr_a = next(
-        (
-            a
-            for a in individual
-            if "dr_a" in a.get("agent_id", "") or "crisis_expert" in a.get("role", "")
-        ),
+        (a for a in individual if "dr_a" in a.get("agent_id", "") or "crisis_expert" in a.get("role", "")),
         None,
     )
     dr_b = next(
-        (
-            a
-            for a in individual
-            if "dr_b" in a.get("agent_id", "") or "emotion_analyst" in a.get("role", "")
-        ),
+        (a for a in individual if "dr_b" in a.get("agent_id", "") or "emotion_analyst" in a.get("role", "")),
         None,
     )
 

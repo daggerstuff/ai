@@ -5,7 +5,7 @@ Robust Crisis Generator - Handles slow server responses properly
 
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
@@ -22,7 +22,6 @@ def call_model_robust(prompt, max_tokens=30, max_retries=2):
 
     for attempt in range(max_retries):
         try:
-
             response = requests.post(
                 "https://api.pixelatedempathy.com/v1/chat/completions",
                 json=payload,
@@ -66,18 +65,15 @@ def generate_crisis_training_data():
 
     dataset = []
 
-
     for i, prompt in enumerate(crisis_prompts):
-
         # Generate crisis response
         response = call_model_robust(prompt, max_tokens=40)
 
         if response:
-
             # Create training pair
             training_pair = {
                 "id": i + 1,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "crisis_prompt": prompt,
                 "crisis_response": response,
                 "response_length": len(response),
@@ -93,14 +89,14 @@ def generate_crisis_training_data():
         time.sleep(10)
 
     # Save dataset
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     filename = f"/home/vivi/pixelated/ai/crisis_training_{timestamp}.json"
 
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(
             {
                 "metadata": {
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "total_pairs": len(dataset),
                     "model_used": "huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M",
                     "purpose": "Crisis intervention training data",
@@ -111,7 +107,6 @@ def generate_crisis_training_data():
             indent=2,
             ensure_ascii=False,
         )
-
 
     # Display summary
     if dataset:

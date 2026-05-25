@@ -39,7 +39,6 @@ class SecurityError(Exception):
     """Security-related error."""
 
 
-
 def sanitize_string(value: str, max_length: int | None = None) -> str:
     """
     Sanitize a string value by removing dangerous patterns and escaping HTML.
@@ -65,7 +64,6 @@ def sanitize_string(value: str, max_length: int | None = None) -> str:
 
     # Escape HTML entities
     return html.escape(value, quote=True)
-
 
 
 def sanitize_dict(data: dict[str, Any], max_string_length: int | None = None) -> dict[str, Any]:
@@ -260,13 +258,7 @@ def get_security_headers() -> dict[str, str]:
             "frame-ancestors 'none';"
         ),
         "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Permissions-Policy": (
-            "geolocation=(), "
-            "microphone=(), "
-            "camera=(), "
-            "payment=(), "
-            "usb=()"
-        ),
+        "Permissions-Policy": ("geolocation=(), microphone=(), camera=(), payment=(), usb=()"),
     }
 
 
@@ -310,4 +302,3 @@ def sanitize_json_output(data: Any) -> Any:
         return str(sanitized)
 
     return sanitized
-

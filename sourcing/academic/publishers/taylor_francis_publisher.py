@@ -124,15 +124,11 @@ class TaylorFrancisPublisher(BasePublisher):
             logger.error(f"Taylor & Francis search error: {e}")
             return []
 
-    def _parse_record(
-        self, record: dict[str, Any], _query: str
-    ) -> BookMetadata | None:
+    def _parse_record(self, record: dict[str, Any], _query: str) -> BookMetadata | None:
         """Parse Taylor & Francis record"""
         try:
             title = record.get("title", "Unknown Title")
-            authors = [
-                a.get("name", "") for a in record.get("authors", []) if a.get("name")
-            ]
+            authors = [a.get("name", "") for a in record.get("authors", []) if a.get("name")]
 
             pub_date = record.get("publicationDate", "")
             year = int(pub_date.split("-")[0]) if pub_date else 0
@@ -173,9 +169,7 @@ class TaylorFrancisPublisher(BasePublisher):
             return None
         try:
             headers = {"Authorization": f"Bearer {self._auth_token}"}
-            response = self.session.get(
-                f"{self.api_base_url}/books/{book_id}", headers=headers, timeout=10
-            )
+            response = self.session.get(f"{self.api_base_url}/books/{book_id}", headers=headers, timeout=10)
             if response.status_code == 200:
                 return self._parse_record(response.json(), "")
             return None
@@ -183,9 +177,7 @@ class TaylorFrancisPublisher(BasePublisher):
             logger.error(f"Error getting metadata: {e}")
             return None
 
-    def get_book_content(
-        self, _book_id: str, _format: BookFormat = BookFormat.PDF
-    ) -> BookContent | None:
+    def get_book_content(self, _book_id: str, _format: BookFormat = BookFormat.PDF) -> BookContent | None:
         """Get book content (requires institutional access)"""
         logger.warning("Taylor & Francis content requires institutional access")
         return None

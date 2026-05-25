@@ -2,6 +2,7 @@
 """
 AI Q/A Agent - Uses actual AI to intelligently analyze content and generate appropriate Q/A pairs
 """
+
 import json
 import os
 
@@ -114,12 +115,8 @@ Be very careful to ensure the question and response actually match and make logi
 class LocalAIQAAgent:
     def __init__(self):
         try:
-
-            self.analyzer = pipeline(
-                "text-generation", model="microsoft/DialoGPT-medium"
-            )
+            self.analyzer = pipeline("text-generation", model="microsoft/DialoGPT-medium")
         except ImportError:
-
             self.analyzer = None
 
     def analyze_content_local(self, text: str, metadata: dict) -> dict:
@@ -129,9 +126,7 @@ class LocalAIQAAgent:
             return self.create_simple_analysis(text, metadata)
 
         # Use local model for analysis
-        prompt = (
-            f"Analyze this content and create an appropriate question: {text[:500]}"
-        )
+        prompt = f"Analyze this content and create an appropriate question: {text[:500]}"
 
         try:
             result = self.analyzer(prompt, max_length=100, num_return_sequences=1)
@@ -231,7 +226,6 @@ def test_ai_agent():
     }
 
     agent.process_segment(test_segment)
-
 
 
 if __name__ == "__main__":

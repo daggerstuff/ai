@@ -8,7 +8,7 @@ HIPAA++ compliant metrics collection, and real-time performance analysis.
 import json
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from ai.api.techdeck_integration.error_handling.custom_errors import PerformanceMonitoringError, ValidationError
@@ -64,9 +64,7 @@ class PerformanceSummary:
 class PerformanceMonitor:
     """Comprehensive performance monitor for pipeline operations."""
 
-    def __init__(
-        self, redis_client: RedisClient, config: dict[str, Any] | None = None
-    ):
+    def __init__(self, redis_client: RedisClient, config: dict[str, Any] | None = None):
         """
         Initialize performance monitor with Redis persistence.
 
@@ -80,9 +78,7 @@ class PerformanceMonitor:
 
         # Configuration
         self.metrics_retention_hours = self.config.get("metrics_retention_hours", 24)
-        self.threshold_check_interval = self.config.get(
-            "threshold_check_interval", 60
-        )  # seconds
+        self.threshold_check_interval = self.config.get("threshold_check_interval", 60)  # seconds
         self.performance_window_size = self.config.get("performance_window_size", 1000)
         self.enable_real_time_alerts = self.config.get("enable_real_time_alerts", True)
 
@@ -90,12 +86,8 @@ class PerformanceMonitor:
         self.performance_thresholds = self._initialize_performance_thresholds()
 
         # In-memory metrics storage
-        self.metrics_buffer: dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=self.performance_window_size)
-        )
-        self.execution_metrics: dict[str, dict[str, list[float]]] = defaultdict(
-            lambda: defaultdict(list)
-        )
+        self.metrics_buffer: dict[str, deque] = defaultdict(lambda: deque(maxlen=self.performance_window_size))
+        self.execution_metrics: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
 
         # Real-time performance tracking
         self.current_performance: dict[str, dict[str, Any]] = {}
@@ -201,7 +193,7 @@ class PerformanceMonitor:
                 stage_name=stage_name,
                 value=value,
                 unit=unit,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 metadata=metadata or {},
                 threshold_exceeded=False,
             )
@@ -238,13 +230,11 @@ class PerformanceMonitor:
             # Log sub-50ms compliance
             if unit == "milliseconds" and value <= 50.0:
                 self.logger.debug(
-                    f"Sub-50ms compliance achieved: {metric_name} = {value:.2f}ms "
-                    f"for execution {execution_id}"
+                    f"Sub-50ms compliance achieved: {metric_name} = {value:.2f}ms for execution {execution_id}"
                 )
             elif unit == "milliseconds" and value > 50.0:
                 self.logger.warning(
-                    f"Sub-50ms compliance exceeded: {metric_name} = {value:.2f}ms "
-                    f"for execution {execution_id}"
+                    f"Sub-50ms compliance exceeded: {metric_name} = {value:.2f}ms for execution {execution_id}"
                 )
 
             self.performance_stats["total_metrics_recorded"] += 1
@@ -288,9 +278,7 @@ class PerformanceMonitor:
         if perf_data["count"] == 1:
             perf_data["average"] = metric.value
         else:
-            perf_data["average"] = (
-                perf_data["average"] * (perf_data["count"] - 1) + metric.value
-            ) / perf_data["count"]
+            perf_data["average"] = (perf_data["average"] * (perf_data["count"] - 1) + metric.value) / perf_data["count"]
 
     async def _store_metric_in_redis(self, metric: PerformanceMetric) -> None:
         """Store metric in Redis for persistence."""
@@ -345,8 +333,7 @@ class PerformanceMonitor:
                 # Check if it's a critical violation
                 if (
                     metric.metric_name in self.performance_thresholds
-                    and metric.value
-                    > self.performance_thresholds[metric.metric_name].critical_threshold
+                    and metric.value > self.performance_thresholds[metric.metric_name].critical_threshold
                 ):
                     self.performance_stats["critical_violations"] += 1
 
@@ -388,9 +375,7 @@ class PerformanceMonitor:
 
             # Filter by stage if specified
             if stage_name:
-                filtered_metrics = {
-                    k: v for k, v in execution_metrics.items() if f":{stage_name}" in k
-                }
+                filtered_metrics = {k: v for k, v in execution_metrics.items() if f":{stage_name}" in k}
                 if not filtered_metrics:
                     return None
             else:
@@ -415,14 +400,10 @@ class PerformanceMonitor:
             # Calculate throughput (assuming metrics are recorded over time)
             measurement_period = 300.0  # 5 minutes default
             if all_values:
-                measurement_period = min(
-                    measurement_period, len(all_values) * 1.0
-                )  # Rough estimate
+                measurement_period = min(measurement_period, len(all_values) * 1.0)  # Rough estimate
 
             # Count successes and failures (simplified)
-            successful_requests = len(
-                [v for v in all_values if v <= 50.0]
-            )  # Sub-50ms considered success
+            successful_requests = len([v for v in all_values if v <= 50.0])  # Sub-50ms considered success
             failed_requests = len(all_values) - successful_requests
 
             return PerformanceSummary(
@@ -468,11 +449,7 @@ class PerformanceMonitor:
 
                     threshold = self.performance_thresholds.get(metric_name)
                     if threshold:
-                        severity = (
-                            "critical"
-                            if perf_data["last_value"] > threshold.critical_threshold
-                            else "warning"
-                        )
+                        severity = "critical" if perf_data["last_value"] > threshold.critical_threshold else "warning"
 
                         violations.append(
                             {
@@ -482,7 +459,7 @@ class PerformanceMonitor:
                                 "current_value": perf_data["last_value"],
                                 "threshold_value": threshold.warning_threshold,
                                 "severity": severity,
-                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                                "timestamp": datetime.now(UTC).isoformat(),
                                 "recommendations": self._generate_threshold_recommendations(
                                     metric_name, perf_data["last_value"], threshold
                                 ),
@@ -555,7 +532,7 @@ class PerformanceMonitor:
         """
         try:
             dashboard = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "overall_stats": self.performance_stats.copy(),
                 "current_performance": {},
                 "threshold_violations": await self.check_performance_thresholds(),
@@ -583,18 +560,14 @@ class PerformanceMonitor:
                 dashboard["current_performance"][execution_id][metric_name] = {
                     "current_value": perf_data["last_value"],
                     "average": perf_data["average"],
-                    "min_value": perf_data["min_value"]
-                    if perf_data["min_value"] != float("inf")
-                    else 0.0,
+                    "min_value": perf_data["min_value"] if perf_data["min_value"] != float("inf") else 0.0,
                     "max_value": perf_data["max_value"],
                     "count": perf_data["count"],
                     "threshold_exceeded": perf_data["threshold_exceeded"],
                 }
 
                 if stage_name:
-                    dashboard["current_performance"][execution_id][metric_name][
-                        "stage"
-                    ] = stage_name
+                    dashboard["current_performance"][execution_id][metric_name]["stage"] = stage_name
 
             # Generate alerts
             dashboard["alerts"] = self._generate_performance_alerts(dashboard)
@@ -646,9 +619,7 @@ class PerformanceMonitor:
                 "compliance_trend": "unknown",
             }
 
-    def _generate_performance_alerts(
-        self, dashboard: dict[str, Any]
-    ) -> list[dict[str, Any]]:
+    def _generate_performance_alerts(self, dashboard: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate performance alerts based on dashboard data."""
         alerts = []
 
@@ -668,9 +639,7 @@ class PerformanceMonitor:
             # Check threshold violations
             violations = dashboard["threshold_violations"]
             if violations:
-                critical_violations = [
-                    v for v in violations if v["severity"] == "critical"
-                ]
+                critical_violations = [v for v in violations if v["severity"] == "critical"]
                 if critical_violations:
                     alerts.append(
                         {
@@ -726,7 +695,7 @@ class PerformanceMonitor:
             PerformanceMonitoringError: If cleanup fails
         """
         try:
-            cutoff_time = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
+            cutoff_time = datetime.now(UTC) - timedelta(hours=max_age_hours)
             cleaned_count = 0
 
             # Clean up Redis metrics
@@ -765,9 +734,7 @@ class PerformanceMonitor:
             self.logger.error(f"Failed to cleanup old metrics: {e}")
             raise PerformanceMonitoringError(f"Metrics cleanup failed: {e!s}") from e
 
-    def get_performance_report(
-        self, execution_id: str | None = None, time_range_hours: int = 24
-    ) -> dict[str, Any]:
+    def get_performance_report(self, execution_id: str | None = None, time_range_hours: int = 24) -> dict[str, Any]:
         """
         Generate comprehensive performance report.
 
@@ -783,7 +750,7 @@ class PerformanceMonitor:
         """
         try:
             report = {
-                "report_timestamp": datetime.now(timezone.utc).isoformat(),
+                "report_timestamp": datetime.now(UTC).isoformat(),
                 "time_range_hours": time_range_hours,
                 "execution_filter": execution_id,
                 "summary": {},
@@ -793,17 +760,11 @@ class PerformanceMonitor:
 
             # Generate summary statistics
             report["summary"] = {
-                "total_metrics_recorded": self.performance_stats[
-                    "total_metrics_recorded"
-                ],
-                "sub_50ms_compliance_rate": self.performance_stats[
-                    "sub_50ms_compliance_rate"
-                ],
+                "total_metrics_recorded": self.performance_stats["total_metrics_recorded"],
+                "sub_50ms_compliance_rate": self.performance_stats["sub_50ms_compliance_rate"],
                 "threshold_violations": self.performance_stats["threshold_violations"],
                 "critical_violations": self.performance_stats["critical_violations"],
-                "average_response_time": self.performance_stats[
-                    "average_detection_time"
-                ],
+                "average_response_time": self.performance_stats["average_detection_time"],
             }
 
             # Add detailed metrics if execution ID is specified
@@ -814,19 +775,13 @@ class PerformanceMonitor:
                         "average": sum(values) / len(values) if values else 0.0,
                         "min": min(values) if values else 0.0,
                         "max": max(values) if values else 0.0,
-                        "p95": self._calculate_percentile(values, 0.95)
-                        if values
-                        else 0.0,
+                        "p95": self._calculate_percentile(values, 0.95) if values else 0.0,
                     }
-                    for metric_key, values in self.execution_metrics[
-                        execution_id
-                    ].items()
+                    for metric_key, values in self.execution_metrics[execution_id].items()
                 }
 
             # Generate recommendations
-            report["recommendations"] = self._generate_performance_recommendations(
-                report["summary"]
-            )
+            report["recommendations"] = self._generate_performance_recommendations(report["summary"])
 
             return report
 
@@ -845,9 +800,7 @@ class PerformanceMonitor:
 
         return sorted_values[index]
 
-    def _generate_performance_recommendations(
-        self, summary: dict[str, Any]
-    ) -> list[str]:
+    def _generate_performance_recommendations(self, summary: dict[str, Any]) -> list[str]:
         """Generate performance recommendations based on summary."""
         recommendations = []
 
@@ -863,16 +816,14 @@ class PerformanceMonitor:
         violations = summary.get("threshold_violations", 0)
         if violations > 0:
             recommendations.append(
-                f"{violations} threshold violations detected. "
-                "Review system configuration and resource allocation."
+                f"{violations} threshold violations detected. Review system configuration and resource allocation."
             )
 
         # Check critical violations
         critical_violations = summary.get("critical_violations", 0)
         if critical_violations > 0:
             recommendations.append(
-                f"{critical_violations} critical performance violations detected. "
-                "Immediate investigation required."
+                f"{critical_violations} critical performance violations detected. Immediate investigation required."
             )
 
         # Check average response time
@@ -897,9 +848,7 @@ class PerformanceMonitor:
         """
         try:
             # Check Redis connection
-            redis_health = (
-                self.redis_client.ping() if hasattr(self.redis_client, "ping") else True
-            )
+            redis_health = self.redis_client.ping() if hasattr(self.redis_client, "ping") else True
 
             # Check configuration
             config_healthy = (
@@ -918,14 +867,10 @@ class PerformanceMonitor:
                 "redis_connection": redis_health,
                 "configuration_healthy": config_healthy,
                 "has_recorded_metrics": has_metrics,
-                "total_metrics_recorded": self.performance_stats[
-                    "total_metrics_recorded"
-                ],
+                "total_metrics_recorded": self.performance_stats["total_metrics_recorded"],
                 "threshold_violations": self.performance_stats["threshold_violations"],
-                "sub_50ms_compliance_rate": self.performance_stats[
-                    "sub_50ms_compliance_rate"
-                ],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "sub_50ms_compliance_rate": self.performance_stats["sub_50ms_compliance_rate"],
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -933,5 +878,5 @@ class PerformanceMonitor:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }

@@ -13,7 +13,7 @@ import argparse
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -120,9 +120,7 @@ def load_json_file(file_path: Path) -> list[dict[str, Any]]:
         return []
 
 
-def normalize_record(
-    record: dict[str, Any], source: str, stage_id: str
-) -> dict[str, Any]:
+def normalize_record(record: dict[str, Any], source: str, stage_id: str) -> dict[str, Any]:
     """Normalize a record to standard format with metadata."""
     # Extract or infer conversation/text fields
     text = (
@@ -174,7 +172,7 @@ def slice_datasets(output_dir: Path, dry_run: bool = False) -> dict[str, Any]:
         Report dictionary with slicing results
     """
     report = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "stages": {},
         "total_records": 0,
         "total_size_bytes": 0,
@@ -283,7 +281,6 @@ def generate_metadata(report: dict[str, Any], output_dir: Path) -> None:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
 
 
-
 def main():
     parser = argparse.ArgumentParser(description="DACT-06: Stage-Based Dataset Slicing")
     parser.add_argument(
@@ -292,9 +289,7 @@ def main():
         default="ai/data/staged_datasets",
         help="Output directory for staged datasets",
     )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Only report what would be done"
-    )
+    parser.add_argument("--dry-run", action="store_true", help="Only report what would be done")
     parser.add_argument(
         "--generate-metadata",
         action="store_true",
@@ -304,14 +299,12 @@ def main():
 
     args = parser.parse_args()
 
-
     # Execute slicing
     report = slice_datasets(Path(args.output_dir), dry_run=args.dry_run)
 
     # Print report
 
     for _stage_id, stage_report in report["stages"].items():
-
         for _src in stage_report["source_files"]:
             pass
 
@@ -326,7 +319,6 @@ def main():
     # Generate metadata
     if args.generate_metadata and not args.dry_run:
         generate_metadata(report, Path(args.output_dir))
-
 
     return report
 

@@ -5,13 +5,14 @@ Test Suite for Quality Distribution Analysis System (Task 5.6.2.3)
 Comprehensive testing of distribution analysis, comparative analysis,
 and reporting functionality with statistical validation.
 """
+
 import json
 import os
 import shutil
 import sqlite3
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -66,7 +67,7 @@ def run_comprehensive_test():
         """)
 
         # Generate test data with different distributions
-        base_date = datetime.now(timezone.utc) - timedelta(days=30)
+        base_date = datetime.now(UTC) - timedelta(days=30)
         conversations_data = []
         quality_data = []
 
@@ -85,35 +86,19 @@ def run_comprehensive_test():
             # Generate quality scores based on tier pattern
             pattern = tier_patterns[tier]
             overall_quality = np.random.normal(pattern["mean"], pattern["std"])
-            overall_quality = max(
-                0.1, min(0.95, overall_quality)
-            )  # Clamp to valid range
+            overall_quality = max(0.1, min(0.95, overall_quality))  # Clamp to valid range
 
             # Generate component scores with some correlation
             base_score = overall_quality
-            therapeutic_accuracy = max(
-                0.1, min(0.95, base_score + np.random.normal(0, 0.05))
-            )
-            conversation_coherence = max(
-                0.1, min(0.95, base_score + np.random.normal(0, 0.05))
-            )
-            emotional_authenticity = max(
-                0.1, min(0.95, base_score + np.random.normal(0, 0.05))
-            )
-            clinical_compliance = max(
-                0.1, min(0.95, base_score + np.random.normal(0, 0.05))
-            )
-            personality_consistency = max(
-                0.1, min(0.95, base_score + np.random.normal(0, 0.05))
-            )
-            language_quality = max(
-                0.1, min(0.95, base_score + np.random.normal(0, 0.05))
-            )
+            therapeutic_accuracy = max(0.1, min(0.95, base_score + np.random.normal(0, 0.05)))
+            conversation_coherence = max(0.1, min(0.95, base_score + np.random.normal(0, 0.05)))
+            emotional_authenticity = max(0.1, min(0.95, base_score + np.random.normal(0, 0.05)))
+            clinical_compliance = max(0.1, min(0.95, base_score + np.random.normal(0, 0.05)))
+            personality_consistency = max(0.1, min(0.95, base_score + np.random.normal(0, 0.05)))
+            language_quality = max(0.1, min(0.95, base_score + np.random.normal(0, 0.05)))
             safety_score = max(0.1, min(0.95, base_score + np.random.normal(0, 0.05)))
 
-            conversations_data.append(
-                (i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100))
-            )
+            conversations_data.append((i + 1, tier, dataset, conversation_date.isoformat(), 150 + (i % 100)))
 
             quality_data.append(
                 (
@@ -167,9 +152,7 @@ def run_comprehensive_test():
             assert len(df) >= 290, f"Expected at least 290 records, got {len(df)}"
             assert len(df) <= 300, f"Expected at most 300 records, got {len(df)}"
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                f"✅ Data Loading: PASSED ({len(df)} records)"
-            )
+            test_results["test_details"].append(f"✅ Data Loading: PASSED ({len(df)} records)")
         except Exception as e:
             test_results["failed_tests"] += 1
             test_results["test_details"].append(f"❌ Data Loading: FAILED - {e}")
@@ -185,16 +168,12 @@ def run_comprehensive_test():
                 f"Expected at least 290 samples, got {distribution_analysis.sample_size}"
             )
             assert distribution_analysis.statistics.mean > 0, "Mean should be positive"
-            assert len(distribution_analysis.normality_tests) > 0, (
-                "Should have normality tests"
-            )
+            assert len(distribution_analysis.normality_tests) > 0, "Should have normality tests"
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Distribution Analysis: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Distribution Analysis: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Distribution Analysis: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 3: Statistical Calculations
@@ -208,9 +187,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Statistical Calculations: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Statistical Calculations: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Statistical Calculations: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 4: Normality Tests
@@ -254,16 +231,12 @@ def run_comprehensive_test():
         # Test 7: Component Comparison
         try:
             component_comparison = comparator.compare_across_components(df)
-            assert (
-                len(component_comparison.groups) >= 7
-            )  # Should have all quality components
+            assert len(component_comparison.groups) >= 7  # Should have all quality components
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Component Comparison: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Component Comparison: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Component Comparison: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 8: Correlation Analysis
@@ -275,9 +248,7 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Correlation Analysis: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Correlation Analysis: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Correlation Analysis: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 9: Report Generation
@@ -316,20 +287,16 @@ def run_comprehensive_test():
             test_results["test_details"].append("✅ Visualization Creation: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ Visualization Creation: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ Visualization Creation: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Generate test report
-        success_rate = (
-            test_results["passed_tests"] / test_results["total_tests"]
-        ) * 100
+        success_rate = (test_results["passed_tests"] / test_results["total_tests"]) * 100
 
         report_data = {
             "test_suite": "Quality Distribution Analysis System",
             "task": "5.6.2.3",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "results": test_results,
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",
@@ -348,19 +315,14 @@ def run_comprehensive_test():
                 "tier_groups": len(tier_comparison.groups),
                 "tier_statistical_tests": len(tier_comparison.statistical_tests),
                 "component_groups": len(component_comparison.groups),
-                "correlation_components": correlation_analysis.get(
-                    "component_count", 0
-                ),
+                "correlation_components": correlation_analysis.get("component_count", 0),
             },
         }
 
         # Save test report
-        report_path = (
-            Path(__file__).parent / "quality_distribution_analysis_test_report.json"
-        )
+        report_path = Path(__file__).parent / "quality_distribution_analysis_test_report.json"
         with open(report_path, "w") as f:
             json.dump(report_data, f, indent=2)
-
 
         for _detail in test_results["test_details"]:
             pass
@@ -368,7 +330,6 @@ def run_comprehensive_test():
         report_data["distribution_analysis_sample"]
 
         report_data["comparative_analysis_sample"]
-
 
         return report_data
 

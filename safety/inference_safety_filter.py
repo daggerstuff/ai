@@ -8,7 +8,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -111,9 +111,7 @@ class InferenceSafetyFilter:
             )
 
         # Perform safety check
-        safety_result = self.safety_filter.check_output_safety(
-            content, user_context, request_metadata
-        )
+        safety_result = self.safety_filter.check_output_safety(content, user_context, request_metadata)
 
         processing_time_ms = (time.time() - start_time) * 1000
 
@@ -156,9 +154,7 @@ class InferenceSafetyFilter:
                     filter_reason = "filtered_unsafe_content"
                 else:
                     # Fallback to generic filtering
-                    filtered_content = (
-                        "[Response filtered for safety - content requires review]"
-                    )
+                    filtered_content = "[Response filtered for safety - content requires review]"
                     content_filtered = True
                     self.filtered_content_count += 1
                     filter_reason = "fallback_filtered_unsafe_content"
@@ -180,7 +176,7 @@ class InferenceSafetyFilter:
                 "filtered": filtered_content,
                 "safety_result": safety_result,
                 "filter_reason": filter_reason,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         # Create traceability record if traceability manager is available
@@ -200,22 +196,16 @@ class InferenceSafetyFilter:
         )
 
         # Record metrics
-        observability.metrics_collector.record_histogram(
-            "inference_safety_check_time_ms", processing_time_ms
-        )
+        observability.metrics_collector.record_histogram("inference_safety_check_time_ms", processing_time_ms)
         observability.metrics_collector.record_metric(
             "inference_safety_score",
             safety_result.overall_score,
             "gauge",
         )
         if content_filtered:
-            observability.metrics_collector.increment_counter(
-                "inference_content_filtered"
-            )
+            observability.metrics_collector.increment_counter("inference_content_filtered")
         if crisis_detected:
-            observability.metrics_collector.increment_counter(
-                "inference_crisis_detected"
-            )
+            observability.metrics_collector.increment_counter("inference_crisis_detected")
 
         return InferenceSafetyResult(
             is_safe=safety_result.is_safe,
@@ -232,10 +222,7 @@ class InferenceSafetyFilter:
             metadata={
                 "safety_check_timestamp": safety_result.timestamp,
                 "safety_confidence": safety_result.confidence,
-                "category_scores": {
-                    cat.value: score
-                    for cat, score in safety_result.category_scores.items()
-                },
+                "category_scores": {cat.value: score for cat, score in safety_result.category_scores.items()},
                 "filter_mode": self.filter_mode.value,
                 "safety_level": self.safety_filter.safety_level.value,
             },
@@ -253,38 +240,30 @@ class InferenceSafetyFilter:
             return None
 
         # Create traceability record for the safety filtering event
-        record_id = f"safety_filter_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(original_content.encode()).hexdigest()[:8]}"
+        record_id = f"safety_filter_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(original_content.encode()).hexdigest()[:8]}"
 
         return {
             "record_id": record_id,
             "type": "safety_filtering",
-            "original_content_hash": hashlib.sha256(
-                original_content.encode()
-            ).hexdigest(),
-            "filtered_content_hash": hashlib.sha256(
-                filtered_content.encode()
-            ).hexdigest(),
+            "original_content_hash": hashlib.sha256(original_content.encode()).hexdigest(),
+            "filtered_content_hash": hashlib.sha256(filtered_content.encode()).hexdigest(),
             "is_safe": safety_result.is_safe,
             "content_filtered": original_content != filtered_content,
             "safety_score": safety_result.overall_score,
-            "flagged_categories": [
-                cat.value for cat in safety_result.flagged_categories
-            ],
+            "flagged_categories": [cat.value for cat in safety_result.flagged_categories],
             "confidence": safety_result.confidence,
             "explanation": safety_result.explanation,
             "model_info": model_info,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metadata": {
                 "filter_mode": self.filter_mode.value,
                 "safety_level": self.safety_filter.safety_level.value,
-                "processing_time_ms": (time.time() - time.time())
-                * 1000,  # This would be filled in properly
+                "processing_time_ms": (time.time() - time.time()) * 1000,  # This would be filled in properly
             },
         }
 
         # In a real implementation, you'd store this in the traceability system
         # For now, we'll just return the data structure
-
 
     def get_filtering_statistics(self) -> dict[str, Any]:
         """Get statistics about content filtering"""
@@ -292,20 +271,10 @@ class InferenceSafetyFilter:
             "total_requests": self.total_requests,
             "blocked_content_count": self.blocked_content_count,
             "filtered_content_count": self.filtered_content_count,
-            "safe_content_count": self.total_requests
-            - self.blocked_content_count
-            - self.filtered_content_count,
-            "block_rate": self.blocked_content_count / self.total_requests
-            if self.total_requests > 0
-            else 0,
-            "filter_rate": self.filtered_content_count / self.total_requests
-            if self.total_requests > 0
-            else 0,
-            "safe_rate": (
-                self.total_requests
-                - self.blocked_content_count
-                - self.filtered_content_count
-            )
+            "safe_content_count": self.total_requests - self.blocked_content_count - self.filtered_content_count,
+            "block_rate": self.blocked_content_count / self.total_requests if self.total_requests > 0 else 0,
+            "filter_rate": self.filtered_content_count / self.total_requests if self.total_requests > 0 else 0,
+            "safe_rate": (self.total_requests - self.blocked_content_count - self.filtered_content_count)
             / self.total_requests
             if self.total_requests > 0
             else 0,
@@ -368,9 +337,7 @@ class SafetyAwareInferenceAPI:
             # Update the inference result with filtered content if needed
             updated_result = self._update_inference_result(
                 inference_result,
-                safety_result.filtered_content
-                if safety_result.content_filtered
-                else content_to_filter,
+                safety_result.filtered_content if safety_result.content_filtered else content_to_filter,
             )
 
             # Log the complete inference with safety check
@@ -381,13 +348,9 @@ class SafetyAwareInferenceAPI:
             )
 
             # Record metrics
-            observability.metrics_collector.record_histogram(
-                "safe_inference_time_ms", processing_time_ms
-            )
+            observability.metrics_collector.record_histogram("safe_inference_time_ms", processing_time_ms)
             if not safety_result.is_safe:
-                observability.metrics_collector.increment_counter(
-                    "unsafe_inference_responses"
-                )
+                observability.metrics_collector.increment_counter("unsafe_inference_responses")
 
             return safety_result.is_safe, updated_result, safety_result
 
@@ -397,9 +360,7 @@ class SafetyAwareInferenceAPI:
 
             # Record error metrics
             observability.metrics_collector.increment_counter("inference_errors")
-            observability.metrics_collector.record_histogram(
-                "inference_error_time_ms", error_time_ms
-            )
+            observability.metrics_collector.record_histogram("inference_error_time_ms", error_time_ms)
 
             # Return error result
             safety_result = InferenceSafetyResult(
@@ -473,15 +434,11 @@ def safety_filtered_inference(
 
         def wrapper(*args, **kwargs):
             # Extract user context and request metadata from function arguments
-            user_context = kwargs.get("user_context") or getattr(
-                args[0] if args else None, "user_context", None
-            )
+            user_context = kwargs.get("user_context") or getattr(args[0] if args else None, "user_context", None)
             request_metadata = kwargs.get("request_metadata") or getattr(
                 args[0] if args else None, "request_metadata", None
             )
-            model_info = kwargs.get("model_info") or getattr(
-                args[0] if args else None, "model_info", None
-            )
+            model_info = kwargs.get("model_info") or getattr(args[0] if args else None, "model_info", None)
 
             # Call the function with safety filtering
             is_safe, result, safety_result = safety_aware_api.safe_inference_call(
@@ -520,9 +477,7 @@ def safety_filtered_inference(
                     result["crisis_response"] = {
                         "detected": True,
                         "type": safety_result.crisis_info.get("type", "unknown"),
-                        "urgency": safety_result.crisis_info.get(
-                            "urgency_level", "unknown"
-                        ),
+                        "urgency": safety_result.crisis_info.get("urgency_level", "unknown"),
                         "resources": safety_result.crisis_info.get("resources", []),
                         "recommended_action": safety_result.crisis_info.get(
                             "recommended_action", "seek professional help"
@@ -537,15 +492,9 @@ def safety_filtered_inference(
 
 
 # Global safety filter instances
-default_safety_filter = InferenceSafetyFilter(
-    SafetyLevel.MODERATE, SafetyFilterMode.FILTER_AND_WARN
-)
-strict_safety_filter = InferenceSafetyFilter(
-    SafetyLevel.STRICT, SafetyFilterMode.BLOCK_ALL
-)
-paranoid_safety_filter = InferenceSafetyFilter(
-    SafetyLevel.PARANOID, SafetyFilterMode.BLOCK_ALL
-)
+default_safety_filter = InferenceSafetyFilter(SafetyLevel.MODERATE, SafetyFilterMode.FILTER_AND_WARN)
+strict_safety_filter = InferenceSafetyFilter(SafetyLevel.STRICT, SafetyFilterMode.BLOCK_ALL)
+paranoid_safety_filter = InferenceSafetyFilter(SafetyLevel.PARANOID, SafetyFilterMode.BLOCK_ALL)
 
 # Safety-aware API wrappers
 default_safety_api = SafetyAwareInferenceAPI(default_safety_filter)
@@ -568,9 +517,7 @@ def integrate_safety_filtering_with_inference_api(_api_app):
         def safety_wrapper(endpoint_func):
             def wrapped(*args, **kwargs):
                 # Apply safety filtering to the endpoint
-                is_safe, result, safety_result = safety_aware_api.safe_inference_call(
-                    endpoint_func, *args, **kwargs
-                )
+                is_safe, result, safety_result = safety_aware_api.safe_inference_call(endpoint_func, *args, **kwargs)
 
                 # Add safety metadata to response
                 if hasattr(result, "__dict__"):
@@ -604,21 +551,14 @@ def test_inference_safety_filtering():
     # Test basic safety filtering
 
     # Create safety filter
-    safety_filter = InferenceSafetyFilter(
-        SafetyLevel.MODERATE, SafetyFilterMode.FILTER_AND_WARN
-    )
+    safety_filter = InferenceSafetyFilter(SafetyLevel.MODERATE, SafetyFilterMode.FILTER_AND_WARN)
 
     # Test safe content
-    safe_content = (
-        "Hello, how can I help you today? I'm here to listen and support you."
-    )
+    safe_content = "Hello, how can I help you today? I'm here to listen and support you."
     result = safety_filter.filter_inference_output(safe_content)
 
-
     # Test unsafe content
-    unsafe_content = (
-        "I'm thinking about killing myself. Life isn't worth living anymore."
-    )
+    unsafe_content = "I'm thinking about killing myself. Life isn't worth living anymore."
     result = safety_filter.filter_inference_output(unsafe_content)
 
     if result.crisis_info:
@@ -627,9 +567,7 @@ def test_inference_safety_filtering():
     # Test filtering modes
 
     # Block all mode
-    block_filter = InferenceSafetyFilter(
-        SafetyLevel.MODERATE, SafetyFilterMode.BLOCK_ALL
-    )
+    block_filter = InferenceSafetyFilter(SafetyLevel.MODERATE, SafetyFilterMode.BLOCK_ALL)
     result = block_filter.filter_inference_output(unsafe_content)
 
     # Log only mode
@@ -637,23 +575,17 @@ def test_inference_safety_filtering():
     result = log_filter.filter_inference_output(unsafe_content)
 
     # Disabled mode
-    disabled_filter = InferenceSafetyFilter(
-        SafetyLevel.MODERATE, SafetyFilterMode.DISABLED
-    )
+    disabled_filter = InferenceSafetyFilter(SafetyLevel.MODERATE, SafetyFilterMode.DISABLED)
     result = disabled_filter.filter_inference_output(unsafe_content)
 
     # Test with different safety levels
 
     # Strict level
-    strict_filter = InferenceSafetyFilter(
-        SafetyLevel.STRICT, SafetyFilterMode.FILTER_AND_WARN
-    )
+    strict_filter = InferenceSafetyFilter(SafetyLevel.STRICT, SafetyFilterMode.FILTER_AND_WARN)
     result = strict_filter.filter_inference_output(safe_content)
 
     # Paranoid level
-    paranoid_filter = InferenceSafetyFilter(
-        SafetyLevel.PARANOID, SafetyFilterMode.FILTER_AND_WARN
-    )
+    paranoid_filter = InferenceSafetyFilter(SafetyLevel.PARANOID, SafetyFilterMode.FILTER_AND_WARN)
     result = paranoid_filter.filter_inference_output(safe_content)
 
     # Test statistics
@@ -674,12 +606,10 @@ def test_inference_safety_filtering():
         mock_inference_function, "I'm feeling anxious about my therapy session."
     )
 
-
     # Test unsafe inference
     _is_safe, result, _safety_result = safety_aware_api.safe_inference_call(
         mock_inference_function, "I've been thinking about suicide lately."
     )
-
 
     # Test decorated function
 
@@ -690,13 +620,10 @@ def test_inference_safety_filtering():
             return "I'm really concerned about what you're going through. Those thoughts can be dangerous."
         return "Thank you for sharing that with me. How can I support you today?"
 
-    result = decorated_inference_function(
-        "I've been having thoughts about hurting myself."
-    )
+    result = decorated_inference_function("I've been having thoughts about hurting myself.")
 
     if isinstance(result, dict):
         pass
-
 
 
 if __name__ == "__main__":

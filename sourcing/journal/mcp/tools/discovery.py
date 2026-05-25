@@ -254,9 +254,7 @@ class GetSourcesTool(MCPTool):
 
         return filtered
 
-    def _apply_sorting(
-        self, sources: list[DatasetSource], sort_by: str, sort_order: str
-    ) -> list[DatasetSource]:
+    def _apply_sorting(self, sources: list[DatasetSource], sort_by: str, sort_order: str) -> list[DatasetSource]:
         """Apply sorting to sources list."""
         reverse = sort_order == "desc"
 
@@ -511,9 +509,7 @@ class FilterSourcesTool(MCPTool):
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _apply_advanced_filters(
-        self, sources: list[DatasetSource], filters: dict[str, Any]
-    ) -> list[DatasetSource]:
+    def _apply_advanced_filters(self, sources: list[DatasetSource], filters: dict[str, Any]) -> list[DatasetSource]:
         """Apply advanced filters to sources list."""
         filtered = sources
 
@@ -538,20 +534,12 @@ class FilterSourcesTool(MCPTool):
         # Filter by keyword match
         if "keyword_match" in filters:
             keyword = filters["keyword_match"].lower()
-            filtered = [
-                s
-                for s in filtered
-                if keyword in s.title.lower() or keyword in s.abstract.lower()
-            ]
+            filtered = [s for s in filtered if keyword in s.title.lower() or keyword in s.abstract.lower()]
 
         # Filter by author match
         if "author_match" in filters:
             author = filters["author_match"].lower()
-            filtered = [
-                s
-                for s in filtered
-                if any(author in a.lower() for a in s.authors)
-            ]
+            filtered = [s for s in filtered if any(author in a.lower() for a in s.authors)]
 
         # Filter by date range
         if "date_range" in filters:
@@ -575,9 +563,7 @@ class FilterSourcesTool(MCPTool):
 
         return filtered
 
-    def _apply_sorting(
-        self, sources: list[DatasetSource], sort_by: str, sort_order: str
-    ) -> list[DatasetSource]:
+    def _apply_sorting(self, sources: list[DatasetSource], sort_by: str, sort_order: str) -> list[DatasetSource]:
         """Apply sorting to sources list."""
         reverse = sort_order == "desc"
 
@@ -606,4 +592,3 @@ class FilterSourcesTool(MCPTool):
             "discovery_date": source.discovery_date.isoformat(),
             "discovery_method": source.discovery_method,
         }
-

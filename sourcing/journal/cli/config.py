@@ -10,6 +10,7 @@ from typing import Any
 
 try:
     import yaml
+
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
@@ -227,4 +228,3 @@ def save_config(config: dict[str, Any], config_path: Path | str | None = None) -
 def get_config_value(key_path: str, default: Any = None) -> Any:
     """Get a configuration value by dot-separated path."""
     return _config_manager.get(key_path, default)
-

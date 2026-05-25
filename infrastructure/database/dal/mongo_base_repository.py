@@ -6,7 +6,7 @@ collection-specific query helpers.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -37,7 +37,7 @@ class MongoBaseRepository:
 
     async def create(self, document: dict[str, Any]) -> dict[str, Any]:
         """Insert a document, adding createdAt/updatedAt if missing."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         document.setdefault("createdAt", now)
         document.setdefault("updatedAt", now)
 
@@ -63,7 +63,7 @@ class MongoBaseRepository:
 
     async def update(self, doc_id: str, data: dict[str, Any], id_field: str = "_id") -> dict[str, Any] | None:
         """Update fields on a document. Returns the updated document."""
-        data["updatedAt"] = datetime.now(timezone.utc)
+        data["updatedAt"] = datetime.now(UTC)
         # Never overwrite _id or createdAt
         data.pop("_id", None)
         data.pop("createdAt", None)
@@ -151,7 +151,7 @@ class MongoBaseRepository:
 
     async def bulk_create(self, documents: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Insert multiple documents at once."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for doc in documents:
             doc.setdefault("createdAt", now)
             doc.setdefault("updatedAt", now)
@@ -162,7 +162,7 @@ class MongoBaseRepository:
 
     async def bulk_update(self, updates: list[tuple[str, dict[str, Any]]], id_field: str = "_id") -> int:
         """Update multiple documents. Returns count of updated documents."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         updated_count = 0
 
         for doc_id, data in updates:

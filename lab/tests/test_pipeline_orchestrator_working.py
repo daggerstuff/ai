@@ -28,15 +28,9 @@ class MockPipelineOrchestrator:
         self.error_handlers = {}
         self.retry_config = {"max_retries": 3, "backoff_factor": 2}
 
-    def add_stage(
-        self, stage_name: str, processor: Any, config: dict[str, Any] | None = None
-    ) -> bool:
+    def add_stage(self, stage_name: str, processor: Any, config: dict[str, Any] | None = None) -> bool:
         """Add a processing stage to the pipeline."""
-        if (
-            not stage_name
-            or not isinstance(stage_name, str)
-            or str(stage_name).strip() == ""
-        ):
+        if not stage_name or not isinstance(stage_name, str) or str(stage_name).strip() == "":
             return False
 
         stage = {
@@ -45,15 +39,13 @@ class MockPipelineOrchestrator:
             "config": config or {},
             "enabled": True,
             "dependencies": config.get("dependencies", []) if config else [],
-            "timeout": config.get("timeout", 300) if config else 300
+            "timeout": config.get("timeout", 300) if config else 300,
         }
 
         self.stages.append(stage)
         return True
 
-    def execute_pipeline(
-        self, input_data: Any, _pipeline_config: dict[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def execute_pipeline(self, input_data: Any, _pipeline_config: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute the complete pipeline."""
         if not input_data:
             return {
@@ -61,7 +53,7 @@ class MockPipelineOrchestrator:
                 "error": "No input data provided",
                 "results": None,
                 "execution_time": 0,
-                "stages_completed": 0
+                "stages_completed": 0,
             }
 
         start_time = time.time()
@@ -78,10 +70,10 @@ class MockPipelineOrchestrator:
                 if not self._check_dependencies(stage, results):
                     return {
                         "success": False,
-                        "error": f'Dependencies not met for stage {stage["name"]}',
+                        "error": f"Dependencies not met for stage {stage['name']}",
                         "results": results,
                         "execution_time": time.time() - start_time,
-                        "stages_completed": stages_completed
+                        "stages_completed": stages_completed,
                     }
 
                 # Execute stage with retry logic
@@ -90,13 +82,10 @@ class MockPipelineOrchestrator:
                 if not stage_result["success"]:
                     return {
                         "success": False,
-                        "error": (
-                            f'Stage {stage["name"]} failed: '
-                            f'{stage_result["error"]}'
-                        ),
+                        "error": (f"Stage {stage['name']} failed: {stage_result['error']}"),
                         "results": results,
                         "execution_time": time.time() - start_time,
-                        "stages_completed": stages_completed
+                        "stages_completed": stages_completed,
                     }
 
                 results[stage["name"]] = stage_result["output"]
@@ -112,7 +101,7 @@ class MockPipelineOrchestrator:
                 "output_size": len(str(results)),
                 "execution_time": execution_time,
                 "stages_completed": stages_completed,
-                "success": True
+                "success": True,
             }
 
             self.execution_history.append(execution_record)
@@ -122,7 +111,7 @@ class MockPipelineOrchestrator:
                 "error": None,
                 "results": results,
                 "execution_time": execution_time,
-                "stages_completed": stages_completed
+                "stages_completed": stages_completed,
             }
 
         except Exception as e:
@@ -131,19 +120,15 @@ class MockPipelineOrchestrator:
                 "error": f"Pipeline execution failed: {e!s}",
                 "results": results,
                 "execution_time": time.time() - start_time,
-                "stages_completed": stages_completed
+                "stages_completed": stages_completed,
             }
 
-    def _check_dependencies(
-        self, stage: dict[str, Any], results: dict[str, Any]
-    ) -> bool:
+    def _check_dependencies(self, stage: dict[str, Any], results: dict[str, Any]) -> bool:
         """Check if stage dependencies are satisfied."""
         dependencies = stage.get("dependencies", [])
         return all(dep in results for dep in dependencies)
 
-    def _execute_stage_with_retry(
-        self, stage: dict[str, Any], input_data: Any
-    ) -> dict[str, Any]:
+    def _execute_stage_with_retry(self, stage: dict[str, Any], input_data: Any) -> dict[str, Any]:
         """Execute a stage with retry logic."""
         max_retries = self.retry_config["max_retries"]
         backoff_factor = self.retry_config["backoff_factor"]
@@ -153,31 +138,16 @@ class MockPipelineOrchestrator:
                 # Simulate stage processing
                 output = self._simulate_stage_processing(stage, input_data)
 
-                return {
-                    "success": True,
-                    "output": output,
-                    "error": None,
-                    "attempts": attempt + 1
-                }
+                return {"success": True, "output": output, "error": None, "attempts": attempt + 1}
 
             except Exception as e:
                 if attempt == max_retries:
-                    return {
-                        "success": False,
-                        "output": None,
-                        "error": str(e),
-                        "attempts": attempt + 1
-                    }
+                    return {"success": False, "output": None, "error": str(e), "attempts": attempt + 1}
 
                 # Wait before retry
-                time.sleep(backoff_factor ** attempt * 0.1)
+                time.sleep(backoff_factor**attempt * 0.1)
 
-        return {
-            "success": False,
-            "output": None,
-            "error": "Max retries exceeded",
-            "attempts": max_retries + 1
-        }
+        return {"success": False, "output": None, "error": "Max retries exceeded", "attempts": max_retries + 1}
 
     def _simulate_stage_processing(self, stage: dict[str, Any], input_data: Any) -> Any:
         """Simulate processing for a stage."""
@@ -187,20 +157,11 @@ class MockPipelineOrchestrator:
         if "validation" in stage_name.lower():
             return {"validated": True, "data": input_data, "validation_score": 0.95}
         if "transformation" in stage_name.lower():
-            return {
-                "transformed_data": f"processed_{input_data}",
-                "transformation_type": "standard"
-            }
+            return {"transformed_data": f"processed_{input_data}", "transformation_type": "standard"}
         if "analysis" in stage_name.lower():
-            return {
-                "analysis_results": {"sentiment": 0.8, "confidence": 0.9},
-                "original_data": input_data
-            }
+            return {"analysis_results": {"sentiment": 0.8, "confidence": 0.9}, "original_data": input_data}
         if "export" in stage_name.lower():
-            return {
-                "export_path": f"/exports/{stage_name}_output.json",
-                "status": "completed"
-            }
+            return {"export_path": f"/exports/{stage_name}_output.json", "status": "completed"}
         return {"processed_data": input_data, "stage": stage_name}
 
     def get_pipeline_status(self) -> dict[str, Any]:
@@ -210,12 +171,11 @@ class MockPipelineOrchestrator:
 
         if self.execution_history:
             last_execution = self.execution_history[-1]
-            avg_execution_time = sum(
-                exec["execution_time"] for exec in self.execution_history
-            ) / len(self.execution_history)
+            avg_execution_time = sum(exec["execution_time"] for exec in self.execution_history) / len(
+                self.execution_history
+            )
             success_rate = (
-                sum(1 for exec in self.execution_history if exec["success"])
-                / len(self.execution_history) * 100
+                sum(1 for exec in self.execution_history if exec["success"]) / len(self.execution_history) * 100
             )
         else:
             last_execution = None
@@ -229,7 +189,7 @@ class MockPipelineOrchestrator:
             "total_executions": len(self.execution_history),
             "success_rate": success_rate,
             "avg_execution_time": avg_execution_time,
-            "last_execution": last_execution
+            "last_execution": last_execution,
         }
 
     def enable_stage(self, stage_name: str) -> bool:
@@ -269,9 +229,7 @@ class MockPipelineOrchestrator:
         for stage in self.stages:
             for dep in stage.get("dependencies", []):
                 if dep not in all_stage_names:
-                    issues.append(
-                        f'Stage {stage["name"]} depends on non-existent stage {dep}'
-                    )
+                    issues.append(f"Stage {stage['name']} depends on non-existent stage {dep}")
 
         # Check for duplicate stage names
         stage_names = [stage["name"] for stage in self.stages]
@@ -282,7 +240,7 @@ class MockPipelineOrchestrator:
             "valid": len(issues) == 0,
             "issues": issues,
             "total_stages": len(self.stages),
-            "enabled_stages": sum(1 for stage in self.stages if stage["enabled"])
+            "enabled_stages": sum(1 for stage in self.stages if stage["enabled"]),
         }
 
     def _has_circular_dependencies(self) -> bool:
@@ -332,7 +290,7 @@ class MockPipelineOrchestrator:
             "avg_execution_time": sum(execution_times) / len(execution_times),
             "min_execution_time": min(execution_times),
             "max_execution_time": max(execution_times),
-            "total_processing_time": sum(execution_times)
+            "total_processing_time": sum(execution_times),
         }
 
 
@@ -368,15 +326,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
     def test_add_stage_with_config(self):
         """Test adding stage with configuration."""
-        config = {
-            "timeout": 600,
-            "dependencies": ["input_validation"],
-            "retry_count": 5
-        }
+        config = {"timeout": 600, "dependencies": ["input_validation"], "retry_count": 5}
 
-        result = self.orchestrator.add_stage(
-            "transformation", self.mock_transformer, config
-        )
+        result = self.orchestrator.add_stage("transformation", self.mock_transformer, config)
 
         assert result
         stage = self.orchestrator.stages[0]
@@ -413,10 +365,8 @@ class TestPipelineOrchestrator(unittest.TestCase):
         """Test pipeline execution with stage dependencies."""
         # Add stages with dependencies
         self.orchestrator.add_stage("input_validation", self.mock_validator)
-        self.orchestrator.add_stage("transformation", self.mock_transformer,
-                                  {"dependencies": ["input_validation"]})
-        self.orchestrator.add_stage("analysis", self.mock_analyzer,
-                                  {"dependencies": ["transformation"]})
+        self.orchestrator.add_stage("transformation", self.mock_transformer, {"dependencies": ["input_validation"]})
+        self.orchestrator.add_stage("analysis", self.mock_analyzer, {"dependencies": ["transformation"]})
 
         result = self.orchestrator.execute_pipeline(self.test_data)
 
@@ -431,8 +381,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
     def test_pipeline_missing_dependencies(self):
         """Test pipeline execution with missing dependencies."""
         # Add stage with non-existent dependency
-        self.orchestrator.add_stage("transformation", self.mock_transformer,
-                                  {"dependencies": ["non_existent_stage"]})
+        self.orchestrator.add_stage("transformation", self.mock_transformer, {"dependencies": ["non_existent_stage"]})
 
         result = self.orchestrator.execute_pipeline(self.test_data)
 
@@ -492,8 +441,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         """Test pipeline configuration validation."""
         # Add valid stages
         self.orchestrator.add_stage("stage1", self.mock_validator)
-        self.orchestrator.add_stage("stage2", self.mock_transformer,
-                                  {"dependencies": ["stage1"]})
+        self.orchestrator.add_stage("stage2", self.mock_transformer, {"dependencies": ["stage1"]})
 
         validation_result = self.orchestrator.validate_pipeline()
 
@@ -513,8 +461,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
     def test_pipeline_validation_missing_dependencies(self):
         """Test pipeline validation with missing dependencies."""
-        self.orchestrator.add_stage("stage1", self.mock_validator,
-                                  {"dependencies": ["missing_stage"]})
+        self.orchestrator.add_stage("stage1", self.mock_validator, {"dependencies": ["missing_stage"]})
 
         validation_result = self.orchestrator.validate_pipeline()
 
@@ -558,11 +505,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         self.orchestrator.add_stage("validation", self.mock_validator)
         self.orchestrator.add_stage("transformation", self.mock_transformer)
 
-        batch_inputs = [
-            {"id": 1, "data": "input1"},
-            {"id": 2, "data": "input2"},
-            {"id": 3, "data": "input3"}
-        ]
+        batch_inputs = [{"id": 1, "data": "input1"}, {"id": 2, "data": "input2"}, {"id": 3, "data": "input3"}]
 
         results = []
         for input_data in batch_inputs:
@@ -584,7 +527,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
             ("feature_extraction", ["data_cleaning"], {}),
             ("analysis", ["feature_extraction"], {}),
             ("quality_check", ["analysis"], {}),
-            ("export", ["quality_check"], {})
+            ("export", ["quality_check"], {}),
         ]
 
         for name, deps, config in stages_config:
@@ -614,22 +557,16 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
         """Test end-to-end data processing workflow."""
         # Setup complete processing pipeline
         self.orchestrator.add_stage("input_validation", Mock())
-        self.orchestrator.add_stage("data_transformation", Mock(),
-                                  {"dependencies": ["input_validation"]})
-        self.orchestrator.add_stage("quality_analysis", Mock(),
-                                  {"dependencies": ["data_transformation"]})
-        self.orchestrator.add_stage("output_generation", Mock(),
-                                  {"dependencies": ["quality_analysis"]})
+        self.orchestrator.add_stage("data_transformation", Mock(), {"dependencies": ["input_validation"]})
+        self.orchestrator.add_stage("quality_analysis", Mock(), {"dependencies": ["data_transformation"]})
+        self.orchestrator.add_stage("output_generation", Mock(), {"dependencies": ["quality_analysis"]})
 
         # Validate pipeline
         validation = self.orchestrator.validate_pipeline()
         assert validation["valid"]
 
         # Execute pipeline
-        input_data = {
-            "text": "Sample therapeutic conversation",
-            "metadata": {"session_id": 123}
-        }
+        input_data = {"text": "Sample therapeutic conversation", "metadata": {"session_id": 123}}
         result = self.orchestrator.execute_pipeline(input_data)
 
         # Verify complete execution
@@ -647,8 +584,7 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
         # Add stages with potential failure points
         self.orchestrator.add_stage("reliable_stage", Mock())
         self.orchestrator.add_stage("potentially_failing_stage", Mock())
-        self.orchestrator.add_stage("recovery_stage", Mock(),
-                                  {"dependencies": ["potentially_failing_stage"]})
+        self.orchestrator.add_stage("recovery_stage", Mock(), {"dependencies": ["potentially_failing_stage"]})
 
         # Execute multiple times to test consistency
         results = []

@@ -6,7 +6,7 @@ including usage metrics, performance tracking, and data insights.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
@@ -59,12 +59,12 @@ def get_usage_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.now(timezone.utc) - timedelta(days=30)
+            start_date = datetime.now(UTC) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -73,22 +73,16 @@ def get_usage_analytics():
         metric_type = sanitize_input(metric_type)
         granularity = sanitize_input(granularity)
 
-        request_logger.info(
-            f"Retrieving {metric_type} usage analytics from {start_date} to {end_date}"
-        )
+        request_logger.info(f"Retrieving {metric_type} usage analytics from {start_date} to {end_date}")
 
         # Get Redis client from app context
         redis_client = g.app.redis_client
 
         # Retrieve usage analytics
-        analytics_data = _get_usage_metrics(
-            redis_client, start_date, end_date, metric_type, granularity
-        )
+        analytics_data = _get_usage_metrics(redis_client, start_date, end_date, metric_type, granularity)
 
         # Log successful retrieval
-        request_logger.info(
-            f"Retrieved usage analytics with {len(analytics_data.get('metrics', []))} data points"
-        )
+        request_logger.info(f"Retrieved usage analytics with {len(analytics_data.get('metrics', []))} data points")
 
         return jsonify(
             {
@@ -101,7 +95,7 @@ def get_usage_analytics():
                         "start": start_date.isoformat(),
                         "end": end_date.isoformat(),
                     },
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -148,12 +142,12 @@ def get_performance_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.now(timezone.utc) - timedelta(days=7)
+            start_date = datetime.now(UTC) - timedelta(days=7)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -168,9 +162,7 @@ def get_performance_analytics():
         redis_client = g.app.redis_client
 
         # Retrieve performance analytics
-        performance_data = _get_performance_metrics(
-            redis_client, start_date, end_date, metric_type, service
-        )
+        performance_data = _get_performance_metrics(redis_client, start_date, end_date, metric_type, service)
 
         # Log successful retrieval
         request_logger.info(
@@ -186,7 +178,7 @@ def get_performance_analytics():
                     "percentiles": performance_data.get("percentiles", {}),
                     "service": service,
                     "metric_type": metric_type,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -233,12 +225,12 @@ def get_pipeline_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.now(timezone.utc) - timedelta(days=30)
+            start_date = datetime.now(UTC) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -247,22 +239,16 @@ def get_pipeline_analytics():
         pipeline_id = sanitize_input(pipeline_id) if pipeline_id else None
         status = sanitize_input(status) if status else None
 
-        request_logger.info(
-            f"Retrieving pipeline analytics for pipeline: {pipeline_id}"
-        )
+        request_logger.info(f"Retrieving pipeline analytics for pipeline: {pipeline_id}")
 
         # Get Redis client from app context
         redis_client = g.app.redis_client
 
         # Retrieve pipeline analytics
-        pipeline_data = _get_pipeline_metrics(
-            redis_client, pipeline_id, status, start_date, end_date
-        )
+        pipeline_data = _get_pipeline_metrics(redis_client, pipeline_id, status, start_date, end_date)
 
         # Log successful retrieval
-        request_logger.info(
-            f"Retrieved pipeline analytics with {len(pipeline_data.get('executions', []))} executions"
-        )
+        request_logger.info(f"Retrieved pipeline analytics with {len(pipeline_data.get('executions', []))} executions")
 
         return jsonify(
             {
@@ -273,7 +259,7 @@ def get_pipeline_analytics():
                     "success_rate": pipeline_data.get("success_rate", 0),
                     "average_duration": pipeline_data.get("average_duration", 0),
                     "pipeline_id": pipeline_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -320,12 +306,12 @@ def get_dataset_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.now(timezone.utc) - timedelta(days=30)
+            start_date = datetime.now(UTC) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -334,22 +320,16 @@ def get_dataset_analytics():
         dataset_id = sanitize_input(dataset_id) if dataset_id else None
         metric_type = sanitize_input(metric_type)
 
-        request_logger.info(
-            f"Retrieving {metric_type} analytics for dataset: {dataset_id}"
-        )
+        request_logger.info(f"Retrieving {metric_type} analytics for dataset: {dataset_id}")
 
         # Get Redis client from app context
         redis_client = g.app.redis_client
 
         # Retrieve dataset analytics
-        dataset_data = _get_dataset_metrics(
-            redis_client, dataset_id, metric_type, start_date, end_date
-        )
+        dataset_data = _get_dataset_metrics(redis_client, dataset_id, metric_type, start_date, end_date)
 
         # Log successful retrieval
-        request_logger.info(
-            f"Retrieved dataset analytics with {len(dataset_data.get('datasets', []))} datasets"
-        )
+        request_logger.info(f"Retrieved dataset analytics with {len(dataset_data.get('datasets', []))} datasets")
 
         return jsonify(
             {
@@ -359,7 +339,7 @@ def get_dataset_analytics():
                     "summary": dataset_data.get("summary", {}),
                     "trends": dataset_data.get("trends", {}),
                     "metric_type": metric_type,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -419,9 +399,7 @@ def get_real_time_analytics():
         real_time_data = _get_real_time_metrics(redis_client, metric_types)
 
         # Log successful retrieval
-        request_logger.info(
-            f"Retrieved real-time analytics for {len(metric_types)} metric types"
-        )
+        request_logger.info(f"Retrieved real-time analytics for {len(metric_types)} metric types")
 
         return jsonify(
             {
@@ -431,7 +409,7 @@ def get_real_time_analytics():
                     "status": real_time_data.get("status", {}),
                     "alerts": real_time_data.get("alerts", []),
                     "refresh_rate": refresh_rate,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             }
         ), 200
@@ -494,20 +472,18 @@ def export_analytics():
         if start_date_str:
             start_date = datetime.fromisoformat(start_date_str.replace("Z", "+00:00"))
         else:
-            start_date = datetime.now(timezone.utc) - timedelta(days=30)
+            start_date = datetime.now(UTC) - timedelta(days=30)
 
         if end_date_str:
             end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
         else:
-            end_date = datetime.now(timezone.utc)
+            end_date = datetime.now(UTC)
 
         # Sanitize inputs
         export_type = sanitize_input(export_type)
         metric_type = sanitize_input(metric_type)
 
-        request_logger.info(
-            f"Creating {export_type} export for {metric_type} analytics"
-        )
+        request_logger.info(f"Creating {export_type} export for {metric_type} analytics")
 
         # Get Redis client from app context
         redis_client = g.app.redis_client
@@ -535,7 +511,7 @@ def export_analytics():
                     "export_type": export_type,
                     "estimated_size": export_task.get("estimated_size"),
                     "download_url": export_task.get("download_url"),
-                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "created_at": datetime.now(UTC).isoformat(),
                 },
             }
         ), 201
@@ -592,7 +568,7 @@ def get_export_status(task_id: str):
             {
                 "success": True,
                 "data": task_status,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         ), 200
 
@@ -659,9 +635,7 @@ def _get_usage_metrics(
         # Calculate trends
         if len(values) > 1:
             trend = "increasing" if values[-1] > values[0] else "decreasing"
-            trend_percentage = (
-                ((values[-1] - values[0]) / values[0] * 100) if values[0] != 0 else 0
-            )
+            trend_percentage = ((values[-1] - values[0]) / values[0] * 100) if values[0] != 0 else 0
         else:
             trend = "stable"
             trend_percentage = 0
@@ -692,9 +666,7 @@ def _get_performance_metrics(
             # Generate sample performance data
             if metric_type == "response_time":
                 base_time = 45 if service == "api" else 120  # ms
-                value = base_time + (
-                    current_date.hour % 20
-                )  # Simulate hourly variation
+                value = base_time + (current_date.hour % 20)  # Simulate hourly variation
             elif metric_type == "throughput":
                 value = 100 + (current_date.hour * 5)  # requests per second
             elif metric_type == "error_rate":
@@ -764,9 +736,7 @@ def _get_pipeline_metrics(
             if execution_date > end_date:
                 break
 
-            execution_status = (
-                status if status else ("completed" if i % 5 != 0 else "failed")
-            )
+            execution_status = status if status else ("completed" if i % 5 != 0 else "failed")
 
             executions.append(
                 {
@@ -778,12 +748,8 @@ def _get_pipeline_metrics(
                     "stage_progress": {
                         "data_ingestion": "completed",
                         "preprocessing": "completed",
-                        "transformation": "completed"
-                        if execution_status == "completed"
-                        else "failed",
-                        "validation": "pending"
-                        if execution_status == "running"
-                        else "completed",
+                        "transformation": "completed" if execution_status == "completed" else "failed",
+                        "validation": "pending" if execution_status == "running" else "completed",
                     },
                 }
             )
@@ -794,20 +760,12 @@ def _get_pipeline_metrics(
 
         # Calculate statistics
         total_executions = len(executions)
-        completed_executions = len(
-            [e for e in executions if e["status"] == "completed"]
-        )
+        completed_executions = len([e for e in executions if e["status"] == "completed"])
         failed_executions = len([e for e in executions if e["status"] == "failed"])
 
-        success_rate = (
-            (completed_executions / total_executions * 100)
-            if total_executions > 0
-            else 0
-        )
+        success_rate = (completed_executions / total_executions * 100) if total_executions > 0 else 0
 
-        durations = [
-            e["duration_seconds"] for e in executions if e["status"] == "completed"
-        ]
+        durations = [e["duration_seconds"] for e in executions if e["status"] == "completed"]
         average_duration = sum(durations) / len(durations) if durations else 0
 
         statistics = {
@@ -871,9 +829,7 @@ def _get_dataset_metrics(
             if metric_type == "usage":
                 metrics = {
                     "access_count": 150 + (hash(ds["id"]) % 100),
-                    "last_accessed": (
-                        start_date + timedelta(days=hash(ds["id"]) % 30)
-                    ).isoformat(),
+                    "last_accessed": (start_date + timedelta(days=hash(ds["id"]) % 30)).isoformat(),
                     "unique_users": 25 + (hash(ds["id"]) % 20),
                 }
             elif metric_type == "quality":
@@ -899,7 +855,7 @@ def _get_dataset_metrics(
                     "name": ds["name"],
                     "metric_type": metric_type,
                     "metrics": metrics,
-                    "last_updated": datetime.now(timezone.utc).isoformat(),
+                    "last_updated": datetime.now(UTC).isoformat(),
                 }
             )
 
@@ -912,9 +868,7 @@ def _get_dataset_metrics(
                     "active_datasets": len(datasets),
                 }
             elif metric_type == "quality":
-                avg_quality = sum(
-                    d["metrics"]["overall_quality"] for d in datasets
-                ) / len(datasets)
+                avg_quality = sum(d["metrics"]["overall_quality"] for d in datasets) / len(datasets)
                 summary = {
                     "average_quality_score": avg_quality,
                     "datasets_analyzed": len(datasets),
@@ -923,9 +877,7 @@ def _get_dataset_metrics(
                 total_size = sum(d["metrics"]["size_mb"] for d in datasets)
                 summary = {
                     "total_size_mb": total_size,
-                    "total_records": sum(
-                        d["metrics"]["record_count"] for d in datasets
-                    ),
+                    "total_records": sum(d["metrics"]["record_count"] for d in datasets),
                 }
             else:
                 summary = {}
@@ -946,9 +898,7 @@ def _get_dataset_metrics(
         raise AnalyticsError(f"Failed to retrieve dataset metrics: {e!s}") from e
 
 
-def _get_real_time_metrics(
-    _redis_client: RedisClient, metric_types: list[str]
-) -> dict[str, Any]:
+def _get_real_time_metrics(_redis_client: RedisClient, metric_types: list[str]) -> dict[str, Any]:
     """Retrieve real-time system metrics."""
     try:
         metrics = {}
@@ -963,9 +913,7 @@ def _get_real_time_metrics(
                 "disk_usage_percent": 72.1,
                 "network_io_mb_per_sec": 12.5,
             }
-            status["system"] = (
-                "healthy" if metrics["system"]["cpu_usage_percent"] < 80 else "warning"
-            )
+            status["system"] = "healthy" if metrics["system"]["cpu_usage_percent"] < 80 else "warning"
 
         # API metrics
         if "api" in metric_types:
@@ -975,9 +923,7 @@ def _get_real_time_metrics(
                 "error_rate_percent": 0.5,
                 "average_response_time_ms": 45,
             }
-            status["api"] = (
-                "healthy" if metrics["api"]["error_rate_percent"] < 1.0 else "warning"
-            )
+            status["api"] = "healthy" if metrics["api"]["error_rate_percent"] < 1.0 else "warning"
 
         # Pipeline metrics
         if "pipeline" in metric_types:
@@ -987,9 +933,7 @@ def _get_real_time_metrics(
                 "completed_today": 47,
                 "failed_today": 2,
             }
-            status["pipeline"] = (
-                "healthy" if metrics["pipeline"]["failed_today"] < 5 else "warning"
-            )
+            status["pipeline"] = "healthy" if metrics["pipeline"]["failed_today"] < 5 else "warning"
 
         # Database metrics
         if "database" in metric_types:
@@ -999,9 +943,7 @@ def _get_real_time_metrics(
                 "average_query_time_ms": 12,
                 "cache_hit_ratio": 0.95,
             }
-            status["database"] = (
-                "healthy" if metrics["database"]["cache_hit_ratio"] > 0.9 else "warning"
-            )
+            status["database"] = "healthy" if metrics["database"]["cache_hit_ratio"] > 0.9 else "warning"
 
         # Storage metrics
         if "storage" in metric_types:
@@ -1011,10 +953,7 @@ def _get_real_time_metrics(
                 "free_space_gb": 350,
                 "iops": 2500,
             }
-            usage_percent = (
-                metrics["storage"]["used_space_gb"]
-                / metrics["storage"]["total_space_gb"]
-            ) * 100
+            usage_percent = (metrics["storage"]["used_space_gb"] / metrics["storage"]["total_space_gb"]) * 100
             status["storage"] = "healthy" if usage_percent < 85 else "warning"
 
         # Generate alerts based on status
@@ -1025,9 +964,7 @@ def _get_real_time_metrics(
                         "component": component,
                         "status": component_status,
                         "message": f"{component.capitalize()} is experiencing {component_status} conditions",
-                        "severity": "warning"
-                        if component_status == "warning"
-                        else "critical",
+                        "severity": "warning" if component_status == "warning" else "critical",
                     }
                 )
 
@@ -1050,7 +987,7 @@ def _create_export_task(
     """Create an analytics export task."""
     try:
         # Generate task ID
-        task_id = f"export_{datetime.now(timezone.utc).timestamp()}_{hash(str(filters)) % 10000}"
+        task_id = f"export_{datetime.now(UTC).timestamp()}_{hash(str(filters)) % 10000}"
 
         # Create export task
         export_task = {
@@ -1064,14 +1001,12 @@ def _create_export_task(
             "options": options,
             "progress": 0,
             "estimated_size": "2.5 MB",  # Placeholder
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "download_url": f"/api/v1/analytics/export/{task_id}/download",
         }
 
         # Store task in Redis
-        redis_client.setex(
-            f"export:task:{task_id}", 86400, export_task
-        )  # 24 hour expiry
+        redis_client.setex(f"export:task:{task_id}", 86400, export_task)  # 24 hour expiry
 
         # Simulate async processing (in real implementation, this would queue a background job)
         export_task["status"] = "processing"
@@ -1085,9 +1020,7 @@ def _create_export_task(
         raise AnalyticsError(f"Failed to create export task: {e!s}") from e
 
 
-def _get_export_task_status(
-    redis_client: RedisClient, task_id: str
-) -> dict[str, Any] | None:
+def _get_export_task_status(redis_client: RedisClient, task_id: str) -> dict[str, Any] | None:
     """Retrieve export task status from Redis."""
     try:
         return redis_client.get(f"export:task:{task_id}")
@@ -1096,9 +1029,7 @@ def _get_export_task_status(
         return None
 
 
-def _get_dataset_context(
-    _redis_client: RedisClient, dataset_id: str
-) -> dict[str, Any] | None:
+def _get_dataset_context(_redis_client: RedisClient, dataset_id: str) -> dict[str, Any] | None:
     """Retrieve dataset context information."""
     try:
         # Placeholder dataset context

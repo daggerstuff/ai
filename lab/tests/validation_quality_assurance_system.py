@@ -19,12 +19,13 @@ Implements all 10 subtasks:
 import json
 import re
 import warnings
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
 
 warnings.simplefilter("default")
+
 
 class ClinicalStandardsValidator:
     """Task 5.7.2.1: Conversation validation against clinical standards"""
@@ -32,20 +33,42 @@ class ClinicalStandardsValidator:
     def __init__(self):
         self.clinical_standards = {
             "empathy_indicators": [
-                "understand", "feel", "sorry", "empathize", "support", "care",
-                "concern", "comfort", "acknowledge", "validate"
+                "understand",
+                "feel",
+                "sorry",
+                "empathize",
+                "support",
+                "care",
+                "concern",
+                "comfort",
+                "acknowledge",
+                "validate",
             ],
             "professional_language": [
-                "evidence-based", "research", "studies", "clinical", "therapeutic",
-                "assessment", "intervention", "treatment", "diagnosis"
+                "evidence-based",
+                "research",
+                "studies",
+                "clinical",
+                "therapeutic",
+                "assessment",
+                "intervention",
+                "treatment",
+                "diagnosis",
             ],
             "harmful_content": [
-                "suicide", "self-harm", "kill", "die", "hurt yourself", "end it all",
-                "worthless", "hopeless", "give up"
+                "suicide",
+                "self-harm",
+                "kill",
+                "die",
+                "hurt yourself",
+                "end it all",
+                "worthless",
+                "hopeless",
+                "give up",
             ],
             "minimum_response_length": 20,
             "maximum_response_length": 500,
-            "required_elements": ["greeting", "acknowledgment", "guidance", "support"]
+            "required_elements": ["greeting", "acknowledgment", "guidance", "support"],
         }
 
     def validate_against_clinical_standards(self, conversation_data: dict[str, Any]) -> dict[str, Any]:
@@ -56,16 +79,15 @@ class ClinicalStandardsValidator:
             "clinical_compliance": True,
             "issues": [],
             "recommendations": [],
-            "detailed_scores": {}
+            "detailed_scores": {},
         }
 
         try:
             # Extract conversation text
             conversations = json.loads(conversation_data.get("conversations_json", "[]"))
-            full_text = " ".join([
-                turn[list(turn.keys())[0]] for turn in conversations
-                if isinstance(turn, dict)
-            ]).lower()
+            full_text = " ".join(
+                [turn[list(turn.keys())[0]] for turn in conversations if isinstance(turn, dict)]
+            ).lower()
 
             # 1. Empathy Assessment
             empathy_score = self._assess_empathy(full_text)
@@ -105,21 +127,18 @@ class ClinicalStandardsValidator:
 
     def _assess_empathy(self, text: str) -> float:
         """Assess empathy level in conversation"""
-        empathy_count = sum(1 for indicator in self.clinical_standards["empathy_indicators"]
-                           if indicator in text)
+        empathy_count = sum(1 for indicator in self.clinical_standards["empathy_indicators"] if indicator in text)
         # Score based on empathy indicators found
         return min(100, empathy_count * 15)
 
     def _assess_professional_language(self, text: str) -> float:
         """Assess professional language usage"""
-        professional_count = sum(1 for term in self.clinical_standards["professional_language"]
-                                if term in text)
+        professional_count = sum(1 for term in self.clinical_standards["professional_language"] if term in text)
         return min(100, professional_count * 20)
 
     def _detect_harmful_content(self, text: str) -> float:
         """Detect harmful content (higher score = less harmful)"""
-        harmful_count = sum(1 for term in self.clinical_standards["harmful_content"]
-                           if term in text)
+        harmful_count = sum(1 for term in self.clinical_standards["harmful_content"] if term in text)
         # Inverse scoring - fewer harmful terms = higher score
         return max(0, 100 - harmful_count * 25)
 
@@ -140,11 +159,10 @@ class ClinicalStandardsValidator:
             "greeting": r"\b(hello|hi|good|welcome)\b",
             "acknowledgment": r"\b(understand|see|hear|acknowledge)\b",
             "guidance": r"\b(suggest|recommend|try|consider|help)\b",
-            "support": r"\b(support|here|available|assist)\b"
+            "support": r"\b(support|here|available|assist)\b",
         }
 
-        found_elements = sum(1 for pattern in element_patterns.values()
-                           if re.search(pattern, text))
+        found_elements = sum(1 for pattern in element_patterns.values() if re.search(pattern, text))
         return (found_elements / len(element_patterns)) * 100
 
     def _generate_clinical_recommendations(self, validation_results: dict[str, Any]) -> list[str]:
@@ -169,6 +187,7 @@ class ClinicalStandardsValidator:
 
         return recommendations
 
+
 class QualityAssuranceWorkflow:
     """Task 5.7.2.2: Quality assurance workflows and processes"""
 
@@ -180,24 +199,20 @@ class QualityAssuranceWorkflow:
             "manual_review_queue",
             "clinical_standards_validation",
             "final_approval",
-            "quality_monitoring"
+            "quality_monitoring",
         ]
 
     def execute_qa_workflow(self, conversation_batch: list[dict[str, Any]]) -> dict[str, Any]:
         """Execute complete QA workflow on conversation batch"""
         workflow_results = {
-            "batch_id": f"qa_batch_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "batch_id": f"qa_batch_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
             "total_conversations": len(conversation_batch),
             "workflow_stages": {},
-            "overall_results": {
-                "passed": 0,
-                "failed": 0,
-                "needs_review": 0
-            },
-            "processing_time": 0
+            "overall_results": {"passed": 0, "failed": 0, "needs_review": 0},
+            "processing_time": 0,
         }
 
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         for stage in self.workflow_stages:
             stage_results = self._execute_workflow_stage(stage, conversation_batch)
@@ -215,7 +230,7 @@ class QualityAssuranceWorkflow:
             else:
                 workflow_results["overall_results"]["needs_review"] += 1
 
-        workflow_results["processing_time"] = (datetime.now(timezone.utc) - start_time).total_seconds()
+        workflow_results["processing_time"] = (datetime.now(UTC) - start_time).total_seconds()
 
         return workflow_results
 
@@ -227,7 +242,7 @@ class QualityAssuranceWorkflow:
             "manual_review_queue": self._manual_review_queue_stage,
             "clinical_standards_validation": self._clinical_standards_validation_stage,
             "final_approval": self._final_approval_stage,
-            "quality_monitoring": self._quality_monitoring_stage
+            "quality_monitoring": self._quality_monitoring_stage,
         }
 
         method = stage_methods.get(stage, self._default_stage)
@@ -241,9 +256,9 @@ class QualityAssuranceWorkflow:
         for conversation in conversations:
             # Basic validation checks
             is_valid = (
-                conversation.get("conversation_id") and
-                conversation.get("conversations_json") and
-                conversation.get("word_count", 0) > 0
+                conversation.get("conversation_id")
+                and conversation.get("conversations_json")
+                and conversation.get("word_count", 0) > 0
             )
 
             conversation["initial_validation"] = "passed" if is_valid else "failed"
@@ -257,7 +272,7 @@ class QualityAssuranceWorkflow:
         return {
             "stage": "initial_validation",
             "results": validation_results,
-            "processed_conversations": processed_conversations
+            "processed_conversations": processed_conversations,
         }
 
     def _automated_quality_check_stage(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
@@ -287,7 +302,7 @@ class QualityAssuranceWorkflow:
         return {
             "stage": "automated_quality_check",
             "results": quality_results,
-            "processed_conversations": processed_conversations
+            "processed_conversations": processed_conversations,
         }
 
     def _manual_review_queue_stage(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
@@ -309,7 +324,7 @@ class QualityAssuranceWorkflow:
         return {
             "stage": "manual_review_queue",
             "results": review_results,
-            "processed_conversations": processed_conversations
+            "processed_conversations": processed_conversations,
         }
 
     def _clinical_standards_validation_stage(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
@@ -333,7 +348,7 @@ class QualityAssuranceWorkflow:
         return {
             "stage": "clinical_standards_validation",
             "results": clinical_results,
-            "processed_conversations": processed_conversations
+            "processed_conversations": processed_conversations,
         }
 
     def _final_approval_stage(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
@@ -343,8 +358,9 @@ class QualityAssuranceWorkflow:
 
         for conversation in conversations:
             # Final approval logic
-            if (conversation.get("review_status") == "auto_approved" and
-                conversation.get("clinical_validation", {}).get("clinical_compliance", False)):
+            if conversation.get("review_status") == "auto_approved" and conversation.get("clinical_validation", {}).get(
+                "clinical_compliance", False
+            ):
                 conversation["qa_status"] = "passed"
                 approval_results["approved"] += 1
             elif conversation.get("review_status") == "queued_for_manual_review":
@@ -359,44 +375,38 @@ class QualityAssuranceWorkflow:
         return {
             "stage": "final_approval",
             "results": approval_results,
-            "processed_conversations": processed_conversations
+            "processed_conversations": processed_conversations,
         }
 
     def _quality_monitoring_stage(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
         """Quality monitoring stage"""
         monitoring_results = {
             "total_processed": len(conversations),
-            "quality_metrics": {
-                "avg_quality_score": 0,
-                "compliance_rate": 0,
-                "approval_rate": 0
-            }
+            "quality_metrics": {"avg_quality_score": 0, "compliance_rate": 0, "approval_rate": 0},
         }
 
         quality_scores = [c.get("quality_score", 0) for c in conversations if c.get("quality_score")]
         if quality_scores:
             monitoring_results["quality_metrics"]["avg_quality_score"] = np.mean(quality_scores)
 
-        compliant_count = sum(1 for c in conversations
-                             if c.get("clinical_validation", {}).get("clinical_compliance", False))
+        compliant_count = sum(
+            1 for c in conversations if c.get("clinical_validation", {}).get("clinical_compliance", False)
+        )
         monitoring_results["quality_metrics"]["compliance_rate"] = (compliant_count / len(conversations)) * 100
 
         approved_count = sum(1 for c in conversations if c.get("qa_status") == "passed")
         monitoring_results["quality_metrics"]["approval_rate"] = (approved_count / len(conversations)) * 100
 
-        return {
-            "stage": "quality_monitoring",
-            "results": monitoring_results,
-            "processed_conversations": conversations
-        }
+        return {"stage": "quality_monitoring", "results": monitoring_results, "processed_conversations": conversations}
 
     def _default_stage(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
         """Default stage implementation"""
         return {
             "stage": "unknown",
             "results": {"processed": len(conversations)},
-            "processed_conversations": conversations
+            "processed_conversations": conversations,
         }
+
 
 class AutomatedQualityChecker:
     """Task 5.7.2.4: Automated quality checking and validation"""
@@ -408,7 +418,7 @@ class AutomatedQualityChecker:
             "required_conversation_turns": 2,
             "empathy_threshold": 0.3,
             "professionalism_threshold": 0.4,
-            "coherence_threshold": 0.5
+            "coherence_threshold": 0.5,
         }
 
     def run_automated_quality_checks(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
@@ -416,12 +426,8 @@ class AutomatedQualityChecker:
         check_results = {
             "total_conversations": len(conversations),
             "checks_performed": [],
-            "overall_results": {
-                "passed_all_checks": 0,
-                "failed_some_checks": 0,
-                "failed_all_checks": 0
-            },
-            "detailed_results": []
+            "overall_results": {"passed_all_checks": 0, "failed_some_checks": 0, "failed_all_checks": 0},
+            "detailed_results": [],
         }
 
         for conversation in conversations:
@@ -452,13 +458,14 @@ class AutomatedQualityChecker:
             "individual_checks": {},
             "checks_passed": 0,
             "total_checks": 0,
-            "overall_quality_score": 0
+            "overall_quality_score": 0,
         }
 
         # Check 1: Word count validation
         word_count = conversation.get("word_count", 0)
-        word_count_valid = (self.quality_rules["minimum_word_count"] <= word_count <=
-                           self.quality_rules["maximum_word_count"])
+        word_count_valid = (
+            self.quality_rules["minimum_word_count"] <= word_count <= self.quality_rules["maximum_word_count"]
+        )
         results["individual_checks"]["word_count"] = word_count_valid
 
         # Check 2: Conversation structure
@@ -479,7 +486,9 @@ class AutomatedQualityChecker:
 
         # Check 5: Professionalism assessment
         professionalism_score = self._assess_professionalism_automated(conversation)
-        results["individual_checks"]["professionalism"] = professionalism_score >= self.quality_rules["professionalism_threshold"]
+        results["individual_checks"]["professionalism"] = (
+            professionalism_score >= self.quality_rules["professionalism_threshold"]
+        )
 
         # Calculate summary
         results["checks_passed"] = sum(results["individual_checks"].values())
@@ -492,17 +501,16 @@ class AutomatedQualityChecker:
         """Assess content quality automatically"""
         try:
             conversations_json = json.loads(conversation.get("conversations_json", "[]"))
-            full_text = " ".join([
-                turn[list(turn.keys())[0]] for turn in conversations_json
-                if isinstance(turn, dict)
-            ]).lower()
+            full_text = " ".join(
+                [turn[list(turn.keys())[0]] for turn in conversations_json if isinstance(turn, dict)]
+            ).lower()
 
             # Simple quality indicators
             quality_indicators = [
                 len(full_text) > 50,  # Sufficient length
-                "?" in full_text,     # Contains questions
+                "?" in full_text,  # Contains questions
                 any(word in full_text for word in ["help", "support", "understand"]),  # Helpful language
-                not any(word in full_text for word in ["bad", "terrible", "awful"])   # Avoid negative language
+                not any(word in full_text for word in ["bad", "terrible", "awful"]),  # Avoid negative language
             ]
 
             return sum(quality_indicators) / len(quality_indicators)
@@ -513,10 +521,9 @@ class AutomatedQualityChecker:
         """Automated empathy assessment"""
         try:
             conversations_json = json.loads(conversation.get("conversations_json", "[]"))
-            full_text = " ".join([
-                turn[list(turn.keys())[0]] for turn in conversations_json
-                if isinstance(turn, dict)
-            ]).lower()
+            full_text = " ".join(
+                [turn[list(turn.keys())[0]] for turn in conversations_json if isinstance(turn, dict)]
+            ).lower()
 
             empathy_words = ["understand", "feel", "sorry", "care", "support", "help"]
             empathy_count = sum(1 for word in empathy_words if word in full_text)
@@ -531,21 +538,21 @@ class AutomatedQualityChecker:
         """Automated professionalism assessment"""
         try:
             conversations_json = json.loads(conversation.get("conversations_json", "[]"))
-            full_text = " ".join([
-                turn[list(turn.keys())[0]] for turn in conversations_json
-                if isinstance(turn, dict)
-            ]).lower()
+            full_text = " ".join(
+                [turn[list(turn.keys())[0]] for turn in conversations_json if isinstance(turn, dict)]
+            ).lower()
 
             professional_indicators = [
                 not any(word in full_text for word in ["um", "uh", "like", "you know"]),  # Avoid filler words
                 any(word in full_text for word in ["recommend", "suggest", "consider"]),  # Professional advice
                 len([s for s in full_text.split(".") if s.strip()]) >= 2,  # Multiple sentences
-                not any(word in full_text for word in ["awesome", "cool", "dude"])  # Avoid casual language
+                not any(word in full_text for word in ["awesome", "cool", "dude"]),  # Avoid casual language
             ]
 
             return sum(professional_indicators) / len(professional_indicators)
         except:
             return 0.0
+
 
 def run_comprehensive_validation_qa_system():
     """Run the comprehensive validation and QA system"""
@@ -557,29 +564,25 @@ def run_comprehensive_validation_qa_system():
             "conversations_json": '[{"human": "I am feeling very anxious about my upcoming presentation.", "assistant": "I understand that presentations can feel overwhelming. Here are some evidence-based strategies that might help: practice deep breathing exercises, prepare thoroughly, and remember that some nervousness is normal and can actually improve performance."}]',
             "word_count": 35,
             "dataset_source": "clinical_test",
-            "tier": "priority_1"
+            "tier": "priority_1",
         },
         {
             "conversation_id": "test_002",
             "conversations_json": '[{"human": "Hi", "assistant": "Hello there!"}]',
             "word_count": 4,
             "dataset_source": "basic_test",
-            "tier": "standard"
+            "tier": "standard",
         },
         {
             "conversation_id": "test_003",
             "conversations_json": '[{"human": "How can I improve my mental health?", "assistant": "There are several evidence-based approaches to improving mental health: regular exercise has been shown to reduce anxiety and depression, mindfulness practices can help with emotional regulation, maintaining social connections provides crucial support, and establishing consistent sleep patterns is fundamental for mental wellness. I recommend starting with one area that feels most manageable for you."}]',
             "word_count": 55,
             "dataset_source": "professional_test",
-            "tier": "priority_1"
-        }
+            "tier": "priority_1",
+        },
     ]
 
-    results_summary = {
-        "clinical_validation": {},
-        "qa_workflow": {},
-        "automated_quality_checks": {}
-    }
+    results_summary = {"clinical_validation": {}, "qa_workflow": {}, "automated_quality_checks": {}}
 
     # Task 5.7.2.1: Clinical Standards Validation
 
@@ -593,9 +596,8 @@ def run_comprehensive_validation_qa_system():
     results_summary["clinical_validation"] = {
         "total_validated": len(clinical_results),
         "compliant_conversations": sum(1 for r in clinical_results if r["clinical_compliance"]),
-        "average_score": np.mean([r["overall_score"] for r in clinical_results])
+        "average_score": np.mean([r["overall_score"] for r in clinical_results]),
     }
-
 
     # Task 5.7.2.2: QA Workflow
 
@@ -604,14 +606,12 @@ def run_comprehensive_validation_qa_system():
 
     results_summary["qa_workflow"] = workflow_results["overall_results"]
 
-
     # Task 5.7.2.4: Automated Quality Checks
 
     quality_checker = AutomatedQualityChecker()
     quality_results = quality_checker.run_automated_quality_checks(sample_conversations)
 
     results_summary["automated_quality_checks"] = quality_results["overall_results"]
-
 
     # Tasks 5.7.2.3, 5.7.2.5-5.7.2.10: Additional Components
 
@@ -622,19 +622,16 @@ def run_comprehensive_validation_qa_system():
         "Quality validation performance optimization",
         "Quality validation error handling and recovery",
         "Quality validation monitoring and alerting",
-        "Quality validation integration testing"
+        "Quality validation integration testing",
     ]
 
     for _component in additional_components:
         pass
 
-
     # Final Summary
 
-
-
-
     return results_summary
+
 
 if __name__ == "__main__":
     run_comprehensive_validation_qa_system()

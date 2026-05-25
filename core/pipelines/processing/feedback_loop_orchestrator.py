@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -24,7 +24,7 @@ class FeedbackLoopOrchestrator:
             FeedbackEvent(
                 name=name,
                 payload=payload,
-                created_at=datetime.now(tz=timezone.utc).isoformat(),
+                created_at=datetime.now(tz=UTC).isoformat(),
             )
         )
 
@@ -37,4 +37,4 @@ class FeedbackLoopOrchestrator:
         self._events.clear()
 
 
-__all__ = ["FeedbackLoopOrchestrator", "FeedbackEvent"]
+__all__ = ["FeedbackEvent", "FeedbackLoopOrchestrator"]

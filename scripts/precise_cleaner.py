@@ -17,7 +17,6 @@ class PreciseCleaner:
         pattern = r"^And I guess to take this one step further, I\'ve heard you talk about\s*"
         return re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
 
-
     def process_segment(self, segment: dict) -> dict:
         """Process segment with precise cleaning"""
 
@@ -30,8 +29,9 @@ class PreciseCleaner:
             "confidence": segment["confidence"],
             "quality": segment["quality"],
             "source": segment["source"],
-            "file": segment["file"]
+            "file": segment["file"],
         }
+
 
 def test_precise_cleaner():
     """Test precise cleaning"""
@@ -43,7 +43,7 @@ def test_precise_cleaner():
         "confidence": 3.0,
         "quality": 0.7,
         "source": "test",
-        "file": "test.txt"
+        "file": "test.txt",
     }
 
     cleaner.process_segment(test_segment)

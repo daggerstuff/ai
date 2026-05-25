@@ -106,9 +106,7 @@ class OperationalDashboardSystem:
 
         # 1. Overall Quality Score
         quality_score = exec_metrics["overall_quality_score"]
-        colors = [
-            "#FF6B6B" if quality_score < 50 else "#FFA07A" if quality_score < 70 else "#4ECDC4"
-        ]
+        colors = ["#FF6B6B" if quality_score < 50 else "#FFA07A" if quality_score < 70 else "#4ECDC4"]
 
         axes[0, 0].pie(
             [quality_score, 100 - quality_score],
@@ -117,9 +115,7 @@ class OperationalDashboardSystem:
             startangle=90,
             autopct="%1.1f%%",
         )
-        axes[0, 0].set_title(
-            f"Overall Quality Score\n{quality_score:.1f}/100", fontsize=14, fontweight="bold"
-        )
+        axes[0, 0].set_title(f"Overall Quality Score\n{quality_score:.1f}/100", fontsize=14, fontweight="bold")
 
         # 2. Conversation Volume Trends
         volume_data = exec_metrics["volume_trends"]
@@ -128,9 +124,7 @@ class OperationalDashboardSystem:
             volumes = [volume_data[d] for d in dates]
 
             axes[0, 1].plot(range(len(dates)), volumes, marker="o", linewidth=2, markersize=4)
-            axes[0, 1].set_title(
-                "Conversation Volume (Last 30 Days)", fontsize=14, fontweight="bold"
-            )
+            axes[0, 1].set_title("Conversation Volume (Last 30 Days)", fontsize=14, fontweight="bold")
             axes[0, 1].set_ylabel("Daily Conversations")
             axes[0, 1].grid(True, alpha=0.3)
 
@@ -220,7 +214,7 @@ class OperationalDashboardSystem:
             fontsize=10,
             verticalalignment="top",
             fontweight="normal",
-            bbox={"boxstyle":"round","facecolor":"lightblue","alpha":0.1},
+            bbox={"boxstyle": "round", "facecolor": "lightblue", "alpha": 0.1},
         )
         axes[1, 2].set_title("Strategic Action Items", fontsize=14, fontweight="bold")
 
@@ -256,9 +250,7 @@ class OperationalDashboardSystem:
         metrics = ["Avg Processing Time", "Success Rate", "Error Rate", "Throughput"]
         values = [perf_data.get(m.lower().replace(" ", "_"), 0) for m in metrics]
 
-        bars = axes[0, 0].bar(
-            metrics, values, color=["#4ECDC4", "#45B7D1", "#FF6B6B", "#96CEB4"], alpha=0.8
-        )
+        bars = axes[0, 0].bar(metrics, values, color=["#4ECDC4", "#45B7D1", "#FF6B6B", "#96CEB4"], alpha=0.8)
         axes[0, 0].set_title("Processing Performance Metrics", fontweight="bold")
         axes[0, 0].tick_params(axis="x", rotation=45)
 
@@ -392,9 +384,7 @@ class OperationalDashboardSystem:
 
         axes[2, 1].set_title("Performance vs Targets", fontweight="bold")
         axes[2, 1].set_xticks(x)
-        axes[2, 1].set_xticklabels(
-            [b.replace("_", " ").title() for b in benchmark_names], rotation=45
-        )
+        axes[2, 1].set_xticklabels([b.replace("_", " ").title() for b in benchmark_names], rotation=45)
         axes[2, 1].legend()
 
         # 9. Recent Activity Log
@@ -422,9 +412,7 @@ class OperationalDashboardSystem:
 
         # Save operational dashboard
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        ops_dashboard_path = (
-            f"{self.dashboard_dir}/operational/operational_dashboard_{timestamp}.png"
-        )
+        ops_dashboard_path = f"{self.dashboard_dir}/operational/operational_dashboard_{timestamp}.png"
         plt.savefig(ops_dashboard_path, dpi=300, bbox_inches="tight")
         plt.close()
 
@@ -671,26 +659,17 @@ class OperationalDashboardSystem:
         """Generate comprehensive deployment summary"""
 
         total_dashboards = sum(
-            bool(isinstance(result, dict) and result.get("dashboard_created"))
-            for result in deployment_results.values()
+            bool(isinstance(result, dict) and result.get("dashboard_created")) for result in deployment_results.values()
         )
 
         return {
             "deployment_status": "successful",
             "dashboards_deployed": total_dashboards,
             "systems_integrated": len(self.analytics_systems),
-            "stakeholder_views": len(
-                deployment_results.get("stakeholder_views", {}).get("roles_configured", [])
-            ),
-            "automated_reports": len(
-                deployment_results.get("automated_reporting", {}).get("report_types", [])
-            ),
-            "export_formats": len(
-                deployment_results.get("export_capabilities", {}).get("supported_formats", [])
-            ),
-            "monitoring_alerts": len(
-                deployment_results.get("monitoring_alerts", {}).get("alert_types", [])
-            ),
+            "stakeholder_views": len(deployment_results.get("stakeholder_views", {}).get("roles_configured", [])),
+            "automated_reports": len(deployment_results.get("automated_reporting", {}).get("report_types", [])),
+            "export_formats": len(deployment_results.get("export_capabilities", {}).get("supported_formats", [])),
+            "monitoring_alerts": len(deployment_results.get("monitoring_alerts", {}).get("alert_types", [])),
             "deployment_time": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -828,9 +807,7 @@ class OperationalDashboardSystem:
         # Simulate executive metrics (in production, these would come from analytics systems)
         return {
             "overall_quality_score": 45.2,
-            "volume_trends": {
-                f"2025-08-{i:02d}": np.random.randint(1000, 5000) for i in range(1, 8)
-            },
+            "volume_trends": {f"2025-08-{i:02d}": np.random.randint(1000, 5000) for i in range(1, 8)},
             "quality_distribution": {"excellent": 1250, "good": 8500, "fair": 45000, "poor": 82105},
             "roi_analysis": {
                 "professional_soulchat": 156.7,
@@ -866,9 +843,7 @@ class OperationalDashboardSystem:
                 "error_rate": 1.3,
                 "throughput": 1250,
             },
-            "quality_trends": {
-                f"2025-08-{i:02d}": 45 + np.random.normal(0, 5) for i in range(1, 8)
-            },
+            "quality_trends": {f"2025-08-{i:02d}": 45 + np.random.normal(0, 5) for i in range(1, 8)},
             "system_health": {
                 "database": "healthy",
                 "analytics_engine": "healthy",
@@ -1072,9 +1047,7 @@ def main():
 
         # Save deployment results
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        output_file = (
-            f"/home/vivi/pixelated/ai/monitoring/operational_dashboard_deployment_{timestamp}.json"
-        )
+        output_file = f"/home/vivi/pixelated/ai/monitoring/operational_dashboard_deployment_{timestamp}.json"
 
         with open(output_file, "w") as f:
             json.dump(deployment_results, f, indent=2, default=str)
@@ -1085,22 +1058,22 @@ def main():
         # Display deployment summary
         summary = deployment_results["deployment_summary"]
         logging.info("📈 Deployment Summary:")
-        logging.info("  • Dashboards deployed: %s", summary['dashboards_deployed'])
-        logging.info("  • Systems integrated: %s", summary['systems_integrated'])
-        logging.info("  • Stakeholder views: %s", summary['stakeholder_views'])
-        logging.info("  • Automated reports: %s", summary['automated_reports'])
-        logging.info("  • Export formats: %s", summary['export_formats'])
-        logging.info("  • Monitoring alerts: %s", summary['monitoring_alerts'])
+        logging.info("  • Dashboards deployed: %s", summary["dashboards_deployed"])
+        logging.info("  • Systems integrated: %s", summary["systems_integrated"])
+        logging.info("  • Stakeholder views: %s", summary["stakeholder_views"])
+        logging.info("  • Automated reports: %s", summary["automated_reports"])
+        logging.info("  • Export formats: %s", summary["export_formats"])
+        logging.info("  • Monitoring alerts: %s", summary["monitoring_alerts"])
 
         # Display access information
         access_info = deployment_results["access_instructions"]
         logging.info("🔑 Access Information:")
-        logging.info("  • Executive Dashboard: %s", access_info['dashboard_locations']['executive'])
-        logging.info("  • Operational Dashboard: %s", access_info['dashboard_locations']['operational'])
-        logging.info("  • Technical Dashboard: %s", access_info['dashboard_locations']['technical'])
+        logging.info("  • Executive Dashboard: %s", access_info["dashboard_locations"]["executive"])
+        logging.info("  • Operational Dashboard: %s", access_info["dashboard_locations"]["operational"])
+        logging.info("  • Technical Dashboard: %s", access_info["dashboard_locations"]["technical"])
 
         logging.info("📋 Operational Runbook: %s/operational_runbook.md", dashboard_system.dashboard_dir)
-        logging.info("📧 Support Contact: %s", access_info['support']['help_desk'])
+        logging.info("📧 Support Contact: %s", access_info["support"]["help_desk"])
 
         logging.info("🎉 OPERATIONAL DASHBOARDS ARE NOW LIVE AND READY FOR USE! 🎉")
 

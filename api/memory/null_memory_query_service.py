@@ -66,11 +66,13 @@ class NullMemoryQueryService:
             limit=limit,
         ):
             memory_tags = normalize_tags((memory.get("metadata") or {}).get("tags", []))
-            matches.append({
-                "document_id": memory["id"],
-                "text": memory["content"],
-                "tags": memory_tags,
-            })
+            matches.append(
+                {
+                    "document_id": memory["id"],
+                    "text": memory["content"],
+                    "tags": memory_tags,
+                }
+            )
             if len(matches) >= limit:
                 break
         return matches

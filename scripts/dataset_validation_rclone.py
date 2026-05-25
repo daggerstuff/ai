@@ -3,10 +3,11 @@
 Simplified dataset validation using rclone.
 Works with Hetzner Object Storage and handles directories properly.
 """
+
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,9 +21,7 @@ from rclone_dataset_accessor import (
 )
 
 
-def validate_dataset(
-    dataset_name: str, dataset_entry: dict[str, Any]
-) -> dict[str, Any]:
+def validate_dataset(dataset_name: str, dataset_entry: dict[str, Any]) -> dict[str, Any]:
     """
     Validate a single dataset.
 
@@ -36,7 +35,6 @@ def validate_dataset(
     s3_path = dataset_entry.get("path", "")
     if not s3_path:
         return {"error": "No path defined"}
-
 
     results = {
         "dataset": dataset_name,
@@ -111,9 +109,7 @@ def main():
         default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
         help="Path to dataset registry",
     )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to validate"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to validate")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -121,7 +117,6 @@ def main():
     )
 
     args = parser.parse_args()
-
 
     # Load registry
     with open(args.registry) as f:
@@ -134,9 +129,7 @@ def main():
             if isinstance(category_data, dict):
                 for dataset_name, dataset_entry in category_data.items():
                     if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                        datasets.append(
-                            (f"datasets.{category_name}.{dataset_name}", dataset_entry)
-                        )
+                        datasets.append((f"datasets.{category_name}.{dataset_name}", dataset_entry))
 
     if args.limit:
         datasets = datasets[: args.limit]
@@ -179,23 +172,17 @@ def main():
                         if "validation" not in entry:
                             entry["validation"] = {}
 
-                        entry["validation"]["last_validated"] = (
-                            datetime.now(timezone.utc).isoformat() + "Z"
+                        entry["validation"]["last_validated"] = datetime.now(UTC).isoformat() + "Z"
+                        entry["validation"]["integrity_valid"] = result["valid_files"] > 0
+                        entry["validation"]["schema_valid"] = result.get("sample_validation", {}).get(
+                            "valid_json", False
                         )
-                        entry["validation"]["integrity_valid"] = (
-                            result["valid_files"] > 0
-                        )
-                        entry["validation"]["schema_valid"] = result.get(
-                            "sample_validation", {}
-                        ).get("valid_json", False)
 
                         if result["checksums"]:
-                            entry["validation"]["checksum_sha256"] = list(
-                                result["checksums"].values()
-                            )[0].get("sha256")
+                            entry["validation"]["checksum_sha256"] = list(result["checksums"].values())[0].get("sha256")
 
     # Save updated registry
-    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+    registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -204,13 +191,12 @@ def main():
     # Save detailed report
     report_path = Path("/home/vivi/pixelated/ai/config/validation_report.json")
     report = {
-        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+        "timestamp": datetime.now(UTC).isoformat() + "Z",
         "statistics": stats,
         "results": all_results,
     }
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
-
 
 
 if __name__ == "__main__":

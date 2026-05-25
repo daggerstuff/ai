@@ -34,9 +34,7 @@ class NvidiaClients:
 
         class _FallbackClient:
             def __getattr__(self, name: str):
-                raise RuntimeError(
-                    "NVIDIA API client is unavailable in this environment."
-                )
+                raise RuntimeError("NVIDIA API client is unavailable in this environment.")
 
             def __repr__(self) -> str:
                 return "NvidiaClients.FallbackClient()"

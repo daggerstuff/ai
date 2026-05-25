@@ -12,15 +12,18 @@ app = FastAPI(title="Pixelated Empathy EI Engine - Local Inference")
 # Global model instance
 model = None
 
+
 class ChatMessage(BaseModel):
     role: str
     content: str
+
 
 class ChatCompletionRequest(BaseModel):
     messages: list[ChatMessage]
     temperature: float = 0.7
     max_tokens: int = 512
     stream: bool = False
+
 
 @app.on_event("startup")
 def load_model():
@@ -31,14 +34,10 @@ def load_model():
         sys.exit(1)
 
     try:
-        model = Llama(
-            model_path=model_path,
-            n_ctx=4096,
-            n_threads=int(os.cpu_count() or 4),
-            n_gpu_layers=0
-        )
+        model = Llama(model_path=model_path, n_ctx=4096, n_threads=int(os.cpu_count() or 4), n_gpu_layers=0)
     except Exception:
         sys.exit(1)
+
 
 @app.post("/v1/chat/completions")
 def chat_completion(request: ChatCompletionRequest):
@@ -67,7 +66,7 @@ def chat_completion(request: ChatCompletionRequest):
             formatted_prompt,
             max_tokens=request.max_tokens,
             temperature=request.temperature,
-            stop=["[INST]", "</s>", "<|endoftext|>"]
+            stop=["[INST]", "</s>", "<|endoftext|>"],
         )
 
         # Structure as OpenAI-compatible response
@@ -79,21 +78,20 @@ def chat_completion(request: ChatCompletionRequest):
             "choices": [
                 {
                     "index": 0,
-                    "message": {
-                        "role": "assistant",
-                        "content": response["choices"][0]["text"].strip()
-                    },
-                    "finish_reason": "stop"
+                    "message": {"role": "assistant", "content": response["choices"][0]["text"].strip()},
+                    "finish_reason": "stop",
                 }
             ],
-            "usage": response["usage"]
+            "usage": response["usage"],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "model_loaded": model is not None}
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

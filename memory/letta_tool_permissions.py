@@ -22,6 +22,7 @@ logger = logging.getLogger("letta_permissions")
 
 class PermissionLevel(StrEnum):
     """Tool permission levels."""
+
     READ_ONLY = "read-only"
     THERAPEUTIC = "therapeutic"
     FULL = "full"
@@ -30,6 +31,7 @@ class PermissionLevel(StrEnum):
 
 class CrisisContext(StrEnum):
     """Crisis context levels for permission decisions."""
+
     NONE = "none"
     LOW = "low"
     MEDIUM = "medium"
@@ -40,6 +42,7 @@ class CrisisContext(StrEnum):
 @dataclass
 class ToolDefinition:
     """Definition of a client-side tool."""
+
     name: str
     description: str
     parameters: dict[str, Any]
@@ -54,6 +57,7 @@ class ToolDefinition:
 @dataclass
 class PermissionResult:
     """Result of a permission check."""
+
     allowed: bool
     reason: str
     filtered_params: dict[str, Any] | None = None
@@ -83,153 +87,155 @@ class LettaToolRegistry:
     def _register_default_tools(self) -> None:
         """Register default tool set."""
         # Read-only tools (available in all modes except whisper)
-        self.register_tool(ToolDefinition(
-            name="Read",
-            description="Read file contents",
-            parameters={"file_path": "string"},
-            permission_level=PermissionLevel.READ_ONLY,
-            allowed_in_crisis=True,
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="Read",
+                description="Read file contents",
+                parameters={"file_path": "string"},
+                permission_level=PermissionLevel.READ_ONLY,
+                allowed_in_crisis=True,
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="Grep",
-            description="Search file contents",
-            parameters={"pattern": "string", "path": "string"},
-            permission_level=PermissionLevel.READ_ONLY,
-            allowed_in_crisis=True,
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="Grep",
+                description="Search file contents",
+                parameters={"pattern": "string", "path": "string"},
+                permission_level=PermissionLevel.READ_ONLY,
+                allowed_in_crisis=True,
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="Glob",
-            description="Find files by pattern",
-            parameters={"pattern": "string"},
-            permission_level=PermissionLevel.READ_ONLY,
-            allowed_in_crisis=True,
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="Glob",
+                description="Find files by pattern",
+                parameters={"pattern": "string"},
+                permission_level=PermissionLevel.READ_ONLY,
+                allowed_in_crisis=True,
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="web_search",
-            description="Search the web",
-            parameters={"query": "string"},
-            permission_level=PermissionLevel.READ_ONLY,
-            allowed_in_crisis=False,
-            requires_user_consent=True,
-            consent_message="Search the web for information?",
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="web_search",
+                description="Search the web",
+                parameters={"query": "string"},
+                permission_level=PermissionLevel.READ_ONLY,
+                allowed_in_crisis=False,
+                requires_user_consent=True,
+                consent_message="Search the web for information?",
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="fetch_webpage",
-            description="Fetch webpage content",
-            parameters={"url": "string"},
-            permission_level=PermissionLevel.READ_ONLY,
-            allowed_in_crisis=False,
-            requires_user_consent=True,
-            consent_message="Fetch content from this URL?",
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="fetch_webpage",
+                description="Fetch webpage content",
+                parameters={"url": "string"},
+                permission_level=PermissionLevel.READ_ONLY,
+                allowed_in_crisis=False,
+                requires_user_consent=True,
+                consent_message="Fetch content from this URL?",
+            )
+        )
 
         # Therapeutic-specific tools
-        self.register_tool(ToolDefinition(
-            name="reflect",
-            description="Analyze conversation for therapeutic insights",
-            parameters={
-                "conversation_id": "string",
-                "focus_areas": "array"
-            },
-            permission_level=PermissionLevel.THERAPEUTIC,
-            allowed_in_crisis=True,
-            pii_filter_enabled=True,
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="reflect",
+                description="Analyze conversation for therapeutic insights",
+                parameters={"conversation_id": "string", "focus_areas": "array"},
+                permission_level=PermissionLevel.THERAPEUTIC,
+                allowed_in_crisis=True,
+                pii_filter_enabled=True,
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="consolidate",
-            description="Consolidate and compress memories",
-            parameters={
-                "memory_ids": "array",
-                "strategy": "string"
-            },
-            permission_level=PermissionLevel.THERAPEUTIC,
-            allowed_in_crisis=False,  # Never auto-consolidate crisis memories
-            risk_level="medium",
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="consolidate",
+                description="Consolidate and compress memories",
+                parameters={"memory_ids": "array", "strategy": "string"},
+                permission_level=PermissionLevel.THERAPEUTIC,
+                allowed_in_crisis=False,  # Never auto-consolidate crisis memories
+                risk_level="medium",
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="retain",
-            description="Store a memory",
-            parameters={
-                "content": "string",
-                "category": "string",
-                "metadata": "object"
-            },
-            permission_level=PermissionLevel.THERAPEUTIC,
-            allowed_in_crisis=True,
-            pii_filter_enabled=True,
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="retain",
+                description="Store a memory",
+                parameters={"content": "string", "category": "string", "metadata": "object"},
+                permission_level=PermissionLevel.THERAPEUTIC,
+                allowed_in_crisis=True,
+                pii_filter_enabled=True,
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="recall",
-            description="Search memories semantically",
-            parameters={
-                "query": "string",
-                "user_id": "string",
-                "limit": "integer"
-            },
-            permission_level=PermissionLevel.THERAPEUTIC,
-            allowed_in_crisis=True,
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="recall",
+                description="Search memories semantically",
+                parameters={"query": "string", "user_id": "string", "limit": "integer"},
+                permission_level=PermissionLevel.THERAPEUTIC,
+                allowed_in_crisis=True,
+            )
+        )
 
         # Full access tools
-        self.register_tool(ToolDefinition(
-            name="Bash",
-            description="Execute shell command",
-            parameters={"command": "string"},
-            permission_level=PermissionLevel.FULL,
-            allowed_in_crisis=False,
-            requires_user_consent=True,
-            risk_level="high",
-            consent_message="Execute this shell command?",
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="Bash",
+                description="Execute shell command",
+                parameters={"command": "string"},
+                permission_level=PermissionLevel.FULL,
+                allowed_in_crisis=False,
+                requires_user_consent=True,
+                risk_level="high",
+                consent_message="Execute this shell command?",
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="Edit",
-            description="Edit file contents",
-            parameters={
-                "file_path": "string",
-                "old_string": "string",
-                "new_string": "string"
-            },
-            permission_level=PermissionLevel.FULL,
-            allowed_in_crisis=False,
-            requires_user_consent=True,
-            risk_level="medium",
-            consent_message="Edit this file?",
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="Edit",
+                description="Edit file contents",
+                parameters={"file_path": "string", "old_string": "string", "new_string": "string"},
+                permission_level=PermissionLevel.FULL,
+                allowed_in_crisis=False,
+                requires_user_consent=True,
+                risk_level="medium",
+                consent_message="Edit this file?",
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="Write",
-            description="Write file contents",
-            parameters={
-                "file_path": "string",
-                "content": "string"
-            },
-            permission_level=PermissionLevel.FULL,
-            allowed_in_crisis=False,
-            requires_user_consent=True,
-            risk_level="high",
-            consent_message="Write to this file?",
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="Write",
+                description="Write file contents",
+                parameters={"file_path": "string", "content": "string"},
+                permission_level=PermissionLevel.FULL,
+                allowed_in_crisis=False,
+                requires_user_consent=True,
+                risk_level="high",
+                consent_message="Write to this file?",
+            )
+        )
 
-        self.register_tool(ToolDefinition(
-            name="Task",
-            description="Create a task",
-            parameters={
-                "description": "string",
-                "prompt": "string"
-            },
-            permission_level=PermissionLevel.FULL,
-            allowed_in_crisis=False,
-            requires_user_consent=True,
-            risk_level="medium",
-        ))
+        self.register_tool(
+            ToolDefinition(
+                name="Task",
+                description="Create a task",
+                parameters={"description": "string", "prompt": "string"},
+                permission_level=PermissionLevel.FULL,
+                allowed_in_crisis=False,
+                requires_user_consent=True,
+                risk_level="medium",
+            )
+        )
 
     def register_tool(self, tool: ToolDefinition) -> None:
         """Register a tool definition."""
@@ -328,16 +334,12 @@ class LettaPermissionHandler:
         # Get tool definition
         tool = self.registry.get_tool(tool_name)
         if not tool:
-            return PermissionResult(
-                allowed=False,
-                reason=f"Tool '{tool_name}' not registered"
-            )
+            return PermissionResult(allowed=False, reason=f"Tool '{tool_name}' not registered")
 
         # Check permission level
         if not self.registry._is_tool_allowed_by_level(tool):
             return PermissionResult(
-                allowed=False,
-                reason=f"Tool '{tool_name}' requires {tool.permission_level.value} permission level"
+                allowed=False, reason=f"Tool '{tool_name}' requires {tool.permission_level.value} permission level"
             )
 
         # Check crisis context
@@ -346,30 +348,23 @@ class LettaPermissionHandler:
             if not tool.allowed_in_crisis:
                 return PermissionResult(
                     allowed=False,
-                    reason=f"Tool '{tool_name}' not allowed during crisis (context: {crisis_context.value})"
+                    reason=f"Tool '{tool_name}' not allowed during crisis (context: {crisis_context.value})",
                 )
 
             # Extra caution for high-severity crisis
             if crisis_context in [CrisisContext.HIGH, CrisisContext.CRITICAL]:
                 if tool.risk_level in ["medium", "high"]:
                     return PermissionResult(
-                        allowed=False,
-                        reason=f"Tool '{tool_name}' blocked due to high crisis severity"
+                        allowed=False, reason=f"Tool '{tool_name}' blocked due to high crisis severity"
                     )
 
         # Apply PII filtering if enabled
         filtered_params = tool_params.copy()
         if tool.pii_filter_enabled and self._pii_filter:
-            filter_result = await self._pii_filter.filter_tool_call(
-                tool_name,
-                tool_params
-            )
+            filter_result = await self._pii_filter.filter_tool_call(tool_name, tool_params)
 
             if filter_result.should_block:
-                return PermissionResult(
-                    allowed=False,
-                    reason="Tool parameters blocked due to PII content"
-                )
+                return PermissionResult(allowed=False, reason="Tool parameters blocked due to PII content")
 
             filtered_params = filter_result.filtered
 
@@ -377,10 +372,7 @@ class LettaPermissionHandler:
         if tool.requires_user_consent:
             if not self._consent_callback:
                 logger.warning(f"Consent required for {tool_name} but no callback set")
-                return PermissionResult(
-                    allowed=False,
-                    reason="Consent required but no consent handler configured"
-                )
+                return PermissionResult(allowed=False, reason="Consent required but no consent handler configured")
 
             return PermissionResult(
                 allowed=False,  # Will be set by consent callback
@@ -396,10 +388,7 @@ class LettaPermissionHandler:
             filtered_params=filtered_params,
         )
 
-    async def _get_crisis_context(
-        self,
-        context: dict[str, Any] | None
-    ) -> CrisisContext:
+    async def _get_crisis_context(self, context: dict[str, Any] | None) -> CrisisContext:
         """
         Determine crisis context from message/context.
 
@@ -428,19 +417,14 @@ class LettaPermissionHandler:
                     "critical": CrisisContext.CRITICAL,
                 }
                 return severity_map.get(
-                    result.severity.value if hasattr(result.severity, "value") else result.severity,
-                    CrisisContext.NONE
+                    result.severity.value if hasattr(result.severity, "value") else result.severity, CrisisContext.NONE
                 )
         except Exception as e:
             logger.error(f"Error checking crisis context: {e}")
 
         return CrisisContext.NONE
 
-    def get_tools_for_permission_level(
-        self,
-        level: PermissionLevel,
-        include_descriptions: bool = False
-    ):
+    def get_tools_for_permission_level(self, level: PermissionLevel, include_descriptions: bool = False):
         """
         Get tools available at a specific permission level.
 

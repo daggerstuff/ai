@@ -120,9 +120,7 @@ class MigrationRunner:
             timeout=60,
         )
         if result.returncode != 0:
-            raise RuntimeError(
-                f"MongoDB migration {path.name} failed: {result.stderr}"
-            )
+            raise RuntimeError(f"MongoDB migration {path.name} failed: {result.stderr}")
         logger.info("Applied JS migration: %s", path.name)
 
     # ------------------------------------------------------------------

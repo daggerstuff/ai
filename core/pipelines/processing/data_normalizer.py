@@ -10,6 +10,7 @@ Canonical JSONL schema fields:
   metadata (title, authors, doi, topic_tags, therapeutic_modality, quality_score),
   phi_scan_passed, phi_scan_date, pull_date, pix_ticket
 """
+
 from __future__ import annotations
 
 import functools
@@ -106,17 +107,11 @@ class DataNormalizer:
                 errors.append(f"Missing required field: {field_name}")
 
         # Check for message content
-        has_messages = (
-            isinstance(record.get("messages"), list) and len(record["messages"]) > 0
-        )
-        has_text = (
-            isinstance(record.get("text"), str) and len(record["text"].strip()) > 0
-        )
+        has_messages = isinstance(record.get("messages"), list) and len(record["messages"]) > 0
+        has_text = isinstance(record.get("text"), str) and len(record["text"].strip()) > 0
 
         if not (has_messages or has_text):
-            errors.append(
-                "Record must contain either 'messages' (list) or 'text' (str)"
-            )
+            errors.append("Record must contain either 'messages' (list) or 'text' (str)")
 
         if self.enforce_license and not record.get("license"):
             errors.append("Missing required field: license")
@@ -131,13 +126,9 @@ class DataNormalizer:
         else:
             missing_meta = OPTIONAL_METADATA - set(metadata.keys())
             if missing_meta:
-                warnings.append(
-                    f"Missing optional metadata fields: {sorted(missing_meta)}"
-                )
+                warnings.append(f"Missing optional metadata fields: {sorted(missing_meta)}")
 
-        return ValidationResult(
-            valid=len(errors) == 0, errors=errors, warnings=warnings
-        )
+        return ValidationResult(valid=len(errors) == 0, errors=errors, warnings=warnings)
 
     def normalize_text(self, text: str) -> str:
         """Standardize string encoding and whitespace."""
@@ -156,27 +147,18 @@ class DataNormalizer:
         ensure canonical schema structure.
         """
         # Create deep copy for mutation and canonicalize top-level keys first.
-        normalized = {
-            self._to_snake_case(str(key)): value
-            for key, value in json.loads(json.dumps(record)).items()
-        }
+        normalized = {self._to_snake_case(str(key)): value for key, value in json.loads(json.dumps(record)).items()}
 
         # Convert 'text' field to 'messages' if needed
         if "text" in normalized and "messages" not in normalized:
-            normalized["messages"] = [
-                {"role": "user", "content": normalized.pop("text")}
-            ]
+            normalized["messages"] = [{"role": "user", "content": normalized.pop("text")}]
 
         # Standardize keys and normalize content
         if "messages" in normalized:
-            normalized["messages"] = [
-                self._normalize_message(msg) for msg in normalized["messages"]
-            ]
+            normalized["messages"] = [self._normalize_message(msg) for msg in normalized["messages"]]
 
         if "metadata" in normalized and isinstance(normalized["metadata"], dict):
-            normalized["metadata"] = {
-                self._to_snake_case(k): v for k, v in normalized["metadata"].items()
-            }
+            normalized["metadata"] = {self._to_snake_case(k): v for k, v in normalized["metadata"].items()}
 
         return normalized
 
@@ -199,18 +181,14 @@ class DataNormalizer:
                 content = msg.get("content", "")
                 role = msg.get("role", "user")
                 if content:
-                    timestamp = msg.get(
-                        "timestamp", datetime.now(UTC).isoformat()
-                    )
+                    timestamp = msg.get("timestamp", datetime.now(UTC).isoformat())
                     msg_metadata = msg.get("metadata", {})
                     messages.append(
                         Message(
                             role=role,
                             content=content,
                             timestamp=timestamp,
-                            metadata=msg_metadata
-                            if isinstance(msg_metadata, dict)
-                            else {},
+                            metadata=msg_metadata if isinstance(msg_metadata, dict) else {},
                         )
                     )
 
@@ -228,9 +206,7 @@ class DataNormalizer:
         # Combine existing metadata with provenance
         metadata = {**record.get("metadata", {}), **provenance}
 
-        conversation_id = str(
-            record.get("id", hashlib.sha256(repr(record).encode()).hexdigest()[:16])
-        )
+        conversation_id = str(record.get("id", hashlib.sha256(repr(record).encode()).hexdigest()[:16]))
 
         return Conversation(
             conversation_id=conversation_id,
@@ -277,9 +253,7 @@ class DataNormalizer:
                     record = json.loads(line)
                 except json.JSONDecodeError:
                     result.rejected_records += 1
-                    result.rejected_reasons["json_parse_error"] = (
-                        result.rejected_reasons.get("json_parse_error", 0) + 1
-                    )
+                    result.rejected_reasons["json_parse_error"] = result.rejected_reasons.get("json_parse_error", 0) + 1
                     rejectfile.write(line)
                     continue
 
@@ -290,28 +264,20 @@ class DataNormalizer:
                 if not validation.valid:
                     result.rejected_records += 1
                     for error in validation.errors:
-                        reason_key = (
-                            error.split(":")[0].strip().replace(" ", "_").lower()
-                        )
-                        result.rejected_reasons[reason_key] = (
-                            result.rejected_reasons.get(reason_key, 0) + 1
-                        )
+                        reason_key = error.split(":")[0].strip().replace(" ", "_").lower()
+                        result.rejected_reasons[reason_key] = result.rejected_reasons.get(reason_key, 0) + 1
                     rejectfile.write(line)
                     continue
 
                 # Success path
                 try:
                     conversation = self.to_conversation(record, source_name)
-                    outfile.write(
-                        json.dumps(conversation.to_dict(), ensure_ascii=False) + "\n"
-                    )
+                    outfile.write(json.dumps(conversation.to_dict(), ensure_ascii=False) + "\n")
                     result.valid_records += 1
                 except Exception as e:
                     logger.error(f"Error processing record {record.get('id', 'N/A')}: {e}")
                     result.rejected_records += 1
-                    result.rejected_reasons["processing_error"] = (
-                        result.rejected_reasons.get("processing_error", 0) + 1
-                    )
+                    result.rejected_reasons["processing_error"] = result.rejected_reasons.get("processing_error", 0) + 1
                     rejectfile.write(line)
 
         logger.info(
@@ -378,9 +344,7 @@ class Message:
 
     role: str
     content: str
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -400,12 +364,8 @@ class Conversation:
     source: str
     messages: list[Message]
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
-    updated_at: str = field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -424,13 +384,8 @@ class Conversation:
             Message(
                 role=str(message.get("role", "user")),
                 content=str(message.get("content", "")),
-                timestamp=str(
-                    message.get("timestamp")
-                    or datetime.now(UTC).isoformat()
-                ),
-                metadata=message.get("metadata")
-                if isinstance(message.get("metadata"), dict)
-                else {},
+                timestamp=str(message.get("timestamp") or datetime.now(UTC).isoformat()),
+                metadata=message.get("metadata") if isinstance(message.get("metadata"), dict) else {},
             )
             for message in data.get("messages", [])
             if isinstance(message, dict)
@@ -441,10 +396,6 @@ class Conversation:
             source=str(data.get("source") or metadata.get("source_repo") or "unknown"),
             messages=messages,
             metadata=metadata,
-            created_at=str(
-                data.get("created_at") or datetime.now(UTC).isoformat()
-            ),
-            updated_at=str(
-                data.get("updated_at") or datetime.now(UTC).isoformat()
-            ),
+            created_at=str(data.get("created_at") or datetime.now(UTC).isoformat()),
+            updated_at=str(data.get("updated_at") or datetime.now(UTC).isoformat()),
         )

@@ -4,9 +4,10 @@ Custom error types for TechDeck Flask service.
 This module defines comprehensive error types for different failure scenarios
 with HIPAA++ compliant error handling and audit logging capabilities.
 """
+
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -45,7 +46,7 @@ class TechDeckBaseError(Exception):
         self.details = details or {}
         self.request_id = request_id
         self.user_id = user_id
-        self.timestamp = datetime.now(timezone.utc)
+        self.timestamp = datetime.now(UTC)
         self.error_id = self._generate_error_id()
 
     def _generate_error_id(self) -> str:
@@ -128,9 +129,7 @@ class AuthenticationError(TechDeckBaseError):
 class AuthorizationError(TechDeckBaseError):
     """Authorization/permission-related errors."""
 
-    def __init__(
-        self, message: str, required_permissions: list[str] | None = None, **kwargs
-    ):
+    def __init__(self, message: str, required_permissions: list[str] | None = None, **kwargs):
         details = {"required_permissions": required_permissions or []}
         super().__init__(
             message=message,
@@ -144,9 +143,7 @@ class AuthorizationError(TechDeckBaseError):
 class ValidationError(TechDeckBaseError):
     """Input validation errors."""
 
-    def __init__(
-        self, message: str, field_errors: dict[str, str] | None = None, **kwargs
-    ):
+    def __init__(self, message: str, field_errors: dict[str, str] | None = None, **kwargs):
         details = {"field_errors": field_errors or {}}
         super().__init__(
             message=message,
@@ -185,9 +182,7 @@ class DatasetNotFoundError(ResourceNotFoundError):
     """Dataset specific not found errors."""
 
     def __init__(self, message: str, dataset_id: str | None = None, **kwargs):
-        super().__init__(
-            message=message, resource_type="dataset", resource_id=dataset_id, **kwargs
-        )
+        super().__init__(message=message, resource_type="dataset", resource_id=dataset_id, **kwargs)
 
 
 class DatasetError(TechDeckBaseError):
@@ -378,9 +373,7 @@ class EventBusError(TechDeckBaseError):
     """Errors raised by the event bus and handlers."""
 
     def __init__(self, message: str, **kwargs):
-        super().__init__(
-            message=message, error_code="EVENT_BUS_ERROR", status_code=500, **kwargs
-        )
+        super().__init__(message=message, error_code="EVENT_BUS_ERROR", status_code=500, **kwargs)
 
 
 class WebSocketError(TechDeckBaseError):
@@ -467,9 +460,7 @@ class EncryptionError(TechDeckBaseError):
     """Data encryption/decryption errors."""
 
     def __init__(self, message: str, **kwargs):
-        super().__init__(
-            message=message, error_code="ENCRYPTION_ERROR", status_code=500, **kwargs
-        )
+        super().__init__(message=message, error_code="ENCRYPTION_ERROR", status_code=500, **kwargs)
 
 
 class ConfigurationError(TechDeckBaseError):
@@ -503,36 +494,28 @@ class ServiceUnavailableError(TechDeckBaseError):
 class AnalyticsError(TechDeckBaseError):
     """Raised when an analytics operation fails."""
 
-    def __init__(
-        self, message: str, details: dict[str, Any] | None = None, **kwargs
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None, **kwargs):
         super().__init__(message, "ANALYTICS_ERROR", 500, details, **kwargs)
 
 
 class StandardizationError(TechDeckBaseError):
     """Raised when a data standardization process fails."""
 
-    def __init__(
-        self, message: str, details: dict[str, Any] | None = None, **kwargs
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None, **kwargs):
         super().__init__(message, "STANDARDIZATION_ERROR", 500, details, **kwargs)
 
 
 class SystemError(TechDeckBaseError):
     """Raised when a system-level operation fails."""
 
-    def __init__(
-        self, message: str, details: dict[str, Any] | None = None, **kwargs
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None, **kwargs):
         super().__init__(message, "SYSTEM_ERROR", 500, details, **kwargs)
 
 
 class PipelineNotFoundError(ResourceNotFoundError):
     """Raised when a requested pipeline configuration or execution is not found."""
 
-    def __init__(
-        self, message: str, details: dict[str, Any] | None = None, **kwargs
-    ):
+    def __init__(self, message: str, details: dict[str, Any] | None = None, **kwargs):
         super().__init__(message, details, **kwargs)
         self.error_code = "PIPELINE_NOT_FOUND"
 
@@ -540,12 +523,8 @@ class PipelineNotFoundError(ResourceNotFoundError):
 class PerformanceMonitoringError(TechDeckBaseError):
     """Raised when there is an issue with performance monitoring."""
 
-    def __init__(
-        self, message: str, details: dict[str, Any] | None = None, **kwargs
-    ):
-        super().__init__(
-            message, "PERFORMANCE_MONITORING_ERROR", 500, details, **kwargs
-        )
+    def __init__(self, message: str, details: dict[str, Any] | None = None, **kwargs):
+        super().__init__(message, "PERFORMANCE_MONITORING_ERROR", 500, details, **kwargs)
 
 
 # Error mapping for HTTP status codes
@@ -562,9 +541,7 @@ ERROR_STATUS_MAPPING = {
 }
 
 
-def create_error_from_status_code(
-    status_code: int, message: str, **kwargs
-) -> TechDeckBaseError:
+def create_error_from_status_code(status_code: int, message: str, **kwargs) -> TechDeckBaseError:
     """
     Create appropriate error based on HTTP status code.
 

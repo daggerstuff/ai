@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Semantic Deduplication Engine — Sprint 3, Task 2.
 
 Clusters memories by semantic similarity (threshold 0.92 cosine),
@@ -15,8 +14,7 @@ import math
 import re
 import time
 from collections import defaultdict
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple
+from dataclasses import dataclass
 
 from ..schema import MemoryBlock
 
@@ -30,19 +28,19 @@ class DedupCluster:
     """A cluster of near-duplicate memories."""
 
     cluster_id: str
-    members: List[MemoryBlock]
+    members: list[MemoryBlock]
     representative: MemoryBlock
-    similarity_scores: List[float]
-    provenance: List[str]
+    similarity_scores: list[float]
+    provenance: list[str]
 
 
 @dataclass
 class DedupResult:
     """Result of deduplication pass."""
 
-    clusters: List[DedupCluster]
-    unique_memories: List[MemoryBlock]
-    merged_memories: List[MemoryBlock]
+    clusters: list[DedupCluster]
+    unique_memories: list[MemoryBlock]
+    merged_memories: list[MemoryBlock]
     total_before: int
     total_after: int
     reduction_pct: float
@@ -54,10 +52,10 @@ class SemanticDeduplicator:
 
     def __init__(self, threshold: float = DEDUP_THRESHOLD) -> None:
         self._threshold = threshold
-        self._idf: Dict[str, float] = {}
-        self._vocabulary: List[str] = []
+        self._idf: dict[str, float] = {}
+        self._vocabulary: list[str] = []
 
-    def deduplicate(self, memories: List[MemoryBlock]) -> DedupResult:
+    def deduplicate(self, memories: list[MemoryBlock]) -> DedupResult:
         """Run deduplication on a list of memories.
 
         Returns clusters of duplicates and the deduplicated set.
@@ -77,9 +75,9 @@ class SemanticDeduplicator:
         self._build_index(memories)
         vectors = [self._tfidf_vector(m.content) for m in memories]
 
-        used: Set[int] = set()
-        clusters: List[DedupCluster] = []
-        unique: List[MemoryBlock] = []
+        used: set[int] = set()
+        clusters: list[DedupCluster] = []
+        unique: list[MemoryBlock] = []
 
         for i in range(len(memories)):
             if i in used:
@@ -113,11 +111,7 @@ class SemanticDeduplicator:
 
         elapsed = (time.perf_counter() - t0) * 1000
         merged = [m for c in clusters for m in c.members[1:]]
-        reduction = (
-            (len(memories) - len(unique)) / len(memories) * 100
-            if memories
-            else 0.0
-        )
+        reduction = (len(memories) - len(unique)) / len(memories) * 100 if memories else 0.0
 
         result = DedupResult(
             clusters=clusters,
@@ -141,12 +135,12 @@ class SemanticDeduplicator:
     # TF-IDF internals
     # ------------------------------------------------------------------
     @staticmethod
-    def _tokenize(text: str) -> List[str]:
+    def _tokenize(text: str) -> list[str]:
         return re.findall(r"[a-z]+", text.lower())
 
-    def _build_index(self, memories: List[MemoryBlock]) -> None:
-        doc_freq: Dict[str, int] = defaultdict(int)
-        all_terms: Set[str] = set()
+    def _build_index(self, memories: list[MemoryBlock]) -> None:
+        doc_freq: dict[str, int] = defaultdict(int)
+        all_terms: set[str] = set()
         for m in memories:
             terms = set(self._tokenize(m.content))
             all_terms.update(terms)
@@ -155,26 +149,20 @@ class SemanticDeduplicator:
 
         n = len(memories)
         self._vocabulary = sorted(all_terms)
-        self._idf = {
-            term: math.log((n + 1) / (df + 1)) + 1
-            for term, df in doc_freq.items()
-        }
+        self._idf = {term: math.log((n + 1) / (df + 1)) + 1 for term, df in doc_freq.items()}
 
-    def _tfidf_vector(self, text: str) -> Dict[str, float]:
+    def _tfidf_vector(self, text: str) -> dict[str, float]:
         terms = self._tokenize(text)
         if not terms:
             return {}
-        tf: Dict[str, float] = defaultdict(float)
+        tf: dict[str, float] = defaultdict(float)
         for t in terms:
             tf[t] += 1
         max_tf = max(tf.values())
-        return {
-            t: (count / max_tf) * self._idf.get(t, 1.0)
-            for t, count in tf.items()
-        }
+        return {t: (count / max_tf) * self._idf.get(t, 1.0) for t, count in tf.items()}
 
     @staticmethod
-    def _cosine(a: Dict[str, float], b: Dict[str, float]) -> float:
+    def _cosine(a: dict[str, float], b: dict[str, float]) -> float:
         if not a or not b:
             return 0.0
         common = a.keys() & b.keys()
@@ -204,7 +192,5 @@ class SemanticDeduplicator:
         merged.emotions.arousal = max_arousal
         merged.importance.emotionalWeight = max_emotional
         merged.gating.traumaIndicators = list(set(all_indicators))
-        merged.consolidation.remCycles = max(
-            m.consolidation.remCycles for m in cluster.members
-        )
+        merged.consolidation.remCycles = max(m.consolidation.remCycles for m in cluster.members)
         return merged

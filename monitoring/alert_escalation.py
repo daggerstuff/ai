@@ -3,6 +3,7 @@
 Alert Escalation System for Pixelated Empathy AI
 Implements intelligent alert escalation procedures based on severity levels
 """
+
 import argparse
 import json
 import logging
@@ -12,7 +13,7 @@ import threading
 import time
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.mime.multipart import MimeMultipart
 from email.mime.text import MimeText
 from enum import Enum
@@ -22,9 +23,7 @@ from typing import Any
 import requests
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -82,7 +81,7 @@ class Alert:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.now(timezone.utc).isoformat()
+            self.created_at = datetime.now(UTC).isoformat()
         if self.metadata is None:
             self.metadata = {}
 
@@ -153,9 +152,7 @@ class AlertEscalationManager:
         self._load_active_alerts()
 
         # Start escalation monitoring
-        self.monitoring_thread = threading.Thread(
-            target=self._monitor_escalations, daemon=True
-        )
+        self.monitoring_thread = threading.Thread(target=self._monitor_escalations, daemon=True)
         self.monitoring_thread.start()
 
     def _init_database(self):
@@ -197,15 +194,9 @@ class AlertEscalationManager:
             """)
 
             # Create indexes
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_alert_status ON alerts(status)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_alert_severity ON alerts(severity)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_escalation_history_alert ON escalation_history(alert_id)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_alert_status ON alerts(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_alert_severity ON alerts(severity)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_escalation_history_alert ON escalation_history(alert_id)")
 
     def _load_configuration(self):
         """Load escalation configuration from file"""
@@ -215,9 +206,7 @@ class AlertEscalationManager:
                     config = json.load(f)
 
                 # Load escalation rules
-                for severity_str, rules_data in config.get(
-                    "escalation_rules", {}
-                ).items():
+                for severity_str, rules_data in config.get("escalation_rules", {}).items():
                     severity = AlertSeverity(severity_str)
                     rules = []
 
@@ -375,7 +364,7 @@ class AlertEscalationManager:
 
         alert = self.active_alerts[alert_id]
         alert.status = AlertStatus.ACKNOWLEDGED
-        alert.acknowledged_at = datetime.now(timezone.utc).isoformat()
+        alert.acknowledged_at = datetime.now(UTC).isoformat()
         alert.acknowledged_by = acknowledged_by
 
         # Cancel escalation timer
@@ -395,7 +384,7 @@ class AlertEscalationManager:
 
         alert = self.active_alerts[alert_id]
         alert.status = AlertStatus.RESOLVED
-        alert.resolved_at = datetime.now(timezone.utc).isoformat()
+        alert.resolved_at = datetime.now(UTC).isoformat()
         alert.resolved_by = resolved_by
 
         # Cancel escalation timer
@@ -414,15 +403,11 @@ class AlertEscalationManager:
         """Start the escalation process for an alert"""
         rules = self.escalation_rules.get(alert.severity, [])
         if not rules:
-            logger.warning(
-                f"No escalation rules found for severity {alert.severity.value}"
-            )
+            logger.warning(f"No escalation rules found for severity {alert.severity.value}")
             return
 
         # Find the first rule (Level 1)
-        level_1_rule = next(
-            (rule for rule in rules if rule.level == EscalationLevel.LEVEL_1), None
-        )
+        level_1_rule = next((rule for rule in rules if rule.level == EscalationLevel.LEVEL_1), None)
         if level_1_rule:
             if level_1_rule.delay_minutes == 0:
                 # Immediate notification
@@ -440,7 +425,7 @@ class AlertEscalationManager:
         # Update alert escalation info
         alert.escalation_level = rule.level
         alert.escalation_count += 1
-        alert.last_escalated_at = datetime.now(timezone.utc).isoformat()
+        alert.last_escalated_at = datetime.now(UTC).isoformat()
         alert.status = AlertStatus.ESCALATED
 
         # Send notifications
@@ -466,9 +451,7 @@ class AlertEscalationManager:
 
         self.escalation_timers[alert.alert_id] = timer
 
-        logger.info(
-            f"Scheduled escalation for alert {alert.alert_id} in {rule.delay_minutes} minutes"
-        )
+        logger.info(f"Scheduled escalation for alert {alert.alert_id} in {rule.delay_minutes} minutes")
 
     def _schedule_next_escalation(self, alert: Alert):
         """Schedule the next escalation level"""
@@ -476,11 +459,7 @@ class AlertEscalationManager:
 
         # Find next escalation level
         current_level_value = list(EscalationLevel).index(alert.escalation_level)
-        next_levels = [
-            level
-            for level in EscalationLevel
-            if list(EscalationLevel).index(level) > current_level_value
-        ]
+        next_levels = [level for level in EscalationLevel if list(EscalationLevel).index(level) > current_level_value]
 
         if not next_levels:
             logger.info(f"No more escalation levels for alert {alert.alert_id}")
@@ -522,9 +501,7 @@ class AlertEscalationManager:
                 elif channel.type == "webhook":
                     self._send_webhook_notification(alert, rule, channel)
                 else:
-                    logger.warning(
-                        f"Unsupported notification channel type: {channel.type}"
-                    )
+                    logger.warning(f"Unsupported notification channel type: {channel.type}")
 
             except Exception as e:
                 logger.error(f"Failed to send notification via {channel_name}: {e}")
@@ -532,9 +509,7 @@ class AlertEscalationManager:
 
         return success
 
-    def _send_email_notification(
-        self, alert: Alert, rule: EscalationRule, channel: NotificationChannel
-    ):
+    def _send_email_notification(self, alert: Alert, rule: EscalationRule, channel: NotificationChannel):
         """Send email notification"""
         config = channel.config
 
@@ -575,9 +550,7 @@ Please acknowledge this alert in the monitoring system.
 
         logger.info(f"Sent email notification for alert {alert.alert_id}")
 
-    def _send_slack_notification(
-        self, alert: Alert, _rule: EscalationRule, channel: NotificationChannel
-    ):
+    def _send_slack_notification(self, alert: Alert, _rule: EscalationRule, channel: NotificationChannel):
         """Send Slack notification"""
 
         config = channel.config
@@ -614,7 +587,7 @@ Please acknowledge this alert in the monitoring system.
                         {"title": "Created", "value": alert.created_at, "short": True},
                     ],
                     "footer": "Pixelated Empathy AI Monitoring",
-                    "ts": int(datetime.now(timezone.utc).timestamp()),
+                    "ts": int(datetime.now(UTC).timestamp()),
                 }
             ],
         }
@@ -624,9 +597,7 @@ Please acknowledge this alert in the monitoring system.
 
         logger.info(f"Sent Slack notification for alert {alert.alert_id}")
 
-    def _send_webhook_notification(
-        self, alert: Alert, rule: EscalationRule, channel: NotificationChannel
-    ):
+    def _send_webhook_notification(self, alert: Alert, rule: EscalationRule, channel: NotificationChannel):
         """Send webhook notification"""
 
         config = channel.config
@@ -642,15 +613,13 @@ Please acknowledge this alert in the monitoring system.
                 "recipients": rule.recipients,
                 "channels": rule.channels,
             },
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         headers = config.get("headers", {})
         timeout = config.get("timeout", 30)
 
-        response = requests.post(
-            webhook_url, json=payload, headers=headers, timeout=timeout
-        )
+        response = requests.post(webhook_url, json=payload, headers=headers, timeout=timeout)
         response.raise_for_status()
 
         logger.info(f"Sent webhook notification for alert {alert.alert_id}")
@@ -753,9 +722,7 @@ Please acknowledge this alert in the monitoring system.
                     if alert.status == AlertStatus.ACTIVE:
                         self._start_escalation(alert)
 
-                logger.info(
-                    f"Loaded {len(self.active_alerts)} active alerts from database"
-                )
+                logger.info(f"Loaded {len(self.active_alerts)} active alerts from database")
 
         except Exception as e:
             logger.error(f"Failed to load active alerts: {e}")
@@ -765,27 +732,20 @@ Please acknowledge this alert in the monitoring system.
         while True:
             try:
                 # Check for alerts that need escalation
-                current_time = datetime.now(timezone.utc)
+                current_time = datetime.now(UTC)
 
                 for alert in list(self.active_alerts.values()):
                     if alert.status in [AlertStatus.ACKNOWLEDGED, AlertStatus.RESOLVED]:
                         continue
 
                     # Check if alert has been active too long without escalation
-                    created_time = datetime.fromisoformat(
-                        alert.created_at.replace("Z", "+00:00")
-                    )
-                    time_since_created = (
-                        current_time - created_time
-                    ).total_seconds() / 60
+                    created_time = datetime.fromisoformat(alert.created_at.replace("Z", "+00:00"))
+                    time_since_created = (current_time - created_time).total_seconds() / 60
 
                     # Find appropriate escalation rule
                     rules = self.escalation_rules.get(alert.severity, [])
                     for rule in rules:
-                        if (
-                            rule.level.value > alert.escalation_level.value
-                            and time_since_created >= rule.delay_minutes
-                        ):
+                        if rule.level.value > alert.escalation_level.value and time_since_created >= rule.delay_minutes:
                             self._escalate_alert(alert, rule)
                             break
 
@@ -895,9 +855,7 @@ def main():
     create_parser = subparsers.add_parser("create", help="Create a new alert")
     create_parser.add_argument("title", help="Alert title")
     create_parser.add_argument("description", help="Alert description")
-    create_parser.add_argument(
-        "severity", choices=["critical", "high", "medium", "low", "info"]
-    )
+    create_parser.add_argument("severity", choices=["critical", "high", "medium", "low", "info"])
     create_parser.add_argument("source", help="Alert source")
 
     # Acknowledge command
@@ -927,9 +885,7 @@ def main():
 
     if args.command == "create":
         severity = AlertSeverity(args.severity)
-        manager.create_alert(
-            args.title, args.description, severity, args.source
-        )
+        manager.create_alert(args.title, args.description, severity, args.source)
 
     elif args.command == "acknowledge":
         success = manager.acknowledge_alert(args.alert_id, args.user)

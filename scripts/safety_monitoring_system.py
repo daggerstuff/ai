@@ -9,6 +9,7 @@ This module provides real-time safety monitoring and incident response capabilit
 - Crisis intervention protocols
 - Safety metrics tracking
 """
+
 import asyncio
 import logging
 import re
@@ -16,7 +17,7 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -24,25 +25,31 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class IncidentSeverity(Enum):
     """Incident severity levels"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
     EMERGENCY = "emergency"
 
+
 class ResponseAction(Enum):
     """Automated response actions"""
+
     LOG_ONLY = "log_only"
     ALERT_STAFF = "alert_staff"
     IMMEDIATE_INTERVENTION = "immediate_intervention"
     EMERGENCY_SERVICES = "emergency_services"
     ESCALATE_TO_HUMAN = "escalate_to_human"
 
+
 @dataclass
 class SafetyIncident:
     """Safety incident record"""
+
     incident_id: str
     timestamp: datetime
     severity: IncidentSeverity
@@ -55,9 +62,11 @@ class SafetyIncident:
     resolution_time: datetime | None = None
     notes: str = ""
 
+
 @dataclass
 class SafetyMetrics:
     """Real-time safety metrics"""
+
     total_interactions: int = 0
     crisis_detections: int = 0
     false_positives: int = 0
@@ -66,6 +75,7 @@ class SafetyMetrics:
     incidents_resolved: int = 0
     human_interventions: int = 0
     last_updated: datetime = field(default_factory=datetime.utcnow)
+
 
 class SafetyMonitoringSystem:
     """
@@ -85,24 +95,16 @@ class SafetyMonitoringSystem:
             IncidentSeverity.EMERGENCY: [
                 ResponseAction.IMMEDIATE_INTERVENTION,
                 ResponseAction.EMERGENCY_SERVICES,
-                ResponseAction.ALERT_STAFF
+                ResponseAction.ALERT_STAFF,
             ],
             IncidentSeverity.CRITICAL: [
                 ResponseAction.IMMEDIATE_INTERVENTION,
                 ResponseAction.ESCALATE_TO_HUMAN,
-                ResponseAction.ALERT_STAFF
-            ],
-            IncidentSeverity.HIGH: [
-                ResponseAction.ESCALATE_TO_HUMAN,
-                ResponseAction.ALERT_STAFF
-            ],
-            IncidentSeverity.MEDIUM: [
                 ResponseAction.ALERT_STAFF,
-                ResponseAction.LOG_ONLY
             ],
-            IncidentSeverity.LOW: [
-                ResponseAction.LOG_ONLY
-            ]
+            IncidentSeverity.HIGH: [ResponseAction.ESCALATE_TO_HUMAN, ResponseAction.ALERT_STAFF],
+            IncidentSeverity.MEDIUM: [ResponseAction.ALERT_STAFF, ResponseAction.LOG_ONLY],
+            IncidentSeverity.LOW: [ResponseAction.LOG_ONLY],
         }
 
         # Crisis intervention resources
@@ -110,18 +112,14 @@ class SafetyMonitoringSystem:
             "suicide_prevention": {
                 "hotline": "988",
                 "text": "Text HOME to 741741",
-                "chat": "suicidepreventionlifeline.org/chat"
+                "chat": "suicidepreventionlifeline.org/chat",
             },
-            "domestic_violence": {
-                "hotline": "1-800-799-7233",
-                "text": "Text START to 88788",
-                "chat": "thehotline.org"
-            },
+            "domestic_violence": {"hotline": "1-800-799-7233", "text": "Text START to 88788", "chat": "thehotline.org"},
             "mental_health": {
                 "hotline": "1-800-662-4357",
                 "text": "Text MHA to 741741",
-                "online": "mhanational.org/finding-help"
-            }
+                "online": "mhanational.org/finding-help",
+            },
         }
 
         logger.info("Safety monitoring system initialized")
@@ -161,9 +159,7 @@ class SafetyMonitoringSystem:
         # Create incident if necessary
         incident = None
         if incident_severity != IncidentSeverity.LOW or crisis_assessment["crisis_level"] != "none":
-            incident = await self._create_incident(
-                user_input, crisis_assessment, incident_severity, user_id
-            )
+            incident = await self._create_incident(user_input, crisis_assessment, incident_severity, user_id)
 
             # Execute response protocol
             await self._execute_response_protocol(incident)
@@ -176,7 +172,6 @@ class SafetyMonitoringSystem:
         # Generate response
         return self._generate_safety_response(crisis_assessment, incident)
 
-
     async def _assess_crisis_level(self, user_input: str) -> dict[str, Any]:
         """Assess crisis level in user input"""
 
@@ -184,27 +179,24 @@ class SafetyMonitoringSystem:
         crisis_patterns = {
             "emergency": [
                 r"\b(took pills|overdose|bleeding|can\'t breathe)\b",
-                r"\b(911|emergency|ambulance|hospital)\b"
+                r"\b(911|emergency|ambulance|hospital)\b",
             ],
             "critical": [
                 r"\b(suicide|kill myself|end my life|want to die)\b",
                 r"\b(self harm|cut myself|hurt myself)\b",
-                r"\b(gun|knife|rope|bridge)\b.*\b(kill|die|end)\b"
+                r"\b(gun|knife|rope|bridge)\b.*\b(kill|die|end)\b",
             ],
             "high": [
                 r"\b(depressed|hopeless|worthless|useless)\b",
                 r"\b(can\'t go on|give up|no point|no hope)\b",
-                r"\b(abuse|violence|threat|hurt me)\b"
+                r"\b(abuse|violence|threat|hurt me)\b",
             ],
             "medium": [
                 r"\b(sad|upset|anxious|worried|scared)\b",
                 r"\b(stressed|overwhelmed|struggling|difficult)\b",
-                r"\b(lonely|isolated|alone|abandoned)\b"
+                r"\b(lonely|isolated|alone|abandoned)\b",
             ],
-            "low": [
-                r"\b(tired|frustrated|annoyed|bothered)\b",
-                r"\b(confused|uncertain|unsure|lost)\b"
-            ]
+            "low": [r"\b(tired|frustrated|annoyed|bothered)\b", r"\b(confused|uncertain|unsure|lost)\b"],
         }
 
         detected_patterns = []
@@ -233,7 +225,7 @@ class SafetyMonitoringSystem:
             "confidence": confidence,
             "detected_patterns": detected_patterns,
             "context_indicators": context_indicators,
-            "requires_intervention": crisis_level in ["emergency", "critical", "high"]
+            "requires_intervention": crisis_level in ["emergency", "critical", "high"],
         }
 
     def _analyze_context_indicators(self, user_input: str) -> dict[str, Any]:
@@ -245,7 +237,7 @@ class SafetyMonitoringSystem:
             "help_seeking": False,
             "past_tense_harm": False,
             "future_tense_harm": False,
-            "specific_methods": False
+            "specific_methods": False,
         }
 
         user_input_lower = user_input.lower()
@@ -263,7 +255,9 @@ class SafetyMonitoringSystem:
         indicators["help_seeking"] = any(word in user_input_lower for word in help_words)
 
         # Check temporal indicators
-        indicators["past_tense_harm"] = any(phrase in user_input_lower for phrase in ["hurt myself", "cut myself", "tried to"])
+        indicators["past_tense_harm"] = any(
+            phrase in user_input_lower for phrase in ["hurt myself", "cut myself", "tried to"]
+        )
         indicators["future_tense_harm"] = any(phrase in user_input_lower for phrase in ["going to", "will", "plan to"])
 
         # Check for specific methods
@@ -306,20 +300,21 @@ class SafetyMonitoringSystem:
 
         return IncidentSeverity.LOW
 
-    async def _create_incident(self, user_input: str, crisis_assessment: dict[str, Any],
-                              severity: IncidentSeverity, _user_id: str = None) -> SafetyIncident:
+    async def _create_incident(
+        self, user_input: str, crisis_assessment: dict[str, Any], severity: IncidentSeverity, _user_id: str = None
+    ) -> SafetyIncident:
         """Create safety incident record"""
 
         incident_id = str(uuid.uuid4())[:8]
 
         incident = SafetyIncident(
             incident_id=incident_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             severity=severity,
             crisis_level=crisis_assessment["crisis_level"],
             user_input=user_input[:500],  # Truncate for privacy
             detected_patterns=crisis_assessment["detected_patterns"],
-            response_actions=self.response_protocols.get(severity, [ResponseAction.LOG_ONLY])
+            response_actions=self.response_protocols.get(severity, [ResponseAction.LOG_ONLY]),
         )
 
         self.incidents.append(incident)
@@ -361,7 +356,8 @@ class SafetyMonitoringSystem:
             "severity": incident.severity.value,
             "crisis_level": incident.crisis_level,
             "timestamp": incident.timestamp.isoformat(),
-            "requires_immediate_attention": incident.severity in [IncidentSeverity.CRITICAL, IncidentSeverity.EMERGENCY]
+            "requires_immediate_attention": incident.severity
+            in [IncidentSeverity.CRITICAL, IncidentSeverity.EMERGENCY],
         }
 
         # Send alerts to registered callbacks
@@ -406,8 +402,9 @@ class SafetyMonitoringSystem:
         # This would route the conversation to a human operator
         self.metrics.human_interventions += 1
 
-    def _generate_safety_response(self, crisis_assessment: dict[str, Any],
-                                 incident: SafetyIncident | None) -> dict[str, Any]:
+    def _generate_safety_response(
+        self, crisis_assessment: dict[str, Any], incident: SafetyIncident | None
+    ) -> dict[str, Any]:
         """Generate appropriate safety response"""
 
         crisis_level = crisis_assessment["crisis_level"]
@@ -417,7 +414,7 @@ class SafetyMonitoringSystem:
             "crisis_level": crisis_level,
             "requires_intervention": crisis_assessment["requires_intervention"],
             "incident_created": incident is not None,
-            "response_type": "normal"
+            "response_type": "normal",
         }
 
         if incident:
@@ -426,35 +423,43 @@ class SafetyMonitoringSystem:
 
         # Generate appropriate response based on crisis level
         if crisis_level == "emergency":
-            response.update({
-                "response_type": "emergency",
-                "message": "I'm very concerned about your safety. Please contact emergency services immediately at 911 or go to your nearest emergency room.",
-                "resources": self.crisis_resources["suicide_prevention"],
-                "immediate_action_required": True
-            })
+            response.update(
+                {
+                    "response_type": "emergency",
+                    "message": "I'm very concerned about your safety. Please contact emergency services immediately at 911 or go to your nearest emergency room.",
+                    "resources": self.crisis_resources["suicide_prevention"],
+                    "immediate_action_required": True,
+                }
+            )
 
         elif crisis_level == "critical":
-            response.update({
-                "response_type": "crisis_intervention",
-                "message": "I'm concerned about what you're going through. You don't have to face this alone. Please reach out to a crisis counselor who can help.",
-                "resources": self.crisis_resources["suicide_prevention"],
-                "human_support_available": True
-            })
+            response.update(
+                {
+                    "response_type": "crisis_intervention",
+                    "message": "I'm concerned about what you're going through. You don't have to face this alone. Please reach out to a crisis counselor who can help.",
+                    "resources": self.crisis_resources["suicide_prevention"],
+                    "human_support_available": True,
+                }
+            )
 
         elif crisis_level == "high":
-            response.update({
-                "response_type": "supportive_intervention",
-                "message": "It sounds like you're going through a really difficult time. I want you to know that support is available.",
-                "resources": self.crisis_resources["mental_health"],
-                "professional_help_recommended": True
-            })
+            response.update(
+                {
+                    "response_type": "supportive_intervention",
+                    "message": "It sounds like you're going through a really difficult time. I want you to know that support is available.",
+                    "resources": self.crisis_resources["mental_health"],
+                    "professional_help_recommended": True,
+                }
+            )
 
         elif crisis_level == "medium":
-            response.update({
-                "response_type": "empathetic_support",
-                "message": "I hear that you're struggling right now. It's okay to feel this way, and there are people who can help.",
-                "coping_strategies": True
-            })
+            response.update(
+                {
+                    "response_type": "empathetic_support",
+                    "message": "I hear that you're struggling right now. It's okay to feel this way, and there are people who can help.",
+                    "coping_strategies": True,
+                }
+            )
 
         return response
 
@@ -465,7 +470,7 @@ class SafetyMonitoringSystem:
         total_time = self.metrics.response_time_avg * (self.metrics.total_interactions - 1)
         self.metrics.response_time_avg = (total_time + processing_time) / self.metrics.total_interactions
 
-        self.metrics.last_updated = datetime.now(timezone.utc)
+        self.metrics.last_updated = datetime.now(UTC)
 
     def get_safety_metrics(self) -> dict[str, Any]:
         """Get current safety monitoring metrics"""
@@ -473,24 +478,23 @@ class SafetyMonitoringSystem:
         return {
             "total_interactions": self.metrics.total_interactions,
             "crisis_detections": self.metrics.crisis_detections,
-            "detection_rate": (self.metrics.crisis_detections / self.metrics.total_interactions * 100) if self.metrics.total_interactions > 0 else 0,
+            "detection_rate": (self.metrics.crisis_detections / self.metrics.total_interactions * 100)
+            if self.metrics.total_interactions > 0
+            else 0,
             "false_positives": self.metrics.false_positives,
             "false_negatives": self.metrics.false_negatives,
             "average_response_time": self.metrics.response_time_avg,
             "incidents_resolved": self.metrics.incidents_resolved,
             "human_interventions": self.metrics.human_interventions,
             "monitoring_active": self.monitoring_active,
-            "last_updated": self.metrics.last_updated.isoformat()
+            "last_updated": self.metrics.last_updated.isoformat(),
         }
 
     def get_recent_incidents(self, hours: int = 24) -> list[dict[str, Any]]:
         """Get recent safety incidents"""
 
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
-        recent_incidents = [
-            incident for incident in self.incidents
-            if incident.timestamp >= cutoff_time
-        ]
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
+        recent_incidents = [incident for incident in self.incidents if incident.timestamp >= cutoff_time]
 
         return [
             {
@@ -500,7 +504,7 @@ class SafetyMonitoringSystem:
                 "crisis_level": incident.crisis_level,
                 "resolved": incident.resolved,
                 "human_notified": incident.human_notified,
-                "response_actions": [action.value for action in incident.response_actions]
+                "response_actions": [action.value for action in incident.response_actions],
             }
             for incident in recent_incidents
         ]
@@ -511,7 +515,7 @@ class SafetyMonitoringSystem:
         for incident in self.incidents:
             if incident.incident_id == incident_id:
                 incident.resolved = True
-                incident.resolution_time = datetime.now(timezone.utc)
+                incident.resolution_time = datetime.now(UTC)
                 incident.notes = resolution_notes
                 self.metrics.incidents_resolved += 1
 
@@ -520,8 +524,10 @@ class SafetyMonitoringSystem:
 
         return False
 
+
 # Example usage and testing
 if __name__ == "__main__":
+
     async def test_safety_monitoring():
         # Initialize monitoring system
         monitor = SafetyMonitoringSystem()
@@ -539,9 +545,8 @@ if __name__ == "__main__":
             "I'm feeling really depressed and hopeless",
             "I'm having a bad day at work",
             "What's the weather like?",
-            "I took too many pills and I'm scared"
+            "I took too many pills and I'm scared",
         ]
-
 
         for i, test_input in enumerate(test_inputs, 1):
             response = await monitor.process_user_input(test_input, f"user_{i}")

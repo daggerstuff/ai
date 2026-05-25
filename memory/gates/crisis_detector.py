@@ -10,7 +10,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Pattern
+from re import Pattern
+from typing import Any
 
 from ai.core.pipelines.crisis_intervention_detector import (
     CrisisInterventionDetector,

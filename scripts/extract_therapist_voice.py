@@ -4,40 +4,36 @@ Generic Therapist Voice Extraction System.
 
 Extracts voice profiles from YouTube therapist transcripts, generates
 scored training conversations, and reports clinical validity quality metrics.
-
-Usage:
-    # Process a single channel
-    python scripts/extract_therapist_voice.py --channel DoctorRamani
-
-    # Process all discovered channels with ingested transcripts
-    python scripts/extract_therapist_voice.py --all
-
-    # Process from a specific transcript source
-    python scripts/extract_therapist_voice.py --channel TimFletcher --source-dir ai/data/transcripts/ingested
-
-    # Process all channels and score everything
-    python scripts/extract_therapist_voice.py --all --score
-
-    # Generate synthetic conversations with clinical validity scoring
-    python scripts/extract_therapist_voice.py --channel DrDanielFox --num-conversations 50
 """
 
 from __future__ import annotations
 
 import argparse
-import csv
-import io
-import json
 import logging
 import os
 import random
 import re
 import sys
-import time
 from collections import Counter
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
+
+from extraction_config import (
+    CHANNEL_CONFIGS,
+    DEFAULT_CONVERSATIONS,
+    INGESTED_DIR,
+    MAX_MARKED_SENTENCE_LENGTH,
+    MIN_COMMON_PHRASE_COUNT,
+    MIN_SENTENCE_WORDS,
+    OUTPUT_BASE,
+    TOPIC_BANK,
+    TRANSCRIPTS_DIR,
+    get_config,
+    resolve_channel_key,
+)
+from extraction_io import generate_quality_report, save_channel_output
+from extraction_models import ChannelResult
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,384 +50,6 @@ except ImportError:
     ClinicalValidityScorer = None
     SCORER_AVAILABLE = False
 
-MIN_SENTENCE_WORDS = 2
-MAX_MARKED_SENTENCE_LENGTH = 200
-MIN_COMMON_PHRASE_COUNT = 30
-DEFAULT_CONVERSATIONS = 50
-INGESTED_DIR = Path("ai/data/transcripts/ingested")
-TRANSCRIPTS_DIR = Path("ai/data/transcripts/transcripts")
-OUTPUT_BASE = Path("ai/data")
-
-CHANNEL_CONFIGS: dict[str, dict] = {
-    "DocSnipes": {
-        "name": "Doc Snipes",
-        "signature": "doc_snipes",
-        "description": "Licensed clinical counselor focusing on codependency, validation, and mental health education",
-        "style": "professional_educational_supportive",
-        "expertise": ["codependency", "validation", "mental_health_education", "addiction_recovery", "family_dynamics"],
-        "approach": "clinical_educational",
-    },
-    "DoctorRamani": {
-        "name": "DoctorRamani",
-        "signature": "doctor_ramani",
-        "description": "Clinical psychologist specializing in narcissistic abuse, personality disorders, and mental health education",
-        "style": "authoritative_educational_compassionate",
-        "expertise": ["narcissistic_abuse", "personality_disorders", "toxic_relationships", "boundaries", "trauma"],
-        "approach": "clinical_education",
-    },
-    "TimFletcher": {
-        "name": "Tim Fletcher",
-        "signature": "tim_fletcher",
-        "description": "Compassionate therapist specializing in complex trauma, PTSD recovery, and nervous system regulation",
-        "style": "compassionate_educational_step_by_step",
-        "expertise": ["complex_trauma", "PTSD", "nervous_system_regulation", "shame", "codependency"],
-        "approach": "trauma_informed_psychoeducation",
-    },
-    "PatrickTeahan": {
-        "name": "Patrick Teahan",
-        "signature": "patrick_teahan",
-        "description": "Licensed clinical social worker specializing in childhood trauma, PTSD, and family dynamics",
-        "style": "empathetic_direct_validating",
-        "expertise": ["childhood_trauma", "family_dynamics", "PTSD", "emotional_abuse", "inner_child"],
-        "approach": "trauma_informed_psychoeducation",
-    },
-    "TherapyinaNutshell": {
-        "name": "Therapy in a Nutshell",
-        "signature": "therapy_in_a_nutshell",
-        "description": "Emma McAdam, licensed therapist, making mental health education accessible with evidence-based techniques",
-        "style": "warm_accessible_practical",
-        "expertise": ["CBT", "DBT", "anxiety", "emotion_regulation", "mindfulness"],
-        "approach": "evidence_based_psychoeducation",
-    },
-    "HeidiPriebe": {
-        "name": "Heidi Priebe",
-        "signature": "heidi_priebe",
-        "description": "Psychoeducator specializing in complex trauma, attachment theory, shame, and self-compassion",
-        "style": "deep_reflective_psychoeducational",
-        "expertise": ["complex_trauma", "attachment_theory", "shame", "self_compassion", "CPTSD"],
-        "approach": "depth_oriented_psychoeducation",
-    },
-    "CrappyChildhoodFairy": {
-        "name": "Crappy Childhood Fairy",
-        "signature": "crappy_childhood_fairy",
-        "description": "Anna Runkle, trauma recovery specialist focusing on CPTSD, dysregulation, and childhood trauma healing",
-        "style": "direct_compassionate_practical",
-        "expertise": ["CPTSD", "dysregulation", "childhood_trauma", "nervous_system", "healing"],
-        "approach": "trauma_informed_practical",
-    },
-    "Dr.DanielFox": {
-        "name": "Dr. Daniel Fox",
-        "signature": "dr_daniel_fox",
-        "description": "Licensed clinical psychologist specializing in personality disorders, BPD, and narcissism",
-        "style": "clinical_authoritative_educational",
-        "expertise": ["personality_disorders", "BPD", "narcissism", "attachment", "psychopathology"],
-        "approach": "clinical_educational",
-    },
-    "Dr.ToddGrande": {
-        "name": "Dr. Todd Grande",
-        "signature": "dr_todd_grande",
-        "description": "Licensed professional counselor specializing in personality disorders, trauma, and clinical assessment",
-        "style": "analytical_balanced_educational",
-        "expertise": ["personality_disorders", "trauma", "clinical_assessment", "diagnosis", "psychopathology"],
-        "approach": "clinical_analytical",
-    },
-    "Dr.ScottEilers": {
-        "name": "Dr. Scott Eilers",
-        "signature": "dr_scott_eilers",
-        "description": "Licensed psychologist focusing on depression, anxiety, and evidence-based treatment approaches",
-        "style": "warm_clinical_hopeful",
-        "expertise": ["depression", "anxiety", "evidence_based_treatment", "resilience", "mental_health"],
-        "approach": "clinical_warm",
-    },
-    "JerryWise": {
-        "name": "Jerry Wise",
-        "signature": "jerry_wise",
-        "description": "Licensed therapist specializing in narcissistic family systems, trauma recovery, and scapegoat healing",
-        "style": "empathetic_analytical_educational",
-        "expertise": ["narcissistic_family_systems", "scapegoat_recovery", "complex_trauma", "family_dynamics", "emotional_abuse"],
-        "approach": "trauma_informed_systemic",
-    },
-    "SurvivingNarcissism": {
-        "name": "Surviving Narcissism",
-        "signature": "surviving_narcissism",
-        "description": "Licensed therapist Dr. Carter focusing on narcissistic abuse recovery, trauma bonding, and boundary setting",
-        "style": "clear_direct_educational",
-        "expertise": ["narcissistic_abuse", "trauma_bonding", "boundary_setting", "gaslighting", "recovery_strategies"],
-        "approach": "clinical_educational",
-    },
-    "MedCircle": {
-        "name": "MedCircle",
-        "signature": "medcircle",
-        "description": "Clinical psychology education platform featuring licensed psychologists covering personality disorders, trauma, and mental health",
-        "style": "clinical_interview_educational",
-        "expertise": ["personality_disorders", "trauma", "clinical_psychology", "mental_health_education", "diagnosis"],
-        "approach": "clinical_educational",
-    },
-    "NavigatingNarcissism": {
-        "name": "Navigating Narcissism",
-        "signature": "navigating_narcissism",
-        "description": "Dr. Jennifer Freyd and licensed therapists specializing in betrayal trauma, narcissistic abuse, and institutional betrayal",
-        "style": "clinical_compassionate_research_based",
-        "expertise": ["betrayal_trauma", "narcissistic_abuse", "institutional_betrayal", "attachment", "trauma_recovery"],
-        "approach": "research_informed_clinical",
-    },
-    "Dr.KimSage": {
-        "name": "Dr. Kim Sage",
-        "signature": "dr_kim_sage",
-        "description": "Licensed clinical psychologist specializing in narcissistic abuse, complex trauma, attachment wounds, and high-conflict personality dynamics",
-        "style": "clinical_warm_analytical",
-        "expertise": ["narcissistic_abuse", "complex_trauma", "attachment_wounds", "personality_dynamics", "emotional_abuse"],
-        "approach": "clinical_depth_oriented",
-    },
-    "KerryMcAvoy": {
-        "name": "Kerry McAvoy",
-        "signature": "kerry_mcavoy",
-        "description": "Licensed mental health clinician and PhD specializing in abusive relationship dynamics, narcissism, and gender-based violence",
-        "style": "clinical_advocacy_educational",
-        "expertise": ["abusive_relationships", "narcissistic_abuse", "gender_based_violence", "trauma_informed_care", "boundaries"],
-        "approach": "clinical_advocacy",
-    },
-    "KristinSnowden": {
-        "name": "Kristin Snowden",
-        "signature": "kristin_snowden",
-        "description": "Licensed therapist specializing in betrayal trauma recovery, neurobiology of trauma, and healing from infidelity",
-        "style": "compassionate_neuroscience_informed",
-        "expertise": ["betrayal_trauma", "infidelity_recovery", "trauma_neurobiology", "attachment_repair", "relationship_healing"],
-        "approach": "trauma_informed_neuroscience",
-    },
-    "JimHopper": {
-        "name": "Jim Hopper",
-        "signature": "jim_hopper",
-        "description": "Trauma expert and PhD psychologist specializing in sexual assault, the neurobiology of trauma, and survivor advocacy",
-        "style": "educational_research_based_clear",
-        "expertise": ["trauma_neurobiology", "sexual_assault", "survivor_advocacy", "dissociation", "somatic_healing"],
-        "approach": "research_informed_psychoeducation",
-    },
-    "IreneLyon": {
-        "name": "Irene Lyon",
-        "signature": "irene_lyon",
-        "description": "Somatic trauma healing expert specializing in nervous system regulation, developmental trauma, and sensorimotor approaches",
-        "style": "somatic_educational_empowering",
-        "expertise": ["somatic_trauma_healing", "nervous_system_regulation", "developmental_trauma", "sensorimotor_therapy", "polyvagal_theory"],
-        "approach": "somatic_trauma_informed",
-    },
-    "ChristopherGermer": {
-        "name": "Christopher Germer",
-        "signature": "christopher_germer",
-        "description": "Clinical psychologist and PhD specializing in self-compassion, mindfulness-based therapy, and shame resilience",
-        "style": "warm_contemplative_research_grounded",
-        "expertise": ["self_compassion", "mindfulness_therapy", "shame_resilience", "compassion_focused_therapy", "meditation"],
-        "approach": "mindfulness_compassion_based",
-    },
-    "TherapyChatPodcast": {
-        "name": "Therapy Chat Podcast",
-        "signature": "therapy_chat_podcast",
-        "description": "Podcast hosted by licensed therapist featuring expert interviews on complex trauma, attachment, and narcissistic abuse recovery",
-        "style": "conversational_expert_interview",
-        "expertise": ["complex_trauma", "attachment_theory", "narcissistic_abuse", "EMDR", "trauma_recovery"],
-        "approach": "interview_based_psychoeducation",
-    },
-    "TherapyDecoded": {
-        "name": "Therapy Decoded",
-        "signature": "therapy_decoded",
-        "description": "Psychoeducation channel demystifying therapy concepts, trauma responses, and mental health through accessible clinical explanations",
-        "style": "accessible_educational_normalizing",
-        "expertise": ["trauma_education", "nervous_system", "mental_health_literacy", "therapy_demystification", "coping_skills"],
-        "approach": "accessible_psychoeducation",
-    },
-    "CommonEgo": {
-        "name": "Common Ego",
-        "signature": "common_ego",
-        "description": "Psychology education channel covering narcissism, attachment theory, codependency, and personal growth from a therapeutic perspective",
-        "style": "engaging_relatable_educational",
-        "expertise": ["narcissism", "attachment_theory", "codependency", "emotional_intelligence", "personal_growth"],
-        "approach": "accessible_psychoeducation",
-    },
-    "ForrestHanson": {
-        "name": "Forrest Hanson",
-        "signature": "forrest_hanson",
-        "description": "Psychology educator and host covering attachment theory, trauma healing, and practical mental health tools with clinical experts",
-        "style": "conversational_expert_engaged",
-        "expertise": ["attachment_theory", "trauma_healing", "self_compassion", "nervous_system_regulation", "resilience"],
-        "approach": "interview_based_psychoeducation",
-    },
-    "PhoenixTraumaCenter": {
-        "name": "Phoenix Trauma Center",
-        "signature": "phoenix_trauma_center",
-        "description": "Dr. Scott Giacomucci, trauma specialist and licensed clinical social worker focusing on complex PTSD, APA guidelines, and trauma treatment",
-        "style": "clinical_authoritative_professional",
-        "expertise": ["complex_PTSD", "trauma_treatment", "evidence_based_practice", "clinical_guidelines", "somatic_therapy"],
-        "approach": "clinical_research_informed",
-    },
-    "EckhartTolle": {
-        "name": "Eckhart Tolle",
-        "signature": "eckhart_tolle",
-        "description": "Spiritual teacher and author specializing in mindfulness, presence, and transcending ego-based consciousness",
-        "style": "contemplative_wisdom_grounded",
-        "expertise": ["mindfulness", "presence", "spiritual_awakening", "ego_transcendence", "stillness"],
-        "approach": "contemplative_spiritual",
-    },
-    "ChrisWilliamson": {
-        "name": "Chris Williamson",
-        "signature": "chris_williamson",
-        "description": "Podcast host of Modern Wisdom interviewing leading psychologists, scientists, and thinkers on mental health, human potential, and well-being",
-        "style": "conversational_curious_interview",
-        "expertise": ["mental_health", "human_potential", "positive_psychology", "personal_development", "behavioral_science"],
-        "approach": "interview_based_exploration",
-    },
-    "Psych2Go": {
-        "name": "Psych2Go",
-        "signature": "psych2go",
-        "description": "Animated psychology education channel making mental health concepts accessible through engaging visual content",
-        "style": "accessible_educational_animated",
-        "expertise": ["mental_health_education", "psychology_literacy", "self_improvement", "emotional_intelligence", "relationship_health"],
-        "approach": "accessible_psychoeducation",
-    },
-    "WuWeiWisdom": {
-        "name": "Wu Wei Wisdom",
-        "signature": "wu_wei_wisdom",
-        "description": "Spiritual and personal growth channel exploring narcissistic abuse recovery, inner child healing, and self-worth",
-        "style": "empathetic_contemplative_educational",
-        "expertise": ["narcissistic_abuse_recovery", "inner_child_healing", "self_worth", "spiritual_growth", "emotional_healing"],
-        "approach": "contemplative_healing",
-    },
-    "CarolineMyss": {
-        "name": "Caroline Myss",
-        "signature": "caroline_myss",
-        "description": "Medical intuitive, mystic, and author specializing in energy anatomy, spiritual growth, and the intersection of consciousness and health",
-        "style": "mystical_direct_wisdom",
-        "expertise": ["energy_anatomy", "spiritual_development", "consciousness_healing", "intuition", "sacred_contracts"],
-        "approach": "mystical_wisdom_tradition",
-    },
-    "RebeccaMandeville": {
-        "name": "Rebecca C. Mandeville",
-        "signature": "rebecca_mandeville",
-        "description": "Licensed marriage and family therapist specializing in family scapegoating abuse, family mobbing, and narcissistic family systems",
-        "style": "clinical_direct_validating",
-        "expertise": ["scapegoat_abuse", "family_mobbing", "narcissistic_family_systems", "toxic_family_dynamics", "trauma_recovery"],
-        "approach": "trauma_informed_systemic",
-    },
-    "MicheleLeeNieves": {
-        "name": "Michele Lee Nieves",
-        "signature": "michele_lee_nieves",
-        "description": "Life coach and narcissistic abuse recovery specialist focusing on covert narcissism, emotional abuse, and rebuilding self-worth",
-        "style": "compassionate_direct_coaching",
-        "expertise": ["covert_narcissism", "emotional_abuse_recovery", "self_worth_restoration", "boundary_setting", "trauma_coaching"],
-        "approach": "coaching_informed_recovery",
-    },
-    "SandstoneCare": {
-        "name": "Sandstone Care",
-        "signature": "sandstone_care",
-        "description": "Mental health treatment center for teens and young adults specializing in emotional dysregulation, ADHD, and substance use",
-        "style": "clinical_warm_educational",
-        "expertise": ["emotional_dysregulation", "adhd", "youth_mental_health", "substance_use", "dialectical_behavior_therapy"],
-        "approach": "clinical_developmental",
-    },
-    "SoundsTrue": {
-        "name": "Sounds True",
-        "signature": "sounds_true",
-        "description": "Multimedia publishing company featuring leading teachers in psychology, spirituality, and personal transformation through interview-driven content",
-        "style": "interview_based_expert_showcase",
-        "expertise": ["spiritual_psychology", "trauma_healing", "mindfulness", "personal_transformation", "expert_interviews"],
-        "approach": "interview_based_psychoeducation",
-    },
-}
-
-
-# ── topic banks per expertise area ──────────────────────────────────────────
-
-TOPIC_BANK: dict[str, list[str]] = {
-    "general": [
-        "Managing anxiety in daily life and building resilience",
-        "Understanding emotional triggers and developing coping strategies",
-        "Building self-compassion and reducing self-criticism",
-        "Navigating relationship challenges and communication patterns",
-        "Developing healthy boundaries in personal and professional relationships",
-        "Coping with grief, loss, and life transitions",
-        "Understanding attachment patterns and their impact on relationships",
-        "Building self-esteem and overcoming imposter syndrome",
-        "Managing stress and preventing burnout",
-        "Developing mindfulness and grounding practices",
-    ],
-    "trauma": [
-        "Understanding the nervous system's role in trauma responses",
-        "Healing from childhood emotional neglect and its long-term effects",
-        "Managing hypervigilance and creating safety in the body",
-        "Rebuilding trust after betrayal and relational trauma",
-        "Processing shame and reclaiming self-worth after trauma",
-        "Understanding freeze, fight, flight, and fawn trauma responses",
-        "Healing attachment wounds and developing secure relationships",
-        "Managing trauma triggers with grounding and regulation techniques",
-        "Recovering from complex PTSD and developmental trauma",
-        "Integrating traumatic memories without becoming overwhelmed",
-    ],
-    "personality_disorders": [
-        "Understanding narcissistic personality traits and protecting yourself",
-        "Setting boundaries with emotionally immature or manipulative people",
-        "Recognizing gaslighting and psychological manipulation tactics",
-        "Healing from narcissistic abuse and rebuilding identity",
-        "Understanding borderline personality dynamics in relationships",
-        "Differentiating between healthy conflict and toxic patterns",
-        "Recovering from codependency and reclaiming autonomy",
-        "Understanding the impact of growing up with a narcissistic parent",
-        "Navigating no-contact and low-contact strategies with difficult family",
-        "Building emotional resilience after toxic relationship patterns",
-    ],
-    "cbt_dbt": [
-        "Using cognitive restructuring to challenge negative thought patterns",
-        "Developing distress tolerance skills for intense emotions",
-        "Implementing behavioral activation to overcome depression",
-        "Using mindfulness techniques for emotion regulation",
-        "Applying exposure principles to reduce avoidance and fear",
-        "Building interpersonal effectiveness with DEAR MAN and GIVE skills",
-        "Using thought records to identify and reframe cognitive distortions",
-        "Practicing radical acceptance in difficult situations",
-        "Developing a personalized coping strategies toolkit",
-        "Using opposite action to change painful emotional patterns",
-    ],
-    "attachment": [
-        "Understanding your attachment style and its origins",
-        "Healing anxious attachment and building relationship security",
-        "Moving from avoidant to secure attachment patterns",
-        "Reparenting the inner child and meeting unmet needs",
-        "Building earned secure attachment through therapeutic relationships",
-        "Understanding disorganized attachment and healing from fear",
-        "Developing emotional literacy and communicating needs",
-        "Healing from relational trauma through attuned relationships",
-        "Breaking intergenerational cycles of insecure attachment",
-        "Building trust in yourself and others after attachment wounds",
-    ],
-}
-
-
-@dataclass
-class ChannelResult:
-    name: str
-    transcripts: list[str] = field(default_factory=list)
-    transcript_titles: list[str] = field(default_factory=list)
-    voice_profile: dict = field(default_factory=dict)
-    conversations: list[dict] = field(default_factory=list)
-    scores: list[float] = field(default_factory=list)
-    score_detail: list[dict] = field(default_factory=list)
-
-    @property
-    def mean_score(self) -> float:
-        if not self.scores:
-            return 0.0
-        return sum(self.scores) / len(self.scores)
-
-    @property
-    def pass_rate(self) -> float:
-        if not self.scores:
-            return 0.0
-        return sum(1 for s in self.scores if s >= 0.5) / len(self.scores)
-
-    @property
-    def high_quality_rate(self) -> float:
-        if not self.scores:
-            return 0.0
-        return sum(1 for s in self.scores if s >= 0.7) / len(self.scores)
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Voice Profile Extraction
@@ -440,7 +58,7 @@ class ChannelResult:
 
 def extract_voice_profile(texts: list[str], channel_name: str) -> dict:
     """Extract voice patterns from a list of transcript texts."""
-    profile: dict[str, Counter | list] = {
+    profile: dict[str, Any] = {
         "sentence_starters": Counter(),
         "transition_phrases": Counter(),
         "empathy_markers": Counter(),
@@ -485,22 +103,47 @@ def _analyze_single(text: str, profile: dict):
             profile["sentence_starters"][starter] += 1
 
         transitions = [
-            "And so", "Now", "So", "But", "And then", "What happens",
-            "Let me", "Think about", "Imagine", "What I find",
-            "One of the things", "The reality is", "What we see",
-            "The truth is", "Here's the thing", "The key is",
-            "What I want you to", "One of the key", "It's important to",
+            "And so",
+            "Now",
+            "So",
+            "But",
+            "And then",
+            "What happens",
+            "Let me",
+            "Think about",
+            "Imagine",
+            "What I find",
+            "One of the things",
+            "The reality is",
+            "What we see",
+            "The truth is",
+            "Here's the thing",
+            "The key is",
+            "What I want you to",
+            "One of the key",
+            "It's important to",
         ]
         for t in transitions:
             if sentence.lower().startswith(t.lower()):
                 profile["transition_phrases"][t] += 1
 
         empathy_patterns = [
-            "I understand", "I know", "I get it", "That's painful",
-            "That's hard", "You might feel", "Many people",
-            "Some of you", "For many", "What you're going through",
-            "It makes sense that", "It's understandable", "You're not alone",
-            "That must be", "I hear you", "I can see how",
+            "I understand",
+            "I know",
+            "I get it",
+            "That's painful",
+            "That's hard",
+            "You might feel",
+            "Many people",
+            "Some of you",
+            "For many",
+            "What you're going through",
+            "It makes sense that",
+            "It's understandable",
+            "You're not alone",
+            "That must be",
+            "I hear you",
+            "I can see how",
         ]
         for p in empathy_patterns:
             if p.lower() in sentence.lower():
@@ -518,26 +161,36 @@ def _analyze_single(text: str, profile: dict):
 def _extract_common_phrases(text: str, profile: dict):
     words = text.lower().split()
     for i in range(len(words) - 2):
-        phrase = " ".join(words[i:i + 3])
+        phrase = " ".join(words[i : i + 3])
         profile["common_phrases"][phrase] += 1
 
 
 def _extract_teaching_style(text: str, profile: dict):
     patterns = [
-        "First", "Second", "Third",
-        "What happens is", "The reality is", "What we find",
-        "One of the key", "It's important to understand",
-        "Let me give you an example", "Think about this",
-        "What I mean by that", "Here's what I want you to",
-        "The reason for this", "What we know from",
+        "First",
+        "Second",
+        "Third",
+        "What happens is",
+        "The reality is",
+        "What we find",
+        "One of the key",
+        "It's important to understand",
+        "Let me give you an example",
+        "Think about this",
+        "What I mean by that",
+        "Here's what I want you to",
+        "The reason for this",
+        "What we know from",
     ]
     for pattern in patterns:
         count = text.lower().count(pattern.lower())
         if count > 0:
-            profile["teaching_patterns"].append({
-                "pattern": pattern,
-                "frequency": count,
-            })
+            profile["teaching_patterns"].append(
+                {
+                    "pattern": pattern,
+                    "frequency": count,
+                }
+            )
 
 
 def _build_profile_report(channel_name: str, profile: dict) -> str:
@@ -576,20 +229,6 @@ def _build_profile_report(channel_name: str, profile: dict) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 #  Conversation Generation
 # ═══════════════════════════════════════════════════════════════════════════════
-
-
-def _get_config(channel_key: str) -> dict | None:
-    for ck, cfg in CHANNEL_CONFIGS.items():
-        if ck.lower() == channel_key.lower():
-            return cfg
-    return None
-
-
-def _resolve_channel_key(name: str) -> str | None:
-    for ck in CHANNEL_CONFIGS:
-        if ck.lower() == name.lower():
-            return ck
-    return None
 
 
 def discover_channels(source_dir: Path = INGESTED_DIR) -> list[str]:
@@ -634,12 +273,57 @@ def load_channel_transcripts(
     return results
 
 
+def _strip_transcript_metadata(content: str) -> list[str]:
+    lines = content.split("\n")
+    cleaned = []
+    in_transcript = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("## Transcript"):
+            in_transcript = True
+            continue
+        if not in_transcript:
+            continue
+        cleaned.append(stripped)
+
+    text = "\n".join(cleaned)
+    raw_paragraphs = re.split(r"\n\s*\n", text)
+    paragraphs = []
+    for para in raw_paragraphs:
+        para = para.strip()
+        if len(para) < 100:
+            continue
+        if para.startswith("**") and para.endswith("**"):
+            continue
+        paragraphs.append(para)
+    return paragraphs
+
+
+_CLIENT_QUESTION_TEMPLATES = [
+    "I've been struggling with something related to this and I don't know where to start. Can you help me understand?",
+    "This hits close to home. How do I know if this is something I'm dealing with?",
+    "I think I might be experiencing some of this. What should I look for?",
+    "Can you explain what this looks like in everyday life? I want to understand if it applies to my situation.",
+    "What are the signs I should be paying attention to? I feel like I'm missing something obvious.",
+    "How does this actually show up in someone's life? I'm trying to understand the practical signs.",
+    "I've been wondering about this for a while. What does the research say?",
+    "Is this something that can get better on its own, or do I need to actively work on it?",
+    "What's the first thing I should understand about this? I feel overwhelmed with information.",
+    "Why does this happen? I want to understand the root cause, not just the symptoms.",
+]
+
+
 def generate_conversation_from_transcript(
     title: str,
     content: str,
     config: dict,
 ) -> dict:
-    """Generate a training conversation from a single transcript."""
+    """Generate a training conversation from a single transcript.
+
+    Parses the raw transcript into coherent multi-turn therapeutic dialogue:
+    strips metadata headers, extracts substantial paragraphs, and wraps each
+    in a client-question / therapist-response exchange.
+    """
     system_prompt = (
         f"You are {config['name']}. {config['description']}. "
         f"Your approach is {config['approach']}. "
@@ -647,14 +331,27 @@ def generate_conversation_from_transcript(
         "Respond to the client's questions using your therapeutic voice and expertise."
     )
 
+    paragraphs = _strip_transcript_metadata(content)
+
+    messages = [{"role": "system", "content": system_prompt}]
+
+    for i, para in enumerate(paragraphs):
+        client_q_idx = i % len(_CLIENT_QUESTION_TEMPLATES)
+        client_msg = _CLIENT_QUESTION_TEMPLATES[client_q_idx]
+        messages.append({"role": "client", "content": client_msg})
+        messages.append({"role": "therapist", "content": para.strip()})
+
+    if not messages:
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "client", "content": "Can you help me understand this topic?"},
+            {"role": "therapist", "content": content},
+        ]
+
     return {
         "conversation_id": f"{config['signature']}_{title}",
         "stage": "stage4_voice_persona",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"Can you help me understand: {title}?"},
-            {"role": "assistant", "content": content},
-        ],
+        "messages": messages,
         "metadata": {
             "source": f"{config['signature']}_transcripts",
             "source_family": "stage4_voice_persona",
@@ -665,7 +362,8 @@ def generate_conversation_from_transcript(
                 "approach": config["approach"],
                 "expertise_areas": config["expertise"],
             },
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
+            "paragraph_count": len(paragraphs),
         },
     }
 
@@ -675,29 +373,7 @@ def generate_synthetic_conversations(
     num_conversations: int,
     profile: dict | None = None,
 ) -> list[dict]:
-    """Generate fallback synthetic conversations when real transcripts are unavailable."""
     conversations: list[dict] = []
-    raw = profile.get("profile_raw", {}) if profile else {}
-    starters = list(raw.get("sentence_starters", {}).keys()) or [
-        "I understand", "Let's look at", "The key is", "What we find",
-    ]
-    transitions = list(raw.get("transition_phrases", {}).keys()) or [
-        "Now", "And so", "What happens", "The truth is",
-    ]
-    empathy = list(raw.get("empathy_markers", {}).keys()) or [
-        "I understand", "That makes sense", "Many people",
-    ]
-    analogies = raw.get("analogies", []) or [
-        "like building a muscle, it takes consistent practice",
-        "like learning a new language for your nervous system",
-        "like tending a garden, you can't rush the growth",
-    ]
-    examples = raw.get("examples", []) or [
-        "for example, when a situation triggers an old wound",
-        "let's say you notice your heart racing in a meeting",
-        "think back to a time when you felt genuinely safe",
-    ]
-
     topics = _get_topics_for_expertise(config.get("expertise", []))
 
     system_prompt = (
@@ -708,9 +384,7 @@ def generate_synthetic_conversations(
 
     for i in range(num_conversations):
         topic = topics[i % len(topics)]
-        conversation = _build_synthetic_dialogue(
-            i, topic, config, starters, transitions, empathy, analogies, examples,
-        )
+        conversation = _build_synthetic_dialogue(i, topic, config)
         conversation["messages"].insert(0, {"role": "system", "content": system_prompt})
         conversations.append(conversation)
 
@@ -733,111 +407,19 @@ def _get_topics_for_expertise(expertise: list[str]) -> list[str]:
     return topics
 
 
+from synthetic_templates import SYNTHETIC_TEMPLATES
+
+
 def _build_synthetic_dialogue(
     index: int,
     topic: str,
     config: dict,
-    starters: list[str],
-    transitions: list[str],
-    empathy: list[str],
-    analogies: list[str],
-    examples: list[str],
 ) -> dict:
-    dialogue_templates = [
-        # Template 1: Client seeks understanding
-        {
-            "user": f"I've been struggling with something and I'm not sure how to understand it. {topic}.",
-            "assistant": (
-                f"{random.choice(starters)}. {random.choice(empathy)}. "
-                f"{random.choice(transitions)}, let me help you understand this. "
-                f"{random.choice(examples)}. "
-                "The first step is recognizing that your response makes sense given what you've been through."
-            ),
-            "follow_ups": [
-                {
-                    "user": "That does make sense, but how do I actually start working on it?",
-                    "assistant": (
-                        f"Great question. {random.choice(transitions)}, "
-                        f"let's break this down into manageable pieces. "
-                        f"Think of it {random.choice(analogies)}. "
-                        f"{random.choice(empathy)}. "
-                        "Start with awareness, then build skills one at a time."
-                    ),
-                },
-                {
-                    "user": "What if I try but keep falling back into old patterns?",
-                    "assistant": (
-                        f"That's completely normal. {random.choice(empathy)}. "
-                        f"{random.choice(transitions)}, recovery isn't linear. "
-                        f"{random.choice(examples)}. "
-                        "Every time you notice the pattern and redirect, you're rewiring that response. "
-                        "Progress, not perfection."
-                    ),
-                },
-            ],
-        },
-        # Template 2: Client in distress
-        {
-            "user": f"I'm really struggling right now. {topic}. I feel stuck and don't know what to do.",
-            "assistant": (
-                f"{random.choice(empathy)}. {random.choice(starters)}. "
-                "First, let's take a breath together. You reaching out is already a step forward. "
-                f"{random.choice(transitions)}, what you're describing is a common response. "
-                f"{random.choice(examples)}. "
-                "We can work through this step by step."
-            ),
-            "follow_ups": [
-                {
-                    "user": "I just want the pain to stop. What can I do right now?",
-                    "assistant": (
-                        f"{random.choice(empathy)}. Right now, let's focus on grounding. "
-                        "Name three things you can see, two you can touch, one you can hear. "
-                        f"{random.choice(transitions)}, this helps your nervous system know you're safe right now. "
-                        f"Think of it {random.choice(analogies)}."
-                    ),
-                },
-                {
-                    "user": "That helped a bit. How do I keep from getting this overwhelmed again?",
-                    "assistant": (
-                        f"{random.choice(starters)}. {random.choice(empathy)}. "
-                        f"{random.choice(transitions)}, building resilience is like {random.choice(analogies)}. "
-                        f"{random.choice(examples)}. "
-                        "We'll develop a toolkit you can use including grounding, breathing, and support strategies."
-                    ),
-                },
-            ],
-        },
-        # Template 3: Client seeking practical tools
-        {
-            "user": f"I need practical tools for {topic.lower()}. What actually works?",
-            "assistant": (
-                f"{random.choice(starters)}. {random.choice(empathy)}. "
-                f"{random.choice(transitions)}, there are several evidence-based approaches. "
-                f"{random.choice(examples)}. "
-                "First, let me explain why these tools work, then we'll practice together."
-            ),
-            "follow_ups": [
-                {
-                    "user": "That sounds helpful but hard to do when I'm in the middle of it.",
-                    "assistant": (
-                        f"You're right, it is hard at first. {random.choice(empathy)}. "
-                        f"{random.choice(transitions)}, that's why we practice when you're calm first. "
-                        f"Think of it {random.choice(analogies)}. "
-                        "Start with one small technique, practice it daily, and build from there."
-                    ),
-                },
-            ],
-        },
-    ]
-
-    template = random.choice(dialogue_templates)
+    template = random.choice(SYNTHETIC_TEMPLATES)
     conversation = [
-        {"role": "client", "content": template["user"]},
-        {"role": "therapist", "content": template["assistant"]},
+        {"role": "client", "content": template["client"]},
+        {"role": "therapist", "content": template["therapist"]},
     ]
-    for fu in template["follow_ups"]:
-        conversation.append({"role": "client", "content": fu["user"]})
-        conversation.append({"role": "therapist", "content": fu["assistant"]})
 
     return {
         "conversation_id": f"{config['signature']}_synthetic_{index:04d}",
@@ -855,7 +437,7 @@ def _build_synthetic_dialogue(
             },
             "topic": topic,
             "index": index,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         },
     }
 
@@ -866,26 +448,44 @@ def _build_synthetic_dialogue(
 
 
 def score_conversations(conversations: list[dict]) -> tuple[list[float], list[dict]]:
-    """Score each conversation's therapist responses using ClinicalValidityScorer."""
+    """Score each conversation's therapist responses using ClinicalValidityScorer.
+
+    Scores each individual message separately and averages them to avoid
+    inflating the score via sheer verbosity (e.g. raw 10K-token transcript dumps).
+    """
     if not SCORER_AVAILABLE:
         logger.warning("ClinicalValidityScorer not available; skipping scoring")
         return [], []
+
+    assert ClinicalValidityScorer is not None  # narrow type for Pyright
 
     scores: list[float] = []
     details: list[dict] = []
 
     for conv in conversations:
-        therapist_parts: list[str] = []
+        message_scores: list[float] = []
+        combined_detail: dict[str, float] = {}
+        msg_count = 0
+
         for msg in conv.get("messages", []):
             if msg.get("role") in ("therapist", "assistant"):
                 content = msg.get("content", "")
                 if content.strip():
-                    therapist_parts.append(content)
-        combined = " ".join(therapist_parts)
-        score = ClinicalValidityScorer.score(combined)
-        detail = ClinicalValidityScorer.score_detail(combined)
-        scores.append(score)
-        details.append(detail)
+                    msg_count += 1
+                    msg_detail = ClinicalValidityScorer.score_detail(content)
+                    msg_score = ClinicalValidityScorer.score(content)
+                    message_scores.append(msg_score)
+                    for dim, val in msg_detail.items():
+                        combined_detail.setdefault(dim, 0.0)
+                        combined_detail[dim] = max(combined_detail[dim], val)
+
+        if not message_scores:
+            scores.append(0.0)
+            details.append({d: 0.0 for d in ClinicalValidityScorer.WEIGHTS})
+        else:
+            avg_score = sum(message_scores) / len(message_scores)
+            scores.append(avg_score)
+            details.append(combined_detail)
 
     return scores, details
 
@@ -899,255 +499,65 @@ def annotate_conversations(conversations: list[dict], scores: list[float], detai
         }
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-#  I/O
-# ═══════════════════════════════════════════════════════════════════════════════
+def validate_conversation_quality(conversations: list[dict]) -> dict:
+    """Run quality checks on generated conversations and return a report.
 
+    Checks:
+      - Each conversation has at least system + client + therapist messages.
+      - No conversation has empty content.
+      - Message roles are from the allowed set.
+      - Score plausibility: warn if all scores are 0.9+ or all 0.0.
+    """
+    issues: list[str] = []
+    allowed_roles = {"system", "client", "therapist", "user", "assistant"}
+    empty_count = 0
+    role_violations = 0
+    low_msg_count = 0
+    scores = []
 
-def _derive_communication_patterns(profile_data: dict, config: dict | None) -> list[str]:
-    """Derive human-readable communication patterns from extracted profile data."""
-    config = config or {}
-    patterns = []
+    for conv in conversations:
+        msgs = conv.get("messages", [])
+        n_msgs = len(msgs)
+        roles = {m.get("role") for m in msgs}
+        invalid_roles = roles - allowed_roles
+        if invalid_roles:
+            role_violations += 1
+        if n_msgs < 3:
+            low_msg_count += 1
+        has_empty = any(not (m.get("content") or "").strip() for m in msgs)
+        if has_empty:
+            empty_count += 1
+        cv = conv.get("metadata", {}).get("clinical_validity", {})
+        if "score" in cv:
+            scores.append(cv["score"])
 
-    transitions = profile_data.get("transition_phrases", {})
-    total_trans = sum(transitions.values())
-    if total_trans > 0:
-        explanatory = sum(
-            transitions.get(t, 0) for t in
-            ["So", "Let me", "Here's the thing", "The key is", "What I want you to",
-             "One of the key", "It's important to", "Think about"]
-        )
-        analytical = sum(
-            transitions.get(t, 0) for t in
-            ["But", "What happens", "The reality is", "The truth is"]
-        )
-        analytic_explain_ratio = analytical / max(explanatory, 1)
+    if role_violations:
+        issues.append(f"{role_violations} conversations have invalid roles")
+    if low_msg_count:
+        issues.append(f"{low_msg_count} conversations have fewer than 3 messages")
+    if empty_count:
+        issues.append(f"{empty_count} conversations have empty message content")
 
-        if analytic_explain_ratio > 0.6:
-            patterns.append(
-                "Analytical, pattern-seeking communication that examines causes, "
-                "contrasts scenarios, and surfaces underlying dynamics"
-            )
-        elif analytic_explain_ratio < 0.3:
-            patterns.append(
-                "Educational, explanatory style with clear framing, step-by-step "
-                "guidance, and structured information delivery"
-            )
-        else:
-            patterns.append(
-                "Balanced explanatory-analytical style that alternates between "
-                "teaching concepts and examining patterns"
-            )
-
-    empathy_markers = profile_data.get("empathy_markers", {})
-    total_emp = sum(empathy_markers.values())
-    if total_emp > 10:
-        patterns.append(
-            "High empathy integration with frequent validation, normalization "
-            "of experiences, and explicit acknowledgment of emotional states"
-        )
-    elif total_emp > 4:
-        patterns.append(
-            "Moderate empathy woven into content delivery, balancing clinical "
-            "information with attunement to felt experience"
-        )
+    if scores:
+        avg = sum(scores) / len(scores)
+        if avg > 0.85:
+            issues.append(f"High average score ({avg:.3f}) — may indicate verbosity inflation")
+        if avg < 0.05:
+            issues.append(f"Near-zero average score ({avg:.3f}) — scorer may not be matching")
     else:
-        patterns.append(
-            "Empathy expressed primarily through information-sharing and "
-            "validating insights rather than explicit emotional mirroring"
-        )
-
-    analogies = profile_data.get("analogies", [])
-    if len(analogies) > 3:
-        patterns.append(
-            "Heavy reliance on analogies and metaphors to translate complex "
-            "concepts into accessible, relatable images"
-        )
-
-    examples = profile_data.get("examples", [])
-    if len(examples) > 3:
-        patterns.append(
-            "Frequent use of concrete examples and case illustrations to "
-            "ground abstract principles in lived experience"
-        )
-
-    patterns.append(
-        f"Style: {config.get('style', 'general').replace('_', ' ')}"
-    )
-    patterns.append(
-        f"Approach: {config.get('approach', 'general').replace('_', ' ')}"
-    )
-
-    return patterns
-
-
-def _derive_tone_characteristics(profile_data: dict, config: dict | None) -> dict:
-    """Derive tone characteristics from extracted profile data and channel config."""
-    config = config or {}
-    empathy_markers = profile_data.get("empathy_markers", {})
-    total_emp = sum(empathy_markers.values())
-    transitions = profile_data.get("transition_phrases", {})
-    total_trans = sum(transitions.values())
-    style = config.get("style", "")
-
-    if total_emp > 10:
-        empathy_level = "high"
-    elif total_emp > 4:
-        empathy_level = "moderate"
-    else:
-        empathy_level = "measured"
-
-    if "clinical" in style or "authoritative" in style or "professional" in style:
-        formality = "professional_structured"
-    elif "conversational" in style or "casual" in style or "interview" in style:
-        formality = "conversational_accessible"
-    else:
-        formality = "professional_yet_accessible"
-
-    if total_trans > 0:
-        fast_pace_markers = sum(transitions.get(t, 0) for t in ["Now", "So"])
-        slow_pace_markers = sum(transitions.get(t, 0) for t in ["Let me", "Think about"])
-        if fast_pace_markers > slow_pace_markers * 2:
-            pacing = "brisk_momentum"
-        elif slow_pace_markers > fast_pace_markers * 2:
-            pacing = "deliberate_paced"
-        else:
-            pacing = "measured_rhythm"
-    else:
-        pacing = "measured_rhythm"
-
-    if "compassionate" in style or "warm" in style or "empathetic" in style:
-        emotional_temperature = "warm_supportive"
-    elif "authoritative" in style or "direct" in style or "clinical" in style:
-        emotional_temperature = "authoritative_grounded"
-    elif "contemplative" in style or "mystical" in style or "wisdom" in style:
-        emotional_temperature = "calm_contemplative"
-    else:
-        emotional_temperature = "balanced_engaged"
+        issues.append("No scores found — conversation annotation may not have run")
 
     return {
-        "empathy_level": empathy_level,
-        "formality": formality,
-        "pacing": pacing,
-        "emotional_temperature": emotional_temperature,
+        "total": len(conversations),
+        "issues": issues,
+        "issue_count": len(issues),
+        "pass": len(issues) == 0,
+        "details": {
+            "role_violations": role_violations,
+            "low_msg_count": low_msg_count,
+            "empty_messages": empty_count,
+        },
     }
-
-
-def save_channel_output(channel_key: str, result: ChannelResult, output_base: Path = OUTPUT_BASE):
-    """Save voice profile, conversations, and quality report for a channel."""
-    config = _get_config(channel_key)
-    sig = config["signature"] if config else channel_key.lower()
-    channel_dir = output_base / f"{sig}_voice"
-    exports_dir = channel_dir / "exports"
-    channel_dir.mkdir(parents=True, exist_ok=True)
-    exports_dir.mkdir(parents=True, exist_ok=True)
-
-    if result.voice_profile:
-        profile_data = result.voice_profile.get("profile_raw", {})
-        profile_out = {
-            "name": config["name"] if config else channel_key,
-            "voice_signature": f"{sig}_v1",
-            "description": config["description"] if config else "",
-            "personality_traits": {
-                "primary_style": config["style"] if config else "general",
-                "communication_patterns": _derive_communication_patterns(profile_data, config),
-                "expertise_areas": config["expertise"] if config else [],
-                "tone_characteristics": _derive_tone_characteristics(profile_data, config),
-            },
-            "training_samples": len(result.transcripts),
-            "clinical_validity_score": round(result.mean_score, 4),
-            "clinical_validity_pass_rate": round(result.pass_rate, 4),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "version": "2.0",
-        }
-        if "sentence_starters" in profile_data:
-            profile_out["sentence_starters"] = profile_data["sentence_starters"]
-        if "transition_phrases" in profile_data:
-            profile_out["transition_phrases"] = profile_data["transition_phrases"]
-        if "empathy_markers" in profile_data:
-            profile_out["empathy_markers"] = profile_data["empathy_markers"]
-
-        profile_file = channel_dir / f"{channel_key.lower()}_voice_profile.json"
-        with open(profile_file, "w", encoding="utf-8") as f:
-            json.dump(profile_out, f, indent=2, ensure_ascii=False)
-        logger.info("  Saved profile: %s", profile_file)
-
-        report_content = result.voice_profile.get("report", "")
-        if report_content:
-            report_file = channel_dir / f"{channel_key.lower()}_voice_analysis.md"
-            with open(report_file, "w", encoding="utf-8") as f:
-                f.write(report_content)
-            logger.info("  Saved analysis: %s", report_file)
-
-    if result.conversations:
-        conv_file = exports_dir / f"{channel_key.lower()}_conversations.jsonl"
-        with open(conv_file, "w", encoding="utf-8") as f:
-            for conv in result.conversations:
-                f.write(json.dumps(conv, ensure_ascii=False) + "\n")
-        logger.info("  Saved %d conversations: %s", len(result.conversations), conv_file)
-
-    if result.scores:
-        scores_file = channel_dir / f"{channel_key.lower()}_clinical_scores.csv"
-        with open(scores_file, "w", encoding="utf-8", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(["conversation_id", "score", "technique", "alliance", "structure", "cultural", "ebp"])
-            for conv, score, detail in zip(result.conversations, result.scores, result.score_detail):
-                cid = conv.get("conversation_id", "")
-                writer.writerow([
-                    cid,
-                    round(score, 4),
-                    round(detail.get("technique", 0), 4),
-                    round(detail.get("alliance", 0), 4),
-                    round(detail.get("structure", 0), 4),
-                    round(detail.get("cultural", 0), 4),
-                    round(detail.get("ebp", 0), 4),
-                ])
-        logger.info("  Saved scores: %s", scores_file)
-
-
-def generate_quality_report(results: list[ChannelResult]) -> str:
-    """Generate markdown quality report across all processed channels."""
-    report: list[str] = [
-        "# Clinical Validity Quality Report\n",
-        f"**Generated**: {datetime.now(timezone.utc).isoformat()}\n\n",
-        "## Per-Channel Quality Summary\n\n",
-        "| Channel | Transcripts | Conversations | Mean Score | Pass Rate (≥0.5) | High Quality (≥0.7) |\n",
-        "|---------|------------:|--------------:|----------:|-----------------:|--------------------:|\n",
-    ]
-
-    all_scores: list[float] = []
-    for r in results:
-        all_scores.extend(r.scores)
-        report.append(
-            f"| {r.name} | {len(r.transcripts)} | {len(r.conversations)} | "
-            f"{r.mean_score:.4f} | {r.pass_rate:.1%} | {r.high_quality_rate:.1%} |\n"
-        )
-
-    if all_scores:
-        overall_mean = sum(all_scores) / len(all_scores)
-        overall_pass = sum(1 for s in all_scores if s >= 0.5) / len(all_scores)
-        overall_high = sum(1 for s in all_scores if s >= 0.7) / len(all_scores)
-        report.append(
-            f"| **Overall** | | {len(all_scores)} | "
-            f"**{overall_mean:.4f}** | **{overall_pass:.1%}** | **{overall_high:.1%}** |\n"
-        )
-
-    report.extend([
-        "\n## Dimension Averages\n\n",
-        "| Channel | Technique | Alliance | Structure | Cultural | EBP |\n",
-        "|---------|----------:|---------:|----------:|---------:|----:|\n",
-    ])
-
-    for r in results:
-        if r.score_detail:
-            tech = sum(d.get("technique", 0) for d in r.score_detail) / len(r.score_detail)
-            alli = sum(d.get("alliance", 0) for d in r.score_detail) / len(r.score_detail)
-            stru = sum(d.get("structure", 0) for d in r.score_detail) / len(r.score_detail)
-            cult = sum(d.get("cultural", 0) for d in r.score_detail) / len(r.score_detail)
-            ebp = sum(d.get("ebp", 0) for d in r.score_detail) / len(r.score_detail)
-            report.append(f"| {r.name} | {tech:.4f} | {alli:.4f} | {stru:.4f} | {cult:.4f} | {ebp:.4f} |\n")
-
-    return "".join(report)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1163,7 +573,7 @@ def process_channel(
     force_synthetic: bool = False,
 ) -> ChannelResult:
     """Process a single channel end-to-end."""
-    config = _get_config(channel_key)
+    config = get_config(channel_key)
     if not config:
         logger.warning("Unknown channel: %s (skipping)", channel_key)
         return ChannelResult(name=channel_key)
@@ -1212,6 +622,11 @@ def process_channel(
     else:
         logger.info("  Scoring skipped")
 
+    quality = validate_conversation_quality(result.conversations)
+    if quality["issues"]:
+        logger.warning("  Quality issues: %s", "; ".join(quality["issues"]))
+    result.validation_report = quality
+
     return result
 
 
@@ -1241,10 +656,7 @@ def list_channels():
     for ck, cfg in sorted(CHANNEL_CONFIGS.items()):
         ingested_count = len(load_channel_transcripts(ck, INGESTED_DIR))
         has_profile = (OUTPUT_BASE / f"{ck.lower()}_voice" / f"{ck.lower()}_voice_profile.json").exists()
-        print(
-            f"  {ck:35s} {str(ingested_count):12s} "
-            f"{'YES' if has_profile else '--':10s} {'YES':8s}"
-        )
+        print(f"  {ck:35s} {ingested_count!s:12s} {'YES' if has_profile else '--':10s} {'YES':8s}")
 
     other = []
     if INGESTED_DIR.exists():
@@ -1288,24 +700,35 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--all", "-a", action="store_true", help="Process all discovered channels")
     parser.add_argument("--list", "-l", action="store_true", help="List known channels and exit")
     parser.add_argument(
-        "--num-conversations", "-n", type=int, default=DEFAULT_CONVERSATIONS,
+        "--num-conversations",
+        "-n",
+        type=int,
+        default=DEFAULT_CONVERSATIONS,
         help=f"Number of synthetic conversations (default: {DEFAULT_CONVERSATIONS})",
     )
     parser.add_argument(
-        "--source-dir", type=str, default=str(INGESTED_DIR),
+        "--source-dir",
+        type=str,
+        default=str(INGESTED_DIR),
         help=f"Transcript source directory (default: {INGESTED_DIR})",
     )
     parser.add_argument(
-        "--output-dir", type=str, default=str(OUTPUT_BASE),
+        "--output-dir",
+        type=str,
+        default=str(OUTPUT_BASE),
         help=f"Output base directory (default: {OUTPUT_BASE})",
     )
     parser.add_argument("--no-score", action="store_true", help="Skip clinical validity scoring")
     parser.add_argument(
-        "--force-synthetic", "-s", action="store_true",
+        "--force-synthetic",
+        "-s",
+        action="store_true",
         help="Force synthetic conversation generation even when transcripts exist",
     )
     parser.add_argument(
-        "--save", action="store_true", default=True,
+        "--save",
+        action="store_true",
+        default=True,
         help="Save results to disk (default: True)",
     )
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress info logs")
@@ -1348,7 +771,7 @@ def main(argv: list[str] | None = None):
             print("Done")
 
     elif args.channel:
-        ck = _resolve_channel_key(args.channel)
+        ck = resolve_channel_key(args.channel)
         if not ck:
             logger.error("Unknown channel '%s'. Use --list to see available channels.", args.channel)
             sys.exit(1)

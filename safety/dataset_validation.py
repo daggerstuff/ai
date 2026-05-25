@@ -4,6 +4,7 @@ Dataset Validation Module for Bias and Stereotype Detection
 Validates therapeutic training data before writing to disk to prevent
 ingestion of biased or inappropriate content into the model training pipeline.
 """
+
 import json
 import logging
 import re
@@ -143,9 +144,7 @@ class DatasetValidator:
 
         return True
 
-    def _check_bias_indicators(
-        self, edge_case: dict[str, Any], warnings: list[str]
-    ) -> dict[str, int]:
+    def _check_bias_indicators(self, edge_case: dict[str, Any], warnings: list[str]) -> dict[str, int]:
         """Check for bias indicators in edge case content."""
         text = self._extract_text(edge_case).lower()
         bias_found = {}
@@ -153,13 +152,8 @@ class DatasetValidator:
         for category, patterns in self.bias_indicators.CULTURAL_STEREOTYPES.items():
             for pattern in patterns:
                 if pattern.lower() in text:
-                    bias_found[f"stereotype_{category}"] = (
-                        bias_found.get(f"stereotype_{category}", 0) + 1
-                    )
-                    warnings.append(
-                        f"Potential stereotype detected: {category} "
-                        f"(pattern: '{pattern}')"
-                    )
+                    bias_found[f"stereotype_{category}"] = bias_found.get(f"stereotype_{category}", 0) + 1
+                    warnings.append(f"Potential stereotype detected: {category} (pattern: '{pattern}')")
 
         for (
             category,
@@ -167,19 +161,12 @@ class DatasetValidator:
         ) in self.bias_indicators.OFFENSIVE_GENERALIZATIONS.items():
             for pattern in patterns:
                 if pattern.lower() in text:
-                    bias_found[f"generalization_{category}"] = (
-                        bias_found.get(f"generalization_{category}", 0) + 1
-                    )
-                    warnings.append(
-                        f"Potentially offensive generalization: {category} "
-                        f"(pattern: '{pattern}')"
-                    )
+                    bias_found[f"generalization_{category}"] = bias_found.get(f"generalization_{category}", 0) + 1
+                    warnings.append(f"Potentially offensive generalization: {category} (pattern: '{pattern}')")
 
         return bias_found
 
-    def _check_privacy_violations(
-        self, edge_case: dict[str, Any], errors: list[str]
-    ) -> bool:
+    def _check_privacy_violations(self, edge_case: dict[str, Any], errors: list[str]) -> bool:
         """Check for privacy violations (PII, specific institutions)."""
         text = self._extract_text(edge_case)
         found = False
@@ -199,9 +186,7 @@ class DatasetValidator:
 
         return found
 
-    def _check_therapeutic_quality(
-        self, edge_case: dict[str, Any], warnings: list[str]
-    ) -> bool:
+    def _check_therapeutic_quality(self, edge_case: dict[str, Any], warnings: list[str]) -> bool:
         """Check for therapeutic quality issues."""
         text = self._extract_text(edge_case).lower()
         issues = False
@@ -209,17 +194,12 @@ class DatasetValidator:
         for category, patterns in self.bias_indicators.PROBLEMATIC_RESPONSES.items():
             for pattern in patterns:
                 if pattern.lower() in text:
-                    warnings.append(
-                        f"Problematic therapeutic response detected: {category} "
-                        f"(pattern: '{pattern}')"
-                    )
+                    warnings.append(f"Problematic therapeutic response detected: {category} (pattern: '{pattern}')")
                     issues = True
 
         return issues
 
-    def _check_harmful_content(
-        self, edge_case: dict[str, Any], errors: list[str]
-    ) -> bool:
+    def _check_harmful_content(self, edge_case: dict[str, Any], errors: list[str]) -> bool:
         """Check for genuinely harmful content that violates training policies."""
         text = self._extract_text(edge_case).lower()
         harmful_keywords = {
@@ -292,13 +272,9 @@ class DatasetValidator:
 
             # Aggregate bias indicators
             for bias_type, count in validation.bias_indicators.items():
-                results["bias_summary"][bias_type] = (
-                    results["bias_summary"].get(bias_type, 0) + count
-                )
+                results["bias_summary"][bias_type] = results["bias_summary"].get(bias_type, 0) + count
 
-        results["pass_rate"] = (
-            results["valid"] / results["total"] if results["total"] > 0 else 0
-        )
+        results["pass_rate"] = results["valid"] / results["total"] if results["total"] > 0 else 0
 
         return results
 

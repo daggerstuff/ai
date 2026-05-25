@@ -83,4 +83,3 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
         # Continue to next middleware/handler
         return await call_next(request)
-

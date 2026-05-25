@@ -10,7 +10,7 @@ import json
 import logging
 import warnings
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -116,7 +116,7 @@ class QualityComparisonReporter:
 
             # Create comprehensive report
             report = ComparisonReport(
-                generated_at=datetime.now(timezone.utc).isoformat(),
+                generated_at=datetime.now(UTC).isoformat(),
                 analysis_period=f"{days_back}_days",
                 tier_comparisons=tier_comparisons,
                 dataset_comparisons=dataset_comparisons,
@@ -138,7 +138,7 @@ class QualityComparisonReporter:
     def _create_empty_report(self) -> ComparisonReport:
         """Create empty report when no data is available."""
         return ComparisonReport(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             analysis_period="no_data",
             tier_comparisons=[],
             dataset_comparisons=[],
@@ -146,12 +146,8 @@ class QualityComparisonReporter:
             benchmark_analyses=[],
             performance_rankings={},
             executive_summary=["No quality data available for comparison analysis"],
-            detailed_insights=[
-                "Please ensure quality validation has been run on conversations"
-            ],
-            action_items=[
-                "Run quality validation pipeline to generate comparison data"
-            ],
+            detailed_insights=["Please ensure quality validation has been run on conversations"],
+            action_items=["Run quality validation pipeline to generate comparison data"],
         )
 
     def _generate_executive_summary(
@@ -166,52 +162,34 @@ class QualityComparisonReporter:
         summary = []
 
         # Overall comparison summary
-        total_comparisons = (
-            len(tier_comparisons)
-            + len(dataset_comparisons)
-            + len(component_comparisons)
-        )
-        summary.append(
-            f"📊 Quality Comparison Analysis: {total_comparisons} comparisons performed"
-        )
+        total_comparisons = len(tier_comparisons) + len(dataset_comparisons) + len(component_comparisons)
+        summary.append(f"📊 Quality Comparison Analysis: {total_comparisons} comparisons performed")
 
         # Tier comparison insights
         if tier_comparisons:
             significant_tier_comparisons = [
-                c
-                for c in tier_comparisons
-                if any(test.get("significant", False) for test in c.statistical_tests)
+                c for c in tier_comparisons if any(test.get("significant", False) for test in c.statistical_tests)
             ]
             if significant_tier_comparisons:
-                summary.append(
-                    f"🎯 {len(significant_tier_comparisons)} significant differences detected between tiers"
-                )
+                summary.append(f"🎯 {len(significant_tier_comparisons)} significant differences detected between tiers")
 
                 # Find largest tier difference
                 largest_diff = max(
                     tier_comparisons,
                     key=lambda x: abs(x.group1_stats["mean"] - x.group2_stats["mean"]),
                 )
-                diff = abs(
-                    largest_diff.group1_stats["mean"]
-                    - largest_diff.group2_stats["mean"]
-                )
+                diff = abs(largest_diff.group1_stats["mean"] - largest_diff.group2_stats["mean"])
                 better_tier = (
                     largest_diff.group1_name
-                    if largest_diff.group1_stats["mean"]
-                    > largest_diff.group2_stats["mean"]
+                    if largest_diff.group1_stats["mean"] > largest_diff.group2_stats["mean"]
                     else largest_diff.group2_name
                 )
-                summary.append(
-                    f"🏆 Largest tier gap: {better_tier} outperforms by {diff:.3f} points"
-                )
+                summary.append(f"🏆 Largest tier gap: {better_tier} outperforms by {diff:.3f} points")
 
         # Dataset comparison insights
         if dataset_comparisons:
             significant_dataset_comparisons = [
-                c
-                for c in dataset_comparisons
-                if any(test.get("significant", False) for test in c.statistical_tests)
+                c for c in dataset_comparisons if any(test.get("significant", False) for test in c.statistical_tests)
             ]
             if significant_dataset_comparisons:
                 summary.append(
@@ -222,9 +200,7 @@ class QualityComparisonReporter:
         if performance_rankings.get("tiers"):
             best_tier = performance_rankings["tiers"][0]
             worst_tier = performance_rankings["tiers"][-1]
-            summary.append(
-                f"🥇 Best performing tier: {best_tier['name']} (quality: {best_tier['mean_quality']:.3f})"
-            )
+            summary.append(f"🥇 Best performing tier: {best_tier['name']} (quality: {best_tier['mean_quality']:.3f})")
             summary.append(
                 f"⚠️ Lowest performing tier: {worst_tier['name']} (quality: {worst_tier['mean_quality']:.3f})"
             )
@@ -237,21 +213,13 @@ class QualityComparisonReporter:
 
         # Benchmark analysis insights
         if benchmark_analyses:
-            above_benchmark = [
-                b for b in benchmark_analyses if b.performance_gap > 0.05
-            ]
-            below_benchmark = [
-                b for b in benchmark_analyses if b.performance_gap < -0.05
-            ]
+            above_benchmark = [b for b in benchmark_analyses if b.performance_gap > 0.05]
+            below_benchmark = [b for b in benchmark_analyses if b.performance_gap < -0.05]
 
             if above_benchmark:
-                summary.append(
-                    f"✅ {len(above_benchmark)} groups exceed industry benchmarks"
-                )
+                summary.append(f"✅ {len(above_benchmark)} groups exceed industry benchmarks")
             if below_benchmark:
-                summary.append(
-                    f"⚠️ {len(below_benchmark)} groups below industry benchmarks requiring attention"
-                )
+                summary.append(f"⚠️ {len(below_benchmark)} groups below industry benchmarks requiring attention")
 
         return summary
 
@@ -272,37 +240,23 @@ class QualityComparisonReporter:
             medium_effects = [c for c in all_comparisons if 0.5 <= c.effect_size < 0.8]
 
             if large_effects:
-                insights.append(
-                    f"💪 {len(large_effects)} comparisons show large effect sizes (>0.8)"
-                )
+                insights.append(f"💪 {len(large_effects)} comparisons show large effect sizes (>0.8)")
             if medium_effects:
-                insights.append(
-                    f"📊 {len(medium_effects)} comparisons show medium effect sizes (0.5-0.8)"
-                )
+                insights.append(f"📊 {len(medium_effects)} comparisons show medium effect sizes (0.5-0.8)")
 
         # Statistical significance insights
         if all_comparisons:
             significant_comparisons = [
-                c
-                for c in all_comparisons
-                if any(test.get("significant", False) for test in c.statistical_tests)
+                c for c in all_comparisons if any(test.get("significant", False) for test in c.statistical_tests)
             ]
-            significance_rate = (
-                len(significant_comparisons) / len(all_comparisons) * 100
-            )
-            insights.append(
-                f"📈 {significance_rate:.1f}% of comparisons are statistically significant"
-            )
+            significance_rate = len(significant_comparisons) / len(all_comparisons) * 100
+            insights.append(f"📈 {significance_rate:.1f}% of comparisons are statistically significant")
 
         # Tier-specific insights
         if tier_comparisons:
-            practical_tier_differences = [
-                c for c in tier_comparisons if c.practical_significance
-            ]
+            practical_tier_differences = [c for c in tier_comparisons if c.practical_significance]
             if practical_tier_differences:
-                insights.append(
-                    f"🎯 {len(practical_tier_differences)} tier comparisons show practical significance"
-                )
+                insights.append(f"🎯 {len(practical_tier_differences)} tier comparisons show practical significance")
 
         # Component insights
         if component_comparisons:
@@ -319,21 +273,13 @@ class QualityComparisonReporter:
         if benchmark_analyses:
             avg_gap = np.mean([b.performance_gap for b in benchmark_analyses])
             if avg_gap > 0:
-                insights.append(
-                    f"📈 Average performance gap above benchmark: +{avg_gap:.3f} points"
-                )
+                insights.append(f"📈 Average performance gap above benchmark: +{avg_gap:.3f} points")
             else:
-                insights.append(
-                    f"📉 Average performance gap below benchmark: {avg_gap:.3f} points"
-                )
+                insights.append(f"📉 Average performance gap below benchmark: {avg_gap:.3f} points")
 
             # Improvement potential
-            avg_potential = np.mean(
-                [b.improvement_potential for b in benchmark_analyses]
-            )
-            insights.append(
-                f"🎯 Average improvement potential: {avg_potential:.3f} points"
-            )
+            avg_potential = np.mean([b.improvement_potential for b in benchmark_analyses])
+            insights.append(f"🎯 Average improvement potential: {avg_potential:.3f} points")
 
         return insights
 
@@ -352,32 +298,25 @@ class QualityComparisonReporter:
             significant_tier_gaps = [
                 c
                 for c in tier_comparisons
-                if c.practical_significance
-                and abs(c.group1_stats["mean"] - c.group2_stats["mean"]) > 0.1
+                if c.practical_significance and abs(c.group1_stats["mean"] - c.group2_stats["mean"]) > 0.1
             ]
 
             if significant_tier_gaps:
-                actions.append(
-                    f"🎯 Address {len(significant_tier_gaps)} significant tier performance gaps"
-                )
+                actions.append(f"🎯 Address {len(significant_tier_gaps)} significant tier performance gaps")
 
                 # Specific tier improvement actions
                 for comparison in significant_tier_gaps[:3]:  # Top 3
                     better_tier = (
                         comparison.group1_name
-                        if comparison.group1_stats["mean"]
-                        > comparison.group2_stats["mean"]
+                        if comparison.group1_stats["mean"] > comparison.group2_stats["mean"]
                         else comparison.group2_name
                     )
                     worse_tier = (
                         comparison.group2_name
-                        if comparison.group1_stats["mean"]
-                        > comparison.group2_stats["mean"]
+                        if comparison.group1_stats["mean"] > comparison.group2_stats["mean"]
                         else comparison.group1_name
                     )
-                    actions.append(
-                        f"📈 Apply {better_tier} best practices to improve {worse_tier}"
-                    )
+                    actions.append(f"📈 Apply {better_tier} best practices to improve {worse_tier}")
 
         # Dataset-based actions
         if dataset_comparisons:
@@ -386,32 +325,25 @@ class QualityComparisonReporter:
                 if comparison.practical_significance:
                     worse_dataset = (
                         comparison.group1_name
-                        if comparison.group1_stats["mean"]
-                        < comparison.group2_stats["mean"]
+                        if comparison.group1_stats["mean"] < comparison.group2_stats["mean"]
                         else comparison.group2_name
                     )
                     poor_performing_datasets.append(worse_dataset)
 
             if poor_performing_datasets:
                 unique_datasets = list(set(poor_performing_datasets))
-                actions.append(
-                    f"📁 Review data quality and processing for: {', '.join(unique_datasets[:3])}"
-                )
+                actions.append(f"📁 Review data quality and processing for: {', '.join(unique_datasets[:3])}")
 
         # Benchmark-based actions
         if benchmark_analyses:
-            below_benchmark = [
-                b for b in benchmark_analyses if b.performance_gap < -0.05
-            ]
+            below_benchmark = [b for b in benchmark_analyses if b.performance_gap < -0.05]
             if below_benchmark:
                 actions.append(
                     f"📊 Implement improvement initiatives for {len(below_benchmark)} groups below benchmark"
                 )
 
             # High improvement potential
-            high_potential = [
-                b for b in benchmark_analyses if b.improvement_potential > 0.2
-            ]
+            high_potential = [b for b in benchmark_analyses if b.improvement_potential > 0.2]
             if high_potential:
                 actions.append(
                     f"🎯 Focus on {len(high_potential)} groups with high improvement potential (>0.2 points)"
@@ -429,22 +361,14 @@ class QualityComparisonReporter:
         all_comparisons = tier_comparisons + dataset_comparisons
         if all_comparisons:
             non_significant = [
-                c
-                for c in all_comparisons
-                if not any(
-                    test.get("significant", False) for test in c.statistical_tests
-                )
+                c for c in all_comparisons if not any(test.get("significant", False) for test in c.statistical_tests)
             ]
             if len(non_significant) / len(all_comparisons) > 0.5:
-                actions.append(
-                    "📈 Increase sample sizes for more reliable statistical comparisons"
-                )
+                actions.append("📈 Increase sample sizes for more reliable statistical comparisons")
 
         return actions
 
-    def create_comparison_visualizations(
-        self, report: ComparisonReport
-    ) -> dict[str, go.Figure]:
+    def create_comparison_visualizations(self, report: ComparisonReport) -> dict[str, go.Figure]:
         """Create comprehensive comparison visualizations."""
         visualizations = {}
 
@@ -481,10 +405,7 @@ class QualityComparisonReporter:
             # Dataset rankings
             if "datasets" in report.performance_rankings:
                 datasets = report.performance_rankings["datasets"][:5]  # Top 5
-                dataset_names = [
-                    d["name"][:15] + "..." if len(d["name"]) > 15 else d["name"]
-                    for d in datasets
-                ]
+                dataset_names = [d["name"][:15] + "..." if len(d["name"]) > 15 else d["name"] for d in datasets]
                 dataset_qualities = [d["mean_quality"] for d in datasets]
 
                 fig.add_trace(
@@ -501,9 +422,7 @@ class QualityComparisonReporter:
             # Component rankings
             if "components" in report.performance_rankings:
                 components = report.performance_rankings["components"]
-                component_names = [
-                    c["name"].replace("_", " ").title() for c in components
-                ]
+                component_names = [c["name"].replace("_", " ").title() for c in components]
                 component_qualities = [c["mean_quality"] for c in components]
 
                 fig.add_trace(
@@ -517,9 +436,7 @@ class QualityComparisonReporter:
                     col=3,
                 )
 
-            fig.update_layout(
-                title="Quality Performance Rankings", showlegend=False, height=500
-            )
+            fig.update_layout(title="Quality Performance Rankings", showlegend=False, height=500)
             fig.update_xaxes(tickangle=45)
 
             visualizations["performance_rankings"] = fig
@@ -530,10 +447,7 @@ class QualityComparisonReporter:
 
             # Tier comparison effect sizes
             if report.tier_comparisons:
-                tier_names = [
-                    f"{c.group1_name} vs {c.group2_name}"
-                    for c in report.tier_comparisons
-                ]
+                tier_names = [f"{c.group1_name} vs {c.group2_name}" for c in report.tier_comparisons]
                 tier_effects = [c.effect_size for c in report.tier_comparisons]
 
                 fig.add_trace(
@@ -547,13 +461,8 @@ class QualityComparisonReporter:
 
             # Dataset comparison effect sizes
             if report.dataset_comparisons:
-                dataset_names = [
-                    f"{c.group1_name} vs {c.group2_name}"
-                    for c in report.dataset_comparisons[:5]
-                ]
-                dataset_effects = [
-                    c.effect_size for c in report.dataset_comparisons[:5]
-                ]
+                dataset_names = [f"{c.group1_name} vs {c.group2_name}" for c in report.dataset_comparisons[:5]]
+                dataset_effects = [c.effect_size for c in report.dataset_comparisons[:5]]
 
                 fig.add_trace(
                     go.Bar(
@@ -625,7 +534,7 @@ class QualityComparisonReporter:
 
     def save_report(self, report: ComparisonReport, format: str = "json") -> str:
         """Save comparison report to file."""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_comparison_report_{timestamp}.json"
@@ -654,9 +563,7 @@ class QualityComparisonReporter:
         """Generate HTML report from comparison analysis."""
         template = Template(self.report_templates["detailed"])
 
-        return template.render(
-            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-        )
+        return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
     def _get_executive_template(self) -> str:
         """Get executive summary template."""
@@ -778,7 +685,6 @@ def main():
     # Save report
     reporter.save_report(report, format="json")
     reporter.save_report(report, format="html")
-
 
     # Display summary
     for _item in report.executive_summary:

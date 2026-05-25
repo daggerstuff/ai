@@ -36,6 +36,7 @@ Usage:
         s3_prefix="datasets/batch1"
     )
 """
+
 import hashlib
 import json
 import logging
@@ -46,7 +47,7 @@ import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal
 
@@ -74,9 +75,7 @@ class S3Config:
     # Retry settings
     max_retries: int = 3
     retry_backoff_factor: float = 2.0
-    retry_mode: Literal["standard", "adaptive", "legacy"] = (
-        "adaptive"  # standard, adaptive, legacy
-    )
+    retry_mode: Literal["standard", "adaptive", "legacy"] = "adaptive"  # standard, adaptive, legacy
 
     # Performance settings
     max_concurrency: int = 10
@@ -119,9 +118,7 @@ class UploadResult:
     error: str | None = None
     retry_count: int = 0
     checksum_verified: bool = False
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -137,9 +134,7 @@ class DownloadResult:
     error: str | None = None
     retry_count: int = 0
     checksum_verified: bool = False
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -173,7 +168,7 @@ class BatchOperationResult:
             "success_rate": round(self.success_rate, 2),
             "total_time_seconds": round(self.total_time_seconds, 3),
             "total_bytes": self.total_bytes,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
 
@@ -224,9 +219,7 @@ class ProgressTracker:
             "total_bytes": self.total_bytes,
             "total_bytes_mb": self.total_bytes / (1024 * 1024),
             "elapsed_seconds": elapsed,
-            "avg_rate_bytes_per_second": self.total_bytes / elapsed
-            if elapsed > 0
-            else 0,
+            "avg_rate_bytes_per_second": self.total_bytes / elapsed if elapsed > 0 else 0,
         }
 
 
@@ -279,9 +272,7 @@ class S3DatasetLoader:
             client_kwargs["endpoint_url"] = self.config.endpoint_url
 
         client = session.client("s3", **client_kwargs)
-        self._logger.info(
-            f"S3 client initialized for bucket: {self.config.bucket_name}"
-        )
+        self._logger.info(f"S3 client initialized for bucket: {self.config.bucket_name}")
         return client
 
     def _get_client(self) -> Any:
@@ -319,9 +310,7 @@ class S3DatasetLoader:
 
         return hash_obj.hexdigest()
 
-    def _retry_operation(
-        self, operation, *args, max_retries: int | None = None, **kwargs
-    ):
+    def _retry_operation(self, operation, *args, max_retries: int | None = None, **kwargs):
         """
         Execute operation with retry logic.
 
@@ -353,9 +342,7 @@ class S3DatasetLoader:
                     )
                     time.sleep(sleep_time)
                 else:
-                    self._logger.error(
-                        f"Operation failed after {max_retries + 1} attempts: {e}"
-                    )
+                    self._logger.error(f"Operation failed after {max_retries + 1} attempts: {e}")
                     raise
 
             except Exception as e:
@@ -385,11 +372,7 @@ class S3DatasetLoader:
             UploadResult
         """
         local_path = Path(local_path)
-        verify_checksum = (
-            verify_checksum
-            if verify_checksum is not None
-            else self.config.verify_checksums
-        )
+        verify_checksum = verify_checksum if verify_checksum is not None else self.config.verify_checksums
 
         start_time = time.time()
 
@@ -412,23 +395,16 @@ class S3DatasetLoader:
 
             if not overwrite:
                 file_etag = self._calculate_checksum(local_path)
-                existing_file = client.head_object(
-                    Bucket=self.config.bucket_name, Key=s3_key
-                )
+                existing_file = client.head_object(Bucket=self.config.bucket_name, Key=s3_key)
 
                 # Compare checksums to determine if upload is needed
                 if self.config.checksum_algorithm == "sha256":
-                    existing_chksum = existing_file.get("Metadata", {}).get(
-                        "sha256-checksum", ""
-                    )
+                    existing_chksum = existing_file.get("Metadata", {}).get("sha256-checksum", "")
                 else:
                     existing_chksum = existing_file.get("ETag", "").strip('"')
 
                 if file_etag == existing_chksum:
-                    self._logger.info(
-                        f"File already exists with matching checksum, skipping: "
-                        f"{s3_key}"
-                    )
+                    self._logger.info(f"File already exists with matching checksum, skipping: {s3_key}")
                     return UploadResult(
                         success=True,
                         local_path=str(local_path),
@@ -450,9 +426,7 @@ class S3DatasetLoader:
                 )
 
         # Calculate checksum before upload
-        file_checksum = (
-            self._calculate_checksum(local_path) if verify_checksum else None
-        )
+        file_checksum = self._calculate_checksum(local_path) if verify_checksum else None
 
         # Upload file
         try:
@@ -460,16 +434,11 @@ class S3DatasetLoader:
 
             # Add checksum metadata
             if verify_checksum and file_checksum:
-                extra_args["Metadata"] = {
-                    f"{self.config.checksum_algorithm}-checksum": file_checksum
-                }
+                extra_args["Metadata"] = {f"{self.config.checksum_algorithm}-checksum": file_checksum}
 
             # Use multipart upload for large files
             if file_size > self.config.multipart_threshold:
-                self._logger.info(
-                    f"Using multipart upload for {s3_key} "
-                    f"({file_size / (1024 * 1024):.2f} MB)"
-                )
+                self._logger.info(f"Using multipart upload for {s3_key} ({file_size / (1024 * 1024):.2f} MB)")
 
                 client = self._get_client()
                 client.upload_file(
@@ -498,10 +467,7 @@ class S3DatasetLoader:
 
             upload_time = time.time() - start_time
 
-            self._logger.info(
-                f"Upload successful: {s3_key} ({file_size / (1024 * 1024):.2f} MB) "
-                f"in {upload_time:.2f}s"
-            )
+            self._logger.info(f"Upload successful: {s3_key} ({file_size / (1024 * 1024):.2f} MB) in {upload_time:.2f}s")
 
             return UploadResult(
                 success=True,
@@ -526,9 +492,7 @@ class S3DatasetLoader:
                 upload_time_seconds=upload_time,
             )
 
-    def _check_existing_file(
-        self, s3_key: str, local_path: Path
-    ) -> DownloadResult | None:
+    def _check_existing_file(self, s3_key: str, local_path: Path) -> DownloadResult | None:
         """Check if local file matches remote and return result if it does."""
         try:
             client = self._get_client()
@@ -541,16 +505,12 @@ class S3DatasetLoader:
         local_checksum = self._calculate_checksum(local_path)
 
         if self.config.checksum_algorithm == "sha256":
-            remote_checksum = response.get("Metadata", {}).get(
-                "sha256-checksum", ""
-            )
+            remote_checksum = response.get("Metadata", {}).get("sha256-checksum", "")
         else:
             remote_checksum = response.get("ETag", "").strip('"')
 
         if local_checksum == remote_checksum:
-            self._logger.info(
-                f"File already exists with matching checksum, skipping: {s3_key}"
-            )
+            self._logger.info(f"File already exists with matching checksum, skipping: {s3_key}")
             return DownloadResult(
                 success=True,
                 s3_key=s3_key,
@@ -581,10 +541,7 @@ class S3DatasetLoader:
         if local_checksum == remote_checksum:
             return True
 
-        self._logger.error(
-            f"Checksum mismatch for {s3_key}: "
-            f"local={local_checksum}, remote={remote_checksum}"
-        )
+        self._logger.error(f"Checksum mismatch for {s3_key}: local={local_checksum}, remote={remote_checksum}")
         local_path.unlink()  # Delete corrupted file
         return False
 
@@ -608,11 +565,7 @@ class S3DatasetLoader:
             DownloadResult
         """
         local_path = Path(local_path)
-        verify_checksum = (
-            verify_checksum
-            if verify_checksum is not None
-            else self.config.verify_checksums
-        )
+        verify_checksum = verify_checksum if verify_checksum is not None else self.config.verify_checksums
 
         start_time = time.time()
 
@@ -639,9 +592,7 @@ class S3DatasetLoader:
             # Verify checksum
             checksum_verified = False
             if verify_checksum:
-                checksum_verified = self._verify_downloaded_file(
-                    local_path, s3_key, response
-                )
+                checksum_verified = self._verify_downloaded_file(local_path, s3_key, response)
 
                 if not checksum_verified:
                     return DownloadResult(
@@ -653,8 +604,7 @@ class S3DatasetLoader:
                     )
 
             self._logger.info(
-                f"Download successful: {s3_key} ({file_size / (1024 * 1024):.2f} MB) "
-                f"in {download_time:.2f}s"
+                f"Download successful: {s3_key} ({file_size / (1024 * 1024):.2f} MB) in {download_time:.2f}s"
             )
 
             return DownloadResult(
@@ -758,9 +708,7 @@ class S3DatasetLoader:
         # Upload files
         if parallel and len(file_list) > 1:
             # Parallel upload
-            with ThreadPoolExecutor(
-                max_workers=self.config.max_concurrency
-            ) as executor:
+            with ThreadPoolExecutor(max_workers=self.config.max_concurrency) as executor:
                 futures = {
                     executor.submit(self.upload_file, local_path, s3_key, overwrite): (
                         local_path,
@@ -839,9 +787,7 @@ class S3DatasetLoader:
         # Download files
         if parallel and len(s3_keys) > 1:
             # Parallel download
-            with ThreadPoolExecutor(
-                max_workers=self.config.max_concurrency
-            ) as executor:
+            with ThreadPoolExecutor(max_workers=self.config.max_concurrency) as executor:
                 futures = {
                     executor.submit(
                         self.download_file,
@@ -860,9 +806,7 @@ class S3DatasetLoader:
         else:
             # Sequential download
             for s3_key in s3_keys:
-                result = self.download_file(
-                    s3_key, local_dir / Path(s3_key).name, overwrite
-                )
+                result = self.download_file(s3_key, local_dir / Path(s3_key).name, overwrite)
                 results.append(result)
                 self._handle_progress(result, progress_tracker, progress_callback)
 
@@ -975,18 +919,14 @@ class S3DatasetLoader:
 
                 if "Errors" in response:
                     for error in response["Errors"]:
-                        self._logger.error(
-                            f"Failed to delete {error['Key']}: {error['Message']}"
-                        )
+                        self._logger.error(f"Failed to delete {error['Key']}: {error['Message']}")
 
             except ClientError as e:
                 self._logger.error(f"Batch delete failed: {e}")
 
         return deleted
 
-    def copy_object(
-        self, source_key: str, dest_key: str, source_bucket: str | None = None
-    ) -> bool:
+    def copy_object(self, source_key: str, dest_key: str, source_bucket: str | None = None) -> bool:
         """
         Copy an object within S3.
 
@@ -1006,9 +946,7 @@ class S3DatasetLoader:
                 "Key": source_key,
             }
 
-            client.copy_object(
-                CopySource=copy_source, Bucket=self.config.bucket_name, Key=dest_key
-            )
+            client.copy_object(CopySource=copy_source, Bucket=self.config.bucket_name, Key=dest_key)
 
             self._logger.info(f"Copied {source_key} to {dest_key}")
             return True
@@ -1089,7 +1027,6 @@ class S3DatasetLoader:
             with open(local_path) as f:
                 return [json.loads(line) for line in f if line.strip()]
 
-
         finally:
             if local_path.exists():
                 local_path.unlink()
@@ -1106,9 +1043,7 @@ class S3DatasetLoader:
             UploadResult
         """
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".jsonl", delete=False
-        ) as tmp:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as tmp:
             local_path = Path(tmp.name)
             for record in records:
                 tmp.write(json.dumps(record) + "\n")
@@ -1121,9 +1056,7 @@ class S3DatasetLoader:
 
 
 # Convenience functions for backward compatibility
-def upload_dataset_artifact(
-    local_path: str, s3_key: str, config: S3Config | None = None
-) -> bool:
+def upload_dataset_artifact(local_path: str, s3_key: str, config: S3Config | None = None) -> bool:
     """
     Convenience function to upload a dataset artifact.
 
@@ -1140,9 +1073,7 @@ def upload_dataset_artifact(
     return result.success
 
 
-def download_dataset_artifact(
-    s3_key: str, local_path: str, config: S3Config | None = None
-) -> bool:
+def download_dataset_artifact(s3_key: str, local_path: str, config: S3Config | None = None) -> bool:
     """
     Convenience function to download a dataset artifact.
 

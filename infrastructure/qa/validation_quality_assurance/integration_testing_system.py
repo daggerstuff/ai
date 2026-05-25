@@ -186,7 +186,14 @@ class QAIntegrationTestSuite(unittest.TestCase):
             assert isinstance(result.monitoring_alerts, list)
 
             # Verify status determination
-            assert result.qa_status in ["EXCELLENT", "GOOD", "ACCEPTABLE", "NEEDS_IMPROVEMENT", "NEEDS_ATTENTION", "CRITICAL_ISSUES"]
+            assert result.qa_status in [
+                "EXCELLENT",
+                "GOOD",
+                "ACCEPTABLE",
+                "NEEDS_IMPROVEMENT",
+                "NEEDS_ATTENTION",
+                "CRITICAL_ISSUES",
+            ]
 
         # Store results for further testing
         self.test_results = results
@@ -254,9 +261,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
 
         # Test batch processing performance
         start_time = time.time()
-        results = self.qa_system.process_batch_qa(
-            self.test_conversations * 2
-        )  # Double the load
+        results = self.qa_system.process_batch_qa(self.test_conversations * 2)  # Double the load
         processing_time = time.time() - start_time
 
         # Verify performance metrics
@@ -267,9 +272,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         throughput = len(results) / processing_time
         assert throughput > 1.0  # At least 1 conversation per second
 
-        logger.info(
-            f"✅ Performance test passed: {throughput:.2f} conversations/second"
-        )
+        logger.info(f"✅ Performance test passed: {throughput:.2f} conversations/second")
 
     def test_08_error_handling_integration(self):
         """Test error handling and recovery integration"""
@@ -316,9 +319,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         assert result1.overall_qa_score == result2.overall_qa_score
 
         # Cache should be faster (though may be minimal for small test)
-        logger.info(
-            f"First processing: {first_time:.4f}s, Cached processing: {second_time:.4f}s"
-        )
+        logger.info(f"First processing: {first_time:.4f}s, Cached processing: {second_time:.4f}s")
 
         logger.info("✅ Caching integration test passed")
 
@@ -337,9 +338,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         assert isinstance(report, dict)
 
         # 3. Export results
-        output_path = (
-            "/home/vivi/pixelated/ai/validation_quality_assurance/end_to_end_test.json"
-        )
+        output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/end_to_end_test.json"
         success = self.qa_system.export_qa_results(results, output_path)
         assert success
 
@@ -393,15 +392,11 @@ class QAIntegrationTestRunner:
                     "tests_run": result.testsRun,
                     "failures": len(result.failures),
                     "errors": len(result.errors),
-                    "success_rate": (
-                        result.testsRun - len(result.failures) - len(result.errors)
-                    )
-                    / result.testsRun
+                    "success_rate": (result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun
                     if result.testsRun > 0
                     else 0,
                     "failure_details": [
-                        {"test": str(test), "error": error}
-                        for test, error in result.failures + result.errors
+                        {"test": str(test), "error": error} for test, error in result.failures + result.errors
                     ],
                 }
 
@@ -419,9 +414,7 @@ class QAIntegrationTestRunner:
     def _generate_integration_report(self) -> dict[str, Any]:
         """Generate comprehensive integration test report"""
 
-        total_time = (
-            self.end_time - self.start_time if self.end_time and self.start_time else 0
-        )
+        total_time = self.end_time - self.start_time if self.end_time and self.start_time else 0
 
         return {
             "integration_test_summary": {
@@ -448,12 +441,8 @@ class QAIntegrationTestRunner:
             },
             "failure_analysis": self.test_results.get("failure_details", []),
             "performance_metrics": {
-                "average_test_time": round(
-                    total_time / max(self.test_results.get("tests_run", 1), 1), 3
-                ),
-                "tests_per_second": round(
-                    self.test_results.get("tests_run", 0) / max(total_time, 0.001), 3
-                ),
+                "average_test_time": round(total_time / max(self.test_results.get("tests_run", 1), 1), 3),
+                "tests_per_second": round(self.test_results.get("tests_run", 0) / max(total_time, 0.001), 3),
             },
             "system_validation": {
                 "all_components_integrated": True,
@@ -466,15 +455,12 @@ class QAIntegrationTestRunner:
             "report_timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-
     def _generate_recommendations(self) -> list[str]:
         """Generate recommendations based on test results"""
         recommendations = []
 
         if self.test_results.get("success_rate", 1.0) < 1.0:
-            recommendations.append(
-                "Address failing test cases before production deployment"
-            )
+            recommendations.append("Address failing test cases before production deployment")
 
         if self.test_results.get("failures", 0) > 0:
             recommendations.append("Review and fix test failures")
@@ -511,7 +497,6 @@ class QAIntegrationTestRunner:
 def main():
     """Run comprehensive integration testing"""
 
-
     # Run integration tests
     test_runner = QAIntegrationTestRunner()
     report = test_runner.run_all_tests()
@@ -521,14 +506,12 @@ def main():
     for _category, _status in report["test_categories"].items():
         pass
 
-
     for _validation, _status in report["system_validation"].items():
         pass
 
     # Export report
     output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/integration_test_report.json"
     test_runner.export_test_report(report, output_path)
-
 
     # Final status
     if report["integration_test_summary"]["success_rate"] == 1.0:

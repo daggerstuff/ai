@@ -8,7 +8,7 @@ providing live updates for pipeline execution, file uploads, and system operatio
 import logging
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -22,6 +22,7 @@ from ..integration.redis_client import RedisClient
 
 class ProgressStatus(Enum):
     """Progress status enumeration."""
+
     PENDING = "pending"
     STARTED = "started"
     IN_PROGRESS = "in_progress"
@@ -32,6 +33,7 @@ class ProgressStatus(Enum):
 
 class ProgressType(Enum):
     """Progress type enumeration."""
+
     PIPELINE_EXECUTION = "pipeline_execution"
     FILE_UPLOAD = "file_upload"
     DATA_VALIDATION = "data_validation"
@@ -42,6 +44,7 @@ class ProgressType(Enum):
 @dataclass
 class ProgressEvent:
     """Progress event data structure."""
+
     event_id: str
     user_id: str
     operation_type: str
@@ -89,24 +92,24 @@ class ProgressTracker:
                 self.user_rooms[request.sid] = user_room
 
                 # Send connection confirmation
-                emit("connected", {
-                    "success": True,
-                    "data": {
-                        "user_id": user_id,
-                        "connection_id": request.sid,
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    }
-                })
+                emit(
+                    "connected",
+                    {
+                        "success": True,
+                        "data": {
+                            "user_id": user_id,
+                            "connection_id": request.sid,
+                            "timestamp": datetime.now(UTC).isoformat(),
+                        },
+                    },
+                )
 
                 # Send any pending progress updates
                 self._send_pending_updates(user_id)
 
             except Exception as e:
                 self.logger.error(f"Error handling WebSocket connection: {e}")
-                emit("connection_error", {
-                    "success": False,
-                    "error": str(e)
-                })
+                emit("connection_error", {"success": False, "error": str(e)})
 
         @self.socketio.on("disconnect")
         def handle_disconnect():
@@ -146,26 +149,23 @@ class ProgressTracker:
                 # Send current progress status
                 current_progress = self._get_current_progress(operation_id)
 
-                emit("progress_subscribed", {
-                    "success": True,
-                    "data": {
-                        "operation_id": operation_id,
-                        "current_progress": current_progress,
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    }
-                })
+                emit(
+                    "progress_subscribed",
+                    {
+                        "success": True,
+                        "data": {
+                            "operation_id": operation_id,
+                            "current_progress": current_progress,
+                            "timestamp": datetime.now(UTC).isoformat(),
+                        },
+                    },
+                )
 
             except ValidationError as e:
-                emit("subscription_error", {
-                    "success": False,
-                    "error": str(e)
-                })
+                emit("subscription_error", {"success": False, "error": str(e)})
             except Exception as e:
                 self.logger.error(f"Error handling progress subscription: {e}")
-                emit("subscription_error", {
-                    "success": False,
-                    "error": "Internal server error"
-                })
+                emit("subscription_error", {"success": False, "error": "Internal server error"})
 
         @self.socketio.on("unsubscribe_progress")
         @jwt_required()
@@ -184,25 +184,19 @@ class ProgressTracker:
 
                 self.logger.info(f"User {user_id} unsubscribed from progress for operation {operation_id}")
 
-                emit("progress_unsubscribed", {
-                    "success": True,
-                    "data": {
-                        "operation_id": operation_id,
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    }
-                })
+                emit(
+                    "progress_unsubscribed",
+                    {
+                        "success": True,
+                        "data": {"operation_id": operation_id, "timestamp": datetime.now(UTC).isoformat()},
+                    },
+                )
 
             except ValidationError as e:
-                emit("unsubscription_error", {
-                    "success": False,
-                    "error": str(e)
-                })
+                emit("unsubscription_error", {"success": False, "error": str(e)})
             except Exception as e:
                 self.logger.error(f"Error handling progress unsubscription: {e}")
-                emit("unsubscription_error", {
-                    "success": False,
-                    "error": "Internal server error"
-                })
+                emit("unsubscription_error", {"success": False, "error": "Internal server error"})
 
         @self.socketio.on("cancel_operation")
         @jwt_required()
@@ -224,25 +218,19 @@ class ProgressTracker:
 
                 self.logger.info(f"User {user_id} cancelled operation {operation_id}")
 
-                emit("operation_cancelled", {
-                    "success": True,
-                    "data": {
-                        "operation_id": operation_id,
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    }
-                })
+                emit(
+                    "operation_cancelled",
+                    {
+                        "success": True,
+                        "data": {"operation_id": operation_id, "timestamp": datetime.now(UTC).isoformat()},
+                    },
+                )
 
             except ValidationError as e:
-                emit("cancellation_error", {
-                    "success": False,
-                    "error": str(e)
-                })
+                emit("cancellation_error", {"success": False, "error": str(e)})
             except Exception as e:
                 self.logger.error(f"Error handling operation cancellation: {e}")
-                emit("cancellation_error", {
-                    "success": False,
-                    "error": "Internal server error"
-                })
+                emit("cancellation_error", {"success": False, "error": "Internal server error"})
 
     def start_progress_tracking(self, operation_id: str, user_id: str, operation_type: str, total_steps: int = 1):
         """Start progress tracking for an operation."""
@@ -261,8 +249,8 @@ class ProgressTracker:
                 "current_step_number": 0,
                 "message": "Operation started",
                 "details": {},
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "estimated_time_remaining": None
+                "timestamp": datetime.now(UTC).isoformat(),
+                "estimated_time_remaining": None,
             }
 
             self.redis_client.set_json(progress_key, progress_data, ex=3600)  # 1 hour TTL
@@ -279,7 +267,7 @@ class ProgressTracker:
                 current_step_number=0,
                 message="Operation started",
                 details={},
-                timestamp=datetime.now(timezone.utc).isoformat()
+                timestamp=datetime.now(UTC).isoformat(),
             )
 
             # Broadcast progress update
@@ -291,9 +279,17 @@ class ProgressTracker:
             self.logger.error(f"Error starting progress tracking: {e}")
             raise WebSocketError(f"Failed to start progress tracking: {e!s}") from e
 
-    def update_progress(self, operation_id: str, user_id: str, status: str, progress_percent: float,
-                       current_step: str, message: str, details: dict[str, Any] | None = None,
-                       estimated_time_remaining: int | None = None):
+    def update_progress(
+        self,
+        operation_id: str,
+        user_id: str,
+        status: str,
+        progress_percent: float,
+        current_step: str,
+        message: str,
+        details: dict[str, Any] | None = None,
+        estimated_time_remaining: int | None = None,
+    ):
         """Update progress for an operation."""
         try:
             progress_key = f"progress:{operation_id}"
@@ -308,15 +304,17 @@ class ProgressTracker:
                 raise ValidationError("Access denied to operation progress")
 
             # Update progress data
-            current_progress.update({
-                "status": status,
-                "progress_percent": min(100.0, max(0.0, progress_percent)),
-                "current_step": current_step,
-                "message": message,
-                "details": details or {},
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "estimated_time_remaining": estimated_time_remaining
-            })
+            current_progress.update(
+                {
+                    "status": status,
+                    "progress_percent": min(100.0, max(0.0, progress_percent)),
+                    "current_step": current_step,
+                    "message": message,
+                    "details": details or {},
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "estimated_time_remaining": estimated_time_remaining,
+                }
+            )
 
             # Update step number if step changed
             if current_step != current_progress.get("current_step"):
@@ -337,8 +335,8 @@ class ProgressTracker:
                 current_step_number=current_progress["current_step_number"],
                 message=message,
                 details=details or {},
-                timestamp=datetime.now(timezone.utc).isoformat(),
-                estimated_time_remaining=estimated_time_remaining
+                timestamp=datetime.now(UTC).isoformat(),
+                estimated_time_remaining=estimated_time_remaining,
             )
 
             # Broadcast progress update
@@ -352,8 +350,13 @@ class ProgressTracker:
             self.logger.error(f"Error updating progress: {e}")
             raise WebSocketError(f"Failed to update progress: {e!s}") from e
 
-    def complete_operation(self, operation_id: str, user_id: str, message: str = "Operation completed successfully",
-                          details: dict[str, Any] | None = None):
+    def complete_operation(
+        self,
+        operation_id: str,
+        user_id: str,
+        message: str = "Operation completed successfully",
+        details: dict[str, Any] | None = None,
+    ):
         """Mark an operation as completed."""
         try:
             self.update_progress(
@@ -363,7 +366,7 @@ class ProgressTracker:
                 progress_percent=100.0,
                 current_step="Completed",
                 message=message,
-                details=details or {}
+                details=details or {},
             )
 
             self.logger.info(f"Operation {operation_id} completed successfully")
@@ -372,8 +375,9 @@ class ProgressTracker:
             self.logger.error(f"Error completing operation: {e}")
             raise WebSocketError(f"Failed to complete operation: {e!s}") from e
 
-    def fail_operation(self, operation_id: str, user_id: str, error_message: str,
-                      error_details: dict[str, Any] | None = None):
+    def fail_operation(
+        self, operation_id: str, user_id: str, error_message: str, error_details: dict[str, Any] | None = None
+    ):
         """Mark an operation as failed."""
         try:
             self.update_progress(
@@ -383,7 +387,7 @@ class ProgressTracker:
                 progress_percent=0.0,
                 current_step="Failed",
                 message=error_message,
-                details=error_details or {}
+                details=error_details or {},
             )
 
             self.logger.error(f"Operation {operation_id} failed: {error_message}")
@@ -401,7 +405,7 @@ class ProgressTracker:
                 status=ProgressStatus.CANCELLED.value,
                 progress_percent=0.0,
                 current_step="Cancelled",
-                message=message
+                message=message,
             )
 
             self.logger.info(f"Operation {operation_id} cancelled by user {user_id}")
@@ -443,14 +447,16 @@ class ProgressTracker:
             for key in keys[:limit]:  # Limit to prevent excessive queries
                 progress_data = self.redis_client.get_json(key)
                 if progress_data and progress_data["user_id"] == user_id:
-                    user_operations.append({
-                        "operation_id": progress_data["operation_id"],
-                        "operation_type": progress_data["operation_type"],
-                        "status": progress_data["status"],
-                        "progress_percent": progress_data["progress_percent"],
-                        "current_step": progress_data["current_step"],
-                        "timestamp": progress_data["timestamp"]
-                    })
+                    user_operations.append(
+                        {
+                            "operation_id": progress_data["operation_id"],
+                            "operation_type": progress_data["operation_type"],
+                            "status": progress_data["status"],
+                            "progress_percent": progress_data["progress_percent"],
+                            "current_step": progress_data["current_step"],
+                            "timestamp": progress_data["timestamp"],
+                        }
+                    )
 
             # Sort by timestamp (newest first)
             user_operations.sort(key=lambda x: x["timestamp"], reverse=True)
@@ -471,18 +477,18 @@ class ProgressTracker:
             event_data = asdict(event)
 
             # Emit to operation room
-            self.socketio.emit("progress_update", {
-                "success": True,
-                "data": event_data,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }, room=operation_room)
+            self.socketio.emit(
+                "progress_update",
+                {"success": True, "data": event_data, "timestamp": datetime.now(UTC).isoformat()},
+                room=operation_room,
+            )
 
             # Also emit to user room for general updates
-            self.socketio.emit("user_progress_update", {
-                "success": True,
-                "data": event_data,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }, room=user_room)
+            self.socketio.emit(
+                "user_progress_update",
+                {"success": True, "data": event_data, "timestamp": datetime.now(UTC).isoformat()},
+                room=user_room,
+            )
 
             self.logger.debug(f"Broadcasted progress update for operation {operation_id}")
 
@@ -500,13 +506,11 @@ class ProgressTracker:
 
             if operations:
                 # Emit current operations status
-                self.socketio.emit("current_operations", {
-                    "success": True,
-                    "data": {
-                        "operations": operations,
-                        "count": len(operations)
-                    }
-                }, room=user_room)
+                self.socketio.emit(
+                    "current_operations",
+                    {"success": True, "data": {"operations": operations, "count": len(operations)}},
+                    room=user_room,
+                )
 
                 self.logger.debug(f"Sent pending updates to user {user_id}")
 
@@ -535,49 +539,51 @@ class ProgressTracker:
 
 
 # Convenience functions for different operation types
-def track_pipeline_execution(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                           _pipeline_config: dict[str, Any]):
+def track_pipeline_execution(
+    progress_tracker: ProgressTracker, operation_id: str, user_id: str, _pipeline_config: dict[str, Any]
+):
     """Start tracking pipeline execution progress."""
     total_steps = 6  # Six-stage pipeline
     progress_tracker.start_progress_tracking(
         operation_id=operation_id,
         user_id=user_id,
         operation_type=ProgressType.PIPELINE_EXECUTION.value,
-        total_steps=total_steps
+        total_steps=total_steps,
     )
 
 
-def track_file_upload(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                     _file_info: dict[str, Any]):
+def track_file_upload(progress_tracker: ProgressTracker, operation_id: str, user_id: str, _file_info: dict[str, Any]):
     """Start tracking file upload progress."""
     total_steps = 3  # Upload, validation, processing
     progress_tracker.start_progress_tracking(
         operation_id=operation_id,
         user_id=user_id,
         operation_type=ProgressType.FILE_UPLOAD.value,
-        total_steps=total_steps
+        total_steps=total_steps,
     )
 
 
-def track_data_validation(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                         _validation_config: dict[str, Any]):
+def track_data_validation(
+    progress_tracker: ProgressTracker, operation_id: str, user_id: str, _validation_config: dict[str, Any]
+):
     """Start tracking data validation progress."""
     total_steps = 4  # Schema check, quality check, bias check, compliance check
     progress_tracker.start_progress_tracking(
         operation_id=operation_id,
         user_id=user_id,
         operation_type=ProgressType.DATA_VALIDATION.value,
-        total_steps=total_steps
+        total_steps=total_steps,
     )
 
 
-def track_bias_detection(progress_tracker: ProgressTracker, operation_id: str, user_id: str,
-                        _detection_config: dict[str, Any]):
+def track_bias_detection(
+    progress_tracker: ProgressTracker, operation_id: str, user_id: str, _detection_config: dict[str, Any]
+):
     """Start tracking bias detection progress."""
     total_steps = 3  # Preprocessing, detection, analysis
     progress_tracker.start_progress_tracking(
         operation_id=operation_id,
         user_id=user_id,
         operation_type=ProgressType.BIAS_DETECTION.value,
-        total_steps=total_steps
+        total_steps=total_steps,
     )

@@ -7,7 +7,7 @@ Tracks conversion status, progress, and provides status reporting.
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -73,17 +73,15 @@ class ConversionMonitor:
         self.conversion_status[source_id] = {
             "source_id": source_id,
             "status": "in_progress",
-            "started_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "started_at": datetime.now(UTC).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
             "metadata": metadata or {},
             "progress": 0.0,
         }
         self._save_status()
         logger.debug(f"Started conversion tracking for {source_id}")
 
-    def update_progress(
-        self, source_id: str, progress: float, message: str | None = None
-    ) -> None:
+    def update_progress(self, source_id: str, progress: float, message: str | None = None) -> None:
         """
         Update conversion progress.
 
@@ -95,10 +93,12 @@ class ConversionMonitor:
         if source_id not in self.conversion_status:
             self.start_conversion(source_id)
 
-        self.conversion_status[source_id].update({
-            "progress": progress,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-        })
+        self.conversion_status[source_id].update(
+            {
+                "progress": progress,
+                "updated_at": datetime.now(UTC).isoformat(),
+            }
+        )
 
         if message:
             self.conversion_status[source_id]["message"] = message
@@ -106,9 +106,7 @@ class ConversionMonitor:
         self._save_status()
         logger.debug(f"Updated progress for {source_id}: {progress:.1%}")
 
-    def complete_conversion(
-        self, source_id: str, result: dict[str, Any]
-    ) -> None:
+    def complete_conversion(self, source_id: str, result: dict[str, Any]) -> None:
         """
         Mark conversion as completed.
 
@@ -119,21 +117,22 @@ class ConversionMonitor:
         if source_id not in self.conversion_status:
             self.start_conversion(source_id)
 
-        self.conversion_status[source_id].update({
-            "status": "completed" if result.get("success") else "failed",
-            "progress": 1.0,
-            "completed_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-            "result": result,
-        })
+        self.conversion_status[source_id].update(
+            {
+                "status": "completed" if result.get("success") else "failed",
+                "progress": 1.0,
+                "completed_at": datetime.now(UTC).isoformat(),
+                "updated_at": datetime.now(UTC).isoformat(),
+                "result": result,
+            }
+        )
 
         if not result.get("success"):
             self.conversion_status[source_id]["error"] = result.get("error")
 
         self._save_status()
         logger.info(
-            f"Completed conversion tracking for {source_id}: "
-            f"status={self.conversion_status[source_id]['status']}"
+            f"Completed conversion tracking for {source_id}: status={self.conversion_status[source_id]['status']}"
         )
 
     def get_status(self, source_id: str) -> dict[str, Any] | None:
@@ -166,14 +165,10 @@ class ConversionMonitor:
         conversions = list(self.conversion_status.values())
 
         if status_filter:
-            conversions = [
-                c for c in conversions if c.get("status") == status_filter
-            ]
+            conversions = [c for c in conversions if c.get("status") == status_filter]
 
         # Sort by updated_at (most recent first)
-        conversions.sort(
-            key=lambda x: x.get("updated_at", ""), reverse=True
-        )
+        conversions.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
 
         if limit:
             conversions = conversions[:limit]
@@ -188,23 +183,12 @@ class ConversionMonitor:
             Dictionary with dashboard statistics and data
         """
         total = len(self.conversion_status)
-        in_progress = sum(
-            1 for s in self.conversion_status.values()
-            if s.get("status") == "in_progress"
-        )
-        completed = sum(
-            1 for s in self.conversion_status.values()
-            if s.get("status") == "completed"
-        )
-        failed = sum(
-            1 for s in self.conversion_status.values()
-            if s.get("status") == "failed"
-        )
+        in_progress = sum(1 for s in self.conversion_status.values() if s.get("status") == "in_progress")
+        completed = sum(1 for s in self.conversion_status.values() if s.get("status") == "completed")
+        failed = sum(1 for s in self.conversion_status.values() if s.get("status") == "failed")
 
         # Calculate average progress
-        total_progress = sum(
-            s.get("progress", 0.0) for s in self.conversion_status.values()
-        )
+        total_progress = sum(s.get("progress", 0.0) for s in self.conversion_status.values())
         avg_progress = total_progress / total if total > 0 else 0.0
 
         return {
@@ -216,5 +200,3 @@ class ConversionMonitor:
             "average_progress": avg_progress,
             "recent_conversions": self.list_conversions(limit=10),
         }
-
-

@@ -14,7 +14,7 @@ import hashlib
 import logging
 import secrets
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from functools import wraps
 
@@ -62,7 +62,7 @@ class User:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.now(timezone.utc)
+            self.created_at = datetime.now(UTC)
 
 
 @dataclass
@@ -81,7 +81,7 @@ class APIKey:
 
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.now(timezone.utc)
+            self.created_at = datetime.now(UTC)
 
 
 class AuthenticationSystem:
@@ -138,9 +138,7 @@ class AuthenticationSystem:
         """Hash API key for storage"""
         return hashlib.sha256(api_key.encode()).hexdigest()
 
-    def create_user(
-        self, username: str, email: str, password: str, role: UserRole = UserRole.USER
-    ) -> User:
+    def create_user(self, username: str, email: str, password: str, role: UserRole = UserRole.USER) -> User:
         """Create new user with hashed password"""
         user_id = secrets.token_urlsafe(16)
         password_hash = self.hash_password(password)
@@ -170,7 +168,7 @@ class AuthenticationSystem:
 
         expires_at = None
         if expires_in_days:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=expires_in_days)
+            expires_at = datetime.now(UTC) + timedelta(days=expires_in_days)
 
         api_key_obj = APIKey(
             key_id=key_id,
@@ -181,20 +179,14 @@ class AuthenticationSystem:
         )
 
         self.api_keys[key_id] = api_key_obj
-        logger.info(
-            f"API key created: {name} with permissions {[p.value for p in permissions]}"
-        )
+        logger.info(f"API key created: {name} with permissions {[p.value for p in permissions]}")
         return api_key, api_key_obj
 
     def authenticate_user(self, username: str, password: str) -> User | None:
         """Authenticate user with username/password"""
         for user in self.users.values():
-            if (
-                user.username == username
-                and user.is_active
-                and self.verify_password(password, user.password_hash)
-            ):
-                user.last_login = datetime.now(timezone.utc)
+            if user.username == username and user.is_active and self.verify_password(password, user.password_hash):
+                user.last_login = datetime.now(UTC)
                 logger.info(f"User authenticated: {username}")
                 return user
 
@@ -208,15 +200,11 @@ class AuthenticationSystem:
         for api_key_obj in self.api_keys.values():
             if api_key_obj.key_hash == key_hash and api_key_obj.is_active:
                 # Check expiration
-                if (
-                    api_key_obj.expires_at
-                    and
-                    datetime.now(timezone.utc) > api_key_obj.expires_at
-                ):
+                if api_key_obj.expires_at and datetime.now(UTC) > api_key_obj.expires_at:
                     logger.warning(f"Expired API key used: {api_key_obj.name}")
                     return None
 
-                api_key_obj.last_used = datetime.now(timezone.utc)
+                api_key_obj.last_used = datetime.now(UTC)
                 logger.info(f"API key authenticated: {api_key_obj.name}")
                 return api_key_obj
 
@@ -229,8 +217,8 @@ class AuthenticationSystem:
             "user_id": user.user_id,
             "username": user.username,
             "role": user.role.value,
-            "exp": datetime.now(timezone.utc) + timedelta(hours=self.token_expiry_hours),
-            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(UTC) + timedelta(hours=self.token_expiry_hours),
+            "iat": datetime.now(UTC),
             "jti": secrets.token_urlsafe(16),  # JWT ID for revocation
         }
 
@@ -273,16 +261,12 @@ class AuthenticationSystem:
         except jwt.InvalidTokenError:
             return False
 
-    def check_permission(
-        self, user_role: UserRole, required_permission: PermissionLevel
-    ) -> bool:
+    def check_permission(self, user_role: UserRole, required_permission: PermissionLevel) -> bool:
         """Check if user role has required permission"""
         user_permissions = self.role_permissions.get(user_role, [])
         return required_permission in user_permissions
 
-    def check_api_key_permission(
-        self, api_key: APIKey, required_permission: PermissionLevel
-    ) -> bool:
+    def check_api_key_permission(self, api_key: APIKey, required_permission: PermissionLevel) -> bool:
         """Check if API key has required permission"""
         return required_permission in api_key.permissions
 
@@ -319,9 +303,7 @@ class AuthenticationMiddleware:
                         user_id = payload["user_id"]
                         user = self.auth_system.users.get(user_id)
 
-                        if user and self.auth_system.check_permission(
-                            user.role, required_permission
-                        ):
+                        if user and self.auth_system.check_permission(user.role, required_permission):
                             authenticated_user = user
                         else:
                             return {"error": "Insufficient permissions", "status": 403}
@@ -332,9 +314,7 @@ class AuthenticationMiddleware:
                 elif api_key_header:
                     api_key_obj = self.auth_system.authenticate_api_key(api_key_header)
 
-                    if api_key_obj and self.auth_system.check_api_key_permission(
-                        api_key_obj, required_permission
-                    ):
+                    if api_key_obj and self.auth_system.check_api_key_permission(api_key_obj, required_permission):
                         authenticated_api_key = api_key_obj
                     else:
                         return {
@@ -383,9 +363,7 @@ class AuthenticationTester:
             try:
                 result = test()
                 results[test.__name__] = result
-                logger.info(
-                    f"Security test {test.__name__}: {'PASSED' if result else 'FAILED'}"
-                )
+                logger.info(f"Security test {test.__name__}: {'PASSED' if result else 'FAILED'}")
             except Exception as e:
                 results[test.__name__] = False
                 logger.error(f"Security test {test.__name__} failed with error: {e}")
@@ -403,9 +381,7 @@ class AuthenticationTester:
             return False
 
         # Both should verify correctly
-        return self.auth_system.verify_password(
-            password, hash1
-        ) and self.auth_system.verify_password(password, hash2)
+        return self.auth_system.verify_password(password, hash1) and self.auth_system.verify_password(password, hash2)
 
     def test_jwt_token_validation(self) -> bool:
         """Test JWT token validation"""
@@ -423,9 +399,7 @@ class AuthenticationTester:
 
     def test_api_key_security(self) -> bool:
         """Test API key security"""
-        api_key, api_key_obj = self.auth_system.create_api_key(
-            "test_key", [PermissionLevel.READ]
-        )
+        api_key, api_key_obj = self.auth_system.create_api_key("test_key", [PermissionLevel.READ])
 
         # Valid API key should authenticate
         auth_result = self.auth_system.authenticate_api_key(api_key)
@@ -439,14 +413,10 @@ class AuthenticationTester:
     def test_role_based_access(self) -> bool:
         """Test role-based access control"""
         # Admin should have all permissions
-        admin_check = self.auth_system.check_permission(
-            UserRole.ADMIN, PermissionLevel.DELETE
-        )
+        admin_check = self.auth_system.check_permission(UserRole.ADMIN, PermissionLevel.DELETE)
 
         # Readonly should not have write permissions
-        readonly_check = not self.auth_system.check_permission(
-            UserRole.READONLY, PermissionLevel.WRITE
-        )
+        readonly_check = not self.auth_system.check_permission(UserRole.READONLY, PermissionLevel.WRITE)
 
         return admin_check and readonly_check
 
@@ -477,9 +447,7 @@ class AuthenticationTester:
 
     def test_brute_force_protection(self) -> bool:
         """Test brute force protection (basic implementation)"""
-        self.auth_system.create_user(
-            "bf_user", "bf@example.com", "correct_password"
-        )
+        self.auth_system.create_user("bf_user", "bf@example.com", "correct_password")
 
         # Multiple failed attempts
         for _ in range(5):
@@ -498,12 +466,8 @@ if __name__ == "__main__":
     auth_system = AuthenticationSystem(secret_key="your-secret-key-here")
 
     # Create test users
-    admin_user = auth_system.create_user(
-        "admin", "admin@example.com", "admin_password", UserRole.ADMIN
-    )
-    regular_user = auth_system.create_user(
-        "user", "user@example.com", "user_password", UserRole.USER
-    )
+    admin_user = auth_system.create_user("admin", "admin@example.com", "admin_password", UserRole.ADMIN)
+    regular_user = auth_system.create_user("user", "user@example.com", "user_password", UserRole.USER)
 
     # Create API key
     api_key, api_key_obj = auth_system.create_api_key(
@@ -511,7 +475,6 @@ if __name__ == "__main__":
         [PermissionLevel.READ, PermissionLevel.WRITE],
         expires_in_days=30,
     )
-
 
     # Test authentication
     authenticated_user = auth_system.authenticate_user("admin", "admin_password")
@@ -526,15 +489,9 @@ if __name__ == "__main__":
     test_results = tester.run_security_tests()
 
     for _test_name, result in test_results.items():
-        status = "PASSED" if result else "FAILED"
+        logger.info(f"  {_test_name}: {'PASSED' if result else 'FAILED'}")
 
-    # Calculate overall security score
     passed_tests = sum(test_results.values())
     total_tests = len(test_results)
     security_score = (passed_tests / total_tests) * 100
-
-
-    if security_score >= 90:
-        pass
-    else:
-        pass
+    logger.info(f"Security score: {security_score:.0f}%")

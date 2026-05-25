@@ -15,7 +15,7 @@ Usage:
     from ai.memory.dream_reflection_integration import DreamReflectionIntegration
 
     integration = DreamReflectionIntegration()
-    
+
     # After dream cycle completes
     await integration.trigger_post_dream_reflection(
         user_id="user_123",
@@ -28,7 +28,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 class DreamPhase(str, Enum):
     """Dream cycle phases."""
+
     NREM = "nrem"  # Non-REM sleep
     REM = "rem"  # REM sleep - where dream consolidation happens
     POST_DREAM = "post_dream"  # Post-dream processing
@@ -49,7 +50,7 @@ class DreamPhase(str, Enum):
 @dataclass
 class DreamOutput:
     """Output from a dream cycle."""
-    
+
     dream_id: str
     user_id: str
     phase: DreamPhase
@@ -58,8 +59,8 @@ class DreamOutput:
     consolidated_memories: list[dict[str, Any]]
     emotional_tone: str | None = None
     insights: list[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "dream_id": self.dream_id,
@@ -77,7 +78,7 @@ class DreamOutput:
 @dataclass
 class ReflectionInsight:
     """Insight generated from reflection on dream content."""
-    
+
     insight_id: str
     dream_id: str
     user_id: str
@@ -87,8 +88,8 @@ class ReflectionInsight:
     related_patterns: list[str]
     confidence: float  # 0.0-1.0
     requires_consolidation: bool = True
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
     def to_memory_metadata(self) -> MemoryMetadata:
         """Convert to memory metadata for storage."""
         return MemoryMetadata(
@@ -98,26 +99,26 @@ class ReflectionInsight:
                 f"dream:{self.dream_id}",
                 *[f"theme:{t}" for t in self.related_themes[:3]],
             ],
-            created_at=datetime.now(timezone.utc).timestamp(),
+            created_at=datetime.now(UTC).timestamp(),
         )
 
 
 @dataclass
 class DreamReflectionConfig:
     """Configuration for dream-reflection integration."""
-    
+
     # Timing
     post_dream_delay_minutes: int = 5  # Delay before triggering reflection
     max_reflection_timeout_minutes: int = 30  # Max time to wait for reflection
-    
+
     # Feature flags
     enable_post_dream_reflection: bool = True
     enable_dream_lineage_tracking: bool = True
-    
+
     # Content filtering
     min_dream_confidence: float = 0.5  # Minimum confidence to trigger reflection
     max_reflection_topics: int = 5  # Max topics to reflect on
-    
+
     # Storage
     store_dream_lineage: bool = True
     lineage_depth: int = 3  # How many generations of dream lineage to track
@@ -126,11 +127,11 @@ class DreamReflectionConfig:
 class DreamReflectionIntegration:
     """
     Integrates reflection tasks with dream cycles.
-    
+
     Coordinates the flow from dream cycle completion through reflection
     and back to long-term memory storage.
     """
-    
+
     def __init__(
         self,
         memory_manager: LocalForesightMemoryManager | None = None,
@@ -138,19 +139,19 @@ class DreamReflectionIntegration:
     ):
         """
         Initialize the integration.
-        
+
         Args:
             memory_manager: Memory manager for storing insights
             config: Configuration for the integration
         """
         self.memory_manager = memory_manager or LocalForesightMemoryManager()
         self.config = config or DreamReflectionConfig()
-        
+
         # Pending reflections (dream_id -> ReflectionTask)
         self._pending_reflections: dict[str, asyncio.Task] = {}
-        
+
         logger.info("DreamReflectionIntegration initialized")
-    
+
     async def trigger_post_dream_reflection(
         self,
         user_id: str,
@@ -158,31 +159,30 @@ class DreamReflectionIntegration:
     ) -> str | None:
         """
         Trigger reflection after a dream cycle completes.
-        
+
         Args:
             user_id: User identifier
             dream_output: Output from the dream cycle
-            
+
         Returns:
             Reflection task ID if scheduled, None if skipped
         """
         if not self.config.enable_post_dream_reflection:
             logger.debug("Post-dream reflection disabled")
             return None
-        
+
         # Check confidence threshold
         if not dream_output.patterns or not dream_output.themes:
             logger.debug("No patterns/themes from dream, skipping reflection")
             return None
-        
+
         # Schedule reflection with delay
         delay_seconds = self.config.post_dream_delay_minutes * 60
-        
+
         logger.info(
-            f"Scheduling post-dream reflection for user {user_id} "
-            f"dream {dream_output.dream_id} in {delay_seconds}s"
+            f"Scheduling post-dream reflection for user {user_id} dream {dream_output.dream_id} in {delay_seconds}s"
         )
-        
+
         # Create reflection task
         task = asyncio.create_task(
             self._delayed_reflection(
@@ -191,11 +191,11 @@ class DreamReflectionIntegration:
                 delay_seconds=delay_seconds,
             )
         )
-        
+
         self._pending_reflections[dream_output.dream_id] = task
-        
+
         return dream_output.dream_id
-    
+
     async def _delayed_reflection(
         self,
         user_id: str,
@@ -206,21 +206,19 @@ class DreamReflectionIntegration:
         try:
             # Wait for delay
             await asyncio.sleep(delay_seconds)
-            
+
             # Check if still pending (not cancelled)
             if dream_output.dream_id not in self._pending_reflections:
                 return
-            
+
             # Execute reflection
             insights = await self._execute_reflection(user_id, dream_output)
-            
+
             # Store insights
             await self._store_insights(user_id, dream_output, insights)
-            
-            logger.info(
-                f"Stored {len(insights)} insights from dream {dream_output.dream_id}"
-            )
-            
+
+            logger.info(f"Stored {len(insights)} insights from dream {dream_output.dream_id}")
+
         except asyncio.CancelledError:
             logger.debug(f"Reflection for dream {dream_output.dream_id} cancelled")
             raise
@@ -229,7 +227,7 @@ class DreamReflectionIntegration:
         finally:
             # Clean up pending task
             self._pending_reflections.pop(dream_output.dream_id, None)
-    
+
     async def _execute_reflection(
         self,
         user_id: str,
@@ -237,27 +235,27 @@ class DreamReflectionIntegration:
     ) -> list[ReflectionInsight]:
         """
         Execute reflection on dream content.
-        
+
         This is a simplified implementation. In production, this would
         call an LLM-based reflection agent.
-        
+
         Args:
             user_id: User identifier
             dream_output: Dream output to reflect on
-            
+
         Returns:
             List of reflection insights
         """
         insights = []
-        
+
         # Generate insights from themes
-        for i, theme in enumerate(dream_output.themes[:self.config.max_reflection_topics]):
+        for i, theme in enumerate(dream_output.themes[: self.config.max_reflection_topics]):
             insight_content = self._generate_insight_from_theme(
                 theme=theme,
                 patterns=dream_output.patterns,
                 emotional_tone=dream_output.emotional_tone,
             )
-            
+
             insight = ReflectionInsight(
                 insight_id=f"insight_{dream_output.dream_id}_{i}",
                 dream_id=dream_output.dream_id,
@@ -269,19 +267,19 @@ class DreamReflectionIntegration:
                 confidence=0.8,  # Would be computed by reflection agent
             )
             insights.append(insight)
-        
+
         # Generate insight from patterns
         if dream_output.patterns:
             pattern_insight = self._generate_insight_from_patterns(
                 patterns=dream_output.patterns,
                 themes=dream_output.themes,
             )
-            
+
             if pattern_insight:
                 insights.append(pattern_insight)
-        
+
         return insights
-    
+
     def _generate_insight_from_theme(
         self,
         theme: str,
@@ -290,18 +288,18 @@ class DreamReflectionIntegration:
     ) -> str:
         """Generate insight from a single theme."""
         emotion_context = f" with {emotional_tone} tone" if emotional_tone else ""
-        
+
         pattern_context = ""
         if patterns:
             pattern_str = ", ".join(patterns[:2])
             pattern_context = f" in relation to patterns: {pattern_str}"
-        
+
         return (
             f"Dream theme '{theme}'{emotion_context} suggests processing of "
             f"underlying emotional content{pattern_context}. "
             f"This theme may benefit from further exploration in therapeutic context."
         )
-    
+
     def _generate_insight_from_patterns(
         self,
         patterns: list[str],
@@ -310,17 +308,17 @@ class DreamReflectionIntegration:
         """Generate consolidated insight from multiple patterns."""
         if len(patterns) < 2:
             return None
-        
+
         pattern_text = ", ".join(patterns[:3])
         theme_text = themes[0] if themes else "current experiences"
-        
+
         content = (
             f"Pattern analysis across {pattern_text} reveals recurring "
             f"themes related to '{theme_text}'. "
             f"Consider exploring connections between these patterns "
             f"in future sessions."
         )
-        
+
         return ReflectionInsight(
             insight_id=f"pattern_insight_{len(patterns)}",
             dream_id="consolidated",
@@ -331,7 +329,7 @@ class DreamReflectionIntegration:
             related_patterns=patterns,
             confidence=0.7,
         )
-    
+
     async def _store_insights(
         self,
         user_id: str,
@@ -340,7 +338,7 @@ class DreamReflectionIntegration:
     ) -> None:
         """
         Store reflection insights as memories.
-        
+
         Args:
             user_id: User identifier
             dream_output: Related dream output
@@ -350,11 +348,11 @@ class DreamReflectionIntegration:
             try:
                 # Create metadata with dream lineage
                 metadata = insight.to_memory_metadata()
-                
+
                 # Add dream lineage tracking
                 if self.config.store_dream_lineage:
                     metadata.tags.append(f"dream_lineage:{dream_output.dream_id}")
-                
+
                 # Store in memory system
                 await self.memory_manager.add_memory(
                     content=insight.content,
@@ -362,70 +360,68 @@ class DreamReflectionIntegration:
                     metadata=metadata,
                     category=insight.category.value,
                 )
-                
+
                 logger.debug(f"Stored insight {insight.insight_id} for user {user_id}")
-                
+
             except Exception as e:
                 logger.error(f"Failed to store insight {insight.insight_id}: {e}")
-    
+
     async def cancel_reflection(self, dream_id: str) -> bool:
         """
         Cancel a pending reflection task.
-        
+
         Args:
             dream_id: Dream ID to cancel reflection for
-            
+
         Returns:
             True if cancelled, False if not found
         """
         task = self._pending_reflections.get(dream_id)
         if not task:
             return False
-        
+
         task.cancel()
         self._pending_reflections.pop(dream_id, None)
         return True
-    
+
     async def get_reflection_status(self, dream_id: str) -> dict[str, Any]:
         """
         Get status of a reflection task.
-        
+
         Args:
             dream_id: Dream ID to check
-            
+
         Returns:
             Status dictionary with state and insights
         """
         task = self._pending_reflections.get(dream_id)
-        
+
         if not task:
             return {"status": "not_found"}
-        
+
         if task.done():
             if task.cancelled():
                 return {"status": "cancelled"}
-            elif task.exception():
+            if task.exception():
                 return {"status": "failed", "error": str(task.exception())}
-            else:
-                return {"status": "completed"}
-        else:
-            return {"status": "pending"}
-    
+            return {"status": "completed"}
+        return {"status": "pending"}
+
     async def close(self) -> None:
         """Clean up resources."""
         # Cancel all pending reflections
         for dream_id, task in list(self._pending_reflections.items()):
             task.cancel()
-        
+
         if self._pending_reflections:
             await asyncio.gather(
                 *self._pending_reflections.values(),
                 return_exceptions=True,
             )
-        
+
         self._pending_reflections.clear()
-        
-        if hasattr(self.memory_manager, 'close'):
+
+        if hasattr(self.memory_manager, "close"):
             await self.memory_manager.close()
 
 
@@ -438,11 +434,9 @@ def create_dream_output(
     """Helper to create dream output for testing."""
     import hashlib
     import time
-    
-    dream_id = hashlib.sha256(
-        f"{user_id}:{time.time()}".encode()
-    ).hexdigest()[:16]
-    
+
+    dream_id = hashlib.sha256(f"{user_id}:{time.time()}".encode()).hexdigest()[:16]
+
     return DreamOutput(
         dream_id=dream_id,
         user_id=user_id,

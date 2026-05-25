@@ -10,13 +10,14 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from functools import wraps
 from typing import Any
 
 import numpy as np
 import psutil
+
 from ai.utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class LogLevel(Enum):
     """Logging levels for observability"""
+
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -33,6 +35,7 @@ class LogLevel(Enum):
 
 class MetricType(Enum):
     """Types of metrics to collect"""
+
     LATENCY = "latency"
     THROUGHPUT = "throughput"
     ERROR_RATE = "error_rate"
@@ -45,6 +48,7 @@ class MetricType(Enum):
 @dataclass
 class LogEntry:
     """Structured log entry for observability"""
+
     timestamp: str
     level: LogLevel
     service: str
@@ -60,6 +64,7 @@ class LogEntry:
 @dataclass
 class Metric:
     """Individual metric data point"""
+
     name: str
     value: float
     metric_type: MetricType
@@ -72,6 +77,7 @@ class Metric:
 @dataclass
 class Span:
     """Distributed tracing span for request tracking"""
+
     trace_id: str
     span_id: str
     parent_span_id: str | None
@@ -93,7 +99,7 @@ class RedactionEngine:
             "ssn": r"\b\d{3}[-\s]?\d{2}[-\s]?\d{4}\b",
             "credit_card": r"\b(?:\d{4}[-\s]?){3}\d{4}\b|\b\d{16}\b",
             "api_key": r"(?:api[_-]?key|token)[=:]\s*[a-zA-Z0-9_-]{20,}",
-            "password": r"(?:password|passwd|pwd)[=:]\s*[^\s&]+"
+            "password": r"(?:password|passwd|pwd)[=:]\s*[^\s&]+",
         }
         self.placeholder = "[REDACTED]"
 
@@ -104,7 +110,9 @@ class RedactionEngine:
 
         redacted_text = text
         for pattern_name, pattern in self.redaction_patterns.items():
-            redacted_text = re.sub(pattern, f"{self.placeholder}_{pattern_name.upper()}", redacted_text, flags=re.IGNORECASE)
+            redacted_text = re.sub(
+                pattern, f"{self.placeholder}_{pattern_name.upper()}", redacted_text, flags=re.IGNORECASE
+            )
 
         return redacted_text
 
@@ -145,15 +153,17 @@ class Logger:
         self.redaction_engine = RedactionEngine()
         self.logger = logging.getLogger(service_name)
 
-    def log(self,
-            level: LogLevel,
-            message: str,
-            context: dict[str, Any] | None = None,
-            user_id: str | None = None,
-            request_id: str | None = None,
-            model_name: str | None = None,
-            trace_id: str | None = None,
-            **extra_fields) -> LogEntry:
+    def log(
+        self,
+        level: LogLevel,
+        message: str,
+        context: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        request_id: str | None = None,
+        model_name: str | None = None,
+        trace_id: str | None = None,
+        **extra_fields,
+    ) -> LogEntry:
         """Log a structured message"""
         # Redact sensitive information
         redacted_message = self.redaction_engine.redact_text(message)
@@ -162,7 +172,7 @@ class Logger:
 
         # Create log entry
         log_entry = LogEntry(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             level=level,
             service=self.service_name,
             message=redacted_message,
@@ -171,7 +181,7 @@ class Logger:
             request_id=request_id,
             model_name=model_name,
             trace_id=trace_id,
-            extra_fields=redacted_extra
+            extra_fields=redacted_extra,
         )
 
         # Actually log the message
@@ -211,22 +221,24 @@ class MetricsCollector:
         self.counters: dict[str, int] = {}
         self.gauges: dict[str, float] = {}
 
-    def record_metric(self,
-                     name: str,
-                     value: float,
-                     metric_type: MetricType,
-                     tags: dict[str, str] | None = None,
-                     unit: str | None = None,
-                     description: str | None = None) -> Metric:
+    def record_metric(
+        self,
+        name: str,
+        value: float,
+        metric_type: MetricType,
+        tags: dict[str, str] | None = None,
+        unit: str | None = None,
+        description: str | None = None,
+    ) -> Metric:
         """Record a single metric point"""
         metric = Metric(
             name=name,
             value=value,
             metric_type=metric_type,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             tags=tags,
             unit=unit,
-            description=description
+            description=description,
         )
 
         self.metrics.append(metric)
@@ -240,18 +252,14 @@ class MetricsCollector:
             value=self.counters[name],
             metric_type=MetricType.THROUGHPUT,
             tags=tags,
-            description=f"Counter: {name}"
+            description=f"Counter: {name}",
         )
 
     def set_gauge(self, name: str, value: float, tags: dict[str, str] | None = None):
         """Set a gauge metric"""
         self.gauges[name] = value
         self.record_metric(
-            name=name,
-            value=value,
-            metric_type=MetricType.RESOURCE_USAGE,
-            tags=tags,
-            description=f"Gauge: {name}"
+            name=name, value=value, metric_type=MetricType.RESOURCE_USAGE, tags=tags, description=f"Gauge: {name}"
         )
 
     def record_histogram(self, name: str, value: float, tags: dict[str, str] | None = None):
@@ -270,7 +278,7 @@ class MetricsCollector:
             metric_type=MetricType.LATENCY,
             tags=tags,
             unit="milliseconds",
-            description=f"Histogram: {name}"
+            description=f"Histogram: {name}",
         )
 
     def get_system_metrics(self) -> dict[str, Any]:
@@ -283,7 +291,7 @@ class MetricsCollector:
             "disk_percent": psutil.disk_usage("/").percent,
             "disk_free_gb": psutil.disk_usage("/").free / (1024**3),
             "network_sent_mb": psutil.net_io_counters().bytes_sent / (1024**2),
-            "network_recv_mb": psutil.net_io_counters().bytes_recv / (1024**2)
+            "network_recv_mb": psutil.net_io_counters().bytes_recv / (1024**2),
         }
 
         # Add GPU metrics if available
@@ -291,8 +299,9 @@ class MetricsCollector:
             metrics["gpu_count"] = torch.cuda.device_count()
             for i in range(torch.cuda.device_count()):
                 metrics[f"gpu_{i}_memory_gb"] = torch.cuda.memory_allocated(i) / (1024**3)
-                metrics[f"gpu_{i}_memory_percent"] = (torch.cuda.memory_allocated(i) /
-                                                    torch.cuda.get_device_properties(i).total_memory) * 100
+                metrics[f"gpu_{i}_memory_percent"] = (
+                    torch.cuda.memory_allocated(i) / torch.cuda.get_device_properties(i).total_memory
+                ) * 100
                 metrics[f"gpu_{i}_utilization"] = torch.cuda.utilization(i) if torch.cuda.utilization else 0
 
         return metrics
@@ -305,11 +314,13 @@ class Tracer:
         self.spans: dict[str, Span] = {}
         self.active_spans: dict[str, str] = {}  # trace_id -> span_id
 
-    def start_span(self,
-                   operation_name: str,
-                   trace_id: str | None = None,
-                   parent_span_id: str | None = None,
-                   tags: dict[str, Any] | None = None) -> Span:
+    def start_span(
+        self,
+        operation_name: str,
+        trace_id: str | None = None,
+        parent_span_id: str | None = None,
+        tags: dict[str, Any] | None = None,
+    ) -> Span:
         """Start a new tracing span"""
         if not trace_id:
             trace_id = self._generate_id()
@@ -322,7 +333,7 @@ class Tracer:
             parent_span_id=parent_span_id,
             operation_name=operation_name,
             start_time=time.time(),
-            tags=tags or {}
+            tags=tags or {},
         )
 
         self.spans[span_id] = span
@@ -364,16 +375,18 @@ class ObservabilityManager:
         self.tracer = Tracer()
         self.request_metrics = {}
 
-    def log_request(self,
-                   request_id: str,
-                   user_id: str | None = None,
-                   model_name: str | None = None,
-                   _input_data: dict | str | None = None,
-                   _output_data: dict | str | None = None,
-                   processing_time_ms: float | None = None,
-                   status: str = "success",
-                   error_message: str | None = None,
-                   trace_id: str | None = None):
+    def log_request(
+        self,
+        request_id: str,
+        user_id: str | None = None,
+        model_name: str | None = None,
+        _input_data: dict | str | None = None,
+        _output_data: dict | str | None = None,
+        processing_time_ms: float | None = None,
+        status: str = "success",
+        error_message: str | None = None,
+        trace_id: str | None = None,
+    ):
         """Log a complete request with all relevant information"""
         # Record processing time
         if processing_time_ms is not None:
@@ -388,7 +401,7 @@ class ObservabilityManager:
                 user_id=user_id,
                 request_id=request_id,
                 model_name=model_name,
-                trace_id=trace_id
+                trace_id=trace_id,
             )
         else:
             self.logger.info(
@@ -396,30 +409,26 @@ class ObservabilityManager:
                 user_id=user_id,
                 request_id=request_id,
                 model_name=model_name,
-                trace_id=trace_id
+                trace_id=trace_id,
             )
 
-    def log_model_inference(self,
-                           model_name: str,
-                           input_tokens: int,
-                           output_tokens: int,
-                           processing_time_ms: float,
-                           success: bool = True,
-                           error_type: str | None = None):
+    def log_model_inference(
+        self,
+        model_name: str,
+        input_tokens: int,
+        output_tokens: int,
+        processing_time_ms: float,
+        success: bool = True,
+        error_type: str | None = None,
+    ):
         """Log model inference metrics"""
         # Record inference metrics
         self.metrics_collector.record_histogram("model_inference_latency_ms", processing_time_ms)
         self.metrics_collector.record_metric(
-            "model_input_tokens",
-            input_tokens,
-            MetricType.MODEL_PERFORMANCE,
-            tags={"model": model_name}
+            "model_input_tokens", input_tokens, MetricType.MODEL_PERFORMANCE, tags={"model": model_name}
         )
         self.metrics_collector.record_metric(
-            "model_output_tokens",
-            output_tokens,
-            MetricType.MODEL_PERFORMANCE,
-            tags={"model": model_name}
+            "model_output_tokens", output_tokens, MetricType.MODEL_PERFORMANCE, tags={"model": model_name}
         )
 
         # Increment counters
@@ -455,23 +464,18 @@ class ObservabilityManager:
             "average_latency_ms": avg_latency,
             "p95_latency_ms": p95_latency,
             "p99_latency_ms": p99_latency,
-            "system_metrics": self.get_system_health()
+            "system_metrics": self.get_system_health(),
         }
 
-    def create_traced_request(self,
-                            operation_name: str,
-                            user_id: str | None = None,
-                            model_name: str | None = None) -> Span:
+    def create_traced_request(
+        self, operation_name: str, user_id: str | None = None, model_name: str | None = None
+    ) -> Span:
         """Create a traced request span"""
         trace_id = self.tracer._generate_id()
         span = self.tracer.start_span(
             operation_name=operation_name,
             trace_id=trace_id,
-            tags={
-                "user_id": user_id,
-                "model_name": model_name,
-                "service": self.service_name
-            }
+            tags={"user_id": user_id, "model_name": model_name, "service": self.service_name},
         )
 
         # Log the start
@@ -480,7 +484,7 @@ class ObservabilityManager:
             user_id=user_id,
             model_name=model_name,
             trace_id=trace_id,
-            span_id=span.span_id
+            span_id=span.span_id,
         )
 
         return span
@@ -496,20 +500,21 @@ class ObservabilityManager:
                 f"Completed traced operation: {span.operation_name} in {duration:.2f}ms",
                 trace_id=span.trace_id,
                 span_id=span.span_id,
-                duration_ms=duration
+                duration_ms=duration,
             )
         else:
             self.logger.error(
                 f"Failed traced operation: {span.operation_name} after {duration:.2f}ms - {error_message or 'Unknown error'}",
                 trace_id=span.trace_id,
                 span_id=span.span_id,
-                duration_ms=duration
+                duration_ms=duration,
             )
 
 
 # Decorator for automatic observability
 def observable(func):
     """Decorator to automatically add observability to functions"""
+
     @wraps(func)
     async def async_wrapper(*args, **kwargs):
         # Create observability manager
@@ -517,8 +522,7 @@ def observable(func):
 
         # Create span for the function call
         span = obs_manager.create_traced_request(
-            operation_name=f"{func.__module__}.{func.__name__}",
-            user_id=kwargs.get("user_id")
+            operation_name=f"{func.__module__}.{func.__name__}", user_id=kwargs.get("user_id")
         )
 
         start_time = time.time()
@@ -538,7 +542,7 @@ def observable(func):
             obs_manager.logger.info(
                 f"Function {func.__name__} executed successfully in {duration_ms:.2f}ms",
                 trace_id=span.trace_id,
-                duration_ms=duration_ms
+                duration_ms=duration_ms,
             )
 
             return result
@@ -548,11 +552,7 @@ def observable(func):
             obs_manager.end_traced_request(span, "error", str(e))
 
             # Log the error
-            obs_manager.logger.error(
-                f"Function {func.__name__} failed: {e!s}",
-                trace_id=span.trace_id,
-                error=str(e)
-            )
+            obs_manager.logger.error(f"Function {func.__name__} failed: {e!s}", trace_id=span.trace_id, error=str(e))
 
             # Re-raise the exception
             raise
@@ -560,9 +560,11 @@ def observable(func):
     # Handle both sync and async functions
     if asyncio.iscoroutinefunction(func):
         return async_wrapper
+
     @wraps(func)
     def sync_wrapper(*args, **kwargs):
         return asyncio.run(async_wrapper(*args, **kwargs))
+
     return sync_wrapper
 
 
@@ -573,6 +575,7 @@ observability = ObservabilityManager()
 # Middleware for FastAPI integration
 def observability_middleware(app):
     """Add observability middleware to FastAPI app"""
+
     @app.middleware("http")
     async def add_observability(request, call_next):
         # Generate request ID
@@ -581,7 +584,7 @@ def observability_middleware(app):
         # Create span for the request
         span = observability.create_traced_request(
             operation_name=f"{request.method} {request.url.path}",
-            user_id=getattr(request.state, "user_id", None) if hasattr(request.state, "user_id") else None
+            user_id=getattr(request.state, "user_id", None) if hasattr(request.state, "user_id") else None,
         )
 
         start_time = time.time()
@@ -600,7 +603,7 @@ def observability_middleware(app):
                 model_name=getattr(request.state, "model_name", None) if hasattr(request.state, "model_name") else None,
                 processing_time_ms=processing_time_ms,
                 status="success",
-                trace_id=span.trace_id
+                trace_id=span.trace_id,
             )
 
             # End the span
@@ -625,7 +628,7 @@ def observability_middleware(app):
                 processing_time_ms=processing_time_ms,
                 status="error",
                 error_message=str(e),
-                trace_id=span.trace_id
+                trace_id=span.trace_id,
             )
 
             # End the span with error
@@ -647,7 +650,7 @@ def test_observability():
         "Test log message with user context",
         user_id="user_123",
         model_name="therapy_model_v1",
-        extra_field="test_value"
+        extra_field="test_value",
     )
 
     # Test metrics collection
@@ -669,13 +672,8 @@ def test_observability():
 
     # Test model inference logging
     observability.log_model_inference(
-        model_name="therapy_model_v1",
-        input_tokens=150,
-        output_tokens=75,
-        processing_time_ms=180.5,
-        success=True
+        model_name="therapy_model_v1", input_tokens=150, output_tokens=75, processing_time_ms=180.5, success=True
     )
-
 
 
 if __name__ == "__main__":

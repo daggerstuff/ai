@@ -3,6 +3,7 @@
 Quick test script to verify dataset validation module works correctly
 Run this to test the validation system before deploying
 """
+
 import json
 import sys
 from pathlib import Path
@@ -58,7 +59,6 @@ def test_validation():
 
     validator = DatasetValidator(strict_mode=False)
 
-
     results = {"passed": 0, "failed": 0, "tests": []}
 
     for test_name, test_data in TEST_CASES.items():
@@ -84,7 +84,6 @@ def test_validation():
         else:
             results["failed"] += 1
 
-
         if not is_valid:
             if result.errors:
                 pass
@@ -93,7 +92,6 @@ def test_validation():
 
         if result.warnings:
             pass
-
 
     if results["failed"] > 0:
         return False
@@ -106,7 +104,6 @@ def test_batch_validation():
         pass
     except ImportError:
         return False
-
 
     validator = DatasetValidator(strict_mode=False)
 
@@ -132,7 +129,6 @@ def test_batch_validation():
 
     result = validator.validate_batch(batch)
 
-
     if result["bias_summary"]:
         pass
 
@@ -145,7 +141,6 @@ def test_file_validation():
         pass
     except ImportError:
         return False
-
 
     # Create test JSONL file
     test_file = Path("/tmp/test_validation.jsonl")
@@ -174,7 +169,6 @@ def test_file_validation():
         )
 
     result = validate_jsonl_file(str(test_file), strict_mode=False)
-
 
     test_file.unlink()
 

@@ -16,7 +16,7 @@ import re
 import sqlite3
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, TypeVar
 
 # Enterprise imports - disabled, modules not available
@@ -197,13 +197,9 @@ class ConversationSearchEngine:
                 conn.commit()
 
         except Exception as e:
-            handle_error(
-                e, "conversation_search", {"context": "initialize_search_indexes"}
-            )
+            handle_error(e, "conversation_search", {"context": "initialize_search_indexes"})
 
-    def index_conversation(
-        self, conversation_id: str, force_reindex: bool = False
-    ) -> bool:
+    def index_conversation(self, conversation_id: str, force_reindex: bool = False) -> bool:
         """Index a single conversation for search."""
 
         try:
@@ -238,7 +234,7 @@ class ConversationSearchEngine:
                         conversation_id,  # Using conversation_id as search_id for simplicity
                         conversation_id,
                         searchable_content,
-                        datetime.now(timezone.utc),
+                        datetime.now(UTC),
                     ),
                 )
 
@@ -306,7 +302,7 @@ class ConversationSearchEngine:
     def search(self, query: SearchQuery) -> tuple[list[SearchResult], SearchStats]:
         """Perform advanced search with ranking and filtering."""
 
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             with self.database._get_connection() as conn:
@@ -329,12 +325,10 @@ class ConversationSearchEngine:
 
                 # Apply pagination
                 total_results = len(search_results)
-                paginated_results = search_results[
-                    query.offset : query.offset + query.limit
-                ]
+                paginated_results = search_results[query.offset : query.offset + query.limit]
 
                 # Calculate search statistics
-                search_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                search_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
                 # Get facets
                 facets = self._calculate_facets(conn, query)
@@ -347,9 +341,7 @@ class ConversationSearchEngine:
                     facets=facets,
                 )
 
-                self.logger.debug(
-                    f"Search completed: {total_results} results in {search_time:.2f}ms"
-                )
+                self.logger.debug(f"Search completed: {total_results} results in {search_time:.2f}ms")
                 return paginated_results, stats
 
         except Exception as e:
@@ -481,11 +473,7 @@ class ConversationSearchEngine:
         words = re.findall(r"\b\w+\b", text.lower())
 
         # Remove stop words and short words
-        filtered_words = [
-            word
-            for word in words
-            if len(word) >= self.min_word_length and word not in self.stop_words
-        ]
+        filtered_words = [word for word in words if len(word) >= self.min_word_length and word not in self.stop_words]
 
         if not filtered_words:
             return text  # Fallback to original text
@@ -496,9 +484,7 @@ class ConversationSearchEngine:
         # Use phrase matching for exact phrases, OR for individual terms
         return " OR ".join(filtered_words)
 
-    def _process_search_result(
-        self, row: sqlite3.Row, query: SearchQuery
-    ) -> SearchResult | None:
+    def _process_search_result(self, row: sqlite3.Row, query: SearchQuery) -> SearchResult | None:
         """Process raw search result into SearchResult object."""
 
         try:
@@ -510,9 +496,7 @@ class ConversationSearchEngine:
             score = self._calculate_relevance_score(row, query)
 
             # Generate snippet
-            snippet = self._generate_snippet(
-                content, query.text, self.max_snippet_length
-            )
+            snippet = self._generate_snippet(content, query.text, self.max_snippet_length)
 
             # Generate highlights
             highlights = []
@@ -594,9 +578,7 @@ class ConversationSearchEngine:
 
         return max(0.0, base_score)
 
-    def _generate_snippet(
-        self, content: str, query_text: str | None, max_length: int
-    ) -> str:
+    def _generate_snippet(self, content: str, query_text: str | None, max_length: int) -> str:
         """Generate search result snippet with context."""
 
         if not content:
@@ -635,9 +617,7 @@ class ConversationSearchEngine:
 
         return best_snippet
 
-    def _generate_highlights(
-        self, content: str, query_text: str, max_highlights: int = 5
-    ) -> list[str]:
+    def _generate_highlights(self, content: str, query_text: str, max_highlights: int = 5) -> list[str]:
         """Generate highlighted excerpts from content."""
 
         if not query_text:
@@ -649,9 +629,7 @@ class ConversationSearchEngine:
         # Find sentences containing query terms
         sentences = re.split(r"[.!?]+", content)
 
-        for sentence in sentences[
-            : max_highlights * 2
-        ]:  # Check more sentences than needed
+        for sentence in sentences[: max_highlights * 2]:  # Check more sentences than needed
             sentence = sentence.strip()
             if not sentence:
                 continue
@@ -676,15 +654,11 @@ class ConversationSearchEngine:
 
         return highlights
 
-    def _sort_results(
-        self, results: list[SearchResult], query: SearchQuery
-    ) -> list[SearchResult]:
+    def _sort_results(self, results: list[SearchResult], query: SearchQuery) -> list[SearchResult]:
         """Sort search results based on query parameters."""
 
         if query.sort_by == "relevance":
-            return sorted(
-                results, key=lambda x: x.score, reverse=(query.sort_order == "desc")
-            )
+            return sorted(results, key=lambda x: x.score, reverse=(query.sort_order == "desc"))
         if query.sort_by == "date":
             return sorted(
                 results,
@@ -699,9 +673,7 @@ class ConversationSearchEngine:
             )
         return results
 
-    def _calculate_facets(
-        self, conn: sqlite3.Connection, _query: SearchQuery
-    ) -> dict[str, dict[str, int]]:
+    def _calculate_facets(self, conn: sqlite3.Connection, _query: SearchQuery) -> dict[str, dict[str, int]]:
         """Calculate facets for search results."""
 
         facets = {}
@@ -770,7 +742,6 @@ class ConversationSearchEngine:
 
                 return [row[0] for row in cursor.fetchall()]
 
-
         except Exception as e:
             handle_error(
                 e,
@@ -792,7 +763,6 @@ if __name__ == "__main__":
         ProcessingStatus,
     )
 
-
     # Initialize database and search engine
     db = ConversationDatabase()
     search_engine = ConversationSearchEngine(db)
@@ -806,9 +776,7 @@ if __name__ == "__main__":
                 tier=ConversationTier.PRIORITY_1,
                 title="Anxiety Management Session",
                 conversations=[
-                    {
-                        "human": "I'm feeling very anxious about my upcoming presentation."
-                    },
+                    {"human": "I'm feeling very anxious about my upcoming presentation."},
                     {
                         "assistant": "I understand that presentations can be anxiety-provoking. Let's explore some coping strategies."
                     },
@@ -845,11 +813,8 @@ if __name__ == "__main__":
             db.insert_conversation(conv)
             search_engine.index_conversation(conv.conversation_id)
 
-
         # Test text search
-        query = SearchQuery(
-            text="anxiety presentation", limit=10, include_highlights=True
-        )
+        query = SearchQuery(text="anxiety presentation", limit=10, include_highlights=True)
 
         results, stats = search_engine.search(query)
 
@@ -857,9 +822,7 @@ if __name__ == "__main__":
             pass
 
         # Test filtered search
-        filtered_query = SearchQuery(
-            filters={"tier": "professional", "min_quality": 0.8}, limit=10
-        )
+        filtered_query = SearchQuery(filters={"tier": "professional", "min_quality": 0.8}, limit=10)
 
         filtered_results, filtered_stats = search_engine.search(filtered_query)
 
@@ -870,4 +833,3 @@ if __name__ == "__main__":
 
     finally:
         db.close()
-

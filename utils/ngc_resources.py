@@ -70,9 +70,7 @@ class NGCResourceDownloader:
 
             self.cli = None
 
-    def download_nemo_quickstart(
-        self, version: str | None = None, output_dir: Path | None = None
-    ) -> Path:
+    def download_nemo_quickstart(self, version: str | None = None, output_dir: Path | None = None) -> Path:
         """
         Download NeMo Microservices quickstart package.
 
@@ -87,9 +85,7 @@ class NGCResourceDownloader:
             raise NGCCLINotFoundError("NGC CLI not available")
 
         if version is None:
-            version = self.NEMO_RESOURCES["nemo-microservices-quickstart"][
-                "default_version"
-            ]
+            version = self.NEMO_RESOURCES["nemo-microservices-quickstart"]["default_version"]
 
         if output_dir is None:
             output_dir = self.output_base / "nemo-microservices"
@@ -104,9 +100,7 @@ class NGCResourceDownloader:
             extract=True,
         )
 
-    def download_nemo_framework(
-        self, version: str | None = None, output_dir: Path | None = None
-    ) -> Path:
+    def download_nemo_framework(self, version: str | None = None, output_dir: Path | None = None) -> Path:
         """
         Download NeMo framework.
 
@@ -167,9 +161,7 @@ class NGCResourceDownloader:
         )
 
 
-def download_nemo_quickstart(
-    version: str | None = None, output_dir: Path | None = None
-) -> Path:
+def download_nemo_quickstart(version: str | None = None, output_dir: Path | None = None) -> Path:
     """
     Convenience function to download NeMo Microservices quickstart.
 

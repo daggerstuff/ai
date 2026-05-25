@@ -32,9 +32,7 @@ class NGCResourceDownloader(_ResolvedNGCResourceDownloader):
             output_dir = Path(output_dir)
         return self.download_nemo_quickstart(version=version, output_dir=output_dir)
 
-    def download_nemo_quickstart(
-        self, version: str | None = None, output_dir: Path | None = None
-    ):
+    def download_nemo_quickstart(self, version: str | None = None, output_dir: Path | None = None):
         return super().download_nemo_quickstart(version=version, output_dir=output_dir)
 
 
@@ -52,9 +50,7 @@ class NgcResources:
         )
 
     def download_nemo_quickstart(self, version: str | None = None, output_dir: Path | None = None):
-        return self._downloader.download_nemo_quickstart(
-            version=version, output_dir=output_dir
-        )
+        return self._downloader.download_nemo_quickstart(version=version, output_dir=output_dir)
 
 
 def download_nemo_quickstart(version: str | None = None, output_dir: Path | None = None):
@@ -62,4 +58,4 @@ def download_nemo_quickstart(version: str | None = None, output_dir: Path | None
     return _resolved_download_nemo_quickstart(version=version, output_dir=output_dir)
 
 
-__all__ = ["NgcResources", "NGCResourceDownloader", "download_nemo_quickstart"]
+__all__ = ["NGCResourceDownloader", "NgcResources", "download_nemo_quickstart"]

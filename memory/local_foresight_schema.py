@@ -33,17 +33,10 @@ class LocalForesightSchemaManager:
             """
         )
         conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_documents_bank_user "
-            "ON documents(bank_id, user_id, updated_at DESC)"
+            "CREATE INDEX IF NOT EXISTS idx_documents_bank_user ON documents(bank_id, user_id, updated_at DESC)"
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_document_tags_lookup "
-            "ON document_tags(bank_id, tag, document_id)"
-        )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_document_tags_bank_tag "
-            "ON document_tags(bank_id, tag)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_document_tags_lookup ON document_tags(bank_id, tag, document_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_document_tags_bank_tag ON document_tags(bank_id, tag)")
         conn.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_document_tags_category_lookup

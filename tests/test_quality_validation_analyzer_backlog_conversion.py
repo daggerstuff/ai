@@ -4,8 +4,8 @@
 import json
 from pathlib import Path
 
-from ai.monitoring.quality_validation_analyzer import QualityValidationAnalyzer, ValidationAnalysis
 from ai.monitoring.linear_backlog_dispatcher import LinearBacklogDispatcher
+from ai.monitoring.quality_validation_analyzer import QualityValidationAnalyzer, ValidationAnalysis
 
 
 def test_quality_validation_to_backlog_changes():
@@ -99,9 +99,7 @@ def test_quality_validation_report_includes_backlog_conversion(monkeypatch, tmp_
 
     conversion = report["backlog_conversion"]
     assert conversion["generated_changes"] >= 2
-    assert any(
-        item["area"] == "curation_rules" for item in conversion["changes"]
-    )
+    assert any(item["area"] == "curation_rules" for item in conversion["changes"])
     assert any(item["area"] == "review_focus" for item in conversion["changes"])
     artifact_path = Path(report["linear_backlog_artifact"])
     assert artifact_path.exists()

@@ -3,6 +3,7 @@
 Deployment Readiness Validation Script
 Comprehensive validation that everything is ready for Lightning.ai H100 deployment.
 """
+
 import json
 import logging
 import shutil
@@ -13,9 +14,7 @@ import psutil
 from lightning_h100_deployment import LightningH100Deployer
 from path_utils import get_lightning_dir, get_scripts_dir, get_unified_training_dir, get_workspace_root
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -92,14 +91,11 @@ class DeploymentValidator:
             # Check conversation format (accept both "conversation" and "conversations")
             sample_conversation = train_data[0] if train_data else None
             if sample_conversation and (
-                "conversations" in sample_conversation
-                or "conversation" in sample_conversation
+                "conversations" in sample_conversation or "conversation" in sample_conversation
             ):
                 validation["data_quality_valid"] = True
             else:
-                validation["issues"].append(
-                    "Invalid conversation format in training data"
-                )
+                validation["issues"].append("Invalid conversation format in training data")
 
             # Load expert data and check balance
             expert_files = [
@@ -120,24 +116,16 @@ class DeploymentValidator:
             for expert, count in validation["expert_balance"].items():
                 percentage = (count / total_expert_conversations) * 100
                 if percentage < 5:
-                    validation["issues"].append(
-                        f"Expert {expert} has too few conversations ({percentage:.1f}%)"
-                    )
+                    validation["issues"].append(f"Expert {expert} has too few conversations ({percentage:.1f}%)")
                 elif percentage > 60:
-                    validation["issues"].append(
-                        f"Expert {expert} is over-represented ({percentage:.1f}%)"
-                    )
+                    validation["issues"].append(f"Expert {expert} is over-represented ({percentage:.1f}%)")
 
             # Load configuration
-            with open(
-                self.unified_dataset_path / "unified_lightning_config.json"
-            ) as f:
+            with open(self.unified_dataset_path / "unified_lightning_config.json") as f:
                 config = json.load(f)
 
             validation["config_valid"] = True
-            validation["quality_metrics"] = config.get("dataset_stats", {}).get(
-                "processing_stats", {}
-            )
+            validation["quality_metrics"] = config.get("dataset_stats", {}).get("processing_stats", {})
 
         except Exception as e:
             validation["issues"].append(f"Error validating data files: {e}")
@@ -180,7 +168,6 @@ class DeploymentValidator:
 
         # Check for required scripts in ai/scripts
 
-
         script_dir = get_scripts_dir()
         missing_scripts = []
 
@@ -201,7 +188,6 @@ class DeploymentValidator:
             # Try importing the deployment module
 
             sys.path.append(str(script_dir))
-
 
             LightningH100Deployer()
             validation["deployment_config_valid"] = True
@@ -228,8 +214,6 @@ class DeploymentValidator:
         }
 
         try:
-
-
             # Check disk space (need at least 10GB for dataset processing)
 
             disk_usage = shutil.disk_usage(str(get_workspace_root()))
@@ -238,9 +222,7 @@ class DeploymentValidator:
             validation["disk_space_sufficient"] = free_gb > 10
 
             if not validation["disk_space_sufficient"]:
-                validation["issues"].append(
-                    f"Insufficient disk space: {free_gb:.1f}GB (need >10GB)"
-                )
+                validation["issues"].append(f"Insufficient disk space: {free_gb:.1f}GB (need >10GB)")
 
             # Check memory (recommend at least 8GB, but 4GB+ is workable)
             memory = psutil.virtual_memory()
@@ -248,9 +230,7 @@ class DeploymentValidator:
             validation["memory_sufficient"] = memory_gb > 4  # Lowered threshold
 
             if memory_gb < 8:
-                validation["issues"].append(
-                    f"Low memory: {memory_gb:.1f}GB (recommended >8GB, but workable)"
-                )
+                validation["issues"].append(f"Low memory: {memory_gb:.1f}GB (recommended >8GB, but workable)")
 
             # Check Python environment
 
@@ -373,9 +353,7 @@ class DeploymentValidator:
             processing_validation.get("processing_completed", False),
         ]
 
-        readiness_report["readiness_score"] = (
-            sum(ready_components) / len(ready_components) * 100
-        )
+        readiness_report["readiness_score"] = sum(ready_components) / len(ready_components) * 100
 
         # Collect critical issues
         all_issues = []
@@ -412,8 +390,7 @@ class DeploymentValidator:
 
         # Determine overall readiness
         readiness_report["overall_ready"] = (
-            len(readiness_report["critical_issues"]) == 0
-            and readiness_report["readiness_score"] >= 75
+            len(readiness_report["critical_issues"]) == 0 and readiness_report["readiness_score"] >= 75
         )
 
         # Generate next steps
@@ -426,17 +403,11 @@ class DeploymentValidator:
             ]
         else:
             if not dataset_validation.get("ready_for_deployment", False):
-                readiness_report["next_steps"].append(
-                    "🔄 Complete multi-dataset processing first"
-                )
+                readiness_report["next_steps"].append("🔄 Complete multi-dataset processing first")
             if readiness_report["critical_issues"]:
-                readiness_report["next_steps"].append(
-                    "🔧 Resolve critical issues listed above"
-                )
+                readiness_report["next_steps"].append("🔧 Resolve critical issues listed above")
             if readiness_report["readiness_score"] < 75:
-                readiness_report["next_steps"].append(
-                    "📊 Address validation warnings to improve readiness score"
-                )
+                readiness_report["next_steps"].append("📊 Address validation warnings to improve readiness score")
 
         # Create deployment summary
         if dataset_validation.get("total_conversations", 0) > 0:
@@ -452,7 +423,6 @@ class DeploymentValidator:
 
     def save_readiness_report(self, report: dict) -> Path:
         """Save readiness report to file"""
-
 
         report_path = get_lightning_dir() / "deployment_readiness_report.json"
         report_path.parent.mkdir(parents=True, exist_ok=True)
@@ -478,9 +448,7 @@ def main():
     logger.info("=" * 80)
 
     logger.info(f"📊 Overall Readiness Score: {report['readiness_score']:.1f}%")
-    logger.info(
-        f"🚀 Ready for Deployment: {'✅ YES' if report['overall_ready'] else '❌ NO'}"
-    )
+    logger.info(f"🚀 Ready for Deployment: {'✅ YES' if report['overall_ready'] else '❌ NO'}")
 
     if report["deployment_summary"]:
         summary = report["deployment_summary"]

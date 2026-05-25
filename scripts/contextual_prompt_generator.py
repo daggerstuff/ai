@@ -35,12 +35,7 @@ class ContextualPromptGenerator:
 
     def analyze_content_structure(self, text: str) -> dict:
         """Analyze what the text is actually saying"""
-        analysis = {
-            "main_topic": None,
-            "content_type": None,
-            "key_points": [],
-            "context": None
-        }
+        analysis = {"main_topic": None, "content_type": None, "key_points": [], "context": None}
 
         # Find the main subject being discussed
         sentences = re.split(r"[.!?]+", text)
@@ -135,8 +130,9 @@ class ContextualPromptGenerator:
             "confidence": segment["confidence"],
             "quality": segment["quality"],
             "source": segment["source"],
-            "file": segment["file"]
+            "file": segment["file"],
         }
+
 
 def test_contextual_generation():
     """Test the contextual generator with sample segments"""
@@ -150,7 +146,7 @@ def test_contextual_generation():
             "confidence": 1.0,
             "quality": 0.8,
             "source": "test",
-            "file": "test.txt"
+            "file": "test.txt",
         },
         {
             "text": "When you're in crisis and afraid for your life, you have to fall back on that training, on that muscle memory. You have to incorporate some level of structure and ritual. Use sensory and auditory stimuli, temperature regulation like warm baths, cold packs.",
@@ -158,13 +154,13 @@ def test_contextual_generation():
             "confidence": 1.0,
             "quality": 0.7,
             "source": "test",
-            "file": "test.txt"
-        }
+            "file": "test.txt",
+        },
     ]
-
 
     for _i, segment in enumerate(test_segments, 1):
         generator.create_training_pair(segment)
+
 
 if __name__ == "__main__":
     test_contextual_generation()

@@ -17,9 +17,11 @@ from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class CrisisDetectionResult:
     """Enhanced crisis detection result"""
+
     is_crisis: bool
     confidence_score: float
     crisis_level: int
@@ -28,6 +30,7 @@ class CrisisDetectionResult:
     context_analysis: dict[str, any]
     reasoning: str
     severity_indicators: list[str]
+
 
 class EnhancedCrisisDetectorV2:
     """
@@ -59,9 +62,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:better off dead|world (?:would be )?better without me)",
                 ],
                 "level": 5,
-                "weight": 1.0
+                "weight": 1.0,
             },
-
             # LEVEL 5: ACTIVE SELF-HARM
             "active_self_harm": {
                 "patterns": [
@@ -77,9 +79,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:poison|toxic|dangerous) (?:substance|chemical)",
                 ],
                 "level": 5,
-                "weight": 1.0
+                "weight": 1.0,
             },
-
             # LEVEL 4-5: MEANS AND METHODS
             "means_methods": {
                 "patterns": [
@@ -95,9 +96,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:suffocation|suffocate|can't breathe)",
                 ],
                 "level": 5,
-                "weight": 0.9
+                "weight": 0.9,
             },
-
             # LEVEL 3-4: SEVERE HOPELESSNESS
             "severe_hopelessness": {
                 "patterns": [
@@ -115,9 +115,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:no one (?:cares|loves me|would miss me))",
                 ],
                 "level": 4,
-                "weight": 0.8
+                "weight": 0.8,
             },
-
             # LEVEL 3-4: SEVERE DEPRESSION INDICATORS
             "severe_depression": {
                 "patterns": [
@@ -133,9 +132,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:don't (?:care|want to) (?:anymore|about anything))",
                 ],
                 "level": 3,
-                "weight": 0.7
+                "weight": 0.7,
             },
-
             # LEVEL 4: ESCALATION INDICATORS
             "crisis_escalation": {
                 "patterns": [
@@ -151,9 +149,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:happening (?:more|again|constantly))",
                 ],
                 "level": 4,
-                "weight": 0.8
+                "weight": 0.8,
             },
-
             # LEVEL 2-3: ISOLATION AND WITHDRAWAL
             "isolation_withdrawal": {
                 "patterns": [
@@ -169,9 +166,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:invisible|ignored|forgotten|abandoned)",
                 ],
                 "level": 2,
-                "weight": 0.5
+                "weight": 0.5,
             },
-
             # LEVEL 3-4: SUBSTANCE ABUSE CRISIS
             "substance_crisis": {
                 "patterns": [
@@ -185,9 +181,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:dangerous|risky|reckless) (?:behavior|choices)",
                 ],
                 "level": 3,
-                "weight": 0.6
+                "weight": 0.6,
             },
-
             # LEVEL 2-4: EMOTIONAL PAIN INDICATORS
             "emotional_pain": {
                 "patterns": [
@@ -201,9 +196,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:shattered|destroyed|ruined|damaged)",
                 ],
                 "level": 3,
-                "weight": 0.6
+                "weight": 0.6,
             },
-
             # LEVEL 1-3: SUBTLE CRISIS INDICATORS
             "subtle_crisis": {
                 "patterns": [
@@ -217,8 +211,8 @@ class EnhancedCrisisDetectorV2:
                     r"(?:don't (?:know|see) (?:how|why) to (?:continue|go on))",
                 ],
                 "level": 2,
-                "weight": 0.4
-            }
+                "weight": 0.4,
+            },
         }
 
     def _initialize_context_filters(self) -> dict[str, list[str]]:
@@ -230,7 +224,6 @@ class EnhancedCrisisDetectorV2:
                 r"(?:no longer|not anymore|stopped|quit|gave up) (?:thinking about|wanting to)",
                 r"(?:used to|in the past|before|previously) (?:but not|not now)",
             ],
-
             "clear_metaphorical": [
                 r"(?:kill time|dying to (?:see|know|hear|watch))",
                 r"(?:dead (?:tired|beat|serious|wrong))",
@@ -238,21 +231,19 @@ class EnhancedCrisisDetectorV2:
                 r"(?:cut (?:class|corners|loose|ties))",
                 r"(?:hurt (?:feelings|reputation|chances))",
             ],
-
             "obvious_media": [
                 r"(?:movie|film|book|song|game|tv|show|video|youtube)",
                 r"(?:character|story|plot|scene|episode)",
                 r"(?:watched|read|played|heard|saw)",
                 r"(?:netflix|hulu|disney|amazon|spotify)",
             ],
-
             "clear_positive": [
                 r"(?:getting (?:better|help|treatment|therapy))",
                 r"(?:therapist|counselor|doctor|psychiatrist) (?:says|told|helped)",
                 r"(?:medication|treatment|support) (?:is|has) (?:helping|working)",
                 r"(?:feeling (?:better|hopeful|optimistic|stronger))",
                 r"(?:improving|progress|recovery|healing)",
-            ]
+            ],
         }
 
     def _initialize_severity_indicators(self) -> dict[str, list[str]]:
@@ -264,24 +255,21 @@ class EnhancedCrisisDetectorV2:
                 r"(?:can't wait|need to|have to|going to)",
                 r"(?:final|last|end|over|done)",
             ],
-
             "planning_indicators": [
                 r"(?:plan|planning|prepared|ready|decided)",
                 r"(?:how to|when to|where to|way to)",
                 r"(?:researched|looked up|found out)",
             ],
-
             "finality_indicators": [
                 r"(?:goodbye|farewell|see you|take care)",
                 r"(?:sorry|forgive me|love you|thank you)",
                 r"(?:final|last|end|over|done|finished)",
             ],
-
             "intensity_indicators": [
                 r"(?:really|seriously|definitely|absolutely|completely)",
                 r"(?:so|too|very|extremely|incredibly)",
                 r"(?:always|constantly|every|all the time)",
-            ]
+            ],
         }
 
     async def detect_crisis(self, text: str) -> CrisisDetectionResult:
@@ -364,17 +352,22 @@ class EnhancedCrisisDetectorV2:
         # AGGRESSIVE DETECTION THRESHOLDS - Minimize false negatives
         # Lower thresholds to catch more potential crises
         is_crisis = (
-            (confidence_score >= 0.15 and crisis_level >= 3) or  # Lower threshold
-            (confidence_score >= 0.25 and crisis_level >= 2) or  # Catch moderate cases
-            (confidence_score >= 0.35) or  # High confidence regardless of level
-            (unique_risk_factors >= 3) or  # Multiple risk factors
-            (crisis_level >= 5 and confidence_score >= 0.1)  # Any level 5 with minimal confidence
+            (confidence_score >= 0.15 and crisis_level >= 3)  # Lower threshold
+            or (confidence_score >= 0.25 and crisis_level >= 2)  # Catch moderate cases
+            or (confidence_score >= 0.35)  # High confidence regardless of level
+            or (unique_risk_factors >= 3)  # Multiple risk factors
+            or (crisis_level >= 5 and confidence_score >= 0.1)  # Any level 5 with minimal confidence
         )
 
         # Generate reasoning
         reasoning = self._generate_reasoning(
-            detected_patterns, risk_factors, context_analysis,
-            confidence_score, crisis_level, is_crisis, severity_indicators
+            detected_patterns,
+            risk_factors,
+            context_analysis,
+            confidence_score,
+            crisis_level,
+            is_crisis,
+            severity_indicators,
         )
 
         return CrisisDetectionResult(
@@ -385,7 +378,7 @@ class EnhancedCrisisDetectorV2:
             risk_factors=list(set(risk_factors)),
             context_analysis=context_analysis,
             reasoning=reasoning,
-            severity_indicators=severity_indicators
+            severity_indicators=severity_indicators,
         )
 
     def _analyze_context(self, text: str) -> dict[str, any]:
@@ -427,13 +420,16 @@ class EnhancedCrisisDetectorV2:
 
         return context
 
-    def _generate_reasoning(self, detected_patterns: list[str],
-                          risk_factors: list[str],
-                          context_analysis: dict[str, any],
-                          confidence_score: float,
-                          crisis_level: int,
-                          is_crisis: bool,
-                          severity_indicators: list[str]) -> str:
+    def _generate_reasoning(
+        self,
+        detected_patterns: list[str],
+        risk_factors: list[str],
+        context_analysis: dict[str, any],
+        confidence_score: float,
+        crisis_level: int,
+        is_crisis: bool,
+        severity_indicators: list[str],
+    ) -> str:
         """Generate detailed reasoning for the decision"""
 
         reasoning_parts = []
@@ -468,6 +464,7 @@ class EnhancedCrisisDetectorV2:
 
         return " | ".join(reasoning_parts)
 
+
 # Enhanced model predictor using V2 detector
 async def enhanced_model_predictor_v2(conversation_text: str) -> bool:
     """
@@ -483,6 +480,7 @@ async def enhanced_model_predictor_v2(conversation_text: str) -> bool:
         logger.info(f"Crisis Analysis V2: {result.reasoning}")
 
     return result.is_crisis
+
 
 # Test the enhanced V2 detector
 async def test_enhanced_detector_v2():
@@ -500,14 +498,12 @@ async def test_enhanced_detector_v2():
         ("I can't handle this pain anymore.", True),
         ("What's the point of living?", True),
         ("I just want everything to stop.", True),
-
         # Should NOT detect (clear non-crisis)
         ("I'm fine, just having a bad day.", False),
         ("I want to kill time until my appointment.", False),
         ("I'm dying to see that new movie.", False),
         ("I have a gun in my video game.", False),
         ("I'm going to end this conversation now.", False),
-
         # Edge cases - should be more sensitive
         ("I don't know how much longer I can do this.", True),  # Should detect
         ("I'm so tired of everything.", True),  # Should detect
@@ -521,16 +517,15 @@ async def test_enhanced_detector_v2():
     correct = 0
     total = len(test_cases)
 
-
     for text, expected in test_cases:
         result = await detector.detect_crisis(text)
         is_correct = result.is_crisis == expected
         correct += is_correct
 
-
     accuracy = (correct / total) * 100
 
     return accuracy
+
 
 if __name__ == "__main__":
     asyncio.run(test_enhanced_detector_v2())

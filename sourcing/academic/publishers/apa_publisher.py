@@ -6,7 +6,7 @@ for sourcing psychology and therapy books for AI training data expansion.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
@@ -161,9 +161,7 @@ class APAPublisher(BasePublisher):
 
         try:
             # Search for books
-            search_response = self._make_request(
-                method="GET", endpoint="/books/search", params=params
-            )
+            search_response = self._make_request(method="GET", endpoint="/books/search", params=params)
 
             if not search_response or "results" not in search_response:
                 logger.warning("No results or invalid response from APA search")
@@ -225,9 +223,7 @@ class APAPublisher(BasePublisher):
             logger.error(f"Error getting APA book metadata: {e}")
             return None
 
-    def get_book_content(
-        self, identifier: str, _format: BookFormat = BookFormat.PLAIN_TEXT
-    ) -> BookContent | None:
+    def get_book_content(self, identifier: str, _format: BookFormat = BookFormat.PLAIN_TEXT) -> BookContent | None:
         """
         Get content for a specific book from APA
 
@@ -323,9 +319,7 @@ class APAPublisher(BasePublisher):
             chapter_response = self._make_request(method="GET", endpoint=endpoint)
 
             if not chapter_response or "content" not in chapter_response:
-                logger.warning(
-                    f"No chapter content found for {identifier} chapter {chapter_id}"
-                )
+                logger.warning(f"No chapter content found for {identifier} chapter {chapter_id}")
                 return None
 
             return chapter_response["content"]
@@ -378,7 +372,7 @@ class APAPublisher(BasePublisher):
                 title=book_data.get("title", "Unknown Title"),
                 authors=authors,
                 publisher="American Psychological Association",
-                publication_year=book_data.get("publication_year", datetime.now(timezone.utc).year),
+                publication_year=book_data.get("publication_year", datetime.now(UTC).year),
                 isbn=book_data.get("isbn"),
                 doi=book_data.get("doi"),
                 abstract=book_data.get("abstract"),
@@ -391,7 +385,6 @@ class APAPublisher(BasePublisher):
                 source_publisher="apa",
                 raw_metadata=book_data,
             )
-
 
         except Exception as e:
             logger.error(f"Error parsing APA book metadata: {e}")
@@ -408,9 +401,7 @@ class APAPublisher(BasePublisher):
             Content as bytes if successful, None otherwise
         """
         try:
-            response = self.session.get(
-                content_url, headers=self._get_headers(), timeout=60
-            )
+            response = self.session.get(content_url, headers=self._get_headers(), timeout=60)
 
             response.raise_for_status()
             return response.content

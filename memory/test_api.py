@@ -6,15 +6,14 @@ import pytest
 from fastapi.testclient import TestClient
 
 from ai.memory.api import (
-    app,
-    get_store,
-    get_scorer,
-    get_classifier,
     MemoryStore,
+    app,
+    get_classifier,
+    get_scorer,
+    get_store,
 )
 from ai.memory.emotion_classifier import EmotionClassifier
 from ai.memory.importance_scorer import ImportanceScorer
-
 
 # Shared store across all tests so each test can see data created by others
 _shared_store = MemoryStore()
@@ -31,7 +30,6 @@ def clear_store():
     """Reset the shared store before each test."""
     _shared_store._store.clear()
     _shared_store._index.clear()
-    yield
 
 
 @pytest.fixture
@@ -264,7 +262,7 @@ def test_score_memory(client: TestClient) -> None:
     )
     mem_id = create_resp.json()["id"]
 
-    response = client.post(f"/memories/score?tenant_id=t1", json={"memory_id": mem_id})
+    response = client.post("/memories/score?tenant_id=t1", json={"memory_id": mem_id})
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == mem_id
@@ -281,9 +279,9 @@ def test_score_with_context(client: TestClient) -> None:
     )
     mem_id = create_resp.json()["id"]
 
-    no_ctx = client.post(f"/memories/score?tenant_id=t1&context=", json={"memory_id": mem_id})
+    no_ctx = client.post("/memories/score?tenant_id=t1&context=", json={"memory_id": mem_id})
     with_ctx = client.post(
-        f"/memories/score?tenant_id=t1&context=anxiety management therapy coping",
+        "/memories/score?tenant_id=t1&context=anxiety management therapy coping",
         json={"memory_id": mem_id},
     )
 

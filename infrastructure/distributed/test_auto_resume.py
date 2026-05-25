@@ -11,7 +11,7 @@ import shutil
 import tempfile
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from auto_resume_engine import (
     AutoResumeEngine,
@@ -49,9 +49,7 @@ class AutoResumeTestSuite:
         self.temp_dir = tempfile.mkdtemp(prefix="auto_resume_test_")
 
         # Initialize checkpoint manager
-        self.checkpoint_manager = CheckpointManager(
-            storage_path=os.path.join(self.temp_dir, "checkpoints")
-        )
+        self.checkpoint_manager = CheckpointManager(storage_path=os.path.join(self.temp_dir, "checkpoints"))
 
         # Initialize resume engine with test configuration
         config = ResumeConfiguration(
@@ -86,7 +84,6 @@ class AutoResumeTestSuite:
 
     async def run_all_tests(self):
         """Run all test scenarios"""
-
 
         test_methods = [
             self.test_basic_resume_functionality,
@@ -129,9 +126,7 @@ class AutoResumeTestSuite:
             original_state = resume_point["original_state"]
 
             # Continue from resume point
-            for step in range(
-                resume_point["resume_step"], original_state.total_steps + 1
-            ):
+            for step in range(resume_point["resume_step"], original_state.total_steps + 1):
                 self.checkpoint_manager.update_process_progress(
                     process_id=original_state.process_id,
                     completed_steps=step,
@@ -149,9 +144,7 @@ class AutoResumeTestSuite:
         process_id = "test_basic_resume"
         task_id = "basic_resume_test"
 
-        self.resume_engine.register_process(
-            process_id=process_id, task_id=task_id, resume_handler=test_resume_handler
-        )
+        self.resume_engine.register_process(process_id=process_id, task_id=task_id, resume_handler=test_resume_handler)
 
         # Create a process with some progress
         self.checkpoint_manager.register_process(
@@ -173,16 +166,14 @@ class AutoResumeTestSuite:
             process_id=process_id,
             task_id=task_id,
             interruption_type=InterruptionType.PROCESS_CRASH,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         success = await self.resume_engine.resume_process(process_id, interruption)
 
         assert success, "Resume should succeed"
         assert resume_called, "Resume handler should be called"
-        assert resume_data["process_id"] == process_id, (
-            "Resume data should contain correct process ID"
-        )
+        assert resume_data["process_id"] == process_id, "Resume data should contain correct process ID"
 
         self.test_results.append(
             {
@@ -218,9 +209,7 @@ class AutoResumeTestSuite:
 
             # Should have detected timeout
             timeout_interruptions = [
-                i
-                for i in interruptions_detected
-                if i.interruption_type == InterruptionType.TIMEOUT
+                i for i in interruptions_detected if i.interruption_type == InterruptionType.TIMEOUT
             ]
 
             assert len(timeout_interruptions) > 0, "Should detect timeout interruption"
@@ -231,16 +220,14 @@ class AutoResumeTestSuite:
                 process_id="manual_test",
                 task_id="manual_test",
                 interruption_type=InterruptionType.USER_TERMINATION,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
             detector._trigger_interruption_callbacks(manual_interruption)
 
             # Should have received manual interruption
             manual_interruptions = [
-                i
-                for i in interruptions_detected
-                if i.interruption_type == InterruptionType.USER_TERMINATION
+                i for i in interruptions_detected if i.interruption_type == InterruptionType.USER_TERMINATION
             ]
 
             assert len(manual_interruptions) > 0, "Should detect manual interruption"
@@ -277,9 +264,7 @@ class AutoResumeTestSuite:
                     "Exact continuation should resume from current step"
                 )
             elif strategy == ResumeStrategy.ROLLBACK_AND_RETRY:
-                assert resume_step < original_state.completed_steps, (
-                    "Rollback should resume from earlier step"
-                )
+                assert resume_step < original_state.completed_steps, "Rollback should resume from earlier step"
             elif strategy == ResumeStrategy.PARTIAL_RESTART:
                 assert resume_step <= original_state.completed_steps * 0.9, (
                     "Partial restart should go back significantly"
@@ -328,7 +313,7 @@ class AutoResumeTestSuite:
                 process_id=process_id,
                 task_id=task_id,
                 interruption_type=interruption_type,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
             # Test resume
@@ -336,9 +321,7 @@ class AutoResumeTestSuite:
             assert success, f"Resume should succeed for {interruption_type.value}"
 
         # Verify all strategies were tested
-        assert len(strategies_tested) == len(test_cases), (
-            "All strategies should be tested"
-        )
+        assert len(strategies_tested) == len(test_cases), "All strategies should be tested"
 
         self.test_results.append(
             {
@@ -363,7 +346,7 @@ class AutoResumeTestSuite:
             resume_calls.append(
                 {
                     "process_id": resume_point["process_id"],
-                    "timestamp": datetime.now(timezone.utc),
+                    "timestamp": datetime.now(UTC),
                     "strategy": resume_point["strategy"],
                 }
             )
@@ -401,9 +384,7 @@ class AutoResumeTestSuite:
         # Verify priority ordering (critical should be first)
         if len(resume_calls) > 1:
             first_call = resume_calls[0]
-            assert "critical" in first_call["process_id"], (
-                "Critical process should resume first"
-            )
+            assert "critical" in first_call["process_id"], "Critical process should resume first"
 
         # Get orchestrator status
         status = self.orchestrator.get_orchestrator_status()
@@ -489,9 +470,7 @@ class AutoResumeTestSuite:
         if len(completion_order) >= 2:
             fast_index = completion_order.index("dependency_fast")
             slow_index = completion_order.index("dependent_slow")
-            assert fast_index < slow_index, (
-                "Dependency should complete before dependent"
-            )
+            assert fast_index < slow_index, "Dependency should complete before dependent"
 
         self.test_results.append(
             {
@@ -546,9 +525,7 @@ class AutoResumeTestSuite:
 
         # Critical should be first if multiple processed
         if len(resume_order) > 1:
-            assert "critical" in resume_order[0], (
-                "Critical priority should be processed first"
-            )
+            assert "critical" in resume_order[0], "Critical priority should be processed first"
 
         self.test_results.append(
             {
@@ -612,9 +589,7 @@ class AutoResumeTestSuite:
         # Check that resource limits were respected
         for log_entry in resource_usage_log:
             cpu_utilization = log_entry["resource_utilization"]["cpu_intensive"]
-            assert cpu_utilization["used"] <= cpu_utilization["total"], (
-                "Should not exceed resource limits"
-            )
+            assert cpu_utilization["used"] <= cpu_utilization["total"], "Should not exceed resource limits"
 
         self.test_results.append(
             {
@@ -671,9 +646,7 @@ class AutoResumeTestSuite:
 
         # Verify concurrency was managed
         assert max_concurrent > 1, "Should have concurrent resumes"
-        assert max_concurrent <= self.orchestrator.max_concurrent_resumes, (
-            "Should respect concurrency limits"
-        )
+        assert max_concurrent <= self.orchestrator.max_concurrent_resumes, "Should respect concurrency limits"
 
         self.test_results.append(
             {
@@ -730,7 +703,7 @@ class AutoResumeTestSuite:
             process_id=process_id,
             task_id="error_recovery_task",
             interruption_type=InterruptionType.PROCESS_CRASH,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         # Trigger automatic retry through interruption handling
@@ -803,12 +776,8 @@ class AutoResumeTestSuite:
             avg_resume_time = 0
 
         # Performance assertions
-        assert avg_resume_time < 1.0, (
-            f"Average resume time too slow: {avg_resume_time:.3f}s"
-        )
-        assert total_time < 10.0, (
-            f"Total orchestration time too slow: {total_time:.3f}s"
-        )
+        assert avg_resume_time < 1.0, f"Average resume time too slow: {avg_resume_time:.3f}s"
+        assert total_time < 10.0, f"Total orchestration time too slow: {total_time:.3f}s"
 
         self.test_results.append(
             {
@@ -821,10 +790,8 @@ class AutoResumeTestSuite:
     def print_test_summary(self):
         """Print comprehensive test summary"""
 
-
         passed_tests = [r for r in self.test_results if r["status"] == "passed"]
         failed_tests = [r for r in self.test_results if r["status"] == "failed"]
-
 
         if passed_tests:
             for _test in passed_tests:
@@ -835,9 +802,7 @@ class AutoResumeTestSuite:
                 pass
 
         # Overall result
-        success_rate = (
-            len(passed_tests) / len(self.test_results) * 100 if self.test_results else 0
-        )
+        success_rate = len(passed_tests) / len(self.test_results) * 100 if self.test_results else 0
 
         if success_rate == 100 or success_rate >= 80:
             pass

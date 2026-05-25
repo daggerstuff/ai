@@ -9,7 +9,7 @@ import asyncio
 import json
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -73,7 +73,7 @@ class EventMessage:
 
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.now(timezone.utc).isoformat()
+            self.timestamp = datetime.now(UTC).isoformat()
         if self.payload is None:
             self.payload = {}
         if self.correlation_id is None:
@@ -106,8 +106,7 @@ class EventHandler:
         try:
             # Log event receipt (without sensitive data)
             self.logger.info(
-                f"Handler {self.name} processing event {event.event_type} "
-                f"for execution {event.execution_id}"
+                f"Handler {self.name} processing event {event.event_type} for execution {event.execution_id}"
             )
 
             # Process event
@@ -117,17 +116,13 @@ class EventHandler:
             duration_ms = (time.time() - start_time) * 1000
             if duration_ms > 50:  # Sub-50ms requirement
                 self.logger.warning(
-                    f"Event handler {self.name} took {duration_ms:.2f}ms "
-                    f"for execution {event.execution_id}"
+                    f"Event handler {self.name} took {duration_ms:.2f}ms for execution {event.execution_id}"
                 )
 
             return result
 
         except Exception as e:
-            self.logger.error(
-                f"Error in event handler {self.name} for execution "
-                f"{event.execution_id}: {e}"
-            )
+            self.logger.error(f"Error in event handler {self.name} for execution {event.execution_id}: {e}")
             raise EventBusError(f"Event handler {self.name} failed: {e!s}") from e
 
     async def _process_event(self, event: EventMessage) -> dict[str, Any] | None:
@@ -146,9 +141,7 @@ class EventHandler:
 class EventBus:
     """Redis-based event bus with connection pooling and HIPAA++ compliance."""
 
-    def __init__(
-        self, redis_client: RedisClient, config: dict[str, Any] | None = None
-    ):
+    def __init__(self, redis_client: RedisClient, config: dict[str, Any] | None = None):
         """
         Initialize event bus with Redis connection.
 
@@ -191,9 +184,7 @@ class EventBus:
                 self.handlers[event_type] = []
             self.handlers[event_type].append(handler)
 
-        self.logger.info(
-            f"Registered handler {handler.name} for event types: {handler.event_types}"
-        )
+        self.logger.info(f"Registered handler {handler.name} for event types: {handler.event_types}")
 
     def unregister_handler(self, handler_name: str) -> None:
         """
@@ -246,9 +237,7 @@ class EventBus:
             self.metrics["errors_encountered"] += 1
             raise EventBusError(f"Event publishing failed: {e!s}") from e
 
-    async def _publish_with_retry(
-        self, channel: str, event_json: str, event: EventMessage
-    ) -> bool:
+    async def _publish_with_retry(self, channel: str, event_json: str, event: EventMessage) -> bool:
         """Publish event with retry logic for guaranteed delivery."""
         for attempt in range(self.max_retries):
             try:
@@ -263,8 +252,7 @@ class EventBus:
                     )
                     return True
                 self.logger.warning(
-                    f"No subscribers for event {event.event_type} "
-                    f"on channel {channel} (attempt {attempt + 1})"
+                    f"No subscribers for event {event.event_type} on channel {channel} (attempt {attempt + 1})"
                 )
 
             except Exception as e:
@@ -281,25 +269,18 @@ class EventBus:
 
         return False
 
-    async def _publish_single_attempt(
-        self, channel: str, event_json: str, event: EventMessage
-    ) -> bool:
+    async def _publish_single_attempt(self, channel: str, event_json: str, event: EventMessage) -> bool:
         """Publish event with single attempt (fire-and-forget)."""
         try:
             result = self.redis_client.publish_message(channel, event_json)
             self.metrics["events_published"] += 1
 
-            self.logger.debug(
-                f"Event {event.event_type} published to {channel} "
-                f"for execution {event.execution_id}"
-            )
+            self.logger.debug(f"Event {event.event_type} published to {channel} for execution {event.execution_id}")
 
             return result > 0
 
         except Exception as e:
-            self.logger.error(
-                f"Single attempt publish failed for event {event.event_type}: {e}"
-            )
+            self.logger.error(f"Single attempt publish failed for event {event.event_type}: {e}")
             return False
 
     async def subscribe_to_events(
@@ -320,10 +301,7 @@ class EventBus:
             # Subscribe to Redis channel
             pubsub = self.redis_client.subscribe_to_channel(channel)
 
-            self.logger.info(
-                f"Subscribed to events on channel {channel} "
-                f"(types: {event_types or 'all'})"
-            )
+            self.logger.info(f"Subscribed to events on channel {channel} (types: {event_types or 'all'})")
 
             # Process incoming messages
             while True:
@@ -331,9 +309,7 @@ class EventBus:
                     message = pubsub.get_message(timeout=1.0)
 
                     if message and message["type"] == "message":
-                        await self._process_incoming_message(
-                            message["data"], event_types, handler
-                        )
+                        await self._process_incoming_message(message["data"], event_types, handler)
 
                 except TimeoutError:
                     continue
@@ -366,10 +342,7 @@ class EventBus:
             if event_types_filter and event.event_type not in event_types_filter:
                 return
 
-            self.logger.debug(
-                f"Processing event {event.event_type} "
-                f"for execution {event.execution_id}"
-            )
+            self.logger.debug(f"Processing event {event.event_type} for execution {event.execution_id}")
 
             # Use specific handler if provided, otherwise use registered handlers
             if specific_handler:
@@ -384,10 +357,7 @@ class EventBus:
                     self.metrics["events_processed"] += 1
 
                 except Exception as e:
-                    self.logger.error(
-                        f"Handler {handler.name} failed for event "
-                        f"{event.event_type}: {e}"
-                    )
+                    self.logger.error(f"Handler {handler.name} failed for event {event.event_type}: {e}")
                     self.metrics["errors_encountered"] += 1
 
             # Update performance metrics
@@ -407,17 +377,12 @@ class EventBus:
         processed_count = self.metrics["events_processed"]
 
         # Calculate new average
-        new_avg = (
-            current_avg * (processed_count - 1) + processing_time_ms
-        ) / processed_count
+        new_avg = (current_avg * (processed_count - 1) + processing_time_ms) / processed_count
         self.metrics["average_processing_time_ms"] = new_avg
 
         # Log performance warnings
         if processing_time_ms > 50:  # Sub-50ms requirement
-            self.logger.warning(
-                f"Event processing took {processing_time_ms:.2f}ms "
-                f"(average: {new_avg:.2f}ms)"
-            )
+            self.logger.warning(f"Event processing took {processing_time_ms:.2f}ms (average: {new_avg:.2f}ms)")
 
     def _validate_event(self, event: EventMessage) -> None:
         """Validate event message structure and content."""
@@ -442,9 +407,7 @@ class EventBus:
 
         for indicator in pii_indicators:
             if indicator in payload_str:
-                self.logger.warning(
-                    f"Potential PII detected in event payload: {indicator}"
-                )
+                self.logger.warning(f"Potential PII detected in event payload: {indicator}")
 
     def get_metrics(self) -> dict[str, Any]:
         """
@@ -455,7 +418,7 @@ class EventBus:
         """
         return {
             **self.metrics,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "connection_pool_stats": self.redis_client.get_connection_pool_stats(),
         }
 
@@ -525,9 +488,7 @@ class EventBus:
             Formatted bias detection event
         """
         event_type = (
-            EventType.BIAS_THRESHOLD_EXCEEDED.value
-            if bias_score > threshold
-            else EventType.BIAS_CHECK_COMPLETED.value
+            EventType.BIAS_THRESHOLD_EXCEEDED.value if bias_score > threshold else EventType.BIAS_CHECK_COMPLETED.value
         )
 
         return EventMessage(
@@ -538,9 +499,7 @@ class EventBus:
                 "threshold": threshold,
                 "threshold_exceeded": bias_score > threshold,
                 "recommendations": recommendations or [],
-                "compliance_status": "acceptable"
-                if bias_score <= threshold
-                else "review_required",
+                "compliance_status": "acceptable" if bias_score <= threshold else "review_required",
             },
             source="bias_detection_service",
             target="pipeline_coordinator",
@@ -561,16 +520,11 @@ class EventBus:
             metrics = self.get_metrics()
 
             return {
-                "status": "healthy"
-                if redis_health["status"] == "healthy"
-                else "degraded",
+                "status": "healthy" if redis_health["status"] == "healthy" else "degraded",
                 "redis_health": redis_health,
                 "metrics": metrics,
-                "registered_handlers": {
-                    event_type: len(handlers)
-                    for event_type, handlers in self.handlers.items()
-                },
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "registered_handlers": {event_type: len(handlers) for event_type, handlers in self.handlers.items()},
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -578,7 +532,7 @@ class EventBus:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 

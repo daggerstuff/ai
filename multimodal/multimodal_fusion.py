@@ -102,12 +102,8 @@ class MultimodalFusion:
             FusedEmotionalState with combined representation
         """
         if weights:
-            self.text_weight = weights.text_weight / (
-                weights.text_weight + weights.audio_weight
-            )
-            self.audio_weight = weights.audio_weight / (
-                weights.text_weight + weights.audio_weight
-            )
+            self.text_weight = weights.text_weight / (weights.text_weight + weights.audio_weight)
+            self.audio_weight = weights.audio_weight / (weights.text_weight + weights.audio_weight)
 
         # Default to neutral if missing
         if text_emotion is None:
@@ -301,9 +297,7 @@ class MultimodalFusion:
 
         # Check for extreme conflict
         if fused_state.conflict_score > 0.8:
-            logger.warning(
-                f"High modality conflict detected: {fused_state.conflict_score:.2f}"
-            )
+            logger.warning(f"High modality conflict detected: {fused_state.conflict_score:.2f}")
             return False
 
         return True

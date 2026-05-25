@@ -8,7 +8,7 @@ import asyncio
 import logging
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -166,7 +166,7 @@ class DisasterRecoveryManager:
                 "primary": "db-admin@pixelated.com",
                 "secondary": "ops-team@pixelated.com",
             },
-            last_updated=datetime.now(timezone.utc),
+            last_updated=datetime.now(UTC),
         )
 
         # Data corruption recovery plan
@@ -223,7 +223,7 @@ class DisasterRecoveryManager:
                 "primary": "data-team@pixelated.com",
                 "secondary": "ops-team@pixelated.com",
             },
-            last_updated=datetime.now(timezone.utc),
+            last_updated=datetime.now(UTC),
         )
 
         # Security breach recovery plan
@@ -288,7 +288,7 @@ class DisasterRecoveryManager:
                 "primary": "security-team@pixelated.com",
                 "secondary": "ops-team@pixelated.com",
             },
-            last_updated=datetime.now(timezone.utc),
+            last_updated=datetime.now(UTC),
         )
 
         # Register plans
@@ -298,9 +298,7 @@ class DisasterRecoveryManager:
 
         logger.info("Initialized default disaster recovery plans")
 
-    def get_recovery_plan(
-        self, disaster_type: DisasterType
-    ) -> DisasterRecoveryPlan | None:
+    def get_recovery_plan(self, disaster_type: DisasterType) -> DisasterRecoveryPlan | None:
         """Get recovery plan for a specific disaster type"""
         for plan in self.recovery_plans.values():
             if plan.disaster_type == disaster_type:
@@ -318,15 +316,13 @@ class DisasterRecoveryManager:
         # Get recovery plan
         plan = custom_plan or self.get_recovery_plan(disaster_type)
         if not plan:
-            raise ValueError(
-                f"No recovery plan found for disaster type: {disaster_type}"
-            )
+            raise ValueError(f"No recovery plan found for disaster type: {disaster_type}")
 
         # Create recovery session
         session = RecoverySession(
             session_id=session_id,
             disaster_type=disaster_type,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             status=RecoveryStatus.NOT_STARTED,
             completed_steps=[],
             failed_steps=[],
@@ -365,7 +361,7 @@ class DisasterRecoveryManager:
 
         # Update step status
         step.status = RecoveryStatus.IN_PROGRESS
-        step.start_time = datetime.now(timezone.utc)
+        step.start_time = datetime.now(UTC)
         session.status = RecoveryStatus.IN_PROGRESS
         session.logs.append(f"Starting step {step.name} at {step.start_time}")
 
@@ -374,7 +370,7 @@ class DisasterRecoveryManager:
             success = await self._execute_step_logic(step_id, session)
 
             # Update step status
-            step.end_time = datetime.now(timezone.utc)
+            step.end_time = datetime.now(UTC)
             step.duration_seconds = (step.end_time - step.start_time).total_seconds()
 
             if success:
@@ -392,7 +388,7 @@ class DisasterRecoveryManager:
         except Exception as e:
             step.status = RecoveryStatus.FAILED
             step.error_message = str(e)
-            step.end_time = datetime.now(timezone.utc)
+            step.end_time = datetime.now(UTC)
             step.duration_seconds = (step.end_time - step.start_time).total_seconds()
             session.failed_steps.append(step_id)
             session.logs.append(f"Failed step {step.name}: {e}")
@@ -407,9 +403,7 @@ class DisasterRecoveryManager:
         disaster_type = session.disaster_type
         plan_id = session.recovery_plan.plan_id
 
-        logger.info(
-            f"Executing recovery step {step_id} for {disaster_type.value} using plan {plan_id}"
-        )
+        logger.info(f"Executing recovery step {step_id} for {disaster_type.value} using plan {plan_id}")
 
         # Simulate some work
         await asyncio.sleep(0.1)  # Reduced sleep time for faster tests
@@ -455,10 +449,7 @@ class DisasterRecoveryManager:
                 break
 
             # Execute all executable steps concurrently
-            tasks = [
-                self.execute_recovery_step(session_id, step_id)
-                for step_id in executable_steps
-            ]
+            tasks = [self.execute_recovery_step(session_id, step_id) for step_id in executable_steps]
 
             await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -474,13 +465,11 @@ class DisasterRecoveryManager:
         else:
             session.status = RecoveryStatus.FAILED
 
-        session.end_time = datetime.now(timezone.utc)
+        session.end_time = datetime.now(UTC)
         self.recovery_history.append(session)
         del self.active_sessions[session_id]
 
-        logger.info(
-            f"Recovery plan execution completed with status: {session.status.value}"
-        )
+        logger.info(f"Recovery plan execution completed with status: {session.status.value}")
         return session.status
 
     def get_recovery_status(self, session_id: str) -> dict[str, Any] | None:
@@ -502,7 +491,7 @@ class DisasterRecoveryManager:
 
         session = self.active_sessions[session_id]
         session.status = RecoveryStatus.FAILED
-        session.end_time = datetime.now(timezone.utc)
+        session.end_time = datetime.now(UTC)
         session.logs.append("Recovery session cancelled by user")
 
         self.recovery_history.append(session)
@@ -513,9 +502,7 @@ class DisasterRecoveryManager:
 
 
 # Example disaster recovery functions (these would be implemented based on actual system)
-async def restore_database_from_backup(
-    backup_location: str, target_database: str
-) -> bool:
+async def restore_database_from_backup(backup_location: str, target_database: str) -> bool:
     """Restore database from backup"""
     try:
         logger.info(f"Restoring database {target_database} from {backup_location}")
@@ -580,7 +567,6 @@ async def example_disaster_recovery():
             if session.session_id == session_id:
                 status = asdict(session)
                 break
-
 
     if status["logs"]:
         for _log_entry in status["logs"]:

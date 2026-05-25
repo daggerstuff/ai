@@ -1,21 +1,21 @@
 """Tests for the human review queue (PIX-250)."""
 
 import json
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from ai.core.pipelines.human_review_queue import (
+    EscalationCriteria,
     HumanReviewQueue,
-    ReviewItem,
+    ReviewConsistencyGuideline,
+    ReviewDecision,
     Reviewer,
     ReviewerRole,
-    ReviewStatus,
-    ReviewDecision,
-    EscalationCriteria,
-    ReviewConsistencyGuideline,
     ReviewFeedbackCollector,
+    ReviewStatus,
 )
 
 
@@ -359,19 +359,23 @@ class TestQueueStats:
         # Approve one, reject one
         reviewer = Reviewer(id="reviewer-001", role=ReviewerRole.DATA_STEWARD)
 
-        queue.apply_decision(ReviewDecision(
-            item_id=item1.item_id,
-            reviewer=reviewer,
-            decision=ReviewStatus.APPROVED,
-            reason="Approved",
-        ))
+        queue.apply_decision(
+            ReviewDecision(
+                item_id=item1.item_id,
+                reviewer=reviewer,
+                decision=ReviewStatus.APPROVED,
+                reason="Approved",
+            )
+        )
 
-        queue.apply_decision(ReviewDecision(
-            item_id=item2.item_id,
-            reviewer=reviewer,
-            decision=ReviewStatus.REJECTED,
-            reason="Rejected",
-        ))
+        queue.apply_decision(
+            ReviewDecision(
+                item_id=item2.item_id,
+                reviewer=reviewer,
+                decision=ReviewStatus.REJECTED,
+                reason="Rejected",
+            )
+        )
 
         stats = queue.get_stats()
 
@@ -458,7 +462,9 @@ class TestEscalationCriteria:
         assert escalation_criteria.should_escalate(gate_result) is True
 
     def test_license_requires_review(self, escalation_criteria):
-        gate_result = {"license_check": {"license_id": "cc-by-nc-4.0", "requires_consent": True, "consent_recorded": False}}
+        gate_result = {
+            "license_check": {"license_id": "cc-by-nc-4.0", "requires_consent": True, "consent_recorded": False}
+        }
         assert escalation_criteria.should_escalate(gate_result) is True
 
     def test_get_escalation_reasons(self, escalation_criteria):
@@ -490,7 +496,9 @@ class TestReviewConsistencyGuideline:
         assert any("email" in item for item in checklist)
 
     def test_get_review_checklist_consent(self, consistency_guidelines):
-        gate_result = {"license_check": {"license_id": "cc-by-nc-4.0", "requires_consent": True, "consent_recorded": False}}
+        gate_result = {
+            "license_check": {"license_id": "cc-by-nc-4.0", "requires_consent": True, "consent_recorded": False}
+        }
         checklist = consistency_guidelines.get_review_checklist(gate_result)
         assert any("Consent verification" in item for item in checklist)
 
@@ -510,38 +518,44 @@ class TestReviewFeedbackCollector:
 
     def test_feedback_approval_rate(self, feedback_collector):
         for i in range(3):
-            feedback_collector.record_decision({
-                "item_id": f"item-{i}",
-                "reviewer_id": "r1",
-                "decision": "approved",
-                "reason": "test",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+            feedback_collector.record_decision(
+                {
+                    "item_id": f"item-{i}",
+                    "reviewer_id": "r1",
+                    "decision": "approved",
+                    "reason": "test",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
         feedback = feedback_collector.get_feedback()
         assert feedback.approval_rate == 1.0
         assert feedback.total_reviews == 3
 
     def test_feedback_rejection_rate(self, feedback_collector):
         for i in range(2):
-            feedback_collector.record_decision({
-                "item_id": f"item-{i}",
-                "reviewer_id": "r1",
-                "decision": "rejected",
-                "reason": "test",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+            feedback_collector.record_decision(
+                {
+                    "item_id": f"item-{i}",
+                    "reviewer_id": "r1",
+                    "decision": "rejected",
+                    "reason": "test",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
         feedback = feedback_collector.get_feedback()
         assert feedback.rejection_rate == 1.0
 
     def test_patterns_identified(self, feedback_collector):
         for i in range(5):
-            feedback_collector.record_decision({
-                "item_id": f"item-{i}",
-                "reviewer_id": "r1",
-                "decision": "rejected",
-                "reason": "prohibited content",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
+            feedback_collector.record_decision(
+                {
+                    "item_id": f"item-{i}",
+                    "reviewer_id": "r1",
+                    "decision": "rejected",
+                    "reason": "prohibited content",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
         feedback = feedback_collector.get_feedback()
         assert len(feedback.escalation_patterns) > 0
         assert any("High rejection rate" in p for p in feedback.escalation_patterns)
@@ -627,7 +641,7 @@ class TestGateToRecordMetadataIntegration:
             reviewer=reviewer,
             decision=ReviewStatus.APPROVED,
             reason="PII scrub verified; content appropriate for training",
-            additional_notes={"verified_by": "privacy-team", "verification_date": "2026-05-10"}
+            additional_notes={"verified_by": "privacy-team", "verification_date": "2026-05-10"},
         )
         updated_item = queue.apply_decision(decision)
 
@@ -849,7 +863,6 @@ class TestDeadLetterMechanism:
 
     def test_malformed_entry_moved_to_dead_letter(self, tmp_path):
         """Malformed entries should be moved to dead-letter file."""
-        import os
 
         # Create a queue with malformed data
         data_dir = tmp_path / "test-queue"
@@ -877,7 +890,7 @@ class TestDeadLetterMechanism:
         assert dead_letter_file.exists()
 
         # Dead-letter should contain the malformed entry
-        with open(dead_letter_file, "r") as f:
+        with open(dead_letter_file) as f:
             dead_letter_content = f.read()
 
         assert "broken" in dead_letter_content
@@ -899,7 +912,7 @@ class TestDeadLetterMechanism:
 
         # Read dead-letter
         dead_letter_file = data_dir / "dead_letter.jsonl"
-        with open(dead_letter_file, "r") as f:
+        with open(dead_letter_file) as f:
             entry = json.loads(f.read().strip())
 
         # Should have metadata

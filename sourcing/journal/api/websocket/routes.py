@@ -3,10 +3,11 @@ WebSocket routes for real-time updates.
 
 This module provides WebSocket endpoints for streaming progress updates.
 """
+
 import asyncio
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
@@ -37,7 +38,6 @@ async def websocket_progress(
     token = websocket.query_params.get("token")
     if token:
         try:
-
             user = get_user_from_token(token)
             logger.info(f"WebSocket authenticated for user {user.get('user_id')}")
         except Exception as e:
@@ -57,7 +57,7 @@ async def websocket_progress(
                 {
                     "type": "progress_update",
                     "session_id": session_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "data": progress_data,
                 },
                 websocket,
@@ -68,7 +68,7 @@ async def websocket_progress(
                 {
                     "type": "error",
                     "session_id": session_id,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "message": f"Failed to load progress: {e!s}",
                 },
                 websocket,
@@ -85,7 +85,7 @@ async def websocket_progress(
                         await manager.send_personal_message(
                             {
                                 "type": "pong",
-                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                                "timestamp": datetime.now(UTC).isoformat(),
                             },
                             websocket,
                         )
@@ -96,7 +96,7 @@ async def websocket_progress(
                 await manager.send_personal_message(
                     {
                         "type": "ping",
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     },
                     websocket,
                 )
@@ -131,7 +131,6 @@ async def websocket_progress_poll(
     token = websocket.query_params.get("token")
     if token:
         try:
-
             user = get_user_from_token(token)
             logger.info(f"WebSocket authenticated for user {user.get('user_id')}")
         except Exception as e:
@@ -164,7 +163,7 @@ async def websocket_progress_poll(
                         {
                             "type": "progress_update",
                             "session_id": session_id,
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                             "data": progress_data,
                         },
                         websocket,
@@ -191,7 +190,7 @@ async def websocket_progress_poll(
                     {
                         "type": "error",
                         "session_id": session_id,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                         "message": f"Error polling progress: {e!s}",
                     },
                     websocket,
@@ -204,4 +203,3 @@ async def websocket_progress_poll(
         logger.error(f"WebSocket error for session {session_id}: {e}")
     finally:
         await manager.disconnect(websocket, session_id)
-

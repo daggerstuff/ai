@@ -12,7 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -194,8 +194,7 @@ class PerformanceGapBacklogConverter:
                 area="curation_rules",
                 title="Shift dataset weighting toward empathetic style coverage",
                 summary_template=(
-                    "Empathy score below threshold indicates low emotional attunement in "
-                    "curated samples."
+                    "Empathy score below threshold indicates low emotional attunement in curated samples."
                 ),
                 actions=[
                     "Add empathetic response pattern checks to pre-ingestion curation",
@@ -203,8 +202,7 @@ class PerformanceGapBacklogConverter:
                     "Add source enrichment task for supportive-response-heavy datasets",
                 ],
                 suggested_sop=(
-                    "Run a curation rule A/B test for 3k records and compare empathy pass rates "
-                    "before full rollout."
+                    "Run a curation rule A/B test for 3k records and compare empathy pass rates before full rollout."
                 ),
                 expected_impact="Increase emotional alignment and reduce low-empathy failure clusters",
             ),
@@ -216,17 +214,14 @@ class PerformanceGapBacklogConverter:
                 priority=RulePriority.CRITICAL,
                 area="review_focus",
                 title="Escalate crisis detection and harm review capacity",
-                summary_template=(
-                    "Safety score under threshold requires immediate reviewer and rule escalation."
-                ),
+                summary_template=("Safety score under threshold requires immediate reviewer and rule escalation."),
                 actions=[
                     "Increase review rate for crisis-related samples by +30%",
                     "Add dedicated safety escalation checklist for high-risk channels",
                     "Restrict ambiguous crisis phrasing sources from automatic intake",
                 ],
                 suggested_sop=(
-                    "Create a temporary high-risk queue and require dual-pass verification "
-                    "before approval."
+                    "Create a temporary high-risk queue and require dual-pass verification before approval."
                 ),
                 expected_impact="Lower risk of unsafe output and reduce safety exceptions post-deploy",
             ),
@@ -239,8 +234,7 @@ class PerformanceGapBacklogConverter:
                 area="pipeline_allocation",
                 title="Increase pipeline cycles for bottlenecked quality checks",
                 summary_template=(
-                    "Large validation backlog indicates throughput is not keeping pace with quality "
-                    "feedback volume."
+                    "Large validation backlog indicates throughput is not keeping pace with quality feedback volume."
                 ),
                 actions=[
                     "Raise throughput on quality gates for critical metrics first",
@@ -248,8 +242,7 @@ class PerformanceGapBacklogConverter:
                     "Add temporary capacity for validation workers",
                 ],
                 suggested_sop=(
-                    "Add two additional validation workers for one sprint; compare queue age and "
-                    "fail-rate lag."
+                    "Add two additional validation workers for one sprint; compare queue age and fail-rate lag."
                 ),
                 expected_impact="Reduce validation lag and make feedback loops actionable sooner",
             ),
@@ -262,9 +255,7 @@ class PerformanceGapBacklogConverter:
             return metric_value > threshold
         return False
 
-    def convert(
-        self, metrics: dict[str, float], reasons: dict[str, str] | None = None
-    ) -> BacklogConversionResult:
+    def convert(self, metrics: dict[str, float], reasons: dict[str, str] | None = None) -> BacklogConversionResult:
         """Convert metric gaps into backlog actions.
 
         Args:
@@ -296,10 +287,7 @@ class PerformanceGapBacklogConverter:
                     area=rule.area,
                     title=rule.title,
                     summary=rule.summary_template,
-                    trigger=(
-                        f"{rule.metric}={metric_value:.2f} ({rule.operator} "
-                        f"{rule.threshold})"
-                    ),
+                    trigger=(f"{rule.metric}={metric_value:.2f} ({rule.operator} {rule.threshold})"),
                     actions=rule.actions,
                     suggested_sop=rule.suggested_sop,
                     expected_impact=rule.expected_impact,
@@ -314,7 +302,7 @@ class PerformanceGapBacklogConverter:
             )
 
         return BacklogConversionResult(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             metric_count=len(metrics),
             generated_changes=len(generated),
             changes=generated,
@@ -366,14 +354,10 @@ class PerformanceGapBacklogConverter:
                 )
             elif "clinical_compliance" in metrics:
                 metrics["clinical_reasoning_accuracy"] = metrics["clinical_compliance"]
-                reasons["clinical_reasoning_accuracy"] = (
-                    "Mapped from clinical_compliance for reasoning proxy"
-                )
+                reasons["clinical_reasoning_accuracy"] = "Mapped from clinical_compliance for reasoning proxy"
         if "empathy_score" not in metrics and "emotional_authenticity" in metrics:
             metrics["empathy_score"] = metrics["emotional_authenticity"]
-            reasons["empathy_score"] = (
-                "Mapped from emotional_authenticity for empathetic response checks"
-            )
+            reasons["empathy_score"] = "Mapped from emotional_authenticity for empathetic response checks"
 
         return self.convert(metrics, reasons)
 
@@ -381,9 +365,7 @@ class PerformanceGapBacklogConverter:
         """Persist a conversion report to disk and return the path."""
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(
-            json.dumps(result.to_dict(), indent=2), encoding="utf-8"
-        )
+        output_file.write_text(json.dumps(result.to_dict(), indent=2), encoding="utf-8")
         return str(output_file)
 
 
@@ -391,9 +373,7 @@ def _main() -> None:
     """Simple manual invocation for ad-hoc conversion payloads."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Convert performance gaps into backlog updates"
-    )
+    parser = argparse.ArgumentParser(description="Convert performance gaps into backlog updates")
     parser.add_argument(
         "--metrics-json",
         required=True,
@@ -421,9 +401,9 @@ if __name__ == "__main__":
 
 
 __all__ = [
-    "RulePriority",
     "BacklogChange",
-    "ConversionRule",
     "BacklogConversionResult",
+    "ConversionRule",
     "PerformanceGapBacklogConverter",
+    "RulePriority",
 ]

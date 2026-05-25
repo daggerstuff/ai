@@ -3,6 +3,7 @@
 Dataset validation script that computes checksums, validates schemas,
 and updates the dataset registry with validation results.
 """
+
 import argparse
 import csv
 import hashlib
@@ -176,9 +177,7 @@ class DatasetValidator:
                 with open(dataset_path, encoding="utf-8", newline="") as f:
                     rows = list(csv.reader(f))
                 if len(rows) < MIN_LOCAL_CSV_ROWS:
-                    warnings.append(
-                        f"CSV dataset has fewer than {MIN_LOCAL_CSV_ROWS} rows (header only or empty)"
-                    )
+                    warnings.append(f"CSV dataset has fewer than {MIN_LOCAL_CSV_ROWS} rows (header only or empty)")
             except Exception:
                 warnings.append("Failed to run CSV completeness check")
                 integrity_ok = False
@@ -189,9 +188,7 @@ class DatasetValidator:
 
         return integrity_ok
 
-    def _resolve_dataset_size_bytes(
-        self, dataset_path: str, errors: list[str]
-    ) -> int | None:
+    def _resolve_dataset_size_bytes(self, dataset_path: str, errors: list[str]) -> int | None:
         if dataset_path.startswith(S3_URI_PREFIX):
             s3_parts = self._strip_s3_prefix(dataset_path)
             if s3_parts is None:
@@ -298,9 +295,7 @@ class DatasetValidator:
         expected_exts = self._infer_expected_extensions(dataset_type)
         if extension and extension not in expected_exts:
             schema_valid = False
-            errors.append(
-                f"Unexpected file extension '{extension}' for dataset type '{dataset_type}'"
-            )
+            errors.append(f"Unexpected file extension '{extension}' for dataset type '{dataset_type}'")
 
         if dataset_path.startswith(S3_URI_PREFIX):
             if not extension:
@@ -320,9 +315,7 @@ class DatasetValidator:
         elif extension == ".json":
             schema_valid = self._validate_json_schema(local_path, errors) and schema_valid
         elif extension == ".csv":
-            schema_valid = (
-                self._validate_csv_schema(local_path, errors) and schema_valid
-            )
+            schema_valid = self._validate_csv_schema(local_path, errors) and schema_valid
         elif extension:
             warnings.append(f"No schema validation rule for extension '{extension}'")
 
@@ -330,7 +323,6 @@ class DatasetValidator:
             warnings.append("No schema errors found")
 
         return {"schema_valid": schema_valid, "errors": errors, "warnings": warnings}
-
 
     def check_integrity(self, dataset_path: str, size_mb: Any) -> dict[str, Any]:
         """Check dataset integrity."""
@@ -363,15 +355,12 @@ class DatasetValidator:
 
         if expected_size_mb is not None:
             observed_size_mb = file_size_bytes / (1024 * 1024)
-            integrity_check = self._evaluate_size_tolerance(
-                observed_size_mb, expected_size_mb, errors, warnings
-            )
+            integrity_check = self._evaluate_size_tolerance(observed_size_mb, expected_size_mb, errors, warnings)
 
         # Integrity completeness checks on local datasets based on lightweight parsing.
         if not dataset_path.startswith(S3_URI_PREFIX):
             integrity_check = (
-                self._run_local_integrity_checks(dataset_path, file_size_bytes, warnings, errors)
-                and integrity_check
+                self._run_local_integrity_checks(dataset_path, file_size_bytes, warnings, errors) and integrity_check
             )
 
         if integrity_check and not errors and not warnings:
@@ -389,10 +378,7 @@ class DatasetValidator:
             "warnings": warnings,
         }
 
-
-    def validate_dataset(
-        self, _dataset_name: str, dataset_entry: dict[str, Any]
-    ) -> dict[str, Any]:
+    def validate_dataset(self, _dataset_name: str, dataset_entry: dict[str, Any]) -> dict[str, Any]:
         """
         Validate a single dataset and return validation results.
 
@@ -424,9 +410,7 @@ class DatasetValidator:
 
         expected_size_mb = dataset_entry.get("size_mb")
         integrity_result = self.check_integrity(dataset_path, expected_size_mb)
-        validation["integrity_check"] = bool(
-            validation.get("integrity_check") and integrity_result["integrity_check"]
-        )
+        validation["integrity_check"] = bool(validation.get("integrity_check") and integrity_result["integrity_check"])
         validation["file_size_bytes"] = integrity_result["file_size_bytes"]
         validation["validation_warnings"].extend(integrity_result["warnings"])
         validation["validation_errors"].extend(integrity_result["errors"])
@@ -441,9 +425,7 @@ class DatasetValidator:
         # Update validation metadata
         validation["last_validated"] = datetime.now(UTC).isoformat() + "Z"
         validation["validation_status"] = (
-            "validated"
-            if validation.get("integrity_check") and validation.get("schema_valid")
-            else "failed"
+            "validated" if validation.get("integrity_check") and validation.get("schema_valid") else "failed"
         )
         validation["requires_revalidation"] = False
 
@@ -468,9 +450,7 @@ class DatasetValidator:
             S3_PATH_PARTS_WITH_CATEGORY: lambda: registry["datasets"][parts[1]][parts[2]].update(
                 {"validation": updated_validation}
             ),
-            S3_PATH_PARTS_WITH_SECTION: lambda: registry[parts[0]][parts[1]].update(
-                {"validation": updated_validation}
-            ),
+            S3_PATH_PARTS_WITH_SECTION: lambda: registry[parts[0]][parts[1]].update({"validation": updated_validation}),
         }
         if len(parts) in updates:
             updates[len(parts)]()
@@ -494,9 +474,7 @@ class DatasetValidator:
         if isinstance(datasets_section, dict):
             for category_name, category_data in datasets_section.items():
                 if isinstance(category_data, dict):
-                    self._collect_dataset_entries(
-                        f"datasets.{category_name}", category_data, datasets_to_validate
-                    )
+                    self._collect_dataset_entries(f"datasets.{category_name}", category_data, datasets_to_validate)
         for section_name in OTHER_REGISTRY_SECTIONS:
             self._collect_dataset_entries(section_name, registry.get(section_name), datasets_to_validate)
 
@@ -535,18 +513,14 @@ class DatasetValidator:
 def main():
     """Main entry point."""
 
-    parser = argparse.ArgumentParser(
-        description="Validate datasets and update registry"
-    )
+    parser = argparse.ArgumentParser(description="Validate datasets and update registry")
     parser.add_argument(
         "--registry",
         type=Path,
         default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
         help="Path to dataset registry",
     )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to validate"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to validate")
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -555,10 +529,8 @@ def main():
 
     args = parser.parse_args()
 
-
     validator = DatasetValidator(args.registry)
     validator.validate_all_datasets(limit=args.limit)
-
 
 
 if __name__ == "__main__":

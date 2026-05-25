@@ -12,44 +12,24 @@ from pathlib import Path
 class LoRAFormatConverter:
     def __init__(self):
         # Expert mapping for MoE architecture
-        self.expert_mapping = {
-            "therapeutic": 0,
-            "educational": 1,
-            "empathetic": 2,
-            "practical": 3
-        }
+        self.expert_mapping = {"therapeutic": 0, "educational": 1, "empathetic": 2, "practical": 3}
 
         # Lightning.ai conversation format template
         self.conversation_template = {
-            "conversations": [
-                {
-                    "from": "human",
-                    "value": ""
-                },
-                {
-                    "from": "gpt",
-                    "value": ""
-                }
-            ],
+            "conversations": [{"from": "human", "value": ""}, {"from": "gpt", "value": ""}],
             "expert_id": 0,
             "style": "",
             "quality": 0.0,
             "source": "",
-            "metadata": {}
+            "metadata": {},
         }
 
     def format_conversation(self, training_pair: dict) -> dict:
         """Convert training pair to Lightning.ai conversation format"""
         return {
             "conversations": [
-                {
-                    "from": "human",
-                    "value": training_pair["input"]
-                },
-                {
-                    "from": "gpt",
-                    "value": training_pair["output"]
-                }
+                {"from": "human", "value": training_pair["input"]},
+                {"from": "gpt", "value": training_pair["output"]},
             ],
             "expert_id": self.expert_mapping[training_pair["style"]],
             "style": training_pair["style"],
@@ -58,10 +38,9 @@ class LoRAFormatConverter:
             "metadata": {
                 "confidence": training_pair["confidence"],
                 "file": training_pair["file"],
-                "expert_name": training_pair["style"]
-            }
+                "expert_name": training_pair["style"],
+            },
         }
-
 
     def create_training_split(self, conversations: list[dict], train_ratio: float = 0.9) -> tuple:
         """Split conversations into training and validation sets"""
@@ -81,12 +60,11 @@ class LoRAFormatConverter:
         stats = {
             "total_pairs": 0,
             "by_style": {"therapeutic": 0, "educational": 0, "empathetic": 0, "practical": 0},
-            "by_quality": {"high": 0, "medium": 0}
+            "by_quality": {"high": 0, "medium": 0},
         }
 
         # Process each training file
         for training_file in input_dir.glob("training_*.json"):
-
             with open(training_file, encoding="utf-8") as f:
                 training_pairs = json.load(f)
 
@@ -140,8 +118,8 @@ class LoRAFormatConverter:
                     "lora_alpha": 32,
                     "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj"],
                     "lora_dropout": 0.05,
-                    "bias": "none"
-                }
+                    "bias": "none",
+                },
             },
             "training_config": {
                 "num_experts": 4,
@@ -151,7 +129,7 @@ class LoRAFormatConverter:
                 "num_epochs": 3,
                 "warmup_steps": 100,
                 "max_length": 1024,
-                "gradient_accumulation_steps": 4
+                "gradient_accumulation_steps": 4,
             },
             "data_config": {
                 "train_file": "train.json",
@@ -160,30 +138,30 @@ class LoRAFormatConverter:
                 "train_size": stats["train_size"],
                 "val_size": stats["val_size"],
                 "style_distribution": stats["by_style"],
-                "quality_distribution": stats["by_quality"]
+                "quality_distribution": stats["by_quality"],
             },
             "expert_config": {
                 "therapeutic": {
                     "expert_id": 0,
                     "description": "Handles trauma, healing, and therapeutic guidance",
-                    "count": stats["by_style"]["therapeutic"]
+                    "count": stats["by_style"]["therapeutic"],
                 },
                 "educational": {
                     "expert_id": 1,
                     "description": "Provides clinical explanations and educational content",
-                    "count": stats["by_style"]["educational"]
+                    "count": stats["by_style"]["educational"],
                 },
                 "empathetic": {
                     "expert_id": 2,
                     "description": "Offers emotional support and validation",
-                    "count": stats["by_style"]["empathetic"]
+                    "count": stats["by_style"]["empathetic"],
                 },
                 "practical": {
                     "expert_id": 3,
                     "description": "Gives actionable advice and practical strategies",
-                    "count": stats["by_style"]["practical"]
-                }
-            }
+                    "count": stats["by_style"]["practical"],
+                },
+            },
         }
 
         config_file = output_dir / "lightning_config.json"
@@ -192,13 +170,13 @@ class LoRAFormatConverter:
 
         return config
 
+
 def main():
     """Convert training pairs to Lightning.ai H100 LoRA format"""
     converter = LoRAFormatConverter()
 
     input_dir = Path("/root/pixelated/ai/data/lora_training")
     output_dir = Path("/root/pixelated/ai/data/lightning_h100")
-
 
     # Process all training files
     stats = converter.process_training_files(input_dir, output_dir)
@@ -210,6 +188,7 @@ def main():
         pass
     for _quality, _count in stats["by_quality"].items():
         pass
+
 
 if __name__ == "__main__":
     main()

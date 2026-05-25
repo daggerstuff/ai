@@ -12,12 +12,14 @@ def mock_openai():
         mock.return_value = mock_instance
         yield mock
 
+
 @pytest.fixture
 def mock_async_openai():
     with patch("ai.memory.mem0_nvidia.manager.AsyncOpenAI") as mock:
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         yield mock
+
 
 @pytest.fixture
 def mock_mem0_client():
@@ -26,13 +28,9 @@ def mock_mem0_client():
         mock.return_value = mock_instance
         yield mock_instance
 
-def test_nvidia_manager_initialization(
-    mock_openai, mock_async_openai, _mock_mem0_client
-):
-    config = NvidiaMem0Config(
-        nvidia_api_key="test-nv",
-        mem0_api_key="test-mem0"
-    )
+
+def test_nvidia_manager_initialization(mock_openai, mock_async_openai, _mock_mem0_client):
+    config = NvidiaMem0Config(nvidia_api_key="test-nv", mem0_api_key="test-mem0")
     # Patch TherapeuticProcessor to avoid real sub-calls if needed
     with patch("ai.memory.therapeutic_processor.TherapeuticProcessor"):
         manager = NvidiaMem0Manager(config)
@@ -40,42 +38,30 @@ def test_nvidia_manager_initialization(
         assert mock_openai.called, "OpenAI client was not initialized"
         assert mock_async_openai.called, "AsyncOpenAI client was not initialized"
 
+
 @pytest.mark.asyncio
-async def test_nvidia_manager_search(
-    _mock_openai, _mock_async_openai, mock_mem0_client
-):
-    config = NvidiaMem0Config(
-        nvidia_api_key="test-nv",
-        mem0_api_key="test-mem0"
-    )
+async def test_nvidia_manager_search(_mock_openai, _mock_async_openai, mock_mem0_client):
+    config = NvidiaMem0Config(nvidia_api_key="test-nv", mem0_api_key="test-mem0")
     manager = NvidiaMem0Manager(config, memory_provider=mock_mem0_client)
 
     # Mock search result
-    mock_mem0_client.search.return_value = {
-        "results": [{"memory": "Fact 1", "id": "m1"}]
-    }
+    mock_mem0_client.search.return_value = {"results": [{"memory": "Fact 1", "id": "m1"}]}
 
     results = manager.search_memories("query", user_id="u1")
     assert len(results) == 1
     assert results[0]["memory"] == "Fact 1"
     mock_mem0_client.search.assert_called_with("query", user_id="u1", limit=10)
 
+
 @pytest.mark.asyncio
 async def test_nvidia_manager_add(_mock_openai, _mock_async_openai, mock_mem0_client):
-    config = NvidiaMem0Config(
-        nvidia_api_key="test-nv",
-        mem0_api_key="test-mem0"
-    )
+    config = NvidiaMem0Config(nvidia_api_key="test-nv", mem0_api_key="test-mem0")
     manager = NvidiaMem0Manager(config, memory_provider=mock_mem0_client)
 
     # Mock add result
-    mock_mem0_client.add.return_value = {
-        "results": [{"id": "m2"}]
-    }
+    mock_mem0_client.add.return_value = {"results": [{"id": "m2"}]}
 
-    memory_id = manager.add_memory(
-        "I feel happy", user_id="u1", category="EMOTIONAL_STATE"
-    )
+    memory_id = manager.add_memory("I feel happy", user_id="u1", category="EMOTIONAL_STATE")
     assert memory_id == "m2"
 
     # Verify add was called with metadata
@@ -84,14 +70,10 @@ async def test_nvidia_manager_add(_mock_openai, _mock_async_openai, mock_mem0_cl
     assert kwargs["user_id"] == "u1"
     assert kwargs["metadata"]["category"] == "EMOTIONAL_STATE"
 
+
 @pytest.mark.asyncio
-async def test_nvidia_manager_get_response(
-    _mock_openai, mock_async_openai, mock_mem0_client
-):
-    config = NvidiaMem0Config(
-        nvidia_api_key="test-nv",
-        mem0_api_key="test-mem0"
-    )
+async def test_nvidia_manager_get_response(_mock_openai, mock_async_openai, mock_mem0_client):
+    config = NvidiaMem0Config(nvidia_api_key="test-nv", mem0_api_key="test-mem0")
     manager = NvidiaMem0Manager(config, memory_provider=mock_mem0_client)
 
     # Mock search
@@ -103,9 +85,7 @@ async def test_nvidia_manager_get_response(
     mock_response.choices[0].message.content = "I hear you."
 
     # Correct way to mock AsyncOpenAI's chat.completions.create
-    mock_async_openai.return_value.chat.completions.create = AsyncMock(
-        return_value=mock_response
-    )
+    mock_async_openai.return_value.chat.completions.create = AsyncMock(return_value=mock_response)
 
     # We need to re-initialize manager or re-inject client because the previous
     # mock_async_openai.called check might have used a different instance if

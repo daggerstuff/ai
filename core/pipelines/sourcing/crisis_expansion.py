@@ -44,9 +44,7 @@ class CrisisTerm:
     def __post_init__(self):
         # Ensure intensity is within valid range
         if not 0.0 <= self.intensity <= 1.0:
-            raise ValueError(
-                f"Intensity must be between 0.0 and 1.0, got {self.intensity}"
-            )
+            raise ValueError(f"Intensity must be between 0.0 and 1.0, got {self.intensity}")
 
 
 @dataclass
@@ -101,9 +99,7 @@ class CrisisExpansion:
         """
         self.config = config or CrisisExpansionConfig()
         self._terms: dict[str, CrisisTerm] = {}
-        self._term_by_category: dict[CrisisCategory, set[str]] = {
-            category: set() for category in CrisisCategory
-        }
+        self._term_by_category: dict[CrisisCategory, set[str]] = {category: set() for category in CrisisCategory}
         self._initialize_base_terms()
 
         # Load custom term files if specified
@@ -496,9 +492,7 @@ class CrisisExpansion:
 
         return result
 
-    def _generate_phrase_variants(
-        self, term: str, _category: CrisisCategory
-    ) -> set[str]:
+    def _generate_phrase_variants(self, term: str, _category: CrisisCategory) -> set[str]:
         """
         Generate phrase variants for a term based on common expressions.
 
