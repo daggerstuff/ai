@@ -419,4 +419,3 @@ class DeleteSessionTool(MCPTool):
                 f"Failed to delete session: {e!s}",
                 {"params": params, "error": str(e)},
             ) from e
-

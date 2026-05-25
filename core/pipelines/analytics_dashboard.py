@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 
@@ -57,15 +57,25 @@ class AnalyticsDashboard:
 
     def collect_metrics(self, metric_type: str, data: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(metric_type, str) or not metric_type.strip():
-            return {"success": False, "error": "metric_type must be a non-empty string", "metrics_collected": 0, "metric_type": None}
+            return {
+                "success": False,
+                "error": "metric_type must be a non-empty string",
+                "metrics_collected": 0,
+                "metric_type": None,
+            }
         if not isinstance(data, dict) or not data:
-            return {"success": False, "error": "data must be a non-empty dict", "metrics_collected": 0, "metric_type": metric_type}
+            return {
+                "success": False,
+                "error": "data must be a non-empty dict",
+                "metrics_collected": 0,
+                "metric_type": metric_type,
+            }
 
         alerts = self._evaluate_alerts(data)
         rec = MetricRecord(
             metric_type=metric_type,
             data=data,
-            collected_at=datetime.now(timezone.utc).isoformat(),
+            collected_at=datetime.now(UTC).isoformat(),
             alerts_triggered=alerts,
         )
         bucket = self.metrics_data.setdefault(metric_type, [])
@@ -94,7 +104,7 @@ class AnalyticsDashboard:
     def _cleanup_expired(self) -> None:
         if self.max_retention_days <= 0:
             return
-        cutoff = datetime.now(timezone.utc) - timedelta(days=self.max_retention_days)
+        cutoff = datetime.now(UTC) - timedelta(days=self.max_retention_days)
         for metric_type, rows in list(self.metrics_data.items()):
             kept: list[MetricRecord] = []
             for row in rows:
@@ -103,7 +113,7 @@ class AnalyticsDashboard:
                 except Exception:
                     continue
                 if ts.tzinfo is None:
-                    ts = ts.replace(tzinfo=timezone.utc)
+                    ts = ts.replace(tzinfo=UTC)
                 if ts >= cutoff:
                     kept.append(row)
             self.metrics_data[metric_type] = kept
@@ -123,10 +133,10 @@ class AnalyticsDashboard:
 
         aggregate = self._aggregate_numeric_fields(all_records)
         summary = ReportSummary(
-            report_id=f"rpt-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}",
+            report_id=f"rpt-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}",
             metric_type="all",
             time_period=time_period,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             total_records=len(all_records),
             aggregate_metrics=aggregate,
         )
@@ -146,7 +156,7 @@ class AnalyticsDashboard:
         }
 
     def _filter_time_window(self, rows: list[MetricRecord], time_period: str) -> list[MetricRecord]:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if time_period == "last_24h":
             cutoff = now - timedelta(hours=24)
         elif time_period == "last_7d":
@@ -163,7 +173,7 @@ class AnalyticsDashboard:
             except Exception:
                 continue
             if ts.tzinfo is None:
-                ts = ts.replace(tzinfo=timezone.utc)
+                ts = ts.replace(tzinfo=UTC)
             if ts >= cutoff:
                 filtered.append(row)
         return filtered
@@ -178,11 +188,7 @@ class AnalyticsDashboard:
                 sums[key] = sums.get(key, 0.0) + float(value)
                 counts[key] = counts.get(key, 0) + 1
 
-        return {
-            key: value / counts[key]
-            for key, value in sums.items()
-            if counts.get(key, 0) > 0
-        }
+        return {key: value / counts[key] for key, value in sums.items() if counts.get(key, 0) > 0}
 
     def export_report(self, export_format: str = "json") -> dict[str, Any]:
         if not self.reports_generated:
@@ -206,9 +212,7 @@ class AnalyticsDashboard:
             return {"success": False, "error": "Invalid thresholds configuration", "updated_thresholds": None}
 
         for key, value in thresholds.items():
-            if key in self.alert_thresholds and isinstance(value, (int, float)):
-                self.alert_thresholds[key] = float(value)
-            elif isinstance(value, (int, float)):
+            if (key in self.alert_thresholds and isinstance(value, (int, float))) or isinstance(value, (int, float)):
                 self.alert_thresholds[key] = float(value)
 
         return {"success": True, "error": None, "updated_thresholds": self.alert_thresholds.copy()}

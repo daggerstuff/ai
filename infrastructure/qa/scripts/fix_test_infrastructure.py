@@ -52,9 +52,7 @@ class TestInfrastructureFixer:
                 if match:
                     current_file = match.group(1)
                     errors[current_file] = []
-            elif current_file and (
-                "ModuleNotFoundError" in line or "ImportError" in line
-            ):
+            elif current_file and ("ModuleNotFoundError" in line or "ImportError" in line):
                 errors[current_file].append(line.strip())
 
         return errors
@@ -137,7 +135,6 @@ class TestInfrastructureFixer:
             (tests_dir / subdir).mkdir(exist_ok=True)
             (tests_dir / subdir / "__init__.py").touch()
 
-
     def fix_common_test_issues(self, test_file: Path) -> bool:
         """Fix common issues in test files."""
         try:
@@ -193,12 +190,8 @@ class TestInfrastructureFixer:
         )
 
         # Count collected tests and errors
-        collected = len(
-            [line for line in result.stdout.split("\n") if "::test_" in line]
-        )
-        errors = len(
-            [line for line in result.stderr.split("\n") if "ERROR collecting" in line]
-        )
+        collected = len([line for line in result.stdout.split("\n") if "::test_" in line])
+        errors = len([line for line in result.stderr.split("\n") if "ERROR collecting" in line])
 
         return {
             "collected_tests": collected,
@@ -222,12 +215,8 @@ class TestInfrastructureFixer:
 
         return {
             "coverage_percent": coverage_percent,
-            "tests_run": len(
-                [line for line in result.stdout.split("\n") if "PASSED" in line]
-            ),
-            "tests_failed": len(
-                [line for line in result.stdout.split("\n") if "FAILED" in line]
-            ),
+            "tests_run": len([line for line in result.stdout.split("\n") if "PASSED" in line]),
+            "tests_failed": len([line for line in result.stdout.split("\n") if "FAILED" in line]),
         }
 
     def generate_report(self, validation_results: dict, coverage_results: dict) -> str:
@@ -283,11 +272,8 @@ class TestInfrastructureFixer:
         report = self.generate_report(validation_results, coverage_results)
 
         # Save report
-        report_file = (
-            self.project_root / "qa" / "reports" / "test_infrastructure_fix_report.md"
-        )
+        report_file = self.project_root / "qa" / "reports" / "test_infrastructure_fix_report.md"
         report_file.write_text(report)
-
 
 
 def main():

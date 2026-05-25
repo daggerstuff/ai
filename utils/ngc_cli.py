@@ -348,10 +348,7 @@ class NGCCLI:
     @staticmethod
     def _parse_resources_output(raw_output: str) -> list[dict[str, Any]]:
         normalized_output = raw_output.lower()
-        if (
-            "no resources found" in normalized_output
-            or "no results found" in normalized_output
-        ):
+        if "no resources found" in normalized_output or "no results found" in normalized_output:
             return []
 
         resources = NGCCLI._parse_json_resources(raw_output)
@@ -380,27 +377,17 @@ class NGCCLI:
         if isinstance(payload, dict):
             resources = payload.get("resources")
             if isinstance(resources, list):
-                return [
-                    dict(resource)
-                    for resource in resources
-                    if isinstance(resource, dict)
-                ]
+                return [dict(resource) for resource in resources if isinstance(resource, dict)]
         return []
 
     @staticmethod
     def _parse_pipe_delimited_resources(lines: list[str]) -> list[dict[str, Any]]:
-        table_rows = [
-            line
-            for line in lines
-            if "|" in line and "---" not in line and "+" not in line[:2]
-        ]
+        table_rows = [line for line in lines if "|" in line and "---" not in line and "+" not in line[:2]]
         if not table_rows:
             return []
 
         headers = [
-            part.strip()
-            for part in table_rows[0].split("|")
-            if part.strip() and not part.strip().startswith("+")
+            part.strip() for part in table_rows[0].split("|") if part.strip() and not part.strip().startswith("+")
         ]
         if not headers:
             return []
@@ -409,9 +396,7 @@ class NGCCLI:
         for row in lines[1:]:
             if "---" in row or row.startswith("+") or "|" not in row:
                 continue
-            values = [
-                part.strip() for part in row.split("|") if part.strip() and not part.strip().startswith("+")
-            ]
+            values = [part.strip() for part in row.split("|") if part.strip() and not part.strip().startswith("+")]
             if len(values) < len(headers):
                 continue
             resources.append(dict(zip(headers, values[: len(headers)], strict=True)))

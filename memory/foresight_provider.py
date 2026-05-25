@@ -10,7 +10,6 @@ import asyncio
 from typing import Any
 
 from .reflection_types import Memory, MemoryCategory, MemoryMetadata
-from .unified_memory import MemoryProvider
 
 
 def _to_memory(item: Memory | dict[str, Any]) -> Memory | None:
@@ -59,9 +58,7 @@ class ForesightMemoryProvider:
 
     async def get_memory(self, memory_id: str) -> Memory | None:
         result = await self._maybe_await(
-            self.foresight.get_memory(memory_id)
-            if hasattr(self.foresight, "get_memory")
-            else None
+            self.foresight.get_memory(memory_id) if hasattr(self.foresight, "get_memory") else None
         )
         if result is None:
             return None

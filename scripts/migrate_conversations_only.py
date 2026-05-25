@@ -11,9 +11,7 @@ from pathlib import Path
 
 import psycopg2
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 DB_CONFIG = {
@@ -83,25 +81,17 @@ def migrate_jsonl_file(file_path: Path) -> int:
 
                     if migrated_count % 100 == 0:
                         conn.commit()
-                        logger.info(
-                            f"Migrated {migrated_count} conversations from {file_path.name}"
-                        )
+                        logger.info(f"Migrated {migrated_count} conversations from {file_path.name}")
 
                     if migrated_count >= 500:  # Limit for testing
-                        logger.info(
-                            f"Stopping at 500 conversations for {file_path.name}"
-                        )
+                        logger.info(f"Stopping at 500 conversations for {file_path.name}")
                         break
 
                 except json.JSONDecodeError as e:
-                    logger.warning(
-                        f"Invalid JSON on line {line_num} in {file_path}: {e}"
-                    )
+                    logger.warning(f"Invalid JSON on line {line_num} in {file_path}: {e}")
                     continue
                 except Exception as e:
-                    logger.warning(
-                        f"Error processing line {line_num} in {file_path}: {e}"
-                    )
+                    logger.warning(f"Error processing line {line_num} in {file_path}: {e}")
                     continue
 
         conn.commit()
@@ -165,17 +155,13 @@ def main():
         cursor.execute("SELECT COUNT(*) FROM messages")
         msg_count = cursor.fetchone()[0]
 
-        cursor.execute(
-            "SELECT source, COUNT(*) FROM conversations GROUP BY source ORDER BY COUNT(*) DESC"
-        )
+        cursor.execute("SELECT source, COUNT(*) FROM conversations GROUP BY source ORDER BY COUNT(*) DESC")
         sources = cursor.fetchall()
 
         logger.info("\n📊 FINAL STATISTICS:")
         logger.info(f"Total conversations: {conv_count}")
         logger.info(f"Total messages: {msg_count}")
-        logger.info(
-            f"Average messages per conversation: {msg_count / conv_count if conv_count > 0 else 0:.1f}"
-        )
+        logger.info(f"Average messages per conversation: {msg_count / conv_count if conv_count > 0 else 0:.1f}")
 
         logger.info("\n📈 CONVERSATIONS BY SOURCE:")
         for source, count in sources:

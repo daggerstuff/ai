@@ -40,7 +40,6 @@ def test_apply_terminology_fixes_edge_cases(_mock_file, _mock_exists):  # noqa: 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", new_callable=mock_open, read_data="{}")
 def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _mock_exists):  # noqa: PT019
-def test_correct_transcript_with_punctuation_and_capitalization(_mock_file, _mock_exists):
     corrector = TranscriptCorrector("mock.json")
 
     # Tests repeated punctuation collapse and sentence capitalization
@@ -193,13 +192,13 @@ def test_load_terminology_not_found(_mock_exists):  # noqa: PT019
 @patch("utils.transcript_corrector.Path.exists", return_value=True)
 @patch("builtins.open", side_effect=Exception("Read error"))
 def test_load_terminology_exception(_mock_open, _mock_exists):  # noqa: PT019
-def test_load_terminology_exception_2(_mock_open, _mock_exists):  # noqa: PT019
     corrector = TranscriptCorrector("mock.json")
     assert corrector.terms == {
         "cptsd_terms": [],
         "medical_terms": [],
         "common_misinterpretations": {},
     }
+
 
 def test_contextual_correction_client_fallback():
     with patch("utils.transcript_corrector.Path.exists", return_value=True), \
@@ -231,6 +230,3 @@ def test_llm_contextual_correction_client(_mock_open, _mock_exists):  # noqa: PT
     corrector_empty = TranscriptCorrector("mock.json", contextual_correction_client=empty_client)
     result_empty = corrector_empty.correct_transcript("original text")
     assert result_empty == "Original text"
-            corrector._contextual_correction_client = MagicMock(return_value="   ")
-            result = corrector._llm_contextual_correction("original sentence.", "context")
-            assert result == "Original sentence."

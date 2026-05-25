@@ -19,7 +19,6 @@ def check_date_range():
         cursor.execute("SELECT MIN(created_at), MAX(created_at), COUNT(*) FROM conversations")
         _min_date, _max_date, count = cursor.fetchone()
 
-
         # Get date distribution
         cursor.execute("""
         SELECT DATE(created_at) as date, COUNT(*) as count
@@ -36,6 +35,7 @@ def check_date_range():
 
     except Exception:
         pass
+
 
 if __name__ == "__main__":
     check_date_range()

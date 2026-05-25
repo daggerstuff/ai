@@ -12,9 +12,7 @@ from pathlib import Path
 import psycopg2
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Database connection settings for Docker PostgreSQL
@@ -62,15 +60,9 @@ def create_tables():
         """)
 
         # Create indexes for performance
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_conversations_source ON conversations(source)"
-        )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_conversations_tier ON conversations(tier)"
-        )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id)"
-        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_conversations_source ON conversations(source)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_conversations_tier ON conversations(tier)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON messages(conversation_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_messages_role ON messages(role)")
 
         conn.commit()
@@ -154,9 +146,7 @@ def migrate_json_file(file_path: Path) -> int:
 
                 # Get metadata if available
                 metadata = conv.get("metadata", {})
-                source = metadata.get(
-                    "source_dataset", metadata.get("category", file_path.stem)
-                )
+                source = metadata.get("source_dataset", metadata.get("category", file_path.stem))
                 tier = metadata.get("tier", "TIER_1")
                 category = metadata.get("category", "therapeutic")
                 quality_score = metadata.get("quality_score", 0.0)
@@ -201,14 +191,10 @@ def migrate_json_file(file_path: Path) -> int:
 
                 if migrated_count % 100 == 0:
                     conn.commit()
-                    logger.info(
-                        f"Migrated {migrated_count} conversations from {file_path.name}"
-                    )
+                    logger.info(f"Migrated {migrated_count} conversations from {file_path.name}")
 
             except Exception as e:
-                logger.warning(
-                    f"Failed to migrate conversation {conv.get('id', 'unknown')}: {e}"
-                )
+                logger.warning(f"Failed to migrate conversation {conv.get('id', 'unknown')}: {e}")
                 continue
 
         conn.commit()
@@ -281,9 +267,7 @@ def main():
 
     logger.info("✅ MIGRATION COMPLETED SUCCESSFULLY!")
     logger.info("Next steps:")
-    logger.info(
-        "  1. Verify data: psql -h localhost -p 5433 -U postgres -d pixelated_empathy"
-    )
+    logger.info("  1. Verify data: psql -h localhost -p 5433 -U postgres -d pixelated_empathy")
     logger.info("  2. Query conversations: SELECT COUNT(*) FROM conversations;")
     logger.info("  3. Query messages: SELECT COUNT(*) FROM messages;")
 

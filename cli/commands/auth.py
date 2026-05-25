@@ -4,14 +4,14 @@ Authentication Commands for Pixelated AI CLI
 This module provides commands for user authentication, including login, logout,
 token management, and user profile operations.
 """
+
 import datetime
-from datetime import timezone
 
 import click
 
-from ai.cli.auth import AuthManager
-from ai.cli.config import get_config
-from ai.cli.utils import get_logger, setup_logging
+from cli.auth import AuthManager
+from cli.config import get_config
+from cli.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
@@ -146,7 +146,7 @@ def status(_ctx, profile: str | None):
                 expires_at = token_info.get("expires_at")
                 if expires_at:
                     expires_datetime = datetime.datetime.fromtimestamp(expires_at)
-                    time_remaining = expires_datetime - datetime.datetime.now(timezone.utc)
+                    time_remaining = expires_datetime - datetime.datetime.now(datetime.UTC)
 
                     if time_remaining.total_seconds() > 0:
                         hours = time_remaining.total_seconds() / 3600

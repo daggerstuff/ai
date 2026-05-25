@@ -29,7 +29,6 @@ def test_interview_extraction():
 
     analysis = agent.analyze_segment(problem_segment)
 
-
     # Validate it found the right question
     expected_question_keywords = [
         "how can somebody",
@@ -39,11 +38,7 @@ def test_interview_extraction():
         "complex trauma",
     ]
     if analysis["extracted_question"]:
-        sum(
-            1
-            for keyword in expected_question_keywords
-            if keyword.lower() in analysis["extracted_question"].lower()
-        )
+        sum(1 for keyword in expected_question_keywords if keyword.lower() in analysis["extracted_question"].lower())
     else:
         pass
 
@@ -52,7 +47,6 @@ def test_interview_extraction():
         pass
     else:
         pass
-
 
 
 def test_monologue_content():
@@ -66,13 +60,11 @@ def test_monologue_content():
 
     analysis = agent.analyze_segment(monologue_segment)
 
-
     # Should detect as monologue and not extract embedded questions
     if analysis["content_type"] in ["monologue", "speech"]:
         pass
     else:
         pass
-
 
 
 def test_podcast_content():
@@ -88,16 +80,11 @@ def test_podcast_content():
 
     analysis = agent.analyze_segment(podcast_segment)
 
-
     # Should detect question about healing journey
-    if (
-        analysis["extracted_question"]
-        and "healing" in analysis["extracted_question"].lower()
-    ):
+    if analysis["extracted_question"] and "healing" in analysis["extracted_question"].lower():
         pass
     else:
         pass
-
 
 
 def test_semantic_coherence():
@@ -117,12 +104,10 @@ def test_semantic_coherence():
 
     bad_coherence = agent.validate_semantic_coherence(bad_question, bad_response)
 
-
     if good_coherence > bad_coherence + 0.2:
         pass
     else:
         pass
-
 
 
 def test_contextual_prompt_generation():
@@ -154,28 +139,32 @@ def test_contextual_prompt_generation():
         analysis = agent.analyze_segment(segment["text"])
         prompt = agent.generate_contextual_prompt(segment, analysis)
 
-
         # Check if prompt relates to content
         set(segment["text"].lower().split())
         set(prompt.lower().split())
 
         # Look for thematic overlap
         themes_match = False
-        if ("narciss" in segment["text"].lower() and any(
-            word in prompt.lower() for word in ["narciss", "manipulation", "abuse"]
-        )) or ("boundaries" in segment["text"].lower() and "boundaries" in prompt.lower()) or ("ptsd" in segment["text"].lower() and any(
-            word in prompt.lower() for word in ["trauma", "ptsd", "heal"]
-        )) or ("betrays" in segment["text"].lower() and any(
-            word in prompt.lower() for word in ["hurt", "betray", "trust"]
-        )):
+        if (
+            (
+                "narciss" in segment["text"].lower()
+                and any(word in prompt.lower() for word in ["narciss", "manipulation", "abuse"])
+            )
+            or ("boundaries" in segment["text"].lower() and "boundaries" in prompt.lower())
+            or (
+                "ptsd" in segment["text"].lower() and any(word in prompt.lower() for word in ["trauma", "ptsd", "heal"])
+            )
+            or (
+                "betrays" in segment["text"].lower()
+                and any(word in prompt.lower() for word in ["hurt", "betray", "trust"])
+            )
+        ):
             themes_match = True
 
         if themes_match:
             pass
         else:
             pass
-
-
 
 
 def test_edge_cases():
@@ -195,7 +184,6 @@ def test_edge_cases():
             agent.analyze_segment(case)
 
 
-
 def main():
     """Run comprehensive test suite"""
 
@@ -205,7 +193,6 @@ def main():
     test_semantic_coherence()
     test_contextual_prompt_generation()
     test_edge_cases()
-
 
 
 if __name__ == "__main__":

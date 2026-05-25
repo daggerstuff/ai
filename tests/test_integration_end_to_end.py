@@ -10,6 +10,7 @@ Tests complete workflows including:
 - Dashboard generation
 - Report creation
 """
+
 import json
 import os
 import shutil
@@ -102,12 +103,12 @@ class TestEndToEndDataFlow(unittest.TestCase):
             conversation_json = json.dumps(
                 [
                     {"human": f"This is test question {i + 1} about {dataset}"},
-                {
-                    "assistant": (
-                        f"This is a comprehensive response for {dataset} covering "
-                        "the topic in detail with helpful information."
-                    )
-                },
+                    {
+                        "assistant": (
+                            f"This is a comprehensive response for {dataset} covering "
+                            "the topic in detail with helpful information."
+                        )
+                    },
                 ]
             )
 
@@ -197,14 +198,11 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Verify aggregation
         assert len(dataset_stats) == len(TEST_DATASETS)
 
-
     def test_analytics_system_integration(self):
         """Test integration between different analytics systems"""
         df = self._load_conversations_df()
         # Extract conversation text
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_conversation_text
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_conversation_text)
 
         # Test 1: Dataset Statistics Integration
         dataset_stats = self._run_dataset_statistics_analysis(df)
@@ -219,20 +217,14 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Test 3: Cross-system data consistency
         assert dataset_stats["total_conversations"] == len(df)
         assert (
-            abs(
-                quality_analysis["average_quality"]
-                - df.apply(self._calculate_test_quality_score, axis=1).mean()
-            )
+            abs(quality_analysis["average_quality"] - df.apply(self._calculate_test_quality_score, axis=1).mean())
             <= QUALITY_MEAN_TOLERANCE
         )
-
 
     def test_dashboard_generation_pipeline(self):
         """Test complete dashboard generation pipeline"""
         df = self._load_conversations_df()
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_conversation_text
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_conversation_text)
         df["quality_score"] = df.apply(self._calculate_test_quality_score, axis=1)
 
         # Step 2: Generate dashboard data
@@ -256,7 +248,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Verify output files were created
         for file_path in output_files:
             assert os.path.exists(file_path)
-
 
     def test_report_generation_workflow(self):
         """Test complete report generation workflow"""
@@ -283,7 +274,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         assert os.path.exists(report_file)
         assert os.path.getsize(report_file) > 0
 
-
     def _load_conversations_df(self):
         conn = sqlite3.connect(self.test_db_path)
         result = pd.read_sql_query("SELECT * FROM conversations", conn)
@@ -307,7 +297,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         analytics_result = self._safe_analytics_processing(empty_data)
         assert isinstance(analytics_result, dict)
         assert "error" in analytics_result
-
 
     # Helper methods for testing
     def _extract_conversation_text(self, json_str):
@@ -343,12 +332,8 @@ class TestEndToEndDataFlow(unittest.TestCase):
         return {
             "average_quality": quality_scores.mean(),
             "quality_std": quality_scores.std(),
-            "high_quality_count": len(
-                quality_scores[quality_scores > HIGH_QUALITY_THRESHOLD]
-            ),
-            "low_quality_count": len(
-                quality_scores[quality_scores < LOW_QUALITY_THRESHOLD]
-            ),
+            "high_quality_count": len(quality_scores[quality_scores > HIGH_QUALITY_THRESHOLD]),
+            "low_quality_count": len(quality_scores[quality_scores < LOW_QUALITY_THRESHOLD]),
         }
 
     def _generate_dashboard_data(self, df):
@@ -356,9 +341,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         return {
             "executive_metrics": {
                 "total_conversations": len(df),
-                "quality_score": df.apply(
-                    self._calculate_test_quality_score, axis=1
-                ).mean(),
+                "quality_score": df.apply(self._calculate_test_quality_score, axis=1).mean(),
             },
             "operational_metrics": {
                 "processing_status": "healthy",
@@ -367,14 +350,9 @@ class TestEndToEndDataFlow(unittest.TestCase):
             "quality_distribution": {
                 "excellent": len(df[df["word_count"] > EXCELLENT_WORD_THRESHOLD]),
                 "good": len(
-                    df[
-                        (df["word_count"] >= GOOD_WORD_MIN_THRESHOLD)
-                        & (df["word_count"] <= GOOD_WORD_MAX_THRESHOLD)
-                    ]
+                    df[(df["word_count"] >= GOOD_WORD_MIN_THRESHOLD) & (df["word_count"] <= GOOD_WORD_MAX_THRESHOLD)]
                 ),
-                "needs_improvement": len(
-                    df[df["word_count"] < MIN_DATA_SIZE]
-                ),
+                "needs_improvement": len(df[df["word_count"] < MIN_DATA_SIZE]),
             },
         }
 
@@ -492,7 +470,6 @@ class TestSystemWorkflows(unittest.TestCase):
         assert "status" in report
         assert "timestamp" in report
 
-
     def test_analytics_pipeline_workflow(self):
         """Test complete analytics pipeline workflow"""
         # Simulate data input
@@ -507,7 +484,6 @@ class TestSystemWorkflows(unittest.TestCase):
 
         output_reports = self._generate_pipeline_outputs(analytics_results)
         assert len(output_reports) > 0
-
 
     # Helper methods for workflow testing
     def _check_system_health(self, status):
@@ -549,8 +525,7 @@ class TestSystemWorkflows(unittest.TestCase):
             },
             "performance_metrics": {
                 "efficiency": 92.3,
-                "throughput": processed_data["processed_conversations"]
-                / processed_data["avg_processing_time"],
+                "throughput": processed_data["processed_conversations"] / processed_data["avg_processing_time"],
             },
             "insights": ["Quality is improving", "Processing is efficient"],
         }

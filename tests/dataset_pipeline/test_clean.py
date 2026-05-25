@@ -82,10 +82,7 @@ def test_privacy_audit_logging(sample_data):
     df = pd.DataFrame(sample_data)
     with mock.patch.object(clean.logger, "info") as info_mock:
         clean.clean_and_deduplicate(df)
-        assert any(
-            "privacy" in str(call) or "audit" in str(call)
-            for call in info_mock.call_args_list
-        )
+        assert any("privacy" in str(call) or "audit" in str(call) for call in info_mock.call_args_list)
 
 
 def test_compliance_edge_cases():

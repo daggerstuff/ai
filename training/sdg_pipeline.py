@@ -23,6 +23,8 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+from training.clinical_validity_scorer import ClinicalValidityScorer
+
 logger = logging.getLogger("sdg_pipeline")
 
 # ============================================================================
@@ -1117,6 +1119,8 @@ def _generate_niche_sample(
         "difficulty": determine_difficulty(instruction),
         "response_type": determine_response_type(output),
         "style_profile": style_profile,
+        "clinical_validity_score": ClinicalValidityScorer.score(output),
+        "clinical_validity_detail": ClinicalValidityScorer.score_detail(output),
     }
 
     return sample
@@ -1160,6 +1164,8 @@ def _generate_nightmare_sample(
         "output": stripped,
         "is_training_edge_case": True,
         "scenario_type": scenario_type,
+        "clinical_validity_score": ClinicalValidityScorer.score(stripped),
+        "clinical_validity_detail": ClinicalValidityScorer.score_detail(stripped),
     }
 # ============================================================================
 # CLI and orchestration
@@ -1364,6 +1370,16 @@ def run_sdg(args: argparse.Namespace) -> None:
                 logger.error("Error during generation: %s", e)
                 continue
 
+    cv_scores = [s.get("clinical_validity_score", 0.0) for s in existing_samples if "clinical_validity_score" in s]
+    cv_stats = {}
+    if cv_scores:
+        cv_stats = {
+            "mean": round(sum(cv_scores) / len(cv_scores), 3),
+            "min": round(min(cv_scores), 3),
+            "max": round(max(cv_scores), 3),
+            "samples_scored": len(cv_scores),
+        }
+
     # Write generation report
     report = {
         "generated_at": datetime.now().isoformat(),
@@ -1375,6 +1391,7 @@ def run_sdg(args: argparse.Namespace) -> None:
         "filter_rate": filtered / (generated + filtered) if (generated + filtered) > 0 else 0,
         "iterations": iterations,
         "max_iterations": max_iter,
+        "clinical_validity": cv_stats,
     }
 
     report_path = output_path.parent / "generation_report.json"

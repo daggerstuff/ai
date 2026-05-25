@@ -10,7 +10,7 @@ import logging
 import os
 import smtplib
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
@@ -88,7 +88,7 @@ class NotificationMessage:
 
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.now(timezone.utc)
+            self.timestamp = datetime.now(UTC)
         if self.metadata is None:
             self.metadata = {}
 
@@ -118,9 +118,7 @@ class EmailNotifier:
             server.login(self.config.email_user, self.config.email_password)
 
             text = msg.as_string()
-            server.sendmail(
-                self.config.email_user, self.config.default_recipients, text
-            )
+            server.sendmail(self.config.email_user, self.config.default_recipients, text)
             server.quit()
 
             logger.info(f"Email notification sent: {message.title}")
@@ -171,9 +169,7 @@ class EmailNotifier:
         for key, value in metadata.items():
             items.append(f"<li><strong>{key}:</strong> {value}</li>")
 
-        return (
-            f"<p><strong>Additional Information:</strong></p><ul>{''.join(items)}</ul>"
-        )
+        return f"<p><strong>Additional Information:</strong></p><ul>{''.join(items)}</ul>"
 
 
 class SlackNotifier:
@@ -187,11 +183,14 @@ class SlackNotifier:
         try:
             payload = self._create_slack_payload(message)
 
-            async with aiohttp.ClientSession() as session, session.post(
-                self.config.slack_webhook_url,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-            ) as response:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(
+                    self.config.slack_webhook_url,
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                ) as response,
+            ):
                 if response.status == 200:
                     logger.info(f"Slack notification sent: {message.title}")
                     return True
@@ -272,17 +271,18 @@ class PagerDutyNotifier:
 
             payload = self._create_pagerduty_payload(message)
 
-            async with aiohttp.ClientSession() as session, session.post(
-                "https://events.pagerduty.com/v2/enqueue",
-                json=payload,
-                headers={"Content-Type": "application/json"},
-            ) as response:
+            async with (
+                aiohttp.ClientSession() as session,
+                session.post(
+                    "https://events.pagerduty.com/v2/enqueue",
+                    json=payload,
+                    headers={"Content-Type": "application/json"},
+                ) as response,
+            ):
                 if response.status == 202:
                     logger.info(f"PagerDuty notification sent: {message.title}")
                     return True
-                logger.error(
-                    f"PagerDuty notification failed: {response.status}"
-                )
+                logger.error(f"PagerDuty notification failed: {response.status}")
                 return False
 
         except Exception as e:
@@ -291,9 +291,7 @@ class PagerDutyNotifier:
 
     def _create_pagerduty_payload(self, message: NotificationMessage) -> dict[str, Any]:
         """Create PagerDuty event payload"""
-        severity = (
-            "critical" if message.priority == NotificationPriority.CRITICAL else "error"
-        )
+        severity = "critical" if message.priority == NotificationPriority.CRITICAL else "error"
 
         return {
             "routing_key": self.config.pagerduty_integration_key,
@@ -329,23 +327,22 @@ class WebhookNotifier:
             try:
                 payload = self._create_webhook_payload(message)
 
-                async with aiohttp.ClientSession() as session, session.post(
-                    webhook_url,
-                    json=payload,
-                    headers={"Content-Type": "application/json"},
-                ) as response:
+                async with (
+                    aiohttp.ClientSession() as session,
+                    session.post(
+                        webhook_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                    ) as response,
+                ):
                     if response.status in [200, 201, 202]:
                         success_count += 1
                         logger.info(f"Webhook notification sent to {webhook_url}")
                     else:
-                        logger.error(
-                            f"Webhook notification failed for {webhook_url}: {response.status}"
-                        )
+                        logger.error(f"Webhook notification failed for {webhook_url}: {response.status}")
 
             except Exception as e:
-                logger.error(
-                    f"Failed to send webhook notification to {webhook_url}: {e}"
-                )
+                logger.error(f"Failed to send webhook notification to {webhook_url}: {e}")
 
         return success_count > 0
 
@@ -364,9 +361,7 @@ class WebhookNotifier:
 class AlertGrouper:
     """Groups similar alerts to reduce notification fatigue"""
 
-    def __init__(
-        self, notification_manager, group_interval_seconds=300, max_group_size=10
-    ):
+    def __init__(self, notification_manager, group_interval_seconds=300, max_group_size=10):
         self.notification_manager = notification_manager
         self.group_interval = timedelta(seconds=group_interval_seconds)
         self.max_group_size = max_group_size
@@ -384,7 +379,7 @@ class AlertGrouper:
 
         if group_key not in self.alert_buffer:
             self.alert_buffer[group_key] = []
-            self.group_creation_time[group_key] = datetime.now(timezone.utc)
+            self.group_creation_time[group_key] = datetime.now(UTC)
 
         self.alert_buffer[group_key].append(message)
 
@@ -393,11 +388,9 @@ class AlertGrouper:
 
     async def flush_expired_groups(self):
         """Flush groups that have exceeded the grouping interval"""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expired_groups = [
-            key
-            for key, created_time in self.group_creation_time.items()
-            if now - created_time > self.group_interval
+            key for key, created_time in self.group_creation_time.items() if now - created_time > self.group_interval
         ]
         for group_key in expired_groups:
             await self.flush_group(group_key)
@@ -424,7 +417,9 @@ class AlertGrouper:
 
         summary_title = f"[GROUPED] {first_alert.title} (x{group_size})"
 
-        summary_message = f"This alert was triggered {group_size} times in the last {self.group_interval.seconds // 60} minutes.\n\n"
+        summary_message = (
+            f"This alert was triggered {group_size} times in the last {self.group_interval.seconds // 60} minutes.\n\n"
+        )
         summary_message += f"First occurrence: {first_alert.timestamp.isoformat()}\n"
         summary_message += f"Last occurrence: {alerts[-1].timestamp.isoformat()}\n\n"
         summary_message += "Summary of alerts:\n"
@@ -469,17 +464,13 @@ class NotificationManager:
             smtp_port=int(os.getenv("SMTP_PORT", "587")),
             email_user=os.getenv("EMAIL_USER", ""),
             email_password=os.getenv("EMAIL_PASSWORD", ""),
-            default_recipients=os.getenv("EMAIL_RECIPIENTS", "").split(",")
-            if os.getenv("EMAIL_RECIPIENTS")
-            else [],
+            default_recipients=os.getenv("EMAIL_RECIPIENTS", "").split(",") if os.getenv("EMAIL_RECIPIENTS") else [],
             slack_webhook_url=os.getenv("SLACK_WEBHOOK_URL", ""),
             slack_token=os.getenv("SLACK_TOKEN", ""),
             slack_channel=os.getenv("SLACK_CHANNEL", "#alerts"),
             pagerduty_integration_key=os.getenv("PAGERDUTY_INTEGRATION_KEY", ""),
             pagerduty_api_token=os.getenv("PAGERDUTY_API_TOKEN", ""),
-            webhook_urls=os.getenv("WEBHOOK_URLS", "").split(",")
-            if os.getenv("WEBHOOK_URLS")
-            else [],
+            webhook_urls=os.getenv("WEBHOOK_URLS", "").split(",") if os.getenv("WEBHOOK_URLS") else [],
         )
 
     def _initialize_notifiers(self) -> dict[NotificationChannel, Any]:
@@ -491,9 +482,7 @@ class NotificationManager:
             NotificationChannel.WEBHOOK: WebhookNotifier(self.config),
         }
 
-    async def send_notification(
-        self, message: NotificationMessage
-    ) -> dict[NotificationChannel, bool]:
+    async def send_notification(self, message: NotificationMessage) -> dict[NotificationChannel, bool]:
         """Send notification through specified channels"""
         results = {}
 

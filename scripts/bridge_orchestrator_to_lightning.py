@@ -8,7 +8,7 @@ Converts orchestrator output (JSONL, manifest) to Lightning-specific structure
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
@@ -18,9 +18,7 @@ from path_utils import (
     get_workspace_root,
 )
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -54,9 +52,7 @@ def convert_jsonl_to_json(input_path: Path, output_path: Path, expert_id=0):
 
     with open(output_path, "w") as f:
         json.dump(records, f, indent=2)
-    logger.info(
-        f"Converted {input_path.name} to {output_path.name} ({len(records)} records)"
-    )
+    logger.info(f"Converted {input_path.name} to {output_path.name} ({len(records)} records)")
     return records
 
 
@@ -146,32 +142,24 @@ def main():
 
         full_report = {
             "multi_dataset_processing_summary": {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "total_sources_processed": 7,
                 "total_files_processed": 443,
-                "total_conversations": comp_report["final_dataset_stats"][
-                    "total_records"
-                ],
+                "total_conversations": comp_report["final_dataset_stats"]["total_records"],
             },
-            "quality_distribution": {
-                "quality_percentage": {"high": 85.0, "medium": 10.0, "low": 5.0}
-            },
+            "quality_distribution": {"quality_percentage": {"high": 85.0, "medium": 10.0, "low": 5.0}},
             "intelligent_agent_performance": {
                 "extracted_questions": 82.5,
                 "contextual_questions": 17.5,
                 "extraction_rate": 82.5,
             },
             "data_cleaning_results": {
-                "duplicates_removed": comp_report["original_dataset_stats"].get(
-                    "deduplicated", 0
-                ),
+                "duplicates_removed": comp_report["original_dataset_stats"].get("deduplicated", 0),
                 "errors_encountered": 0,
             },
         }
 
-        with open(
-            unified_training_dir / "comprehensive_processing_report.json", "w"
-        ) as f:
+        with open(unified_training_dir / "comprehensive_processing_report.json", "w") as f:
             json.dump(full_report, f, indent=2)
         logger.info("Created comprehensive_processing_report.json")
 

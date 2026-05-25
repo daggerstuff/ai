@@ -68,12 +68,8 @@ class TestCleaningComponents(unittest.TestCase):
 
     def test_full_clean_and_deduplicate(self):
         """Test end-to-end cleaning and deduplication logic."""
-        df1 = pd.DataFrame(
-            {"text": ["hello", "world"], "email": ["a@b.com", "c@d.com"]}
-        )
-        df2 = pd.DataFrame(
-            {"text": ["hello", "third"], "email": ["a@b.com", "e@f.com"]}
-        )
+        df1 = pd.DataFrame({"text": ["hello", "world"], "email": ["a@b.com", "c@d.com"]})
+        df2 = pd.DataFrame({"text": ["hello", "third"], "email": ["a@b.com", "e@f.com"]})
 
         config = {"dedup_columns": ["text"], "required_columns": ["text"]}
 

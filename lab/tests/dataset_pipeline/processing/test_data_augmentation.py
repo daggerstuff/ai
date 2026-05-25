@@ -54,9 +54,7 @@ class TestDataAugmentation(unittest.TestCase):
 
         # Check for expected noise patterns if possible
         lowered = augmented.lower()
-        has_noise = any(
-            noise in lowered for noise in ["um", "uh", "you know", "like", "therapyst"]
-        )
+        has_noise = any(noise in lowered for noise in ["um", "uh", "you know", "like", "therapyst"])
         assert has_noise or any(punc in augmented for punc in ["...", "!", "?"])
 
     def test_safety_guardrails_preservation(self):
@@ -65,9 +63,7 @@ class TestDataAugmentation(unittest.TestCase):
 
         # We'll manually run validation on a hypothetical "bad" augmentation
         bad_augmented = "I am feeling okay and need nothing."
-        is_valid, issues = self.guardrails.validate_augmentation(
-            critical_text, bad_augmented
-        )
+        is_valid, issues = self.guardrails.validate_augmentation(critical_text, bad_augmented)
 
         assert not is_valid
         assert any("CRITICAL" in issue for issue in issues)

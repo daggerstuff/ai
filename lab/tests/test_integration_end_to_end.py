@@ -11,6 +11,7 @@ Tests complete workflows including:
 - Dashboard generation
 - Report creation
 """
+
 import json
 import os
 import shutil
@@ -207,7 +208,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Verify aggregation
         assert len(dataset_stats) == EXPECTED_DATASET_COUNT
 
-
     def test_analytics_system_integration(self):
         """Test integration between different analytics systems"""
         df = self._load_conversations_dataframe()
@@ -227,13 +227,9 @@ class TestEndToEndDataFlow(unittest.TestCase):
         # Test 3: Cross-system data consistency
         assert dataset_stats["total_conversations"] == len(df)
         assert (
-            abs(
-                quality_analysis["average_quality"]
-                - df.apply(self._calculate_test_quality_score, axis=1).mean()
-            )
+            abs(quality_analysis["average_quality"] - df.apply(self._calculate_test_quality_score, axis=1).mean())
             < QUALITY_TOLERANCE
         )
-
 
     def test_dashboard_generation_pipeline(self):
         """Test complete dashboard generation pipeline"""
@@ -267,7 +263,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         for file_path in output_files:
             assert os.path.exists(file_path)
 
-
     def test_report_generation_workflow(self):
         """Test complete report generation workflow"""
         df = self._load_conversations_dataframe()
@@ -293,7 +288,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         assert os.path.exists(report_file)
         assert os.path.getsize(report_file) > 0
 
-
     def _load_conversations_dataframe(self):
         conn = sqlite3.connect(self.test_db_path)
         result = pd.read_sql_query("SELECT * FROM conversations", conn)
@@ -317,7 +311,6 @@ class TestEndToEndDataFlow(unittest.TestCase):
         analytics_result = self._safe_analytics_processing(empty_data)
         assert isinstance(analytics_result, dict)
         assert "error" in analytics_result
-
 
     # Helper methods for testing
     def _calculate_test_quality_score(self, row):
@@ -345,10 +338,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
         assistant_turn = conversations[1]
         if not isinstance(human_turn, dict) or not isinstance(assistant_turn, dict):
             return str(conversations)
-        return (
-            f"{human_turn.get('human', '')} "
-            f"{assistant_turn.get('assistant', '')}"
-        )
+        return f"{human_turn.get('human', '')} {assistant_turn.get('assistant', '')}"
 
     def _run_quality_analysis(self, df):
         """Run quality analysis"""
@@ -356,12 +346,8 @@ class TestEndToEndDataFlow(unittest.TestCase):
         return {
             "average_quality": quality_scores.mean(),
             "quality_std": quality_scores.std(),
-            "high_quality_count": len(
-                quality_scores[quality_scores > QUALITY_EXCELLENT_THRESHOLD]
-            ),
-            "low_quality_count": len(
-                quality_scores[quality_scores < QUALITY_LOW_THRESHOLD]
-            ),
+            "high_quality_count": len(quality_scores[quality_scores > QUALITY_EXCELLENT_THRESHOLD]),
+            "low_quality_count": len(quality_scores[quality_scores < QUALITY_LOW_THRESHOLD]),
         }
 
     def _generate_dashboard_data(self, df):
@@ -377,12 +363,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
             },
             "quality_distribution": {
                 "excellent": len(df[df["word_count"] > WORD_COUNT_EXCELLENT_THRESHOLD]),
-                "good": len(
-                    df[
-                        (df["word_count"] >= WORD_COUNT_GOOD_MIN)
-                        & (df["word_count"] <= WORD_COUNT_GOOD_MAX)
-                    ]
-                ),
+                "good": len(df[(df["word_count"] >= WORD_COUNT_GOOD_MIN) & (df["word_count"] <= WORD_COUNT_GOOD_MAX)]),
                 "needs_improvement": len(df[df["word_count"] < WORD_COUNT_GOOD_MIN]),
             },
         }
@@ -501,7 +482,6 @@ class TestSystemWorkflows(unittest.TestCase):
         assert "status" in report
         assert "timestamp" in report
 
-
     def test_analytics_pipeline_workflow(self):
         """Test complete analytics pipeline workflow"""
         # Simulate data input
@@ -516,7 +496,6 @@ class TestSystemWorkflows(unittest.TestCase):
 
         output_reports = self._generate_pipeline_outputs(analytics_results)
         assert len(output_reports) > 0
-
 
     # Helper methods for workflow testing
     def _check_system_health(self, status):
@@ -558,8 +537,7 @@ class TestSystemWorkflows(unittest.TestCase):
             },
             "performance_metrics": {
                 "efficiency": 92.3,
-                "throughput": processed_data["processed_conversations"]
-                / processed_data["avg_processing_time"],
+                "throughput": processed_data["processed_conversations"] / processed_data["avg_processing_time"],
             },
             "insights": ["Quality is improving", "Processing is efficient"],
         }

@@ -38,6 +38,7 @@ warnings.simplefilter("default")
 sys.path.append("/home/vivi/pixelated/ai/monitoring")
 sys.path.append("/home/vivi/pixelated/ai")
 
+
 class PerformanceTestBase(unittest.TestCase):
     """Base class for performance testing with utilities"""
 
@@ -52,11 +53,13 @@ class PerformanceTestBase(unittest.TestCase):
         end_time = time.time()
         end_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
 
-        self.performance_metrics.update({
-            "execution_time": end_time - self.start_time,
-            "memory_usage_mb": end_memory - self.start_memory,
-            "peak_memory_mb": end_memory
-        })
+        self.performance_metrics.update(
+            {
+                "execution_time": end_time - self.start_time,
+                "memory_usage_mb": end_memory - self.start_memory,
+                "peak_memory_mb": end_memory,
+            }
+        )
 
         # Force garbage collection
         gc.collect()
@@ -99,32 +102,34 @@ class PerformanceTestBase(unittest.TestCase):
                 tier = tiers[i % len(tiers)]
 
                 # Create varied conversation content
-                human_msg = f"This is test question {i+1} about {dataset} with some additional context and details."
-                assistant_msg = f"This is a comprehensive response for {dataset} question {i+1} providing detailed information and helpful guidance with multiple sentences to create realistic content length."
+                human_msg = f"This is test question {i + 1} about {dataset} with some additional context and details."
+                assistant_msg = f"This is a comprehensive response for {dataset} question {i + 1} providing detailed information and helpful guidance with multiple sentences to create realistic content length."
 
-                conversation_json = json.dumps([
-                    {"human": human_msg},
-                    {"assistant": assistant_msg}
-                ])
+                conversation_json = json.dumps([{"human": human_msg}, {"assistant": assistant_msg}])
 
                 word_count = len((human_msg + " " + assistant_msg).split())
                 char_count = len(human_msg + assistant_msg)
 
-                batch_data.append((
-                    f"perf_test_{i+1:06d}",
-                    dataset,
-                    tier,
-                    conversation_json,
-                    char_count,
-                    word_count,
-                    2,
-                    f"2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{(i % 60):02d}:00",
-                    f"2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{((i % 60) + 1):02d}:00"
-                ))
+                batch_data.append(
+                    (
+                        f"perf_test_{i + 1:06d}",
+                        dataset,
+                        tier,
+                        conversation_json,
+                        char_count,
+                        word_count,
+                        2,
+                        f"2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{(i % 60):02d}:00",
+                        f"2025-08-{(i % 7) + 1:02d} {(i % 24):02d}:{((i % 60) + 1):02d}:00",
+                    )
+                )
 
-            cursor.executemany("""
+            cursor.executemany(
+                """
                 INSERT INTO conversations VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, batch_data)
+            """,
+                batch_data,
+            )
 
             # Commit in batches to manage memory
             conn.commit()
@@ -146,8 +151,9 @@ class PerformanceTestBase(unittest.TestCase):
             "result": result,
             "execution_time": end_time - start_time,
             "memory_delta_mb": end_memory - start_memory,
-            "peak_memory_mb": end_memory
+            "peak_memory_mb": end_memory,
         }
+
 
 class TestLargeDatasetLoading(PerformanceTestBase):
     """Test performance of loading large datasets"""
@@ -175,7 +181,6 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert perf_metrics["execution_time"] < 10.0, "Loading should complete within 10 seconds"
             assert perf_metrics["memory_delta_mb"] < 500, "Memory usage should be under 500MB"
 
-
         finally:
             os.unlink(db_path)
 
@@ -192,11 +197,7 @@ class TestLargeDatasetLoading(PerformanceTestBase):
                 chunks = []
                 chunk_size = 10000
 
-                for chunk in pd.read_sql_query(
-                    "SELECT * FROM conversations",
-                    conn,
-                    chunksize=chunk_size
-                ):
+                for chunk in pd.read_sql_query("SELECT * FROM conversations", conn, chunksize=chunk_size):
                     chunks.append(chunk)
 
                 df = pd.concat(chunks, ignore_index=True)
@@ -212,7 +213,6 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert perf_metrics["execution_time"] < 30.0, "Loading should complete within 30 seconds"
             assert perf_metrics["memory_delta_mb"] < 1000, "Memory usage should be under 1GB"
 
-
         finally:
             os.unlink(db_path)
 
@@ -222,27 +222,21 @@ class TestLargeDatasetLoading(PerformanceTestBase):
         db_path = self.create_large_test_database(25000)
 
         try:
+
             def process_streaming():
                 conn = sqlite3.connect(db_path)
                 chunk_size = 5000
                 total_processed = 0
                 quality_scores = []
 
-                for chunk in pd.read_sql_query(
-                    "SELECT * FROM conversations",
-                    conn,
-                    chunksize=chunk_size
-                ):
+                for chunk in pd.read_sql_query("SELECT * FROM conversations", conn, chunksize=chunk_size):
                     # Process each chunk
                     chunk["quality_score"] = chunk["word_count"] * 2 + 50
                     quality_scores.extend(chunk["quality_score"].tolist())
                     total_processed += len(chunk)
 
                 conn.close()
-                return {
-                    "total_processed": total_processed,
-                    "avg_quality": np.mean(quality_scores)
-                }
+                return {"total_processed": total_processed, "avg_quality": np.mean(quality_scores)}
 
             perf_metrics = self.measure_performance(process_streaming)
 
@@ -254,9 +248,9 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             assert perf_metrics["execution_time"] < 20.0, "Streaming processing should be efficient"
             assert perf_metrics["memory_delta_mb"] < 300, "Streaming should use less memory"
 
-
         finally:
             os.unlink(db_path)
+
 
 class TestAnalyticsPerformance(PerformanceTestBase):
     """Test performance of analytics operations on large datasets"""
@@ -266,38 +260,34 @@ class TestAnalyticsPerformance(PerformanceTestBase):
 
         # Create large dataset in memory
         np.random.seed(42)
-        large_df = pd.DataFrame({
-            "conversation_id": [f"test_{i:06d}" for i in range(20000)],
-            "dataset_source": np.random.choice(["dataset_a", "dataset_b", "dataset_c"], 20000),
-            "tier": np.random.choice(["priority_1", "standard", "additional"], 20000),
-            "word_count": np.random.randint(10, 100, 20000),
-            "quality_score": np.random.normal(50, 15, 20000),
-            "complexity_score": np.random.normal(40, 10, 20000)
-        })
+        large_df = pd.DataFrame(
+            {
+                "conversation_id": [f"test_{i:06d}" for i in range(20000)],
+                "dataset_source": np.random.choice(["dataset_a", "dataset_b", "dataset_c"], 20000),
+                "tier": np.random.choice(["priority_1", "standard", "additional"], 20000),
+                "word_count": np.random.randint(10, 100, 20000),
+                "quality_score": np.random.normal(50, 15, 20000),
+                "complexity_score": np.random.normal(40, 10, 20000),
+            }
+        )
 
         def perform_aggregations():
             # Multiple aggregation operations
-            dataset_stats = large_df.groupby("dataset_source").agg({
-                "word_count": ["mean", "std", "count"],
-                "quality_score": ["mean", "median", "std"],
-                "complexity_score": "mean"
-            })
+            dataset_stats = large_df.groupby("dataset_source").agg(
+                {
+                    "word_count": ["mean", "std", "count"],
+                    "quality_score": ["mean", "median", "std"],
+                    "complexity_score": "mean",
+                }
+            )
 
-            tier_stats = large_df.groupby("tier").agg({
-                "quality_score": ["mean", "count"],
-                "word_count": "sum"
-            })
+            tier_stats = large_df.groupby("tier").agg({"quality_score": ["mean", "count"], "word_count": "sum"})
 
-            cross_stats = large_df.groupby(["dataset_source", "tier"]).agg({
-                "quality_score": "mean",
-                "word_count": "mean"
-            })
+            cross_stats = large_df.groupby(["dataset_source", "tier"]).agg(
+                {"quality_score": "mean", "word_count": "mean"}
+            )
 
-            return {
-                "dataset_stats": dataset_stats,
-                "tier_stats": tier_stats,
-                "cross_stats": cross_stats
-            }
+            return {"dataset_stats": dataset_stats, "tier_stats": tier_stats, "cross_stats": cross_stats}
 
         perf_metrics = self.measure_performance(perform_aggregations)
 
@@ -311,7 +301,6 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         assert perf_metrics["execution_time"] < 5.0, "Aggregations should complete quickly"
         assert perf_metrics["memory_delta_mb"] < 200, "Aggregations should be memory efficient"
 
-
     def test_statistical_analysis_performance(self):
         """Test performance of statistical analysis operations"""
 
@@ -323,7 +312,7 @@ class TestAnalyticsPerformance(PerformanceTestBase):
             "quality_scores": np.random.normal(50, 15, data_size),
             "engagement_scores": np.random.normal(60, 20, data_size),
             "complexity_scores": np.random.normal(40, 10, data_size),
-            "word_counts": np.random.randint(10, 200, data_size)
+            "word_counts": np.random.randint(10, 200, data_size),
         }
 
         def perform_statistical_analysis():
@@ -340,7 +329,7 @@ class TestAnalyticsPerformance(PerformanceTestBase):
                     "std": df[column].std(),
                     "median": df[column].median(),
                     "q25": df[column].quantile(0.25),
-                    "q75": df[column].quantile(0.75)
+                    "q75": df[column].quantile(0.75),
                 }
 
             # Trend analysis (simple linear regression)
@@ -362,7 +351,6 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         # Performance assertions
         assert perf_metrics["execution_time"] < 3.0, "Statistical analysis should be fast"
         assert perf_metrics["memory_delta_mb"] < 150, "Statistical analysis should be memory efficient"
-
 
     def test_machine_learning_performance(self):
         """Test performance of machine learning operations"""
@@ -391,13 +379,7 @@ class TestAnalyticsPerformance(PerformanceTestBase):
             mse = mean_squared_error(y_test, y_pred)
             r2 = r2_score(y_test, y_pred)
 
-            return {
-                "model": model,
-                "mse": mse,
-                "r2_score": r2,
-                "n_samples": n_samples,
-                "n_features": n_features
-            }
+            return {"model": model, "mse": mse, "r2_score": r2, "n_samples": n_samples, "n_features": n_features}
 
         perf_metrics = self.measure_performance(train_and_evaluate_model)
 
@@ -423,20 +405,18 @@ class TestScalabilityLimits(PerformanceTestBase):
         processing_times = []
 
         for size in dataset_sizes:
-
             # Create dataset
-            df = pd.DataFrame({
-                "conversation_id": [f"test_{i:06d}" for i in range(size)],
-                "word_count": np.random.randint(10, 100, size),
-                "quality_score": np.random.normal(50, 15, size)
-            })
+            df = pd.DataFrame(
+                {
+                    "conversation_id": [f"test_{i:06d}" for i in range(size)],
+                    "word_count": np.random.randint(10, 100, size),
+                    "quality_score": np.random.normal(50, 15, size),
+                }
+            )
 
             def process_dataset():
                 # Simulate processing operations
-                return df.groupby(df.index // 1000).agg({
-                    "word_count": "mean",
-                    "quality_score": ["mean", "std"]
-                })
+                return df.groupby(df.index // 1000).agg({"word_count": "mean", "quality_score": ["mean", "std"]})
 
             perf_metrics = self.measure_performance(process_dataset)
 
@@ -451,14 +431,12 @@ class TestScalabilityLimits(PerformanceTestBase):
         memory_growth_rate = (memory_usage[-1] - memory_usage[0]) / (dataset_sizes[-1] - dataset_sizes[0])
         time_growth_rate = (processing_times[-1] - processing_times[0]) / (dataset_sizes[-1] - dataset_sizes[0])
 
-
         # Scalability assertions
         assert memory_growth_rate < 10.0, "Memory growth should be reasonable"
         assert time_growth_rate < 0.1, "Processing time should scale well"
 
     def test_concurrent_processing_simulation(self):
         """Test concurrent processing simulation"""
-
 
         def worker_function(work_queue, result_queue):
             """Worker function for concurrent processing"""
@@ -470,11 +448,7 @@ class TestScalabilityLimits(PerformanceTestBase):
 
                     # Simulate processing
                     data = np.random.randn(1000)
-                    result = {
-                        "mean": np.mean(data),
-                        "std": np.std(data),
-                        "processed_items": len(data)
-                    }
+                    result = {"mean": np.mean(data), "std": np.std(data), "processed_items": len(data)}
 
                     result_queue.put(result)
                     work_queue.task_done()
@@ -534,11 +508,7 @@ def run_performance_tests():
     test_suite = unittest.TestSuite()
 
     # Add test classes
-    test_classes = [
-        TestLargeDatasetLoading,
-        TestAnalyticsPerformance,
-        TestScalabilityLimits
-    ]
+    test_classes = [TestLargeDatasetLoading, TestAnalyticsPerformance, TestScalabilityLimits]
 
     for test_class in test_classes:
         tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
@@ -552,7 +522,9 @@ def run_performance_tests():
 
     if result.failures:
         for _test, traceback in result.failures:
-            traceback.split("AssertionError: ")[-1].split("\n")[0] if "AssertionError:" in traceback else "Unknown failure"
+            traceback.split("AssertionError: ")[-1].split("\n")[
+                0
+            ] if "AssertionError:" in traceback else "Unknown failure"
 
     if result.errors:
         for _test, traceback in result.errors:
@@ -562,6 +534,7 @@ def run_performance_tests():
         pass
 
     return result
+
 
 if __name__ == "__main__":
     run_performance_tests()

@@ -65,7 +65,6 @@ def calculate_agreement_metrics(results_file: str) -> dict[str, any]:
             if line.strip():
                 results.append(json.loads(line))
 
-
     # Extract annotations by agent
     agent_annotations = defaultdict(lambda: defaultdict(list))
 
@@ -76,15 +75,9 @@ def calculate_agreement_metrics(results_file: str) -> dict[str, any]:
             agent_id = f"agent_{i}"
 
             # Extract key fields
-            agent_annotations[agent_id]["crisis_label"].append(
-                annotation.get("crisis_label", 0)
-            )
-            agent_annotations[agent_id]["primary_emotion"].append(
-                annotation.get("primary_emotion", "Neutral")
-            )
-            agent_annotations[agent_id]["emotion_intensity"].append(
-                annotation.get("emotion_intensity", 5)
-            )
+            agent_annotations[agent_id]["crisis_label"].append(annotation.get("crisis_label", 0))
+            agent_annotations[agent_id]["primary_emotion"].append(annotation.get("primary_emotion", "Neutral"))
+            agent_annotations[agent_id]["emotion_intensity"].append(annotation.get("emotion_intensity", 5))
 
     # Calculate pairwise Kappa scores
     agent_ids = list(agent_annotations.keys())
@@ -110,9 +103,7 @@ def calculate_agreement_metrics(results_file: str) -> dict[str, any]:
                 emotions_a_numeric = [emotion_map[e] for e in emotions_a]
                 emotions_b_numeric = [emotion_map[e] for e in emotions_b]
 
-                emotion_kappa = calculate_cohens_kappa(
-                    emotions_a_numeric, emotions_b_numeric
-                )
+                emotion_kappa = calculate_cohens_kappa(emotions_a_numeric, emotions_b_numeric)
 
                 kappa_scores[f"{agent_a}_vs_{agent_b}"] = {
                     "crisis_kappa": round(crisis_kappa, 4),
@@ -183,9 +174,7 @@ def calculate_consensus_quality(results: list[dict]) -> dict:
     return {
         "crisis_distribution": {
             "mean": round(np.mean(crisis_labels), 4),
-            "crisis_rate": round(
-                sum(1 for c in crisis_labels if c > 0) / len(crisis_labels), 4
-            ),
+            "crisis_rate": round(sum(1 for c in crisis_labels if c > 0) / len(crisis_labels), 4),
         },
         "intensity_distribution": {
             "mean": round(np.mean(intensities), 4),
@@ -201,9 +190,7 @@ def calculate_consensus_quality(results: list[dict]) -> dict:
 def print_metrics_report(metrics: dict):
     """Print formatted metrics report"""
 
-
     for _pair, scores in metrics["kappa_scores"].items():
-
         # Interpret Kappa
         avg_kappa = scores["average_kappa"]
         if avg_kappa >= 0.85 or avg_kappa >= 0.70 or avg_kappa >= 0.50:
@@ -211,22 +198,13 @@ def print_metrics_report(metrics: dict):
         else:
             pass
 
-
     metrics["agreement_statistics"]
-
-
-
 
     metrics["consensus_quality"]
 
 
-
-
-
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Calculate multi-agent inter-annotator agreement"
-    )
+    parser = argparse.ArgumentParser(description="Calculate multi-agent inter-annotator agreement")
     parser.add_argument(
         "--input",
         required=True,
@@ -252,4 +230,3 @@ if __name__ == "__main__":
 
         with open(output_path, "w") as f:
             json.dump(metrics, f, indent=2)
-

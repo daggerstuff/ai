@@ -59,8 +59,7 @@ class TraumaFilter:
 
     def __init__(self) -> None:
         self._patterns = {
-            category: [self._compile_term(term) for term in terms]
-            for category, terms in self.TRAUMA_LEXICON.items()
+            category: [self._compile_term(term) for term in terms] for category, terms in self.TRAUMA_LEXICON.items()
         }
         self._user_triggers: dict[str, set[str]] = {}
 

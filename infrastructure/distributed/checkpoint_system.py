@@ -16,7 +16,7 @@ import time
 import uuid
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -25,8 +25,10 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class CheckpointType(Enum):
     """Types of checkpoints"""
+
     PROCESSING_STATE = "processing_state"
     BATCH_PROGRESS = "batch_progress"
     MODEL_STATE = "model_state"
@@ -34,17 +36,21 @@ class CheckpointType(Enum):
     SYSTEM_STATE = "system_state"
     CUSTOM = "custom"
 
+
 class CheckpointStatus(Enum):
     """Checkpoint status"""
+
     ACTIVE = "active"
     COMPLETED = "completed"
     FAILED = "failed"
     EXPIRED = "expired"
     ARCHIVED = "archived"
 
+
 @dataclass
 class CheckpointMetadata:
     """Metadata for a checkpoint"""
+
     checkpoint_id: str
     checkpoint_type: CheckpointType
     created_at: datetime
@@ -68,9 +74,11 @@ class CheckpointMetadata:
         if isinstance(self.status, str):
             self.status = CheckpointStatus(self.status)
 
+
 @dataclass
 class ProcessingState:
     """State of a processing operation"""
+
     process_id: str
     task_id: str
     current_step: str
@@ -94,7 +102,7 @@ class ProcessingState:
         if current_step is not None:
             self.current_step = current_step
 
-        self.last_update = datetime.now(timezone.utc)
+        self.last_update = datetime.now(UTC)
 
         # Estimate completion time
         if self.progress_percentage > 0:
@@ -102,6 +110,7 @@ class ProcessingState:
             total_estimated = elapsed / (self.progress_percentage / 100)
             remaining = total_estimated - elapsed
             self.estimated_completion = self.last_update + timedelta(seconds=remaining)
+
 
 class CheckpointStorage:
     """Storage backend for checkpoints"""
@@ -182,31 +191,34 @@ class CheckpointStorage:
 
             # Save metadata to database
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT OR REPLACE INTO checkpoints
                     (checkpoint_id, checkpoint_type, process_id, task_id, created_at,
                      version, description, tags, dependencies, size_bytes, compression,
                      encryption, ttl_hours, status, file_path, checksum, metadata)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    metadata.checkpoint_id,
-                    metadata.checkpoint_type.value,
-                    metadata.process_id,
-                    metadata.task_id,
-                    metadata.created_at.isoformat(),
-                    metadata.version,
-                    metadata.description,
-                    json.dumps(metadata.tags),
-                    json.dumps(metadata.dependencies),
-                    metadata.size_bytes,
-                    metadata.compression,
-                    metadata.encryption,
-                    metadata.ttl_hours,
-                    metadata.status.value,
-                    str(file_path),
-                    checksum,
-                    json.dumps(asdict(metadata))
-                ))
+                """,
+                    (
+                        metadata.checkpoint_id,
+                        metadata.checkpoint_type.value,
+                        metadata.process_id,
+                        metadata.task_id,
+                        metadata.created_at.isoformat(),
+                        metadata.version,
+                        metadata.description,
+                        json.dumps(metadata.tags),
+                        json.dumps(metadata.dependencies),
+                        metadata.size_bytes,
+                        metadata.compression,
+                        metadata.encryption,
+                        metadata.ttl_hours,
+                        metadata.status.value,
+                        str(file_path),
+                        checksum,
+                        json.dumps(asdict(metadata)),
+                    ),
+                )
 
             logger.info(f"Saved checkpoint {metadata.checkpoint_id} ({metadata.size_bytes} bytes)")
             return str(file_path)
@@ -222,12 +234,15 @@ class CheckpointStorage:
         """Load checkpoint data and metadata"""
 
         with sqlite3.connect(self.db_path) as conn:
-            row = conn.execute("""
+            row = conn.execute(
+                """
                 SELECT checkpoint_type, process_id, task_id, created_at, version,
                        description, tags, dependencies, size_bytes, compression,
                        encryption, ttl_hours, status, file_path, checksum, metadata
                 FROM checkpoints WHERE checkpoint_id = ?
-            """, (checkpoint_id,)).fetchone()
+            """,
+                (checkpoint_id,),
+            ).fetchone()
 
             if not row:
                 raise ValueError(f"Checkpoint {checkpoint_id} not found")
@@ -247,7 +262,7 @@ class CheckpointStorage:
                 compression=bool(row[9]),
                 encryption=bool(row[10]),
                 ttl_hours=row[11],
-                status=CheckpointStatus(row[12])
+                status=CheckpointStatus(row[12]),
             )
 
             file_path = Path(row[13])
@@ -277,9 +292,13 @@ class CheckpointStorage:
                 logger.error(f"Failed to load checkpoint {checkpoint_id}: {e}")
                 raise
 
-    def list_checkpoints(self, process_id: str = None, task_id: str = None,
-                        checkpoint_type: CheckpointType = None,
-                        status: CheckpointStatus = None) -> list[CheckpointMetadata]:
+    def list_checkpoints(
+        self,
+        process_id: str = None,
+        task_id: str = None,
+        checkpoint_type: CheckpointType = None,
+        status: CheckpointStatus = None,
+    ) -> list[CheckpointMetadata]:
         """List checkpoints with optional filters"""
 
         query = "SELECT * FROM checkpoints WHERE 1=1"
@@ -322,7 +341,7 @@ class CheckpointStorage:
                     compression=bool(row[10]),
                     encryption=bool(row[11]),
                     ttl_hours=row[12],
-                    status=CheckpointStatus(row[13])
+                    status=CheckpointStatus(row[13]),
                 )
                 checkpoints.append(metadata)
 
@@ -335,8 +354,7 @@ class CheckpointStorage:
             with sqlite3.connect(self.db_path) as conn:
                 # Get file path
                 row = conn.execute(
-                    "SELECT file_path FROM checkpoints WHERE checkpoint_id = ?",
-                    (checkpoint_id,)
+                    "SELECT file_path FROM checkpoints WHERE checkpoint_id = ?", (checkpoint_id,)
                 ).fetchone()
 
                 if not row:
@@ -349,10 +367,7 @@ class CheckpointStorage:
                     file_path.unlink()
 
                 # Delete database record
-                conn.execute(
-                    "DELETE FROM checkpoints WHERE checkpoint_id = ?",
-                    (checkpoint_id,)
-                )
+                conn.execute("DELETE FROM checkpoints WHERE checkpoint_id = ?", (checkpoint_id,))
 
             logger.info(f"Deleted checkpoint {checkpoint_id}")
             return True
@@ -368,7 +383,7 @@ class CheckpointStorage:
 
         with sqlite3.connect(self.db_path) as conn:
             # Find expired checkpoints
-            cutoff_time = datetime.now(timezone.utc)
+            cutoff_time = datetime.now(UTC)
 
             expired_checkpoints = conn.execute("""
                 SELECT checkpoint_id, file_path, created_at, ttl_hours
@@ -388,8 +403,7 @@ class CheckpointStorage:
                             file_path_obj.unlink()
 
                         conn.execute(
-                            "UPDATE checkpoints SET status = 'expired' WHERE checkpoint_id = ?",
-                            (checkpoint_id,)
+                            "UPDATE checkpoints SET status = 'expired' WHERE checkpoint_id = ?", (checkpoint_id,)
                         )
 
                         deleted_count += 1
@@ -407,23 +421,20 @@ class CheckpointStorage:
             # Count by status
             status_counts = {}
             for status in CheckpointStatus:
-                count = conn.execute(
-                    "SELECT COUNT(*) FROM checkpoints WHERE status = ?",
-                    (status.value,)
-                ).fetchone()[0]
+                count = conn.execute("SELECT COUNT(*) FROM checkpoints WHERE status = ?", (status.value,)).fetchone()[0]
                 status_counts[status.value] = count
 
             # Total size
-            total_size = conn.execute(
-                "SELECT SUM(size_bytes) FROM checkpoints WHERE status = 'active'"
-            ).fetchone()[0] or 0
+            total_size = (
+                conn.execute("SELECT SUM(size_bytes) FROM checkpoints WHERE status = 'active'").fetchone()[0] or 0
+            )
 
             # Count by type
             type_counts = {}
             for checkpoint_type in CheckpointType:
                 count = conn.execute(
                     "SELECT COUNT(*) FROM checkpoints WHERE checkpoint_type = ? AND status = 'active'",
-                    (checkpoint_type.value,)
+                    (checkpoint_type.value,),
                 ).fetchone()[0]
                 type_counts[checkpoint_type.value] = count
 
@@ -432,7 +443,7 @@ class CheckpointStorage:
             "type_counts": type_counts,
             "total_size_bytes": total_size,
             "total_size_mb": round(total_size / (1024 * 1024), 2),
-            "storage_path": str(self.storage_path)
+            "storage_path": str(self.storage_path),
         }
 
     def _calculate_checksum(self, file_path: Path) -> str:
@@ -443,6 +454,7 @@ class CheckpointStorage:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_sha256.update(chunk)
         return hash_sha256.hexdigest()
+
 
 class CheckpointManager:
     """High-level checkpoint management system"""
@@ -477,8 +489,9 @@ class CheckpointManager:
 
         logger.info("Stopped checkpoint background tasks")
 
-    def register_process(self, process_id: str, task_id: str, total_steps: int,
-                        description: str = "") -> ProcessingState:
+    def register_process(
+        self, process_id: str, task_id: str, total_steps: int, description: str = ""
+    ) -> ProcessingState:
         """Register a new processing operation"""
 
         state = ProcessingState(
@@ -488,9 +501,9 @@ class CheckpointManager:
             total_steps=total_steps,
             completed_steps=0,
             progress_percentage=0.0,
-            start_time=datetime.now(timezone.utc),
-            last_update=datetime.now(timezone.utc),
-            metadata={"description": description}
+            start_time=datetime.now(UTC),
+            last_update=datetime.now(UTC),
+            metadata={"description": description},
         )
 
         self.active_processes[process_id] = state
@@ -501,16 +514,22 @@ class CheckpointManager:
             task_id=task_id,
             checkpoint_type=CheckpointType.PROCESSING_STATE,
             data=state,
-            description=f"Initial state for {description}"
+            description=f"Initial state for {description}",
         )
 
         logger.info(f"Registered process {process_id} for task {task_id}")
         return state
 
-    def create_checkpoint(self, process_id: str, task_id: str,
-                         checkpoint_type: CheckpointType, data: Any,
-                         description: str = "", tags: list[str] = None,
-                         ttl_hours: int = 24) -> str:
+    def create_checkpoint(
+        self,
+        process_id: str,
+        task_id: str,
+        checkpoint_type: CheckpointType,
+        data: Any,
+        description: str = "",
+        tags: list[str] = None,
+        ttl_hours: int = 24,
+    ) -> str:
         """Create a new checkpoint"""
 
         checkpoint_id = f"{process_id}_{checkpoint_type.value}_{int(time.time())}_{uuid.uuid4().hex[:8]}"
@@ -518,12 +537,12 @@ class CheckpointManager:
         metadata = CheckpointMetadata(
             checkpoint_id=checkpoint_id,
             checkpoint_type=checkpoint_type,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             process_id=process_id,
             task_id=task_id,
             description=description,
             tags=tags or [],
-            ttl_hours=ttl_hours
+            ttl_hours=ttl_hours,
         )
 
         try:
@@ -539,9 +558,14 @@ class CheckpointManager:
             logger.error(f"Failed to create checkpoint: {e}")
             raise
 
-    def update_process_progress(self, process_id: str, completed_steps: int = None,
-                              current_step: str = None, metadata: dict[str, Any] = None,
-                              auto_checkpoint: bool = True) -> ProcessingState:
+    def update_process_progress(
+        self,
+        process_id: str,
+        completed_steps: int = None,
+        current_step: str = None,
+        metadata: dict[str, Any] = None,
+        auto_checkpoint: bool = True,
+    ) -> ProcessingState:
         """Update process progress and optionally create checkpoint"""
 
         if process_id not in self.active_processes:
@@ -562,7 +586,7 @@ class CheckpointManager:
                     task_id=state.task_id,
                     checkpoint_type=CheckpointType.PROCESSING_STATE,
                     data=state,
-                    description=f"Progress checkpoint at {state.progress_percentage:.1f}%"
+                    description=f"Progress checkpoint at {state.progress_percentage:.1f}%",
                 )
                 state.metadata["last_checkpoint_step"] = completed_steps
 
@@ -578,13 +602,10 @@ class CheckpointManager:
         state.completed_steps = state.total_steps
         state.progress_percentage = 100.0
         state.current_step = "completed"
-        state.last_update = datetime.now(timezone.utc)
+        state.last_update = datetime.now(UTC)
 
         # Create final checkpoint
-        checkpoint_data = {
-            "state": state,
-            "final_data": final_data
-        }
+        checkpoint_data = {"state": state, "final_data": final_data}
 
         checkpoint_id = self.create_checkpoint(
             process_id=process_id,
@@ -592,7 +613,7 @@ class CheckpointManager:
             checkpoint_type=CheckpointType.PROCESSING_STATE,
             data=checkpoint_data,
             description="Final completion checkpoint",
-            ttl_hours=168  # Keep completion checkpoints for 1 week
+            ttl_hours=168,  # Keep completion checkpoints for 1 week
         )
 
         # Mark older checkpoints as completed
@@ -608,9 +629,7 @@ class CheckpointManager:
         """Recover process state from latest checkpoint"""
 
         checkpoints = self.storage.list_checkpoints(
-            process_id=process_id,
-            checkpoint_type=CheckpointType.PROCESSING_STATE,
-            status=CheckpointStatus.ACTIVE
+            process_id=process_id, checkpoint_type=CheckpointType.PROCESSING_STATE, status=CheckpointStatus.ACTIVE
         )
 
         if not checkpoints:
@@ -664,11 +683,14 @@ class CheckpointManager:
         """Mark all checkpoints for a process as completed"""
 
         with sqlite3.connect(self.storage.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE checkpoints
                 SET status = 'completed'
                 WHERE process_id = ? AND status = 'active'
-            """, (process_id,))
+            """,
+                (process_id,),
+            )
 
     def _background_cleanup(self):
         """Background cleanup task"""
@@ -701,11 +723,14 @@ class CheckpointManager:
                     "progress": state.progress_percentage,
                     "current_step": state.current_step,
                     "start_time": state.start_time.isoformat(),
-                    "estimated_completion": state.estimated_completion.isoformat() if state.estimated_completion else None
+                    "estimated_completion": state.estimated_completion.isoformat()
+                    if state.estimated_completion
+                    else None,
                 }
                 for pid, state in self.active_processes.items()
-            }
+            },
         }
+
 
 # Example usage and testing
 async def example_usage():
@@ -721,12 +746,8 @@ async def example_usage():
         task_id = "data_processing_task"
 
         manager.register_process(
-            process_id=process_id,
-            task_id=task_id,
-            total_steps=100,
-            description="Example data processing operation"
+            process_id=process_id, task_id=task_id, total_steps=100, description="Example data processing operation"
         )
-
 
         # Simulate processing with checkpoints
         for step in range(0, 101, 10):
@@ -734,20 +755,15 @@ async def example_usage():
             manager.update_process_progress(
                 process_id=process_id,
                 completed_steps=step,
-                current_step=f"Processing batch {step//10 + 1}",
-                metadata={"current_batch": step//10 + 1}
+                current_step=f"Processing batch {step // 10 + 1}",
+                metadata={"current_batch": step // 10 + 1},
             )
-
 
             # Simulate some work
             await asyncio.sleep(0.1)
 
         # Complete the process
-        manager.complete_process(
-            process_id=process_id,
-            final_data={"result": "success", "items_processed": 1000}
-        )
-
+        manager.complete_process(process_id=process_id, final_data={"result": "success", "items_processed": 1000})
 
         # Test recovery
         recovered_state = manager.recover_process(process_id)
@@ -759,6 +775,7 @@ async def example_usage():
 
     finally:
         manager.stop_background_tasks()
+
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

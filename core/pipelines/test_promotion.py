@@ -8,20 +8,21 @@ These tests verify that:
 """
 
 import json
-import pytest
-from pathlib import Path
-import tempfile
 import shutil
-from datetime import datetime, timezone, timedelta
+import tempfile
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
+import pytest
+
+from ai.core.pipelines.packaging import create_training_package
 from ai.core.pipelines.promotion import (
+    PromotionResult,
     PromotionService,
     PromotionStatus,
     PromotionToken,
-    PromotionResult,
     check_promotion_eligibility,
 )
-from ai.core.pipelines.packaging import create_training_package
 
 
 @pytest.fixture
@@ -117,12 +118,16 @@ class TestPromotionService:
         # Create a fake token
         token_path = stage_dir / "promotion_token.json"
         with open(token_path, "w") as f:
-            json.dump({
-                "package_id": "pkg-001",
-                "promoted_at": "2026-05-13T00:00:00Z",
-                "status": "READY_FOR_PROMOTION",
-                "validation_hash": "abc123",
-            }, f, indent=2)
+            json.dump(
+                {
+                    "package_id": "pkg-001",
+                    "promoted_at": "2026-05-13T00:00:00Z",
+                    "status": "READY_FOR_PROMOTION",
+                    "validation_hash": "abc123",
+                },
+                f,
+                indent=2,
+            )
 
         service = PromotionService()
         result = service.validate_promotion(stage_dir)
@@ -169,7 +174,7 @@ class TestPromotionService:
         token_path = Path(temp_output_dir) / "stage1_foundation" / "promotion_token.json"
         if token_path.exists():
             # Backdate the token
-            old_time = (datetime.now(timezone.utc) - timedelta(hours=25)).isoformat()
+            old_time = (datetime.now(UTC) - timedelta(hours=25)).isoformat()
             with open(token_path) as f:
                 token_data = json.load(f)
             token_data["promoted_at"] = old_time
@@ -272,9 +277,7 @@ class TestPromotionIntegration:
         if bundle.is_promotable:
             # Step 3: Validate promotion
             service = PromotionService()
-            result = service.validate_promotion(
-                Path(temp_output_dir) / "stage1_foundation"
-            )
+            result = service.validate_promotion(Path(temp_output_dir) / "stage1_foundation")
 
             # Step 4: Mark as promoted if eligible
             if result.status == PromotionStatus.ELIGIBLE:

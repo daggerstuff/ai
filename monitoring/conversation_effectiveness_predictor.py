@@ -10,13 +10,14 @@ Predicts conversation effectiveness using machine learning models:
 - Performance metrics and validation
 - Effectiveness improvement recommendations
 """
+
 import json
 import re
 import sqlite3
 import traceback
 import warnings
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -33,9 +34,7 @@ warnings.simplefilter("default")
 
 
 class ConversationEffectivenessPredictor:
-    def __init__(
-        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
-    ):
+    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
         self.db_path = db_path
         self.models = {}
         self.scalers = {}
@@ -68,28 +67,20 @@ class ConversationEffectivenessPredictor:
         predictions = self._generate_predictions(modeling_data, model_results)
 
         # Analyze effectiveness patterns
-        effectiveness_analysis = self._analyze_effectiveness_patterns(
-            modeling_data, predictions
-        )
+        effectiveness_analysis = self._analyze_effectiveness_patterns(modeling_data, predictions)
 
         # Create visualizations
-        self._create_effectiveness_visualizations(
-            modeling_data, predictions, model_results
-        )
+        self._create_effectiveness_visualizations(modeling_data, predictions, model_results)
 
         return {
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+            "analysis_timestamp": datetime.now(UTC).isoformat(),
             "total_conversations": len(conversations),
             "feature_count": len(features_df.columns),
             "model_performance": model_results,
             "effectiveness_analysis": effectiveness_analysis,
             "predictions": predictions,
-            "insights": self._generate_effectiveness_insights(
-                effectiveness_analysis, model_results
-            ),
-            "recommendations": self._generate_effectiveness_recommendations(
-                effectiveness_analysis
-            ),
+            "insights": self._generate_effectiveness_insights(effectiveness_analysis, model_results),
+            "recommendations": self._generate_effectiveness_recommendations(effectiveness_analysis),
         }
 
     def _load_conversation_data(self) -> pd.DataFrame:
@@ -109,18 +100,14 @@ class ConversationEffectivenessPredictor:
             df = pd.read_sql_query(query, conn)
 
         # Extract conversation text from JSON
-        df["conversation_text"] = df["conversations_json"].apply(
-            self._extract_text_from_json
-        )
+        df["conversation_text"] = df["conversations_json"].apply(self._extract_text_from_json)
 
         # Filter out empty conversations
         return df[df["conversation_text"].str.len() > 10]
 
-
     def _extract_text_from_json(self, json_str: str) -> str:
         """Extract readable text from conversations JSON"""
         try:
-
             conversations = json.loads(json_str)
 
             if isinstance(conversations, list):
@@ -136,9 +123,7 @@ class ConversationEffectivenessPredictor:
         except:
             return json_str
 
-    def _extract_effectiveness_features(
-        self, conversations: pd.DataFrame
-    ) -> pd.DataFrame:
+    def _extract_effectiveness_features(self, conversations: pd.DataFrame) -> pd.DataFrame:
         """Extract features that correlate with conversation effectiveness"""
 
         features = []
@@ -185,9 +170,7 @@ class ConversationEffectivenessPredictor:
             )
 
             # Interaction features
-            personal_pronouns = len(
-                re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower())
-            )
+            personal_pronouns = len(re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower()))
             conversational_markers = len(
                 re.findall(
                     r"\b(well|so|now|then|actually|really|you know|I mean|let me|how about)\b",
@@ -201,9 +184,7 @@ class ConversationEffectivenessPredictor:
             has_questions = question_count > 0
 
             # Complexity features
-            avg_sentence_length = (
-                word_count / sentence_count if sentence_count > 0 else 0
-            )
+            avg_sentence_length = word_count / sentence_count if sentence_count > 0 else 0
             unique_words = len(set(text.lower().split()))
             vocabulary_richness = unique_words / word_count if word_count > 0 else 0
 
@@ -251,17 +232,9 @@ class ConversationEffectivenessPredictor:
                 "professional_terms": professional_terms,
                 "dataset_encoded": dataset_encoded,
                 "tier_encoded": tier_encoded,
-                "question_density": question_count / word_count * 100
-                if word_count > 0
-                else 0,
-                "empathy_density": empathy_words / word_count * 100
-                if word_count > 0
-                else 0,
-                "sentiment_balance": (positive_words - negative_words)
-                / word_count
-                * 100
-                if word_count > 0
-                else 0,
+                "question_density": question_count / word_count * 100 if word_count > 0 else 0,
+                "empathy_density": empathy_words / word_count * 100 if word_count > 0 else 0,
+                "sentiment_balance": (positive_words - negative_words) / word_count * 100 if word_count > 0 else 0,
             }
 
             features.append(feature_vector)
@@ -285,14 +258,10 @@ class ConversationEffectivenessPredictor:
             # 1. Engagement score
             questions = text.count("?")
             exclamations = text.count("!")
-            personal_pronouns = len(
-                re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower())
-            )
+            personal_pronouns = len(re.findall(r"\b(I|you|we|us|your|my|our)\b", text.lower()))
             engagement_score = min(
                 100,
-                (questions * 10)
-                + (exclamations * 5)
-                + (personal_pronouns / word_count * 200),
+                (questions * 10) + (exclamations * 5) + (personal_pronouns / word_count * 200),
             )
 
             # 2. Clarity score
@@ -320,9 +289,7 @@ class ConversationEffectivenessPredictor:
                     text.lower(),
                 )
             )
-            informativeness_score = min(
-                100, (vocabulary_richness * 100) + (professional_terms * 5)
-            )
+            informativeness_score = min(100, (vocabulary_richness * 100) + (professional_terms * 5))
 
             # 5. Structure score
             has_lists = bool(re.search(r"\n\s*[-*•]\s+", text))
@@ -333,11 +300,7 @@ class ConversationEffectivenessPredictor:
                     text.lower(),
                 )
             )
-            structure_score = (
-                (int(has_lists) * 20)
-                + (int(has_numbered_items) * 20)
-                + (transition_words * 10)
-            )
+            structure_score = (int(has_lists) * 20) + (int(has_numbered_items) * 20) + (transition_words * 10)
             structure_score = min(100, structure_score)
 
             # 6. Responsiveness score (based on dialogue turns and length appropriateness)
@@ -364,9 +327,7 @@ class ConversationEffectivenessPredictor:
         """Build machine learning models to predict effectiveness"""
 
         # Prepare features and target
-        feature_columns = [
-            col for col in modeling_data.columns if col != "effectiveness_score"
-        ]
+        feature_columns = [col for col in modeling_data.columns if col != "effectiveness_score"]
         X = modeling_data[feature_columns]
         y = modeling_data["effectiveness_score"]
 
@@ -374,9 +335,7 @@ class ConversationEffectivenessPredictor:
         X = X.fillna(X.mean())
 
         # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.2, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
         # Scale features
         scaler = StandardScaler()
@@ -389,16 +348,13 @@ class ConversationEffectivenessPredictor:
         # Train multiple models
         models = {
             "random_forest": RandomForestRegressor(n_estimators=100, random_state=42),
-            "gradient_boosting": GradientBoostingRegressor(
-                n_estimators=100, random_state=42
-            ),
+            "gradient_boosting": GradientBoostingRegressor(n_estimators=100, random_state=42),
             "linear_regression": LinearRegression(),
         }
 
         model_results = {}
 
         for model_name, model in models.items():
-
             # Train model
             if model_name == "linear_regression":
                 model.fit(X_train_scaled, y_train)
@@ -415,20 +371,14 @@ class ConversationEffectivenessPredictor:
 
             # Cross-validation
             if model_name == "linear_regression":
-                cv_scores = cross_val_score(
-                    model, X_train_scaled, y_train, cv=5, scoring="r2"
-                )
+                cv_scores = cross_val_score(model, X_train_scaled, y_train, cv=5, scoring="r2")
             else:
                 cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring="r2")
 
             # Feature importance (for tree-based models)
             if hasattr(model, "feature_importances_"):
-                feature_importance = dict(
-                    zip(feature_columns, model.feature_importances_, strict=False)
-                )
-                top_features = sorted(
-                    feature_importance.items(), key=lambda x: x[1], reverse=True
-                )[:10]
+                feature_importance = dict(zip(feature_columns, model.feature_importances_, strict=False))
+                top_features = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)[:10]
             else:
                 top_features = []
 
@@ -450,9 +400,7 @@ class ConversationEffectivenessPredictor:
 
         return model_results
 
-    def _generate_predictions(
-        self, modeling_data: pd.DataFrame, _model_results: dict[str, Any]
-    ) -> dict[str, Any]:
+    def _generate_predictions(self, modeling_data: pd.DataFrame, _model_results: dict[str, Any]) -> dict[str, Any]:
         """Generate effectiveness predictions for all conversations"""
 
         # Use the best performing model (Random Forest)
@@ -461,9 +409,7 @@ class ConversationEffectivenessPredictor:
             return {"error": "No trained model available"}
 
         # Prepare features
-        feature_columns = [
-            col for col in modeling_data.columns if col != "effectiveness_score"
-        ]
+        feature_columns = [col for col in modeling_data.columns if col != "effectiveness_score"]
         X = modeling_data[feature_columns].fillna(modeling_data[feature_columns].mean())
 
         # Generate predictions
@@ -493,12 +439,8 @@ class ConversationEffectivenessPredictor:
             "prediction_errors": prediction_error.tolist(),
             "mean_prediction_error": prediction_error.mean(),
             "category_distribution": dict(category_distribution),
-            "high_effectiveness_conversations": len(
-                [s for s in predicted_effectiveness if s >= 80]
-            ),
-            "low_effectiveness_conversations": len(
-                [s for s in predicted_effectiveness if s < 40]
-            ),
+            "high_effectiveness_conversations": len([s for s in predicted_effectiveness if s >= 80]),
+            "low_effectiveness_conversations": len([s for s in predicted_effectiveness if s < 40]),
         }
 
     def _analyze_effectiveness_patterns(
@@ -508,9 +450,7 @@ class ConversationEffectivenessPredictor:
 
         # Add predictions to modeling data for analysis
         modeling_data_with_pred = modeling_data.copy()
-        modeling_data_with_pred["predicted_effectiveness"] = predictions[
-            "predicted_scores"
-        ]
+        modeling_data_with_pred["predicted_effectiveness"] = predictions["predicted_scores"]
 
         patterns_analysis = {}
 
@@ -539,18 +479,10 @@ class ConversationEffectivenessPredictor:
                 q4_mask = modeling_data_with_pred[feature] > quartiles[0.75]
 
                 feature_effectiveness[feature] = {
-                    "q1_effectiveness": modeling_data_with_pred[q1_mask][
-                        "effectiveness_score"
-                    ].mean(),
-                    "q2_effectiveness": modeling_data_with_pred[q2_mask][
-                        "effectiveness_score"
-                    ].mean(),
-                    "q3_effectiveness": modeling_data_with_pred[q3_mask][
-                        "effectiveness_score"
-                    ].mean(),
-                    "q4_effectiveness": modeling_data_with_pred[q4_mask][
-                        "effectiveness_score"
-                    ].mean(),
+                    "q1_effectiveness": modeling_data_with_pred[q1_mask]["effectiveness_score"].mean(),
+                    "q2_effectiveness": modeling_data_with_pred[q2_mask]["effectiveness_score"].mean(),
+                    "q3_effectiveness": modeling_data_with_pred[q3_mask]["effectiveness_score"].mean(),
+                    "q4_effectiveness": modeling_data_with_pred[q4_mask]["effectiveness_score"].mean(),
                     "correlation": modeling_data_with_pred[feature].corr(
                         modeling_data_with_pred["effectiveness_score"]
                     ),
@@ -560,9 +492,7 @@ class ConversationEffectivenessPredictor:
 
         # Most and least effective conversation characteristics
         top_10_effective = modeling_data_with_pred.nlargest(10, "effectiveness_score")
-        bottom_10_effective = modeling_data_with_pred.nsmallest(
-            10, "effectiveness_score"
-        )
+        bottom_10_effective = modeling_data_with_pred.nsmallest(10, "effectiveness_score")
 
         patterns_analysis["top_effective_characteristics"] = {
             "avg_text_length": top_10_effective["text_length"].mean(),
@@ -583,9 +513,7 @@ class ConversationEffectivenessPredictor:
         # Effectiveness distribution analysis
         effectiveness_stats = {
             "mean_effectiveness": modeling_data_with_pred["effectiveness_score"].mean(),
-            "median_effectiveness": modeling_data_with_pred[
-                "effectiveness_score"
-            ].median(),
+            "median_effectiveness": modeling_data_with_pred["effectiveness_score"].median(),
             "std_effectiveness": modeling_data_with_pred["effectiveness_score"].std(),
             "min_effectiveness": modeling_data_with_pred["effectiveness_score"].min(),
             "max_effectiveness": modeling_data_with_pred["effectiveness_score"].max(),
@@ -603,15 +531,10 @@ class ConversationEffectivenessPredictor:
 
         # Model performance insights
         best_model = max(model_results.items(), key=lambda x: x[1]["r2_score"])
-        insights.append(
-            f"🤖 Best performing model: {best_model[0]} (R² = {best_model[1]['r2_score']:.3f})"
-        )
+        insights.append(f"🤖 Best performing model: {best_model[0]} (R² = {best_model[1]['r2_score']:.3f})")
 
         # Feature importance insights
-        if (
-            "random_forest" in model_results
-            and model_results["random_forest"]["top_features"]
-        ):
+        if "random_forest" in model_results and model_results["random_forest"]["top_features"]:
             top_feature = model_results["random_forest"]["top_features"][0]
             insights.append(
                 f"🔑 Most important effectiveness predictor: {top_feature[0]} (importance: {top_feature[1]:.3f})"
@@ -631,22 +554,16 @@ class ConversationEffectivenessPredictor:
         # Feature correlation insights
         feature_eff = effectiveness_analysis["feature_effectiveness"]
         strong_correlations = [
-            (feature, data["correlation"])
-            for feature, data in feature_eff.items()
-            if abs(data["correlation"]) > 0.3
+            (feature, data["correlation"]) for feature, data in feature_eff.items() if abs(data["correlation"]) > 0.3
         ]
 
         if strong_correlations:
             strongest = max(strong_correlations, key=lambda x: abs(x[1]))
-            insights.append(
-                f"📊 Strongest effectiveness correlation: {strongest[0]} (r = {strongest[1]:.3f})"
-            )
+            insights.append(f"📊 Strongest effectiveness correlation: {strongest[0]} (r = {strongest[1]:.3f})")
 
         return insights
 
-    def _generate_effectiveness_recommendations(
-        self, effectiveness_analysis: dict[str, Any]
-    ) -> list[str]:
+    def _generate_effectiveness_recommendations(self, effectiveness_analysis: dict[str, Any]) -> list[str]:
         """Generate recommendations for improving effectiveness"""
         recommendations = []
 
@@ -657,16 +574,11 @@ class ConversationEffectivenessPredictor:
         if "text_length" in feature_eff:
             length_data = feature_eff["text_length"]
             best_quartile = max(
-                [
-                    (f"q{i + 1}", length_data[f"q{i + 1}_effectiveness"])
-                    for i in range(4)
-                ],
+                [(f"q{i + 1}", length_data[f"q{i + 1}_effectiveness"]) for i in range(4)],
                 key=lambda x: x[1],
             )
             if best_quartile[0] == "q2" or best_quartile[0] == "q3":
-                recommendations.append(
-                    "📝 Optimize conversation length - moderate lengths tend to be most effective"
-                )
+                recommendations.append("📝 Optimize conversation length - moderate lengths tend to be most effective")
 
         # Empathy recommendations
         if "empathy_density" in feature_eff:
@@ -680,17 +592,13 @@ class ConversationEffectivenessPredictor:
         if "question_density" in feature_eff:
             question_corr = feature_eff["question_density"]["correlation"]
             if question_corr > 0.15:
-                recommendations.append(
-                    "❓ Include more questions - enhances conversation effectiveness"
-                )
+                recommendations.append("❓ Include more questions - enhances conversation effectiveness")
 
         # Readability recommendations
         if "flesch_score" in feature_eff:
             flesch_corr = feature_eff["flesch_score"]["correlation"]
             if flesch_corr > 0.1:
-                recommendations.append(
-                    "📖 Improve readability - clearer language increases effectiveness"
-                )
+                recommendations.append("📖 Improve readability - clearer language increases effectiveness")
 
         # Dialogue turn recommendations
         if "dialogue_turns" in feature_eff:
@@ -703,9 +611,7 @@ class ConversationEffectivenessPredictor:
         # General recommendations based on effectiveness statistics
         stats = effectiveness_analysis["effectiveness_statistics"]
         if stats["std_effectiveness"] > 20:
-            recommendations.append(
-                "⚖️ Reduce effectiveness variability - standardize conversation quality"
-            )
+            recommendations.append("⚖️ Reduce effectiveness variability - standardize conversation quality")
 
         return recommendations
 
@@ -728,9 +634,7 @@ class ConversationEffectivenessPredictor:
         # 1. Effectiveness Score Distribution
         effectiveness_scores = modeling_data["effectiveness_score"]
 
-        axes[0, 0].hist(
-            effectiveness_scores, bins=30, alpha=0.7, color="skyblue", edgecolor="black"
-        )
+        axes[0, 0].hist(effectiveness_scores, bins=30, alpha=0.7, color="skyblue", edgecolor="black")
         axes[0, 0].set_title("Effectiveness Score Distribution")
         axes[0, 0].set_xlabel("Effectiveness Score")
         axes[0, 0].set_ylabel("Frequency")
@@ -746,9 +650,7 @@ class ConversationEffectivenessPredictor:
         models = list(model_results.keys())
         r2_scores = [model_results[model]["r2_score"] for model in models]
 
-        bars = axes[0, 1].bar(
-            models, r2_scores, color=["#FF6B6B", "#4ECDC4", "#45B7D1"], alpha=0.8
-        )
+        bars = axes[0, 1].bar(models, r2_scores, color=["#FF6B6B", "#4ECDC4", "#45B7D1"], alpha=0.8)
         axes[0, 1].set_title("Model Performance (R² Score)")
         axes[0, 1].set_ylabel("R² Score")
         axes[0, 1].set_ylim(0, 1)
@@ -770,9 +672,7 @@ class ConversationEffectivenessPredictor:
             actual = predictions["actual_scores"]
 
             axes[0, 2].scatter(actual, predicted, alpha=0.6, s=20)
-            axes[0, 2].plot(
-                [min(actual), max(actual)], [min(actual), max(actual)], "r--", lw=2
-            )
+            axes[0, 2].plot([min(actual), max(actual)], [min(actual), max(actual)], "r--", lw=2)
             axes[0, 2].set_title("Predicted vs Actual Effectiveness")
             axes[0, 2].set_xlabel("Actual Effectiveness")
             axes[0, 2].set_ylabel("Predicted Effectiveness")
@@ -788,24 +688,15 @@ class ConversationEffectivenessPredictor:
             )
 
         # 4. Feature Importance (Random Forest)
-        if (
-            "random_forest" in model_results
-            and model_results["random_forest"]["top_features"]
-        ):
-            top_features = model_results["random_forest"]["top_features"][
-                :8
-            ]  # Top 8 features
+        if "random_forest" in model_results and model_results["random_forest"]["top_features"]:
+            top_features = model_results["random_forest"]["top_features"][:8]  # Top 8 features
             feature_names = [f[0] for f in top_features]
             importance_values = [f[1] for f in top_features]
 
             y_pos = np.arange(len(feature_names))
-            bars = axes[1, 0].barh(
-                y_pos, importance_values, color="lightcoral", alpha=0.8
-            )
+            bars = axes[1, 0].barh(y_pos, importance_values, color="lightcoral", alpha=0.8)
             axes[1, 0].set_yticks(y_pos)
-            axes[1, 0].set_yticklabels(
-                [name.replace("_", " ").title() for name in feature_names]
-            )
+            axes[1, 0].set_yticklabels([name.replace("_", " ").title() for name in feature_names])
             axes[1, 0].set_xlabel("Feature Importance")
             axes[1, 0].set_title("Top Features for Effectiveness Prediction")
 
@@ -869,14 +760,13 @@ class ConversationEffectivenessPredictor:
         plt.tight_layout()
 
         # Save the plot
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
             f"/home/vivi/pixelated/ai/monitoring/effectiveness_prediction_{timestamp}.png",
             dpi=300,
             bbox_inches="tight",
         )
         plt.show()
-
 
 
 def main():
@@ -889,12 +779,11 @@ def main():
         results = predictor.predict_effectiveness()
 
         # Save results
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         output_file = f"/home/vivi/pixelated/ai/monitoring/effectiveness_prediction_{timestamp}.json"
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)
-
 
         # Display model performance
         for _model_name, _metrics in results["model_performance"].items():
@@ -913,7 +802,6 @@ def main():
         return results
 
     except Exception:
-
         traceback.print_exc()
         return None
 

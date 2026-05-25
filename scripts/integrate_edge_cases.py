@@ -43,11 +43,8 @@ class EdgeCaseIntegrator:
     def generate_and_integrate_edge_cases(self) -> dict:
         """Generate edge cases and integrate into main training data"""
 
-
         # Step 1: Generate edge case prompts
-        edge_prompts = self.edge_generator.generate_prompts(
-            scenarios_per_category=self.edge_cases_per_category
-        )
+        edge_prompts = self.edge_generator.generate_prompts(scenarios_per_category=self.edge_cases_per_category)
 
         # Step 2: Generate conversations from prompts
         edge_conversations = self.edge_generator.generate_conversations(
@@ -61,9 +58,7 @@ class EdgeCaseIntegrator:
         integration_stats = self._integrate_with_main_pipeline(training_format)
 
         # Step 5: Generate comprehensive report
-        report = self._generate_integration_report(
-            edge_conversations, integration_stats
-        )
+        report = self._generate_integration_report(edge_conversations, integration_stats)
 
         return {
             "edge_conversations": len(edge_conversations),
@@ -114,9 +109,7 @@ class EdgeCaseIntegrator:
             "combined_file": str(merged_file),
         }
 
-    def _generate_integration_report(
-        self, conversations: list[dict], integration_stats: dict
-    ) -> str:
+    def _generate_integration_report(self, conversations: list[dict], integration_stats: dict) -> str:
         """Generate comprehensive integration report"""
 
         # Analyze edge case distribution
@@ -156,9 +149,7 @@ Generated: {Path().cwd().name} Training Pipeline
 """
 
         # Add top categories
-        for category, count in sorted(
-            category_counts.items(), key=lambda x: x[1], reverse=True
-        )[:10]:
+        for category, count in sorted(category_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
             percentage = count / len(conversations) * 100
             report += f"- **{category}**: {count} cases ({percentage:.1f}%)\n"
 

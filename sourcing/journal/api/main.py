@@ -84,6 +84,7 @@ app.include_router(api_router)
 # Include WebSocket router
 app.include_router(websocket_router)
 
+
 # Health check endpoint
 @app.get("/health")
 async def health_check() -> dict[str, Any]:
@@ -104,4 +105,3 @@ async def root() -> dict[str, str]:
         "version": settings.api_version,
         "docs": "/api/docs" if settings.environment != "production" else "disabled",
     }
-

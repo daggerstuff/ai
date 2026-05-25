@@ -5,13 +5,14 @@ Task 3B.1: Execute end-to-end testing with complete 4.2M conversation dataset
 
 Enterprise-grade system validation testing for production readiness.
 """
+
 import asyncio
 import json
 import logging
 import os
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -38,7 +39,7 @@ class SystemTestResult:
     """Results from full system testing."""
 
     def __init__(self):
-        self.start_time = datetime.now(timezone.utc)
+        self.start_time = datetime.now(UTC)
         self.end_time = None
         self.total_conversations_processed = 0
         self.successful_operations = 0
@@ -50,18 +51,18 @@ class SystemTestResult:
 
     def complete(self):
         """Mark test as complete."""
-        self.end_time = datetime.now(timezone.utc)
+        self.end_time = datetime.now(UTC)
         self.duration = (self.end_time - self.start_time).total_seconds()
 
     def add_error(self, error: str):
         """Add error to results."""
-        self.errors.append(f"{datetime.now(timezone.utc)}: {error}")
+        self.errors.append(f"{datetime.now(UTC)}: {error}")
         self.failed_operations += 1
         logger.error(error)
 
     def add_warning(self, warning: str):
         """Add warning to results."""
-        self.warnings.append(f"{datetime.now(timezone.utc)}: {warning}")
+        self.warnings.append(f"{datetime.now(UTC)}: {warning}")
         logger.warning(warning)
 
     def add_success(self):
@@ -79,15 +80,15 @@ class SystemTestResult:
                 "successful_operations": self.successful_operations,
                 "failed_operations": self.failed_operations,
                 "success_rate": (
-                    self.successful_operations /
-                    (self.successful_operations + self.failed_operations) * 100
-                    if (self.successful_operations + self.failed_operations) > 0 else 0
-                )
+                    self.successful_operations / (self.successful_operations + self.failed_operations) * 100
+                    if (self.successful_operations + self.failed_operations) > 0
+                    else 0
+                ),
             },
             "performance_metrics": self.performance_metrics,
             "resource_usage": self.resource_usage,
             "errors": self.errors,
-            "warnings": self.warnings
+            "warnings": self.warnings,
         }
 
 
@@ -208,8 +209,7 @@ class FullSystemValidator:
 
         if total_conversations < 100000:  # 100k minimum
             self.results.add_warning(
-                f"Limited test data available: {total_conversations:,} "
-                f"(target: {DATASET_SIZE_TARGET:,})"
+                f"Limited test data available: {total_conversations:,} (target: {DATASET_SIZE_TARGET:,})"
             )
 
     async def _test_database_performance(self):
@@ -233,18 +233,18 @@ class FullSystemValidator:
                 await asyncio.sleep(0.1)  # Simulate query execution
 
                 query_time = (time.time() - query_start) * 1000
-                self.results.performance_metrics[f"db_query_{i+1}_ms"] = query_time
+                self.results.performance_metrics[f"db_query_{i + 1}_ms"] = query_time
 
                 if query_time > PERFORMANCE_THRESHOLD_MS:
                     self.results.add_warning(f"Slow database query: {query_time:.0f}ms")
 
-                logger.info(f"Database query {i+1}: {query_time:.0f}ms")
+                logger.info(f"Database query {i + 1}: {query_time:.0f}ms")
 
             # Record resource usage during database testing
             self.results.resource_usage["db_test"] = {
                 "cpu_percent": psutil.cpu_percent(interval=1),
                 "memory_percent": psutil.virtual_memory().percent,
-                "duration_seconds": time.time() - start_time
+                "duration_seconds": time.time() - start_time,
             }
 
             self.results.add_success()
@@ -257,7 +257,6 @@ class FullSystemValidator:
         logger.info("Phase 3: API Performance Testing")
 
         try:
-
             # Test various API endpoints
             endpoints = [
                 ("/v1/datasets", "GET"),
@@ -332,7 +331,7 @@ class FullSystemValidator:
             "dataset_discovery_and_query",
             "quality_validation_workflow",
             "export_and_download_workflow",
-            "monitoring_and_analytics_workflow"
+            "monitoring_and_analytics_workflow",
         ]
 
         for workflow in workflows:
@@ -380,9 +379,7 @@ class FullSystemValidator:
             successful_tasks = len([r for r in results if r and not isinstance(r, Exception)])
 
             self.results.performance_metrics["stress_test_duration_seconds"] = stress_duration
-            self.results.performance_metrics["stress_test_success_rate"] = (
-                successful_tasks / concurrent_tasks * 100
-            )
+            self.results.performance_metrics["stress_test_success_rate"] = successful_tasks / concurrent_tasks * 100
 
             logger.info(f"Stress test: {successful_tasks}/{concurrent_tasks} tasks successful")
 
@@ -391,7 +388,7 @@ class FullSystemValidator:
                 "cpu_percent": psutil.cpu_percent(interval=1),
                 "memory_percent": psutil.virtual_memory().percent,
                 "concurrent_tasks": concurrent_tasks,
-                "success_rate": successful_tasks / concurrent_tasks * 100
+                "success_rate": successful_tasks / concurrent_tasks * 100,
             }
 
             if successful_tasks == concurrent_tasks:
@@ -458,15 +455,15 @@ class FullSystemValidator:
         results = self.results.to_dict()
 
         report = f"""# Full System Validation Report
-**Generated**: {datetime.now(timezone.utc).isoformat()}
-**Duration**: {results['test_summary'].get('duration_seconds', 0):.1f} seconds
+**Generated**: {datetime.now(UTC).isoformat()}
+**Duration**: {results["test_summary"].get("duration_seconds", 0):.1f} seconds
 
 ## Summary
-- **Total Operations**: {results['test_summary']['successful_operations'] + results['test_summary']['failed_operations']}
-- **Successful**: {results['test_summary']['successful_operations']}
-- **Failed**: {results['test_summary']['failed_operations']}
-- **Success Rate**: {results['test_summary']['success_rate']:.1f}%
-- **Conversations Processed**: {results['test_summary']['total_conversations_processed']:,}
+- **Total Operations**: {results["test_summary"]["successful_operations"] + results["test_summary"]["failed_operations"]}
+- **Successful**: {results["test_summary"]["successful_operations"]}
+- **Failed**: {results["test_summary"]["failed_operations"]}
+- **Success Rate**: {results["test_summary"]["success_rate"]:.1f}%
+- **Conversations Processed**: {results["test_summary"]["total_conversations_processed"]:,}
 
 ## Performance Metrics
 """
@@ -479,7 +476,9 @@ class FullSystemValidator:
 
         report += "\n## Resource Usage\n"
         for phase, usage in results["resource_usage"].items():
-            report += f"- **{phase}**: CPU {usage.get('cpu_percent', 0):.1f}%, Memory {usage.get('memory_percent', 0):.1f}%\n"
+            report += (
+                f"- **{phase}**: CPU {usage.get('cpu_percent', 0):.1f}%, Memory {usage.get('memory_percent', 0):.1f}%\n"
+            )
 
         if results["errors"]:
             report += f"\n## Errors ({len(results['errors'])})\n"
@@ -516,9 +515,9 @@ async def test_full_system_validation():
 
     # Assert overall success
     success_rate = (
-        results.successful_operations /
-        (results.successful_operations + results.failed_operations) * 100
-        if (results.successful_operations + results.failed_operations) > 0 else 0
+        results.successful_operations / (results.successful_operations + results.failed_operations) * 100
+        if (results.successful_operations + results.failed_operations) > 0
+        else 0
     )
 
     assert success_rate >= 80, f"System validation failed: {success_rate:.1f}% success rate"
@@ -532,7 +531,6 @@ if __name__ == "__main__":
         validator = FullSystemValidator()
         results = await validator.run_full_validation()
         validator.save_results()
-
 
         if results.errors:
             for _error in results.errors[-5:]:  # Show last 5 errors

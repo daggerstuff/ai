@@ -57,4 +57,4 @@ class KnowledgeTextExtractor:
         return tags
 
 
-__all__ = ["KnowledgeTextExtractor", "ExtractedKnowledge"]
+__all__ = ["ExtractedKnowledge", "KnowledgeTextExtractor"]

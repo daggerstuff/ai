@@ -84,9 +84,7 @@ class WorkflowExecutor:
                 )
                 current_phase = start_phase
         else:
-            session = self._create_session(
-                orchestrator, session_id, target_sources, search_keywords, weekly_targets
-            )
+            session = self._create_session(orchestrator, session_id, target_sources, search_keywords, weekly_targets)
             current_phase = start_phase
 
         session_id = session.session_id
@@ -98,8 +96,10 @@ class WorkflowExecutor:
 
         # Execute phases
         for phase in phases_to_run:
-            if self.interactive and phase != phases_to_run[0] and not prompt_for_phase_transition(
-                session.current_phase, phase
+            if (
+                self.interactive
+                and phase != phases_to_run[0]
+                and not prompt_for_phase_transition(session.current_phase, phase)
             ):
                 console.print("[yellow]Workflow paused by user[/yellow]")
                 break
@@ -164,10 +164,7 @@ class WorkflowExecutor:
             session_id=session_id,
         )
 
-
-    def _execute_phase(
-        self, orchestrator: ResearchOrchestrator, session_id: str, phase: str
-    ) -> None:
+    def _execute_phase(self, orchestrator: ResearchOrchestrator, session_id: str, phase: str) -> None:
         """Execute a single phase of the workflow."""
         session = orchestrator.sessions[session_id]
         state = orchestrator.get_session_state(session_id)
@@ -194,18 +191,14 @@ class WorkflowExecutor:
         if orchestrator.discovery_service:
             sources = orchestrator.discovery_service.discover_sources(session)
             state.sources = sources
-            orchestrator.update_progress(
-                session_id, {"sources_identified": len(state.sources)}
-            )
+            orchestrator.update_progress(session_id, {"sources_identified": len(state.sources)})
             console.print(f"[green]Found {len(sources)} sources[/green]")
         else:
             console.print("[yellow]No discovery service configured[/yellow]")
 
         orchestrator.advance_phase(session_id)
 
-    def _execute_evaluation_phase(
-        self, orchestrator: ResearchOrchestrator, session_id: str, state
-    ) -> None:
+    def _execute_evaluation_phase(self, orchestrator: ResearchOrchestrator, session_id: str, state) -> None:
         """Execute evaluation phase."""
         console.print("[cyan]Evaluating dataset sources...[/cyan]")
 
@@ -217,27 +210,21 @@ class WorkflowExecutor:
             evaluations = []
             for source in state.sources:
                 try:
-                    evaluation = orchestrator.evaluation_engine.evaluate_dataset(
-                        source, evaluator="system"
-                    )
+                    evaluation = orchestrator.evaluation_engine.evaluate_dataset(source, evaluator="system")
                     evaluations.append(evaluation)
                 except Exception as e:
                     console.print(f"[red]Error evaluating {source.source_id}: {e}[/red]")
                     logger.exception("Evaluation error")
 
             state.evaluations.extend(evaluations)
-            orchestrator.update_progress(
-                session_id, {"datasets_evaluated": len(state.evaluations)}
-            )
+            orchestrator.update_progress(session_id, {"datasets_evaluated": len(state.evaluations)})
             console.print(f"[green]Evaluated {len(evaluations)} datasets[/green]")
         else:
             console.print("[yellow]No evaluation engine configured[/yellow]")
 
         orchestrator.advance_phase(session_id)
 
-    def _execute_acquisition_phase(
-        self, orchestrator: ResearchOrchestrator, session_id: str, state
-    ) -> None:
+    def _execute_acquisition_phase(self, orchestrator: ResearchOrchestrator, session_id: str, state) -> None:
         """Execute acquisition phase."""
         console.print("[cyan]Acquiring datasets...[/cyan]")
 
@@ -249,32 +236,24 @@ class WorkflowExecutor:
             acquired_count = 0
             for source in state.sources:
                 try:
-                    access_request = orchestrator.acquisition_manager.submit_access_request(
-                        source
-                    )
+                    access_request = orchestrator.acquisition_manager.submit_access_request(source)
                     state.access_requests.append(access_request)
 
-                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(
-                        source, access_request
-                    )
+                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(source, access_request)
                     state.acquired_datasets.append(acquired_dataset)
                     acquired_count += 1
                 except Exception as e:
                     console.print(f"[red]Error acquiring {source.source_id}: {e}[/red]")
                     logger.exception("Acquisition error")
 
-            orchestrator.update_progress(
-                session_id, {"datasets_acquired": len(state.acquired_datasets)}
-            )
+            orchestrator.update_progress(session_id, {"datasets_acquired": len(state.acquired_datasets)})
             console.print(f"[green]Acquired {acquired_count} datasets[/green]")
         else:
             console.print("[yellow]No acquisition manager configured[/yellow]")
 
         orchestrator.advance_phase(session_id)
 
-    def _execute_integration_phase(
-        self, orchestrator: ResearchOrchestrator, session_id: str, state
-    ) -> None:
+    def _execute_integration_phase(self, orchestrator: ResearchOrchestrator, session_id: str, state) -> None:
         """Execute integration phase."""
         console.print("[cyan]Creating integration plans...[/cyan]")
 
@@ -288,18 +267,14 @@ class WorkflowExecutor:
             plans_count = 0
             for dataset in state.acquired_datasets:
                 try:
-                    plan = orchestrator.integration_engine.create_integration_plan(
-                        dataset, target_format
-                    )
+                    plan = orchestrator.integration_engine.create_integration_plan(dataset, target_format)
                     state.integration_plans.append(plan)
                     plans_count += 1
                 except Exception as e:
                     console.print(f"[red]Error creating plan for {dataset.source_id}: {e}[/red]")
                     logger.exception("Integration planning error")
 
-            orchestrator.update_progress(
-                session_id, {"integration_plans_created": len(state.integration_plans)}
-            )
+            orchestrator.update_progress(session_id, {"integration_plans_created": len(state.integration_plans)})
             console.print(f"[green]Created {plans_count} integration plans[/green]")
         else:
             console.print("[yellow]No integration engine configured[/yellow]")
@@ -307,9 +282,7 @@ class WorkflowExecutor:
     def _save_checkpoint(self, orchestrator: ResearchOrchestrator, session_id: str) -> None:
         """Save workflow checkpoint."""
         try:
-            checkpoint_path = orchestrator.save_session_state(
-                session_id, directory=self.checkpoint_dir
-            )
+            checkpoint_path = orchestrator.save_session_state(session_id, directory=self.checkpoint_dir)
             console.print(f"[dim]Checkpoint saved: {checkpoint_path}[/dim]")
         except Exception as e:
             console.print(f"[yellow]Warning: Could not save checkpoint: {e}[/yellow]")
@@ -318,9 +291,7 @@ class WorkflowExecutor:
 
 def main() -> None:
     """Main entry point for the script."""
-    parser = argparse.ArgumentParser(
-        description="Journal Dataset Research System - Main Execution Script"
-    )
+    parser = argparse.ArgumentParser(description="Journal Dataset Research System - Main Execution Script")
     parser.add_argument(
         "--session-id",
         help="Session ID (for resume or new session)",
@@ -423,4 +394,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

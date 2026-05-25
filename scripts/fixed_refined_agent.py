@@ -65,9 +65,7 @@ class FixedRefinedAgent(RefinedIntelligentAgent):
                     "help",
                     "find",
                 ]
-                relevance_score = sum(
-                    1 for term in therapeutic_terms if term in question.lower()
-                )
+                relevance_score = sum(1 for term in therapeutic_terms if term in question.lower())
                 base_confidence += relevance_score * 0.05
 
                 questions.append(
@@ -106,7 +104,6 @@ def test_fixed_agent():
     }
 
     agent.process_segment(test_segment)
-
 
 
 if __name__ == "__main__":

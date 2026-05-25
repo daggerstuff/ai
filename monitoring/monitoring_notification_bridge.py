@@ -10,7 +10,7 @@ import logging
 import os
 import sqlite3
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from notification_integrations import (
@@ -29,10 +29,8 @@ class MonitoringBridge:
     def __init__(self, config_path: str | None = None):
         self.notification_manager = NotificationManager(config_path)
         self.monitoring_db_path = "/home/vivi/pixelated/ai/monitoring/monitoring.db"
-        self.alert_history_db_path = (
-            "/home/vivi/pixelated/ai/monitoring/alert_history.db"
-        )
-        self.last_check_time = datetime.now(timezone.utc)
+        self.alert_history_db_path = "/home/vivi/pixelated/ai/monitoring/alert_history.db"
+        self.last_check_time = datetime.now(UTC)
         self.alert_cooldowns = {}  # Prevent alert spam
         self.setup_databases()
 
@@ -236,11 +234,9 @@ class MonitoringBridge:
         last_alert_time = self.alert_cooldowns[rule_name]
         cooldown_period = timedelta(minutes=cooldown_minutes)
 
-        return datetime.now(timezone.utc) - last_alert_time < cooldown_period
+        return datetime.now(UTC) - last_alert_time < cooldown_period
 
-    def _evaluate_condition(
-        self, value: float, threshold: float, operator: str
-    ) -> bool:
+    def _evaluate_condition(self, value: float, threshold: float, operator: str) -> bool:
         """Evaluate alert condition"""
         if operator == ">":
             return value > threshold
@@ -306,12 +302,10 @@ class MonitoringBridge:
         )
 
         # Record alert in history
-        self._record_alert_history(
-            alert_id, rule_name, title, message, priority, results, metadata
-        )
+        self._record_alert_history(alert_id, rule_name, title, message, priority, results, metadata)
 
         # Update cooldown
-        self.alert_cooldowns[rule_name] = datetime.now(timezone.utc)
+        self.alert_cooldowns[rule_name] = datetime.now(UTC)
 
         logger.info(f"Alert triggered: {rule_name} (ID: {alert_id})")
 
@@ -412,7 +406,7 @@ class MonitoringBridge:
 
     def get_alert_history(self, hours: int = 24) -> list[dict]:
         """Get recent alert history"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         with sqlite3.connect(self.alert_history_db_path) as conn:
             alerts = conn.execute(
@@ -474,14 +468,12 @@ class MonitoringBridge:
 
             # Get alert counts
             recent_alerts = len(self.get_alert_history(hours=1))
-            active_alerts = len(
-                [a for a in self.get_alert_history(hours=24) if a["status"] == "active"]
-            )
+            active_alerts = len([a for a in self.get_alert_history(hours=24) if a["status"] == "active"])
 
             return {
                 "metrics": health_data,
                 "alerts": {"recent_hour": recent_alerts, "active_24h": active_alerts},
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 

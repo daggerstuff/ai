@@ -17,7 +17,7 @@ import logging
 import sys
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 # Import path utilities and intelligent agent
@@ -27,9 +27,7 @@ from intelligent_prompt_agent import MultiPatternAgent
 from path_utils import get_unified_training_dir, get_workspace_root
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -149,18 +147,13 @@ class MultiDatasetIntelligentPipeline:
                 conversation_files = [
                     f
                     for f in json_files
-                    if not any(
-                        x in f.name.lower()
-                        for x in ["config", "metadata", "report", "stats", "summary"]
-                    )
+                    if not any(x in f.name.lower() for x in ["config", "metadata", "report", "stats", "summary"])
                 ]
                 source_files.extend(conversation_files)
 
             elif source.type == "transcript":
                 # Find transcript files (txt, md)
-                transcript_files = list(source.path.rglob("*.txt")) + list(
-                    source.path.rglob("*.md")
-                )
+                transcript_files = list(source.path.rglob("*.txt")) + list(source.path.rglob("*.md"))
                 source_files.extend(transcript_files)
 
             discovered_files[source.name] = source_files
@@ -169,9 +162,7 @@ class MultiDatasetIntelligentPipeline:
             logger.info(f"  {source.name}: {len(source_files)} files")
 
         self.stats.total_sources = len([s for s in discovered_files.values() if s])
-        logger.info(
-            f"📊 Total: {self.stats.total_sources} sources, {self.stats.total_files} files"
-        )
+        logger.info(f"📊 Total: {self.stats.total_sources} sources, {self.stats.total_files} files")
 
         return discovered_files
 
@@ -304,9 +295,7 @@ class MultiDatasetIntelligentPipeline:
                         self.stats.processed_conversations += 1
 
                         # Track generation method
-                        method = processed_item["metadata"]["analysis"][
-                            "generation_method"
-                        ]
+                        method = processed_item["metadata"]["analysis"]["generation_method"]
                         if method == "extracted":
                             self.stats.extracted_questions += 1
                         else:
@@ -326,9 +315,7 @@ class MultiDatasetIntelligentPipeline:
                     self.stats.processed_conversations += 1
                     self.stats.high_quality += 1  # Assume existing are good quality
 
-        logger.info(
-            f"  ✅ {source_name}: {len(processed_conversations)} conversations processed"
-        )
+        logger.info(f"  ✅ {source_name}: {len(processed_conversations)} conversations processed")
         return processed_conversations
 
     def process_segment_with_agent(self, segment: dict) -> tuple[dict, str]:
@@ -435,9 +422,7 @@ class MultiDatasetIntelligentPipeline:
 
         for conv in all_conversations:
             content = self.extract_conversation_content(conv)
-            content_hash = self.generate_content_hash(
-                content[:200]
-            )  # Use first 200 chars
+            content_hash = self.generate_content_hash(content[:200])  # Use first 200 chars
             content_groups[content_hash].append(conv)
 
         merged_conversations = []
@@ -448,16 +433,12 @@ class MultiDatasetIntelligentPipeline:
                 merged_conversations.append(group[0])
             else:
                 # Merge duplicates intelligently - keep highest quality
-                best_conv = max(
-                    group, key=lambda x: x.get("computed_quality", x.get("quality", 0))
-                )
+                best_conv = max(group, key=lambda x: x.get("computed_quality", x.get("quality", 0)))
 
                 # Merge metadata from all versions
                 merged_sources = set()
                 for conv in group:
-                    source = conv.get(
-                        "source", conv.get("metadata", {}).get("file", "unknown")
-                    )
+                    source = conv.get("source", conv.get("metadata", {}).get("file", "unknown"))
                     merged_sources.add(source)
 
                 best_conv["metadata"] = best_conv.get("metadata", {})
@@ -467,9 +448,7 @@ class MultiDatasetIntelligentPipeline:
                 merged_conversations.append(best_conv)
                 self.stats.duplicates_removed += len(group) - 1
 
-        logger.info(
-            f"✅ Combined: {len(all_conversations)} → {len(merged_conversations)} conversations"
-        )
+        logger.info(f"✅ Combined: {len(all_conversations)} → {len(merged_conversations)} conversations")
         logger.info(f"📊 Removed {self.stats.duplicates_removed} duplicates")
 
         return merged_conversations
@@ -479,9 +458,7 @@ class MultiDatasetIntelligentPipeline:
         logger.info("🚀 Creating unified Lightning.ai H100 LoRA dataset...")
 
         # Sort by quality
-        conversations.sort(
-            key=lambda x: x.get("computed_quality", x.get("quality", 0)), reverse=True
-        )
+        conversations.sort(key=lambda x: x.get("computed_quality", x.get("quality", 0)), reverse=True)
 
         # Split train/validation (90/10)
         total = len(conversations)
@@ -536,19 +513,14 @@ class MultiDatasetIntelligentPipeline:
             "data_config": {
                 "train_file": "train.json",
                 "validation_file": "validation.json",
-                "expert_files": {
-                    f"expert_{style}": f"expert_{style}.json"
-                    for style in experts
-                },
+                "expert_files": {f"expert_{style}": f"expert_{style}.json" for style in experts},
             },
             "expert_mapping": experts,
             "dataset_stats": {
                 "total_conversations": total,
                 "train_conversations": len(train_data),
                 "validation_conversations": len(val_data),
-                "expert_distribution": {
-                    style: len(data) for style, data in expert_data.items()
-                },
+                "expert_distribution": {style: len(data) for style, data in expert_data.items()},
                 "processing_stats": {
                     "total_sources": self.stats.total_sources,
                     "total_files": self.stats.total_files,
@@ -582,49 +554,27 @@ class MultiDatasetIntelligentPipeline:
                 "total_sources_processed": self.stats.total_sources,
                 "total_files_processed": self.stats.total_files,
                 "total_conversations": self.stats.processed_conversations,
-                "success_rate": (
-                    self.stats.processed_conversations / max(1, self.stats.total_files)
-                )
-                * 100,
+                "success_rate": (self.stats.processed_conversations / max(1, self.stats.total_files)) * 100,
             },
             "quality_distribution": {
                 "high_quality": self.stats.high_quality,
                 "medium_quality": self.stats.medium_quality,
                 "low_quality": self.stats.low_quality,
                 "quality_percentage": {
-                    "high": (
-                        self.stats.high_quality
-                        / max(1, self.stats.processed_conversations)
-                    )
-                    * 100,
-                    "medium": (
-                        self.stats.medium_quality
-                        / max(1, self.stats.processed_conversations)
-                    )
-                    * 100,
-                    "low": (
-                        self.stats.low_quality
-                        / max(1, self.stats.processed_conversations)
-                    )
-                    * 100,
+                    "high": (self.stats.high_quality / max(1, self.stats.processed_conversations)) * 100,
+                    "medium": (self.stats.medium_quality / max(1, self.stats.processed_conversations)) * 100,
+                    "low": (self.stats.low_quality / max(1, self.stats.processed_conversations)) * 100,
                 },
             },
             "intelligent_agent_performance": {
                 "extracted_questions": self.stats.extracted_questions,
                 "contextual_questions": self.stats.contextual_questions,
-                "extraction_rate": (
-                    self.stats.extracted_questions
-                    / max(1, self.stats.processed_conversations)
-                )
-                * 100,
+                "extraction_rate": (self.stats.extracted_questions / max(1, self.stats.processed_conversations)) * 100,
             },
             "data_cleaning_results": {
                 "duplicates_removed": self.stats.duplicates_removed,
                 "errors_encountered": self.stats.errors,
-                "deduplication_rate": (
-                    self.stats.duplicates_removed / max(1, self.stats.total_files)
-                )
-                * 100,
+                "deduplication_rate": (self.stats.duplicates_removed / max(1, self.stats.total_files)) * 100,
             },
             "dataset_sources": [
                 {
@@ -654,9 +604,7 @@ class MultiDatasetIntelligentPipeline:
 def main():
     """Run the multi-dataset intelligent processing pipeline"""
     logger.info("🚀 Starting Multi-Dataset Intelligent Processing Pipeline")
-    logger.info(
-        "🎯 Mission: Apply intelligent agent to ALL raw datasets, then combine/merge/clean"
-    )
+    logger.info("🎯 Mission: Apply intelligent agent to ALL raw datasets, then combine/merge/clean")
 
     # Initialize pipeline
     pipeline = MultiDatasetIntelligentPipeline()
@@ -693,16 +641,12 @@ def main():
 
     # Final summary
     logger.info("🎉 Multi-Dataset Processing Complete!")
-    logger.info(
-        f"✅ Processed {pipeline.stats.total_sources} sources with {pipeline.stats.total_files} files"
-    )
+    logger.info(f"✅ Processed {pipeline.stats.total_sources} sources with {pipeline.stats.total_files} files")
     logger.info(f"✅ Generated {len(unified_conversations)} high-quality conversations")
     logger.info(
         f"✅ Intelligent agent extraction rate: {(pipeline.stats.extracted_questions / max(1, pipeline.stats.processed_conversations)) * 100:.1f}%"
     )
-    logger.info(
-        f"✅ Deduplication: {pipeline.stats.duplicates_removed} duplicates removed"
-    )
+    logger.info(f"✅ Deduplication: {pipeline.stats.duplicates_removed} duplicates removed")
     logger.info("🚀 Unified dataset ready for Lightning.ai H100 training!")
     logger.info(f"📁 Output location: {pipeline.output_dir}")
 
@@ -718,6 +662,6 @@ if __name__ == "__main__":
             class Timestamp:
                 @staticmethod
                 def now():
-                    return datetime.datetime.now(timezone.utc)
+                    return datetime.datetime.now(datetime.UTC)
 
     main()

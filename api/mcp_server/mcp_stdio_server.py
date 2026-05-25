@@ -70,9 +70,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "content": {"type": "string", "description": "Content to remember"},
                     "user_id": {"type": "string", "description": "User identifier"},
-                    "category": {
-                        "type": "string", "description": "Memory category (optional)"
-                    },
+                    "category": {"type": "string", "description": "Memory category (optional)"},
                     **scope_input_schema_properties(include_visibility=True),
                 },
                 "required": ["content", "user_id"],
@@ -86,9 +84,7 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "query": {"type": "string", "description": "Search query"},
                     "user_id": {"type": "string", "description": "User identifier"},
-                    "limit": {
-                        "type": "integer", "description": "Max results", "default": 10
-                    },
+                    "limit": {"type": "integer", "description": "Max results", "default": 10},
                     **scope_input_schema_properties(include_visibility=False),
                 },
                 "required": ["query", "user_id"],
@@ -147,11 +143,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             )
 
             if not memories:
-                return [
-                    TextContent(
-                        type="text", text="No memories found matching your query."
-                    )
-                ]
+                return [TextContent(type="text", text="No memories found matching your query.")]
 
             text = f"Found {len(memories)} memories:\n\n"
             for i, mem in enumerate(memories, 1):
@@ -167,9 +159,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             memories = filter_memories_by_scope(scope=scope, memories=memories or [])
 
             if not memories:
-                return [
-                    TextContent(type="text", text="No memories stored for this user.")
-                ]
+                return [TextContent(type="text", text="No memories stored for this user.")]
 
             text = f"Total memories: {len(memories)}\n\n"
             for i, mem in enumerate(memories, 1):

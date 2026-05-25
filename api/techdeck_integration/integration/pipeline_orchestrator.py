@@ -9,7 +9,7 @@ and execution coordination.
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -25,6 +25,7 @@ from ai.api.techdeck_integration.utils.validation import validate_pipeline_input
 
 class PipelineMessageType(Enum):
     """Pipeline message types for event-driven communication."""
+
     EXECUTION_START = "execution_start"
     STAGE_COMPLETE = "stage_complete"
     PROGRESS_UPDATE = "progress_update"
@@ -36,6 +37,7 @@ class PipelineMessageType(Enum):
 @dataclass
 class PipelineMessage:
     """Pipeline communication message."""
+
     message_type: str
     execution_id: str
     payload: dict[str, Any]
@@ -54,8 +56,9 @@ class PipelineOrchestrator:
         self.pipeline_channel = "pipeline_events"
         self.response_timeout = 300  # 5 minutes
 
-    async def execute_pipeline(self, execution_id: str, config: dict[str, Any],
-                             dataset_info: dict[str, Any], user_id: str) -> dict[str, Any]:
+    async def execute_pipeline(
+        self, execution_id: str, config: dict[str, Any], dataset_info: dict[str, Any], user_id: str
+    ) -> dict[str, Any]:
         """
         Execute the six-stage pipeline with the given configuration.
 
@@ -102,9 +105,9 @@ class PipelineOrchestrator:
                 "execution_id": execution_id,
                 "stages": {},
                 "overall_status": "in_progress",
-                "start_time": datetime.now(timezone.utc).isoformat(),
+                "start_time": datetime.now(UTC).isoformat(),
                 "end_time": None,
-                "total_duration_seconds": 0
+                "total_duration_seconds": 0,
             }
 
             # Stage 1: Data Ingestion
@@ -144,33 +147,32 @@ class PipelineOrchestrator:
             self.logger.error(f"Error in six-stage pipeline execution: {e}")
             raise PipelineExecutionError(f"Six-stage pipeline execution failed: {e!s}") from e
 
-    async def _execute_stage_1_data_ingestion(self, execution_id: str, pipeline_input: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_1_data_ingestion(
+        self, execution_id: str, pipeline_input: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute Stage 1: Data Ingestion."""
         try:
             self.logger.info(f"Executing Stage 1: Data Ingestion for {execution_id}")
 
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Simulate data ingestion process
             ingested_data = {
                 "source_format": pipeline_input["config"]["source_format"],
                 "target_format": pipeline_input["config"]["target_format"],
                 "record_count": 1000,  # Placeholder
-                "file_size_mb": 5.2,   # Placeholder
+                "file_size_mb": 5.2,  # Placeholder
                 "ingestion_method": "file_upload",
                 "validation_passed": True,
-                "errors": []
+                "errors": [],
             }
 
             # Publish progress update
             await self._publish_progress_update(
-                execution_id,
-                "data_ingestion",
-                100,
-                "Data ingestion completed successfully"
+                execution_id, "data_ingestion", 100, "Data ingestion completed successfully"
             )
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
 
             return {
                 "stage": "data_ingestion",
@@ -179,19 +181,21 @@ class PipelineOrchestrator:
                 "end_time": end_time.isoformat(),
                 "duration_seconds": (end_time - start_time).total_seconds(),
                 "result": ingested_data,
-                "errors": []
+                "errors": [],
             }
 
         except Exception as e:
             self.logger.error(f"Error in Stage 1 data ingestion: {e}")
             raise PipelineExecutionError(f"Data ingestion failed: {e!s}") from e
 
-    async def _execute_stage_2_preprocessing(self, execution_id: str, previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_2_preprocessing(
+        self, execution_id: str, previous_stage_result: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute Stage 2: Preprocessing."""
         try:
             self.logger.info(f"Executing Stage 2: Preprocessing for {execution_id}")
 
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Simulate preprocessing operations
             preprocessing_result = {
@@ -199,26 +203,19 @@ class PipelineOrchestrator:
                     "data_type_conversion",
                     "missing_value_handling",
                     "duplicate_removal",
-                    "format_standardization"
+                    "format_standardization",
                 ],
                 "records_processed": previous_stage_result["result"]["record_count"],
                 "records_after_preprocessing": 995,  # Placeholder
-                "quality_metrics": {
-                    "completeness_score": 0.98,
-                    "consistency_score": 0.95,
-                    "accuracy_score": 0.97
-                }
+                "quality_metrics": {"completeness_score": 0.98, "consistency_score": 0.95, "accuracy_score": 0.97},
             }
 
             # Publish progress update
             await self._publish_progress_update(
-                execution_id,
-                "preprocessing",
-                100,
-                "Preprocessing completed successfully"
+                execution_id, "preprocessing", 100, "Preprocessing completed successfully"
             )
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
 
             return {
                 "stage": "preprocessing",
@@ -227,52 +224,46 @@ class PipelineOrchestrator:
                 "end_time": end_time.isoformat(),
                 "duration_seconds": (end_time - start_time).total_seconds(),
                 "result": preprocessing_result,
-                "errors": []
+                "errors": [],
             }
 
         except Exception as e:
             self.logger.error(f"Error in Stage 2 preprocessing: {e}")
             raise PipelineExecutionError(f"Preprocessing failed: {e!s}") from e
 
-    async def _execute_stage_3_bias_detection(self, execution_id: str, previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_3_bias_detection(
+        self, execution_id: str, previous_stage_result: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute Stage 3: Bias Detection."""
         try:
             self.logger.info(f"Executing Stage 3: Bias Detection for {execution_id}")
 
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Perform bias detection using the bias detection service
             if self.bias_detection_service:
                 bias_result = await self.bias_detection_service.analyze_dataset(
-                    previous_stage_result["result"],
-                    execution_id
+                    previous_stage_result["result"], execution_id
                 )
             else:
                 # Simulate bias detection result
                 bias_result = {
                     "bias_score": 0.15,  # Low bias
-                    "bias_categories": {
-                        "demographic": 0.10,
-                        "geographic": 0.05,
-                        "temporal": 0.20
-                    },
+                    "bias_categories": {"demographic": 0.10, "geographic": 0.05, "temporal": 0.20},
                     "recommendations": [
                         "Consider increasing dataset diversity",
-                        "Review temporal bias in data collection"
+                        "Review temporal bias in data collection",
                     ],
                     "compliance_status": "acceptable",
-                    "threshold_exceeded": False
+                    "threshold_exceeded": False,
                 }
 
             # Publish progress update
             await self._publish_progress_update(
-                execution_id,
-                "bias_detection",
-                100,
-                "Bias detection completed successfully"
+                execution_id, "bias_detection", 100, "Bias detection completed successfully"
             )
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
 
             return {
                 "stage": "bias_detection",
@@ -281,19 +272,21 @@ class PipelineOrchestrator:
                 "end_time": end_time.isoformat(),
                 "duration_seconds": (end_time - start_time).total_seconds(),
                 "result": bias_result,
-                "errors": []
+                "errors": [],
             }
 
         except Exception as e:
             self.logger.error(f"Error in Stage 3 bias detection: {e}")
             raise PipelineExecutionError(f"Bias detection failed: {e!s}") from e
 
-    async def _execute_stage_4_standardization(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_4_standardization(
+        self, execution_id: str, _previous_stage_result: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute Stage 4: Standardization."""
         try:
             self.logger.info(f"Executing Stage 4: Standardization for {execution_id}")
 
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Simulate standardization process
             standardization_result = {
@@ -302,18 +295,15 @@ class PipelineOrchestrator:
                 "fields_standardized": 25,
                 "data_types_normalized": 8,
                 "encoding_standardized": "utf-8",
-                "quality_score": 0.96
+                "quality_score": 0.96,
             }
 
             # Publish progress update
             await self._publish_progress_update(
-                execution_id,
-                "standardization",
-                100,
-                "Standardization completed successfully"
+                execution_id, "standardization", 100, "Standardization completed successfully"
             )
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
 
             return {
                 "stage": "standardization",
@@ -322,19 +312,21 @@ class PipelineOrchestrator:
                 "end_time": end_time.isoformat(),
                 "duration_seconds": (end_time - start_time).total_seconds(),
                 "result": standardization_result,
-                "errors": []
+                "errors": [],
             }
 
         except Exception as e:
             self.logger.error(f"Error in Stage 4 standardization: {e}")
             raise PipelineExecutionError(f"Standardization failed: {e!s}") from e
 
-    async def _execute_stage_5_validation(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_5_validation(
+        self, execution_id: str, _previous_stage_result: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute Stage 5: Validation."""
         try:
             self.logger.info(f"Executing Stage 5: Validation for {execution_id}")
 
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Simulate validation process
             validation_result = {
@@ -343,24 +335,19 @@ class PipelineOrchestrator:
                     "data_type_validation",
                     "completeness_check",
                     "consistency_check",
-                    "business_rule_validation"
+                    "business_rule_validation",
                 ],
                 "checks_passed": 5,
                 "checks_failed": 0,
                 "validation_score": 1.0,
                 "critical_issues": [],
-                "warnings": []
+                "warnings": [],
             }
 
             # Publish progress update
-            await self._publish_progress_update(
-                execution_id,
-                "validation",
-                100,
-                "Validation completed successfully"
-            )
+            await self._publish_progress_update(execution_id, "validation", 100, "Validation completed successfully")
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
 
             return {
                 "stage": "validation",
@@ -369,19 +356,21 @@ class PipelineOrchestrator:
                 "end_time": end_time.isoformat(),
                 "duration_seconds": (end_time - start_time).total_seconds(),
                 "result": validation_result,
-                "errors": []
+                "errors": [],
             }
 
         except Exception as e:
             self.logger.error(f"Error in Stage 5 validation: {e}")
             raise PipelineExecutionError(f"Validation failed: {e!s}") from e
 
-    async def _execute_stage_6_output_generation(self, execution_id: str, _previous_stage_result: dict[str, Any]) -> dict[str, Any]:
+    async def _execute_stage_6_output_generation(
+        self, execution_id: str, _previous_stage_result: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute Stage 6: Output Generation."""
         try:
             self.logger.info(f"Executing Stage 6: Output Generation for {execution_id}")
 
-            start_time = datetime.now(timezone.utc)
+            start_time = datetime.now(UTC)
 
             # Simulate output generation
             output_result = {
@@ -390,36 +379,33 @@ class PipelineOrchestrator:
                         "filename": f"processed_dataset_{execution_id}.json",
                         "format": "json",
                         "size_mb": 2.1,
-                        "record_count": 995
+                        "record_count": 995,
                     },
                     {
                         "filename": f"validation_report_{execution_id}.json",
                         "format": "json",
                         "size_mb": 0.1,
-                        "record_count": 1
-                    }
+                        "record_count": 1,
+                    },
                 ],
                 "metadata": {
-                    "processing_timestamp": datetime.now(timezone.utc).isoformat(),
+                    "processing_timestamp": datetime.now(UTC).isoformat(),
                     "pipeline_version": "1.0.0",
                     "bias_detection_applied": True,
-                    "quality_score": 0.96
+                    "quality_score": 0.96,
                 },
                 "download_links": [
                     f"/api/v1/pipeline/executions/{execution_id}/output/processed_dataset",
-                    f"/api/v1/pipeline/executions/{execution_id}/output/validation_report"
-                ]
+                    f"/api/v1/pipeline/executions/{execution_id}/output/validation_report",
+                ],
             }
 
             # Publish progress update
             await self._publish_progress_update(
-                execution_id,
-                "output_generation",
-                100,
-                "Output generation completed successfully"
+                execution_id, "output_generation", 100, "Output generation completed successfully"
             )
 
-            end_time = datetime.now(timezone.utc)
+            end_time = datetime.now(UTC)
 
             return {
                 "stage": "output_generation",
@@ -428,15 +414,16 @@ class PipelineOrchestrator:
                 "end_time": end_time.isoformat(),
                 "duration_seconds": (end_time - start_time).total_seconds(),
                 "result": output_result,
-                "errors": []
+                "errors": [],
             }
 
         except Exception as e:
             self.logger.error(f"Error in Stage 6 output generation: {e}")
             raise PipelineExecutionError(f"Output generation failed: {e!s}") from e
 
-    def _prepare_pipeline_input(self, execution_id: str, config: dict[str, Any],
-                              dataset_info: dict[str, Any], user_id: str) -> dict[str, Any]:
+    def _prepare_pipeline_input(
+        self, execution_id: str, config: dict[str, Any], dataset_info: dict[str, Any], user_id: str
+    ) -> dict[str, Any]:
         """Prepare input data for pipeline execution."""
         try:
             return {
@@ -444,16 +431,15 @@ class PipelineOrchestrator:
                 "user_id": user_id,
                 "config": config,
                 "dataset_info": dataset_info,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "pipeline_version": "1.0.0"
+                "timestamp": datetime.now(UTC).isoformat(),
+                "pipeline_version": "1.0.0",
             }
 
         except Exception as e:
             self.logger.error(f"Error preparing pipeline input: {e}")
             raise IntegrationError(f"Failed to prepare pipeline input: {e!s}") from e
 
-    async def _publish_progress_update(self, execution_id: str, stage: str,
-                                     progress_percent: float, message: str):
+    async def _publish_progress_update(self, execution_id: str, stage: str, progress_percent: float, message: str):
         """Publish progress update to Redis for WebSocket broadcasting."""
         try:
             progress_data = {
@@ -461,7 +447,7 @@ class PipelineOrchestrator:
                 "stage": stage,
                 "progress_percent": progress_percent,
                 "message": message,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             # Store in Redis for WebSocket broadcasting
@@ -473,15 +459,12 @@ class PipelineOrchestrator:
                 message_type=PipelineMessageType.PROGRESS_UPDATE.value,
                 execution_id=execution_id,
                 payload=progress_data,
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 source="pipeline_orchestrator",
-                target="progress_tracker"
+                target="progress_tracker",
             )
 
-            await self.redis_client.publish(
-                self.pipeline_channel,
-                json.dumps(message_obj.__dict__)
-            )
+            await self.redis_client.publish(self.pipeline_channel, json.dumps(message_obj.__dict__))
 
         except Exception as e:
             self.logger.error(f"Error publishing progress update: {e}")
@@ -521,15 +504,12 @@ class PipelineOrchestrator:
                 message_type=PipelineMessageType.CANCELLATION_REQUEST.value,
                 execution_id=execution_id,
                 payload={"reason": "User requested cancellation"},
-                timestamp=datetime.now(timezone.utc).isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 source="api_service",
-                target="pipeline_executor"
+                target="pipeline_executor",
             )
 
-            await self.redis_client.publish(
-                self.pipeline_channel,
-                json.dumps(cancel_message.__dict__)
-            )
+            await self.redis_client.publish(self.pipeline_channel, json.dumps(cancel_message.__dict__))
 
             self.logger.info(f"Pipeline execution cancellation requested: {execution_id}")
 
@@ -602,10 +582,10 @@ class PipelineOrchestrator:
         try:
             validation_result = {
                 "config": config,
-                "validation_timestamp": datetime.now(timezone.utc).isoformat(),
+                "validation_timestamp": datetime.now(UTC).isoformat(),
                 "is_valid": True,
                 "errors": [],
-                "warnings": []
+                "warnings": [],
             }
 
             # Validate required fields
@@ -618,8 +598,12 @@ class PipelineOrchestrator:
 
             # Validate processing stages
             valid_stages = [
-                "data_ingestion", "preprocessing", "bias_detection",
-                "standardization", "validation", "output_generation"
+                "data_ingestion",
+                "preprocessing",
+                "bias_detection",
+                "standardization",
+                "validation",
+                "output_generation",
             ]
 
             stages = config.get("processing_stages", [])

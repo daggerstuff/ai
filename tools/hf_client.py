@@ -9,6 +9,7 @@ The wrapper provides a tiny, well-documented surface that the rest of
 the codebase can use without coupling application code to the HF
 library API surface.
 """
+
 from __future__ import annotations
 
 import importlib
@@ -30,9 +31,7 @@ class HuggingFaceClient:
     """
 
     def __init__(self, token: str | None = None) -> None:
-        self.token = token if token is not None else os.environ.get(
-            "HUGGINGFACE_HUB_TOKEN"
-        )
+        self.token = token if token is not None else os.environ.get("HUGGINGFACE_HUB_TOKEN")
 
     def download_file(
         self,
@@ -50,9 +49,7 @@ class HuggingFaceClient:
         mod = importlib.import_module("huggingface_hub")
         hf_hub_download = getattr(mod, "hf_hub_download", None)
         if hf_hub_download is None:
-            raise RuntimeError(
-                "huggingface_hub.hf_hub_download is not available on the imported module"
-            )
+            raise RuntimeError("huggingface_hub.hf_hub_download is not available on the imported module")
         return hf_hub_download(
             repo_id,
             filename=filename,
@@ -77,9 +74,7 @@ class HuggingFaceClient:
         mod = importlib.import_module("huggingface_hub")
         snapshot_download = getattr(mod, "snapshot_download", None)
         if snapshot_download is None:
-            raise RuntimeError(
-                "huggingface_hub.snapshot_download is not available on the imported module"
-            )
+            raise RuntimeError("huggingface_hub.snapshot_download is not available on the imported module")
         return snapshot_download(
             repo_id,
             revision=revision,
@@ -89,9 +84,7 @@ class HuggingFaceClient:
             **kwargs,
         )
 
-    def list_files(
-        self, repo_id: str, revision: str | None = None, repo_type: str | None = None
-    ) -> list[str]:
+    def list_files(self, repo_id: str, revision: str | None = None, repo_type: str | None = None) -> list[str]:
         """Return a list of files in the repository using HfApi.list_repo_files.
 
         The HF API object is created via lazy import of
@@ -101,8 +94,6 @@ class HuggingFaceClient:
         mod = importlib.import_module("huggingface_hub")
         HfApi = getattr(mod, "HfApi", None)
         if HfApi is None:
-            raise RuntimeError(
-                "huggingface_hub.HfApi is not available on the imported module"
-            )
+            raise RuntimeError("huggingface_hub.HfApi is not available on the imported module")
         api = HfApi()
         return api.list_repo_files(repo_id, repo_type=repo_type, revision=revision)

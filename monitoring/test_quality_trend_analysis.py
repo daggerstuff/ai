@@ -3,10 +3,11 @@
 Simple Test for Quality Trend Analysis System (Task 5.6.2.2)
 Tests core functionality without database dependencies.
 """
+
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .datetime import datetime
 from .pathlib import Path
@@ -29,30 +30,20 @@ class TestModule(unittest.TestCase):
 
         # Test 1: Import QualityTrendAnalyzer
         try:
-
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ QualityTrendAnalyzer Import: PASSED"
-            )
+            test_results["test_details"].append("✅ QualityTrendAnalyzer Import: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ QualityTrendAnalyzer Import: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ QualityTrendAnalyzer Import: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 2: Import QualityTrendReporter
         try:
-
             test_results["passed_tests"] += 1
-            test_results["test_details"].append(
-                "✅ QualityTrendReporter Import: PASSED"
-            )
+            test_results["test_details"].append("✅ QualityTrendReporter Import: PASSED")
         except Exception as e:
             test_results["failed_tests"] += 1
-            test_results["test_details"].append(
-                f"❌ QualityTrendReporter Import: FAILED - {e}"
-            )
+            test_results["test_details"].append(f"❌ QualityTrendReporter Import: FAILED - {e}")
         test_results["total_tests"] += 1
 
         # Test 3: Check launcher exists
@@ -68,7 +59,6 @@ class TestModule(unittest.TestCase):
 
         # Test 4: Check required methods exist
         try:
-
             analyzer = QualityTrendAnalyzer()
 
             required_methods = [
@@ -91,7 +81,6 @@ class TestModule(unittest.TestCase):
 
         # Test 5: Check reporter methods exist
         try:
-
             reporter = QualityTrendReporter()
 
             required_methods = [
@@ -124,23 +113,19 @@ def main():
     report_data = {
         "test_suite": "Quality Trend Analysis System (Simple)",
         "task": "5.6.2.2",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "results": test_results,
         "success_rate": success_rate,
         "status": "PASSED" if success_rate >= 80 else "FAILED",
     }
 
     # Save test report
-    report_path = (
-        Path(__file__).parent / "quality_trend_analysis_simple_test_report.json"
-    )
+    report_path = Path(__file__).parent / "quality_trend_analysis_simple_test_report.json"
     with open(report_path, "w") as f:
         json.dump(report_data, f, indent=2)
 
-
     for _detail in test_results["test_details"]:
         pass
-
 
     return report_data
 

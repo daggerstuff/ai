@@ -9,6 +9,7 @@ This package contains comprehensive tests for all CLI components including:
 - Error handling
 - Integration tests
 """
+
 import os
 import tempfile
 from pathlib import Path
@@ -53,7 +54,6 @@ def temp_config_dir():
 def mock_config(temp_config_dir):
     """Create a mock configuration for testing"""
 
-
     config_file = temp_config_dir / "config.yaml"
     config_file.write_text("""
 api_base_url: http://localhost:8000
@@ -76,7 +76,6 @@ profiles:
 def mock_auth_manager(mock_config):
     """Create a mock authentication manager for testing"""
 
-
     auth_manager = AuthManager(mock_config)
     # Mock successful authentication
     auth_manager._access_token = "test_access_token"
@@ -90,14 +89,12 @@ def mock_auth_manager(mock_config):
 def mock_pipeline_manager(mock_config, mock_auth_manager):
     """Create a mock pipeline manager for testing"""
 
-
     return PipelineManager(mock_config, mock_auth_manager)
 
 
 @pytest.fixture
 def mock_progress_tracker(mock_config):
     """Create a mock progress tracker for testing"""
-
 
     return ProgressTracker(mock_config)
 
@@ -112,9 +109,7 @@ def cli_runner():
 class MockResponse:
     """Mock HTTP response for testing"""
 
-    def __init__(
-        self, json_data: dict[str, Any] = None, status_code: int = 200, text: str = ""
-    ):
+    def __init__(self, json_data: dict[str, Any] = None, status_code: int = 200, text: str = ""):
         self.json_data = json_data or {}
         self.status_code = status_code
         self.text = text or ""
@@ -130,9 +125,7 @@ class MockResponse:
 
 def assert_command_success(result, expected_output: str = None):
     """Assert that a CLI command executed successfully"""
-    assert result.exit_code == 0, (
-        f"Command failed with exit code {result.exit_code}: {result.output}"
-    )
+    assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}: {result.output}"
     if expected_output:
         assert expected_output in result.output
 

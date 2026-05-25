@@ -10,7 +10,7 @@ import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.core.pipelines.quality.conversation_schema import Conversation
@@ -116,9 +116,7 @@ class QualityValidator:
         ]
 
         # Patterns for greetings
-        self.greeting_patterns = [
-            re.compile(p) for p in [r"\b(hello|hi|hey|good morning|good afternoon)\b"]
-        ]
+        self.greeting_patterns = [re.compile(p) for p in [r"\b(hello|hi|hey|good morning|good afternoon)\b"]]
 
         # Patterns for closure
         self.closure_patterns = [
@@ -147,14 +145,10 @@ class QualityValidator:
         coherence_score = self._validate_coherence(conversation, issues, strengths)
 
         # Authenticity validation
-        authenticity_score = self._validate_authenticity(
-            conversation, issues, strengths
-        )
+        authenticity_score = self._validate_authenticity(conversation, issues, strengths)
 
         # Completeness validation
-        completeness_score = self._validate_completeness(
-            conversation, issues, strengths
-        )
+        completeness_score = self._validate_completeness(conversation, issues, strengths)
 
         # Calculate overall score (weighted average)
         overall_score = (
@@ -179,18 +173,13 @@ class QualityValidator:
                 "message_count": len(conversation.messages),
                 "total_length": sum(len(msg.content) for msg in conversation.messages),
             },
-            validated_at=datetime.now(timezone.utc),
+            validated_at=datetime.now(UTC),
         )
 
-        logger.debug(
-            f"Validated conversation {conversation.conversation_id}: "
-            f"score {overall_score:.3f}"
-        )
+        logger.debug(f"Validated conversation {conversation.conversation_id}: score {overall_score:.3f}")
         return result
 
-    def _validate_structure(
-        self, conversation: Conversation, issues: list[str], strengths: list[str]
-    ) -> float:
+    def _validate_structure(self, conversation: Conversation, issues: list[str], strengths: list[str]) -> float:
         """Validate conversation structure."""
         score = 1.0
 
@@ -222,9 +211,7 @@ class QualityValidator:
 
         return max(0.0, score)
 
-    def _validate_content(
-        self, conversation: Conversation, issues: list[str], strengths: list[str]
-    ) -> float:
+    def _validate_content(self, conversation: Conversation, issues: list[str], strengths: list[str]) -> float:
         """Validate content quality."""
         score = 1.0
 
@@ -247,9 +234,7 @@ class QualityValidator:
                     break
 
             # Check for therapeutic content
-            therapeutic_matches = sum(
-                bool(pattern.search(content)) for pattern in self.therapeutic_patterns
-            )
+            therapeutic_matches = sum(bool(pattern.search(content)) for pattern in self.therapeutic_patterns)
 
             if therapeutic_matches > 0:
                 strengths.append(f"Therapeutic content in message {i + 1}")
@@ -257,9 +242,7 @@ class QualityValidator:
 
         return min(1.0, max(0.0, score))
 
-    def _validate_coherence(
-        self, conversation: Conversation, issues: list[str], strengths: list[str]
-    ) -> float:
+    def _validate_coherence(self, conversation: Conversation, issues: list[str], strengths: list[str]) -> float:
         """Validate conversation coherence and flow."""
         score = 1.0
 
@@ -317,9 +300,7 @@ class QualityValidator:
 
         return max(0.0, score)
 
-    def _validate_authenticity(
-        self, conversation: Conversation, issues: list[str], strengths: list[str]
-    ) -> float:
+    def _validate_authenticity(self, conversation: Conversation, issues: list[str], strengths: list[str]) -> float:
         """Validate conversation authenticity."""
         score = 1.0
 
@@ -362,9 +343,7 @@ class QualityValidator:
 
         return max(0.0, score)
 
-    def _validate_completeness(
-        self, conversation: Conversation, issues: list[str], strengths: list[str]
-    ) -> float:
+    def _validate_completeness(self, conversation: Conversation, issues: list[str], strengths: list[str]) -> float:
         """Validate conversation completeness."""
         score = 1.0
 
@@ -372,9 +351,7 @@ class QualityValidator:
         if conversation.messages:
             first_message = conversation.messages[0].content.lower()
 
-            has_greeting = any(
-                pattern.search(first_message) for pattern in self.greeting_patterns
-            )
+            has_greeting = any(pattern.search(first_message) for pattern in self.greeting_patterns)
 
             if has_greeting:
                 strengths.append("Clear conversation opening")
@@ -386,9 +363,7 @@ class QualityValidator:
         if len(conversation.messages) > 2:
             last_message = conversation.messages[-1].content.lower()
 
-            has_closure = any(
-                pattern.search(last_message) for pattern in self.closure_patterns
-            )
+            has_closure = any(pattern.search(last_message) for pattern in self.closure_patterns)
 
             if has_closure:
                 strengths.append("Natural conversation closure")

@@ -46,7 +46,6 @@ def scan_for_large_files(root):
     to_upload = []
     skipped_duplicates = []
 
-
     for path in root.rglob("*"):
         if not path.is_file():
             continue
@@ -110,7 +109,6 @@ def main():
 
     for f in to_upload:
         upload_file(s3, f, PROJECT_ROOT)
-
 
 
 if __name__ == "__main__":

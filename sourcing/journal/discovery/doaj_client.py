@@ -7,7 +7,7 @@ datasets from open access psychology journals.
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
@@ -278,7 +278,7 @@ class DOAJClient:
                 keywords=keywords,
                 open_access=True,  # DOAJ is open access
                 data_availability=data_availability,
-                discovery_date=datetime.now(timezone.utc),
+                discovery_date=datetime.now(UTC),
                 discovery_method="doaj_manual",
             )
 
@@ -302,7 +302,7 @@ class DOAJClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def _detect_data_availability(self, abstract: str, title: str) -> str:
         """Detect data availability from abstract and title."""
@@ -333,4 +333,3 @@ class DOAJClient:
             return "restricted"
 
         return "unknown"
-

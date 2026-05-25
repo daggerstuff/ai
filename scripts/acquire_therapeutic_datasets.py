@@ -29,25 +29,25 @@ class TherapeuticDatasetAcquisition:
                 "source": "Amod/mental_health_counseling_conversations",
                 "type": "huggingface",
                 "description": "Mental health counseling conversations",
-                "priority": 1
+                "priority": 1,
             },
             "psych_101": {
                 "source": "marcelbinz/Psych-101",
                 "type": "huggingface",
                 "description": "Psychology educational dataset",
-                "priority": 2
+                "priority": 2,
             },
             "empathetic_dialogues": {
                 "source": "empathetic_dialogues",
                 "type": "huggingface",
                 "description": "Empathetic conversation dataset",
-                "priority": 1
+                "priority": 1,
             },
             "counselchat": {
                 "source": "nbertagnolli/counsel-chat",
                 "type": "huggingface",
                 "description": "Mental health counseling Q&A",
-                "priority": 2
+                "priority": 2,
             },
         }
 
@@ -82,37 +82,28 @@ class TherapeuticDatasetAcquisition:
         if "conversation" in item:
             return {
                 "conversation": item["conversation"],
-                "metadata": {
-                    "source": source,
-                    "original_format": "conversation"
-                }
+                "metadata": {"source": source, "original_format": "conversation"},
             }
 
         # Pattern 2: Question/Answer pairs
         if "Context" in item and "Response" in item:
             conversation = [
                 {"role": "client", "content": item["Context"]},
-                {"role": "therapist", "content": item["Response"]}
+                {"role": "therapist", "content": item["Response"]},
             ]
         elif "input" in item and "response" in item:
             conversation = [
                 {"role": "client", "content": item["input"]},
-                {"role": "therapist", "content": item["response"]}
+                {"role": "therapist", "content": item["response"]},
             ]
         elif "question" in item and "answer" in item:
             conversation = [
                 {"role": "client", "content": item["question"]},
-                {"role": "therapist", "content": item["answer"]}
+                {"role": "therapist", "content": item["answer"]},
             ]
 
         if conversation:
-            return {
-                "conversation": conversation,
-                "metadata": {
-                    "source": source,
-                    "original_item": item
-                }
-            }
+            return {"conversation": conversation, "metadata": {"source": source, "original_item": item}}
 
         return None
 
@@ -152,10 +143,12 @@ class TherapeuticDatasetAcquisition:
             "datasets": {
                 name: {
                     "count": len(convs),
-                    "source": self.datasets.get(name, {}).get("source", "local") if name != "cot_reasoning" else "local_cot_datasets"
+                    "source": self.datasets.get(name, {}).get("source", "local")
+                    if name != "cot_reasoning"
+                    else "local_cot_datasets",
                 }
                 for name, convs in all_datasets.items()
-            }
+            },
         }
 
         summary_file = self.output_dir / "acquisition_summary.json"
@@ -190,15 +183,17 @@ class TherapeuticDatasetAcquisition:
                                 conversation.append({"role": role, "content": msg["content"]})
 
                             if conversation:
-                                cot_conversations.append({
-                                    "conversation": conversation,
-                                    "metadata": {
-                                        "source": "cot_reasoning",
-                                        "dataset": "cot_reasoning",
-                                        "quality_level": item.get("metadata", {}).get("quality_level", "unknown"),
-                                        "original_id": item.get("id")
+                                cot_conversations.append(
+                                    {
+                                        "conversation": conversation,
+                                        "metadata": {
+                                            "source": "cot_reasoning",
+                                            "dataset": "cot_reasoning",
+                                            "quality_level": item.get("metadata", {}).get("quality_level", "unknown"),
+                                            "original_id": item.get("id"),
+                                        },
                                     }
-                                })
+                                )
                 logger.info(f"✅ Loaded {len(cot_conversations)} CoT reasoning conversations")
             except Exception as e:
                 logger.error(f"❌ Error loading CoT dataset: {e}")

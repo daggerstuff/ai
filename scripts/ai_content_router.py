@@ -13,28 +13,28 @@ class AIContentRouter:
             "interview_qa": {
                 "indicators": ["interviewer", "host", "question", "asked", "you mentioned"],
                 "structure_markers": ["Q:", "A:", "HOST:", "GUEST:", "INTERVIEWER:"],
-                "conversational_flow": ["follow up", "building on that", "you said earlier"]
+                "conversational_flow": ["follow up", "building on that", "you said earlier"],
             },
             "monologue_teaching": {
                 "indicators": ["let me explain", "what I want you to understand", "here's what happens"],
                 "teaching_markers": ["first", "second", "the key point", "remember this"],
-                "direct_address": ["you need to", "I want you to", "listen carefully"]
+                "direct_address": ["you need to", "I want you to", "listen carefully"],
             },
             "story_narrative": {
                 "indicators": ["I remember", "there was a time", "I had a client", "for example"],
                 "narrative_markers": ["once", "then", "after that", "eventually"],
-                "personal_experience": ["in my practice", "I've seen", "what I learned"]
+                "personal_experience": ["in my practice", "I've seen", "what I learned"],
             },
             "explanation_educational": {
                 "indicators": ["the reason", "because", "this is why", "what happens is"],
                 "concept_markers": ["definition", "means", "refers to", "is when"],
-                "process_description": ["step by step", "the process", "how it works"]
+                "process_description": ["step by step", "the process", "how it works"],
             },
             "advice_practical": {
                 "indicators": ["you should", "try this", "I recommend", "what works"],
                 "action_markers": ["do this", "start by", "the first step", "practice"],
-                "guidance_language": ["helpful", "effective", "strategy", "approach"]
-            }
+                "guidance_language": ["helpful", "effective", "strategy", "approach"],
+            },
         }
 
     def analyze_content_structure(self, text: str, metadata: dict) -> dict:
@@ -44,7 +44,7 @@ class AIContentRouter:
             "confidence": 0.0,
             "content_characteristics": [],
             "optimal_qa_strategy": None,
-            "reasoning": ""
+            "reasoning": "",
         }
 
         text_lower = text.lower()
@@ -56,14 +56,22 @@ class AIContentRouter:
 
         # Analyze teaching/explanation patterns
         has_teaching_flow = any(word in text_lower for word in ["first", "second", "next", "then", "finally"])
-        has_explanation_language = any(phrase in text_lower for phrase in ["because", "the reason", "what happens", "this is why"])
+        has_explanation_language = any(
+            phrase in text_lower for phrase in ["because", "the reason", "what happens", "this is why"]
+        )
 
         # Analyze narrative/story elements
-        has_narrative_elements = any(phrase in text_lower for phrase in ["i remember", "there was", "i had a client", "for example"])
-        has_personal_experience = any(phrase in text_lower for phrase in ["in my experience", "i've seen", "what i learned"])
+        has_narrative_elements = any(
+            phrase in text_lower for phrase in ["i remember", "there was", "i had a client", "for example"]
+        )
+        has_personal_experience = any(
+            phrase in text_lower for phrase in ["in my experience", "i've seen", "what i learned"]
+        )
 
         # Analyze direct advice/guidance
-        has_direct_advice = any(phrase in text_lower for phrase in ["you should", "try this", "i recommend", "what works"])
+        has_direct_advice = any(
+            phrase in text_lower for phrase in ["you should", "try this", "i recommend", "what works"]
+        )
         has_action_language = any(phrase in text_lower for phrase in ["do this", "start by", "practice", "the key is"])
 
         # Score each format type
@@ -71,37 +79,52 @@ class AIContentRouter:
 
         # Interview/Q&A format scoring
         interview_score = 0
-        if has_dialogue_markers: interview_score += 0.4
-        if has_question_response: interview_score += 0.3
-        if any(word in text_lower for word in ["asked", "question", "interviewer", "host"]): interview_score += 0.3
+        if has_dialogue_markers:
+            interview_score += 0.4
+        if has_question_response:
+            interview_score += 0.3
+        if any(word in text_lower for word in ["asked", "question", "interviewer", "host"]):
+            interview_score += 0.3
         format_scores["interview_qa"] = interview_score
 
         # Teaching/Educational format scoring
         teaching_score = 0
-        if has_teaching_flow: teaching_score += 0.3
-        if has_explanation_language: teaching_score += 0.4
-        if any(phrase in text_lower for phrase in ["let me explain", "what i want you to understand"]): teaching_score += 0.3
+        if has_teaching_flow:
+            teaching_score += 0.3
+        if has_explanation_language:
+            teaching_score += 0.4
+        if any(phrase in text_lower for phrase in ["let me explain", "what i want you to understand"]):
+            teaching_score += 0.3
         format_scores["monologue_teaching"] = teaching_score
 
         # Story/Narrative format scoring
         story_score = 0
-        if has_narrative_elements: story_score += 0.4
-        if has_personal_experience: story_score += 0.3
-        if any(word in text_lower for word in ["story", "example", "case", "client"]): story_score += 0.3
+        if has_narrative_elements:
+            story_score += 0.4
+        if has_personal_experience:
+            story_score += 0.3
+        if any(word in text_lower for word in ["story", "example", "case", "client"]):
+            story_score += 0.3
         format_scores["story_narrative"] = story_score
 
         # Explanation/Educational format scoring
         explanation_score = 0
-        if has_explanation_language: explanation_score += 0.4
-        if any(phrase in text_lower for phrase in ["definition", "means", "refers to", "is when"]): explanation_score += 0.3
-        if len([s for s in sentences if "because" in s.lower()]) >= 2: explanation_score += 0.3
+        if has_explanation_language:
+            explanation_score += 0.4
+        if any(phrase in text_lower for phrase in ["definition", "means", "refers to", "is when"]):
+            explanation_score += 0.3
+        if len([s for s in sentences if "because" in s.lower()]) >= 2:
+            explanation_score += 0.3
         format_scores["explanation_educational"] = explanation_score
 
         # Advice/Practical format scoring
         advice_score = 0
-        if has_direct_advice: advice_score += 0.4
-        if has_action_language: advice_score += 0.3
-        if any(phrase in text_lower for phrase in ["strategy", "approach", "technique", "method"]): advice_score += 0.3
+        if has_direct_advice:
+            advice_score += 0.4
+        if has_action_language:
+            advice_score += 0.3
+        if any(phrase in text_lower for phrase in ["strategy", "approach", "technique", "method"]):
+            advice_score += 0.3
         format_scores["advice_practical"] = advice_score
 
         # Determine primary format
@@ -146,7 +169,7 @@ class AIContentRouter:
             "monologue_teaching": f"Identified teaching/explanatory monologue (confidence: {confidence:.2f})",
             "story_narrative": f"Recognized narrative/story format (confidence: {confidence:.2f})",
             "explanation_educational": f"Found educational explanation pattern (confidence: {confidence:.2f})",
-            "advice_practical": f"Detected practical advice/guidance (confidence: {confidence:.2f})"
+            "advice_practical": f"Detected practical advice/guidance (confidence: {confidence:.2f})",
         }
 
         return reasoning_map.get(format_type, f"General therapeutic content (confidence: {confidence:.2f})")
@@ -195,11 +218,7 @@ class AIContentRouter:
         analysis = self.analyze_content_structure(segment["text"], segment)
 
         # Generate appropriate question
-        question = self.generate_contextual_question(
-            segment["text"],
-            analysis["optimal_qa_strategy"],
-            segment["style"]
-        )
+        question = self.generate_contextual_question(segment["text"], analysis["optimal_qa_strategy"], segment["style"])
 
         return {
             "input": question,
@@ -213,9 +232,10 @@ class AIContentRouter:
                 "format_detected": analysis["primary_format"],
                 "confidence": analysis["confidence"],
                 "strategy_used": analysis["optimal_qa_strategy"],
-                "reasoning": analysis["reasoning"]
-            }
+                "reasoning": analysis["reasoning"],
+            },
         }
+
 
 def test_ai_router():
     """Test the AI content router with sample segments"""
@@ -229,7 +249,7 @@ def test_ai_router():
             "confidence": 1.0,
             "quality": 0.8,
             "source": "interview",
-            "file": "test.txt"
+            "file": "test.txt",
         },
         {
             "text": "Let me explain what happens when someone has complex trauma. First, their nervous system becomes dysregulated. Second, they develop coping mechanisms that may have helped them survive but now cause problems. The key thing to understand is that this is a normal response to abnormal circumstances.",
@@ -237,10 +257,9 @@ def test_ai_router():
             "confidence": 1.0,
             "quality": 0.8,
             "source": "teaching",
-            "file": "test.txt"
-        }
+            "file": "test.txt",
+        },
     ]
-
 
     for _i, segment in enumerate(test_segments, 1):
         router.process_segment(segment)

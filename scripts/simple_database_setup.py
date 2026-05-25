@@ -3,6 +3,7 @@
 Simple Database Setup
 Lightweight database setup without heavy migration.
 """
+
 import logging
 import os
 import sys
@@ -11,16 +12,13 @@ import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 def check_postgresql():
     """Check if PostgreSQL is available."""
     try:
-
         logger.info("✅ psycopg2 available")
         return True
     except ImportError:
@@ -30,7 +28,6 @@ def check_postgresql():
 
 def check_database_connection():
     """Check database connection with multiple auth methods."""
-
 
     # Try different connection configurations
     connection_configs = [
@@ -68,9 +65,7 @@ def check_database_connection():
 
     for i, config in enumerate(connection_configs):
         try:
-            logger.info(
-                f"Trying connection method {i + 1}: user={config.get('user')}, port={config.get('port')}"
-            )
+            logger.info(f"Trying connection method {i + 1}: user={config.get('user')}, port={config.get('port')}")
             conn = psycopg2.connect(**config)
             conn.close()
             logger.info(f"✅ PostgreSQL connection successful with config {i + 1}")
@@ -90,16 +85,13 @@ def check_database_connection():
     logger.info(
         "   2. Set up Docker PostgreSQL: sudo docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres:15"
     )
-    logger.info(
-        "   3. Check PostgreSQL authentication: sudo nano /etc/postgresql/15/main/pg_hba.conf"
-    )
+    logger.info("   3. Check PostgreSQL authentication: sudo nano /etc/postgresql/15/main/pg_hba.conf")
     return False
 
 
 def create_database():
     """Create the pixelated_empathy database."""
     try:
-
         # Connect to postgres database
         conn = psycopg2.connect(
             host="localhost",
@@ -133,7 +125,6 @@ def create_database():
 def test_database_schema():
     """Test if we can create a simple table."""
     try:
-
         conn = psycopg2.connect(
             host="localhost",
             port="5432",
@@ -193,9 +184,7 @@ def main():
     logger.info("✅ DATABASE SETUP COMPLETED")
     logger.info("Next steps:")
     logger.info("  1. Wait for backup to complete")
-    logger.info(
-        "  2. Run migration: uv run dataset_pipeline/migrate_conversations_to_db.py"
-    )
+    logger.info("  2. Run migration: uv run dataset_pipeline/migrate_conversations_to_db.py")
     logger.info("  3. Verify data: psql -h localhost -U postgres -d pixelated_empathy")
 
     return True

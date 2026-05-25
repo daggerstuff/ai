@@ -23,9 +23,7 @@ class TherapeuticParaphraser:
             api_key=os.environ.get("NVIDIA_API_KEY"),
         )
 
-    def paraphrase_conversation(
-        self, conversation: dict[str, Any], variation_type: str = "lexical"
-    ) -> dict[str, Any]:
+    def paraphrase_conversation(self, conversation: dict[str, Any], variation_type: str = "lexical") -> dict[str, Any]:
         """
         Generate paraphrased variation of conversation
 
@@ -49,10 +47,7 @@ class TherapeuticParaphraser:
                 {"role": "system", "content": system_prompt},
                 {
                     "role": "user",
-                    "content": (
-                        f"Paraphrase this conversation:\n\n"
-                        f"{json.dumps(messages, indent=2)}"
-                    ),
+                    "content": (f"Paraphrase this conversation:\n\n{json.dumps(messages, indent=2)}"),
                 },
             ],
             temperature=0.8,  # Higher for diversity
@@ -187,7 +182,6 @@ Paraphrased: "My family situation is making me anxious"
             var_dir = output_path / var_type
             var_dir.mkdir(exist_ok=True)
 
-
             for i, conv in enumerate(conversations):
                 task_id = conv.get("task_id", f"task_{i}")
 
@@ -212,7 +206,6 @@ Paraphrased: "My family situation is making me anxious"
                     except Exception:
                         pass
 
-
         # Combine all variations into single file
         combined_file = output_path / "all_paraphrases.jsonl"
         with open(combined_file, "w") as out_f:
@@ -223,14 +216,9 @@ Paraphrased: "My family situation is making me anxious"
                         out_f.write(in_f.read())
 
 
-
 def main():
-    parser = argparse.ArgumentParser(
-        description="Generate paraphrased variations of therapeutic conversations"
-    )
-    parser.add_argument(
-        "--input", required=True, help="Input JSONL file with annotated conversations"
-    )
+    parser = argparse.ArgumentParser(description="Generate paraphrased variations of therapeutic conversations")
+    parser.add_argument("--input", required=True, help="Input JSONL file with annotated conversations")
     parser.add_argument(
         "--output",
         required=True,

@@ -31,6 +31,7 @@ Usage:
         format=ExportFormat.PARQUET
     )
 """
+
 import csv
 import json
 import logging
@@ -48,6 +49,7 @@ logger = logging.getLogger(__name__)
 
 class ExportFormat(Enum):
     """Supported export formats."""
+
     JSONL = "jsonl"
     JSON = "json"
     CSV = "csv"
@@ -253,9 +255,7 @@ class MultiFormatExporter:
                 except json.JSONDecodeError as e:
                     self.logger.warning(f"Line {line_num}: JSON parse error - {e}")
 
-    def _export_jsonl(
-        self, dataset_path: Path, output_path: Path, _config: ExportConfig
-    ) -> ExportResult:
+    def _export_jsonl(self, dataset_path: Path, output_path: Path, _config: ExportConfig) -> ExportResult:
         """Export to JSONL format."""
         records_exported = 0
         errors = []
@@ -277,9 +277,7 @@ class MultiFormatExporter:
             metadata={"format": "JSON Lines"},
         )
 
-    def _export_json(
-        self, dataset_path: Path, output_path: Path, _config: ExportConfig
-    ) -> ExportResult:
+    def _export_json(self, dataset_path: Path, output_path: Path, _config: ExportConfig) -> ExportResult:
         """Export to JSON array format."""
         records = list(self._load_dataset(dataset_path))
 
@@ -320,9 +318,7 @@ class MultiFormatExporter:
                 items.append((new_key, value))
         return dict(items)
 
-    def _export_csv(
-        self, dataset_path: Path, output_path: Path, config: ExportConfig
-    ) -> ExportResult:
+    def _export_csv(self, dataset_path: Path, output_path: Path, config: ExportConfig) -> ExportResult:
         """Export to CSV format."""
         records = list(self._load_dataset(dataset_path))
 
@@ -373,9 +369,7 @@ class MultiFormatExporter:
             },
         )
 
-    def _export_parquet(
-        self, dataset_path: Path, output_path: Path, config: ExportConfig
-    ) -> ExportResult:
+    def _export_parquet(self, dataset_path: Path, output_path: Path, config: ExportConfig) -> ExportResult:
         """Export to Parquet format."""
         try:
             pass
@@ -506,19 +500,15 @@ class MultiFormatExporter:
                 results.append(result)
 
                 if result.success:
-                    self.logger.info(
-                        f"Exported {result.records_exported} records to {fmt.value}: "
-                        f"{output_path}"
-                    )
+                    self.logger.info(f"Exported {result.records_exported} records to {fmt.value}: {output_path}")
                 else:
-                    self.logger.error(
-                        f"Failed to export to {fmt.value}: {result.errors}"
-                    )
+                    self.logger.error(f"Failed to export to {fmt.value}: {result.errors}")
 
         return results
 
 
 # Convenience functions for common use cases
+
 
 def export_to_jsonl(
     input_path: str | Path,
@@ -569,7 +559,6 @@ if __name__ == "__main__":
         for record in sample_data:
             f.write(json.dumps(record) + "\n")
 
-
     # Export to all formats
     exporter = MultiFormatExporter()
 
@@ -581,4 +570,3 @@ if __name__ == "__main__":
             pass
         else:
             pass
-

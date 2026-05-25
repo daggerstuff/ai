@@ -5,6 +5,7 @@ Test Runner for Pipeline Communication System.
 This script provides a comprehensive test runner for the six-stage pipeline
 communication system with HIPAA++ compliance and sub-50ms performance requirements.
 """
+
 import argparse
 import asyncio
 import json
@@ -20,18 +21,20 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 class TestRunner:
     """Comprehensive test runner for pipeline communication system."""
 
-    def __init__(self, test_directory: str = ".", verbose: bool = False,
-                 performance_mode: bool = False, security_mode: bool = False):
+    def __init__(
+        self,
+        test_directory: str = ".",
+        verbose: bool = False,
+        performance_mode: bool = False,
+        security_mode: bool = False,
+    ):
         self.test_directory = Path(test_directory)
         self.verbose = verbose
         self.performance_mode = performance_mode
@@ -67,8 +70,7 @@ class TestRunner:
         # Generate summary
         summary = self._generate_summary(results)
 
-        logger.info("Test execution completed in %.2f seconds",
-                   self.end_time - self.start_time)
+        logger.info("Test execution completed in %.2f seconds", self.end_time - self.start_time)
 
         return summary
 
@@ -89,18 +91,11 @@ class TestRunner:
         """Run a single test file using pytest."""
         logger.info("Running test file: %s", test_file.name)
 
-
         start_time = time.time()
 
         try:
             # Build pytest command
-            cmd = [
-                sys.executable, "-m", "pytest",
-                str(test_file),
-                "-v",
-                "--tb=short",
-                "--asyncio-mode=auto"
-            ]
+            cmd = [sys.executable, "-m", "pytest", str(test_file), "-v", "--tb=short", "--asyncio-mode=auto"]
 
             # Add specific markers based on mode
             if self.performance_mode:
@@ -112,12 +107,7 @@ class TestRunner:
                 cmd.append("-s")  # Show print statements
 
             # Run pytest
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=str(self.test_directory)
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(self.test_directory))
 
             end_time = time.time()
 
@@ -129,9 +119,12 @@ class TestRunner:
             test_count = self._extract_test_count(output)
             execution_time = end_time - start_time
 
-            logger.info("Test file %s completed in %.2f seconds - %s",
-                       test_file.name, execution_time,
-                       "PASSED" if success else "FAILED")
+            logger.info(
+                "Test file %s completed in %.2f seconds - %s",
+                test_file.name,
+                execution_time,
+                "PASSED" if success else "FAILED",
+            )
 
             return {
                 "file": str(test_file),
@@ -141,7 +134,7 @@ class TestRunner:
                 "execution_time": execution_time,
                 "test_count": test_count,
                 "output": output,
-                "error_output": result.stderr if not success else None
+                "error_output": result.stderr if not success else None,
             }
 
         except Exception as e:
@@ -156,19 +149,14 @@ class TestRunner:
                 "execution_time": end_time - start_time,
                 "test_count": 0,
                 "output": "",
-                "error_output": str(e)
+                "error_output": str(e),
             }
 
     def _extract_test_count(self, output: str) -> int:
         """Extract test count from pytest output."""
 
         # Look for patterns like "X passed" or "X failed"
-        patterns = [
-            r"(\d+) passed",
-            r"(\d+) failed",
-            r"(\d+) skipped",
-            r"(\d+) xfailed"
-        ]
+        patterns = [r"(\d+) passed", r"(\d+) failed", r"(\d+) skipped", r"(\d+) xfailed"]
 
         total = 0
         for pattern in patterns:
@@ -203,9 +191,8 @@ class TestRunner:
             "results": results,
             "performance_metrics": performance_metrics,
             "security_compliance": security_compliance,
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
-
 
     def _analyze_performance(self, results: list[dict[str, Any]]) -> dict[str, Any]:
         """Analyze performance metrics from test results."""
@@ -221,7 +208,7 @@ class TestRunner:
             "avg_execution_time": sum(execution_times) / len(execution_times),
             "total_execution_time": sum(execution_times),
             "sub_50ms_compliance": all(t < 0.05 for t in execution_times),  # 50ms threshold
-            "performance_grade": self._calculate_performance_grade(execution_times)
+            "performance_grade": self._calculate_performance_grade(execution_times),
         }
 
     def _analyze_security_compliance(self, results: list[dict[str, Any]]) -> dict[str, Any]:
@@ -244,9 +231,11 @@ class TestRunner:
             "security_tests_run": security_tests,
             "hipaa_tests_run": hipaa_tests,
             "security_failures": security_failures,
-            "security_compliance_rate": (security_tests - security_failures) / security_tests if security_tests > 0 else 1.0,
+            "security_compliance_rate": (security_tests - security_failures) / security_tests
+            if security_tests > 0
+            else 1.0,
             "hipaa_compliance_rate": (hipaa_tests - security_failures) / hipaa_tests if hipaa_tests > 0 else 1.0,
-            "overall_compliance": security_failures == 0
+            "overall_compliance": security_failures == 0,
         }
 
     def _calculate_performance_grade(self, execution_times: list[float]) -> str:
@@ -257,17 +246,16 @@ class TestRunner:
             return "A+"
         if avg_time < 0.05:  # < 50ms
             return "A"
-        if avg_time < 0.1:   # < 100ms
+        if avg_time < 0.1:  # < 100ms
             return "B"
-        if avg_time < 0.5:   # < 500ms
+        if avg_time < 0.5:  # < 500ms
             return "C"
-        if avg_time < 1.0:   # < 1s
+        if avg_time < 1.0:  # < 1s
             return "D"
         return "F"
 
     def print_summary(self, summary: dict[str, Any]):
         """Print formatted test summary."""
-
 
         # Performance metrics
         perf = summary.get("performance_metrics", {})
@@ -285,9 +273,7 @@ class TestRunner:
                     pass
 
 
-
-async def run_specific_test(test_name: str, test_directory: str = ".",
-                           verbose: bool = False) -> dict[str, Any]:
+async def run_specific_test(test_name: str, test_directory: str = ".", verbose: bool = False) -> dict[str, Any]:
     """Run a specific test file."""
     runner = TestRunner(test_directory, verbose)
 
@@ -298,7 +284,6 @@ async def run_specific_test(test_name: str, test_directory: str = ".",
 
     result = await runner._run_test_file(test_file)
 
-
     if not result["success"] and result.get("error_output"):
         pass
 
@@ -307,59 +292,28 @@ async def run_specific_test(test_name: str, test_directory: str = ".",
 
 def main():
     """Main entry point for test runner."""
-    parser = argparse.ArgumentParser(
-        description="Run comprehensive tests for pipeline communication system"
-    )
+    parser = argparse.ArgumentParser(description="Run comprehensive tests for pipeline communication system")
 
     parser.add_argument(
-        "--test-dir", "-d",
-        default=".",
-        help="Directory containing test files (default: current directory)"
+        "--test-dir", "-d", default=".", help="Directory containing test files (default: current directory)"
     )
 
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose output"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose output")
 
-    parser.add_argument(
-        "--performance", "-p",
-        action="store_true",
-        help="Run only performance tests"
-    )
+    parser.add_argument("--performance", "-p", action="store_true", help="Run only performance tests")
 
-    parser.add_argument(
-        "--security", "-s",
-        action="store_true",
-        help="Run only security/HIPAA compliance tests"
-    )
+    parser.add_argument("--security", "-s", action="store_true", help="Run only security/HIPAA compliance tests")
 
-    parser.add_argument(
-        "--specific-test", "-t",
-        help="Run a specific test file"
-    )
+    parser.add_argument("--specific-test", "-t", help="Run a specific test file")
 
-    parser.add_argument(
-        "--output", "-o",
-        help="Output file for test results (JSON format)"
-    )
+    parser.add_argument("--output", "-o", help="Output file for test results (JSON format)")
 
     args = parser.parse_args()
 
     async def run_tests():
         if args.specific_test:
-            return await run_specific_test(
-                args.specific_test,
-                args.test_dir,
-                args.verbose
-            )
-        runner = TestRunner(
-            args.test_dir,
-            args.verbose,
-            args.performance,
-            args.security
-        )
+            return await run_specific_test(args.specific_test, args.test_dir, args.verbose)
+        runner = TestRunner(args.test_dir, args.verbose, args.performance, args.security)
         summary = await runner.run_all_tests()
         runner.print_summary(summary)
         return summary

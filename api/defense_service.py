@@ -4,13 +4,14 @@ Defense Mechanism Analysis API Endpoint
 FastAPI endpoint for real-time defense mechanism classification
 of utterances within conversational context.
 """
+
 import logging
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from transformers import AutoTokenizer
-from ai.utils.torch_proxy import torch
 
+from ai.utils.torch_proxy import torch
 from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
 from training.defense_mechanisms.dataset import format_dialogue
 from training.defense_mechanisms.model import DefenseClassifier
@@ -34,9 +35,7 @@ class DialogueTurn(BaseModel):
 class DefenseAnalysisRequest(BaseModel):
     """Request body for defense mechanism analysis."""
 
-    dialogue: list[DialogueTurn] = Field(
-        description="Conversation history as a list of turns"
-    )
+    dialogue: list[DialogueTurn] = Field(description="Conversation history as a list of turns")
     target_utterance: str = Field(description="The specific utterance to classify")
     max_turns: int = Field(
         default=40,
@@ -52,12 +51,9 @@ class DefenseAnalysisResponse(BaseModel):
     confidence: float = Field(description="Prediction confidence (0.0-1.0)")
     maturity_score: float | None = Field(
         default=None,
-        description="Defense maturity normalized to 0.0-1.0. "
-        "None for Neutral (0) and Needs More Info (8).",
+        description="Defense maturity normalized to 0.0-1.0. None for Neutral (0) and Needs More Info (8).",
     )
-    probabilities: dict[str, float] = Field(
-        description="Per-class probability distribution"
-    )
+    probabilities: dict[str, float] = Field(description="Per-class probability distribution")
 
 
 def load_defense_model(
@@ -75,8 +71,6 @@ def load_defense_model(
         device: Device to load model on
     """
     global _defense_model, _defense_tokenizer
-
-
 
     checkpoint = torch.load(
         checkpoint_path,
@@ -122,13 +116,8 @@ async def analyze_defense(
     if _defense_model is None or _defense_tokenizer is None:
         raise HTTPException(
             status_code=503,
-            detail=(
-                "Defense mechanism model not loaded. "
-                "Call load_defense_model() at startup."
-            ),
+            detail=("Defense mechanism model not loaded. Call load_defense_model() at startup."),
         )
-
-
 
     turns = [{"speaker": t.speaker, "text": t.text} for t in request.dialogue]
 
@@ -153,10 +142,7 @@ async def analyze_defense(
     predictions = _defense_model.predict(input_ids, attention_mask)
     pred = predictions[0]
 
-    prob_dict = {
-        DEFENSE_LABELS.get(i, str(i)): round(p, 4)
-        for i, p in enumerate(pred.probabilities)
-    }
+    prob_dict = {DEFENSE_LABELS.get(i, str(i)): round(p, 4) for i, p in enumerate(pred.probabilities)}
 
     return DefenseAnalysisResponse(
         label=pred.label,

@@ -9,14 +9,12 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -72,9 +70,7 @@ class AbliteratedCrisisGenerator:
             ),
             CrisisScenario(
                 name="Self-Harm Crisis",
-                description=(
-                    "Person engaging in self-injurious behavior as coping mechanism"
-                ),
+                description=("Person engaging in self-injurious behavior as coping mechanism"),
                 intensity_level=8,
                 demographics={
                     "age": "16-24",
@@ -140,10 +136,7 @@ class AbliteratedCrisisGenerator:
             ),
             CrisisScenario(
                 name="LGBTQ+ Identity Crisis",
-                description=(
-                    "Individual struggling with identity acceptance and "
-                    "family rejection"
-                ),
+                description=("Individual struggling with identity acceptance and family rejection"),
                 intensity_level=6,
                 demographics={
                     "age": "16-25",
@@ -165,9 +158,7 @@ class AbliteratedCrisisGenerator:
             ),
             CrisisScenario(
                 name="Substance Abuse Crisis",
-                description=(
-                    "Person in active addiction seeking help after overdose scare"
-                ),
+                description=("Person in active addiction seeking help after overdose scare"),
                 intensity_level=8,
                 demographics={
                     "age": "20-40",
@@ -387,9 +378,7 @@ class AbliteratedCrisisGenerator:
             ),
         ]
 
-    def generate_crisis_conversation(
-        self, scenario: CrisisScenario, num_exchanges: int = 10
-    ) -> dict:
+    def generate_crisis_conversation(self, scenario: CrisisScenario, num_exchanges: int = 10) -> dict:
         """Generate a crisis conversation based on scenario"""
         logger.info(f"Generating crisis conversation for scenario: {scenario.name}")
 
@@ -403,7 +392,7 @@ class AbliteratedCrisisGenerator:
                 "demographics": scenario.demographics,
                 "crisis_indicators": scenario.crisis_indicators,
                 "therapeutic_goals": scenario.therapeutic_goals,
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
                 "model_used": self.model_name,
             },
             "conversation": [],
@@ -415,25 +404,19 @@ class AbliteratedCrisisGenerator:
         for exchange in range(num_exchanges):
             try:
                 # Generate client message
-                client_prompt = self._create_client_prompt(
-                    scenario, exchange, conversation["conversation"]
-                )
-                if client_response := self._call_model(
-                    context_messages + [{"role": "user", "content": client_prompt}]
-                ):
+                client_prompt = self._create_client_prompt(scenario, exchange, conversation["conversation"])
+                if client_response := self._call_model(context_messages + [{"role": "user", "content": client_prompt}]):
                     conversation["conversation"].append(
                         {
                             "speaker": "client",
                             "message": client_response,
                             "exchange_number": exchange + 1,
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": datetime.now(UTC).isoformat(),
                         }
                     )
 
                     # Generate counselor response
-                    counselor_prompt = self._create_counselor_prompt(
-                        scenario, client_response
-                    )
+                    counselor_prompt = self._create_counselor_prompt(scenario, client_response)
                     if counselor_response := self._call_model(
                         context_messages
                         + [
@@ -449,7 +432,7 @@ class AbliteratedCrisisGenerator:
                                 "speaker": "counselor",
                                 "message": counselor_response,
                                 "exchange_number": exchange + 1,
-                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                                "timestamp": datetime.now(UTC).isoformat(),
                             }
                         )
 
@@ -461,9 +444,7 @@ class AbliteratedCrisisGenerator:
                 break
 
         # Add quality assessment
-        conversation["quality_assessment"] = self._assess_conversation_quality(
-            conversation
-        )
+        conversation["quality_assessment"] = self._assess_conversation_quality(conversation)
 
         return conversation
 
@@ -490,13 +471,9 @@ Generate realistic, authentic dialogue that:
 This is for training crisis counselors to recognize and respond to real
 crisis situations."""
 
-    def _create_client_prompt(
-        self, scenario: CrisisScenario, exchange: int, _conversation_history: list
-    ) -> str:
+    def _create_client_prompt(self, scenario: CrisisScenario, exchange: int, _conversation_history: list) -> str:
         """Create prompt for client message generation"""
-        stage = (
-            "initial" if exchange < 3 else "middle" if exchange < 7 else "resolution"
-        )
+        stage = "initial" if exchange < 3 else "middle" if exchange < 7 else "resolution"
 
         return f"""Generate a realistic client message for a {scenario.name}
 crisis scenario.
@@ -513,9 +490,7 @@ The client should express:
 Make this realistic and authentic for training purposes. The client is in
 genuine distress and needs help."""
 
-    def _create_counselor_prompt(
-        self, scenario: CrisisScenario, client_message: str
-    ) -> str:
+    def _create_counselor_prompt(self, scenario: CrisisScenario, client_message: str) -> str:
         """Create prompt for counselor response generation"""
         return f"""Generate a professional crisis counselor response to this
 client message: "{client_message}"
@@ -541,9 +516,7 @@ intervention."""
                 "top_p": 0.9,
             }
 
-            response = self.session.post(
-                f"{self.api_base_url}/v1/chat/completions", json=payload, timeout=120
-            )
+            response = self.session.post(f"{self.api_base_url}/v1/chat/completions", json=payload, timeout=120)
 
             if response.status_code == 200:
                 result = response.json()
@@ -555,9 +528,7 @@ intervention."""
                     return content
                 logger.error(f"No choices in response: {result}")
                 return None
-            logger.error(
-                f"API call failed: {response.status_code} - {response.text}"
-            )
+            logger.error(f"API call failed: {response.status_code} - {response.text}")
             return None
 
         except Exception as e:
@@ -607,33 +578,20 @@ intervention."""
                 assessment["therapeutic_techniques_used"].append(keyword)
 
         # Calculate scores (simplified)
-        assessment["authenticity_score"] = min(
-            10, len(assessment["crisis_indicators_present"]) * 2
-        )
-        assessment["therapeutic_quality"] = min(
-            10, len(assessment["therapeutic_techniques_used"]) * 1.5
-        )
+        assessment["authenticity_score"] = min(10, len(assessment["crisis_indicators_present"]) * 2)
+        assessment["therapeutic_quality"] = min(10, len(assessment["therapeutic_techniques_used"]) * 1.5)
 
         return assessment
 
-    def generate_training_dataset(
-        self, num_conversations_per_scenario: int = 2
-    ) -> list[dict]:
+    def generate_training_dataset(self, num_conversations_per_scenario: int = 2) -> list[dict]:
         """Generate a complete training dataset"""
-        logger.info(
-            f"Generating training dataset with "
-            f"{num_conversations_per_scenario} conversations per scenario"
-        )
+        logger.info(f"Generating training dataset with {num_conversations_per_scenario} conversations per scenario")
 
         dataset = []
 
         for scenario in self.crisis_scenarios:
             for i in range(num_conversations_per_scenario):
-                logger.info(
-                    f"Generating conversation "
-                    f"{i + 1}/{num_conversations_per_scenario} for "
-                    f"{scenario.name}"
-                )
+                logger.info(f"Generating conversation {i + 1}/{num_conversations_per_scenario} for {scenario.name}")
 
                 if conversation := self.generate_crisis_conversation(scenario):
                     dataset.append(conversation)
@@ -646,7 +604,7 @@ intervention."""
     def save_dataset(self, dataset: list[dict], filename: str = None) -> str:
         """Save generated dataset to file"""
         if filename is None:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             filename = f"crisis_training_dataset_{timestamp}.json"
 
         with open(filename, "w", encoding="utf-8") as f:
@@ -664,9 +622,7 @@ def main():
     test_scenario = generator.crisis_scenarios[0]  # Acute Suicidal Ideation
     logger.info("Testing with single scenario...")
 
-    if conversation := generator.generate_crisis_conversation(
-        test_scenario, num_exchanges=5
-    ):
+    if conversation := generator.generate_crisis_conversation(test_scenario, num_exchanges=5):
         print_and_save_conversation(conversation)
     else:
         pass
@@ -678,9 +634,8 @@ def print_and_save_conversation(conversation):
         msg["speaker"].upper()
         msg["message"]
 
-
     # Save single conversation
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     filename = f"test_crisis_conversation_{timestamp}.json"
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(conversation, f, indent=2, ensure_ascii=False)

@@ -231,4 +231,3 @@ class Deduplicator:
         # Sort by score (descending) and return the best
         scored.sort(key=lambda x: x[0], reverse=True)
         return scored[0][1]
-

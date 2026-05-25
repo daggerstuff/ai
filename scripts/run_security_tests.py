@@ -11,7 +11,7 @@ import asyncio
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 # Add the current directory to Python path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -46,9 +46,7 @@ class ComprehensiveSecurityValidator:
         security_results = await self.test_security_framework()
 
         # Generate comprehensive report
-        comprehensive_report = self.generate_comprehensive_report(
-            auth_results, security_results
-        )
+        comprehensive_report = self.generate_comprehensive_report(auth_results, security_results)
 
         # Save results
         self.save_results(comprehensive_report)
@@ -65,15 +63,9 @@ class ComprehensiveSecurityValidator:
         auth_system = AuthenticationSystem(secret_key="test-secret-key-for-validation")
 
         # Create test users and API keys
-        auth_system.create_user(
-            "admin", "admin@test.com", "SecurePassword123!", UserRole.ADMIN
-        )
-        auth_system.create_user(
-            "user", "user@test.com", "UserPassword123!", UserRole.USER
-        )
-        auth_system.create_user(
-            "readonly", "readonly@test.com", "ReadPassword123!", UserRole.READONLY
-        )
+        auth_system.create_user("admin", "admin@test.com", "SecurePassword123!", UserRole.ADMIN)
+        auth_system.create_user("user", "user@test.com", "UserPassword123!", UserRole.USER)
+        auth_system.create_user("readonly", "readonly@test.com", "ReadPassword123!", UserRole.READONLY)
 
         # Create test API keys
         _admin_api_key, _ = auth_system.create_api_key(
@@ -85,13 +77,8 @@ class ComprehensiveSecurityValidator:
                 PermissionLevel.ADMIN,
             ],
         )
-        _user_api_key, _ = auth_system.create_api_key(
-            "user_key", [PermissionLevel.READ, PermissionLevel.WRITE]
-        )
-        _readonly_api_key, _ = auth_system.create_api_key(
-            "readonly_key", [PermissionLevel.READ]
-        )
-
+        _user_api_key, _ = auth_system.create_api_key("user_key", [PermissionLevel.READ, PermissionLevel.WRITE])
+        _readonly_api_key, _ = auth_system.create_api_key("readonly_key", [PermissionLevel.READ])
 
         # Run authentication security tests
         tester = AuthenticationTester(auth_system)
@@ -101,7 +88,6 @@ class ComprehensiveSecurityValidator:
         passed_tests = sum(test_results.values())
         total_tests = len(test_results)
         auth_score = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
-
 
         # Additional validation tests
         validation_results = self.run_authentication_validation_tests(auth_system)
@@ -116,9 +102,7 @@ class ComprehensiveSecurityValidator:
             "production_ready": auth_score >= 90 and all(test_results.values()),
         }
 
-    def run_authentication_validation_tests(
-        self, auth_system: AuthenticationSystem
-    ) -> dict:
+    def run_authentication_validation_tests(self, auth_system: AuthenticationSystem) -> dict:
         """Run additional authentication validation tests"""
         validation_tests = {}
 
@@ -132,14 +116,10 @@ class ComprehensiveSecurityValidator:
             validation_tests["password_salt_unique"] = hash1 != hash2
 
             # Hash should verify correctly
-            validation_tests["password_verification"] = auth_system.verify_password(
-                password, hash1
-            )
+            validation_tests["password_verification"] = auth_system.verify_password(password, hash1)
 
             # Wrong password should not verify
-            validation_tests[
-                "wrong_password_rejection"
-            ] = not auth_system.verify_password("WrongPassword", hash1)
+            validation_tests["wrong_password_rejection"] = not auth_system.verify_password("WrongPassword", hash1)
 
         except Exception as e:
             validation_tests["password_hashing_error"] = str(e)
@@ -160,9 +140,7 @@ class ComprehensiveSecurityValidator:
             # Payload should contain required fields
             if payload:
                 required_fields = ["user_id", "username", "role", "exp", "iat"]
-                validation_tests["jwt_payload_complete"] = all(
-                    field in payload for field in required_fields
-                )
+                validation_tests["jwt_payload_complete"] = all(field in payload for field in required_fields)
 
         except Exception as e:
             validation_tests["jwt_token_error"] = str(e)
@@ -170,21 +148,14 @@ class ComprehensiveSecurityValidator:
         # Test 3: Role-based access control
         try:
             # Admin should have all permissions
-            admin_permissions = all(
-                auth_system.check_permission(UserRole.ADMIN, perm)
-                for perm in PermissionLevel
-            )
+            admin_permissions = all(auth_system.check_permission(UserRole.ADMIN, perm) for perm in PermissionLevel)
             validation_tests["admin_full_permissions"] = admin_permissions
 
             # Readonly should only have read permission
             readonly_limited = (
                 auth_system.check_permission(UserRole.READONLY, PermissionLevel.READ)
-                and not auth_system.check_permission(
-                    UserRole.READONLY, PermissionLevel.WRITE
-                )
-                and not auth_system.check_permission(
-                    UserRole.READONLY, PermissionLevel.DELETE
-                )
+                and not auth_system.check_permission(UserRole.READONLY, PermissionLevel.WRITE)
+                and not auth_system.check_permission(UserRole.READONLY, PermissionLevel.DELETE)
             )
             validation_tests["readonly_limited_permissions"] = readonly_limited
 
@@ -194,9 +165,7 @@ class ComprehensiveSecurityValidator:
         # Test 4: API key functionality
         try:
             # Create and authenticate API key
-            api_key, _api_key_obj = auth_system.create_api_key(
-                "test_validation", [PermissionLevel.READ]
-            )
+            api_key, _api_key_obj = auth_system.create_api_key("test_validation", [PermissionLevel.READ])
 
             # API key should authenticate
             auth_result = auth_system.authenticate_api_key(api_key)
@@ -204,9 +173,7 @@ class ComprehensiveSecurityValidator:
 
             # API key should have correct permissions
             if auth_result:
-                validation_tests["api_key_permissions"] = (
-                    PermissionLevel.READ in auth_result.permissions
-                )
+                validation_tests["api_key_permissions"] = PermissionLevel.READ in auth_result.permissions
 
             # Invalid API key should not authenticate
             invalid_result = auth_system.authenticate_api_key("invalid_key_12345")
@@ -222,7 +189,6 @@ class ComprehensiveSecurityValidator:
 
         # Initialize security test framework
         security_tester = SecurityTestFramework("http://localhost:8000")
-
 
         # Run individual security test categories
         test_categories = [
@@ -261,21 +227,14 @@ class ComprehensiveSecurityValidator:
                 }
 
         # Calculate security framework score
-        passed_categories = sum(
-            1 for result in category_results.values() if result.get("passed", False)
-        )
+        passed_categories = sum(1 for result in category_results.values() if result.get("passed", False))
         total_categories = len(category_results)
-        framework_score = (
-            (passed_categories / total_categories) * 100 if total_categories > 0 else 0
-        )
+        framework_score = (passed_categories / total_categories) * 100 if total_categories > 0 else 0
 
         # Adjust score based on vulnerabilities found
         if total_vulnerabilities > 0:
-            vulnerability_penalty = min(
-                total_vulnerabilities * 5, 30
-            )  # Max 30 point penalty
+            vulnerability_penalty = min(total_vulnerabilities * 5, 30)  # Max 30 point penalty
             framework_score = max(0, framework_score - vulnerability_penalty)
-
 
         return {
             "task": "Task 102: Security Test Coverage Framework",
@@ -294,25 +253,18 @@ class ComprehensiveSecurityValidator:
             "production_ready": framework_score >= 90 and total_vulnerabilities == 0,
         }
 
-    def generate_comprehensive_report(
-        self, auth_results: dict, security_results: dict
-    ) -> dict:
+    def generate_comprehensive_report(self, auth_results: dict, security_results: dict) -> dict:
         """Generate comprehensive security validation report"""
 
         # Calculate overall score (weighted average)
         auth_weight = 0.6  # Authentication is critical
         security_weight = 0.4  # Security testing is important
 
-        overall_score = (
-            auth_results["score"] * auth_weight
-            + security_results["score"] * security_weight
-        )
+        overall_score = auth_results["score"] * auth_weight + security_results["score"] * security_weight
 
         # Determine production readiness
         production_ready = (
-            auth_results["production_ready"]
-            and security_results["production_ready"]
-            and overall_score >= 90
+            auth_results["production_ready"] and security_results["production_ready"] and overall_score >= 90
         )
 
         # Generate status
@@ -327,7 +279,7 @@ class ComprehensiveSecurityValidator:
 
         return {
             "validation_summary": {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "overall_score": round(overall_score, 1),
                 "status": status,
                 "production_ready": production_ready,
@@ -341,34 +293,22 @@ class ComprehensiveSecurityValidator:
                 "security_framework_score": security_results["score"],
                 "total_vulnerabilities": security_results["total_vulnerabilities"],
                 "critical_vulnerabilities": len(
-                    [
-                        v
-                        for v in security_results["vulnerabilities"]
-                        if v["severity"] == "critical"
-                    ]
+                    [v for v in security_results["vulnerabilities"] if v["severity"] == "critical"]
                 ),
             },
-            "recommendations": self.generate_recommendations(
-                overall_score, security_results["total_vulnerabilities"]
-            ),
+            "recommendations": self.generate_recommendations(overall_score, security_results["total_vulnerabilities"]),
             "next_steps": self.generate_next_steps(production_ready, overall_score),
         }
 
-    def generate_recommendations(
-        self, overall_score: float, total_vulnerabilities: int
-    ) -> list:
+    def generate_recommendations(self, overall_score: float, total_vulnerabilities: int) -> list:
         """Generate recommendations based on test results"""
         recommendations = []
 
         if overall_score < 90:
-            recommendations.append(
-                "Address failing security tests before production deployment"
-            )
+            recommendations.append("Address failing security tests before production deployment")
 
         if total_vulnerabilities > 0:
-            recommendations.append(
-                f"Fix {total_vulnerabilities} security vulnerabilities identified"
-            )
+            recommendations.append(f"Fix {total_vulnerabilities} security vulnerabilities identified")
 
         if overall_score < 80:
             recommendations.append("Conduct additional security review and testing")
@@ -408,13 +348,12 @@ class ComprehensiveSecurityValidator:
 
     def save_results(self, report: dict):
         """Save test results to files"""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
         # Save comprehensive report
         report_file = f"security_validation_report_{timestamp}.json"
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
-
 
         # Save summary report
         summary = {
@@ -422,21 +361,14 @@ class ComprehensiveSecurityValidator:
             "overall_score": report["validation_summary"]["overall_score"],
             "status": report["validation_summary"]["status"],
             "production_ready": report["validation_summary"]["production_ready"],
-            "task_101_score": report["task_results"]["task_101_authentication"][
-                "score"
-            ],
-            "task_102_score": report["task_results"]["task_102_security_framework"][
-                "score"
-            ],
-            "total_vulnerabilities": report["security_metrics"][
-                "total_vulnerabilities"
-            ],
+            "task_101_score": report["task_results"]["task_101_authentication"]["score"],
+            "task_102_score": report["task_results"]["task_102_security_framework"]["score"],
+            "total_vulnerabilities": report["security_metrics"]["total_vulnerabilities"],
         }
 
         summary_file = f"security_validation_summary_{timestamp}.json"
         with open(summary_file, "w") as f:
             json.dump(summary, f, indent=2)
-
 
     def print_summary(self, report: dict):
         """Print comprehensive test summary"""
@@ -445,7 +377,6 @@ class ComprehensiveSecurityValidator:
 
         report["task_results"]["task_101_authentication"]
         report["task_results"]["task_102_security_framework"]
-
 
         report["security_metrics"]
 
@@ -456,7 +387,6 @@ class ComprehensiveSecurityValidator:
         if report["next_steps"]:
             for _step in report["next_steps"]:
                 pass
-
 
 
 async def main():
@@ -478,5 +408,4 @@ async def main():
 
 
 if __name__ == "__main__":
-
     asyncio.run(main())

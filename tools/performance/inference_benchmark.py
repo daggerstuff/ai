@@ -10,7 +10,7 @@ import json
 import statistics
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import aiohttp
 import numpy as np
@@ -132,9 +132,7 @@ class InferenceBenchmark:
             },
         }
 
-    async def make_request(
-        self, session: aiohttp.ClientSession, scenario: str
-    ) -> RequestResult:
+    async def make_request(self, session: aiohttp.ClientSession, scenario: str) -> RequestResult:
         """Make a single inference request"""
         start_time = time.time()
 
@@ -201,9 +199,7 @@ class InferenceBenchmark:
             # Create request tasks
             tasks = []
             for i in range(self.config.num_requests):
-                scenario = self.config.test_scenarios[
-                    i % len(self.config.test_scenarios)
-                ]
+                scenario = self.config.test_scenarios[i % len(self.config.test_scenarios)]
                 tasks.append(self.make_request(session, scenario))
 
             # Execute with concurrency limit
@@ -306,7 +302,6 @@ class InferenceBenchmark:
 
         # SLO Compliance
 
-
         # Scenario breakdown
         if results.scenario_results:
             for _scenario, _metrics in results.scenario_results.items():
@@ -314,23 +309,16 @@ class InferenceBenchmark:
 
         # Errors
         if results.errors:
-            for _error, _count in sorted(
-                results.errors.items(), key=lambda x: x[1], reverse=True
-            ):
+            for _error, _count in sorted(results.errors.items(), key=lambda x: x[1], reverse=True):
                 pass
 
         # Overall assessment
 
-        overall_pass = (
-            results.success_rate >= 99.0
-            and results.p95_latency < 2.0
-            and results.p99_latency < 3.0
-        )
+        overall_pass = results.success_rate >= 99.0 and results.p95_latency < 2.0 and results.p99_latency < 3.0
 
         if overall_pass:
             pass
         else:
-
             if results.success_rate < 99.0:
                 pass
             if results.p95_latency >= 2.0:
@@ -338,11 +326,10 @@ class InferenceBenchmark:
             if results.p99_latency >= 3.0:
                 pass
 
-
     def save_results(self, results: BenchmarkResults, output_file: str):
         """Save results to JSON file"""
         output = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "config": asdict(self.config),
             "results": asdict(results),
             "raw_results": [asdict(r) for r in self.results],
@@ -352,33 +339,20 @@ class InferenceBenchmark:
             json.dump(output, f, indent=2)
 
 
-
 async def main():
     parser = argparse.ArgumentParser(description="AI Inference Performance Benchmark")
-    parser.add_argument(
-        "--endpoint", default="http://localhost:8000", help="API endpoint URL"
-    )
-    parser.add_argument(
-        "--requests", type=int, default=1000, help="Number of requests to make"
-    )
-    parser.add_argument(
-        "--concurrency", type=int, default=10, help="Number of concurrent requests"
-    )
-    parser.add_argument(
-        "--timeout", type=float, default=10.0, help="Request timeout in seconds"
-    )
-    parser.add_argument(
-        "--warmup", type=int, default=10, help="Number of warmup requests"
-    )
+    parser.add_argument("--endpoint", default="http://localhost:8000", help="API endpoint URL")
+    parser.add_argument("--requests", type=int, default=1000, help="Number of requests to make")
+    parser.add_argument("--concurrency", type=int, default=10, help="Number of concurrent requests")
+    parser.add_argument("--timeout", type=float, default=10.0, help="Request timeout in seconds")
+    parser.add_argument("--warmup", type=int, default=10, help="Number of warmup requests")
     parser.add_argument(
         "--scenarios",
         nargs="+",
         default=["simple", "medium", "complex"],
         help="Test scenarios to run",
     )
-    parser.add_argument(
-        "--output", default="benchmark_results.json", help="Output file for results"
-    )
+    parser.add_argument("--output", default="benchmark_results.json", help="Output file for results")
 
     args = parser.parse_args()
 

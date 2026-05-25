@@ -383,10 +383,12 @@ class TestFixer:
 
         return self.fixes_applied
 
+
 def main():
     """Main entry point."""
     fixer = TestFixer()
     fixer.run_all_fixes()
+
 
 if __name__ == "__main__":
     main()

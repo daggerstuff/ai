@@ -2,7 +2,7 @@
 Unit tests for the Dataset Evaluation Engine.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -68,7 +68,7 @@ class TestDatasetEvaluationEngine:
             keywords=["therapy", "counseling", "mental health", "transcripts"],
             open_access=True,
             data_availability="available",
-            discovery_date=datetime.now(timezone.utc),
+            discovery_date=datetime.now(UTC),
             discovery_method="pubmed_search",
         )
 
@@ -99,7 +99,7 @@ class TestDatasetEvaluationEngine:
             keywords=["cbt", "cognitive behavioral therapy", "transcripts", "evidence-based"],
             open_access=True,
             data_availability="available",
-            discovery_date=datetime.now(timezone.utc),
+            discovery_date=datetime.now(UTC),
             discovery_method="repository_api",
         )
 
@@ -128,7 +128,7 @@ class TestDatasetEvaluationEngine:
             keywords=[],
             open_access=False,
             data_availability="unknown",
-            discovery_date=datetime.now(timezone.utc),
+            discovery_date=datetime.now(UTC),
             discovery_method="citation",
         )
 
@@ -205,7 +205,7 @@ class TestDatasetEvaluationEngine:
             source_id="test",
             title="Therapy Session Transcripts",
             authors=[],
-            publication_date=datetime.now(timezone.utc),
+            publication_date=datetime.now(UTC),
             source_type="journal",
             url="https://example.com",
             abstract="Cognitive behavioral therapy transcripts with patient-counselor dialogues",
@@ -225,7 +225,7 @@ class TestDatasetEvaluationEngine:
             source_id="test",
             title="Test Dataset",
             authors=["Author 1"],
-            publication_date=datetime.now(timezone.utc),
+            publication_date=datetime.now(UTC),
             source_type="repository",
             url="https://example.com",
             doi="10.1000/test",
@@ -246,7 +246,7 @@ class TestDatasetEvaluationEngine:
             source_id="test",
             title="Test Dataset",
             authors=[],
-            publication_date=datetime.now(timezone.utc),
+            publication_date=datetime.now(UTC),
             source_type="repository",
             url="https://example.com",
             abstract="Test",
@@ -266,7 +266,7 @@ class TestDatasetEvaluationEngine:
             source_id="test",
             title="Test Dataset",
             authors=[],
-            publication_date=datetime.now(timezone.utc),
+            publication_date=datetime.now(UTC),
             source_type="journal",
             url="https://example.com",
             doi="10.1000/test",
@@ -289,4 +289,3 @@ class TestDatasetEvaluationEngine:
         # The sample source should have some advantages
         if evaluation.therapeutic_relevance >= 7:
             assert len(evaluation.competitive_advantages) > 0
-

@@ -129,14 +129,14 @@ class DatasetEvaluation:
             "therapeutic_relevance": 0.35,
             "data_structure_quality": 0.25,
             "training_integration": 0.20,
-            "ethical_accessibility": 0.20
+            "ethical_accessibility": 0.20,
         }
 
         overall = (
-            self.therapeutic_relevance * weights["therapeutic_relevance"] +
-            self.data_structure_quality * weights["data_structure_quality"] +
-            self.training_integration * weights["training_integration"] +
-            self.ethical_accessibility * weights["ethical_accessibility"]
+            self.therapeutic_relevance * weights["therapeutic_relevance"]
+            + self.data_structure_quality * weights["data_structure_quality"]
+            + self.training_integration * weights["training_integration"]
+            + self.ethical_accessibility * weights["ethical_accessibility"]
         )
 
         return round(overall, 2)

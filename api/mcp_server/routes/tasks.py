@@ -38,9 +38,7 @@ def create_task():
 
         task_orchestrator = g.task_orchestrator
         if not task_orchestrator:
-            return jsonify(
-                {"success": False, "error": "Task orchestrator not initialized"}
-            ), 500
+            return jsonify({"success": False, "error": "Task orchestrator not initialized"}), 500
 
         task = asyncio_run(task_orchestrator.create_task(task_data))
 
@@ -58,14 +56,10 @@ def get_task_status(task_id):
     try:
         task_orchestrator = g.task_orchestrator
         if not task_orchestrator:
-            return jsonify(
-                {"success": False, "error": "Task orchestrator not initialized"}
-            ), 500
+            return jsonify({"success": False, "error": "Task orchestrator not initialized"}), 500
 
         # Direct lookup in MongoDB via task_orchestrator's internal queue/client
-        task_data = asyncio_run(
-            task_orchestrator.mongodb.find_one("tasks", {"id": task_id})
-        )
+        task_data = asyncio_run(task_orchestrator.mongodb.find_one("tasks", {"id": task_id}))
 
         if not task_data:
             return jsonify({"success": False, "error": "Task not found"}), 404
@@ -95,15 +89,11 @@ def update_progress(task_id):
         try:
             status = TaskStatus(status_val) if status_val else TaskStatus.RUNNING
         except ValueError:
-            return jsonify(
-                {"success": False, "error": f"Invalid status: {status_val}"}
-            ), 400
+            return jsonify({"success": False, "error": f"Invalid status: {status_val}"}), 400
 
         task_orchestrator = g.task_orchestrator
         if not task_orchestrator:
-            return jsonify(
-                {"success": False, "error": "Task orchestrator not initialized"}
-            ), 500
+            return jsonify({"success": False, "error": "Task orchestrator not initialized"}), 500
 
         success = asyncio_run(
             task_orchestrator.update_task_progress(

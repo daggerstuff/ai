@@ -365,6 +365,7 @@ class TrainingReadinessGates:
         if safety < thresholds["safety_floor"]:
             violations.append(
                 f"safety {safety:.2f} < floor {thresholds['safety_floor']}"
+            )
         if clinical_validity < thresholds["safety_floor"]:
             violations.append(
                 f"clinical validity {clinical_validity:.2f} < floor "
@@ -430,30 +431,6 @@ class TrainingReadinessGates:
 
         return self._check_quality_floors(
             {"empathy_score": empathy, "clinical_score": clinical, "safety_score": safety},
-        validator = ClinicalAccuracyValidator()
-        clinical_validity_scores = []
-
-        for record in records:
-            text = record.get("text", "")
-            try:
-                clinical_validity_scores.append(validator.process(text).score)
-            except (TypeError, ValueError):
-                clinical_validity_scores.append(0.0)
-
-        clinical_validity = (
-            sum(clinical_validity_scores) / len(clinical_validity_scores)
-            if clinical_validity_scores
-            else 0.0
-        )
-
-        return self._check_quality_floors(
-            {
-                "empathy_score": empathy,
-                "clinical_score": clinical,
-                "clinical_validity_avg": clinical_validity,
-                "safety_avg": clinical_validity,
-                "safety_score": clinical_validity,
-            },
             thresholds,
             "",
         )

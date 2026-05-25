@@ -44,6 +44,7 @@ def update_domains_in_file(file_path):
     except Exception:
         return False
 
+
 def main():
     """Main function to update all documentation files."""
 
@@ -51,7 +52,7 @@ def main():
     search_dirs = [
         "/home/vivi/pixelated/ai/docs",
         "/home/vivi/pixelated/ai/inference/api",
-        "/home/vivi/pixelated/ai/infrastructure/qa/reports"
+        "/home/vivi/pixelated/ai/infrastructure/qa/reports",
     ]
 
     # File extensions to process
@@ -70,7 +71,6 @@ def main():
 
                         if update_domains_in_file(file_path):
                             updated_files.append(file_path)
-
 
     if updated_files:
         for file_path in updated_files:

@@ -41,9 +41,7 @@ async def search_datasets(
         # Note: limit param is not directly supported in the convenient function wrapper
         # but the underlying method does.
         # For now, we slice the result.
-        datasets = find_therapy_datasets(
-            query=q, min_turns=min_turns, min_quality=min_quality
-        )
+        datasets = find_therapy_datasets(query=q, min_turns=min_turns, min_quality=min_quality)
         return {"results": datasets[:limit], "total": len(datasets)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e

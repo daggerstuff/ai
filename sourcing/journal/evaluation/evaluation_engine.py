@@ -8,7 +8,7 @@ integration potential, and ethical accessibility.
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ai.sourcing.journal.models.dataset_models import (
     DatasetEvaluation,
@@ -20,6 +20,7 @@ try:
     from ai.sourcing.journal.compliance.compliance_checker import (
         ComplianceChecker,
     )
+
     COMPLIANCE_AVAILABLE = True
 except ImportError:
     COMPLIANCE_AVAILABLE = False
@@ -132,13 +133,8 @@ class EvaluationConfig:
         )
         if abs(total_weight - 1.0) > 0.01:
             errors.append(f"Evaluation weights must sum to 1.0, got {total_weight}")
-        if (
-            self.high_priority_threshold
-            <= self.medium_priority_threshold
-        ):
-            errors.append(
-                "high_priority_threshold must be greater than medium_priority_threshold"
-            )
+        if self.high_priority_threshold <= self.medium_priority_threshold:
+            errors.append("high_priority_threshold must be greater than medium_priority_threshold")
         return errors
 
 
@@ -178,9 +174,7 @@ class DatasetEvaluationEngine:
             logger.warning("Compliance checker provided but compliance module not available")
             self.compliance_checker = None
 
-    def evaluate_dataset(
-        self, source: DatasetSource, evaluator: str = "system"
-    ) -> DatasetEvaluation:
+    def evaluate_dataset(self, source: DatasetSource, evaluator: str = "system") -> DatasetEvaluation:
         """
         Evaluate a dataset source across all dimensions.
 
@@ -194,18 +188,10 @@ class DatasetEvaluationEngine:
         logger.info(f"Evaluating dataset: {source.source_id} - {source.title}")
 
         # Evaluate each dimension
-        therapeutic_relevance, therapeutic_notes = (
-            self._assess_therapeutic_relevance(source)
-        )
-        data_structure_quality, structure_notes = (
-            self._assess_data_structure_quality(source)
-        )
-        training_integration, integration_notes = (
-            self._assess_training_integration(source)
-        )
-        ethical_accessibility, ethical_notes = (
-            self._assess_ethical_accessibility(source)
-        )
+        therapeutic_relevance, therapeutic_notes = self._assess_therapeutic_relevance(source)
+        data_structure_quality, structure_notes = self._assess_data_structure_quality(source)
+        training_integration, integration_notes = self._assess_training_integration(source)
+        ethical_accessibility, ethical_notes = self._assess_ethical_accessibility(source)
 
         # Calculate overall score
         overall_score = self._calculate_overall_score(
@@ -288,7 +274,7 @@ class DatasetEvaluationEngine:
             ethical_notes=ethical_notes,
             overall_score=overall_score,
             priority_tier=priority_tier,
-            evaluation_date=datetime.now(timezone.utc),
+            evaluation_date=datetime.now(UTC),
             evaluator=evaluator,
             competitive_advantages=competitive_advantages,
             compliance_checked=compliance_checked,
@@ -305,15 +291,12 @@ class DatasetEvaluationEngine:
             raise ValueError(f"Invalid evaluation: {', '.join(eval_errors)}")
 
         logger.info(
-            f"Evaluation complete for {source.source_id}: "
-            f"overall_score={overall_score:.2f}, priority={priority_tier}"
+            f"Evaluation complete for {source.source_id}: overall_score={overall_score:.2f}, priority={priority_tier}"
         )
 
         return evaluation
 
-    def _assess_therapeutic_relevance(
-        self, source: DatasetSource
-    ) -> tuple[int, str]:
+    def _assess_therapeutic_relevance(self, source: DatasetSource) -> tuple[int, str]:
         """
         Assess therapeutic relevance of the dataset (1-10).
 
@@ -333,30 +316,20 @@ class DatasetEvaluationEngine:
 
         # Check title and abstract for therapeutic keywords
         text_to_check = f"{source.title} {source.abstract}".lower()
-        keyword_matches = sum(
-            1 for keyword in self.config.therapeutic_keywords if keyword in text_to_check
-        )
+        keyword_matches = sum(1 for keyword in self.config.therapeutic_keywords if keyword in text_to_check)
         # More generous scoring: base score on keyword density
         if keyword_matches > 0:
             keyword_density = min(1.0, keyword_matches / 10.0)  # Normalize to 0-1
             keyword_score = 3 + (keyword_density * 4)  # Score between 3-7
             score += keyword_score
-            notes_parts.append(
-                f"Found {keyword_matches} therapeutic keywords in title/abstract"
-            )
+            notes_parts.append(f"Found {keyword_matches} therapeutic keywords in title/abstract")
 
         # Check for evidence-based practice indicators (high value)
-        evidence_matches = sum(
-            1
-            for keyword in self.config.evidence_based_keywords
-            if keyword in text_to_check
-        )
+        evidence_matches = sum(1 for keyword in self.config.evidence_based_keywords if keyword in text_to_check)
         if evidence_matches > 0:
             evidence_score = min(3, evidence_matches * 0.8)  # Up to 3 points
             score += evidence_score
-            notes_parts.append(
-                f"Found {evidence_matches} evidence-based practice indicators"
-            )
+            notes_parts.append(f"Found {evidence_matches} evidence-based practice indicators")
 
         # Check content type (transcripts are highly relevant - base score)
         content_type_score = 0
@@ -387,9 +360,7 @@ class DatasetEvaluationEngine:
 
         return final_score, notes
 
-    def _assess_data_structure_quality(
-        self, source: DatasetSource
-    ) -> tuple[int, str]:
+    def _assess_data_structure_quality(self, source: DatasetSource) -> tuple[int, str]:
         """
         Assess data structure quality of the dataset (1-10).
 
@@ -461,9 +432,7 @@ class DatasetEvaluationEngine:
 
         return final_score, notes
 
-    def _assess_training_integration(
-        self, source: DatasetSource
-    ) -> tuple[int, str]:
+    def _assess_training_integration(self, source: DatasetSource) -> tuple[int, str]:
         """
         Assess training integration potential of the dataset (1-10).
 
@@ -523,9 +492,7 @@ class DatasetEvaluationEngine:
 
         return final_score, notes
 
-    def _assess_ethical_accessibility(
-        self, source: DatasetSource
-    ) -> tuple[int, str]:
+    def _assess_ethical_accessibility(self, source: DatasetSource) -> tuple[int, str]:
         """
         Assess ethical accessibility of the dataset (1-10).
 
@@ -557,9 +524,7 @@ class DatasetEvaluationEngine:
             notes_parts.append("Data available (no access restrictions)")
         elif source.data_availability == "upon_request":
             score += 1
-            notes_parts.append(
-                "Data upon request (may have usage restrictions to verify)"
-            )
+            notes_parts.append("Data upon request (may have usage restrictions to verify)")
         elif source.data_availability == "restricted":
             score -= 2
             notes_parts.append("Data restricted (ethical/legal review required)")
@@ -573,9 +538,7 @@ class DatasetEvaluationEngine:
             notes_parts.append("Reputable source (likely has proper anonymization)")
         elif source.source_type == "clinical_trial":
             score += 1
-            notes_parts.append(
-                "Clinical trial (should have IRB approval and anonymization)"
-            )
+            notes_parts.append("Clinical trial (should have IRB approval and anonymization)")
 
         # Check for DOI (formal publication usually has proper licensing)
         if source.doi:
@@ -667,10 +630,7 @@ class DatasetEvaluationEngine:
             advantages.append("Contains therapy session transcripts (rare and valuable)")
 
         # Evidence-based practices
-        if any(
-            keyword in text_to_check
-            for keyword in self.config.evidence_based_keywords
-        ):
+        if any(keyword in text_to_check for keyword in self.config.evidence_based_keywords):
             advantages.append("Aligned with evidence-based therapeutic practices")
 
         # Open access with available data
@@ -687,9 +647,7 @@ class DatasetEvaluationEngine:
 
         return advantages
 
-    def rank_datasets(
-        self, evaluations: list[DatasetEvaluation]
-    ) -> list[DatasetEvaluation]:
+    def rank_datasets(self, evaluations: list[DatasetEvaluation]) -> list[DatasetEvaluation]:
         """
         Rank datasets by overall score (descending).
 
@@ -701,9 +659,7 @@ class DatasetEvaluationEngine:
         """
         return sorted(evaluations, key=lambda e: e.overall_score, reverse=True)
 
-    def generate_evaluation_report(
-        self, evaluation: DatasetEvaluation, source: DatasetSource | None = None
-    ) -> str:
+    def generate_evaluation_report(self, evaluation: DatasetEvaluation, source: DatasetSource | None = None) -> str:
         """
         Generate a structured evaluation report in markdown format.
 
@@ -773,4 +729,3 @@ class DatasetEvaluationEngine:
             report_lines.append("")
 
         return "\n".join(report_lines)
-

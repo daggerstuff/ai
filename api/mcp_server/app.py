@@ -5,8 +5,9 @@ This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization
 specifically for agent interaction management.
 """
+
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, cast
 
 from flask import Flask, g, request
@@ -43,10 +44,7 @@ class MCPFlask(Flask):
 
     @property
     def error_recovery_manager(self) -> "MCPErrorRecoveryManager":
-        return cast(
-            "MCPErrorRecoveryManager",
-            self.extensions.get("error_recovery_manager")
-        )
+        return cast("MCPErrorRecoveryManager", self.extensions.get("error_recovery_manager"))
 
     @property
     def agent_manager(self) -> Any:
@@ -71,7 +69,6 @@ class MCPFlask(Flask):
     @property
     def socketio(self) -> SocketIO:
         return cast(SocketIO, self.extensions.get("socketio"))
-
 
 
 def create_mcp_app(config: MCPConfig | None = None) -> MCPFlask:
@@ -135,11 +132,7 @@ def create_mcp_app(config: MCPConfig | None = None) -> MCPFlask:
 
 def _validate_configuration(config: MCPConfig) -> None:
     """Validate required configuration parameters."""
-    required_vars = [
-        "SECRET_KEY",
-        "REDIS_URL",
-        "MONGODB_URI"
-    ]
+    required_vars = ["SECRET_KEY", "REDIS_URL", "MONGODB_URI"]
 
     missing_vars = []
     for var in required_vars:
@@ -160,9 +153,7 @@ def _init_extensions(app: MCPFlask, config: MCPConfig) -> None:
 
     # Initialize Redis client (separate from main TechDeck Redis)
     try:
-        app.extensions["redis_client"] = MCPRedisClient(
-            config.REDIS_URL, config.REDIS_DB
-        )
+        app.extensions["redis_client"] = MCPRedisClient(config.REDIS_URL, config.REDIS_DB)
         logger.debug("MCP Redis client initialized")
     except Exception as e:
         logger.error(f"Failed to initialize MCP Redis client: {e}")
@@ -170,9 +161,7 @@ def _init_extensions(app: MCPFlask, config: MCPConfig) -> None:
 
     # Initialize MongoDB client (separate from main TechDeck MongoDB)
     try:
-        app.extensions["mongodb_client"] = MCPMongoDBClient(
-            config.MONGODB_URI, config.MONGODB_DATABASE
-        )
+        app.extensions["mongodb_client"] = MCPMongoDBClient(config.MONGODB_URI, config.MONGODB_DATABASE)
         logger.debug("MCP MongoDB client initialized")
     except Exception as e:
         logger.error(f"Failed to initialize MCP MongoDB client: {e}")
@@ -190,12 +179,8 @@ def _init_extensions(app: MCPFlask, config: MCPConfig) -> None:
 
     try:
         agent_manager = AgentManager(app.redis_client, app.mongodb_client)
-        task_orchestrator = TaskOrchestrator(
-            agent_manager, app.redis_client, app.mongodb_client
-        )
-        pipeline_manager = PipelineIntegrationManager(
-            task_orchestrator, agent_manager
-        )
+        task_orchestrator = TaskOrchestrator(agent_manager, app.redis_client, app.mongodb_client)
+        pipeline_manager = PipelineIntegrationManager(task_orchestrator, agent_manager)
 
         # Inject into extensions for MCPFlask property access
         app.extensions["agent_manager"] = agent_manager
@@ -207,9 +192,7 @@ def _init_extensions(app: MCPFlask, config: MCPConfig) -> None:
         app.config["TASK_ORCHESTRATOR"] = task_orchestrator
         app.config["PIPELINE_MANAGER"] = pipeline_manager
 
-        logger.debug(
-            "MCP core managers initialized and injected into extensions/config"
-        )
+        logger.debug("MCP core managers initialized and injected into extensions/config")
     except Exception as e:
         logger.error(f"Failed to initialize MCP core managers: {e}")
         raise
@@ -221,12 +204,11 @@ def _register_blueprints(app: MCPFlask) -> None:
 
     # Import and register blueprints
 
-
     blueprints = [
         (agents_bp, "/api/v1/agents"),
         (tasks_bp, "/api/v1/tasks"),
         (pipeline_bp, "/api/v1/pipeline"),
-        (system_bp, "/api/v1/system")
+        (system_bp, "/api/v1/system"),
     ]
 
     for blueprint, url_prefix in blueprints:
@@ -246,25 +228,23 @@ def _register_error_handlers(app: MCPFlask, config: MCPConfig) -> None:
             "error": {
                 "code": "NOT_FOUND",
                 "message": "The requested resource was not found",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "path": request.path
-            }
+                "timestamp": datetime.now(UTC).isoformat(),
+                "path": request.path,
+            },
         }, 404
 
     @app.errorhandler(405)
     def method_not_allowed(error):
         """Handle 405 Method Not Allowed errors."""
-        method_message = (
-            f"Method {request.method} is not allowed for this endpoint"
-        )
+        method_message = f"Method {request.method} is not allowed for this endpoint"
         return {
             "success": False,
             "error": {
                 "code": "METHOD_NOT_ALLOWED",
                 "message": method_message,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "allowed_methods": getattr(error, "valid_methods", [])
-            }
+                "timestamp": datetime.now(UTC).isoformat(),
+                "allowed_methods": getattr(error, "valid_methods", []),
+            },
         }, 405
 
     @app.errorhandler(413)
@@ -275,16 +255,16 @@ def _register_error_handlers(app: MCPFlask, config: MCPConfig) -> None:
             "error": {
                 "code": "REQUEST_ENTITY_TOO_LARGE",
                 "message": "The request payload is too large",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 # Using agent limit as size reference
-                "max_size_mb": config.MAX_AGENTS_PER_USER
-            }
+                "max_size_mb": config.MAX_AGENTS_PER_USER,
+            },
         }, 413
 
     @app.errorhandler(500)
     def internal_server_error(error):
         """Handle 500 Internal Server Error."""
-        error_id = str(datetime.now(timezone.utc).timestamp())
+        error_id = str(datetime.now(UTC).timestamp())
         logger.error(f"Internal server error {error_id}: {error}")
 
         return {
@@ -292,10 +272,10 @@ def _register_error_handlers(app: MCPFlask, config: MCPConfig) -> None:
             "error": {
                 "code": "INTERNAL_ERROR",
                 "message": "An internal server error occurred",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "error_id": error_id,
-                "support_reference": error_id[:8]
-            }
+                "support_reference": error_id[:8],
+            },
         }, 500
 
     logger.debug("MCP error handlers registered")
@@ -326,9 +306,9 @@ def _register_hooks(app: MCPFlask) -> None:
     @app.before_request
     def before_request():
         """Execute before each request."""
-        g.start_time = datetime.now(timezone.utc)
+        g.start_time = datetime.now(UTC)
         request_id_header = request.headers.get("X-Request-ID")
-        g.request_id = request_id_header or str(datetime.now(timezone.utc).timestamp())
+        g.request_id = request_id_header or str(datetime.now(UTC).timestamp())
         g.agent_id = request.headers.get("X-Agent-ID")  # For agent-specific requests
 
         # Inject managers into g context for easier access in routes
@@ -343,27 +323,22 @@ def _register_hooks(app: MCPFlask) -> None:
     def after_request(response):
         """Execute after each request."""
         if hasattr(g, "start_time"):
-            duration = (datetime.now(timezone.utc) - g.start_time).total_seconds()
+            duration = (datetime.now(UTC) - g.start_time).total_seconds()
             response.headers["X-Response-Time"] = f"{duration:.3f}s"
             response.headers["X-Request-ID"] = g.request_id
 
             # Log response details
-            logger.info(
-                f"MCP Response {g.request_id}: {response.status_code} "
-                f"in {duration:.3f}s"
-            )
+            logger.info(f"MCP Response {g.request_id}: {response.status_code} in {duration:.3f}s")
 
         # Add security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
         # Add MCP-specific headers
         response.headers["X-MCP-Version"] = "1.0.0"
-        response.headers["X-MCP-Timestamp"] = datetime.now(timezone.utc).isoformat()
+        response.headers["X-MCP-Timestamp"] = datetime.now(UTC).isoformat()
 
         return response
 
@@ -390,7 +365,7 @@ def _init_websocket(app: MCPFlask, config: MCPConfig) -> None:
             cors_allowed_origins=config.ALLOWED_ORIGINS,
             ping_interval=config.WEBSOCKET_PING_INTERVAL,
             ping_timeout=config.WEBSOCKET_PING_TIMEOUT,
-            max_http_buffer_size=1024 * 1024  # 1MB buffer
+            max_http_buffer_size=1024 * 1024,  # 1MB buffer
         )
 
         # Initialize WebSocket manager
@@ -425,23 +400,17 @@ def _register_websocket_events(app: MCPFlask) -> None:
     @app.socketio.on("agent_status_subscribe")
     def handle_agent_status_subscribe(data):
         """Handle agent status subscription."""
-        app.websocket_manager.handle_agent_status_subscribe(
-            getattr(request, "sid", "unknown"), data
-        )
+        app.websocket_manager.handle_agent_status_subscribe(getattr(request, "sid", "unknown"), data)
 
     @app.socketio.on("task_progress_subscribe")
     def handle_task_progress_subscribe(data):
         """Handle task progress subscription."""
-        app.websocket_manager.handle_task_progress_subscribe(
-            getattr(request, "sid", "unknown"), data
-        )
+        app.websocket_manager.handle_task_progress_subscribe(getattr(request, "sid", "unknown"), data)
 
     @app.socketio.on("pipeline_updates_subscribe")
     def handle_pipeline_updates_subscribe(data):
         """Handle pipeline updates subscription."""
-        app.websocket_manager.handle_pipeline_updates_subscribe(
-            getattr(request, "sid", "unknown"), data
-        )
+        app.websocket_manager.handle_pipeline_updates_subscribe(getattr(request, "sid", "unknown"), data)
 
     logger.debug("WebSocket event handlers registered")
 
@@ -461,7 +430,7 @@ if __name__ == "__main__":
             host=config.HOST,
             port=config.PORT,
             debug=config.DEBUG,
-            use_reloader=False  # Disable reloader for production stability
+            use_reloader=False,  # Disable reloader for production stability
         )
     else:
         # Run standard Flask
@@ -470,5 +439,5 @@ if __name__ == "__main__":
             port=config.PORT,
             debug=config.DEBUG,
             threaded=True,
-            use_reloader=False  # Disable reloader for production stability
+            use_reloader=False,  # Disable reloader for production stability
         )

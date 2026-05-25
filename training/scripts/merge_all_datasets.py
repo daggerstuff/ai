@@ -8,6 +8,7 @@ Sources merged:
 - Transcripts (all_transcripts_chatml.jsonl)
 - CPTSD dataset (cptsd_dataset_from_transcripts.jsonl)
 - Long-running therapy sessions (long_running_therapy.jsonl)
+- Voice exports (ai/data/*_voice/exports/*_conversations.jsonl)
 - Professional therapeutic datasets (from S3)
 - Synthetic Nemotron3 conversations (if available)
 - NeMo Data Designer outputs (if available)
@@ -63,13 +64,41 @@ from datetime import datetime, timezone
 
 
 import argparse
+import glob
 import hashlib
 import json
 import logging
 import random
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any, Iterator
+
+# Voice export data directory pattern (ai/data/*_voice/exports/*_conversations.jsonl)
+VOICE_EXPORT_BASE = "ai/data"
+VOICE_EXPORT_GLOB = "*_voice/exports/*_conversations.jsonl"
+
+# Regex to detect duplicate name-variant files (e.g., patrick_teahan__conversations.jsonl)
+# These have underscores in place of spaces in the person name, creating duplicates
+_DUPLICATE_VARIANT_RE = re.compile(r"^[a-z_]+_([a-z_]+__|[a-z_]+___)conversations")
+
+
+def _discover_voice_export_files(project_root: Path) -> dict[str, Path]:
+    """Discover all unique voice export JSONL files, skipping duplicate name variants."""
+    files: dict[str, Path] = {}
+    search_path = str(project_root / VOICE_EXPORT_BASE / VOICE_EXPORT_GLOB)
+    for path_str in sorted(glob.iglob(search_path, recursive=False)):
+        p = Path(path_str)
+        name = p.name
+        # Skip duplicate name-variant files (e.g., patrick_teahan__conversations.jsonl)
+        if name.count("_") > 3 and not any(c.isupper() for c in name):
+            continue
+        voice_dir = p.relative_to(project_root / VOICE_EXPORT_BASE).parent.parent.name
+        source_key = f"voice_export_{voice_dir}"
+        if source_key not in files:
+            files[source_key] = p
+    return files
+
 
 # Default local generated datasets
 DEFAULT_LOCAL_SOURCES = {
@@ -101,6 +130,7 @@ S3_DATASET_SOURCES = {
 # Stage/phase mappings for curriculum training
 STAGE_MAPPINGS = {
     "transcripts": ("stage4_voice_personas", 4),
+    "voice_export_": ("stage4_voice_persona", 4),  # prefix for all voice exports
     "cptsd": ("stage6_specialized_domains", 6),
     "long_running": ("stage5_long_running_therapy", 5),
     "nemotron_synthetic": ("stage1_foundation", 1),
@@ -198,7 +228,14 @@ def _enrich_metadata(
         metadata = {}
     
     # Add merge-specific fields
-    stage_info = STAGE_MAPPINGS.get(source_name, ("stage1_foundation", 1))
+    stage_info = STAGE_MAPPINGS.get(source_name)
+    if stage_info is None:
+        # Try prefix-based match (e.g., voice_export_* -> voice_export_)
+        matching_key = next((k for k in STAGE_MAPPINGS if source_name.startswith(k)), None)
+        if matching_key is not None:
+            stage_info = STAGE_MAPPINGS[matching_key]
+    if stage_info is None:
+        stage_info = ("stage1_foundation", 1)
     
     metadata["merge_source"] = source_name
     metadata["merge_source_path"] = source_path
@@ -328,7 +365,7 @@ Examples:
         action="append",
         dest="sources",
         metavar="NAME",
-        help="Include specific source by name (repeatable). Names: transcripts, cptsd, long_running, nemotron_synthetic, nemo_data_designer",
+        help="Include specific source by name (repeatable). Names: transcripts, cptsd, long_running, nemotron_synthetic, nemo_data_designer. Voice exports loaded by default.",
     )
     parser.add_argument(
         "--include-s3-datasets",
@@ -527,6 +564,53 @@ def main() -> int:
         stats["sources_processed"][source_name] = source_count
         stats["sources_kept"][source_name] = source_kept
         logger.info(f"    ✓ Kept {source_kept:,} / {source_count:,} records")
+    
+    # Process voice export sources (ai/data/*_voice/exports/*_conversations.jsonl)
+    logger.info("")
+    logger.info("Processing voice export sources...")
+    voice_export_files = _discover_voice_export_files(project_root)
+    if not voice_export_files:
+        logger.info("  No voice export files found")
+    else:
+        for source_name, voice_path in voice_export_files.items():
+            logger.info(f"  {source_name}: {voice_path.name}")
+            source_count = 0
+            source_kept = 0
+            
+            for record in _iter_jsonl_file(voice_path):
+                source_count += 1
+                
+                total_seen = sum(stats["sources_processed"].values()) + source_count
+                if total_seen - last_progress >= PROGRESS_LOG_INTERVAL:
+                    logger.info(f"    Progress: {total_seen:,} seen, {len(all_records):,} kept")
+                    last_progress = total_seen
+                
+                if not _validate_record(record):
+                    stats["invalid_records"] += 1
+                    continue
+                
+                messages = record.get("messages", [])
+                content_hash = _content_hash(messages)
+                if content_hash in seen_hashes:
+                    stats["duplicates_removed"] += 1
+                    continue
+                seen_hashes.add(content_hash)
+                
+                record = _enrich_metadata(record, source_name, str(voice_path))
+                
+                stage = record.get("metadata", {}).get("phase", "unknown")
+                stats["stage_distribution"][stage] += 1
+                
+                all_records.append(record)
+                source_kept += 1
+                
+                if args.max_per_source > 0 and source_kept >= args.max_per_source:
+                    logger.info(f"    Reached limit of {args.max_per_source} for {source_name}")
+                    break
+            
+            stats["sources_processed"][source_name] = source_count
+            stats["sources_kept"][source_name] = source_kept
+            logger.info(f"    ✓ Kept {source_kept:,} / {source_count:,} records")
     
     # Process S3 sources if requested
     if args.include_s3_datasets and s3_loader and bucket:

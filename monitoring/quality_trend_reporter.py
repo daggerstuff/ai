@@ -10,7 +10,7 @@ import json
 import logging
 import warnings
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -75,9 +75,7 @@ class QualityTrendReporter:
             return self._create_empty_report()
 
         # Overall trend analysis
-        overall_trend = self.analyzer.analyze_overall_trend(
-            df, period=f"{days_back}_days"
-        )
+        overall_trend = self.analyzer.analyze_overall_trend(df, period=f"{days_back}_days")
 
         # Component-wise trend analysis
         component_trends = {}
@@ -86,9 +84,7 @@ class QualityTrendReporter:
                 component_df = df.dropna(subset=[component])
                 if not component_df.empty:
                     # Create daily aggregation for component
-                    daily_component = (
-                        component_df.groupby("date")[component].mean().reset_index()
-                    )
+                    daily_component = component_df.groupby("date")[component].mean().reset_index()
                     if len(daily_component) >= self.analyzer.min_data_points:
                         trend_stats = self.analyzer.calculate_trend_statistics(
                             daily_component[component], daily_component["date"]
@@ -105,25 +101,16 @@ class QualityTrendReporter:
                             slope=trend_stats["slope"],
                             r_squared=trend_stats["r_squared"],
                             quality_change=float(
-                                component_df[component].iloc[-7:].mean()
-                                - component_df[component].iloc[:7].mean()
+                                component_df[component].iloc[-7:].mean() - component_df[component].iloc[:7].mean()
                             ),
                             statistical_significance=trend_stats["p_value"],
                             confidence_interval=trend_stats["confidence_interval"],
-                            seasonal_patterns=self.analyzer.detect_seasonal_patterns(
-                                component_df, component
-                            ),
-                            anomalies=self.analyzer.detect_anomalies(
-                                component_df, component
-                            ),
-                            predictions=self.analyzer.generate_predictions(
-                                component_df, component
-                            )
+                            seasonal_patterns=self.analyzer.detect_seasonal_patterns(component_df, component),
+                            anomalies=self.analyzer.detect_anomalies(component_df, component),
+                            predictions=self.analyzer.generate_predictions(component_df, component)
                             if include_predictions
                             else [],
-                            recommendations=self.analyzer._generate_trend_recommendations(
-                                trend_stats, 0, []
-                            ),
+                            recommendations=self.analyzer._generate_trend_recommendations(trend_stats, 0, []),
                         )
 
         # Tier-wise trend analysis
@@ -131,9 +118,7 @@ class QualityTrendReporter:
         for tier in df["tier"].unique():
             tier_df = df[df["tier"] == tier]
             if len(tier_df) >= self.analyzer.min_data_points:
-                tier_trend = self.analyzer.analyze_overall_trend(
-                    tier_df, period=f"{days_back}_days_{tier}"
-                )
+                tier_trend = self.analyzer.analyze_overall_trend(tier_df, period=f"{days_back}_days_{tier}")
                 tier_trends[tier] = tier_trend
 
         # Dataset-wise trend analysis
@@ -141,9 +126,7 @@ class QualityTrendReporter:
         for dataset in df["dataset_name"].unique():
             dataset_df = df[df["dataset_name"] == dataset]
             if len(dataset_df) >= self.analyzer.min_data_points:
-                dataset_trend = self.analyzer.analyze_overall_trend(
-                    dataset_df, period=f"{days_back}_days_{dataset}"
-                )
+                dataset_trend = self.analyzer.analyze_overall_trend(dataset_df, period=f"{days_back}_days_{dataset}")
                 dataset_trends[dataset] = dataset_trend
 
         # Comparative analysis
@@ -152,19 +135,13 @@ class QualityTrendReporter:
         )
 
         # Generate summaries
-        executive_summary = self._generate_executive_summary(
-            overall_trend, component_trends, tier_trends
-        )
-        detailed_insights = self._generate_detailed_insights(
-            overall_trend, component_trends, comparative_analysis
-        )
-        action_items = self._generate_action_items(
-            overall_trend, component_trends, tier_trends
-        )
+        executive_summary = self._generate_executive_summary(overall_trend, component_trends, tier_trends)
+        detailed_insights = self._generate_detailed_insights(overall_trend, component_trends, comparative_analysis)
+        action_items = self._generate_action_items(overall_trend, component_trends, tier_trends)
 
         # Create comprehensive report
         report = QualityTrendReport(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             analysis_period=f"{days_back}_days",
             overall_trend=overall_trend,
             component_trends=component_trends,
@@ -200,7 +177,7 @@ class QualityTrendReporter:
         )
 
         return QualityTrendReport(
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             analysis_period="no_data",
             overall_trend=empty_trend,
             component_trends={},
@@ -208,9 +185,7 @@ class QualityTrendReporter:
             dataset_trends={},
             comparative_analysis={},
             executive_summary=["No quality data available for trend analysis"],
-            detailed_insights=[
-                "Please ensure quality validation has been run on conversations"
-            ],
+            detailed_insights=["Please ensure quality validation has been run on conversations"],
             action_items=["Run quality validation pipeline to generate trend data"],
         )
 
@@ -236,12 +211,8 @@ class QualityTrendReporter:
                 }
 
             # Find best and worst performing components
-            best_component = max(
-                component_performance.items(), key=lambda x: x[1]["quality_change"]
-            )
-            worst_component = min(
-                component_performance.items(), key=lambda x: x[1]["quality_change"]
-            )
+            best_component = max(component_performance.items(), key=lambda x: x[1]["quality_change"])
+            worst_component = min(component_performance.items(), key=lambda x: x[1]["quality_change"])
 
             analysis["component_performance"] = {
                 "all_components": component_performance,
@@ -267,12 +238,8 @@ class QualityTrendReporter:
                 }
 
             # Find best and worst performing tiers
-            best_tier = max(
-                tier_performance.items(), key=lambda x: x[1]["quality_change"]
-            )
-            worst_tier = min(
-                tier_performance.items(), key=lambda x: x[1]["quality_change"]
-            )
+            best_tier = max(tier_performance.items(), key=lambda x: x[1]["quality_change"])
+            worst_tier = min(tier_performance.items(), key=lambda x: x[1]["quality_change"])
 
             analysis["tier_performance"] = {
                 "all_tiers": tier_performance,
@@ -326,60 +293,42 @@ class QualityTrendReporter:
 
         # Quality change summary
         if abs(overall_trend.quality_change) > 0.05:
-            change_direction = (
-                "improvement" if overall_trend.quality_change > 0 else "decline"
-            )
+            change_direction = "improvement" if overall_trend.quality_change > 0 else "decline"
             summary.append(
                 f"📈 Significant quality {change_direction} of {abs(overall_trend.quality_change):.3f} points detected."
             )
 
         # Statistical significance
         if overall_trend.statistical_significance < 0.05:
-            summary.append(
-                "📊 Trend is statistically significant with high confidence."
-            )
+            summary.append("📊 Trend is statistically significant with high confidence.")
         else:
             summary.append("⚠️ Trend lacks statistical significance - more data needed.")
 
         # Component insights
         if component_trends:
             improving_components = [
-                name
-                for name, trend in component_trends.items()
-                if trend.trend_direction == "improving"
+                name for name, trend in component_trends.items() if trend.trend_direction == "improving"
             ]
             declining_components = [
-                name
-                for name, trend in component_trends.items()
-                if trend.trend_direction == "declining"
+                name for name, trend in component_trends.items() if trend.trend_direction == "declining"
             ]
 
             if improving_components:
-                summary.append(
-                    f"📈 Improving components: {', '.join(improving_components[:3])}"
-                )
+                summary.append(f"📈 Improving components: {', '.join(improving_components[:3])}")
             if declining_components:
-                summary.append(
-                    f"📉 Declining components: {', '.join(declining_components[:3])}"
-                )
+                summary.append(f"📉 Declining components: {', '.join(declining_components[:3])}")
 
         # Tier insights
         if tier_trends:
             best_tier = max(tier_trends.items(), key=lambda x: x[1].quality_change)
             worst_tier = min(tier_trends.items(), key=lambda x: x[1].quality_change)
 
-            summary.append(
-                f"🏆 Best performing tier: {best_tier[0]} (+{best_tier[1].quality_change:.3f})"
-            )
-            summary.append(
-                f"⚠️ Worst performing tier: {worst_tier[0]} ({worst_tier[1].quality_change:.3f})"
-            )
+            summary.append(f"🏆 Best performing tier: {best_tier[0]} (+{best_tier[1].quality_change:.3f})")
+            summary.append(f"⚠️ Worst performing tier: {worst_tier[0]} ({worst_tier[1].quality_change:.3f})")
 
         # Anomaly summary
         if len(overall_trend.anomalies) > 0:
-            summary.append(
-                f"⚠️ {len(overall_trend.anomalies)} quality anomalies detected requiring attention."
-            )
+            summary.append(f"⚠️ {len(overall_trend.anomalies)} quality anomalies detected requiring attention.")
 
         return summary
 
@@ -393,9 +342,7 @@ class QualityTrendReporter:
         insights = []
 
         # Statistical insights
-        insights.append(
-            f"📊 Trend Analysis: R² = {overall_trend.r_squared:.3f}, Slope = {overall_trend.slope:.6f}"
-        )
+        insights.append(f"📊 Trend Analysis: R² = {overall_trend.r_squared:.3f}, Slope = {overall_trend.slope:.6f}")
         insights.append(
             f"📈 Confidence Interval: [{overall_trend.confidence_interval[0]:.6f}, {overall_trend.confidence_interval[1]:.6f}]"
         )
@@ -405,12 +352,8 @@ class QualityTrendReporter:
             dow_data = overall_trend.seasonal_patterns["day_of_week"]
             best_day = max(dow_data.items(), key=lambda x: x[1]["mean"])
             worst_day = min(dow_data.items(), key=lambda x: x[1]["mean"])
-            insights.append(
-                f"📅 Best quality day: {best_day[0]} ({best_day[1]['mean']:.3f})"
-            )
-            insights.append(
-                f"📅 Worst quality day: {worst_day[0]} ({worst_day[1]['mean']:.3f})"
-            )
+            insights.append(f"📅 Best quality day: {best_day[0]} ({best_day[1]['mean']:.3f})")
+            insights.append(f"📅 Worst quality day: {worst_day[0]} ({worst_day[1]['mean']:.3f})")
 
         # Component-specific insights
         if component_trends:
@@ -461,26 +404,18 @@ class QualityTrendReporter:
         # Component-specific actions
         if component_trends:
             declining_components = [
-                (name, trend)
-                for name, trend in component_trends.items()
-                if trend.trend_direction == "declining"
+                (name, trend) for name, trend in component_trends.items() if trend.trend_direction == "declining"
             ]
 
             for component, trend in declining_components[:3]:  # Top 3 declining
-                actions.append(
-                    f"🔧 Focus improvement efforts on {component.replace('_', ' ')}"
-                )
+                actions.append(f"🔧 Focus improvement efforts on {component.replace('_', ' ')}")
 
         # Tier-specific actions
         if tier_trends:
-            worst_tiers = sorted(
-                tier_trends.items(), key=lambda x: x[1].quality_change
-            )[:2]
+            worst_tiers = sorted(tier_trends.items(), key=lambda x: x[1].quality_change)[:2]
             for tier, trend in worst_tiers:
                 if trend.trend_direction == "declining":
-                    actions.append(
-                        f"📋 Review data sources and processing for {tier} tier"
-                    )
+                    actions.append(f"📋 Review data sources and processing for {tier} tier")
 
         # Anomaly actions
         if len(overall_trend.anomalies) > 5:
@@ -494,9 +429,7 @@ class QualityTrendReporter:
 
         return actions
 
-    def create_trend_visualizations(
-        self, report: QualityTrendReport
-    ) -> dict[str, go.Figure]:
+    def create_trend_visualizations(self, report: QualityTrendReport) -> dict[str, go.Figure]:
         """Create comprehensive trend visualizations."""
         visualizations = {}
 
@@ -532,19 +465,10 @@ class QualityTrendReporter:
             )
 
             # Add predictions
-            pred_dates = [
-                datetime.strptime(p["date"], "%Y-%m-%d")
-                for p in report.overall_trend.predictions
-            ]
-            pred_values = [
-                p["predicted_value"] for p in report.overall_trend.predictions
-            ]
-            pred_upper = [
-                p["confidence_upper"] for p in report.overall_trend.predictions
-            ]
-            pred_lower = [
-                p["confidence_lower"] for p in report.overall_trend.predictions
-            ]
+            pred_dates = [datetime.strptime(p["date"], "%Y-%m-%d") for p in report.overall_trend.predictions]
+            pred_values = [p["predicted_value"] for p in report.overall_trend.predictions]
+            pred_upper = [p["confidence_upper"] for p in report.overall_trend.predictions]
+            pred_lower = [p["confidence_lower"] for p in report.overall_trend.predictions]
 
             # Prediction line
             fig.add_trace(
@@ -606,12 +530,8 @@ class QualityTrendReporter:
             fig = go.Figure()
 
             tiers = list(report.tier_trends.keys())
-            quality_changes = [
-                trend.quality_change for trend in report.tier_trends.values()
-            ]
-            trend_strengths = [
-                trend.trend_strength for trend in report.tier_trends.values()
-            ]
+            quality_changes = [trend.quality_change for trend in report.tier_trends.values()]
+            trend_strengths = [trend.trend_strength for trend in report.tier_trends.values()]
 
             fig.add_trace(
                 go.Scatter(
@@ -644,7 +564,7 @@ class QualityTrendReporter:
 
     def save_report(self, report: QualityTrendReport, format: str = "json") -> str:
         """Save trend report to file."""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
         if format == "json":
             filename = f"quality_trend_report_{timestamp}.json"
@@ -673,9 +593,7 @@ class QualityTrendReporter:
         """Generate HTML report from trend analysis."""
         template = Template(self.report_templates["detailed"])
 
-        return template.render(
-            report=report, generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-        )
+        return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
     def _get_executive_template(self) -> str:
         """Get executive summary template."""
@@ -799,7 +717,6 @@ def main():
     # Save report
     reporter.save_report(report, format="json")
     reporter.save_report(report, format="html")
-
 
     # Display summary
     for _item in report.executive_summary:

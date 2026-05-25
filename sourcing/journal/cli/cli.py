@@ -1,6 +1,7 @@
 """
 Main CLI interface for journal dataset research system.
 """
+
 import json
 import logging
 import sys
@@ -280,4 +281,3 @@ def config_get(_ctx: click.Context, key: str) -> None:
 
 if __name__ == "__main__":
     cli()
-

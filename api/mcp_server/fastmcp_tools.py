@@ -34,6 +34,7 @@ def _search_scoped_memories(
         limit=limit,
     )
 
+
 class MemoryStoreRequest(BaseModel):
     content: str = Field(description="The significant fact, preference, or insight to store.")
     user_id: str = Field(description="Unique identifier for the user.")

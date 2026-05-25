@@ -7,7 +7,7 @@ Provides common functionality for all repository and journal API clients.
 import hashlib
 import logging
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import requests
@@ -29,11 +29,11 @@ class CacheEntry:
             ttl_seconds: Time to live in seconds (default 5 minutes)
         """
         self.value = value
-        self.expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+        self.expires_at = datetime.now(UTC) + timedelta(seconds=ttl_seconds)
 
     def is_expired(self) -> bool:
         """Check if cache entry has expired."""
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
 
 class RequestCache:
@@ -107,11 +107,7 @@ class RequestCache:
 
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
-        return {
-            "size": len(self._cache),
-            "max_size": self.max_size,
-            "default_ttl": self.default_ttl
-        }
+        return {"size": len(self._cache), "max_size": self.max_size, "default_ttl": self.default_ttl}
 
 
 class APIError(Exception):
@@ -157,13 +153,7 @@ class BaseAPIClient:
         self._cache = RequestCache() if enable_cache else None
 
         # Statistics
-        self._stats = {
-            "requests_made": 0,
-            "cache_hits": 0,
-            "cache_misses": 0,
-            "errors": 0,
-            "rate_limit_waits": 0
-        }
+        self._stats = {"requests_made": 0, "cache_hits": 0, "cache_misses": 0, "errors": 0, "rate_limit_waits": 0}
 
     def _rate_limit_wait(self) -> None:
         """Enforce rate limiting between requests."""
@@ -209,7 +199,7 @@ class BaseAPIClient:
         method: str = "GET",
         use_cache: bool = True,
         cache_ttl: int | None = None,
-        attempt: int = 1
+        attempt: int = 1,
     ) -> requests.Response:
         """
         Make HTTP request with retry logic and caching.
@@ -268,9 +258,7 @@ class BaseAPIClient:
             if e.response and e.response.status_code == 429:
                 self._stats["errors"] += 1
                 raise RateLimitError(
-                    f"Rate limit exceeded for {self.service_name}",
-                    status_code=429,
-                    response=e.response
+                    f"Rate limit exceeded for {self.service_name}", status_code=429, response=e.response
                 )
 
             # Retry on server errors
@@ -282,7 +270,7 @@ class BaseAPIClient:
             raise APIError(
                 f"{self.service_name} request failed: {e}",
                 status_code=e.response.status_code if e.response else None,
-                response=e.response
+                response=e.response,
             )
 
         except requests.RequestException as e:
@@ -296,7 +284,7 @@ class BaseAPIClient:
         use_cache: bool,
         cache_ttl: int | None,
         attempt: int,
-        error: Exception
+        error: Exception,
     ) -> requests.Response:
         """
         Retry failed request with exponential backoff.
@@ -354,9 +342,7 @@ class BaseAPIClient:
             # Calculate cache hit rate
             total_cache_requests = stats["cache_hits"] + stats["cache_misses"]
             if total_cache_requests > 0:
-                stats["cache_hit_rate"] = round(
-                    stats["cache_hits"] / total_cache_requests * 100, 2
-                )
+                stats["cache_hit_rate"] = round(stats["cache_hits"] / total_cache_requests * 100, 2)
             else:
                 stats["cache_hit_rate"] = 0.0
 
@@ -364,10 +350,4 @@ class BaseAPIClient:
 
     def reset_stats(self) -> None:
         """Reset statistics counters."""
-        self._stats = {
-            "requests_made": 0,
-            "cache_hits": 0,
-            "cache_misses": 0,
-            "errors": 0,
-            "rate_limit_waits": 0
-        }
+        self._stats = {"requests_made": 0, "cache_hits": 0, "cache_misses": 0, "errors": 0, "rate_limit_waits": 0}

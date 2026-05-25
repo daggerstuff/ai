@@ -36,9 +36,7 @@ class TestProgressTracker:
 
         assert operation_id.startswith("Test Operation_")
         assert operation_id in tracker._progress_reports
-        assert (
-            tracker._progress_reports[operation_id].operation_name == "Test Operation"
-        )
+        assert tracker._progress_reports[operation_id].operation_name == "Test Operation"
         assert tracker._progress_reports[operation_id].total_steps == 5
         assert tracker._progress_reports[operation_id].completed_steps == 0
 
@@ -48,18 +46,14 @@ class TestProgressTracker:
         operation_id = tracker.track_operation("Test Operation", 3)
 
         # Test PENDING to RUNNING
-        tracker.update_step(
-            operation_id, "step1", ProgressStatus.RUNNING, "Running step 1"
-        )
+        tracker.update_step(operation_id, "step1", ProgressStatus.RUNNING, "Running step 1")
         step = tracker._progress_reports[operation_id].steps[0]
         assert step.status == ProgressStatus.RUNNING
         assert step.start_time is not None
         assert step.end_time is None
 
         # Test RUNNING to COMPLETED
-        tracker.update_step(
-            operation_id, "step1", ProgressStatus.COMPLETED, "Completed step 1"
-        )
+        tracker.update_step(operation_id, "step1", ProgressStatus.COMPLETED, "Completed step 1")
         step = tracker._progress_reports[operation_id].steps[0]
         assert step.status == ProgressStatus.COMPLETED
         assert step.end_time is not None
@@ -71,9 +65,7 @@ class TestProgressTracker:
         operation_id = tracker.track_operation("Test Operation", 2)
 
         # Complete first step
-        tracker.update_step(
-            operation_id, "step1", ProgressStatus.COMPLETED, "Step 1 completed"
-        )
+        tracker.update_step(operation_id, "step1", ProgressStatus.COMPLETED, "Step 1 completed")
 
         # Fail second step
         tracker.update_step(
@@ -174,9 +166,7 @@ class TestProgressTracker:
             ]
         }
 
-        operation_id = tracker.track_pipeline_execution(
-            pipeline_config, "Pipeline Test"
-        )
+        operation_id = tracker.track_pipeline_execution(pipeline_config, "Pipeline Test")
 
         report = tracker.get_progress_report(operation_id)
 
@@ -346,9 +336,7 @@ class TestProgressDataClasses:
 
     def test_progress_report_creation(self):
         """Test ProgressReport creation"""
-        report = ProgressReport(
-            operation_id="test_op_123", operation_name="Test Operation", total_steps=5
-        )
+        report = ProgressReport(operation_id="test_op_123", operation_name="Test Operation", total_steps=5)
 
         assert report.operation_id == "test_op_123"
         assert report.operation_name == "Test Operation"
@@ -438,9 +426,7 @@ class TestProgressPerformance:
 class TestProgressIntegration:
     """Integration tests for progress tracking"""
 
-    def test_progress_with_pipeline_integration(
-        self, mock_config, _mock_pipeline_manager
-    ):
+    def test_progress_with_pipeline_integration(self, mock_config, _mock_pipeline_manager):
         """Test progress tracking with pipeline manager integration"""
         tracker = ProgressTracker(mock_config)
 
@@ -490,17 +476,11 @@ class TestProgressIntegration:
         # Simulate authentication steps
         tracker.update_step(operation_id, "login", ProgressStatus.RUNNING, "Logging in")
         # Simulate successful login
-        tracker.update_step(
-            operation_id, "login", ProgressStatus.COMPLETED, "Login successful"
-        )
+        tracker.update_step(operation_id, "login", ProgressStatus.COMPLETED, "Login successful")
 
-        tracker.update_step(
-            operation_id, "token_validation", ProgressStatus.RUNNING, "Validating token"
-        )
+        tracker.update_step(operation_id, "token_validation", ProgressStatus.RUNNING, "Validating token")
         # Simulate successful validation
-        tracker.update_step(
-            operation_id, "token_validation", ProgressStatus.COMPLETED, "Token valid"
-        )
+        tracker.update_step(operation_id, "token_validation", ProgressStatus.COMPLETED, "Token valid")
 
         tracker.complete_operation(operation_id)
 

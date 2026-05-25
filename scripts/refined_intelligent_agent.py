@@ -31,10 +31,7 @@ class RefinedIntelligentAgent(IntelligentQAAgent):
             r"how would you respond to",
         ]
 
-        setup_found = any(
-            re.search(pattern, text, re.IGNORECASE)
-            for pattern in interview_setup_patterns
-        )
+        setup_found = any(re.search(pattern, text, re.IGNORECASE) for pattern in interview_setup_patterns)
         if setup_found:
             confidence += 0.3
             indicators.append("interview_setup")
@@ -57,20 +54,14 @@ class RefinedIntelligentAgent(IntelligentQAAgent):
                         r"the thing is[,\s]",
                     ]
 
-                    if any(
-                        re.search(indicator, after_question, re.IGNORECASE)
-                        for indicator in strong_indicators
-                    ):
+                    if any(re.search(indicator, after_question, re.IGNORECASE) for indicator in strong_indicators):
                         confidence += 0.4
                         indicators.append("strong_response_marker")
                         break
 
                     # Weaker response indicators
                     weak_indicators = [r"so[,\s]", r"what happens", r"because"]
-                    if any(
-                        re.search(indicator, after_question, re.IGNORECASE)
-                        for indicator in weak_indicators
-                    ):
+                    if any(re.search(indicator, after_question, re.IGNORECASE) for indicator in weak_indicators):
                         confidence += 0.2
                         indicators.append("weak_response_marker")
 
@@ -94,9 +85,7 @@ class RefinedIntelligentAgent(IntelligentQAAgent):
             r"my friend and (teacher|colleague)",
         ]
 
-        if any(
-            re.search(pattern, text, re.IGNORECASE) for pattern in professional_patterns
-        ):
+        if any(re.search(pattern, text, re.IGNORECASE) for pattern in professional_patterns):
             confidence += 0.1
             indicators.append("professional_context")
 
@@ -130,9 +119,7 @@ class RefinedIntelligentAgent(IntelligentQAAgent):
                 question = match.group(1).strip()
 
                 # Quality scoring based on pattern specificity
-                base_confidence = 0.9 - (
-                    i * 0.1
-                )  # Earlier patterns get higher confidence
+                base_confidence = 0.9 - (i * 0.1)  # Earlier patterns get higher confidence
 
                 # Additional quality factors
                 word_count = len(question.split())
@@ -278,7 +265,6 @@ def test_refined_agent():
     }
 
     agent.process_segment(test_segment)
-
 
 
 if __name__ == "__main__":

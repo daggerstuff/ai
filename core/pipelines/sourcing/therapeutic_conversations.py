@@ -40,4 +40,4 @@ class TherapeuticConversations:
         return self._items[:limit] if limit else list(self._items)
 
 
-__all__ = ["TherapeuticConversations", "TherapeuticConversation"]
+__all__ = ["TherapeuticConversation", "TherapeuticConversations"]

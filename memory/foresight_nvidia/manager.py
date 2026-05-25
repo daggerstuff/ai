@@ -9,7 +9,7 @@ only in the repository's local shared memory backend.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from openai import AsyncOpenAI, OpenAI
@@ -28,12 +28,8 @@ class NvidiaForesightConfig(BaseModel):
     """Configuration for NVIDIA NIM with shared local memory."""
 
     nvidia_api_key: str = Field(..., description="NVIDIA API key")
-    model_name: str = Field(
-        "meta/llama-3.1-405b-instruct", description="NVIDIA NIM model to use"
-    )
-    base_url: str = Field(
-        "https://integrate.api.nvidia.com/v1", description="NVIDIA NIM Base URL"
-    )
+    model_name: str = Field("meta/llama-3.1-405b-instruct", description="NVIDIA NIM model to use")
+    base_url: str = Field("https://integrate.api.nvidia.com/v1", description="NVIDIA NIM Base URL")
     user_id: str = Field("default_user", description="Default user ID for memory")
     db_path: str = Field(..., description="Path to the shared local memory database")
     bank_id: str = Field("pixelated", description="Shared memory bank identifier")
@@ -61,7 +57,6 @@ class NvidiaForesightManager:
     def __init__(self, config: NvidiaForesightConfig):
         self.config = config
         self.therapeutic_config = config.therapeutic_config or TherapeuticMemoryConfig()
-
 
         self.processor = TherapeuticProcessor(self.therapeutic_config)
         self.client = OpenAI(base_url=self.config.base_url, api_key=self.config.nvidia_api_key)
@@ -91,9 +86,7 @@ class NvidiaForesightManager:
     def _filter_for_storage(self, content: str) -> str | None:
         return self.interactions.filter_for_storage(content)
 
-    async def generate_content(
-        self, prompt: str, system_instruction: str | None = None
-    ) -> str:
+    async def generate_content(self, prompt: str, system_instruction: str | None = None) -> str:
         messages = []
         if system_instruction:
             messages.append({"role": "system", "content": system_instruction})
@@ -112,9 +105,7 @@ class NvidiaForesightManager:
 Your goal is to provide empathetic, validating, and safe support.
 Maintain professional boundaries and safety protocols at all times."""
 
-    async def get_response(
-        self, user_id: str, message: str, session_id: str | None = None
-    ) -> str:
+    async def get_response(self, user_id: str, message: str, session_id: str | None = None) -> str:
         memories = self.search_memories(message, user_id)
         facts = [m.get("memory", "") or m.get("content", "") for m in memories]
         system_prompt = self.processor.build_system_prompt(self._get_base_instructions(), facts)
@@ -160,9 +151,7 @@ Maintain professional boundaries and safety protocols at all times."""
         end = start + limit
         return entities[start:end]
 
-    def get_all_memories(
-        self, user_id: str, limit: int = 100, page: int = 1
-    ) -> list[dict[str, Any]]:
+    def get_all_memories(self, user_id: str, limit: int = 100, page: int = 1) -> list[dict[str, Any]]:
         offset = max(page - 1, 0) * limit
         if hasattr(self.memory, "get_all_memories_scoped"):
             return self.memory.get_all_memories_scoped(
@@ -173,9 +162,7 @@ Maintain professional boundaries and safety protocols at all times."""
         memories = self.memory.get_all_memories(user_id=user_id, limit=limit * max(page, 1))
         return self._paginate(memories, limit, page)
 
-    def search_memories(
-        self, query: str, user_id: str, limit: int = 10, page: int = 1
-    ) -> list[dict[str, Any]]:
+    def search_memories(self, query: str, user_id: str, limit: int = 10, page: int = 1) -> list[dict[str, Any]]:
         offset = max(page - 1, 0) * limit
         if hasattr(self.memory, "search_memories_scoped"):
             return self.memory.search_memories_scoped(
@@ -214,7 +201,7 @@ Maintain professional boundaries and safety protocols at all times."""
             return None
         full_metadata = self._memory_metadata(metadata)
         if "timestamp" not in full_metadata:
-            full_metadata["timestamp"] = datetime.now(timezone.utc).isoformat()
+            full_metadata["timestamp"] = datetime.now(UTC).isoformat()
         return self.memory.add_memory(
             filtered_content,
             user_id=user_id,

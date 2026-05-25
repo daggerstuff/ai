@@ -48,9 +48,7 @@ class DOIResolver:
         self.doi_org = "https://doi.org"
 
         self.session = requests.Session()
-        self.session.headers.update(
-            {"User-Agent": "PixelatedEmpathy/1.0 (Academic Research)"}
-        )
+        self.session.headers.update({"User-Agent": "PixelatedEmpathy/1.0 (Academic Research)"})
 
         logger.info("Initialized DOI Resolver")
 
@@ -135,9 +133,7 @@ class DOIResolver:
                 pages=message.get("page"),
                 abstract=message.get("abstract"),
                 url=f"https://doi.org/{doi}",
-                license=message.get("license", [{}])[0].get("URL")
-                if message.get("license")
-                else None,
+                license=message.get("license", [{}])[0].get("URL") if message.get("license") else None,
                 references_count=message.get("references-count", 0),
                 citations_count=message.get("is-referenced-by-count", 0),
                 raw_metadata=message,
@@ -180,9 +176,7 @@ class DOIResolver:
                 authors=authors,
                 publisher=attributes.get("publisher", "Unknown"),
                 publication_year=year,
-                publication_type=attributes.get("types", {}).get(
-                    "resourceTypeGeneral", "unknown"
-                ),
+                publication_type=attributes.get("types", {}).get("resourceTypeGeneral", "unknown"),
                 abstract=attributes.get("descriptions", [{}])[0].get("description")
                 if attributes.get("descriptions")
                 else None,
@@ -228,15 +222,11 @@ class DOISearcher:
         self.crossref_api = "https://api.crossref.org/works"
 
         self.session = requests.Session()
-        self.session.headers.update(
-            {"User-Agent": "PixelatedEmpathy/1.0 (Academic Research)"}
-        )
+        self.session.headers.update({"User-Agent": "PixelatedEmpathy/1.0 (Academic Research)"})
 
         logger.info("Initialized DOI Searcher")
 
-    def search(
-        self, query: str, filters: dict[str, Any] | None = None, limit: int = 20
-    ) -> list[DOIMetadata]:
+    def search(self, query: str, filters: dict[str, Any] | None = None, limit: int = 20) -> list[DOIMetadata]:
         """
         Search for DOIs by query
 
@@ -304,9 +294,7 @@ class DOISearcher:
         """Search for DOIs by author name"""
         return self.search(query=f"author:{author}", limit=limit)
 
-    def search_psychology_books(
-        self, query: str, year_from: int | None = None, limit: int = 20
-    ) -> list[DOIMetadata]:
+    def search_psychology_books(self, query: str, year_from: int | None = None, limit: int = 20) -> list[DOIMetadata]:
         """
         Search for psychology books
 
@@ -380,7 +368,6 @@ def _parse_crossref_item(_self, item: dict[str, Any]) -> DOIMetadata | None:
             citations_count=item.get("is-referenced-by-count", 0),
             raw_metadata=item,
         )
-
 
     except Exception as e:
         logger.warning(f"Error parsing CrossRef item: {e}")

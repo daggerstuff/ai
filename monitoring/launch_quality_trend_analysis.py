@@ -5,11 +5,12 @@ Quality Trend Analysis Launcher (Task 5.6.2.2)
 Enterprise-grade launcher for the quality trend analysis and reporting system
 with comprehensive setup, validation, and execution capabilities.
 """
+
 import argparse
 import logging
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from quality_trend_analyzer import QualityTrendAnalyzer
@@ -59,7 +60,15 @@ class QualityTrendAnalysisLauncher:
 
         for package in self.required_packages:
             try:
-                if package == "sqlite3" or package == "pandas" or package == "numpy" or package == "scipy" or package == "sklearn" or package == "plotly" or package == "jinja2":
+                if (
+                    package == "sqlite3"
+                    or package == "pandas"
+                    or package == "numpy"
+                    or package == "scipy"
+                    or package == "sklearn"
+                    or package == "plotly"
+                    or package == "jinja2"
+                ):
                     pass
 
                 logger.info(f"  ✅ {package}: Available")
@@ -70,10 +79,7 @@ class QualityTrendAnalysisLauncher:
 
         if missing_packages:
             logger.error(f"❌ Missing packages: {', '.join(missing_packages)}")
-            logger.info(
-                "💡 Install missing packages with: pip install "
-                + " ".join(missing_packages)
-            )
+            logger.info("💡 Install missing packages with: pip install " + " ".join(missing_packages))
             return False
 
         logger.info("✅ All dependencies available")
@@ -89,7 +95,6 @@ class QualityTrendAnalysisLauncher:
             return False
 
         try:
-
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
 
@@ -120,12 +125,8 @@ class QualityTrendAnalysisLauncher:
             days_with_data, total_conversations, earliest_date, latest_date = result
 
             if days_with_data < 7:
-                logger.error(
-                    f"❌ Insufficient data for trend analysis: only {days_with_data} days with quality data"
-                )
-                logger.info(
-                    "💡 Need at least 7 days of quality data for meaningful trend analysis"
-                )
+                logger.error(f"❌ Insufficient data for trend analysis: only {days_with_data} days with quality data")
+                logger.info("💡 Need at least 7 days of quality data for meaningful trend analysis")
                 conn.close()
                 return False
 
@@ -133,15 +134,11 @@ class QualityTrendAnalysisLauncher:
                 logger.error(
                     f"❌ Insufficient conversations for trend analysis: only {total_conversations} conversations"
                 )
-                logger.info(
-                    "💡 Need at least 50 conversations with quality data for trend analysis"
-                )
+                logger.info("💡 Need at least 50 conversations with quality data for trend analysis")
                 conn.close()
                 return False
 
-            logger.info(
-                f"✅ Database validated: {total_conversations} conversations across {days_with_data} days"
-            )
+            logger.info(f"✅ Database validated: {total_conversations} conversations across {days_with_data} days")
             logger.info(f"📅 Data range: {earliest_date} to {latest_date}")
             conn.close()
             return True
@@ -170,14 +167,10 @@ class QualityTrendAnalysisLauncher:
 
                 if filename == "quality_trend_analyzer.py":
                     if "QualityTrendAnalyzer" not in content:
-                        logger.error(
-                            f"❌ QualityTrendAnalyzer class not found in {filename}"
-                        )
+                        logger.error(f"❌ QualityTrendAnalyzer class not found in {filename}")
                         return False
                 elif filename == "quality_trend_reporter.py" and "QualityTrendReporter" not in content:
-                    logger.error(
-                        f"❌ QualityTrendReporter class not found in {filename}"
-                    )
+                    logger.error(f"❌ QualityTrendReporter class not found in {filename}")
                     return False
 
             except Exception as e:
@@ -200,7 +193,6 @@ class QualityTrendAnalysisLauncher:
         try:
             # Import trend analysis components
             sys.path.append(str(self.monitoring_dir))
-
 
             # Initialize components
             analyzer = QualityTrendAnalyzer(db_path=str(self.db_path))
@@ -246,7 +238,9 @@ class QualityTrendAnalysisLauncher:
 
                     # Save visualizations as HTML files
                     for viz_name, fig in visualizations.items():
-                        viz_filename = f"trend_visualization_{viz_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.html"
+                        viz_filename = (
+                            f"trend_visualization_{viz_name}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.html"
+                        )
                         viz_path = self.reports_dir / viz_filename
                         fig.write_html(str(viz_path))
                         visualization_files.append(str(viz_path))
@@ -283,7 +277,6 @@ class QualityTrendAnalysisLauncher:
         """Display analysis summary to console."""
         if not summary.get("success", False):
             return
-
 
         for _file_path in summary["report_files"]:
             pass
@@ -363,21 +356,15 @@ def main():
         default=90,
         help="Number of days to analyze (default: 90)",
     )
-    parser.add_argument(
-        "--no-predictions", action="store_true", help="Skip quality predictions"
-    )
-    parser.add_argument(
-        "--no-visualizations", action="store_true", help="Skip trend visualizations"
-    )
+    parser.add_argument("--no-predictions", action="store_true", help="Skip quality predictions")
+    parser.add_argument("--no-visualizations", action="store_true", help="Skip trend visualizations")
     parser.add_argument(
         "--format",
         choices=["json", "html", "both"],
         default="both",
         help="Output format",
     )
-    parser.add_argument(
-        "--skip-validation", action="store_true", help="Skip pre-analysis validation"
-    )
+    parser.add_argument("--skip-validation", action="store_true", help="Skip pre-analysis validation")
 
     args = parser.parse_args()
 

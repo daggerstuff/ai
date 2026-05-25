@@ -10,7 +10,7 @@ import socket
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -101,7 +101,7 @@ class HealthCheckManager:
                 component_type=ComponentType.EXTERNAL_SERVICE,
                 status=HealthStatus.UNKNOWN,
                 message=f"Component {component_name} not registered",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
         try:
@@ -121,7 +121,7 @@ class HealthCheckManager:
                 component_type=self.component_configs[component_name]["type"],
                 status=HealthStatus.HEALTHY,
                 message="Health check passed",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 response_time_ms=response_time,
                 details=result,
             )
@@ -135,7 +135,7 @@ class HealthCheckManager:
                 component_type=self.component_configs[component_name]["type"],
                 status=HealthStatus.UNHEALTHY,
                 message=str(e),
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 response_time_ms=response_time,
             )
 
@@ -144,10 +144,7 @@ class HealthCheckManager:
         logger.info("Running comprehensive system health check...")
 
         # Run all health checks concurrently
-        tasks = [
-            self.run_health_check(component_name)
-            for component_name in self.health_checks.keys()
-        ]
+        tasks = [self.run_health_check(component_name) for component_name in self.health_checks.keys()]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -171,7 +168,7 @@ class HealthCheckManager:
         # Create report
         report = SystemHealthReport(
             overall_status=overall_status,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             component_checks=valid_results,
             system_metrics=system_metrics,
             recommendations=recommendations,
@@ -181,17 +178,13 @@ class HealthCheckManager:
         self.check_history.extend(valid_results)
 
         # Keep only recent history (last 24 hours)
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=24)
-        self.check_history = [
-            check for check in self.check_history if check.timestamp > cutoff_time
-        ]
+        cutoff_time = datetime.now(UTC) - timedelta(hours=24)
+        self.check_history = [check for check in self.check_history if check.timestamp > cutoff_time]
 
         logger.info(f"Health check completed. Overall status: {overall_status.value}")
         return report
 
-    def _calculate_overall_health(
-        self, results: list[HealthCheckResult]
-    ) -> HealthStatus:
+    def _calculate_overall_health(self, results: list[HealthCheckResult]) -> HealthStatus:
         """Calculate overall system health from component checks"""
         if not results:
             return HealthStatus.UNKNOWN
@@ -260,18 +253,12 @@ class HealthCheckManager:
             logger.error(f"Failed to get system metrics: {e}")
             return {"error": str(e)}
 
-    def _generate_recommendations(
-        self, results: list[HealthCheckResult], system_metrics: dict[str, Any]
-    ) -> list[str]:
+    def _generate_recommendations(self, results: list[HealthCheckResult], system_metrics: dict[str, Any]) -> list[str]:
         """Generate recommendations based on health check results"""
         recommendations = []
 
         # Check for unhealthy components
-        unhealthy_components = [
-            result.component_name
-            for result in results
-            if result.status == HealthStatus.UNHEALTHY
-        ]
+        unhealthy_components = [result.component_name for result in results if result.status == HealthStatus.UNHEALTHY]
 
         if unhealthy_components:
             recommendations.append(
@@ -279,57 +266,38 @@ class HealthCheckManager:
             )
 
         # Check for degraded components
-        degraded_components = [
-            result.component_name
-            for result in results
-            if result.status == HealthStatus.DEGRADED
-        ]
+        degraded_components = [result.component_name for result in results if result.status == HealthStatus.DEGRADED]
 
         if degraded_components:
-            recommendations.append(
-                f"⚠️  Monitor degraded components: {', '.join(degraded_components)}"
-            )
+            recommendations.append(f"⚠️  Monitor degraded components: {', '.join(degraded_components)}")
 
         # Check system resource usage
         if "memory" in system_metrics and system_metrics["memory"]["percent"] > 85:
-            recommendations.append(
-                "⚠️  Memory usage is high. Consider scaling up or optimizing memory usage."
-            )
+            recommendations.append("⚠️  Memory usage is high. Consider scaling up or optimizing memory usage.")
 
         if "disk" in system_metrics and system_metrics["disk"]["percent"] > 85:
-            recommendations.append(
-                "⚠️  Disk usage is high. Consider cleaning up or adding more storage."
-            )
+            recommendations.append("⚠️  Disk usage is high. Consider cleaning up or adding more storage.")
 
         if "cpu" in system_metrics and system_metrics["cpu"]["percent"] > 85:
-            recommendations.append(
-                "⚠️  CPU usage is high. Consider scaling up or optimizing performance."
-            )
+            recommendations.append("⚠️  CPU usage is high. Consider scaling up or optimizing performance.")
 
         # If everything is healthy, provide positive feedback
         if not recommendations:
-            recommendations.append(
-                "✅ All system components are healthy. No immediate action required."
-            )
+            recommendations.append("✅ All system components are healthy. No immediate action required.")
 
         return recommendations
 
-    def get_health_history(
-        self, component_name: str = None, hours: int = 24
-    ) -> list[HealthCheckResult]:
+    def get_health_history(self, component_name: str = None, hours: int = 24) -> list[HealthCheckResult]:
         """Get health check history"""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         if component_name:
             return [
                 check
                 for check in self.check_history
-                if check.component_name == component_name
-                and check.timestamp > cutoff_time
+                if check.component_name == component_name and check.timestamp > cutoff_time
             ]
-        return [
-            check for check in self.check_history if check.timestamp > cutoff_time
-        ]
+        return [check for check in self.check_history if check.timestamp > cutoff_time]
 
 
 # Default health check implementations
@@ -402,25 +370,17 @@ def initialize_default_health_checks():
     manager = HealthCheckManager()
 
     # Register default health checks
-    manager.register_health_check(
-        "database", ComponentType.DATABASE, database_health_check
-    )
+    manager.register_health_check("database", ComponentType.DATABASE, database_health_check)
 
     manager.register_health_check("api", ComponentType.API, api_health_check)
 
     manager.register_health_check("redis", ComponentType.CACHE, redis_health_check)
 
-    manager.register_health_check(
-        "celery", ComponentType.MESSAGE_QUEUE, celery_health_check
-    )
+    manager.register_health_check("celery", ComponentType.MESSAGE_QUEUE, celery_health_check)
 
-    manager.register_health_check(
-        "storage", ComponentType.STORAGE, storage_health_check
-    )
+    manager.register_health_check("storage", ComponentType.STORAGE, storage_health_check)
 
-    manager.register_health_check(
-        "network", ComponentType.NETWORK, network_health_check
-    )
+    manager.register_health_check("network", ComponentType.NETWORK, network_health_check)
 
     return manager
 

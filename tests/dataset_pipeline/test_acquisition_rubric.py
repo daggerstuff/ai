@@ -1,18 +1,17 @@
+import json
 import unittest
 
-import json
-
 from ai.core.pipelines.acquisition_rubric import (
+    APPROVED_LICENSES,
     AcquisitionRubric,
     AcquisitionScore,
-    calculate_overall_score,
-    score_from_evaluation,
-    SourceIntake,
-    PilotReport,
     CurationExitReport,
     GateDecision,
+    PilotReport,
     PriorityTier,
-    APPROVED_LICENSES,
+    SourceIntake,
+    calculate_overall_score,
+    score_from_evaluation,
 )
 
 
@@ -414,17 +413,30 @@ class TestScoreFromEvaluation(unittest.TestCase):
 
 class TestToDict(unittest.TestCase):
     def test_acquisition_score_to_dict(self):
-        score = AcquisitionScore(therapeutic_relevance=8, data_structure_quality=7,
-                                  training_integration=6, ethical_accessibility=9, overall_score=7.35)
+        score = AcquisitionScore(
+            therapeutic_relevance=8,
+            data_structure_quality=7,
+            training_integration=6,
+            ethical_accessibility=9,
+            overall_score=7.35,
+        )
         d = score.to_dict()
         self.assertEqual(d["overall_score"], 7.35)
         self.assertEqual(d["priority_tier"], "medium")
         self.assertTrue(d["passes_score_floor"])
 
     def test_intake_decision_to_dict(self):
-        src = SourceIntake(source_id="DICT-1", name="Dict Test", category="academic",
-                           license_id="mit", pii_class="none", provenance="trusted", reproducible=True,
-                           reviewer="chad", review_date="2026-05-09")
+        src = SourceIntake(
+            source_id="DICT-1",
+            name="Dict Test",
+            category="academic",
+            license_id="mit",
+            pii_class="none",
+            provenance="trusted",
+            reproducible=True,
+            reviewer="chad",
+            review_date="2026-05-09",
+        )
         dec = self.rubric.evaluate_intake(src)
         d = dec.to_dict()
         self.assertEqual(d["source_id"], "DICT-1")

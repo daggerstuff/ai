@@ -39,8 +39,8 @@ from ai.api.mcp_server.schemas import (
 )
 from ai.memory.base import (
     CategoryScopedMemoryManager,
-    HealthReportingMemoryManager,
     ForesightCompatibleMemoryManager,
+    HealthReportingMemoryManager,
     ScopedMemoryManager,
 )
 from ai.memory.foresight_local_retention import RetainScopeConflictError, scope_metadata
@@ -58,6 +58,7 @@ _ALLOWED_USER_PROFILE_METADATA_KEYS = {
     "project_id",
     "notes",
 }
+
 
 def _route_call(action: str, handler: Callable[[], Any]) -> Any:
     try:

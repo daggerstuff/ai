@@ -69,9 +69,7 @@ class DiscoveryService(DiscoveryServiceProtocol):
 
         clinical_trials_config = repos_config.get("clinical_trials", {})
         self.clinical_trials_client = clinical_trials_client or ClinicalTrialsClient(
-            base_url=clinical_trials_config.get(
-                "base_url", "https://clinicaltrials.gov/api/v2"
-            ),
+            base_url=clinical_trials_config.get("base_url", "https://clinicaltrials.gov/api/v2"),
         )
 
         # Deduplicator
@@ -110,10 +108,7 @@ class DiscoveryService(DiscoveryServiceProtocol):
             all_keywords = []
             therapeutic_keywords = []
 
-        logger.info(
-            f"Starting discovery for sources: {target_sources}, "
-            f"keywords: {all_keywords}"
-        )
+        logger.info(f"Starting discovery for sources: {target_sources}, keywords: {all_keywords}")
 
         # Discover from each target source
         if "pubmed" in target_sources or "pubmed_central" in target_sources:
@@ -173,9 +168,7 @@ class DiscoveryService(DiscoveryServiceProtocol):
             max_results=self.config.get("discovery", {}).get("pubmed", {}).get("search_limit", 100),
         )
 
-    def _discover_doaj(
-        self, keywords: list[str], therapeutic_keywords: list[str]
-    ) -> list[DatasetSource]:
+    def _discover_doaj(self, keywords: list[str], therapeutic_keywords: list[str]) -> list[DatasetSource]:
         """Discover sources from DOAJ."""
         if not keywords and not therapeutic_keywords:
             keywords = ["therapy", "counseling", "psychotherapy"]
@@ -212,4 +205,3 @@ class DiscoveryService(DiscoveryServiceProtocol):
             status="COMPLETED",
             max_results=100,
         )
-

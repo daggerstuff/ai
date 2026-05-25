@@ -7,12 +7,11 @@ state to the shared memory-ingestion gate interface.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
 from ai.memory.gates import GateDecision, GateResult
 from ai.memory.schema import ConsentGate, MemoryGating
-
 
 ConsentAuditAction = Literal["check", "grant", "revoke", "expire"]
 GATE_NAME = "gate3_consent"
@@ -95,7 +94,7 @@ class ConsentGateChecker:
         expires_in_days: int | None = None,
     ) -> ConsentRecord:
         """Grant consent to a user with an optional UTC expiration."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires_at = None
         if expires_in_days is not None:
             expires_at = (now + timedelta(days=expires_in_days)).isoformat()
@@ -133,7 +132,7 @@ class ConsentGateChecker:
             return
 
         record.revoked = True
-        record.revoked_at = datetime.now(timezone.utc).isoformat()
+        record.revoked_at = datetime.now(UTC).isoformat()
         self._record_audit(
             user_id=user_id,
             action="revoke",
@@ -276,8 +275,8 @@ class ConsentGateChecker:
 
         expires_at = datetime.fromisoformat(record.expires_at)
         if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        return expires_at <= datetime.now(timezone.utc)
+            expires_at = expires_at.replace(tzinfo=UTC)
+        return expires_at <= datetime.now(UTC)
 
     def to_dict(self, result: ConsentGateResult) -> dict[str, Any]:
         """Return a JSON-serializable representation of a consent check."""
@@ -316,7 +315,7 @@ class ConsentGateChecker:
         details: str,
     ) -> ConsentAuditEntry:
         entry = ConsentAuditEntry(
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             user_id=user_id,
             action=action,
             memory_id=memory_id,

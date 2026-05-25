@@ -1,23 +1,28 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 from fastapi import status
 from fastapi.testclient import TestClient
+
 from api.dataset_api import (
-    get_current_active_user_or_api_key,
     app,
+    get_current_active_user_or_api_key,
 )
 from security.api_authentication import PermissionLevel
 
 client = TestClient(app)
 
+
 def _override_auth(scopes):
     def _dependency_override():
         return {"username": "test_user", "scopes": scopes, "auth_type": "api_key"}
+
     return _dependency_override
+
 
 @pytest.fixture(autouse=True)
 def mock_db_connection():
-    with patch('api.dataset_api.get_db_connection') as mock_db:
+    with patch("api.dataset_api.get_db_connection") as mock_db:
         mock_conn = MagicMock()
         mock_db.return_value = mock_conn
         mock_cursor = MagicMock()
@@ -38,8 +43,8 @@ def mock_db_connection():
         def safe_fetchone(*args, **kwargs):
             # A magic mock that returns whatever is asked of it
             row = MagicMock()
-            row.__getitem__.return_value = "test_table" # for table_row["name"]
-            row.__getitem__.side_effect = lambda key: "test_table" if isinstance(key, str) else 0 # for [0]
+            row.__getitem__.return_value = "test_table"  # for table_row["name"]
+            row.__getitem__.side_effect = lambda key: "test_table" if isinstance(key, str) else 0  # for [0]
             return row
 
         mock_cursor.fetchone = safe_fetchone
@@ -50,13 +55,16 @@ def mock_db_connection():
             row1.__getitem__.side_effect = lambda key: "test_table" if isinstance(key, str) else 0
 
             row2 = MagicMock()
-            row2.__getitem__.side_effect = lambda key: {"name": "col1", "type": "TEXT", "notnull": 0, "pk": 0}.get(key, 0)
+            row2.__getitem__.side_effect = lambda key: {"name": "col1", "type": "TEXT", "notnull": 0, "pk": 0}.get(
+                key, 0
+            )
 
             return [row1, row2]
 
         mock_cursor.fetchall = safe_fetchall
 
         yield mock_db
+
 
 @pytest.mark.parametrize(
     "method,path,required_scopes",
@@ -67,9 +75,7 @@ def mock_db_connection():
     ],
 )
 def test_dataset_endpoints_with_permitted_scope(method, path, required_scopes):
-    app.dependency_overrides[get_current_active_user_or_api_key] = _override_auth(
-        scopes=required_scopes
-    )
+    app.dependency_overrides[get_current_active_user_or_api_key] = _override_auth(scopes=required_scopes)
     try:
         response = client.request(method, path)
     finally:
@@ -77,6 +83,7 @@ def test_dataset_endpoints_with_permitted_scope(method, path, required_scopes):
 
     # In case of 500 error from sqlite mock limitations, at least assert it's not 403
     assert response.status_code != status.HTTP_403_FORBIDDEN
+
 
 @pytest.mark.parametrize(
     "method,path,required_scopes",
@@ -89,9 +96,7 @@ def test_dataset_endpoints_with_permitted_scope(method, path, required_scopes):
 def test_dataset_endpoints_with_forbidden_scope(method, path, required_scopes):
     insufficient_scopes = []
 
-    app.dependency_overrides[get_current_active_user_or_api_key] = _override_auth(
-        scopes=insufficient_scopes
-    )
+    app.dependency_overrides[get_current_active_user_or_api_key] = _override_auth(scopes=insufficient_scopes)
     try:
         response = client.request(method, path)
     finally:

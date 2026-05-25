@@ -143,9 +143,7 @@ class ProgressStreamer:
 
             # Keep only last 100 updates per operation
             if len(self._progress_history[update.operation_id]) > 100:
-                self._progress_history[update.operation_id] = self._progress_history[
-                    update.operation_id
-                ][-100:]
+                self._progress_history[update.operation_id] = self._progress_history[update.operation_id][-100:]
 
         # Broadcast to operation-specific subscribers
         if update.operation_id in self._subscriptions:
@@ -157,9 +155,7 @@ class ProgressStreamer:
                     else:
                         callback(update)
                 except Exception as e:
-                    logger.warning(
-                        f"Error calling progress callback for operation {update.operation_id}: {e}"
-                    )
+                    logger.warning(f"Error calling progress callback for operation {update.operation_id}: {e}")
 
         # Broadcast to session-wide subscribers
         if update.session_id in self._session_subscriptions:
@@ -171,9 +167,7 @@ class ProgressStreamer:
                     else:
                         callback(update)
                 except Exception as e:
-                    logger.warning(
-                        f"Error calling progress callback for session {update.session_id}: {e}"
-                    )
+                    logger.warning(f"Error calling progress callback for session {update.session_id}: {e}")
 
         logger.debug(
             f"Broadcast progress update for operation {update.operation_id}: "
@@ -193,9 +187,7 @@ class ProgressStreamer:
         async with self._lock:
             return self._operation_status.get(operation_id)
 
-    async def get_progress_history(
-        self, operation_id: str, limit: int | None = None
-    ) -> list[ProgressUpdate]:
+    async def get_progress_history(self, operation_id: str, limit: int | None = None) -> list[ProgressUpdate]:
         """
         Get progress history for an operation.
 
@@ -212,9 +204,7 @@ class ProgressStreamer:
                 return history[-limit:]
             return history.copy()
 
-    async def get_session_progress(
-        self, session_id: str, limit: int | None = None
-    ) -> list[ProgressUpdate]:
+    async def get_session_progress(self, session_id: str, limit: int | None = None) -> list[ProgressUpdate]:
         """
         Get all progress updates for a session.
 
@@ -291,4 +281,3 @@ class ProgressStreamer:
         if operation_id:
             return len(self._subscriptions.get(operation_id, set()))
         return sum(len(subs) for subs in self._subscriptions.values())
-

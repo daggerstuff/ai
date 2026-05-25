@@ -12,7 +12,7 @@ Features:
 """
 
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from flask import Flask, jsonify, send_file
 
@@ -436,7 +436,7 @@ def api_status():
         {
             "status": "operational",
             "systems": len(launcher.analytics_systems),
-            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "last_updated": datetime.now(UTC).isoformat(),
             "analytics_systems": list(launcher.analytics_systems.keys()),
         }
     )
@@ -455,8 +455,6 @@ def main():
 
     # Create web interface
     launcher.create_web_interface()
-
-
 
     # Start Flask app
     app.run(host="0.0.0.0", port=5000, debug=False)

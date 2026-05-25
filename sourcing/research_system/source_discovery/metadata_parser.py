@@ -35,7 +35,6 @@ class MetadataParser:
         # Remove punctuation at start/end
         return normalized.strip(".,;:!?-")
 
-
     @staticmethod
     def normalize_doi(doi: str | None) -> str | None:
         """
@@ -182,17 +181,56 @@ class MetadataParser:
 
         # Filter by length and remove common stop words
         stop_words = {
-            "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
-            "of", "with", "by", "from", "as", "is", "was", "are", "were", "been",
-            "be", "have", "has", "had", "do", "does", "did", "will", "would",
-            "could", "should", "may", "might", "can", "this", "that", "these",
-            "those", "it", "its", "they", "their", "them", "we", "our", "us"
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "from",
+            "as",
+            "is",
+            "was",
+            "are",
+            "were",
+            "been",
+            "be",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "may",
+            "might",
+            "can",
+            "this",
+            "that",
+            "these",
+            "those",
+            "it",
+            "its",
+            "they",
+            "their",
+            "them",
+            "we",
+            "our",
+            "us",
         }
 
-        keywords = [
-            word for word in words
-            if len(word) >= min_length and word not in stop_words
-        ]
+        keywords = [word for word in words if len(word) >= min_length and word not in stop_words]
 
         # Remove duplicates while preserving order
         seen = set()
@@ -293,7 +331,7 @@ class MetadataParser:
                     "license": info["name"],
                     "allows_commercial": info["commercial"],
                     "allows_ai_training": info["ai_training"],
-                    "raw_text": license_text
+                    "raw_text": license_text,
                 }
 
         # Unknown license - assume restrictive
@@ -301,7 +339,7 @@ class MetadataParser:
             "license": license_text,
             "allows_commercial": False,
             "allows_ai_training": False,
-            "raw_text": license_text
+            "raw_text": license_text,
         }
 
     @staticmethod
@@ -357,7 +395,7 @@ class MetadataParser:
             "available on request",
             "data sharing",
             "supplementary data",
-            "supporting data"
+            "supporting data",
         ]
 
         restricted_indicators = [
@@ -367,7 +405,7 @@ class MetadataParser:
             "confidential",
             "proprietary",
             "privacy concerns",
-            "ethical restrictions"
+            "ethical restrictions",
         ]
 
         has_available = any(indicator in text_lower for indicator in available_indicators)
@@ -386,15 +424,22 @@ class MetadataParser:
         # Extract URLs that might point to data
         urls = MetadataParser.extract_urls(text)
         data_urls = [
-            url for url in urls
-            if any(domain in url.lower() for domain in [
-                "github.com", "figshare.com", "zenodo.org", "dryad",
-                "osf.io", "dataverse", "data.", "/data/", "/dataset/"
-            ])
+            url
+            for url in urls
+            if any(
+                domain in url.lower()
+                for domain in [
+                    "github.com",
+                    "figshare.com",
+                    "zenodo.org",
+                    "dryad",
+                    "osf.io",
+                    "dataverse",
+                    "data.",
+                    "/data/",
+                    "/dataset/",
+                ]
+            )
         ]
 
-        return {
-            "status": status,
-            "data_urls": data_urls,
-            "raw_text": text
-        }
+        return {"status": status, "data_urls": data_urls, "raw_text": text}

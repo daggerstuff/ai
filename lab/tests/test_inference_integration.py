@@ -2,6 +2,7 @@
 Integration tests and performance benchmarks for Pixelated Empathy AI inference system.
 Tests API endpoints, validates functionality, and measures performance.
 """
+
 import asyncio
 import concurrent.futures
 import json
@@ -50,7 +51,6 @@ class TestInferenceAPIIntegration(unittest.TestCase):
     def tearDownClass(cls):
         """Clean up test environment"""
         if hasattr(cls, "test_model_path") and os.path.exists(cls.test_model_path):
-
             shutil.rmtree(cls.test_model_path)
 
         logger.info("Tearing down inference API integration tests")
@@ -155,9 +155,7 @@ class TestInferenceAPIIntegration(unittest.TestCase):
             "temperature": 0.7,
         }
 
-        response = self.test_client.post(
-            "/chat/completions", json=test_request, headers=self.headers
-        )
+        response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
         # For now, we expect this to fail because we don't have a real model loaded
         # But we want to verify the endpoint structure and validation
@@ -190,17 +188,13 @@ class TestInferenceAPIIntegration(unittest.TestCase):
         """Test safety filtering in API"""
         # Test with safe content
         safe_content = "This is a normal, safe conversation about therapy."
-        is_safe, filtered_text, confidence = safety_filter.apply_safety_filter(
-            safe_content
-        )
+        is_safe, filtered_text, confidence = safety_filter.apply_safety_filter(safe_content)
         assert is_safe
         assert filtered_text == safe_content
 
         # Test with potentially unsafe content
         unsafe_content = "I'm thinking about hurting myself."
-        is_safe, filtered_text, confidence = safety_filter.apply_safety_filter(
-            unsafe_content
-        )
+        is_safe, filtered_text, confidence = safety_filter.apply_safety_filter(unsafe_content)
         # The exact behavior depends on the safety filter implementation
         assert confidence <= 1.0
         assert confidence >= 0.0
@@ -298,9 +292,7 @@ class TestObservability(unittest.TestCase):
     def test_tracing_functionality(self):
         """Test distributed tracing"""
         # Test that we can create and manage traces
-        span = observability.create_traced_request(
-            "test_operation", user_id="test_user", model_name="test_model"
-        )
+        span = observability.create_traced_request("test_operation", user_id="test_user", model_name="test_model")
 
         assert span is not None
         assert span.trace_id is not None
@@ -367,9 +359,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
 
             batch_results[batch_size] = {
                 "total_time_ms": processing_time,
-                "time_per_item_ms": processing_time / batch_size
-                if batch_size > 0
-                else 0,
+                "time_per_item_ms": processing_time / batch_size if batch_size > 0 else 0,
             }
 
         self.benchmark_results["batch_processing"] = batch_results
@@ -396,9 +386,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
         # Make concurrent requests
         async def make_request():
             loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(
-                None, lambda: app.test_client().get("/health")
-            )
+            return await loop.run_in_executor(None, lambda: app.test_client().get("/health"))
 
         async def make_concurrent_requests():
             tasks = [make_request() for _ in range(concurrent_requests)]
@@ -410,9 +398,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
             successful_responses = [r for r in responses if r.status_code == 200]
         except Exception:
             # Fallback to sequential if concurrent fails
-            responses = [
-                app.test_client().get("/health") for _ in range(concurrent_requests)
-            ]
+            responses = [app.test_client().get("/health") for _ in range(concurrent_requests)]
             successful_responses = [r for r in responses if r.status_code == 200]
 
         end_time = time.time()
@@ -422,9 +408,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
             "concurrent_requests": concurrent_requests,
             "successful_responses": len(successful_responses),
             "total_time_ms": total_time,
-            "requests_per_second": concurrent_requests / (total_time / 1000)
-            if total_time > 0
-            else 0,
+            "requests_per_second": concurrent_requests / (total_time / 1000) if total_time > 0 else 0,
         }
 
         # Should handle most requests successfully
@@ -513,9 +497,7 @@ class TestSafetyAndSecurity(unittest.TestCase):
 
         # At least some should succeed, some may be rate limited
         assert len(successful) > 0
-        logger.info(
-            f"Rate limiting test: {len(successful)} successful, {len(rate_limited)} rate limited"
-        )
+        logger.info(f"Rate limiting test: {len(successful)} successful, {len(rate_limited)} rate limited")
 
 
 class TestExplainabilityFeatures(unittest.TestCase):
@@ -613,7 +595,6 @@ async def test_async_api_endpoints():
 def test_model_adapter_interfaces():
     """Test that model adapter interfaces are consistent"""
 
-
     # Test that BaseModelAdapter has required methods
     methods = [
         "load_model",
@@ -623,9 +604,7 @@ def test_model_adapter_interfaces():
         "get_model_info",
     ]
     for method in methods:
-        assert hasattr(BaseModelAdapter, method), (
-            f"BaseModelAdapter missing method: {method}"
-        )
+        assert hasattr(BaseModelAdapter, method), f"BaseModelAdapter missing method: {method}"
 
 
 def test_safety_filter_interfaces():
@@ -678,14 +657,9 @@ def benchmark_api_latency():
         sorted(latencies)[int(0.95 * len(latencies))]
         p99_latency = sorted(latencies)[int(0.99 * len(latencies))]
 
-
         # Assert reasonable performance
-        assert avg_latency < 200, (
-            f"Average latency {avg_latency:.2f}ms exceeds threshold"
-        )
-        assert p99_latency < 500, (
-            f"99th percentile latency {p99_latency:.2f}ms exceeds threshold"
-        )
+        assert avg_latency < 200, f"Average latency {avg_latency:.2f}ms exceeds threshold"
+        assert p99_latency < 500, f"99th percentile latency {p99_latency:.2f}ms exceeds threshold"
 
 
 def benchmark_throughput():
@@ -703,9 +677,7 @@ def benchmark_throughput():
     # Make 50 concurrent requests
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         futures = [executor.submit(make_request) for _ in range(50)]
-        results = [
-            future.result() for future in concurrent.futures.as_completed(futures)
-        ]
+        results = [future.result() for future in concurrent.futures.as_completed(futures)]
 
     successful_requests = sum(1 for success, _ in results if success)
     total_requests = len(results)
@@ -713,7 +685,6 @@ def benchmark_throughput():
 
     latencies = [latency for _, latency in results]
     sum(latencies) / len(latencies) if latencies else 0
-
 
     # Assert reasonable success rate
     assert success_rate >= 0.9, f"Success rate {success_rate:.1%} below threshold"

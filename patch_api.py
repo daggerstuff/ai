@@ -1,5 +1,3 @@
-
-
 def main():
     with open("api/dataset_api.py") as f:
         content = f.read()
@@ -45,6 +43,7 @@ def main():
 
     with open("api/dataset_api.py", "w") as f:
         f.write(content)
+
 
 if __name__ == "__main__":
     main()

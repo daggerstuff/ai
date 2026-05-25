@@ -7,7 +7,7 @@ bias monitoring and validation of dataset processing operations.
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -25,6 +25,7 @@ logger = get_logger(__name__)
 
 class BiasType(Enum):
     """Types of bias that can be detected."""
+
     GENDER = "gender"
     RACIAL = "racial"
     AGE = "age"
@@ -38,6 +39,7 @@ class BiasType(Enum):
 @dataclass
 class BiasMetrics:
     """Bias detection metrics for a dataset or operation."""
+
     bias_type: BiasType
     score: float  # 0.0 to 1.0, higher indicates more bias
     severity: str  # "low", "medium", "high", "critical"
@@ -50,6 +52,7 @@ class BiasMetrics:
 @dataclass
 class BiasDetectionResult:
     """Complete bias detection result."""
+
     operation_id: str
     dataset_id: str
     overall_bias_score: float
@@ -100,12 +103,9 @@ class BiasDetectionClient:
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "TechDeck-Integration/1.0"
+                "User-Agent": "TechDeck-Integration/1.0",
             }
-            self.session = aiohttp.ClientSession(
-                timeout=timeout,
-                headers=headers
-            )
+            self.session = aiohttp.ClientSession(timeout=timeout, headers=headers)
 
     async def close(self):
         """Close the aiohttp session."""
@@ -113,10 +113,7 @@ class BiasDetectionClient:
             await self.session.close()
 
     async def detect_bias(
-        self,
-        dataset_data: dict[str, Any],
-        operation_id: str,
-        dataset_id: str
+        self, dataset_data: dict[str, Any], operation_id: str, dataset_id: str
     ) -> BiasDetectionResult:
         """
         Detect bias in dataset data.
@@ -133,7 +130,7 @@ class BiasDetectionClient:
             BiasDetectionError: If bias detection fails
             ServiceUnavailableError: If service is unavailable
         """
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             logger.info(f"Starting bias detection for operation {operation_id}")
@@ -144,20 +141,16 @@ class BiasDetectionClient:
                 "operation_id": operation_id,
                 "dataset_id": dataset_id,
                 "timestamp": start_time.isoformat(),
-                "context": "techdeck_pipeline_integration"
+                "context": "techdeck_pipeline_integration",
             }
 
             # Make request with retries
-            result = await self._make_request_with_retry(
-                "POST",
-                f"{self.service_url}/api/v1/bias/detect",
-                payload
-            )
+            result = await self._make_request_with_retry("POST", f"{self.service_url}/api/v1/bias/detect", payload)
 
             # Parse response
             bias_result = self._parse_bias_detection_result(result, operation_id, dataset_id)
 
-            processing_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             logger.info(
                 f"Bias detection completed for operation {operation_id} "
@@ -170,11 +163,7 @@ class BiasDetectionClient:
             logger.error(f"Bias detection failed for operation {operation_id}: {e!s}")
             raise BiasDetectionError(f"Bias detection failed: {e!s}") from e
 
-    async def validate_bias_threshold(
-        self,
-        bias_result: BiasDetectionResult,
-        threshold: float = 0.7
-    ) -> bool:
+    async def validate_bias_threshold(self, bias_result: BiasDetectionResult, threshold: float = 0.7) -> bool:
         """
         Validate if bias scores are within acceptable thresholds.
 
@@ -200,8 +189,7 @@ class BiasDetectionClient:
             for metric in bias_result.bias_metrics:
                 if metric.score > threshold:
                     logger.warning(
-                        f"Specific bias threshold exceeded: {metric.bias_type.value} "
-                        f"score {metric.score} > {threshold}"
+                        f"Specific bias threshold exceeded: {metric.bias_type.value} score {metric.score} > {threshold}"
                     )
                     return False
 
@@ -212,10 +200,7 @@ class BiasDetectionClient:
             logger.error(f"Bias validation failed: {e!s}")
             raise ValidationError(f"Bias validation failed: {e!s}") from e
 
-    async def get_bias_recommendations(
-        self,
-        bias_result: BiasDetectionResult
-    ) -> list[str]:
+    async def get_bias_recommendations(self, bias_result: BiasDetectionResult) -> list[str]:
         """
         Get bias mitigation recommendations.
 
@@ -234,13 +219,9 @@ class BiasDetectionClient:
 
             # Add general recommendations based on overall score
             if bias_result.overall_bias_score > 0.8:
-                recommendations.append(
-                    "High overall bias detected. Consider comprehensive data rebalancing."
-                )
+                recommendations.append("High overall bias detected. Consider comprehensive data rebalancing.")
             elif bias_result.overall_bias_score > 0.6:
-                recommendations.append(
-                    "Moderate bias detected. Review data collection and sampling methods."
-                )
+                recommendations.append("Moderate bias detected. Review data collection and sampling methods.")
 
             # Remove duplicates while preserving order
             seen = set()
@@ -256,12 +237,7 @@ class BiasDetectionClient:
             logger.error(f"Failed to get bias recommendations: {e!s}")
             return ["Unable to generate bias mitigation recommendations"]
 
-    async def _make_request_with_retry(
-        self,
-        method: str,
-        url: str,
-        payload: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def _make_request_with_retry(self, method: str, url: str, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Make HTTP request with retry logic.
 
@@ -286,25 +262,17 @@ class BiasDetectionClient:
                     if response.status == 503:
                         if attempt < self.max_retries:
                             logger.warning(
-                                f"Service unavailable (attempt {attempt + 1}), "
-                                f"retrying in {self.retry_delay}s"
+                                f"Service unavailable (attempt {attempt + 1}), retrying in {self.retry_delay}s"
                             )
                             await asyncio.sleep(self.retry_delay)
                             continue
-                        raise ServiceUnavailableError(
-                            "Bias detection service unavailable after all retries"
-                        )
+                        raise ServiceUnavailableError("Bias detection service unavailable after all retries")
                     error_text = await response.text()
-                    raise BiasDetectionError(
-                        f"Bias detection service returned {response.status}: {error_text}"
-                    )
+                    raise BiasDetectionError(f"Bias detection service returned {response.status}: {error_text}")
 
             except aiohttp.ClientError as e:
                 if attempt < self.max_retries:
-                    logger.warning(
-                        f"Request failed (attempt {attempt + 1}): {e!s}, "
-                        f"retrying in {self.retry_delay}s"
-                    )
+                    logger.warning(f"Request failed (attempt {attempt + 1}): {e!s}, retrying in {self.retry_delay}s")
                     await asyncio.sleep(self.retry_delay)
                     continue
                 raise ServiceUnavailableError(
@@ -314,10 +282,7 @@ class BiasDetectionClient:
         raise ServiceUnavailableError("All retry attempts exhausted")
 
     def _parse_bias_detection_result(
-        self,
-        result: dict[str, Any],
-        operation_id: str,
-        dataset_id: str
+        self, result: dict[str, Any], operation_id: str, dataset_id: str
     ) -> BiasDetectionResult:
         """
         Parse bias detection API response into BiasDetectionResult.
@@ -341,7 +306,7 @@ class BiasDetectionClient:
                     affected_groups=metric_data.get("affected_groups", []),
                     confidence=float(metric_data.get("confidence", 0.0)),
                     recommendations=metric_data.get("recommendations", []),
-                    metadata=metric_data.get("metadata", {})
+                    metadata=metric_data.get("metadata", {}),
                 )
                 bias_metrics.append(metric)
 
@@ -351,9 +316,9 @@ class BiasDetectionClient:
                 overall_bias_score=float(result.get("overall_bias_score", 0.0)),
                 bias_metrics=bias_metrics,
                 compliance_status=bool(result.get("compliance_status", True)),
-                timestamp=datetime.fromisoformat(result.get("timestamp", datetime.now(timezone.utc).isoformat())),
+                timestamp=datetime.fromisoformat(result.get("timestamp", datetime.now(UTC).isoformat())),
                 processing_time_ms=float(result.get("processing_time_ms", 0.0)),
-                warnings=result.get("warnings", [])
+                warnings=result.get("warnings", []),
             )
 
         except (KeyError, ValueError, TypeError) as e:
@@ -379,11 +344,7 @@ class BiasDetectionManager:
         logger.info(f"Initialized BiasDetectionManager (enabled: {self.enabled})")
 
     async def analyze_dataset(
-        self,
-        dataset_data: dict[str, Any],
-        operation_id: str,
-        dataset_id: str,
-        validate_threshold: float | None = None
+        self, dataset_data: dict[str, Any], operation_id: str, dataset_id: str, validate_threshold: float | None = None
     ) -> BiasDetectionResult:
         """
         Analyze dataset for bias with optional threshold validation.
@@ -409,17 +370,14 @@ class BiasDetectionManager:
 
         try:
             # Perform bias detection
-            result = await self.client.detect_bias(
-                dataset_data, operation_id, dataset_id
-            )
+            result = await self.client.detect_bias(dataset_data, operation_id, dataset_id)
 
             # Validate against threshold if requested
             if validate_threshold is not None:
                 is_valid = await self.client.validate_bias_threshold(result, threshold)
                 if not is_valid:
                     raise ValidationError(
-                        f"Bias threshold {threshold} exceeded: "
-                        f"overall score {result.overall_bias_score}"
+                        f"Bias threshold {threshold} exceeded: overall score {result.overall_bias_score}"
                     )
 
             return result
@@ -428,10 +386,7 @@ class BiasDetectionManager:
             logger.error(f"Dataset bias analysis failed for {operation_id}: {e!s}")
             raise
 
-    async def get_bias_summary(
-        self,
-        bias_result: BiasDetectionResult
-    ) -> dict[str, Any]:
+    async def get_bias_summary(self, bias_result: BiasDetectionResult) -> dict[str, Any]:
         """
         Get a summary of bias detection results.
 
@@ -450,32 +405,29 @@ class BiasDetectionManager:
                 "overall_bias_score": bias_result.overall_bias_score,
                 "compliance_status": bias_result.compliance_status,
                 "bias_types_detected": [
-                    metric.bias_type.value for metric in bias_result.bias_metrics
+                    metric.bias_type.value
+                    for metric in bias_result.bias_metrics
                     if metric.score > 0.1  # Only significant bias
                 ],
                 "high_risk_bias_types": [
-                    metric.bias_type.value for metric in bias_result.bias_metrics
+                    metric.bias_type.value
+                    for metric in bias_result.bias_metrics
                     if metric.severity in ["high", "critical"]
                 ],
                 "recommendations": recommendations[:5],  # Top 5 recommendations
                 "processing_time_ms": bias_result.processing_time_ms,
-                "timestamp": bias_result.timestamp.isoformat()
+                "timestamp": bias_result.timestamp.isoformat(),
             }
-
 
         except Exception as e:
             logger.error(f"Failed to generate bias summary: {e!s}")
             return {
                 "error": f"Failed to generate bias summary: {e!s}",
                 "operation_id": bias_result.operation_id,
-                "dataset_id": bias_result.dataset_id
+                "dataset_id": bias_result.dataset_id,
             }
 
-    def _create_dummy_result(
-        self,
-        operation_id: str,
-        dataset_id: str
-    ) -> BiasDetectionResult:
+    def _create_dummy_result(self, operation_id: str, dataset_id: str) -> BiasDetectionResult:
         """Create a dummy result when bias detection is disabled."""
         return BiasDetectionResult(
             operation_id=operation_id,
@@ -483,18 +435,15 @@ class BiasDetectionManager:
             overall_bias_score=0.0,
             bias_metrics=[],
             compliance_status=True,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             processing_time_ms=0.0,
-            warnings=["Bias detection is disabled"]
+            warnings=["Bias detection is disabled"],
         )
 
 
 # Convenience functions for direct usage
 async def detect_bias_in_dataset(
-    dataset_data: dict[str, Any],
-    operation_id: str,
-    dataset_id: str,
-    config: dict[str, Any]
+    dataset_data: dict[str, Any], operation_id: str, dataset_id: str, config: dict[str, Any]
 ) -> BiasDetectionResult:
     """
     Convenience function to detect bias in dataset data.
@@ -515,10 +464,7 @@ async def detect_bias_in_dataset(
         await manager.client.close()
 
 
-async def validate_bias_compliance(
-    bias_result: BiasDetectionResult,
-    threshold: float = 0.7
-) -> bool:
+async def validate_bias_compliance(bias_result: BiasDetectionResult, threshold: float = 0.7) -> bool:
     """
     Validate bias compliance against threshold.
 

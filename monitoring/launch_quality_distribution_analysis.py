@@ -5,11 +5,12 @@ Quality Distribution Analysis Launcher (Task 5.6.2.3)
 Enterprise-grade launcher for the quality distribution analysis system
 with comprehensive setup, validation, and execution capabilities.
 """
+
 import argparse
 import logging
 import sqlite3
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from quality_distribution_analyzer import QualityDistributionAnalyzer
@@ -61,7 +62,16 @@ class QualityDistributionAnalysisLauncher:
 
         for package in self.required_packages:
             try:
-                if package == "sqlite3" or package == "pandas" or package == "numpy" or package == "scipy" or package == "plotly" or package == "seaborn" or package == "matplotlib" or package == "jinja2":
+                if (
+                    package == "sqlite3"
+                    or package == "pandas"
+                    or package == "numpy"
+                    or package == "scipy"
+                    or package == "plotly"
+                    or package == "seaborn"
+                    or package == "matplotlib"
+                    or package == "jinja2"
+                ):
                     pass
 
                 logger.info(f"  ✅ {package}: Available")
@@ -72,10 +82,7 @@ class QualityDistributionAnalysisLauncher:
 
         if missing_packages:
             logger.error(f"❌ Missing packages: {', '.join(missing_packages)}")
-            logger.info(
-                "💡 Install missing packages with: pip install "
-                + " ".join(missing_packages)
-            )
+            logger.info("💡 Install missing packages with: pip install " + " ".join(missing_packages))
             return False
 
         logger.info("✅ All dependencies available")
@@ -91,7 +98,6 @@ class QualityDistributionAnalysisLauncher:
             return False
 
         try:
-
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
 
@@ -132,9 +138,7 @@ class QualityDistributionAnalysisLauncher:
                 logger.error(
                     f"❌ Insufficient data for distribution analysis: only {total_conversations} conversations"
                 )
-                logger.info(
-                    "💡 Need at least 30 conversations with quality data for distribution analysis"
-                )
+                logger.info("💡 Need at least 30 conversations with quality data for distribution analysis")
                 conn.close()
                 return False
 
@@ -173,21 +177,15 @@ class QualityDistributionAnalysisLauncher:
 
                 if filename == "quality_distribution_analyzer.py":
                     if "QualityDistributionAnalyzer" not in content:
-                        logger.error(
-                            f"❌ QualityDistributionAnalyzer class not found in {filename}"
-                        )
+                        logger.error(f"❌ QualityDistributionAnalyzer class not found in {filename}")
                         return False
                 elif filename == "quality_distribution_comparator.py":
                     if "QualityDistributionComparator" not in content:
-                        logger.error(
-                            f"❌ QualityDistributionComparator class not found in {filename}"
-                        )
+                        logger.error(f"❌ QualityDistributionComparator class not found in {filename}")
                         return False
                 elif filename == "quality_distribution_reporter.py":
                     if "QualityDistributionReporter" not in content:
-                        logger.error(
-                            f"❌ QualityDistributionReporter class not found in {filename}"
-                        )
+                        logger.error(f"❌ QualityDistributionReporter class not found in {filename}")
                         return False
 
             except Exception as e:
@@ -213,7 +211,6 @@ class QualityDistributionAnalysisLauncher:
             # Import distribution analysis components
             sys.path.append(str(self.monitoring_dir))
 
-
             # Initialize components
             analyzer = QualityDistributionAnalyzer(db_path=str(self.db_path))
             QualityDistributionComparator(analyzer)
@@ -235,9 +232,7 @@ class QualityDistributionAnalysisLauncher:
 
             # Analyze overall distribution
             logger.info("📈 Analyzing overall quality distribution...")
-            overall_analysis = analyzer.analyze_quality_distribution(
-                df["overall_quality"], "overall_quality"
-            )
+            overall_analysis = analyzer.analyze_quality_distribution(df["overall_quality"], "overall_quality")
 
             # Generate comprehensive report
             logger.info("📋 Generating comprehensive distribution report...")
@@ -269,7 +264,9 @@ class QualityDistributionAnalysisLauncher:
 
                     # Save visualizations as HTML files
                     for viz_name, fig in visualizations.items():
-                        viz_filename = f"distribution_visualization_{viz_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.html"
+                        viz_filename = (
+                            f"distribution_visualization_{viz_name}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.html"
+                        )
                         viz_path = self.reports_dir / viz_filename
                         fig.write_html(str(viz_path))
                         visualization_files.append(str(viz_path))
@@ -300,8 +297,7 @@ class QualityDistributionAnalysisLauncher:
                         "groups": len(analysis.groups),
                         "statistical_tests": len(analysis.statistical_tests),
                         "significant_differences": any(
-                            test.get("significant", False)
-                            for test in analysis.statistical_tests
+                            test.get("significant", False) for test in analysis.statistical_tests
                         ),
                     }
                     for name, analysis in report.comparative_analyses.items()
@@ -319,7 +315,6 @@ class QualityDistributionAnalysisLauncher:
         """Display analysis summary to console."""
         if not summary.get("success", False):
             return
-
 
         for _file_path in summary["report_files"]:
             pass
@@ -380,9 +375,7 @@ class QualityDistributionAnalysisLauncher:
 
         # Step 3: Validate distribution analysis files
         if not self.validate_distribution_analysis_files():
-            logger.error(
-                "❌ Launch aborted: Distribution analysis files validation failed"
-            )
+            logger.error("❌ Launch aborted: Distribution analysis files validation failed")
             return False
 
         # Step 4: Run distribution analysis
@@ -407,9 +400,7 @@ class QualityDistributionAnalysisLauncher:
 
 def main():
     """Main function to launch quality distribution analysis."""
-    parser = argparse.ArgumentParser(
-        description="Launch Quality Distribution Analysis System"
-    )
+    parser = argparse.ArgumentParser(description="Launch Quality Distribution Analysis System")
     parser.add_argument(
         "--days-back",
         type=int,
@@ -421,9 +412,7 @@ def main():
         action="store_true",
         help="Skip distribution visualizations",
     )
-    parser.add_argument(
-        "--no-comparisons", action="store_true", help="Skip comparative analysis"
-    )
+    parser.add_argument("--no-comparisons", action="store_true", help="Skip comparative analysis")
     parser.add_argument(
         "--format",
         choices=["json", "html", "both"],
@@ -432,9 +421,7 @@ def main():
     )
     parser.add_argument("--tiers", nargs="+", help="Filter by specific tiers")
     parser.add_argument("--datasets", nargs="+", help="Filter by specific datasets")
-    parser.add_argument(
-        "--skip-validation", action="store_true", help="Skip pre-analysis validation"
-    )
+    parser.add_argument("--skip-validation", action="store_true", help="Skip pre-analysis validation")
 
     args = parser.parse_args()
 

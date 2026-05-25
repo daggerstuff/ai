@@ -8,7 +8,7 @@ terms, dates, and addresses are preserved in conservative mode.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.core.pipelines.processing.pii_scrubber import (
@@ -17,7 +17,6 @@ from ai.core.pipelines.processing.pii_scrubber import (
     ScrubResult,
 )
 from ai.memory.gates import GateDecision, GateResult
-
 
 THERAPY_ALLOWLIST = [
     "therapist",
@@ -176,7 +175,7 @@ class PiiRedactor:
         return {
             "types_found": sorted(self._drift_types),
             "counts": dict(sorted(self._drift_counts.items())),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def _build_scrubber_config(self) -> PiiScrubberConfig:
@@ -305,7 +304,7 @@ class PiiRedactor:
 
 
 __all__ = [
+    "PiiRedactionResult",
     "PiiRedactor",
     "PiiRedactorConfig",
-    "PiiRedactionResult",
 ]

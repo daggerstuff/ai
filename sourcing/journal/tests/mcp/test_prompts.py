@@ -41,8 +41,5 @@ def test_evaluate_sources_prompt_optional_source_ids() -> None:
     rendered = prompt.render({"session_id": "session-456"})
     assert "all sources in session" in rendered
 
-    rendered_with_sources = prompt.render(
-        {"session_id": "session-456", "source_ids": ["source-1", "source-2"]}
-    )
+    rendered_with_sources = prompt.render({"session_id": "session-456", "source_ids": ["source-1", "source-2"]})
     assert '"source-1"' in rendered_with_sources
-

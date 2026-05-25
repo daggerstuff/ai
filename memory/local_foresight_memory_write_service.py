@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
+from .gates import GateDecision, GateResult, GatingReport
+from .gates.consent_gate import ConsentGateChecker
+from .gates.crisis_detector import CrisisDetector
+from .gates.pii_redactor import PiiRedactionResult, PiiRedactor
+from .gates.trauma_filter import TraumaFilter
 from .local_foresight_protocol_adapter import LocalForesightProtocolAdapter
-from .gates.pii_redactor import PiiRedactor, PiiRedactionResult
-from .gates.crisis_detector import CrisisDetector, CrisisDetectionResult
-from .gates.trauma_filter import TraumaFilter, TraumaFilterResult
-from .gates.consent_gate import ConsentGateChecker, ConsentGateResult
-from .gates import GateResult, GateDecision, GatingReport
 
 
 class LocalForesightMemoryWriteService:
@@ -47,7 +47,7 @@ class LocalForesightMemoryWriteService:
 
     @staticmethod
     def _utc_now() -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def prepare_metadata(
         self,
@@ -164,11 +164,15 @@ class LocalForesightMemoryWriteService:
             gate_id = getattr(exc, "gate", getattr(exc, "failed_gate", None))
             if gate_id:
                 report = GatingReport(source_id="unknown", content=content)
-                setattr(report, gate_id, GateResult(
-                    gate=gate_id,
-                    decision=GateDecision.BLOCK,
-                    reason=str(exc),
-                ))
+                setattr(
+                    report,
+                    gate_id,
+                    GateResult(
+                        gate=gate_id,
+                        decision=GateDecision.BLOCK,
+                        reason=str(exc),
+                    ),
+                )
                 return None, report
             raise
 

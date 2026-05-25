@@ -3,10 +3,11 @@
 Dataset quality scorer using rclone.
 Scores datasets based on completeness, consistency, and annotation quality.
 """
+
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -18,9 +19,7 @@ from rclone_dataset_accessor import (
 )
 
 
-def score_completeness(
-    files: list[dict[str, Any]], sample_records: list[dict]
-) -> float:
+def score_completeness(files: list[dict[str, Any]], sample_records: list[dict]) -> float:
     """Score based on file count and record completeness."""
     if not files:
         return 0.0
@@ -47,9 +46,7 @@ def score_completeness(
     # Check sample records for completeness
     if sample_records:
         required_fields = ["instruction", "input", "output"]
-        records_with_all_fields = sum(
-            1 for r in sample_records if all(field in r for field in required_fields)
-        )
+        records_with_all_fields = sum(1 for r in sample_records if all(field in r for field in required_fields))
         completeness_ratio = records_with_all_fields / len(sample_records)
         score += completeness_ratio * 15
 
@@ -123,9 +120,7 @@ def determine_quality_tier(score: float) -> str:
     return "needs_review"
 
 
-def score_dataset_quality(
-    dataset_name: str, dataset_entry: dict[str, Any]
-) -> dict[str, Any]:
+def score_dataset_quality(dataset_name: str, dataset_entry: dict[str, Any]) -> dict[str, Any]:
     """
     Score quality for a single dataset.
 
@@ -134,7 +129,6 @@ def score_dataset_quality(
     s3_path = dataset_entry.get("path", "")
     if not s3_path:
         return {"error": "No path defined", "overall_score": 0}
-
 
     results = {
         "dataset": dataset_name,
@@ -197,12 +191,9 @@ def main():
         default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
         help="Path to dataset registry",
     )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to score"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to score")
 
     args = parser.parse_args()
-
 
     with open(args.registry) as f:
         registry = json.load(f)
@@ -214,9 +205,7 @@ def main():
             if isinstance(category_data, dict):
                 for dataset_name, dataset_entry in category_data.items():
                     if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                        datasets.append(
-                            (f"datasets.{category_name}.{dataset_name}", dataset_entry)
-                        )
+                        datasets.append((f"datasets.{category_name}.{dataset_name}", dataset_entry))
 
     if args.limit:
         datasets = datasets[: args.limit]
@@ -249,38 +238,22 @@ def main():
                         if "quality_metrics" not in entry:
                             entry["quality_metrics"] = {}
 
-                        entry["quality_metrics"]["completeness_score"] = round(
-                            result["completeness_score"], 2
+                        entry["quality_metrics"]["completeness_score"] = round(result["completeness_score"], 2)
+                        entry["quality_metrics"]["consistency_score"] = round(result["consistency_score"], 2)
+                        entry["quality_metrics"]["annotation_quality_score"] = round(
+                            result["annotation_quality_score"], 2
                         )
-                        entry["quality_metrics"]["consistency_score"] = round(
-                            result["consistency_score"], 2
-                        )
-                        entry["quality_metrics"]["annotation_quality_score"] = (
-                            round(result["annotation_quality_score"], 2)
-                        )
-                        entry["quality_metrics"]["overall_score"] = round(
-                            result["overall_score"], 2
-                        )
-                        entry["quality_metrics"]["quality_score"] = round(
-                            result["overall_score"], 2
-                        )
-                        entry["quality_metrics"]["quality_tier"] = result[
-                            "quality_tier"
-                        ]
-                        entry["quality_metrics"]["anomaly_detected"] = result[
-                            "anomaly_detected"
-                        ]
+                        entry["quality_metrics"]["overall_score"] = round(result["overall_score"], 2)
+                        entry["quality_metrics"]["quality_score"] = round(result["overall_score"], 2)
+                        entry["quality_metrics"]["quality_tier"] = result["quality_tier"]
+                        entry["quality_metrics"]["anomaly_detected"] = result["anomaly_detected"]
                         entry["quality_metrics"]["data_freshness_days"] = None
                         entry["quality_metrics"]["anomaly_flags"] = []
                         if result["anomaly_detected"]:
-                            entry["quality_metrics"]["anomaly_flags"].append(
-                                "low_quality_score"
-                            )
-                        entry["quality_metrics"]["last_scored"] = (
-                            datetime.now(timezone.utc).isoformat() + "Z"
-                        )
+                            entry["quality_metrics"]["anomaly_flags"].append("low_quality_score")
+                        entry["quality_metrics"]["last_scored"] = datetime.now(UTC).isoformat() + "Z"
 
-    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+    registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 

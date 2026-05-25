@@ -7,7 +7,7 @@ Provides intelligent recommendations for quality improvements based on analysis
 import json
 import warnings
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -16,9 +16,11 @@ import pandas as pd
 
 warnings.simplefilter("default")
 
+
 @dataclass
 class QualityRecommendation:
     """Quality improvement recommendation"""
+
     recommendation_id: str
     category: str  # 'immediate', 'short_term', 'long_term', 'strategic'
     priority: str  # 'critical', 'high', 'medium', 'low'
@@ -34,9 +36,11 @@ class QualityRecommendation:
     risk_factors: list[str]
     confidence_score: float
 
+
 @dataclass
 class RecommendationPlan:
     """Comprehensive recommendation plan"""
+
     plan_id: str
     generated_at: datetime
     recommendations: list[QualityRecommendation]
@@ -44,6 +48,7 @@ class RecommendationPlan:
     resource_allocation: dict[str, Any]
     success_metrics: list[str]
     review_schedule: list[str]
+
 
 class QualityRecommendationSystem:
     """Enterprise-grade quality recommendation system"""
@@ -61,7 +66,7 @@ class QualityRecommendationSystem:
             "clinical_compliance",
             "personality_consistency",
             "language_quality",
-            "safety_score"
+            "safety_score",
         ]
 
         # Recommendation templates
@@ -74,10 +79,10 @@ class QualityRecommendationSystem:
                         "Review and expand clinical training datasets",
                         "Implement DSM-5 compliance validation",
                         "Add therapeutic technique assessment",
-                        "Create clinical accuracy benchmarks"
+                        "Create clinical accuracy benchmarks",
                     ],
                     "resources": ["Clinical experts", "Training data", "Validation tools"],
-                    "timeline": 60
+                    "timeline": 60,
                 },
                 "moderate_performance": {
                     "title": "Optimize Therapeutic Response Patterns",
@@ -86,11 +91,11 @@ class QualityRecommendationSystem:
                         "Analyze successful therapeutic interactions",
                         "Identify and replicate effective patterns",
                         "Implement targeted training improvements",
-                        "Monitor therapeutic outcome metrics"
+                        "Monitor therapeutic outcome metrics",
                     ],
                     "resources": ["Data analysts", "Clinical reviewers", "Training infrastructure"],
-                    "timeline": 30
-                }
+                    "timeline": 30,
+                },
             },
             "safety_score": {
                 "critical_performance": {
@@ -100,10 +105,10 @@ class QualityRecommendationSystem:
                         "Immediate safety protocol review",
                         "Enhance crisis detection algorithms",
                         "Implement emergency response procedures",
-                        "Add safety validation checkpoints"
+                        "Add safety validation checkpoints",
                     ],
                     "resources": ["Safety experts", "Emergency protocols", "Monitoring systems"],
-                    "timeline": 7
+                    "timeline": 7,
                 },
                 "low_performance": {
                     "title": "Strengthen Safety Validation Systems",
@@ -112,12 +117,12 @@ class QualityRecommendationSystem:
                         "Review safety detection algorithms",
                         "Enhance harm prevention measures",
                         "Implement safety training protocols",
-                        "Create safety monitoring dashboard"
+                        "Create safety monitoring dashboard",
                     ],
                     "resources": ["Safety team", "Detection systems", "Training materials"],
-                    "timeline": 21
-                }
-            }
+                    "timeline": 21,
+                },
+            },
         }
 
     def generate_quality_recommendations(self) -> RecommendationPlan:
@@ -144,13 +149,13 @@ class QualityRecommendationSystem:
 
             # Create comprehensive plan
             plan = RecommendationPlan(
-                plan_id=f"QRP_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                generated_at=datetime.now(timezone.utc),
+                plan_id=f"QRP_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                generated_at=datetime.now(UTC),
                 recommendations=recommendations,
                 implementation_roadmap=roadmap,
                 resource_allocation=resource_allocation,
                 success_metrics=success_metrics,
-                review_schedule=review_schedule
+                review_schedule=review_schedule,
             )
 
             return plan
@@ -158,12 +163,12 @@ class QualityRecommendationSystem:
         except Exception:
             return RecommendationPlan(
                 plan_id="ERROR",
-                generated_at=datetime.now(timezone.utc),
+                generated_at=datetime.now(UTC),
                 recommendations=[],
                 implementation_roadmap={},
                 resource_allocation={},
                 success_metrics=[],
-                review_schedule=[]
+                review_schedule=[],
             )
 
     def _analyze_current_quality_state(self) -> dict[str, Any]:
@@ -177,7 +182,7 @@ class QualityRecommendationSystem:
                 "critical_issues": [],
                 "improvement_opportunities": [],
                 "strengths": [],
-                "metric_performance": {}
+                "metric_performance": {},
             }
 
             # Analyze each metric
@@ -189,18 +194,24 @@ class QualityRecommendationSystem:
                 analysis["metric_performance"][metric] = {
                     "score": score,
                     "pass_rate": pass_rate,
-                    "status": self._classify_performance(score, pass_rate, metric)
+                    "status": self._classify_performance(score, pass_rate, metric),
                 }
 
                 # Identify issues and opportunities
                 if metric == "safety_score" and pass_rate < 95:
                     analysis["critical_issues"].append(f"Safety validation below critical threshold ({pass_rate:.1f}%)")
                 elif pass_rate < 70:
-                    analysis["critical_issues"].append(f"{metric.replace('_', ' ').title()} critically low ({pass_rate:.1f}%)")
+                    analysis["critical_issues"].append(
+                        f"{metric.replace('_', ' ').title()} critically low ({pass_rate:.1f}%)"
+                    )
                 elif pass_rate < 85:
-                    analysis["improvement_opportunities"].append(f"{metric.replace('_', ' ').title()} needs improvement ({pass_rate:.1f}%)")
+                    analysis["improvement_opportunities"].append(
+                        f"{metric.replace('_', ' ').title()} needs improvement ({pass_rate:.1f}%)"
+                    )
                 else:
-                    analysis["strengths"].append(f"{metric.replace('_', ' ').title()} performing well ({pass_rate:.1f}%)")
+                    analysis["strengths"].append(
+                        f"{metric.replace('_', ' ').title()} performing well ({pass_rate:.1f}%)"
+                    )
 
             # Determine overall health
             critical_count = len(analysis["critical_issues"])
@@ -240,7 +251,7 @@ class QualityRecommendationSystem:
             quality_data[metric] = {
                 "score": base_score,
                 "pass_rate": pass_rate,
-                "trend": np.random.choice(["improving", "stable", "declining"])
+                "trend": np.random.choice(["improving", "stable", "declining"]),
             }
 
         return quality_data
@@ -284,17 +295,22 @@ class QualityRecommendationSystem:
             recommendations.extend(operational_recs)
 
             # Sort by priority and category
-            recommendations.sort(key=lambda x: (
-                {"critical": 4, "high": 3, "medium": 2, "low": 1}[x.priority],
-                {"immediate": 4, "short_term": 3, "long_term": 2, "strategic": 1}[x.category]
-            ), reverse=True)
+            recommendations.sort(
+                key=lambda x: (
+                    {"critical": 4, "high": 3, "medium": 2, "low": 1}[x.priority],
+                    {"immediate": 4, "short_term": 3, "long_term": 2, "strategic": 1}[x.category],
+                ),
+                reverse=True,
+            )
 
             return recommendations
 
         except Exception:
             return []
 
-    def _create_metric_recommendation(self, metric: str, status: str, performance: dict[str, Any]) -> QualityRecommendation | None:
+    def _create_metric_recommendation(
+        self, metric: str, status: str, performance: dict[str, Any]
+    ) -> QualityRecommendation | None:
         """Create recommendation for specific metric"""
         try:
             # Get template based on metric and status
@@ -329,14 +345,14 @@ class QualityRecommendationSystem:
             success_criteria = [
                 f"Achieve {metric.replace('_', ' ')} pass rate > 85%",
                 "Maintain improvement for 30+ days",
-                "No regression in related metrics"
+                "No regression in related metrics",
             ]
 
             # Calculate confidence score
             confidence = 0.9 if metric in self.recommendation_templates else 0.7
 
             return QualityRecommendation(
-                recommendation_id=f"QR_{metric}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                recommendation_id=f"QR_{metric}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 category=category,
                 priority=priority,
                 title=template["title"],
@@ -351,11 +367,10 @@ class QualityRecommendationSystem:
                 risk_factors=[
                     "Resource availability constraints",
                     "Implementation complexity",
-                    "Potential impact on other metrics"
+                    "Potential impact on other metrics",
                 ],
-                confidence_score=confidence
+                confidence_score=confidence,
             )
-
 
         except Exception:
             return None
@@ -363,16 +378,16 @@ class QualityRecommendationSystem:
     def _generate_generic_recommendation(self, metric: str, status: str) -> dict[str, Any]:
         """Generate generic recommendation template"""
         return {
-            "title": f'Improve {metric.replace("_", " ").title()}',
-            "description": f'Address {status} performance in {metric.replace("_", " ")} through targeted improvements',
+            "title": f"Improve {metric.replace('_', ' ').title()}",
+            "description": f"Address {status} performance in {metric.replace('_', ' ')} through targeted improvements",
             "actions": [
-                f'Analyze {metric.replace("_", " ")} failure patterns',
-                f'Implement {metric.replace("_", " ")} enhancement measures',
-                f'Monitor {metric.replace("_", " ")} improvement progress',
-                f'Validate {metric.replace("_", " ")} enhancement effectiveness'
+                f"Analyze {metric.replace('_', ' ')} failure patterns",
+                f"Implement {metric.replace('_', ' ')} enhancement measures",
+                f"Monitor {metric.replace('_', ' ')} improvement progress",
+                f"Validate {metric.replace('_', ' ')} enhancement effectiveness",
             ],
             "resources": ["Quality team", "Analysis tools", "Implementation resources"],
-            "timeline": 45 if status == "critical" else 30
+            "timeline": 45 if status == "critical" else 30,
         }
 
     def _generate_strategic_recommendations(self, quality_analysis: dict[str, Any]) -> list[QualityRecommendation]:
@@ -385,41 +400,43 @@ class QualityRecommendationSystem:
 
             if overall_health in ["poor", "fair"] or critical_count > 2:
                 # Comprehensive quality overhaul
-                strategic_recs.append(QualityRecommendation(
-                    recommendation_id=f"QR_STRATEGIC_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                    category="strategic",
-                    priority="high",
-                    title="Comprehensive Quality System Overhaul",
-                    description="Implement systematic quality improvements across all metrics",
-                    affected_metrics=self.quality_metrics,
-                    expected_impact="20-30% improvement across all quality metrics",
-                    implementation_effort="high",
-                    timeline_days=120,
-                    success_criteria=[
-                        "All metrics achieve >85% pass rate",
-                        'Overall quality health reaches "good" status',
-                        "Sustained improvement for 60+ days"
-                    ],
-                    action_items=[
-                        "Establish quality improvement task force",
-                        "Conduct comprehensive quality audit",
-                        "Implement quality management system",
-                        "Create quality monitoring dashboard",
-                        "Establish quality review processes"
-                    ],
-                    resources_required=[
-                        "Quality management team",
-                        "External quality consultants",
-                        "Quality monitoring tools",
-                        "Training resources"
-                    ],
-                    risk_factors=[
-                        "High resource requirements",
-                        "Extended implementation timeline",
-                        "Potential service disruption"
-                    ],
-                    confidence_score=0.85
-                ))
+                strategic_recs.append(
+                    QualityRecommendation(
+                        recommendation_id=f"QR_STRATEGIC_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                        category="strategic",
+                        priority="high",
+                        title="Comprehensive Quality System Overhaul",
+                        description="Implement systematic quality improvements across all metrics",
+                        affected_metrics=self.quality_metrics,
+                        expected_impact="20-30% improvement across all quality metrics",
+                        implementation_effort="high",
+                        timeline_days=120,
+                        success_criteria=[
+                            "All metrics achieve >85% pass rate",
+                            'Overall quality health reaches "good" status',
+                            "Sustained improvement for 60+ days",
+                        ],
+                        action_items=[
+                            "Establish quality improvement task force",
+                            "Conduct comprehensive quality audit",
+                            "Implement quality management system",
+                            "Create quality monitoring dashboard",
+                            "Establish quality review processes",
+                        ],
+                        resources_required=[
+                            "Quality management team",
+                            "External quality consultants",
+                            "Quality monitoring tools",
+                            "Training resources",
+                        ],
+                        risk_factors=[
+                            "High resource requirements",
+                            "Extended implementation timeline",
+                            "Potential service disruption",
+                        ],
+                        confidence_score=0.85,
+                    )
+                )
 
             return strategic_recs
 
@@ -432,39 +449,37 @@ class QualityRecommendationSystem:
 
         try:
             # Quality monitoring enhancement
-            operational_recs.append(QualityRecommendation(
-                recommendation_id=f"QR_OPERATIONAL_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                category="short_term",
-                priority="medium",
-                title="Enhanced Quality Monitoring Implementation",
-                description="Implement real-time quality monitoring and alerting systems",
-                affected_metrics=["all_metrics"],
-                expected_impact="Faster detection and resolution of quality issues",
-                implementation_effort="medium",
-                timeline_days=30,
-                success_criteria=[
-                    "Real-time quality monitoring active",
-                    "Automated alerting system operational",
-                    "Quality issue response time <2 hours"
-                ],
-                action_items=[
-                    "Deploy quality monitoring dashboard",
-                    "Configure automated quality alerts",
-                    "Establish quality response procedures",
-                    "Train team on monitoring tools"
-                ],
-                resources_required=[
-                    "Monitoring infrastructure",
-                    "Alert management system",
-                    "Training materials"
-                ],
-                risk_factors=[
-                    "Alert fatigue potential",
-                    "False positive management",
-                    "System integration complexity"
-                ],
-                confidence_score=0.8
-            ))
+            operational_recs.append(
+                QualityRecommendation(
+                    recommendation_id=f"QR_OPERATIONAL_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
+                    category="short_term",
+                    priority="medium",
+                    title="Enhanced Quality Monitoring Implementation",
+                    description="Implement real-time quality monitoring and alerting systems",
+                    affected_metrics=["all_metrics"],
+                    expected_impact="Faster detection and resolution of quality issues",
+                    implementation_effort="medium",
+                    timeline_days=30,
+                    success_criteria=[
+                        "Real-time quality monitoring active",
+                        "Automated alerting system operational",
+                        "Quality issue response time <2 hours",
+                    ],
+                    action_items=[
+                        "Deploy quality monitoring dashboard",
+                        "Configure automated quality alerts",
+                        "Establish quality response procedures",
+                        "Train team on monitoring tools",
+                    ],
+                    resources_required=["Monitoring infrastructure", "Alert management system", "Training materials"],
+                    risk_factors=[
+                        "Alert fatigue potential",
+                        "False positive management",
+                        "System integration complexity",
+                    ],
+                    confidence_score=0.8,
+                )
+            )
 
             return operational_recs
 
@@ -473,12 +488,7 @@ class QualityRecommendationSystem:
 
     def _create_implementation_roadmap(self, recommendations: list[QualityRecommendation]) -> dict[str, list[str]]:
         """Create implementation roadmap"""
-        roadmap = {
-            "immediate": [],
-            "short_term": [],
-            "long_term": [],
-            "strategic": []
-        }
+        roadmap = {"immediate": [], "short_term": [], "long_term": [], "strategic": []}
 
         for rec in recommendations:
             roadmap[rec.category].append(f"{rec.title} ({rec.timeline_days} days)")
@@ -499,14 +509,14 @@ class QualityRecommendationSystem:
             "estimated_effort": {
                 "high": len([r for r in recommendations if r.implementation_effort == "high"]),
                 "medium": len([r for r in recommendations if r.implementation_effort == "medium"]),
-                "low": len([r for r in recommendations if r.implementation_effort == "low"])
+                "low": len([r for r in recommendations if r.implementation_effort == "low"]),
             },
             "timeline_distribution": {
                 "immediate": len([r for r in recommendations if r.category == "immediate"]),
                 "short_term": len([r for r in recommendations if r.category == "short_term"]),
                 "long_term": len([r for r in recommendations if r.category == "long_term"]),
-                "strategic": len([r for r in recommendations if r.category == "strategic"])
-            }
+                "strategic": len([r for r in recommendations if r.category == "strategic"]),
+            },
         }
 
     def _define_success_metrics(self, _recommendations: list[QualityRecommendation]) -> list[str]:
@@ -516,7 +526,7 @@ class QualityRecommendationSystem:
             "All critical issues resolved within timeline",
             "90%+ of recommendations successfully implemented",
             "Sustained quality improvements for 60+ days",
-            "No new critical quality issues introduced"
+            "No new critical quality issues introduced",
         ]
 
     def _create_review_schedule(self, _recommendations: list[QualityRecommendation]) -> list[str]:
@@ -525,14 +535,14 @@ class QualityRecommendationSystem:
             "Weekly progress reviews for critical recommendations",
             "Bi-weekly reviews for high priority recommendations",
             "Monthly comprehensive quality assessment",
-            "Quarterly strategic review and plan adjustment"
+            "Quarterly strategic review and plan adjustment",
         ]
 
     def export_recommendation_plan(self, plan: RecommendationPlan) -> str:
         """Export comprehensive recommendation plan"""
 
         try:
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
             report_file = self.output_dir / f"quality_recommendation_plan_{timestamp}.json"
 
             # Prepare export data
@@ -541,13 +551,15 @@ class QualityRecommendationSystem:
                     "plan_id": plan.plan_id,
                     "generated_at": plan.generated_at.isoformat(),
                     "total_recommendations": len(plan.recommendations),
-                    "system_version": "1.0.0"
+                    "system_version": "1.0.0",
                 },
                 "executive_summary": {
                     "critical_recommendations": len([r for r in plan.recommendations if r.priority == "critical"]),
                     "high_priority_recommendations": len([r for r in plan.recommendations if r.priority == "high"]),
-                    "estimated_timeline_days": max([r.timeline_days for r in plan.recommendations]) if plan.recommendations else 0,
-                    "total_affected_metrics": len(set([m for r in plan.recommendations for m in r.affected_metrics]))
+                    "estimated_timeline_days": max([r.timeline_days for r in plan.recommendations])
+                    if plan.recommendations
+                    else 0,
+                    "total_affected_metrics": len(set([m for r in plan.recommendations for m in r.affected_metrics])),
                 },
                 "recommendations": [
                     {
@@ -564,14 +576,14 @@ class QualityRecommendationSystem:
                         "action_items": rec.action_items,
                         "resources_required": rec.resources_required,
                         "risk_factors": rec.risk_factors,
-                        "confidence_score": rec.confidence_score
+                        "confidence_score": rec.confidence_score,
                     }
                     for rec in plan.recommendations
                 ],
                 "implementation_roadmap": plan.implementation_roadmap,
                 "resource_allocation": plan.resource_allocation,
                 "success_metrics": plan.success_metrics,
-                "review_schedule": plan.review_schedule
+                "review_schedule": plan.review_schedule,
             }
 
             # Save plan
@@ -582,6 +594,7 @@ class QualityRecommendationSystem:
 
         except Exception:
             return ""
+
 
 def main():
     """Main execution function"""
@@ -608,6 +621,7 @@ def main():
     for _category, items in plan.implementation_roadmap.items():
         if items:
             pass
+
 
 if __name__ == "__main__":
     main()

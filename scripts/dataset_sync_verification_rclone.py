@@ -3,10 +3,11 @@
 Dataset sync verification using rclone.
 Verifies consistency between S3/DO Spaces and local/backup paths.
 """
+
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -20,9 +21,7 @@ from rclone_dataset_accessor import s3_path_to_rclone
 def run_rclone_ls(remote_path: str) -> list[dict[str, Any]] | None:
     """Run rclone ls and parse output."""
     try:
-        result = subprocess.run(
-            f"rclone ls {remote_path}", shell=True, capture_output=True, text=True
-        )
+        result = subprocess.run(f"rclone ls {remote_path}", shell=True, capture_output=True, text=True)
 
         if result.returncode != 0:
             return None
@@ -42,9 +41,7 @@ def run_rclone_ls(remote_path: str) -> list[dict[str, Any]] | None:
         return None
 
 
-def verify_dataset_sync(
-    dataset_name: str, dataset_entry: dict[str, Any]
-) -> dict[str, Any]:
+def verify_dataset_sync(dataset_name: str, dataset_entry: dict[str, Any]) -> dict[str, Any]:
     """
     Verify sync status for a dataset.
 
@@ -87,9 +84,7 @@ def verify_dataset_sync(
             if fallback_files is not None:
                 results["fallback_exists"] = True
                 results["fallback_files"] = len(fallback_files)
-                results["fallback_size_bytes"] = sum(
-                    f["size_bytes"] for f in fallback_files
-                )
+                results["fallback_size_bytes"] = sum(f["size_bytes"] for f in fallback_files)
         else:
             # Check if local path exists
             local_path = Path(fallback_path)
@@ -100,17 +95,14 @@ def verify_dataset_sync(
                     files = list(local_path.rglob("*"))
                     files = [f for f in files if f.is_file()]
                     results["fallback_files"] = len(files)
-                    results["fallback_size_bytes"] = sum(
-                        f.stat().st_size for f in files
-                    )
+                    results["fallback_size_bytes"] = sum(f.stat().st_size for f in files)
 
     # Determine sync status
     if results["s3_exists"]:
         if not fallback_path or results["fallback_exists"]:
             if not fallback_path or (
                 results["s3_files"] == results["fallback_files"]
-                and abs(results["s3_size_bytes"] - results["fallback_size_bytes"])
-                < 1024
+                and abs(results["s3_size_bytes"] - results["fallback_size_bytes"]) < 1024
             ):
                 results["in_sync"] = True
             else:
@@ -132,12 +124,9 @@ def main():
         default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
         help="Path to dataset registry",
     )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to verify"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to verify")
 
     args = parser.parse_args()
-
 
     with open(args.registry) as f:
         registry = json.load(f)
@@ -149,9 +138,7 @@ def main():
             if isinstance(category_data, dict):
                 for dataset_name, dataset_entry in category_data.items():
                     if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                        datasets.append(
-                            (f"datasets.{category_name}.{dataset_name}", dataset_entry)
-                        )
+                        datasets.append((f"datasets.{category_name}.{dataset_name}", dataset_entry))
 
     if args.limit:
         datasets = datasets[: args.limit]
@@ -191,14 +178,12 @@ def main():
                     if "sync_status" not in entry:
                         entry["sync_status"] = {}
 
-                    entry["sync_status"]["last_verified"] = (
-                        datetime.now(timezone.utc).isoformat() + "Z"
-                    )
+                    entry["sync_status"]["last_verified"] = datetime.now(UTC).isoformat() + "Z"
                     entry["sync_status"]["in_sync"] = result["in_sync"]
                     entry["sync_status"]["s3_file_count"] = result["s3_files"]
                     entry["sync_status"]["s3_size_bytes"] = result["s3_size_bytes"]
 
-    registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+    registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
     with open(args.registry, "w") as f:
         json.dump(registry, f, indent=2, ensure_ascii=False)
 

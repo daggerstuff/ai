@@ -8,7 +8,7 @@ import json
 import logging
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -16,8 +16,10 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ReviewStatus(Enum):
     """Review status options"""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -25,24 +27,30 @@ class ReviewStatus(Enum):
     APPROVED = "approved"
     REJECTED = "rejected"
 
+
 class ReviewPriority(Enum):
     """Review priority levels"""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     URGENT = "urgent"
 
+
 class ReviewerRole(Enum):
     """Reviewer role types"""
+
     JUNIOR_REVIEWER = "junior_reviewer"
     SENIOR_REVIEWER = "senior_reviewer"
     CLINICAL_SUPERVISOR = "clinical_supervisor"
     QUALITY_MANAGER = "quality_manager"
     SUBJECT_EXPERT = "subject_expert"
 
+
 @dataclass
 class ReviewCriteria:
     """Review criteria definition"""
+
     criteria_id: str
     name: str
     description: str
@@ -50,9 +58,11 @@ class ReviewCriteria:
     required: bool = True
     scoring_scale: str = "1-5"
 
+
 @dataclass
 class ReviewAssignment:
     """Review assignment details"""
+
     assignment_id: str
     conversation_id: str
     reviewer_id: str
@@ -64,9 +74,11 @@ class ReviewAssignment:
     status: ReviewStatus
     estimated_time_minutes: int
 
+
 @dataclass
 class ReviewResult:
     """Individual review result"""
+
     review_id: str
     assignment_id: str
     conversation_id: str
@@ -80,6 +92,7 @@ class ReviewResult:
     review_time_minutes: int
     completed_at: str
     metadata: dict[str, Any]
+
 
 class ManualReviewSystem:
     """Enterprise-grade manual review and validation system"""
@@ -97,7 +110,7 @@ class ManualReviewSystem:
             "pending_reviews": 0,
             "average_review_time": 0.0,
             "reviewer_performance": {},
-            "quality_trends": []
+            "quality_trends": [],
         }
         self._setup_default_criteria()
         self._setup_default_reviewers()
@@ -111,43 +124,43 @@ class ManualReviewSystem:
                 name="Therapeutic Accuracy",
                 description="Accuracy of therapeutic responses and interventions",
                 weight=0.25,
-                required=True
+                required=True,
             ),
             ReviewCriteria(
                 criteria_id="clinical_appropriateness",
                 name="Clinical Appropriateness",
                 description="Appropriateness of clinical language and approach",
                 weight=0.20,
-                required=True
+                required=True,
             ),
             ReviewCriteria(
                 criteria_id="safety_compliance",
                 name="Safety Compliance",
                 description="Adherence to safety protocols and crisis management",
                 weight=0.20,
-                required=True
+                required=True,
             ),
             ReviewCriteria(
                 criteria_id="ethical_standards",
                 name="Ethical Standards",
                 description="Compliance with ethical guidelines and professional boundaries",
                 weight=0.15,
-                required=True
+                required=True,
             ),
             ReviewCriteria(
                 criteria_id="communication_quality",
                 name="Communication Quality",
                 description="Clarity, empathy, and effectiveness of communication",
                 weight=0.10,
-                required=True
+                required=True,
             ),
             ReviewCriteria(
                 criteria_id="cultural_sensitivity",
                 name="Cultural Sensitivity",
                 description="Cultural awareness and inclusive language",
                 weight=0.10,
-                required=False
-            )
+                required=False,
+            ),
         ]
 
         for criteria in default_criteria:
@@ -166,7 +179,7 @@ class ManualReviewSystem:
                 "specializations": ["anxiety", "depression", "trauma"],
                 "experience_years": 15,
                 "certification": "Licensed Clinical Psychologist",
-                "active": True
+                "active": True,
             },
             {
                 "reviewer_id": "reviewer_002",
@@ -175,7 +188,7 @@ class ManualReviewSystem:
                 "specializations": ["crisis_intervention", "suicide_prevention"],
                 "experience_years": 8,
                 "certification": "Licensed Clinical Social Worker",
-                "active": True
+                "active": True,
             },
             {
                 "reviewer_id": "reviewer_003",
@@ -184,8 +197,8 @@ class ManualReviewSystem:
                 "specializations": ["cultural_competency", "bilingual_therapy"],
                 "experience_years": 12,
                 "certification": "Licensed Marriage and Family Therapist",
-                "active": True
-            }
+                "active": True,
+            },
         ]
 
         for reviewer in default_reviewers:
@@ -194,7 +207,7 @@ class ManualReviewSystem:
                 "reviews_completed": 0,
                 "average_score_given": 0.0,
                 "average_review_time": 0.0,
-                "consistency_score": 0.0
+                "consistency_score": 0.0,
             }
 
         logger.info(f"✅ Setup {len(default_reviewers)} default reviewers")
@@ -210,26 +223,29 @@ class ManualReviewSystem:
 
         self.reviewers[reviewer_id] = {
             "reviewer_id": reviewer_id,
-            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "registered_at": datetime.now(UTC).isoformat(),
             "active": True,
-            **reviewer_data
+            **reviewer_data,
         }
 
         self.review_stats["reviewer_performance"][reviewer_id] = {
             "reviews_completed": 0,
             "average_score_given": 0.0,
             "average_review_time": 0.0,
-            "consistency_score": 0.0
+            "consistency_score": 0.0,
         }
 
         logger.info(f"✅ Registered reviewer: {reviewer_id}")
         return reviewer_id
 
-    def create_review_assignment(self, conversation: dict[str, Any],
-                               reviewer_id: str = None,
-                               priority: ReviewPriority = ReviewPriority.MEDIUM,
-                               criteria_ids: list[str] = None,
-                               due_hours: int = 24) -> str:
+    def create_review_assignment(
+        self,
+        conversation: dict[str, Any],
+        reviewer_id: str = None,
+        priority: ReviewPriority = ReviewPriority.MEDIUM,
+        criteria_ids: list[str] = None,
+        due_hours: int = 24,
+    ) -> str:
         """Create a new review assignment"""
 
         conversation_id = conversation.get("id", f"conv_{uuid.uuid4().hex[:8]}")
@@ -246,8 +262,7 @@ class ManualReviewSystem:
         if criteria_ids is None:
             criteria_ids = list(self.review_criteria.keys())
 
-        criteria = [self.review_criteria[cid] for cid in criteria_ids
-                   if cid in self.review_criteria]
+        criteria = [self.review_criteria[cid] for cid in criteria_ids if cid in self.review_criteria]
 
         # Calculate estimated time based on conversation complexity
         estimated_time = self._estimate_review_time(conversation, criteria)
@@ -259,10 +274,10 @@ class ManualReviewSystem:
             reviewer_role=self.reviewers[reviewer_id]["role"],
             priority=priority,
             criteria=criteria,
-            assigned_at=datetime.now(timezone.utc).isoformat(),
-            due_date=(datetime.now(timezone.utc) + timedelta(hours=due_hours)).isoformat(),
+            assigned_at=datetime.now(UTC).isoformat(),
+            due_date=(datetime.now(UTC) + timedelta(hours=due_hours)).isoformat(),
             status=ReviewStatus.PENDING,
-            estimated_time_minutes=estimated_time
+            estimated_time_minutes=estimated_time,
         )
 
         self.assignments[assignment_id] = assignment
@@ -273,8 +288,7 @@ class ManualReviewSystem:
         logger.info(f"✅ Created review assignment {assignment_id} for reviewer {reviewer_id}")
         return assignment_id
 
-    def _auto_assign_reviewer(self, conversation: dict[str, Any],
-                            _priority: ReviewPriority) -> str:
+    def _auto_assign_reviewer(self, conversation: dict[str, Any], _priority: ReviewPriority) -> str:
         """Automatically assign the best reviewer for a conversation"""
 
         # Extract conversation characteristics
@@ -316,14 +330,16 @@ class ManualReviewSystem:
                 ReviewerRole.SENIOR_REVIEWER: 0.8,
                 ReviewerRole.SUBJECT_EXPERT: 0.9,
                 ReviewerRole.QUALITY_MANAGER: 0.7,
-                ReviewerRole.JUNIOR_REVIEWER: 0.5
+                ReviewerRole.JUNIOR_REVIEWER: 0.5,
             }
             score += role_weights.get(reviewer["role"], 0.5) * 0.2
 
             # Current workload (lower is better)
-            current_assignments = sum(1 for a in self.assignments.values()
-                                    if a.reviewer_id == reviewer_id and
-                                    a.status in [ReviewStatus.PENDING, ReviewStatus.IN_PROGRESS])
+            current_assignments = sum(
+                1
+                for a in self.assignments.values()
+                if a.reviewer_id == reviewer_id and a.status in [ReviewStatus.PENDING, ReviewStatus.IN_PROGRESS]
+            )
             workload_penalty = min(current_assignments * 0.1, 0.5)
             score -= workload_penalty * 0.1
 
@@ -335,8 +351,7 @@ class ManualReviewSystem:
 
         return max(reviewer_scores.items(), key=lambda x: x[1])[0]
 
-    def _estimate_review_time(self, conversation: dict[str, Any],
-                            criteria: list[ReviewCriteria]) -> int:
+    def _estimate_review_time(self, conversation: dict[str, Any], criteria: list[ReviewCriteria]) -> int:
         """Estimate review time in minutes"""
 
         # Base time
@@ -359,12 +374,16 @@ class ManualReviewSystem:
         total_time = base_time + complexity_time + criteria_time + safety_time
         return int(total_time)
 
-    def submit_review(self, assignment_id: str, reviewer_id: str,
-                     criteria_scores: dict[str, float],
-                     comments: str,
-                     issues_identified: list[str] = None,
-                     recommendations: list[str] = None,
-                     approval_status: str = "approved") -> str:
+    def submit_review(
+        self,
+        assignment_id: str,
+        reviewer_id: str,
+        criteria_scores: dict[str, float],
+        comments: str,
+        issues_identified: list[str] = None,
+        recommendations: list[str] = None,
+        approval_status: str = "approved",
+    ) -> str:
         """Submit a completed review"""
 
         if assignment_id not in self.assignments:
@@ -387,10 +406,9 @@ class ManualReviewSystem:
 
         # Calculate overall score
         total_weight = sum(c.weight for c in assignment.criteria)
-        overall_score = sum(
-            criteria_scores.get(c.criteria_id, 3.0) * c.weight
-            for c in assignment.criteria
-        ) / total_weight
+        overall_score = (
+            sum(criteria_scores.get(c.criteria_id, 3.0) * c.weight for c in assignment.criteria) / total_weight
+        )
 
         # Create review result
         review_id = f"review_{uuid.uuid4().hex[:8]}"
@@ -407,8 +425,8 @@ class ManualReviewSystem:
             recommendations=recommendations or [],
             approval_status=approval_status,
             review_time_minutes=assignment.estimated_time_minutes,  # Would be actual time in real system
-            completed_at=datetime.now(timezone.utc).isoformat(),
-            metadata={}
+            completed_at=datetime.now(UTC).isoformat(),
+            metadata={},
         )
 
         self.reviews[review_id] = review_result
@@ -446,21 +464,21 @@ class ManualReviewSystem:
 
             # Update average review time
             current_time_avg = perf["average_review_time"]
-            perf["average_review_time"] = ((current_time_avg * (total_reviews - 1)) + review.review_time_minutes) / total_reviews
+            perf["average_review_time"] = (
+                (current_time_avg * (total_reviews - 1)) + review.review_time_minutes
+            ) / total_reviews
 
         # Update overall average review time
         total_completed = self.review_stats["completed_reviews"]
         current_avg_time = self.review_stats["average_review_time"]
         self.review_stats["average_review_time"] = (
-            (current_avg_time * (total_completed - 1) + review.review_time_minutes) / total_completed
-        )
+            current_avg_time * (total_completed - 1) + review.review_time_minutes
+        ) / total_completed
 
         # Add to quality trends
-        self.review_stats["quality_trends"].append({
-            "timestamp": review.completed_at,
-            "overall_score": review.overall_score,
-            "reviewer_id": review.reviewer_id
-        })
+        self.review_stats["quality_trends"].append(
+            {"timestamp": review.completed_at, "overall_score": review.overall_score, "reviewer_id": review.reviewer_id}
+        )
 
     def get_pending_assignments(self, reviewer_id: str = None) -> list[ReviewAssignment]:
         """Get pending review assignments"""
@@ -478,14 +496,13 @@ class ManualReviewSystem:
             ReviewPriority.URGENT: 0,
             ReviewPriority.HIGH: 1,
             ReviewPriority.MEDIUM: 2,
-            ReviewPriority.LOW: 3
+            ReviewPriority.LOW: 3,
         }
 
         pending.sort(key=lambda x: (priority_order[x.priority], x.due_date))
         return pending
 
-    def get_review_results(self, conversation_id: str = None,
-                          reviewer_id: str = None) -> list[ReviewResult]:
+    def get_review_results(self, conversation_id: str = None, reviewer_id: str = None) -> list[ReviewResult]:
         """Get review results with optional filtering"""
         results = list(self.reviews.values())
 
@@ -497,8 +514,7 @@ class ManualReviewSystem:
 
         return results
 
-    def generate_review_report(self, start_date: str = None,
-                             end_date: str = None) -> dict[str, Any]:
+    def generate_review_report(self, start_date: str = None, end_date: str = None) -> dict[str, Any]:
         """Generate comprehensive review report"""
 
         # Filter reviews by date range if specified
@@ -547,11 +563,7 @@ class ManualReviewSystem:
         for review in reviews:
             rid = review.reviewer_id
             if rid not in reviewer_performance:
-                reviewer_performance[rid] = {
-                    "reviews_completed": 0,
-                    "average_score": 0.0,
-                    "total_score": 0.0
-                }
+                reviewer_performance[rid] = {"reviews_completed": 0, "average_score": 0.0, "total_score": 0.0}
 
             reviewer_performance[rid]["reviews_completed"] += 1
             reviewer_performance[rid]["total_score"] += review.overall_score
@@ -575,17 +587,17 @@ class ManualReviewSystem:
             "report_period": {
                 "start_date": start_date,
                 "end_date": end_date,
-                "generated_at": datetime.now(timezone.utc).isoformat()
+                "generated_at": datetime.now(UTC).isoformat(),
             },
             "summary_metrics": {
                 "total_reviews": total_reviews,
                 "average_score": round(average_score, 3),
-                "score_distribution": score_ranges
+                "score_distribution": score_ranges,
             },
             "reviewer_performance": reviewer_performance,
             "common_issues": common_issues,
             "quality_trends": self.review_stats["quality_trends"][-50:],  # Last 50 reviews
-            "system_statistics": self.get_review_statistics()
+            "system_statistics": self.get_review_statistics(),
         }
 
     def get_review_statistics(self) -> dict[str, Any]:
@@ -596,7 +608,7 @@ class ManualReviewSystem:
             "total_reviewers": len(self.reviewers),
             "review_criteria_count": len(self.review_criteria),
             "pending_assignments": len(self.review_queue),
-            "statistics_timestamp": datetime.now(timezone.utc).isoformat()
+            "statistics_timestamp": datetime.now(UTC).isoformat(),
         }
 
     def export_review_data(self, output_path: str, include_sensitive: bool = False) -> bool:
@@ -607,7 +619,7 @@ class ManualReviewSystem:
                 "reviews": [asdict(r) for r in self.reviews.values()],
                 "review_criteria": [asdict(c) for c in self.review_criteria.values()],
                 "system_statistics": self.get_review_statistics(),
-                "export_timestamp": datetime.now(timezone.utc).isoformat()
+                "export_timestamp": datetime.now(UTC).isoformat(),
             }
 
             if include_sensitive:
@@ -615,8 +627,7 @@ class ManualReviewSystem:
             else:
                 # Export reviewer data without sensitive information
                 export_data["reviewers"] = {
-                    rid: {k: v for k, v in reviewer.items()
-                         if k not in ["email", "phone", "address"]}
+                    rid: {k: v for k, v in reviewer.items() if k not in ["email", "phone", "address"]}
                     for rid, reviewer in self.reviewers.items()
                 }
 
@@ -630,6 +641,7 @@ class ManualReviewSystem:
             logger.error(f"❌ Error exporting review data: {e}")
             return False
 
+
 def main():
     """Test manual review system"""
     review_system = ManualReviewSystem()
@@ -637,15 +649,11 @@ def main():
     # Test conversation
     test_conversation = {
         "id": "test_manual_001",
-        "conversation": "User: I feel really anxious about my job interview tomorrow. Assistant: I understand job interviews can be anxiety-provoking. Let's work on some coping strategies. First, try some deep breathing exercises..."
+        "conversation": "User: I feel really anxious about my job interview tomorrow. Assistant: I understand job interviews can be anxiety-provoking. Let's work on some coping strategies. First, try some deep breathing exercises...",
     }
 
     # Create review assignment
-    review_system.create_review_assignment(
-        conversation=test_conversation,
-        priority=ReviewPriority.HIGH
-    )
-
+    review_system.create_review_assignment(conversation=test_conversation, priority=ReviewPriority.HIGH)
 
     # Get pending assignments
     pending = review_system.get_pending_assignments()
@@ -660,7 +668,7 @@ def main():
             "safety_compliance": 5.0,
             "ethical_standards": 4.0,
             "communication_quality": 4.5,
-            "cultural_sensitivity": 4.0
+            "cultural_sensitivity": 4.0,
         }
 
         review_system.submit_review(
@@ -670,12 +678,12 @@ def main():
             comments="Good therapeutic response with appropriate coping strategies. Clear communication and empathetic tone.",
             issues_identified=[],
             recommendations=["Consider adding more specific grounding techniques"],
-            approval_status="approved"
+            approval_status="approved",
         )
-
 
         # Generate report
         review_system.generate_review_report()
+
 
 if __name__ == "__main__":
     main()

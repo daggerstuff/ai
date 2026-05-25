@@ -94,7 +94,6 @@ class EvaluateSourcesTool(MCPTool):
             ) from e
 
 
-
 class GetEvaluationsTool(MCPTool):
     """Tool for getting all evaluations for a session."""
 
@@ -203,9 +202,7 @@ class GetEvaluationsTool(MCPTool):
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _apply_filters(
-        self, evaluations: list[DatasetEvaluation], filters: dict[str, Any]
-    ) -> list[DatasetEvaluation]:
+    def _apply_filters(self, evaluations: list[DatasetEvaluation], filters: dict[str, Any]) -> list[DatasetEvaluation]:
         """Apply filters to evaluations list."""
         filtered = evaluations
 
@@ -233,9 +230,7 @@ class GetEvaluationsTool(MCPTool):
         if sort_by == "evaluation_date":
             return sorted(evaluations, key=lambda e: e.evaluation_date, reverse=reverse)
         if sort_by == "therapeutic_relevance":
-            return sorted(
-                evaluations, key=lambda e: e.therapeutic_relevance, reverse=reverse
-            )
+            return sorted(evaluations, key=lambda e: e.therapeutic_relevance, reverse=reverse)
         return evaluations
 
     def _evaluation_to_dict(self, evaluation: DatasetEvaluation) -> dict[str, Any]:
@@ -507,4 +502,3 @@ class UpdateEvaluationTool(MCPTool):
             "privacy_compliant": evaluation.privacy_compliant,
             "hipaa_compliant": evaluation.hipaa_compliant,
         }
-

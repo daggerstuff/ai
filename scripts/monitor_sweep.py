@@ -33,9 +33,7 @@ def get_s3_client():
     access_key = os.environ.get("HETZNER_S3_ACCESS_KEY")
     secret_key = os.environ.get("HETZNER_S3_SECRET_KEY")
     if not access_key or not secret_key:
-        console.print(
-            "[red]❌ Error: Missing credentials (HETZNER_S3_ACCESS_KEY/SECRET_KEY).[/red]"
-        )
+        console.print("[red]❌ Error: Missing credentials (HETZNER_S3_ACCESS_KEY/SECRET_KEY).[/red]")
         sys.exit(1)
     return boto3.client(
         "s3",
@@ -64,12 +62,7 @@ def get_current_file_progress(pid):
         # Find which large file is currently open
         fds = subprocess.check_output(f"ls -l /proc/{pid}/fd", shell=True).decode()
         for line in fds.split("\n"):
-            if (
-                "ULTIMATE" in line
-                or ".jsonl" in line
-                or ".zip" in line
-                or ".csv" in line
-            ):
+            if "ULTIMATE" in line or ".jsonl" in line or ".zip" in line or ".csv" in line:
                 # Extract path
                 if " -> " in line:
                     path = line.split(" -> ")[1].strip()
@@ -140,15 +133,10 @@ def main():
 
     # Progress
     overall_pct = (completed_size / total_size) * 100 if total_size > 0 else 0
-    console.print(
-        f"\nProgress: {done_count}/{len(to_upload)} files ({overall_pct:.1f}%)"
-    )
+    console.print(f"\nProgress: {done_count}/{len(to_upload)} files ({overall_pct:.1f}%)")
 
     if not pid:
-        console.print(
-            "\n[red]⚠️  Sweep script (full_ai_sweep_s3.py) "
-            "is NOT currently running.[/red]"
-        )
+        console.print("\n[red]⚠️  Sweep script (full_ai_sweep_s3.py) is NOT currently running.[/red]")
 
 
 if __name__ == "__main__":

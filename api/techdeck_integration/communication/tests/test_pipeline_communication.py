@@ -4,10 +4,11 @@ Comprehensive Tests for Pipeline Communication System.
 This module provides extensive testing for the six-stage pipeline communication
 system with HIPAA++ compliance, sub-50ms performance requirements, and bias detection.
 """
+
 import asyncio
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -42,11 +43,7 @@ class TestEventBus:
         redis_client.subscribe = AsyncMock()
         redis_client.unsubscribe = AsyncMock()
 
-        config = {
-            "connection_pool": {"max_connections": 10},
-            "event_ttl": 3600,
-            "guaranteed_delivery": True
-        }
+        config = {"connection_pool": {"max_connections": 10}, "event_ttl": 3600, "guaranteed_delivery": True}
 
         event_bus = EventBus(redis_client, config)
         yield event_bus
@@ -58,9 +55,7 @@ class TestEventBus:
     async def test_event_publishing(self, event_bus):
         """Test basic event publishing functionality."""
         event = await event_bus.create_event(
-            event_type=EventType.REQUEST_INITIATED.value,
-            execution_id="test_execution_123",
-            payload={"test": "data"}
+            event_type=EventType.REQUEST_INITIATED.value, execution_id="test_execution_123", payload={"test": "data"}
         )
 
         result = await event_bus.publish_event(event)
@@ -83,9 +78,7 @@ class TestEventBus:
         event_bus.register_handler(MockHandler(test_handler))
 
         event = EventMessage(
-            event_type=EventType.PROGRESS_UPDATE.value,
-            execution_id="test_execution_123",
-            payload={"progress": 50.0}
+            event_type=EventType.PROGRESS_UPDATE.value, execution_id="test_execution_123", payload={"progress": 50.0}
         )
 
         await event_bus.publish_event(event)
@@ -97,16 +90,10 @@ class TestEventBus:
     @pytest.mark.asyncio
     async def test_hipaa_compliance(self, event_bus):
         """Test HIPAA++ compliance in event handling."""
-        sensitive_data = {
-            "user_id": "user_123",
-            "session_data": "sensitive_info",
-            "pii": "personal_data"
-        }
+        sensitive_data = {"user_id": "user_123", "session_data": "sensitive_info", "pii": "personal_data"}
 
         event = EventMessage(
-            event_type=EventType.STAGE_TRANSITION.value,
-            execution_id="test_execution_123",
-            payload=sensitive_data
+            event_type=EventType.STAGE_TRANSITION.value, execution_id="test_execution_123", payload=sensitive_data
         )
 
         # Verify data is sanitized before publishing
@@ -135,7 +122,7 @@ class TestPipelineCoordinator:
         config = {
             "state_manager": {"state_ttl_seconds": 3600},
             "event_bus": {"event_ttl": 3600},
-            "performance_monitor": {"metrics_retention_hours": 24}
+            "performance_monitor": {"metrics_retention_hours": 24},
         }
 
         return PipelineCoordinator(redis_client, config)
@@ -148,7 +135,7 @@ class TestPipelineCoordinator:
             "user_id": "user_123",
             "execution_mode": "standard",
             "quality_threshold": 0.8,
-            "enable_bias_detection": True
+            "enable_bias_detection": True,
         }
 
         result = await coordinator.execute_pipeline(execution_request)
@@ -166,11 +153,7 @@ class TestPipelineCoordinator:
     async def test_pipeline_validation(self, coordinator):
         """Test pipeline input validation."""
         # Test invalid execution mode
-        invalid_request = {
-            "dataset_ids": ["dataset_1"],
-            "user_id": "user_123",
-            "execution_mode": "invalid_mode"
-        }
+        invalid_request = {"dataset_ids": ["dataset_1"], "user_id": "user_123", "execution_mode": "invalid_mode"}
 
         with pytest.raises(ValidationError):
             await coordinator.execute_pipeline(invalid_request)
@@ -182,7 +165,7 @@ class TestPipelineCoordinator:
             "dataset_ids": ["dataset_1"],
             "user_id": "user_123",
             "execution_mode": "standard",
-            "enable_bias_detection": True
+            "enable_bias_detection": True,
         }
 
         result = await coordinator.execute_pipeline(execution_request)
@@ -198,11 +181,7 @@ class TestPipelineCoordinator:
         with patch.object(coordinator.stage_coordinators["validation"], "execute_stage") as mock_stage:
             mock_stage.side_effect = Exception("Stage validation failed")
 
-            execution_request = {
-                "dataset_ids": ["dataset_1"],
-                "user_id": "user_123",
-                "execution_mode": "standard"
-            }
+            execution_request = {"dataset_ids": ["dataset_1"], "user_id": "user_123", "execution_mode": "standard"}
 
             # Should handle error gracefully
             result = await coordinator.execute_pipeline(execution_request)
@@ -225,9 +204,7 @@ class TestPerformanceRequirements:
         start_time = time.time()
 
         event = EventMessage(
-            event_type=EventType.PROGRESS_UPDATE.value,
-            execution_id="perf_test_123",
-            payload={"progress": 75.0}
+            event_type=EventType.PROGRESS_UPDATE.value, execution_id="perf_test_123", payload={"progress": 75.0}
         )
 
         await event_bus.publish_event(event)
@@ -242,11 +219,7 @@ class TestPerformanceRequirements:
         bias_integration = BiasDetectionIntegration()
         await bias_integration.initialize_bias_service()
 
-        test_data = {
-            "validation_score": 0.9,
-            "checks_passed": ["check1", "check2"],
-            "dataset_size": 1000
-        }
+        test_data = {"validation_score": 0.9, "checks_passed": ["check1", "check2"], "dataset_size": 1000}
 
         start_time = time.time()
 
@@ -275,10 +248,10 @@ class TestPerformanceRequirements:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             current_stage="test",
             stage_results={},
-            metadata={}
+            metadata={},
         )
 
         start_time = time.time()
@@ -306,13 +279,11 @@ class TestHIPAACompliance:
             "user_id": "user_123",
             "session_data": "patient_record_456",
             "diagnosis": "mental_health_condition",
-            "personal_info": "john.doe@email.com"
+            "personal_info": "john.doe@email.com",
         }
 
         event = EventMessage(
-            event_type=EventType.STAGE_TRANSITION.value,
-            execution_id="hipaa_test_123",
-            payload=sensitive_data
+            event_type=EventType.STAGE_TRANSITION.value, execution_id="hipaa_test_123", payload=sensitive_data
         )
 
         await event_bus.publish_event(event)
@@ -341,10 +312,10 @@ class TestHIPAACompliance:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             current_stage="validation",
             stage_results={},
-            metadata={}
+            metadata={},
         )
 
         await state_manager.initialize_pipeline_state(context)
@@ -375,10 +346,10 @@ class TestHIPAACompliance:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             current_stage="test",
             stage_results={},
-            metadata={}
+            metadata={},
         )
 
         state = await state_manager.initialize_pipeline_state(context)
@@ -401,18 +372,16 @@ class TestErrorHandling:
             execution_mode="standard",
             quality_threshold=0.8,
             enable_bias_detection=True,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             current_stage="validation",
             stage_results={},
-            metadata={}
+            metadata={},
         )
 
         # Simulate a retryable error
         error = TimeoutError("Operation timed out")
 
-        result = await error_recovery.attempt_stage_recovery(
-            context, "validation", error
-        )
+        result = await error_recovery.attempt_stage_recovery(context, "validation", error)
 
         assert isinstance(result, RecoveryResult)
         assert result.recovered is True
@@ -427,9 +396,7 @@ class TestErrorHandling:
 
         # Simulate multiple failures
         for i in range(6):  # Exceed threshold
-            await degradation_manager._record_service_failure(
-                service_name, f"Failure {i}"
-            )
+            await degradation_manager._record_service_failure(service_name, f"Failure {i}")
 
         # Check circuit breaker state
         health = degradation_manager.service_health[service_name]
@@ -448,9 +415,7 @@ class TestErrorHandling:
         async def fallback_function():
             return {"status": "fallback_success", "data": "fallback_data"}
 
-        result = await degradation_manager.execute_with_fallback(
-            "test_service", failing_function, fallback_function
-        )
+        result = await degradation_manager.execute_with_fallback("test_service", failing_function, fallback_function)
 
         assert result["status"] == "fallback_success"
         assert result["data"] == "fallback_data"
@@ -468,7 +433,7 @@ class TestBiasDetection:
 
         test_data = {
             "demographic_data": {"gender": "mixed", "age": "adult"},
-            "content_analysis": {"sentiment": "positive", "bias_indicators": ["none"]}
+            "content_analysis": {"sentiment": "positive", "bias_indicators": ["none"]},
         }
 
         metrics = await bias_integration.analyze_stage_data(test_data, "validation")
@@ -503,7 +468,7 @@ class TestBiasDetection:
         # Simulate high bias scenario
         high_bias_data = {
             "demographic_representation": {"skewed": True, "imbalance": 0.8},
-            "content_bias": {"stereotypes": 0.7, "representation": 0.6}
+            "content_bias": {"stereotypes": 0.7, "representation": 0.6},
         }
 
         metrics = await bias_integration.analyze_stage_data(high_bias_data, "processing")
@@ -529,11 +494,7 @@ class TestPerformanceMonitoring:
         redis_client.setex = AsyncMock(return_value=True)
         redis_client.keys = AsyncMock(return_value=[])
 
-        config = {
-            "metrics_retention_hours": 24,
-            "threshold_check_interval": 60,
-            "performance_window_size": 1000
-        }
+        config = {"metrics_retention_hours": 24, "threshold_check_interval": 60, "performance_window_size": 1000}
 
         return PerformanceMonitor(redis_client, config)
 
@@ -552,8 +513,7 @@ class TestPerformanceMonitoring:
         violations = await performance_monitor.check_performance_thresholds()
 
         violation_found = any(
-            v["metric_name"] == "stage_execution_time" and v["current_value"] == 75.0
-            for v in violations
+            v["metric_name"] == "stage_execution_time" and v["current_value"] == 75.0 for v in violations
         )
         assert violation_found is True
 
@@ -562,13 +522,9 @@ class TestPerformanceMonitoring:
         """Test performance summary generation."""
         # Record multiple metrics
         for i in range(10):
-            await performance_monitor.record_metric(
-                "test_metric", "test_execution_123", float(i * 10), "milliseconds"
-            )
+            await performance_monitor.record_metric("test_metric", "test_execution_123", float(i * 10), "milliseconds")
 
-        summary = await performance_monitor.get_execution_performance_summary(
-            "test_execution_123"
-        )
+        summary = await performance_monitor.get_execution_performance_summary("test_execution_123")
 
         assert summary is not None
         assert summary.execution_id == "test_execution_123"
@@ -580,9 +536,7 @@ class TestPerformanceMonitoring:
     async def test_real_time_performance_dashboard(self, performance_monitor):
         """Test real-time performance dashboard generation."""
         # Record metrics
-        await performance_monitor.record_metric(
-            "stage_execution_time", "test_execution_123", 25.0, "milliseconds"
-        )
+        await performance_monitor.record_metric("stage_execution_time", "test_execution_123", 25.0, "milliseconds")
 
         dashboard = await performance_monitor.get_real_time_performance_dashboard()
 
@@ -625,8 +579,8 @@ class TestIntegrationScenarios:
             config={
                 "event_bus": {"event_ttl": 3600},
                 "state_manager": {"state_ttl_seconds": 3600},
-                "performance_monitor": {"metrics_retention_hours": 24}
-            }
+                "performance_monitor": {"metrics_retention_hours": 24},
+            },
         )
 
         # Execute pipeline
@@ -636,7 +590,7 @@ class TestIntegrationScenarios:
             "execution_mode": "comprehensive",
             "quality_threshold": 0.85,
             "enable_bias_detection": True,
-            "metadata": {"test_run": True}
+            "metadata": {"test_run": True},
         }
 
         start_time = time.time()
@@ -674,7 +628,7 @@ class TestIntegrationScenarios:
                 "user_id": f"user_{i}",
                 "execution_mode": "standard",
                 "quality_threshold": 0.8,
-                "enable_bias_detection": True
+                "enable_bias_detection": True,
             }
             for i in range(5)  # 5 concurrent executions
         ]
@@ -682,9 +636,7 @@ class TestIntegrationScenarios:
         # Execute concurrently
         start_time = time.time()
 
-        results = await asyncio.gather(
-            *[coordinator.execute_pipeline(req) for req in execution_requests]
-        )
+        results = await asyncio.gather(*[coordinator.execute_pipeline(req) for req in execution_requests])
 
         total_time_ms = (time.time() - start_time) * 1000
 
@@ -715,7 +667,7 @@ class TestIntegrationScenarios:
                 "dataset_ids": ["dataset_1"],
                 "user_id": "error_test_user",
                 "execution_mode": "standard",
-                "enable_bias_detection": True
+                "enable_bias_detection": True,
             }
 
             # Should handle error gracefully and continue
@@ -733,13 +685,12 @@ class TestSecurityAndCompliance:
     async def test_input_validation_and_sanitization(self):
         """Test comprehensive input validation and sanitization."""
 
-
         # Test malicious input
         malicious_input = {
             "user_input": '<script>alert("xss")</script>',
             "sql_injection": "'; DROP TABLE users; --",
             "command_injection": "rm -rf /",
-            "path_traversal": "../../../etc/passwd"
+            "path_traversal": "../../../etc/passwd",
         }
 
         sanitized = sanitize_input(malicious_input)
@@ -770,7 +721,7 @@ class TestSecurityAndCompliance:
             event_type=EventType.REQUEST_INITIATED.value,
             execution_id="rate_limit_test",
             payload={"test": "data"},
-            metadata={"timestamp": datetime.now(timezone.utc).isoformat()}
+            metadata={"timestamp": datetime.now(UTC).isoformat()},
         )
 
         assert "timestamp" in event.metadata
@@ -792,10 +743,10 @@ class TestSecurityAndCompliance:
             execution_mode="standard",
             quality_threshold=0.9,
             enable_bias_detection=True,
-            start_time=datetime.now(timezone.utc),
+            start_time=datetime.now(UTC),
             current_stage="validation",
             stage_results={},
-            metadata={"compliance_level": "hipaa_plus"}
+            metadata={"compliance_level": "hipaa_plus"},
         )
 
         await state_manager.initialize_pipeline_state(context)
@@ -828,13 +779,15 @@ async def test_pipeline_stress_scenario():
     # Create stress test scenario
     stress_requests = []
     for i in range(20):  # 20 concurrent executions
-        stress_requests.append({
-            "dataset_ids": [f"stress_dataset_{i}_{j}" for j in range(5)],
-            "user_id": f"stress_user_{i}",
-            "execution_mode": "fast",
-            "quality_threshold": 0.7,
-            "enable_bias_detection": (i % 2 == 0)  # Half with bias detection
-        })
+        stress_requests.append(
+            {
+                "dataset_ids": [f"stress_dataset_{i}_{j}" for j in range(5)],
+                "user_id": f"stress_user_{i}",
+                "execution_mode": "fast",
+                "quality_threshold": 0.7,
+                "enable_bias_detection": (i % 2 == 0),  # Half with bias detection
+            }
+        )
 
     start_time = time.time()
 
@@ -845,9 +798,7 @@ async def test_pipeline_stress_scenario():
         async with semaphore:
             return await coordinator.execute_pipeline(request)
 
-    results = await asyncio.gather(
-        *[limited_execution(req) for req in stress_requests]
-    )
+    results = await asyncio.gather(*[limited_execution(req) for req in stress_requests])
 
     total_time_ms = (time.time() - start_time) * 1000
 

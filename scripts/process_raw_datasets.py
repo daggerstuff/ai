@@ -36,10 +36,7 @@ class RawDatasetProcessor:
             if "messages" in conv:
                 # Extract assistant responses as segments
                 for msg in conv["messages"]:
-                    if (
-                        msg.get("role") == "assistant"
-                        and len(msg.get("content", "")) > 100
-                    ):
+                    if msg.get("role") == "assistant" and len(msg.get("content", "")) > 100:
                         segment = {
                             "text": msg["content"],
                             "style": self.classify_style(msg["content"]),
@@ -58,9 +55,7 @@ class RawDatasetProcessor:
 
         if any(word in text_lower for word in ["trauma", "heal", "therapy", "recover"]):
             return "therapeutic"
-        if any(
-            word in text_lower for word in ["understand", "explain", "learn", "study"]
-        ):
+        if any(word in text_lower for word in ["understand", "explain", "learn", "study"]):
             return "educational"
         if any(word in text_lower for word in ["feel", "hurt", "pain", "support"]):
             return "empathetic"
@@ -98,9 +93,7 @@ class RawDatasetProcessor:
                     total_segments += len(training_pairs)
 
         # Process natural conversations
-        natural_file = (
-            raw_dir / "natural_conversations" / "natural_multi_turn_conversations.json"
-        )
+        natural_file = raw_dir / "natural_conversations" / "natural_multi_turn_conversations.json"
         if natural_file.exists():
             segments = self.process_conversation_dataset(natural_file)
 

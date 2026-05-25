@@ -21,7 +21,7 @@ import re
 import statistics
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -31,14 +31,14 @@ logger = logging.getLogger(__name__)
 @dataclass
 class QualityIssue:
     """Represents a single quality issue."""
-    
+
     issue_type: str  # 'bias', 'completeness', 'consistency', 'format'
     severity: str  # 'low', 'medium', 'high', 'critical'
     description: str
     example_id: str | None = None
     affected_field: str | None = None
     suggestion: str | None = None
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "issue_type": self.issue_type,
@@ -53,31 +53,31 @@ class QualityIssue:
 @dataclass
 class QualityReport:
     """Comprehensive quality report for a dataset."""
-    
+
     dataset_path: str
     total_examples: int
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
     # Quality scores (0.0-1.0)
     overall_quality_score: float = 0.0
     format_validity_score: float = 0.0
     completeness_score: float = 0.0
     consistency_score: float = 0.0
     bias_score: float = 0.0  # Higher is better (less biased)
-    
+
     # Issue counts
     issues: list[QualityIssue] = field(default_factory=list)
     critical_issues: int = 0
     high_issues: int = 0
     medium_issues: int = 0
     low_issues: int = 0
-    
+
     # Statistics
     statistics: dict[str, Any] = field(default_factory=dict)
-    
+
     # Recommendations
     recommendations: list[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "dataset_path": self.dataset_path,
@@ -105,7 +105,7 @@ class QualityReport:
 class BiasDetector:
     """
     Detects various forms of bias in training data.
-    
+
     Checks for:
     - Demographic bias (gender, race, age, etc.)
     - Topical bias (over/under-representation)
@@ -113,7 +113,7 @@ class BiasDetector:
     - Geographic bias
     - Socioeconomic bias
     """
-    
+
     # Demographic indicator patterns
     DEMOGRAPHIC_PATTERNS = {
         "gender": [
@@ -138,46 +138,46 @@ class BiasDetector:
             ),
         ],
     }
-    
+
     def __init__(self):
         self._stats: dict[str, int] = {}
-    
+
     def detect_bias(self, examples: list[dict[str, Any]]) -> list[QualityIssue]:
         """
         Detect bias in a list of examples.
-        
+
         Args:
             examples: List of example dictionaries
-            
+
         Returns:
             List of detected bias issues
         """
         issues = []
-        
+
         if not examples:
             return issues
-        
+
         # Check demographic representation
         demographic_issues = self._check_demographic_balance(examples)
         issues.extend(demographic_issues)
-        
+
         # Check topical distribution
         topical_issues = self._check_topical_balance(examples)
         issues.extend(topical_issues)
-        
+
         # Check linguistic patterns
         linguistic_issues = self._check_linguistic_bias(examples)
         issues.extend(linguistic_issues)
-        
+
         return issues
-    
+
     def _check_demographic_balance(
         self,
         examples: list[dict[str, Any]],
     ) -> list[QualityIssue]:
         """Check for demographic imbalances."""
         issues = []
-        
+
         # Count demographic references
         demo_counts: dict[str, int] = {
             "gender": 0,
@@ -185,15 +185,15 @@ class BiasDetector:
             "race_ethnicity": 0,
             "socioeconomic": 0,
         }
-        
+
         for example in examples:
             text = f"{example.get('input', '')} {example.get('target', '')}".lower()
-            
+
             for category, patterns in self.DEMOGRAPHIC_PATTERNS.items():
                 for pattern in patterns:
                     if pattern.search(text):
                         demo_counts[category] += 1
-        
+
         # Check for extreme imbalances
         total = len(examples)
         if total > 0:
@@ -206,29 +206,24 @@ class BiasDetector:
                             issue_type="bias",
                             severity="medium",
                             description=(
-                                f"Potential over-representation of {category} "
-                                f"references ({ratio:.1%} of examples)"
+                                f"Potential over-representation of {category} references ({ratio:.1%} of examples)"
                             ),
-                            suggestion=(
-                                "Review if demographic diversity is adequately represented"
-                            ),
+                            suggestion=("Review if demographic diversity is adequately represented"),
                         )
                     )
-        
+
         return issues
-    
+
     def _check_topical_balance(
         self,
         examples: list[dict[str, Any]],
     ) -> list[QualityIssue]:
         """Check for topical imbalances."""
         issues = []
-        
+
         # Count conversation types
-        conv_types = Counter(
-            ex.get("conversation_type", "unknown") for ex in examples
-        )
-        
+        conv_types = Counter(ex.get("conversation_type", "unknown") for ex in examples)
+
         # Check if one type dominates
         total = len(examples)
         if total > 10:  # Only check if we have enough examples
@@ -239,33 +234,30 @@ class BiasDetector:
                         QualityIssue(
                             issue_type="bias",
                             severity="low",
-                            description=(
-                                f"Conversation type '{conv_type}' dominates "
-                                f"dataset ({ratio:.1%})"
-                            ),
+                            description=(f"Conversation type '{conv_type}' dominates dataset ({ratio:.1%})"),
                             suggestion="Consider balancing topical diversity",
                         )
                     )
-        
+
         return issues
-    
+
     def _check_linguistic_bias(
         self,
         examples: list[dict[str, Any]],
     ) -> list[QualityIssue]:
         """Check for linguistic biases."""
         issues = []
-        
+
         # Analyze text length distribution
         lengths = []
         for example in examples:
             text = f"{example.get('input', '')} {example.get('target', '')}"
             lengths.append(len(text.split()))
-        
+
         if len(lengths) > 10:
             mean_len = statistics.mean(lengths)
             std_len = statistics.stdev(lengths)
-            
+
             # Check for extreme outliers
             if std_len > 0:
                 for i, length in enumerate(lengths):
@@ -275,22 +267,19 @@ class BiasDetector:
                             QualityIssue(
                                 issue_type="bias",
                                 severity="low",
-                                description=(
-                                    f"Example {i} has extreme text length "
-                                    f"(z-score: {z_score:.2f})"
-                                ),
+                                description=(f"Example {i} has extreme text length (z-score: {z_score:.2f})"),
                                 suggestion="Review for potential data quality issues",
                                 example_id=examples[i].get("id"),
                             )
                         )
-        
+
         return issues
 
 
 class QualityAssurance:
     """
     Quality assurance for fine-tuning datasets.
-    
+
     Performs:
     - Format validation
     - Completeness checks
@@ -298,10 +287,10 @@ class QualityAssurance:
     - Bias detection
     - Statistical analysis
     """
-    
+
     # Required fields for valid examples
     REQUIRED_FIELDS = {"id", "input", "target", "example_type"}
-    
+
     # Valid example types
     VALID_EXAMPLE_TYPES = {
         "standard",
@@ -311,78 +300,65 @@ class QualityAssurance:
         "temporal_pattern",
         "emotional_context",
     }
-    
+
     def __init__(self, bias_threshold: float = 0.7):
         """
         Initialize QA checker.
-        
+
         Args:
             bias_threshold: Minimum acceptable bias score (0-1)
         """
         self.bias_threshold = bias_threshold
         self.bias_detector = BiasDetector()
-    
+
     def run_full_check(
         self,
         dataset_path: str | Path,
     ) -> QualityReport:
         """
         Run comprehensive quality checks on a dataset.
-        
+
         Args:
             dataset_path: Path to dataset JSONL file
-            
+
         Returns:
             QualityReport with all findings
         """
         dataset_path = Path(dataset_path)
-        
+
         # Load examples
         examples = self._load_dataset(dataset_path)
-        
+
         # Run all checks
         format_issues = self._check_format_validity(examples)
         completeness_issues = self._check_completeness(examples)
         consistency_issues = self._check_consistency(examples)
         bias_issues = self.bias_detector.detect_bias(examples)
-        
+
         # Combine all issues
-        all_issues = (
-            format_issues + completeness_issues + consistency_issues + bias_issues
-        )
-        
+        all_issues = format_issues + completeness_issues + consistency_issues + bias_issues
+
         # Calculate scores
         format_score = self._calculate_format_score(examples, format_issues)
-        completeness_score = self._calculate_completeness_score(
-            examples, completeness_issues
-        )
-        consistency_score = self._calculate_consistency_score(
-            examples, consistency_issues
-        )
+        completeness_score = self._calculate_completeness_score(examples, completeness_issues)
+        consistency_score = self._calculate_consistency_score(examples, consistency_issues)
         bias_score = self._calculate_bias_score(examples, bias_issues)
-        
+
         # Overall score (weighted average)
-        overall_score = (
-            format_score * 0.25
-            + completeness_score * 0.25
-            + consistency_score * 0.25
-            + bias_score * 0.25
-        )
-        
+        overall_score = format_score * 0.25 + completeness_score * 0.25 + consistency_score * 0.25 + bias_score * 0.25
+
         # Count issues by severity
         critical = sum(1 for i in all_issues if i.severity == "critical")
         high = sum(1 for i in all_issues if i.severity == "high")
         medium = sum(1 for i in all_issues if i.severity == "medium")
         low = sum(1 for i in all_issues if i.severity == "low")
-        
+
         # Generate recommendations
-        recommendations = self._generate_recommendations(
-            all_issues, examples
-        )
-        
+        recommendations = self._generate_recommendations(all_issues, examples)
+
         # Compute statistics
         stats = self._compute_statistics(examples)
-        
+
         return QualityReport(
             dataset_path=str(dataset_path),
             total_examples=len(examples),
@@ -399,11 +375,11 @@ class QualityAssurance:
             statistics=stats,
             recommendations=recommendations,
         )
-    
+
     def _load_dataset(self, path: Path) -> list[dict[str, Any]]:
         """Load dataset from JSONL file."""
         examples = []
-        
+
         try:
             with open(path, encoding="utf-8") as f:
                 for line in f:
@@ -414,16 +390,16 @@ class QualityAssurance:
                             logger.warning(f"Failed to parse line: {e}")
         except FileNotFoundError:
             logger.error(f"Dataset file not found: {path}")
-        
+
         return examples
-    
+
     def _check_format_validity(
         self,
         examples: list[dict[str, Any]],
     ) -> list[QualityIssue]:
         """Check format validity of examples."""
         issues = []
-        
+
         for i, example in enumerate(examples):
             # Check required fields
             missing = self.REQUIRED_FIELDS - set(example.keys())
@@ -438,7 +414,7 @@ class QualityAssurance:
                         suggestion="Add missing required fields",
                     )
                 )
-            
+
             # Check example_type validity
             example_type = example.get("example_type")
             if example_type and example_type not in self.VALID_EXAMPLE_TYPES:
@@ -452,7 +428,7 @@ class QualityAssurance:
                         suggestion=f"Use one of: {self.VALID_EXAMPLE_TYPES}",
                     )
                 )
-            
+
             # Check types
             if not isinstance(example.get("input", ""), str):
                 issues.append(
@@ -464,7 +440,7 @@ class QualityAssurance:
                         affected_field="input",
                     )
                 )
-            
+
             if not isinstance(example.get("target", ""), str):
                 issues.append(
                     QualityIssue(
@@ -475,16 +451,16 @@ class QualityAssurance:
                         affected_field="target",
                     )
                 )
-        
+
         return issues
-    
+
     def _check_completeness(
         self,
         examples: list[dict[str, Any]],
     ) -> list[QualityIssue]:
         """Check completeness of examples."""
         issues = []
-        
+
         for example in examples:
             # Check for empty content
             if not example.get("input", "").strip():
@@ -498,7 +474,7 @@ class QualityAssurance:
                         suggestion="Provide non-empty input text",
                     )
                 )
-            
+
             if not example.get("target", "").strip():
                 issues.append(
                     QualityIssue(
@@ -510,7 +486,7 @@ class QualityAssurance:
                         suggestion="Provide non-empty target text",
                     )
                 )
-            
+
             # Check for very short content
             input_len = len(example.get("input", "").split())
             if input_len < 5:
@@ -524,20 +500,20 @@ class QualityAssurance:
                         suggestion="Consider providing more context",
                     )
                 )
-        
+
         return issues
-    
+
     def _check_consistency(
         self,
         examples: list[dict[str, Any]],
     ) -> list[QualityIssue]:
         """Check consistency across examples."""
         issues = []
-        
+
         # Check for duplicate IDs
         ids = [ex.get("id") for ex in examples if ex.get("id")]
         duplicates = {id_ for id_ in ids if ids.count(id_) > 1}
-        
+
         if duplicates:
             issues.append(
                 QualityIssue(
@@ -547,12 +523,12 @@ class QualityAssurance:
                     suggestion="Ensure all example IDs are unique",
                 )
             )
-        
+
         # Check for inconsistent split assignments
         splits = set(ex.get("split") for ex in examples if ex.get("split"))
-        
+
         return issues
-    
+
     def _calculate_format_score(
         self,
         examples: list[dict[str, Any]],
@@ -561,18 +537,14 @@ class QualityAssurance:
         """Calculate format validity score."""
         if not examples:
             return 0.0
-        
-        critical = sum(
-            1 for i in issues if i.issue_type == "format" and i.severity == "critical"
-        )
-        high = sum(
-            1 for i in issues if i.issue_type == "format" and i.severity == "high"
-        )
-        
+
+        critical = sum(1 for i in issues if i.issue_type == "format" and i.severity == "critical")
+        high = sum(1 for i in issues if i.issue_type == "format" and i.severity == "high")
+
         # Penalize heavily for critical/high issues
         penalty = (critical * 0.1) + (high * 0.05)
         return max(0.0, 1.0 - penalty)
-    
+
     def _calculate_completeness_score(
         self,
         examples: list[dict[str, Any]],
@@ -581,21 +553,13 @@ class QualityAssurance:
         """Calculate completeness score."""
         if not examples:
             return 0.0
-        
-        critical = sum(
-            1
-            for i in issues
-            if i.issue_type == "completeness" and i.severity == "critical"
-        )
-        medium = sum(
-            1
-            for i in issues
-            if i.issue_type == "completeness" and i.severity == "medium"
-        )
-        
+
+        critical = sum(1 for i in issues if i.issue_type == "completeness" and i.severity == "critical")
+        medium = sum(1 for i in issues if i.issue_type == "completeness" and i.severity == "medium")
+
         penalty = (critical * 0.15) + (medium * 0.05)
         return max(0.0, 1.0 - penalty)
-    
+
     def _calculate_consistency_score(
         self,
         examples: list[dict[str, Any]],
@@ -604,16 +568,12 @@ class QualityAssurance:
         """Calculate consistency score."""
         if not examples:
             return 0.0
-        
-        high = sum(
-            1
-            for i in issues
-            if i.issue_type == "consistency" and i.severity == "high"
-        )
-        
+
+        high = sum(1 for i in issues if i.issue_type == "consistency" and i.severity == "high")
+
         penalty = high * 0.1
         return max(0.0, 1.0 - penalty)
-    
+
     def _calculate_bias_score(
         self,
         examples: list[dict[str, Any]],
@@ -622,22 +582,21 @@ class QualityAssurance:
         """Calculate bias score."""
         if not examples:
             return 0.0
-        
+
         # Count bias issues
         bias_count = len(issues)
-        
+
         # Simple scoring: fewer issues = better
         if bias_count == 0:
             return 1.0
-        elif bias_count <= 2:
+        if bias_count <= 2:
             return 0.9
-        elif bias_count <= 5:
+        if bias_count <= 5:
             return 0.7
-        elif bias_count <= 10:
+        if bias_count <= 10:
             return 0.5
-        else:
-            return 0.3
-    
+        return 0.3
+
     def _generate_recommendations(
         self,
         issues: list[QualityIssue],
@@ -645,33 +604,26 @@ class QualityAssurance:
     ) -> list[str]:
         """Generate actionable recommendations."""
         recommendations = []
-        
+
         # Count issue types
         issue_counts = Counter(i.issue_type for i in issues)
-        
+
         if issue_counts.get("format", 0) > 0:
-            recommendations.append(
-                "Fix format issues before proceeding with training"
-            )
-        
+            recommendations.append("Fix format issues before proceeding with training")
+
         if issue_counts.get("completeness", 0) > 0:
-            recommendations.append(
-                "Complete missing data fields to improve dataset quality"
-            )
-        
+            recommendations.append("Complete missing data fields to improve dataset quality")
+
         if issue_counts.get("bias", 0) > 0:
-            recommendations.append(
-                "Review dataset for potential biases and consider rebalancing"
-            )
-        
+            recommendations.append("Review dataset for potential biases and consider rebalancing")
+
         if len(examples) < 100:
             recommendations.append(
-                f"Dataset is small ({len(examples)} examples). "
-                "Consider collecting more data for better generalization."
+                f"Dataset is small ({len(examples)} examples). Consider collecting more data for better generalization."
             )
-        
+
         return recommendations
-    
+
     def _compute_statistics(
         self,
         examples: list[dict[str, Any]],
@@ -679,11 +631,11 @@ class QualityAssurance:
         """Compute dataset statistics."""
         if not examples:
             return {}
-        
+
         # Text length stats
         input_lengths = [len(ex.get("input", "").split()) for ex in examples]
         target_lengths = [len(ex.get("target", "").split()) for ex in examples]
-        
+
         stats = {
             "input_length": {
                 "mean": statistics.mean(input_lengths) if input_lengths else 0,
@@ -697,24 +649,18 @@ class QualityAssurance:
                 "min": min(target_lengths) if target_lengths else 0,
                 "max": max(target_lengths) if target_lengths else 0,
             },
-            "example_types": dict(
-                Counter(ex.get("example_type") for ex in examples)
-            ),
-            "conversation_types": dict(
-                Counter(ex.get("conversation_type") for ex in examples)
-            ),
+            "example_types": dict(Counter(ex.get("example_type") for ex in examples)),
+            "conversation_types": dict(Counter(ex.get("conversation_type") for ex in examples)),
         }
-        
+
         return stats
 
 
 def main():
     """CLI entry point for QA checks."""
     import argparse
-    
-    parser = argparse.ArgumentParser(
-        description="Run quality assurance checks on fine-tuning dataset"
-    )
+
+    parser = argparse.ArgumentParser(description="Run quality assurance checks on fine-tuning dataset")
     parser.add_argument(
         "dataset_path",
         type=str,
@@ -731,13 +677,13 @@ def main():
         action="store_true",
         help="Show detailed issue descriptions",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Run QA
     qa = QualityAssurance()
     report = qa.run_full_check(args.dataset_path)
-    
+
     # Print summary
     print("\n=== Quality Assurance Report ===")
     print(f"Dataset: {report.dataset_path}")
@@ -747,29 +693,29 @@ def main():
     print(f"  - Completeness: {report.completeness_score:.2f}")
     print(f"  - Consistency: {report.consistency_score:.2f}")
     print(f"  - Bias Score: {report.bias_score:.2f}")
-    
+
     print(f"\nIssues Found: {len(report.issues)}")
     print(f"  - Critical: {report.critical_issues}")
     print(f"  - High: {report.high_issues}")
     print(f"  - Medium: {report.medium_issues}")
     print(f"  - Low: {report.low_issues}")
-    
+
     if report.recommendations:
         print("\nRecommendations:")
         for rec in report.recommendations:
             print(f"  - {rec}")
-    
+
     if report.issues and args.verbose:
         print("\nDetailed Issues:")
         for issue in report.issues:
             print(f"  [{issue.severity.upper()}] {issue.description}")
-    
+
     # Save report if requested
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2)
         print(f"\nReport saved to {args.output}")
-    
+
     # Return exit code based on quality
     if report.overall_quality_score < 0.5:
         return 1

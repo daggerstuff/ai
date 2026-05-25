@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 
 @dataclass
@@ -78,11 +79,9 @@ class EvaluationGates:
                     return value
             if isinstance(payload.get("messages"), list):
                 return " ".join(
-                    message.get("content", "")
-                    for message in payload["messages"]
-                    if isinstance(message, dict)
+                    message.get("content", "") for message in payload["messages"] if isinstance(message, dict)
                 )
         return ""
 
 
-__all__ = ["EvaluationGates", "GateResult", "GateReport"]
+__all__ = ["EvaluationGates", "GateReport", "GateResult"]

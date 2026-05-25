@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
 
 import pandas as pd
 
@@ -117,4 +116,4 @@ load = _LoadModule(
 )
 
 
-__all__ = ["load", "DatasetLoaderError"]
+__all__ = ["DatasetLoaderError", "load"]

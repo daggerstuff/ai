@@ -208,5 +208,3 @@ generate_preprocessing_script(
 - Schema mappings are validated before plan creation
 - You can review and modify integration plans if needed
 """
-
-

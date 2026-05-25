@@ -18,7 +18,6 @@ def prepare_batches(input_file, output_dir, batch_size=100, num_batches=1):
                 except json.JSONDecodeError:
                     continue
 
-
     # Shuffle data
     random.shuffle(data)
 
@@ -33,11 +32,7 @@ def prepare_batches(input_file, output_dir, batch_size=100, num_batches=1):
 
         # Ensure ID exists for tracking
         for idx, item in enumerate(batch_data):
-            if (
-                "id" not in item
-                and "metadata" in item
-                and "content_hash" in item["metadata"]
-            ):
+            if "id" not in item and "metadata" in item and "content_hash" in item["metadata"]:
                 item["id"] = item["metadata"]["content_hash"][:12]
             elif "id" not in item:
                 item["id"] = f"sample_{start_idx + idx}"
@@ -55,17 +50,11 @@ def prepare_batches(input_file, output_dir, batch_size=100, num_batches=1):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Prepare annotation batches from JSONL dataset"
-    )
+    parser = argparse.ArgumentParser(description="Prepare annotation batches from JSONL dataset")
     parser.add_argument("--input", required=True, help="Path to source JSONL file")
-    parser.add_argument(
-        "--output", default="../batches", help="Output directory for batches"
-    )
+    parser.add_argument("--output", default="../batches", help="Output directory for batches")
     parser.add_argument("--size", type=int, default=50, help="Records per batch")
-    parser.add_argument(
-        "--count", type=int, default=2, help="Number of batches to generate"
-    )
+    parser.add_argument("--count", type=int, default=2, help="Number of batches to generate")
 
     args = parser.parse_args()
 

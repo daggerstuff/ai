@@ -111,9 +111,7 @@ class IntelligentQAAgent:
             r"following up on",
         ]
 
-        has_setup = any(
-            re.search(pattern, text, re.IGNORECASE) for pattern in setup_patterns
-        )
+        has_setup = any(re.search(pattern, text, re.IGNORECASE) for pattern in setup_patterns)
 
         setup_end = 0
         if has_setup:
@@ -217,29 +215,21 @@ class IntelligentQAAgent:
 
         # Interview indicators
         interview_score = 0
-        if any(
-            word in text_lower for word in ["interviewer", "host", "guest", "asked"]
-        ):
+        if any(word in text_lower for word in ["interviewer", "host", "guest", "asked"]):
             interview_score += 0.3
         if "?" in text and "that's" in text_lower:
             interview_score += 0.4
 
         # Teaching indicators
         teaching_score = 0
-        if any(
-            phrase in text_lower
-            for phrase in ["let me explain", "what happens is", "the key thing"]
-        ):
+        if any(phrase in text_lower for phrase in ["let me explain", "what happens is", "the key thing"]):
             teaching_score += 0.4
         if any(word in text_lower for word in ["first", "second", "then", "finally"]):
             teaching_score += 0.2
 
         # Story indicators
         story_score = 0
-        if any(
-            phrase in text_lower
-            for phrase in ["i remember", "there was", "for example", "i had a client"]
-        ):
+        if any(phrase in text_lower for phrase in ["i remember", "there was", "for example", "i had a client"]):
             story_score += 0.4
 
         scores = {
@@ -248,9 +238,7 @@ class IntelligentQAAgent:
             "story": story_score,
         }
 
-        content_type = (
-            max(scores, key=scores.get) if max(scores.values()) > 0.3 else "general"
-        )
+        content_type = max(scores, key=scores.get) if max(scores.values()) > 0.3 else "general"
 
         return {
             "type": content_type,
@@ -328,9 +316,7 @@ class IntelligentQAAgent:
 
         return min(overlap_ratio, 1.0)
 
-    def make_intelligent_decision(
-        self, analysis: ContentAnalysis, text: str, style: str
-    ) -> dict:
+    def make_intelligent_decision(self, analysis: ContentAnalysis, text: str, style: str) -> dict:
         """Make nuanced decision based on multi-pattern analysis"""
 
         # High confidence dialogue with good Q/A extraction
@@ -426,9 +412,7 @@ class IntelligentQAAgent:
         analysis = self.multi_pattern_analysis(segment["text"])
 
         # Make intelligent decision
-        result = self.make_intelligent_decision(
-            analysis, segment["text"], segment["style"]
-        )
+        result = self.make_intelligent_decision(analysis, segment["text"], segment["style"])
 
         return {
             "input": result["input"],
@@ -462,7 +446,6 @@ def test_intelligent_agent():
     }
 
     agent.process_segment(test_segment)
-
 
 
 if __name__ == "__main__":

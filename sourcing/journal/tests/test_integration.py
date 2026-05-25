@@ -5,7 +5,6 @@ Tests component communication, workflow state transitions, error handling,
 and progress tracking across multiple components.
 """
 
-
 import pytest
 
 from ai.sourcing.journal.acquisition.acquisition_manager import (
@@ -181,6 +180,7 @@ class TestErrorHandling:
 
     def test_error_recovery_in_discovery(self, temp_dir):
         """Test error recovery in discovery phase."""
+
         class FailingDiscoveryService:
             def __init__(self):
                 self.attempts = 0
@@ -219,6 +219,7 @@ class TestErrorHandling:
 
     def test_fallback_strategy(self, temp_dir):
         """Test fallback strategy for failures."""
+
         class FailingService:
             def discover_sources(self, _session):
                 raise RuntimeError("Service unavailable")
@@ -289,9 +290,7 @@ class TestProgressTracking:
         orchestrator.update_progress(session.session_id, {"datasets_evaluated": 3})
 
         # Generate progress visualization
-        visualization = orchestrator.generate_progress_visualization_data(
-            session.session_id
-        )
+        visualization = orchestrator.generate_progress_visualization_data(session.session_id)
 
         assert "targets" in visualization
         assert visualization["targets"]["sources_identified"]["achieved"] == 7
@@ -334,4 +333,3 @@ class TestSessionPersistence:
         # Verify progress was restored
         progress = new_orchestrator.get_progress(loaded_session.session_id)
         assert progress.sources_identified == 5
-

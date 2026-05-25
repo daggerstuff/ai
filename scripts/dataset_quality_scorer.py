@@ -3,9 +3,10 @@
 Dataset quality scoring script that computes quality metrics
 and assigns quality tiers based on configurable thresholds.
 """
+
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +35,7 @@ class DatasetQualityScorer:
 
     def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+        registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -111,9 +112,7 @@ class DatasetQualityScorer:
 
         return max(0.0, round(score, 2))
 
-    def calculate_annotation_quality(
-        self, dataset_entry: dict[str, Any]
-    ) -> float | None:
+    def calculate_annotation_quality(self, dataset_entry: dict[str, Any]) -> float | None:
         """
         Calculate annotation quality based on dataset type and profile.
 
@@ -216,9 +215,7 @@ class DatasetQualityScorer:
 
         return anomalies
 
-    def score_dataset(
-        self, dataset_name: str, dataset_entry: dict[str, Any]
-    ) -> dict[str, Any]:
+    def score_dataset(self, dataset_name: str, dataset_entry: dict[str, Any]) -> dict[str, Any]:
         """
         Compute quality metrics for a dataset.
 
@@ -238,10 +235,7 @@ class DatasetQualityScorer:
         # Calculate overall quality score (weighted average)
         weights = {"completeness": 0.3, "consistency": 0.4, "annotation": 0.3}
 
-        quality_score = (
-            completeness_score * weights["completeness"]
-            + consistency_score * weights["consistency"]
-        )
+        quality_score = completeness_score * weights["completeness"] + consistency_score * weights["consistency"]
 
         if annotation_quality is not None:
             quality_score += annotation_quality * weights["annotation"]
@@ -261,9 +255,7 @@ class DatasetQualityScorer:
             "completeness_score": completeness_score,
             "consistency_score": consistency_score,
             "annotation_quality": annotation_quality,
-            "data_freshness_days": dataset_entry.get("quality_metrics", {}).get(
-                "data_freshness_days"
-            ),
+            "data_freshness_days": dataset_entry.get("quality_metrics", {}).get("data_freshness_days"),
             "anomaly_flags": anomaly_flags,
         }
 
@@ -315,9 +307,7 @@ class DatasetQualityScorer:
                 if isinstance(section_data, dict):
                     for dataset_name, dataset_entry in section_data.items():
                         if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                            datasets_to_score.append(
-                                (f"{section_name}.{dataset_name}", dataset_entry)
-                            )
+                            datasets_to_score.append((f"{section_name}.{dataset_name}", dataset_entry))
 
         if limit:
             datasets_to_score = datasets_to_score[:limit]
@@ -330,9 +320,7 @@ class DatasetQualityScorer:
                 # Update registry
                 parts = dataset_path_key.split(".")
                 if len(parts) == 3:
-                    registry["datasets"][parts[1]][parts[2]]["quality_metrics"] = (
-                        quality_metrics
-                    )
+                    registry["datasets"][parts[1]][parts[2]]["quality_metrics"] = quality_metrics
                 elif len(parts) == 2:
                     registry[parts[0]][parts[1]]["quality_metrics"] = quality_metrics
 
@@ -365,12 +353,9 @@ def main():
         default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
         help="Path to dataset registry",
     )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to score"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to score")
 
     args = parser.parse_args()
-
 
     scorer = DatasetQualityScorer(args.registry)
     stats = scorer.score_all_datasets(limit=args.limit)

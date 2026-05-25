@@ -6,7 +6,7 @@ unified DatasetSource objects.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.sourcing.journal.models.dataset_models import DatasetSource
@@ -65,7 +65,7 @@ class MetadataParser:
                 keywords=keywords,
                 open_access=open_access,
                 data_availability=data_availability,
-                discovery_date=datetime.now(timezone.utc),
+                discovery_date=datetime.now(UTC),
                 discovery_method=discovery_method,
             )
 
@@ -107,7 +107,7 @@ class MetadataParser:
                                 author.get("name")
                                 or author.get("Name")
                                 or author.get("fullName")
-                                or f'{author.get("firstName", "")} {author.get("lastName", "")}'.strip()
+                                or f"{author.get('firstName', '')} {author.get('lastName', '')}".strip()
                             )
                             if name:
                                 authors.append(name)
@@ -159,10 +159,10 @@ class MetadataParser:
         # Try nested structures
         if "metadata" in data:
             date = self._extract_date(data["metadata"])
-            if date != datetime.now(timezone.utc):
+            if date != datetime.now(UTC):
                 return date
 
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def _extract_doi(self, data: dict[str, Any]) -> str | None:
         """Extract DOI from metadata."""
@@ -348,9 +348,7 @@ class MetadataParser:
 
         return False
 
-    def _generate_source_id(
-        self, data: dict[str, Any], source_type: str, doi: str | None, title: str
-    ) -> str:
+    def _generate_source_id(self, data: dict[str, Any], source_type: str, doi: str | None, title: str) -> str:
         """Generate a unique source ID."""
         # Try to use existing ID
         for field in ["id", "ID", "identifier", "Identifier", "nctId"]:
@@ -367,4 +365,3 @@ class MetadataParser:
 
         # Fallback to hash of title
         return f"{source_type}_{abs(hash(title))}"
-

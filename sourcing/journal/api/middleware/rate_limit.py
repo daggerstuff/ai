@@ -22,9 +22,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """Rate limiting middleware using token bucket algorithm."""
 
     # Rate limit storage: {client_id: (tokens, last_update)}
-    rate_limits: dict[str, tuple[float, float]] = defaultdict(
-        lambda: (settings.rate_limit_per_minute, time.time())
-    )
+    rate_limits: dict[str, tuple[float, float]] = defaultdict(lambda: (settings.rate_limit_per_minute, time.time()))
 
     # Public endpoints that don't require rate limiting
     PUBLIC_ENDPOINTS = [
@@ -120,4 +118,3 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             response.headers[key] = value
 
         return response
-

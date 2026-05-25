@@ -74,7 +74,7 @@ class TestSingleEmbedding:
         response = service.embed_text(request)
 
         # Check L2 norm is approximately 1
-        norm_squared = sum(x ** 2 for x in response.embedding)
+        norm_squared = sum(x**2 for x in response.embedding)
         assert abs(norm_squared - 1.0) < 0.01
 
     def test_embed_text_caching(self, service: EmbeddingAgentService):
@@ -275,9 +275,7 @@ class TestEdgeCases:
 
     def test_unicode_text(self, service: EmbeddingAgentService):
         """Test handling of unicode text."""
-        request = EmbeddingRequest(
-            text="This includes émojis 🎉 and üñíçödé characters 日本語"
-        )
+        request = EmbeddingRequest(text="This includes émojis 🎉 and üñíçödé characters 日本語")
 
         response = service.embed_text(request)
 
@@ -291,4 +289,3 @@ class TestEdgeCases:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

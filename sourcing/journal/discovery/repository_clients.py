@@ -7,7 +7,7 @@ for therapeutic datasets.
 
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import requests
 
@@ -166,7 +166,7 @@ class DryadClient:
                 keywords=keywords,
                 open_access=True,  # Dryad is open access
                 data_availability="available",  # Dryad datasets are available
-                discovery_date=datetime.now(timezone.utc),
+                discovery_date=datetime.now(UTC),
                 discovery_method="repository_api",
             )
 
@@ -183,7 +183,7 @@ class DryadClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
 
 class ZenodoClient:
@@ -341,7 +341,7 @@ class ZenodoClient:
                 keywords=keywords,
                 open_access=True,  # Zenodo is open access
                 data_availability="available",  # Zenodo datasets are available
-                discovery_date=datetime.now(timezone.utc),
+                discovery_date=datetime.now(UTC),
                 discovery_method="repository_api",
             )
 
@@ -358,7 +358,7 @@ class ZenodoClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
 
 class ClinicalTrialsClient:
@@ -522,7 +522,7 @@ class ClinicalTrialsClient:
                 keywords=keywords,
                 open_access=True,  # ClinicalTrials.gov is open access
                 data_availability=data_availability,
-                discovery_date=datetime.now(timezone.utc),
+                discovery_date=datetime.now(UTC),
                 discovery_method="repository_api",
             )
 
@@ -543,5 +543,4 @@ class ClinicalTrialsClient:
         except (ValueError, TypeError, AttributeError):
             pass
 
-        return datetime.now(timezone.utc)
-
+        return datetime.now(UTC)

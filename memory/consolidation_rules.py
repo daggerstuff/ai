@@ -4,6 +4,7 @@ Memory Consolidation Rules - Rules for memory compaction and cleanup.
 This module defines rules for when and how to consolidate memories,
 with special handling for crisis content.
 """
+
 import logging
 from dataclasses import dataclass
 from enum import StrEnum
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class ConsolidationRule(StrEnum):
     """Types of consolidation rules."""
+
     PRESERVE = "preserve"  # Never consolidate
     CONSOLIDATE = "consolidate"  # Can consolidate
     DELETE = "delete"  # Can delete if redundant
@@ -24,6 +26,7 @@ class ConsolidationRule(StrEnum):
 @dataclass
 class RuleResult:
     """Result of rule evaluation."""
+
     rule: ConsolidationRule
     reason: str
     priority: int = 5  # 1 = highest
@@ -32,6 +35,7 @@ class RuleResult:
 @dataclass
 class ConsolidationConfig:
     """Configuration for consolidation."""
+
     max_general_memories: int = 100  # Max general memories before consolidation
     max_age_days: int = 90  # Max age before consolidation consideration
     crisis_retention_years: int = 7  # Crisis memories retained for 7 years
@@ -214,10 +218,7 @@ class ConsolidationRules:
             True if consolidation should run
         """
         # Count general memories
-        general_count = sum(
-            1 for m in memories
-            if m.metadata.category in self.general_categories
-        )
+        general_count = sum(1 for m in memories if m.metadata.category in self.general_categories)
 
         # Trigger if over threshold
         if general_count > self.config.max_general_memories:

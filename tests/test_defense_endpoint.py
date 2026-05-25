@@ -7,23 +7,16 @@ from api.defense_service import (
     load_defense_model,
 )
 
-checkpoint_path = (
-    "/home/vivi/pixelated/ai/models/defense_mechanisms/fold_0/best_model.pt"
-)
+checkpoint_path = "/home/vivi/pixelated/ai/models/defense_mechanisms/fold_0/best_model.pt"
 
 load_defense_model(checkpoint_path)
 
 request = DefenseAnalysisRequest(
     dialogue=[
-        DialogueTurn(
-            speaker="Supporter", text="How are you handling the stress at work?"
-        ),
+        DialogueTurn(speaker="Supporter", text="How are you handling the stress at work?"),
         DialogueTurn(
             speaker="Seeker",
-            text=(
-                "Oh, it's fine. I just work 80 hours a week and ignore my family. "
-                "It's the only way to get ahead."
-            ),
+            text=("Oh, it's fine. I just work 80 hours a week and ignore my family. It's the only way to get ahead."),
         ),
         DialogueTurn(
             speaker="Supporter",

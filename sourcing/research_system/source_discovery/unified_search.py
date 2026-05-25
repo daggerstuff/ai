@@ -71,9 +71,7 @@ class UnifiedSearchClient:
 
         # Search DOAJ
         try:
-            doaj_sources = self.doaj.search_therapeutic_content(
-                keywords=keywords, max_results=max_results_per_source
-            )
+            doaj_sources = self.doaj.search_therapeutic_content(keywords=keywords, max_results=max_results_per_source)
             all_sources.extend(doaj_sources)
             logger.info(f"Found {len(doaj_sources)} sources from DOAJ")
         except Exception as e:
@@ -141,9 +139,7 @@ class UnifiedSearchClient:
         logger.info(f"Searching for {dataset_type} datasets")
         return self.search_all_sources(keywords, max_results_per_source, deduplicate)
 
-    def search_pubmed_only(
-        self, keywords: list[str], max_results: int = 100
-    ) -> list[DatasetSource]:
+    def search_pubmed_only(self, keywords: list[str], max_results: int = 100) -> list[DatasetSource]:
         """
         Search PubMed only.
 
@@ -155,9 +151,7 @@ class UnifiedSearchClient:
             List of DatasetSource objects
         """
         mesh_terms = self.config.get_mesh_terms()
-        return self.pubmed.search_and_fetch(
-            keywords=keywords, mesh_terms=mesh_terms, max_results=max_results
-        )
+        return self.pubmed.search_and_fetch(keywords=keywords, mesh_terms=mesh_terms, max_results=max_results)
 
     def search_repositories_only(
         self, keywords: list[str], max_results_per_repo: int = 50, deduplicate: bool = True
@@ -177,9 +171,7 @@ class UnifiedSearchClient:
 
         # Search Dryad
         try:
-            dryad_sources = self.dryad.search_therapeutic_datasets(
-                keywords=keywords, max_results=max_results_per_repo
-            )
+            dryad_sources = self.dryad.search_therapeutic_datasets(keywords=keywords, max_results=max_results_per_repo)
             all_sources.extend(dryad_sources)
         except Exception as e:
             logger.error(f"Dryad search failed: {e}")
@@ -207,9 +199,7 @@ class UnifiedSearchClient:
 
         return all_sources
 
-    def search_comprehensive(
-        self, max_results_per_source: int = 50
-    ) -> dict[str, list[DatasetSource]]:
+    def search_comprehensive(self, max_results_per_source: int = 50) -> dict[str, list[DatasetSource]]:
         """
         Perform comprehensive search across all dataset types.
 
@@ -250,9 +240,7 @@ class UnifiedSearchClient:
         source_type_counts = {}
         for sources in results.values():
             for source in sources:
-                source_type_counts[source.source_type] = (
-                    source_type_counts.get(source.source_type, 0) + 1
-                )
+                source_type_counts[source.source_type] = source_type_counts.get(source.source_type, 0) + 1
 
         # Count by discovery method
         discovery_method_counts = {}
@@ -263,9 +251,7 @@ class UnifiedSearchClient:
                 )
 
         # Count open access
-        open_access_count = sum(
-            1 for sources in results.values() for source in sources if source.open_access
-        )
+        open_access_count = sum(1 for sources in results.values() for source in sources if source.open_access)
 
         # Count with DOI
         doi_count = sum(1 for sources in results.values() for source in sources if source.doi)
@@ -276,11 +262,7 @@ class UnifiedSearchClient:
             "sources_by_type": source_type_counts,
             "sources_by_discovery_method": discovery_method_counts,
             "open_access_count": open_access_count,
-            "open_access_percentage": round(
-                (open_access_count / total_sources * 100) if total_sources > 0 else 0, 2
-            ),
+            "open_access_percentage": round((open_access_count / total_sources * 100) if total_sources > 0 else 0, 2),
             "doi_count": doi_count,
-            "doi_percentage": round(
-                (doi_count / total_sources * 100) if total_sources > 0 else 0, 2
-            ),
+            "doi_percentage": round((doi_count / total_sources * 100) if total_sources > 0 else 0, 2),
         }

@@ -3,6 +3,7 @@
 Quality Validation Progress Tracking System for Pixelated Empathy AI
 Tracks progress of distributed quality validation across multiple workers
 """
+
 import argparse
 import json
 import logging
@@ -13,7 +14,7 @@ import threading
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -28,9 +29,7 @@ except ImportError:
     logging.warning("Redis not available - using local tracking only")
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -193,18 +192,10 @@ class ProgressTracker:
             """)
 
             # Create indexes for better performance
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_batch_status ON batch_progress(status)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_task_batch ON task_progress(batch_id)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_task_status ON task_progress(status)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_task_worker ON task_progress(worker_id)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_batch_status ON batch_progress(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_task_batch ON task_progress(batch_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_task_status ON task_progress(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_task_worker ON task_progress(worker_id)")
 
     def _load_from_database(self):
         """Load existing progress data from database"""
@@ -248,16 +239,12 @@ class ProgressTracker:
                     )
                     self.task_cache[task_progress.task_id] = task_progress
 
-                logger.info(
-                    f"Loaded {len(self.batch_cache)} batches and {len(self.task_cache)} tasks from database"
-                )
+                logger.info(f"Loaded {len(self.batch_cache)} batches and {len(self.task_cache)} tasks from database")
 
         except Exception as e:
             logger.error(f"Failed to load progress data from database: {e}")
 
-    def create_batch(
-        self, batch_id: str, batch_name: str, task_ids: list[str]
-    ) -> BatchProgress:
+    def create_batch(self, batch_id: str, batch_name: str, task_ids: list[str]) -> BatchProgress:
         """Create a new batch for tracking"""
         with self.lock:
             batch_progress = BatchProgress(
@@ -306,17 +293,18 @@ class ProgressTracker:
                     setattr(task_progress, field, value)
 
             # Update timestamps
-            if (
-                task_progress.status == TaskStatus.PROCESSING
-                and not task_progress.started_at
+            if task_progress.status == TaskStatus.PROCESSING and not task_progress.started_at:
+                task_progress.started_at = datetime.now(UTC).isoformat()
+            elif (
+                task_progress.status
+                in [
+                    TaskStatus.COMPLETED,
+                    TaskStatus.FAILED,
+                    TaskStatus.CANCELLED,
+                ]
+                and not task_progress.completed_at
             ):
-                task_progress.started_at = datetime.now(timezone.utc).isoformat()
-            elif task_progress.status in [
-                TaskStatus.COMPLETED,
-                TaskStatus.FAILED,
-                TaskStatus.CANCELLED,
-            ] and not task_progress.completed_at:
-                task_progress.completed_at = datetime.now(timezone.utc).isoformat()
+                task_progress.completed_at = datetime.now(UTC).isoformat()
 
             # Store in database
             self._store_task_in_db(task_progress)
@@ -344,48 +332,36 @@ class ProgressTracker:
                 task_counts[task.status] += 1
 
         # Update batch counters
-        batch_progress.queued_tasks = (
-            task_counts[TaskStatus.PENDING] + task_counts[TaskStatus.QUEUED]
-        )
-        batch_progress.processing_tasks = (
-            task_counts[TaskStatus.PROCESSING] + task_counts[TaskStatus.RETRYING]
-        )
+        batch_progress.queued_tasks = task_counts[TaskStatus.PENDING] + task_counts[TaskStatus.QUEUED]
+        batch_progress.processing_tasks = task_counts[TaskStatus.PROCESSING] + task_counts[TaskStatus.RETRYING]
         batch_progress.completed_tasks = task_counts[TaskStatus.COMPLETED]
         batch_progress.failed_tasks = task_counts[TaskStatus.FAILED]
         batch_progress.cancelled_tasks = task_counts[TaskStatus.CANCELLED]
 
         # Calculate progress percentage
-        finished_tasks = (
-            batch_progress.completed_tasks
-            + batch_progress.failed_tasks
-            + batch_progress.cancelled_tasks
-        )
+        finished_tasks = batch_progress.completed_tasks + batch_progress.failed_tasks + batch_progress.cancelled_tasks
         batch_progress.progress_percentage = (
-            (finished_tasks / batch_progress.total_tasks) * 100
-            if batch_progress.total_tasks > 0
-            else 0
+            (finished_tasks / batch_progress.total_tasks) * 100 if batch_progress.total_tasks > 0 else 0
         )
 
         # Update batch status
         if batch_progress.processing_tasks > 0:
             batch_progress.status = BatchStatus.PROCESSING
             if not batch_progress.started_at:
-                batch_progress.started_at = datetime.now(timezone.utc).isoformat()
+                batch_progress.started_at = datetime.now(UTC).isoformat()
         elif finished_tasks == batch_progress.total_tasks:
             if batch_progress.failed_tasks == 0:
                 batch_progress.status = BatchStatus.COMPLETED
             else:
                 batch_progress.status = BatchStatus.FAILED
             if not batch_progress.completed_at:
-                batch_progress.completed_at = datetime.now(timezone.utc).isoformat()
+                batch_progress.completed_at = datetime.now(UTC).isoformat()
         elif batch_progress.queued_tasks > 0:
             batch_progress.status = BatchStatus.QUEUED
 
         # Estimate completion time
         if batch_progress.status == BatchStatus.PROCESSING:
-            batch_progress.estimated_completion = self._estimate_completion_time(
-                batch_id
-            )
+            batch_progress.estimated_completion = self._estimate_completion_time(batch_id)
 
         # Store in database
         self._store_batch_in_db(batch_progress)
@@ -416,12 +392,8 @@ class ProgressTracker:
             total_time = 0
 
             for task in completed_tasks:
-                start_time = datetime.fromisoformat(
-                    task.started_at.replace("Z", "+00:00")
-                )
-                end_time = datetime.fromisoformat(
-                    task.completed_at.replace("Z", "+00:00")
-                )
+                start_time = datetime.fromisoformat(task.started_at.replace("Z", "+00:00"))
+                end_time = datetime.fromisoformat(task.completed_at.replace("Z", "+00:00"))
                 total_time += (end_time - start_time).total_seconds()
 
             avg_time = total_time / len(completed_tasks)
@@ -437,9 +409,7 @@ class ProgressTracker:
 
             # Estimate completion time
             estimated_seconds = remaining_tasks * avg_time
-            estimated_completion = datetime.now(timezone.utc) + timedelta(
-                seconds=estimated_seconds
-            )
+            estimated_completion = datetime.now(UTC) + timedelta(seconds=estimated_seconds)
 
             return estimated_completion.isoformat()
 
@@ -461,17 +431,14 @@ class ProgressTracker:
 
     def get_worker_tasks(self, worker_id: str) -> list[TaskProgress]:
         """Get all tasks assigned to a worker"""
-        return [
-            task for task in self.task_cache.values() if task.worker_id == worker_id
-        ]
+        return [task for task in self.task_cache.values() if task.worker_id == worker_id]
 
     def get_active_batches(self) -> list[BatchProgress]:
         """Get all active (non-completed) batches"""
         return [
             batch
             for batch in self.batch_cache.values()
-            if batch.status
-            not in [BatchStatus.COMPLETED, BatchStatus.FAILED, BatchStatus.CANCELLED]
+            if batch.status not in [BatchStatus.COMPLETED, BatchStatus.FAILED, BatchStatus.CANCELLED]
         ]
 
     def get_batch_statistics(self, batch_id: str) -> dict[str, Any]:
@@ -497,27 +464,20 @@ class ProgressTracker:
         for task in tasks:
             if task.started_at and task.completed_at:
                 try:
-                    start_time = datetime.fromisoformat(
-                        task.started_at.replace("Z", "+00:00")
-                    )
-                    end_time = datetime.fromisoformat(
-                        task.completed_at.replace("Z", "+00:00")
-                    )
+                    start_time = datetime.fromisoformat(task.started_at.replace("Z", "+00:00"))
+                    end_time = datetime.fromisoformat(task.completed_at.replace("Z", "+00:00"))
                     processing_times.append((end_time - start_time).total_seconds())
                 except Exception:
                     pass
 
         time_stats = {}
         if processing_times:
-
             time_stats = {
                 "mean": statistics.mean(processing_times),
                 "median": statistics.median(processing_times),
                 "min": min(processing_times),
                 "max": max(processing_times),
-                "std_dev": statistics.stdev(processing_times)
-                if len(processing_times) > 1
-                else 0,
+                "std_dev": statistics.stdev(processing_times) if len(processing_times) > 1 else 0,
             }
 
         return {
@@ -525,8 +485,7 @@ class ProgressTracker:
             "worker_statistics": dict(worker_stats),
             "processing_time_statistics": time_stats,
             "task_count_by_status": {
-                status.value: len([t for t in tasks if t.status == status])
-                for status in TaskStatus
+                status.value: len([t for t in tasks if t.status == status]) for status in TaskStatus
             },
         }
 
@@ -539,7 +498,7 @@ class ProgressTracker:
 
             batch_progress = self.batch_cache[batch_id]
             batch_progress.status = BatchStatus.CANCELLED
-            batch_progress.completed_at = datetime.now(timezone.utc).isoformat()
+            batch_progress.completed_at = datetime.now(UTC).isoformat()
 
             # Cancel all non-completed tasks
             for task in self.task_cache.values():
@@ -549,7 +508,7 @@ class ProgressTracker:
                     TaskStatus.CANCELLED,
                 ]:
                     task.status = TaskStatus.CANCELLED
-                    task.completed_at = datetime.now(timezone.utc).isoformat()
+                    task.completed_at = datetime.now(UTC).isoformat()
                     self._store_task_in_db(task)
                     self._publish_task_update(task)
 
@@ -687,7 +646,7 @@ class ProgressTracker:
 
     def cleanup_old_data(self, days: int = 30):
         """Clean up old completed batches and tasks"""
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=days)
         cutoff_str = cutoff_date.isoformat()
 
         try:
@@ -729,9 +688,7 @@ class ProgressTracker:
                         self.batch_cache.pop(batch_id, None)
                         # Remove associated tasks from cache
                         task_ids_to_remove = [
-                            task_id
-                            for task_id, task in self.task_cache.items()
-                            if task.batch_id == batch_id
+                            task_id for task_id, task in self.task_cache.items() if task.batch_id == batch_id
                         ]
                         for task_id in task_ids_to_remove:
                             self.task_cache.pop(task_id, None)
@@ -757,9 +714,7 @@ def main():
 
     # List command
     list_parser = subparsers.add_parser("list", help="List all batches")
-    list_parser.add_argument(
-        "--active-only", action="store_true", help="Show only active batches"
-    )
+    list_parser.add_argument("--active-only", action="store_true", help="Show only active batches")
 
     # Stats command
     stats_parser = subparsers.add_parser("stats", help="Show batch statistics")

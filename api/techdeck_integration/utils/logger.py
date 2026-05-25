@@ -443,10 +443,7 @@ class PerformanceTimer:
         )
 
         # Log if operation took too long (>50ms for critical operations)
-        if (
-            duration > PERFORMANCE_WARNING_THRESHOLD_MS
-            and self.operation in CRITICAL_PERFORMANCE_OPERATIONS
-        ):
+        if duration > PERFORMANCE_WARNING_THRESHOLD_MS and self.operation in CRITICAL_PERFORMANCE_OPERATIONS:
             logger = get_logger("performance")
             logger.warning(
                 (

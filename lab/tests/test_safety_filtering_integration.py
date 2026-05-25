@@ -2,6 +2,7 @@
 Integration tests for enhanced safety filtering in the inference API.
 Tests that all inference endpoints properly filter content for safety.
 """
+
 import contextlib
 import json
 import logging
@@ -72,9 +73,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "temperature": 0.7,
         }
 
-        response = self.test_client.post(
-            "/chat/completions", json=test_request, headers=self.headers
-        )
+        response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
         assert response.status_code == 200
 
@@ -96,9 +95,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
     def test_crisis_content_gets_filtered(self, mock_predict):
         """Test that crisis content gets properly filtered"""
         # Mock the prediction response with crisis content
-        mock_predict.return_value = (
-            "I've been thinking about ending it all. Life isn't worth living anymore."
-        )
+        mock_predict.return_value = "I've been thinking about ending it all. Life isn't worth living anymore."
 
         test_request = {
             "model": "test_model",
@@ -113,9 +110,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "temperature": 0.7,
         }
 
-        response = self.test_client.post(
-            "/chat/completions", json=test_request, headers=self.headers
-        )
+        response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
         assert response.status_code == 200
 
@@ -149,9 +144,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
     def test_toxic_content_gets_filtered(self, mock_predict):
         """Test that toxic content gets properly filtered"""
         # Mock the prediction response with toxic content
-        mock_predict.return_value = (
-            "This stupid idiot is completely worthless and should just disappear."
-        )
+        mock_predict.return_value = "This stupid idiot is completely worthless and should just disappear."
 
         test_request = {
             "model": "test_model",
@@ -163,9 +156,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "temperature": 0.7,
         }
 
-        response = self.test_client.post(
-            "/chat/completions", json=test_request, headers=self.headers
-        )
+        response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
         assert response.status_code == 200
 
@@ -192,9 +183,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
     def test_privacy_content_gets_redacted(self, mock_predict):
         """Test that privacy violations get redacted"""
         # Mock the prediction response with privacy violations
-        mock_predict.return_value = (
-            "My social security number is 123-45-6789 and my email is test@example.com."
-        )
+        mock_predict.return_value = "My social security number is 123-45-6789 and my email is test@example.com."
 
         test_request = {
             "model": "test_model",
@@ -209,9 +198,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "temperature": 0.7,
         }
 
-        response = self.test_client.post(
-            "/chat/completions", json=test_request, headers=self.headers
-        )
+        response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
         assert response.status_code == 200
 
@@ -231,9 +218,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
     def test_bias_content_gets_handled(self, mock_predict):
         """Test that biased content gets properly handled"""
         # Mock the prediction response with biased content
-        mock_predict.return_value = (
-            "All people from that country are lazy and criminals."
-        )
+        mock_predict.return_value = "All people from that country are lazy and criminals."
 
         test_request = {
             "model": "test_model",
@@ -245,9 +230,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "temperature": 0.7,
         }
 
-        response = self.test_client.post(
-            "/chat/completions", json=test_request, headers=self.headers
-        )
+        response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
         assert response.status_code == 200
 
@@ -263,9 +246,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
     def test_empty_content_handling(self):
         """Test that empty or invalid content is handled properly"""
-        with patch(
-            "..inference.model_adapters.ModelAdapterManager.predict"
-        ) as mock_predict:
+        with patch("..inference.model_adapters.ModelAdapterManager.predict") as mock_predict:
             # Mock the prediction response with empty content
             mock_predict.return_value = ""
 
@@ -278,9 +259,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
                 "temperature": 0.7,
             }
 
-            response = self.test_client.post(
-                "/chat/completions", json=test_request, headers=self.headers
-            )
+            response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
             # Empty content should still return a valid response
             assert response.status_code == 200
@@ -294,9 +273,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
     def test_mixed_content_handling(self, mock_predict):
         """Test handling of content with multiple safety issues"""
         # Mock the prediction response with mixed safety issues
-        mock_predict.return_value = (
-            "I'm thinking about suicide tonight. My phone number is 555-123-4567."
-        )
+        mock_predict.return_value = "I'm thinking about suicide tonight. My phone number is 555-123-4567."
 
         test_request = {
             "model": "test_model",
@@ -308,9 +285,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
             "temperature": 0.7,
         }
 
-        response = self.test_client.post(
-            "/chat/completions", json=test_request, headers=self.headers
-        )
+        response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
 
         assert response.status_code == 200
 
@@ -343,9 +318,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         lenient_filter = EnhancedSafetyFilter(SafetyLevel.LENIENT)
 
         # Test content that would be flagged differently
-        test_content = (
-            "I'm feeling really down and thinking about not being here anymore."
-        )
+        test_content = "I'm feeling really down and thinking about not being here anymore."
 
         # Check paranoid filtering
         paranoid_result = paranoid_filter.check_output_safety(test_content)
@@ -377,9 +350,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         num_requests = 10
 
         for _i in range(num_requests):
-            response = self.test_client.post(
-                "/chat/completions", json=test_request, headers=self.headers
-            )
+            response = self.test_client.post("/chat/completions", json=test_request, headers=self.headers)
             assert response.status_code == 200
 
         end_time = time.time()
@@ -388,9 +359,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
 
         # Each request should take less than 2 seconds (including safety filtering)
         assert avg_time_per_request < 2.0
-        logger.info(
-            f"Average time per request with safety filtering: {avg_time_per_request:.3f}s"
-        )
+        logger.info(f"Average time per request with safety filtering: {avg_time_per_request:.3f}s")
 
     def test_crisis_intervention_system(self):
         """Test that crisis intervention system works correctly"""
@@ -441,9 +410,7 @@ class TestSafetyFilterIntegration(unittest.TestCase):
         """Test that crisis detection results have correct structure"""
         # Test with crisis content
         safety_filter = EnhancedSafetyFilter(SafetyLevel.MODERATE)
-        crisis_result = safety_filter._check_crisis_content(
-            "I'm thinking about suicide."
-        )
+        crisis_result = safety_filter._check_crisis_content("I'm thinking about suicide.")
 
         assert isinstance(crisis_result, CrisisDetectionResult)
         assert hasattr(crisis_result, "is_crisis")
@@ -478,7 +445,6 @@ class TestSafetyFilterIntegration(unittest.TestCase):
 # Pytest-style tests for additional coverage
 def test_safety_filter_decorator():
     """Test that safety filter decorator works correctly"""
-
 
     # This would test the decorator functionality
     assert safety_filtered_endpoint is not None
@@ -518,7 +484,6 @@ def benchmark_safety_filtering():
     end_time = time.time()
     total_time = end_time - start_time
     avg_time_per_check = total_time / num_iterations * 1000  # Convert to milliseconds
-
 
     # Should be reasonably fast (under 100ms per check)
     assert avg_time_per_check < 100.0

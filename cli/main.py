@@ -4,6 +4,7 @@ Main CLI entry point for Pixelated AI CLI
 This module provides the main command-line interface using Click framework
 with three primary entry points: web-frontend, cli-interface, and mcp-connect.
 """
+
 import sys
 from pathlib import Path
 
@@ -129,7 +130,6 @@ cli.add_command(auth_group)
 @click.pass_context
 def version(ctx: click.Context):
     """Display version information"""
-
 
     click.echo(f"Pixelated AI CLI v{__version__}")
     click.echo(f"{__description__}")

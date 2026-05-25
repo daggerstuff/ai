@@ -27,4 +27,3 @@ __all__ = [
     "create_auth_handler",
     "create_authorization_handler",
 ]
-

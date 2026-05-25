@@ -14,10 +14,9 @@ ingestion rather than dataset-level promotion.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from enum import Enum
 from typing import Any
-
 
 # ─── Gate decision enum ────────────────────────────────────────────────────────
 
@@ -57,7 +56,7 @@ class GatingReport:
 
     source_id: str
     content: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     gate0_pii: GateResult | None = None
     gate1_crisis: GateResult | None = None

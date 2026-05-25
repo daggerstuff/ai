@@ -9,6 +9,7 @@ Configured for:
 - H100 GPU optimization
 - Production-ready deployment
 """
+
 import json
 import logging
 import shutil
@@ -17,9 +18,7 @@ from pathlib import Path
 from path_utils import get_lightning_dir, get_unified_training_dir
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -63,22 +62,15 @@ class LightningH100Deployer:
                 validation_results["files_present"].append(filename)
 
                 # Count conversations in data files
-                if (
-                    filename.endswith(".json")
-                    and filename != "unified_lightning_config.json"
-                ):
+                if filename.endswith(".json") and filename != "unified_lightning_config.json":
                     try:
                         with open(file_path, encoding="utf-8") as f:
                             data = json.load(f)
                         if isinstance(data, list):
                             validation_results["total_conversations"] += len(data)
                             if filename.startswith("expert_"):
-                                expert_name = filename.replace("expert_", "").replace(
-                                    ".json", ""
-                                )
-                                validation_results["expert_distribution"][
-                                    expert_name
-                                ] = len(data)
+                                expert_name = filename.replace("expert_", "").replace(".json", "")
+                                validation_results["expert_distribution"][expert_name] = len(data)
                     except Exception as e:
                         logger.warning(f"Error reading {filename}: {e}")
             else:
@@ -92,9 +84,7 @@ class LightningH100Deployer:
                     config = json.load(f)
 
                 validation_results["config_valid"] = True
-                validation_results["quality_metrics"] = config.get(
-                    "dataset_stats", {}
-                ).get("processing_stats", {})
+                validation_results["quality_metrics"] = config.get("dataset_stats", {}).get("processing_stats", {})
 
             except Exception as e:
                 logger.error(f"Error validating config: {e}")
@@ -108,18 +98,12 @@ class LightningH100Deployer:
         # Log validation results
         if validation_results["dataset_ready"]:
             logger.info("✅ Dataset validation successful!")
-            logger.info(
-                f"   Total conversations: {validation_results['total_conversations']}"
-            )
-            logger.info(
-                f"   Expert distribution: {validation_results['expert_distribution']}"
-            )
+            logger.info(f"   Total conversations: {validation_results['total_conversations']}")
+            logger.info(f"   Expert distribution: {validation_results['expert_distribution']}")
         else:
             logger.warning("⚠️  Dataset validation issues detected")
             if validation_results["missing_files"]:
-                logger.warning(
-                    f"   Missing files: {validation_results['missing_files']}"
-                )
+                logger.warning(f"   Missing files: {validation_results['missing_files']}")
 
         return validation_results
 
@@ -388,9 +372,7 @@ if __name__ == "__main__":
         logger.info("⚙️  Creating Lightning.ai deployment configuration...")
 
         # Load unified config
-        with open(
-            self.unified_dataset_path / "unified_lightning_config.json"
-        ) as f:
+        with open(self.unified_dataset_path / "unified_lightning_config.json") as f:
             unified_config = json.load(f)
 
         deployment_config = {
@@ -710,9 +692,7 @@ def main():
 
     if not validation_results["dataset_ready"]:
         logger.error("❌ Unified dataset not ready for deployment!")
-        logger.error(
-            "   Run the multi-dataset pipeline first to create unified training data"
-        )
+        logger.error("   Run the multi-dataset pipeline first to create unified training data")
         return False
 
     # Step 2: Create all deployment components
@@ -730,9 +710,7 @@ def main():
     # Step 4: Final summary
     logger.info("🎉 Lightning.ai H100 deployment preparation complete!")
     logger.info(f"📁 Deployment package: {package_dir}")
-    logger.info(
-        f"📊 Dataset: {validation_results['total_conversations']:,} conversations"
-    )
+    logger.info(f"📊 Dataset: {validation_results['total_conversations']:,} conversations")
     logger.info(f"🧠 Expert distribution: {validation_results['expert_distribution']}")
     logger.info("🚀 Ready to upload to Lightning.ai Studio and start H100 training!")
 

@@ -16,18 +16,10 @@ class TestQualityValidator(unittest.TestCase):
 
         # High quality conversation (messages alternating, therapeutic content)
         self.high_quality_conv = Conversation(conversation_id="high_001")
-        self.high_quality_conv.add_message(
-            "therapist", "I hear you. I think it is important. Yes."
-        )
-        self.high_quality_conv.add_message(
-            "client", "It feels hard. I feel fear. I think."
-        )
-        self.high_quality_conv.add_message(
-            "therapist", "I feel for you. I believe we can help. Yes."
-        )
-        self.high_quality_conv.add_message(
-            "client", "Yes, thank you. I appreciate it. I feel better."
-        )
+        self.high_quality_conv.add_message("therapist", "I hear you. I think it is important. Yes.")
+        self.high_quality_conv.add_message("client", "It feels hard. I feel fear. I think.")
+        self.high_quality_conv.add_message("therapist", "I feel for you. I believe we can help. Yes.")
+        self.high_quality_conv.add_message("client", "Yes, thank you. I appreciate it. I feel better.")
 
         # Low quality (single speaker, repetitive, junk)
         self.low_quality_conv = Conversation(conversation_id="low_001")
@@ -39,17 +31,13 @@ class TestQualityValidator(unittest.TestCase):
         issues = []
         strengths = []
         # _validate_structure returns a score and populates issues/strengths
-        score = self.validator._validate_structure(
-            self.high_quality_conv, issues, strengths
-        )
+        score = self.validator._validate_structure(self.high_quality_conv, issues, strengths)
         assert score >= 0.7
         assert any("speakers" in s.lower() for s in strengths)
 
         low_issues = []
         low_strengths = []
-        low_score = self.validator._validate_structure(
-            self.low_quality_conv, low_issues, low_strengths
-        )
+        low_score = self.validator._validate_structure(self.low_quality_conv, low_issues, low_strengths)
         assert low_score <= 0.8
         assert any("single speaker" in i.lower() for i in low_issues)
 
@@ -57,9 +45,7 @@ class TestQualityValidator(unittest.TestCase):
         """Test content quality (therapeutic patterns, length)."""
         issues = []
         strengths = []
-        score = self.validator._validate_content(
-            self.high_quality_conv, issues, strengths
-        )
+        score = self.validator._validate_content(self.high_quality_conv, issues, strengths)
         assert score >= 0.9
         assert any("therapeutic" in s.lower() for s in strengths)
 
@@ -67,9 +53,7 @@ class TestQualityValidator(unittest.TestCase):
         """Test conversation coherence and flow."""
         issues = []
         strengths = []
-        score = self.validator._validate_coherence(
-            self.high_quality_conv, issues, strengths
-        )
+        score = self.validator._validate_coherence(self.high_quality_conv, issues, strengths)
         assert score >= 0.6
         assert any("flow" in s.lower() for s in strengths)
 
@@ -77,9 +61,7 @@ class TestQualityValidator(unittest.TestCase):
         """Test natural language vs formal/repetitive language."""
         issues = []
         strengths = []
-        score = self.validator._validate_authenticity(
-            self.high_quality_conv, issues, strengths
-        )
+        score = self.validator._validate_authenticity(self.high_quality_conv, issues, strengths)
         assert score >= 0.8
 
         # Repetitive case
@@ -89,9 +71,7 @@ class TestQualityValidator(unittest.TestCase):
         rep_conv.add_message("user", "Repetitive sentence here.")
         rep_issues = []
         rep_strengths = []
-        rep_score = self.validator._validate_authenticity(
-            rep_conv, rep_issues, rep_strengths
-        )
+        rep_score = self.validator._validate_authenticity(rep_conv, rep_issues, rep_strengths)
         assert rep_score <= 0.85
         assert any("repetitive" in i.lower() for i in rep_issues)
 

@@ -77,9 +77,7 @@ class CambridgePublisher(BasePublisher):
             headers = {"api-key": api_key}
             params = {"query": "psychology", "limit": 1}
 
-            response = self.session.get(
-                test_url, headers=headers, params=params, timeout=10
-            )
+            response = self.session.get(test_url, headers=headers, params=params, timeout=10)
 
             if response.status_code == 200:
                 logger.info("✅ Cambridge authentication successful")
@@ -171,9 +169,7 @@ class CambridgePublisher(BasePublisher):
             logger.error(f"Cambridge search error: {e}")
             return []
 
-    def _parse_cambridge_record(
-        self, record: dict[str, Any], _original_query: str
-    ) -> BookMetadata | None:
+    def _parse_cambridge_record(self, record: dict[str, Any], _original_query: str) -> BookMetadata | None:
         """Parse a Cambridge API record into BookMetadata"""
         try:
             # Extract basic info
@@ -242,9 +238,7 @@ class CambridgePublisher(BasePublisher):
             )
 
             # Assess therapeutic relevance
-            relevance_score = self.assess_therapeutic_relevance(
-                title=title, abstract=abstract or "", keywords=keywords
-            )
+            relevance_score = self.assess_therapeutic_relevance(title=title, abstract=abstract or "", keywords=keywords)
 
             metadata.therapeutic_relevance_score = relevance_score
 
@@ -302,9 +296,7 @@ class CambridgePublisher(BasePublisher):
             logger.error(f"Error getting Cambridge metadata: {e}")
             return None
 
-    def get_book_content(
-        self, book_id: str, format: BookFormat = BookFormat.PDF
-    ) -> BookContent | None:
+    def get_book_content(self, book_id: str, format: BookFormat = BookFormat.PDF) -> BookContent | None:
         """
         Get book content (Note: Requires institutional access)
 
@@ -315,10 +307,7 @@ class CambridgePublisher(BasePublisher):
         Returns:
             BookContent object or None
         """
-        logger.warning(
-            "Cambridge book content requires institutional access. "
-            "This method returns metadata only."
-        )
+        logger.warning("Cambridge book content requires institutional access. This method returns metadata only.")
 
         # Get metadata instead
         metadata = self.get_book_metadata(book_id)
@@ -329,9 +318,7 @@ class CambridgePublisher(BasePublisher):
                 format=format,
                 content=None,
                 metadata=metadata.raw_metadata,
-                download_url=metadata.raw_metadata.get("url")
-                if metadata.raw_metadata
-                else None,
+                download_url=metadata.raw_metadata.get("url") if metadata.raw_metadata else None,
                 file_size=None,
                 checksum=None,
             )
@@ -353,7 +340,6 @@ class CambridgePublisher(BasePublisher):
             BookContent object or None
         """
         logger.warning(
-            "Cambridge chapter content requires institutional access. "
-            "Metadata only available through public API."
+            "Cambridge chapter content requires institutional access. Metadata only available through public API."
         )
         return None

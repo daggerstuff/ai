@@ -31,7 +31,7 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -39,6 +39,7 @@ from typing import Any
 
 class ReviewStatus(str, Enum):
     """Status of a review item."""
+
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -47,15 +48,17 @@ class ReviewStatus(str, Enum):
 
 class ReviewerRole(str, Enum):
     """Reviewer role types."""
-    CLINICAL = "clinical"       # Clinical oversight for sensitive content
-    PRIVACY = "privacy"         # Privacy/compliance review
+
+    CLINICAL = "clinical"  # Clinical oversight for sensitive content
+    PRIVACY = "privacy"  # Privacy/compliance review
     DATA_STEWARD = "data_steward"  # General data quality review
-    SUPERVISOR = "supervisor"   # Override authority
+    SUPERVISOR = "supervisor"  # Override authority
 
 
 @dataclass
 class Reviewer:
     """Information about a reviewer."""
+
     id: str
     role: ReviewerRole
     name: str | None = None
@@ -68,7 +71,7 @@ class ReviewItem:
 
     item_id: str
     source_id: str
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     # Originalgate report data (simplified for storage)
     gate_result: dict[str, Any] | None = None
@@ -112,11 +115,11 @@ class ReviewItem:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ReviewItem":
+    def from_dict(cls, data: dict[str, Any]) -> ReviewItem:
         return cls(
             item_id=data["item_id"],
             source_id=data["source_id"],
-            created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
+            created_at=data.get("created_at", datetime.now(UTC).isoformat()),
             gate_result=data.get("gate_result"),
             escalation_reason=data.get("escalation_reason", ""),
             content_preview=data.get("content_preview"),
@@ -135,11 +138,12 @@ class ReviewItem:
 @dataclass
 class ReviewDecision:
     """A reviewer's decision on an item."""
+
     item_id: str
     reviewer: Reviewer
     decision: ReviewStatus
     reason: str
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     additional_notes: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -242,8 +246,7 @@ class EscalationCriteria:
             if license_id in self.license_requires_review:
                 return True
             # Also escalate if consent required but not recorded
-            if (license_check.get("requires_consent") and
-                    not license_check.get("consent_recorded")):
+            if license_check.get("requires_consent") and not license_check.get("consent_recorded"):
                 return True
 
         # Check gate decisions for explicit escalation
@@ -303,8 +306,7 @@ class EscalationCriteria:
             license_id = license_check.get("license_id", "").lower()
             if license_id in self.license_requires_review:
                 reasons.append(f"license_requires_review={license_id}")
-            if (license_check.get("requires_consent") and
-                    not license_check.get("consent_recorded")):
+            if license_check.get("requires_consent") and not license_check.get("consent_recorded"):
                 reasons.append("consent_required_but_not_recorded")
 
         # Gate decisions
@@ -362,24 +364,26 @@ class ReviewConsistencyGuideline:
     auto_reject_conditions: list[dict[str, Any]] = field(default_factory=list)
 
     # Criteria mapping reviewer roles to required expertise areas
-    role_criteria: dict[str, list[str]] = field(default_factory=lambda: {
-        "clinical": ["crisis_findings", "sensitivity_restricted", "sensitivity_sensitive"],
-        "privacy": ["pii_findings", "privacy_tier_high", "privacy_tier_medium"],
-        "data_steward": ["quality", "completeness", "license"],
-        "supervisor": ["override", "escalation", "complex_cases"],
-    })
+    role_criteria: dict[str, list[str]] = field(
+        default_factory=lambda: {
+            "clinical": ["crisis_findings", "sensitivity_restricted", "sensitivity_sensitive"],
+            "privacy": ["pii_findings", "privacy_tier_high", "privacy_tier_medium"],
+            "data_steward": ["quality", "completeness", "license"],
+            "supervisor": ["override", "escalation", "complex_cases"],
+        }
+    )
 
     # Reviewer role requirements by case type
-    required_role_by_case_type: dict[str, str] = field(default_factory=lambda: {
-        "crisis": "clinical",
-        "privacy_high": "privacy",
-        "license_exception": "data_steward",
-        "prohibited": "supervisor",
-    })
+    required_role_by_case_type: dict[str, str] = field(
+        default_factory=lambda: {
+            "crisis": "clinical",
+            "privacy_high": "privacy",
+            "license_exception": "data_steward",
+            "prohibited": "supervisor",
+        }
+    )
 
-    def get_suggested_review_action(
-        self, gate_result: dict[str, Any], review_item: ReviewItem
-    ) -> str | None:
+    def get_suggested_review_action(self, gate_result: dict[str, Any], review_item: ReviewItem) -> str | None:
         """Suggest a review action based on consistent guidelines.
 
         Args:
@@ -447,9 +451,7 @@ class ReviewConsistencyGuideline:
         # Default to data steward for routine cases
         return ReviewerRole.DATA_STEWARD
 
-    def _matches_condition(
-        self, gate_result: dict[str, Any], condition: dict[str, Any]
-    ) -> bool:
+    def _matches_condition(self, gate_result: dict[str, Any], condition: dict[str, Any]) -> bool:
         """Check if a gate result matches a condition."""
         # Simple condition matching based on field equality
         for key, expected in condition.items():
@@ -464,9 +466,7 @@ class ReviewConsistencyGuideline:
                 return False
         return True
 
-    def get_review_checklist(
-        self, gate_result: dict[str, Any]
-    ) -> list[str]:
+    def get_review_checklist(self, gate_result: dict[str, Any]) -> list[str]:
         """Generate a reviewer checklist for a case.
 
         Args:
@@ -486,7 +486,9 @@ class ReviewConsistencyGuideline:
         crisis_findings = gate_result.get("crisis_findings", [])
         for finding in crisis_findings:
             if finding.get("requires_escalation"):
-                checklist.append(f"Clinical review required: {finding.get('crisis_type', 'unknown')} (score={finding.get('score', 0):.2f})")
+                checklist.append(
+                    f"Clinical review required: {finding.get('crisis_type', 'unknown')} (score={finding.get('score', 0):.2f})"
+                )
 
         # License checklist
         license_check = gate_result.get("license_check")
@@ -512,6 +514,7 @@ class ReviewConsistencyGuideline:
 @dataclass
 class ReviewFeedback:
     """Aggregated feedback from review decisions."""
+
     total_reviews: int = 0
     approval_rate: float = 0.0
     rejection_rate: float = 0.0
@@ -564,7 +567,7 @@ class ReviewFeedbackCollector:
         if not self._feedback_file.exists():
             return
 
-        with open(self._feedback_file, "r", encoding="utf-8") as f:
+        with open(self._feedback_file, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -620,7 +623,8 @@ class ReviewFeedbackCollector:
         decisions = self._decisions
         if lookback_days is not None:
             from datetime import timedelta
-            cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+
+            cutoff = datetime.now(UTC) - timedelta(days=lookback_days)
             decisions = []
             for d in self._decisions:
                 try:
@@ -648,9 +652,7 @@ class ReviewFeedbackCollector:
         # Aggregate by reviewer
         for d in decisions:
             reviewer_id = d.get("reviewer_id", "unknown")
-            feedback.reviews_by_reviewer[reviewer_id] = (
-                feedback.reviews_by_reviewer.get(reviewer_id, 0) + 1
-            )
+            feedback.reviews_by_reviewer[reviewer_id] = feedback.reviews_by_reviewer.get(reviewer_id, 0) + 1
 
         # Aggregate reasons
         reason_approvals: dict[str, int] = {}
@@ -665,13 +667,9 @@ class ReviewFeedbackCollector:
                 reason_rejections[normalized_reason] = reason_rejections.get(normalized_reason, 0) + 1
 
         # Top approval reasons
-        feedback.common_approval_reasons = [
-            r for r, _ in sorted(reason_approvals.items(), key=lambda x: -x[1])[:5]
-        ]
+        feedback.common_approval_reasons = [r for r, _ in sorted(reason_approvals.items(), key=lambda x: -x[1])[:5]]
         # Top rejection reasons
-        feedback.common_rejection_reasons = [
-            r for r, _ in sorted(reason_rejections.items(), key=lambda x: -x[1])[:5]
-        ]
+        feedback.common_rejection_reasons = [r for r, _ in sorted(reason_rejections.items(), key=lambda x: -x[1])[:5]]
 
         # Identify escalation patterns
         feedback.escalation_patterns = self._identify_patterns(decisions)
@@ -709,9 +707,7 @@ class ReviewFeedbackCollector:
         # Analyze approval rate by privacy tier
         # This would require correlating decision data with gate results
         # Placeholder implementation
-        approval_rate = sum(
-            1 for d in self._decisions if d["decision"] == "approved"
-        ) / len(self._decisions)
+        approval_rate = sum(1 for d in self._decisions if d["decision"] == "approved") / len(self._decisions)
 
         # If approval rate is very low (< 20%), thresholds may be too permissive
         if approval_rate < 0.2:
@@ -753,9 +749,7 @@ class ReviewFeedbackCollector:
 
         return patterns
 
-    def _generate_guidelines_feedback(
-        self, decisions: list[dict[str, Any]]
-    ) -> dict[str, Any]:
+    def _generate_guidelines_feedback(self, decisions: list[dict[str, Any]]) -> dict[str, Any]:
         """Generate feedback for improving consistency guidelines."""
         feedback = {
             "auto_approve_patterns": [],
@@ -837,7 +831,7 @@ class HumanReviewQueue:
             return
 
         malformed_count = 0
-        with open(self._queue_file, "r", encoding="utf-8") as f:
+        with open(self._queue_file, encoding="utf-8") as f:
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if not line:
@@ -871,7 +865,7 @@ class HumanReviewQueue:
                 "original_file": str(self._queue_file),
                 "line_number": line_num,
                 "error": error,
-                "captured_at": datetime.now(timezone.utc).isoformat(),
+                "captured_at": datetime.now(UTC).isoformat(),
             },
             "raw_line": line,
         }
@@ -926,11 +920,13 @@ class HumanReviewQueue:
         )
 
         # Add initial audit entry
-        item.audit_trail.append({
-            "event": "created",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "details": f"Escalated from privacy/content gates: {escalation_reason}",
-        })
+        item.audit_trail.append(
+            {
+                "event": "created",
+                "timestamp": datetime.now(UTC).isoformat(),
+                "details": f"Escalated from privacy/content gates: {escalation_reason}",
+            }
+        )
 
         return item
 
@@ -998,19 +994,14 @@ class HumanReviewQueue:
 
     def dequeueReusable(self) -> ReviewItem | None:
         """Get the next pending item (FIFO order)."""
-        pending = [
-            item for item in self._items.values()
-            if item.status == ReviewStatus.PENDING
-        ]
+        pending = [item for item in self._items.values() if item.status == ReviewStatus.PENDING]
 
         if not pending:
             return None
 
         # Sort by priority then creation time
         priority_order = {"urgent": 0, "high": 1, "normal": 2, "low": 3}
-        pending.sort(
-            key=lambda x: (priority_order.get(x.priority, 2), x.created_at)
-        )
+        pending.sort(key=lambda x: (priority_order.get(x.priority, 2), x.created_at))
 
         return pending[0]
 
@@ -1067,10 +1058,7 @@ class HumanReviewQueue:
             raise ValueError(f"Item {decision.item_id} not found in queue")
 
         if item.status != ReviewStatus.PENDING:
-            raise ValueError(
-                f"Item {decision.item_id} already has status {item.status.value}, "
-                f"cannot apply decision"
-            )
+            raise ValueError(f"Item {decision.item_id} already has status {item.status.value}, cannot apply decision")
 
         # Optional role validation (PIX-250 role consistency)
         if validate_role and consistency_guideline is not None and item.gate_result:
@@ -1114,8 +1102,7 @@ class HumanReviewQueue:
         """Get queue statistics."""
         total = len(self._items)
         by_status = {
-            status.value: len([i for i in self._items.values() if i.status == status])
-            for status in ReviewStatus
+            status.value: len([i for i in self._items.values() if i.status == status]) for status in ReviewStatus
         }
         by_priority = {}
         for item in self._items.values():
@@ -1144,7 +1131,6 @@ class HumanReviewQueue:
         }
 
 
-
 # ---------------------------------------------------------------------------
 # Metrics export — Prometheus-compatible metrics for observability
 # ---------------------------------------------------------------------------
@@ -1153,116 +1139,126 @@ class HumanReviewQueue:
 @dataclass
 class QueueMetrics:
     """Metrics exported from the human review queue."""
-    
+
     # Counters
     items_enqueued_total: int = 0
     items_processed_total: int = 0
     approvals_total: int = 0
     rejections_total: int = 0
     returned_total: int = 0
-    
+
     # Gauges
     queue_depth_pending: int = 0
     queue_depth_by_priority: dict[str, int] = field(default_factory=dict)
     queue_depth_by_tag: dict[str, int] = field(default_factory=dict)
-    
+
     # Histograms (stored as buckets)
-    queue_time_seconds_buckets: dict[str, int] = field(default_factory=lambda: {
-        "1h": 0, "4h": 0, "12h": 0, "24h": 0, "72h": 0, "infinite": 0,
-    })
+    queue_time_seconds_buckets: dict[str, int] = field(
+        default_factory=lambda: {
+            "1h": 0,
+            "4h": 0,
+            "12h": 0,
+            "24h": 0,
+            "72h": 0,
+            "infinite": 0,
+        }
+    )
     queue_time_seconds_sum: float = 0.0
     queue_time_seconds_count: int = 0
-    
+
     # Observability
-    last_export_timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    
+    last_export_timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+
     def to_prometheus_format(self) -> str:
         """Export metrics in Prometheus exposition format."""
         lines = []
-        
+
         # Helper to add metric
         def add_metric(name: str, value: float, help_text: str, labels: str = ""):
             if labels:
-                lines.append(f'# TYPE {name} gauge')
-                lines.append(f'{name}{{{labels}}} {value}')
+                lines.append(f"# TYPE {name} gauge")
+                lines.append(f"{name}{{{labels}}} {value}")
             else:
-                lines.append(f'# TYPE {name} gauge')
-                lines.append(f'{name} {value}')
-        
+                lines.append(f"# TYPE {name} gauge")
+                lines.append(f"{name} {value}")
+
         # Helper for counters
         def add_counter(name: str, value: float, help_text: str):
-            lines.append(f'# TYPE {name} counter')
-            lines.append(f'{name} {value}')
-        
+            lines.append(f"# TYPE {name} counter")
+            lines.append(f"{name} {value}")
+
         # Counters
-        add_counter('human_review_items_enqueued_total', self.items_enqueued_total,
-                   'Total items enqueued for human review')
-        add_counter('human_review_items_processed_total', self.items_processed_total,
-                   'Total items processed (resolved)')
-        add_counter('human_review_approvals_total', self.approvals_total,
-                   'Total items approved')
-        add_counter('human_review_rejections_total', self.rejections_total,
-                   'Total items rejected')
-        add_counter('human_review_returned_total', self.returned_total,
-                   'Total items returned for additional info')
-        
+        add_counter(
+            "human_review_items_enqueued_total", self.items_enqueued_total, "Total items enqueued for human review"
+        )
+        add_counter(
+            "human_review_items_processed_total", self.items_processed_total, "Total items processed (resolved)"
+        )
+        add_counter("human_review_approvals_total", self.approvals_total, "Total items approved")
+        add_counter("human_review_rejections_total", self.rejections_total, "Total items rejected")
+        add_counter("human_review_returned_total", self.returned_total, "Total items returned for additional info")
+
         # Gauges
-        add_metric('human_review_queue_depth_pending', self.queue_depth_pending,
-                   'Current pending items in queue')
-        
+        add_metric("human_review_queue_depth_pending", self.queue_depth_pending, "Current pending items in queue")
+
         for priority, count in self.queue_depth_by_priority.items():
-            add_metric('human_review_queue_depth_by_priority', count,
-                      'Queue depth by priority', f'priority="{priority}"')
-        
+            add_metric(
+                "human_review_queue_depth_by_priority", count, "Queue depth by priority", f'priority="{priority}"'
+            )
+
         for tag, count in self.queue_depth_by_tag.items():
             # Truncate tag for prometheus label compliance
             safe_tag = tag.replace("-", "_").replace(" ", "_")[:63]
-            add_metric('human_review_queue_depth_by_tag', count,
-                      'Queue depth by tag', f'tag="{safe_tag}"')
-        
+            add_metric("human_review_queue_depth_by_tag", count, "Queue depth by tag", f'tag="{safe_tag}"')
+
         # Queue time histogram
         for bucket, count in self.queue_time_seconds_buckets.items():
-            add_metric('human_review_queue_time_seconds_bucket', count,
-                      'Time items spend in queue (hours)', f'le="{bucket}"')
-        add_metric('human_review_queue_time_seconds_sum', self.queue_time_seconds_sum,
-                  'Sum of queue times in hours')
-        add_metric('human_review_queue_time_seconds_count', self.queue_time_seconds_count,
-                  'Count of items with queue time data')
-        
+            add_metric(
+                "human_review_queue_time_seconds_bucket", count, "Time items spend in queue (hours)", f'le="{bucket}"'
+            )
+        add_metric("human_review_queue_time_seconds_sum", self.queue_time_seconds_sum, "Sum of queue times in hours")
+        add_metric(
+            "human_review_queue_time_seconds_count",
+            self.queue_time_seconds_count,
+            "Count of items with queue time data",
+        )
+
         return "\n".join(lines)
 
 
 class QueueMetricsExporter:
     """Exports queue metrics in various formats for monitoring."""
-    
+
     def __init__(self, queue: HumanReviewQueue, feedback_collector: ReviewFeedbackCollector | None = None):
         self.queue = queue
         self.feedback_collector = feedback_collector
         self._export_history: list[QueueMetrics] = []
         self._items_processed_cache: set[str] = set()
         self._items_enqueued_cache: set[str] = set()
-    
+
     def collect_metrics(self) -> QueueMetrics:
         """Collect current queue metrics."""
         stats = self.queue.get_stats()
-        
+
         metrics = QueueMetrics()
-        
+
         # Counters - track new items since last export
         all_items = self.queue.list_items()
-        
+
         # New enqueued items
         new_enqueued = [i for i in all_items if i.item_id not in self._items_enqueued_cache]
         metrics.items_enqueued_total = len(new_enqueued)
         self._items_enqueued_cache.update(i.item_id for i in all_items)
-        
+
         # Processed items (approved, rejected, returned)
         new_processed = [
-            i for i in all_items 
-            if i.item_id not in self._items_processed_cache and i.status in (ReviewStatus.APPROVED, ReviewStatus.REJECTED, ReviewStatus.RETURNED)
+            i
+            for i in all_items
+            if i.item_id not in self._items_processed_cache
+            and i.status in (ReviewStatus.APPROVED, ReviewStatus.REJECTED, ReviewStatus.RETURNED)
         ]
         metrics.items_processed_total = len(new_processed)
-        
+
         for item in new_processed:
             if item.status == ReviewStatus.APPROVED:
                 metrics.approvals_total += 1
@@ -1271,11 +1267,11 @@ class QueueMetricsExporter:
             elif item.status == ReviewStatus.RETURNED:
                 metrics.returned_total += 1
             self._items_processed_cache.add(item.item_id)
-        
+
         # Gauges - current state
         metrics.queue_depth_pending = stats.get("pending_count", 0)
         metrics.queue_depth_by_priority = stats.get("by_priority", {})
-        
+
         # Queue time histogram - calculate from completed items
         completed = [i for i in all_items if i.reviewed_at]
         times_hours = []
@@ -1289,11 +1285,11 @@ class QueueMetricsExporter:
                 times_hours.append(hours)
             except ValueError:
                 pass
-        
+
         if times_hours:
             metrics.queue_time_seconds_sum = sum(times_hours)
             metrics.queue_time_seconds_count = len(times_hours)
-            
+
             # Bucket counts (buckets are in hours)
             buckets = [1, 4, 12, 24, 72]
             for h in times_hours:
@@ -1301,25 +1297,25 @@ class QueueMetricsExporter:
                     if h <= bucket:
                         metrics.queue_time_seconds_buckets[f"{bucket}h"] += 1
                 metrics.queue_time_seconds_buckets["infinite"] += 1
-        
+
         # Feedback stats if available
         if self.feedback_collector:
             feedback = self.feedback_collector.get_feedback(lookback_days=7)
             # Could add additional metrics from feedback here
-        
+
         return metrics
-    
+
     def export_prometheus(self) -> str:
         """Export metrics in Prometheus format."""
         metrics = self.collect_metrics()
         self._export_history.append(metrics)
         return metrics.to_prometheus_format()
-    
+
     def export_json(self) -> dict[str, Any]:
         """Export metrics as JSON for dashboard integration."""
         metrics = self.collect_metrics()
         self._export_history.append(metrics)
-        
+
         return {
             "timestamp": metrics.last_export_timestamp,
             "counters": {
@@ -1340,16 +1336,16 @@ class QueueMetricsExporter:
                 "queue_time_seconds_buckets": metrics.queue_time_seconds_buckets,
             },
         }
-    
+
     def check_alerts(self, thresholds: dict[str, float] | None = None) -> list[dict[str, Any]]:
         """Check metrics against alert thresholds.
-        
+
         Args:
             thresholds: Optional custom thresholds. Defaults:
                 - queue_depth_pending: 100
                 - avg_queue_time_hours: 24
                 - rejection_rate: 0.3
-        
+
         Returns:
             List of triggered alerts
         """
@@ -1359,48 +1355,54 @@ class QueueMetricsExporter:
                 "avg_queue_time_hours": 24,
                 "rejection_rate": 0.3,
             }
-        
+
         alerts = []
         metrics = self.collect_metrics()
-        
+
         # Check pending queue depth
         if metrics.queue_depth_pending > thresholds.get("queue_depth_pending", 100):
-            alerts.append({
-                "severity": "warning" if metrics.queue_depth_pending < 200 else "critical",
-                "metric": "queue_depth_pending",
-                "value": metrics.queue_depth_pending,
-                "threshold": thresholds["queue_depth_pending"],
-                "message": f"Human review queue depth ({metrics.queue_depth_pending}) exceeds threshold ({thresholds['queue_depth_pending']})",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            })
-        
+            alerts.append(
+                {
+                    "severity": "warning" if metrics.queue_depth_pending < 200 else "critical",
+                    "metric": "queue_depth_pending",
+                    "value": metrics.queue_depth_pending,
+                    "threshold": thresholds["queue_depth_pending"],
+                    "message": f"Human review queue depth ({metrics.queue_depth_pending}) exceeds threshold ({thresholds['queue_depth_pending']})",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                }
+            )
+
         # Check average queue time
         if metrics.queue_time_seconds_count > 0:
             avg_hours = metrics.queue_time_seconds_sum / metrics.queue_time_seconds_count
             if avg_hours > thresholds.get("avg_queue_time_hours", 24):
-                alerts.append({
-                    "severity": "warning" if avg_hours < 48 else "critical",
-                    "metric": "avg_queue_time_hours",
-                    "value": avg_hours,
-                    "threshold": thresholds["avg_queue_time_hours"],
-                    "message": f"Average queue time ({avg_hours:.1f}h) exceeds threshold ({thresholds['avg_queue_time_hours']}h)",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                })
-        
+                alerts.append(
+                    {
+                        "severity": "warning" if avg_hours < 48 else "critical",
+                        "metric": "avg_queue_time_hours",
+                        "value": avg_hours,
+                        "threshold": thresholds["avg_queue_time_hours"],
+                        "message": f"Average queue time ({avg_hours:.1f}h) exceeds threshold ({thresholds['avg_queue_time_hours']}h)",
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    }
+                )
+
         # Check rejection rate
         total_processed = metrics.approvals_total + metrics.rejections_total
         if total_processed > 0:
             rejection_rate = metrics.rejections_total / total_processed
             if rejection_rate > thresholds.get("rejection_rate", 0.3):
-                alerts.append({
-                    "severity": "warning",
-                    "metric": "rejection_rate",
-                    "value": rejection_rate,
-                    "threshold": thresholds["rejection_rate"],
-                    "message": f"Review rejection rate ({rejection_rate:.1%}) exceeds threshold ({thresholds['rejection_rate']:.1%})",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                })
-        
+                alerts.append(
+                    {
+                        "severity": "warning",
+                        "metric": "rejection_rate",
+                        "value": rejection_rate,
+                        "threshold": thresholds["rejection_rate"],
+                        "message": f"Review rejection rate ({rejection_rate:.1%}) exceeds threshold ({thresholds['rejection_rate']:.1%})",
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    }
+                )
+
         return alerts
 
 
@@ -1440,7 +1442,9 @@ def main() -> None:
         print(f"{'ITEM_ID':<16} {'SOURCE_ID':<15} {'STATUS':<10} {'PRIORITY':<10} CREATED")
         print("-" * 70)
         for item in items[:20]:  # Show first 20
-            print(f"{item.item_id:<16} {item.source_id:<15} {item.status.value:<10} {item.priority:<10} {item.created_at[:19]}")
+            print(
+                f"{item.item_id:<16} {item.source_id:<15} {item.status.value:<10} {item.priority:<10} {item.created_at[:19]}"
+            )
 
         if len(items) > 20:
             print(f"... and {len(items) - 20} more items")
@@ -1451,17 +1455,18 @@ def main() -> None:
         print(f"Pending: {stats['pending_count']}")
         print(f"Approved: {stats['approved_count']}")
         print(f"Rejected: {stats['rejected_count']}")
-        if stats['avg_queue_time_hours']:
+        if stats["avg_queue_time_hours"]:
             print(f"Average queue time: {stats['avg_queue_time_hours']} hours")
 
     elif args.command == "metrics":
         exporter = QueueMetricsExporter(queue)
-        format_type = getattr(args, 'format', 'json') or 'json'
-        
+        format_type = getattr(args, "format", "json") or "json"
+
         if format_type == "prometheus":
             print(exporter.export_prometheus())
         else:
             import json
+
             metrics = exporter.export_json()
             print(json.dumps(metrics, indent=2))
 
@@ -1470,20 +1475,22 @@ def main() -> None:
         thresholds = None
         if args.alert_thresholds:
             import json as _json
+
             try:
                 thresholds = _json.loads(args.alert_thresholds)
             except _json.JSONDecodeError:
                 print("Error: Invalid JSON for --alert-thresholds")
                 return
         alerts = exporter.check_alerts(thresholds)
-        
+
         if not alerts:
             print("No alerts triggered")
         else:
             import json
+
             print(f"Alerts triggered: {len(alerts)}")
             for alert in alerts:
-                severity = alert.get('severity', 'unknown').upper()
+                severity = alert.get("severity", "unknown").upper()
                 print(f"[{severity}] {alert.get('message', 'Unknown alert')}")
                 print(f"  Metric: {alert.get('metric')} = {alert.get('value')}")
                 print(f"  Threshold: {alert.get('threshold')}")
