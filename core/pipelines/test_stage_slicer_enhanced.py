@@ -32,7 +32,8 @@ def test_validate_stage_slice_passes_with_strong_scores():
     assert result.passed is True
     assert result.violations == []
     assert "Clinical validity" not in "".join(result.violations)
-    assert result.metrics["clinical_validity_avg"] == result.metrics["safety_avg"]
+    assert result.metrics["clinical_validity_avg"] == 1.0
+    assert result.metrics["safety_avg"] == 1.0
     assert result.clinical_validity_record_scores["r-strong-1"] == 1.0
 
 
