@@ -137,10 +137,10 @@ class AnnotationResult:
     crisis_label: int  # 0-5
     crisis_confidence: int  # 1-5
     primary_emotion: str
-    secondary_emotions: list[str] = field(default_factory=list)
-    emotion_intensity: int  # 1-10
     valence: float  # -1.0 to 1.0
     arousal: float  # 0.0 to 1.0
+    emotion_intensity: int = 5  # 1-10
+    secondary_emotions: list[str] = field(default_factory=list)
     empathy_score: int | None = None  # 1-5
     safety_pass: bool | None = None
     notes: str = ""

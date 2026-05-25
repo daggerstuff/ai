@@ -137,7 +137,8 @@ def load_model():
         )
 
         # Load MoE state
-        moe_state = torch.load(str(moe_path), map_location=DEVICE)
+        torch.serialization.add_safe_globals([MoEConfig])
+        moe_state = torch.load(str(moe_path), map_location=DEVICE, weights_only=True)
         moe_config = moe_state["config"]
 
         # Create therapeutic MoE model

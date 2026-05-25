@@ -129,6 +129,28 @@ describe('PixelatedEmpathyAPI Method getConversations', () => {
         });
     });
 
+    it('should correctly map minQuality: 0 (falsy) to min_quality parameter', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+
+        let calledOptions: Record<string, unknown> = {};
+
+        makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
+            calledOptions = options ?? {};
+            return { data: { conversations: [] } };
+        });
+
+        await api.getConversations({
+            minQuality: 0
+        });
+
+        expect(calledOptions.params).toEqual({
+            limit: 100,
+            offset: 0,
+            min_quality: 0
+        });
+    });
+
     it('should use default limit and offset if not provided', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const makeRequestSpy = vi.spyOn(api, 'makeRequest');
@@ -478,5 +500,29 @@ describe('PixelatedEmpathyAPI Method getJobStatus', () => {
 
         expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/processing/jobs/job-123');
         expect(result).toEqual(mockStatus);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method waitForJob', () => {
+    it('should resolve if job returns failed status', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        api.getJobStatus = async (jobId: string) => {
+            return { status: 'failed', progress: 50 };
+        };
+
+        const result = await api.waitForJob('job-123');
+        expect(result).toEqual({ status: 'failed', progress: 50 });
+    });
+
+    it('should resolve if job returns cancelled status', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        api.getJobStatus = async (jobId: string) => {
+            return { status: 'cancelled', progress: 50 };
+        };
+
+        const result = await api.waitForJob('job-123');
+        expect(result).toEqual({ status: 'cancelled', progress: 50 });
     });
 });
