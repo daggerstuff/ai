@@ -160,6 +160,23 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
         expect(result).toEqual({ status: 'completed', progress: 100 });
     });
 
+    it('should poll until job is completed', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        let callCount = 0;
+
+        api.getJobStatus = async (jobId: string) => {
+            callCount++;
+            if (callCount === 1) return { status: 'processing', progress: 50 };
+            return { status: 'completed', progress: 100 };
+        };
+
+        api.sleep = async (ms: number) => {};
+
+        const result = await api.waitForJob('job-123', { timeout: 10, pollInterval: 0.01 });
+        expect(result).toEqual({ status: 'completed', progress: 100 });
+        expect(callCount).toBe(2);
+    });
+
     it('should throw error if timeout is exceeded', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
@@ -478,5 +495,25 @@ describe('PixelatedEmpathyAPI Method getJobStatus', () => {
 
         expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/processing/jobs/job-123');
         expect(result).toEqual(mockStatus);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
+    it('should return parsed object if valid JSON object is passed', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = '{"success": true, "data": {"id": 1}}';
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: true, data: { id: 1 } });
+    });
+
+    it('should return error object if string is not valid JSON', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const invalidJsonStr = '<html><body>error</body></html>';
+        expect(api.safeParseResponse(invalidJsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+    });
+
+    it('should return error object if parsed JSON is not a plain object (e.g. array)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = '[{"id": 1}]';
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
     });
 });

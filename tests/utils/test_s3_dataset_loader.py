@@ -10,16 +10,6 @@ from utils.s3_dataset_loader import S3DatasetLoader
 
 def test_s3_dataset_loader_stream_jsonl():
     loader = S3DatasetLoader(bucket="test-bucket", endpoint_url="http://localhost")
-    mock_s3 = MagicMock()
-    mock_body = MagicMock()
-    mock_body.__iter__.return_value = [b'{"foo": "bar"}\n{"baz": "qux"}\n']
-    mock_s3.get_object.return_value = {"Body": mock_body}
-    loader._s3_client = mock_s3
-    results = list(loader.stream_jsonl("test-key.jsonl"))
-
-
-def test_s3_dataset_loader_stream_jsonl():
-    loader = S3DatasetLoader(bucket="test-bucket", endpoint_url="http://localhost")
 
     # Mock s3 client
     mock_s3 = MagicMock()
@@ -35,16 +25,6 @@ def test_s3_dataset_loader_stream_jsonl():
     expected_results_len = 2
     assert len(results) == expected_results_len
     assert len(results) == 2  # noqa: PLR2004
-    assert results[0][0] == {"foo": "bar"}
-    assert results[1][0] == {"baz": "qux"}
-
-
-def test_s3_dataset_loader_stream_jsonl_empty_lines():
-    loader = S3DatasetLoader(bucket="test-bucket", endpoint_url="http://localhost")
-    expected_results_len = 2
-    assert len(results) == expected_results_len
-
-    assert len(results) == 2
     assert results[0][0] == {"foo": "bar"}
     assert results[1][0] == {"baz": "qux"}
 
@@ -77,23 +57,14 @@ def test_s3_dataset_loader_stream_jsonl_empty_lines():
 
 def test_s3_dataset_loader_stream_jsonl_invalid_json():
     loader = S3DatasetLoader(bucket="test-bucket", endpoint_url="http://localhost")
-    expected_results_len = 2
-    assert len(results) == expected_results_len
-
-    assert len(results) == 2
-    assert results[0][0] == {"foo": "bar"}
-    assert results[1][0] == {"baz": "qux"}
-
-
-def test_s3_dataset_loader_stream_jsonl_invalid_json():
-    loader = S3DatasetLoader(bucket="test-bucket", endpoint_url="http://localhost")
     mock_s3 = MagicMock()
     mock_body = MagicMock()
     mock_body.__iter__.return_value = [b'{"foo": "bar"}\ninvalid json\n{"baz": "qux"}\n']
     mock_s3.get_object.return_value = {"Body": mock_body}
     loader._s3_client = mock_s3
     results = list(loader.stream_jsonl("test-key.jsonl"))
-    assert len(results) == 2
+    expected_results_len = 2
+    assert len(results) == expected_results_len
     assert results[0][0] == {"foo": "bar"}
     assert results[1][0] == {"baz": "qux"}
 
@@ -175,9 +146,6 @@ def test_s3_dataset_loader_s3_prefix():
 
 
 def test_import_error_boto3(monkeypatch):
-    import importlib
-    import sys
-
     monkeypatch.setitem(sys.modules, "boto3", None)
     import utils.s3_dataset_loader
 
@@ -192,6 +160,7 @@ def test_import_error_boto3(monkeypatch):
     mock_body.__iter__.return_value = [b'{"foo": "bar"}\ninvalid json\n{"baz": "qux"}\n']
 
     mock_s3.get_object.return_value = {"Body": mock_body}
+    loader = utils.s3_dataset_loader.S3DatasetLoader(bucket="test-bucket", endpoint_url="http://localhost")
     loader._s3_client = mock_s3
 
     results = list(loader.stream_jsonl("test-key.jsonl"))
@@ -281,9 +250,3 @@ def test_s3_dataset_loader_import_error():
             del sys.modules["boto3"]
         # Reload again to restore functionality for other tests
         importlib.reload(utils.s3_dataset_loader)
-    expected_results_len = 2
-    assert len(results) == expected_results_len
-
-    assert len(results) == 2
-    assert results[0][0] == {"foo": "bar"}
-    assert results[1][0] == {"baz": "qux"}
