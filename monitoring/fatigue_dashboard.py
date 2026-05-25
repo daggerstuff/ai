@@ -547,6 +547,9 @@ DASHBOARD_TEMPLATE = """
     <script>
         // Load dashboard data
         function loadDashboard() {
+            // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+            if (document.hidden) return;
+
             // Load summary metrics
             $.get('/api/summary')
                 .done(function(data) {
