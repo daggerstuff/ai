@@ -50,7 +50,7 @@ def test_ngc_cli_download_resource():
                 mock_file.stat.return_value.st_mtime = 12345
                 mock_iterdir.return_value = [mock_file]
 
-                result = cli.download_resource("nvidia/resource", version="1.0", output_dir=Path("/tmp/test"))
+                result = cli.download_resource("nvidia/resource", version="1.0", output_dir=Path("test_dir"))
                 assert result == mock_file
                 mock_run.assert_called_once()
                 assert "download-version" in mock_run.call_args[0][0]
@@ -72,4 +72,4 @@ def test_ngc_cli_download_resource_raises_download_error():
             mock_run.return_value = MagicMock(returncode=1, stderr="Mock error")
 
             with pytest.raises(NGCCLIDownloadError):
-                cli.download_resource("nvidia/resource", output_dir=Path("/tmp/test"))
+                cli.download_resource("nvidia/resource", output_dir=Path("test_dir"))
