@@ -202,10 +202,7 @@ class PiiScrubber:
 
         for ent in doc.ents:
             # Focus on person names for PII detection
-            # Note: en_core_web_sm does not provide .confidence/.crispness scores.
-            # Fallback to 1.0 so entities pass the threshold check for sm models.
-            spacy_confidence = getattr(ent, "crispness", 1.0)
-            if ent.label_ == "PERSON" and spacy_confidence >= self.config.spacy_confidence_threshold:
+            if ent.label_ == "PERSON" and ent.confidence >= self.config.spacy_confidence_threshold:
                 # Skip if specific PII types are requested and this isn't one of them
                 if self.config.pii_types and "name" not in self.config.pii_types:
                     continue

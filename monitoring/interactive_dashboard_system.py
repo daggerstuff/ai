@@ -212,8 +212,14 @@ class InteractiveDashboardSystem:
 
         function startAutoRefresh(intervalMs = 30000) {
             refreshInterval = setInterval(() => {
+<<<<<<< HEAD
                 // ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
                 if (document.hidden) return;
+=======
+                // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+                if (document.hidden) return;
+
+>>>>>>> origin/staging
                 showRefreshIndicator();
                 refreshDashboardData();
             }, intervalMs);
@@ -226,6 +232,14 @@ class InteractiveDashboardSystem:
                 hideRefreshIndicator();
             }, 1000);
         }
+
+        // Handle tab visibility changes - refresh immediately when tab becomes visible again
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Tab became visible, refresh data immediately to avoid stale data
+                refreshDashboardData();
+            }
+        });
 
         // Start auto-refresh when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -650,9 +664,13 @@ def main():
 
     # Save deployment results
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+<<<<<<< HEAD
     deployment_file = (
         f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{timestamp}.json"
     )
+=======
+    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{timestamp}.json"
+>>>>>>> origin/staging
     with open(deployment_file, "w") as f:
         json.dump(result, f, indent=2)
 
