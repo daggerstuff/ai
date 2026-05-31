@@ -17,8 +17,8 @@ import logging
 import os
 import random
 import sys
-import urllib.error
 import urllib.request
+import urllib.error
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -105,9 +105,7 @@ THERAPIST_STYLE_PROFILES = {
         "Avoid generic affirmation loops and script-like therapy language. Don't over-validate feelings.\n"
         "Avoid these repeated openings and clichés: 'I hear', 'I understand', 'that's tough', 'you are not alone', "
         "'it makes sense', 'that's the thing', 'that's how it is'.\n"
-        "Keep responses natural, grounded, and focused on what the client just shared.\n"
-        "Ground your responses in evidence-based principles (e.g. CBT reframing, DBT distress tolerance, or active problem-solving). "
-        "Strive for a collaborative alliance and offer professional, trauma-informed clinical reasoning or grounding where helpful."
+        "Keep responses natural, grounded, and focused on what the client just shared."
     ),
     "curious_direct": (
         "You are a clinically grounded therapist with a calm, human voice.\n"
@@ -116,9 +114,7 @@ THERAPIST_STYLE_PROFILES = {
         "Do not over-affirm, do not over-validate, and do not use repetitive scripts.\n"
         "Avoid these specific phrases: 'I hear you', 'that makes sense', 'you deserve', 'be gentle with yourself', "
         "'it sounds', 'that's completely normal', 'you're not alone'.\n"
-        "End with one practical next step or one question that helps the client continue speaking.\n"
-        "Use targeted inquiry aligned with clinical modalities such as somatic body scans, mindfulness exercises, or motivational interview change-talk scales. "
-        "Frame next steps using collaborative therapeutic objectives."
+        "End with one practical next step or one question that helps the client continue speaking."
     ),
 }
 
@@ -236,7 +232,7 @@ def _evaluate_therapist_style(
     if len(words) >= 20:
         common = Counter(words).most_common(1)
         top_word, top_count = common[0]
-        if top_count / len(words) > 0.20 and top_word not in {"the", "and", "you", "to", "it", "that", "is", "was"}:
+        if top_count / len(words) > 0.20 and top_word not in {"the", "and", "you", "to", "and", "it", "that", "is", "was"}:
             reasons.append(f"Repetitive lexical pattern around '{top_word}'")
 
     # Keep responses concise enough and avoid canned 1-line affirmations
@@ -778,11 +774,10 @@ def _check_platitudes(output: str) -> tuple[bool, str]:
     return True, ""
 
 
-def validate_sample(sample: dict, min_clinical_validity: float = 0.0) -> tuple[bool, str]:
+def validate_sample(sample: dict) -> tuple[bool, str]:
     """Validate a sample against all quality thresholds."""
-    # Normalize standard format and DPO pair format
-    instruction = sample.get("instruction", sample.get("prompt", ""))
-    output = sample.get("output", sample.get("chosen", ""))
+    instruction = sample.get("instruction", "")
+    output = sample.get("output", "")
 
     # Length checks
     if len(instruction) < MIN_INSTRUCTION_LENGTH:
@@ -841,17 +836,6 @@ def validate_sample(sample: dict, min_clinical_validity: float = 0.0) -> tuple[b
     ]
     if any(p in instruction for p in gibberish_patterns):
         return False, "Gibberish detected"
-
-    # Clinical validity score check
-    if min_clinical_validity > 0.0:
-        cv_score = sample.get("clinical_validity_score")
-        if cv_score is None:
-            cv_score = ClinicalValidityScorer.score(output)
-            sample["clinical_validity_score"] = cv_score
-            sample["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(output)
-
-        if cv_score < min_clinical_validity:
-            return False, f"Clinical validity score too low ({cv_score:.2f} < {min_clinical_validity:.2f})"
 
     return True, "OK"
 
@@ -1077,11 +1061,6 @@ def _generate_dpo_pair(
     if not all(k in pair for k in ("prompt", "chosen", "rejected")):
         return None
 
-    # Compute clinical validity for the chosen response
-    chosen_text = pair.get("chosen", "")
-    pair["clinical_validity_score"] = ClinicalValidityScorer.score(chosen_text)
-    pair["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(chosen_text)
-
     return pair
 
 
@@ -1271,12 +1250,6 @@ def build_parser() -> argparse.ArgumentParser:
         default=0,
         help="Max samples to audit in one pass (0 means all)",
     )
-    parser.add_argument(
-        "--min_clinical_validity",
-        type=float,
-        default=0.30,
-        help="Minimum clinical validity score for generated samples (default: 0.30)",
-    )
 
     return parser
 
@@ -1339,19 +1312,6 @@ def run_sdg(args: argparse.Namespace) -> None:
                 if args.scenario == "dpo_preference_pairs":
                     sample = _generate_dpo_pair("therapeutic", endpoint, api_key, model)
                     if sample and "chosen" in sample:
-                        min_cv = getattr(args, "min_clinical_validity", 0.0)
-                        is_valid, reason = validate_sample(sample, min_clinical_validity=min_cv)
-                        if not is_valid:
-                            logger.debug("Filtered DPO sample: %s", reason)
-                            filtered += 1
-                            continue
-
-                        is_unique, dup_reason = _check_deduplication(sample, existing_samples)
-                        if not is_unique:
-                            logger.debug("Filtered DPO duplicate: %s", dup_reason)
-                            filtered += 1
-                            continue
-
                         f.write(json.dumps(sample) + "\n")
                         generated += 1
                         existing_samples.append(sample)
@@ -1366,8 +1326,7 @@ def run_sdg(args: argparse.Namespace) -> None:
                         style_profile=args.style_profile,
                     )
                     if sample:
-                        min_cv = getattr(args, "min_clinical_validity", 0.0)
-                        is_valid, reason = validate_sample(sample, min_clinical_validity=min_cv)
+                        is_valid, reason = validate_sample(sample)
                         if not is_valid:
                             logger.debug("Filtered sample: %s", reason)
                             filtered += 1
