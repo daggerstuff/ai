@@ -78,7 +78,7 @@ another-resource    2.0       2GB
 
     # Test missing headers
     invalid_ws = ["----   ----", "val1   val2"]
-    assert NGCCLI._parse_whitespace_aligned_resources(invalid_ws) == [{"----": "val2"}]
+    assert NGCCLI._parse_whitespace_aligned_resources(invalid_ws) == []
 
     # Test empty
     assert NGCCLI._parse_whitespace_aligned_resources([]) == []
