@@ -17,14 +17,14 @@
 
     function startAutoRefresh(intervalMs = 30000) {
         refreshInterval = setInterval(() => {
-            // ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
-            if (document.hidden) return;
-            // ⚡ Bolt: Trigger immediate refresh when tab becomes visible again
+            // ⚡ Bolt: Trigger immediate refresh when tab becomes visible
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) {
                     refreshDashboardData();
                 }
             });
+            // ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
+            if (document.hidden) return;
             showRefreshIndicator();
             refreshDashboardData();
         }, intervalMs);
