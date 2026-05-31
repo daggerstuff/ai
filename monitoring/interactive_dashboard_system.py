@@ -174,7 +174,9 @@ class InteractiveDashboardSystem:
                         <i class="fas fa-chart-line text-primary me-3"></i>
                         {% block header_title %}Pixelated Empathy AI{% endblock %}
                     </h1>
-                    <p class="text-muted mb-0">{% block header_subtitle %}Real-time Analytics Dashboard{% endblock %}</p>
+                        <p class="text-muted mb-0">
+                            {% block header_subtitle %}Real-time Analytics Dashboard{% endblock %}
+                        </p>
                 </div>
                 <div class="col-md-6 text-end">
                     <div class="d-flex justify-content-end align-items-center">
@@ -648,7 +650,8 @@ def main():
     result = dashboard_system.deploy_interactive_dashboards()
 
     # Save deployment results
-    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+    date_str = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{date_str}.json"
     with open(deployment_file, "w") as f:
         json.dump(result, f, indent=2)
 
