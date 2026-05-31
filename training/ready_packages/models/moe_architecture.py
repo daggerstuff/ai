@@ -4,7 +4,10 @@ from torch import _C
 def from_pretrained(cls, load_directory, base_model):
     """Load model from directory"""
     # Load MoE state
-    torch.serialization.add_safe_globals([_C._get_torch_version])  # <--- FIX: Add safe globals for PyTorch 2.1–2.3
+    import torch
+    torch_version = torch.__version__
+    if torch_version < '2.4.0':
+        torch.serialization.add_safe_globals([_C._get_torch_version])
     moe_state = torch.load(f"{load_directory}/moe_layers.pt", map_location=torch.device('cpu'))  # <--- FIX: Use map_location to ensure compatibility
 
     # Create model
