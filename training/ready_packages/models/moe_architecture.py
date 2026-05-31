@@ -6,9 +6,8 @@ def from_pretrained(cls, load_directory, base_model):
     # Load MoE state
     import torch
     torch_version = torch.__version__
-    if torch_version < '2.4.0':
-        torch.serialization.add_safe_globals([_C._get_torch_version])
-    moe_state = torch.load(f"{load_directory}/moe_layers.pt", map_location=torch.device('cpu'))  # <--- FIX: Use map_location to ensure compatibility
+    with torch.serialization.safe_globals([MoEConfig]):
+        moe_state = torch.load(f"{load_directory}/moe_layers.pt", weights_only=True)
 
     # Create model
     model = cls(base_model, moe_state['config'])
