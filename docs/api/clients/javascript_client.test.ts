@@ -517,3 +517,11 @@ describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
         expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
     });
 });
+
+
+describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
+    it('should correctly handle undefined by returning empty array', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.toRecordArray(undefined)).toEqual([]);
+    });
+});
