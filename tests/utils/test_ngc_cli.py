@@ -1,4 +1,3 @@
-
 import pytest
 
 from utils.ngc_cli import NGCCLI, NGCCLINotFoundError
@@ -51,7 +50,6 @@ def test_parse_pipe_delimited_resources():
 +------------------+---------+
     """.strip().splitlines()
     expected = [
-        {"Name": "Name", "Version": "Version"},
         {"Name": "test-resource", "Version": "1.0"},
         {"Name": "another-resource", "Version": "2.0"},
     ]
