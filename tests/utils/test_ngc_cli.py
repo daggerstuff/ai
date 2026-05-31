@@ -17,6 +17,7 @@ def test_ngc_cli_is_available_false(mock_exists: MagicMock, mock_which: MagicMoc
     with pytest.raises(NGCCLINotFoundError):
         cli.ensure_available()
 
+
 @patch("shutil.which")
 def test_ngc_cli_is_available_true_in_path(mock_which: MagicMock):
     mock_which.return_value = "/usr/local/bin/ngc"
