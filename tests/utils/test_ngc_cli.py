@@ -1,3 +1,4 @@
+
 import pytest
 
 from utils.ngc_cli import NGCCLI, NGCCLINotFoundError
@@ -70,7 +71,6 @@ test-resource       1.0       1GB
 another-resource    2.0       2GB
     """.strip().splitlines()
     expected = [
-        {"Name": "----", "Version": "-------", "Size": "----"},
         {"Name": "test-resource", "Version": "1.0", "Size": "1GB"},
         {"Name": "another-resource", "Version": "2.0", "Size": "2GB"},
     ]
@@ -97,4 +97,4 @@ def test_parse_resources_output():
 
     # Test whitespace output
     ws_out = "Name   Ver\n----   ---\nres1   1.0\n"
-    assert NGCCLI._parse_resources_output(ws_out) == [{"Name": "----", "Ver": "---"}, {"Name": "res1", "Ver": "1.0"}]
+    assert NGCCLI._parse_resources_output(ws_out) == [{"Name": "res1", "Ver": "1.0"}]
