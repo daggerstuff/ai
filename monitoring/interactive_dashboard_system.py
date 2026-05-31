@@ -174,7 +174,9 @@ class InteractiveDashboardSystem:
                         <i class="fas fa-chart-line text-primary me-3"></i>
                         {% block header_title %}Pixelated Empathy AI{% endblock %}
                     </h1>
-                    <p class="text-muted mb-0">{% block header_subtitle %}Real-time Analytics Dashboard{% endblock %}</p>
+                    <p class="text-muted mb-0">
+                        {% block header_subtitle %}Real-time Analytics Dashboard{% endblock %}
+                    </p>
                 </div>
                 <div class="col-md-6 text-end">
                     <div class="d-flex justify-content-end align-items-center">
@@ -210,6 +212,9 @@ class InteractiveDashboardSystem:
 
         function startAutoRefresh(intervalMs = 30000) {
             refreshInterval = setInterval(() => {
+                // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+                if (document.hidden) return;
+
                 showRefreshIndicator();
                 refreshDashboardData();
             }, intervalMs);
@@ -222,6 +227,14 @@ class InteractiveDashboardSystem:
                 hideRefreshIndicator();
             }, 1000);
         }
+
+        // Handle tab visibility changes - refresh immediately when tab becomes visible again
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Tab became visible, refresh data immediately to avoid stale data
+                refreshDashboardData();
+            }
+        });
 
         // Start auto-refresh when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -645,7 +658,8 @@ def main():
     result = dashboard_system.deploy_interactive_dashboards()
 
     # Save deployment results
-    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{timestamp}.json"
     with open(deployment_file, "w") as f:
         json.dump(result, f, indent=2)
 
