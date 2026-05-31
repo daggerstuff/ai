@@ -17,14 +17,14 @@
 
     function startAutoRefresh(intervalMs = 30000) {
         refreshInterval = setInterval(() => {
-            // ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
-            if (document.hidden) return;
-            // ⚡ Bolt: Trigger immediate refresh when tab becomes visible again
+            // ⚡ Bolt: Trigger immediate refresh when tab becomes visible
             document.addEventListener('visibilitychange', function() {
                 if (!document.hidden) {
                     refreshDashboardData();
                 }
             });
+            // ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
+            if (document.hidden) return;
             showRefreshIndicator();
             refreshDashboardData();
         }, intervalMs);
@@ -38,19 +38,10 @@
         }, 1000);
     }
 
-    // Handle tab visibility changes - refresh immediately when tab becomes visible again
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            // Tab became visible, refresh data immediately to avoid stale data
-            refreshDashboardData();
-        }
-    });
-
-    // Register a new visibilitychange listener to refresh data when tab becomes visible
+    // Add a visibilitychange event listener to trigger an immediate refresh when the tab becomes visible
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden) {
             refreshDashboardData();
-            refreshDashboardData(); // Call refreshDashboardData() immediately
         }
     });
 
