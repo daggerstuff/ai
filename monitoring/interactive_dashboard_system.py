@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/usr/bin/env python3
 """
 Interactive Web Dashboard System
@@ -359,299 +360,76 @@ class InteractiveDashboardSystem:
 {% endblock %}
 
 {% block extra_js %}
+=======
+>>>>>>> origin/staging
 <script>
-    let conversationTrendsChart, qualityDistributionChart, systemPerformanceChart;
+    // Auto-refresh functionality
+    let refreshInterval;
 
-    function initializeCharts() {
-        // Conversation Trends Chart
-        const trendsCtx = document.getElementById('conversationTrendsChart').getContext('2d');
-        conversationTrendsChart = new Chart(trendsCtx, {
-            type: 'line',
-            data: {
-                labels: {{ trend_labels | safe }},
-                datasets: [{
-                    label: 'Daily Conversations',
-                    data: {{ trend_data | safe }},
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                plugins: {
-                    title: {
-                        text: 'Conversation Volume Trends (Last 30 Days)'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+    function showRefreshIndicator() {
+        document.getElementById('refreshIndicator').classList.add('show');
+    }
 
-        // Quality Distribution Chart
-        const qualityCtx = document.getElementById('qualityDistributionChart').getContext('2d');
-        qualityDistributionChart = new Chart(qualityCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Excellent', 'Good', 'Fair', 'Poor'],
-                datasets: [{
-                    data: {{ quality_distribution | safe }},
-                    backgroundColor: ['#27ae60', '#3498db', '#f39c12', '#e74c3c']
-                }]
-            },
-            options: {
-                plugins: {
-                    title: {
-                        text: 'Quality Score Distribution'
-                    }
-                }
-            }
-        });
+    function hideRefreshIndicator() {
+        document.getElementById('refreshIndicator').classList.remove('show');
+    }
 
-        // System Performance Chart
-        const performanceCtx = document.getElementById('systemPerformanceChart').getContext('2d');
-        systemPerformanceChart = new Chart(performanceCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Response Time', 'Throughput', 'Error Rate', 'CPU Usage'],
-                datasets: [{
-                    label: 'Current',
-                    data: {{ performance_current | safe }},
-                    backgroundColor: '#3498db'
-                }, {
-                    label: 'Target',
-                    data: {{ performance_target | safe }},
-                    backgroundColor: '#27ae60'
-                }]
-            },
-            options: {
-                plugins: {
-                    title: {
-                        text: 'System Performance Metrics'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+    function updateLastRefreshTime() {
+        document.getElementById('lastUpdate').textContent =
+            'Last updated: ' + new Date().toLocaleTimeString();
+    }
+
+    function startAutoRefresh(intervalMs = 30000) {
+        refreshInterval = setInterval(() => {
+            // ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
+            if (document.hidden) return;
+            // ⚡ Bolt: Trigger immediate refresh when tab becomes visible again
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    refreshDashboardData();
                 }
-            }
-        });
+            });
+            showRefreshIndicator();
+            refreshDashboardData();
+        }, intervalMs);
     }
 
     function refreshDashboardData() {
-        fetch('/api/executive-metrics')
-            .then(response => response.json())
-            .then(data => {
-                // Update metric cards
-                document.getElementById('totalConversations').textContent = data.total_conversations;
-                document.getElementById('avgQualityScore').textContent = data.avg_quality_score + '%';
-                document.getElementById('systemUptime').textContent = data.system_uptime + '%';
-                document.getElementById('activeUsers').textContent = data.active_users;
-
-                // Update charts
-                conversationTrendsChart.data.datasets[0].data = data.trend_data;
-                conversationTrendsChart.update();
-
-                qualityDistributionChart.data.datasets[0].data = data.quality_distribution;
-                qualityDistributionChart.update();
-
-                systemPerformanceChart.data.datasets[0].data = data.performance_current;
-                systemPerformanceChart.update();
-
-                updateLastRefreshTime();
-                hideRefreshIndicator();
-            })
-            .catch(error => {
-                console.error('Error refreshing dashboard:', error);
-                hideRefreshIndicator();
-            });
+        // This will be overridden by specific dashboard implementations
+        setTimeout(() => {
+            updateLastRefreshTime();
+            hideRefreshIndicator();
+        }, 1000);
     }
 
-    // Initialize charts when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeCharts();
-    });
-</script>
-{% endblock %}"""
-
-        with open(f"{self.dashboard_dir}/templates/executive.html", "w") as f:
-            f.write(executive_template)
-
-    def get_dashboard_data(self):
-        """Get real-time data for dashboards"""
-        try:
-            # Connect to database and get real data
-            conn = sqlite3.connect(self.db_path)
-
-            # Get conversation metrics
-            total_conversations = pd.read_sql_query("SELECT COUNT(*) as count FROM conversations", conn).iloc[0][
-                "count"
-            ]
-
-            # Get quality metrics (mock data for now)
-            metrics = {
-                "total_conversations": total_conversations,
-                "conversations_growth": 15.3,
-                "avg_quality_score": 87.2,
-                "quality_improvement": 5.8,
-                "system_uptime": 99.7,
-                "active_users": 142,
-            }
-
-            # Generate trend data (last 30 days)
-            trend_labels = [(datetime.now(UTC) - timedelta(days=i)).strftime("%m/%d") for i in range(29, -1, -1)]
-            trend_data = [50 + i * 2 + (i % 7) * 10 for i in range(30)]  # Mock trending data
-
-            quality_distribution = [45, 35, 15, 5]  # Excellent, Good, Fair, Poor
-            performance_current = [
-                250,
-                1200,
-                0.5,
-                65,
-            ]  # Response time, throughput, error rate, CPU
-            performance_target = [200, 1500, 0.1, 70]
-
-            top_issues = [
-                {
-                    "title": "High Response Latency",
-                    "description": "API response times above threshold",
-                    "severity": "warning",
-                    "count": 3,
-                },
-                {
-                    "title": "Memory Usage Alert",
-                    "description": "Memory usage approaching limits",
-                    "severity": "danger",
-                    "count": 1,
-                },
-                {
-                    "title": "Quality Score Dip",
-                    "description": "Recent decrease in conversation quality",
-                    "severity": "info",
-                    "count": 2,
-                },
-            ]
-
-            conn.close()
-
-            return {
-                "metrics": metrics,
-                "trend_labels": json.dumps(trend_labels),
-                "trend_data": json.dumps(trend_data),
-                "quality_distribution": json.dumps(quality_distribution),
-                "performance_current": json.dumps(performance_current),
-                "performance_target": json.dumps(performance_target),
-                "top_issues": top_issues,
-                "current_time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
-            }
-
-        except Exception:
-            # Return mock data if database unavailable
-            return {
-                "metrics": {
-                    "total_conversations": 1250,
-                    "conversations_growth": 15.3,
-                    "avg_quality_score": 87.2,
-                    "quality_improvement": 5.8,
-                    "system_uptime": 99.7,
-                    "active_users": 142,
-                },
-                "trend_labels": json.dumps(["01/01", "01/02", "01/03", "01/04", "01/05"]),
-                "trend_data": json.dumps([100, 120, 110, 140, 135]),
-                "quality_distribution": json.dumps([45, 35, 15, 5]),
-                "performance_current": json.dumps([250, 1200, 0.5, 65]),
-                "performance_target": json.dumps([200, 1500, 0.1, 70]),
-                "top_issues": [],
-                "current_time": datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
-            }
-
-    def setup_flask_routes(self):
-        """Setup Flask routes for the web dashboard"""
-
-        @self.app.route("/")
-        def index():
-            return render_template("executive.html", **self.get_dashboard_data())
-
-        @self.app.route("/executive")
-        def executive_dashboard():
-            return render_template("executive.html", **self.get_dashboard_data())
-
-        @self.app.route("/api/executive-metrics")
-        def api_executive_metrics():
-            return jsonify(self.get_dashboard_data()["metrics"])
-
-        @self.app.route("/operational")
-        def operational_dashboard():
-            # For now, redirect to executive - can be expanded later
-            return render_template("executive.html", **self.get_dashboard_data())
-
-        @self.app.route("/technical")
-        def technical_dashboard():
-            # For now, redirect to executive - can be expanded later
-            return render_template("executive.html", **self.get_dashboard_data())
-
-    def deploy_interactive_dashboards(self):
-        """Deploy the complete interactive dashboard system"""
-
-        # Create templates and static files
-        self.create_base_template()
-        self.create_executive_dashboard()
-
-        # Setup Flask routes
-        self.setup_flask_routes()
-
-        # Create launch script
-        launch_script = f"""#!/usr/bin/env python3
-import sys
-sys.path.append('{self.base_dir}')
-from monitoring.interactive_dashboard_system import InteractiveDashboardSystem
-
-if __name__ == '__main__':
-    dashboard = InteractiveDashboardSystem()
-    dashboard.setup_flask_routes()
-    print("🌐 Interactive Dashboard Server Starting...")
-    print("📊 Access your dashboards at:")
-    print("   • Executive Dashboard: http://localhost:5000/executive")
-    print("   • Operational Dashboard: http://localhost:5000/operational")
-    print("   • Technical Dashboard: http://localhost:5000/technical")
-    print("\\n🔄 Dashboards will auto-refresh every 30 seconds")
-    print("🛑 Press Ctrl+C to stop the server")
-    dashboard.app.run(host='0.0.0.0', port=5000, debug=False)
-"""
-
-        with open(f"{self.base_dir}/monitoring/launch_interactive_dashboards.py", "w") as f:
-            f.write(launch_script)
-
-        os.chmod(f"{self.base_dir}/monitoring/launch_interactive_dashboards.py", 0o755)
-
-        return {
-            "status": "success",
-            "dashboard_types": ["executive", "operational", "technical"],
-            "features": [
-                "real-time updates",
-                "interactive charts",
-                "responsive design",
-            ],
-            "launch_command": "python monitoring/launch_interactive_dashboards.py",
-            "access_url": "http://localhost:5000/executive",
+    // Handle tab visibility changes - refresh immediately when tab becomes visible again
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            // Tab became visible, refresh data immediately to avoid stale data
+            refreshDashboardData();
         }
+    });
 
+    // Register a new visibilitychange listener to refresh data when tab becomes visible
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            refreshDashboardData();
+            refreshDashboardData(); // Call refreshDashboardData() immediately
+        }
+    });
 
-def main():
-    """Deploy the interactive dashboard system"""
-    dashboard_system = InteractiveDashboardSystem()
-    result = dashboard_system.deploy_interactive_dashboards()
+    // Start auto-refresh when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        startAutoRefresh();
+    });
 
-    # Save deployment results
-    deployment_file = f"{dashboard_system.base_dir}/monitoring/interactive_dashboard_deployment_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
-    with open(deployment_file, "w") as f:
-        json.dump(result, f, indent=2)
-
-
-if __name__ == "__main__":
-    main()
+    // Chart.js default configuration
+    Chart.defaults.responsive = true;
+    Chart.defaults.maintainAspectRatio = false;
+    Chart.defaults.plugins.legend.position = 'top';
+    Chart.defaults.plugins.title.display = true;
+    Chart.defaults.plugins.title.font = {
+        size: 16,
+        weight: 'bold'
+    };
+</script>
