@@ -184,6 +184,7 @@ def liveness_check():
 
 @system_bp.route("/config", methods=["GET"])
 @require_auth
+@require_role("admin")
 def get_system_config():
     """
     Get system configuration information.
