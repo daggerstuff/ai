@@ -393,7 +393,12 @@ class NGCCLI:
             return []
 
         resources: list[dict[str, Any]] = []
-        for row in lines[1:]:
+        start_idx = 1
+        # Skip table headers that were parsed
+        if len(lines) > 1 and "Name" in lines[1] and "Version" in lines[1]:
+            start_idx = 2
+
+        for row in lines[start_idx:]:
             if "---" in row or row.startswith("+") or "|" not in row:
                 continue
             values = [part.strip() for part in row.split("|") if part.strip() and not part.strip().startswith("+")]
@@ -404,6 +409,10 @@ class NGCCLI:
 
     @staticmethod
     def _parse_whitespace_aligned_resources(lines: list[str]) -> list[dict[str, Any]]:
+        # Filter out divider rows before processing
+        lines = [line for line in lines if not set(line.strip()) <= {"-", "=", " "}]
+        if not lines:
+            return []
         header_line: str | None = None
         data_start = 0
         for idx, line in enumerate(lines):
@@ -424,8 +433,6 @@ class NGCCLI:
 
         resources: list[dict[str, Any]] = []
         for row in lines[data_start:]:
-            if not row or set(row) <= {"-", "="}:
-                continue
             values = [part.strip() for part in row.split("  ") if part.strip()]
             if len(values) < len(headers):
                 continue

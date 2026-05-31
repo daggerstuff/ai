@@ -517,3 +517,17 @@ describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
         expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
     });
 });
+
+describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
+    it('should return error object if parsed JSON is null', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = 'null';
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+    });
+
+    it('should return error object if parsed JSON is primitive string', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = '"just a string"';
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+    });
+});
