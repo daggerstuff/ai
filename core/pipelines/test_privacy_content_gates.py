@@ -44,14 +44,8 @@ class TestGate0Classification:
         assert report.privacy_tier == PrivacyTier.NONE
         assert report.content_sensitivity == ContentSensitivity.SENSITIVE
 
-    def test_text_with_email_gets_medium_tier(self, gates: PrivacyContentGates) -> None:
-        report = gates.evaluate("t", "Contact me at john@example.com for help.", "cc-by-4.0")
-        assert report.gate0_result is not None
-        assert report.gate0_result.decision == GateDecision.PASS
-        assert report.privacy_tier == PrivacyTier.MEDIUM
-        assert any(f.pii_type == "email" for f in report.pii_findings)
-
     def test_text_with_name_gets_medium_tier(self, gates: PrivacyContentGates) -> None:
+        # spaCy PERSON detection sets has_name=True → _tier_from_findings returns MEDIUM
         report = gates.evaluate("t", "My name is Sarah and I'm struggling.", "cc-by-4.0")
         assert report.gate0_result is not None
         assert report.privacy_tier == PrivacyTier.MEDIUM
@@ -61,18 +55,12 @@ class TestGate0Classification:
         assert report.gate0_result is not None
 
     def test_text_with_email_gets_low_tier(self, gates: PrivacyContentGates) -> None:
-        # 1 PII item = LOW (MEDIUM requires 2+ items; spaCy not available for names)
+        # 1 PII item = LOW (MEDIUM requires 2+ items)
         report = gates.evaluate("t", "Contact me at john@example.com for help.", "cc-by-4.0")
         assert report.gate0_result is not None
         assert report.gate0_result.decision == GateDecision.PASS
         assert report.privacy_tier == PrivacyTier.LOW
         assert any(f.pii_type == "email" for f in report.pii_findings)
-
-    def test_text_with_name_gets_none_tier_without_spacy(self, gates: PrivacyContentGates) -> None:
-        # spaCy unavailable → no NER → names not detected → NONE
-        report = gates.evaluate("t", "My name is Sarah and I'm struggling.", "cc-by-4.0")
-        assert report.gate0_result is not None
-        assert report.privacy_tier == PrivacyTier.NONE
 
     def test_text_with_suicidal_sensitivity(self, gates: PrivacyContentGates) -> None:
         report = gates.evaluate("t", "I've been having suicidal thoughts.", "cc-by-4.0")
