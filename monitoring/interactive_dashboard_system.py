@@ -210,6 +210,9 @@ class InteractiveDashboardSystem:
 
         function startAutoRefresh(intervalMs = 30000) {
             refreshInterval = setInterval(() => {
+                // ⚡ Bolt: Prevent unnecessary API calls and re-renders when tab is inactive
+                if (document.hidden) return;
+
                 showRefreshIndicator();
                 refreshDashboardData();
             }, intervalMs);
@@ -222,6 +225,15 @@ class InteractiveDashboardSystem:
                 hideRefreshIndicator();
             }, 1000);
         }
+
+        // Handle tab visibility changes - refresh immediately when tab becomes visible
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Tab is now visible, refresh data immediately
+                showRefreshIndicator();
+                refreshDashboardData();
+            }
+        });
 
         // Start auto-refresh when page loads
         document.addEventListener('DOMContentLoaded', function() {
