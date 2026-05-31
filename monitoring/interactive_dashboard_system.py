@@ -226,6 +226,15 @@ class InteractiveDashboardSystem:
             }, 1000);
         }
 
+        // Handle tab visibility changes - refresh immediately when tab becomes visible
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Tab is now visible, refresh data immediately
+                showRefreshIndicator();
+                refreshDashboardData();
+            }
+        });
+
         // Start auto-refresh when page loads
         document.addEventListener('DOMContentLoaded', function() {
             startAutoRefresh();
