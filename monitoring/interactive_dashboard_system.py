@@ -46,6 +46,14 @@
         }
     });
 
+    // Register a new visibilitychange listener to refresh data when tab becomes visible
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            refreshDashboardData();
+            refreshDashboardData(); // Call refreshDashboardData() immediately
+        }
+    });
+
     // Start auto-refresh when page loads
     document.addEventListener('DOMContentLoaded', function() {
         startAutoRefresh();
