@@ -518,6 +518,15 @@ describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
     });
 });
 
+
+
+describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
+    it('should correctly handle undefined by returning empty array', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.toRecordArray(undefined)).toEqual([]);
+    });
+});
+
 describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
     it('should return error object if parsed JSON is null', () => {
         const api = new PixelatedEmpathyAPI('test_key');
