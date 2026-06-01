@@ -13,49 +13,43 @@ from __future__ import annotations
 
 import csv
 import json
-import os
-import re
 import tempfile
 from pathlib import Path
-from typing import Any
 
-import pytest
+from scripts.extract_therapist_voice import (
+    _CLIENT_QUESTION_TEMPLATES,
+    _build_synthetic_dialogue,
+    _get_topics_for_expertise,
+    _strip_transcript_metadata,
+    annotate_conversations,
+    generate_conversation_from_transcript,
+    generate_synthetic_conversations,
+    parse_args,
+    score_conversations,
+    validate_conversation_quality,
+)
 
 # ---------------------------------------------------------------------------
 # Module imports
 # ---------------------------------------------------------------------------
-
 from scripts.extraction_config import (
     CHANNEL_CONFIGS,
-    MIN_SENTENCE_WORDS,
+    DEFAULT_CONVERSATIONS,
     MAX_MARKED_SENTENCE_LENGTH,
     MIN_COMMON_PHRASE_COUNT,
-    DEFAULT_CONVERSATIONS,
+    MIN_SENTENCE_WORDS,
     TOPIC_BANK,
     get_config,
     resolve_channel_key,
 )
-from scripts.extraction_models import ChannelResult
-from scripts.synthetic_templates import SYNTHETIC_TEMPLATES
 from scripts.extraction_io import (
     _derive_communication_patterns,
     _derive_tone_characteristics,
     generate_quality_report,
     save_channel_output,
 )
-from scripts.extract_therapist_voice import (
-    _strip_transcript_metadata,
-    _get_topics_for_expertise,
-    _build_synthetic_dialogue,
-    _CLIENT_QUESTION_TEMPLATES,
-    generate_conversation_from_transcript,
-    generate_synthetic_conversations,
-    score_conversations,
-    validate_conversation_quality,
-    annotate_conversations,
-    parse_args,
-)
-
+from scripts.extraction_models import ChannelResult
+from scripts.synthetic_templates import SYNTHETIC_TEMPLATES
 
 # ===================================================================
 #  extraction_config
@@ -525,7 +519,12 @@ class TestGenerateConversationFromTranscript:
     def test_picks_client_questions_cyclically(self):
         config = CHANNEL_CONFIGS["DocSnipes"]
         # Multiple paragraphs to test cycling through question templates
-        paras = "\n\n".join([f"This is paragraph number {i} that is definitely long enough to pass the hundred character threshold for content extraction." for i in range(5)])
+        paras = "\n\n".join(
+            [
+                f"This is paragraph number {i} that is definitely long enough to pass the hundred character threshold for content extraction."
+                for i in range(5)
+            ]
+        )
         content = f"## Transcript\n\n{paras}\n"
         conv = generate_conversation_from_transcript("multi", content, config)
         client_msgs = [m for m in conv["messages"] if m["role"] == "client"]
@@ -615,7 +614,9 @@ class TestScoreConversations:
 class TestAnnotateConversations:
     def test_adds_clinical_validity_metadata(self):
         convs = [{"messages": [{"role": "therapist", "content": "Test"}], "metadata": {}}]
-        annotate_conversations(convs, [0.75], [{"technique": 0.7, "alliance": 0.6, "structure": 0.5, "cultural": 0.4, "ebp": 0.8}])
+        annotate_conversations(
+            convs, [0.75], [{"technique": 0.7, "alliance": 0.6, "structure": 0.5, "cultural": 0.4, "ebp": 0.8}]
+        )
         cv = convs[0]["metadata"]["clinical_validity"]
         assert cv["score"] == 0.75
         assert cv["dimensions"]["technique"] == 0.7

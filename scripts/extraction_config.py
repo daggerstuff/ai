@@ -433,7 +433,13 @@ CHANNEL_CONFIGS: dict[str, dict] = {
         "signature": "breakthrough_zone",
         "description": "Mental health education channel specializing in narcissistic family dynamics, scapegoat recovery, and emotional abuse recovery",
         "style": "direct_educational_compassionate",
-        "expertise": ["narcissistic_family_dynamics", "scapegoat_recovery", "emotional_abuse", "toxic_family", "boundaries"],
+        "expertise": [
+            "narcissistic_family_dynamics",
+            "scapegoat_recovery",
+            "emotional_abuse",
+            "toxic_family",
+            "boundaries",
+        ],
         "approach": "trauma_informed_psychoeducation",
     },
     "CouplesTherapyOfficial": {
@@ -441,7 +447,13 @@ CHANNEL_CONFIGS: dict[str, dict] = {
         "signature": "couples_therapy_official",
         "description": "Licensed relationship experts and therapists providing insights into relationship dynamics, attachment repair, and effective communication strategies",
         "style": "clinical_warm_relational",
-        "expertise": ["relationship_dynamics", "attachment_repair", "communication", "conflict_resolution", "couples_counseling"],
+        "expertise": [
+            "relationship_dynamics",
+            "attachment_repair",
+            "communication",
+            "conflict_resolution",
+            "couples_counseling",
+        ],
         "approach": "relational_clinical",
     },
     "Prof.SamVaknin": {
@@ -449,7 +461,13 @@ CHANNEL_CONFIGS: dict[str, dict] = {
         "signature": "professor_sam_vaknin",
         "description": "Professor of psychology and author specializing in narcissistic personality disorder, pathological narcissism, and cluster B personality dynamics",
         "style": "academic_analytical_authoritative",
-        "expertise": ["narcissistic_personality_disorder", "cluster_b_dynamics", "pathological_narcissism", "personality_diagnosis", "psychopathology"],
+        "expertise": [
+            "narcissistic_personality_disorder",
+            "cluster_b_dynamics",
+            "pathological_narcissism",
+            "personality_diagnosis",
+            "psychopathology",
+        ],
         "approach": "academic_clinical",
     },
     "TEDxTalks": {
@@ -473,7 +491,13 @@ CHANNEL_CONFIGS: dict[str, dict] = {
         "signature": "steph_and_craig",
         "description": "Therapist team specializing in the connection between complex trauma, codependency, and narcissistic relationship patterns",
         "style": "therapeutic_duo_educational",
-        "expertise": ["complex_trauma", "codependency", "narcissistic_relationships", "attachment", "relational_healing"],
+        "expertise": [
+            "complex_trauma",
+            "codependency",
+            "narcissistic_relationships",
+            "attachment",
+            "relational_healing",
+        ],
         "approach": "relational_trauma_informed",
     },
     "FindingMastery": {
@@ -489,7 +513,13 @@ CHANNEL_CONFIGS: dict[str, dict] = {
         "signature": "kris_reece",
         "description": "Relationship coach and narcissistic abuse recovery specialist focusing on helping women recognize manipulation patterns and rebuild self-worth",
         "style": "direct_compassionate_coaching",
-        "expertise": ["narcissistic_abuse", "manipulation_awareness", "self_worth", "boundary_setting", "recovery_coaching"],
+        "expertise": [
+            "narcissistic_abuse",
+            "manipulation_awareness",
+            "self_worth",
+            "boundary_setting",
+            "recovery_coaching",
+        ],
         "approach": "coaching_informed_recovery",
     },
     "DougBopst": {

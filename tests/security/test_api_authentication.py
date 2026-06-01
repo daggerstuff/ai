@@ -1,13 +1,8 @@
 """Tests for the API authentication system."""
 
-import time
-from datetime import UTC, datetime, timedelta
-
 from security.api_authentication import (
-    APIKey,
     AuthenticationSystem,
     PermissionLevel,
-    User,
     UserRole,
 )
 
