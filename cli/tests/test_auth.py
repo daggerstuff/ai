@@ -6,9 +6,9 @@ import time
 from unittest.mock import Mock, patch
 
 import pytest
-from cli.exceptions import CLIAuthError
 
 from cli.auth import AuthManager, TokenManager
+from cli.exceptions import CLIAuthError
 
 
 class TestAuthManager:

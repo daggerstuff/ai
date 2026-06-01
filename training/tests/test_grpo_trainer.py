@@ -16,6 +16,7 @@ from training.grpo_trainer import (
     EMPATHY_KEYWORDS,
     _crisis_score,
     _empathy_score,
+    _safety_score,
     filter_by_threshold,
     score,
 )

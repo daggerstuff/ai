@@ -167,6 +167,16 @@ training_ready/
 **/mcp_server/sessions/
 **/site/
 # Training: track source code, ignore data/artifacts
+!training/
+training/*
+!training/provenance.py
+!training/sdg_pipeline.py
+!training/youtube_ingestion.py
+!training/tests/
+training/tests/*
+!training/tests/test_provenance.py
+!training/tests/test_sdg_pipeline.py
+!training/tests/test_youtube_ingestion.py
 !training_corpus/*.py
 !training_corpus/**/*.py
 # But ignore built corpus data and assets
