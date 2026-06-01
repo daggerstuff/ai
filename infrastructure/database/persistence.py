@@ -803,9 +803,7 @@ class ConversationRepository(BaseModelRepository[dict]):
             try:
                 placeholders = ",".join(["?"] * len(chunk_ids))
                 select_sql = f"SELECT conversation_id FROM conversations WHERE conversation_id IN ({placeholders}) AND deleted_at IS NULL"
-                rows = await self.db_manager.fetch_all(
-                    select_sql, [str(cid) for cid in chunk_ids]
-                )
+                rows = await self.db_manager.fetch_all(select_sql, [str(cid) for cid in chunk_ids])
                 found_ids = {str(row[0]) for row in rows}
 
                 for j, cid in enumerate(chunk_ids):
@@ -826,14 +824,9 @@ class ConversationRepository(BaseModelRepository[dict]):
                         f"WHERE conversation_id IN ({valid_placeholders})"
                         " AND deleted_at IS NULL"
                     )
-                    params = [timestamp, timestamp] + [
-                        str(cid) for cid in valid_ids_list
-                    ]
+                    params = [timestamp, timestamp] + [str(cid) for cid in valid_ids_list]
                 else:
-                    update_sql = (
-                        "DELETE FROM conversations "
-                        f"WHERE conversation_id IN ({valid_placeholders})"
-                    )
+                    update_sql = f"DELETE FROM conversations WHERE conversation_id IN ({valid_placeholders})"
                     params = [str(cid) for cid in valid_ids_list]
 
                 await self.db_manager.execute(update_sql, params)
@@ -848,7 +841,7 @@ class ConversationRepository(BaseModelRepository[dict]):
                 print(f"Cache invalidation error for conversation IDs: {e}")
 
         for i in range(0, len(ids), chunk_size):
-            chunk = ids[i:i + chunk_size]
+            chunk = ids[i : i + chunk_size]
             placeholders = ",".join(["?"] * len(chunk))
             found_ids = None
             try:
@@ -922,12 +915,16 @@ class ConversationRepository(BaseModelRepository[dict]):
                         timestamp = datetime.now(UTC).isoformat()
                         found_placeholders = ",".join("?" for _ in found_ids)
                         # Use replace to avoid static analyzer SQL injection false positives on concatenation
-                        update_sql = "UPDATE conversations SET deleted_at = ?, updated_at = ? WHERE conversation_id IN (#PLACEHOLDERS#)".replace("#PLACEHOLDERS#", found_placeholders)
+                        update_sql = "UPDATE conversations SET deleted_at = ?, updated_at = ? WHERE conversation_id IN (#PLACEHOLDERS#)".replace(
+                            "#PLACEHOLDERS#", found_placeholders
+                        )
                         params = [timestamp, timestamp] + found_ids
                         await self.db_manager.execute(update_sql, params)
                     else:
                         found_placeholders = ",".join("?" for _ in found_ids)
-                        delete_sql = "DELETE FROM conversations WHERE conversation_id IN (#PLACEHOLDERS#)".replace("#PLACEHOLDERS#", found_placeholders)
+                        delete_sql = "DELETE FROM conversations WHERE conversation_id IN (#PLACEHOLDERS#)".replace(
+                            "#PLACEHOLDERS#", found_placeholders
+                        )
                         await self.db_manager.execute(delete_sql, found_ids)
 
                     success_count += len(found_ids)
@@ -946,7 +943,7 @@ class ConversationRepository(BaseModelRepository[dict]):
         # SQLite limit for variables is 999. We use chunks of 900.
         chunk_size = 900
         for i in range(0, len(ids_list), chunk_size):
-            chunk_ids = ids_list[i:i + chunk_size]
+            chunk_ids = ids_list[i : i + chunk_size]
             chunk_start_idx = i
             found_ids = None
 
@@ -1015,9 +1012,7 @@ class ConversationRepository(BaseModelRepository[dict]):
             try:
                 placeholders = ",".join(["?"] * len(chunk_ids))
                 select_sql = f"SELECT conversation_id FROM conversations WHERE conversation_id IN ({placeholders}) AND deleted_at IS NULL"
-                rows = await self.db_manager.fetch_all(
-                    select_sql, [str(cid) for cid in chunk_ids]
-                )
+                rows = await self.db_manager.fetch_all(select_sql, [str(cid) for cid in chunk_ids])
                 found_ids = {str(row[0]) for row in rows}
 
                 for j, cid in enumerate(chunk_ids):
@@ -1038,14 +1033,9 @@ class ConversationRepository(BaseModelRepository[dict]):
                         f"WHERE conversation_id IN ({valid_placeholders})"
                         " AND deleted_at IS NULL"
                     )
-                    params = [timestamp, timestamp] + [
-                        str(cid) for cid in valid_ids_list
-                    ]
+                    params = [timestamp, timestamp] + [str(cid) for cid in valid_ids_list]
                 else:
-                    update_sql = (
-                        "DELETE FROM conversations "
-                        f"WHERE conversation_id IN ({valid_placeholders})"
-                    )
+                    update_sql = f"DELETE FROM conversations WHERE conversation_id IN ({valid_placeholders})"
                     params = [str(cid) for cid in valid_ids_list]
 
                 await self.db_manager.execute(update_sql, params)
@@ -1060,9 +1050,7 @@ class ConversationRepository(BaseModelRepository[dict]):
                     if found_ids is None or str(cid) in found_ids:
                         failed_count += 1
                         errors.append((chunk_start_idx + j, str(e)))
-                self.logger.error(
-                    f"Failed to bulk delete conversation chunk: {e}"
-                )
+                self.logger.error(f"Failed to bulk delete conversation chunk: {e}")
 
         total_time = time.time() - start_time
         return BatchResult(success_count, failed_count, errors, total_time)

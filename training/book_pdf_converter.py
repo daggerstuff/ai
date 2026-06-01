@@ -59,6 +59,31 @@ def _retry_request(fn, max_retries=MAX_RETRIES, base_delay=RETRY_BASE_DELAY):
 
 
 def query_llm(system_prompt: str, user_content: str) -> str:
+    if NVIDIA_API_KEY:
+        model_id = "minimaxai/minimax-m2.7"
+        try:
+            def _call_nim():
+                url = "https://integrate.api.nvidia.com/v1/chat/completions"
+                headers = {"Authorization": f"Bearer {NVIDIA_API_KEY}", "Content-Type": "application/json"}
+                payload = {
+                    "model": model_id,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_content}
+                    ],
+                    "temperature": 0.3,
+                }
+                response = requests.post(url, headers=headers, json=payload, timeout=180)
+                if response.status_code == HTTP_OK:
+                    return response.json()["choices"][0]["message"]["content"]
+                raise RuntimeError(f"NIM failed ({response.status_code}): {response.text[:200]}")
+
+            res = _retry_request(_call_nim)
+            if res:
+                return res
+        except Exception as e:
+            logger.warning(f"NIM failed: {e}")
+
     if GEMINI_API_KEY:
         model_id = "gemini-2.5-flash"
         try:
@@ -79,31 +104,6 @@ def query_llm(system_prompt: str, user_content: str) -> str:
                 return res
         except Exception as e:
             logger.warning(f"Gemini failed: {e}")
-
-    if NVIDIA_API_KEY:
-        model_id = "deepseek-ai/deepseek-v3"
-        try:
-            def _call_nim():
-                url = "https://integrate.api.nvidia.com/v1/chat/completions"
-                headers = {"Authorization": f"Bearer {NVIDIA_API_KEY}", "Content-Type": "application/json"}
-                payload = {
-                    "model": model_id,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content}
-                    ],
-                    "temperature": 0.3,
-                }
-                response = requests.post(url, headers=headers, json=payload, timeout=60)
-                if response.status_code == HTTP_OK:
-                    return response.json()["choices"][0]["message"]["content"]
-                raise RuntimeError(f"NIM failed ({response.status_code}): {response.text[:200]}")
-
-            res = _retry_request(_call_nim)
-            if res:
-                return res
-        except Exception as e:
-            logger.warning(f"NIM failed: {e}")
 
     return ""
 
@@ -206,11 +206,59 @@ def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
     return pairs
 
 
+def _is_dsm_title(title: str) -> bool:
+    title_lower = title.lower()
+    return "dsm" in title_lower or "diagnostic and statistical manual" in title_lower
+
+
+def _text_to_qa_pairs(
+    text: str,
+    title: str,
+    is_dsm: bool,
+    chunk_size: int = 2000,
+) -> list[dict[str, str]]:
+    paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
+    if not paragraphs:
+        return []
+
+    chunks: list[str] = []
+    current = ""
+    for para in paragraphs:
+        if len(current) + len(para) + 2 > chunk_size and current:
+            chunks.append(current.strip())
+            current = para
+        else:
+            current = f"{current}\n\n{para}" if current else para
+    if current.strip():
+        chunks.append(current.strip())
+
+    pairs: list[dict[str, str]] = []
+    for chunk in chunks:
+        if is_dsm:
+            instruction = (
+                f"Based on the clinical reference material from {title}, "
+                f"explain the diagnostic criteria or clinical concepts described."
+            )
+        else:
+            instruction = (
+                f"Incorporating principles from {title}, "
+                f"how would a therapist apply this concept in session?"
+            )
+        pairs.append({"instruction": instruction, "output": chunk})
+
+    return pairs
+
+
 def convert_book(
     book_path: Path,
     output_dir: Path,
-    max_chunks: int | None = None,
+    max_chunks: int | None | bool = None,
+    is_dsm: bool = False,
 ) -> dict:
+    if isinstance(max_chunks, bool):
+        is_dsm = max_chunks
+        max_chunks = None
+
     title = book_path.stem
     logger.info(f"Processing book: {title}")
 
@@ -219,7 +267,7 @@ def convert_book(
         return {
             "book": str(book_path),
             "title": title,
-            "status": "failed",
+            "status": "skipped",
             "reason": "no text extracted",
             "pairs": 0,
         }
@@ -297,6 +345,23 @@ def run_conversion(args: argparse.Namespace) -> None:
 
     if not books_dir.exists():
         logger.error("Books directory not found: %s", books_dir)
+        report = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "books_dir": str(books_dir),
+            "output_dir": str(output_dir),
+            "total_books": 0,
+            "total_books_found": 0,
+            "converted_books": 0,
+            "converted": 0,
+            "skipped": 0,
+            "total_pairs": 0,
+            "total_filtered": 0,
+            "details": [],
+            "book_details": [],
+        }
+        with open(output_dir / "conversion_report.json", "w") as f:
+            json.dump(report, f, indent=2)
+            f.write("\n")
         return
 
     results: list[dict] = []
@@ -324,9 +389,14 @@ def run_conversion(args: argparse.Namespace) -> None:
         "books_dir": str(books_dir),
         "output_dir": str(output_dir),
         "total_books": len(results),
+        "total_books_found": len(results),
         "converted_books": sum(1 for r in results if r["status"] == "converted"),
-        "total_pairs": sum(r.get("pairs", 0) for r in results),
+        "converted": sum(1 for r in results if r["status"] == "converted"),
+        "skipped": sum(1 for r in results if r["status"] == "skipped"),
+        "total_pairs": total_pairs,
+        "total_filtered": 0,
         "details": results,
+        "book_details": results,
     }
     with open(output_dir / "conversion_report.json", "w") as f:
         json.dump(report, f, indent=2)

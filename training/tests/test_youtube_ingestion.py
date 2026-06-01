@@ -17,19 +17,28 @@ except ImportError:
 
 from training.youtube_ingestion import (
     GERMAN_CHANNELS,
+    MIN_CHUNK_WORDS,
     _content_hash,
     _is_german_channel,
     _load_compiled_hashes,
     _transcript_to_pairs,
+    _word_chunks,
+    build_parser,
     ingest_channel,
+    run_ingestion,
 )
+
+EXPECTED_TWO_RECORDS = 2
+EXPECTED_THREE_CHUNKS = 3
+TEST_CHUNK_WORDS = 50
+LONG_TRANSCRIPT = " ".join(f"word{i}" for i in range(150))
 
 # ---------------------------------------------------------------------------
 # Unit tests — language tagging
 # ---------------------------------------------------------------------------
 
-class TestGermanChannelTagging:
 
+class TestGermanChannelTagging:
     @pytest.mark.parametrize("name", sorted(GERMAN_CHANNELS))
     def test_german_channel_tagged(self, name: str):
         assert _is_german_channel(name, GERMAN_CHANNELS)
@@ -48,8 +57,8 @@ class TestGermanChannelTagging:
 # Unit tests — content hashing
 # ---------------------------------------------------------------------------
 
-class TestContentHash:
 
+class TestContentHash:
     def test_deterministic(self):
         assert _content_hash("hello") == _content_hash("hello")
 
@@ -61,8 +70,8 @@ class TestContentHash:
 # Unit tests — compiled hash loading
 # ---------------------------------------------------------------------------
 
-class TestCompiledHashes:
 
+class TestCompiledHashes:
     def test_missing_file_returns_empty(self, tmp_path: Path):
         result = _load_compiled_hashes(tmp_path / "nonexistent.jsonl")
         assert result == set()
@@ -75,26 +84,26 @@ class TestCompiledHashes:
             encoding="utf-8",
         )
         hashes = _load_compiled_hashes(path)
-        assert len(hashes) == 2
+        assert len(hashes) == EXPECTED_TWO_RECORDS
 
     def test_invalid_lines_skipped(self, tmp_path: Path):
         path = tmp_path / "compiled.jsonl"
         path.write_text(
             '{"messages": [{"role": "user", "content": "hello"}]}\n'
-            'not json\n'
+            "not json\n"
             '{"messages": [{"role": "user", "content": "world"}]}\n',
             encoding="utf-8",
         )
         hashes = _load_compiled_hashes(path)
-        assert len(hashes) == 2
+        assert len(hashes) == EXPECTED_TWO_RECORDS
 
 
 # ---------------------------------------------------------------------------
 # Unit tests — transcript to pairs
 # ---------------------------------------------------------------------------
 
-class TestTranscriptToPairs:
 
+class TestTranscriptToPairs:
     def test_splits_paragraphs(self):
         text = "Question about trauma?\n\nAnswer about healing."
         pairs = _transcript_to_pairs(text, "TestChannel")
@@ -111,21 +120,47 @@ class TestTranscriptToPairs:
         assert len(pairs) == 1
         assert "TestChannel" in pairs[0]["instruction"]
 
+    def test_long_single_paragraph_is_chunked_without_filler(self):
+        pairs = _transcript_to_pairs(
+            LONG_TRANSCRIPT,
+            "TestChannel",
+            chunk_words=TEST_CHUNK_WORDS,
+            chunk_overlap_words=0,
+        )
+        assert len(pairs) == EXPECTED_THREE_CHUNKS
+        assert pairs[0]["pairing_strategy"] == "word_chunk"
+        assert pairs[0]["chunk_word_count"] == TEST_CHUNK_WORDS
+        assert pairs[0]["output"].startswith("word0 word1")
+        assert pairs[-1]["output"].endswith("word149")
+
     def test_multiple_pairs(self):
         text = "Q1\n\nA1\n\nQ2\n\nA2"
         pairs = _transcript_to_pairs(text, "TestChannel")
-        assert len(pairs) == 2
+        assert len(pairs) == EXPECTED_TWO_RECORDS
+
+
+class TestWordChunks:
+    def test_rejects_tiny_chunks(self):
+        with pytest.raises(ValueError, match=str(MIN_CHUNK_WORDS)):
+            _word_chunks(LONG_TRANSCRIPT, chunk_words=10, overlap_words=0)
+
+    def test_keeps_short_real_text_as_one_chunk(self):
+        chunks = _word_chunks("short real transcript", chunk_words=50, overlap_words=0)
+        assert len(chunks) == 1
+        assert chunks[0]["text"] == "short real transcript"
 
 
 # ---------------------------------------------------------------------------
 # Unit tests — ingest_channel
 # ---------------------------------------------------------------------------
 
-class TestIngestChannel:
 
+class TestIngestChannel:
     def test_missing_channel_dir(self, tmp_path: Path):
-        samples, n_read, n_dup = ingest_channel(
-            tmp_path / "nonexistent", "en", set(),
+        samples, n_read, _n_dup = ingest_channel(
+            tmp_path / "nonexistent",
+            "en",
+            set(),
         )
         assert samples == []
         assert n_read == 0
@@ -135,8 +170,10 @@ class TestIngestChannel:
         channel_dir.mkdir()
         bad_file = channel_dir / "bad.txt"
         bad_file.write_text("Valid content here\n\nResponse here.", encoding="utf-8")
-        samples, n_read, _ = ingest_channel(
-            channel_dir, "en", set(),
+        _samples, n_read, _ = ingest_channel(
+            channel_dir,
+            "en",
+            set(),
         )
         assert n_read > 0
 
@@ -149,31 +186,14 @@ class TestIngestChannel:
             "I want to talk about suicide\n\nI want to kill myself tonight",
             encoding="utf-8",
         )
-        samples, n_read, _ = ingest_channel(
-            channel_dir, "en", set(),
+        samples, _n_read, _ = ingest_channel(
+            channel_dir,
+            "en",
+            set(),
         )
         assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        assert len(samples) > 0
-        output_dir = tmp_path / "output"
-        output_dir.mkdir()
-        samples, n_read, n_unsafe, _ = ingest_channel(
-            channel_dir, "en", set(),
-        )
-        assert len(samples) > 0
-        assert n_unsafe == 0
-        samples, n_read, _ = ingest_channel(
-            channel_dir, "en", set(),
-        )
-        assert len(samples) > 0
+        assert samples[0]["provenance"]["source_type"] == "youtube"
+        assert samples[0]["provenance"]["license"] == "NOASSERTION"
 
     def test_duplicate_samples_skipped(self, tmp_path: Path):
         channel_dir = tmp_path / "DupChannel"
@@ -185,22 +205,43 @@ class TestIngestChannel:
         )
         content = "What is CBT? Cognitive behavioral therapy helps reframe thoughts."
         compiled_hash = {_content_hash(content.lower().strip())}
-        samples, n_read, n_dup = ingest_channel(
-            channel_dir, "en", compiled_hash,
+        samples, _n_read, n_dup = ingest_channel(
+            channel_dir,
+            "en",
+            compiled_hash,
         )
         assert n_dup > 0
         assert len(samples) == 0
+
+    def test_long_single_paragraph_samples_include_chunk_provenance(self, tmp_path: Path):
+        channel_dir = tmp_path / "ChunkChannel"
+        channel_dir.mkdir()
+        transcript = channel_dir / "long.txt"
+        transcript.write_text(LONG_TRANSCRIPT, encoding="utf-8")
+
+        samples, n_read, _n_dup = ingest_channel(
+            channel_dir,
+            "en",
+            set(),
+            chunk_words=TEST_CHUNK_WORDS,
+            chunk_overlap_words=0,
+        )
+
+        assert n_read == EXPECTED_THREE_CHUNKS
+        assert len(samples) == EXPECTED_THREE_CHUNKS
+        metadata = samples[0]["provenance"]["metadata"]
+        assert metadata["pairing_strategy"] == "word_chunk"
+        assert metadata["chunk_index"] == 1
+        assert metadata["chunk_total"] == EXPECTED_THREE_CHUNKS
 
 
 # ---------------------------------------------------------------------------
 # Unit tests — processing_report fields
 # ---------------------------------------------------------------------------
 
+
 class TestProcessingReport:
-
     def test_report_has_required_fields(self, tmp_path: Path):
-        from training.youtube_ingestion import build_parser, run_ingestion
-
         transcripts_dir = tmp_path / "transcripts"
         transcripts_dir.mkdir()
         channel = transcripts_dir / "TestChannel"
@@ -215,11 +256,20 @@ class TestProcessingReport:
 
         output_dir = tmp_path / "output"
 
-        args = build_parser().parse_args([
-            "--transcripts_dir", str(transcripts_dir),
-            "--output_dir", str(output_dir),
-            "--compiled_dataset_dir", str(compiled),
-        ])
+        args = build_parser().parse_args(
+            [
+                "--transcripts_dir",
+                str(transcripts_dir),
+                "--output_dir",
+                str(output_dir),
+                "--compiled_dataset_dir",
+                str(compiled),
+                "--chunk_words",
+                str(TEST_CHUNK_WORDS),
+                "--chunk_overlap_words",
+                "0",
+            ]
+        )
         run_ingestion(args)
 
         report_path = output_dir / "processing_report.json"
@@ -237,6 +287,11 @@ class TestProcessingReport:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         assert "channels" in manifest
         assert "totals" in manifest
+
+        channel_output = output_dir / "TestChannel.jsonl"
+        record = json.loads(channel_output.read_text(encoding="utf-8").strip())
+        assert record["provenance"]["source_type"] == "youtube"
+        assert record["provenance"]["metadata"]["channel"] == "TestChannel"
 
 
 # ---------------------------------------------------------------------------
@@ -266,12 +321,10 @@ if st is not None:
             f"{text}\n\nResponse to the question about therapy.",
             encoding="utf-8",
         )
-        samples, _, n_unsafe, _ = ingest_channel(
-            channel_dir, "en", set(),
-        )
-        assert n_unsafe == 0
         samples, _, _ = ingest_channel(
-            channel_dir, "en", set(),
+            channel_dir,
+            "en",
+            set(),
         )
         if samples:
             assert "instruction" in samples[0]
@@ -288,8 +341,10 @@ if st is not None:
             f"{text}\n\nSome response that is safe and helpful.",
             encoding="utf-8",
         )
-        samples, _, n_dup = ingest_channel(
-            channel_dir, "en", compiled_hash,
+        _samples, _, n_dup = ingest_channel(
+            channel_dir,
+            "en",
+            compiled_hash,
         )
         assert n_dup >= 0
 

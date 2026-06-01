@@ -274,16 +274,9 @@ class AcquisitionRubric:
 
     def grant_intake_exception(self, source: SourceIntake, reason: str) -> IntakeDecision:
         base = self.evaluate_intake(source)
-        if base.passed:
+        if source.license_id not in EXCEPTION_LICENSES:
             base.exception_granted = False
             return base
-
-        for lic in EXCEPTION_LICENSES:
-            if source.license_id == lic:
-                ok = True
-                break
-        else:
-            ok = False
 
         blocked_after_exception = [
             b for b in base.blocking if "license" not in b.lower() and "exception" not in b.lower()
@@ -291,6 +284,7 @@ class AcquisitionRubric:
         if blocked_after_exception:
             base.blocking[:] = blocked_after_exception
             base.passed = False
+            base.exception_granted = False
             return base
 
         base.blocking.clear()

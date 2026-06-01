@@ -45,7 +45,8 @@ class PipelineManager:
         """Get pipeline status. Returns overall status if no ID given."""
         if pipeline_id is None:
             running = [
-                pid for pid, p in self._pipeline_cache.items()
+                pid
+                for pid, p in self._pipeline_cache.items()
                 if p.get("status") in (PipelineStatus.RUNNING, PipelineStatus.QUEUED)
             ]
             if not running:
@@ -198,7 +199,6 @@ class PipelineManager:
 
 class PipelineError(Exception):
     """Raised when a pipeline operation fails."""
-    pass
 
 
-__all__ = ["PipelineManager", "PipelineStatus", "PipelineError"]
+__all__ = ["PipelineError", "PipelineManager", "PipelineStatus"]
