@@ -31,22 +31,22 @@ Downstream consumers
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
-
-from ai.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
 
 
 class ReadinessStatus(StrEnum):
     """Overall readiness determination."""
-    READY = "ready"           # All gates passed
-    NOT_READY = "not_ready"   # One or more gates failed
+
+    READY = "ready"  # All gates passed
+    NOT_READY = "not_ready"  # One or more gates failed
     CONDITIONALLY_READY = "conditionally_ready"  # Passed but with warnings
 
 
 class ReadinessGate(StrEnum):
     """Individual validation gates."""
+
     COMPLETENESS = "completeness"
     QUALITY_FLOORS = "quality_floors"
     DEDUP_RETENTION = "dedup_retention"
@@ -57,13 +57,12 @@ class ReadinessGate(StrEnum):
 @dataclass
 class GateResult:
     """Result of a single validation gate."""
+
     gate: ReadinessGate
     passed: bool
     reason: str
     details: dict[str, Any] = field(default_factory=dict)
-    checked_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    checked_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -78,15 +77,14 @@ class GateResult:
 @dataclass
 class ReadinessResult:
     """Full readiness validation result for a dataset package."""
+
     package_id: str
     stage_id: str
     status: ReadinessStatus
     gate_results: dict[str, GateResult] = field(default_factory=dict)
     metrics: dict[str, float] = field(default_factory=dict)
     record_count: int = 0
-    validated_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    validated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     validated_by: str = "TrainingReadinessGates"
 
     @property
@@ -95,16 +93,12 @@ class ReadinessResult:
 
     @property
     def failed_gates(self) -> list[str]:
-        return [
-            gate for gate, result in self.gate_results.items()
-            if not result.passed
-        ]
+        return [gate for gate, result in self.gate_results.items() if not result.passed]
 
     @property
     def warnings(self) -> list[str]:
         return [
-            result.reason for result in self.gate_results.values()
-            if result.passed and result.details.get("warning")
+            result.reason for result in self.gate_results.values() if result.passed and result.details.get("warning")
         ]
 
     @property
@@ -178,11 +172,13 @@ STAGE_QUALITY_THRESHOLDS: dict[str, dict[str, float]] = {
 }
 
 # Minimum metadata fields required for completeness
-REQUIRED_METADATA_FIELDS = frozenset([
-    "source",
-    "stage",
-    "created_at",
-])
+REQUIRED_METADATA_FIELDS = frozenset(
+    [
+        "source",
+        "stage",
+        "created_at",
+    ]
+)
 
 # Maximum acceptable dedup retention (to catch over-dedup that might indicate data loss)
 MAX_DEDUP_RETENTION = 0.95
@@ -247,9 +243,7 @@ class TrainingReadinessGates:
             )
             return result
 
-        thresholds = STAGE_QUALITY_THRESHOLDS.get(
-            stage_id, STAGE_QUALITY_THRESHOLDS["supplementary"]
-        )
+        thresholds = STAGE_QUALITY_THRESHOLDS.get(stage_id, STAGE_QUALITY_THRESHOLDS["supplementary"])
 
         # Gate 1: Completeness
         completeness_result = self._check_completeness(records)
@@ -257,9 +251,7 @@ class TrainingReadinessGates:
 
         # Gate 2: Quality floors
         if metrics:
-            quality_result = self._check_quality_floors(
-                metrics, thresholds, stage_id
-            )
+            quality_result = self._check_quality_floors(metrics, thresholds, stage_id)
         else:
             quality_result = self._estimate_quality_floors(records, thresholds)
         result.gate_results[ReadinessGate.QUALITY_FLOORS.value] = quality_result
@@ -278,8 +270,7 @@ class TrainingReadinessGates:
 
         # Collect metrics
         result.metrics = self._collect_metrics(
-            records, metrics, completeness_result, quality_result,
-            dedup_result, privacy_result, slice_result
+            records, metrics, completeness_result, quality_result, dedup_result, privacy_result, slice_result
         )
 
         # Determine overall status
@@ -295,18 +286,13 @@ class TrainingReadinessGates:
 
         return result
 
-    def _check_completeness(
-        self, records: list[dict[str, Any]]
-    ) -> GateResult:
+    def _check_completeness(self, records: list[dict[str, Any]]) -> GateResult:
         """Check that required metadata fields are present."""
         missing_fields: dict[str, int] = {}
         records_missing: list[str] = []
 
         for field in REQUIRED_METADATA_FIELDS:
-            missing_count = sum(
-                1 for r in records
-                if not r.get(field) and not r.get("metadata", {}).get(field)
-            )
+            missing_count = sum(1 for r in records if not r.get(field) and not r.get("metadata", {}).get(field))
             if missing_count > 0:
                 missing_fields[field] = missing_count
 
@@ -319,10 +305,7 @@ class TrainingReadinessGates:
             )
 
         # Check for empty text/content
-        empty_count = sum(
-            1 for r in records
-            if not (r.get("text") or r.get("content") or r.get("conversation"))
-        )
+        empty_count = sum(1 for r in records if not (r.get("text") or r.get("content") or r.get("conversation")))
         if empty_count > len(records) * 0.1:
             return GateResult(
                 gate=ReadinessGate.COMPLETENESS,
@@ -355,22 +338,13 @@ class TrainingReadinessGates:
         )
 
         if empathy < thresholds["empathy_floor"]:
-            violations.append(
-                f"empathy {empathy:.2f} < floor {thresholds['empathy_floor']}"
-            )
+            violations.append(f"empathy {empathy:.2f} < floor {thresholds['empathy_floor']}")
         if clinical < thresholds["clinical_floor"]:
-            violations.append(
-                f"clinical {clinical:.2f} < floor {thresholds['clinical_floor']}"
-            )
+            violations.append(f"clinical {clinical:.2f} < floor {thresholds['clinical_floor']}")
         if safety < thresholds["safety_floor"]:
-            violations.append(
-                f"safety {safety:.2f} < floor {thresholds['safety_floor']}"
-            )
+            violations.append(f"safety {safety:.2f} < floor {thresholds['safety_floor']}")
         if clinical_validity < thresholds["safety_floor"]:
-            violations.append(
-                f"clinical validity {clinical_validity:.2f} < floor "
-                f"{thresholds['safety_floor']}"
-            )
+            violations.append(f"clinical validity {clinical_validity:.2f} < floor {thresholds['safety_floor']}")
 
         if violations:
             return GateResult(
@@ -407,12 +381,27 @@ class TrainingReadinessGates:
     ) -> GateResult:
         """Estimate quality metrics when not pre-computed."""
         empathy_markers = [
-            "understand", "feel", "hear", "support", "care",
-            "empath", "compassion", "validate", "acknowledge"
+            "understand",
+            "feel",
+            "hear",
+            "support",
+            "care",
+            "empath",
+            "compassion",
+            "validate",
+            "acknowledge",
         ]
         clinical_markers = [
-            "diagnosis", "treatment", "intervention", "cbt", "dbt",
-            "therapeutic", "clinical", "dsm", "symptom", "disorder"
+            "diagnosis",
+            "treatment",
+            "intervention",
+            "cbt",
+            "dbt",
+            "therapeutic",
+            "clinical",
+            "dsm",
+            "symptom",
+            "disorder",
         ]
 
         empathy_scores = []
@@ -488,9 +477,7 @@ class TrainingReadinessGates:
             },
         )
 
-    def _check_privacy_compliance(
-        self, gate_audit: dict[str, Any] | None
-    ) -> GateResult:
+    def _check_privacy_compliance(self, gate_audit: dict[str, Any] | None) -> GateResult:
         """Check that privacy gate audit shows clean passage."""
         if gate_audit is None:
             return GateResult(
@@ -589,17 +576,15 @@ class TrainingReadinessGates:
 
 def get_stage_thresholds(stage_id: str) -> dict[str, float]:
     """Get quality thresholds for a stage."""
-    return STAGE_QUALITY_THRESHOLDS.get(
-        stage_id, STAGE_QUALITY_THRESHOLDS["supplementary"]
-    )
+    return STAGE_QUALITY_THRESHOLDS.get(stage_id, STAGE_QUALITY_THRESHOLDS["supplementary"])
 
 
 __all__ = [
-    "ReadinessStatus",
-    "ReadinessGate",
-    "GateResult",
-    "ReadinessResult",
-    "TrainingReadinessGates",
     "STAGE_QUALITY_THRESHOLDS",
+    "GateResult",
+    "ReadinessGate",
+    "ReadinessResult",
+    "ReadinessStatus",
+    "TrainingReadinessGates",
     "get_stage_thresholds",
 ]

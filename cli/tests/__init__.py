@@ -16,11 +16,11 @@ from pathlib import Path
 from typing import Any, Dict
 
 import pytest
-from cli.pipeline import PipelineManager
 from click.testing import CliRunner
 
 from cli.auth import AuthManager
 from cli.config import CLIConfig
+from cli.pipeline import PipelineManager
 from cli.progress import ProgressTracker
 
 # Test configuration

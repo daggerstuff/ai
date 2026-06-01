@@ -555,15 +555,15 @@ def save_config(config: CLIConfig | None = None, profile: str | None = None) -> 
 
 
 __all__ = [
-    "CLIConfig",
+    "DEFAULT_CONFIG",
     "APIConfig",
     "AuthConfig",
-    "PipelineConfig",
-    "LoggingConfig",
-    "SecurityConfig",
-    "ConfigProfile",
+    "CLIConfig",
     "CLIConfigError",
+    "ConfigProfile",
+    "LoggingConfig",
+    "PipelineConfig",
+    "SecurityConfig",
     "get_config",
     "save_config",
-    "DEFAULT_CONFIG",
 ]

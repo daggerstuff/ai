@@ -4,9 +4,11 @@ Persistence Layer for AI Pipelines (PIX-4).
 Handles metadata storage for datasets, processing runs, and evaluation results.
 """
 
+import hashlib
 import json
 import logging
 import os
+from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -86,6 +88,91 @@ class DatasetPersistence:
         if self.db is not None:
             self.db.pipeline_states.update_one({"pipeline_id": pipeline_id}, {"$set": record}, upsert=True)
         logger.info(f"Pipeline {pipeline_id} state updated to {state}.")
+
+    def store_training_records(
+        self,
+        dataset: str,
+        records: Iterable[Mapping[str, Any]],
+        *,
+        version: str | None = None,
+        collection: str = "training_records",
+        local_dir: Path | None = None,
+    ) -> dict[str, Any]:
+        """Persist training records with required provenance.
+
+        MongoDB is used when configured; a local JSONL audit copy is always
+        written so provenance can be inspected even in local/offline runs.
+        """
+        persisted_at = datetime.now(UTC).isoformat()
+        dataset_version = version or datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        local_base = local_dir or Path(__file__).resolve().parents[1] / "data" / "versions"
+        local_path = local_base / f"{dataset}_{dataset_version}_training_records.jsonl"
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+
+        seen = 0
+        stored = 0
+        with open(local_path, "w", encoding="utf-8") as f:
+            for record in records:
+                if not isinstance(record.get("provenance"), dict):
+                    raise ValueError("training records must include a provenance object")
+
+                record_hash = self._record_hash(record)
+                document = {
+                    "dataset": dataset,
+                    "version": dataset_version,
+                    "record_hash": record_hash,
+                    "record": dict(record),
+                    "provenance": dict(record["provenance"]),
+                    "persisted_at": persisted_at,
+                }
+
+                if self.db is not None:
+                    self.db[collection].update_one(
+                        {"dataset": dataset, "record_hash": record_hash},
+                        {"$set": document},
+                        upsert=True,
+                    )
+
+                f.write(json.dumps(document, sort_keys=True) + "\n")
+                seen += 1
+                stored += 1
+
+        logger.info("Stored %d training records for dataset %s.", stored, dataset)
+        return {
+            "dataset": dataset,
+            "version": dataset_version,
+            "records_seen": seen,
+            "records_stored": stored,
+            "mongo_enabled": self.db is not None,
+            "collection": collection,
+            "local_path": str(local_path),
+        }
+
+    def query_training_records_by_provenance(
+        self,
+        *,
+        source_type: str | None = None,
+        license_id: str | None = None,
+        collection: str = "training_records",
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """Query MongoDB training records by provenance fields."""
+        if self.db is None:
+            return []
+
+        query: dict[str, Any] = {}
+        if source_type is not None:
+            query["provenance.source_type"] = source_type
+        if license_id is not None:
+            query["provenance.license"] = license_id
+
+        cursor = self.db[collection].find(query).limit(limit)
+        return list(cursor)
+
+    @staticmethod
+    def _record_hash(record: Mapping[str, Any]) -> str:
+        canonical = json.dumps(record, sort_keys=True, default=str)
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 if __name__ == "__main__":

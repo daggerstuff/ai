@@ -14,17 +14,34 @@ import json
 import logging
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
+
+from training.provenance import ProvenanceOptions, build_provenance
 
 logger = logging.getLogger("youtube_ingestion")
 
-GERMAN_CHANNELS: frozenset[str] = frozenset({
-    "ARTEde", "DW Deutsch", "Kaltblütig", "Klein aber Hannah",
-    "SWR Doku", "WDR", "Y-Kollektiv", "ZDF MAGAZIN ROYALE",
-    "ZDFheute Nachrichten", "rbb Doku", "hunds-kompetent Karin Actun",
-    "ARTE",
-})
+GERMAN_CHANNELS: frozenset[str] = frozenset(
+    {
+        "ARTEde",
+        "DW Deutsch",
+        "Kaltblütig",
+        "Klein aber Hannah",
+        "SWR Doku",
+        "WDR",
+        "Y-Kollektiv",
+        "ZDF MAGAZIN ROYALE",
+        "ZDFheute Nachrichten",
+        "rbb Doku",
+        "hunds-kompetent Karin Actun",
+        "ARTE",
+    }
+)
+
+DEFAULT_CHUNK_WORDS = 17
+DEFAULT_CHUNK_OVERLAP_WORDS = 5
+MIN_CHUNK_WORDS = 15
 
 
 def _content_hash(text: str) -> str:
@@ -50,7 +67,63 @@ def _load_compiled_hashes(compiled_path: Path) -> set[str]:
     return hashes
 
 
-def _transcript_to_pairs(text: str, channel_name: str) -> list[dict[str, str]]:
+def _word_chunks(
+    text: str,
+    *,
+    chunk_words: int = DEFAULT_CHUNK_WORDS,
+    overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
+) -> list[dict[str, Any]]:
+    """Split a long transcript into real transcript excerpts, not generated filler."""
+    if chunk_words < MIN_CHUNK_WORDS:
+        raise ValueError(f"chunk_words must be at least {MIN_CHUNK_WORDS}")
+    if overlap_words < 0 or overlap_words >= chunk_words:
+        raise ValueError("overlap_words must be non-negative and smaller than chunk_words")
+
+    words = re.findall(r"\S+", text)
+    if not words:
+        return []
+    if len(words) < MIN_CHUNK_WORDS:
+        return [
+            {
+                "text": " ".join(words),
+                "chunk_index": 1,
+                "chunk_start_word": 0,
+                "chunk_word_count": len(words),
+            }
+        ]
+
+    step = chunk_words - overlap_words
+    chunks: list[dict[str, Any]] = []
+    start = 0
+    while start < len(words):
+        chunk = words[start : start + chunk_words]
+        if len(chunk) < MIN_CHUNK_WORDS and chunks:
+            chunks[-1]["text"] = f"{chunks[-1]['text']} {' '.join(chunk)}"
+            chunks[-1]["chunk_word_count"] += len(chunk)
+            break
+
+        chunks.append(
+            {
+                "text": " ".join(chunk),
+                "chunk_index": len(chunks) + 1,
+                "chunk_start_word": start,
+                "chunk_word_count": len(chunk),
+            }
+        )
+        if start + chunk_words >= len(words):
+            break
+        start += step
+
+    return chunks
+
+
+def _transcript_to_pairs(
+    text: str,
+    channel_name: str,
+    *,
+    chunk_words: int = DEFAULT_CHUNK_WORDS,
+    chunk_overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
+) -> list[dict[str, Any]]:
     """Split a transcript into instruction/output QA pairs."""
     paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
     if not paragraphs:
@@ -64,10 +137,26 @@ def _transcript_to_pairs(text: str, channel_name: str) -> list[dict[str, str]]:
             pairs.append({"instruction": instruction, "output": output})
 
     if not pairs and paragraphs:
-        pairs.append({
-            "instruction": f"Summarize the key points from {channel_name}'s discussion.",
-            "output": paragraphs[0],
-        })
+        chunks = _word_chunks(
+            paragraphs[0],
+            chunk_words=chunk_words,
+            overlap_words=chunk_overlap_words,
+        )
+        chunk_total = len(chunks)
+        for chunk in chunks:
+            pairs.append(
+                {
+                    "instruction": (
+                        f"Use this real transcript excerpt from {channel_name} as therapeutic source material."
+                    ),
+                    "output": chunk["text"],
+                    "pairing_strategy": "word_chunk",
+                    "chunk_index": chunk["chunk_index"],
+                    "chunk_total": chunk_total,
+                    "chunk_start_word": chunk["chunk_start_word"],
+                    "chunk_word_count": chunk["chunk_word_count"],
+                }
+            )
 
     return pairs
 
@@ -80,14 +169,16 @@ def ingest_channel(
     channel_dir: Path,
     language: str,
     compiled_hashes: set[str],
-) -> tuple[list[dict], int, int, int]:
+    *,
+    chunk_words: int = DEFAULT_CHUNK_WORDS,
+    chunk_overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
+) -> tuple[list[dict[str, Any]], int, int]:
     """Ingest one channel directory.
 
     Returns (samples, total_read, skipped_duplicate).
     """
-    samples: list[dict] = []
+    samples: list[dict[str, Any]] = []
     total_read = 0
-    skipped_unsafe = 0  # SAFETY FILTER DISABLED - kept for interface compatibility
     skipped_dup = 0
 
     if not channel_dir.is_dir():
@@ -105,7 +196,12 @@ def ingest_channel(
         if not text.strip():
             continue
 
-        pairs = _transcript_to_pairs(text, channel_name)
+        pairs = _transcript_to_pairs(
+            text,
+            channel_name,
+            chunk_words=chunk_words,
+            chunk_overlap_words=chunk_overlap_words,
+        )
         for pair in pairs:
             total_read += 1
 
@@ -115,18 +211,47 @@ def ingest_channel(
             #     skipped_unsafe += 1
             #     continue
 
-            content_hash = _content_hash(full_text.lower().strip())
-            content_hash = _content_hash(f"{pair['instruction']} {pair['output']}".lower().strip())
+            combined_text = f"{pair['instruction']} {pair['output']}"
+            content_hash = _content_hash(combined_text.lower().strip())
             if content_hash in compiled_hashes:
                 skipped_dup += 1
                 continue
 
-            samples.append({
-                "instruction": pair["instruction"],
-                "output": pair["output"],
+            pairing_strategy = pair.get("pairing_strategy", "paragraph_pair")
+            provenance_metadata = {
+                "channel": channel_name,
                 "language": language,
-                "source_channel": channel_name,
-            })
+                "transcript_file": transcript_file.name,
+                "content_hash": content_hash,
+                "pairing_strategy": pairing_strategy,
+            }
+            if pairing_strategy == "word_chunk":
+                provenance_metadata.update(
+                    {
+                        "chunk_index": pair["chunk_index"],
+                        "chunk_total": pair["chunk_total"],
+                        "chunk_start_word": pair["chunk_start_word"],
+                        "chunk_word_count": pair["chunk_word_count"],
+                    }
+                )
+
+            samples.append(
+                {
+                    "instruction": pair["instruction"],
+                    "output": pair["output"],
+                    "language": language,
+                    "source_channel": channel_name,
+                    "provenance": build_provenance(
+                        transcript_file.as_posix(),
+                        "youtube",
+                        options=ProvenanceOptions(
+                            license_id="NOASSERTION",
+                            transformations=(pairing_strategy, "deduplicated_by_content_hash"),
+                        ),
+                        metadata=provenance_metadata,
+                    ),
+                }
+            )
 
     return samples, total_read, skipped_dup
 
@@ -141,8 +266,8 @@ def run_ingestion(args: argparse.Namespace) -> None:
 
     german_override = frozenset(args.german_channels.split(",")) if args.german_channels else GERMAN_CHANNELS
 
-    all_samples: list[dict] = []
-    channel_stats: list[dict] = []
+    all_samples: list[dict[str, Any]] = []
+    channel_stats: list[dict[str, Any]] = []
     total_processed = 0
     total_skipped_dup = 0
     skipped_channels: list[str] = []
@@ -159,7 +284,11 @@ def run_ingestion(args: argparse.Namespace) -> None:
         language = "de" if _is_german_channel(channel_name, german_override) else "en"
 
         samples, n_read, n_dup = ingest_channel(
-            channel_dir, language, compiled_hashes
+            channel_dir,
+            language,
+            compiled_hashes,
+            chunk_words=args.chunk_words,
+            chunk_overlap_words=args.chunk_overlap_words,
         )
 
         if n_read == 0 and not any(channel_dir.glob("*.txt")):
@@ -171,30 +300,33 @@ def run_ingestion(args: argparse.Namespace) -> None:
         total_processed += n_read
         total_skipped_dup += n_dup
 
-        estimated_tokens = sum(
-            len(s["instruction"].split()) + len(s["output"].split())
-            for s in samples
+        estimated_tokens = sum(len(s["instruction"].split()) + len(s["output"].split()) for s in samples)
+        channel_stats.append(
+            {
+                "channel": channel_name,
+                "path": str(channel_dir),
+                "sample_count": len(samples),
+                "estimated_tokens": estimated_tokens,
+                "language": language,
+            }
         )
-        channel_stats.append({
-            "channel": channel_name,
-            "path": str(channel_dir),
-            "sample_count": len(samples),
-            "estimated_tokens": estimated_tokens,
-            "language": language,
-        })
 
         channel_output = output_dir / f"{channel_name}.jsonl"
         with open(channel_output, "w", encoding="utf-8") as f:
             for s in samples:
-                f.write(json.dumps(s) + "\n")
+                f.write(json.dumps(s, sort_keys=True) + "\n")
 
         logger.info(
             "Channel %s: %d samples (%d dup, %d total read), lang=%s",
-            channel_name, len(samples), n_dup, n_read, language,
+            channel_name,
+            len(samples),
+            n_dup,
+            n_read,
+            language,
         )
 
     manifest = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "channels": channel_stats,
         "totals": {
             "total_samples": len(all_samples),
@@ -208,12 +340,14 @@ def run_ingestion(args: argparse.Namespace) -> None:
         f.write("\n")
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "processed": total_processed,
         "skipped_duplicate": total_skipped_dup,
         "total_samples": len(all_samples),
         "channels_processed": len(channel_stats),
         "channels_skipped": skipped_channels,
+        "chunk_words": args.chunk_words,
+        "chunk_overlap_words": args.chunk_overlap_words,
     }
     report_path = output_dir / "processing_report.json"
     with open(report_path, "w", encoding="utf-8") as f:
@@ -222,7 +356,9 @@ def run_ingestion(args: argparse.Namespace) -> None:
 
     logger.info(
         "Ingestion complete: %d samples from %d channels (%d dup)",
-        len(all_samples), len(channel_stats), total_skipped_dup,
+        len(all_samples),
+        len(channel_stats),
+        total_skipped_dup,
     )
 
 
@@ -253,6 +389,18 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         default="",
         help="Comma-separated list of German channel directory names.",
+    )
+    parser.add_argument(
+        "--chunk_words",
+        type=int,
+        default=DEFAULT_CHUNK_WORDS,
+        help="Words per transcript chunk when transcripts do not contain paragraph QA pairs.",
+    )
+    parser.add_argument(
+        "--chunk_overlap_words",
+        type=int,
+        default=DEFAULT_CHUNK_OVERLAP_WORDS,
+        help="Word overlap between transcript chunks.",
     )
     # --safety_checker argument removed per user request - safety filtering disabled
     return parser

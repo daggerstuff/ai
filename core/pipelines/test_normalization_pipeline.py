@@ -1,14 +1,6 @@
 from __future__ import annotations
 
 import json
-
-from ai.core.pipelines.processing.data_normalizer import DataNormalizer
-from ai.core.pipelines.processing.normalization_pipeline import (
-    DedupStrategy,
-    NormalizationPipeline,
-)
-
-
 from pathlib import Path
 
 from ai.core.pipelines.processing.data_normalizer import (
@@ -106,11 +98,7 @@ def test_normalization_pipeline_writes_duplicate_evidence(tmp_path: Path) -> Non
         reject_path=reject_path,
     )
 
-    output_records = [
-        json.loads(line)
-        for line in output_path.read_text(encoding="utf-8").splitlines()
-        if line
-    ]
+    output_records = [json.loads(line) for line in output_path.read_text(encoding="utf-8").splitlines() if line]
     rejection_summary = json.loads(reject_path.read_text(encoding="utf-8"))
 
     assert result.total_records == input_record_count
@@ -384,9 +372,7 @@ class TestDedupStrategies:
                 {"id": "b", "source": "s", "content_type": "c", "text": "hello"},
             ],
         )
-        result = NormalizationPipeline(dedup_strategy=DedupStrategy.NONE).run(
-            [input_path], output_path=output_path
-        )
+        result = NormalizationPipeline(dedup_strategy=DedupStrategy.NONE).run([input_path], output_path=output_path)
         assert result.duplicates_removed == 0
         assert result.final_records == TWO_RECORDS
 
@@ -400,9 +386,7 @@ class TestDedupStrategies:
                 {"id": "b", "source": "s", "content_type": "c", "text": "hello"},
             ],
         )
-        result = NormalizationPipeline(dedup_strategy=DedupStrategy.BLOOM).run(
-            [input_path], output_path=output_path
-        )
+        result = NormalizationPipeline(dedup_strategy=DedupStrategy.BLOOM).run([input_path], output_path=output_path)
         assert result.duplicates_removed == 1
         assert result.final_records == 1
 
@@ -426,9 +410,9 @@ class TestDedupStrategies:
                 },
             ],
         )
-        result = NormalizationPipeline(
-            dedup_strategy=DedupStrategy.SIMILARITY, similarity_threshold=0.85
-        ).run([input_path], output_path=output_path)
+        result = NormalizationPipeline(dedup_strategy=DedupStrategy.SIMILARITY, similarity_threshold=0.85).run(
+            [input_path], output_path=output_path
+        )
         # Similarity dedup should remove at least 1
         assert result.final_records <= TWO_RECORDS
 
@@ -452,9 +436,7 @@ class TestDuplicateEvidence:
 
 class TestEdgeCases:
     def test_pipeline_handles_empty_input(self, tmp_path: Path) -> None:
-        result = NormalizationPipeline().run(
-            [tmp_path / "nonexistent.jsonl"], output_path=tmp_path / "out.jsonl"
-        )
+        result = NormalizationPipeline().run([tmp_path / "nonexistent.jsonl"], output_path=tmp_path / "out.jsonl")
         assert len(result.errors) == 1
         assert "No JSONL files found" in result.errors[0]
 
@@ -462,8 +444,6 @@ class TestEdgeCases:
         input_path = tmp_path / "bad.jsonl"
         input_path.write_text('{"id": "a"}\n{"broken json\n', encoding="utf-8")
 
-        result = NormalizationPipeline().run(
-            [input_path], output_path=tmp_path / "out.jsonl"
-        )
+        result = NormalizationPipeline().run([input_path], output_path=tmp_path / "out.jsonl")
         # Pipeline completes but records parse errors
         assert result.total_records > 0 or len(result.errors) > 0

@@ -18,14 +18,11 @@ class CLIBaseError(Exception):
 
 class CLIConfigError(CLIBaseError):
     """Raised when CLI configuration is invalid or cannot be loaded."""
-    pass
 
 
 class CLIValidationError(CLIBaseError):
     """Raised when CLI input validation fails."""
-    pass
 
 
 class CLIPipelineError(CLIBaseError):
     """Raised when a pipeline operation fails."""
-    pass

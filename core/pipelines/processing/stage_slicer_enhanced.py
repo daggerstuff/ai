@@ -47,26 +47,24 @@ Stage 1 (Foundation):
         - Clinical validity ≥ 75%
         - Dedup retention > 60%
 """
+
 import argparse
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-# Import from stage_classifier for validation
-from ai.core.pipelines.processing.stage_classifier import (
-    Stage,
-    StageClassifier,
-    ClassificationResult,
-)
 from ai.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
+
+# Import from stage_classifier for validation
 
 
 @dataclass
 class StageConfig:
     """Configuration for a stage including quality thresholds."""
+
     stage_id: str
     stage_name: str
     target_share: float
@@ -155,6 +153,7 @@ STAGE_CONFIGS: dict[str, StageConfig] = {
 @dataclass
 class ValidationResult:
     """Result of validating a stage slice against thresholds."""
+
     stage_id: str
     passed: bool = False  # Default to False, gets updated
     metrics: dict[str, float] = field(default_factory=dict)
@@ -165,7 +164,7 @@ class ValidationResult:
 
 def _preview_record_text(text: str, max_chars: int = 400) -> str:
     """Create a short, safe preview for review queue ingestion."""
-    return text[:max_chars] if len(text) <= max_chars else f"{text[:max_chars - 3]}..."
+    return text[:max_chars] if len(text) <= max_chars else f"{text[: max_chars - 3]}..."
 
 
 def route_low_clinical_validity_records_to_human_review(
@@ -258,9 +257,7 @@ def load_json_file(file_path: Path) -> list[dict[str, Any]]:
     return []
 
 
-def normalize_record(
-    record: dict[str, Any], source: str, stage_id: str
-) -> dict[str, Any]:
+def normalize_record(record: dict[str, Any], source: str, stage_id: str) -> dict[str, Any]:
     """
     Normalize a record to standard format with metadata.
 
@@ -285,7 +282,7 @@ def normalize_record(
         "source": source,
         "metadata": {
             "original_keys": list(record.keys()) if isinstance(record, dict) else [],
-            "stage_assigned_at": datetime.now(timezone.utc).isoformat(),
+            "stage_assigned_at": datetime.now(UTC).isoformat(),
         },
     }
 
@@ -305,9 +302,7 @@ def normalize_record(
     return normalized
 
 
-def validate_stage_slice(
-    records: list[dict[str, Any]], stage_config: StageConfig
-) -> ValidationResult:
+def validate_stage_slice(records: list[dict[str, Any]], stage_config: StageConfig) -> ValidationResult:
     """
     Validate a stage slice against canonical quality thresholds.
 
@@ -351,16 +346,31 @@ def validate_stage_slice(
 
         # Empathy heuristic: presence of empathetic language markers
         empathy_markers = [
-            "understand", "feel", "hear", "support", "care",
-            "empath", "compassion", "validate", "acknowledge"
+            "understand",
+            "feel",
+            "hear",
+            "support",
+            "care",
+            "empath",
+            "compassion",
+            "validate",
+            "acknowledge",
         ]
         empathy_score = sum(1 for m in empathy_markers if m in text) / len(empathy_markers)
         empathy_scores.append(empathy_score)
 
         # Clinical heuristic: presence of clinical/technical terms
         clinical_markers = [
-            "diagnosis", "treatment", "intervention", "cbt", "dbt",
-            "therapeutic", "clinical", "dsm", "symptom", "disorder"
+            "diagnosis",
+            "treatment",
+            "intervention",
+            "cbt",
+            "dbt",
+            "therapeutic",
+            "clinical",
+            "dsm",
+            "symptom",
+            "disorder",
         ]
         clinical_score = sum(1 for m in clinical_markers if m in text) / len(clinical_markers)
         clinical_scores.append(clinical_score)
@@ -374,9 +384,7 @@ def validate_stage_slice(
             clinical_validity_scores.append(clinical_result.score)
         except (TypeError, ValueError):
             clinical_validity_scores.append(0.0)
-            metadata.setdefault("validation_warnings", []).append(
-                "clinical_validator_failed"
-            )
+            metadata.setdefault("validation_warnings", []).append("clinical_validator_failed")
         result.clinical_validity_record_scores[record_id] = clinical_validity_scores[-1]
 
     # Calculate aggregate metrics
@@ -385,8 +393,7 @@ def validate_stage_slice(
         "clinical_avg": sum(clinical_scores) / len(clinical_scores) if clinical_scores else 0.0,
         "safety_avg": sum(safety_scores) / len(safety_scores) if safety_scores else 0.0,
         "clinical_validity_avg": (
-            sum(clinical_validity_scores) / len(clinical_validity_scores)
-            if clinical_validity_scores else 0.0
+            sum(clinical_validity_scores) / len(clinical_validity_scores) if clinical_validity_scores else 0.0
         ),
         "total_records": len(records),
         "dedup_retention": 0.85,  # Placeholder - would come from actual dedup analysis
@@ -405,9 +412,7 @@ def validate_stage_slice(
         )
 
     if result.metrics["safety_avg"] < stage_config.safety_floor:
-        result.violations.append(
-            f"Safety {result.metrics['safety_avg']:.2f} < floor {stage_config.safety_floor:.2f}"
-        )
+        result.violations.append(f"Safety {result.metrics['safety_avg']:.2f} < floor {stage_config.safety_floor:.2f}")
     if result.metrics["clinical_validity_avg"] < stage_config.clinical_validity_floor:
         result.violations.append(
             "Clinical validity "
@@ -422,19 +427,14 @@ def validate_stage_slice(
 
     # Add warnings for borderline cases
     if result.metrics["empathy_avg"] < stage_config.empathy_floor + 0.1:
-        result.warnings.append(
-            f"Empathy close to floor: {result.metrics['empathy_avg']:.2f} (floor + 0.1)"
-        )
+        result.warnings.append(f"Empathy close to floor: {result.metrics['empathy_avg']:.2f} (floor + 0.1)")
 
     if result.metrics["clinical_avg"] < stage_config.clinical_floor + 0.1:
-        result.warnings.append(
-                        f"Clinical close to floor: {result.metrics['clinical_avg']:.2f} (floor + 0.1)"
-        )
+        result.warnings.append(f"Clinical close to floor: {result.metrics['clinical_avg']:.2f} (floor + 0.1)")
 
     if result.metrics["clinical_validity_avg"] < stage_config.clinical_validity_floor + 0.1:
         result.warnings.append(
-            "Clinical validity close to floor: "
-            f"{result.metrics['clinical_validity_avg']:.2f} (floor + 0.1)"
+            f"Clinical validity close to floor: {result.metrics['clinical_validity_avg']:.2f} (floor + 0.1)"
         )
 
     result.passed = len(result.violations) == 0
@@ -462,7 +462,7 @@ def slice_datasets(
         Report dictionary with slicing results and validation status
     """
     report = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "stages": {},
         "total_records": 0,
         "total_size_bytes": 0,
@@ -498,11 +498,13 @@ def slice_datasets(
                 source = Path.cwd() / source_path
                 if not source.exists():
                     report["warnings"].append(f"Source not found: {source_path}")
-                    stage_report["source_files"].append({
-                        "path": source_path,
-                        "status": "not_found",
-                        "records": 0,
-                    })
+                    stage_report["source_files"].append(
+                        {
+                            "path": source_path,
+                            "status": "not_found",
+                            "records": 0,
+                        }
+                    )
                     continue
 
             # Load based on file type
@@ -525,11 +527,13 @@ def slice_datasets(
                 normalized = normalize_record(record, source_name, stage_id)
                 all_records.append(normalized)
 
-            stage_report["source_files"].append({
-                "path": source_path,
-                "status": "processed",
-                "records": len(records),
-            })
+            stage_report["source_files"].append(
+                {
+                    "path": source_path,
+                    "status": "processed",
+                    "records": len(records),
+                }
+            )
 
         # Validate stage slice if enabled
         if validate and all_records:
@@ -550,17 +554,13 @@ def slice_datasets(
                 )
                 if review_items:
                     report["warnings"].append(
-                        f"Stage {stage_id} routed {len(review_items)} low-validity records "
-                        "for clinical review"
+                        f"Stage {stage_id} routed {len(review_items)} low-validity records for clinical review"
                     )
                     stage_report["clinical_review_item_count"] = len(review_items)
             stage_report["validation_passed"] = validation_result.passed
 
             if not validation_result.passed:
-                report["errors"].append(
-                    f"Stage {stage_id} failed validation: "
-                    f"{validation_result.violations}"
-                )
+                report["errors"].append(f"Stage {stage_id} failed validation: {validation_result.violations}")
 
         # Write staged output
         output_file = output_dir / config.output_file
@@ -608,14 +608,8 @@ def generate_enhanced_metadata(report: dict[str, Any], output_dir: Path) -> None
             }
             for stage_id, result in report.get("validation_results", {}).items()
         },
-        "trainingStages": [
-            STAGE_CONFIGS[stage_id].stage_id
-            for stage_id in report["stages"].keys()
-        ],
-        "downstream_ready": all(
-            result.get("passed", True)
-            for result in report.get("validation_results", {}).values()
-        ),
+        "trainingStages": [STAGE_CONFIGS[stage_id].stage_id for stage_id in report["stages"].keys()],
+        "downstream_ready": all(result.get("passed", True) for result in report.get("validation_results", {}).values()),
     }
 
     metadata_file = output_dir / "dact06_enhanced_metadata.json"
@@ -624,9 +618,7 @@ def generate_enhanced_metadata(report: dict[str, Any], output_dir: Path) -> None
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="DACT-06: Stage-Based Dataset Slicing (Enhanced)"
-    )
+    parser = argparse.ArgumentParser(description="DACT-06: Stage-Based Dataset Slicing (Enhanced)")
     parser.add_argument(
         "--output-dir",
         type=str,
