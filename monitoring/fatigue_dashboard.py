@@ -672,6 +672,13 @@ DASHBOARD_TEMPLATE = """
             loadDashboard();
         }, 30000);
 
+        // ⚡ Bolt: Trigger immediate data refresh upon tab reactivation to prevent stale data
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                loadDashboard();
+            }
+        });
+
         // Initial load
         $(document).ready(function() {
             loadDashboard();
