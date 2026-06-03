@@ -2,6 +2,7 @@
 .Jules/
 .idea/
 .vscode/
+.serena/
 
 # === VIRTUAL ENVIRONMENTS ===
 **/.venv/
