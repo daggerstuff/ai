@@ -363,7 +363,12 @@ class TherapeuticMoEModel(nn.Module):
     def from_pretrained(cls, load_directory: str, base_model: PreTrainedModel):
         """Load model from directory"""
         # Load MoE state with security hardening
-        with torch.serialization.safe_globals([MoEConfig]):
+        # Note: torch.serialization.safe_globals requires PyTorch >= 2.3.0
+        if hasattr(torch.serialization, 'safe_globals'):
+            with torch.serialization.safe_globals([MoEConfig]):
+                moe_state = torch.load(f"{load_directory}/moe_layers.pt", weights_only=True)
+        else:
+            # Fallback for PyTorch < 2.3.0
             moe_state = torch.load(f"{load_directory}/moe_layers.pt", weights_only=True)
         config = moe_state['config']
 
