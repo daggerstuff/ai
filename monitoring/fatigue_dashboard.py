@@ -355,8 +355,8 @@ class FatigueDashboard:
                 y=counts,
                 mode="lines+markers",
                 name="Alert Count",
-                line=dict(color="#1f77b4", width=2),
-                marker=dict(size=6),
+                line={"color": "#1f77b4", "width": 2},
+                marker={"size": 6},
             )
         )
 
@@ -365,7 +365,7 @@ class FatigueDashboard:
             xaxis_title="Time",
             yaxis_title="Alert Count",
             height=400,
-            margin=dict(l=50, r=50, t=50, b=50),
+            margin={"l": 50, "r": 50, "t": 50, "b": 50},
         )
 
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -412,7 +412,7 @@ class FatigueDashboard:
             xaxis_title="Rule Name",
             yaxis_title="Suppression Count",
             height=400,
-            margin=dict(l=50, r=50, t=50, b=50),
+            margin={"l": 50, "r": 50, "t": 50, "b": 50},
         )
 
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -545,35 +545,26 @@ DASHBOARD_TEMPLATE = """
     </div>
 
     <script>
-        // Track pending AJAX requests and loading state to prevent race conditions
-        var pendingRequests = [];
-        var dashboardLoading = false;
-        var visibilityDebounceTimer = null;
-
-        // Abort all pending AJAX requests
-        function abortPendingRequests() {
-            pendingRequests.forEach(function(xhr) {
-                if (xhr && xhr.abort) {
-                    xhr.abort();
-                }
-            });
-            pendingRequests = [];
-        }
+        let isDashboardLoading = false;
 
         // Load dashboard data
         function loadDashboard() {
-            // Prevent concurrent executions
-            if (dashboardLoading) {
-                return;
+            if (isDashboardLoading) return;
+            isDashboardLoading = true;
+
+            let completedRequests = 0;
+            const totalRequests = 4;
+
+            function checkCompletion() {
+                completedRequests++;
+                if (completedRequests >= totalRequests) {
+                    isDashboardLoading = false;
+                }
             }
 
-            dashboardLoading = true;
-
-            // Abort any pending requests from previous calls
-            abortPendingRequests();
-
             // Load summary metrics
-            var summaryXhr = $.get('/api/summary')
+            $.get('/api/summary')
+                .always(checkCompletion)
                 .done(function(data) {
                     if (data.status === 'success') {
                         updateMetrics(data.metrics);
@@ -582,20 +573,12 @@ DASHBOARD_TEMPLATE = """
                     }
                 })
                 .fail(function() {
-                    // Only show error if not aborted
-                    if (dashboardLoading) {
-                        showError('Failed to connect to API');
-                    }
-                })
-                .always(function() {
-                    // Remove from pending list on completion
-                    var idx = pendingRequests.indexOf(summaryXhr);
-                    if (idx > -1) pendingRequests.splice(idx, 1);
+                    showError('Failed to connect to API');
                 });
-            pendingRequests.push(summaryXhr);
 
             // Load alert groups
-            var groupsXhr = $.get('/api/groups')
+            $.get('/api/groups')
+                .always(checkCompletion)
                 .done(function(data) {
                     if (data.status === 'success') {
                         updateGroupsTable(data.groups);
@@ -604,25 +587,11 @@ DASHBOARD_TEMPLATE = """
                     }
                 })
                 .fail(function() {
-                    // Only show error if not aborted
-                    if (dashboardLoading) {
-                        showError('Failed to load groups');
-                    }
-                })
-                .always(function() {
-                    // Remove from pending list on completion
-                    var idx = pendingRequests.indexOf(groupsXhr);
-                    if (idx > -1) pendingRequests.splice(idx, 1);
+                    showError('Failed to load groups');
                 });
-            pendingRequests.push(groupsXhr);
 
             // Load charts
             loadCharts();
-
-            // Reset loading flag after a short delay to allow all requests to complete
-            setTimeout(function() {
-                dashboardLoading = false;
-            }, 1000);
         }
 
         function updateMetrics(metrics) {
@@ -692,30 +661,22 @@ DASHBOARD_TEMPLATE = """
 
         function loadCharts() {
             // Load alert trends chart
-            var trendsXhr = $.get('/api/charts/alert_trends')
+            $.get('/api/charts/alert_trends')
+                .always(checkCompletion)
                 .done(function(data) {
                     if (data.status === 'success') {
                         Plotly.newPlot('alert-trends-chart', JSON.parse(data.chart).data, JSON.parse(data.chart).layout);
                     }
-                })
-                .always(function() {
-                    var idx = pendingRequests.indexOf(trendsXhr);
-                    if (idx > -1) pendingRequests.splice(idx, 1);
                 });
-            pendingRequests.push(trendsXhr);
 
             // Load suppression stats chart
-            var suppressionXhr = $.get('/api/charts/suppression_stats')
+            $.get('/api/charts/suppression_stats')
+                .always(checkCompletion)
                 .done(function(data) {
                     if (data.status === 'success') {
                         Plotly.newPlot('suppression-stats-chart', JSON.parse(data.chart).data, JSON.parse(data.chart).layout);
                     }
-                })
-                .always(function() {
-                    var idx = pendingRequests.indexOf(suppressionXhr);
-                    if (idx > -1) pendingRequests.splice(idx, 1);
                 });
-            pendingRequests.push(suppressionXhr);
         }
 
         function showError(message) {
@@ -731,18 +692,9 @@ DASHBOARD_TEMPLATE = """
         }, 30000);
 
         // ⚡ Bolt: Trigger immediate data refresh upon tab reactivation to prevent stale data
-        // Added debouncing to prevent rapid-fire triggers from visibility changes
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
-                // Clear any pending debounce timer
-                if (visibilityDebounceTimer) {
-                    clearTimeout(visibilityDebounceTimer);
-                }
-                // Debounce the call by 500ms to batch rapid visibility changes
-                visibilityDebounceTimer = setTimeout(function() {
-                    visibilityDebounceTimer = null;
-                    loadDashboard();
-                }, 500);
+                loadDashboard();
             }
         });
 
