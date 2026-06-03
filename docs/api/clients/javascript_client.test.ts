@@ -199,6 +199,24 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
             Date.now = originalNow;
         }
     });
+
+    it('should return status correctly for failed or cancelled jobs', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+
+        api.getJobStatus = async (jobId: string) => {
+            return { status: 'failed', progress: 50 };
+        };
+
+        const resultFailed = await api.waitForJob('job-123');
+        expect(resultFailed).toEqual({ status: 'failed', progress: 50 });
+
+        api.getJobStatus = async (jobId: string) => {
+            return { status: 'cancelled', progress: 30 };
+        };
+
+        const resultCancelled = await api.waitForJob('job-123');
+        expect(resultCancelled).toEqual({ status: 'cancelled', progress: 30 });
+    });
 });
 
 describe('PixelatedEmpathyAPI Method iterConversations', () => {
