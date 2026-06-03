@@ -520,6 +520,33 @@ describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
 
 
 
+describe('PixelatedEmpathyAPI Method toRecord edge cases', () => {
+    it('should return fallback if value is an array', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.toRecord([])).toEqual({});
+        expect(api.toRecord([], { a: 1 })).toEqual({ a: 1 });
+    });
+
+    it('should return fallback if value is null', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.toRecord(null)).toEqual({});
+        expect(api.toRecord(null, { a: 1 })).toEqual({ a: 1 });
+    });
+
+    it('should return fallback if value is a primitive', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.toRecord('string')).toEqual({});
+        expect(api.toRecord(123)).toEqual({});
+        expect(api.toRecord(undefined)).toEqual({});
+        expect(api.toRecord(true, { a: 1 })).toEqual({ a: 1 });
+    });
+
+    it('should return object if value is a plain object', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.toRecord({ b: 2 })).toEqual({ b: 2 });
+    });
+});
+
 describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
     it('should correctly handle undefined by returning empty array', () => {
         const api = new PixelatedEmpathyAPI('test_key');

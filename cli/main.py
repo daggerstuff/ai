@@ -16,8 +16,6 @@ from cli import __author__, __description__, __version__
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-from cli.pipeline import PipelineManager
-
 from cli.auth import AuthManager
 from cli.commands import (
     auth_group,
@@ -28,6 +26,7 @@ from cli.commands import (
     web_frontend_group,
 )
 from cli.config import CLIConfig
+from cli.pipeline import PipelineManager
 from cli.progress import ProgressTracker
 from cli.utils import print_banner, setup_logging, validate_environment
 

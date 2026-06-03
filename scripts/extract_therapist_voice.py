@@ -28,7 +28,6 @@ from extraction_config import (
     MIN_SENTENCE_WORDS,
     OUTPUT_BASE,
     TOPIC_BANK,
-    TRANSCRIPTS_DIR,
     get_config,
     resolve_channel_key,
 )
@@ -481,7 +480,7 @@ def score_conversations(conversations: list[dict]) -> tuple[list[float], list[di
 
         if not message_scores:
             scores.append(0.0)
-            details.append({d: 0.0 for d in ClinicalValidityScorer.WEIGHTS})
+            details.append(dict.fromkeys(ClinicalValidityScorer.WEIGHTS, 0.0))
         else:
             avg_score = sum(message_scores) / len(message_scores)
             scores.append(avg_score)

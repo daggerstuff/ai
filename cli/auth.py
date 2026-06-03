@@ -517,14 +517,12 @@ def revoke(self) -> None:
 AuthManager.login = login
 AuthManager.revoke = revoke
 
-setattr(AuthManager, "_access_token", property(
-    lambda self: self.config.auth.jwt_token,
-    lambda self, v: setattr(self.config.auth, "jwt_token", v),
-))
-setattr(AuthManager, "_refresh_token", property(
-    lambda self: self.config.auth.refresh_token,
-    lambda self, v: setattr(self.config.auth, "refresh_token", v),
-))
+AuthManager._access_token = property(
+    lambda self: self.config.auth.jwt_token, lambda self, v: setattr(self.config.auth, "jwt_token", v)
+)
+AuthManager._refresh_token = property(
+    lambda self: self.config.auth.refresh_token, lambda self, v: setattr(self.config.auth, "refresh_token", v)
+)
 
 
 def _get_token_expiry(self):
@@ -544,7 +542,7 @@ def _set_token_expiry(self, value: float) -> None:
     self.config.auth.token_expiry = datetime.fromtimestamp(value, tz=UTC).isoformat()
 
 
-setattr(AuthManager, "_token_expiry", property(_get_token_expiry, _set_token_expiry))
+AuthManager._token_expiry = property(_get_token_expiry, _set_token_expiry)
 
 
 __all__ = [

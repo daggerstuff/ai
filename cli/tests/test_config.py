@@ -5,9 +5,9 @@ Tests for CLI configuration management.
 from unittest.mock import patch
 
 import pytest
-from cli.exceptions import CLIConfigError
 
 from cli.config import APIConfig, AuthConfig, CLIConfig, ConfigProfile
+from cli.exceptions import CLIConfigError
 
 
 class TestCLIConfig:
