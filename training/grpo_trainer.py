@@ -115,20 +115,25 @@ def score(
     empathy_weight: float = 0.6,
     crisis_weight: float = 0.4,
     clinical_weight: float = 0.0,
+    safety_weight: float = 0.0,
 ) -> float:
     """Compute composite reward score in [0.0, 1.0].
-
-    When clinical_weight > 0, all three weights are normalized to sum
-    to 1.0. When clinical_weight == 0, behavior matches the original
-    2-dimensional reward (backward compatible).
+    Weights are normalized to sum 1.0 when their total is positive.
+    Safety scoring is included when safety_weight > 0.
     """
     e = _empathy_score(response)
     c = _crisis_score(prompt, response)
     cv = _clinical_validity_score(response)
-
-    w_total = empathy_weight + crisis_weight + clinical_weight
+    s = _safety_score(response)
+    w_total = empathy_weight + crisis_weight + clinical_weight + safety_weight
     if w_total > 0:
-        return (empathy_weight * e + crisis_weight * c + clinical_weight * cv) / w_total
+        return (
+            empathy_weight * e
+            + crisis_weight * c
+            + clinical_weight * cv
+            + safety_weight * s
+        ) / w_total
+    return 0.0
     return 0.0
 
 
