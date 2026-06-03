@@ -169,11 +169,11 @@ class TestCompositeScore:
         result = score(
             "I want to die",
             "I understand your feelings.",
-            empathy_weight=0.0,
-            crisis_weight=0.0,
+            empathy_weight=0.6,
+            crisis_weight=0.4,
         )
         # empathy>0, crisis=0.0 (no resource)
-        assert result <= 1.0
+        assert result < 0.6 + 0.4
 
     def test_score_in_range(self):
         result = score("Hello", "I understand.", empathy_weight=0.6, crisis_weight=0.4)
