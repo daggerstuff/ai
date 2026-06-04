@@ -518,6 +518,103 @@ describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method formatValue', () => {
+    it('should handle undefined and null', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(undefined)).toBe('');
+        expect(api.formatValue(null)).toBe('');
+    });
+
+    it('should handle strings', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue('hello')).toBe('hello');
+    });
+
+    it('should handle numbers, booleans, and bigints', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(123)).toBe('123');
+        expect(api.formatValue(true)).toBe('true');
+        expect(api.formatValue(false)).toBe('false');
+        expect(api.formatValue(BigInt(9007199254740991))).toBe('9007199254740991');
+    });
+
+    it('should handle JSON serializable objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue({ key: 'value' })).toBe('{"key":"value"}');
+        expect(api.formatValue([1, 2, 3])).toBe('[1,2,3]');
+    });
+
+    it('should handle objects with circular references', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const circularObj: any = {};
+        circularObj.self = circularObj;
+        expect(api.formatValue(circularObj)).toBe('[object Object]');
+    });
+
+    it('should handle symbols', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(Symbol('test_symbol'))).toBe(undefined);
+        expect(api.formatValue(Symbol())).toBe(undefined);
+    });
+
+    it('should handle functions', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const testFunc = () => { return 'test'; };
+        expect(api.formatValue(testFunc)).toBe(undefined);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method normalizePayload', () => {
+    it('should wrap string in data object', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.normalizePayload('raw string')).toEqual({ data: 'raw string' });
+    });
+
+    it('should filter out undefined and null values and format others', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const rawPayload = {
+            validString: 'hello',
+            validNumber: 123,
+            invalidUndefined: undefined,
+            invalidNull: null,
+            validObject: { a: 1 }
+        };
+
+        const expectedPayload = {
+            validString: 'hello',
+            validNumber: '123',
+            validObject: '{"a":1}'
+        };
+
+        expect(api.normalizePayload(rawPayload)).toEqual(expectedPayload);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method httpRequest timeout', () => {
+    it('should throw Error with message "Request timeout" on AbortError', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api.maxRetries = 0; // Prevent automatic retry loops
+
+        // Mock fetch globally
+        const originalFetch = global.fetch;
+        global.fetch = vi.fn().mockImplementation(() => {
+            const error = new Error('The operation was aborted');
+            error.name = 'AbortError';
+            return Promise.reject(error);
+        });
+
+        try {
+            await expect(api.httpRequest('http://test.com', {
+                method: 'GET',
+                headers: {},
+                timeout: 10
+            })).rejects.toThrow('Request timeout');
+        } finally {
+            global.fetch = originalFetch;
+        }
+    });
+});
+
 
 
 describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
