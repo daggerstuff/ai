@@ -527,6 +527,90 @@ describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method isPlainObject', () => {
+    it('should correctly identify plain objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.isPlainObject({})).toBe(true);
+        expect(api.isPlainObject({ a: 1 })).toBe(true);
+    });
+
+    it('should reject arrays, null, strings, and other non-objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.isPlainObject([])).toBe(false);
+        expect(api.isPlainObject(null)).toBe(false);
+        expect(api.isPlainObject(undefined)).toBe(false);
+        expect(api.isPlainObject("string")).toBe(false);
+        expect(api.isPlainObject(123)).toBe(false);
+        expect(api.isPlainObject(true)).toBe(false);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method formatValue', () => {
+    it('should handle string, number, and boolean', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue('test string')).toBe('test string');
+        expect(api.formatValue(123)).toBe('123');
+        expect(api.formatValue(true)).toBe('true');
+        expect(api.formatValue(false)).toBe('false');
+    });
+
+    it('should handle object (JSON.stringify)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue({ a: 1 })).toBe('{"a":1}');
+        expect(api.formatValue([1, 2])).toBe('[1,2]');
+    });
+
+    it('should handle null/undefined (empty string)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(null)).toBe('');
+        expect(api.formatValue(undefined)).toBe('');
+    });
+});
+
+describe('PixelatedEmpathyAPI Method normalizePayload', () => {
+    it('should wrap string payload in { data: string }', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.normalizePayload('test string')).toEqual({ data: 'test string' });
+    });
+
+    it('should format values and remove null/undefined from objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const input = {
+            validString: 'test',
+            validNumber: 123,
+            nullValue: null,
+            undefinedValue: undefined,
+        };
+        const expected = {
+            validString: 'test',
+            validNumber: '123',
+        };
+        expect(api.normalizePayload(input)).toEqual(expected);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method toError', () => {
+    it('should pass through Error objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const err = new Error('Test error');
+        expect(api.toError(err)).toBe(err);
+    });
+
+    it('should wrap strings in Error objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const result = api.toError('String error');
+        expect(result).toBeInstanceOf(Error);
+        expect(result.message).toBe('String error');
+    });
+
+    it('should handle unknown types with a fallback message', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const result = api.toError({ some: 'object' });
+        expect(result).toBeInstanceOf(Error);
+        expect(result.message).toBe('Unknown error');
+    });
+});
+
 describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
     it('should return error object if parsed JSON is null', () => {
         const api = new PixelatedEmpathyAPI('test_key');
