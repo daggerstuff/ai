@@ -601,6 +601,56 @@ describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method formatValue edge cases', () => {
+    it('should correctly format undefined and null', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(undefined)).toBe('');
+        expect(api.formatValue(null)).toBe('');
+    });
+
+    it('should correctly format strings', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue('test string')).toBe('test string');
+        expect(api.formatValue('')).toBe('');
+    });
+
+    it('should correctly format primitives (number, boolean, bigint)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(123)).toBe('123');
+        expect(api.formatValue(0)).toBe('0');
+        expect(api.formatValue(true)).toBe('true');
+        expect(api.formatValue(false)).toBe('false');
+        expect(api.formatValue(BigInt(9007199254740991))).toBe('9007199254740991');
+    });
+
+    it('should correctly format standard objects and arrays via JSON.stringify', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue({ a: 1, b: 'test' })).toBe('{"a":1,"b":"test"}');
+        expect(api.formatValue([1, 2, 3])).toBe('[1,2,3]');
+    });
+
+    it('should correctly format Symbols', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        // JSON.stringify(Symbol(...)) returns undefined, not a string
+        expect(api.formatValue(Symbol('my-symbol'))).toBeUndefined();
+        expect(api.formatValue(Symbol())).toBeUndefined();
+    });
+
+    it('should correctly format circular objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const circularObj: any = { a: 1 };
+        circularObj.self = circularObj;
+        expect(api.formatValue(circularObj)).toBe('[object Object]');
+    });
+
+    it('should correctly format functions', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const myFunc = function() { return 42; };
+        // JSON.stringify(function) returns undefined
+        expect(api.formatValue(myFunc)).toBeUndefined();
+    });
+});
+
 describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
     it('should return error object if parsed JSON is null', () => {
         const jsonStr = 'null'
