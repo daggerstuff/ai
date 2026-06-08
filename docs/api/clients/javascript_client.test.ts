@@ -592,6 +592,71 @@ describe('PixelatedEmpathyAPI Method httpRequest timeout', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Utility Methods', () => {
+    describe('isPlainObject', () => {
+        it('should return true for plain objects', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            expect(api.isPlainObject({})).toBe(true);
+            expect(api.isPlainObject({ a: 1 })).toBe(true);
+        });
+
+        it('should return false for arrays, null, and primitives', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            expect(api.isPlainObject([])).toBe(false);
+            expect(api.isPlainObject(null)).toBe(false);
+            expect(api.isPlainObject('string')).toBe(false);
+            expect(api.isPlainObject(123)).toBe(false);
+            expect(api.isPlainObject(undefined)).toBe(false);
+            expect(api.isPlainObject(() => {})).toBe(false);
+        });
+    });
+
+    describe('toRecord', () => {
+        it('should return the object if it is a plain object', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const obj = { a: 1 };
+            expect(api.toRecord(obj)).toEqual(obj);
+        });
+
+        it('should return an empty object for primitives, arrays, and null if no fallback is provided', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            expect(api.toRecord('string')).toEqual({});
+            expect(api.toRecord([])).toEqual({});
+            expect(api.toRecord(null)).toEqual({});
+            expect(api.toRecord(undefined)).toEqual({});
+        });
+
+        it('should return the provided fallback for non-plain objects', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const fallback = { fallback: true };
+            expect(api.toRecord('string', fallback)).toEqual(fallback);
+            expect(api.toRecord(null, fallback)).toEqual(fallback);
+        });
+    });
+
+    describe('toError', () => {
+        it('should return the error if it is an instance of Error', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const err = new Error('Test error');
+            expect(api.toError(err)).toBe(err);
+        });
+
+        it('should wrap a string in an Error object', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const err = api.toError('String error message');
+            expect(err).toBeInstanceOf(Error);
+            expect(err.message).toBe('String error message');
+        });
+
+        it('should return an Unknown error for objects that are not strings or Error instances', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const err = api.toError({ code: 500 });
+            expect(err).toBeInstanceOf(Error);
+            expect(err.message).toBe('Unknown error');
+        });
+    });
+});
+
 
 
 describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
