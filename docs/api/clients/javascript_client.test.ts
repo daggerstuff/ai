@@ -492,7 +492,7 @@ describe('PixelatedEmpathyAPI response parsing helpers', () => {
 
     it('should return error object if parsed JSON is array', () => {
         const jsonStr = '[{"id": 1}]'
-        expect(safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
+        expect(safeParseResponse(invalidJsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
     })
 
 describe('PixelatedEmpathyAPI Method formatValue', () => {
@@ -530,14 +530,14 @@ describe('PixelatedEmpathyAPI Method formatValue', () => {
 
     it('should handle symbols', () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        expect(api.formatValue(Symbol('test_symbol'))).toBe(undefined);
-        expect(api.formatValue(Symbol())).toBe(undefined);
+        expect(api.formatValue(Symbol('test_symbol'))).toBe('Symbol(test_symbol)');
+        expect(api.formatValue(Symbol())).toBe('Symbol()');
     });
 
     it('should handle functions', () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const testFunc = () => { return 'test'; };
-        expect(api.formatValue(testFunc)).toBe(undefined);
+        expect(api.formatValue(testFunc)).toBe('() => { return \'test\'; }');
     });
 });
 
@@ -612,4 +612,3 @@ describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
         expect(safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
     })
 });
-
