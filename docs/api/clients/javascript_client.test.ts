@@ -467,6 +467,29 @@ describe('PixelatedEmpathyAPI Method getJobStatus', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI value formatting', () => {
+    it('should format string correctly', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue('test')).toBe('test');
+    });
+
+    it('should format number correctly', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(42)).toBe('42');
+    });
+
+    it('should format null correctly', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(null)).toBe('');
+    });
+
+    it('should format boolean correctly', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(true)).toBe('true');
+        expect(api.formatValue(false)).toBe('false');
+    });
+});
+
 describe('PixelatedEmpathyAPI response parsing helpers', () => {
     const safeParseResponse = (jsonStr: string): Record<string, unknown> => {
         try {
