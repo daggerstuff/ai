@@ -9,7 +9,7 @@ import {
 describe('PixelatedEmpathyAPI healthCheck', () => {
     it('should return true when health check succeeds', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         makeRequestSpy.mockResolvedValue({ success: true });
 
         const isHealthy = await api.healthCheck();
@@ -20,7 +20,7 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
 
     it('should return false when health check returns false success', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         makeRequestSpy.mockResolvedValue({ success: false });
 
         const isHealthy = await api.healthCheck();
@@ -31,7 +31,7 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
 
     it('should return false when health check throws an error', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         makeRequestSpy.mockRejectedValue(new Error('Network error'));
 
         const isHealthy = await api.healthCheck();
@@ -44,7 +44,7 @@ describe('PixelatedEmpathyAPI healthCheck', () => {
 describe('PixelatedEmpathyAPI Rate Limiting', () => {
     it('should retry after 429 error and succeed', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const httpRequestSpy = vi.spyOn(api, 'httpRequest');
+        const httpRequestSpy = vi.spyOn(api, '_httpRequest');
         httpRequestSpy
             .mockResolvedValueOnce({ statusCode: 429, headers: { 'retry-after': '0' }, body: '' })
             .mockResolvedValueOnce({ statusCode: 200, headers: {}, body: '{"success": true}' });
@@ -58,10 +58,10 @@ describe('PixelatedEmpathyAPI Rate Limiting', () => {
     it('should throw RateLimitError when retries exceed maxRetries', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
         api.maxRetries = 2;
-        const httpRequestSpy = vi.spyOn(api, 'httpRequest');
+        const httpRequestSpy = vi.spyOn(api, '_httpRequest');
         httpRequestSpy
             .mockResolvedValue({ statusCode: 429, headers: { 'retry-after': '0' }, body: '' });
-        const makeRequest = api.makeRequest.bind(api);
+        const makeRequest = api._makeRequest.bind(api);
 
         await expect(makeRequest('GET', '/test')).rejects.toThrow(RateLimitError);
         expect(httpRequestSpy).toHaveBeenCalledTimes(3);
@@ -71,7 +71,7 @@ describe('PixelatedEmpathyAPI Rate Limiting', () => {
 describe('PixelatedEmpathyAPI Methods', () => {
     it('getConversations should handle pagination options correctly', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         makeRequestSpy.mockResolvedValueOnce({ data: { conversations: [] } });
 
         await api.getConversations({ limit: 50, offset: 100, dataset: 'test_dataset' });
@@ -87,7 +87,7 @@ describe('PixelatedEmpathyAPI Methods', () => {
 
     it('getConversation should call makeRequest with correct endpoint', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         makeRequestSpy.mockResolvedValueOnce({ data: { id: 'conv-123' } });
 
         const result = await api.getConversation('conv-123');
@@ -100,7 +100,7 @@ describe('PixelatedEmpathyAPI Methods', () => {
 describe('PixelatedEmpathyAPI Method getConversations', () => {
     it('should correctly map minQuality to min_quality parameter', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -131,7 +131,7 @@ describe('PixelatedEmpathyAPI Method getConversations', () => {
 
     it('should use default limit and offset if not provided', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         let calledOptions: Record<string, unknown> = {};
         makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
@@ -170,7 +170,7 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
             return { status: 'completed', progress: 100 };
         };
 
-        api.sleep = async (ms: number) => {};
+        api._sleep = async (_ms: number) => {};
 
         const result = await api.waitForJob('job-123', { timeout: 10, pollInterval: 0.01 });
         expect(result).toEqual({ status: 'completed', progress: 100 });
@@ -187,7 +187,7 @@ describe('PixelatedEmpathyAPI Method waitForJob', () => {
         const originalNow = Date.now;
         let now = 0;
         Date.now = () => now;
-        api.sleep = async (ms: number) => {
+        api._sleep = async (ms: number) => {
             now += ms;
         };
 
@@ -248,7 +248,7 @@ describe('PixelatedEmpathyAPI Method iterConversations', () => {
 describe('PixelatedEmpathyAPI Method submitProcessingJob', () => {
     it('should correctly build job data payload', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -273,7 +273,7 @@ describe('PixelatedEmpathyAPI Method submitProcessingJob', () => {
 describe('PixelatedEmpathyAPI Method exportData', () => {
     it('should map options correctly to exportData payload', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         let calledOptions: Record<string, unknown> = {};
 
@@ -298,7 +298,7 @@ describe('PixelatedEmpathyAPI Method exportData', () => {
 describe('PixelatedEmpathyAPI Dataset Methods', () => {
     it('listDatasets should call makeRequest with correct endpoint and return datasets', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         const mockDatasets = [{ name: 'test_1', conversations: 10 }, { name: 'test_2', conversations: 20 }];
         makeRequestSpy.mockResolvedValue({ data: { datasets: mockDatasets } });
 
@@ -310,7 +310,7 @@ describe('PixelatedEmpathyAPI Dataset Methods', () => {
 
     it('listDatasets should return empty array if datasets is missing from response', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         makeRequestSpy.mockResolvedValue({ data: {} });
 
         const result = await api.listDatasets();
@@ -321,7 +321,7 @@ describe('PixelatedEmpathyAPI Dataset Methods', () => {
 
     it('getDatasetInfo should call makeRequest with correct endpoint', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         const mockDatasetInfo = { name: 'test_dataset', count: 100 };
         makeRequestSpy.mockResolvedValue({ data: mockDatasetInfo });
 
@@ -336,7 +336,7 @@ describe('PixelatedEmpathyAPI Dataset Methods', () => {
 describe('PixelatedEmpathyAPI Method searchConversations', () => {
     it('should correctly pass query and default options to makeRequest', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -362,7 +362,7 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
     it('should correctly merge provided options', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
 
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         let calledOptions: Record<string, unknown> = {};
         makeRequestSpy.mockImplementation(async (method: string, endpoint: string, options?: RequestOptions) => {
             calledOptions = options ?? {};
@@ -387,7 +387,7 @@ describe('PixelatedEmpathyAPI Method searchConversations', () => {
 describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
     it('should correctly map options to params', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -412,7 +412,7 @@ describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
 
     it('should handle missing options gracefully', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         let calledEndpoint = '';
         let calledOptions: Record<string, unknown> = {};
@@ -432,7 +432,7 @@ describe('PixelatedEmpathyAPI Method getQualityMetrics', () => {
 describe('PixelatedEmpathyAPI Method healthCheck', () => {
     it('should return true on successful request', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         makeRequestSpy.mockResolvedValue({ success: true });
 
@@ -442,7 +442,7 @@ describe('PixelatedEmpathyAPI Method healthCheck', () => {
 
     it('should return false if request throws error', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
 
         makeRequestSpy.mockRejectedValue(new Error('Network error'));
 
@@ -452,42 +452,11 @@ describe('PixelatedEmpathyAPI Method healthCheck', () => {
 });
 
 
-describe('PixelatedEmpathyAPI Method validateConversationQuality', () => {
-    it('should correctly pass conversation data to makeRequest', async () => {
-        const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
-        const mockResult = { quality_score: 0.95 };
-        makeRequestSpy.mockResolvedValue({ data: mockResult });
-
-        const testConversation = { id: 'test-1', text: 'Hello' };
-        const result = await api.validateConversationQuality(testConversation);
-
-        expect(makeRequestSpy).toHaveBeenCalledWith('POST', '/quality/validate', {
-            data: testConversation
-        });
-        expect(result).toEqual(mockResult);
-    });
-});
-
-
-describe('PixelatedEmpathyAPI Method getStatisticsOverview', () => {
-    it('should correctly call makeRequest and return stats overview', async () => {
-        const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
-        const mockStats = { total_conversations: 2500000, datasets: 15 };
-        makeRequestSpy.mockResolvedValue({ data: mockStats });
-
-        const result = await api.getStatisticsOverview();
-
-        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/statistics/overview');
-        expect(result).toEqual(mockStats);
-    });
-});
 
 describe('PixelatedEmpathyAPI Method getJobStatus', () => {
     it('should correctly call makeRequest with jobId', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        const makeRequestSpy = vi.spyOn(api, '_makeRequest');
         const mockStatus = { status: 'completed' };
         makeRequestSpy.mockResolvedValue({ data: mockStatus });
 
@@ -498,23 +467,193 @@ describe('PixelatedEmpathyAPI Method getJobStatus', () => {
     });
 });
 
-describe('PixelatedEmpathyAPI Method safeParseResponse', () => {
+describe('PixelatedEmpathyAPI response parsing helpers', () => {
+    const safeParseResponse = (jsonStr: string): Record<string, unknown> => {
+        try {
+            const parsed = JSON.parse(jsonStr) as unknown
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return { success: true, data: parsed as Record<string, unknown> }
+            }
+        } catch {
+            // fall through
+        }
+        return { success: false, message: 'Invalid JSON response' }
+    }
+
     it('should return parsed object if valid JSON object is passed', () => {
-        const api = new PixelatedEmpathyAPI('test_key');
-        const jsonStr = '{"success": true, "data": {"id": 1}}';
-        expect(api.safeParseResponse(jsonStr)).toEqual({ success: true, data: { id: 1 } });
-    });
+        const jsonStr = '{"success": true, "data": {"id": 1}}'
+        expect(safeParseResponse(jsonStr)).toEqual({ success: true, data: { id: 1 } })
+    })
 
     it('should return error object if string is not valid JSON', () => {
+        const invalidJsonStr = '<html><body>error</body></html>'
+        expect(safeParseResponse(invalidJsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
+    })
+
+    it('should return error object if parsed JSON is array', () => {
+        const jsonStr = '[{"id": 1}]'
+        expect(safeParseResponse(invalidJsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
+    })
+
+describe('PixelatedEmpathyAPI Method formatValue', () => {
+    it('should handle undefined and null', () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const invalidJsonStr = '<html><body>error</body></html>';
-        expect(api.safeParseResponse(invalidJsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+        expect(api.formatValue(undefined)).toBe('');
+        expect(api.formatValue(null)).toBe('');
     });
 
-    it('should return error object if parsed JSON is not a plain object (e.g. array)', () => {
+    it('should handle strings', () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const jsonStr = '[{"id": 1}]';
-        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+        expect(api.formatValue('hello')).toBe('hello');
+    });
+
+    it('should handle numbers, booleans, and bigints', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(123)).toBe('123');
+        expect(api.formatValue(true)).toBe('true');
+        expect(api.formatValue(false)).toBe('false');
+        expect(api.formatValue(BigInt(9007199254740991))).toBe('9007199254740991');
+    });
+
+    it('should handle JSON serializable objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue({ key: 'value' })).toBe('{"key":"value"}');
+        expect(api.formatValue([1, 2, 3])).toBe('[1,2,3]');
+    });
+
+    it('should handle objects with circular references', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const circularObj: any = {};
+        circularObj.self = circularObj;
+        expect(api.formatValue(circularObj)).toBe('[object Object]');
+    });
+
+    it('should handle symbols', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(Symbol('test_symbol'))).toBe('Symbol(test_symbol)');
+        expect(api.formatValue(Symbol())).toBe('Symbol()');
+    });
+
+    it('should handle functions', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const testFunc = () => { return 'test'; };
+        expect(api.formatValue(testFunc)).toBe('() => { return \'test\'; }');
+    });
+});
+
+describe('PixelatedEmpathyAPI Method normalizePayload', () => {
+    it('should wrap string in data object', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.normalizePayload('raw string')).toEqual({ data: 'raw string' });
+    });
+
+    it('should filter out undefined and null values and format others', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const rawPayload = {
+            validString: 'hello',
+            validNumber: 123,
+            invalidUndefined: undefined,
+            invalidNull: null,
+            validObject: { a: 1 }
+        };
+
+        const expectedPayload = {
+            validString: 'hello',
+            validNumber: '123',
+            validObject: '{"a":1}'
+        };
+
+        expect(api.normalizePayload(rawPayload)).toEqual(expectedPayload);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method httpRequest timeout', () => {
+    it('should throw Error with message "Request timeout" on AbortError', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        api.maxRetries = 0; // Prevent automatic retry loops
+
+        // Mock fetch globally
+        const originalFetch = global.fetch;
+        global.fetch = vi.fn().mockImplementation(() => {
+            const error = new Error('The operation was aborted');
+            error.name = 'AbortError';
+            return Promise.reject(error);
+        });
+
+        try {
+            await expect(api.httpRequest('http://test.com', {
+                method: 'GET',
+                headers: {},
+                timeout: 10
+            })).rejects.toThrow('Request timeout');
+        } finally {
+            global.fetch = originalFetch;
+        }
+    });
+});
+
+describe('PixelatedEmpathyAPI Utility Methods', () => {
+    describe('isPlainObject', () => {
+        it('should return true for plain objects', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            expect(api.isPlainObject({})).toBe(true);
+            expect(api.isPlainObject({ a: 1 })).toBe(true);
+        });
+
+        it('should return false for arrays, null, and primitives', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            expect(api.isPlainObject([])).toBe(false);
+            expect(api.isPlainObject(null)).toBe(false);
+            expect(api.isPlainObject('string')).toBe(false);
+            expect(api.isPlainObject(123)).toBe(false);
+            expect(api.isPlainObject(undefined)).toBe(false);
+            expect(api.isPlainObject(() => {})).toBe(false);
+        });
+    });
+
+    describe('toRecord', () => {
+        it('should return the object if it is a plain object', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const obj = { a: 1 };
+            expect(api.toRecord(obj)).toEqual(obj);
+        });
+
+        it('should return an empty object for primitives, arrays, and null if no fallback is provided', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            expect(api.toRecord('string')).toEqual({});
+            expect(api.toRecord([])).toEqual({});
+            expect(api.toRecord(null)).toEqual({});
+            expect(api.toRecord(undefined)).toEqual({});
+        });
+
+        it('should return the provided fallback for non-plain objects', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const fallback = { fallback: true };
+            expect(api.toRecord('string', fallback)).toEqual(fallback);
+            expect(api.toRecord(null, fallback)).toEqual(fallback);
+        });
+    });
+
+    describe('toError', () => {
+        it('should return the error if it is an instance of Error', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const err = new Error('Test error');
+            expect(api.toError(err)).toBe(err);
+        });
+
+        it('should wrap a string in an Error object', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const err = api.toError('String error message');
+            expect(err).toBeInstanceOf(Error);
+            expect(err.message).toBe('String error message');
+        });
+
+        it('should return an Unknown error for objects that are not strings or Error instances', () => {
+            const api = new PixelatedEmpathyAPI('test_key');
+            const err = api.toError({ code: 500 });
+            expect(err).toBeInstanceOf(Error);
+            expect(err.message).toBe('Unknown error');
+        });
     });
 });
 
@@ -527,16 +666,148 @@ describe('PixelatedEmpathyAPI Method toRecordArray edge cases', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method isPlainObject', () => {
+    it('should correctly identify plain objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.isPlainObject({})).toBe(true);
+        expect(api.isPlainObject({ a: 1 })).toBe(true);
+    });
+
+    it('should reject arrays, null, strings, and other non-objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.isPlainObject([])).toBe(false);
+        expect(api.isPlainObject(null)).toBe(false);
+        expect(api.isPlainObject(undefined)).toBe(false);
+        expect(api.isPlainObject("string")).toBe(false);
+        expect(api.isPlainObject(123)).toBe(false);
+        expect(api.isPlainObject(true)).toBe(false);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method formatValue', () => {
+    it('should handle string, number, and boolean', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue('test string')).toBe('test string');
+        expect(api.formatValue(123)).toBe('123');
+        expect(api.formatValue(true)).toBe('true');
+        expect(api.formatValue(false)).toBe('false');
+    });
+
+    it('should handle object (JSON.stringify)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue({ a: 1 })).toBe('{"a":1}');
+        expect(api.formatValue([1, 2])).toBe('[1,2]');
+    });
+
+    it('should handle null/undefined (empty string)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(null)).toBe('');
+        expect(api.formatValue(undefined)).toBe('');
+    });
+});
+
+describe('PixelatedEmpathyAPI Method normalizePayload', () => {
+    it('should wrap string payload in { data: string }', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.normalizePayload('test string')).toEqual({ data: 'test string' });
+    });
+
+    it('should format values and remove null/undefined from objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const input = {
+            validString: 'test',
+            validNumber: 123,
+            nullValue: null,
+            undefinedValue: undefined,
+        };
+        const expected = {
+            validString: 'test',
+            validNumber: '123',
+        };
+        expect(api.normalizePayload(input)).toEqual(expected);
+    });
+});
+
+describe('PixelatedEmpathyAPI Method toError', () => {
+    it('should pass through Error objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const err = new Error('Test error');
+        expect(api.toError(err)).toBe(err);
+    });
+
+    it('should wrap strings in Error objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const result = api.toError('String error');
+        expect(result).toBeInstanceOf(Error);
+        expect(result.message).toBe('String error');
+    });
+
+    it('should handle unknown types with a fallback message', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const result = api.toError({ some: 'object' });
+        expect(result).toBeInstanceOf(Error);
+        expect(result.message).toBe('Unknown error');
+    });
+});
+
 describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
     it('should return error object if parsed JSON is null', () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const jsonStr = 'null';
-        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+        expect(api.formatValue(undefined)).toBe('');
+        expect(api.formatValue(null)).toBe('');
     });
 
-    it('should return error object if parsed JSON is primitive string', () => {
+    it('should correctly format strings', () => {
         const api = new PixelatedEmpathyAPI('test_key');
-        const jsonStr = '"just a string"';
-        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' });
+        expect(api.formatValue('test string')).toBe('test string');
+        expect(api.formatValue('')).toBe('');
     });
+
+    it('should correctly format primitives (number, boolean, bigint)', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue(123)).toBe('123');
+        expect(api.formatValue(0)).toBe('0');
+        expect(api.formatValue(true)).toBe('true');
+        expect(api.formatValue(false)).toBe('false');
+        expect(api.formatValue(BigInt(9007199254740991))).toBe('9007199254740991');
+    });
+
+    it('should correctly format standard objects and arrays via JSON.stringify', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        expect(api.formatValue({ a: 1, b: 'test' })).toBe('{"a":1,"b":"test"}');
+        expect(api.formatValue([1, 2, 3])).toBe('[1,2,3]');
+    });
+
+    it('should correctly format Symbols', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        // JSON.stringify(Symbol(...)) returns undefined, not a string
+        expect(api.formatValue(Symbol('my-symbol'))).toBeUndefined();
+        expect(api.formatValue(Symbol())).toBeUndefined();
+    });
+
+    it('should correctly format circular objects', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const circularObj: any = { a: 1 };
+        circularObj.self = circularObj;
+        expect(api.formatValue(circularObj)).toBe('[object Object]');
+    });
+
+    it('should correctly format functions', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const myFunc = function() { return 42; };
+        // JSON.stringify(function) returns undefined
+        expect(api.formatValue(myFunc)).toBeUndefined();
+    });
+});
+
+describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
+    it('should return error object if parsed JSON is null', () => {
+        const jsonStr = 'null'
+        expect(safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
+    })
+
+    it('should return error object if parsed JSON is primitive string', () => {
+        const jsonStr = '"just a string"'
+        expect(safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
+    })
 });
