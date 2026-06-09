@@ -1,5 +1,5 @@
 import re
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 import uuid
 
 # Centralized PHI patterns for reuse across guards
@@ -84,12 +84,12 @@ class OutputGuard:
             }
         )
 
-    def _check_persona_alignment(self, text: str) -> (bool, str):
+    def _check_persona_alignment(self, text: str) -> Tuple[bool, str]:
         # Basic check for tone/verbosity if possible
         # e.g. if tone is "scared", and text is too formal
         return True, "Passed"
 
-    def _check_medical_accuracy(self, text: str, state: str) -> (bool, str):
+    def _check_medical_accuracy(self, text: str, state: str) -> Tuple[bool, str]:
         # Simulated check
         # e.g. "I have no pain" when state is ESCALATION
         if state == "escalation" and "no pain" in text.lower():
