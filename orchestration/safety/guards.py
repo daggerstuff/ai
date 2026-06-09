@@ -89,11 +89,6 @@ class OutputGuard:
         # e.g. if tone is "scared", and text is too formal
         return True, "Passed"
 
-    def _check_persona_alignment(self, text: str) -> (bool, str):
-        # Basic check for tone/verbosity if possible
-        # e.g. if tone is "scared", and text is too formal
-        return True, "Passed"
-
     def _check_medical_accuracy(self, text: str, state: str) -> (bool, str):
         # Simulated check
         # e.g. "I have no pain" when state is ESCALATION
