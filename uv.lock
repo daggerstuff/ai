@@ -1403,34 +1403,6 @@ wheels = [
 ]
 
 [[package]]
-name = "foresight-mcp"
-version = "1.0.0"
-source = { directory = "/home/vivi/pixelated/foresight-mcp" }
-dependencies = [
-    { name = "fastmcp" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastmcp", specifier = ">=3.2.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0" },
-    { name = "rich", marker = "extra == 'cli'", specifier = ">=13.0" },
-    { name = "typer", marker = "extra == 'cli'", specifier = ">=0.9.0" },
-]
-provides-extras = ["dev", "cli"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=8.0" },
-    { name = "pytest-asyncio", specifier = ">=0.23" },
-    { name = "pytest-cov", specifier = ">=4.0" },
-    { name = "rich", specifier = ">=13.0" },
-    { name = "typer", specifier = ">=0.9.0" },
-]
-
-[[package]]
 name = "frozenlist"
 version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3301,7 +3273,6 @@ dependencies = [
     { name = "flask-cors" },
     { name = "flask-jwt-extended" },
     { name = "flask-socketio" },
-    { name = "foresight-mcp" },
     { name = "google-genai" },
     { name = "httpx" },
     { name = "huggingface-hub" },
@@ -3390,7 +3361,6 @@ requires-dist = [
     { name = "flask-cors", specifier = ">=6.0.2" },
     { name = "flask-jwt-extended", specifier = ">=4.6.0" },
     { name = "flask-socketio", specifier = ">=5.3.6" },
-    { name = "foresight-mcp", directory = "/home/vivi/pixelated/foresight-mcp" },
     { name = "google-genai", specifier = ">=1.62.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "huggingface-hub", specifier = ">=0.34.4" },
