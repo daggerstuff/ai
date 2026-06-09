@@ -2,6 +2,21 @@ import re
 from typing import Dict, Any, List, Optional
 import uuid
 
+# Centralized PHI patterns for reuse across guards
+PHI_PATTERNS = [
+    (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), "[SSN]"),
+    (re.compile(r'\b\d{3}-\d{3}-\d{4}\b'), "[PHONE]"),
+    (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'), "[EMAIL]"),
+    # Add more as needed
+]
+
+def _apply_phi_scrubbing(text: str) -> str:
+    """Apply PHI scrubbing patterns to the given text."""
+    sanitized = text
+    for pattern, replacement in PHI_PATTERNS:
+        sanitized = pattern.sub(replacement, sanitized)
+    return sanitized
+
 class SafetyGuardResult:
     def __init__(self, passed: bool, sanitized_text: str, message: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None):
         self.passed = passed
@@ -12,18 +27,9 @@ class SafetyGuardResult:
 class InputGuard:
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
-        # Simple PHI regex patterns (names, dates, IDs, phones)
-        self.phi_patterns = [
-            (re.compile(r'\b\d{3}-\d{2}-\d{4}\b'), "[SSN]"),
-            (re.compile(r'\b\d{3}-\d{3}-\d{4}\b'), "[PHONE]"),
-            (re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'), "[EMAIL]"),
-            # Add more as needed
-        ]
 
     def run(self, user_input: str) -> SafetyGuardResult:
-        sanitized = user_input
-        for pattern, replacement in self.phi_patterns:
-            sanitized = pattern.sub(replacement, sanitized)
+        sanitized = _apply_phi_scrubbing(user_input)
         
         # Simple intent recognition
         intent = self._detect_intent(sanitized)
@@ -54,10 +60,8 @@ class OutputGuard:
         self.config = config or {}
 
     def run(self, llm_output: str, current_state: str) -> SafetyGuardResult:
-        sanitized = llm_output
-        
         # 1. PHI Scrubbing (last check)
-        # Reuse patterns from InputGuard or similar
+        sanitized = _apply_phi_scrubbing(llm_output)
         
         # 2. Persona Alignment
         alignment_passed, alignment_msg = self._check_persona_alignment(llm_output)
@@ -79,6 +83,11 @@ class OutputGuard:
                 "accuracy_passed": accuracy_passed
             }
         )
+
+    def _check_persona_alignment(self, text: str) -> (bool, str):
+        # Basic check for tone/verbosity if possible
+        # e.g. if tone is "scared", and text is too formal
+        return True, "Passed"
 
     def _check_persona_alignment(self, text: str) -> (bool, str):
         # Basic check for tone/verbosity if possible
