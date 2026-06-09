@@ -24,7 +24,7 @@ async def search_literature(
         results = engine.search_literature(q, limit=limit, sources=sources)
         return {"results": results, "total": len(results), "facets": {}}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="Internal server error occurred while searching literature.") from e
 
 
 @router.get("/datasets")
@@ -44,4 +44,4 @@ async def search_datasets(
         datasets = find_therapy_datasets(query=q, min_turns=min_turns, min_quality=min_quality)
         return {"results": datasets[:limit], "total": len(datasets)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="Internal server error occurred while searching datasets.") from e
