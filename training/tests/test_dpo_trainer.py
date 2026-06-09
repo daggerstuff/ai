@@ -195,3 +195,41 @@ else:
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_hypothesis_pairs_preserved():
         raise AssertionError("Skipped when hypothesis is unavailable")
+
+
+if st is not None:
+
+    @given(
+        prompt=st.text(min_size=1, max_size=50),
+        chosen=st.text(min_size=1, max_size=50),
+        rejected=st.text(min_size=1, max_size=50),
+    )
+    @settings(max_examples=50)
+    def test_hypothesis_dpo_safety_filter_prop1(prompt: str, chosen: str, rejected: str):
+        """Prop 1 — No-filter policy: mixed safe/unsafe pairs are preserved.
+
+        The DPO trainer is configured with safety filtering disabled
+        (all content allowed). This property verifies that the loader
+        does NOT drop pairs based on content: every generated pair
+        that has prompt/chosen/rejected fields is returned unchanged.
+        """
+        tmp = Path("/tmp") / "hypo_dpo_prop1"
+        tmp.mkdir(exist_ok=True)
+        data_path = tmp / "mixed_pairs.jsonl"
+        with open(data_path, "w", encoding="utf-8") as f:
+            for i in range(MIN_SAMPLES):
+                f.write(
+                    json.dumps(
+                        {"prompt": prompt, "chosen": chosen, "rejected": rejected}
+                    )
+                    + "\n"
+                )
+        result = load_preference_dataset(
+            data_path, 1024, logging.getLogger("test_prop1")
+        )
+        # Under no-filter policy, every well-formed pair is kept
+        assert len(result) == MIN_SAMPLES
+        for sample in result:
+            assert sample["prompt"] == prompt
+            assert sample["chosen"] == chosen
+            assert sample["rejected"] == rejected
