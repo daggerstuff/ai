@@ -3,15 +3,22 @@ Memory System Integration Module.
 
 Integrates the configured shared memory backend with higher-level helpers for
 managing user memory contexts, conversation history, and therapeutic sessions.
+
+Also provides dream-cycle integration — the DreamManager runs NREM/REM-style
+consolidation after session processing to surface themes, patterns, and insights.
 """
 
+import os
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from ai.memory.manager_factory import get_required_memory_manager as get_backend_memory_manager
+from ai.memory.manager_factory import (
+    create_dream_manager as _create_dream_manager,
+    get_required_memory_manager as get_backend_memory_manager,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -73,12 +80,18 @@ class MemoryContext:
 class MemoryManager:
     """
     Manages memory persistence and retrieval using the configured backend.
+
+    Also manages dream cycles for memory consolidation. The dream manager
+    is lazily created on first access and runs NREM/REM-style processing
+    to extract themes, patterns, and insights from session memories.
     """
 
-    def __init__(self, memory_client: Any):
+    def __init__(self, memory_client: Any, mongodb_uri: str | None = None):
         if not memory_client:
             raise ValueError("memory_client is required")
         self.client = memory_client
+        self._mongodb_uri = mongodb_uri
+        self._dream_manager: Any | None = None  # DreamManager, lazily created
 
     def add_message(
         self,
@@ -213,16 +226,84 @@ class MemoryManager:
             "provider": type(self.client).__name__,
         }
 
+    # ------------------------------------------------------------------
+    # Dream cycle integration
+    # ------------------------------------------------------------------
+
+    @property
+    def dream_manager(self) -> Any:
+        """Lazily-initialized DreamManager instance."""
+        if self._dream_manager is None:
+            self._dream_manager = _create_dream_manager(mongodb_uri=self._mongodb_uri)
+            logger.info(
+                "DreamManager initialized (%s)",
+                type(self._dream_manager.memory_store).__name__,
+            )
+        return self._dream_manager
+
+    async def trigger_dream_cycle(
+        self,
+        user_id: str,
+        memories: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Run a full dream cycle (NREM → REM → consolidation → reflection)
+        for the given user's memories.
+
+        Args:
+            user_id: User whose memories to process.
+            memories: Optional pre-fetched memory list. When omitted the
+                      dream manager fetches them from its store.
+
+        Returns:
+            Dream cycle result as a serialisable dict.
+        """
+        result = await self.dream_manager.start_dream_cycle(
+            user_id=user_id,
+            memories=memories,
+        )
+        logger.info(
+            "Dream cycle %s for user %s: %d themes, %d patterns",
+            result.dream_id,
+            user_id,
+            len(result.themes),
+            len(result.patterns),
+        )
+        return result.to_dict()
+
+    async def get_dream_status(self, dream_id: str) -> dict[str, Any] | None:
+        """Return the status of an active or completed dream cycle."""
+        status = await self.dream_manager.get_dream_status(dream_id)
+        if status is None:
+            return None
+        return status
+
+    async def close_dream_manager(self) -> None:
+        """Release the dream manager resources (connections, tasks)."""
+        if self._dream_manager is not None:
+            await self._dream_manager.close()
+            self._dream_manager = None
+            logger.info("DreamManager closed")
+
+    async def close(self) -> None:
+        """Release all resources including dream manager."""
+        await self.close_dream_manager()
+
 
 _memory_manager_instance: MemoryManager | None = None
 
 
-def get_memory_manager(memory_client: Any | None = None) -> MemoryManager:
+def get_memory_manager(
+    memory_client: Any | None = None,
+    mongodb_uri: str | None = None,
+) -> MemoryManager:
     """
     Get or create the global MemoryManager instance.
 
     Args:
-        memory_client: Optional pre-configured memory client
+        memory_client: Optional pre-configured memory client.
+        mongodb_uri: Optional MongoDB URI for dream store. Falls back to
+                     ``MONGODB_URI`` environment variable.
 
     Returns:
         Configured MemoryManager instance
@@ -238,5 +319,9 @@ def get_memory_manager(memory_client: Any | None = None) -> MemoryManager:
                 type(memory_client).__name__,
             )
 
-        _memory_manager_instance = MemoryManager(memory_client)
+        resolved_uri = mongodb_uri or os.environ.get("MONGODB_URI")
+        _memory_manager_instance = MemoryManager(
+            memory_client,
+            mongodb_uri=resolved_uri,
+        )
     return _memory_manager_instance
