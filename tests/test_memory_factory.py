@@ -66,5 +66,5 @@ def test_factory_requires_explicit_local_db_path(monkeypatch):
     monkeypatch.setenv("MEMORY_PROVIDER", "local_foresight")
     monkeypatch.delenv("HINDSIGHT_LOCAL_DB_PATH", raising=False)
 
-    with pytest.raises(RuntimeError, match="HINDSIGHT_LOCAL_DB_PATH or db_path is required"):
+    with pytest.raises(RuntimeError, match="FORESIGHT_LOCAL_DB_PATH or db_path is required"):
         MemoryManagerFactory().create_manager()
