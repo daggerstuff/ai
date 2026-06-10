@@ -67,13 +67,22 @@ def _load_compiled_hashes(compiled_path: Path) -> set[str]:
     return hashes
 
 
+def _word_count(text: str) -> int:
+    return len(re.findall(r"\S+", text))
+
+
+def _split_sentences(text: str) -> list[str]:
+    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+    return [sentence.strip() for sentence in sentences if sentence.strip()]
+
+
 def _word_chunks(
     text: str,
     *,
     chunk_words: int = DEFAULT_CHUNK_WORDS,
     overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
 ) -> list[dict[str, Any]]:
-    """Split a long transcript into real transcript excerpts, not generated filler."""
+    """Split a long transcript into fixed-size word windows (fallback for oversized paragraphs)."""
     if chunk_words < MIN_CHUNK_WORDS:
         raise ValueError(f"chunk_words must be at least {MIN_CHUNK_WORDS}")
     if overlap_words < 0 or overlap_words >= chunk_words:
@@ -89,6 +98,7 @@ def _word_chunks(
                 "chunk_index": 1,
                 "chunk_start_word": 0,
                 "chunk_word_count": len(words),
+                "pairing_strategy": "word_chunk",
             }
         ]
 
@@ -108,11 +118,134 @@ def _word_chunks(
                 "chunk_index": len(chunks) + 1,
                 "chunk_start_word": start,
                 "chunk_word_count": len(chunk),
+                "pairing_strategy": "word_chunk",
             }
         )
         if start + chunk_words >= len(words):
             break
         start += step
+
+    return chunks
+
+
+def _append_chunk(
+    chunks: list[dict[str, Any]],
+    *,
+    text: str,
+    pairing_strategy: str,
+    chunk_start_word: int,
+) -> None:
+    chunks.append(
+        {
+            "text": text,
+            "chunk_index": len(chunks) + 1,
+            "chunk_start_word": chunk_start_word,
+            "chunk_word_count": _word_count(text),
+            "pairing_strategy": pairing_strategy,
+        }
+    )
+
+
+def _semantic_chunks(
+    text: str,
+    *,
+    chunk_words: int = DEFAULT_CHUNK_WORDS,
+    overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
+) -> list[dict[str, Any]]:
+    """Split transcript text on paragraph and sentence boundaries, with word windows as fallback."""
+    if chunk_words < MIN_CHUNK_WORDS:
+        raise ValueError(f"chunk_words must be at least {MIN_CHUNK_WORDS}")
+    if overlap_words < 0 or overlap_words >= chunk_words:
+        raise ValueError("overlap_words must be non-negative and smaller than chunk_words")
+
+    paragraphs = [paragraph.strip() for paragraph in re.split(r"\n{2,}", text) if paragraph.strip()]
+    if not paragraphs:
+        paragraphs = [text.strip()] if text.strip() else []
+
+    chunks: list[dict[str, Any]] = []
+    global_word_offset = 0
+
+    for paragraph in paragraphs:
+        paragraph_words = _word_count(paragraph)
+        if paragraph_words == 0:
+            continue
+
+        if paragraph_words <= chunk_words:
+            _append_chunk(
+                chunks,
+                text=paragraph,
+                pairing_strategy="semantic_chunk",
+                chunk_start_word=global_word_offset,
+            )
+            global_word_offset += paragraph_words
+            continue
+
+        sentences = _split_sentences(paragraph)
+        if len(sentences) <= 1:
+            for sub_chunk in _word_chunks(
+                paragraph,
+                chunk_words=chunk_words,
+                overlap_words=overlap_words,
+            ):
+                sub_chunk["chunk_index"] = len(chunks) + 1
+                sub_chunk["chunk_start_word"] = global_word_offset + sub_chunk["chunk_start_word"]
+                chunks.append(sub_chunk)
+            global_word_offset += paragraph_words
+            continue
+
+        current_sentences: list[str] = []
+        current_words = 0
+        for sentence in sentences:
+            sentence_words = _word_count(sentence)
+            if sentence_words == 0:
+                continue
+
+            if sentence_words > chunk_words:
+                if current_sentences:
+                    _append_chunk(
+                        chunks,
+                        text=" ".join(current_sentences),
+                        pairing_strategy="semantic_chunk",
+                        chunk_start_word=global_word_offset,
+                    )
+                    global_word_offset += current_words
+                    current_sentences = []
+                    current_words = 0
+
+                for sub_chunk in _word_chunks(
+                    sentence,
+                    chunk_words=chunk_words,
+                    overlap_words=overlap_words,
+                ):
+                    sub_chunk["chunk_index"] = len(chunks) + 1
+                    sub_chunk["chunk_start_word"] = global_word_offset + sub_chunk["chunk_start_word"]
+                    chunks.append(sub_chunk)
+                global_word_offset += sentence_words
+                continue
+
+            if current_words + sentence_words > chunk_words and current_sentences:
+                _append_chunk(
+                    chunks,
+                    text=" ".join(current_sentences),
+                    pairing_strategy="semantic_chunk",
+                    chunk_start_word=global_word_offset,
+                )
+                global_word_offset += current_words
+                current_sentences = [sentence]
+                current_words = sentence_words
+                continue
+
+            current_sentences.append(sentence)
+            current_words += sentence_words
+
+        if current_sentences:
+            _append_chunk(
+                chunks,
+                text=" ".join(current_sentences),
+                pairing_strategy="semantic_chunk",
+                chunk_start_word=global_word_offset,
+            )
+            global_word_offset += current_words
 
     return chunks
 
@@ -137,8 +270,9 @@ def _transcript_to_pairs(
             pairs.append({"instruction": instruction, "output": output})
 
     if not pairs and paragraphs:
-        chunks = _word_chunks(
-            paragraphs[0],
+        transcript_body = "\n\n".join(paragraphs)
+        chunks = _semantic_chunks(
+            transcript_body,
             chunk_words=chunk_words,
             overlap_words=chunk_overlap_words,
         )
@@ -150,7 +284,7 @@ def _transcript_to_pairs(
                         f"Use this real transcript excerpt from {channel_name} as therapeutic source material."
                     ),
                     "output": chunk["text"],
-                    "pairing_strategy": "word_chunk",
+                    "pairing_strategy": chunk["pairing_strategy"],
                     "chunk_index": chunk["chunk_index"],
                     "chunk_total": chunk_total,
                     "chunk_start_word": chunk["chunk_start_word"],
@@ -225,7 +359,7 @@ def ingest_channel(
                 "content_hash": content_hash,
                 "pairing_strategy": pairing_strategy,
             }
-            if pairing_strategy == "word_chunk":
+            if pairing_strategy in {"word_chunk", "semantic_chunk"}:
                 provenance_metadata.update(
                     {
                         "chunk_index": pair["chunk_index"],

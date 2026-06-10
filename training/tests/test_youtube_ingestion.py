@@ -21,6 +21,8 @@ from training.youtube_ingestion import (
     _content_hash,
     _is_german_channel,
     _load_compiled_hashes,
+    _semantic_chunks,
+    _split_sentences,
     _transcript_to_pairs,
     _word_chunks,
     build_parser,
@@ -133,6 +135,23 @@ class TestTranscriptToPairs:
         assert pairs[0]["output"].startswith("word0 word1")
         assert pairs[-1]["output"].endswith("word149")
 
+    def test_sentence_bound_transcript_uses_semantic_chunks(self):
+        text = (
+            "When trauma gets stored in the body, people often feel stuck. "
+            "Therapy can help them notice triggers before they escalate. "
+            "That awareness creates room for a different response. "
+            "Over time, safety becomes something they can practice."
+        )
+        pairs = _transcript_to_pairs(
+            text,
+            "TestChannel",
+            chunk_words=20,
+            chunk_overlap_words=0,
+        )
+        assert len(pairs) >= 2
+        assert all(pair["pairing_strategy"] == "semantic_chunk" for pair in pairs)
+        assert "." in pairs[0]["output"]
+
     def test_multiple_pairs(self):
         text = "Q1\n\nA1\n\nQ2\n\nA2"
         pairs = _transcript_to_pairs(text, "TestChannel")
@@ -148,6 +167,36 @@ class TestWordChunks:
         chunks = _word_chunks("short real transcript", chunk_words=50, overlap_words=0)
         assert len(chunks) == 1
         assert chunks[0]["text"] == "short real transcript"
+
+
+class TestSemanticChunks:
+    def test_splits_on_sentence_boundaries(self):
+        text = (
+            "Healing begins when we notice our patterns. "
+            "That awareness creates space for change. "
+            "Therapy helps people reconnect with themselves. "
+            "Small steps can rebuild trust over time."
+        )
+        chunks = _semantic_chunks(text, chunk_words=20, overlap_words=0)
+        assert len(chunks) >= 2
+        assert all(chunk["pairing_strategy"] == "semantic_chunk" for chunk in chunks)
+        assert all("." in chunk["text"] or "?" in chunk["text"] or "!" in chunk["text"] for chunk in chunks[:-1])
+
+    def test_preserves_paragraphs_under_limit(self):
+        text = "First complete paragraph about trauma recovery.\n\nSecond complete paragraph about nervous system regulation."
+        chunks = _semantic_chunks(text, chunk_words=50, overlap_words=0)
+        assert len(chunks) == 2
+        assert chunks[0]["text"] == "First complete paragraph about trauma recovery."
+        assert chunks[1]["text"] == "Second complete paragraph about nervous system regulation."
+
+    def test_falls_back_to_word_chunks_for_unbroken_long_text(self):
+        chunks = _semantic_chunks(LONG_TRANSCRIPT, chunk_words=TEST_CHUNK_WORDS, overlap_words=0)
+        assert len(chunks) == EXPECTED_THREE_CHUNKS
+        assert all(chunk["pairing_strategy"] == "word_chunk" for chunk in chunks)
+
+    def test_split_sentences_handles_punctuation(self):
+        sentences = _split_sentences("First idea. Second idea! Third idea?")
+        assert sentences == ["First idea.", "Second idea!", "Third idea?"]
 
 
 # ---------------------------------------------------------------------------
