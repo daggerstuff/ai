@@ -122,7 +122,7 @@ def _word_chunks(
                 "chunk_index": 1,
                 "chunk_start_word": 0,
                 "chunk_word_count": len(words),
-                "pairing_strategy": "word_chunk",
+                "pairing_strategy": WORD_CHUNK,
             }
         ]
 
@@ -142,7 +142,7 @@ def _word_chunks(
                 "chunk_index": len(chunks) + 1,
                 "chunk_start_word": start,
                 "chunk_word_count": len(chunk),
-                "pairing_strategy": "word_chunk",
+                "pairing_strategy": WORD_CHUNK,
             }
         )
         if start + chunk_words >= len(words):
@@ -198,7 +198,7 @@ def _semantic_chunks(
             _append_chunk(
                 chunks,
                 text=paragraph,
-                pairing_strategy="semantic_chunk",
+                pairing_strategy=SEMANTIC_CHUNK,
                 chunk_start_word=global_word_offset,
             )
             global_word_offset += paragraph_words
@@ -206,7 +206,7 @@ def _semantic_chunks(
 
         sentences = _split_sentences(paragraph)
         if len(sentences) <= 1:
-            logger.info(
+            logger.debug(
                 "Word-chunk fallback: paragraph of %d words has no usable sentence boundaries",
                 paragraph_words,
             )
@@ -233,14 +233,14 @@ def _semantic_chunks(
                     _append_chunk(
                         chunks,
                         text=" ".join(current_sentences),
-                        pairing_strategy="semantic_chunk",
+                        pairing_strategy=SEMANTIC_CHUNK,
                         chunk_start_word=global_word_offset,
                     )
                     global_word_offset += current_words
                     current_sentences = []
                     current_words = 0
 
-                logger.info(
+                logger.debug(
                     "Word-chunk fallback: sentence of %d words exceeds chunk limit of %d",
                     sentence_words,
                     chunk_words,
@@ -260,7 +260,7 @@ def _semantic_chunks(
                 _append_chunk(
                     chunks,
                     text=" ".join(current_sentences),
-                    pairing_strategy="semantic_chunk",
+                    pairing_strategy=SEMANTIC_CHUNK,
                     chunk_start_word=global_word_offset,
                 )
                 global_word_offset += current_words
@@ -275,7 +275,7 @@ def _semantic_chunks(
             _append_chunk(
                 chunks,
                 text=" ".join(current_sentences),
-                pairing_strategy="semantic_chunk",
+                pairing_strategy=SEMANTIC_CHUNK,
                 chunk_start_word=global_word_offset,
             )
             global_word_offset += current_words
@@ -392,7 +392,7 @@ def ingest_channel(
                 "content_hash": content_hash,
                 "pairing_strategy": pairing_strategy,
             }
-            if pairing_strategy in {"word_chunk", "semantic_chunk"}:
+            if pairing_strategy in {WORD_CHUNK, SEMANTIC_CHUNK}:
                 provenance_metadata.update(
                     {
                         "chunk_index": pair["chunk_index"],
