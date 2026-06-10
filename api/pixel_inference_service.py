@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from pixel.models.pixel_base_model import PixelBaseModel
 
+from ai.api.memory import get_memory_manager
 from ai.api.sentry_logging import initialize_sentry_logging
 
 logger = logging.getLogger(__name__)
@@ -582,16 +583,42 @@ async def reset_stats():
 
 
 @app.post("/infer", response_model=PixelInferenceResponse)
-async def infer(request: PixelInferenceRequest, _background_tasks: BackgroundTasks):
+async def infer(request: PixelInferenceRequest, background_tasks: BackgroundTasks):
     """Generate response using Pixel model"""
     if not inference_engine.model_loaded:
         raise HTTPException(status_code=503, detail="Model not loaded")
 
     try:
-        return await inference_engine.generate_response(request)
+        response = await inference_engine.generate_response(request)
     except Exception:
         logger.exception("Inference error")
         raise HTTPException(status_code=500, detail="Internal server error") from None
+
+    # Schedule dream-cycle consolidation as a background task when
+    # the request includes a user identifier.
+    if request.user_id:
+        background_tasks.add_task(
+            _trigger_dream_cycle,
+            user_id=request.user_id,
+        )
+
+    return response
+
+
+async def _trigger_dream_cycle(user_id: str) -> None:
+    """Fire-and-forget dream cycle for a user after session processing."""
+    try:
+        mm = get_memory_manager()
+        result = await mm.trigger_dream_cycle(user_id=user_id)
+        logger.info(
+            "Background dream cycle %s for user %s: %d themes, %d patterns",
+            result.get("dream_id", "?"),
+            user_id,
+            len(result.get("themes", [])),
+            len(result.get("patterns", [])),
+        )
+    except Exception:
+        logger.exception("Background dream cycle failed for user %s", user_id)
 
 
 @app.post("/batch-infer")

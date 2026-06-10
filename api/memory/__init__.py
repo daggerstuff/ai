@@ -6,6 +6,7 @@ Provides integrated memory management for:
 - Conversation history persistence
 - Emotional state tracking
 - Treatment plan storage
+- Dream-cycle memory consolidation
 - HIPAA-compliant memory encryption
 """
 
