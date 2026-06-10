@@ -5,6 +5,10 @@ from fastapi import APIRouter, HTTPException, Query
 from ai.sourcing.academic.academic_sourcing import AcademicSourcingEngine
 from ai.sourcing.academic.therapy_dataset_sourcing import find_therapy_datasets
 
+logger = logging.getLogger(__name__)
+
+import logging
+
 router = APIRouter()
 
 # Initialize engine (Note: For prod, use dependency injection)
@@ -24,7 +28,8 @@ async def search_literature(
         results = engine.search_literature(q, limit=limit, sources=sources)
         return {"results": results, "total": len(results), "facets": {}}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.exception("Error while searching literature.")
+        raise HTTPException(status_code=500, detail="Internal server error occurred while searching literature.") from e
 
 
 @router.get("/datasets")
@@ -44,4 +49,5 @@ async def search_datasets(
         datasets = find_therapy_datasets(query=q, min_turns=min_turns, min_quality=min_quality)
         return {"results": datasets[:limit], "total": len(datasets)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logger.exception("Error while searching datasets.")
+        raise HTTPException(status_code=500, detail="Internal server error occurred while searching datasets.") from e
