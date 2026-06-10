@@ -71,9 +71,33 @@ def _word_count(text: str) -> int:
     return len(re.findall(r"\S+", text))
 
 
+# Common English abbreviations ending with period that should not trigger sentence splits
+_ABBREVIATIONS: frozenset[str] = frozenset({
+    "e.g.", "i.e.", "etc.", "vs.", "viz.", "al.",
+    "Dr.", "Mr.", "Ms.", "Mrs.", "Prof.", "Sr.", "Jr.",
+    "St.", "Ave.", "Blvd.", "Dept.", "Est.",
+    "Jan.", "Feb.", "Mar.", "Apr.", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec.",
+    "approx.", "dept.", "ed.", "esp.", "ex.", "govt.",
+    "no.", "vol.", "p.", "pp.",
+})
+
+
 def _split_sentences(text: str) -> list[str]:
-    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
-    return [sentence.strip() for sentence in sentences if sentence.strip()]
+    # Split on sentence-ending punctuation followed by whitespace and capital letter,
+    # then rejoin fragments that are known abbreviations
+    sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z])", text.strip())
+    sentences = [s.strip() for s in sentences if s.strip()]
+    merged = []
+    for s in sentences:
+        if merged and any(
+            s.lstrip().startswith(abbr[0].upper()) for abbr in _ABBREVIATIONS
+        ):
+            last_word = merged[-1].split()[-1] if merged[-1].split() else ""
+            if last_word.lower().rstrip(".") in {a.rstrip(".").lower() for a in _ABBREVIATIONS}:
+                merged[-1] = f"{merged[-1]} {s}"
+                continue
+        merged.append(s)
+    return [m.strip() for m in merged if m.strip()]
 
 
 def _word_chunks(
@@ -182,6 +206,10 @@ def _semantic_chunks(
 
         sentences = _split_sentences(paragraph)
         if len(sentences) <= 1:
+            logger.info(
+                "Word-chunk fallback: paragraph of %d words has no usable sentence boundaries",
+                paragraph_words,
+            )
             for sub_chunk in _word_chunks(
                 paragraph,
                 chunk_words=chunk_words,
@@ -212,6 +240,11 @@ def _semantic_chunks(
                     current_sentences = []
                     current_words = 0
 
+                logger.info(
+                    "Word-chunk fallback: sentence of %d words exceeds chunk limit of %d",
+                    sentence_words,
+                    chunk_words,
+                )
                 for sub_chunk in _word_chunks(
                     sentence,
                     chunk_words=chunk_words,
