@@ -32,7 +32,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from .local_foresight_manager import LocalForesightMemoryManager
+from .dream_memory_store import DreamMemoryStore, LocalDreamMemoryStore
 from .reflection_types import MemoryCategory, MemoryMetadata
 
 logger = logging.getLogger(__name__)
@@ -134,17 +134,10 @@ class DreamReflectionIntegration:
 
     def __init__(
         self,
-        memory_manager: LocalForesightMemoryManager | None = None,
+        memory_store: DreamMemoryStore | None = None,
         config: DreamReflectionConfig | None = None,
     ):
-        """
-        Initialize the integration.
-
-        Args:
-            memory_manager: Memory manager for storing insights
-            config: Configuration for the integration
-        """
-        self.memory_manager = memory_manager or LocalForesightMemoryManager()
+        self.memory_store = memory_store or LocalDreamMemoryStore()
         self.config = config or DreamReflectionConfig()
 
         # Pending reflections (dream_id -> ReflectionTask)
@@ -353,8 +346,7 @@ class DreamReflectionIntegration:
                 if self.config.store_dream_lineage:
                     metadata.tags.append(f"dream_lineage:{dream_output.dream_id}")
 
-                # Store in memory system
-                await self.memory_manager.add_memory(
+                await self.memory_store.add_memory(
                     content=insight.content,
                     user_id=user_id,
                     metadata=metadata,
@@ -407,10 +399,9 @@ class DreamReflectionIntegration:
             return {"status": "completed"}
         return {"status": "pending"}
 
-    async def close(self) -> None:
-        """Clean up resources."""
-        # Cancel all pending reflections
-        for dream_id, task in list(self._pending_reflections.items()):
+    async def cancel_all(self) -> None:
+        """Cancel all pending reflection tasks without closing the store."""
+        for task in list(self._pending_reflections.values()):
             task.cancel()
 
         if self._pending_reflections:
@@ -421,8 +412,11 @@ class DreamReflectionIntegration:
 
         self._pending_reflections.clear()
 
-        if hasattr(self.memory_manager, "close"):
-            await self.memory_manager.close()
+    async def close(self) -> None:
+        """Cancel pending reflections and release the memory store."""
+        await self.cancel_all()
+        if hasattr(self.memory_store, "close"):
+            await self.memory_store.close()
 
 
 def create_dream_output(

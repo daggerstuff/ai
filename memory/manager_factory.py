@@ -1,4 +1,5 @@
 import logging
+import os
 
 from .base import BaseMemoryManager
 from .local_memory_settings import resolve_local_memory_settings, resolve_memory_provider
@@ -63,3 +64,37 @@ class MemoryManagerFactory:
 def get_required_memory_manager() -> BaseMemoryManager:
     """Return the configured shared memory manager or fail closed."""
     return MemoryManagerFactory().create_manager()
+
+
+def create_dream_manager(
+    mongodb_uri: str | None = None,
+) -> "DreamManager":
+    """Create a DreamManager configured for the runtime environment.
+
+    When MongoDB is available (via *mongodb_uri* or the ``MONGODB_URI``
+    environment variable) the dream store uses the ``MongoDBDreamStore``
+    which reads/writes to the same ``unified_memories`` collection as
+    ``ai-services/memory_adapter.py``.  Otherwise it falls back to the
+    local SQLite-backed store.
+
+    Usage::
+
+        dm = create_dream_manager()
+        result = await dm.start_dream_cycle(user_id="user-123")
+        await dm.close()
+    """
+    from .dream_manager import DreamManager
+
+    uri = mongodb_uri or os.environ.get("MONGODB_URI", "")
+    if uri:
+        from .dream_memory_store import MongoDBDreamStore
+
+        store = MongoDBDreamStore(mongodb_uri=uri)
+        logger.info("DreamManager → MongoDBDreamStore (%s)", uri)
+    else:
+        from .dream_memory_store import LocalDreamMemoryStore
+
+        store = LocalDreamMemoryStore()
+        logger.info("DreamManager → LocalDreamMemoryStore")
+
+    return DreamManager(memory_store=store)
