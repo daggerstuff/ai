@@ -15,14 +15,24 @@
             'Last updated: ' + new Date().toLocaleTimeString();
     }
 
+    // Bolt: Top-level visibilitychange listener
+    let isTabHidden = false;
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden && isTabHidden) {
+            isTabHidden = false;
+            refreshDashboardData();
+            startAutoRefresh();
+        } else if (document.hidden) {
+            isTabHidden = true;
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+    });
     function startAutoRefresh(intervalMs = 30000) {
         refreshInterval = setInterval(() => {
-            // ⚡ Bolt: Trigger immediate refresh when tab becomes visible
-            document.addEventListener('visibilitychange', function() {
-                if (!document.hidden) {
-                    refreshDashboardData();
-                }
-            });
+            // ⚡ Bolt: Removed redundant nested visibilitychange listener to prevent memory leak and excessive API polling
             // ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
             if (document.hidden) return;
             showRefreshIndicator();
