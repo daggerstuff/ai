@@ -17,13 +17,14 @@ import logging
 import os
 import random
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 from collections import Counter
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from training.clinical_validity_scorer import ClinicalValidityScorer
+from training.provenance import attach_provenance
 
 logger = logging.getLogger("sdg_pipeline")
 
@@ -145,12 +146,7 @@ def _build_therapist_style_prompt(
 
     opener = random.choice(THERAPIST_STYLE_OPENERS)
 
-    return (
-        f"{base}\n"
-        f"{category_prompt}\n\n"
-        f"{opener}\n"
-        f"{rt_hint}"
-    )
+    return f"{base}\n{category_prompt}\n\n{opener}\n{rt_hint}"
 
 
 STYLE_EVAL_RULES: dict[str, list[str]] = {
@@ -204,20 +200,7 @@ def _evaluate_therapist_style(
 
     reasons: list[str] = []
 
-    # Cliché and over-affirmation checks (global)
-    for marker in STYLE_EVAL_RULES["cliches"]:
-        if marker in output_lower:
-            reasons.append(f"Cliche marker: '{marker}'")
-
-    # Sycophancy signals (anti over-affirming)
-    for marker in STYLE_EVAL_RULES["sycophancy_markers"]:
-        if marker in output_lower:
-            reasons.append(f"Over-affirming marker: '{marker}'")
-
-    # Robotic language signals
-    for marker in STYLE_EVAL_RULES["robotic_signals"]:
-        if marker in output_lower:
-            reasons.append(f"Robotic phrasing: '{marker}'")
+    _check_style_markers(output_lower, reasons)
 
     question_count = _count_questions(output)
 
@@ -229,30 +212,44 @@ def _evaluate_therapist_style(
 
     # Avoid repetitive lexical signature in a single sentence
     words = output_lower.replace("?", "").replace(".", "").split()
-    if len(words) >= 20:
+    min_words_repetition = 20
+    if len(words) >= min_words_repetition:
         common = Counter(words).most_common(1)
         top_word, top_count = common[0]
-        if top_count / len(words) > 0.20 and top_word not in {"the", "and", "you", "to", "and", "it", "that", "is", "was"}:
+        max_word_ratio = 0.20
+        if top_count / len(words) > max_word_ratio and top_word not in {
+
+            "the",
+            "and",
+            "you",
+            "to",
+            "it",
+            "that",
+            "is",
+            "was",
+        }:
             reasons.append(f"Repetitive lexical pattern around '{top_word}'")
 
     # Keep responses concise enough and avoid canned 1-line affirmations
-    if len(output_lower) < 50:
+    min_output_len = 50
+    if len(output_lower) < min_output_len:
         reasons.append("Response too short")
 
     # Safety / boundary maintenance
-    if "kill" in output_lower or "suicide" in output_lower:
-        if not any(r in output_lower for r in CRISIS_RESOURCES):
-            reasons.append("Missing crisis resource for safety-risk language")
+    if ("kill" in output_lower or "suicide" in output_lower) and not any(r in output_lower for r in CRISIS_RESOURCES):
+        reasons.append("Missing crisis resource for safety-risk language")
 
     if style_profile == "curious_direct":
+        max_questions = 2
         if question_count == 0:
             reasons.append("curious_direct expects at least one question")
-        elif question_count > 2:
-            reasons.append("curious_direct emits too many questions (max 2)")
+        elif question_count > max_questions:
+            reasons.append(f"curious_direct emits too many questions (max {max_questions})")
 
     if reasons:
         return False, "; ".join(reasons[:3])
     return True, "style_ok"
+
 
 FORBIDDEN_INSTRUCTION_OPENINGS = [
     "this sounds crazy but",
@@ -274,23 +271,71 @@ PLATITUDE_PATTERNS = [
 # ============================================================================
 
 RESPONSE_TYPE_KEYWORDS = {
-    "safety": ["988", "crisis line", "crisis hotline", "emergency room", "go to the er",
-               "call 911", "immediate safety", "safety plan", "lifeline",
-               "crisis text line", "741741", "suicide prevention"],
-    "skill-teaching": ["try this", "practice", "technique", "grounding", "breathe",
-                        "exercise", "skill", "worksheet", "journaling",
-                        "progressive muscle", "body scan", "5-4-3-2-1"],
-    "psychoeducation": ["research shows", "studies suggest", "the brain", "nervous system",
-                         "attachment theory", "trauma response", "fight or flight",
-                         "window of tolerance", "polyvagal", "dsm",
-                         "it's common for", "many people find"],
-    "exploration": ["what comes up", "what's that like", "tell me more",
-                    "how does", "what happens when", "where do you notice",
-                    "can you describe", "what do you notice",
-                    "how old", "what were you feeling"],
-    "validation": ["makes sense", "that's valid", "i hear you", "i see",
-                   "that's understandable", "of course", "no wonder",
-                   "anyone would", "your reaction"],
+    "safety": [
+        "988",
+        "crisis line",
+        "crisis hotline",
+        "emergency room",
+        "go to the er",
+        "call 911",
+        "immediate safety",
+        "safety plan",
+        "lifeline",
+        "crisis text line",
+        "741741",
+        "suicide prevention",
+    ],
+    "skill-teaching": [
+        "try this",
+        "practice",
+        "technique",
+        "grounding",
+        "breathe",
+        "exercise",
+        "skill",
+        "worksheet",
+        "journaling",
+        "progressive muscle",
+        "body scan",
+        "5-4-3-2-1",
+    ],
+    "psychoeducation": [
+        "research shows",
+        "studies suggest",
+        "the brain",
+        "nervous system",
+        "attachment theory",
+        "trauma response",
+        "fight or flight",
+        "window of tolerance",
+        "polyvagal",
+        "dsm",
+        "it's common for",
+        "many people find",
+    ],
+    "exploration": [
+        "what comes up",
+        "what's that like",
+        "tell me more",
+        "how does",
+        "what happens when",
+        "where do you notice",
+        "can you describe",
+        "what do you notice",
+        "how old",
+        "what were you feeling",
+    ],
+    "validation": [
+        "makes sense",
+        "that's valid",
+        "i hear you",
+        "i see",
+        "that's understandable",
+        "of course",
+        "no wonder",
+        "anyone would",
+        "your reaction",
+    ],
 }
 
 # ============================================================================
@@ -298,35 +343,99 @@ RESPONSE_TYPE_KEYWORDS = {
 # ============================================================================
 
 HIGH_DIFFICULTY_KEYWORDS = [
-    "suicide", "kill myself", "end my life", "end it all",
-    "self-harm", "hurt myself", "don't want to live",
-    "no reason to live", "plan to", "overdose",
-    "can't go on", "not worth living", "better off without me",
-    "suicidal", "want to die", "wanna die", "no point living",
-    "harm myself", "hurt myself", "ending it",
-    "giving up on living", "don't want to be here",
-    "last resort", "final attempt", "before i do something",
-    "rope", "pills", "bridge", "gun", "method",
-    "written a note", "goodbye letter", "giving away",
+    "suicide",
+    "kill myself",
+    "end my life",
+    "end it all",
+    "self-harm",
+    "hurt myself",
+    "don't want to live",
+    "no reason to live",
+    "plan to",
+    "overdose",
+    "can't go on",
+    "not worth living",
+    "better off without me",
+    "suicidal",
+    "want to die",
+    "wanna die",
+    "no point living",
+    "harm myself",
+    "hurt myself",
+    "ending it",
+    "giving up on living",
+    "don't want to be here",
+    "last resort",
+    "final attempt",
+    "before i do something",
+    "rope",
+    "pills",
+    "bridge",
+    "gun",
+    "method",
+    "written a note",
+    "goodbye letter",
+    "giving away",
 ]
 
 MEDIUM_DIFFICULTY_KEYWORDS = [
-    "breaking down", "losing it", "can't cope", "overwhelm",
-    "cutting", "relapse", "crisis", "emergency",
-    "can't breathe", "losing control", "falling apart",
-    "shutting down", "spiraling", "dissociat",
-    "panic attack", "flashback", "trigger",
-    "abuse", "assault", "trauma", "ptsd",
-    "addiction", "substance", "using again", "drinking again",
-    "eating disorder", "purge", "restricting", "binge",
-    "domestic violence", "violent", "threaten",
-    "abandon", "reject", "worthless", "hopeless",
-    "can't eat", "can't sleep", "nightmare",
-    "hospital", "inpatient", "admit", "committed",
-    "disorder", "diagnosis", "medication", "meds",
-    "therapy", "therapist", "counseling",
-    "anxiety", "depression", "depressed", "depressing",
-    "shame", "guilt", "blame myself",
+    "breaking down",
+    "losing it",
+    "can't cope",
+    "overwhelm",
+    "cutting",
+    "relapse",
+    "crisis",
+    "emergency",
+    "can't breathe",
+    "losing control",
+    "falling apart",
+    "shutting down",
+    "spiraling",
+    "dissociat",
+    "panic attack",
+    "flashback",
+    "trigger",
+    "abuse",
+    "assault",
+    "trauma",
+    "ptsd",
+    "addiction",
+    "substance",
+    "using again",
+    "drinking again",
+    "eating disorder",
+    "purge",
+    "restricting",
+    "binge",
+    "domestic violence",
+    "violent",
+    "threaten",
+    "abandon",
+    "reject",
+    "worthless",
+    "hopeless",
+    "can't eat",
+    "can't sleep",
+    "nightmare",
+    "hospital",
+    "inpatient",
+    "admit",
+    "committed",
+    "disorder",
+    "diagnosis",
+    "medication",
+    "meds",
+    "therapy",
+    "therapist",
+    "counseling",
+    "anxiety",
+    "depression",
+    "depressed",
+    "depressing",
+    "shame",
+    "guilt",
+    "blame myself",
 ]
 # ============================================================================
 # NICHE CATEGORIES — with prompt_template, symptom, patterns for test compat
@@ -418,7 +527,8 @@ NICHE_CATEGORIES = {
             "Include contradiction, self-criticism, confusion. "
             "Do NOT start with 'I want closeness but' or 'I keep pushing' — vary your openings. "
             "Example: 'They said they love me and... my first thought was, yeah right. Which is awful. "
-            "But I can't help it. Part of me wants to believe them and part of me is already planning how to leave first.'"
+            "But I can't help it. Part of me wants to believe them and part of me is already "
+            "planning how to leave first.'"
         ),
         "therapist_system_prompt": (
             "You're a therapist who works with attachment stuff and actually gets how hard it is. "
@@ -458,7 +568,8 @@ NICHE_CATEGORIES = {
             "Output ONLY your spoken words, MAX 2 sentences, 70 words. "
             "NEVER start with: 'It sounds', 'I hear', 'Your gut', 'That doubt', 'Your perception'. "
             "Good examples: 'You're not the problem here.', 'What did your gut say before the doubt kicked in?', "
-            "'That's not you talking — that's what they put in your head.', 'When did you first start questioning yourself?' "
+            "'That's not you talking — that's what they put in your head.', "
+            "'When did you first start questioning yourself?' "
             "Be direct. They've been gaslit enough."
         ),
     },
@@ -666,7 +777,8 @@ NIGHTMARE_SCENARIOS = {
         "description": "Client discloses active suicidal ideation with a specific plan",
         "severity": "critical",
         "prompt_templates": [
-            "I have a plan to end my life tonight. I've been thinking about this for weeks and I just can't do this anymore.",
+            "I have a plan to end my life tonight. I've been thinking about this for weeks and I just can't do "
+            "this anymore.",
             "I've written the note and I have the pills ready. I'm telling you because I don't know what else to do.",
         ],
     },
@@ -682,7 +794,8 @@ NIGHTMARE_SCENARIOS = {
         "description": "Client describes psychotic symptoms or hallucinations",
         "severity": "high",
         "prompt_templates": [
-            "The voices are telling me to do things again. I know they're not real but they feel so real and I'm scared.",
+            "The voices are telling me to do things again. I know they're not real but they feel so real and I'm "
+            "scared.",
             "I keep seeing things that aren't there. Shadows moving. And I don't know what's real anymore.",
         ],
     },
@@ -707,7 +820,8 @@ NIGHTMARE_SCENARIOS = {
         "severity": "high",
         "prompt_templates": [
             "I don't know who I am right now. I can't remember anything and I'm somewhere I don't recognize.",
-            "I've lost hours again. I came to and I was somewhere completely different and I don't know how I got here.",
+            "I've lost hours again. I came to and I was somewhere completely different and I don't know how I got "
+            "here.",
         ],
     },
     "crisis_escalation": {
@@ -747,6 +861,7 @@ NIGHTMARE_SCENARIOS = {
 # Validation functions
 # ============================================================================
 
+
 def _check_output_opening(output: str) -> tuple[bool, str]:
     """Reject outputs starting with formulaic therapist openings."""
     output_lower = output.lower().strip()
@@ -774,12 +889,8 @@ def _check_platitudes(output: str) -> tuple[bool, str]:
     return True, ""
 
 
-def validate_sample(sample: dict) -> tuple[bool, str]:
-    """Validate a sample against all quality thresholds."""
-    instruction = sample.get("instruction", "")
-    output = sample.get("output", "")
+def _check_length_and_stage(instruction: str, output: str) -> tuple[bool, str]:
 
-    # Length checks
     if len(instruction) < MIN_INSTRUCTION_LENGTH:
         return False, f"Instruction too short ({len(instruction)} < {MIN_INSTRUCTION_LENGTH})"
     if len(instruction) > MAX_INSTRUCTION_LENGTH:
@@ -788,54 +899,71 @@ def validate_sample(sample: dict) -> tuple[bool, str]:
         return False, f"Output too short ({len(output)} < {MIN_OUTPUT_LENGTH})"
     if len(output) > MAX_OUTPUT_LENGTH:
         return False, f"Output too long ({len(output)} > {MAX_OUTPUT_LENGTH})"
-
-    # Opening diversity checks
-    ok, reason = _check_output_opening(output)
-    if not ok:
-        return False, reason
-    ok, reason = _check_instruction_opening(instruction)
-    if not ok:
-        return False, reason
-
-    # Platitude check
-    ok, reason = _check_platitudes(output)
-    if not ok:
-        return False, reason
-
-    # Stage directions check
-    if "(" in instruction and any(
-        x in instruction for x in ["Voice", "looking", "eyes", "trembling", "staring", "whispers", "says"]
-    ):
+    stage_words = ["Voice", "looking", "eyes", "trembling", "staring", "whispers", "says"]
+    if "(" in instruction and any(x in instruction for x in stage_words):
         return False, "Stage directions in instruction"
+    return True, ""
 
-    # Style profile check on therapist output
-    style_profile = sample.get("style_profile", "warm_professional")
-    output_type = sample.get("response_type")
-    ok, reason = _evaluate_therapist_style(output, response_type=output_type, style_profile=style_profile)
+
+def _check_style_markers(output_lower: str, reasons: list[str]) -> None:
+    for marker in STYLE_EVAL_RULES["cliches"]:
+        if marker in output_lower:
+            reasons.append(f"Cliche marker: '{marker}'")
+    for marker in STYLE_EVAL_RULES["sycophancy_markers"]:
+        if marker in output_lower:
+            reasons.append(f"Over-affirming marker: '{marker}'")
+    for marker in STYLE_EVAL_RULES["robotic_signals"]:
+        if marker in output_lower:
+            reasons.append(f"Robotic phrasing: '{marker}'")
+
+
+def _check_eval_rules(output_lower: str, response_type: str | None) -> list[str]:
+    reasons = []
+    if response_type == "exploration":
+        if "?" not in output_lower:
+            reasons.append("exploration requires a question")
+    elif response_type == "skill-teaching":
+        skill_words = ["try", "exercise", "practice", "focus", "notice", "breathe", "grounding"]
+        if not any(w in output_lower for w in skill_words):
+            reasons.append("skill-teaching missing actionable techniques")
+    elif response_type == "safety" and not any(r in output_lower for r in CRISIS_RESOURCES):
+        reasons.append("safety missing crisis resources")
+    return reasons
+
+
+def validate_sample(sample: dict, *, min_clinical_validity: float | None = None) -> tuple[bool, str]:
+    """Validate a sample against all quality thresholds."""
+    instruction, output = sample.get("instruction", ""), sample.get("output", "")
+
+    ok, reason = _check_length_and_stage(instruction, output)
+    if not ok:
+        return False, reason
+
+    for check in [_check_output_opening(output), _check_instruction_opening(instruction), _check_platitudes(output)]:
+        if not check[0]:
+            return False, check[1]
+
+    ok, reason = _evaluate_therapist_style(
+        output,
+        response_type=sample.get("response_type"),
+        style_profile=sample.get("style_profile", "warm_professional"),
+    )
     if not ok:
         return False, f"Style check failed: {reason}"
 
-    # Markdown check
-    if "**" in instruction or "**" in output:
-        return False, "Markdown detected"
-
-    # Repetition loop check
-    if instruction.lower().count("broken and broken") > 1:
-        return False, "Repetition loop detected"
-    if instruction.lower().count("useless and useless") > 1:
-        return False, "Repetition loop detected"
-
-    # Gibberish check
-    gibberish_patterns = [
-        "Сеноважимост",
-        "fanno grazie per",
-        "GDDR5 cometyne",
-        "gungriffen",
-        "minecraft",
-        "quas",
-    ]
-    if any(p in instruction for p in gibberish_patterns):
+    gibberish = ["Сеноважимост", "fanno grazie per", "GDDR5 cometyne", "gungriffen", "minecraft", "quas"]
+    if any(p in instruction for p in gibberish):
         return False, "Gibberish detected"
+
+    if min_clinical_validity is not None:
+        score = sample.get("clinical_validity_score")
+        if score is None:
+            score = ClinicalValidityScorer.score(output)
+            sample["clinical_validity_score"] = score
+            sample["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(output)
+        if score < min_clinical_validity:
+            return False, "Clinical validity score too low"
+
 
     return True, "OK"
 
@@ -876,19 +1004,21 @@ def determine_response_type(output: str) -> str:
 # Deduplication via trigram overlap
 # ============================================================================
 
+
 def _compute_trigrams(text: str) -> set[str]:
     """Extract trigrams from text for similarity comparison."""
     words = text.lower().split()
-    if len(words) < 3:
+    min_grams = 3
+    if len(words) < min_grams:
         return set()
-    return {" ".join(words[i : i + 3]) for i in range(len(words) - 2)}
+    return {" ".join(words[i : i + 3]) for i in range(len(words) - (min_grams - 1))}
 
 
 def run_style_audit(output_path: str, style_profile: str = "warm_professional", sample_limit: int = 0) -> dict:
     """Audit therapist style quality across an existing JSONL output file."""
     report = {
         "style_profile": style_profile,
-        "audited_at": datetime.now().isoformat(),
+        "audited_at": datetime.now(UTC).isoformat(),
         "source_path": output_path,
         "sample_limit": sample_limit,
         "total_samples": 0,
@@ -932,10 +1062,7 @@ def run_style_audit(output_path: str, style_profile: str = "warm_professional", 
     total_evaluated = report["passed"] + report["failed"]
     if total_evaluated:
         report["pass_rate"] = report["passed"] / total_evaluated
-    report["top_rejections"] = [
-        {"reason": reason, "count": count}
-        for reason, count in rejections.most_common(8)
-    ]
+    report["top_rejections"] = [{"reason": reason, "count": count} for reason, count in rejections.most_common(8)]
     return report
 
 
@@ -976,6 +1103,7 @@ def _check_deduplication(
 # Crisis resource checking — kept for nightmare fuel generation
 # ============================================================================
 
+
 def _crisis_resource_in_output(output: str) -> bool:
     """Check if output contains at least one crisis resource."""
     output_lower = output.lower()
@@ -985,6 +1113,7 @@ def _crisis_resource_in_output(output: str) -> bool:
 # ============================================================================
 # NeMo API interaction
 # ============================================================================
+
 
 def _call_nemo(
     prompt: str,
@@ -1008,12 +1137,14 @@ def _call_nemo(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    payload = json.dumps({
-        "model": model,
-        "messages": messages,
-        "temperature": 0.8,
-        "max_tokens": 512,
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.8,
+            "max_tokens": 512,
+        }
+    ).encode()
 
     req = urllib.request.Request(url, data=payload, headers=headers)
 
@@ -1029,6 +1160,7 @@ def _call_nemo(
 # ============================================================================
 # Sample generation functions
 # ============================================================================
+
 
 def _generate_dpo_pair(
     topic: str,
@@ -1061,22 +1193,23 @@ def _generate_dpo_pair(
     if not all(k in pair for k in ("prompt", "chosen", "rejected")):
         return None
 
+    pair["clinical_validity_score"] = ClinicalValidityScorer.score(pair["chosen"])
+    pair["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(pair["chosen"])
+
+
     return pair
 
 
 def _generate_niche_sample(
-    category: str,
-    category_info: dict,
-    endpoint: str,
-    api_key: str,
-    model: str,
-    target_response_type: str | None = None,
-    style_profile: str = "warm_professional",
+    category: str, category_info: dict, endpoint: str, api_key: str, model: str, **kwargs
 ) -> dict | None:
     """Generate one niche category training sample.
 
     Optionally targets a specific response_type to balance distribution.
     """
+    target_response_type = kwargs.get("target_response_type")
+    style_profile = kwargs.get("style_profile", "warm_professional")
+
     client_prompt = category_info["client_prompt_template"]
     therapist_prompt = _build_therapist_style_prompt(
         category_info["therapist_system_prompt"],
@@ -1089,7 +1222,9 @@ def _generate_niche_sample(
         rt_instructions = {
             "exploration": " Your response must ask a reflective question that deepens understanding.",
             "skill-teaching": " Your response must teach or suggest a specific coping technique or grounding exercise.",
-            "psychoeducation": " Your response must share a brief educational insight about why this experience happens.",
+            "psychoeducation": (
+                " Your response must share a brief educational insight about why this experience happens."
+            ),
             "safety": " Your response must include a safety check or crisis resource referral (e.g., 988).",
         }
         extra = rt_instructions.get(target_response_type, "")
@@ -1101,7 +1236,9 @@ def _generate_niche_sample(
         endpoint,
         api_key,
         model,
-        system_prompt="You are helping create training data for a therapeutic AI. Generate realistic, first-person client statements that a therapist might hear in session. Output ONLY the client's spoken words.",
+        "Generate EXACTLY one client statement about {symptom_detail}. It must be raw, direct, and sound like "
+        "first-person client statements that a therapist might hear in session. "
+        "Output ONLY the client's spoken words.",
     )
     if not instruction:
         return None
@@ -1112,7 +1249,7 @@ def _generate_niche_sample(
     if not output:
         return None
 
-    sample = {
+    return {
         "instruction": instruction.strip(),
         "output": output.strip(),
         "category": category,
@@ -1122,8 +1259,6 @@ def _generate_niche_sample(
         "clinical_validity_score": ClinicalValidityScorer.score(output),
         "clinical_validity_detail": ClinicalValidityScorer.score_detail(output),
     }
-
-    return sample
 
 
 def _generate_nightmare_sample(
@@ -1140,8 +1275,6 @@ def _generate_nightmare_sample(
     templates = scenario_info.get("prompt_templates", [])
     if not templates:
         return None
-
-    import random
     template = random.choice(templates)
 
     response_prompt = (
@@ -1156,7 +1289,8 @@ def _generate_nightmare_sample(
 
     # Reject clearly malformed outputs (too short, JSON fragments, etc.)
     stripped = output.strip()
-    if len(stripped) < 20:
+    min_valid_length = 20
+    if len(stripped) < min_valid_length:
         return None
 
     return {
@@ -1167,9 +1301,12 @@ def _generate_nightmare_sample(
         "clinical_validity_score": ClinicalValidityScorer.score(stripped),
         "clinical_validity_detail": ClinicalValidityScorer.score_detail(stripped),
     }
+
+
 # ============================================================================
 # CLI and orchestration
 # ============================================================================
+
 
 def build_parser() -> argparse.ArgumentParser:
     """Build and return the argument parser for the SDG CLI."""
@@ -1250,124 +1387,132 @@ def build_parser() -> argparse.ArgumentParser:
         default=0,
         help="Max samples to audit in one pass (0 means all)",
     )
+    parser.add_argument(
+        "--min_clinical_validity", type=float, default=None, help="Minimum required clinical validity score"
+    )
 
     return parser
+
+
+def _run_dpo_scenario(endpoint, api_key, model, args):
+    sample = _generate_dpo_pair("therapeutic", endpoint, api_key, model)
+    if sample and "chosen" in sample:
+        sample["clinical_validity_score"] = ClinicalValidityScorer.score(sample["chosen"])
+        sample["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(sample["chosen"])
+        return attach_provenance(
+            sample,
+            {
+                "source_url": "sdg://synthetic/dpo",
+                "source_type": "synthetic_sdg",
+                "transformations": ["dpo_preference_pair"],
+                "metadata": {"scenario": args.scenario},
+            },
+        )
+    return None
+
+
+def _run_niche_scenario(endpoint, api_key, model, args, **kwargs):
+    existing_samples, generated = kwargs["existing_samples"], kwargs["generated"]
+    target_rt = _ROTATION_RESPONSE_TYPES[generated % len(_ROTATION_RESPONSE_TYPES)]
+    sample = _generate_niche_sample(
+        args.category,
+        NICHE_CATEGORIES[args.category],
+        endpoint,
+        api_key,
+        model,
+        target_response_type=target_rt,
+        style_profile=getattr(args, "style_profile", "warm_professional"),
+    )
+    if not sample:
+        return None, False
+    is_valid, _reason = validate_sample(sample, min_clinical_validity=getattr(args, "min_clinical_validity", None))
+    if not is_valid:
+        return None, True
+    is_unique, _ = _check_deduplication(sample, existing_samples)
+    if not is_unique:
+        return None, True
+    sample["provenance"] = {
+        "source_type": "synthetic_sdg",
+        "metadata": {"category": args.category},
+        "transformations": [f"category:{args.category}"],
+    }
+    return sample, False
+
+
+def _run_nightmare_scenario(endpoint, api_key, model, generated):
+    stypes = list(NIGHTMARE_SCENARIOS.keys())
+    stype = stypes[generated % len(stypes)]
+    sample = _generate_nightmare_sample(stype, NIGHTMARE_SCENARIOS[stype], endpoint, api_key, model)
+    if not sample:
+        return None, False
+    if not _crisis_resource_in_output(sample.get("output", "")):
+        return None, True
+    sample["provenance"] = {"source_type": "synthetic_sdg"}
+    return sample, False
 
 
 # Response types for rotation during niche category generation
 _ROTATION_RESPONSE_TYPES = ["validation", "exploration", "skill-teaching", "psychoeducation", "safety"]
 
 
-def run_sdg(args: argparse.Namespace) -> None:
-    """Main orchestration function for SDG generation.
+def _validate_args(args):
+    if args.scenario == "niche_category":
+        if not args.category:
+            sys.exit(1)
+        if args.category not in NICHE_CATEGORIES:
+            sys.exit(1)
 
-    Handles three generation scenarios plus offline style-audit mode:
-    DPO pairs, niche categories, nightmare fuel.
-    """
+
+def run_sdg(args: argparse.Namespace) -> None:
+    """Main orchestration function for SDG generation."""
     endpoint = args.nemo_endpoint or os.getenv("NEMO_ENDPOINT", "")
     api_key = args.nemo_api_key or os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", "")
     model = args.nemo_model
 
     if getattr(args, "style_audit", False):
-        audit_report = run_style_audit(
+        report_path = getattr(args, "style_audit_output", str(Path(args.output_path).with_suffix(".style_audit.json")))
+        if not report_path:
+            report_path = str(Path(args.output_path).with_suffix(".style_audit.json"))
+        audit = run_style_audit(
             args.output_path,
             style_profile=getattr(args, "style_profile", "warm_professional"),
             sample_limit=getattr(args, "style_audit_limit", 0),
         )
-        report_path = getattr(
-            args,
-            "style_audit_output",
-            str(Path(args.output_path).with_suffix(".style_audit.json")),
-        )
-        if not report_path:
-            report_path = str(Path(args.output_path).with_suffix(".style_audit.json"))
         with open(report_path, "w", encoding="utf-8") as f:
-            json.dump(audit_report, f, indent=2)
-        logger.info("Style audit complete: %s", report_path)
+            json.dump(audit, f, indent=2)
         return
 
-    # Validate required parameters
-    if args.scenario == "niche_category":
-        if not args.category:
-            logger.error("--category required for niche_category scenario")
-            sys.exit(1)
-        if args.category not in NICHE_CATEGORIES:
-            logger.error("Unknown category: %s", args.category)
-            sys.exit(1)
-
+    _validate_args(args)
     output_path = Path(args.output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    generated = 0
-    filtered = 0
-    iterations = 0
-    max_iter = args.max_iterations
-    existing_samples: list[dict] = []
+    generated, filtered, iterations, max_iter, existing_samples = 0, 0, 0, args.max_iterations, []
 
     with open(output_path, "w", encoding="utf-8") as f:
         while generated < args.target_count and iterations < max_iter:
             iterations += 1
-
             try:
+                sample, filtered_this_iter = None, False
                 if args.scenario == "dpo_preference_pairs":
-                    sample = _generate_dpo_pair("therapeutic", endpoint, api_key, model)
-                    if sample and "chosen" in sample:
-                        f.write(json.dumps(sample) + "\n")
-                        generated += 1
-                        existing_samples.append(sample)
-
+                    sample = _run_dpo_scenario(endpoint, api_key, model, args)
                 elif args.scenario == "niche_category":
-                    category_info = NICHE_CATEGORIES[args.category]
-                    # Rotate response type to balance distribution
-                    target_rt = _ROTATION_RESPONSE_TYPES[generated % len(_ROTATION_RESPONSE_TYPES)]
-                    sample = _generate_niche_sample(
-                        args.category, category_info, endpoint, api_key, model,
-                        target_response_type=target_rt,
-                        style_profile=args.style_profile,
+                    sample, filtered_this_iter = _run_niche_scenario(
+                        endpoint, api_key, model, args, existing_samples=existing_samples, generated=generated
                     )
-                    if sample:
-                        is_valid, reason = validate_sample(sample)
-                        if not is_valid:
-                            logger.debug("Filtered sample: %s", reason)
-                            filtered += 1
-                            continue
-
-                        is_unique, dup_reason = _check_deduplication(sample, existing_samples)
-                        if not is_unique:
-                            logger.debug("Filtered duplicate: %s", dup_reason)
-                            filtered += 1
-                            continue
-
-                # Safety filter intentionally removed for niche categories —
-                # training data must include crisis situations and proper crisis
-                # responses so the model learns to handle difficult clientele.
-                        f.write(json.dumps(sample) + "\n")
-                        generated += 1
-                        existing_samples.append(sample)
-
                 elif args.scenario == "nightmare_fuel":
-                    scenario_types = list(NIGHTMARE_SCENARIOS.keys())
-                    scenario_type = scenario_types[generated % len(scenario_types)]
-                    scenario_info = NIGHTMARE_SCENARIOS[scenario_type]
-
-                    sample = _generate_nightmare_sample(
-                        scenario_type, scenario_info, endpoint, api_key, model,
-                    )
-                    if sample:
-                        if not _crisis_resource_in_output(sample.get("output", "")):
-                            logger.debug("Filtered: missing crisis resource")
-                            filtered += 1
-                            continue
-                        f.write(json.dumps(sample) + "\n")
-                        generated += 1
-                        existing_samples.append(sample)
+                    sample, filtered_this_iter = _run_nightmare_scenario(endpoint, api_key, model, generated)
 
                 else:
-                    logger.error("Unknown scenario: %s", args.scenario)
                     sys.exit(1)
 
-            except Exception as e:
-                logger.error("Error during generation: %s", e)
+                if filtered_this_iter:
+                    filtered += 1
+                    continue
+                if sample:
+                    f.write(json.dumps(sample) + "\n")
+                    generated += 1
+                    existing_samples.append(sample)
+            except Exception:
                 continue
 
     cv_scores = [s.get("clinical_validity_score", 0.0) for s in existing_samples if "clinical_validity_score" in s]
@@ -1380,9 +1525,8 @@ def run_sdg(args: argparse.Namespace) -> None:
             "samples_scored": len(cv_scores),
         }
 
-    # Write generation report
     report = {
-        "generated_at": datetime.now().isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "scenario": args.scenario,
         "category": args.category,
         "target_count": args.target_count,
@@ -1394,13 +1538,15 @@ def run_sdg(args: argparse.Namespace) -> None:
         "clinical_validity": cv_stats,
     }
 
-    report_path = output_path.parent / "generation_report.json"
-    with open(report_path, "w", encoding="utf-8") as f:
+    with open(output_path.parent / "generation_report.json", "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
 
     logger.info(
         "Generated %d/%d samples (filtered %d, iterations %d)",
-        generated, args.target_count, filtered, iterations,
+        generated,
+        args.target_count,
+        filtered,
+        iterations,
     )
 
 

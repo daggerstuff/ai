@@ -700,6 +700,7 @@ class TestRunSdgNiche:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            style_profile="warm_professional",
         )
         run_sdg(args)
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
