@@ -1,5 +1,7 @@
 import re
 
+from utils.text_segmentation import split_sentences
+
 
 class SubtitleProcessor:
     """Utility for cleaning and formatting YouTube VTT subtitles."""
@@ -32,8 +34,8 @@ class SubtitleProcessor:
 
         seen_lines = set()
 
-        for line in lines:
-            line = line.strip()
+        for raw_line in lines:
+            line = raw_line.strip()
             if not line:
                 continue
 
@@ -76,7 +78,7 @@ class SubtitleProcessor:
         md += "## Transcript\n\n"
 
         # Split into paragraphs of roughly 5-7 sentences
-        sentences = re.split(r"(?<=[.!?])\s+", text)
+        sentences = split_sentences(text)
         paragraphs = []
         for i in range(0, len(sentences), 6):
             paragraphs.append(" ".join(sentences[i : i + 6]))
