@@ -189,3 +189,7 @@ docs/training/ENV_QUICKSTART.md
 config/emergency_security_config.json
 *.jsonl
 **/AGENTS.md
+
+# === GENERATED / ARTIFACTS ===
+docs/Books/
+simulated_client/
