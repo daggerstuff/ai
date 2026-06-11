@@ -24,6 +24,7 @@ from datetime import datetime
 from pathlib import Path
 
 from training.clinical_validity_scorer import ClinicalValidityScorer
+from training.provenance import attach_provenance
 
 logger = logging.getLogger("sdg_pipeline")
 
@@ -145,12 +146,7 @@ def _build_therapist_style_prompt(
 
     opener = random.choice(THERAPIST_STYLE_OPENERS)
 
-    return (
-        f"{base}\n"
-        f"{category_prompt}\n\n"
-        f"{opener}\n"
-        f"{rt_hint}"
-    )
+    return f"{base}\n{category_prompt}\n\n{opener}\n{rt_hint}"
 
 
 STYLE_EVAL_RULES: dict[str, list[str]] = {
@@ -232,7 +228,17 @@ def _evaluate_therapist_style(
     if len(words) >= 20:
         common = Counter(words).most_common(1)
         top_word, top_count = common[0]
-        if top_count / len(words) > 0.20 and top_word not in {"the", "and", "you", "to", "and", "it", "that", "is", "was"}:
+        if top_count / len(words) > 0.20 and top_word not in {
+            "the",
+            "and",
+            "you",
+            "to",
+            "and",
+            "it",
+            "that",
+            "is",
+            "was",
+        }:
             reasons.append(f"Repetitive lexical pattern around '{top_word}'")
 
     # Keep responses concise enough and avoid canned 1-line affirmations
@@ -254,6 +260,7 @@ def _evaluate_therapist_style(
         return False, "; ".join(reasons[:3])
     return True, "style_ok"
 
+
 FORBIDDEN_INSTRUCTION_OPENINGS = [
     "this sounds crazy but",
     "this sounds crazy, but",
@@ -274,23 +281,71 @@ PLATITUDE_PATTERNS = [
 # ============================================================================
 
 RESPONSE_TYPE_KEYWORDS = {
-    "safety": ["988", "crisis line", "crisis hotline", "emergency room", "go to the er",
-               "call 911", "immediate safety", "safety plan", "lifeline",
-               "crisis text line", "741741", "suicide prevention"],
-    "skill-teaching": ["try this", "practice", "technique", "grounding", "breathe",
-                        "exercise", "skill", "worksheet", "journaling",
-                        "progressive muscle", "body scan", "5-4-3-2-1"],
-    "psychoeducation": ["research shows", "studies suggest", "the brain", "nervous system",
-                         "attachment theory", "trauma response", "fight or flight",
-                         "window of tolerance", "polyvagal", "dsm",
-                         "it's common for", "many people find"],
-    "exploration": ["what comes up", "what's that like", "tell me more",
-                    "how does", "what happens when", "where do you notice",
-                    "can you describe", "what do you notice",
-                    "how old", "what were you feeling"],
-    "validation": ["makes sense", "that's valid", "i hear you", "i see",
-                   "that's understandable", "of course", "no wonder",
-                   "anyone would", "your reaction"],
+    "safety": [
+        "988",
+        "crisis line",
+        "crisis hotline",
+        "emergency room",
+        "go to the er",
+        "call 911",
+        "immediate safety",
+        "safety plan",
+        "lifeline",
+        "crisis text line",
+        "741741",
+        "suicide prevention",
+    ],
+    "skill-teaching": [
+        "try this",
+        "practice",
+        "technique",
+        "grounding",
+        "breathe",
+        "exercise",
+        "skill",
+        "worksheet",
+        "journaling",
+        "progressive muscle",
+        "body scan",
+        "5-4-3-2-1",
+    ],
+    "psychoeducation": [
+        "research shows",
+        "studies suggest",
+        "the brain",
+        "nervous system",
+        "attachment theory",
+        "trauma response",
+        "fight or flight",
+        "window of tolerance",
+        "polyvagal",
+        "dsm",
+        "it's common for",
+        "many people find",
+    ],
+    "exploration": [
+        "what comes up",
+        "what's that like",
+        "tell me more",
+        "how does",
+        "what happens when",
+        "where do you notice",
+        "can you describe",
+        "what do you notice",
+        "how old",
+        "what were you feeling",
+    ],
+    "validation": [
+        "makes sense",
+        "that's valid",
+        "i hear you",
+        "i see",
+        "that's understandable",
+        "of course",
+        "no wonder",
+        "anyone would",
+        "your reaction",
+    ],
 }
 
 # ============================================================================
@@ -298,35 +353,99 @@ RESPONSE_TYPE_KEYWORDS = {
 # ============================================================================
 
 HIGH_DIFFICULTY_KEYWORDS = [
-    "suicide", "kill myself", "end my life", "end it all",
-    "self-harm", "hurt myself", "don't want to live",
-    "no reason to live", "plan to", "overdose",
-    "can't go on", "not worth living", "better off without me",
-    "suicidal", "want to die", "wanna die", "no point living",
-    "harm myself", "hurt myself", "ending it",
-    "giving up on living", "don't want to be here",
-    "last resort", "final attempt", "before i do something",
-    "rope", "pills", "bridge", "gun", "method",
-    "written a note", "goodbye letter", "giving away",
+    "suicide",
+    "kill myself",
+    "end my life",
+    "end it all",
+    "self-harm",
+    "hurt myself",
+    "don't want to live",
+    "no reason to live",
+    "plan to",
+    "overdose",
+    "can't go on",
+    "not worth living",
+    "better off without me",
+    "suicidal",
+    "want to die",
+    "wanna die",
+    "no point living",
+    "harm myself",
+    "hurt myself",
+    "ending it",
+    "giving up on living",
+    "don't want to be here",
+    "last resort",
+    "final attempt",
+    "before i do something",
+    "rope",
+    "pills",
+    "bridge",
+    "gun",
+    "method",
+    "written a note",
+    "goodbye letter",
+    "giving away",
 ]
 
 MEDIUM_DIFFICULTY_KEYWORDS = [
-    "breaking down", "losing it", "can't cope", "overwhelm",
-    "cutting", "relapse", "crisis", "emergency",
-    "can't breathe", "losing control", "falling apart",
-    "shutting down", "spiraling", "dissociat",
-    "panic attack", "flashback", "trigger",
-    "abuse", "assault", "trauma", "ptsd",
-    "addiction", "substance", "using again", "drinking again",
-    "eating disorder", "purge", "restricting", "binge",
-    "domestic violence", "violent", "threaten",
-    "abandon", "reject", "worthless", "hopeless",
-    "can't eat", "can't sleep", "nightmare",
-    "hospital", "inpatient", "admit", "committed",
-    "disorder", "diagnosis", "medication", "meds",
-    "therapy", "therapist", "counseling",
-    "anxiety", "depression", "depressed", "depressing",
-    "shame", "guilt", "blame myself",
+    "breaking down",
+    "losing it",
+    "can't cope",
+    "overwhelm",
+    "cutting",
+    "relapse",
+    "crisis",
+    "emergency",
+    "can't breathe",
+    "losing control",
+    "falling apart",
+    "shutting down",
+    "spiraling",
+    "dissociat",
+    "panic attack",
+    "flashback",
+    "trigger",
+    "abuse",
+    "assault",
+    "trauma",
+    "ptsd",
+    "addiction",
+    "substance",
+    "using again",
+    "drinking again",
+    "eating disorder",
+    "purge",
+    "restricting",
+    "binge",
+    "domestic violence",
+    "violent",
+    "threaten",
+    "abandon",
+    "reject",
+    "worthless",
+    "hopeless",
+    "can't eat",
+    "can't sleep",
+    "nightmare",
+    "hospital",
+    "inpatient",
+    "admit",
+    "committed",
+    "disorder",
+    "diagnosis",
+    "medication",
+    "meds",
+    "therapy",
+    "therapist",
+    "counseling",
+    "anxiety",
+    "depression",
+    "depressed",
+    "depressing",
+    "shame",
+    "guilt",
+    "blame myself",
 ]
 # ============================================================================
 # NICHE CATEGORIES — with prompt_template, symptom, patterns for test compat
@@ -747,6 +866,7 @@ NIGHTMARE_SCENARIOS = {
 # Validation functions
 # ============================================================================
 
+
 def _check_output_opening(output: str) -> tuple[bool, str]:
     """Reject outputs starting with formulaic therapist openings."""
     output_lower = output.lower().strip()
@@ -774,7 +894,7 @@ def _check_platitudes(output: str) -> tuple[bool, str]:
     return True, ""
 
 
-def validate_sample(sample: dict) -> tuple[bool, str]:
+def validate_sample(sample: dict, min_clinical_validity: float = 0.0) -> tuple[bool, str]:
     """Validate a sample against all quality thresholds."""
     instruction = sample.get("instruction", "")
     output = sample.get("output", "")
@@ -837,6 +957,13 @@ def validate_sample(sample: dict) -> tuple[bool, str]:
     if any(p in instruction for p in gibberish_patterns):
         return False, "Gibberish detected"
 
+    # Clinical validity check
+    if min_clinical_validity > 0:
+        score = ClinicalValidityScorer.score(output)
+        sample["clinical_validity_score"] = score
+        if score < min_clinical_validity:
+            return False, f"Clinical validity score too low ({score:.3f} < {min_clinical_validity})"
+
     return True, "OK"
 
 
@@ -875,6 +1002,7 @@ def determine_response_type(output: str) -> str:
 # ============================================================================
 # Deduplication via trigram overlap
 # ============================================================================
+
 
 def _compute_trigrams(text: str) -> set[str]:
     """Extract trigrams from text for similarity comparison."""
@@ -932,10 +1060,7 @@ def run_style_audit(output_path: str, style_profile: str = "warm_professional", 
     total_evaluated = report["passed"] + report["failed"]
     if total_evaluated:
         report["pass_rate"] = report["passed"] / total_evaluated
-    report["top_rejections"] = [
-        {"reason": reason, "count": count}
-        for reason, count in rejections.most_common(8)
-    ]
+    report["top_rejections"] = [{"reason": reason, "count": count} for reason, count in rejections.most_common(8)]
     return report
 
 
@@ -976,6 +1101,7 @@ def _check_deduplication(
 # Crisis resource checking — kept for nightmare fuel generation
 # ============================================================================
 
+
 def _crisis_resource_in_output(output: str) -> bool:
     """Check if output contains at least one crisis resource."""
     output_lower = output.lower()
@@ -985,6 +1111,7 @@ def _crisis_resource_in_output(output: str) -> bool:
 # ============================================================================
 # NeMo API interaction
 # ============================================================================
+
 
 def _call_nemo(
     prompt: str,
@@ -1008,12 +1135,14 @@ def _call_nemo(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    payload = json.dumps({
-        "model": model,
-        "messages": messages,
-        "temperature": 0.8,
-        "max_tokens": 512,
-    }).encode()
+    payload = json.dumps(
+        {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.8,
+            "max_tokens": 512,
+        }
+    ).encode()
 
     req = urllib.request.Request(url, data=payload, headers=headers)
 
@@ -1029,6 +1158,7 @@ def _call_nemo(
 # ============================================================================
 # Sample generation functions
 # ============================================================================
+
 
 def _generate_dpo_pair(
     topic: str,
@@ -1060,6 +1190,14 @@ def _generate_dpo_pair(
 
     if not all(k in pair for k in ("prompt", "chosen", "rejected")):
         return None
+
+    try:
+        score = ClinicalValidityScorer.score(pair.get("chosen", ""))
+        pair["clinical_validity_score"] = score
+        pair["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(pair.get("chosen", ""))
+    except Exception:
+        pair["clinical_validity_score"] = 0.0
+        pair["clinical_validity_detail"] = {}
 
     return pair
 
@@ -1142,6 +1280,7 @@ def _generate_nightmare_sample(
         return None
 
     import random
+
     template = random.choice(templates)
 
     response_prompt = (
@@ -1167,9 +1306,12 @@ def _generate_nightmare_sample(
         "clinical_validity_score": ClinicalValidityScorer.score(stripped),
         "clinical_validity_detail": ClinicalValidityScorer.score_detail(stripped),
     }
+
+
 # ============================================================================
 # CLI and orchestration
 # ============================================================================
+
 
 def build_parser() -> argparse.ArgumentParser:
     """Build and return the argument parser for the SDG CLI."""
@@ -1250,6 +1392,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=0,
         help="Max samples to audit in one pass (0 means all)",
     )
+    parser.add_argument(
+        "--min_clinical_validity",
+        type=float,
+        default=0.0,
+        help="Minimum clinical validity score threshold (0.0 = disabled)",
+    )
 
     return parser
 
@@ -1312,6 +1460,15 @@ def run_sdg(args: argparse.Namespace) -> None:
                 if args.scenario == "dpo_preference_pairs":
                     sample = _generate_dpo_pair("therapeutic", endpoint, api_key, model)
                     if sample and "chosen" in sample:
+                        sample = attach_provenance(
+                            sample,
+                            {
+                                "source_url": "sdg://synthetic/dpo",
+                                "source_type": "synthetic_sdg",
+                                "transformations": ["dpo_preference_pair"],
+                                "metadata": {"scenario": "dpo_preference_pairs"},
+                            },
+                        )
                         f.write(json.dumps(sample) + "\n")
                         generated += 1
                         existing_samples.append(sample)
@@ -1321,12 +1478,19 @@ def run_sdg(args: argparse.Namespace) -> None:
                     # Rotate response type to balance distribution
                     target_rt = _ROTATION_RESPONSE_TYPES[generated % len(_ROTATION_RESPONSE_TYPES)]
                     sample = _generate_niche_sample(
-                        args.category, category_info, endpoint, api_key, model,
+                        args.category,
+                        category_info,
+                        endpoint,
+                        api_key,
+                        model,
                         target_response_type=target_rt,
                         style_profile=args.style_profile,
                     )
                     if sample:
-                        is_valid, reason = validate_sample(sample)
+                        is_valid, reason = validate_sample(
+                            sample,
+                            min_clinical_validity=getattr(args, "min_clinical_validity", 0.0),
+                        )
                         if not is_valid:
                             logger.debug("Filtered sample: %s", reason)
                             filtered += 1
@@ -1338,9 +1502,21 @@ def run_sdg(args: argparse.Namespace) -> None:
                             filtered += 1
                             continue
 
-                # Safety filter intentionally removed for niche categories —
-                # training data must include crisis situations and proper crisis
-                # responses so the model learns to handle difficult clientele.
+                        # Safety filter intentionally removed for niche categories —
+                        # training data must include crisis situations and proper crisis
+                        # responses so the model learns to handle difficult clientele.
+                        sample = attach_provenance(
+                            sample,
+                            {
+                                "source_url": f"sdg://synthetic/niche/{args.category}",
+                                "source_type": "synthetic_sdg",
+                                "transformations": [f"category:{args.category}", args.style_profile],
+                                "metadata": {
+                                    "scenario": "niche_category",
+                                    "category": args.category,
+                                },
+                            },
+                        )
                         f.write(json.dumps(sample) + "\n")
                         generated += 1
                         existing_samples.append(sample)
@@ -1351,13 +1527,29 @@ def run_sdg(args: argparse.Namespace) -> None:
                     scenario_info = NIGHTMARE_SCENARIOS[scenario_type]
 
                     sample = _generate_nightmare_sample(
-                        scenario_type, scenario_info, endpoint, api_key, model,
+                        scenario_type,
+                        scenario_info,
+                        endpoint,
+                        api_key,
+                        model,
                     )
                     if sample:
                         if not _crisis_resource_in_output(sample.get("output", "")):
                             logger.debug("Filtered: missing crisis resource")
                             filtered += 1
                             continue
+                        sample = attach_provenance(
+                            sample,
+                            {
+                                "source_url": f"sdg://synthetic/nightmare/{scenario_type}",
+                                "source_type": "synthetic_sdg",
+                                "transformations": ["nightmare_fuel", scenario_type],
+                                "metadata": {
+                                    "scenario": "nightmare_fuel",
+                                    "scenario_type": scenario_type,
+                                },
+                            },
+                        )
                         f.write(json.dumps(sample) + "\n")
                         generated += 1
                         existing_samples.append(sample)
@@ -1400,7 +1592,10 @@ def run_sdg(args: argparse.Namespace) -> None:
 
     logger.info(
         "Generated %d/%d samples (filtered %d, iterations %d)",
-        generated, args.target_count, filtered, iterations,
+        generated,
+        args.target_count,
+        filtered,
+        iterations,
     )
 
 
