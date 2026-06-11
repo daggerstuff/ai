@@ -22,12 +22,12 @@ from training.youtube_ingestion import (
     _is_german_channel,
     _load_compiled_hashes,
     _semantic_chunks,
-    _split_sentences,
     _transcript_to_pairs,
     _word_chunks,
     build_parser,
     ingest_channel,
     run_ingestion,
+    split_sentences,
 )
 
 EXPECTED_TWO_RECORDS = 2
@@ -148,7 +148,7 @@ class TestTranscriptToPairs:
             chunk_words=20,
             chunk_overlap_words=0,
         )
-        assert len(pairs) >= 2
+        assert len(pairs) >= EXPECTED_TWO_RECORDS
         assert all(pair["pairing_strategy"] == "semantic_chunk" for pair in pairs)
         assert "." in pairs[0]["output"]
 
@@ -178,14 +178,17 @@ class TestSemanticChunks:
             "Small steps can rebuild trust over time."
         )
         chunks = _semantic_chunks(text, chunk_words=20, overlap_words=0)
-        assert len(chunks) >= 2
+        assert len(chunks) >= EXPECTED_TWO_RECORDS
         assert all(chunk["pairing_strategy"] == "semantic_chunk" for chunk in chunks)
         assert all("." in chunk["text"] or "?" in chunk["text"] or "!" in chunk["text"] for chunk in chunks[:-1])
 
     def test_preserves_paragraphs_under_limit(self):
-        text = "First complete paragraph about trauma recovery.\n\nSecond complete paragraph about nervous system regulation."
+        text = (
+            "First complete paragraph about trauma recovery.\n\n"
+            "Second complete paragraph about nervous system regulation."
+        )
         chunks = _semantic_chunks(text, chunk_words=50, overlap_words=0)
-        assert len(chunks) == 2
+        assert len(chunks) == EXPECTED_TWO_RECORDS
         assert chunks[0]["text"] == "First complete paragraph about trauma recovery."
         assert chunks[1]["text"] == "Second complete paragraph about nervous system regulation."
 
@@ -194,8 +197,8 @@ class TestSemanticChunks:
         assert len(chunks) == EXPECTED_THREE_CHUNKS
         assert all(chunk["pairing_strategy"] == "word_chunk" for chunk in chunks)
 
-    def test_split_sentences_handles_punctuation(self):
-        sentences = _split_sentences("First idea. Second idea! Third idea?")
+    def testsplit_sentences_handles_punctuation(self):
+        sentences = split_sentences("First idea. Second idea! Third idea?")
         assert sentences == ["First idea.", "Second idea!", "Third idea?"]
 
 
