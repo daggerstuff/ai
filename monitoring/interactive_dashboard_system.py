@@ -15,6 +15,21 @@
             'Last updated: ' + new Date().toLocaleTimeString();
     }
 
+    // Bolt: Top-level visibilitychange listener
+    let isTabHidden = false;
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden && isTabHidden) {
+            isTabHidden = false;
+            refreshDashboardData();
+            startAutoRefresh();
+        } else if (document.hidden) {
+            isTabHidden = true;
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+    });
     function startAutoRefresh(intervalMs = 30000) {
         refreshInterval = setInterval(() => {
             // ⚡ Bolt: Removed redundant nested visibilitychange listener to prevent memory leak and excessive API polling
