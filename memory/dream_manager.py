@@ -23,12 +23,16 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from .dream_memory_store import (
+    DreamCycleRecord,
+    DreamMemoryStore,
+    LocalDreamMemoryStore,
+)
 from .dream_reflection_integration import (
     DreamOutput,
     DreamReflectionConfig,
     DreamReflectionIntegration,
 )
-from .local_foresight_manager import LocalForesightMemoryManager
 
 logger = logging.getLogger(__name__)
 
@@ -106,17 +110,18 @@ class DreamManager:
 
     def __init__(
         self,
-        memory_manager: LocalForesightMemoryManager | None = None,
+        memory_store: DreamMemoryStore | None = None,
         config: DreamManagerConfig | None = None,
     ):
         """
         Initialize Dream Manager.
 
         Args:
-            memory_manager: Memory manager for storing consolidated memories
+            memory_store: Async store for dream cycles, consolidated memories,
+                          and user memories. Defaults to LocalDreamMemoryStore.
             config: Configuration for dream cycles
         """
-        self.memory_manager = memory_manager or LocalForesightMemoryManager()
+        self.memory_store = memory_store or LocalDreamMemoryStore()
         self.config = config or DreamManagerConfig()
 
         # Reflection integration
@@ -126,7 +131,7 @@ class DreamManager:
         )
 
         self.reflection_integration = DreamReflectionIntegration(
-            memory_manager=self.memory_manager,
+            memory_store=self.memory_store,
             config=reflection_config,
         )
 
@@ -216,6 +221,25 @@ class DreamManager:
 
             result.end_time = datetime.now(UTC).isoformat()
             result.insights = []  # Will be populated by reflection
+
+            dream_record = DreamCycleRecord(
+                dream_id=dream_id,
+                user_id=user_id,
+                start_time=start_time,
+                end_time=result.end_time,
+                themes=result.themes,
+                patterns=result.patterns,
+                emotional_tone=result.emotional_tone,
+                insight_count=0,
+                consolidated_memory_ids=[
+                    m.get("_id", m.get("id", "")) for m in consolidated if m.get("_id") or m.get("id")
+                ],
+                nrem_completed=result.nrem_completed,
+                rem_completed=result.rem_completed,
+                consolidation_completed=result.consolidation_completed,
+                reflection_triggered=result.reflection_triggered,
+            )
+            await self.memory_store.save_dream_cycle(dream_record)
 
             logger.info(
                 f"Dream cycle {dream_id} completed: {len(result.themes)} themes, {len(result.patterns)} patterns"
@@ -344,35 +368,33 @@ class DreamManager:
         memories: list[dict[str, Any]],
         rem_result: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """
-        Consolidate memories based on REM phase results.
-
-        Consolidation involves:
-        - Strengthening important memories
-        - Weakening irrelevant details
-        - Integrating related memories
-        """
         consolidated = []
 
         themes = rem_result.get("themes", [])
         patterns = rem_result.get("patterns", [])
 
         for memory in memories:
-            # Check if memory aligns with extracted themes/patterns
             category = memory.get("category", "")
 
             should_consolidate = category in themes or any(p.split("_")[1] in category for p in patterns if "_" in p)
 
             if should_consolidate:
-                # Create consolidated version
-                consolidated_memory = memory.copy()
-                consolidated_memory["consolidated"] = True
-                consolidated_memory["consolidation_time"] = datetime.now(UTC).isoformat()
-
-                if self.config.store_dream_lineage:
-                    consolidated_memory["dream_consolidated"] = True
-
-                consolidated.append(consolidated_memory)
+                content = memory.get("content", "")
+                mem_id = await self.memory_store.add_memory(
+                    content=content,
+                    user_id=user_id,
+                    metadata=memory.get("metadata"),
+                    category=category,
+                )
+                consolidated.append(
+                    {
+                        **memory,
+                        "_id": mem_id,
+                        "consolidated": True,
+                        "consolidation_time": datetime.now(UTC).isoformat(),
+                        "dream_consolidated": self.config.store_dream_lineage,
+                    }
+                )
 
         return consolidated
 
@@ -382,9 +404,7 @@ class DreamManager:
         limit: int = 50,
     ) -> list[dict[str, Any]]:
         """Fetch recent memories for dream processing."""
-        # This would fetch from memory manager
-        # Simplified for now
-        return []
+        return await self.memory_store.get_all_memories(user_id=user_id, limit=limit)
 
     def _generate_dream_id(self, user_id: str) -> str:
         """Generate unique dream ID."""
@@ -400,5 +420,6 @@ class DreamManager:
         return dream.to_dict()
 
     async def close(self) -> None:
-        """Clean up resources."""
-        await self.reflection_integration.close()
+        """Cancel pending reflections and release the memory store."""
+        await self.reflection_integration.cancel_all()
+        await self.memory_store.close()
