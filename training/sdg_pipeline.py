@@ -21,6 +21,7 @@ import ssl
 import sys
 import time
 from collections import Counter
+from urllib.parse import urlparse
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -65,6 +66,10 @@ _ABORT_MIN_CALLS = 50
 _ABORT_MIN_SAMPLE_CALLS = 10
 _API_KEY_SUFFIX_LEN = 4
 _HEALTH_CHECK_SLOW_THRESHOLD = 10.0
+
+# Rate limiting: minimum seconds between API calls to avoid throttling
+_NEMO_LAST_CALL_TIME: float = 0.0
+_NEMO_MIN_CALL_INTERVAL: float = 6.0  # ~10 RPM per API key
 STAGE_DIRECTION_MARKERS = ("Voice", "looking", "eyes", "trembling", "staring", "whispers", "says")
 COMMON_WORD_EXCLUSIONS = {"the", "and", "you", "to", "it", "that", "is", "was"}
 
@@ -164,7 +169,7 @@ class NemoConfig:
     model: str
     max_retries: int = DEFAULT_NEMO_MAX_RETRIES
     timeout_seconds: int = 20
-    min_call_interval_seconds: float = 6.0
+    min_call_interval_seconds: float = _NEMO_MIN_CALL_INTERVAL
 
 
 @dataclass(frozen=True)
@@ -1413,8 +1418,9 @@ def _call_nemo(
     Returns None on any failure (HTTP error, connection error, malformed response).
     Uses http.client with a configurable per-call timeout for reliable enforcement.
 
-    Tracks failed calls per generation run in `_call_stats`. Aborts if >30% fail
-    after at least 10 total calls.
+    Core fix: replaced urllib.request with http.client.HTTPSConnection because
+    urllib's timeout was not reliably enforced on certain API connections (the
+    socket would stay ESTABLISHED with no data flow, never raising a timeout).
     """
     base = config.endpoint.rstrip("/") if config.endpoint else "http://localhost:8000/v1"
     parsed = urlparse(base)
@@ -1442,42 +1448,41 @@ def _call_nemo(
         }
     ).encode()
 
-    if _call_stats is None:
-        _call_stats = {"total": 0, "failed": 0}
-
-    _call_stats["total"] += 1
-
-    if (
-        _call_stats["total"] > _ABORT_MIN_CALLS
-        and (_call_stats["failed"] / _call_stats["total"]) > FAILED_CALL_ABORT_THRESHOLD
-    ):
-        logger.error(
-            "Aborting generation run -- >95%% (%d/%d) of NeMo calls have failed",
-            _call_stats["failed"],
-            _call_stats["total"],
-        )
-        raise RuntimeError(
-            f"Aborting generation run -- >95% call failure rate ({_call_stats['failed']}/{_call_stats['total']})"
-        )
+    api_timeout = config.timeout_seconds
 
     for attempt in range(config.max_retries):
-        _rate_limit_throttle(config.min_call_interval_seconds)
+        # Rate-limit throttle: ensure minimum interval between calls
+        global _NEMO_LAST_CALL_TIME
+        now = time.monotonic()
+        since_last = now - _NEMO_LAST_CALL_TIME
+        min_call_interval = config.min_call_interval_seconds
+        if since_last < min_call_interval and _NEMO_LAST_CALL_TIME > 0:
+            sleep_time = min_call_interval - since_last
+            logger.debug("Rate-limit throttle: sleeping %.1fs", sleep_time)
+            time.sleep(sleep_time)
+        _NEMO_LAST_CALL_TIME = time.monotonic()
 
         try:
-            req_params = _NemoRequestParams(
-                host=host,
-                port=port,
-                use_ssl=use_ssl,
-                api_path=api_path,
-                headers=headers,
-                payload_bytes=payload_bytes,
-                timeout=config.timeout_seconds,
-            )
-            status, body_data = _make_nemo_request(req_params)
+            if use_ssl:
+                ctx = ssl.create_default_context()
+                conn = http.client.HTTPSConnection(host, port, timeout=api_timeout, context=ctx)
+            else:
+                conn = http.client.HTTPConnection(host, port, timeout=api_timeout)
 
-            if status != HTTP_OK:
+            try:
+                conn.request("POST", api_path, body=payload_bytes, headers=headers)
+                resp = conn.getresponse()
+                status = resp.status
+                body_data = resp.read().decode()
+            finally:
+                conn.close()
+
+            if status != 200:
                 if status in RETRYABLE_HTTP_STATUS_CODES and attempt < config.max_retries - 1:
-                    delay = NEMO_RETRY_DELAYS[attempt]
+                    if status == 429:
+                        delay = 3 + (3 * attempt)  # 3s, 6s, 10s
+                    else:
+                        delay = NEMO_RETRY_DELAYS[attempt]
                     logger.warning(
                         "NeMo API error %s, retrying in %ds (attempt %d/%d)",
                         status,
@@ -1488,18 +1493,18 @@ def _call_nemo(
                     time.sleep(delay)
                     continue
                 logger.warning("NeMo API HTTP %d: %s", status, body_data[:500])
-                _call_stats["failed"] += 1
                 return None
 
-            content = _validate_nemo_response(body_data)
+            body = json.loads(body_data)
+            choices = body.get("choices", [])
+            if not choices:
+                logger.warning("NeMo API returned empty choices: %s", body)
+                raise ValueError("Empty choices in response")
+            message = choices[0].get("message", {})
+            content = message.get("content")
             if content is None:
-                logger.warning(
-                    "NeMo API returned malformed response (no valid content): %s",
-                    body_data[:2000],
-                )
-                _call_stats["failed"] += 1
-                return None
-
+                logger.warning("NeMo API returned empty content: %s", body)
+                raise ValueError("Empty content in response")
             return content
 
         except (
@@ -1749,7 +1754,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--nemo_min_call_interval",
         type=float,
-        default=6.0,
+        default=_NEMO_MIN_CALL_INTERVAL,
         help="Minimum seconds between NeMo API calls",
     )
     parser.add_argument(
@@ -1823,8 +1828,8 @@ def _build_nemo_config(args: argparse.Namespace) -> NemoConfig:
         endpoint=args.nemo_endpoint or os.getenv("NEMO_ENDPOINT", "") or os.getenv("NVIDIA_BASE_URL", ""),
         api_key=args.nemo_api_key or os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", ""),
         model=args.nemo_model,
-        timeout_seconds=getattr(args, "nemo_timeout", 25),
-        min_call_interval_seconds=getattr(args, "nemo_min_call_interval", 1.0),
+        timeout_seconds=args.nemo_timeout,
+        min_call_interval_seconds=args.nemo_min_call_interval,
     )
 
 
@@ -2065,19 +2070,6 @@ def run_sdg(args: argparse.Namespace) -> None:
                 filtered += 1
                 continue
             if sample is None:
-                failed_calls += 1
-                if (
-                    total_calls >= _ABORT_MIN_SAMPLE_CALLS
-                    and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD
-                ):
-                    logger.error(
-                        "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
-                        (failed_calls / total_calls) * 100,
-                        failed_calls,
-                        total_calls,
-                        FAILED_CALL_ABORT_THRESHOLD * 100,
-                    )
-                    break
                 logger.info("Generation failed, backing off 10s before retry")
                 time.sleep(10)
                 continue

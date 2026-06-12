@@ -3,6 +3,7 @@
 
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -34,7 +35,8 @@ MAX_ITER = 2500
 
 
 def log(msg: str):
-    time.strftime("%H:%M:%S")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] {msg}", flush=True)
 
 
 def main():

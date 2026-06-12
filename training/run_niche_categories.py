@@ -32,6 +32,7 @@ CATEGORIES = [
 
 NEMO_ENDPOINT = os.environ.get("NVIDIA_BASE_URL", "")
 if not NEMO_ENDPOINT:
+    print("FATAL: NVIDIA_BASE_URL not set in environment")
     sys.exit(1)
 
 NEMO_MODEL = "meta/llama-3.1-8b-instruct"
@@ -44,7 +45,8 @@ parser = build_parser()
 
 
 def log(message: str):
-    time.strftime("%H:%M:%S")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] {message}", flush=True)
 
 
 def run_one_category(category: str) -> int:
@@ -111,24 +113,40 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     os.makedirs(LOG_DIR, exist_ok=True)
 
+    print(f"==> Starting niche generation at {time.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    print(f"==> Model: {NEMO_MODEL}")
+    print(f"==> Timeout: {NEMO_TIMEOUT}s")
+    print(f"==> Endpoint: {NEMO_ENDPOINT}")
+    print(f"==> Categories: {len(CATEGORIES)}")
+    print()
 
     start_total = time.time()
     results = []
 
-    for _i, cat in enumerate(CATEGORIES, 1):
+    for i, cat in enumerate(CATEGORIES, 1):
+        print(f"\n{'=' * 70}")
+        print(f"[{time.strftime('%H:%M:%S')}] [{i}/{len(CATEGORIES)}] Launching: {cat}")
+        print(f"{'=' * 70}", flush=True)
 
         cat_start = time.time()
         count = run_one_category(cat)
         cat_elapsed = time.time() - cat_start
 
+        print(f"[{time.strftime('%H:%M:%S')}] Done: {cat} — {count} samples in {cat_elapsed:.0f}s", flush=True)
         results.append({"category": cat, "samples": count, "elapsed_s": round(cat_elapsed)})
 
     total_time = time.time() - start_total
+    print(f"\n{'=' * 70}")
+    print(f"  ALL DONE at {time.strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    print(f"  Total time: {total_time:.0f}s = {total_time / 60:.1f} min")
+    print(f"{'=' * 70}")
 
     passed = sum(1 for r in results if r["samples"] >= 500)
     failed = len(results) - passed
     for r in results:
-        "✅" if r["samples"] >= 500 else "❌"
+        status = "✅" if r["samples"] >= 500 else "❌"
+        print(f"  {status} {r['category']}: {r['samples']} samples ({r['elapsed_s']}s)")
+    print(f"  Passed: {passed} / {len(results)}")
 
     report = {
         "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -143,6 +161,7 @@ def main():
     report_path = OUTPUT_DIR / "generation_report.json"
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
+    print(f"\nReport: {report_path}")
 
     sys.exit(0 if failed == 0 else 1)
 
