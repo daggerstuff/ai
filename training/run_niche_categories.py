@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Ensure we can import sdg_pipeline
 sys.path.insert(0, str(Path(__file__).parent))
-from sdg_pipeline import build_parser, run_sdg
+from sdg_pipeline import run_sdg, build_parser
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "ai" / "training" / "data" / "generated" / "niche"

@@ -20,6 +20,8 @@ import random
 import ssl
 import sys
 import time
+import http.client
+import ssl
 from collections import Counter
 from urllib.parse import urlparse
 from dataclasses import dataclass
@@ -1423,6 +1425,13 @@ def _call_nemo(
     socket would stay ESTABLISHED with no data flow, never raising a timeout).
     """
     base = config.endpoint.rstrip("/") if config.endpoint else "http://localhost:8000/v1"
+    parsed = urlparse(base)
+    use_ssl = parsed.scheme == "https"
+    host = parsed.hostname or "localhost"
+    port = parsed.port or (443 if use_ssl else 80)
+    path_prefix = parsed.path.rstrip("/") if parsed.path else ""
+    api_path = f"{path_prefix}/chat/completions"
+
     parsed = urlparse(base)
     use_ssl = parsed.scheme == "https"
     host = parsed.hostname or "localhost"
