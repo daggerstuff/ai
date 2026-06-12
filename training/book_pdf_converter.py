@@ -12,23 +12,24 @@ therapeutic training (difficult conversations needed for therapist education).
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import logging
-import yaml
 import os
 import re
 import shutil
-import tempfile
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-import requests
-from bs4 import BeautifulSoup
 import ebooklib
-from ebooklib import epub
 import mobi
+import requests
+import yaml
+from bs4 import BeautifulSoup
+from ebooklib import epub
 from pypdf import PdfReader
 
 logging.basicConfig(
@@ -48,23 +49,35 @@ C_YELLOW = "\033[93m"
 C_RESET = "\033[0m"
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
+MIN_RECOVERED_TEXT_LENGTH = 100
+DEFAULT_NIM_MIN_INTERVAL_SECONDS = 18.0
+OLLAMA_TIMEOUT_SECONDS = 300
+NIM_TIMEOUT_SECONDS = 180
+GEMINI_TIMEOUT_SECONDS = 60
 
 # Simple rate limiter: enforce min_interval_seconds between API calls.
-_last_api_call: float = 0.0
+_RATE_LIMIT_STATE = {"last_api_call": 0.0}
 
 
-def _rate_limit():
-    global _last_api_call
-    elapsed = time.time() - _last_api_call
-    min_interval = float(os.environ.get("NIM_MIN_INTERVAL", "18"))
+def _now_monotonic() -> float:
+    return time.time()
+
+
+def _rate_limit() -> None:
+    elapsed = _now_monotonic() - _RATE_LIMIT_STATE["last_api_call"]
+    min_interval = float(os.environ.get("NIM_MIN_INTERVAL", str(DEFAULT_NIM_MIN_INTERVAL_SECONDS)))
     if elapsed < min_interval:
         sleep_for = min_interval - elapsed
         logger.info(f"  Rate limit pacing: sleeping {sleep_for:.1f}s")
         time.sleep(sleep_for)
-    _last_api_call = time.time()
+    _RATE_LIMIT_STATE["last_api_call"] = _now_monotonic()
 
 
-def _retry_request(fn, max_retries=MAX_RETRIES, base_delay=RETRY_BASE_DELAY):
+def _retry_request(
+    fn: Callable[[], str],
+    max_retries: int = MAX_RETRIES,
+    base_delay: int = RETRY_BASE_DELAY,
+) -> str | None:
     for attempt in range(1, max_retries + 1):
         try:
             return fn()
@@ -86,106 +99,96 @@ def _retry_request(fn, max_retries=MAX_RETRIES, base_delay=RETRY_BASE_DELAY):
     return None
 
 
+def _call_ollama(system_prompt: str, user_content: str, host: str, model: str) -> str:
+    url = f"{host.rstrip('/')}/api/generate"
+    payload = {
+        "model": model,
+        "prompt": f"System: {system_prompt}\n\nUser: {user_content}",
+        "stream": False,
+        "options": {"temperature": 0.3},
+    }
+    response = requests.post(url, json=payload, timeout=OLLAMA_TIMEOUT_SECONDS)
+    if response.status_code == HTTP_OK:
+        return response.json().get("response", "")
+    raise RuntimeError(f"Ollama failed ({response.status_code}): {response.text[:200]}")
+
+
+def _call_nim(system_prompt: str, user_content: str, model_id: str) -> str:
+    _rate_limit()
+    url = "https://integrate.api.nvidia.com/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {NVIDIA_API_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "model": model_id,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content},
+        ],
+        "temperature": 0.3,
+    }
+    response = requests.post(url, headers=headers, json=payload, timeout=NIM_TIMEOUT_SECONDS)
+    if response.status_code == HTTP_OK:
+        return response.json()["choices"][0]["message"]["content"]
+    raise RuntimeError(f"NIM failed ({response.status_code}): {response.text[:200]}")
+
+
+def _call_gemini(system_prompt: str, user_content: str, model_id: str) -> str:
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:generateContent?key={GEMINI_API_KEY}"
+    payload = {
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"role": "user", "parts": [{"text": user_content}]}],
+        "generationConfig": {"temperature": 0.3},
+    }
+    response = requests.post(
+        url,
+        headers={"Content-Type": "application/json"},
+        json=payload,
+        timeout=GEMINI_TIMEOUT_SECONDS,
+    )
+    if response.status_code == HTTP_OK:
+        return response.json()["candidates"][0]["content"]["parts"][0]["text"]
+    raise RuntimeError(f"Gemini failed ({response.status_code}): {response.text[:200]}")
+
+
+def _try_provider(name: str, call: Callable[[], str], use_retry: bool = False) -> str:
+    try:
+        response = _retry_request(call) if use_retry else call()
+    except Exception as exc:
+        logger.warning("%s failed: %s", name, exc)
+        return ""
+    return response or ""
+
+
 def query_llm(system_prompt: str, user_content: str) -> str:
-    # Try Ollama first if configured - local, no rate limits
     ollama_host = os.environ.get("OLLAMA_HOST", "")
+    ollama_model = os.environ.get("OLLAMA_MODEL", "medgemma1.5:latest")
     if ollama_host:
-        ollama_model = os.environ.get("OLLAMA_MODEL", "medgemma1.5:latest")
-        try:
-
-            def _call_ollama():
-                url = f"{ollama_host.rstrip('/')}/api/generate"
-                payload = {
-                    "model": ollama_model,
-                    "prompt": f"System: {system_prompt}\n\nUser: {user_content}",
-                    "stream": False,
-                    "options": {"temperature": 0.3},
-                }
-                response = requests.post(url, json=payload, timeout=300)
-                if response.status_code == 200:
-                    return response.json().get("response", "")
-                raise RuntimeError(f"Ollama failed ({response.status_code}): {response.text[:200]}")
-
-            res = _call_ollama()
-            if res:
-                return res
-        except Exception as e:
-            logger.warning(f"Ollama failed: {e}")
+        ollama_response = _try_provider(
+            "Ollama",
+            lambda: _call_ollama(system_prompt, user_content, ollama_host, ollama_model),
+        )
+        if ollama_response:
+            return ollama_response
 
     if NVIDIA_API_KEY:
         model_id = os.environ.get("NVIDIA_MODEL_ID", "mistralai/mistral-small-4-119b-2603")
-        try:
-
-            def _call_nim():
-                _rate_limit()
-                url = "https://integrate.api.nvidia.com/v1/chat/completions"
-                headers = {"Authorization": f"Bearer {NVIDIA_API_KEY}", "Content-Type": "application/json"}
-                payload = {
-                    "model": model_id,
-                    "messages": [
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content},
-                    ],
-                    "temperature": 0.3,
-                }
-                response = requests.post(url, headers=headers, json=payload, timeout=180)
-                if response.status_code == HTTP_OK:
-                    return response.json()["choices"][0]["message"]["content"]
-                raise RuntimeError(f"NIM failed ({response.status_code}): {response.text[:200]}")
-
-            res = _retry_request(_call_nim)
-            if res:
-                return res
-        except Exception as e:
-            logger.warning(f"NIM failed: {e}")
+        nim_response = _try_provider("NIM", lambda: _call_nim(system_prompt, user_content, model_id), use_retry=True)
+        if nim_response:
+            return nim_response
 
     if GEMINI_API_KEY:
-        model_id = "gemini-2.5-flash"
-        try:
+        gemini_response = _try_provider(
+            "Gemini",
+            lambda: _call_gemini(system_prompt, user_content, "gemini-2.5-flash"),
+            use_retry=True,
+        )
+        if gemini_response:
+            return gemini_response
 
-            def _call_gemini():
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:generateContent?key={GEMINI_API_KEY}"
-                payload = {
-                    "systemInstruction": {"parts": [{"text": system_prompt}]},
-                    "contents": [{"role": "user", "parts": [{"text": user_content}]}],
-                    "generationConfig": {"temperature": 0.3},
-                }
-                response = requests.post(url, headers={"Content-Type": "application/json"}, json=payload, timeout=60)
-                if response.status_code == HTTP_OK:
-                    return response.json()["candidates"][0]["content"]["parts"][0]["text"]
-                raise RuntimeError(f"Gemini failed ({response.status_code}): {response.text[:200]}")
-
-            res = _retry_request(_call_gemini)
-            if res:
-                return res
-        except Exception as e:
-            logger.warning(f"Gemini failed: {e}")
-
-    # Ollama fallback - local inference, no rate limits
-    ollama_host = os.environ.get("OLLAMA_HOST", "")
     if ollama_host:
-        ollama_model = os.environ.get("OLLAMA_MODEL", "medgemma1.5:latest")
-        try:
-
-            def _call_ollama():
-                url = f"{ollama_host.rstrip('/')}/api/generate"
-                payload = {
-                    "model": ollama_model,
-                    "prompt": f"System: {system_prompt}\n\nUser: {user_content}",
-                    "stream": False,
-                    "options": {"temperature": 0.3},
-                }
-                response = requests.post(url, json=payload, timeout=300)
-                if response.status_code == 200:
-                    return response.json().get("response", "")
-                raise RuntimeError(f"Ollama failed ({response.status_code}): {response.text[:200]}")
-
-            res = _call_ollama()
-            if res:
-                return res
-        except Exception as e:
-            logger.warning(f"Ollama failed: {e}")
-
+        return _try_provider(
+            "Ollama",
+            lambda: _call_ollama(system_prompt, user_content, ollama_host, ollama_model),
+        )
     return ""
 
 
@@ -225,27 +228,30 @@ def _extract_azw(path: Path) -> str | None:
 
 def _extract_text(path: Path) -> str | None:
     suffix = path.suffix.lower()
+    extractors: dict[str, Callable[[Path], str | None]] = {
+        ".pdf": _extract_pdf,
+        ".epub": _extract_epub,
+        ".txt": lambda text_path: text_path.read_text(encoding="utf-8", errors="replace"),
+    }
+    azw_suffixes = {".azw3", ".azw", ".mobi"}
     try:
-        if suffix == ".pdf":
-            return _extract_pdf(path)
-        elif suffix == ".epub":
-            return _extract_epub(path)
-        elif suffix in (".azw3", ".azw", ".mobi"):
+        if suffix in azw_suffixes:
             return _extract_azw(path)
-        else:
-            logger.warning("Unsupported format: %s", path)
-            return None
+        extractor = extractors.get(suffix)
+        if extractor is not None:
+            return extractor(path)
+        logger.warning("Unsupported format: %s", path)
     except Exception:
         # Fallback: try reading as plain text (some "PDFs" are actually text files)
         try:
             text = path.read_text(encoding="utf-8")
-            if text and len(text) > 100:
+            if text and len(text) > MIN_RECOVERED_TEXT_LENGTH:
                 logger.info("  Recovered %s as plain text (PDF parsing failed)", path.name)
                 return text
         except Exception:
             pass
         logger.warning("Failed to extract %s", path)
-        return None
+    return None
 
 
 def _chunk_text(text: str, chunk_size: int = 4000) -> list[str]:
@@ -266,6 +272,82 @@ def _chunk_text(text: str, chunk_size: int = 4000) -> list[str]:
     return chunks
 
 
+def _append_yaml_pairs(raw_line: str, pairs: list[dict[str, str]]) -> None:
+    data = yaml.safe_load(raw_line)
+    if isinstance(data, dict) and "instruction" in data and "output" in data:
+        pairs.append({"instruction": str(data["instruction"]), "output": str(data["output"])})
+    elif isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict) and "instruction" in item and "output" in item:
+                pairs.append({"instruction": str(item["instruction"]), "output": str(item["output"])})
+
+
+def _parse_inline_instruction_output(raw_line: str) -> dict[str, str] | None:
+    inst_match = re.search(r"instruction:\s*([^,]+?)(?:\s*,\s*\"?output\"?\s*:|$)", raw_line, re.IGNORECASE)
+    out_match = re.search(r"output:\s*(.+)$", raw_line, re.IGNORECASE)
+    if inst_match and out_match:
+        instruction = inst_match.group(1).strip().strip("\"'")
+        output = out_match.group(1).strip().strip("\"'")
+        if instruction and output:
+            return {"instruction": instruction, "output": output}
+    return None
+
+
+def _parse_numbered_instruction_output(raw_line: str) -> dict[str, str] | None:
+    inst_match = re.search(r"instruction:\s*(.+?)(?:output:|$)", raw_line, re.DOTALL | re.IGNORECASE)
+    out_match = re.search(r"output:\s*(.+)$", raw_line, re.DOTALL | re.IGNORECASE)
+    if inst_match and out_match:
+        instruction = inst_match.group(1).strip()
+        output = out_match.group(1).strip()
+        if instruction and output:
+            return {"instruction": instruction, "output": output}
+    return None
+
+
+def _extract_json_pair(raw_line: str) -> dict[str, str] | None:
+    match = re.search(r"\{.*\}", raw_line)
+    if not match:
+        return None
+    try:
+        pair = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return None
+    if "instruction" in pair and "output" in pair:
+        return pair
+    return None
+
+
+def _parse_distilled_pair(stripped_line: str, pairs: list[dict[str, str]]) -> None:
+    try:
+        pair = json.loads(stripped_line)
+    except (json.JSONDecodeError, TypeError):
+        pair = None
+    if isinstance(pair, dict) and "instruction" in pair and "output" in pair:
+        pairs.append(pair)
+        return
+
+    line_lower = stripped_line.lower()
+    if "instruction" in line_lower and "output" in line_lower:
+        inline_pair = _parse_inline_instruction_output(stripped_line)
+        if inline_pair is not None:
+            pairs.append(inline_pair)
+            return
+        with contextlib.suppress(Exception):
+            _append_yaml_pairs(stripped_line, pairs)
+        return
+
+    if re.search(r"Instruction:.*Output:", stripped_line):
+        with contextlib.suppress(Exception):
+            numbered_pair = _parse_numbered_instruction_output(stripped_line)
+            if numbered_pair is not None:
+                pairs.append(numbered_pair)
+        return
+
+    fallback_pair = _extract_json_pair(stripped_line)
+    if fallback_pair is not None:
+        pairs.append(fallback_pair)
+
+
 def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
     system_prompt = (
         "You are a clinical psychology expert generating training data for a therapist AI. "
@@ -284,7 +366,8 @@ def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
         '  "Pete Walker distinguishes the inner critic from genuine self-awareness. '
         "The fact that you're noticing this pattern means you're already building that awareness — "
         'the next step is to name what the critic is actually saying."\n\n'
-        'MUST output JSON only. Format: each line is a complete JSON object like {"instruction": "...", "output": "..."}. '
+        "MUST output JSON only. Format: each line is a complete JSON object like "
+        '{"instruction": "...", "output": "..."}. '
         "CRITICAL: Start each line with { and end with }. Use double quotes for all strings. "
         "Example output lines (copy exactly):\n"
         '{"instruction": "I feel anxious", "output": "What triggers that?"}\n'
@@ -301,52 +384,11 @@ def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
     logger.debug(f"LLM response (first 200): {raw_response[:200]}")
 
     pairs = []
-    for line in raw_response.strip().splitlines():
-        line = line.strip()
-        if not line:
+    for response_line in raw_response.strip().splitlines():
+        stripped_line = response_line.strip()
+        if not stripped_line or stripped_line.startswith("```"):
             continue
-        if line.startswith("```"):
-            continue
-        try:
-            pair = json.loads(line)
-            if "instruction" in pair and "output" in pair:
-                pairs.append(pair)
-        except (json.JSONDecodeError, TypeError):
-            line_lower = line.lower()
-            # Try YAML format (instruction: / output:)
-            if "instruction" in line_lower and "output" in line_lower:
-                try:
-                    data = yaml.safe_load(line)
-                    if isinstance(data, dict) and "instruction" in data and "output" in data:
-                        pairs.append({"instruction": str(data["instruction"]), "output": str(data["output"])})
-                    elif isinstance(data, list):
-                        for item in data:
-                            if isinstance(item, dict) and "instruction" in item and "output" in item:
-                                pairs.append({"instruction": str(item["instruction"]), "output": str(item["output"])})
-                except Exception:
-                    pass
-            # Try numbered format: "1. Instruction: ... Output: ..." or just "Instruction: ... Output: ..."
-            elif re.search(r"Instruction:.*Output:", line):
-                try:
-                    inst_match = re.search(r"instruction:\s*(.+?)(?:output:|$)", line, re.DOTALL | re.IGNORECASE)
-                    out_match = re.search(r"output:\s*(.+)$", line, re.DOTALL | re.IGNORECASE)
-                    if inst_match and out_match:
-                        instruction = inst_match.group(1).strip()
-                        output = out_match.group(1).strip()
-                        if instruction and output:
-                            pairs.append({"instruction": instruction, "output": output})
-                except Exception:
-                    pass
-            else:
-                # Try regex extraction
-                match = re.search(r"\{.*\}", line)
-                if match:
-                    try:
-                        pair = json.loads(match.group(0))
-                        if "instruction" in pair and "output" in pair:
-                            pairs.append(pair)
-                    except json.JSONDecodeError:
-                        continue
+        _parse_distilled_pair(stripped_line, pairs)
     return pairs
 
 
@@ -419,9 +461,9 @@ def convert_book(
     # DSM reference works auto-detected: skip LLM path — diagnostic criteria
     # aren't therapy dialogue, and the simple path produces better training data.
     if use_llm and _is_dsm_title(title):
-        logger.info(f"  DSM content detected — using simple path (no API calls).")
+        logger.info("  DSM content detected — using LLM distillation (use_llm explicitly set).")
         is_dsm = True
-        use_llm = False
+        # Keep use_llm = True to allow LLM distillation for DSM
 
     if use_llm:
         # LLM distillation path — slow, requires API key, higher quality
@@ -447,7 +489,7 @@ def convert_book(
                     logger.warning(f"    No pairs generated for chunk {idx + 1}")
                     continue
 
-                ts = datetime.now(timezone.utc).isoformat()
+                ts = datetime.now(UTC).isoformat()
                 for pair in pairs:
                     enriched_pair = {
                         "instruction": pair["instruction"],
@@ -489,7 +531,7 @@ def convert_book(
                     "source_book": title,
                     "source_type": "clinical_literature",
                     "distillation_version": "2.0.0",
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                 },
             }
             all_pairs.append(enriched_pair)
@@ -543,7 +585,7 @@ def run_conversion(args: argparse.Namespace) -> None:
     if not books_dir.exists():
         logger.error("Books directory not found: %s", books_dir)
         report = {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "books_dir": str(books_dir),
             "output_dir": str(output_dir),
             "total_books": 0,
@@ -565,7 +607,7 @@ def run_conversion(args: argparse.Namespace) -> None:
     total_pairs = 0
 
     for book_file in sorted(books_dir.rglob("*")):
-        if book_file.suffix.lower() not in {".pdf", ".epub", ".azw3", ".azw", ".mobi"}:
+        if book_file.suffix.lower() not in {".pdf", ".epub", ".azw3", ".azw", ".mobi", ".txt"}:
             continue
 
         expected_out = output_dir / f"{book_file.stem}.jsonl"
@@ -592,7 +634,7 @@ def run_conversion(args: argparse.Namespace) -> None:
             logger.warning(f"{C_RED}Failed/Skipped {book_file.name}: {result.get('reason', 'unknown')}{C_RESET}")
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "books_dir": str(books_dir),
         "output_dir": str(output_dir),
         "total_books": len(results),
