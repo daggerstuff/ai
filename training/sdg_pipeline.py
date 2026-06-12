@@ -12,19 +12,19 @@ Generates therapeutic AI training data with strict quality controls:
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import logging
 import os
 import random
+import ssl
 import sys
 import time
-import http.client
-import ssl
 from collections import Counter
-from urllib.parse import urlparse
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.provenance import attach_provenance
@@ -47,11 +47,11 @@ TRIGRAM_SIZE = 3
 MAX_TOP_REJECTION_REASONS = 8
 MIN_NIGHTMARE_OUTPUT_LENGTH = 20
 DEFAULT_NEMO_MAX_RETRIES = 3
-RETRYABLE_HTTP_STATUS_CODES = {429, 500, 502, 503, 504}
+HTTP_OK = 200
+HTTP_TOO_MANY_REQUESTS = 429
+RETRYABLE_HTTP_STATUS_CODES = {HTTP_TOO_MANY_REQUESTS, 500, 502, 503, 504}
 NEMO_RETRY_DELAYS = (1, 2, 4)
-# Rate limiting: minimum seconds between API calls to avoid throttling
-_NEMO_LAST_CALL_TIME: float = 0.0
-_NEMO_MIN_CALL_INTERVAL: float = 6.0  # ~10 RPM per API key
+_NEMO_RATE_STATE: dict = {"last_call_time": 0.0}
 STAGE_DIRECTION_MARKERS = ("Voice", "looking", "eyes", "trembling", "staring", "whispers", "says")
 COMMON_WORD_EXCLUSIONS = {"the", "and", "you", "to", "it", "that", "is", "was"}
 
@@ -151,7 +151,7 @@ class NemoConfig:
     model: str
     max_retries: int = DEFAULT_NEMO_MAX_RETRIES
     timeout_seconds: int = 20
-    min_call_interval_seconds: float = _NEMO_MIN_CALL_INTERVAL
+    min_call_interval_seconds: float = 6.0
 
 
 @dataclass(frozen=True)
@@ -1158,6 +1158,56 @@ def _crisis_resource_in_output(output: str) -> bool:
 # ============================================================================
 
 
+def _rate_limit_throttle(min_call_interval: float) -> None:
+    last = _NEMO_RATE_STATE["last_call_time"]
+    now = time.monotonic()
+    since_last = now - last
+    if since_last < min_call_interval and last > 0:
+        sleep_time = min_call_interval - since_last
+        logger.debug("Rate-limit throttle: sleeping %.1fs", sleep_time)
+        time.sleep(sleep_time)
+    _NEMO_RATE_STATE["last_call_time"] = time.monotonic()
+
+
+@dataclass
+class _NemoRequestParams:
+    host: str
+    port: int
+    use_ssl: bool
+    api_path: str
+    headers: dict[str, str]
+    payload_bytes: bytes
+    timeout: int
+
+
+def _make_nemo_request(params: _NemoRequestParams) -> tuple[int, str]:
+    if params.use_ssl:
+        ctx = ssl.create_default_context()
+        conn = http.client.HTTPSConnection(params.host, params.port, timeout=params.timeout, context=ctx)
+    else:
+        conn = http.client.HTTPConnection(params.host, params.port, timeout=params.timeout)
+    try:
+        conn.request("POST", params.api_path, body=params.payload_bytes, headers=params.headers)
+        resp = conn.getresponse()
+        return resp.status, resp.read().decode()
+    finally:
+        conn.close()
+
+
+def _parse_nemo_response(body_data: str) -> str | None:
+    body = json.loads(body_data)
+    choices = body.get("choices", [])
+    if not choices:
+        logger.warning("NeMo API returned empty choices: %s", body)
+        raise ValueError("Empty choices in response")
+    message = choices[0].get("message", {})
+    content = message.get("content")
+    if content is None:
+        logger.warning("NeMo API returned empty content: %s", body)
+        raise ValueError("Empty content in response")
+    return content
+
+
 def _call_nemo(prompt: str, config: NemoConfig, system_prompt: str | None = None) -> str | None:
     """Call NeMo API and return the generated text content.
 
@@ -1194,41 +1244,24 @@ def _call_nemo(prompt: str, config: NemoConfig, system_prompt: str | None = None
         }
     ).encode()
 
-    api_timeout = config.timeout_seconds
-
     for attempt in range(config.max_retries):
-        # Rate-limit throttle: ensure minimum interval between calls
-        global _NEMO_LAST_CALL_TIME
-        now = time.monotonic()
-        since_last = now - _NEMO_LAST_CALL_TIME
-        min_call_interval = config.min_call_interval_seconds
-        if since_last < min_call_interval and _NEMO_LAST_CALL_TIME > 0:
-            sleep_time = min_call_interval - since_last
-            logger.debug("Rate-limit throttle: sleeping %.1fs", sleep_time)
-            time.sleep(sleep_time)
-        _NEMO_LAST_CALL_TIME = time.monotonic()
+        _rate_limit_throttle(config.min_call_interval_seconds)
 
         try:
-            if use_ssl:
-                ctx = ssl.create_default_context()
-                conn = http.client.HTTPSConnection(host, port, timeout=api_timeout, context=ctx)
-            else:
-                conn = http.client.HTTPConnection(host, port, timeout=api_timeout)
+            req_params = _NemoRequestParams(
+                host=host,
+                port=port,
+                use_ssl=use_ssl,
+                api_path=api_path,
+                headers=headers,
+                payload_bytes=payload_bytes,
+                timeout=config.timeout_seconds,
+            )
+            status, body_data = _make_nemo_request(req_params)
 
-            try:
-                conn.request("POST", api_path, body=payload_bytes, headers=headers)
-                resp = conn.getresponse()
-                status = resp.status
-                body_data = resp.read().decode()
-            finally:
-                conn.close()
-
-            if status != 200:
+            if status != HTTP_OK:
                 if status in RETRYABLE_HTTP_STATUS_CODES and attempt < config.max_retries - 1:
-                    if status == 429:
-                        delay = 3 + (3 * attempt)  # 3s, 6s, 10s
-                    else:
-                        delay = NEMO_RETRY_DELAYS[attempt]
+                    delay = 3 + 3 * attempt if status == HTTP_TOO_MANY_REQUESTS else NEMO_RETRY_DELAYS[attempt]
                     logger.warning(
                         "NeMo API error %s, retrying in %ds (attempt %d/%d)",
                         status,
@@ -1241,17 +1274,7 @@ def _call_nemo(prompt: str, config: NemoConfig, system_prompt: str | None = None
                 logger.warning("NeMo API HTTP %d: %s", status, body_data[:500])
                 return None
 
-            body = json.loads(body_data)
-            choices = body.get("choices", [])
-            if not choices:
-                logger.warning("NeMo API returned empty choices: %s", body)
-                raise ValueError("Empty choices in response")
-            message = choices[0].get("message", {})
-            content = message.get("content")
-            if content is None:
-                logger.warning("NeMo API returned empty content: %s", body)
-                raise ValueError("Empty content in response")
-            return content
+            return _parse_nemo_response(body_data)
 
         except (
             http.client.HTTPException,
@@ -1492,7 +1515,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--nemo_min_call_interval",
         type=float,
-        default=_NEMO_MIN_CALL_INTERVAL,
+        default=6.0,
         help="Minimum seconds between NeMo API calls",
     )
     parser.add_argument(
