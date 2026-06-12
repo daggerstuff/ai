@@ -33,7 +33,7 @@ class ClinicalValidityScorer:
         EBP_PATTERNS: Evidence-based practice markers.
     """
 
-    VERSION: ClassVar[str] = "2.0.0"
+    VERSION: ClassVar[str] = "3.0.0"
 
     THERAPY_MODALITIES: ClassVar[dict[str, tuple[str, ...]]] = {
         "cbt": (
@@ -131,6 +131,10 @@ class ClinicalValidityScorer:
             r"\b(progressive muscle relaxation|relaxation (technique|exercise|response))\b",
             r"\b(vagus nerve|polyvagal|nervous system (regulation|health))\b",
             r"\b(tension (release|reduction)|relax(ation)? (muscle|body)|bodywork)\b",
+            r"\b(where do you feel that|where in your body|notice (what|that) in your body)\b",
+            r"\b(what happens in your body|what do you notice (in|about) your body)\b",
+            r"\b(where does that (live|show up|sit) (in your body|))\b",
+            r"\b(take a (breath|pause)|slow down|slow (it )?down)\b",
         ),
     }
 
@@ -149,6 +153,8 @@ class ClinicalValidityScorer:
             r"\b(courage (to|in)|brave|strength (in|to)|resilien)\b",
             r"\b(thank you for (sharing|trusting|reaching|opening))\b",
             r"\b(it takes (a lot of |so much )?courage|I('m| am) (glad|grateful) (you|that))\b",
+            r"\b(no wonder (you|that)|anyone would (feel|be) )\b",
+            r"\b(that\'s (important|significant|meaningful)|it matters (that|because))\b",
         ),
         "empowerment": (
             r"\b(you (have|are) (the )?(strength|resilience|courage|capable))\b",
@@ -156,6 +162,15 @@ class ClinicalValidityScorer:
             r"\b(agency|autonomy|self(-| )efficacy|build(ing)? on)\b",
             r"\b(you (are|were) able to|you (have|found) the (strength|resources))\b",
             r"\b(you (deserve|matter)|worth (it|your time|the effort))\b",
+            r"\b(what do you need (right now|)|what would help (right now|))\b",
+            r"\b(what would (help|support) (you|)|what might (help|be useful))\b",
+            r"\b(take your time|no rush|there\'s no hurry)\b",
+        ),
+        "exploration": (
+            r"\b(can you tell me more|tell me more|say more about)\b",
+            r"\b(what (is|was) that like (for you|)|how does that feel)\b",
+            r"\b(can we (explore|look at|try) (that|this|it))\b",
+            r"\b(what\'s (that|it) like (for you|)|how (is|does) that (feel|show up))\b",
         ),
     }
 
@@ -174,6 +189,8 @@ class ClinicalValidityScorer:
             r"\b(suggest (that|you|trying|considering)|recommend (that|you|trying|seeking))\b",
             r"\b(one (thing|approach|strategy) (that|you|is)|a (good|helpful) (way|idea) (to|is))\b",
             r"\b(work on|focus on|address (the|this|these|your))\b",
+            r"\b(stay with that|sit with that|be with that|notice that)\b",
+            r"\b(what happens (when|next)|what comes up (for you|)|what comes next)\b",
         ),
         "planning": (
             r"\b(goal|objective|outcome|treatment plan|therapeutic goal)\b",
@@ -293,11 +310,8 @@ class ClinicalValidityScorer:
         For a density-normalized alternative see score_density_detail().
         """
         if not response or not isinstance(response, str):
-            return {d: 0.0 for d in cls.WEIGHTS}
-        return {
-            dimension: cls._score_dimension(response, dimension)
-            for dimension in cls.WEIGHTS
-        }
+            return dict.fromkeys(cls.WEIGHTS, 0.0)
+        return {dimension: cls._score_dimension(response, dimension) for dimension in cls.WEIGHTS}
 
     @classmethod
     def score_density_detail(cls, response: str) -> dict:
@@ -307,7 +321,7 @@ class ClinicalValidityScorer:
         scores higher than a long rambling one with the same absolute matches.
         """
         if not response or not isinstance(response, str):
-            return {d: 0.0 for d in cls.WEIGHTS}
+            return dict.fromkeys(cls.WEIGHTS, 0.0)
         results = {}
         token_count = max(1, len(response.split()))
         for dimension in cls.WEIGHTS:

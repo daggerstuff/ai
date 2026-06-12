@@ -1,4 +1,5 @@
-from typing import Any
+import logging
+from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -6,8 +7,6 @@ from ai.sourcing.academic.academic_sourcing import AcademicSourcingEngine
 from ai.sourcing.academic.therapy_dataset_sourcing import find_therapy_datasets
 
 logger = logging.getLogger(__name__)
-
-import logging
 
 router = APIRouter()
 
@@ -17,9 +16,9 @@ engine = AcademicSourcingEngine()
 
 @router.get("/search")
 async def search_literature(
-    q: str = Query(..., min_length=3, description="Search query"),
-    limit: int = Query(20, ge=1, le=100),
-    sources: list[str] | None = Query(None, description="Filter by source type"),
+    q: Annotated[str, Query(min_length=3, description="Search query")],
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    sources: Annotated[list[str] | None, Query(description="Filter by source type")] = None,
 ) -> dict[str, Any]:
     """
     Search for academic literature across multiple sources.
@@ -34,7 +33,7 @@ async def search_literature(
 
 @router.get("/datasets")
 async def search_datasets(
-    q: str | None = Query(None, min_length=3, description="Search query"),
+    q: Annotated[str | None, Query(min_length=3, description="Search query")] = None,
     min_turns: int = 20,
     min_quality: float = 0.5,
     limit: int = 20,
