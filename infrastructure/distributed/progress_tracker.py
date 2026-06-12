@@ -14,7 +14,7 @@ import threading
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -31,6 +31,8 @@ except ImportError:
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+MIN_SAMPLES_FOR_ESTIMATE = 3
 
 
 class TaskStatus(Enum):
@@ -120,7 +122,7 @@ class BatchProgress:
 class ProgressTracker:
     """Tracks progress of quality validation tasks"""
 
-    def __init__(self, db_path: str = None, redis_url: str = None):
+    def __init__(self, db_path: str | None = None, redis_url: str | None = None):
         self.db_path = db_path or "progress_tracking.db"
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
@@ -289,8 +291,10 @@ class ProgressTracker:
             for field, value in kwargs.items():
                 if hasattr(task_progress, field):
                     if field == "status" and isinstance(value, str):
-                        value = TaskStatus(value)
-                    setattr(task_progress, field, value)
+                        status_value = TaskStatus(value)
+                        setattr(task_progress, field, status_value)
+                    else:
+                        setattr(task_progress, field, value)
 
             # Update timestamps
             if task_progress.status == TaskStatus.PROCESSING and not task_progress.started_at:
@@ -385,7 +389,7 @@ class ProgressTracker:
                 and task.completed_at
             ]
 
-            if len(completed_tasks) < 3:  # Need at least 3 samples
+            if len(completed_tasks) < MIN_SAMPLES_FOR_ESTIMATE:  # Need at least minimum samples
                 return None
 
             # Calculate average processing time
@@ -665,22 +669,15 @@ class ProgressTracker:
 
                 if old_batch_ids:
                     # Delete old tasks
-                    placeholders = ",".join("?" * len(old_batch_ids))
-                    conn.execute(
-                        f"""
-                        DELETE FROM task_progress
-                        WHERE batch_id IN ({placeholders})
-                    """,
-                        old_batch_ids,
+                    conn.executemany(
+                        "DELETE FROM task_progress WHERE batch_id = ?",
+                        [(batch_id,) for batch_id in old_batch_ids],
                     )
 
                     # Delete old batches
-                    conn.execute(
-                        f"""
-                        DELETE FROM batch_progress
-                        WHERE batch_id IN ({placeholders})
-                    """,
-                        old_batch_ids,
+                    conn.executemany(
+                        "DELETE FROM batch_progress WHERE batch_id = ?",
+                        [(batch_id,) for batch_id in old_batch_ids],
                     )
 
                     # Remove from cache
@@ -745,10 +742,7 @@ def main():
             pass
 
     elif args.command == "list":
-        if args.active_only:
-            batches = tracker.get_active_batches()
-        else:
-            batches = list(tracker.batch_cache.values())
+        batches = tracker.get_active_batches() if args.active_only else list(tracker.batch_cache.values())
 
         [batch.to_dict() for batch in batches]
 

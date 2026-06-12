@@ -125,12 +125,28 @@ async function generateDialogue(prompt, retryCount = 0) {
 
 // Save the generated dialogue to a file
 function saveDialogue(prompt, dialogue) {
-  // Create a filename based on the prompt ID and scenario type
-  const filename = `${prompt.prompt_id}_${prompt.scenario_type.replace(/\s+/g, '_')}.txt`
-  const outputPath = path.join(OUTPUT_DIR, filename)
+  try {
+    // Create a filename based on the prompt ID and scenario type
+    const filename = `${prompt.prompt_id}_${prompt.scenario_type.replace(/\s+/g, '_')}.txt`
 
-  // Add metadata header
-  const output = `Prompt ID: ${prompt.prompt_id}
+    // Validate filename against path traversal
+    if (
+      path.isAbsolute(filename) ||
+      filename.includes('..') ||
+      /[<>:"|?*\\/]/.test(filename)
+    ) {
+      throw new Error('Unsafe characters or path traversal detected in filename')
+    }
+
+    const resolvedOutputDir = path.resolve(OUTPUT_DIR)
+    const outputPath = path.resolve(resolvedOutputDir, filename)
+
+    if (!outputPath.startsWith(resolvedOutputDir + path.sep)) {
+      throw new Error('Path traversal detected: outputPath does not start with base directory')
+    }
+
+    // Add metadata header
+    const output = `Prompt ID: ${prompt.prompt_id}
 Scenario Type: ${prompt.scenario_type}
 Generated with: ${MODEL}
 Temperature: ${TEMPERATURE}
@@ -139,7 +155,6 @@ Date: ${new Date().toISOString()}
 
 ${dialogue}`
 
-  try {
     fs.writeFileSync(outputPath, output)
     console.log(`Dialogue saved to: ${outputPath}`)
     return outputPath

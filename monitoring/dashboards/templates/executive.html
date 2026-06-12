@@ -149,10 +149,10 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
       conversationTrendsChart = new Chart(trendsCtx, {
           type: 'line',
           data: {
-              labels: {{ trend_labels | safe }},
+              labels: {{ trend_labels | tojson }},
               datasets: [{
                   label: 'Daily Conversations',
-                  data: {{ trend_data | safe }},
+                  data: {{ trend_data | tojson }},
                   borderColor: '#3498db',
                   backgroundColor: 'rgba(52, 152, 219, 0.1)',
                   tension: 0.4,
@@ -180,7 +180,7 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
           data: {
               labels: ['Excellent', 'Good', 'Fair', 'Poor'],
               datasets: [{
-                  data: {{ quality_distribution | safe }},
+                  data: {{ quality_distribution | tojson }},
                   backgroundColor: ['#27ae60', '#3498db', '#f39c12', '#e74c3c']
               }]
           },
@@ -201,11 +201,11 @@ Empathy AI{% endblock %} {% block header_title %}Executive Dashboard{% endblock
               labels: ['Response Time', 'Throughput', 'Error Rate', 'CPU Usage'],
               datasets: [{
                   label: 'Current',
-                  data: {{ performance_current | safe }},
+                  data: {{ performance_current | tojson }},
                   backgroundColor: '#3498db'
               }, {
                   label: 'Target',
-                  data: {{ performance_target | safe }},
+                  data: {{ performance_target | tojson }},
                   backgroundColor: '#27ae60'
               }]
           },

@@ -17,7 +17,7 @@ from typing import Any
 
 import numpy as np
 import plotly.graph_objects as go
-from jinja2 import Template
+from jinja2 import Environment, select_autoescape
 from plotly.subplots import make_subplots
 
 # Import our improvement tracker
@@ -43,6 +43,17 @@ class QualityImprovementReporter:
     Generates comprehensive improvement reports with visualizations,
     impact analysis, and executive summaries.
     """
+
+    _LOW_TARGET_RATE = 50
+    _HIGH_TARGET_RATE = 80
+    _OVERDUE_DAYS_THRESHOLD = 60
+    _MIN_SUCCESS_RATE = 0.5
+    _MIN_SIGNIFICANCE_RATE = 0.3
+    _POOR_IMPROVEMENT_THRESHOLD = 0.02
+    _MAX_TICK_TEXT_LEN = 30
+    _LARGE_EFFECT_SIZE = 0.8
+    _MEDIUM_EFFECT_SIZE = 0.5
+    _SMALL_EFFECT_SIZE = 0.2
 
     def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
         """Initialize the improvement reporter."""
@@ -285,9 +296,8 @@ class QualityImprovementReporter:
             avg_improvement = overall_impact["average_improvement"]
             success_rate = overall_impact["success_rate"] * 100
 
-            summary.append(
-                f"📈 Average improvement: {avg_improvement:.3f} points across {overall_impact['total_interventions']} interventions"
-            )
+            total_int = overall_impact["total_interventions"]
+            summary.append(f"📈 Average improvement: {avg_improvement:.3f} points across {total_int} interventions")
             summary.append(f"🎯 Success rate: {success_rate:.1f}% of interventions met their targets")
 
             if overall_impact["successful_interventions"] > 0:
@@ -301,9 +311,9 @@ class QualityImprovementReporter:
                 overall_impact["components_improved"],
                 key=lambda x: x["average_improvement"],
             )
-            summary.append(
-                f"🏆 Best performing component: {best_component['component']} (+{best_component['average_improvement']:.3f})"
-            )
+            best_comp_name = best_component["component"]
+            best_comp_imp = best_component["average_improvement"]
+            summary.append(f"🏆 Best performing component: {best_comp_name} (+{best_comp_imp:.3f})")
 
         # Active interventions status
         if active_interventions:
@@ -338,17 +348,16 @@ class QualityImprovementReporter:
             prac_rate = success_metrics["practical_significance_rate"] * 100
             insights.append(f"💡 {prac_rate:.1f}% of interventions achieved practically significant improvements")
 
-        # Effect size insights
         avg_effect_size = success_metrics["average_effect_size"]
-        if avg_effect_size > 0.8:
+        if avg_effect_size > self._LARGE_EFFECT_SIZE:
             insights.append(
                 f"💪 Large average effect size ({avg_effect_size:.3f}) indicates strong intervention impact"
             )
-        elif avg_effect_size > 0.5:
+        elif avg_effect_size > self._MEDIUM_EFFECT_SIZE:
             insights.append(
                 f"📈 Medium average effect size ({avg_effect_size:.3f}) indicates moderate intervention impact"
             )
-        elif avg_effect_size > 0.2:
+        elif avg_effect_size > self._SMALL_EFFECT_SIZE:
             insights.append(
                 f"📊 Small average effect size ({avg_effect_size:.3f}) indicates limited intervention impact"
             )
@@ -357,9 +366,9 @@ class QualityImprovementReporter:
         if analyses:
             # Best performing intervention
             best_intervention = max(analyses, key=lambda x: x.improvement_metrics["absolute_improvement"])
-            insights.append(
-                f"🏆 Best intervention: {best_intervention.intervention_name} (+{best_intervention.improvement_metrics['absolute_improvement']:.3f})"
-            )
+            best_name = best_intervention.intervention_name
+            best_improvement = best_intervention.improvement_metrics["absolute_improvement"]
+            insights.append(f"🏆 Best intervention: {best_name} (+{best_improvement:.3f})")
 
             # Interventions with declining trends
             declining_interventions = [a for a in analyses if a.trend_analysis.get("trend_direction") == "declining"]
@@ -370,11 +379,12 @@ class QualityImprovementReporter:
 
         # Target achievement insights
         target_rate = success_metrics["target_achievement_rate"] * 100
-        if target_rate < 50:
+        if target_rate < self._LOW_TARGET_RATE:
             insights.append(
-                f"🎯 Low target achievement rate ({target_rate:.1f}%) suggests need for more realistic targets or stronger interventions"
+                f"🎯 Low target achievement rate ({target_rate:.1f}%) "
+                "suggests need for more realistic targets or stronger interventions"
             )
-        elif target_rate > 80:
+        elif target_rate > self._HIGH_TARGET_RATE:
             insights.append(
                 f"🎯 High target achievement rate ({target_rate:.1f}%) indicates effective intervention planning"
             )
@@ -395,7 +405,7 @@ class QualityImprovementReporter:
             overdue_interventions = []
             for intervention in active_interventions:
                 start_date = datetime.fromisoformat(intervention.start_date)
-                if (datetime.now(UTC) - start_date).days > 60:  # 60 days threshold
+                if (datetime.now(UTC) - start_date).days > self._OVERDUE_DAYS_THRESHOLD:
                     overdue_interventions.append(intervention)
 
             if overdue_interventions:
@@ -404,12 +414,12 @@ class QualityImprovementReporter:
                 )
 
         # Success rate actions
-        if success_metrics["target_achievement_rate"] < 0.5:
+        if success_metrics["target_achievement_rate"] < self._MIN_SUCCESS_RATE:
             actions.append("🎯 Review intervention targets - less than 50% are being achieved")
             actions.append("📊 Analyze successful interventions to identify best practices")
 
         # Statistical significance actions
-        if success_metrics["statistical_significance_rate"] < 0.3:
+        if success_metrics["statistical_significance_rate"] < self._MIN_SIGNIFICANCE_RATE:
             actions.append("📈 Increase sample sizes or measurement frequency for better statistical power")
 
         # Component-specific actions
@@ -425,7 +435,7 @@ class QualityImprovementReporter:
             poor_components = [
                 component
                 for component, improvements in component_performance.items()
-                if np.mean(improvements) < 0.02  # Less than 2% improvement
+                if np.mean(improvements) < self._POOR_IMPROVEMENT_THRESHOLD
             ]
 
             if poor_components:
@@ -463,7 +473,7 @@ class QualityImprovementReporter:
                         y=[i, i],
                         mode="lines+markers",
                         name=intervention.name,
-                        line=dict(color=color, width=6),
+                        line={"color": color, "width": 6},
                         hovertemplate=f"<b>{intervention.name}</b><br>"
                         + f"Type: {intervention.intervention_type}<br>"
                         + f"Status: {intervention.status}<br>"
@@ -476,11 +486,14 @@ class QualityImprovementReporter:
                 title="Intervention Timeline",
                 xaxis_title="Date",
                 yaxis_title="Interventions",
-                yaxis=dict(
-                    tickmode="array",
-                    tickvals=list(range(len(all_interventions))),
-                    ticktext=[i.name[:30] + "..." if len(i.name) > 30 else i.name for i in all_interventions],
-                ),
+                yaxis={
+                    "tickmode": "array",
+                    "tickvals": list(range(len(all_interventions))),
+                    "ticktext": [
+                        i.name[: self._MAX_TICK_TEXT_LEN] + "..." if len(i.name) > self._MAX_TICK_TEXT_LEN else i.name
+                        for i in all_interventions
+                    ],
+                },
                 height=max(400, len(all_interventions) * 40),
             )
 
@@ -511,7 +524,7 @@ class QualityImprovementReporter:
                     y=[t * max(improvements) if improvements else 0 for t in targets],
                     mode="markers",
                     name="Target Achievement",
-                    marker=dict(size=10, symbol="diamond", color="orange"),
+                    marker={"size": 10, "symbol": "diamond", "color": "orange"},
                 )
             )
 
@@ -621,11 +634,11 @@ class QualityImprovementReporter:
 
         return visualizations
 
-    def save_report(self, report: ImprovementReport, format: str = "json") -> str:
+    def save_report(self, report: ImprovementReport, report_format: str = "json") -> str:
         """Save improvement report to file."""
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
-        if format == "json":
+        if report_format == "json":
             filename = f"quality_improvement_report_{timestamp}.json"
             filepath = self.output_dir / filename
 
@@ -635,7 +648,7 @@ class QualityImprovementReporter:
             with open(filepath, "w") as f:
                 json.dump(report_dict, f, indent=2, default=str)
 
-        elif format == "html":
+        elif report_format == "html":
             filename = f"quality_improvement_report_{timestamp}.html"
             filepath = self.output_dir / filename
 
@@ -650,7 +663,8 @@ class QualityImprovementReporter:
 
     def _generate_html_report(self, report: ImprovementReport) -> str:
         """Generate HTML report from improvement analysis."""
-        template = Template(self.report_templates["detailed"])
+        env = Environment(autoescape=select_autoescape(["html", "xml"]))
+        template = env.from_string(self.report_templates["detailed"])
 
         return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -727,10 +741,12 @@ class QualityImprovementReporter:
                     <strong>Total Interventions:</strong> {{ report.overall_impact.get('total_interventions', 0) }}
                 </div>
                 <div class="metric">
-                    <strong>Average Improvement:</strong> {{ "%.3f"|format(report.overall_impact.get('average_improvement', 0)) }}
+                    <strong>Average Improvement:</strong>
+                    {{ "%.3f"|format(report.overall_impact.get('average_improvement', 0)) }}
                 </div>
                 <div class="metric">
-                    <strong>Success Rate:</strong> {{ "%.1f"|format(report.overall_impact.get('success_rate', 0) * 100) }}%
+                    <strong>Success Rate:</strong>
+                    {{ "%.1f"|format(report.overall_impact.get('success_rate', 0) * 100) }}%
                 </div>
             </div>
 

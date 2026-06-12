@@ -8,30 +8,17 @@ source → process → filter → format → assemble
 Provides CLI interface with options for each stage and checkpoint support.
 """
 
-from datetime import datetime, timezone
-
-
-
-
-
-
-
-
-
-
-
-import json
-import sys
 import argparse
-from pathlib import Path
-from typing import Dict, Any, Optional
+import json
 import logging
+import subprocess
+import sys
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 class DataPreparationOrchestrator:
@@ -51,11 +38,11 @@ class DataPreparationOrchestrator:
             "assemble": base_path / "ai" / "training_ready" / "pipelines" / "integrated" / "assemble_final_dataset.py",
         }
 
-    def _load_checkpoint(self) -> Dict[str, Any]:
+    def _load_checkpoint(self) -> dict[str, Any]:
         """Load checkpoint state"""
         if self.checkpoint_file.exists():
             try:
-                with open(self.checkpoint_file, "r") as f:
+                with open(self.checkpoint_file) as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"Failed to load checkpoint: {e}")
@@ -69,19 +56,18 @@ class DataPreparationOrchestrator:
         """Save checkpoint state"""
         self.checkpoint["completed_stages"].append(stage)
         self.checkpoint["last_stage"] = stage
-        self.checkpoint["timestamp"] = datetime.now(timezone.utc).isoformat()
+        self.checkpoint["timestamp"] = datetime.now(UTC).isoformat()
 
         self.checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
         with open(self.checkpoint_file, "w") as f:
             json.dump(self.checkpoint, f, indent=2)
 
-    def _run_script(self, stage: str, script_path: Path, args: Optional[list] = None) -> bool:
+    def _run_script(self, stage: str, script_path: Path, args: list | None = None) -> bool:
         """Run a pipeline script"""
         if not script_path.exists():
             logger.error(f"Script not found: {script_path}")
             return False
 
-        import subprocess
         cmd = [sys.executable, str(script_path)]
         if args:
             cmd.extend(args)
@@ -90,7 +76,7 @@ class DataPreparationOrchestrator:
         logger.info(f"   Command: {' '.join(cmd)}")
 
         try:
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True, shell=False)
             logger.info(result.stdout)
             if result.stderr:
                 logger.warning(result.stderr)
@@ -118,7 +104,7 @@ class DataPreparationOrchestrator:
 
         return success
 
-    def run_all(self, start_from: Optional[str] = None, force: bool = False) -> bool:
+    def run_all(self, start_from: str | None = None, force: bool = False) -> bool:
         """Run all stages in sequence"""
         stages = ["source", "process", "filter", "format", "assemble"]
 
@@ -146,7 +132,7 @@ class DataPreparationOrchestrator:
 
         return True
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         """Generate comprehensive preparation report"""
         reports = {}
         report_files = {
@@ -160,13 +146,13 @@ class DataPreparationOrchestrator:
         for name, path in report_files.items():
             if path.exists():
                 try:
-                    with open(path, "r") as f:
+                    with open(path) as f:
                         reports[name] = json.load(f)
                 except Exception as e:
                     logger.warning(f"Failed to load {name} report: {e}")
 
         return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "checkpoint": self.checkpoint,
             "reports": reports,
         }
@@ -190,39 +176,22 @@ Examples:
 
   # Force rerun completed stages
   python prepare_training_data.py --all --force
-        """
+        """,
     )
 
+    parser.add_argument("--all", action="store_true", help="Run all stages in sequence")
     parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Run all stages in sequence"
-    )
-    parser.add_argument(
-        "--stage",
-        choices=["source", "process", "filter", "format", "assemble"],
-        help="Run a specific stage"
+        "--stage", choices=["source", "process", "filter", "format", "assemble"], help="Run a specific stage"
     )
     parser.add_argument(
         "--start-from",
         choices=["source", "process", "filter", "format", "assemble"],
-        help="Start from a specific stage (resume from checkpoint)"
+        help="Start from a specific stage (resume from checkpoint)",
     )
+    parser.add_argument("--force", action="store_true", help="Force rerun even if stage is already completed")
+    parser.add_argument("--report", action="store_true", help="Generate comprehensive preparation report")
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force rerun even if stage is already completed"
-    )
-    parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Generate comprehensive preparation report"
-    )
-    parser.add_argument(
-        "--target-total",
-        type=int,
-        default=100000,
-        help="Target total conversations for assembly (default: 100000)"
+        "--target-total", type=int, default=100000, help="Target total conversations for assembly (default: 100000)"
     )
 
     args = parser.parse_args()
@@ -244,14 +213,12 @@ Examples:
     if args.all:
         success = orchestrator.run_all(start_from=args.start_from, force=args.force)
         return 0 if success else 1
-    elif args.stage:
+    if args.stage:
         success = orchestrator.run_stage(args.stage, force=args.force)
         return 0 if success else 1
-    else:
-        parser.print_help()
-        return 1
+    parser.print_help()
+    return 1
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

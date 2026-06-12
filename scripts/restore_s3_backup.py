@@ -12,11 +12,11 @@ import sys
 
 def run_rclone(args: list[str], dry_run: bool = False) -> tuple[int, str, str]:
     """Run rclone command."""
-    cmd = ["rclone"] + args
+    cmd = ["rclone", *args]
     if dry_run and "sync" in args[0]:
         cmd.insert(1, "--dry-run")
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, shell=False, check=False)
     return result.returncode, result.stdout, result.stderr
 
 
@@ -41,17 +41,17 @@ def main():
     dest = "BackupStorageS3:pixel-data"
 
     if args.check:
-        rc, out, err = run_rclone(["lsf", source])
+        rc, _out, _err = run_rclone(["lsf", source])
         if rc != 0:
             return 1
 
-        rc, out, err = run_rclone(["lsf", dest])
+        rc, _out, _err = run_rclone(["lsf", dest])
         if rc != 0:
             pass
         else:
             pass
 
-        rc, out, err = run_rclone(["size", source])
+        _rc, _out, _err = run_rclone(["size", source])
         return 0
 
     # Use sync with --progress for visibility

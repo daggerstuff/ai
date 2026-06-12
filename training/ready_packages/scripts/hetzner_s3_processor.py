@@ -3,35 +3,26 @@
 HETZNER S3 Processor - Processes actual 52.20GB from pixelated-training-data container
 """
 
-from datetime import datetime, timezone
-
-
-
-
-
-
-
-
-
-
-
 import json
-import subprocess
 import os
-HETZNER_AI_CLI = os.getenv("HETZNER_AI_CLI", "ovhai")
-
+import shlex
+import subprocess
+from datetime import UTC, datetime
 from pathlib import Path
 
+HETZNER_AI_CLI = os.getenv("HETZNER_AI_CLI", "ovhai")
 
-def run_HETZNER_AI_CLI_command(cmd):
+
+def run_hetzner_ai_cli_command(cmd):
     """Run HETZNER_AI_CLI command and return JSON output"""
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if isinstance(cmd, str):
+            cmd = shlex.split(cmd)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True, check=False)
         if result.returncode == 0:
             return json.loads(result.stdout)
-        else:
-            print(f"Error: {result.stderr}")
-            return []
+        print(f"Error: {result.stderr}")
+        return []
     except Exception as e:
         print(f"Command failed: {e}")
         return []
@@ -43,11 +34,11 @@ def discover_datasets():
 
     # Get all objects from pixelated-training-data
     cmd = f"{HETZNER_AI_CLI} data list hel1 pixelated-training-data --output json"
-    objects = run_HETZNER_AI_CLI_command(cmd)
+    objects = run_hetzner_ai_cli_command(cmd)
 
     if not objects:
         print("❌ No data found")
-        return
+        return None
 
     # Parse and filter actual dataset files
     datasets = []
@@ -59,14 +50,8 @@ def discover_datasets():
             size = obj["object"]["bytes"]
 
             # Filter for actual JSON dataset files
-            if (
-                name.endswith(".json")
-                and "/consolidated/" in name
-                and "cache" not in name
-            ):
-                datasets.append(
-                    {"path": name, "size": size, "bucket": "pixelated-training-data"}
-                )
+            if name.endswith(".json") and "/consolidated/" in name and "cache" not in name:
+                datasets.append({"path": name, "size": size, "bucket": "pixelated-training-data"})
                 total_size += size
 
     # Sort by size
@@ -83,7 +68,7 @@ def discover_datasets():
 
     # Save discovery report
     report = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "total_files": len(datasets),
         "total_size_bytes": total_size,
         "total_size_gb": total_size / (1024**3),
@@ -105,20 +90,25 @@ def download_file(remote_path, local_path):
     local_path = Path(local_path)
     local_path.parent.mkdir(parents=True, exist_ok=True)
 
-    cmd = (
-        f"{HETZNER_AI_CLI} data download hel1 "
-        f"pixelated-training-data {remote_path} --output {local_path}"
-    )
+    cmd = [
+        *shlex.split(HETZNER_AI_CLI),
+        "data",
+        "download",
+        "hel1",
+        "pixelated-training-data",
+        str(remote_path),
+        "--output",
+        str(local_path),
+    ]
     print(f"📥 Downloading: {remote_path}")
 
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True, check=False)
         if result.returncode == 0:
             print(f"✅ Downloaded: {local_path}")
             return True
-        else:
-            print(f"❌ Failed: {result.stderr}")
-            return False
+        print(f"❌ Failed: {result.stderr}")
+        return False
     except Exception as e:
         print(f"❌ Error downloading {remote_path}: {e}")
         return False
@@ -142,7 +132,7 @@ def main():
             download_dir = Path("training_ready/data/downloads")
             download_dir.mkdir(exist_ok=True)
 
-            for i, ds in enumerate(report["datasets"][:5], 1):
+            for _, ds in enumerate(report["datasets"][:5], 1):
                 filename = ds["path"].split("/")[-1]
                 local_path = download_dir / filename
                 download_file(ds["path"], local_path)

@@ -55,15 +55,15 @@ class QualityAnalyticsDashboardLauncher:
 
         for package in self.required_packages:
             try:
-                if (
-                    package == "sqlite3"
-                    or package == "streamlit"
-                    or package == "pandas"
-                    or package == "plotly"
-                    or package == "numpy"
-                    or package == "seaborn"
-                    or package == "matplotlib"
-                ):
+                if package in {
+                    "sqlite3",
+                    "streamlit",
+                    "pandas",
+                    "plotly",
+                    "numpy",
+                    "seaborn",
+                    "matplotlib",
+                }:
                     pass
 
                 logger.info(f"  ✅ {package}: Available")
@@ -198,6 +198,7 @@ class QualityAnalyticsDashboardLauncher:
             process = subprocess.Popen(
                 cmd,
                 cwd=str(self.project_root),
+                shell=False,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
@@ -237,9 +238,11 @@ class QualityAnalyticsDashboardLauncher:
             result = subprocess.run(
                 [sys.executable, str(test_file)],
                 cwd=str(self.project_root),
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=60,
+                check=False,
             )
 
             if result.returncode == 0:

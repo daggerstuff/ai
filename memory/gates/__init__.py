@@ -68,6 +68,7 @@ class GatingReport:
     crisis_tier: str = "none"
     trauma_indicators: list[str] = field(default_factory=list)
     consent_gate_value: str = "open"
+    safety_intent: str | None = None
 
     @property
     def passed(self) -> bool:
@@ -111,6 +112,7 @@ class GatingReport:
             "crisis_tier": self.crisis_tier,
             "trauma_indicators": self.trauma_indicators,
             "consent_gate_value": self.consent_gate_value,
+            "safety_intent": self.safety_intent,
             "gates": {
                 f"gate{i}": (r.to_dict() if r else None)
                 for i, r in enumerate(

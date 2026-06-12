@@ -12,6 +12,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+MAX_COLLECTION_ERRORS = 10
+
 
 class TestInfrastructureFixer:
     """Fixes test infrastructure issues to enable proper coverage measurement."""
@@ -37,9 +39,11 @@ class TestInfrastructureFixer:
         # Run pytest collect-only to capture errors
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "--collect-only", "-q"],
+            shell=False,
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            check=False,
         )
 
         errors = {}
@@ -184,9 +188,11 @@ class TestInfrastructureFixer:
 
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "--collect-only", "-q"],
+            shell=False,
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            check=False,
         )
 
         # Count collected tests and errors
@@ -204,9 +210,11 @@ class TestInfrastructureFixer:
 
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "--cov=.", "--cov-report=term", "-x"],
+            shell=False,
             cwd=self.project_root,
             capture_output=True,
             text=True,
+            check=False,
         )
 
         # Extract coverage percentage
@@ -221,6 +229,11 @@ class TestInfrastructureFixer:
 
     def generate_report(self, validation_results: dict, coverage_results: dict) -> str:
         """Generate a fix report."""
+        status = (
+            "✅ Infrastructure fixes successful"
+            if validation_results["collection_errors"] < MAX_COLLECTION_ERRORS
+            else "❌ More fixes needed"
+        )
         return f"""
 # Test Infrastructure Fix Report
 
@@ -240,7 +253,7 @@ class TestInfrastructureFixer:
 - Tests failed: {coverage_results["tests_failed"]}
 
 ## Status
-{"✅ Infrastructure fixes successful" if validation_results["collection_errors"] < 10 else "❌ More fixes needed"}
+{status}
 """
 
     def run_full_fix(self) -> None:

@@ -7,6 +7,7 @@ Web-based dashboard for monitoring and managing alert fatigue prevention
 import asyncio
 import json
 import logging
+import os
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -79,6 +80,11 @@ class FatigueDashboard:
                 logger.error(f"Error getting rules: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
 
+        self.setup_extra_routes()
+
+    def setup_extra_routes(self):
+        """Setup secondary Flask routes for the dashboard"""
+
         @self.app.route("/api/rules", methods=["POST"])
         def api_create_rule():
             """Create new fatigue prevention rule"""
@@ -149,25 +155,7 @@ class FatigueDashboard:
                 logger.error(f"Error deleting rule: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
 
-        @self.app.route("/api/charts/alert_trends")
-        def api_alert_trends():
-            """Get alert trends chart data"""
-            try:
-                chart_data = self.generate_alert_trends_chart()
-                return jsonify({"chart": chart_data, "status": "success"})
-            except Exception as e:
-                logger.error(f"Error generating chart: {e}")
-                return jsonify({"error": str(e), "status": "error"}), 500
-
-        @self.app.route("/api/charts/suppression_stats")
-        def api_suppression_stats():
-            """Get suppression statistics chart data"""
-            try:
-                chart_data = self.generate_suppression_stats_chart()
-                return jsonify({"chart": chart_data, "status": "success"})
-            except Exception as e:
-                logger.error(f"Error generating chart: {e}")
-                return jsonify({"error": str(e), "status": "error"}), 500
+        self.setup_chart_routes()
 
         @self.app.route("/api/test_grouping", methods=["POST"])
         def api_test_grouping():
@@ -189,6 +177,29 @@ class FatigueDashboard:
                 return jsonify({"groups": groups, "quality": quality, "status": "success"})
             except Exception as e:
                 logger.error(f"Error testing grouping: {e}")
+                return jsonify({"error": str(e), "status": "error"}), 500
+
+    def setup_chart_routes(self):
+        """Setup chart Flask routes for the dashboard"""
+
+        @self.app.route("/api/charts/alert_trends")
+        def api_alert_trends():
+            """Get alert trends chart data"""
+            try:
+                chart_data = self.generate_alert_trends_chart()
+                return jsonify({"chart": chart_data, "status": "success"})
+            except Exception as e:
+                logger.error(f"Error generating chart: {e}")
+                return jsonify({"error": str(e), "status": "error"}), 500
+
+        @self.app.route("/api/charts/suppression_stats")
+        def api_suppression_stats():
+            """Get suppression statistics chart data"""
+            try:
+                chart_data = self.generate_suppression_stats_chart()
+                return jsonify({"chart": chart_data, "status": "success"})
+            except Exception as e:
+                logger.error(f"Error generating chart: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
 
     def get_dashboard_metrics(self) -> dict[str, Any]:
@@ -665,7 +676,8 @@ DASHBOARD_TEMPLATE = """
                 .always(checkCompletion)
                 .done(function(data) {
                     if (data.status === 'success') {
-                        Plotly.newPlot('alert-trends-chart', JSON.parse(data.chart).data, JSON.parse(data.chart).layout);
+                        var chartObj = JSON.parse(data.chart);
+                        Plotly.newPlot('alert-trends-chart', chartObj.data, chartObj.layout);
                     }
                 });
 
@@ -674,7 +686,8 @@ DASHBOARD_TEMPLATE = """
                 .always(checkCompletion)
                 .done(function(data) {
                     if (data.status === 'success') {
-                        Plotly.newPlot('suppression-stats-chart', JSON.parse(data.chart).data, JSON.parse(data.chart).layout);
+                        var chartObj = JSON.parse(data.chart);
+                        Plotly.newPlot('suppression-stats-chart', chartObj.data, chartObj.layout);
                     }
                 });
         }
@@ -717,7 +730,8 @@ async def run_dashboard():
     dashboard = FatigueDashboard(afp_system)
 
     # Run dashboard
-    dashboard.run(host="0.0.0.0", port=5000, debug=True)
+    debug = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    dashboard.run(host="0.0.0.0", port=5000, debug=debug)
 
 
 if __name__ == "__main__":

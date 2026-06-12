@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 class MCPValidator:
     """Validates MCP configuration for Amazon Q Developer compatibility."""
 
-    def __init__(self, config_path: str = None):
+    HTTP_OK = 200
+
+    def __init__(self, config_path: str | None = None):
         """Initialize the MCP validator."""
         if config_path is None:
             config_path = Path(__file__).parent / "mcp.json"
@@ -100,47 +102,58 @@ class MCPValidator:
             if server_type not in ["stdio", "sse", "streamable-http"]:
                 self.validation_results["warnings"].append(f"Server '{server_name}' has unknown type '{server_type}'")
 
-            # Validate stdio servers
-            if server_type == "stdio" or "command" in server_config:
-                if "command" not in server_config:
-                    self.validation_results["errors"].append(f"Server '{server_name}' missing required 'command' field")
-                    continue
+            is_stdio = server_type == "stdio" or "command" in server_config
+            is_http = server_type in ["sse", "streamable-http"] or "url" in server_config
 
-                # Check if command exists
-                command = server_config["command"]
-                if not self._check_command_available(command):
-                    self.validation_results["warnings"].append(
-                        f"Command '{command}' for server '{server_name}' may not be available"
-                    )
-
-            # Validate HTTP/SSE servers
-            elif server_type in ["sse", "streamable-http"] or "url" in server_config:
-                if "url" not in server_config:
-                    self.validation_results["errors"].append(f"Server '{server_name}' missing required 'url' field")
-                    continue
-
-                # Validate URL format
-                url = server_config["url"]
-                if not url.startswith(("http://", "https://")):
-                    self.validation_results["errors"].append(f"Server '{server_name}' has invalid URL format: {url}")
-                    continue
+            if (is_stdio and not self._validate_stdio_server(server_name, server_config)) or (
+                is_http and not self._validate_http_server(server_name, server_config)
+            ):
+                continue
 
             # Check for required environment variables
             if "env" in server_config:
-                for _env_var, env_value in server_config["env"].items():
-                    if env_value.startswith("${") and env_value.endswith("}"):
-                        # Environment variable reference
-                        actual_env_var = env_value[2:-1]
-                        if actual_env_var not in os.environ:
-                            self.validation_results["warnings"].append(
-                                f"Environment variable '{actual_env_var}' for server '{server_name}' not set"
-                            )
+                self._validate_env_variables(server_name, server_config)
 
             valid_servers += 1
             logger.info(f"  ✅ Server '{server_name}' configuration valid")
 
         logger.info(f"✅ Validated {valid_servers}/{len(self.config['mcpServers'])} servers")
         return valid_servers > 0
+
+    def _validate_stdio_server(self, server_name: str, server_config: dict[str, Any]) -> bool:
+        if "command" not in server_config:
+            self.validation_results["errors"].append(f"Server '{server_name}' missing required 'command' field")
+            return False
+
+        # Check if command exists
+        command = server_config["command"]
+        if not self._check_command_available(command):
+            self.validation_results["warnings"].append(
+                f"Command '{command}' for server '{server_name}' may not be available"
+            )
+        return True
+
+    def _validate_http_server(self, server_name: str, server_config: dict[str, Any]) -> bool:
+        if "url" not in server_config:
+            self.validation_results["errors"].append(f"Server '{server_name}' missing required 'url' field")
+            return False
+
+        # Validate URL format
+        url = server_config["url"]
+        if not url.startswith(("http://", "https://")):
+            self.validation_results["errors"].append(f"Server '{server_name}' has invalid URL format: {url}")
+            return False
+        return True
+
+    def _validate_env_variables(self, server_name: str, server_config: dict[str, Any]) -> None:
+        for _env_var, env_value in server_config["env"].items():
+            if env_value.startswith("${") and env_value.endswith("}"):
+                # Environment variable reference
+                actual_env_var = env_value[2:-1]
+                if actual_env_var not in os.environ:
+                    self.validation_results["warnings"].append(
+                        f"Environment variable '{actual_env_var}' for server '{server_name}' not set"
+                    )
 
     def _check_command_available(self, command: str) -> bool:
         """Check if a command is available in the system PATH."""
@@ -150,9 +163,11 @@ class MCPValidator:
                 capture_output=True,
                 text=True,
                 timeout=5,
+                shell=False,
+                check=False,
             )
             return result.returncode == 0
-        except:
+        except Exception:
             return False
 
     def test_server_connectivity(self, server_name: str, server_config: dict[str, Any]) -> dict[str, Any]:
@@ -176,11 +191,12 @@ class MCPValidator:
 
                 # Quick test - just check if command starts
                 process = subprocess.Popen(
-                    [command] + args,
+                    [command, *args],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     env=env,
                     text=True,
+                    shell=False,
                 )
 
                 # Give it a moment to start
@@ -203,7 +219,7 @@ class MCPValidator:
             elif "url" in server_config:
                 try:
                     with urllib.request.urlopen(server_config["url"], timeout=10) as response:
-                        if response.status == 200:
+                        if response.status == self.HTTP_OK:
                             result["status"] = "available"
                         else:
                             result["status"] = "error"

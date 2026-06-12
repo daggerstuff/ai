@@ -6,6 +6,7 @@ to prevent abuse and ensure fair resource usage.
 """
 
 import asyncio
+import html
 import time
 
 from ai.sourcing.journal.mcp.config import RateLimitConfig
@@ -257,7 +258,7 @@ def get_rate_limit_identifier(request: any, user: dict[str, any] | None = None) 
         # Try to get identifier from params
         identifier = request.params.get("client_id") or request.params.get("identifier")
         if identifier:
-            return f"client:{identifier}"
+            return f"client:{html.escape(str(identifier))}"
 
     # Default: use anonymous identifier
     return "anonymous"

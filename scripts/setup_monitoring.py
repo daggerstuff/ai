@@ -7,6 +7,7 @@ Deploys Prometheus, Grafana, and AlertManager for system monitoring.
 import json
 import logging
 import subprocess
+import sys
 from pathlib import Path
 
 import yaml
@@ -105,7 +106,10 @@ class MonitoringSetup:
                             },
                             {
                                 "alert": "DiskSpaceLow",
-                                "expr": 'node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1',
+                                "expr": (
+                                    'node_filesystem_avail_bytes{mountpoint="/"} / '
+                                    'node_filesystem_size_bytes{mountpoint="/"} < 0.1'
+                                ),
                                 "for": "5m",
                                 "labels": {"severity": "warning"},
                                 "annotations": {"summary": "Low disk space", "description": "Disk space is below 10%"},
@@ -308,7 +312,9 @@ class MonitoringSetup:
 
             for cmd in compose_commands:
                 try:
-                    result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.monitoring_dir)
+                    result = subprocess.run(
+                        cmd, capture_output=True, text=True, cwd=self.monitoring_dir, shell=False, check=False
+                    )
 
                     if result.returncode == 0:
                         logger.info("✅ Monitoring stack deployed successfully")
@@ -366,4 +372,4 @@ def main():
 
 if __name__ == "__main__":
     success = main()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import re
@@ -47,6 +48,25 @@ def validate_identifier(identifier: str) -> str:
     if not re.match(r"^[a-zA-Z0-9_]+$", identifier):
         raise HTTPException(status_code=400, detail=f"Invalid identifier format: {identifier}")
     return identifier
+
+
+def safe_execute_query(cursor, query_template: str, params=None, **kwargs):
+    """
+    Executes a query safely. Any dynamic table names or schema-level identifiers
+    must be passed as keywords to format the query_template, and they must be
+    validated identifiers.
+    """
+    for key, val in kwargs.items():
+        if key == "where":
+            # Allow where clause to contain alphanumeric, underscores, spaces, ?, =, and "AND", and quotes
+            if not re.match(r"^[a-zA-Z0-9_\s?=\"',]*$", val):
+                raise ValueError(f"Invalid where clause: {val}")
+        elif not re.match(r"^[a-zA-Z0-9_]+$", val):
+            raise ValueError(f"Invalid identifier: {val}")
+    query = query_template.format(**kwargs)
+    if params is not None:
+        return cursor.execute(query, params)
+    return cursor.execute(query)
 
 
 def get_db_connection():
@@ -99,10 +119,8 @@ async def get_current_active_user_or_api_key(request: Request, api_key: str | No
         if user_role:
             # role could be str or UserRole enum
             if isinstance(user_role, str):
-                try:
+                with contextlib.suppress(ValueError):
                     user_role = UserRole(user_role)
-                except ValueError:
-                    pass
             user_scopes = auth_system.role_permissions.get(user_role, [])
         user_scopes = getattr(user, "permissions", user_scopes)
         return {
@@ -174,11 +192,11 @@ async def list_datasets(
                 continue
 
             # Get row count
-            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')
+            safe_execute_query(cursor, 'SELECT COUNT(*) FROM "{table}"', table=safe_table_name)
             row_count = cursor.fetchone()[0]
 
             # Get columns
-            cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+            safe_execute_query(cursor, 'PRAGMA table_info("{table}")', table=safe_table_name)
             columns_info = cursor.fetchall()
             columns = []
             for col in columns_info:
@@ -202,7 +220,7 @@ async def list_datasets(
             )
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
-        raise HTTPException(status_code=500, detail="Database error occurred")
+        raise HTTPException(status_code=500, detail="Database error occurred") from e
     finally:
         if conn:
             conn.close()
@@ -235,11 +253,11 @@ async def get_dataset_metadata(
 
         safe_table_name = validate_identifier(table_row["name"])
 
-        cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')
+        safe_execute_query(cursor, 'SELECT COUNT(*) FROM "{table}"', table=safe_table_name)
         row_count = cursor.fetchone()[0]
 
         # Get columns
-        cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+        safe_execute_query(cursor, 'PRAGMA table_info("{table}")', table=safe_table_name)
         columns_info = cursor.fetchall()
         columns = []
         for col in columns_info:
@@ -261,7 +279,7 @@ async def get_dataset_metadata(
         )
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
-        raise HTTPException(status_code=500, detail="Database error occurred")
+        raise HTTPException(status_code=500, detail="Database error occurred") from e
     finally:
         if conn:
             conn.close()
@@ -299,7 +317,7 @@ async def query_dataset(
         safe_table_name = validate_identifier(table_row["name"])
 
         # Get valid columns for the table to validate filters
-        cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
+        safe_execute_query(cursor, 'PRAGMA table_info("{table}")', table=safe_table_name)
         valid_columns = {c["name"] for c in cursor.fetchall()}
 
         # Build WHERE clause for filters
@@ -321,14 +339,20 @@ async def query_dataset(
                 where_clause = " WHERE " + " AND ".join(filter_clauses)
 
         # Get total rows matching filters
-        count_query = f'SELECT COUNT(*) FROM "{safe_table_name}"{where_clause}'  # nosec B608 # sourcery skip: avoid-sql-string-concatenation
-        cursor.execute(count_query, params)
+        safe_execute_query(
+            cursor, 'SELECT COUNT(*) FROM "{table}"{where}', params=params, table=safe_table_name, where=where_clause
+        )
         total_rows = cursor.fetchone()[0]
 
         # Get data with pagination
         offset = (page - 1) * page_size
-        data_query = f'SELECT * FROM "{safe_table_name}"{where_clause} LIMIT ? OFFSET ?'  # nosec B608 # sourcery skip: avoid-sql-string-concatenation
-        cursor.execute(data_query, params + [page_size, offset])
+        safe_execute_query(
+            cursor,
+            'SELECT * FROM "{table}"{where} LIMIT ? OFFSET ?',
+            params=[*params, page_size, offset],
+            table=safe_table_name,
+            where=where_clause,
+        )
         rows = cursor.fetchall()
 
         results = []
@@ -339,7 +363,7 @@ async def query_dataset(
 
     except sqlite3.Error as e:
         logger.error(f"Database error: {e}")
-        raise HTTPException(status_code=500, detail="Database error occurred")
+        raise HTTPException(status_code=500, detail="Database error occurred") from e
     finally:
         if conn:
             conn.close()

@@ -12,6 +12,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+MIN_TEMPLATE_SIZE = 100
+MIN_COVERAGE_THRESHOLD = 80
+PRODUCTION_COVERAGE_THRESHOLD = 90
+
 
 class CriticalTestFixer:
     """Fixes critical test files for core AI modules."""
@@ -88,13 +92,23 @@ class CriticalTestFixer:
 
             # Fix specific module imports
             module_fixes = {
-                "crisis_intervention_detector": "from ai.pipelines.orchestrator.crisis_intervention_detector import CrisisInterventionDetector",
-                "safety_ethics_validator": "from ai.models.pixel_core.validation.safety_ethics_validator import SafetyEthicsValidator",
-                "clinical_accuracy_validator": "from ai.models.pixel_core.validation.clinical_accuracy_validator import ClinicalAccuracyValidator",
+                "crisis_intervention_detector": (
+                    "from ai.pipelines.orchestrator.crisis_intervention_detector import CrisisInterventionDetector"
+                ),
+                "safety_ethics_validator": (
+                    "from ai.models.pixel_core.validation.safety_ethics_validator import SafetyEthicsValidator"
+                ),
+                "clinical_accuracy_validator": (
+                    "from ai.models.pixel_core.validation.clinical_accuracy_validator import ClinicalAccuracyValidator"
+                ),
                 "production_exporter": "from ai.inference.production_exporter import ProductionExporter",
-                "pipeline_orchestrator": "from ai.pipelines.orchestrator.pipeline_orchestrator import PipelineOrchestrator",
+                "pipeline_orchestrator": (
+                    "from ai.pipelines.orchestrator.pipeline_orchestrator import PipelineOrchestrator"
+                ),
                 "adaptive_learner": "from ai.pipelines.orchestrator.adaptive_learner import AdaptiveLearner",
-                "therapeutic_response_generator": "from ai.pipelines.orchestrator.therapeutic_response_generator import TherapeuticResponseGenerator",
+                "therapeutic_response_generator": (
+                    "from ai.pipelines.orchestrator.therapeutic_response_generator import TherapeuticResponseGenerator"
+                ),
                 "analytics_dashboard": "from ai.pipelines.orchestrator.analytics_dashboard import AnalyticsDashboard",
             }
 
@@ -193,7 +207,7 @@ if __name__ == '__main__':
 '''
 
         # Only create if file doesn't exist or is very small
-        if not test_file.exists() or test_file.stat().st_size < 100:
+        if not test_file.exists() or test_file.stat().st_size < MIN_TEMPLATE_SIZE:
             test_file.write_text(test_template)
 
     def run_specific_tests(self, test_files: list[Path]) -> dict[str, int]:
@@ -204,10 +218,12 @@ if __name__ == '__main__':
             try:
                 result = subprocess.run(
                     [sys.executable, "-m", "pytest", str(test_file), "-v"],
+                    shell=False,
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
                     timeout=30,
+                    check=False,
                 )
 
                 output = result.stdout + result.stderr
@@ -239,10 +255,12 @@ if __name__ == '__main__':
                 # Run coverage on specific module
                 result = subprocess.run(
                     [sys.executable, "-m", "pytest", f"--cov={module_file.parent}", "--cov-report=term", "-k", module],
+                    shell=False,
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,
                     timeout=60,
+                    check=False,
                 )
 
                 # Extract coverage percentage
@@ -295,6 +313,23 @@ if __name__ == '__main__':
 
         avg_coverage = sum(coverage_results.values()) / len(coverage_results) if coverage_results else 0
 
+        ready_status = "✅ Ready for production" if avg_coverage > MIN_COVERAGE_THRESHOLD else "❌ Needs more coverage"
+        safety_status = (
+            "✅ Covered"
+            if coverage_results.get("safety_ethics_validator", 0) > PRODUCTION_COVERAGE_THRESHOLD
+            else "❌ Insufficient coverage"
+        )
+        crisis_status = (
+            "✅ Covered"
+            if coverage_results.get("crisis_intervention_detector", 0) > PRODUCTION_COVERAGE_THRESHOLD
+            else "❌ Insufficient coverage"
+        )
+        clinical_status = (
+            "✅ Covered"
+            if coverage_results.get("clinical_accuracy_validator", 0) > PRODUCTION_COVERAGE_THRESHOLD
+            else "❌ Insufficient coverage"
+        )
+
         return f"""
 # Critical Test Fix Report
 
@@ -313,7 +348,7 @@ if __name__ == '__main__':
 {coverage_summary}
 
 ## Critical Modules Status
-{"✅ Ready for production" if avg_coverage > 80 else "❌ Needs more coverage"}
+{ready_status}
 
 ## Next Steps
 1. Implement comprehensive tests for modules with <80% coverage
@@ -322,9 +357,9 @@ if __name__ == '__main__':
 4. Validate safety-critical functionality
 
 ## Production Readiness Assessment
-- Safety Systems: {"✅ Covered" if coverage_results.get("safety_ethics_validator", 0) > 90 else "❌ Insufficient coverage"}
-- Crisis Detection: {"✅ Covered" if coverage_results.get("crisis_intervention_detector", 0) > 90 else "❌ Insufficient coverage"}
-- Clinical Validation: {"✅ Covered" if coverage_results.get("clinical_accuracy_validator", 0) > 90 else "❌ Insufficient coverage"}
+- Safety Systems: {safety_status}
+- Crisis Detection: {crisis_status}
+- Clinical Validation: {clinical_status}
 """
 
 

@@ -21,6 +21,8 @@ sys.path.append(str(Path(__file__).parent.parent / "dataset_pipeline"))
 
 from migrate_conversations_to_db import ConversationDataMigrator
 
+_MIN_CONVERSATIONS = 1000
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -95,11 +97,15 @@ class ProductionDatabaseSetup:
             cursor = conn.cursor()
 
             # Enable required extensions
-            extensions = ["uuid-ossp", "pg_trgm", "btree_gin"]
+            queries = [
+                ("uuid-ossp", 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'),
+                ("pg_trgm", 'CREATE EXTENSION IF NOT EXISTS "pg_trgm"'),
+                ("btree_gin", 'CREATE EXTENSION IF NOT EXISTS "btree_gin"'),
+            ]
 
-            for ext in extensions:
+            for ext, query in queries:
                 try:
-                    cursor.execute(f'CREATE EXTENSION IF NOT EXISTS "{ext}"')
+                    cursor.execute(query)
                     logger.info(f"✅ Extension enabled: {ext}")
                 except Exception as e:
                     logger.warning(f"⚠️ Could not enable extension {ext}: {e}")
@@ -137,7 +143,9 @@ class ProductionDatabaseSetup:
             # Run the migration script
             migration_script = Path(__file__).parent.parent / "dataset_pipeline" / "migrate_conversations_to_db.py"
 
-            result = subprocess.run([sys.executable, str(migration_script)], capture_output=True, text=True)  # nosec B603
+            result = subprocess.run(
+                [sys.executable, str(migration_script)], capture_output=True, text=True, check=False
+            )  # nosec B603
 
             if result.returncode == 0:
                 logger.info("✅ Data migration completed successfully")
@@ -160,7 +168,7 @@ class ProductionDatabaseSetup:
             logger.info(f"Migration verification stats: {stats}")
 
             # Check if we have reasonable data
-            if stats.get("conversations", 0) > 1000:  # Expect at least 1K conversations
+            if stats.get("conversations", 0) > _MIN_CONVERSATIONS:
                 logger.info("✅ Migration verification successful")
                 return {"success": True, "stats": stats}
             logger.warning("⚠️ Migration verification: Low conversation count")
@@ -189,7 +197,8 @@ class ProductionDatabaseSetup:
                 COUNT(DISTINCT source) as unique_sources,
                 MIN(started_at) as earliest_conversation,
                 MAX(started_at) as latest_conversation,
-                AVG((SELECT COUNT(*) FROM messages WHERE conversation_id = conversations.id)) as avg_messages_per_conversation
+                AVG((SELECT COUNT(*) FROM messages
+                     WHERE conversation_id = conversations.id)) as avg_messages_per_conversation
             FROM conversations;
 
             -- Create monitoring view for data quality
@@ -222,47 +231,52 @@ def main():
     logger.info("🚀 STARTING PRODUCTION DATABASE SETUP")
 
     setup = ProductionDatabaseSetup()
+    success = True
 
     # Step 1: Check PostgreSQL
-    if not setup.check_postgresql_running():
+    if success and not setup.check_postgresql_running():
         logger.error("❌ PostgreSQL is not running. Please start PostgreSQL first.")
-        return False
+        success = False
 
     # Step 2: Create database
-    if not setup.create_database():
+    if success and not setup.create_database():
         logger.error("❌ Database creation failed")
-        return False
+        success = False
 
     # Step 3: Setup extensions
-    if not setup.setup_database_extensions():
+    if success and not setup.setup_database_extensions():
         logger.error("❌ Extension setup failed")
-        return False
+        success = False
 
     # Step 4: Create schema
-    if not setup.create_database_schema():
+    if success and not setup.create_database_schema():
         logger.error("❌ Schema creation failed")
-        return False
+        success = False
 
     # Step 5: Run migration
-    if not setup.run_data_migration():
+    if success and not setup.run_data_migration():
         logger.error("❌ Data migration failed")
-        return False
+        success = False
 
     # Step 6: Verify migration
-    verification = setup.verify_migration()
-    if not verification["success"]:
-        logger.error(f"❌ Migration verification failed: {verification}")
-        return False
+    verification = None
+    if success:
+        verification = setup.verify_migration()
+        if not verification["success"]:
+            logger.error(f"❌ Migration verification failed: {verification}")
+            success = False
 
     # Step 7: Setup monitoring
-    if not setup.setup_database_monitoring():
+    if success and not setup.setup_database_monitoring():
         logger.warning("⚠️ Database monitoring setup failed (non-critical)")
 
-    logger.info("✅ PRODUCTION DATABASE SETUP COMPLETED SUCCESSFULLY!")
-    logger.info(f"Database URL: {setup.database_url}")
-    logger.info(f"Migration stats: {verification['stats']}")
+    if success:
+        logger.info("✅ PRODUCTION DATABASE SETUP COMPLETED SUCCESSFULLY!")
+        logger.info(f"Database URL: {setup.database_url}")
+        if verification:
+            logger.info(f"Migration stats: {verification['stats']}")
 
-    return True
+    return success
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ class DatasetRegistryOrchestrator:
         self.scripts_dir = scripts_dir
         self.results = {}
 
-    def run_script(self, script_name: str, args: list = None) -> dict[str, Any]:
+    def run_script(self, script_name: str, args: list | None = None) -> dict[str, Any]:
         """
         Run a Python script and capture results.
 
@@ -48,6 +48,8 @@ class DatasetRegistryOrchestrator:
                 text=True,
                 cwd=self.scripts_dir.parent,
                 timeout=300,  # 5 minute timeout
+                shell=False,
+                check=False,
             )
 
             return {
@@ -61,7 +63,7 @@ class DatasetRegistryOrchestrator:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-    def enhance_registry(self, limit: int = None) -> bool:
+    def enhance_registry(self, limit: int | None = None) -> bool:
         """Enhance registry with new fields."""
 
         args = []
@@ -78,7 +80,7 @@ class DatasetRegistryOrchestrator:
 
         return result["success"]
 
-    def validate_datasets(self, limit: int = None, dry_run: bool = False) -> bool:
+    def validate_datasets(self, limit: int | None = None, dry_run: bool = False) -> bool:
         """Validate all datasets using rclone."""
 
         args = []
@@ -97,7 +99,7 @@ class DatasetRegistryOrchestrator:
 
         return result["success"]
 
-    def verify_sync(self, limit: int = None) -> bool:
+    def verify_sync(self, limit: int | None = None) -> bool:
         """Verify dataset sync using rclone."""
 
         args = []
@@ -114,7 +116,7 @@ class DatasetRegistryOrchestrator:
 
         return result["success"]
 
-    def score_quality(self, limit: int = None) -> bool:
+    def score_quality(self, limit: int | None = None) -> bool:
         """Score dataset quality using rclone."""
 
         args = []
@@ -131,7 +133,7 @@ class DatasetRegistryOrchestrator:
 
         return result["success"]
 
-    def deduplicate_datasets(self, limit: int = None) -> bool:
+    def deduplicate_datasets(self, limit: int | None = None) -> bool:
         """Deduplicate datasets using rclone."""
 
         args = []
@@ -148,7 +150,7 @@ class DatasetRegistryOrchestrator:
 
         return result["success"]
 
-    def update_usage_metrics(self, limit: int = None) -> bool:
+    def update_usage_metrics(self, limit: int | None = None) -> bool:
         """Update usage analytics."""
 
         args = ["--action", "update"]
@@ -165,8 +167,8 @@ class DatasetRegistryOrchestrator:
 
         return result["success"]
 
-    def score_quality(self, limit: int = None) -> bool:
-        """Score dataset quality."""
+    def score_quality_basic(self, limit: int | None = None) -> bool:
+        """Score dataset quality (basic scorer)."""
 
         args = []
         if limit:
@@ -221,8 +223,22 @@ class DatasetRegistryOrchestrator:
         for _enhancement in report["enhancements_applied"]:
             pass
 
-        stats = report["statistics"]
+        self._process_report_stats(report["statistics"])
 
+        all_success = True
+        for _operation, result in report["operation_results"].items():
+            "✓" if result["success"] else "✗"
+            if not result["success"]:
+                all_success = False
+
+        if all_success:
+            pass
+        else:
+            pass
+
+        return report
+
+    def _process_report_stats(self, stats: dict[str, Any]) -> None:
         if "datasets_by_stage" in stats:
             for _stage, _count in stats["datasets_by_stage"].items():
                 pass
@@ -238,19 +254,6 @@ class DatasetRegistryOrchestrator:
         if "sync_summary" in stats:
             for _status, _count in stats["sync_summary"].items():
                 pass
-
-        all_success = True
-        for _operation, result in report["operation_results"].items():
-            "✓" if result["success"] else "✗"
-            if not result["success"]:
-                all_success = False
-
-        if all_success:
-            pass
-        else:
-            pass
-
-        return report
 
 
 def main():

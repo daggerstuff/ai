@@ -3,30 +3,24 @@
 HETZNER 52GB Dataset Processor - Uses actual HETZNER CLI to process the distributed dataset
 """
 
-from datetime import datetime, timezone
-
-
-
-
-
-
-
-
-
-
-
 import json
-import subprocess
 import os
-HETZNER_AI_CLI = os.environ.get("HETZNER_AI_CLI", "ovhai")
-from pathlib import Path
 import re
+import shlex
+import subprocess
+from datetime import UTC, datetime
+from pathlib import Path
+
+HETZNER_AI_CLI = os.environ.get("HETZNER_AI_CLI", "ovhai")
+_MIN_FILE_SIZE = 1000
 
 
 def run_hetzner_cli_command(cmd):
     """Run HETZNER CLI command and return JSON output"""
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if isinstance(cmd, str):
+            cmd = shlex.split(cmd)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True, check=False)
         if result.returncode == 0:
             try:
                 return json.loads(result.stdout)
@@ -61,10 +55,7 @@ def discover_52gb_dataset():
                     size = obj["object"]["bytes"]
 
                     # Include therapeutic dataset files
-                    if (
-                        any(ext in name.lower() for ext in [".json", ".jsonl", ".csv"])
-                        and size > 1000
-                    ):
+                    if any(ext in name.lower() for ext in [".json", ".jsonl", ".csv"]) and size > _MIN_FILE_SIZE:
                         all_files.append(
                             {
                                 "container": container,
@@ -79,7 +70,7 @@ def discover_52gb_dataset():
     all_files = sorted(all_files, key=lambda x: x["size"], reverse=True)
 
     report = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "total_files": len(all_files),
         "total_size_bytes": total_size,
         "total_size_gb": total_size / (1024**3),
@@ -93,9 +84,7 @@ def discover_52gb_dataset():
     print("\n🗂️  Top 15 files:")
     for i, file_info in enumerate(all_files[:15], 1):
         size_mb = file_info["size"] / (1024 * 1024)
-        print(
-            f"   {i}. {file_info['path'].split('/')[-1][:50]}... from {file_info['container']}: {size_mb:.1f}MB"
-        )
+        print(f"   {i}. {file_info['path'].split('/')[-1][:50]}... from {file_info['container']}: {size_mb:.1f}MB")
 
     # Save report
     report_path = Path("training_ready/data/hetzner_52gb_discovery.json")
@@ -118,7 +107,7 @@ def stream_process_segments():
 
     if not segments:
         print("❌ No segments found")
-        return
+        return None
 
     # Count and categorize
     segment_files = []
@@ -133,7 +122,7 @@ def stream_process_segments():
             task_match = re.search(r"task_(\d+)_(\d+)_(\w+)", name)
             if task_match:
                 phase = task_match.group(1)
-                task_num = task_match.group(2)
+                _task_num = task_match.group(2)
                 task_name = task_match.group(3)
 
                 segment_files.append(
@@ -213,7 +202,7 @@ def main():
 
     result = download_and_process()
 
-    print(f"\n✅ Discovery complete!")
+    print("\n✅ Discovery complete!")
     print(f"   Total files: {result['discovery']['total_files']}")
     print(f"   Total size: {result['discovery']['total_size_gb']:.2f}GB")
 
