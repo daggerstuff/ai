@@ -114,6 +114,7 @@ class NGCCLI:
                 capture_output=True,
                 text=True,
                 check=False,
+                shell=False,
             )
             if "ngc" in result.stdout.lower():
                 self.ngc_cmd = f"{self.uv_cmd} run ngc"
@@ -166,6 +167,7 @@ class NGCCLI:
                 capture_output=True,
                 text=True,
                 check=True,
+                shell=False,
             )
 
             config = {}
@@ -220,6 +222,7 @@ class NGCCLI:
                 text=True,
                 check=True,
                 capture_output=True,
+                shell=False,
             )
             logger.info("NGC CLI configured successfully")
         except subprocess.CalledProcessError as e:
@@ -230,7 +233,7 @@ class NGCCLI:
         resource_path: str,
         version: str | None = None,
         output_dir: Path | None = None,
-        extract: bool = True,
+        _extract: bool = True,
     ) -> Path:
         """
         Download a resource from NGC catalog.
@@ -299,7 +302,7 @@ class NGCCLI:
         os.chdir(output_dir)
         logger.info(f"Downloading {resource_spec} to {output_dir}...")
 
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, shell=False)
 
         if result.returncode != 0:
             error_msg = result.stderr or result.stdout
@@ -336,7 +339,7 @@ class NGCCLI:
             cmd.extend(["--team", team])
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
             raw_output = result.stdout.strip()
             if not raw_output:
                 return []

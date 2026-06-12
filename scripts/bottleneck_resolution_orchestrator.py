@@ -36,7 +36,9 @@ class BottleneckResolutionOrchestrator:
 
         try:
             script_path = self.scripts_dir / script_name
-            result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
+            result = subprocess.run(
+                [sys.executable, str(script_path)], capture_output=True, text=True, shell=False, check=False
+            )
 
             if result.returncode == 0:
                 logger.info(f"✅ Completed: {description}")
@@ -134,7 +136,7 @@ class BottleneckResolutionOrchestrator:
             logger.info(f"Building {description}...")
             try:
                 result = subprocess.run(
-                    ["docker", "build", "-t", image_name, build_context], capture_output=True, text=True
+                    ["docker", "build", "-t", image_name, build_context], capture_output=True, text=True, check=False
                 )
 
                 if result.returncode == 0:

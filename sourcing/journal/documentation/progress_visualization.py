@@ -20,14 +20,13 @@ from ai.sourcing.journal.models.dataset_models import (
 try:
     import matplotlib.dates as mdates
     import matplotlib.pyplot as plt
-    import numpy as np
 
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
 try:
-    from jinja2 import Template
+    from jinja2 import Environment, select_autoescape
 
     JINJA2_AVAILABLE = True
 except ImportError:
@@ -57,6 +56,7 @@ class ProgressVisualization:
                 "matplotlib is not available. Visualization features will be limited. "
                 "Install it with: pip install matplotlib",
                 ImportWarning,
+                stacklevel=2,
             )
 
     def generate_progress_metrics_chart(
@@ -209,11 +209,11 @@ class ProgressVisualization:
             output_path = self.output_directory / f"quality_scores_{datetime.now(UTC).strftime('%Y%m%d')}.png"
 
         # Extract scores
-        overall_scores = [eval.overall_score for eval in evaluations]
-        therapeutic_scores = [eval.therapeutic_relevance for eval in evaluations]
-        structure_scores = [eval.data_structure_quality for eval in evaluations]
-        integration_scores = [eval.training_integration for eval in evaluations]
-        ethical_scores = [eval.ethical_accessibility for eval in evaluations]
+        overall_scores = [e.overall_score for e in evaluations]
+        therapeutic_scores = [e.therapeutic_relevance for e in evaluations]
+        structure_scores = [e.data_structure_quality for e in evaluations]
+        integration_scores = [e.training_integration for e in evaluations]
+        ethical_scores = [e.ethical_accessibility for e in evaluations]
 
         # Create subplots
         _fig, axes = plt.subplots(2, 3, figsize=(15, 10))
@@ -256,8 +256,8 @@ class ProgressVisualization:
 
         # Priority tier pie chart
         priority_counts: dict[str, int] = {}
-        for eval in evaluations:
-            priority_counts[eval.priority_tier] = priority_counts.get(eval.priority_tier, 0) + 1
+        for e in evaluations:
+            priority_counts[e.priority_tier] = priority_counts.get(e.priority_tier, 0) + 1
 
         if priority_counts:
             axes[5].pie(
@@ -363,7 +363,8 @@ class ProgressVisualization:
 """
 
         if JINJA2_AVAILABLE:
-            template = Template(html_template)
+            env = Environment(autoescape=select_autoescape(["html", "xml"]))
+            template = env.from_string(html_template)
             html_content = template.render(
                 session_id=session.session_id,
                 generated_date=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"),
@@ -523,7 +524,7 @@ class ProgressVisualization:
             return self._generate_quality_score_image(evaluations, output_path)
 
         # Otherwise return data structure
-        scores = [eval.overall_score for eval in evaluations]
+        scores = [e.overall_score for e in evaluations]
 
         # Create distribution bins
         bins = list(range(11))  # 0-10 score range
@@ -568,7 +569,14 @@ class ProgressVisualization:
     <title>Research Progress Visualization</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }}
-        .container {{ max-width: 1200px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
         .header {{ background-color: #3498db; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }}
         .chart-container {{ margin: 20px 0; padding: 20px; background-color: #f8f9fa; border-radius: 5px; }}
         .metric {{ display: inline-block; margin: 10px 20px; text-align: center; }}
@@ -673,7 +681,7 @@ class ProgressVisualization:
         """Generate a simple score distribution chart."""
         output_path = self.output_directory / f"scores_simple_{datetime.now(UTC).strftime('%Y%m%d')}.png"
 
-        scores = [eval.overall_score for eval in evaluations]
+        scores = [e.overall_score for e in evaluations]
 
         _fig, ax = plt.subplots(figsize=(8, 6))
         ax.hist(scores, bins=20, edgecolor="black", alpha=0.7, color="#e74c3c")

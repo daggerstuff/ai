@@ -28,6 +28,9 @@ logger = logging.getLogger(__name__)
 class ComprehensiveProductionFix:
     """Comprehensive fix for all production infrastructure issues."""
 
+    HEALTHY_THRESHOLD = 90
+    DEGRADED_THRESHOLD = 70
+
     def __init__(self):
         self.fixes_applied = []
         self.critical_issues = []
@@ -407,6 +410,8 @@ if __name__ == "__main__":
                 capture_output=True,
                 text=True,
                 cwd="/home/vivi/pixelated/ai",
+                shell=False,
+                check=False,
             )
 
             if result.returncode == 0:
@@ -454,9 +459,9 @@ if __name__ == "__main__":
 
         # Calculate overall status
         health_percentage = (healthy_systems / total_systems) * 100
-        if health_percentage >= 90:
+        if health_percentage >= self.HEALTHY_THRESHOLD:
             validation_results["overall_status"] = "healthy"
-        elif health_percentage >= 70:
+        elif health_percentage >= self.DEGRADED_THRESHOLD:
             validation_results["overall_status"] = "degraded"
         else:
             validation_results["overall_status"] = "critical"
@@ -515,9 +520,9 @@ if __name__ == "__main__":
         logger.critical(f"🏥 System Health: {validation_results['overall_status'].upper()}")
         logger.critical(f"📊 Health Percentage: {validation_results['health_percentage']:.1f}%")
 
-        if validation_results["health_percentage"] >= 90:
+        if validation_results["health_percentage"] >= self.HEALTHY_THRESHOLD:
             logger.critical("✅ SYSTEM IS NOW PRODUCTION READY")
-        elif validation_results["health_percentage"] >= 70:
+        elif validation_results["health_percentage"] >= self.DEGRADED_THRESHOLD:
             logger.critical("⚠️ SYSTEM IS FUNCTIONAL BUT NEEDS MONITORING")
         else:
             logger.critical("❌ SYSTEM STILL HAS CRITICAL ISSUES")

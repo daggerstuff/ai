@@ -132,7 +132,9 @@ class ProductionDeployment:
             health_service_cmd = ["python", "/home/vivi/pixelated/ai/production_health_service.py"]
 
             # Test health service
-            result = subprocess.run(health_service_cmd, capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                health_service_cmd, capture_output=True, text=True, timeout=10, shell=False, check=False
+            )
             if result.returncode == 0:
                 health_data = json.loads(result.stdout)
                 if health_data.get("status") == "healthy":
@@ -159,6 +161,7 @@ class ProductionDeployment:
                 capture_output=True,
                 text=True,
                 timeout=10,
+                check=False,
             )
 
             if result.returncode == 0:

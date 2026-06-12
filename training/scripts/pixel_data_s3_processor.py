@@ -6,8 +6,12 @@ Pixel-Data S3 Processor - Uses actual S3 endpoint for 60GB dataset
 import json
 import os
 import subprocess
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
+
+# Minimum number of parts in an S3 ls --human-readable line: date time size path
+_MIN_S3_LIST_PARTS = 4
+_MIN_PARTS = 3
 
 
 def run_s3_command(cmd):
@@ -19,9 +23,7 @@ def run_s3_command(cmd):
         env["AWS_SECRET_ACCESS_KEY"] = os.environ.get("AWS_SECRET_ACCESS_KEY", "")
 
         # nosec B603
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, env=env
-        )
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True, env=env, check=False)
 
         if result.returncode == 0:
             try:
@@ -57,7 +59,7 @@ def discover_pixel_data():
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)  # nosec B603
         if result.returncode == 0:
             lines = result.stdout.strip().split("\n")
 
@@ -66,36 +68,24 @@ def discover_pixel_data():
             total_size = 0
 
             for line in lines:
-                if (
-                    line.startswith("202") and "Total" not in line
-                ):  # AWS format: 2024-01-01 12:00:00 1.2G file.json
+                if line.startswith("202") and "Total" not in line:  # AWS format: 2024-01-01 12:00:00 1.2G file.json
                     parts = line.split()
-                    if len(parts) >= 3:
+                    if len(parts) >= _MIN_PARTS:
                         size_str = parts[2]
                         file_path = " ".join(parts[3:])
 
                         # Convert size to bytes
                         size_bytes = 0
                         if "GiB" in size_str or "GB" in size_str:
-                            size_bytes = float(
-                                size_str.replace("GiB", "").replace("GB", "")
-                            ) * (1024**3)
+                            size_bytes = float(size_str.replace("GiB", "").replace("GB", "")) * (1024**3)
                         elif "MiB" in size_str or "MB" in size_str:
-                            size_bytes = float(
-                                size_str.replace("MiB", "").replace("MB", "")
-                            ) * (1024**2)
+                            size_bytes = float(size_str.replace("MiB", "").replace("MB", "")) * (1024**2)
                         elif "KiB" in size_str or "KB" in size_str:
-                            size_bytes = (
-                                float(size_str.replace("KiB", "").replace("KB", ""))
-                                * 1024
-                            )
+                            size_bytes = float(size_str.replace("KiB", "").replace("KB", "")) * 1024
                         else:
                             size_bytes = float(size_str)
 
-                        if any(
-                            ext in file_path.lower()
-                            for ext in [".json", ".jsonl", ".csv"]
-                        ):
+                        if any(ext in file_path.lower() for ext in [".json", ".jsonl", ".csv"]):
                             files.append(
                                 {
                                     "path": file_path,
@@ -106,7 +96,7 @@ def discover_pixel_data():
                             total_size += size_bytes
 
             report = {
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "bucket": bucket,
                 "endpoint": endpoint,
                 "total_files": len(files),
@@ -159,13 +149,10 @@ def list_s3_with_aws_cli():
     ]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True)  # nosec B603
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)  # nosec B603
         if result.returncode == 0:
             # Parse the output
             lines = result.stdout.strip().split("\n")
-
-            total_line = [l for l in lines if "Total Objects:" in l]
-            size_line = [l for l in lines if "Total Size:" in l]
 
             print("📊 S3 Discovery Results:")
             for line in lines:
@@ -176,13 +163,10 @@ def list_s3_with_aws_cli():
             for line in lines:
                 if line.startswith("202"):  # File entries
                     parts = line.split()
-                    if len(parts) >= 4:
+                    if len(parts) >= _MIN_S3_LIST_PARTS:
                         date, time, size, *path = parts
                         file_path = " ".join(path)
-                        if any(
-                            ext in file_path.lower()
-                            for ext in [".json", ".jsonl", ".csv"]
-                        ):
+                        if any(ext in file_path.lower() for ext in [".json", ".jsonl", ".csv"]):
                             dataset_files.append(
                                 {
                                     "path": file_path,

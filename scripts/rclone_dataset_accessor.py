@@ -7,15 +7,19 @@ Uses rclone instead of boto3 to work with Hetzner Object Storage.
 import hashlib
 import json
 import os
+import shlex
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import Any
 
+_EXPECTED_PARTS = 2
+
 
 def run_rclone(command: str, check: bool = True) -> subprocess.CompletedProcess:
     """Run rclone command and return result."""
-    result = subprocess.run(f"rclone {command}", shell=True, capture_output=True, text=True)
+    cmd = ["rclone", *shlex.split(command)]
+    result = subprocess.run(cmd, shell=False, capture_output=True, text=True, check=False)
     if check and result.returncode != 0:
         raise RuntimeError(f"rclone command failed: {result.stderr}")
     return result
@@ -56,7 +60,7 @@ def list_files_in_directory(s3_path: str) -> list[dict[str, Any]]:
             if not line.strip():
                 continue
             parts = line.split(maxsplit=1)
-            if len(parts) == 2:
+            if len(parts) == _EXPECTED_PARTS:
                 size, filename = parts
                 size_int = int(size)
                 files.append(
@@ -207,7 +211,7 @@ def get_file_info(s3_path: str) -> dict[str, Any] | None:
             files = json.loads(result.stdout)
             if files and len(files) > 0:
                 return files[0]
-        except:
+        except Exception:
             pass
 
     return None

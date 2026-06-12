@@ -12,6 +12,7 @@ Implements database integration for processed conversations:
 
 import importlib.util
 import json
+import re
 import sqlite3
 import threading
 import uuid
@@ -725,14 +726,19 @@ class ConversationDatabase:
 
                 where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
-                query = f"""
+                # Validate where_sql content to prevent SQL injection
+                if not re.match(r"^[a-zA-Z0-9_\s?=\"'()<>-]*$", where_sql):
+                    raise ValueError(f"Invalid where clause: {where_sql}")
+
+                query_template = """
                     SELECT conversation_id, dataset_source, tier, title,
                            turn_count, word_count, processing_status, created_at
                     FROM conversations
-                    WHERE {where_sql}
+                    WHERE {where_clause}
                     ORDER BY created_at DESC
                     LIMIT ? OFFSET ?
                 """
+                query = query_template.format(where_clause=where_sql)
 
                 params.extend([limit, offset])
 

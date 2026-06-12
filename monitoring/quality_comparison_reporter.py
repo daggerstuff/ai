@@ -16,7 +16,7 @@ from typing import Any
 
 import numpy as np
 import plotly.graph_objects as go
-from jinja2 import Template
+from jinja2 import Environment, select_autoescape
 from plotly.subplots import make_subplots
 
 # Import our quality comparator
@@ -34,6 +34,10 @@ warnings.simplefilter("default")
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
+BENCHMARK_GAP_THRESHOLD = 0.05
+LARGE_EFFECT_THRESHOLD = 0.8
+MEDIUM_EFFECT_THRESHOLD = 0.5
+
 
 class QualityComparisonReporter:
     """
@@ -42,6 +46,13 @@ class QualityComparisonReporter:
     Generates comprehensive comparison reports with visualizations,
     statistical analysis, and executive summaries.
     """
+
+    _SIGNIFICANT_TIER_GAP_THRESHOLD = 0.1
+    _BENCHMARK_GAP_THRESHOLD = -0.05
+    _HIGH_IMPROVEMENT_POTENTIAL_THRESHOLD = 0.2
+    _CRITICAL_QUALITY_THRESHOLD = 0.6
+    _NON_SIG_RATIO_THRESHOLD = 0.5
+    _MAX_TICK_TEXT_LEN = 15
 
     def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
         """Initialize the comparison reporter."""
@@ -213,8 +224,8 @@ class QualityComparisonReporter:
 
         # Benchmark analysis insights
         if benchmark_analyses:
-            above_benchmark = [b for b in benchmark_analyses if b.performance_gap > 0.05]
-            below_benchmark = [b for b in benchmark_analyses if b.performance_gap < -0.05]
+            above_benchmark = [b for b in benchmark_analyses if b.performance_gap > BENCHMARK_GAP_THRESHOLD]
+            below_benchmark = [b for b in benchmark_analyses if b.performance_gap < -BENCHMARK_GAP_THRESHOLD]
 
             if above_benchmark:
                 summary.append(f"✅ {len(above_benchmark)} groups exceed industry benchmarks")
@@ -236,8 +247,10 @@ class QualityComparisonReporter:
         # Effect size insights
         all_comparisons = tier_comparisons + dataset_comparisons + component_comparisons
         if all_comparisons:
-            large_effects = [c for c in all_comparisons if c.effect_size >= 0.8]
-            medium_effects = [c for c in all_comparisons if 0.5 <= c.effect_size < 0.8]
+            large_effects = [c for c in all_comparisons if c.effect_size >= LARGE_EFFECT_THRESHOLD]
+            medium_effects = [
+                c for c in all_comparisons if MEDIUM_EFFECT_THRESHOLD <= c.effect_size < LARGE_EFFECT_THRESHOLD
+            ]
 
             if large_effects:
                 insights.append(f"💪 {len(large_effects)} comparisons show large effect sizes (>0.8)")
@@ -283,28 +296,18 @@ class QualityComparisonReporter:
 
         return insights
 
-    def _generate_action_items(
-        self,
-        tier_comparisons: list[QualityComparison],
-        dataset_comparisons: list[QualityComparison],
-        benchmark_analyses: list[BenchmarkAnalysis],
-        performance_rankings: dict[str, list[dict[str, Any]]],
-    ) -> list[str]:
-        """Generate actionable items based on comparison analysis."""
-        actions = []
-
-        # Tier-based actions
+    def _process_tier_actions(self, tier_comparisons: list[QualityComparison], actions: list[str]) -> None:
         if tier_comparisons:
             significant_tier_gaps = [
                 c
                 for c in tier_comparisons
-                if c.practical_significance and abs(c.group1_stats["mean"] - c.group2_stats["mean"]) > 0.1
+                if c.practical_significance
+                and abs(c.group1_stats["mean"] - c.group2_stats["mean"]) > self._SIGNIFICANT_TIER_GAP_THRESHOLD
             ]
 
             if significant_tier_gaps:
                 actions.append(f"🎯 Address {len(significant_tier_gaps)} significant tier performance gaps")
 
-                # Specific tier improvement actions
                 for comparison in significant_tier_gaps[:3]:  # Top 3
                     better_tier = (
                         comparison.group1_name
@@ -318,7 +321,7 @@ class QualityComparisonReporter:
                     )
                     actions.append(f"📈 Apply {better_tier} best practices to improve {worse_tier}")
 
-        # Dataset-based actions
+    def _process_dataset_actions(self, dataset_comparisons: list[QualityComparison], actions: list[str]) -> None:
         if dataset_comparisons:
             poor_performing_datasets = []
             for comparison in dataset_comparisons:
@@ -334,28 +337,47 @@ class QualityComparisonReporter:
                 unique_datasets = list(set(poor_performing_datasets))
                 actions.append(f"📁 Review data quality and processing for: {', '.join(unique_datasets[:3])}")
 
-        # Benchmark-based actions
+    def _process_benchmark_actions(self, benchmark_analyses: list[BenchmarkAnalysis], actions: list[str]) -> None:
         if benchmark_analyses:
-            below_benchmark = [b for b in benchmark_analyses if b.performance_gap < -0.05]
+            below_benchmark = [b for b in benchmark_analyses if b.performance_gap < self._BENCHMARK_GAP_THRESHOLD]
             if below_benchmark:
                 actions.append(
                     f"📊 Implement improvement initiatives for {len(below_benchmark)} groups below benchmark"
                 )
 
-            # High improvement potential
-            high_potential = [b for b in benchmark_analyses if b.improvement_potential > 0.2]
+            high_potential = [
+                b for b in benchmark_analyses if b.improvement_potential > self._HIGH_IMPROVEMENT_POTENTIAL_THRESHOLD
+            ]
             if high_potential:
                 actions.append(
                     f"🎯 Focus on {len(high_potential)} groups with high improvement potential (>0.2 points)"
                 )
 
-        # Performance ranking actions
+    def _process_ranking_actions(
+        self, performance_rankings: dict[str, list[dict[str, Any]]], actions: list[str]
+    ) -> None:
         if "tiers" in performance_rankings and len(performance_rankings["tiers"]) > 1:
             worst_tier = performance_rankings["tiers"][-1]
-            if worst_tier["mean_quality"] < 0.6:  # Below 60% quality
+            if worst_tier["mean_quality"] < self._CRITICAL_QUALITY_THRESHOLD:
                 actions.append(
-                    f"🚨 Urgent attention needed for {worst_tier['name']} tier (quality: {worst_tier['mean_quality']:.3f})"
+                    f"🚨 Urgent attention needed for {worst_tier['name']} tier "
+                    f"(quality: {worst_tier['mean_quality']:.3f})"
                 )
+
+    def _generate_action_items(
+        self,
+        tier_comparisons: list[QualityComparison],
+        dataset_comparisons: list[QualityComparison],
+        benchmark_analyses: list[BenchmarkAnalysis],
+        performance_rankings: dict[str, list[dict[str, Any]]],
+    ) -> list[str]:
+        """Generate actionable items based on comparison analysis."""
+        actions = []
+
+        self._process_tier_actions(tier_comparisons, actions)
+        self._process_dataset_actions(dataset_comparisons, actions)
+        self._process_benchmark_actions(benchmark_analyses, actions)
+        self._process_ranking_actions(performance_rankings, actions)
 
         # Statistical significance actions
         all_comparisons = tier_comparisons + dataset_comparisons
@@ -363,7 +385,7 @@ class QualityComparisonReporter:
             non_significant = [
                 c for c in all_comparisons if not any(test.get("significant", False) for test in c.statistical_tests)
             ]
-            if len(non_significant) / len(all_comparisons) > 0.5:
+            if len(non_significant) / len(all_comparisons) > self._NON_SIG_RATIO_THRESHOLD:
                 actions.append("📈 Increase sample sizes for more reliable statistical comparisons")
 
         return actions
@@ -405,7 +427,12 @@ class QualityComparisonReporter:
             # Dataset rankings
             if "datasets" in report.performance_rankings:
                 datasets = report.performance_rankings["datasets"][:5]  # Top 5
-                dataset_names = [d["name"][:15] + "..." if len(d["name"]) > 15 else d["name"] for d in datasets]
+                dataset_names = [
+                    d["name"][: self._MAX_TICK_TEXT_LEN] + "..."
+                    if len(d["name"]) > self._MAX_TICK_TEXT_LEN
+                    else d["name"]
+                    for d in datasets
+                ]
                 dataset_qualities = [d["mean_quality"] for d in datasets]
 
                 fig.add_trace(
@@ -532,11 +559,11 @@ class QualityComparisonReporter:
 
         return visualizations
 
-    def save_report(self, report: ComparisonReport, format: str = "json") -> str:
+    def save_report(self, report: ComparisonReport, report_format: str = "json") -> str:
         """Save comparison report to file."""
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
-        if format == "json":
+        if report_format == "json":
             filename = f"quality_comparison_report_{timestamp}.json"
             filepath = self.output_dir / filename
 
@@ -561,7 +588,8 @@ class QualityComparisonReporter:
 
     def _generate_html_report(self, report: ComparisonReport) -> str:
         """Generate HTML report from comparison analysis."""
-        template = Template(self.report_templates["detailed"])
+        env = Environment(autoescape=select_autoescape(["html", "xml"]))
+        template = env.from_string(self.report_templates["detailed"])
 
         return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 

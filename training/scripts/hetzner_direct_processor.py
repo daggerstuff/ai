@@ -3,22 +3,14 @@
 HETZNER Direct S3 Processor - Uses HETZNER S3 format credentials
 """
 
-from datetime import datetime, timezone
-
-
-
-
-
-
-
-
-
-
-
 import json
 import os
+import shlex
 import subprocess
+from datetime import UTC, datetime
 from pathlib import Path
+
+_MIN_PARTS = 3
 
 
 def run_s3cmd_command(cmd, access_key=None, secret_key=None):
@@ -30,9 +22,9 @@ def run_s3cmd_command(cmd, access_key=None, secret_key=None):
         env["AWS_SECRET_ACCESS_KEY"] = secret_key
 
     try:
-        result = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, env=env
-        )
+        if isinstance(cmd, str):
+            cmd = shlex.split(cmd)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True, env=env, check=False)
         return result.stdout.strip(), result.stderr.strip(), result.returncode
     except Exception as e:
         return "", str(e), 1
@@ -75,21 +67,18 @@ def discover_pixel_data():
             for line in lines:
                 if line.strip() and not line.startswith("PRE"):
                     parts = line.split()
-                    if len(parts) >= 3:
+                    if len(parts) >= _MIN_PARTS:
                         try:
                             size = int(parts[2])
                             path = " ".join(parts[3:])
-                            if any(
-                                ext in path.lower()
-                                for ext in [".json", ".jsonl", ".csv"]
-                            ):
+                            if any(ext in path.lower() for ext in [".json", ".jsonl", ".csv"]):
                                 files.append({"path": path, "size": size})
                                 total_size += size
                         except Exception:
                             continue
 
             report = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "bucket": "pixel-data",
                 "endpoint": "https://hel1.your-objectstorage.com",
                 "total_files": len(files),
@@ -113,8 +102,7 @@ def discover_pixel_data():
                 print(f"   {i}. {file_info['path']}: {size_gb:.2f}GB")
 
             return report
-        else:
-            print(f"❌ {name} credentials failed: {stderr[:100]}...")
+        print(f"❌ {name} credentials failed: {stderr[:100]}...")
 
     # Create fallback processor that works with HETZNER format
     create_hetzner_specific_processor()
@@ -255,7 +243,7 @@ echo "🚀 Commands: training_ready/data/pixel_data_60gb_discovery/process_comma
     with open("training_ready/scripts/hetzner_60gb_processor.sh", "w") as f:
         f.write(hetzner_script)
 
-    subprocess.run(["chmod", "+x", "training_ready/scripts/hetzner_60gb_processor.sh"])
+    subprocess.run(["chmod", "+x", "training_ready/scripts/hetzner_60gb_processor.sh"], check=False)
 
     print("✅ HETZNER 60GB processor created")
     print("🚀 Usage: ./training_ready/scripts/hetzner_60gb_processor.sh")

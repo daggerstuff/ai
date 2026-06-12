@@ -38,6 +38,8 @@ class QualityAnalyticsDashboardLauncher:
     - Graceful shutdown handling
     """
 
+    _MAX_DATA_AGE_DAYS = 30
+
     def __init__(self):
         """Initialize the dashboard launcher."""
         self.project_root = Path(__file__).parent.parent
@@ -144,7 +146,7 @@ class QualityAnalyticsDashboardLauncher:
             if current_tuple > required_tuple:
                 return 1
             return 0
-        except:
+        except Exception:
             return 0  # Assume OK if can't parse
 
     def validate_database(self) -> bool:
@@ -161,74 +163,86 @@ class QualityAnalyticsDashboardLauncher:
             logger.info("💡 Run the dataset processing pipeline to create the database")
             return False
 
+        valid = False
         try:
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
 
-            # Check required tables exist
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tables = [row[0] for row in cursor.fetchall()]
+            if (
+                self._check_required_tables(cursor)
+                and self._check_conversations_schema(cursor)
+                and self._check_quality_schema(cursor)
+            ):
+                valid_qual, quality_count = self._check_data_quality(cursor)
+                if valid_qual:
+                    self._check_data_recency(cursor)
+                    logger.info(f"✅ Database validated: {quality_count:,} quality records found")
+                    valid = True
 
-            required_tables = ["conversations", "conversation_quality"]
-            missing_tables = [table for table in required_tables if table not in tables]
-
-            if missing_tables:
-                logger.error(f"❌ Missing tables: {', '.join(missing_tables)}")
-                conn.close()
-                return False
-
-            # Validate schema for conversations table
-            cursor.execute("PRAGMA table_info(conversations)")
-            conv_columns = [row[1] for row in cursor.fetchall()]
-            required_conv_columns = ["conversation_id", "tier", "created_at", "dataset_source"]
-
-            missing_conv_columns = [col for col in required_conv_columns if col not in conv_columns]
-            if missing_conv_columns:
-                logger.error(f"❌ Missing columns in conversations table: {', '.join(missing_conv_columns)}")
-                conn.close()
-                return False
-
-            # Validate schema for conversation_quality table
-            cursor.execute("PRAGMA table_info(conversation_quality)")
-            qual_columns = [row[1] for row in cursor.fetchall()]
-            required_qual_columns = ["conversation_id", "overall_quality", "therapeutic_accuracy"]
-
-            missing_qual_columns = [col for col in required_qual_columns if col not in qual_columns]
-            if missing_qual_columns:
-                logger.error(f"❌ Missing columns in conversation_quality table: {', '.join(missing_qual_columns)}")
-                conn.close()
-                return False
-
-            # Check if quality data exists
-            cursor.execute("SELECT COUNT(*) FROM conversation_quality WHERE overall_quality IS NOT NULL")
-            quality_count = cursor.fetchone()[0]
-
-            if quality_count == 0:
-                logger.error("❌ No quality data found in database")
-                logger.info("💡 Run quality validation on your conversations first")
-                conn.close()
-                return False
-
-            # Check data recency
-            cursor.execute("SELECT MAX(created_at) FROM conversations")
-            latest_date = cursor.fetchone()[0]
-            if latest_date:
-                latest_datetime = datetime.fromisoformat(
-                    latest_date.replace("Z", "+00:00") if "Z" in latest_date else latest_date
-                )
-                days_old = (datetime.now(UTC) - latest_datetime).days
-                if days_old > 30:
-                    logger.warning(f"⚠️ Latest data is {days_old} days old")
-                else:
-                    logger.info(f"✅ Data is current ({days_old} days old)")
-
-            logger.info(f"✅ Database validated: {quality_count:,} quality records found")
             conn.close()
-            return True
-
         except Exception as e:
             logger.error(f"❌ Database validation error: {e}")
+            valid = False
+
+        return valid
+
+    def _check_required_tables(self, cursor) -> bool:
+        """Check required tables exist"""
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        tables = [row[0] for row in cursor.fetchall()]
+        required_tables = ["conversations", "conversation_quality"]
+        missing_tables = [table for table in required_tables if table not in tables]
+        if missing_tables:
+            logger.error(f"❌ Missing tables: {', '.join(missing_tables)}")
             return False
+        return True
+
+    def _check_conversations_schema(self, cursor) -> bool:
+        """Validate schema for conversations table"""
+        cursor.execute("PRAGMA table_info(conversations)")
+        conv_columns = [row[1] for row in cursor.fetchall()]
+        required_conv_columns = ["conversation_id", "tier", "created_at", "dataset_source"]
+        missing_conv_columns = [col for col in required_conv_columns if col not in conv_columns]
+        if missing_conv_columns:
+            logger.error(f"❌ Missing columns in conversations table: {', '.join(missing_conv_columns)}")
+            return False
+        return True
+
+    def _check_quality_schema(self, cursor) -> bool:
+        """Validate schema for conversation_quality table"""
+        cursor.execute("PRAGMA table_info(conversation_quality)")
+        qual_columns = [row[1] for row in cursor.fetchall()]
+        required_qual_columns = ["conversation_id", "overall_quality", "therapeutic_accuracy"]
+        missing_qual_columns = [col for col in required_qual_columns if col not in qual_columns]
+        if missing_qual_columns:
+            logger.error(f"❌ Missing columns in conversation_quality table: {', '.join(missing_qual_columns)}")
+            return False
+        return True
+
+    def _check_data_quality(self, cursor) -> tuple[bool, int]:
+        """Check if quality data exists"""
+        cursor.execute("SELECT COUNT(*) FROM conversation_quality WHERE overall_quality IS NOT NULL")
+        quality_count = cursor.fetchone()[0]
+        if quality_count == 0:
+            logger.error("❌ No quality data found in database")
+            logger.info("💡 Run quality validation on your conversations first")
+            return False, 0
+        return True, quality_count
+
+    def _check_data_recency(self, cursor) -> bool:
+        """Check data recency"""
+        cursor.execute("SELECT MAX(created_at) FROM conversations")
+        latest_date = cursor.fetchone()[0]
+        if latest_date:
+            latest_datetime = datetime.fromisoformat(
+                latest_date.replace("Z", "+00:00") if "Z" in latest_date else latest_date
+            )
+            days_old = (datetime.now(UTC) - latest_datetime).days
+            if days_old > self._MAX_DATA_AGE_DAYS:
+                logger.warning(f"⚠️ Latest data is {days_old} days old")
+            else:
+                logger.info(f"✅ Data is current ({days_old} days old)")
+        return True
 
     def validate_dashboard_files(self) -> bool:
         """
@@ -287,9 +301,11 @@ class QualityAnalyticsDashboardLauncher:
             result = subprocess.run(
                 [sys.executable, str(test_file)],
                 cwd=str(self.project_root),
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=120,  # 2 minutes timeout
+                check=False,
             )
 
             if result.returncode == 0:
@@ -378,7 +394,7 @@ class QualityAnalyticsDashboardLauncher:
 
             # Launch dashboard
             self.dashboard_process = subprocess.Popen(
-                cmd, cwd=str(self.project_root), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                cmd, cwd=str(self.project_root), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=False
             )
 
             # Wait a moment to check if process started successfully

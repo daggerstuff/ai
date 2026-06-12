@@ -59,20 +59,23 @@ def get_current_file_progress(pid):
     if not pid:
         return None, 0
     try:
-        # Find which large file is currently open
-        fds = subprocess.check_output(f"ls -l /proc/{pid}/fd", shell=True).decode()
-        for line in fds.split("\n"):
-            if "ULTIMATE" in line or ".jsonl" in line or ".zip" in line or ".csv" in line:
-                # Extract path
-                if " -> " in line:
-                    path = line.split(" -> ")[1].strip()
-                    fd_num = line.split()[8]
-                    # Get position
-                    pos_info = subprocess.check_output(
-                        f"cat /proc/{pid}/fdinfo/{fd_num} | grep pos", shell=True
-                    ).decode()
-                    pos = int(pos_info.split(":")[1].strip())
-                    return path, pos
+        fd_dir = Path(f"/proc/{pid}/fd")
+        if fd_dir.exists():
+            for fd_file in fd_dir.iterdir():
+                try:
+                    path = str(fd_file.readlink())
+                    if any(ext in path for ext in ["ULTIMATE", ".jsonl", ".zip", ".csv"]):
+                        fd_num = fd_file.name
+                        pos_file = Path(f"/proc/{pid}/fdinfo/{fd_num}")
+                        pos = 0
+                        if pos_file.exists():
+                            for pos_line in pos_file.read_text().splitlines():
+                                if pos_line.startswith("pos:"):
+                                    pos = int(pos_line.split(":")[1].strip())
+                                    break
+                        return path, pos
+                except Exception:
+                    continue
     except Exception:
         pass
     return None, 0

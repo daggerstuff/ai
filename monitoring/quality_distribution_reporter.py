@@ -17,10 +17,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from jinja2 import Template
+from jinja2 import Environment, select_autoescape
 
 # Import our distribution components
 from quality_distribution_analyzer import (
+    DistributionStatistics,
     QualityDistributionAnalysis,
     QualityDistributionAnalyzer,
     QualityDistributionReport,
@@ -42,6 +43,12 @@ class QualityDistributionReporter:
     Generates comprehensive distribution reports with visualizations,
     statistical analysis, and executive summaries.
     """
+
+    _MAX_OUTLIERS_THRESHOLD = 10
+    _MIN_COMPONENT_MEAN = 0.6
+    _MAX_COEFFICIENT_VARIATION = 0.3
+    _MIN_NORMAL_TEST_PASS_RATE = 0.5
+    _MIN_COEFFICIENT_VARIATION = 0.1
 
     def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
         """Initialize the distribution reporter."""
@@ -145,11 +152,6 @@ class QualityDistributionReporter:
     def _create_empty_report(self) -> QualityDistributionReport:
         """Create empty report when no data is available."""
 
-        from quality_distribution_analyzer import (
-            DistributionStatistics,
-            QualityDistributionAnalysis,
-        )
-
         empty_stats = DistributionStatistics(
             mean=0.0,
             median=0.0,
@@ -206,20 +208,20 @@ class QualityDistributionReporter:
         # Overall distribution summary
         if overall_distribution.sample_size > 0:
             summary.append(f"📊 Analyzed {overall_distribution.sample_size:,} conversations for quality distribution")
-            summary.append(
-                f"📈 Overall quality: Mean={overall_distribution.statistics.mean:.3f}, Median={overall_distribution.statistics.median:.3f}"
-            )
+            overall_mean = overall_distribution.statistics.mean
+            overall_median = overall_distribution.statistics.median
+            summary.append(f"📈 Overall quality: Mean={overall_mean:.3f}, Median={overall_median:.3f}")
             summary.append(f"📊 Distribution type: {overall_distribution.distribution_type.replace('_', ' ').title()}")
 
             # Variability assessment
             cv = overall_distribution.statistics.coefficient_of_variation
-            if cv > 0.3:
+            if cv > self._MAX_COEFFICIENT_VARIATION:
                 summary.append(f"⚠️ High quality variability detected (CV={cv:.3f})")
-            elif cv < 0.1:
+            elif cv < self._MIN_COEFFICIENT_VARIATION:
                 summary.append(f"✅ Low quality variability - consistent performance (CV={cv:.3f})")
 
             # Outlier summary
-            if len(overall_distribution.outliers) > 10:
+            if len(overall_distribution.outliers) > self._MAX_OUTLIERS_THRESHOLD:
                 summary.append(
                     f"🔍 {len(overall_distribution.outliers)} quality outliers detected requiring investigation"
                 )
@@ -228,7 +230,7 @@ class QualityDistributionReporter:
         if overall_distribution.normality_tests:
             normal_tests_passed = sum(1 for test in overall_distribution.normality_tests if test.is_normal)
             total_tests = len(overall_distribution.normality_tests)
-            if normal_tests_passed / total_tests >= 0.5:
+            if normal_tests_passed / total_tests >= self._MIN_NORMAL_TEST_PASS_RATE:
                 summary.append("✅ Quality distribution is approximately normal")
             else:
                 summary.append("⚠️ Quality distribution deviates from normality - consider non-parametric methods")
@@ -238,12 +240,12 @@ class QualityDistributionReporter:
             best_component = max(component_distributions.items(), key=lambda x: x[1].statistics.mean)
             worst_component = min(component_distributions.items(), key=lambda x: x[1].statistics.mean)
 
-            summary.append(
-                f"🏆 Best performing component: {best_component[0].replace('_', ' ')} (mean: {best_component[1].statistics.mean:.3f})"
-            )
-            summary.append(
-                f"⚠️ Lowest performing component: {worst_component[0].replace('_', ' ')} (mean: {worst_component[1].statistics.mean:.3f})"
-            )
+            best_name = best_component[0].replace("_", " ")
+            best_mean = best_component[1].statistics.mean
+            summary.append(f"🏆 Best performing component: {best_name} (mean: {best_mean:.3f})")
+            worst_name = worst_component[0].replace("_", " ")
+            worst_mean = worst_component[1].statistics.mean
+            summary.append(f"⚠️ Lowest performing component: {worst_name} (mean: {worst_mean:.3f})")
 
         # Comparative insights
         if "tier" in comparative_analyses:
@@ -288,18 +290,18 @@ class QualityDistributionReporter:
                 component_distributions.items(),
                 key=lambda x: x[1].statistics.coefficient_of_variation,
             )
-            insights.append(
-                f"📈 Most variable component: {most_variable[0].replace('_', ' ')} (CV={most_variable[1].statistics.coefficient_of_variation:.3f})"
-            )
+            most_var_name = most_variable[0].replace("_", " ")
+            most_var_cv = most_variable[1].statistics.coefficient_of_variation
+            insights.append(f"📈 Most variable component: {most_var_name} (CV={most_var_cv:.3f})")
 
             # Most consistent component
             least_variable = min(
                 component_distributions.items(),
                 key=lambda x: x[1].statistics.coefficient_of_variation,
             )
-            insights.append(
-                f"📊 Most consistent component: {least_variable[0].replace('_', ' ')} (CV={least_variable[1].statistics.coefficient_of_variation:.3f})"
-            )
+            least_var_name = least_variable[0].replace("_", " ")
+            least_var_cv = least_variable[1].statistics.coefficient_of_variation
+            insights.append(f"📊 Most consistent component: {least_var_name} (CV={least_var_cv:.3f})")
 
         # Comparative insights
         for dimension, analysis in comparative_analyses.items():
@@ -316,9 +318,10 @@ class QualityDistributionReporter:
                 else None
             )
             if strongest_corr:
-                insights.append(
-                    f"🔗 Strongest correlation: {strongest_corr['component1']} ↔ {strongest_corr['component2']} (r={strongest_corr['correlation']:.3f})"
-                )
+                comp1 = strongest_corr["component1"]
+                comp2 = strongest_corr["component2"]
+                corr_val = strongest_corr["correlation"]
+                insights.append(f"🔗 Strongest correlation: {comp1} ↔ {comp2} (r={corr_val:.3f})")
 
         return insights
 
@@ -339,21 +342,21 @@ class QualityDistributionReporter:
         ]:
             actions.append("📊 Consider data transformation to normalize skewed distribution")
 
-        if len(overall_distribution.outliers) > 10:
+        if len(overall_distribution.outliers) > self._MAX_OUTLIERS_THRESHOLD:
             actions.append("🔍 Investigate quality outliers for data quality issues or process improvements")
 
         # Component-specific actions
         if component_distributions:
             # Focus on worst performing component
             worst_component = min(component_distributions.items(), key=lambda x: x[1].statistics.mean)
-            if worst_component[1].statistics.mean < 0.6:  # Assuming 0-1 scale
+            if worst_component[1].statistics.mean < self._MIN_COMPONENT_MEAN:  # Assuming 0-1 scale
                 actions.append(f"🎯 Focus improvement efforts on {worst_component[0].replace('_', ' ')} component")
 
             # Address high variability
             high_variability_components = [
                 name
                 for name, analysis in component_distributions.items()
-                if analysis.statistics.coefficient_of_variation > 0.3
+                if analysis.statistics.coefficient_of_variation > self._MAX_COEFFICIENT_VARIATION
             ]
             if high_variability_components:
                 actions.append(f"📈 Reduce variability in: {', '.join(high_variability_components[:3])}")
@@ -365,14 +368,14 @@ class QualityDistributionReporter:
                 # Find worst performing tier
                 tier_means = {name: analysis.statistics.mean for name, analysis in tier_analysis.groups.items()}
                 worst_tier = min(tier_means.items(), key=lambda x: x[1])
-                if worst_tier[1] < 0.6:
+                if worst_tier[1] < self._MIN_COMPONENT_MEAN:
                     actions.append(f"📋 Review and improve quality processes for {worst_tier[0]} tier")
 
         # Statistical method recommendations
         if overall_distribution.normality_tests:
             normal_tests_passed = sum(1 for test in overall_distribution.normality_tests if test.is_normal)
             total_tests = len(overall_distribution.normality_tests)
-            if normal_tests_passed / total_tests < 0.5:
+            if normal_tests_passed / total_tests < self._MIN_NORMAL_TEST_PASS_RATE:
                 actions.append("📊 Use non-parametric statistical methods for quality analysis")
 
         return actions
@@ -460,7 +463,7 @@ class QualityDistributionReporter:
                     go.Bar(
                         x=tiers,
                         y=means,
-                        error_y=dict(type="data", array=stds),
+                        error_y={"type": "data", "array": stds},
                         marker_color="lightcoral",
                         name="Mean Quality by Tier",
                     )
@@ -506,11 +509,11 @@ class QualityDistributionReporter:
 
         return visualizations
 
-    def save_report(self, report: QualityDistributionReport, format: str = "json") -> str:
+    def save_report(self, report: QualityDistributionReport, report_format: str = "json") -> str:
         """Save distribution report to file."""
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
-        if format == "json":
+        if report_format == "json":
             filename = f"quality_distribution_report_{timestamp}.json"
             filepath = self.output_dir / filename
 
@@ -520,7 +523,7 @@ class QualityDistributionReporter:
             with open(filepath, "w") as f:
                 json.dump(report_dict, f, indent=2, default=str)
 
-        elif format == "html":
+        elif report_format == "html":
             filename = f"quality_distribution_report_{timestamp}.html"
             filepath = self.output_dir / filename
 
@@ -535,7 +538,8 @@ class QualityDistributionReporter:
 
     def _generate_html_report(self, report: QualityDistributionReport) -> str:
         """Generate HTML report from distribution analysis."""
-        template = Template(self.report_templates["detailed"])
+        env = Environment(autoescape=select_autoescape(["html", "xml"]))
+        template = env.from_string(self.report_templates["detailed"])
 
         return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -609,7 +613,8 @@ class QualityDistributionReporter:
                     <strong>Median:</strong> {{ "%.3f"|format(report.overall_distribution.statistics.median) }}
                 </div>
                 <div class="metric">
-                    <strong>Standard Deviation:</strong> {{ "%.3f"|format(report.overall_distribution.statistics.std_dev) }}
+                    <strong>Standard Deviation:</strong>
+                    {{ "%.3f"|format(report.overall_distribution.statistics.std_dev) }}
                 </div>
                 <div class="metric">
                     <strong>Outliers:</strong>

@@ -17,7 +17,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from jinja2 import Template
+from jinja2 import Environment, select_autoescape
 
 # Import our trend analyzer
 from quality_trend_analyzer import (
@@ -41,6 +41,10 @@ class QualityTrendReporter:
     Generates comprehensive trend reports with visualizations,
     statistical analysis, and executive summaries.
     """
+
+    _SIGNIFICANT_CHANGE = 0.05
+    _MAX_ANOMALIES_THRESHOLD = 5
+    _MAX_P_VALUE = 0.05
 
     def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
         """Initialize the trend reporter."""
@@ -292,14 +296,14 @@ class QualityTrendReporter:
             )
 
         # Quality change summary
-        if abs(overall_trend.quality_change) > 0.05:
+        if abs(overall_trend.quality_change) > self._SIGNIFICANT_CHANGE:
             change_direction = "improvement" if overall_trend.quality_change > 0 else "decline"
             summary.append(
                 f"📈 Significant quality {change_direction} of {abs(overall_trend.quality_change):.3f} points detected."
             )
 
         # Statistical significance
-        if overall_trend.statistical_significance < 0.05:
+        if overall_trend.statistical_significance < self._MAX_P_VALUE:
             summary.append("📊 Trend is statistically significant with high confidence.")
         else:
             summary.append("⚠️ Trend lacks statistical significance - more data needed.")
@@ -344,7 +348,8 @@ class QualityTrendReporter:
         # Statistical insights
         insights.append(f"📊 Trend Analysis: R² = {overall_trend.r_squared:.3f}, Slope = {overall_trend.slope:.6f}")
         insights.append(
-            f"📈 Confidence Interval: [{overall_trend.confidence_interval[0]:.6f}, {overall_trend.confidence_interval[1]:.6f}]"
+            f"📈 Confidence Interval: "
+            f"[{overall_trend.confidence_interval[0]:.6f}, {overall_trend.confidence_interval[1]:.6f}]"
         )
 
         # Seasonal pattern insights
@@ -358,7 +363,7 @@ class QualityTrendReporter:
         # Component-specific insights
         if component_trends:
             for component, trend in component_trends.items():
-                if abs(trend.quality_change) > 0.05:
+                if abs(trend.quality_change) > self._SIGNIFICANT_CHANGE:
                     direction = "improved" if trend.quality_change > 0 else "declined"
                     insights.append(
                         f"🔍 {component.replace('_', ' ').title()} has {direction} by {abs(trend.quality_change):.3f}"
@@ -367,19 +372,19 @@ class QualityTrendReporter:
         # Comparative insights
         if "component_performance" in comparative_analysis:
             comp_perf = comparative_analysis["component_performance"]
-            insights.append(
-                f"🏆 Top component: {comp_perf['best_performing']['component']} (+{comp_perf['best_performing']['change']:.3f})"
-            )
-            insights.append(
-                f"⚠️ Bottom component: {comp_perf['worst_performing']['component']} ({comp_perf['worst_performing']['change']:.3f})"
-            )
+            best_comp = comp_perf["best_performing"]["component"]
+            best_change = comp_perf["best_performing"]["change"]
+            insights.append(f"🏆 Top component: {best_comp} (+{best_change:.3f})")
+            worst_comp = comp_perf["worst_performing"]["component"]
+            worst_change = comp_perf["worst_performing"]["change"]
+            insights.append(f"⚠️ Bottom component: {worst_comp} ({worst_change:.3f})")
 
         # Prediction insights
         if overall_trend.predictions:
             next_week_pred = overall_trend.predictions[6]  # 7 days ahead
-            insights.append(
-                f"🔮 7-day prediction: {next_week_pred['predicted_value']:.3f} (±{(next_week_pred['confidence_upper'] - next_week_pred['confidence_lower']) / 2:.3f})"
-            )
+            pred_val = next_week_pred["predicted_value"]
+            conf_half_width = (next_week_pred["confidence_upper"] - next_week_pred["confidence_lower"]) / 2
+            insights.append(f"🔮 7-day prediction: {pred_val:.3f} (±{conf_half_width:.3f})")
 
         return insights
 
@@ -407,23 +412,23 @@ class QualityTrendReporter:
                 (name, trend) for name, trend in component_trends.items() if trend.trend_direction == "declining"
             ]
 
-            for component, trend in declining_components[:3]:  # Top 3 declining
+            for component, _ in declining_components[:3]:  # Top 3 declining
                 actions.append(f"🔧 Focus improvement efforts on {component.replace('_', ' ')}")
 
         # Tier-specific actions
         if tier_trends:
             worst_tiers = sorted(tier_trends.items(), key=lambda x: x[1].quality_change)[:2]
-            for tier, trend in worst_tiers:
-                if trend.trend_direction == "declining":
+            for tier, tier_trend in worst_tiers:
+                if tier_trend.trend_direction == "declining":
                     actions.append(f"📋 Review data sources and processing for {tier} tier")
 
         # Anomaly actions
-        if len(overall_trend.anomalies) > 5:
+        if len(overall_trend.anomalies) > self._MAX_ANOMALIES_THRESHOLD:
             actions.append("🔍 Investigate quality anomalies for patterns")
             actions.append("📊 Implement automated anomaly alerting")
 
         # Statistical significance actions
-        if overall_trend.statistical_significance > 0.05:
+        if overall_trend.statistical_significance > self._MAX_P_VALUE:
             actions.append("📈 Collect more data to establish statistical significance")
             actions.append("⏰ Extend analysis period for better trend detection")
 
@@ -460,12 +465,14 @@ class QualityTrendReporter:
                     y=historical_quality,
                     mode="lines+markers",
                     name="Historical Quality",
-                    line=dict(color="blue"),
+                    line={"color": "blue"},
                 )
             )
 
             # Add predictions
-            pred_dates = [datetime.strptime(p["date"], "%Y-%m-%d") for p in report.overall_trend.predictions]
+            pred_dates = [
+                datetime.strptime(p["date"], "%Y-%m-%d").replace(tzinfo=UTC) for p in report.overall_trend.predictions
+            ]
             pred_values = [p["predicted_value"] for p in report.overall_trend.predictions]
             pred_upper = [p["confidence_upper"] for p in report.overall_trend.predictions]
             pred_lower = [p["confidence_lower"] for p in report.overall_trend.predictions]
@@ -477,7 +484,7 @@ class QualityTrendReporter:
                     y=pred_values,
                     mode="lines+markers",
                     name="Predictions",
-                    line=dict(color="red", dash="dash"),
+                    line={"color": "red", "dash": "dash"},
                 )
             )
 
@@ -488,7 +495,7 @@ class QualityTrendReporter:
                     y=pred_upper + pred_lower[::-1],
                     fill="toself",
                     fillcolor="rgba(255,0,0,0.2)",
-                    line=dict(color="rgba(255,255,255,0)"),
+                    line={"color": "rgba(255,255,255,0)"},
                     name="Confidence Interval",
                 )
             )
@@ -540,13 +547,13 @@ class QualityTrendReporter:
                     mode="markers+text",
                     text=tiers,
                     textposition="top center",
-                    marker=dict(
-                        size=15,
-                        color=quality_changes,
-                        colorscale="RdYlGn",
-                        showscale=True,
-                        colorbar=dict(title="Quality Change"),
-                    ),
+                    marker={
+                        "size": 15,
+                        "color": quality_changes,
+                        "colorscale": "RdYlGn",
+                        "showscale": True,
+                        "colorbar": {"title": "Quality Change"},
+                    },
                     name="Tiers",
                 )
             )
@@ -562,11 +569,11 @@ class QualityTrendReporter:
 
         return visualizations
 
-    def save_report(self, report: QualityTrendReport, format: str = "json") -> str:
+    def save_report(self, report: QualityTrendReport, report_format: str = "json") -> str:
         """Save trend report to file."""
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
 
-        if format == "json":
+        if report_format == "json":
             filename = f"quality_trend_report_{timestamp}.json"
             filepath = self.output_dir / filename
 
@@ -576,7 +583,7 @@ class QualityTrendReporter:
             with open(filepath, "w") as f:
                 json.dump(report_dict, f, indent=2, default=str)
 
-        elif format == "html":
+        elif report_format == "html":
             filename = f"quality_trend_report_{timestamp}.html"
             filepath = self.output_dir / filename
 
@@ -591,7 +598,8 @@ class QualityTrendReporter:
 
     def _generate_html_report(self, report: QualityTrendReport) -> str:
         """Generate HTML report from trend analysis."""
-        template = Template(self.report_templates["detailed"])
+        env = Environment(autoescape=select_autoescape(["html", "xml"]))
+        template = env.from_string(self.report_templates["detailed"])
 
         return template.render(report=report, generated_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S"))
 
@@ -662,7 +670,8 @@ class QualityTrendReporter:
                     <strong>Quality Change:</strong> {{ "%.3f"|format(report.overall_trend.quality_change) }}
                 </div>
                 <div class="metric">
-                    <strong>Statistical Significance:</strong> {{ "%.3f"|format(report.overall_trend.statistical_significance) }}
+                    <strong>Statistical Significance:</strong>
+                    {{ "%.3f"|format(report.overall_trend.statistical_significance) }}
                 </div>
             </div>
 
