@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -30,7 +30,11 @@ __all__ = [
 ]
 
 
-_queue: HumanReviewQueue | None = None
+def get_queue() -> HumanReviewQueue:
+    """Return the module-level queue singleton, initializing it lazily."""
+    if not hasattr(get_queue, "_instance"):
+        get_queue._instance = HumanReviewQueue()
+    return get_queue._instance
 
 
 class ReviewItemResponse(BaseModel):
@@ -83,15 +87,6 @@ class AuditEntryResponse(BaseModel):
     reviewer_id: str | None = None
     decision: str | None = None
     reason: str | None = None
-
-
-def get_queue() -> HumanReviewQueue:
-    """Return the module-level queue singleton, initializing it lazily."""
-
-    global _queue
-    if _queue is None:
-        _queue = HumanReviewQueue()
-    return _queue
 
 
 def _item_to_response(item: ReviewItem) -> ReviewItemResponse:
@@ -167,6 +162,116 @@ def _audit_entry_to_response(entry: dict[str, Any]) -> AuditEntryResponse:
     )
 
 
+def _handle_enqueue_item(request: EnqueueRequest) -> dict[str, str]:
+    queue = get_queue()
+    gate_result = _normalize_gating_report(request.gating_report)
+    criteria = EscalationCriteria()
+    reasons = criteria.get_escalation_reasons(gate_result)
+    if reasons:
+        gate_result.setdefault("gates", {})["gate4"] = _gate4_result("; ".join(reasons))
+
+    content_length = gate_result.get("content_length")
+    if not isinstance(content_length, int):
+        content_length = len(request.content_preview or "")
+
+    item = queue.create_item_from_report(
+        source_id=request.source_id,
+        gate_result=gate_result,
+        content_preview=request.content_preview,
+        content_length=content_length,
+        priority=request.priority,
+    )
+
+    try:
+        queue.enqueue(item)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return {"item_id": item.item_id}
+
+
+def _handle_list_pending_items(limit: int, priority: str | None) -> list[ReviewItemResponse]:
+    queue = get_queue()
+    items = queue.list_items(status=ReviewStatus.PENDING, priority=priority)
+    items.sort(key=lambda item: item.created_at)
+    return [_item_to_response(item) for item in items[:limit]]
+
+
+def _handle_get_review_item(item_id: str) -> ReviewItemResponse:
+    item = _get_existing_item(get_queue(), item_id)
+    return _item_to_response(item)
+
+
+def _handle_apply_review_decision(item_id: str, request: ReviewDecisionRequest) -> ReviewItemResponse:
+    queue = get_queue()
+    item = _get_existing_item(queue, item_id)
+    if item.status != ReviewStatus.PENDING:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Review item '{item_id}' is {item.status.value}, not pending",
+        )
+
+    reviewer = Reviewer(id=request.reviewer_id, role=_validated_role(request.reviewer_role))
+    decision = ReviewDecision(
+        item_id=item_id,
+        reviewer=reviewer,
+        decision=_validated_decision(request.decision),
+        reason=request.reason,
+        additional_notes=request.additional_notes,
+    )
+
+    try:
+        updated = queue.apply_decision(decision)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return _item_to_response(updated)
+
+
+def _handle_get_review_stats() -> QueueStatsResponse:
+    stats = get_queue().get_stats()
+    return QueueStatsResponse(
+        total_items=int(stats.get("total_items", 0)),
+        pending_count=int(stats.get("pending_count", 0)),
+        approved_count=int(stats.get("approved_count", 0)),
+        rejected_count=int(stats.get("rejected_count", 0)),
+        avg_queue_time_hours=stats.get("avg_queue_time_hours"),
+    )
+
+
+def _handle_get_audit_log(limit: int, item_id: str | None) -> list[AuditEntryResponse]:
+    queue = get_queue()
+    items = [_get_existing_item(queue, item_id)] if item_id else queue.list_items()
+
+    entries: list[dict[str, Any]] = []
+    for item in items:
+        entries.extend(item.audit_trail)
+
+    entries.sort(key=lambda entry: str(entry.get("timestamp", "")), reverse=True)
+    return [_audit_entry_to_response(entry) for entry in entries[:limit]]
+
+
+def _handle_update_confidence_display(
+    item_id: str, confidence_data: Annotated[dict[str, Any], Body(...)]
+) -> ReviewItemResponse:
+    queue = get_queue()
+    item = _get_existing_item(queue, item_id)
+    gate_result = item.gate_result or {}
+    metadata = gate_result.setdefault("metadata", {})
+    metadata["confidence_display"] = confidence_data
+    metadata["confidence_updated_at"] = datetime.now(UTC).isoformat()
+    item.gate_result = gate_result
+    item.audit_trail.append(
+        {
+            "event": "confidence_updated",
+            "timestamp": metadata["confidence_updated_at"],
+            "details": "Confidence display data updated",
+        }
+    )
+    queue._persist_items()
+    return _item_to_response(item)
+
+
 def create_review_router() -> APIRouter:
     """Create the Gate 4 human review queue router."""
 
@@ -174,122 +279,42 @@ def create_review_router() -> APIRouter:
 
     @router.post("/review/enqueue")
     def enqueue_item(request: EnqueueRequest) -> dict[str, str]:
-        queue = get_queue()
-        gate_result = _normalize_gating_report(request.gating_report)
-        criteria = EscalationCriteria()
-        reasons = criteria.get_escalation_reasons(gate_result)
-        if reasons:
-            gate_result.setdefault("gates", {})["gate4"] = _gate4_result("; ".join(reasons))
-
-        content_length = gate_result.get("content_length")
-        if not isinstance(content_length, int):
-            content_length = len(request.content_preview or "")
-
-        item = queue.create_item_from_report(
-            source_id=request.source_id,
-            gate_result=gate_result,
-            content_preview=request.content_preview,
-            content_length=content_length,
-            priority=request.priority,
-        )
-
-        try:
-            queue.enqueue(item)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-        return {"item_id": item.item_id}
+        return _handle_enqueue_item(request)
 
     @router.get("/review/pending", response_model=list[ReviewItemResponse])
     def list_pending_items(
         limit: int = Query(default=20, ge=1),
         priority: str | None = Query(default=None),
     ) -> list[ReviewItemResponse]:
-        queue = get_queue()
-        items = queue.list_items(status=ReviewStatus.PENDING, priority=priority)
-        items.sort(key=lambda item: item.created_at)
-        return [_item_to_response(item) for item in items[:limit]]
+        return _handle_list_pending_items(limit, priority)
 
     @router.get("/review/item/{item_id}", response_model=ReviewItemResponse)
     def get_review_item(item_id: str) -> ReviewItemResponse:
-        item = _get_existing_item(get_queue(), item_id)
-        return _item_to_response(item)
+        return _handle_get_review_item(item_id)
 
     @router.post("/review/item/{item_id}/decision", response_model=ReviewItemResponse)
     def apply_review_decision(
         item_id: str,
         request: ReviewDecisionRequest,
     ) -> ReviewItemResponse:
-        queue = get_queue()
-        item = _get_existing_item(queue, item_id)
-        if item.status != ReviewStatus.PENDING:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Review item '{item_id}' is {item.status.value}, not pending",
-            )
-
-        reviewer = Reviewer(id=request.reviewer_id, role=_validated_role(request.reviewer_role))
-        decision = ReviewDecision(
-            item_id=item_id,
-            reviewer=reviewer,
-            decision=_validated_decision(request.decision),
-            reason=request.reason,
-            additional_notes=request.additional_notes,
-        )
-
-        try:
-            updated = queue.apply_decision(decision)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-        return _item_to_response(updated)
+        return _handle_apply_review_decision(item_id, request)
 
     @router.get("/review/stats", response_model=QueueStatsResponse)
     def get_review_stats() -> QueueStatsResponse:
-        stats = get_queue().get_stats()
-        return QueueStatsResponse(
-            total_items=int(stats.get("total_items", 0)),
-            pending_count=int(stats.get("pending_count", 0)),
-            approved_count=int(stats.get("approved_count", 0)),
-            rejected_count=int(stats.get("rejected_count", 0)),
-            avg_queue_time_hours=stats.get("avg_queue_time_hours"),
-        )
+        return _handle_get_review_stats()
 
     @router.get("/review/audit", response_model=list[AuditEntryResponse])
     def get_audit_log(
         limit: int = Query(default=50, ge=1),
         item_id: str | None = Query(default=None),
     ) -> list[AuditEntryResponse]:
-        queue = get_queue()
-        items = [_get_existing_item(queue, item_id)] if item_id else queue.list_items()
-
-        entries: list[dict[str, Any]] = []
-        for item in items:
-            entries.extend(item.audit_trail)
-
-        entries.sort(key=lambda entry: str(entry.get("timestamp", "")), reverse=True)
-        return [_audit_entry_to_response(entry) for entry in entries[:limit]]
+        return _handle_get_audit_log(limit, item_id)
 
     @router.post("/review/item/{item_id}/confidence", response_model=ReviewItemResponse)
     def update_confidence_display(
         item_id: str,
-        confidence_data: dict[str, Any] = Body(...),
+        confidence_data: Annotated[dict[str, Any], Body(...)],
     ) -> ReviewItemResponse:
-        queue = get_queue()
-        item = _get_existing_item(queue, item_id)
-        gate_result = item.gate_result or {}
-        metadata = gate_result.setdefault("metadata", {})
-        metadata["confidence_display"] = confidence_data
-        metadata["confidence_updated_at"] = datetime.now(UTC).isoformat()
-        item.gate_result = gate_result
-        item.audit_trail.append(
-            {
-                "event": "confidence_updated",
-                "timestamp": metadata["confidence_updated_at"],
-                "details": "Confidence display data updated",
-            }
-        )
-        queue._persist_items()
-        return _item_to_response(item)
+        return _handle_update_confidence_display(item_id, confidence_data)
 
     return router

@@ -14,14 +14,14 @@ ingestion rather than dataset-level promotion.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 # ─── Gate decision enum ────────────────────────────────────────────────────────
 
 
-class GateDecision(str, Enum):
+class GateDecision(StrEnum):
     PASS = "pass"
     BLOCK = "block"
     ESCALATE = "escalate"

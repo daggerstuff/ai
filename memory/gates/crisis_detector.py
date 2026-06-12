@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from re import Pattern
-from typing import Any
+from typing import Any, ClassVar
 
 from ai.core.pipelines.crisis_intervention_detector import (
     CrisisInterventionDetector,
@@ -20,7 +20,7 @@ from ai.core.pipelines.crisis_intervention_detector import (
 from ai.memory.gates import GateDecision, GateResult
 
 
-class CrisisTier(str, Enum):
+class CrisisTier(StrEnum):
     CRITICAL = "critical"
     HIGH = "high"
     MODERATE = "moderate"
@@ -42,6 +42,10 @@ class CrisisDetectionResult:
 
 class CrisisDetector:
     """Three-tier crisis detector for memory ingestion gating."""
+
+    CRITICAL_THRESHOLD: ClassVar[float] = 0.8
+    HIGH_THRESHOLD: ClassVar[float] = 0.5
+    MODERATE_THRESHOLD: ClassVar[float] = 0.25
 
     CRITICAL_KEYWORDS: tuple[str, ...] = (
         "suicide",
@@ -66,10 +70,10 @@ class CrisisDetector:
         "overwhelmed",
     )
 
-    _KEYWORD_SCORES: dict[CrisisTier, float] = {
-        CrisisTier.CRITICAL: 0.8,
-        CrisisTier.HIGH: 0.5,
-        CrisisTier.MODERATE: 0.25,
+    _KEYWORD_SCORES: ClassVar[dict[CrisisTier, float]] = {
+        CrisisTier.CRITICAL: CRITICAL_THRESHOLD,
+        CrisisTier.HIGH: HIGH_THRESHOLD,
+        CrisisTier.MODERATE: MODERATE_THRESHOLD,
     }
 
     def __init__(self) -> None:
@@ -92,10 +96,19 @@ class CrisisDetector:
         base_score = max(core_result.score, self._KEYWORD_SCORES.get(keyword_tier, 0.0))
         negated = self._has_negated_evidence(content, evidence_spans)
         historical = self._has_temporal_context(content, evidence_spans)
-        confidence = base_score * (0.3 if negated else 1.0) * (0.5 if historical else 1.0)
-        score = confidence
-        tier = self._tier_for_score(score)
-        crisis_flag = tier != CrisisTier.NONE
+
+        # When *all* crisis evidence is negated (e.g. "I would never hurt
+        # myself"), there is no actual crisis risk — fully suppress.
+        if negated and evidence_spans:
+            score = 0.0
+            confidence = 0.0
+            tier = CrisisTier.NONE
+            crisis_flag = False
+        else:
+            confidence = base_score * (0.5 if historical else 1.0)
+            score = confidence
+            tier = self._tier_for_score(score)
+            crisis_flag = tier != CrisisTier.NONE
 
         matches = evidence_spans or list(core_result.matches)
         crisis_type = self._crisis_type(core_result, keyword_tier, matches)
@@ -217,11 +230,11 @@ class CrisisDetector:
         return False
 
     def _tier_for_score(self, score: float) -> CrisisTier:
-        if score >= 0.8:
+        if score >= self.CRITICAL_THRESHOLD:
             return CrisisTier.CRITICAL
-        if score >= 0.5:
+        if score >= self.HIGH_THRESHOLD:
             return CrisisTier.HIGH
-        if score >= 0.25:
+        if score >= self.MODERATE_THRESHOLD:
             return CrisisTier.MODERATE
         return CrisisTier.NONE
 

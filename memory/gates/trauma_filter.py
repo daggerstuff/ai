@@ -57,6 +57,11 @@ class TraumaFilter:
         "high": 1.0,
     }
 
+    # Constants for magic values
+    SEMANTIC_OVERLAP_THRESHOLD: ClassVar[float] = 0.75
+    HIGH_SEVERITY_THRESHOLD: ClassVar[int] = 3
+    MEDIUM_SEVERITY_THRESHOLD: ClassVar[int] = 2
+
     def __init__(self) -> None:
         self._patterns = {
             category: [self._compile_term(term) for term in terms] for category, terms in self.TRAUMA_LEXICON.items()
@@ -174,7 +179,7 @@ class TraumaFilter:
         if not trigger_tokens:
             return False
         overlap = len(trigger_tokens & content_tokens) / len(trigger_tokens)
-        return overlap >= 0.75
+        return overlap >= TraumaFilter.SEMANTIC_OVERLAP_THRESHOLD
 
     @staticmethod
     def _tokens(value: str) -> set[str]:
@@ -182,9 +187,9 @@ class TraumaFilter:
 
     @classmethod
     def _severity_for_categories(cls, matched_count: int) -> str:
-        if matched_count >= 3:
+        if matched_count >= cls.HIGH_SEVERITY_THRESHOLD:
             return "high"
-        if matched_count == 2:
+        if matched_count == cls.MEDIUM_SEVERITY_THRESHOLD:
             return "medium"
         if matched_count == 1:
             return "low"
