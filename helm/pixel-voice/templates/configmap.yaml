@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: {{ include "pixel-voice.fullname" . }}-config
   labels:
-{{- include (printf "%s.labels" .Chart.Name) . | nindent 4 }}
+    {{ include (printf "%s.labels" .Chart.Name) . | nindent 4 }}
 data:
   {{- if .Values.appConfig }}
   {{- range $key, $value := .Values.appConfig }}
