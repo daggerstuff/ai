@@ -44,6 +44,10 @@ CONSERVATIVE_PII_TYPES = [
     "credit_card",
 ]
 
+# Constants for PII redaction gate
+MAX_PII_COUNT_FOR_BLOCK = 3
+HIGH_CONFIDENCE_THRESHOLD = 0.9
+
 PHI_TYPES = {"ssn", "medical_record_number"}
 NAME_TYPE = "name"
 GATE_NAME = "gate0_pii_redaction"
@@ -56,7 +60,7 @@ class PiiRedactorConfig:
     redaction_style: str = "[TYPE]"
     use_spacy_for_names: bool = True
     conservative_mode: bool = True
-    therapy_allowlist: list[str] = field(default_factory=lambda: THERAPY_ALLOWLIST.copy())
+    therapy_allowlist: list[str] = field(default_factory=THERAPY_ALLOWLIST.copy)
     spacy_confidence_threshold: float = 0.7
     pii_types: list[str] | None = None
 
@@ -148,7 +152,7 @@ class PiiRedactor:
                 details=self._details_for(result),
             )
 
-        if total_pii_count > 3:
+        if total_pii_count > MAX_PII_COUNT_FOR_BLOCK:
             return GateResult(
                 gate=GATE_NAME,
                 decision=GateDecision.ESCALATE,
@@ -157,10 +161,7 @@ class PiiRedactor:
                 details=self._details_for(result),
             )
 
-        if total_pii_count == 0:
-            reason = "No PII detected"
-        else:
-            reason = "PII detected and scrubbed"
+        reason = "No PII detected" if total_pii_count == 0 else "PII detected and scrubbed"
 
         return GateResult(
             gate=GATE_NAME,
@@ -250,7 +251,9 @@ class PiiRedactor:
             self._drift_counts[pii_type] = self._drift_counts.get(pii_type, 0) + count
 
     def _has_high_confidence_phi(self, result: PiiRedactionResult) -> bool:
-        return result.confidence > 0.9 and any(pii_type in PHI_TYPES for pii_type in result.pii_counts)
+        return result.confidence > HIGH_CONFIDENCE_THRESHOLD and any(
+            pii_type in PHI_TYPES for pii_type in result.pii_counts
+        )
 
     def _details_for(self, result: PiiRedactionResult) -> list[str]:
         if not result.pii_counts:

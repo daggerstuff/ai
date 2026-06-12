@@ -145,37 +145,56 @@ class ConsentGateChecker:
         """Evaluate a user's consent state and append an audit entry for the check."""
         record = self._consent_store.get(user_id)
 
+        # We'll set the parameters for _build_result
+        build_user_id_and_memory_id = (user_id, memory_id)
+        build_allowed = False
+        build_consent_tier = ConsentGate.BLOCKED
+        build_reason = ""
+        build_expired = False
+
         if record is None:
             if self._default_consent == ConsentGate.BLOCKED:
-                return self._build_result(
-                    user_id=user_id,
-                    memory_id=memory_id,
-                    allowed=False,
-                    consent_tier=ConsentGate.BLOCKED,
-                    reason="No consent record found",
-                    expired=False,
-                )
-            return self._build_result(
-                user_id=user_id,
-                memory_id=memory_id,
-                allowed=True,
-                consent_tier=self._default_consent,
-                reason="Default consent applied",
-                expired=False,
-            )
+                build_allowed = False
+                build_consent_tier = ConsentGate.BLOCKED
+                build_reason = "No consent record found"
+            else:
+                build_allowed = True
+                build_consent_tier = self._default_consent
+                build_reason = "Default consent applied"
+        elif record.revoked:
+            build_allowed = False
+            build_consent_tier = record.consent_type
+            build_reason = "Consent has been revoked"
+        else:
+            build_expired = self.is_expired(record)
+            if build_expired:
+                build_allowed = False
+                build_consent_tier = record.consent_type
+                build_reason = "Consent has expired"
+            elif record.consent_type == ConsentGate.OPEN:
+                build_allowed = True
+                build_consent_tier = record.consent_type
+                build_reason = "Consent granted"
+            elif record.consent_type == ConsentGate.RESTRICTED:
+                build_allowed = True
+                build_consent_tier = record.consent_type
+                build_reason = "Consent granted with restrictions"
+            else:  # BLOCKED
+                build_allowed = False
+                build_consent_tier = ConsentGate.BLOCKED
+                build_reason = "Consent tier is blocked"
 
-        if record.revoked:
-            return self._build_result(
-                user_id=user_id,
-                memory_id=memory_id,
-                allowed=False,
-                consent_tier=record.consent_type,
-                reason="Consent has been revoked",
-                expired=False,
-            )
+        # Now, call _build_result to get the base result
+        result = self._build_result(
+            build_user_id_and_memory_id,
+            build_allowed,
+            build_consent_tier,
+            build_reason,
+            build_expired,
+        )
 
-        expired = self.is_expired(record)
-        if expired:
+        # If expired, we need to record an expire audit and append its timestamp to the check audit details
+        if build_expired:
             expire_entry = self._record_audit(
                 user_id=user_id,
                 action="expire",
@@ -183,45 +202,9 @@ class ConsentGateChecker:
                 result="blocked",
                 details="Consent expiration observed during check",
             )
-            result = self._build_result(
-                user_id=user_id,
-                memory_id=memory_id,
-                allowed=False,
-                consent_tier=record.consent_type,
-                reason="Consent has expired",
-                expired=True,
-            )
             result.audit_entry.details = f"{result.audit_entry.details}; expiration_audit={expire_entry.timestamp}"
-            return result
 
-        if record.consent_type == ConsentGate.OPEN:
-            return self._build_result(
-                user_id=user_id,
-                memory_id=memory_id,
-                allowed=True,
-                consent_tier=record.consent_type,
-                reason="Consent granted",
-                expired=False,
-            )
-
-        if record.consent_type == ConsentGate.RESTRICTED:
-            return self._build_result(
-                user_id=user_id,
-                memory_id=memory_id,
-                allowed=True,
-                consent_tier=record.consent_type,
-                reason="Consent granted with restrictions",
-                expired=False,
-            )
-
-        return self._build_result(
-            user_id=user_id,
-            memory_id=memory_id,
-            allowed=False,
-            consent_tier=ConsentGate.BLOCKED,
-            reason="Consent tier is blocked",
-            expired=False,
-        )
+        return result
 
     def evaluate(self, user_id: str, memory_id: str | None = None) -> GateResult:
         """Map consent state to the shared gate result interface."""
@@ -284,13 +267,13 @@ class ConsentGateChecker:
 
     def _build_result(
         self,
-        user_id: str,
-        memory_id: str | None,
+        user_id_and_memory_id: tuple[str, str | None],
         allowed: bool,
         consent_tier: ConsentGate,
         reason: str,
         expired: bool,
     ) -> ConsentGateResult:
+        user_id, memory_id = user_id_and_memory_id
         audit_entry = self._record_audit(
             user_id=user_id,
             action="check",
