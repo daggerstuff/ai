@@ -226,6 +226,18 @@ class DashboardWebLauncher:
             background: #e74c3c;
         }
 
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
         .footer {
             text-align: center;
             padding: 30px;
@@ -248,39 +260,40 @@ class DashboardWebLauncher:
     </style>
 </head>
 <body>
-    <div class="header">
+    <header class="header">
         <div class="container">
-            <h1>🎯 Pixelated Empathy AI</h1>
+            <h1><span aria-hidden="true">🎯</span> Pixelated Empathy AI</h1>
             <p>Operational Dashboards & Analytics Command Center</p>
         </div>
-    </div>
+    </header>
 
-    <div class="container">
+    <main class="container" id="main-content">
+        <div class="sr-only" role="status" aria-live="polite" id="status-announcer"></div>
         <!-- Executive Dashboards -->
         <div class="dashboard-grid">
             <div class="dashboard-card">
-                <h3><span class="icon">📊</span>Executive Dashboard</h3>
+                <h3><span class="icon" aria-hidden="true">📊</span>Executive Dashboard</h3>
                 <p>High-level KPIs, ROI analysis, and strategic metrics for executive decision-making.</p>
                 <div class="button-group">
-                    <a href="/dashboard/executive" class="btn btn-primary">View Dashboard</a>
+                    <a href="/dashboard/executive" class="btn btn-primary" aria-label="View Executive Dashboard">View Dashboard</a>
                     <a href="/export/executive" class="btn btn-secondary">Export PDF</a>
                 </div>
             </div>
 
             <div class="dashboard-card">
-                <h3><span class="icon">⚙️</span>Operational Dashboard</h3>
+                <h3><span class="icon" aria-hidden="true">⚙️</span>Operational Dashboard</h3>
                 <p>Real-time monitoring, system health, and operational metrics for daily management.</p>
                 <div class="button-group">
-                    <a href="/dashboard/operational" class="btn btn-primary">View Dashboard</a>
+                    <a href="/dashboard/operational" class="btn btn-primary" aria-label="View Operational Dashboard">View Dashboard</a>
                     <a href="/refresh/operational" class="btn btn-success">Refresh Data</a>
                 </div>
             </div>
 
             <div class="dashboard-card">
-                <h3><span class="icon">🔧</span>Technical Dashboard</h3>
+                <h3><span class="icon" aria-hidden="true">🔧</span>Technical Dashboard</h3>
                 <p>Detailed system metrics, performance analysis, and technical monitoring.</p>
                 <div class="button-group">
-                    <a href="/dashboard/technical" class="btn btn-primary">View Dashboard</a>
+                    <a href="/dashboard/technical" class="btn btn-primary" aria-label="View Technical Dashboard">View Dashboard</a>
                     <a href="/logs/technical" class="btn btn-secondary">View Logs</a>
                 </div>
             </div>
@@ -350,12 +363,12 @@ class DashboardWebLauncher:
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="footer">
+    <footer class="footer">
         <p>🎉 Pixelated Empathy AI - Operational Excellence Achieved</p>
         <p>Phase 5.6 Complete | Enterprise-Grade Analytics | Production Ready</p>
-    </div>
+    </footer>
 
     <script>
         // Update last updated time
