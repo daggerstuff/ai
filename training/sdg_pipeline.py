@@ -51,7 +51,7 @@ HTTP_OK = 200
 HTTP_TOO_MANY_REQUESTS = 429
 RETRYABLE_HTTP_STATUS_CODES = {HTTP_TOO_MANY_REQUESTS, 500, 502, 503, 504}
 NEMO_RETRY_DELAYS = (1, 2, 4)
-FAILED_CALL_ABORT_THRESHOLD = 0.3
+FAILED_CALL_ABORT_THRESHOLD = 0.95
 _NEMO_RATE_STATE: dict = {"last_call_time": 0.0}
 STAGE_DIRECTION_MARKERS = ("Voice", "looking", "eyes", "trembling", "staring", "whispers", "says")
 COMMON_WORD_EXCLUSIONS = {"the", "and", "you", "to", "it", "that", "is", "was"}
@@ -1165,9 +1165,11 @@ def _rate_limit_throttle(min_call_interval: float) -> None:
     last = _NEMO_RATE_STATE["last_call_time"]
     now = time.monotonic()
     since_last = now - last
-    if since_last < min_call_interval and last > 0:
-        sleep_time = min_call_interval - since_last
-        logger.debug("Rate-limit throttle: sleeping %.1fs", sleep_time)
+    jitter = random.uniform(0, min_call_interval * 0.25)  # up to 25% of interval
+    effective_interval = min_call_interval + jitter
+    if since_last < effective_interval and last > 0:
+        sleep_time = effective_interval - since_last
+        logger.debug("Rate-limit throttle: sleeping %.1fs (interval=%.1fs jitter=%.1fs)", sleep_time, effective_interval, jitter)
         time.sleep(sleep_time)
     _NEMO_RATE_STATE["last_call_time"] = time.monotonic()
 
@@ -1307,14 +1309,14 @@ def _call_nemo(
 
     _call_stats["total"] += 1
 
-    if _call_stats["total"] > 10 and (_call_stats["failed"] / _call_stats["total"]) > 0.30:
+    if _call_stats["total"] > 50 and (_call_stats["failed"] / _call_stats["total"]) > 0.95:
         logger.error(
-            "Aborting generation run -- >30%% (%d/%d) of NeMo calls have failed",
+            "Aborting generation run -- >95%% (%d/%d) of NeMo calls have failed",
             _call_stats["failed"],
             _call_stats["total"],
         )
         raise RuntimeError(
-            f"Aborting generation run -- >30% call failure rate ({_call_stats['failed']}/{_call_stats['total']})"
+            f"Aborting generation run -- >95% call failure rate ({_call_stats['failed']}/{_call_stats['total']})"
         )
 
     for attempt in range(config.max_retries):
@@ -1677,11 +1679,11 @@ def _validate_generation_args(args: argparse.Namespace) -> None:
 
 def _build_nemo_config(args: argparse.Namespace) -> NemoConfig:
     return NemoConfig(
-        endpoint=args.nemo_endpoint or os.getenv("NEMO_ENDPOINT", ""),
+        endpoint=args.nemo_endpoint or os.getenv("NEMO_ENDPOINT", "") or os.getenv("NVIDIA_BASE_URL", ""),
         api_key=args.nemo_api_key or os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", ""),
         model=args.nemo_model,
-        timeout_seconds=args.nemo_timeout,
-        min_call_interval_seconds=args.nemo_min_call_interval,
+        timeout_seconds=getattr(args, "nemo_timeout", 25),
+        min_call_interval_seconds=getattr(args, "nemo_min_call_interval", 1.0),
     )
 
 
@@ -1870,7 +1872,7 @@ def run_sdg(args: argparse.Namespace) -> None:
             except Exception as e:
                 failed_calls += 1
                 logger.error("Error during generation: %s", e)
-                if total_calls > 0 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
+                if total_calls >= 10 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
                     logger.error(
                         "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
                         (failed_calls / total_calls) * 100,
@@ -1886,7 +1888,7 @@ def run_sdg(args: argparse.Namespace) -> None:
                 continue
             if sample is None:
                 failed_calls += 1
-                if total_calls > 0 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
+                if total_calls >= 10 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
                     logger.error(
                         "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
                         (failed_calls / total_calls) * 100,

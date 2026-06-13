@@ -19,21 +19,21 @@ from training.youtube_ingestion import (
     GERMAN_CHANNELS,
     MIN_CHUNK_WORDS,
     _content_hash,
+    _hybrid_chunks,
     _is_german_channel,
     _load_compiled_hashes,
-    _semantic_chunks,
     _transcript_to_pairs,
     _word_chunks,
     build_parser,
     ingest_channel,
     run_ingestion,
-    split_sentences,
+    _split_sentences,
 )
 
 EXPECTED_TWO_RECORDS = 2
-EXPECTED_THREE_CHUNKS = 3
-TEST_CHUNK_WORDS = 50
+TEST_CHUNK_WORDS = 100
 LONG_TRANSCRIPT = " ".join(f"word{i}" for i in range(150))
+LONG_UNBROKEN_TEXT = " ".join(f"word{i}" for i in range(500))
 
 # ---------------------------------------------------------------------------
 # Unit tests — language tagging
@@ -127,15 +127,14 @@ class TestTranscriptToPairs:
             LONG_TRANSCRIPT,
             "TestChannel",
             chunk_words=TEST_CHUNK_WORDS,
-            chunk_overlap_words=0,
         )
-        assert len(pairs) == EXPECTED_THREE_CHUNKS
-        assert pairs[0]["pairing_strategy"] == "word_chunk"
-        assert pairs[0]["chunk_word_count"] == TEST_CHUNK_WORDS
+        assert len(pairs) == 1
+        assert pairs[0]["pairing_strategy"] == "semantic_chunk"
+        assert pairs[0]["chunk_word_count"] == 150
         assert pairs[0]["output"].startswith("word0 word1")
         assert pairs[-1]["output"].endswith("word149")
 
-    def test_sentence_bound_transcript_uses_semantic_chunks(self):
+    def test_short_transcript_uses_multi_paragraph_combining(self):
         text = (
             "When trauma gets stored in the body, people often feel stuck. "
             "Therapy can help them notice triggers before they escalate. "
@@ -145,11 +144,10 @@ class TestTranscriptToPairs:
         pairs = _transcript_to_pairs(
             text,
             "TestChannel",
-            chunk_words=20,
-            chunk_overlap_words=0,
+            chunk_words=TEST_CHUNK_WORDS,
         )
-        assert len(pairs) >= EXPECTED_TWO_RECORDS
-        assert all(pair["pairing_strategy"] == "semantic_chunk" for pair in pairs)
+        assert len(pairs) == 1
+        assert pairs[0]["pairing_strategy"] == "multi_para_chunk"
         assert "." in pairs[0]["output"]
 
     def test_multiple_pairs(self):
@@ -164,41 +162,42 @@ class TestWordChunks:
             _word_chunks(LONG_TRANSCRIPT, chunk_words=10, overlap_words=0)
 
     def test_keeps_short_real_text_as_one_chunk(self):
-        chunks = _word_chunks("short real transcript", chunk_words=50, overlap_words=0)
+        chunks = _word_chunks("short real transcript", chunk_words=MIN_CHUNK_WORDS, overlap_words=0)
         assert len(chunks) == 1
         assert chunks[0]["text"] == "short real transcript"
 
 
-class TestSemanticChunks:
-    def test_splits_on_sentence_boundaries(self):
+class TestHybridChunks:
+    def test_multi_paragraph_combining(self):
         text = (
-            "Healing begins when we notice our patterns. "
-            "That awareness creates space for change. "
-            "Therapy helps people reconnect with themselves. "
-            "Small steps can rebuild trust over time."
+            "First paragraph about therapy.\n\n"
+            "Second paragraph about healing."
         )
-        chunks = _semantic_chunks(text, chunk_words=20, overlap_words=0)
-        assert len(chunks) >= EXPECTED_TWO_RECORDS
-        assert all(chunk["pairing_strategy"] == "semantic_chunk" for chunk in chunks)
-        assert all("." in chunk["text"] or "?" in chunk["text"] or "!" in chunk["text"] for chunk in chunks[:-1])
+        chunks = _hybrid_chunks(text, chunk_words=100)
+        assert len(chunks) == 1
+        assert chunks[0]["pairing_strategy"] == "multi_para_chunk"
 
-    def test_preserves_paragraphs_under_limit(self):
-        text = (
-            "First complete paragraph about trauma recovery.\n\n"
-            "Second complete paragraph about nervous system regulation."
-        )
-        chunks = _semantic_chunks(text, chunk_words=50, overlap_words=0)
-        assert len(chunks) == EXPECTED_TWO_RECORDS
-        assert chunks[0]["text"] == "First complete paragraph about trauma recovery."
-        assert chunks[1]["text"] == "Second complete paragraph about nervous system regulation."
+    def test_medium_paragraph_is_semantic_chunk(self):
+        text = " ".join(f"word{i}" for i in range(200))
+        chunks = _hybrid_chunks(text, chunk_words=100)
+        assert len(chunks) == 1
+        assert chunks[0]["pairing_strategy"] == "semantic_chunk"
+        assert chunks[0]["chunk_word_count"] == 200
 
-    def test_falls_back_to_word_chunks_for_unbroken_long_text(self):
-        chunks = _semantic_chunks(LONG_TRANSCRIPT, chunk_words=TEST_CHUNK_WORDS, overlap_words=0)
-        assert len(chunks) == EXPECTED_THREE_CHUNKS
-        assert all(chunk["pairing_strategy"] == "word_chunk" for chunk in chunks)
+    def test_long_paragraph_with_sentences_gets_segmented(self):
+        sentence = "Healing begins when we notice our patterns and therapy helps create change. "
+        text = sentence * 40
+        chunks = _hybrid_chunks(text, chunk_words=100)
+        assert len(chunks) >= 2
+        assert all(chunk["pairing_strategy"] == "segment_chunk" for chunk in chunks)
 
-    def testsplit_sentences_handles_punctuation(self):
-        sentences = split_sentences("First idea. Second idea! Third idea?")
+    def test_long_unbroken_text_falls_back_to_word_chunks(self):
+        chunks = _hybrid_chunks(LONG_UNBROKEN_TEXT, chunk_words=100)
+        assert len(chunks) >= 2
+        assert all(chunk["pairing_strategy"] == "segment_chunk" for chunk in chunks)
+
+    def test_split_sentences_handles_punctuation(self):
+        sentences = _split_sentences("First idea. Second idea! Third idea?")
         assert sentences == ["First idea.", "Second idea!", "Third idea?"]
 
 
@@ -276,15 +275,14 @@ class TestIngestChannel:
             "en",
             set(),
             chunk_words=TEST_CHUNK_WORDS,
-            chunk_overlap_words=0,
         )
 
-        assert n_read == EXPECTED_THREE_CHUNKS
-        assert len(samples) == EXPECTED_THREE_CHUNKS
+        assert n_read == 1
+        assert len(samples) == 1
         metadata = samples[0]["provenance"]["metadata"]
-        assert metadata["pairing_strategy"] == "word_chunk"
+        assert metadata["pairing_strategy"] == "semantic_chunk"
         assert metadata["chunk_index"] == 1
-        assert metadata["chunk_total"] == EXPECTED_THREE_CHUNKS
+        assert metadata["chunk_total"] == 1
 
 
 # ---------------------------------------------------------------------------
