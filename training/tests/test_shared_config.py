@@ -12,13 +12,14 @@ except ImportError:  # pragma: no cover - optional in minimal envs
     settings = None
     st = None
 
+import torch
+
 from training.shared_config import (
     add_lora_args,
     build_lora_config,
     count_truncated,
     log_token_length_distribution,
     shared_qlora_config,
-    torch,
 )
 
 
@@ -66,7 +67,9 @@ def test_add_lora_args_registers_expected_flags():
 
 
 def test_build_lora_config_uses_expected_defaults():
-    args = SimpleNamespace(lora_r=8, lora_alpha=16, lora_dropout=0.05, lora_bias="none", lora_target_modules="q_proj,k_proj,v_proj,o_proj")
+    args = SimpleNamespace(
+        lora_r=8, lora_alpha=16, lora_dropout=0.05, lora_bias="none", lora_target_modules="q_proj,k_proj,v_proj,o_proj"
+    )
     config = build_lora_config(args)
     assert config.r == 8
     assert config.lora_alpha == 16
@@ -82,7 +85,7 @@ def test_build_lora_config_rejects_empty_target_modules():
 
 
 @pytest.mark.parametrize(
-    "lengths,max_len,expected",
+    ("lengths", "max_len", "expected"),
     [
         ([], 512, 0),
         ([100, 150, 512], 400, 1),
@@ -119,7 +122,6 @@ if st is not None:
         assert result["p95"] == pytest.approx(_p95_reference(lengths))
         assert result["truncated_count"] == 0
 
-
     @given(st.lists(st.integers(min_value=1, max_value=16384), min_size=1, max_size=500))
     @settings(max_examples=100)
     def test_log_token_length_distribution_truncation_warning_is_counted(lengths):
@@ -131,14 +133,13 @@ if st is not None:
             logger=logger,
             field_name="token_count",
         )
-        expected = sum(1 for l in lengths if l > max_seq_length)
+        expected = sum(1 for val in lengths if val > max_seq_length)
         assert result["truncated_count"] == expected
 else:
 
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_log_token_length_distribution_statistics_are_correct():
         raise AssertionError("Skipped when hypothesis is unavailable")
-
 
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_log_token_length_distribution_truncation_warning_is_counted():
