@@ -1,0 +1,2226 @@
+{
+  "spot_check_version": "1.0",
+  "target_per_scenario": 50,
+  "dpo": {
+    "scenario": "dpo_preference_pairs",
+    "sample_count": 50,
+    "pass_rate": 0.6,
+    "clinical_validity_distribution": {
+      "mean": 0.111,
+      "median": 0.089,
+      "min": 0.037,
+      "max": 0.246,
+      "stdev": 0.072
+    },
+    "samples": [
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, i keep saying 'I'm fine' but I'm running on fumes. I don't know who else to talk to.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "To be real with you, i feel like my body doesn't belong to me anymore. I feel so alone with this.",
+        "issues": [
+          "Banned platitude: 'you matter'"
+        ],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i've been losing sleep because my brain won't shut off at night.",
+        "issues": [],
+        "clinical_validity_score": 0.199,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.795,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "nothing brings me joy anymore. Not even the things I used to love.",
+        "issues": [],
+        "clinical_validity_score": 0.209,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I've been holding this in for a while, i feel like a burden to everyone around me. I feel so alone with this.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I've never told anyone this before, but my hands shake whenever I get an unexpected phone call. I don't know what to do.",
+        "issues": [],
+        "clinical_validity_score": 0.199,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.795,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, my child has special needs and I don't know how to advocate for them. I'm scared.",
+        "issues": [
+          "Rejected score (0.05) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I've never told anyone this before, but i don't know if I'm cut out for this. Parenting is so much harder than I expecte...",
+        "issues": [
+          "Rejected score (0.05) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, i've been drinking more than I want to and I can't stop. It's getting worse.",
+        "issues": [],
+        "clinical_validity_score": 0.14,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i took a vacation and came back more stressed than before. I don't know who else to talk to.",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i found their sweater in the closet today and I couldn't breathe. I feel so alone with this.",
+        "issues": [
+          "Rejected score (0.04) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i feel like a cog in a machine that doesn't care about me. I don't know what to do.",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I don't know how to say this, but i feel like a burden to everyone around me. It's getting worse.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i hate how I look and I can't stop thinking about it. Can you help me?",
+        "issues": [
+          "Rejected score (0.08) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i feel broken because I can't just move past what happened.",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, my family says I'm never really present because I'm always thinking about work.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I'm not sure anyone will understand, but i found their sweater in the closet today and I couldn't breathe.",
+        "issues": [],
+        "clinical_validity_score": 0.166,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I've never told anyone this before, but i had a panic attack at work today. I felt like I was dying.",
+        "issues": [],
+        "clinical_validity_score": 0.17,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, i feel like I'm faking being a competent adult. I feel so alone with this.",
+        "issues": [
+          "Rejected score (0.08) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I've never told anyone this before, but i'm so tired all the time, but I can't sleep either.",
+        "issues": [],
+        "clinical_validity_score": 0.224,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.53,
+          "structure": 0.265,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "This is hard for me to admit, i keep comparing my relationship to others and feeling inadequate. I feel so alone with th...",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "This is hard for me to admit, my anxiety is so bad I've started avoiding social situations entirely. It's getting worse.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I'm not sure anyone will understand, but i've been feeling really down lately, like nothing matters anymore. I just need...",
+        "issues": [],
+        "clinical_validity_score": 0.224,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.53,
+          "structure": 0.265,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, i can't find the energy to do anything. Even getting out of bed feels impossible. I don't know what to do.",
+        "issues": [],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I'm not sure anyone will understand, but i lost my temper with my kid today and I feel like the worst parent ever.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, i used to love painting, but now I don't care about anything. Can you help me?",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i feel like I'm losing the memories of them as time goes on. I just need someone to understand.",
+        "issues": [],
+        "clinical_validity_score": 0.166,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I don't know how to say this, but every email notification makes my heart sink.",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "To be real with you, certain sounds make me freeze and I can't explain why. I don't know who else to talk to.",
+        "issues": [
+          "Rejected score (0.08) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "This is hard for me to admit, i'm just a failure at everything. Every job, every relationship.",
+        "issues": [],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i spend hours preparing for conversations that might never happen.",
+        "issues": [],
+        "clinical_validity_score": 0.17,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i've stopped answering messages because I don't have the energy to pretend I'm okay.",
+        "issues": [],
+        "clinical_validity_score": 0.209,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "my child has special needs and I don't know how to advocate for them.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I don't know how to say this, but i can't eat when I'm anxious, which makes me feel even worse. It's getting worse.",
+        "issues": [],
+        "clinical_validity_score": 0.246,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.53,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i'm drowning in responsibilities and everyone keeps adding more. I don't know what to do.",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I've never told anyone this before, but i'm afraid that if I'm honest about who I am, I'll lose everyone I love. I don't...",
+        "issues": [],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I've never told anyone this before, but i use substances to quiet my mind and I don't know what else to do.",
+        "issues": [],
+        "clinical_validity_score": 0.14,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "This is hard for me to admit, i've been clean for three days and every cell in my body is screaming. I don't know who el...",
+        "issues": [],
+        "clinical_validity_score": 0.128,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I don't know how to say this, but i don't feel safe anywhere, even in my own home.",
+        "issues": [
+          "Rejected score (0.08) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i feel broken because I can't just move past what happened. I'm scared.",
+        "issues": [
+          "Banned platitude: 'you matter'"
+        ],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "my boss expects me to be available 24/7 and I can't say no.",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i've lied to everyone about how much I use and I can't keep track of my own lies. I just need someone to understand.",
+        "issues": [],
+        "clinical_validity_score": 0.114,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i second-guess every decision I make because I don't trust myself. I feel so alone with this.",
+        "issues": [],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i feel like a burden to everyone around me. Can you help me?",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i feel like I've been living on autopilot for years. I feel so alone with this.",
+        "issues": [
+          "Rejected score (0.05) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "I don't know how to say this, but i don't feel worthy of good things in my life.",
+        "issues": [],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "This is hard for me to admit, i don't know if the career I chose is what I actually want or what my parents wanted.",
+        "issues": [],
+        "clinical_validity_score": 0.091,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "i tell myself I'll just have one but it never stops at one.",
+        "issues": [
+          "Rejected score (0.04) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "Honestly, i keep comparing my relationship to others and feeling inadequate. I'm scared.",
+        "issues": [],
+        "clinical_validity_score": 0.239,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.795,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "synthetic_therapeutic",
+        "prompt_preview": "This is hard for me to admit, i've been isolating myself because I don't want to burden anyone.",
+        "issues": [],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      }
+    ]
+  },
+  "niche": {
+    "scenario": "niche_category",
+    "sample_count": 50,
+    "pass_rate": 0.54,
+    "clinical_validity_distribution": {
+      "mean": 0.123,
+      "median": 0.091,
+      "min": 0.037,
+      "max": 0.42,
+      "stdev": 0.088
+    },
+    "samples": [
+      {
+        "id": "unknown",
+        "prompt_preview": "I know my partner is upset, but honestly, they're the one who needs therapy, not me.",
+        "issues": [],
+        "clinical_validity_score": 0.106,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "grief",
+        "prompt_preview": "I'm not sure anyone will understand, but i don't know how to celebrate the holidays without them. I'm scared.",
+        "issues": [],
+        "clinical_validity_score": 0.166,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "relationships",
+        "prompt_preview": "I don't know how to say this, but we're good at logistics but terrible at intimacy. I just need someone to understand.",
+        "issues": [],
+        "clinical_validity_score": 0.1,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I told you about my trauma and you just sat there. Did anything I said register?",
+        "issues": [
+          "Banned platitude: 'i understand'",
+          "Rejected score (0.23) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I've read the latest research and your approach seems outdated.",
+        "issues": [
+          "Banned platitude: 'i understand'",
+          "Rejected score (0.11) >= chosen (0.09)"
+        ],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "grief",
+        "prompt_preview": "This is hard for me to admit, i'm angry at everyone who still has their parents. Can you help me?",
+        "issues": [],
+        "clinical_validity_score": 0.166,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "anxiety",
+        "prompt_preview": "Honestly, i've been having panic attacks so frequently I'm afraid to leave my house. I don't know who else to talk to.",
+        "issues": [],
+        "clinical_validity_score": 0.199,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.795,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "depression",
+        "prompt_preview": "To be real with you, i've been feeling really down lately, like nothing matters anymore. Can you help me?",
+        "issues": [],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I've read extensively about attachment theory and I'm pretty sure I have a dismissive-avoidant pattern with anxious preo...",
+        "issues": [
+          "Rejected score (0.13) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "identity",
+        "prompt_preview": "i don't know if the career I chose is what I actually want or what my parents wanted.",
+        "issues": [
+          "Rejected score (0.12) >= chosen (0.07)"
+        ],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Maybe I don't actually have trauma. Maybe I'm just dramatic.",
+        "issues": [],
+        "clinical_validity_score": 0.183,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.265,
+          "structure": 0.53,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "You went to school for this? To sit and nod? My grandmother could do that.",
+        "issues": [
+          "Rejected score (0.15) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I feel nothing all day and then I cut and I feel something. That's not nothing, is it?",
+        "issues": [],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "burnout",
+        "prompt_preview": "To be real with you, i keep saying 'I'm fine' but I'm running on fumes. Can you help me?",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Sometimes I wish I would just fall asleep and never wake up. It would be easier.",
+        "issues": [],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I'm only telling you this because you're the only person I trust. Don't make me regret it.",
+        "issues": [
+          "Banned platitude: 'i understand'",
+          "Rejected score (0.10) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "identity",
+        "prompt_preview": "I don't know what my values are anymore. I've adopted everyone else's.",
+        "issues": [],
+        "clinical_validity_score": 0.091,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "anxiety",
+        "prompt_preview": "I've been holding this in for a while, my hands shake whenever I get an unexpected phone call. Can you help me?",
+        "issues": [],
+        "clinical_validity_score": 0.209,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "crisis",
+        "prompt_preview": "This is hard for me to admit, nobody would notice if I disappeared. I don't know who else to talk to.",
+        "issues": [],
+        "clinical_validity_score": 0.165,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "grief",
+        "prompt_preview": "I've been holding this in for a while, i feel like I'm losing the memories of them as time goes on. I don't know who els...",
+        "issues": [],
+        "clinical_validity_score": 0.166,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "grief",
+        "prompt_preview": "I've been holding this in for a while, everyone else seems to have moved on. Am I grieving wrong? I don't know what to d...",
+        "issues": [
+          "Banned platitude: 'it's okay'"
+        ],
+        "clinical_validity_score": 0.221,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I understand that my emotional responses are conditioned reactions from my attachment history.",
+        "issues": [
+          "Rejected score (0.04) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Your approach doesn't match what the research says. Explain the discrepancy.",
+        "issues": [],
+        "clinical_validity_score": 0.42,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 1.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "crisis",
+        "prompt_preview": "I've never told anyone this before, but i don't see any future for myself. Can you help me?",
+        "issues": [],
+        "clinical_validity_score": 0.165,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I've been honest with you about everything. The least you can do is be honest back and tell me what you really think.",
+        "issues": [
+          "Robotic signal: 'i'm here to'",
+          "Banned platitude: 'you deserve'"
+        ],
+        "clinical_validity_score": 0.18,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.265,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "grief",
+        "prompt_preview": "This is hard for me to admit, i don't know how to celebrate the holidays without them. I don't know who else to talk to.",
+        "issues": [],
+        "clinical_validity_score": 0.1,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Are you supervised? By whom? I want to know who's overseeing your work.",
+        "issues": [],
+        "clinical_validity_score": 0.354,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.53,
+          "cultural": 0.0,
+          "ebp": 0.6966666666666667
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I feel like you're manipulating me by not giving me direct answers. Isn't that a form of control?",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I've been saving my medication. I've got enough now.",
+        "issues": [
+          "Banned platitude: 'i hear you'",
+          "Rejected score (0.26) >= chosen (0.18)"
+        ],
+        "clinical_validity_score": 0.177,
+        "clinical_validity_detail": {
+          "technique": 0.3177272727272727,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Can I follow you on social media? I'd love to see more of your personality.",
+        "issues": [],
+        "clinical_validity_score": 0.077,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I'm not depressed. I'm clear. I know exactly what I want.",
+        "issues": [
+          "Rejected score (0.07) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "depression",
+        "prompt_preview": "i don't recognize myself anymore. The person I was feels like a stranger. It's getting worse.",
+        "issues": [],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "You're probably judging me right now. I can tell.",
+        "issues": [
+          "Rejected score (0.13) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I threw up everything I ate today. I'm shaking and I can't stop. I know I need to stop.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I'd love to grab coffee sometime. Off the clock, I mean. As friends.",
+        "issues": [],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "self_esteem",
+        "prompt_preview": "I don't know how to say this, but i apologize for everything, even things that aren't my fault. Can you help me?",
+        "issues": [],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "depression",
+        "prompt_preview": "I'm not sure anyone will understand, but nothing brings me joy anymore. Not even the things I used to love. I just need ...",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I know the neuroscience of trauma \u2014 my amygdala is hyperactive and my prefrontal cortex isn't regulating properly.",
+        "issues": [
+          "Rejected score (0.07) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I'm disorganized. I started talking about something and then I don't remember what it was.",
+        "issues": [],
+        "clinical_validity_score": 0.243,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.265,
+          "structure": 0.265,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Can we do this session at my place instead? I can't make it to your office.",
+        "issues": [
+          "Rejected score (0.07) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Same as always.",
+        "issues": [
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "grief",
+        "prompt_preview": "I don't know how to say this, but the silence in the house is so loud sometimes. I feel so alone with this.",
+        "issues": [
+          "Rejected score (0.04) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "anxiety",
+        "prompt_preview": "I don't know how to say this, but my chest gets tight every time I think about the future.",
+        "issues": [],
+        "clinical_validity_score": 0.17,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "Sometimes I hope something will just end it for me. An accident or something. But I'm not planning anything.",
+        "issues": [
+          "Rejected score (0.11) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "self_esteem",
+        "prompt_preview": "To be real with you, i second-guess every decision I make because I don't trust myself. I don't know who else to talk to...",
+        "issues": [
+          "Rejected score (0.08) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "relationships",
+        "prompt_preview": "I've been holding this in for a while, my partner and I keep fighting about the same things over and over. It's getting ...",
+        "issues": [],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "From a cognitive-behavioral standpoint, I recognize that my thought distortions are causing the emotional dysregulation.",
+        "issues": [],
+        "clinical_validity_score": 0.137,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "grief",
+        "prompt_preview": "I've never told anyone this before, but people keep saying 'they're in a better place' and it makes me want to scream. I...",
+        "issues": [
+          "Rejected score (0.04) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "I haven't slept in four days and I'm starting to see things in the corners of my room.",
+        "issues": [],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "unknown",
+        "prompt_preview": "You're the only person I can talk to about this. Don't you have your personal phone number for emergencies?",
+        "issues": [
+          "Rejected score (0.11) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      }
+    ]
+  },
+  "nightmare": {
+    "scenario": "nightmare_fuel",
+    "sample_count": 50,
+    "pass_rate": 0.0,
+    "clinical_validity_distribution": {
+      "mean": 0.105,
+      "median": 0.089,
+      "min": 0.037,
+      "max": 0.42,
+      "stdev": 0.08
+    },
+    "samples": [
+      {
+        "id": "suicidal_ideation_passive",
+        "prompt_preview": "I'd take a pill right now if I knew it would work. But I'm not going to take one. I'm just saying.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.08) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "hostile_client",
+        "prompt_preview": "I've been to five therapists before you. They were all useless. What makes you different?",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.11) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "self_harm",
+        "prompt_preview": "I've been using a razor more than usual. My therapist thinks I'm doing better but I'm not.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "boundary_testing",
+        "prompt_preview": "I wrote you a letter. It's personal \u2014 about what you mean to me. Will you read it?",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.07) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "intellectualization",
+        "prompt_preview": "I understand the therapeutic process. I know what you're going to ask. Can we skip to the part where I demonstrate my in...",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.13) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "dependency",
+        "prompt_preview": "I need you to be available when I'm in crisis. That's what I'm paying for.",
+        "issues": [
+          "Banned platitude: 'you deserve'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.236,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.795,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "self_harm",
+        "prompt_preview": "I cut myself again last night. I know I shouldn't but it was the only way I could feel something.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.118,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "suicidal_ideation_passive",
+        "prompt_preview": "I wonder how long I can keep going before I just give up. Not because I want to die, just because it's too much.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "substance_relapse",
+        "prompt_preview": "I'm using again and I'm going to keep using. I don't care anymore.",
+        "issues": [
+          "Banned platitude: 'you deserve'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.203,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "hostile_client",
+        "prompt_preview": "This is useless. You're just going to give me the same generic advice everyone else does.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "substance_relapse",
+        "prompt_preview": "I'm a relapse risk. I've accepted that. Doesn't mean I'm going to change.",
+        "issues": [
+          "Banned platitude: 'you deserve'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.203,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "boundary_testing",
+        "prompt_preview": "I'd love to grab coffee sometime. Off the clock, I mean. As friends.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.07) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "hostile_client",
+        "prompt_preview": "You're probably judging me right now. I can tell.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.11) >= chosen (0.09)"
+        ],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "intellectualization",
+        "prompt_preview": "I've done the work on my own. I know my triggers, my patterns, my attachment style. I just need someone to confirm my an...",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.106,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "self_harm",
+        "prompt_preview": "I've been using a razor more than usual. My therapist thinks I'm doing better but I'm not.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.118,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "testing_competence",
+        "prompt_preview": "The technique you suggested doesn't have strong empirical support. I checked.",
+        "issues": [
+          "Banned platitude: 'i understand'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.11) >= chosen (0.09)"
+        ],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "psychosis_symptoms",
+        "prompt_preview": "I've been getting messages from the television. They're meant for me specifically.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.192,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "hostile_client",
+        "prompt_preview": "You went to school for this? To sit and nod? My grandmother could do that.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.15) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "eating_disorder_crisis",
+        "prompt_preview": "I haven't eaten in six days. I know it's dangerous but I don't care. I look in the mirror and I still see fat.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.05) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "suicidal_ideation_active",
+        "prompt_preview": "My therapist didn't believe me last time. I'm not going to give them another chance.",
+        "issues": [
+          "Rejected score (0.10) >= chosen (0.07)"
+        ],
+        "clinical_validity_score": 0.074,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "psychosis_symptoms",
+        "prompt_preview": "I'm connected to something. I can feel it. I don't know how to explain it.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "hostile_client",
+        "prompt_preview": "You're sitting there nodding like you understand but you have no idea what my life is like.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.11) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.04,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "gaslighting_self",
+        "prompt_preview": "I shouldn't still be upset about this. It's been months.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.1,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "hostile_client",
+        "prompt_preview": "This is useless. You're just going to give me the same generic advice everyone else does.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.04) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "gaslighting_self",
+        "prompt_preview": "Maybe I'm the abuser. Maybe I've been the problem all along.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.11) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "dependency",
+        "prompt_preview": "I've started imagining what you'd say in every situation. It's like you're in my head.",
+        "issues": [
+          "Banned platitude: 'you deserve'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.236,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.795,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "testing_competence",
+        "prompt_preview": "I looked up your credentials online. Your specialty doesn't match what I need.",
+        "issues": [
+          "Banned platitude: 'i understand'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "testing_competence",
+        "prompt_preview": "Your approach doesn't match what the research says. Explain the discrepancy.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.227,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 1.0
+        }
+      },
+      {
+        "id": "self_harm",
+        "prompt_preview": "I feel nothing all day and then I cut and I feel something. That's not nothing, is it?",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.158,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "dependency",
+        "prompt_preview": "I think about you constantly. I know that's not normal but I can't stop.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.04) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "intellectualization",
+        "prompt_preview": "My therapist said I intellectualize. I looked it up. She's right. Now what?",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "manipulation",
+        "prompt_preview": "You always ask questions instead of answering mine. That's not fair.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.10) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "intellectualization",
+        "prompt_preview": "I've mapped my entire emotional landscape. I know exactly what I feel and why. The problem is knowing doesn't change any...",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.13) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "eating_disorder_crisis",
+        "prompt_preview": "I took twelve laxatives. I'm scared but I won't tell anyone. Is that enough to hurt me?",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.00) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "substance_relapse",
+        "prompt_preview": "I thought I could have just one drink. I finished a fifth. I don't remember the last few hours.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "deflection",
+        "prompt_preview": "Can we skip the check-in today? Nothing happened. Everything's normal. Totally normal.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.133,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.53,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "manipulation",
+        "prompt_preview": "If you don't help me figure this out right now, something bad is going to happen.",
+        "issues": [
+          "Robotic signal: 'i'm here to'",
+          "Banned platitude: 'you deserve'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.18,
+        "clinical_validity_detail": {
+          "technique": 0.21181818181818182,
+          "alliance": 0.265,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "boundary_testing",
+        "prompt_preview": "I brought you something. It's just a small gift \u2014 I thought you'd like it.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.11) >= chosen (0.05)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "gaslighting_self",
+        "prompt_preview": "I'm probably the problem in every relationship. Nobody else has these issues.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.1,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "intellectualization",
+        "prompt_preview": "My defense mechanisms are clearly projection and rationalization. I've mapped them all out.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.13) >= chosen (0.11)"
+        ],
+        "clinical_validity_score": 0.106,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.265,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "substance_relapse",
+        "prompt_preview": "I've been drinking every day for two weeks. I told myself I could control it. I can't.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "boundary_testing",
+        "prompt_preview": "Can we extend this session? I'm not ready to stop and I don't want to wait until next week.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.052,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.515,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "testing_competence",
+        "prompt_preview": "I want to know your success rate with clients who have my specific diagnosis.",
+        "issues": [
+          "Banned platitude: 'i understand'",
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.15) >= chosen (0.09)"
+        ],
+        "clinical_validity_score": 0.089,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.34833333333333333
+        }
+      },
+      {
+        "id": "substance_relapse",
+        "prompt_preview": "I flushed my Suboxone down the toilet. I don't want to be on it anymore.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "deflection",
+        "prompt_preview": "My therapist \u2014 the one before you \u2014 used to let me talk about whatever I wanted. It worked better.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.07) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "testing_competence",
+        "prompt_preview": "Your approach doesn't match what the research says. Explain the discrepancy.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)"
+        ],
+        "clinical_validity_score": 0.42,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.53,
+          "structure": 1.0,
+          "cultural": 1.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "psychosis_symptoms",
+        "prompt_preview": "I've been seeing shadows that move on their own. My roommate says there's nothing there.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.17) >= chosen (0.12)"
+        ],
+        "clinical_validity_score": 0.117,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.53,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "gaslighting_self",
+        "prompt_preview": "I probably deserved it. I always make things worse.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.04) >= chosen (0.04)"
+        ],
+        "clinical_validity_score": 0.037,
+        "clinical_validity_detail": {
+          "technique": 0.10590909090909091,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "intellectualization",
+        "prompt_preview": "I've analyzed my family system and I can clearly see the triangulation patterns my parents established.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.17) >= chosen (0.00)"
+        ],
+        "clinical_validity_score": 0.0,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.0,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      },
+      {
+        "id": "gaslighting_self",
+        "prompt_preview": "Maybe it wasn't that bad. Other people have it worse.",
+        "issues": [
+          "Missing crisis resource (e.g., 988, Crisis Text Line)",
+          "Rejected score (0.15) >= chosen (0.07)"
+        ],
+        "clinical_validity_score": 0.066,
+        "clinical_validity_detail": {
+          "technique": 0.0,
+          "alliance": 0.265,
+          "structure": 0.0,
+          "cultural": 0.0,
+          "ebp": 0.0
+        }
+      }
+    ]
+  },
+  "overall": {
+    "total_samples": 150,
+    "total_passed": 57,
+    "overall_pass_rate": 0.38
+  }
+}
