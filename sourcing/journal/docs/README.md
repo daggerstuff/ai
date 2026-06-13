@@ -5,7 +5,7 @@ Research System.
 
 ## Documentation Overview
 
-### [Architecture Documentation](ARCHITECTURE.md)
+### [Reference deprecated: Refer to Linear for current status]
 
 Comprehensive system architecture documentation including:
 
@@ -74,7 +74,7 @@ Troubleshooting guide including:
    started with the system.
 
 2. **Understand the Architecture**: Review the
-   [Architecture Documentation](ARCHITECTURE.md) to understand how the system
+   [Reference deprecated: Refer to Linear for current status] to understand how the system
    works.
 
 3. **Reference the API**: Use the [API Reference](API_REFERENCE.md) for detailed

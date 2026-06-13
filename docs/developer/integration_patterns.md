@@ -752,7 +752,7 @@ class SSEConversationUpdates:
 ---
 
 **For more integration examples and patterns, see our
-[Architecture Documentation](architecture.md) and
+[Reference deprecated: Refer to Linear for current status] and
 [SDK Reference](sdk_reference.md).**
 
 _Integration patterns are updated regularly based on community feedback and best
