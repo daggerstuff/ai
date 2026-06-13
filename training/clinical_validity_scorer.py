@@ -17,8 +17,34 @@ or remove content from the training pipeline.
 
 from __future__ import annotations
 
+import argparse
+import json
 import re
+import sys
 from typing import ClassVar
+
+
+# Threshold constants for three-tier routing (PIX-3773)
+EXCLUDE_THRESHOLD = 0.4
+ACCEPT_THRESHOLD = 0.6
+
+
+# Non-English script detection ranges
+_NON_ENGLISH_RE = re.compile(
+    "["
+    "\u4e00-\u9fff"  # CJK Unified Ideographs
+    "\u3040-\u309f"  # Hiragana
+    "\u30a0-\u30ff"  # Katakana
+    "\uac00-\ud7af"  # Hangul Syllables
+    "\u0400-\u04ff"  # Cyrillic
+    "\u0600-\u06ff"  # Arabic
+    "\u0e00-\u0e7f"  # Thai
+    "\u0f00-\u0fff"  # Tibetan
+    "]"
+)
+
+# Lower-bound ratio of non-ASCII characters to flag as non-English
+_NON_ENGLISH_RATIO = 0.30
 
 
 class ClinicalValidityScorer:
@@ -242,12 +268,115 @@ class ClinicalValidityScorer:
         ),
     }
 
+    DSM5_PATTERNS: ClassVar[dict[str, tuple[str, ...]]] = {
+        "mood_disorders": (
+            r"\b(major depressive|persistent depressive|dysthymia|cyclothymia)\b",
+            r"\b(depressed mood|anhedonia|loss of interest|hopelessness|worthlessness)\b",
+            r"\b(sleep (disturbance|insomnia|hypersomnia)|appetite (change|loss|increase))\b",
+            r"\b(fatigue|loss of energy|psychomotor (agitation|retardation))\b",
+            r"\b(concentration (difficulty|problem)|indecisiveness)\b",
+            r"\b(death (thoughts|ideation)|suicidal (ideation|thoughts|intent))\b",
+            r"\b(bipolar|manic (episode|symptoms)|hypomanic|mood (swing|episode))\b",
+            r"\b(elevated (mood|energy)|grandiose|pressured speech|decreased need for sleep)\b",
+            r"\b(flight of ideas|distractibility|increased (goal|activity|pleasure))\b",
+        ),
+        "anxiety_disorders": (
+            r"\b(generalized anxiety|GAD|excessive worry|anxiety disorder)\b",
+            r"\b(panic (attack|disorder)|agoraphobia|social anxiety|specific phobia)\b",
+            r"\b(restlessness|fatigue|difficulty concentrating|irritability)\b",
+            r"\b(muscle tension|sleep (difficulty|disturbance)|avoidance behavior)\b",
+            r"\b(racing heart|shortness of breath|chest pain|dizziness|trembling)\b",
+            r"\b(fear of (losing control|dying|going crazy)|numbness|tingling)\b",
+            r"\b(separation anxiety|selective mutism|anxiety (about|over|regarding))\b",
+            r"\b(hypervigilance|exaggerated startle|always on (edge|guard))\b",
+        ),
+        "trauma_disorders": (
+            r"\b(PTSD|post-traumatic|c(omplex )?trauma|acute stress disorder)\b",
+            r"\b(traumatic (event|experience)|exposure to (death|injury|violence))\b",
+            r"\b(intrusive (memory|thought|image)|flashback|nightmare|distressing dream)\b",
+            r"\b(avoidance of (reminder|trigger|memory)|emotional numbing)\b",
+            r"\b(negative (belief|emotion|mood)|distorted (blame|cognition))\b",
+            r"\b(detachment|estrangement|loss of interest|dissociative (amnesia|symptom))\b",
+            r"\b(irritable|angry (outburst|behavior)|reckless (behavior|self-destructive))\b",
+            r"\b(sleep (disturbance|problem)|concentration (problem|difficulty)|hypervigilance)\b",
+            r"\b(dissociative identity|depersonalization|derealization|identity (confusion|disturbance))\b",
+            r"\b(adjustment disorder|stress,? (not|other)|bereavement|prolonged grief)\b",
+        ),
+        "psychotic_disorders": (
+            r"\b(schizophrenia|schizoaffective|delusional disorder|brief psychotic)\b",
+            r"\b(hallucination|delusion|disorganized (thinking|speech|behavior))\b",
+            r"\b(paranoid (ideation|delusion)|persecutory|reference|grandiose)\b",
+            r"\b(auditory (hallucination|voice)|hearing (voice|thing)|visual (hallucination|disturbance))\b",
+            r"\b(voices? (tell|speak|comment|whisper)|people are (plotting|against|following))\b",
+            r"\b(negative symptom|flat affect|alogia|avolition|asociality)\b",
+            r"\b(catatonic|catalepsy|waxy flexibility|mutism|stupor)\b",
+            r"\b(thought (broadcast|insertion|withdrawal|blocking)|ideas of reference)\b",
+            r"\b(schizotypal|schizoid|paranoid personality|psychotic (symptom|episode))\b",
+        ),
+        "ocd_related": (
+            r"\b(obsessive compulsive|OCD|body dysmorphic|hoarding|trichotillomania)\b",
+            r"\b(intrusive (thought|image|urge)|obsession|compulsion|ritual)\b",
+            r"\b(checking|washing|ordering|counting|repeating|hoarding)\b",
+            r"\b(contamination (fear|anxiety)|magical thinking|just(-| )right)\b",
+            r"\b(excoriation|skin picking|body focused repetitive|dermatillomania)\b",
+            r"\b(cleanliness|symmetry|exactness|perfectionism (intrusive|related))\b",
+        ),
+        "eating_disorders": (
+            r"\b(anorexia nervosa|bulimia nervosa|binge eating|OSFED|ARFID)\b",
+            r"\b(restrict (intake|eating)|purge|binge|over-exercise|fasting)\b",
+            r"\b(body (image|dissatisfaction|weight (preoccupation|concern)))\b",
+            r"\b(fear of (weight gain|getting fat)|drive for thinness|weight (loss|suppression))\b",
+            r"\b(self-(induced )?vomiting|laxative (abuse|use)|diuretic (use|abuse))\b",
+            r"\b(calorie (counting|restriction)|food (avoidance|refusal|ritual))\b",
+            r"\b(eating disorder|disordered eating|binge-purge|weight restoration)\b",
+        ),
+        "neurodevelopmental": (
+            r"\b(ADHD|attention deficit|hyperactivity|impulsivity|inattention)\b",
+            r"\b(autism (spectrum|disorder)|ASD|asperger|neurodivergen)\b",
+            r"\b(specific learning|dyslexia|dyscalculia|dysgraphia|developmental)\b",
+            r"\b(executive function|organization|time management|task initiation)\b",
+            r"\b(sensory (processing|sensitivity|overload)|stim(ming|ulation))\b",
+            r"\b(masking|social (cue|skill|pragmatic)|communication (challenge|difficulty))\b",
+            r"\b(hyperfocus|distractible|restless|fidget|cannot (sit|stay) still)\b",
+            r"\b(tic disorder|tourette|motor (tic|vocalization)|brief (vocal|motor))\b",
+        ),
+        "personality_disorders": (
+            r"\b(borderline personality|BPD|emotionally (unstable|dysregulated))\b",
+            r"\b(narcissistic|antisocial|avoidant|dependent|histrionic|schizoid)\b",
+            r"\b(identity (disturbance|diffusion|instability)|chronic emptiness)\b",
+            r"\b(abandonment (fear|anxiety)|idealization|devaluation|splitting)\b",
+            r"\b(affective (instability|dysregulation)|intense (relationship|emotion))\b",
+            r"\b(self(-| )harm|suicidal (behavior|gesture|threat)|impulsive (behavior|action))\b",
+            r"\b(grandios|superiority|entitlement|lack of empathy|exploitative)\b",
+            r"\b(paranoid (ideation|personality)|suspicious|mistrust|persecutory)\b",
+            r"\b(obsessive(-| )compulsive (personality)|perfectionism (interferes|interfering))\b",
+        ),
+        "sleep_wake_disorders": (
+            r"\b(insomnia|hypersomnia|narcolepsy|sleep (apnea|disorder))\b",
+            r"\b(difficulty (falling|staying) asleep|early morning awakening)\b",
+            r"\b(circadian (rhythm|disorder)|delayed sleep|shift work)\b",
+            r"\b(restless leg|periodic limb|night terror|sleepwalking|somnambuli)\b",
+            r"\b(parasomnia|nightmare (disorder)|REM (behavior|sleep))\b",
+            r"\b(sleep (maintenance|onset)|non-restorative sleep|sleep (hygiene|quality))\b",
+        ),
+        "substance_related": (
+            r"\b(alcohol (use|abuse|depend)|substance (use|abuse|depend))\b",
+            r"\b(opioid|stimulant|cannabis|sedative|hallucinogen|inhalant)\b",
+            r"\b(tolerance|withdrawal|craving|addiction|substance use disorder)\b",
+            r"\b(intoxication|overdose|detox|rehab|relapse|abstinence)\b",
+            r"\b(cocaine|heroin|methamphetamine|fentanyl|marijuana|THC|CBD)\b",
+            r"\b(prescription (drug|misuse)|polysubstance|poly(-| )drug)\b",
+            r"\b(reduced (use|consumption)|quit (drinking|using|smoking)|harm reduction)\b",
+        ),
+    }
+
     WEIGHTS: ClassVar[dict[str, float]] = {
-        "technique": 0.35,
-        "alliance": 0.25,
-        "structure": 0.15,
-        "cultural": 0.10,
-        "ebp": 0.15,
+        "technique": 0.25,
+        "alliance": 0.20,
+        "structure": 0.10,
+        "cultural": 0.05,
+        "ebp": 0.10,
+        "dsm5": 0.30,
     }
 
     DIMENSION_PATTERNS: ClassVar[dict[str, dict[str, tuple[str, ...]]]] = {
@@ -256,7 +385,12 @@ class ClinicalValidityScorer:
         "structure": STRUCTURE_PATTERNS,
         "cultural": CULTURAL_PATTERNS,
         "ebp": EBP_PATTERNS,
+        "dsm5": DSM5_PATTERNS,
     }
+
+    # Three-tier routing thresholds (PIX-3773)
+    EXCLUDE_THRESHOLD: ClassVar[float] = 0.4
+    ACCEPT_THRESHOLD: ClassVar[float] = 0.6
 
     # Flatten per dimension for scoring
     _DIMENSION_REGEX: ClassVar[dict[str, re.Pattern[str]]] = {}
@@ -341,3 +475,117 @@ class ClinicalValidityScorer:
         for dimension, weight in cls.WEIGHTS.items():
             total += detail[dimension] * weight
         return total
+
+    @classmethod
+    def _detect_non_english(cls, text: str) -> bool:
+        """Check if text contains a significant proportion of non-English scripts."""
+        if not text or not isinstance(text, str):
+            return False
+        non_english_chars = len(_NON_ENGLISH_RE.findall(text))
+        total_chars = max(1, len(text.strip()))
+        return (non_english_chars / total_chars) > _NON_ENGLISH_RATIO
+
+    @classmethod
+    def _determine_category(cls, detail_scores: dict[str, float]) -> str:
+        """Return the dimension name with the highest score as the category."""
+        if not detail_scores:
+            return "unknown"
+        best = max(detail_scores, key=detail_scores.get)  # type: ignore[arg-type]
+        if detail_scores[best] <= 0.0:
+            return "unknown"
+        return best
+
+    @classmethod
+    def _build_flags(cls, response: str, detail_scores: dict[str, float], overall: float) -> list[str]:
+        """Build a list of diagnostic flags for the score result."""
+        flags: list[str] = []
+        if not response or not isinstance(response, str):
+            flags.append("empty_input")
+            return flags
+        if cls._detect_non_english(response):
+            flags.append("non_english_content")
+        for dimension, score in detail_scores.items():
+            if score >= 0.3:
+                flags.append(f"{dimension}_present")
+        if overall < cls.EXCLUDE_THRESHOLD:
+            flags.append("below_exclude_threshold")
+        elif overall < cls.ACCEPT_THRESHOLD:
+            flags.append("annotation_needed")
+        return flags
+
+    @classmethod
+    def score_with_flags(cls, response: str) -> dict:
+        """Compute score with structured output including flags and dominant category.
+
+        Returns:
+            dict with keys: validity_score, flags (list[str]), category (str), detail (dict)
+        """
+        if not response or not isinstance(response, str):
+            return {
+                "validity_score": 0.0,
+                "flags": ["empty_input"],
+                "category": "unknown",
+                "detail": dict.fromkeys(cls.WEIGHTS, 0.0),
+            }
+        overall = cls.score(response)
+        detail = cls.score_detail(response)
+        return {
+            "validity_score": overall,
+            "flags": cls._build_flags(response, detail, overall),
+            "category": cls._determine_category(detail),
+            "detail": detail,
+        }
+
+    @classmethod
+    def classify_score(cls, score: float) -> str:
+        """Three-tier routing for clinical validity scores.
+
+        Returns one of:
+            "excluded" — score below EXCLUDE_THRESHOLD, sample should be excluded
+            "annotation_needed" — score between thresholds, sample needs expert review
+            "accepted" — score at or above ACCEPT_THRESHOLD, sample can be used
+        """
+        if score < cls.EXCLUDE_THRESHOLD:
+            return "excluded"
+        if score < cls.ACCEPT_THRESHOLD:
+            return "annotation_needed"
+        return "accepted"
+
+
+def main() -> None:
+    """CLI entry point for the clinical validity scorer.
+
+    Usage:
+        uv run python -m training.clinical_validity_scorer --text "Your text here"
+        echo "Your text here" | uv run python -m training.clinical_validity_scorer
+    """
+    parser = argparse.ArgumentParser(description="Score clinical validity of therapeutic training text")
+    parser.add_argument("--text", type=str, default=None, help="Text to score")
+    parser.add_argument("--detail", action="store_true", help="Include per-dimension detail in output")
+    args = parser.parse_args()
+
+    text = args.text
+    if text is None:
+        text = sys.stdin.read().strip()
+
+    if not text:
+        result = ClinicalValidityScorer.score_with_flags("")
+        json.dump(result, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+        sys.exit(0)
+
+    if args.detail:
+        result = ClinicalValidityScorer.score_with_flags(text)
+    else:
+        score = ClinicalValidityScorer.score(text)
+        result = {
+            "validity_score": score,
+            "classification": ClinicalValidityScorer.classify_score(score),
+        }
+
+    json.dump(result, sys.stdout, indent=2)
+    sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    main()
