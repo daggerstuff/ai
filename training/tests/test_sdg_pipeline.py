@@ -1231,10 +1231,10 @@ class TestGenerationStatsFields:
 
 
 class TestFailedCallAbortThreshold:
-    """FAILED_CALL_ABORT_THRESHOLD constant is set to 0.3."""
+    """FAILED_CALL_ABORT_THRESHOLD constant is set to 0.95."""
 
-    def test_threshold_is_30_percent(self):
-        assert FAILED_CALL_ABORT_THRESHOLD == 0.3
+    def test_threshold_is_95_percent(self):
+        assert FAILED_CALL_ABORT_THRESHOLD == 0.95
 
     def test_threshold_is_float(self):
         assert isinstance(FAILED_CALL_ABORT_THRESHOLD, float)
@@ -1267,8 +1267,8 @@ class TestRunSdgFailureTracking:
         assert report["failure_rate"] == 1.0
 
     @patch("training.sdg_pipeline._generate_dpo_pair")
-    def test_abort_triggers_at_30_percent(self, mock_gen, tmp_out):
-        """Abort fires when failed/total exceeds FAILED_CALL_ABORT_THRESHOLD (0.3)."""
+    def test_abort_triggers_at_95_percent(self, mock_gen, tmp_out):
+        """Abort fires when failed/total exceeds FAILED_CALL_ABORT_THRESHOLD (0.95) after min 10 calls."""
         call_record = []
 
         def track_calls(*args, **kwargs):
@@ -1288,10 +1288,8 @@ class TestRunSdgFailureTracking:
         )
         run_sdg(args)
         total = len(call_record)
-        # With 0.3 threshold, abort must occur no later than when ratio > 0.3
-        # i.e. at call 4: 3/4 = 0.75 > 0.3 → abort
-        # So total_calls must be < 4, but > 0
-        assert 0 < total <= 4, f"Expected abort by call 4, got {total} calls"
+        # With 0.95 threshold + 10-call minimum, abort at call 10: 10/10 = 1.0 > 0.95
+        assert total == 10, f"Expected abort at call 10, got {total} calls"
 
     @patch("training.sdg_pipeline._generate_dpo_pair")
     def test_no_abort_below_threshold(self, mock_gen, tmp_out):

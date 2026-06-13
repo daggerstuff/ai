@@ -23,9 +23,7 @@ logger = logging.getLogger("merge_datasets")
 def _extract_text(record: dict) -> str:
     """Extract combined text for dedup from a record."""
     if "messages" in record and record["messages"]:
-        return " ".join(
-            m.get("content", "") for m in record["messages"] if isinstance(m, dict)
-        )
+        return " ".join(m.get("content", "") for m in record["messages"] if isinstance(m, dict))
     if record.get("prompt") and record.get("chosen") and record.get("rejected"):
         return record["prompt"] + " " + record["chosen"] + " " + record["rejected"]
     return record.get("instruction", "") + " " + record.get("output", "")
@@ -47,7 +45,10 @@ def _to_chatml(record: dict) -> dict:
                 "metadata": {
                     **record.get("metadata", {}),
                     "pair_type": "dpo_chosen",
-                    "source_format": "nightmare_fuel" if record.get("metadata", {}).get("pair_type") == "nightmare_fuel" else "dpo",
+                    "source_format": "nightmare_fuel"
+                    if record.get("metadata", {}).get("pair_type") == "nightmare_fuel"
+                    else "dpo",
+                    "provenance": record.get("provenance", {}),
                 },
             }
         return record
@@ -192,14 +193,8 @@ def run_merge(args: argparse.Namespace) -> None:
             "test": {"count": n_test, "ratio": round(n_test / n_total, 4)},
         },
         "total_records": n_total,
-        "categories": {
-            split: dict(counter.most_common())
-            for split, counter in category_counts.items()
-        },
-        "sources": {
-            split: dict(counter.most_common(20))
-            for split, counter in source_counts.items()
-        },
+        "categories": {split: dict(counter.most_common()) for split, counter in category_counts.items()},
+        "sources": {split: dict(counter.most_common(20)) for split, counter in source_counts.items()},
     }
     stats_path = output_dir / "stats.json"
     with open(stats_path, "w", encoding="utf-8") as f:

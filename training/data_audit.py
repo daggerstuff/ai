@@ -60,6 +60,28 @@ def _classify_file(filename: str) -> str:
     return "uncategorized"
 
 
+def _extract_categories_from_jsonl(path: Path) -> dict[str, int]:
+    """Read JSONL file and count records by their 'category' field."""
+    counts: dict[str, int] = {}
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                cat = record.get("category") or record.get("metadata", {}).get("category") or "uncategorized"
+                if not cat:
+                    cat = "uncategorized"
+                counts[cat] = counts.get(cat, 0) + 1
+    except OSError:
+        logger.warning("Cannot read %s", path)
+    return counts
+
+
 def count_lines(path: Path) -> int:
     count = 0
     try:
@@ -85,12 +107,20 @@ def run_audit(args: argparse.Namespace) -> None:
             logger.warning("Directory not found: %s", input_dir)
             continue
         for jsonl_file in input_dir.rglob("*.jsonl"):
-            cat = _classify_file(jsonl_file.name)
+            content_cats = _extract_categories_from_jsonl(jsonl_file)
             n = count_lines(jsonl_file)
             if n == 0:
                 continue
-            category_counts[cat] += n
-            category_files[cat].append({"path": str(jsonl_file), "samples": n})
+            # Prefer content-based categories; fallback to filename classification
+            if content_cats:
+                for cat, c in content_cats.items():
+                    category_counts[cat] += c
+                dominant = max(content_cats, key=lambda c: content_cats[c])
+                category_files[dominant].append({"path": str(jsonl_file), "samples": n})
+            else:
+                cat = _classify_file(jsonl_file.name)
+                category_counts[cat] += n
+                category_files[cat].append({"path": str(jsonl_file), "samples": n})
             total_files += 1
             total_samples += n
 
