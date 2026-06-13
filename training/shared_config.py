@@ -5,14 +5,18 @@ from __future__ import annotations
 import argparse
 import statistics
 from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
-import torch
-from peft import LoraConfig
-from transformers import BitsAndBytesConfig
+if TYPE_CHECKING:
+    from peft import LoraConfig
+    from transformers import BitsAndBytesConfig
 
 
 def shared_qlora_config() -> BitsAndBytesConfig:
     """Return a default 4-bit quantization config for training."""
+    import torch
+    from transformers import BitsAndBytesConfig
+
     # Using dynamic access to satisfy broken torch stubs without suppressions
     dtype_name = "bfloat16" if torch.cuda.is_bf16_supported() else "float16"
     compute_dtype = getattr(torch, dtype_name)
@@ -49,6 +53,8 @@ def add_lora_args(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
 
 def build_lora_config(args: argparse.Namespace) -> LoraConfig:
     """Build a PEFT ``LoraConfig`` from parsed CLI args."""
+    from peft import LoraConfig
+
     target_modules = [m.strip() for m in getattr(args, "lora_target_modules", "").split(",") if m.strip()]
     if not target_modules:
         raise ValueError("--lora_target_modules produced an empty list")
