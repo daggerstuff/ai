@@ -90,6 +90,7 @@ def process_file(
     jaccard_threshold: float,
     edge_case_hashes: set[str],
     rejection_log: list[dict],
+    near_dedup_window: int = 2000,
 ) -> tuple[list[dict], int, int, int, int, int]:
     """Process one JSONL file.
 
@@ -140,7 +141,8 @@ def process_file(
 
                 tokens = _token_set(text)
                 is_near_dup = False
-                for existing_tokens, existing_hash in token_sets:
+                compare_window = token_sets[-near_dedup_window:] if near_dedup_window else token_sets
+                for existing_tokens, existing_hash in compare_window:
                     if existing_hash == text_hash:
                         continue
                     if _jaccard_similarity(tokens, existing_tokens) > jaccard_threshold:
@@ -203,7 +205,7 @@ def run_dedup(args: argparse.Namespace) -> None:
         for jsonl_file in sorted(input_path.rglob("*.jsonl")):
             kept, exact, near, chatml, refmt, n_read = process_file(
                 jsonl_file, seen_hashes, token_sets, jaccard_threshold,
-                edge_case_hashes, rejection_log,
+                edge_case_hashes, rejection_log, args.near_dedup_window,
             )
             all_kept.extend(kept)
             total_in += n_read
@@ -293,6 +295,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         default="rejection_log.jsonl",
         help="Filename for ChatML rejection log.",
+    )
+    parser.add_argument(
+        "--near_dedup_window",
+        type=int,
+        default=2000,
+        help="Max prior token sets to compare for near-dedup (limits O(n^2) to O(n*window)).",
     )
     return parser
 
