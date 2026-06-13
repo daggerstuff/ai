@@ -94,6 +94,7 @@ dev = [
     "pytest-cov>=4.0.0",
     "onnxruntime-gpu>=1.18.0",
     "pip-audit>=2.10.0",
+    "hypothesis>=6.155.2",
 ]
 
 [build-system]
