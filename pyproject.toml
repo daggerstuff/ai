@@ -28,7 +28,7 @@ dependencies = [
   "pydub>=0.25.1",
   "python-magic>=0.4.27",
   "redis>=6.4.0",
-  "requests>=2.32.3",
+  "requests>=2.33.0",
   "ruff>=0.12.11",
   "black>=26.3.1",
   "nbqa>=1.7.0",
@@ -119,6 +119,9 @@ constraint-dependencies = [
     "urllib3>=2.6.3",
     "werkzeug>=3.1.6",
     "trl>=0.11.0",
+    "cbor2>=5.8.1",
+    "langchain-core>=1.2.22",
+    "diskcache>=6.0.0",
 ]
 
 [[tool.uv.index]]
