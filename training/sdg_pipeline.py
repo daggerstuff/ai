@@ -26,6 +26,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
+from training.clinical_validity_judge import ClinicalValidityJudge
 from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.provenance import attach_provenance
 
@@ -53,6 +54,11 @@ RETRYABLE_HTTP_STATUS_CODES = {HTTP_TOO_MANY_REQUESTS, 500, 502, 503, 504}
 NEMO_RETRY_DELAYS = (1, 2, 4)
 FAILED_CALL_ABORT_THRESHOLD = 0.95
 _NEMO_RATE_STATE: dict = {"last_call_time": 0.0}
+
+_ABORT_MIN_CALLS = 50
+_ABORT_MIN_SAMPLE_CALLS = 10
+_API_KEY_SUFFIX_LEN = 4
+_HEALTH_CHECK_SLOW_THRESHOLD = 10.0
 STAGE_DIRECTION_MARKERS = ("Voice", "looking", "eyes", "trembling", "staring", "whispers", "says")
 COMMON_WORD_EXCLUSIONS = {"the", "and", "you", "to", "it", "that", "is", "was"}
 
@@ -985,18 +991,34 @@ def _validate_sample_style(sample: dict, output: str) -> str | None:
     return None
 
 
-def _validate_clinical_validity(sample: dict, output: str, min_clinical_validity: float) -> str | None:
+def _validate_clinical_validity(
+    sample: dict,
+    output: str,
+    min_clinical_validity: float,
+    nemo_config: NemoConfig | None = None,
+) -> str | None:
     if min_clinical_validity <= 0:
         return None
-    score = ClinicalValidityScorer.score(output)
+    score = ClinicalValidityJudge.score(output, nemo_config)
     sample["clinical_validity_score"] = score
     if score < min_clinical_validity:
         return f"Clinical validity score too low ({score:.3f} < {min_clinical_validity})"
     return None
 
 
-def validate_sample(sample: dict, min_clinical_validity: float = 0.0) -> tuple[bool, str]:
-    """Validate a sample against all quality thresholds."""
+def validate_sample(
+    sample: dict,
+    min_clinical_validity: float = 0.0,
+    nemo_config: NemoConfig | None = None,
+) -> tuple[bool, str]:
+    """Validate a sample against all quality thresholds.
+
+    Args:
+        sample: Training sample dict with 'instruction' and 'output' keys.
+        min_clinical_validity: Minimum validity score threshold (0.0 = disabled).
+        nemo_config: NeMo API config for LLM-based clinical validity judge.
+                     If None, falls back to regex-based ClinicalValidityScorer.
+    """
     instruction = sample.get("instruction", "")
     output = sample.get("output", "")
 
@@ -1004,7 +1026,7 @@ def validate_sample(sample: dict, min_clinical_validity: float = 0.0) -> tuple[b
         lambda: _validate_sample_lengths(instruction, output),
         lambda: _validate_sample_content(instruction, output),
         lambda: _validate_sample_style(sample, output),
-        lambda: _validate_clinical_validity(sample, output, min_clinical_validity),
+        lambda: _validate_clinical_validity(sample, output, min_clinical_validity, nemo_config),
     ):
         reason = validator()
         if reason is not None:
@@ -1169,7 +1191,9 @@ def _rate_limit_throttle(min_call_interval: float) -> None:
     effective_interval = min_call_interval + jitter
     if since_last < effective_interval and last > 0:
         sleep_time = effective_interval - since_last
-        logger.debug("Rate-limit throttle: sleeping %.1fs (interval=%.1fs jitter=%.1fs)", sleep_time, effective_interval, jitter)
+        logger.debug(
+            "Rate-limit throttle: sleeping %.1fs (interval=%.1fs jitter=%.1fs)", sleep_time, effective_interval, jitter
+        )
         time.sleep(sleep_time)
     _NEMO_RATE_STATE["last_call_time"] = time.monotonic()
 
@@ -1231,11 +1255,10 @@ def _validate_nemo_response(body_data: str) -> str | None:
 
 def _check_nemo_health(config: NemoConfig) -> bool:
     """Send a lightweight test prompt to verify API health before a run."""
-    import time as _time
 
     key_fp = "(none)"
     if config.api_key:
-        key_fp = config.api_key[-4:] if len(config.api_key) >= 4 else config.api_key
+        key_fp = config.api_key[-_API_KEY_SUFFIX_LEN:] if len(config.api_key) >= _API_KEY_SUFFIX_LEN else config.api_key
 
     logger.info(
         "NeMo health check: endpoint=%s model=%s key_fp=%s",
@@ -1245,20 +1268,20 @@ def _check_nemo_health(config: NemoConfig) -> bool:
     )
 
     test_prompt = "Say hello in one word."
-    t0 = _time.perf_counter()
+    t0 = time.perf_counter()
     try:
         result = _call_nemo(test_prompt, config)
-        latency = _time.perf_counter() - t0
+        latency = time.perf_counter() - t0
         if result is None:
             logger.error("NeMo health check failed: no response from API")
             return False
-        if latency > 10.0:
+        if latency > _HEALTH_CHECK_SLOW_THRESHOLD:
             logger.warning("NeMo health check slow: %.2fs > 10s threshold", latency)
         else:
             logger.info("NeMo health check passed: %.2fs", latency)
         return True
     except Exception as exc:
-        latency = _time.perf_counter() - t0
+        latency = time.perf_counter() - t0
         logger.error("NeMo health check failed after %.2fs: %s", latency, exc)
         return False
 
@@ -1309,7 +1332,10 @@ def _call_nemo(
 
     _call_stats["total"] += 1
 
-    if _call_stats["total"] > 50 and (_call_stats["failed"] / _call_stats["total"]) > 0.95:
+    if (
+        _call_stats["total"] > _ABORT_MIN_CALLS
+        and (_call_stats["failed"] / _call_stats["total"]) > FAILED_CALL_ABORT_THRESHOLD
+    ):
         logger.error(
             "Aborting generation run -- >95%% (%d/%d) of NeMo calls have failed",
             _call_stats["failed"],
@@ -1727,7 +1753,11 @@ def _handle_niche_generation(
     )
     if sample is None:
         return None, None
-    is_valid, reason = validate_sample(sample, min_clinical_validity=getattr(args, "min_clinical_validity", 0.0))
+    is_valid, reason = validate_sample(
+        sample,
+        min_clinical_validity=getattr(args, "min_clinical_validity", 0.0),
+        nemo_config=config,
+    )
     if not is_valid:
         return None, f"Filtered sample: {reason}"
     is_unique, dup_reason = _check_deduplication(sample, existing_samples)
@@ -1872,7 +1902,10 @@ def run_sdg(args: argparse.Namespace) -> None:
             except Exception as e:
                 failed_calls += 1
                 logger.error("Error during generation: %s", e)
-                if total_calls >= 10 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
+                if (
+                    total_calls >= _ABORT_MIN_SAMPLE_CALLS
+                    and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD
+                ):
                     logger.error(
                         "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
                         (failed_calls / total_calls) * 100,
@@ -1888,7 +1921,10 @@ def run_sdg(args: argparse.Namespace) -> None:
                 continue
             if sample is None:
                 failed_calls += 1
-                if total_calls >= 10 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
+                if (
+                    total_calls >= _ABORT_MIN_SAMPLE_CALLS
+                    and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD
+                ):
                     logger.error(
                         "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
                         (failed_calls / total_calls) * 100,
