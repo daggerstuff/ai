@@ -39,13 +39,20 @@ GERMAN_CHANNELS: frozenset[str] = frozenset(
     }
 )
 
-DEFAULT_CHUNK_WORDS = 200
+DEFAULT_CHUNK_WORDS = 300
 DEFAULT_CHUNK_OVERLAP_WORDS = 0
-MIN_CHUNK_WORDS = 100
+MIN_CHUNK_WORDS = 80
 MAX_CHUNK_WORDS = 500
+SHORT_PARA_THRESHOLD = 130
+LONG_PARA_THRESHOLD = 450
+MIN_COMBINED_CHUNK = 100
+SEGMENT_OVERLAP = 50
+MIN_CHUNKS_FOR_RESCUE = 2
 
 WORD_CHUNK = "word_chunk"
 SEMANTIC_CHUNK = "semantic_chunk"
+MULTI_PARA_CHUNK = "multi_para_chunk"
+SEGMENT_CHUNK = "segment_chunk"
 
 
 def _content_hash(text: str) -> str:
@@ -174,115 +181,145 @@ def _append_chunk(
     )
 
 
-def _semantic_chunks(
+def _hybrid_chunks(
     text: str,
     *,
     chunk_words: int = DEFAULT_CHUNK_WORDS,
-    overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
+    segment_overlap: int = SEGMENT_OVERLAP,
 ) -> list[dict[str, Any]]:
-    """Split transcript text on paragraph and sentence boundaries, with word windows as fallback."""
+    """Hybrid multi-paragraph + segmented chunking for maximum recovery.
+
+    Strategy:
+    1. Multi-paragraph combine: consecutive short paragraphs (<=130 words)
+       are merged into chunks of 100-500 words.
+    2. Single-paragraph: medium paragraphs (131-450 words) become one chunk.
+    3. Segment: long paragraphs (>450 words) are split on sentence boundaries
+       into overlapping segments of ~300 words with 50-word overlap.
+    4. Rescue: very short trailing content is appended to previous chunk.
+
+    Returns list of chunk dicts with text, chunk_index, chunk_start_word,
+    chunk_word_count, and pairing_strategy.
+    """
     if chunk_words < MIN_CHUNK_WORDS:
         raise ValueError(f"chunk_words must be at least {MIN_CHUNK_WORDS}")
-    if overlap_words < 0 or overlap_words >= chunk_words:
-        raise ValueError("overlap_words must be non-negative and smaller than chunk_words")
 
-    paragraphs = [paragraph.strip() for paragraph in re.split(r"\n{2,}", text) if paragraph.strip()]
+    paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
     if not paragraphs:
         paragraphs = [text.strip()] if text.strip() else []
 
     chunks: list[dict[str, Any]] = []
     global_word_offset = 0
+    short_buffer: list[str] = []
+    buffer_words = 0
+
+    def _flush_buffer() -> None:
+        nonlocal buffer_words, global_word_offset
+        if not short_buffer:
+            return
+        merged_text = "\n".join(short_buffer)
+        merged_words = _word_count(merged_text)
+        _append_chunk(
+            chunks,
+            text=merged_text,
+            pairing_strategy=MULTI_PARA_CHUNK,
+            chunk_start_word=global_word_offset,
+        )
+        global_word_offset += merged_words
+        short_buffer.clear()
+        buffer_words = 0
 
     for paragraph in paragraphs:
-        paragraph_words = _word_count(paragraph)
-        if paragraph_words == 0:
+        para_words = _word_count(paragraph)
+        if para_words == 0:
             continue
 
-        if paragraph_words <= chunk_words:
-            _append_chunk(
-                chunks,
-                text=paragraph,
-                pairing_strategy=SEMANTIC_CHUNK,
-                chunk_start_word=global_word_offset,
-            )
-            global_word_offset += paragraph_words
-            continue
-
-        sentences = _split_sentences(paragraph)
-        if len(sentences) <= 1:
-            logger.debug(
-                "Word-chunk fallback: paragraph of %d words has no usable sentence boundaries",
-                paragraph_words,
-            )
-            for sub_chunk in _word_chunks(
-                paragraph,
-                chunk_words=chunk_words,
-                overlap_words=overlap_words,
-            ):
-                sub_chunk["chunk_index"] = len(chunks) + 1
-                sub_chunk["chunk_start_word"] = global_word_offset + sub_chunk["chunk_start_word"]
-                chunks.append(sub_chunk)
-            global_word_offset += paragraph_words
-            continue
-
-        current_sentences: list[str] = []
-        current_words = 0
-        for sentence in sentences:
-            sentence_words = _word_count(sentence)
-            if sentence_words == 0:
-                continue
-
-            if sentence_words > chunk_words:
-                if current_sentences:
-                    _append_chunk(
-                        chunks,
-                        text=" ".join(current_sentences),
-                        pairing_strategy=SEMANTIC_CHUNK,
-                        chunk_start_word=global_word_offset,
-                    )
-                    global_word_offset += current_words
-                    current_sentences = []
-                    current_words = 0
-
-                logger.debug(
-                    "Word-chunk fallback: sentence of %d words exceeds chunk limit of %d",
-                    sentence_words,
-                    chunk_words,
-                )
+        # Long paragraph -> segment using sentence boundaries
+        if para_words > LONG_PARA_THRESHOLD:
+            _flush_buffer()
+            sentences = _split_sentences(paragraph)
+            if len(sentences) <= 1:
+                # No sentence boundaries: word-level fallback
                 for sub_chunk in _word_chunks(
-                    sentence,
+                    paragraph,
                     chunk_words=chunk_words,
-                    overlap_words=overlap_words,
+                    overlap_words=segment_overlap,
                 ):
                     sub_chunk["chunk_index"] = len(chunks) + 1
                     sub_chunk["chunk_start_word"] = global_word_offset + sub_chunk["chunk_start_word"]
+                    sub_chunk["pairing_strategy"] = SEGMENT_CHUNK
                     chunks.append(sub_chunk)
-                global_word_offset += sentence_words
+                global_word_offset += para_words
                 continue
 
-            if current_words + sentence_words > chunk_words and current_sentences:
+            seg_sentences: list[str] = []
+            seg_words = 0
+            for sentence in sentences:
+                s_words = _word_count(sentence)
+                if s_words == 0:
+                    continue
+                if seg_words + s_words > chunk_words and seg_sentences:
+                    _append_chunk(
+                        chunks,
+                        text=" ".join(seg_sentences),
+                        pairing_strategy=SEGMENT_CHUNK,
+                        chunk_start_word=global_word_offset,
+                    )
+                    global_word_offset += seg_words
+                    # Overlap: keep last sentences for context
+                    overlap_sentences = []
+                    overlap_words = 0
+                    for s in reversed(seg_sentences):
+                        sw = _word_count(s)
+                        if overlap_words + sw > segment_overlap:
+                            break
+                        overlap_sentences.insert(0, s)
+                        overlap_words += sw
+                    seg_sentences = [*overlap_sentences, sentence]
+                    seg_words = overlap_words + s_words
+                else:
+                    seg_sentences.append(sentence)
+                    seg_words += s_words
+
+            if seg_sentences:
                 _append_chunk(
                     chunks,
-                    text=" ".join(current_sentences),
-                    pairing_strategy=SEMANTIC_CHUNK,
+                    text=" ".join(seg_sentences),
+                    pairing_strategy=SEGMENT_CHUNK,
                     chunk_start_word=global_word_offset,
                 )
-                global_word_offset += current_words
-                current_sentences = [sentence]
-                current_words = sentence_words
-                continue
+                global_word_offset += seg_words
+            continue
 
-            current_sentences.append(sentence)
-            current_words += sentence_words
+        # Short paragraph -> buffer for multi-paragraph combining
+        if para_words <= SHORT_PARA_THRESHOLD:
+            short_buffer.append(paragraph)
+            buffer_words += para_words
+            if buffer_words >= chunk_words:
+                _flush_buffer()
+            continue
 
-        if current_sentences:
-            _append_chunk(
-                chunks,
-                text=" ".join(current_sentences),
-                pairing_strategy=SEMANTIC_CHUNK,
-                chunk_start_word=global_word_offset,
-            )
-            global_word_offset += current_words
+        # Medium paragraph (130-450 words) -> single paragraph chunk
+        _flush_buffer()
+        _append_chunk(
+            chunks,
+            text=paragraph,
+            pairing_strategy=SEMANTIC_CHUNK,
+            chunk_start_word=global_word_offset,
+        )
+        global_word_offset += para_words
+
+    # Flush any remaining buffer
+    _flush_buffer()
+
+    # Rescue: if last chunk is too small, merge with previous
+    if len(chunks) >= MIN_CHUNKS_FOR_RESCUE:
+        last_chunk = chunks[-1]
+        if last_chunk["chunk_word_count"] < MIN_COMBINED_CHUNK:
+            prev_chunk = chunks[-2]
+            merged_text = f"{prev_chunk['text']}\n{last_chunk['text']}"
+            prev_chunk["text"] = merged_text
+            prev_chunk["chunk_word_count"] = _word_count(merged_text)
+            chunks.pop()
 
     return chunks
 
@@ -299,7 +336,7 @@ def _transcript_to_pairs(
     if not paragraphs:
         return []
 
-    pairs: list[dict[str, str]] = []
+    pairs: list[dict[str, Any]] = []
     for i in range(0, len(paragraphs) - 1, 2):
         instruction = paragraphs[i]
         output = paragraphs[i + 1] if i + 1 < len(paragraphs) else ""
@@ -308,10 +345,10 @@ def _transcript_to_pairs(
 
     if not pairs and paragraphs:
         transcript_body = "\n\n".join(paragraphs)
-        chunks = _semantic_chunks(
+        chunks = _hybrid_chunks(
             transcript_body,
             chunk_words=chunk_words,
-            overlap_words=chunk_overlap_words,
+            segment_overlap=chunk_overlap_words,
         )
         chunk_total = len(chunks)
         for chunk in chunks:
