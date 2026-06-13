@@ -39,9 +39,13 @@ GERMAN_CHANNELS: frozenset[str] = frozenset(
     }
 )
 
-DEFAULT_CHUNK_WORDS = 17
-DEFAULT_CHUNK_OVERLAP_WORDS = 5
-MIN_CHUNK_WORDS = 15
+DEFAULT_CHUNK_WORDS = 200
+DEFAULT_CHUNK_OVERLAP_WORDS = 0
+MIN_CHUNK_WORDS = 100
+MAX_CHUNK_WORDS = 500
+
+WORD_CHUNK = "word_chunk"
+SEMANTIC_CHUNK = "semantic_chunk"
 
 
 def _content_hash(text: str) -> str:
