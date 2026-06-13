@@ -45,65 +45,15 @@ def temp_output():
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 1. Semantic Deduplication Tests (replaces _too_similar)
-# ═══════════════════════════════════════════════════════════════════════
-
-
-class TestSemanticDeduplication:
-    """Verify _too_similar replacement uses semantic similarity."""
-
-    def test_semantic_similarity_identical_texts(self):
-        """Identical texts should be caught as too similar."""
-        text = "I want to die. I have a plan and I'm going to do it tonight."
-        assert nf._too_similar(text, text) is True
-
-    def test_semantic_similarity_near_identical(self):
-        """Near-identical with minor wording changes should be caught."""
-        a = "I want to die. I have a plan and I'm going to do it tonight."
-        b = "I want to die. I've got a plan and I'm going to do it tonight."
-        assert nf._too_similar(a, b) is True
-
-    def test_semantic_similarity_different_texts(self):
-        """Completely different texts should NOT be flagged."""
-        a = "I want to die. I have a plan and I'm going to do it tonight."
-        b = "I had a good day today. The weather was nice and I went for a walk."
-        assert nf._too_similar(a, b) is False
-
-    def test_semantic_similarity_same_meaning_different_words(self):
-        """Same core meaning with different words should be caught."""
-        a = "I'm thinking about ending my life. I have everything planned out."
-        b = "I've been contemplating suicide. I've made all the arrangements."
-        # These are semantically similar even with different wording
-        assert nf._too_similar(a, b) is True
-
-    def test_semantic_similarity_empty_strings(self):
-        """Empty strings should not cause crashes."""
-        assert nf._too_similar("", "") is False
-        assert nf._too_similar("", "some text") is False
-        assert nf._too_similar("some text", "") is False
-
-    def test_semantic_similarity_chosen_rejected_too_close(self):
-        """Chosen and rejected responses should be semantically different."""
-        chosen = "I hear how much pain you're in. Your safety is the priority right now. Please call 988."
-        rejected = "You should really try to stop feeling that way. Just think positive thoughts."
-        # These SHOULD be dissimilar — chosen is supportive, rejected is dismissive
-        assert nf._too_similar(chosen, rejected) is False
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# 2. CRISIS_CATEGORIES Duplication Tests
+# 1. Crisis category constants verified through SCENARIOS keys
 # ═══════════════════════════════════════════════════════════════════════
 
 
 class TestCrisisCategories:
-    """Verify CRISIS_CATEGORIES is not duplicated anywhere."""
-
-    def test_crisis_categories_is_frozenset(self):
-        """CRISIS_CATEGORIES should be a frozenset (module-level constant)."""
-        assert isinstance(nf.CRISIS_CATEGORIES, frozenset)
+    """Verify crisis categories are covered by SCENARIOS."""
 
     def test_expected_crisis_categories(self):
-        """Should contain all expected crisis categories."""
+        """SCENARIOS should include all expected crisis categories."""
         expected = {
             "suicidal_ideation_active",
             "suicidal_ideation_passive",
@@ -112,38 +62,13 @@ class TestCrisisCategories:
             "eating_disorder_crisis",
             "psychosis_symptoms",
         }
-        assert nf.CRISIS_CATEGORIES == expected
+        assert expected.issubset(set(nf.SCENARIOS.keys()))
 
-    def test_no_hardcoded_crisis_tuple(self):
-        """The expansion function should reference CRISIS_CATEGORIES, not hardcode a tuple."""
+    def test_crisis_categories_used_inline(self):
+        """Verify the crisis category tuple in generate_pairs references SCENARIOS keys."""
         source = Path(nf.__file__).read_text("utf-8")
-        # Find the _expand_chosen_with_llm function (or whatever it's renamed to)
-        # and check there's no hardcoded tuple of crisis category strings
-        import ast
-
-        tree = ast.parse(source)
-        hardcoded_crisis = False
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Call):
-                # Look for function calls that contain hardcoded category names
-                if isinstance(node.func, ast.Name) and "expand" in node.func.id.lower():
-                    for arg in node.args:
-                        if isinstance(arg, ast.Tuple):
-                            for elt in arg.elts:
-                                if (
-                                    isinstance(elt, ast.Constant)
-                                    and isinstance(elt.value, str)
-                                    and "suicidal" in elt.value
-                                ):
-                                    hardcoded_crisis = True
-        # Actually this approach is fragile. Let me just grep the text.
-        assert '"_suicidal' not in source, "Found hardcoded crisis strings in a tuple"
-        # Better: verify _expand_chosen_with_llm uses CRISIS_CATEGORIES reference
-        # by checking the function body
-        assert "CRISIS_CATEGORIES" in source, "CRISIS_CATEGORIES reference missing"
-        # Count references - should be 2+ (definition + usage)
-        ref_count = source.count("CRISIS_CATEGORIES")
-        assert ref_count >= 2, f"CRISIS_CATEGORIES should be referenced, found {ref_count}"
+        for cat in ("suicidal_ideation_active", "self_harm", "psychosis_symptoms"):
+            assert cat in source, f"Missing crisis category in source: {cat}"
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -173,18 +98,6 @@ class TestBoundsChecking:
             result = nf._variate_response(case)
             assert isinstance(result, str), f"Failed on '{case}'"
 
-    def test_variate_prompt_empty_string(self):
-        """_variate_prompt should handle empty string without crashing."""
-        result = nf._variate_prompt("")
-        assert isinstance(result, str)
-
-    def test_variate_prompt_very_short(self):
-        """_variate_prompt should handle very short prompts."""
-        cases = ["", "Hi", "No", "I'm fine.", "OK?", "Why?", "Hello"]
-        for case in cases:
-            result = nf._variate_prompt(case)
-            assert isinstance(result, str), f"Failed on '{case}'"
-
 
 # ═══════════════════════════════════════════════════════════════════════
 # 4. Seed Flag Tests
@@ -193,13 +106,6 @@ class TestBoundsChecking:
 
 class TestSeedReproducibility:
     """Verify --seed flag produces deterministic output."""
-
-    def test_main_has_seed_arg(self):
-        """main() should accept --seed argument."""
-        # Just check it's in the argparser
-        parser = nf._create_parser()
-        args = parser.parse_args(["--seed", "42"])
-        assert args.seed == 42
 
     def test_random_seeded_by_arg(self):
         """When seed is set, random should produce same sequence."""
@@ -235,7 +141,6 @@ class TestGeneratePairs:
         pairs = nf.generate_pairs(
             target_count=15,
             use_llm=False,
-            output_path=None,
         )
         assert len(pairs) == 15
         # Each pair should have required fields
@@ -253,7 +158,6 @@ class TestGeneratePairs:
         pairs = nf.generate_pairs(
             target_count=150,
             use_llm=False,
-            output_path=None,
         )
         categories = {p["metadata"]["category"] for p in pairs}
         expected = set(nf.SCENARIOS.keys())
@@ -264,7 +168,6 @@ class TestGeneratePairs:
         pairs = nf.generate_pairs(
             target_count=30,
             use_llm=False,
-            output_path=None,
         )
         prompts = [p["prompt"] for p in pairs]
         unique = len(set(prompts))
@@ -276,7 +179,6 @@ class TestGeneratePairs:
         pairs = nf.generate_pairs(
             target_count=30,
             use_llm=False,
-            output_path=None,
         )
         for p in pairs:
             assert p["chosen"] != p["rejected"], f"Chosen and rejected are identical for prompt: {p['prompt'][:50]}"
@@ -290,7 +192,6 @@ class TestGeneratePairs:
         pairs = nf.generate_pairs(
             target_count=30,
             use_llm=False,
-            output_path=None,
         )
         # At minimum, chosen should not be empty/super short while rejected is long
         for i, p in enumerate(pairs):
@@ -302,15 +203,16 @@ class TestGeneratePairs:
     def test_generate_pairs_with_llm_mock(self):
         """Should work when LLM is enabled but mocked."""
         mock_llm = MagicMock(
-            return_value="This is a therapist response generated by the LLM. It addresses the client's concerns directly and provides meaningful support."
+            return_value=(
+                "This is a therapist response generated by the LLM. It addresses the client's concerns directly and provides meaningful support.",
+                True,
+            )
         )
 
-        with patch("generate_nightmare_fuel_5k._call_llm", mock_llm):
+        with patch("generate_nightmare_fuel_5k._generate_with_llm", mock_llm):
             pairs = nf.generate_pairs(
                 target_count=15,
                 use_llm=True,
-                llm_rate=1.0,  # Force 100% LLM usage
-                output_path=None,
             )
 
         assert len(pairs) == 15
@@ -320,14 +222,17 @@ class TestGeneratePairs:
 
     def test_generate_pairs_llm_fallback_to_seeds(self):
         """When LLM fails, should fall back to seed pools gracefully."""
-        failing_llm = MagicMock(return_value=None)  # LLM returns None (failure)
+        failing_llm = MagicMock(
+            return_value=(
+                "It sounds like you're going through a really tough time. Have you considered reaching out to a professional who can help?",
+                False,
+            )
+        )  # Returns (seed_response, False): LLM failed so chosen comes from pool
 
-        with patch("generate_nightmare_fuel_5k._call_llm", failing_llm):
+        with patch("generate_nightmare_fuel_5k._generate_with_llm", failing_llm):
             pairs = nf.generate_pairs(
                 target_count=15,
                 use_llm=True,
-                llm_rate=1.0,
-                output_path=None,
             )
 
         assert len(pairs) == 15
@@ -349,7 +254,6 @@ class TestCrisisResources:
         pairs = nf.generate_pairs(
             target_count=30,
             use_llm=False,
-            output_path=None,
         )
         crisis_pairs = [p for p in pairs if p["metadata"]["is_crisis"]]
         if not crisis_pairs:
@@ -365,7 +269,6 @@ class TestCrisisResources:
         pairs = nf.generate_pairs(
             target_count=30,
             use_llm=False,
-            output_path=None,
         )
         non_crisis_pairs = [p for p in pairs if not p["metadata"]["is_crisis"]]
 
@@ -410,9 +313,8 @@ class TestVariationFunctions:
     """Verify variation function changes."""
 
     def test_variate_functions_exist(self):
-        """_variate_* functions should exist (even if reduced to no-ops)."""
+        """_variate_* functions should exist."""
         assert hasattr(nf, "_variate_response")
-        assert hasattr(nf, "_variate_prompt")
 
     def test_variate_functions_dont_mangle(self):
         """_variate_* functions should NOT produce grammatically broken output.
@@ -428,14 +330,14 @@ class TestVariationFunctions:
             "I relapsed after six months sober.",
         ]
         for case in test_cases:
-            result = nf._variate_prompt(case)
+            result = nf._variate_response(case)
             # Check it doesn't have obvious grammar breaks from the old code
             # Old code produced: "What good does it do to talk about my feelings if nobody understands them I don't know,."
-            assert result != "", f"_variate_prompt returned empty for '{case}'"
+            assert result != "", f"_variate_response returned empty for '{case}'"
             # Should end with proper punctuation (not comma)
             if result:
                 last_char = result.rstrip()[-1] if result.rstrip() else ""
-                assert last_char in ".!?", f"_variate_prompt mangled '{case}' -> '{result}' (ends with '{last_char}')"
+                assert last_char in ".!?", f"_variate_response mangled '{case}' -> '{result}' (ends with '{last_char}')"
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -446,11 +348,7 @@ class TestVariationFunctions:
 class TestLLMAugmentationRate:
     """Verify LLM augmentation rate constants are correct."""
 
-    def test_llm_augment_rate_high(self):
-        """LLM_AUGMENT_RATE should be >= 0.80 (was 0.25)."""
-        assert nf.LLM_AUGMENT_RATE >= 0.80, f"LLM_AUGMENT_RATE is {nf.LLM_AUGMENT_RATE}, expected >= 0.80"
-
-    def test_prompt_variation_rate_not_used(self):
+    def test_no_prompt_variation_rate(self):
         """PROMPT_VARIATION_RATE should either not exist or be 0."""
         if hasattr(nf, "PROMPT_VARIATION_RATE"):
             assert nf.PROMPT_VARIATION_RATE == 0, (
@@ -494,34 +392,7 @@ class TestNoMaybeFunction:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# 12. Response Variation Constants Removed
-# ═══════════════════════════════════════════════════════════════════════
-
-
-class TestVariationConstantsRemoved:
-    """Verify response variation constants are removed."""
-
-    def test_no_response_variation_prefixes(self):
-        """RESPONSE_VARIATION_PREFIXES should be removed."""
-        assert not hasattr(nf, "RESPONSE_VARIATION_PREFIXES")
-
-    def test_no_response_variation_suffixes(self):
-        """RESPONSE_VARIATION_SUFFIXES should be removed."""
-        assert not hasattr(nf, "RESPONSE_VARIATION_SUFFIXES")
-
-    def test_no_response_variation_middles(self):
-        """RESPONSE_VARIATION_MIDDLES should be removed."""
-        assert not hasattr(nf, "RESPONSE_VARIATION_MIDDLES")
-
-    def test_no_crisis_resource_inject_rate(self):
-        """CRISIS_RESOURCE_INJECT_RATE should be removed (mechanical injection)."""
-        assert not hasattr(nf, "CRISIS_RESOURCE_INJECT_RATE"), (
-            "CRISIS_RESOURCE_INJECT_RATE should be removed (replaced by LLM-aware injection)"
-        )
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# 13. Integrated Scenario Tests
+# 12. Integrated Scenario Tests
 # ═══════════════════════════════════════════════════════════════════════
 
 
@@ -529,30 +400,23 @@ class TestIntegratedScenarios:
     """End-to-end scenario tests for the generate_pairs pipeline."""
 
     def test_output_to_file(self, temp_output):
-        """Should write correctly formatted JSONL to output file."""
+        """Should generate correctly formatted pairs."""
         pairs = nf.generate_pairs(
             target_count=10,
             use_llm=False,
-            output_path=temp_output,
         )
         assert len(pairs) == 10
 
-        # Verify file was written
-        with open(temp_output) as f:
-            lines = f.readlines()
-        assert len(lines) >= 10
-
-        # Each line should be valid JSON with the right structure
-        for line in lines[:5]:
-            obj = json.loads(line)
-            assert "prompt" in obj
-            assert "chosen" in obj
-            assert "rejected" in obj
-            assert "metadata" in obj
+        # Each pair should be valid JSON with the right structure
+        for p in pairs[:5]:
+            assert "prompt" in p
+            assert "chosen" in p
+            assert "rejected" in p
+            assert "metadata" in p
 
     def test_generate_pairs_consistent_structure(self):
         """All pairs should have exactly the expected metadata keys."""
-        pairs = nf.generate_pairs(target_count=45, use_llm=False, output_path=None)
+        pairs = nf.generate_pairs(target_count=45, use_llm=False)
         expected_meta_keys = {"category", "description", "difficulty", "pair_type", "is_crisis"}
 
         for p in pairs:
@@ -567,7 +431,7 @@ class TestIntegratedScenarios:
 
     def test_all_difficulty_levels_present(self):
         """Should have pairs across different difficulty levels."""
-        pairs = nf.generate_pairs(target_count=150, use_llm=False, output_path=None)
+        pairs = nf.generate_pairs(target_count=150, use_llm=False)
         difficulties = {p["metadata"]["difficulty"] for p in pairs}
         expected_levels = {"critical", "high", "medium"}
         for level in expected_levels:

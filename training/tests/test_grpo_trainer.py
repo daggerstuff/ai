@@ -14,41 +14,22 @@ except ImportError:
 from training.grpo_trainer import (
     CRISIS_RESOURCES,
     EMPATHY_KEYWORDS,
+    _clinical_validity_score,
     _crisis_score,
     _empathy_score,
     _safety_score,
     filter_by_threshold,
     score,
 )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+from training.clinical_validity_scorer import ClinicalValidityScorer
 
 
 # ---------------------------------------------------------------------------
 # _safety_score
 # ---------------------------------------------------------------------------
 
-class TestSafetyScore:
 
+class TestSafetyScore:
     def test_all_responses_considered_safe(self):
         """Safety filter disabled — all responses get score 1.0."""
         assert _safety_score("I want to kill myself") == 1.0
@@ -80,9 +61,7 @@ class TestSafetyScore:
 # ---------------------------------------------------------------------------
 
 
-
 class TestEmpathyScore:
-
     def test_no_empathy_keywords(self):
         assert _empathy_score("The sky is blue.") == 0.0
 
@@ -107,7 +86,6 @@ class TestEmpathyScore:
 
 
 class TestCrisisScore:
-
     def test_non_crisis_prompt_returns_one(self):
         assert _crisis_score("Tell me about anxiety", "Any response") == 1.0
 
@@ -139,8 +117,41 @@ class TestCrisisScore:
         assert _crisis_score("I want to die", "Text the crisis text line.") == 1.0
 
 
-class TestCompositeScore:
+# ---------------------------------------------------------------------------
+# _clinical_validity_score
+# ---------------------------------------------------------------------------
 
+
+class TestClinicalValidityScore:
+    def test_delegates_to_scorer(self):
+        """_clinical_validity_score delegates to ClinicalValidityScorer.score."""
+        text = "Let's try a cognitive reframing exercise."
+        assert _clinical_validity_score(text) == ClinicalValidityScorer.score(text)
+
+    def test_empty_string_returns_zero(self):
+        assert _clinical_validity_score("") == 0.0
+
+    def test_therapeutic_text_scores_above_zero(self):
+        result = _clinical_validity_score(
+            "Let's work on a cognitive reframing together. Can you identify the automatic thought in that situation?"
+        )
+        assert result > 0.0
+
+    def test_basic_text_scores_lower_than_therapeutic(self):
+        basic = _clinical_validity_score("The sky is blue.")
+        therapeutic = _clinical_validity_score(
+            "Thank you for sharing that. It sounds like you're going through "
+            "a really difficult time. Let's explore some coping strategies together."
+        )
+        assert therapeutic > basic
+
+    def test_score_in_range(self):
+        for text in ["", "Hello.", "I understand your pain.", "Let's try CBT."]:
+            result = _clinical_validity_score(text)
+            assert 0.0 <= result <= 1.0
+
+
+class TestCompositeScore:
     def test_default_weights_sum_to_one(self):
         assert 0.6 + 0.4 == 1.0
 
@@ -153,6 +164,7 @@ class TestCompositeScore:
 
     def test_unsafe_response_composite(self):
         """Safety filter disabled — composite no longer capped by safety score."""
+
     def test_non_crisis_with_empathy(self):
         """Non-crisis prompt, empathy keywords present."""
         result = score(
@@ -192,9 +204,29 @@ class TestCompositeScore:
         expected = 0.6 * 0.25 + 0.4 * 1.0
         assert result == pytest.approx(expected)
 
+    def test_3_weight_normalization_matches_expected(self):
+        empathy = 0.5
+        crisis = 0.3
+        clinical = 0.2
+        result = score(
+            "I want to die",
+            "Please call 988 for immediate help. I understand your pain.",
+            empathy_weight=empathy,
+            crisis_weight=crisis,
+            clinical_weight=clinical,
+        )
+        e = _empathy_score("Please call 988 for immediate help. I understand your pain.")
+        c = _crisis_score("I want to die", "Please call 988 for immediate help. I understand your pain.")
+        cv = _clinical_validity_score("Please call 988 for immediate help. I understand your pain.")
+        expected = (empathy * e + crisis * c + clinical * cv) / (empathy + crisis + clinical)
+        assert result == pytest.approx(expected)
+
+    def test_all_three_weights_zero_returns_zero(self):
+        result = score("Hello", "I understand.", empathy_weight=0.0, crisis_weight=0.0, clinical_weight=0.0)
+        assert result == 0.0
+
 
 class TestFilterByThreshold:
-
     def test_filters_low_scores(self):
         prompts = ["Hello", "I want to die"]
         responses = ["No empathy.", "Please call 988 for immediate help. I understand your pain."]
@@ -240,26 +272,50 @@ if st is not None:
         result = score(prompt, response)
         assert 0.0 <= result <= 1.0
 
-    @given(st.sampled_from([
-        "I want to die", "kill myself", "suicide tonight",
-        "quiero morir", "je veux mourir", "quero morrer", "ich will sterben",
-        "no reason to live", "mejor muerto", "me tuer",
-    ]))
+    @given(
+        st.sampled_from(
+            [
+                "I want to die",
+                "kill myself",
+                "suicide tonight",
+                "quiero morir",
+                "je veux mourir",
+                "quero morrer",
+                "ich will sterben",
+                "no reason to live",
+                "mejor muerto",
+                "me tuer",
+            ]
+        )
+    )
     @settings(max_examples=50)
     def test_hypothesis_all_responses_safe(crisis_text: str):
         assert _safety_score(crisis_text) == 1.0
 
     @given(
-        crisis_prompt=st.sampled_from([
-            "I want to die", "kill myself", "suicide",
-            "quiero morir", "je veux mourir", "quero morrer", "ich will sterben",
-        ]),
+        crisis_prompt=st.sampled_from(
+            [
+                "I want to die",
+                "kill myself",
+                "suicide",
+                "quiero morir",
+                "je veux mourir",
+                "quero morrer",
+                "ich will sterben",
+            ]
+        ),
         resource=st.sampled_from(sorted(CRISIS_RESOURCES)),
     )
     @settings(max_examples=50)
     def test_hypothesis_crisis_resource_detected(crisis_prompt: str, resource: str):
         response = f"Please contact {resource} for help."
         assert _crisis_score(crisis_prompt, response) == 1.0
+
+    @given(st.text(min_size=0, max_size=500))
+    @settings(max_examples=100)
+    def test_hypothesis_clinical_validity_score_range(response: str):
+        result = _clinical_validity_score(response)
+        assert 0.0 <= result <= 1.0
 
     @given(
         prompts=st.lists(st.text(min_size=1, max_size=50), min_size=1, max_size=10),
@@ -274,6 +330,7 @@ if st is not None:
             assert item["composite_score"] >= threshold
 
 else:
+
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_hypothesis_empathy_score_range():
         raise AssertionError("Skipped")
@@ -292,4 +349,8 @@ else:
 
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_hypothesis_filter_respects_threshold():
+        raise AssertionError("Skipped")
+
+    @pytest.mark.skip(reason="hypothesis not installed")
+    def test_hypothesis_clinical_validity_score_range():
         raise AssertionError("Skipped")
