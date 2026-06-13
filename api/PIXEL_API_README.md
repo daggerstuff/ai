@@ -423,6 +423,6 @@ python -c "from ai.models.pixel_core.models.pixel_base_model import PixelBaseMod
 
 ## References
 
-- [Pixel Model Architecture](../docs/model_architecture_design.md)
+- [Reference deprecated: Refer to Linear for current status]
 - [Phase 3 Integration Plan](../docs/deployment/ngc/NGC_CLI_NEXT_STEPS.md)
 - [API Security Standards](../../SECURITY.md)
