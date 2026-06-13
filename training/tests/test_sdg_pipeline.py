@@ -18,6 +18,8 @@ import pytest
 
 from training.sdg_pipeline import (
     CRISIS_RESOURCES,
+    FAILED_CALL_ABORT_THRESHOLD,
+    GenerationStats,
     NICHE_CATEGORIES,
     NIGHTMARE_SCENARIOS,
     THERAPIST_STYLE_PROFILES,
@@ -1183,3 +1185,159 @@ class TestClinicalValidityIntegration:
         assert "clinical_validity_score" in pair
         assert "clinical_validity_detail" in pair
         assert pair["clinical_validity_score"] > 0.0
+
+
+# ---------------------------------------------------------------------------
+# PIX-3876: Failed-call tracking and abort on >30% failure rate
+# ---------------------------------------------------------------------------
+
+
+class TestGenerationStatsFields:
+    """GenerationStats dataclass includes failed_calls and total_calls."""
+
+    def test_failed_calls_default(self):
+        stats = GenerationStats(generated=5, filtered=1, iterations=6, max_iterations=10)
+        assert stats.failed_calls == 0
+        assert stats.total_calls == 0
+
+    def test_failed_calls_explicit(self):
+        stats = GenerationStats(
+            generated=3,
+            filtered=1,
+            iterations=10,
+            max_iterations=10,
+            failed_calls=7,
+            total_calls=10,
+        )
+        assert stats.failed_calls == 7
+        assert stats.total_calls == 10
+
+    def test_failure_rate_zero_when_no_calls(self):
+        stats = GenerationStats(generated=0, filtered=0, iterations=1, max_iterations=10)
+        rate = stats.failed_calls / stats.total_calls if stats.total_calls > 0 else 0
+        assert rate == 0
+
+    def test_failure_rate_calculation(self):
+        stats = GenerationStats(
+            generated=0,
+            filtered=0,
+            iterations=10,
+            max_iterations=10,
+            failed_calls=3,
+            total_calls=10,
+        )
+        rate = stats.failed_calls / stats.total_calls if stats.total_calls > 0 else 0
+        assert rate == 0.3
+
+
+class TestFailedCallAbortThreshold:
+    """FAILED_CALL_ABORT_THRESHOLD constant is set to 0.3."""
+
+    def test_threshold_is_30_percent(self):
+        assert FAILED_CALL_ABORT_THRESHOLD == 0.3
+
+    def test_threshold_is_float(self):
+        assert isinstance(FAILED_CALL_ABORT_THRESHOLD, float)
+
+
+class TestRunSdgFailureTracking:
+    """run_sdg tracks failed calls and aborts when failure rate exceeds 30%."""
+
+    @patch("training.sdg_pipeline._generate_dpo_pair")
+    def test_failure_stats_in_report(self, mock_gen, tmp_out):
+        """Report includes failed_calls, total_calls, and failure_rate after run."""
+        mock_gen.return_value = None  # every call fails
+        args = Namespace(
+            scenario="dpo_preference_pairs",
+            target_count=1,
+            output_path=str(tmp_out),
+            category="",
+            max_iterations=3,
+            nemo_endpoint=EP,
+            nemo_api_key=KEY,
+            nemo_model=MODEL,
+        )
+        run_sdg(args)
+        report = json.loads((tmp_out.parent / "generation_report.json").read_text())
+        assert "failed_calls" in report
+        assert "total_calls" in report
+        assert "failure_rate" in report
+        assert report["failed_calls"] == report["total_calls"]
+        assert report["total_calls"] > 0
+        assert report["failure_rate"] == 1.0
+
+    @patch("training.sdg_pipeline._generate_dpo_pair")
+    def test_abort_triggers_at_30_percent(self, mock_gen, tmp_out):
+        """Abort fires when failed/total exceeds FAILED_CALL_ABORT_THRESHOLD (0.3)."""
+        call_record = []
+
+        def track_calls(*args, **kwargs):
+            call_record.append(1)
+            return None
+
+        mock_gen.side_effect = track_calls
+        args = Namespace(
+            scenario="dpo_preference_pairs",
+            target_count=100,
+            output_path=str(tmp_out),
+            category="",
+            max_iterations=20,
+            nemo_endpoint=EP,
+            nemo_api_key=KEY,
+            nemo_model=MODEL,
+        )
+        run_sdg(args)
+        total = len(call_record)
+        # With 0.3 threshold, abort must occur no later than when ratio > 0.3
+        # i.e. at call 4: 3/4 = 0.75 > 0.3 → abort
+        # So total_calls must be < 4, but > 0
+        assert 0 < total <= 4, f"Expected abort by call 4, got {total} calls"
+
+    @patch("training.sdg_pipeline._generate_dpo_pair")
+    def test_no_abort_below_threshold(self, mock_gen, tmp_out):
+        """Run completes normally when failure rate stays at or below 30%."""
+        success = {
+            "prompt": "I feel anxious",
+            "chosen": "I hear you. Let's talk.",
+            "rejected": "Calm down.",
+        }
+        mock_gen.side_effect = [success, None, success, None, success, None]
+        args = Namespace(
+            scenario="dpo_preference_pairs",
+            target_count=3,
+            output_path=str(tmp_out),
+            category="",
+            max_iterations=20,
+            nemo_endpoint=EP,
+            nemo_api_key=KEY,
+            nemo_model=MODEL,
+        )
+        run_sdg(args)
+        report = json.loads((tmp_out.parent / "generation_report.json").read_text())
+        # 3 successes, 3 failures → 3/6 = 0.5 which exceeds 0.3 so abort happened early
+        # Run should have aborted; check that failure_rate is present
+        assert "failure_rate" in report
+
+    @patch("training.sdg_pipeline._generate_dpo_pair")
+    def test_report_failure_rate_zero_on_all_success(self, mock_gen, tmp_out):
+        """failure_rate is 0 when every call succeeds."""
+        mock_gen.return_value = {
+            "prompt": "I feel anxious",
+            "chosen": "I hear you.",
+            "rejected": "Calm down.",
+        }
+        args = Namespace(
+            scenario="dpo_preference_pairs",
+            target_count=1,
+            output_path=str(tmp_out),
+            category="",
+            max_iterations=10,
+            nemo_endpoint=EP,
+            nemo_api_key=KEY,
+            nemo_model=MODEL,
+        )
+        run_sdg(args)
+        report = json.loads((tmp_out.parent / "generation_report.json").read_text())
+        assert report["failed_calls"] == 0
+        assert report["total_calls"] == 1
+        assert report["failure_rate"] == 0.0

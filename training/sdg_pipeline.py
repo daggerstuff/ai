@@ -51,6 +51,7 @@ HTTP_OK = 200
 HTTP_TOO_MANY_REQUESTS = 429
 RETRYABLE_HTTP_STATUS_CODES = {HTTP_TOO_MANY_REQUESTS, 500, 502, 503, 504}
 NEMO_RETRY_DELAYS = (1, 2, 4)
+FAILED_CALL_ABORT_THRESHOLD = 0.3
 _NEMO_RATE_STATE: dict = {"last_call_time": 0.0}
 STAGE_DIRECTION_MARKERS = ("Voice", "looking", "eyes", "trembling", "staring", "whispers", "says")
 COMMON_WORD_EXCLUSIONS = {"the", "and", "you", "to", "it", "that", "is", "was"}
@@ -160,6 +161,8 @@ class GenerationStats:
     filtered: int
     iterations: int
     max_iterations: int
+    failed_calls: int = 0
+    total_calls: int = 0
 
 
 def _build_therapist_style_prompt(
@@ -1819,6 +1822,9 @@ def _write_generation_report(
         ),
         "iterations": stats.iterations,
         "max_iterations": stats.max_iterations,
+        "failed_calls": stats.failed_calls,
+        "total_calls": stats.total_calls,
+        "failure_rate": (stats.failed_calls / stats.total_calls if stats.total_calls > 0 else 0),
         "clinical_validity": _clinical_validity_stats(existing_samples),
         "call_stats": _call_stats or {},
     }
@@ -1844,6 +1850,8 @@ def run_sdg(args: argparse.Namespace) -> None:
     generated = 0
     filtered = 0
     iterations = 0
+    failed_calls = 0
+    total_calls = 0
     max_iter = args.max_iterations
     existing_samples: list[dict] = []
     _call_stats = {"total": 0, "failed": 0}
@@ -1851,6 +1859,7 @@ def run_sdg(args: argparse.Namespace) -> None:
     with open(output_path, "a", encoding="utf-8") as output_file:
         while generated < args.target_count and iterations < max_iter:
             iterations += 1
+            total_calls += 1
             try:
                 sample, filter_reason = _generate_sample_for_scenario(
                     args, config, generated, existing_samples, _call_stats=_call_stats
@@ -1859,13 +1868,33 @@ def run_sdg(args: argparse.Namespace) -> None:
                 logger.error("NeMo generation aborted -- excessive API call failures")
                 break
             except Exception as e:
+                failed_calls += 1
                 logger.error("Error during generation: %s", e)
+                if total_calls > 0 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
+                    logger.error(
+                        "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
+                        (failed_calls / total_calls) * 100,
+                        failed_calls,
+                        total_calls,
+                        FAILED_CALL_ABORT_THRESHOLD * 100,
+                    )
+                    break
                 continue
             if filter_reason is not None:
                 logger.debug(filter_reason)
                 filtered += 1
                 continue
             if sample is None:
+                failed_calls += 1
+                if total_calls > 0 and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD:
+                    logger.error(
+                        "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
+                        (failed_calls / total_calls) * 100,
+                        failed_calls,
+                        total_calls,
+                        FAILED_CALL_ABORT_THRESHOLD * 100,
+                    )
+                    break
                 logger.info("Generation failed, backing off 10s before retry")
                 time.sleep(10)
                 continue
@@ -1880,16 +1909,20 @@ def run_sdg(args: argparse.Namespace) -> None:
             filtered=filtered,
             iterations=iterations,
             max_iterations=max_iter,
+            failed_calls=failed_calls,
+            total_calls=total_calls,
         ),
         existing_samples,
         _call_stats=_call_stats,
     )
     logger.info(
-        "Generated %d/%d samples (filtered %d, iterations %d)",
+        "Generated %d/%d samples (filtered %d, iterations %d, failed_calls %d/%d)",
         generated,
         args.target_count,
         filtered,
         iterations,
+        failed_calls,
+        total_calls,
     )
 
 
