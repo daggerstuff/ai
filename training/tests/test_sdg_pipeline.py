@@ -20,6 +20,7 @@ from training.sdg_pipeline import (
     CRISIS_RESOURCES,
     FAILED_CALL_ABORT_THRESHOLD,
     GenerationStats,
+    NemoConfig,
     NICHE_CATEGORIES,
     NIGHTMARE_SCENARIOS,
     THERAPIST_STYLE_PROFILES,
@@ -48,8 +49,23 @@ EXPECTED_FILTER_RATE = 0.5
 # ---------------------------------------------------------------------------
 
 EP = "http://localhost:8000/v1"
+
+
+@pytest.fixture(autouse=True)
+def _mock_nemo_health(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Prevent run_sdg from actually connecting to NeMo during health check."""
+    monkeypatch.setattr("training.sdg_pipeline._check_nemo_health", lambda config: True)
+
+
 KEY = "test-key"
 MODEL = "mistral-nemo"
+TEST_CONFIG = NemoConfig(
+    endpoint=EP,
+    api_key=KEY,
+    model=MODEL,
+    max_retries=1,
+    min_call_interval_seconds=0.01,
+)
 
 # Valid-length mock data for niche samples (must pass validate_sample)
 VALID_INSTR = (
@@ -190,46 +206,32 @@ class TestBuildParser:
 
 
 class TestCallNemo:
-    @patch("urllib.request.urlopen")
-    def test_success(self, mock_urlopen):
-        resp = MagicMock()
-        resp.read.return_value = json.dumps({"choices": [{"message": {"content": "hello"}}]}).encode()
-        resp.__enter__ = MagicMock(return_value=resp)
-        resp.__exit__ = MagicMock(return_value=False)
-        mock_urlopen.return_value = resp
-        result = _call_nemo("prompt", EP, KEY, MODEL)
+    @patch("training.sdg_pipeline._make_nemo_request")
+    def test_success(self, mock_make_req):
+        mock_make_req.return_value = (200, json.dumps({"choices": [{"message": {"content": "hello"}}]}))
+        result = _call_nemo("prompt", TEST_CONFIG)
         assert result == "hello"
 
-    @patch("urllib.request.urlopen")
-    def test_http_error(self, mock_urlopen):
-        mock_urlopen.side_effect = urllib.error.HTTPError(
-            EP, 500, "Server Error", MagicMock(), MagicMock(read=lambda: b"server error")
-        )
-        result = _call_nemo("prompt", EP, KEY, MODEL)
+    @patch("training.sdg_pipeline._make_nemo_request")
+    def test_http_error(self, mock_make_req):
+        mock_make_req.return_value = (500, "Server Error")
+        result = _call_nemo("prompt", TEST_CONFIG)
         assert result is None
 
-    @patch("urllib.request.urlopen")
-    def test_connection_error(self, mock_urlopen):
-        mock_urlopen.side_effect = ConnectionError("refused")
-        result = _call_nemo("prompt", EP, KEY, MODEL)
+    @patch("training.sdg_pipeline._make_nemo_request")
+    def test_connection_error(self, mock_make_req):
+        mock_make_req.side_effect = ConnectionError("refused")
+        result = _call_nemo("prompt", TEST_CONFIG)
         assert result is None
 
-    @patch("urllib.request.urlopen")
-    def test_no_api_key_still_works(self, mock_urlopen):
-        resp = MagicMock()
-        resp.read.return_value = json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode()
-        resp.__enter__ = MagicMock(return_value=resp)
-        resp.__exit__ = MagicMock(return_value=False)
-        mock_urlopen.return_value = resp
-        result = _call_nemo("prompt", EP, "", MODEL)
+    @patch("training.sdg_pipeline._make_nemo_request")
+    def test_no_api_key_still_works(self, mock_make_req):
+        mock_make_req.return_value = (200, json.dumps({"choices": [{"message": {"content": "ok"}}]}))
+        no_key_config = NemoConfig(endpoint=EP, api_key="", model=MODEL, max_retries=1, min_call_interval_seconds=0.01)
+        result = _call_nemo("prompt", no_key_config)
         assert result == "ok"
-        req_obj = mock_urlopen.call_args[0][0]
-        has_auth = (
-            req_obj.has_header("Authorization")
-            if hasattr(req_obj, "has_header")
-            else bool(req_obj.get_header("Authorization", ""))
-        )
-        assert not has_auth
+        req_params = mock_make_req.call_args[0][0]
+        assert "Authorization" not in req_params.headers
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +249,7 @@ class TestGenerateDpoPair:
                 "rejected": "Just calm down.",
             }
         )
-        pair = _generate_dpo_pair("anxiety", EP, KEY, MODEL)
+        pair = _generate_dpo_pair("anxiety", TEST_CONFIG)
         assert pair is not None
         assert "prompt" in pair
         assert "chosen" in pair
@@ -256,19 +258,19 @@ class TestGenerateDpoPair:
     @patch("training.sdg_pipeline._call_nemo")
     def test_api_failure(self, mock_call):
         mock_call.return_value = None
-        pair = _generate_dpo_pair("anxiety", EP, KEY, MODEL)
+        pair = _generate_dpo_pair("anxiety", TEST_CONFIG)
         assert pair is None
 
     @patch("training.sdg_pipeline._call_nemo")
     def test_malformed_json(self, mock_call):
         mock_call.return_value = "not json at all"
-        pair = _generate_dpo_pair("anxiety", EP, KEY, MODEL)
+        pair = _generate_dpo_pair("anxiety", TEST_CONFIG)
         assert pair is None
 
     @patch("training.sdg_pipeline._call_nemo")
     def test_missing_keys(self, mock_call):
         mock_call.return_value = json.dumps({"prompt": "x", "chosen": "y"})
-        pair = _generate_dpo_pair("anxiety", EP, KEY, MODEL)
+        pair = _generate_dpo_pair("anxiety", TEST_CONFIG)
         assert pair is None
 
     @patch("training.sdg_pipeline._call_nemo")
@@ -277,7 +279,7 @@ class TestGenerateDpoPair:
         mock_call.return_value = (
             "Here is the pair:\n```json\n" + json.dumps({"prompt": "q", "chosen": "a", "rejected": "b"}) + "\n```"
         )
-        pair = _generate_dpo_pair("anxiety", EP, KEY, MODEL)
+        pair = _generate_dpo_pair("anxiety", TEST_CONFIG)
         assert pair is not None
         assert pair["prompt"] == "q"
 
@@ -291,7 +293,7 @@ class TestGenerateNicheSample:
     @patch("training.sdg_pipeline._call_nemo")
     def test_valid_sample(self, mock_call):
         mock_call.side_effect = [VALID_INSTR, VALID_OUTPUT]
-        sample = _generate_niche_sample("dissociation", NICHE_CATEGORIES["dissociation"], EP, KEY, MODEL)
+        sample = _generate_niche_sample("dissociation", NICHE_CATEGORIES["dissociation"], TEST_CONFIG)
         assert sample is not None
         assert sample["category"] == "dissociation"
         assert "instruction" in sample
@@ -300,14 +302,14 @@ class TestGenerateNicheSample:
     @patch("training.sdg_pipeline._call_nemo")
     def test_category_attached(self, mock_call):
         mock_call.side_effect = [VALID_INSTR, VALID_OUTPUT]
-        sample = _generate_niche_sample("somatic_therapy", NICHE_CATEGORIES["somatic_therapy"], EP, KEY, MODEL)
+        sample = _generate_niche_sample("somatic_therapy", NICHE_CATEGORIES["somatic_therapy"], TEST_CONFIG)
         assert sample is not None
         assert sample["category"] == "somatic_therapy"
 
     @patch("training.sdg_pipeline._call_nemo")
     def test_api_failure(self, mock_call):
         mock_call.return_value = None
-        sample = _generate_niche_sample("dissociation", NICHE_CATEGORIES["dissociation"], EP, KEY, MODEL)
+        sample = _generate_niche_sample("dissociation", NICHE_CATEGORIES["dissociation"], TEST_CONFIG)
         assert sample is None
 
 
@@ -328,9 +330,7 @@ class TestGenerateNightmareSample:
         sample = _generate_nightmare_sample(
             "active_suicidal_ideation_with_plan",
             NIGHTMARE_SCENARIOS["active_suicidal_ideation_with_plan"],
-            EP,
-            KEY,
-            MODEL,
+            TEST_CONFIG,
         )
         assert sample is not None
         assert sample["is_training_edge_case"] is True
@@ -346,7 +346,7 @@ class TestGenerateNightmareSample:
                     "output": "Please call 988. You are not alone.",
                 }
             )
-            sample = _generate_nightmare_sample(stype, sinfo, EP, KEY, MODEL)
+            sample = _generate_nightmare_sample(stype, sinfo, TEST_CONFIG)
             assert sample is not None
             assert sample["is_training_edge_case"] is True
             assert sample["scenario_type"] == stype
@@ -357,9 +357,7 @@ class TestGenerateNightmareSample:
         sample = _generate_nightmare_sample(
             "active_self_harm_disclosure",
             NIGHTMARE_SCENARIOS["active_self_harm_disclosure"],
-            EP,
-            KEY,
-            MODEL,
+            TEST_CONFIG,
         )
         assert sample is None
 
@@ -466,6 +464,8 @@ class TestStyleEvaluation:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
@@ -514,6 +514,8 @@ class TestStyleEvaluation:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
@@ -537,6 +539,8 @@ class TestStyleEvaluation:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         assert mock_gen.call_count <= args.max_iterations
@@ -575,6 +579,8 @@ class TestStyleEvaluation:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         report_path = tmp_out.parent / "generation_report.json"
@@ -620,6 +626,8 @@ class TestRunSdgNiche:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
             style_profile="warm_professional",
         )
         run_sdg(args)
@@ -639,6 +647,8 @@ class TestRunSdgNiche:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         with pytest.raises(SystemExit):
             run_sdg(args)
@@ -653,6 +663,8 @@ class TestRunSdgNiche:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         with pytest.raises(SystemExit):
             run_sdg(args)
@@ -680,6 +692,8 @@ class TestRunSdgNiche:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
             style_profile="warm_professional",
         )
         run_sdg(args)
@@ -702,6 +716,8 @@ class TestRunSdgNiche:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
             style_profile="warm_professional",
         )
         run_sdg(args)
@@ -736,6 +752,8 @@ class TestRunSdgNightmare:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
@@ -771,6 +789,8 @@ class TestRunSdgNightmare:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
@@ -783,7 +803,7 @@ class TestRunSdgNightmare:
         """Samples should be distributed roughly evenly across scenario types."""
         call_count = 0
 
-        def fake_gen(*args: object) -> dict[str, str]:
+        def fake_gen(*args: object, **kwargs: object) -> dict[str, str]:
             stype = args[0]
             nonlocal call_count
             call_count += 1
@@ -806,6 +826,8 @@ class TestRunSdgNightmare:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         lines = tmp_out.read_text().strip().split("\n")
@@ -832,6 +854,8 @@ class TestRunSdgNightmare:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
@@ -854,6 +878,8 @@ class TestRunSdgInvalid:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         with pytest.raises(SystemExit):
             run_sdg(args)
@@ -907,6 +933,8 @@ class TestStyleAudit:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
             style_profile="curious_direct",
             style_audit=True,
             style_audit_output=str(tmp_audit),
@@ -959,6 +987,8 @@ class TestGenerationReport:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
@@ -1011,6 +1041,8 @@ class TestGenerationReport:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
@@ -1085,6 +1117,8 @@ class TestOutputDirCreation:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         assert deep_path.exists()
@@ -1180,7 +1214,7 @@ class TestClinicalValidityIntegration:
                 "rejected": "That's crazy.",
             }
         )
-        pair = _generate_dpo_pair("therapeutic", EP, KEY, MODEL)
+        pair = _generate_dpo_pair("therapeutic", TEST_CONFIG)
         assert pair is not None
         assert "clinical_validity_score" in pair
         assert "clinical_validity_detail" in pair
@@ -1256,6 +1290,8 @@ class TestRunSdgFailureTracking:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
@@ -1285,6 +1321,8 @@ class TestRunSdgFailureTracking:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         total = len(call_record)
@@ -1309,6 +1347,8 @@ class TestRunSdgFailureTracking:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
@@ -1333,6 +1373,8 @@ class TestRunSdgFailureTracking:
             nemo_endpoint=EP,
             nemo_api_key=KEY,
             nemo_model=MODEL,
+            nemo_timeout=20,
+            nemo_min_call_interval=6.0,
         )
         run_sdg(args)
         report = json.loads((tmp_out.parent / "generation_report.json").read_text())
