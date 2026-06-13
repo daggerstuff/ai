@@ -4,12 +4,62 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
+import typing
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from training.dpo_trainer import build_parser, run_dpo, save_metrics, CheckpointVerificationCallback
+# ---------------------------------------------------------------------------
+# Defense-in-depth: patch kernels.Repository classes so they default version=1
+# when neither revision nor version is provided.  This prevents the
+# import-time crash (kernels 0.15.2 LayerRepository requires one of them).
+# ---------------------------------------------------------------------------
+for _mod_name in ("kernels.layer.layer", "kernels.layer.func"):
+    try:
+        _mod = __import__(_mod_name, fromlist=["Repository"])
+        for _cls_name in dir(_mod):
+            _cls = getattr(_mod, _cls_name)
+            if not callable(_cls) or not hasattr(_cls, "__init__"):
+                continue
+            _orig = _cls.__init__
+
+            def _make_init(orig):
+                def _init(self, repo_id, *, revision=None, version=None, **kwargs):
+                    if revision is None and version is None:
+                        version = 1
+                    return orig(self, repo_id, revision=revision, version=version, **kwargs)
+
+                return _init
+
+            _cls.__init__ = _make_init(_orig)
+    except Exception:
+        pass
+
+# ---------------------------------------------------------------------------
+# Mock uninstalled / broken ML packages at the module level so
+# patch("trl.*") and the lazy imports inside run_dpo() work without
+# triggering the transformers → kernels import-time crash.
+# ---------------------------------------------------------------------------
+
+# trl — not installed in the test environment
+_mock_trl = MagicMock()
+_mock_trl.DPOTrainer = MagicMock()
+_mock_trl.DPOConfig = MagicMock()
+sys.modules["trl"] = _mock_trl
+
+
+# peft — installed but triggers transformers → kernels crash on import
+def _lora_config(**kwargs: object) -> SimpleNamespace:
+    return SimpleNamespace(**kwargs)
+
+
+_mock_peft = MagicMock()
+_mock_peft.prepare_model_for_kbit_training = lambda model: model
+_mock_peft.LoraConfig = _lora_config
+sys.modules["peft"] = _mock_peft
 
 
 class TestDPOIntegration:
@@ -41,7 +91,7 @@ class TestDPOIntegration:
         with (
             patch("transformers.AutoModelForCausalLM") as mock_model_cls,
             patch("transformers.AutoTokenizer") as mock_tokenizer_cls,
-            patch("trl.DPOConfig") as mock_dpo_config_cls,
+            patch("trl.DPOConfig"),
             patch("trl.DPOTrainer") as mock_dpo_trainer_cls,
         ):
             mock_model_cls.from_pretrained.return_value = model_instance
@@ -62,6 +112,8 @@ class TestDPOIntegration:
             data_path = tmp_path / "test_preference_pairs.jsonl"
             self._create_test_dataset(data_path, 50)
             output_dir = tmp_path / "dpo_output"
+
+            from training.dpo_trainer import build_parser, run_dpo
 
             parser = build_parser()
             args = parser.parse_args(
@@ -132,6 +184,8 @@ class TestDPOIntegration:
         trainer_instance.save_model.assert_called_once()
 
     def test_save_metrics_creates_valid_json(self, tmp_path: Path):
+        from training.dpo_trainer import save_metrics
+
         metrics = {
             "train_loss": 0.42,
             "train_runtime": 150.5,
@@ -152,6 +206,8 @@ class TestDPOIntegration:
         assert "generated_at" in report
 
     def test_checkpoint_verification_callback(self, tmp_path: Path):
+        from training.dpo_trainer import CheckpointVerificationCallback
+
         callback = CheckpointVerificationCallback()
 
         empty_dir = tmp_path / "empty"
