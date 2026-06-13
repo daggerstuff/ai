@@ -517,6 +517,7 @@ describe('PixelatedEmpathyAPI response parsing helpers', () => {
         const jsonStr = '[{"id": 1}]'
         expect(safeParseResponse(invalidJsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
     })
+})
 
 describe('PixelatedEmpathyAPI Method formatValue', () => {
     it('should handle undefined and null', () => {
