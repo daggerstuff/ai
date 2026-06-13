@@ -175,15 +175,17 @@ def test_empty_and_nonstring_input():
 # Production pilot integration
 # ---------------------------------------------------------------------------
 
+
 def test_production_pilot_safety_checker_disabled():
     """SAFETY CHECKERS DISABLED per user request."""
-def test_production_pilot_safety_checker_disabled():
-    pilot = pytest.importorskip("training.pixelated_production_pilot")
+    try:
+        import training.pixelated_production_pilot as pilot  # type: ignore[import-untyped]
+    except Exception:
+        pytest.skip("training.pixelated_production_pilot not available (peft/kernels compatibility)")
     assert pilot.SAFETY_CHECKER is None
 
 
 if st is not None:
-
     _ALL_CRISIS = ES_CRISIS + FR_CRISIS + PT_CRISIS + DE_CRISIS + EN_CRISIS
     _ALL_NEGATED = ES_NEGATED + FR_NEGATED + PT_NEGATED + DE_NEGATED + EN_NEGATED
 
@@ -196,6 +198,7 @@ if st is not None:
         assert not MultilingualContentChecker.contains_crisis_keywords(sample)
 
 else:
+
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_hypothesis_crisis_always_detected():
         raise AssertionError("Skipped when hypothesis is unavailable")
