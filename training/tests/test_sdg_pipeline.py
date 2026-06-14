@@ -527,8 +527,9 @@ class TestStyleEvaluation:
             "to create a safety plan and find immediate support so we can keep you safe tonight?"
         )
 
+    @patch("training.sdg_pipeline.time.sleep")
     @patch("training.sdg_pipeline._generate_dpo_pair")
-    def test_max_iterations_guard(self, mock_gen, tmp_out):
+    def test_max_iterations_guard(self, mock_gen, mock_sleep, tmp_out):
         mock_gen.return_value = None
         args = Namespace(
             scenario="dpo_preference_pairs",
@@ -1277,8 +1278,9 @@ class TestFailedCallAbortThreshold:
 class TestRunSdgFailureTracking:
     """run_sdg tracks failed calls and aborts when failure rate exceeds 30%."""
 
+    @patch("training.sdg_pipeline.time.sleep")
     @patch("training.sdg_pipeline._generate_dpo_pair")
-    def test_failure_stats_in_report(self, mock_gen, tmp_out):
+    def test_failure_stats_in_report(self, mock_gen, mock_sleep, tmp_out):
         """Report includes failed_calls, total_calls, and failure_rate after run."""
         mock_gen.return_value = None  # every call fails
         args = Namespace(
@@ -1302,8 +1304,9 @@ class TestRunSdgFailureTracking:
         assert report["total_calls"] > 0
         assert report["failure_rate"] == 1.0
 
+    @patch("training.sdg_pipeline.time.sleep")
     @patch("training.sdg_pipeline._generate_dpo_pair")
-    def test_abort_triggers_at_95_percent(self, mock_gen, tmp_out):
+    def test_abort_triggers_at_95_percent(self, mock_gen, mock_sleep, tmp_out):
         """Abort fires when failed/total exceeds FAILED_CALL_ABORT_THRESHOLD (0.95) after min 10 calls."""
         call_record = []
 
@@ -1329,8 +1332,9 @@ class TestRunSdgFailureTracking:
         # With 0.95 threshold + 10-call minimum, abort at call 10: 10/10 = 1.0 > 0.95
         assert total == 10, f"Expected abort at call 10, got {total} calls"
 
+    @patch("training.sdg_pipeline.time.sleep")
     @patch("training.sdg_pipeline._generate_dpo_pair")
-    def test_no_abort_below_threshold(self, mock_gen, tmp_out):
+    def test_no_abort_below_threshold(self, mock_gen, mock_sleep, tmp_out):
         """Run completes normally when failure rate stays at or below 30%."""
         success = {
             "prompt": "I feel anxious",
