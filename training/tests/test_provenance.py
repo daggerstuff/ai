@@ -15,6 +15,9 @@ from training.provenance import (
     validate_license,
 )
 
+# Scripts live under the repo root, not under ai/
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+
 
 def test_build_provenance_validates_required_fields() -> None:
     provenance = build_provenance(
@@ -64,7 +67,7 @@ def test_query_provenance_script_filters_jsonl(tmp_path: Path) -> None:
     )
 
     result = subprocess.run(
-        ["scripts/devops/query-provenance.py", str(data_path), "--source-type", "synthetic_sdg"],
+        [str(_PROJECT_ROOT / "scripts/devops/query-provenance.py"), str(data_path), "--source-type", "synthetic_sdg"],
         check=True,
         capture_output=True,
         text=True,
@@ -92,7 +95,7 @@ def test_backfill_provenance_script_enriches_legacy_jsonl(tmp_path: Path) -> Non
 
     result = subprocess.run(
         [
-            "scripts/devops/backfill-training-provenance.py",
+            str(_PROJECT_ROOT / "scripts/devops/backfill-training-provenance.py"),
             str(data_path),
             "--source-type",
             "youtube",
