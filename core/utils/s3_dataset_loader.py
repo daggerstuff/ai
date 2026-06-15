@@ -113,7 +113,7 @@ class S3DatasetLoader:
 
     def load_json(self, bucket: str, key: str) -> Any:
         bucket_name, object_key = self._split_bucket_key(bucket, key)
-        local = self._maybe_local_path(bucket_name_name, object_key)
+        local = self._maybe_local_path(bucket_name, object_key)
         if local is not None:
             raw = local.read_text(encoding="utf-8")
             return json.loads(raw)
@@ -128,7 +128,7 @@ class S3DatasetLoader:
 
     def stream_json_array(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         bucket_name, object_key = self._split_bucket_key(bucket, key)
-        local = self._maybe_local_path(bucket_name_name, object_key)
+        local = self._maybe_local_path(bucket_name, object_key)
         if local is not None:
             payload = local.read_text(encoding="utf-8").strip()
             if payload:
@@ -152,7 +152,7 @@ class S3DatasetLoader:
 
     def stream_jsonl(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         bucket_name, object_key = self._split_bucket_key(bucket, key)
-        local = self._maybe_local_path(bucket_name_name, object_key)
+        local = self._maybe_local_path(bucket_name, object_key)
         if local is not None:
             yield from self._iter_json_lines(local)
             return
