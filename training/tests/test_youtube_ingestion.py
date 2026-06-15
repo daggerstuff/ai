@@ -22,18 +22,25 @@ from training.youtube_ingestion import (
     _hybrid_chunks,
     _is_german_channel,
     _load_compiled_hashes,
+    _split_sentences,
     _transcript_to_pairs,
     _word_chunks,
     build_parser,
     ingest_channel,
     run_ingestion,
-    _split_sentences,
 )
 
 EXPECTED_TWO_RECORDS = 2
 TEST_CHUNK_WORDS = 100
+<<<<<<< HEAD
 LONG_TRANSCRIPT = " ".join(f"word{i}" for i in range(150))
 LONG_UNBROKEN_TEXT = " ".join(f"word{i}" for i in range(500))
+=======
+LONG_TRANSCRIPT_LENGTH = 150
+LONG_TRANSCRIPT = " ".join(f"word{i}" for i in range(LONG_TRANSCRIPT_LENGTH))
+LONG_UNBROKEN_TEXT = " ".join(f"word{i}" for i in range(500))
+EXPECTED_MEDIUM_PARA_WORDS = 200
+>>>>>>> origin/staging
 
 # ---------------------------------------------------------------------------
 # Unit tests — language tagging
@@ -130,7 +137,11 @@ class TestTranscriptToPairs:
         )
         assert len(pairs) == 1
         assert pairs[0]["pairing_strategy"] == "semantic_chunk"
+<<<<<<< HEAD
         assert pairs[0]["chunk_word_count"] == 150
+=======
+        assert pairs[0]["chunk_word_count"] == LONG_TRANSCRIPT_LENGTH
+>>>>>>> origin/staging
         assert pairs[0]["output"].startswith("word0 word1")
         assert pairs[-1]["output"].endswith("word149")
 
@@ -169,6 +180,7 @@ class TestWordChunks:
 
 class TestHybridChunks:
     def test_multi_paragraph_combining(self):
+<<<<<<< HEAD
         text = (
             "First paragraph about therapy.\n\n"
             "Second paragraph about healing."
@@ -196,6 +208,32 @@ class TestHybridChunks:
         assert len(chunks) >= 2
         assert all(chunk["pairing_strategy"] == "segment_chunk" for chunk in chunks)
 
+=======
+        text = "First paragraph about therapy.\n\nSecond paragraph about healing."
+        chunks = _hybrid_chunks(text, chunk_words=100)
+        assert len(chunks) == 1
+        assert chunks[0]["pairing_strategy"] == "multi_para_chunk"
+
+    def test_medium_paragraph_is_semantic_chunk(self):
+        text = " ".join(f"word{i}" for i in range(200))
+        chunks = _hybrid_chunks(text, chunk_words=100)
+        assert len(chunks) == 1
+        assert chunks[0]["pairing_strategy"] == "semantic_chunk"
+        assert chunks[0]["chunk_word_count"] == EXPECTED_MEDIUM_PARA_WORDS
+
+    def test_long_paragraph_with_sentences_gets_segmented(self):
+        sentence = "Healing begins when we notice our patterns and therapy helps create change. "
+        text = sentence * 40
+        chunks = _hybrid_chunks(text, chunk_words=100)
+        assert len(chunks) >= EXPECTED_TWO_RECORDS
+        assert all(chunk["pairing_strategy"] == "segment_chunk" for chunk in chunks)
+
+    def test_long_unbroken_text_falls_back_to_word_chunks(self):
+        chunks = _hybrid_chunks(LONG_UNBROKEN_TEXT, chunk_words=100)
+        assert len(chunks) >= EXPECTED_TWO_RECORDS
+        assert all(chunk["pairing_strategy"] == "segment_chunk" for chunk in chunks)
+
+>>>>>>> origin/staging
     def test_split_sentences_handles_punctuation(self):
         sentences = _split_sentences("First idea. Second idea! Third idea?")
         assert sentences == ["First idea.", "Second idea!", "Third idea?"]
