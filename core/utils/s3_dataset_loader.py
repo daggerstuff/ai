@@ -113,7 +113,7 @@ class S3DatasetLoader:
 
     def load_json(self, bucket: str, key: str) -> Any:
         bucket_name, object_key = self._split_bucket_key(bucket, key)
-        local = self._maybe_local_path(bucket_name, object_key)
+        local = self._maybe_local_path(bucket_name_name, object_key)
         if local is not None:
             raw = local.read_text(encoding="utf-8")
             return json.loads(raw)
@@ -128,7 +128,7 @@ class S3DatasetLoader:
 
     def stream_json_array(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         bucket_name, object_key = self._split_bucket_key(bucket, key)
-        local = self._maybe_local_path(bucket_name, object_key)
+        local = self._maybe_local_path(bucket_name_name, object_key)
         if local is not None:
             payload = local.read_text(encoding="utf-8").strip()
             if payload:
@@ -152,7 +152,7 @@ class S3DatasetLoader:
 
     def stream_jsonl(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         bucket_name, object_key = self._split_bucket_key(bucket, key)
-        local = self._maybe_local_path(bucket_name, object_key)
+        local = self._maybe_local_path(bucket_name_name, object_key)
         if local is not None:
             yield from self._iter_json_lines(local)
             return
@@ -177,12 +177,12 @@ class S3DatasetLoader:
         return self.stream_json_array(bucket, key)
 
     def upload_file(self, bucket: str, key: str, data: Any) -> bool:
-        _, object_key = self._split_bucket_key(bucket, key)
+        bucket_name, object_key = self._split_bucket_key(bucket, key)
         if boto3 is None:
             raise ImportError("boto3 is required for live S3 operations")
         payload = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self._ensure_client().put_object(
-            Bucket=self.bucket,
+            Bucket=bucket_name,
             Key=object_key,
             Body=payload,
         )
@@ -207,13 +207,13 @@ class S3DatasetLoader:
         return [obj["Key"] for obj in contents if isinstance(obj, dict) and obj.get("Key")]
 
     def object_exists(self, bucket: str, key: str) -> bool:
-        _, object_key = self._split_bucket_key(bucket, key)
-        if self._maybe_local_path(bucket, object_key) is not None:
+        bucket_name, object_key = self._split_bucket_key(bucket, key)
+        if self._maybe_local_path(bucket_name, object_key) is not None:
             return True
         if boto3 is None:
             raise ImportError("boto3 is required for live S3 operations")
         try:
-            self._ensure_client().head_object(Bucket=self.bucket, Key=object_key)
+            self._ensure_client().head_object(Bucket=bucket_name, Key=object_key)
             return True
         except Exception as exc:
             if botocore and hasattr(botocore.exceptions, "ClientError"):
