@@ -50,6 +50,8 @@ export class PixelatedEmpathyAPI {
   ): Promise<ApiResponse>;
   _httpRequest(url: URL, options: Record<string, unknown>): Promise<HttpResponse>;
   _sleep(ms: number): Promise<void>;
+  formatValue(value: unknown): string | undefined;
+  safeParseResponse(rawBody: string): Record<string, unknown> | unknown[];
 
   listDatasets(): Promise<Array<Record<string, unknown>>>;
   getDatasetInfo(datasetName: string): Promise<Record<string, unknown>>;
