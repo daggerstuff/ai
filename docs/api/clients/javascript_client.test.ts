@@ -852,4 +852,10 @@ describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
         const jsonStr = '"just a string"'
         expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
     })
+
+    it('should return error object if string is unparseable JSON', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = '{ bad: json }'
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
+    })
 });
