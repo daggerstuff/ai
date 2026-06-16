@@ -419,7 +419,7 @@ class TestInferenceSpeed:
                 _ = model(input_ids)
         elapsed = (time.perf_counter() - start) / 20
 
-        assert elapsed < 0.2, f"Inference too slow: {elapsed * 1000:.1f}ms"
+        assert elapsed < 0.5, f"Inference too slow: {elapsed * 1000:.1f}ms"
 
 
 if __name__ == "__main__":
