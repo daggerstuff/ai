@@ -5,6 +5,7 @@ version = "0.0.1"
 description = "Pixelated Empathy AI - Production Quality Monitoring System"
 requires-python = ">=3.13"
 dependencies = [
+  "bcrypt>=4.0.0",
   "pandas>=2.0.0",
   "numpy>=1.24.0",
   "scipy>=1.10.0",
