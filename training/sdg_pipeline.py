@@ -12,18 +12,23 @@ Generates therapeutic AI training data with strict quality controls:
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import logging
 import os
 import random
+import ssl
 import sys
-import urllib.error
-import urllib.request
+import time
 from collections import Counter
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
+from training.clinical_validity_judge import ClinicalValidityJudge
 from training.clinical_validity_scorer import ClinicalValidityScorer
+from training.provenance import attach_provenance
 
 logger = logging.getLogger("sdg_pipeline")
 
@@ -35,6 +40,27 @@ MAX_INSTRUCTION_LENGTH = 700
 MAX_OUTPUT_LENGTH = 450
 MIN_INSTRUCTION_LENGTH = 100
 MIN_OUTPUT_LENGTH = 100  # Raised from 50 — catches anemic responses
+MIN_REPETITION_WORD_COUNT = 20
+MAX_REPETITION_WORD_RATIO = 0.20
+MIN_STYLE_OUTPUT_LENGTH = 50
+CURIOUS_DIRECT_MAX_QUESTIONS = 2
+TRIGRAM_SIZE = 3
+MAX_TOP_REJECTION_REASONS = 8
+MIN_NIGHTMARE_OUTPUT_LENGTH = 20
+DEFAULT_NEMO_MAX_RETRIES = 3
+HTTP_OK = 200
+HTTP_TOO_MANY_REQUESTS = 429
+RETRYABLE_HTTP_STATUS_CODES = {HTTP_TOO_MANY_REQUESTS, 500, 502, 503, 504}
+NEMO_RETRY_DELAYS = (1, 2, 4)
+FAILED_CALL_ABORT_THRESHOLD = 0.95
+_NEMO_RATE_STATE: dict = {"last_call_time": 0.0}
+
+_ABORT_MIN_CALLS = 50
+_ABORT_MIN_SAMPLE_CALLS = 10
+_API_KEY_SUFFIX_LEN = 4
+_HEALTH_CHECK_SLOW_THRESHOLD = 10.0
+STAGE_DIRECTION_MARKERS = ("Voice", "looking", "eyes", "trembling", "staring", "whispers", "says")
+COMMON_WORD_EXCLUSIONS = {"the", "and", "you", "to", "it", "that", "is", "was"}
 
 # ============================================================================
 # Crisis resources — checked in nightmare fuel outputs
@@ -125,6 +151,26 @@ THERAPIST_STYLE_OPENERS = [
 ]
 
 
+@dataclass(frozen=True)
+class NemoConfig:
+    endpoint: str
+    api_key: str
+    model: str
+    max_retries: int = DEFAULT_NEMO_MAX_RETRIES
+    timeout_seconds: int = 20
+    min_call_interval_seconds: float = 6.0
+
+
+@dataclass(frozen=True)
+class GenerationStats:
+    generated: int
+    filtered: int
+    iterations: int
+    max_iterations: int
+    failed_calls: int = 0
+    total_calls: int = 0
+
+
 def _build_therapist_style_prompt(
     category_prompt: str,
     response_type: str | None = None,
@@ -141,7 +187,7 @@ def _build_therapist_style_prompt(
         "safety": "Prioritize immediate safety and grounding before reflective language.",
     }
 
-    rt_hint = response_type_hints.get(response_type, "Use one question only when it advances the moment.")
+    rt_hint = response_type_hints.get(response_type or "", "Use one question only when it advances the moment.")
 
     opener = random.choice(THERAPIST_STYLE_OPENERS)
 
@@ -187,6 +233,54 @@ def _count_questions(output: str) -> int:
     return output.count("?")
 
 
+def _collect_style_marker_reasons(output_lower: str) -> list[str]:
+    reasons: list[str] = []
+    for group_name, prefix in (
+        ("cliches", "Cliche marker"),
+        ("sycophancy_markers", "Over-affirming marker"),
+        ("robotic_signals", "Robotic phrasing"),
+    ):
+        for marker in STYLE_EVAL_RULES[group_name]:
+            if marker in output_lower:
+                reasons.append(f"{prefix}: '{marker}'")
+    return reasons
+
+
+def _repetition_reason(output_lower: str) -> str | None:
+    words = output_lower.replace("?", "").replace(".", "").split()
+    if len(words) < MIN_REPETITION_WORD_COUNT:
+        return None
+    top_word, top_count = Counter(words).most_common(1)[0]
+    if top_count / len(words) > MAX_REPETITION_WORD_RATIO and top_word not in COMMON_WORD_EXCLUSIONS:
+        return f"Repetitive lexical pattern around '{top_word}'"
+    return None
+
+
+def _question_style_reasons(
+    question_count: int,
+    response_type: str | None,
+    style_profile: str,
+) -> list[str]:
+    reasons: list[str] = []
+    needs_reflection_question = response_type in {None, "exploration", "reality-testing"}
+    if needs_reflection_question and question_count == 0:
+        reasons.append("Missing reflective question for human-sounding follow-up")
+    if style_profile == "curious_direct":
+        if question_count == 0:
+            reasons.append("curious_direct expects at least one question")
+        elif question_count > CURIOUS_DIRECT_MAX_QUESTIONS:
+            reasons.append("curious_direct emits too many questions (max 2)")
+    return reasons
+
+
+def _safety_reason(output_lower: str) -> str | None:
+    if ("kill" in output_lower or "suicide" in output_lower) and not any(
+        resource.lower() in output_lower for resource in CRISIS_RESOURCES
+    ):
+        return "Missing crisis resource for safety-risk language"
+    return None
+
+
 def _evaluate_therapist_style(
     output: str,
     response_type: str | None = None,
@@ -197,52 +291,20 @@ def _evaluate_therapist_style(
     if not output_lower:
         return False, "Empty therapist output"
 
-    reasons: list[str] = []
-
-    _check_style_markers(output_lower, reasons)
-
+    reasons = _collect_style_marker_reasons(output_lower)
     question_count = _count_questions(output)
+    reasons.extend(_question_style_reasons(question_count, response_type, style_profile))
 
-    # Encourage a question-led rhythm for exploration and reality-testing responses,
-    # where therapist follow-through most improves conversational continuity.
-    needs_reflection_question = response_type in {None, "exploration", "reality-testing"}
-    if needs_reflection_question and question_count == 0:
-        reasons.append("Missing reflective question for human-sounding follow-up")
+    repetition_reason = _repetition_reason(output_lower)
+    if repetition_reason is not None:
+        reasons.append(repetition_reason)
 
-    # Avoid repetitive lexical signature in a single sentence
-    words = output_lower.replace("?", "").replace(".", "").split()
-    min_words_repetition = 20
-    if len(words) >= min_words_repetition:
-        common = Counter(words).most_common(1)
-        top_word, top_count = common[0]
-        max_word_ratio = 0.20
-        if top_count / len(words) > max_word_ratio and top_word not in {
-            "the",
-            "and",
-            "you",
-            "to",
-            "it",
-            "that",
-            "is",
-            "was",
-        }:
-            reasons.append(f"Repetitive lexical pattern around '{top_word}'")
-
-    # Keep responses concise enough and avoid canned 1-line affirmations
-    min_output_len = 50
-    if len(output_lower) < min_output_len:
+    if len(output_lower) < MIN_STYLE_OUTPUT_LENGTH:
         reasons.append("Response too short")
 
-    # Safety / boundary maintenance
-    if ("kill" in output_lower or "suicide" in output_lower) and not any(r in output_lower for r in CRISIS_RESOURCES):
-        reasons.append("Missing crisis resource for safety-risk language")
-
-    if style_profile == "curious_direct":
-        max_questions = 2
-        if question_count == 0:
-            reasons.append("curious_direct expects at least one question")
-        elif question_count > max_questions:
-            reasons.append(f"curious_direct emits too many questions (max {max_questions})")
+    safety_reason = _safety_reason(output_lower)
+    if safety_reason is not None:
+        reasons.append(safety_reason)
 
     if reasons:
         return False, "; ".join(reasons[:3])
@@ -775,8 +837,8 @@ NIGHTMARE_SCENARIOS = {
         "description": "Client discloses active suicidal ideation with a specific plan",
         "severity": "critical",
         "prompt_templates": [
-            "I have a plan to end my life tonight. I've been thinking about this for weeks and I just can't do "
-            "this anymore.",
+            "I have a plan to end my life tonight. I've been thinking about this for weeks "
+            "and I just can't do this anymore.",
             "I've written the note and I have the pills ready. I'm telling you because I don't know what else to do.",
         ],
     },
@@ -792,8 +854,8 @@ NIGHTMARE_SCENARIOS = {
         "description": "Client describes psychotic symptoms or hallucinations",
         "severity": "high",
         "prompt_templates": [
-            "The voices are telling me to do things again. I know they're not real but they feel so real and I'm "
-            "scared.",
+            "The voices are telling me to do things again. I know they're not real but they "
+            "feel so real and I'm scared.",
             "I keep seeing things that aren't there. Shadows moving. And I don't know what's real anymore.",
         ],
     },
@@ -818,8 +880,8 @@ NIGHTMARE_SCENARIOS = {
         "severity": "high",
         "prompt_templates": [
             "I don't know who I am right now. I can't remember anything and I'm somewhere I don't recognize.",
-            "I've lost hours again. I came to and I was somewhere completely different and I don't know how I got "
-            "here.",
+            "I've lost hours again. I came to and I was somewhere completely different and I "
+            "don't know how I got here.",
         ],
     },
     "crisis_escalation": {
@@ -887,79 +949,88 @@ def _check_platitudes(output: str) -> tuple[bool, str]:
     return True, ""
 
 
-def _check_length_and_stage(instruction: str, output: str) -> tuple[bool, str]:
+def _validate_sample_lengths(instruction: str, output: str) -> str | None:
     if len(instruction) < MIN_INSTRUCTION_LENGTH:
-        return False, f"Instruction too short ({len(instruction)} < {MIN_INSTRUCTION_LENGTH})"
+        return f"Instruction too short ({len(instruction)} < {MIN_INSTRUCTION_LENGTH})"
     if len(instruction) > MAX_INSTRUCTION_LENGTH:
-        return False, f"Instruction too long ({len(instruction)} > {MAX_INSTRUCTION_LENGTH})"
+        return f"Instruction too long ({len(instruction)} > {MAX_INSTRUCTION_LENGTH})"
     if len(output) < MIN_OUTPUT_LENGTH:
-        return False, f"Output too short ({len(output)} < {MIN_OUTPUT_LENGTH})"
+        return f"Output too short ({len(output)} < {MIN_OUTPUT_LENGTH})"
     if len(output) > MAX_OUTPUT_LENGTH:
-        return False, f"Output too long ({len(output)} > {MAX_OUTPUT_LENGTH})"
-    stage_words = ["Voice", "looking", "eyes", "trembling", "staring", "whispers", "says"]
-    if "(" in instruction and any(x in instruction for x in stage_words):
-        return False, "Stage directions in instruction"
-    return True, ""
+        return f"Output too long ({len(output)} > {MAX_OUTPUT_LENGTH})"
+    return None
 
 
-def _check_style_markers(output_lower: str, reasons: list[str]) -> None:
-    for marker in STYLE_EVAL_RULES["cliches"]:
-        if marker in output_lower:
-            reasons.append(f"Cliche marker: '{marker}'")
-    for marker in STYLE_EVAL_RULES["sycophancy_markers"]:
-        if marker in output_lower:
-            reasons.append(f"Over-affirming marker: '{marker}'")
-    for marker in STYLE_EVAL_RULES["robotic_signals"]:
-        if marker in output_lower:
-            reasons.append(f"Robotic phrasing: '{marker}'")
+def _validate_sample_content(instruction: str, output: str) -> str | None:
+    for validator, text in (
+        (_check_output_opening, output),
+        (_check_instruction_opening, instruction),
+        (_check_platitudes, output),
+    ):
+        ok, reason = validator(text)
+        if not ok:
+            return reason
+    if "(" in instruction and any(marker in instruction for marker in STAGE_DIRECTION_MARKERS):
+        return "Stage directions in instruction"
+    if "**" in instruction or "**" in output:
+        return "Markdown detected"
+    if instruction.lower().count("broken and broken") > 1 or instruction.lower().count("useless and useless") > 1:
+        return "Repetition loop detected"
+    gibberish_patterns = ["Сеноважимост", "fanno grazie per", "GDDR5 cometyne", "gungriffen", "minecraft", "quas"]
+    if any(pattern in instruction for pattern in gibberish_patterns):
+        return "Gibberish detected"
+    return None
 
 
-def _check_eval_rules(output_lower: str, response_type: str | None) -> list[str]:
-    reasons = []
-    if response_type == "exploration":
-        if "?" not in output_lower:
-            reasons.append("exploration requires a question")
-    elif response_type == "skill-teaching":
-        skill_words = ["try", "exercise", "practice", "focus", "notice", "breathe", "grounding"]
-        if not any(w in output_lower for w in skill_words):
-            reasons.append("skill-teaching missing actionable techniques")
-    elif response_type == "safety" and not any(r in output_lower for r in CRISIS_RESOURCES):
-        reasons.append("safety missing crisis resources")
-    return reasons
-
-
-def validate_sample(sample: dict, *, min_clinical_validity: float | None = None) -> tuple[bool, str]:
-    """Validate a sample against all quality thresholds."""
-    instruction, output = sample.get("instruction", ""), sample.get("output", "")
-
-    ok, reason = _check_length_and_stage(instruction, output)
+def _validate_sample_style(sample: dict, output: str) -> str | None:
+    style_profile = sample.get("style_profile", "warm_professional")
+    output_type = sample.get("response_type")
+    ok, reason = _evaluate_therapist_style(output, response_type=output_type, style_profile=style_profile)
     if not ok:
-        return False, reason
+        return f"Style check failed: {reason}"
+    return None
 
-    for check in [_check_output_opening(output), _check_instruction_opening(instruction), _check_platitudes(output)]:
-        if not check[0]:
-            return False, check[1]
 
-    ok, reason = _evaluate_therapist_style(
-        output,
-        response_type=sample.get("response_type"),
-        style_profile=sample.get("style_profile", "warm_professional"),
-    )
-    if not ok:
-        return False, f"Style check failed: {reason}"
+def _validate_clinical_validity(
+    sample: dict,
+    output: str,
+    min_clinical_validity: float,
+    nemo_config: NemoConfig | None = None,
+) -> str | None:
+    if min_clinical_validity <= 0:
+        return None
+    score = ClinicalValidityJudge.score(output, nemo_config)
+    sample["clinical_validity_score"] = score
+    if score < min_clinical_validity:
+        return f"Clinical validity score too low ({score:.3f} < {min_clinical_validity})"
+    return None
 
-    gibberish = ["Сеноважимост", "fanno grazie per", "GDDR5 cometyne", "gungriffen", "minecraft", "quas"]
-    if any(p in instruction for p in gibberish):
-        return False, "Gibberish detected"
 
-    if min_clinical_validity is not None:
-        score = sample.get("clinical_validity_score")
-        if score is None:
-            score = ClinicalValidityScorer.score(output)
-            sample["clinical_validity_score"] = score
-            sample["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(output)
-        if score < min_clinical_validity:
-            return False, "Clinical validity score too low"
+def validate_sample(
+    sample: dict,
+    min_clinical_validity: float = 0.0,
+    nemo_config: NemoConfig | None = None,
+) -> tuple[bool, str]:
+    """Validate a sample against all quality thresholds.
+
+    Args:
+        sample: Training sample dict with 'instruction' and 'output' keys.
+        min_clinical_validity: Minimum validity score threshold (0.0 = disabled).
+        nemo_config: NeMo API config for LLM-based clinical validity judge.
+                     If None, falls back to regex-based ClinicalValidityScorer.
+    """
+    instruction = sample.get("instruction", "")
+    output = sample.get("output", "")
+
+    for validator in (
+        lambda: _validate_sample_lengths(instruction, output),
+        lambda: _validate_sample_content(instruction, output),
+        lambda: _validate_sample_style(sample, output),
+        lambda: _validate_clinical_validity(sample, output, min_clinical_validity, nemo_config),
+    ):
+        reason = validator()
+        if reason is not None:
+            return False, reason
 
     return True, "OK"
 
@@ -1004,10 +1075,9 @@ def determine_response_type(output: str) -> str:
 def _compute_trigrams(text: str) -> set[str]:
     """Extract trigrams from text for similarity comparison."""
     words = text.lower().split()
-    min_grams = 3
-    if len(words) < min_grams:
+    if len(words) < TRIGRAM_SIZE:
         return set()
-    return {" ".join(words[i : i + 3]) for i in range(len(words) - (min_grams - 1))}
+    return {" ".join(words[i : i + TRIGRAM_SIZE]) for i in range(len(words) - (TRIGRAM_SIZE - 1))}
 
 
 def run_style_audit(output_path: str, style_profile: str = "warm_professional", sample_limit: int = 0) -> dict:
@@ -1058,7 +1128,9 @@ def run_style_audit(output_path: str, style_profile: str = "warm_professional", 
     total_evaluated = report["passed"] + report["failed"]
     if total_evaluated:
         report["pass_rate"] = report["passed"] / total_evaluated
-    report["top_rejections"] = [{"reason": reason, "count": count} for reason, count in rejections.most_common(8)]
+    report["top_rejections"] = [
+        {"reason": reason, "count": count} for reason, count in rejections.most_common(MAX_TOP_REJECTION_REASONS)
+    ]
     return report
 
 
@@ -1111,46 +1183,235 @@ def _crisis_resource_in_output(output: str) -> bool:
 # ============================================================================
 
 
+def _rate_limit_throttle(min_call_interval: float) -> None:
+    last = _NEMO_RATE_STATE["last_call_time"]
+    now = time.monotonic()
+    since_last = now - last
+    jitter = random.uniform(0, min_call_interval * 0.25)  # up to 25% of interval
+    effective_interval = min_call_interval + jitter
+    if since_last < effective_interval and last > 0:
+        sleep_time = effective_interval - since_last
+        logger.debug(
+            "Rate-limit throttle: sleeping %.1fs (interval=%.1fs jitter=%.1fs)", sleep_time, effective_interval, jitter
+        )
+        time.sleep(sleep_time)
+    _NEMO_RATE_STATE["last_call_time"] = time.monotonic()
+
+
+@dataclass
+class _NemoRequestParams:
+    host: str
+    port: int
+    use_ssl: bool
+    api_path: str
+    headers: dict[str, str]
+    payload_bytes: bytes
+    timeout: int
+
+
+def _make_nemo_request(params: _NemoRequestParams) -> tuple[int, str]:
+    if params.use_ssl:
+        ctx = ssl.create_default_context()
+        conn = http.client.HTTPSConnection(params.host, params.port, timeout=params.timeout, context=ctx)
+    else:
+        conn = http.client.HTTPConnection(params.host, params.port, timeout=params.timeout)
+    try:
+        conn.request("POST", params.api_path, body=params.payload_bytes, headers=params.headers)
+        resp = conn.getresponse()
+        return resp.status, resp.read().decode()
+    finally:
+        conn.close()
+
+
+def _parse_nemo_response(body_data: str) -> str | None:
+    body = json.loads(body_data)
+    choices = body.get("choices", [])
+    if not choices:
+        logger.warning("NeMo API returned empty choices: %s", body)
+        raise ValueError("Empty choices in response")
+    message = choices[0].get("message", {})
+    content = message.get("content")
+    if content is None:
+        logger.warning("NeMo API returned empty content: %s", body)
+        raise ValueError("Empty content in response")
+    return content
+
+
+def _validate_nemo_response(body_data: str) -> str | None:
+    """Validate NeMo response contains `choices[0].message.content`."""
+    try:
+        body = json.loads(body_data)
+    except json.JSONDecodeError:
+        return None
+    choices = body.get("choices", [])
+    if not choices:
+        return None
+    message = choices[0].get("message", {})
+    content = message.get("content")
+    if not content or not content.strip():
+        return None
+    return content
+
+
+def _check_nemo_health(config: NemoConfig) -> bool:
+    """Send a lightweight test prompt to verify API health before a run."""
+
+    key_fp = "(none)"
+    if config.api_key:
+        key_fp = config.api_key[-_API_KEY_SUFFIX_LEN:] if len(config.api_key) >= _API_KEY_SUFFIX_LEN else config.api_key
+
+    logger.info(
+        "NeMo health check: endpoint=%s model=%s key_fp=%s",
+        config.endpoint or "(default)",
+        config.model,
+        key_fp,
+    )
+
+    test_prompt = "Say hello in one word."
+    t0 = time.perf_counter()
+    try:
+        result = _call_nemo(test_prompt, config)
+        latency = time.perf_counter() - t0
+        if result is None:
+            logger.error("NeMo health check failed: no response from API")
+            return False
+        if latency > _HEALTH_CHECK_SLOW_THRESHOLD:
+            logger.warning("NeMo health check slow: %.2fs > 10s threshold", latency)
+        else:
+            logger.info("NeMo health check passed: %.2fs", latency)
+        return True
+    except Exception as exc:
+        latency = time.perf_counter() - t0
+        logger.error("NeMo health check failed after %.2fs: %s", latency, exc)
+        return False
+
+
 def _call_nemo(
     prompt: str,
-    endpoint: str,
-    api_key: str,
-    model: str,
+    config: NemoConfig,
     system_prompt: str | None = None,
+    *,
+    _call_stats: dict | None = None,
 ) -> str | None:
     """Call NeMo API and return the generated text content.
 
     Returns None on any failure (HTTP error, connection error, malformed response).
+    Uses http.client with a configurable per-call timeout for reliable enforcement.
+
+    Tracks failed calls per generation run in `_call_stats`. Aborts if >30% fail
+    after at least 10 total calls.
     """
-    base = endpoint.rstrip("/") if endpoint else "http://localhost:8000/v1"
-    url = f"{base}/chat/completions"
-    headers = {"Content-Type": "application/json"}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
+    base = config.endpoint.rstrip("/") if config.endpoint else "http://localhost:8000/v1"
+    parsed = urlparse(base)
+    use_ssl = parsed.scheme == "https"
+    host = parsed.hostname or "localhost"
+    port = parsed.port or (443 if use_ssl else 80)
+    path_prefix = parsed.path.rstrip("/") if parsed.path else ""
+    api_path = f"{path_prefix}/chat/completions"
+
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    if config.api_key:
+        headers["Authorization"] = f"Bearer {config.api_key}"
 
     messages = []
     if system_prompt:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
 
-    payload = json.dumps(
+    payload_bytes = json.dumps(
         {
-            "model": model,
+            "model": config.model,
             "messages": messages,
-            "temperature": 0.8,
+            "temperature": 0.2,
             "max_tokens": 512,
         }
     ).encode()
 
-    req = urllib.request.Request(url, data=payload, headers=headers)
+    if _call_stats is None:
+        _call_stats = {"total": 0, "failed": 0}
 
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            body = json.loads(resp.read().decode())
-            return body.get("choices", [{}])[0].get("message", {}).get("content")
-    except (urllib.error.HTTPError, urllib.error.URLError, ConnectionError, TimeoutError, json.JSONDecodeError) as e:
-        logger.warning("NeMo API call failed: %s", e)
-        return None
+    _call_stats["total"] += 1
+
+    if (
+        _call_stats["total"] > _ABORT_MIN_CALLS
+        and (_call_stats["failed"] / _call_stats["total"]) > FAILED_CALL_ABORT_THRESHOLD
+    ):
+        logger.error(
+            "Aborting generation run -- >95%% (%d/%d) of NeMo calls have failed",
+            _call_stats["failed"],
+            _call_stats["total"],
+        )
+        raise RuntimeError(
+            f"Aborting generation run -- >95% call failure rate ({_call_stats['failed']}/{_call_stats['total']})"
+        )
+
+    for attempt in range(config.max_retries):
+        _rate_limit_throttle(config.min_call_interval_seconds)
+
+        try:
+            req_params = _NemoRequestParams(
+                host=host,
+                port=port,
+                use_ssl=use_ssl,
+                api_path=api_path,
+                headers=headers,
+                payload_bytes=payload_bytes,
+                timeout=config.timeout_seconds,
+            )
+            status, body_data = _make_nemo_request(req_params)
+
+            if status != HTTP_OK:
+                if status in RETRYABLE_HTTP_STATUS_CODES and attempt < config.max_retries - 1:
+                    delay = NEMO_RETRY_DELAYS[attempt]
+                    logger.warning(
+                        "NeMo API error %s, retrying in %ds (attempt %d/%d)",
+                        status,
+                        delay,
+                        attempt + 1,
+                        config.max_retries,
+                    )
+                    time.sleep(delay)
+                    continue
+                logger.warning("NeMo API HTTP %d: %s", status, body_data[:500])
+                _call_stats["failed"] += 1
+                return None
+
+            content = _validate_nemo_response(body_data)
+            if content is None:
+                logger.warning(
+                    "NeMo API returned malformed response (no valid content): %s",
+                    body_data[:2000],
+                )
+                _call_stats["failed"] += 1
+                return None
+
+            return content
+
+        except (
+            http.client.HTTPException,
+            ConnectionError,
+            TimeoutError,
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+        ) as e:
+            if attempt < config.max_retries - 1:
+                delay = NEMO_RETRY_DELAYS[attempt]
+                logger.warning(
+                    "NeMo API call failed: %s, retrying in %ds (attempt %d/%d)",
+                    e,
+                    delay,
+                    attempt + 1,
+                    config.max_retries,
+                )
+                time.sleep(delay)
+                continue
+            logger.warning("NeMo API call failed: %s", e)
+            _call_stats["failed"] += 1
+            return None
+
+    _call_stats["failed"] += 1
+    return None
 
 
 # ============================================================================
@@ -1158,19 +1419,14 @@ def _call_nemo(
 # ============================================================================
 
 
-def _generate_dpo_pair(
-    topic: str,
-    endpoint: str,
-    api_key: str,
-    model: str,
-) -> dict | None:
+def _generate_dpo_pair(topic: str, config: NemoConfig, *, _call_stats: dict | None = None) -> dict | None:
     """Generate one DPO preference pair for the given topic."""
     prompt = (
         f"Generate a JSON object with keys 'prompt', 'chosen', 'rejected' for a therapeutic AI training example "
         f"about {topic}. The 'prompt' is a client statement, 'chosen' is an empathetic therapist response, "
         f"'rejected' is a dismissive or harmful response. Output ONLY valid JSON."
     )
-    raw = _call_nemo(prompt, endpoint, api_key, model)
+    raw = _call_nemo(prompt, config, _call_stats=_call_stats)
     if not raw:
         return None
 
@@ -1189,22 +1445,30 @@ def _generate_dpo_pair(
     if not all(k in pair for k in ("prompt", "chosen", "rejected")):
         return None
 
-    pair["clinical_validity_score"] = ClinicalValidityScorer.score(pair["chosen"])
-    pair["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(pair["chosen"])
+    try:
+        score = ClinicalValidityScorer.score(pair.get("chosen", ""))
+        pair["clinical_validity_score"] = score
+        pair["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(pair.get("chosen", ""))
+    except Exception:
+        pair["clinical_validity_score"] = 0.0
+        pair["clinical_validity_detail"] = {}
 
     return pair
 
 
 def _generate_niche_sample(
-    category: str, category_info: dict, endpoint: str, api_key: str, model: str, **kwargs
+    category: str,
+    category_info: dict,
+    config: NemoConfig,
+    target_response_type: str | None = None,
+    style_profile: str = "warm_professional",
+    *,
+    _call_stats: dict | None = None,
 ) -> dict | None:
     """Generate one niche category training sample.
 
     Optionally targets a specific response_type to balance distribution.
     """
-    target_response_type = kwargs.get("target_response_type")
-    style_profile = kwargs.get("style_profile", "warm_professional")
-
     client_prompt = category_info["client_prompt_template"]
     therapist_prompt = _build_therapist_style_prompt(
         category_info["therapist_system_prompt"],
@@ -1216,31 +1480,34 @@ def _generate_niche_sample(
     if target_response_type and target_response_type != "validation":
         rt_instructions = {
             "exploration": " Your response must ask a reflective question that deepens understanding.",
-            "skill-teaching": " Your response must teach or suggest a specific coping technique or grounding exercise.",
+            "skill-teaching": (
+                " Your response must teach or suggest a specific coping technique or grounding exercise."
+            ),
             "psychoeducation": (
                 " Your response must share a brief educational insight about why this experience happens."
             ),
             "safety": " Your response must include a safety check or crisis resource referral (e.g., 988).",
         }
         extra = rt_instructions.get(target_response_type, "")
-        therapist_prompt = therapist_prompt + extra
+        therapist_prompt += extra
 
     # Generate client statement
     instruction = _call_nemo(
         client_prompt,
-        endpoint,
-        api_key,
-        model,
-        "Generate EXACTLY one client statement about {symptom_detail}. It must be raw, direct, and sound like "
-        "first-person client statements that a therapist might hear in session. "
-        "Output ONLY the client's spoken words.",
+        config,
+        system_prompt=(
+            "You are helping create training data for a therapeutic AI. Generate realistic, "
+            "first-person client statements that a therapist might hear in session. "
+            "Output ONLY the client's spoken words."
+        ),
+        _call_stats=_call_stats,
     )
     if not instruction:
         return None
 
     # Generate therapist response
     response_prompt = f"Respond therapeutically to this client statement: {instruction}"
-    output = _call_nemo(response_prompt, endpoint, api_key, model, system_prompt=therapist_prompt)
+    output = _call_nemo(response_prompt, config, system_prompt=therapist_prompt, _call_stats=_call_stats)
     if not output:
         return None
 
@@ -1259,9 +1526,9 @@ def _generate_niche_sample(
 def _generate_nightmare_sample(
     scenario_type: str,
     scenario_info: dict,
-    endpoint: str,
-    api_key: str,
-    model: str,
+    config: NemoConfig,
+    *,
+    _call_stats: dict | None = None,
 ) -> dict | None:
     """Generate one nightmare fuel (crisis edge case) training sample.
 
@@ -1279,14 +1546,13 @@ def _generate_nightmare_sample(
         f"(988, Crisis Text Line, etc.) in your response. "
         f"Be warm, direct, and prioritize safety."
     )
-    output = _call_nemo(response_prompt, endpoint, api_key, model)
+    output = _call_nemo(response_prompt, config, _call_stats=_call_stats)
     if not output:
         return None
 
     # Reject clearly malformed outputs (too short, JSON fragments, etc.)
     stripped = output.strip()
-    min_valid_length = 20
-    if len(stripped) < min_valid_length:
+    if len(stripped) < MIN_NIGHTMARE_OUTPUT_LENGTH:
         return None
 
     return {
@@ -1360,6 +1626,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="NeMo model to use",
     )
     parser.add_argument(
+        "--nemo_timeout",
+        type=int,
+        default=20,
+        help="Per-call NeMo API timeout in seconds",
+    )
+    parser.add_argument(
+        "--nemo_min_call_interval",
+        type=float,
+        default=6.0,
+        help="Minimum seconds between NeMo API calls",
+    )
+    parser.add_argument(
         "--style_profile",
         type=str,
         default="warm_professional",
@@ -1384,151 +1662,306 @@ def build_parser() -> argparse.ArgumentParser:
         help="Max samples to audit in one pass (0 means all)",
     )
     parser.add_argument(
-        "--min_clinical_validity", type=float, default=None, help="Minimum required clinical validity score"
+        "--min_clinical_validity",
+        type=float,
+        default=0.0,
+        help="Minimum clinical validity score threshold (0.0 = disabled)",
     )
+
     return parser
-
-
-def _run_dpo_scenario(endpoint, api_key, model, args):
-    sample = _generate_dpo_pair("therapeutic", endpoint, api_key, model)
-    if sample and "chosen" in sample:
-        sample["clinical_validity_score"] = ClinicalValidityScorer.score(sample["chosen"])
-        sample["clinical_validity_detail"] = ClinicalValidityScorer.score_detail(sample["chosen"])
-        sample["provenance"] = {"source_type": "synthetic_sdg", "metadata": {"scenario": args.scenario}}
-        return sample
-    return None
-
-
-def _run_niche_scenario(endpoint, api_key, model, args, **kwargs):
-    existing_samples, generated = kwargs["existing_samples"], kwargs["generated"]
-    target_rt = _ROTATION_RESPONSE_TYPES[generated % len(_ROTATION_RESPONSE_TYPES)]
-    sample = _generate_niche_sample(
-        args.category,
-        NICHE_CATEGORIES[args.category],
-        endpoint,
-        api_key,
-        model,
-        target_response_type=target_rt,
-        style_profile=getattr(args, "style_profile", "warm_professional"),
-    )
-    if not sample:
-        return None, False
-    is_valid, _reason = validate_sample(sample, min_clinical_validity=getattr(args, "min_clinical_validity", None))
-    if not is_valid:
-        return None, True
-    is_unique, _ = _check_deduplication(sample, existing_samples)
-    if not is_unique:
-        return None, True
-    sample["provenance"] = {
-        "source_type": "synthetic_sdg",
-        "metadata": {"category": args.category},
-        "transformations": [f"category:{args.category}"],
-    }
-    return sample, False
-
-
-def _run_nightmare_scenario(endpoint, api_key, model, generated):
-    stypes = list(NIGHTMARE_SCENARIOS.keys())
-    stype = stypes[generated % len(stypes)]
-    sample = _generate_nightmare_sample(stype, NIGHTMARE_SCENARIOS[stype], endpoint, api_key, model)
-    if not sample:
-        return None, False
-    if not _crisis_resource_in_output(sample.get("output", "")):
-        return None, True
-    sample["provenance"] = {"source_type": "synthetic_sdg"}
-    return sample, False
 
 
 # Response types for rotation during niche category generation
 _ROTATION_RESPONSE_TYPES = ["validation", "exploration", "skill-teaching", "psychoeducation", "safety"]
 
 
-def _validate_args(args):
-    if args.scenario == "niche_category":
-        if not args.category:
-            sys.exit(1)
-        if args.category not in NICHE_CATEGORIES:
-            sys.exit(1)
+def _run_style_audit_mode(args: argparse.Namespace) -> bool:
+    if not getattr(args, "style_audit", False):
+        return False
+    audit_report = run_style_audit(
+        args.output_path,
+        style_profile=getattr(args, "style_profile", "warm_professional"),
+        sample_limit=getattr(args, "style_audit_limit", 0),
+    )
+    report_path = getattr(args, "style_audit_output", str(Path(args.output_path).with_suffix(".style_audit.json")))
+    if not report_path:
+        report_path = str(Path(args.output_path).with_suffix(".style_audit.json"))
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(audit_report, f, indent=2)
+    logger.info("Style audit complete: %s", report_path)
+    return True
 
 
-def run_sdg(args: argparse.Namespace) -> None:
-    """Main orchestration function for SDG generation."""
-    endpoint = args.nemo_endpoint or os.getenv("NEMO_ENDPOINT", "")
-    api_key = args.nemo_api_key or os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", "")
-    model = args.nemo_model
-
-    if getattr(args, "style_audit", False):
-        report_path = getattr(args, "style_audit_output", str(Path(args.output_path).with_suffix(".style_audit.json")))
-        if not report_path:
-            report_path = str(Path(args.output_path).with_suffix(".style_audit.json"))
-        audit = run_style_audit(
-            args.output_path,
-            style_profile=getattr(args, "style_profile", "warm_professional"),
-            sample_limit=getattr(args, "style_audit_limit", 0),
-        )
-        with open(report_path, "w", encoding="utf-8") as f:
-            json.dump(audit, f, indent=2)
+def _validate_generation_args(args: argparse.Namespace) -> None:
+    if args.scenario != "niche_category":
         return
+    if not args.category:
+        logger.error("--category required for niche_category scenario")
+        sys.exit(1)
+    if args.category not in NICHE_CATEGORIES:
+        logger.error("Unknown category: %s", args.category)
+        sys.exit(1)
 
-    _validate_args(args)
-    output_path = Path(args.output_path)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    generated, filtered, iterations, max_iter, existing_samples = 0, 0, 0, args.max_iterations, []
+def _build_nemo_config(args: argparse.Namespace) -> NemoConfig:
+    return NemoConfig(
+        endpoint=args.nemo_endpoint or os.getenv("NEMO_ENDPOINT", "") or os.getenv("NVIDIA_BASE_URL", ""),
+        api_key=args.nemo_api_key or os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", ""),
+        model=args.nemo_model,
+        timeout_seconds=getattr(args, "nemo_timeout", 25),
+        min_call_interval_seconds=getattr(args, "nemo_min_call_interval", 1.0),
+    )
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        while generated < args.target_count and iterations < max_iter:
-            iterations += 1
-            try:
-                sample, filtered_this_iter = None, False
-                if args.scenario == "dpo_preference_pairs":
-                    sample = _run_dpo_scenario(endpoint, api_key, model, args)
-                elif args.scenario == "niche_category":
-                    sample, filtered_this_iter = _run_niche_scenario(
-                        endpoint, api_key, model, args, existing_samples=existing_samples, generated=generated
-                    )
-                elif args.scenario == "nightmare_fuel":
-                    sample, filtered_this_iter = _run_nightmare_scenario(endpoint, api_key, model, generated)
-                else:
-                    sys.exit(1)
 
-                if filtered_this_iter:
-                    filtered += 1
-                    continue
-                if sample:
-                    f.write(json.dumps(sample) + "\n")
-                    generated += 1
-                    existing_samples.append(sample)
-            except Exception:
-                continue
+def _write_generated_sample(output_file, sample: dict, existing_samples: list[dict]) -> None:
+    output_file.write(json.dumps(sample) + "\n")
+    existing_samples.append(sample)
 
+
+def _handle_dpo_generation(config: NemoConfig, *, _call_stats: dict | None = None) -> dict | None:
+    sample = _generate_dpo_pair("therapeutic", config, _call_stats=_call_stats)
+    if sample is None or "chosen" not in sample:
+        return None
+    return attach_provenance(
+        sample,
+        {
+            "source_url": "sdg://synthetic/dpo",
+            "source_type": "synthetic_sdg",
+            "transformations": ["dpo_preference_pair"],
+            "metadata": {"scenario": "dpo_preference_pairs"},
+        },
+    )
+
+
+def _handle_niche_generation(
+    args: argparse.Namespace,
+    config: NemoConfig,
+    generated: int,
+    existing_samples: list[dict],
+    *,
+    _call_stats: dict | None = None,
+) -> tuple[dict | None, str | None]:
+    category_info = NICHE_CATEGORIES[args.category]
+    target_rt = _ROTATION_RESPONSE_TYPES[generated % len(_ROTATION_RESPONSE_TYPES)]
+    sample = _generate_niche_sample(
+        args.category,
+        category_info,
+        config,
+        target_response_type=target_rt,
+        style_profile=args.style_profile,
+        _call_stats=_call_stats,
+    )
+    if sample is None:
+        return None, None
+    is_valid, reason = validate_sample(
+        sample,
+        min_clinical_validity=getattr(args, "min_clinical_validity", 0.0),
+        nemo_config=config,
+    )
+    if not is_valid:
+        return None, f"Filtered sample: {reason}"
+    is_unique, dup_reason = _check_deduplication(sample, existing_samples)
+    if not is_unique:
+        return None, f"Filtered duplicate: {dup_reason}"
+    return (
+        attach_provenance(
+            sample,
+            {
+                "source_url": f"sdg://synthetic/niche/{args.category}",
+                "source_type": "synthetic_sdg",
+                "transformations": [f"category:{args.category}", args.style_profile],
+                "metadata": {"scenario": "niche_category", "category": args.category},
+            },
+        ),
+        None,
+    )
+
+
+def _handle_nightmare_generation(
+    config: NemoConfig, generated: int, *, _call_stats: dict | None = None
+) -> tuple[dict | None, str | None]:
+    scenario_types = list(NIGHTMARE_SCENARIOS.keys())
+    scenario_type = scenario_types[generated % len(scenario_types)]
+    scenario_info = NIGHTMARE_SCENARIOS[scenario_type]
+    sample = _generate_nightmare_sample(scenario_type, scenario_info, config, _call_stats=_call_stats)
+    if sample is None:
+        return None, None
+    if not _crisis_resource_in_output(sample.get("output", "")):
+        return None, "Filtered: missing crisis resource"
+    return (
+        attach_provenance(
+            sample,
+            {
+                "source_url": f"sdg://synthetic/nightmare/{scenario_type}",
+                "source_type": "synthetic_sdg",
+                "transformations": ["nightmare_fuel", scenario_type],
+                "metadata": {"scenario": "nightmare_fuel", "scenario_type": scenario_type},
+            },
+        ),
+        None,
+    )
+
+
+def _generate_sample_for_scenario(
+    args: argparse.Namespace,
+    config: NemoConfig,
+    generated: int,
+    existing_samples: list[dict],
+    *,
+    _call_stats: dict | None = None,
+) -> tuple[dict | None, str | None]:
+    match args.scenario:
+        case "dpo_preference_pairs":
+            return _handle_dpo_generation(config, _call_stats=_call_stats), None
+        case "niche_category":
+            return _handle_niche_generation(args, config, generated, existing_samples, _call_stats=_call_stats)
+        case "nightmare_fuel":
+            return _handle_nightmare_generation(config, generated, _call_stats=_call_stats)
+        case _:
+            logger.error("Unknown scenario: %s", args.scenario)
+            sys.exit(1)
+
+
+def _clinical_validity_stats(existing_samples: list[dict]) -> dict:
     cv_scores = [s.get("clinical_validity_score", 0.0) for s in existing_samples if "clinical_validity_score" in s]
-    cv_stats = {}
-    if cv_scores:
-        cv_stats = {
-            "mean": round(sum(cv_scores) / len(cv_scores), 3),
-            "min": round(min(cv_scores), 3),
-            "max": round(max(cv_scores), 3),
-            "samples_scored": len(cv_scores),
-        }
+    if not cv_scores:
+        return {}
+    return {
+        "mean": round(sum(cv_scores) / len(cv_scores), 3),
+        "min": round(min(cv_scores), 3),
+        "max": round(max(cv_scores), 3),
+        "samples_scored": len(cv_scores),
+    }
 
+
+def _write_generation_report(
+    args: argparse.Namespace,
+    output_path: Path,
+    stats: GenerationStats,
+    existing_samples: list[dict],
+    *,
+    _call_stats: dict | None = None,
+) -> None:
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
         "scenario": args.scenario,
         "category": args.category,
         "target_count": args.target_count,
-        "generated_count": generated,
-        "filtered_count": filtered,
-        "filter_rate": filtered / (generated + filtered) if (generated + filtered) > 0 else 0,
-        "iterations": iterations,
-        "max_iterations": max_iter,
-        "clinical_validity": cv_stats,
+        "generated_count": stats.generated,
+        "filtered_count": stats.filtered,
+        "filter_rate": (
+            stats.filtered / (stats.generated + stats.filtered) if (stats.generated + stats.filtered) > 0 else 0
+        ),
+        "iterations": stats.iterations,
+        "max_iterations": stats.max_iterations,
+        "failed_calls": stats.failed_calls,
+        "total_calls": stats.total_calls,
+        "failure_rate": (stats.failed_calls / stats.total_calls if stats.total_calls > 0 else 0),
+        "clinical_validity": _clinical_validity_stats(existing_samples),
+        "call_stats": _call_stats or {},
     }
-
-    with open(output_path.parent / "generation_report.json", "w", encoding="utf-8") as f:
+    report_path = output_path.parent / "generation_report.json"
+    with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
 
-    logger.info("Generated %d/%d samples", generated, args.target_count)
+
+def run_sdg(args: argparse.Namespace) -> None:
+    if _run_style_audit_mode(args):
+        return
+
+    _validate_generation_args(args)
+    config = _build_nemo_config(args)
+
+    if not _check_nemo_health(config):
+        logger.error("NeMo API health check failed -- aborting generation run")
+        sys.exit(1)
+
+    output_path = Path(args.output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    generated = 0
+    filtered = 0
+    iterations = 0
+    failed_calls = 0
+    total_calls = 0
+    max_iter = args.max_iterations
+    existing_samples: list[dict] = []
+    _call_stats = {"total": 0, "failed": 0}
+
+    with open(output_path, "a", encoding="utf-8") as output_file:
+        while generated < args.target_count and iterations < max_iter:
+            iterations += 1
+            total_calls += 1
+            try:
+                sample, filter_reason = _generate_sample_for_scenario(
+                    args, config, generated, existing_samples, _call_stats=_call_stats
+                )
+            except RuntimeError:
+                logger.error("NeMo generation aborted -- excessive API call failures")
+                break
+            except Exception as e:
+                failed_calls += 1
+                logger.error("Error during generation: %s", e)
+                if (
+                    total_calls >= _ABORT_MIN_SAMPLE_CALLS
+                    and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD
+                ):
+                    logger.error(
+                        "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
+                        (failed_calls / total_calls) * 100,
+                        failed_calls,
+                        total_calls,
+                        FAILED_CALL_ABORT_THRESHOLD * 100,
+                    )
+                    break
+                continue
+            if filter_reason is not None:
+                logger.debug(filter_reason)
+                filtered += 1
+                continue
+            if sample is None:
+                failed_calls += 1
+                if (
+                    total_calls >= _ABORT_MIN_SAMPLE_CALLS
+                    and (failed_calls / total_calls) > FAILED_CALL_ABORT_THRESHOLD
+                ):
+                    logger.error(
+                        "Abort: failed-call rate %.1f%% (%d/%d) exceeds threshold %.0f%%",
+                        (failed_calls / total_calls) * 100,
+                        failed_calls,
+                        total_calls,
+                        FAILED_CALL_ABORT_THRESHOLD * 100,
+                    )
+                    break
+                logger.info("Generation failed, backing off 10s before retry")
+                time.sleep(10)
+                continue
+            _write_generated_sample(output_file, sample, existing_samples)
+            generated += 1
+
+    _write_generation_report(
+        args,
+        output_path,
+        GenerationStats(
+            generated=generated,
+            filtered=filtered,
+            iterations=iterations,
+            max_iterations=max_iter,
+            failed_calls=failed_calls,
+            total_calls=total_calls,
+        ),
+        existing_samples,
+        _call_stats=_call_stats,
+    )
+    logger.info(
+        "Generated %d/%d samples (filtered %d, iterations %d, failed_calls %d/%d)",
+        generated,
+        args.target_count,
+        filtered,
+        iterations,
+        failed_calls,
+        total_calls,
+    )
 
 
 def main() -> None:
