@@ -97,12 +97,24 @@ class S3Config:
     def __post_init__(self):
         """Validate and set defaults."""
         # Get credentials from environment if not provided
+        # Prefer HETZNER_S3_* names; fall back to AWS_* for backwards compat
         if self.access_key_id is None:
-            self.access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+            self.access_key_id = (
+                os.getenv("HETZNER_S3_ACCESS_KEY")
+                or os.getenv("HETZNER_ACCESS_KEY")
+                or os.getenv("AWS_ACCESS_KEY_ID")
+            )
         if self.secret_access_key is None:
-            self.secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+            self.secret_access_key = (
+                os.getenv("HETZNER_S3_SECRET_KEY")
+                or os.getenv("HETZNER_SECRET_KEY")
+                or os.getenv("AWS_SECRET_ACCESS_KEY")
+            )
         if self.endpoint_url is None:
-            self.endpoint_url = os.getenv("HETZNER_S3_ENDPOINT")
+            self.endpoint_url = (
+                os.getenv("HETZNER_S3_ENDPOINT")
+                or os.getenv("AWS_S3_ENDPOINT")
+            )
 
 
 @dataclass
