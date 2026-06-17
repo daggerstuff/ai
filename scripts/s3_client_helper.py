@@ -7,7 +7,7 @@ import boto3
 from botocore.config import Config
 
 
-def get_s3_client() -> boto3.client:
+def get_s3_client():
     """
     Create an S3 client with support for custom endpoints.
 
@@ -28,23 +28,38 @@ def get_s3_client() -> boto3.client:
         Configured boto3 S3 client
     """
     endpoint_url = (
-        os.environ.get("AWS_S3_ENDPOINT")
-        or os.environ.get("HETZNER_S3_ENDPOINT")
+        os.environ.get("HETZNER_S3_ENDPOINT")
+        or os.environ.get("AWS_S3_ENDPOINT")
         or os.environ.get("MINIO_ENDPOINT")
         or "https://hel1.your-objectstorage.com"
     )
 
-    region = os.environ.get("AWS_REGION", "sfo3")
+    region = os.environ.get("HETZNER_S3_REGION") or os.environ.get("AWS_REGION", "sfo3")
+
+    access_key = (
+        os.environ.get("HETZNER_S3_ACCESS_KEY")
+        or os.environ.get("HETZNER_ACCESS_KEY")
+        or os.environ.get("AWS_ACCESS_KEY_ID")
+    )
+    secret_key = (
+        os.environ.get("HETZNER_S3_SECRET_KEY")
+        or os.environ.get("HETZNER_SECRET_KEY")
+        or os.environ.get("AWS_SECRET_ACCESS_KEY")
+    )
 
     config = Config(signature_version="s3v4", retries={"max_attempts": 3, "mode": "standard"})
 
-    client_kwargs = {
+    client_kwargs: dict[str, object] = {
         "region_name": region,
         "config": config,
     }
 
     if endpoint_url:
         client_kwargs["endpoint_url"] = endpoint_url
+    if access_key:
+        client_kwargs["aws_access_key_id"] = access_key
+    if secret_key:
+        client_kwargs["aws_secret_access_key"] = secret_key
 
     return boto3.client("s3", **client_kwargs)
 
