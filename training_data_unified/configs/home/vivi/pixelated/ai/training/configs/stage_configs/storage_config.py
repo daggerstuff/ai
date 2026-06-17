@@ -68,8 +68,18 @@ class StorageConfig:
             # S3
             s3_bucket=os.getenv("DATASET_S3_BUCKET"),
             s3_region=os.getenv("DATASET_S3_REGION", "us-east-1"),
-            s3_access_key_id=os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("DATASET_S3_ACCESS_KEY_ID"),
-            s3_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY") or os.getenv("DATASET_S3_SECRET_ACCESS_KEY"),
+            s3_access_key_id=(
+                os.getenv("HETZNER_S3_ACCESS_KEY")
+                or os.getenv("HETZNER_ACCESS_KEY")
+                or os.getenv("AWS_ACCESS_KEY_ID")
+                or os.getenv("DATASET_S3_ACCESS_KEY_ID")
+            ),
+            s3_secret_access_key=(
+                os.getenv("HETZNER_S3_SECRET_KEY")
+                or os.getenv("HETZNER_SECRET_KEY")
+                or os.getenv("AWS_SECRET_ACCESS_KEY")
+                or os.getenv("DATASET_S3_SECRET_ACCESS_KEY")
+            ),
             s3_endpoint_url=os.getenv("DATASET_S3_ENDPOINT_URL"),
             # GCS
             gcs_bucket=os.getenv("DATASET_GCS_BUCKET"),
@@ -122,9 +132,15 @@ class StorageConfig:
             if not self.s3_bucket:
                 return False, "S3 bucket name is required"
             if not self.s3_access_key_id or not self.s3_secret_access_key:
-                # Check if credentials are in environment
-                if not os.getenv("AWS_ACCESS_KEY_ID") and not os.getenv("AWS_SECRET_ACCESS_KEY"):
-                    return False, "S3 credentials are required (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)"
+                has_creds = (
+                    os.getenv("HETZNER_S3_ACCESS_KEY")
+                    or os.getenv("AWS_ACCESS_KEY_ID")
+                ) and (
+                    os.getenv("HETZNER_S3_SECRET_KEY")
+                    or os.getenv("AWS_SECRET_ACCESS_KEY")
+                )
+                if not has_creds:
+                    return False, "S3 credentials are required (HETZNER_S3_ACCESS_KEY / AWS_ACCESS_KEY_ID)"
         elif self.backend == StorageBackend.GCS:
             if not self.gcs_bucket:
                 return False, "GCS bucket name is required"
