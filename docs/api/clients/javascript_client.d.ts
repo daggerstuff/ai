@@ -43,13 +43,20 @@ export class PixelatedEmpathyAPI {
   maxRetries: number;
   defaultHeaders: Record<string, string>;
 
-  _makeRequest(
+  makeRequest(
     method: string,
     endpoint: string,
     options?: RequestOptions,
   ): Promise<ApiResponse>;
-  _httpRequest(url: URL, options: Record<string, unknown>): Promise<HttpResponse>;
-  _sleep(ms: number): Promise<void>;
+  httpRequest(url: string, options: Record<string, unknown>): Promise<HttpResponse>;
+  sleep(ms: number): Promise<void>;
+  formatValue(value: unknown): string | undefined;
+  normalizePayload(data: unknown): Record<string, unknown> | { data: string };
+  safeParseResponse(rawBody: string): Record<string, unknown>;
+  toError(error: unknown): Error;
+  isPlainObject(value: unknown): value is Record<string, unknown>;
+  toRecord(value: unknown, fallback?: Record<string, unknown>): Record<string, unknown>;
+  toRecordArray(value: unknown): Array<Record<string, unknown>>;
 
   listDatasets(): Promise<Array<Record<string, unknown>>>;
   getDatasetInfo(datasetName: string): Promise<Record<string, unknown>>;
