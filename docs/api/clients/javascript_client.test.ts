@@ -465,6 +465,16 @@ describe('PixelatedEmpathyAPI Method getJobStatus', () => {
         expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/processing/jobs/job-123');
         expect(result).toEqual(mockStatus);
     });
+
+    it('should default to status "unknown" and undefined progress if payload is missing fields', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+        makeRequestSpy.mockResolvedValue({ data: {} });
+
+        const result = await api.getJobStatus('job-123');
+
+        expect(result).toEqual({ status: 'unknown', progress: undefined });
+    });
 });
 
 describe('PixelatedEmpathyAPI value formatting', () => {
@@ -840,6 +850,12 @@ describe('PixelatedEmpathyAPI Method safeParseResponse edge cases', () => {
     it('should return error object if parsed JSON is primitive string', () => {
         const api = new PixelatedEmpathyAPI('test_key');
         const jsonStr = '"just a string"'
+        expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
+    })
+
+    it('should return error object if string is unparseable JSON', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const jsonStr = '{ bad: json }'
         expect(api.safeParseResponse(jsonStr)).toEqual({ success: false, message: 'Invalid JSON response' })
     })
 });
