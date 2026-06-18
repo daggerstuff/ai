@@ -70,7 +70,12 @@ dependencies = [
   "eventlet>=0.36.0",
   "boto3>=1.42.53",
   "ray>=2.55.0",
-  "kernels>=0.12.1",
+  # Pin kernels <0.13: 0.15+ raises ValueError when LayerRepository/FuncRepository
+  # are instantiated without `revision` or `version` (the transformers-integration
+  # code path doesn't supply either). Reference:
+  # https://github.com/huggingface/transformers/issues/46291
+  # Track upstream transformer dep `kernels>=0.12.0,<0.13` (same range).
+  "kernels>=0.12.0,<0.13",
   "sentry-sdk>=2.54.0",
   "pymongo>=4.10.1",
   "motor>=3.6.0",
@@ -129,6 +134,14 @@ constraint-dependencies = [
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+# Route torch/torchvision/torchaudio through the PyTorch CPU index.
+# Default PyPI pulls CUDA 12.x/13.x binaries that reference missing native
+# libs on a CPU-only environment, breaking `import torchaudio`.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+torchaudio = [{ index = "pytorch-cpu" }]
 
 
 [tool.ruff]
