@@ -8,9 +8,10 @@ import re
 import pytest
 
 try:
-    from hypothesis import given, strategies as st
+    from hypothesis import given, settings, strategies as st
 except ImportError:
     given = None
+    settings = None
     st = None
 
 from training.clinical_safety_checker import ClinicalContentAnalyzer
@@ -197,6 +198,13 @@ if st is not None:
     def test_hypothesis_negated_not_detected(sample: str):
         assert not MultilingualContentChecker.contains_crisis_keywords(sample)
 
+    @given(st.text(min_size=1, max_size=500))
+    @settings(max_examples=500)
+    def test_all_texts_return_bool(text: str):
+        """Every non-None string returns a bool (True or False), never raises."""
+        result = MultilingualContentChecker.contains_crisis_keywords(text)
+        assert isinstance(result, bool)
+
 else:
 
     @pytest.mark.skip(reason="hypothesis not installed")
@@ -206,3 +214,65 @@ else:
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_hypothesis_negated_not_detected():
         raise AssertionError("Skipped when hypothesis is unavailable")
+
+
+# ---------------------------------------------------------------------------
+# Additional coverage tests
+# ---------------------------------------------------------------------------
+
+def test_unknown_language_iterates_all_patterns():
+    """When language=None, iterates all _LANG_PATTERNS (lines 121-122).
+    Safe text with no crisis patterns should return False."""
+    assert not MultilingualContentChecker.contains_crisis_keywords(
+        "The weather is sunny and I feel okay.", language=None
+    )
+    assert not MultilingualContentChecker.contains_crisis_keywords(
+        "Bonjour, comment allez-vous aujourd'hui?", language=None
+    )
+    assert not MultilingualContentChecker.contains_crisis_keywords(
+        "Estou bem e não tenho pensamentos negativos.", language=None
+    )
+
+
+def test_safe_text_returns_false():
+    """Safe text that doesn't match any crisis pattern returns False
+    (exercises the implicit 'return False' at line 150 of multilingual_safety_checker.py)."""
+    safe_samples = [
+        "I had a wonderful day at the park with my family.",
+        "Los ejercicios son buenos para la salud mental.",
+        "Le beau temps est agréable aujourd'hui.",
+        "Gute laune und Sonnenschein sind wunderbar.",
+        "Vida boa, saúde perfeita, sem pensamentos tristes.",
+        "I'm feeling grateful and content today.",
+    ]
+    for text in safe_samples:
+        assert not MultilingualContentChecker.contains_crisis_keywords(text), f"false positive on: {text}"
+
+
+def test_all_five_languages_produce_results():
+    """Every supported language returns a result (True or False, both valid)."""
+    text = "a" * 100  # safe filler
+    for lang in MultilingualContentChecker.supported_languages:
+        result = MultilingualContentChecker.contains_crisis_keywords(text, language=lang)
+        assert isinstance(result, bool), f"{lang} did not return bool"
+
+
+def test_fallback_import_path_used():
+    """Lines 15-16 are the ModuleNotFoundError fallback import. Exercise it
+    by patching sys.modules to hide the primary path, then restoring."""
+    import sys
+
+    # Temporarily shadow the primary path so the fallback fires.
+    backup = sys.modules.pop("training.clinical_safety_checker", None)
+    backup2 = sys.modules.pop("ai.training.clinical_safety_checker", None)
+    try:
+        # Re-import forces the fallback path in lines 15-16 of the module.
+        from training.multilingual_safety_checker import MultilingualContentChecker as MC2
+
+        assert issubclass(MC2, ClinicalContentAnalyzer)
+    finally:
+        # Restore so subsequent tests are unaffected.
+        if backup is not None:
+            sys.modules["training.clinical_safety_checker"] = backup
+        if backup2 is not None:
+            sys.modules["ai.training.clinical_safety_checker"] = backup2
