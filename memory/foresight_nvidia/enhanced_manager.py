@@ -29,8 +29,6 @@ from .rate_limiter import NvidiaRateLimiter, SemanticCache
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("enhanced_nvidia_nim")
 
-_rate_limiter = NvidiaRateLimiter()
-
 DEFAULT_ROUTING_MODEL = "nvidia/llama-3.1-nemotron-nano-8b-v1"
 
 
@@ -635,13 +633,11 @@ class EmbeddingGenerator:
             sorted_data = sorted(response.data, key=lambda x: x.index)
             batch_embeddings = [item.embedding for item in sorted_data]
 
-            for local_idx, embedding in zip(
-                uncached_indices[i : i + batch_size],
-                batch_embeddings,
-            ):
-                embeddings[local_idx] = embedding
+            for batch_position, embedding in enumerate(batch_embeddings):
+                global_idx = uncached_indices[i + batch_position]
+                embeddings[global_idx] = embedding
                 if self.cache is not None:
-                    self.cache.set(uncached_texts[i + (local_idx - uncached_indices[i])], embedding)
+                    self.cache.set(uncached_texts[i + batch_position], embedding)
 
         return embeddings
 
@@ -780,7 +776,6 @@ class EnhancedNvidiaNimManager:
                     temp,
                     generation_options.max_tokens,
                 )
-            await self.rate_limiter.wait("generation")
             response = await self.client.chat.completions.create(
                 model=model,
                 messages=messages,

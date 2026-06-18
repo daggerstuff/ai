@@ -11,7 +11,7 @@ import asyncio
 import logging
 import time
 from collections import OrderedDict
-from typing import Any
+from typing import Any, ClassVar
 
 logger = logging.getLogger("foresight_nvidia.rate_limiter")
 
@@ -74,7 +74,7 @@ class NvidiaRateLimiter:
         limiter = NvidiaRateLimiter(generation=(30, 5))
     """
 
-    DEFAULTS: dict[str, tuple[float, int | None]] = {
+    DEFAULTS: ClassVar[dict[str, tuple[float, int | None]]] = {
         "generation": (60, 10),
         "embedding": (120, 20),
         "crisis_detection": (30, 5),
