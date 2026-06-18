@@ -80,14 +80,17 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         fastmcp_app.mcp.call_tool(
             "memory_store",
             {
-                "content": "Baseline project checkpoint",
-                "user_id": "vivi",
-                "category": "project_context",
-                "auth_context": _auth_context(),
+                "req": {
+                    "content": "Baseline project checkpoint",
+                    "user_id": "vivi",
+                    "category": "project_context",
+                    "auth_context": _auth_context(),
+                }
             },
         )
     )
-    assert "Memory Secured" in store_result[0].text
+    store_text = store_result[0].text if isinstance(store_result, list) else (store_result.content[0].text if hasattr(store_result, "content") else str(store_result))
+    assert "Memory Secured" in store_text
 
     status_result = asyncio.run(
         fastmcp_app.mcp.call_tool(
@@ -98,8 +101,9 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
             },
         )
     )
-    assert "Total Memories:** 1" in status_result[0].text
-    assert "**Health:** Healthy" in status_result[0].text
+    status_text = status_result[0].text if isinstance(status_result, list) else (status_result.content[0].text if hasattr(status_result, "content") else str(status_result))
+    assert "Total Memories:** 1" in status_text
+    assert "**Health:** Healthy" in status_text
 
 
 def test_memory_query_applies_limit_without_manager_limit_keyword(
@@ -117,7 +121,7 @@ def test_memory_query_applies_limit_without_manager_limit_keyword(
     )
 
     result = asyncio.run(
-        fastmcp_app.memory_query(
+        fastmcp_tools.memory_query(
             query="project",
             user_id="vivi",
             limit=1,
@@ -160,7 +164,7 @@ def test_memory_query_refills_candidates_after_scope_filtering(
     monkeypatch.setattr("ai.api.mcp_server.fastmcp_search.search_with_overfetch", fake_search_with_overfetch)
 
     result = asyncio.run(
-        fastmcp_app.memory_query(
+        fastmcp_tools.memory_query(
             query="project",
             user_id="vivi",
             limit=2,

@@ -24,7 +24,7 @@ class TestIntegrationValidation(unittest.TestCase):
         ]
 
         for filename in required_files:
-            file_path = Path(f"/home/vivi/pixelated/ai/{filename}")
+            file_path = Path(f"{filename}")
             assert file_path.exists(), f"Missing validation file: {filename}"
 
     def test_validation_scores_meet_thresholds(self):
@@ -35,7 +35,7 @@ class TestIntegrationValidation(unittest.TestCase):
         }
 
         for filename, (score_key, threshold) in validation_files.items():
-            file_path = Path(f"/home/vivi/pixelated/ai/{filename}")
+            file_path = Path(f"{filename}")
             if file_path.exists():
                 with open(file_path) as f:
                     results = json.load(f)
@@ -50,7 +50,7 @@ class TestIntegrationValidation(unittest.TestCase):
         validation_files = ["task_81_safety_validation_results.json", "task_85_security_validation_results.json"]
 
         for filename in validation_files:
-            file_path = Path(f"/home/vivi/pixelated/ai/{filename}")
+            file_path = Path(f"{filename}")
             if file_path.exists():
                 with open(file_path) as f:
                     results = json.load(f)

@@ -149,18 +149,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 document.getElementById('last-updated').textContent = new Date().toLocaleString()
 // Auto-refresh every 5 minutes
 setInterval(() => {
-// ⚡ Bolt: Prevent unnecessary background polling and re-renders when tab is inactive
-if (document.hidden) return;
 document.getElementById('last-updated').textContent = new Date().toLocaleString()
 }, 300000)
-
-// ⚡ Bolt: Trigger immediate data refresh upon tab reactivation to prevent stale data
-document.addEventListener('visibilitychange', function() {
-if (!document.hidden) {
-document.getElementById('last-updated').textContent = new Date().toLocaleString()
-}
-});
-
 // Get the status announcer element for screen reader announcements
 const statusAnnouncer = document.getElementById('status-announcer')
 // Add click handlers for dynamic actions
