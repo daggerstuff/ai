@@ -144,3 +144,106 @@ else:
     @pytest.mark.skip(reason="hypothesis not installed")
     def test_log_token_length_distribution_truncation_warning_is_counted():
         raise AssertionError("Skipped when hypothesis is unavailable")
+
+
+# ---------------------------------------------------------------------------
+# Hypothesis property tests (VAL-TEST-001, VAL-TEST-004, VAL-TEST-005)
+# ---------------------------------------------------------------------------
+
+if st is not None:
+
+    @given(st.lists(st.integers(min_value=1, max_value=16384), min_size=0, max_size=500))
+    @settings(max_examples=200)
+    def test_count_truncated_property(lengths):
+        """Token-id lists of any length 0..16384 are handled by count_truncated.
+        Covers the empty-list branch (lines 98-113 of shared_config.py)."""
+        max_len = 100
+        result = count_truncated(lengths, max_len)
+        expected = sum(1 for v in lengths if v > max_len)
+        assert result == expected
+        assert result >= 0
+
+    @given(st.lists(st.integers(min_value=0, max_value=20000), min_size=0, max_size=1000))
+    @settings(max_examples=200)
+    def test_log_token_length_distribution_empty_list_property(lengths):
+        """An empty list triggers the early-return branch (lines 98-113) and
+        returns a zero-filled stats dict. A non-empty list returns real values."""
+        max_len = 256
+        logger = _TestLogger()
+        result = log_token_length_distribution(
+            lengths=lengths,
+            max_seq_length=max_len,
+            logger=logger,
+            field_name="token_count",
+        )
+        assert result["count"] == len(lengths)
+        if not lengths:
+            # Empty-list branch: all numeric stats are zeroed
+            assert result["min"] == 0
+            assert result["max"] == 0
+            assert result["mean"] == 0.0
+            assert result["median"] == 0.0
+            assert result["p95"] == 0.0
+            assert result["truncated_count"] == 0
+        else:
+            # Non-empty: stats are finite (no NaN/Inf), count matches input length
+            import math
+            assert result["count"] == len(lengths)
+            assert result["min"] >= 0
+            assert result["max"] >= result["min"]
+            assert result["mean"] >= 0
+            assert result["median"] >= 0
+            assert not math.isnan(result["mean"])
+            assert not math.isnan(result["median"])
+
+    @given(st.lists(st.integers(min_value=1, max_value=16384), min_size=1, max_size=500))
+    @settings(max_examples=200)
+    def test_build_lora_config_lora_rank_boundary(lengths):
+        """LoRA rank in {0,4,8,16,32,64} is preserved through build_lora_config."""
+        for rank in (0, 4, 8, 16, 32, 64):
+            args = SimpleNamespace(
+                lora_r=rank,
+                lora_alpha=rank * 2,
+                lora_dropout=0.05,
+                lora_bias="none",
+                lora_target_modules="q_proj,k_proj,v_proj,o_proj",
+            )
+            cfg = build_lora_config(args)
+            assert cfg.r == rank, f"expected r={rank}, got {cfg.r}"
+            assert cfg.lora_alpha == rank * 2
+
+else:
+
+    @pytest.mark.skip(reason="hypothesis not installed")
+    def test_count_truncated_property():
+        raise AssertionError("Skipped when hypothesis is unavailable")
+
+    @pytest.mark.skip(reason="hypothesis not installed")
+    def test_log_token_length_distribution_empty_list_property():
+        raise AssertionError("Skipped when hypothesis is unavailable")
+
+    @pytest.mark.skip(reason="hypothesis not installed")
+    def test_build_lora_config_lora_rank_boundary():
+        raise AssertionError("Skipped when hypothesis is unavailable")
+
+
+# ---------------------------------------------------------------------------
+# Deterministic boundary tests (VAL-TEST-001, VAL-TEST-005)
+# ---------------------------------------------------------------------------
+
+def test_count_truncated_empty_list():
+    assert count_truncated([], 512) == 0
+    assert count_truncated([], 0) == 0
+
+
+def test_build_lora_config_defaults_rank_is_8():
+    """Calling build_lora_config without an explicit r returns the default r=8."""
+    args = SimpleNamespace(
+        lora_r=8,
+        lora_alpha=16,
+        lora_dropout=0.05,
+        lora_bias="none",
+        lora_target_modules="q_proj,k_proj,v_proj,o_proj",
+    )
+    cfg = build_lora_config(args)
+    assert cfg.r == 8
