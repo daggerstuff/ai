@@ -26,6 +26,11 @@ from .manager import (
     NvidiaForesightConfig,
     NvidiaForesightManager,
 )
+from .rate_limiter import (
+    NvidiaRateLimiter,
+    SemanticCache,
+    TokenBucket,
+)
 
 __all__ = [
     # Enhanced manager
@@ -42,4 +47,8 @@ __all__ = [
     # Original manager
     "NvidiaForesightConfig",
     "NvidiaForesightManager",
+    # Rate limiting
+    "NvidiaRateLimiter",
+    "SemanticCache",
+    "TokenBucket",
 ]
