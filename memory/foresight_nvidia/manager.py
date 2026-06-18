@@ -20,6 +20,7 @@ from ai.memory.therapeutic_processor import TherapeuticProcessor
 
 from .interaction_service import NvidiaTherapeuticInteractionService
 from .memory_ingestion_config import TherapeuticMemoryConfig
+from .rate_limiter import NvidiaRateLimiter
 
 logger = logging.getLogger("foresight_nvidia")
 
@@ -72,6 +73,7 @@ class NvidiaForesightManager:
             memory=self.memory,
             processor=self.processor,
         )
+        self.rate_limiter = NvidiaRateLimiter()
         logger.info(
             "Initialized NvidiaForesightManager with model %s using local shared memory",
             self.config.model_name,
@@ -87,6 +89,7 @@ class NvidiaForesightManager:
         return self.interactions.filter_for_storage(content)
 
     async def generate_content(self, prompt: str, system_instruction: str | None = None) -> str:
+        await self.rate_limiter.wait("generation")
         messages = []
         if system_instruction:
             messages.append({"role": "system", "content": system_instruction})

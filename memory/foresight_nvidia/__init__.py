@@ -26,20 +26,26 @@ from .manager import (
     NvidiaForesightConfig,
     NvidiaForesightManager,
 )
+from .rate_limiter import (
+    NvidiaRateLimiter,
+    SemanticCache,
+    TokenBucket,
+)
 
 __all__ = [
-    # Enhanced manager
-    "EnhancedNvidiaConfig",
-    "EnhancedNvidiaNimManager",
-    "EnhancedNvidiaNimContext",
-    "TieredModelSelector",
     "CrisisDetector",
     "EmbeddingGenerator",
-    "TaskComplexity",
-    "ModelTier",
+    "EnhancedNvidiaConfig",
+    "EnhancedNvidiaNimContext",
+    "EnhancedNvidiaNimManager",
     "ModelSelectionStrategy",
-    "create_enhanced_manager",
-    # Original manager
+    "ModelTier",
     "NvidiaForesightConfig",
     "NvidiaForesightManager",
+    "NvidiaRateLimiter",
+    "SemanticCache",
+    "TaskComplexity",
+    "TieredModelSelector",
+    "TokenBucket",
+    "create_enhanced_manager",
 ]
