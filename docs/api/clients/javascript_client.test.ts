@@ -245,6 +245,46 @@ describe('PixelatedEmpathyAPI Method iterConversations', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method validateConversationQuality', () => {
+    it('should correctly submit conversation for validation', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+
+        let calledEndpoint = '';
+        let calledOptions = {};
+
+        makeRequestSpy.mockImplementation(async (method, endpoint, options) => {
+            calledEndpoint = endpoint;
+            calledOptions = options as any;
+            return {
+                statusCode: 200,
+                headers: {},
+                body: '{"success":true,"data":{"valid":true,"score":0.95}}',
+                success: true,
+                data: { valid: true, score: 0.95 }
+            };
+        });
+
+        const conversation = { messages: [{ role: "user", content: "hello" }] };
+        const result = await api.validateConversationQuality(conversation);
+
+        expect(calledEndpoint).toBe('/quality/validate');
+        expect(calledOptions).toHaveProperty('data');
+        expect(calledOptions).toEqual({ data: conversation });
+        expect(result).toEqual({ valid: true, score: 0.95 });
+        expect(makeRequestSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle API errors appropriately', async () => {
+         const api = new PixelatedEmpathyAPI('test_key');
+         const makeRequestSpy = vi.spyOn(api, 'makeRequest').mockRejectedValue(new Error('Validation failed'));
+
+         const conversation = { messages: [] };
+         await expect(api.validateConversationQuality(conversation)).rejects.toThrow('Validation failed');
+         expect(makeRequestSpy).toHaveBeenCalledTimes(1);
+    });
+});
+
 describe('PixelatedEmpathyAPI Method submitProcessingJob', () => {
     it('should correctly build job data payload', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
