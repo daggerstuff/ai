@@ -23,6 +23,8 @@ from typing import Any
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel, Field, field_validator
 
+from .rate_limiter import NvidiaRateLimiter, SemanticCache
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("enhanced_nvidia_nim")
@@ -468,9 +470,15 @@ class CrisisDetector:
         "I can't go on like this",
     )
 
-    def __init__(self, client: AsyncOpenAI, model_id: str):
+    def __init__(
+        self,
+        client: AsyncOpenAI,
+        model_id: str,
+        rate_limiter: NvidiaRateLimiter | None = None,
+    ) -> None:
         self.client = client
         self.model_id = model_id
+        self.rate_limiter = rate_limiter or NvidiaRateLimiter()
 
     async def analyze(
         self,
@@ -499,6 +507,7 @@ Respond with a JSON object containing:
 - immediate_concerns: boolean if immediate intervention needed"""
 
         try:
+            await self.rate_limiter.wait("crisis_detection")
             response = await self.client.chat.completions.create(
                 model=self.model_id,
                 messages=[
@@ -556,30 +565,64 @@ class EmbeddingGenerator:
     RAG retrieval, and multimodal content understanding.
     """
 
-    def __init__(self, client: AsyncOpenAI, model_id: str, dimension: int = 2048):
+    def __init__(
+        self,
+        client: AsyncOpenAI,
+        model_id: str,
+        dimension: int = 2048,
+        rate_limiter: NvidiaRateLimiter | None = None,
+        cache: SemanticCache | None = None,
+    ) -> None:
         self.client = client
         self.model_id = model_id
         self.dimension = dimension
+        self.rate_limiter = rate_limiter or NvidiaRateLimiter()
+        self.cache = cache
 
     async def embed_text(self, text: str) -> list[float]:
-        """Generate embedding for a single text."""
+        """Generate embedding for a single text with caching and rate limiting."""
+        if self.cache is not None:
+            cached = self.cache.get(text)
+            if cached is not None:
+                logger.debug("Embedding cache hit for text (length=%d)", len(text))
+                return cached
+
+        await self.rate_limiter.wait("embedding")
         response = await self.client.embeddings.create(
             model=self.model_id,
             input=text,
             encoding_format="float",
         )
-        return response.data[0].embedding
+        embedding = response.data[0].embedding
+
+        if self.cache is not None:
+            self.cache.set(text, embedding)
+
+        return embedding
 
     async def embed_batch(
         self,
         texts: list[str],
         batch_size: int = 32,
     ) -> list[list[float]]:
-        """Generate embeddings for a batch of texts."""
-        embeddings = []
+        """Generate embeddings for a batch of texts with caching and rate limiting."""
+        embeddings: list[list[float]] = []
+        uncached_texts: list[str] = []
+        uncached_indices: list[int] = []
 
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i : i + batch_size]
+        for i, text in enumerate(texts):
+            if self.cache is not None:
+                cached = self.cache.get(text)
+                if cached is not None:
+                    embeddings.append(cached)
+                    continue
+            uncached_texts.append(text)
+            uncached_indices.append(i)
+            embeddings.append([])
+
+        for i in range(0, len(uncached_texts), batch_size):
+            batch = uncached_texts[i : i + batch_size]
+            await self.rate_limiter.wait("embedding")
 
             response = await self.client.embeddings.create(
                 model=self.model_id,
@@ -587,10 +630,14 @@ class EmbeddingGenerator:
                 encoding_format="float",
             )
 
-            # Sort by index and extract embeddings
             sorted_data = sorted(response.data, key=lambda x: x.index)
             batch_embeddings = [item.embedding for item in sorted_data]
-            embeddings.extend(batch_embeddings)
+
+            for batch_position, embedding in enumerate(batch_embeddings):
+                global_idx = uncached_indices[i + batch_position]
+                embeddings[global_idx] = embedding
+                if self.cache is not None:
+                    self.cache.set(uncached_texts[i + batch_position], embedding)
 
         return embeddings
 
@@ -648,15 +695,21 @@ class EnhancedNvidiaNimManager:
         # Initialize model selector
         self.model_selector = TieredModelSelector(config)
 
+        # Initialize rate limiter and semantic cache
+        self.rate_limiter = NvidiaRateLimiter()
+        self.embedding_cache = SemanticCache(max_size=1000, ttl_seconds=300)
+
         # Initialize specialized components
         reasoning_model = config.model_tiers.get("reasoning", ModelTier.NEMOTRON_SUPER.value)
         embedding_model = config.model_tiers.get("embedding", ModelTier.NEMOTRON_EMBED.value)
 
-        self.crisis_detector = CrisisDetector(self.client, reasoning_model)
+        self.crisis_detector = CrisisDetector(self.client, reasoning_model, rate_limiter=self.rate_limiter)
         self.embedding_generator = EmbeddingGenerator(
             self.client,
             embedding_model,
             config.embedding_dimension,
+            rate_limiter=self.rate_limiter,
+            cache=self.embedding_cache,
         )
 
         logger.info(
@@ -712,6 +765,7 @@ class EnhancedNvidiaNimManager:
             messages.append({"role": "system", "content": system_instruction})
         messages.append({"role": "user", "content": prompt})
 
+        await self.rate_limiter.wait("generation")
         start_time = time.time()
 
         try:
@@ -748,6 +802,7 @@ class EnhancedNvidiaNimManager:
         max_tokens: int,
     ):
         """Generate streaming response."""
+        await self.rate_limiter.wait("generation")
         stream = await self.client.chat.completions.create(
             model=model,
             messages=messages,
@@ -859,6 +914,7 @@ Offer appropriate resources and encourage professional help."""
                         "dimension": len(embedding),
                     }
                 else:
+                    await self.rate_limiter.wait("generation")
                     response = await self.client.chat.completions.create(
                         model=model_id,
                         messages=[{"role": "user", "content": "test"}],
