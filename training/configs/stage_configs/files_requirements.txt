@@ -121,7 +121,7 @@ nvidia-nvjitlink-cu12==12.8.93
 httpx==0.28.1
 charset-normalizer==3.4.3
 nvidia-nvtx-cu12==12.8.90
-torch==2.12.0
+torch==2.12.1
 plotly==6.3.0
 huggingface-hub==0.34.4
 python-magic==0.4.27
