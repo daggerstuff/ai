@@ -122,6 +122,25 @@ if st is not None:
             assert not ClinicalContentAnalyzer.contains_crisis_keywords(text)
 
 
+def test_post_context_negation_suppresses_match():
+    """Crisis word followed by negation within NEGATION_WINDOW_AFTER,
+    with no sentence boundary before the negation, triggers the
+    post-context negation branch (line ~82 continue)."""
+    # "suicide" matches crisis; "no" appears within 30 chars after it
+    # with no sentence boundary (no . ! ?) between them.
+    assert not ClinicalContentAnalyzer.contains_crisis_keywords(
+        "On the topic of suicide no one should joke about it"
+    )
+    # Same with a different crisis word and negation
+    assert not ClinicalContentAnalyzer.contains_crisis_keywords(
+        "I have thoughts of killing myself never would I act on them"
+    )
+    # Ensure the same text without negation still triggers
+    assert ClinicalContentAnalyzer.contains_crisis_keywords(
+        "the topic of suicide is important to discuss"
+    )
+
+
 if st is None:
 
     @pytest.mark.skip(reason="hypothesis not installed")

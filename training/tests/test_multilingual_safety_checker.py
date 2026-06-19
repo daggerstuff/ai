@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import importlib
 import inspect
 import re
+import sys
 
 import pytest
 
@@ -257,22 +259,57 @@ def test_all_five_languages_produce_results():
         assert isinstance(result, bool), f"{lang} did not return bool"
 
 
+def test_post_context_negation_suppresses_match():
+    """Crisis word followed by negation within NEGATION_WINDOW_AFTER (30 chars),
+    with no sentence boundary before the negation, triggers the post-context
+    negation continue branch (line ~150 in multilingual_safety_checker.py).
+
+    Uses language='pt' and language='fr' to test language-specific checks
+    where the negation word appears in the post-context within the window.
+    """
+    # Portuguese: "suicídio" matches; "não" appears within 30 chars, no sentence boundary
+    assert not MultilingualContentChecker.contains_crisis_keywords(
+        "Isso é um caso de suicídio não quero que ninguém brinque", language="pt"
+    )
+    # French: "suicide" matches; "pas" appears within 30 chars
+    assert not MultilingualContentChecker.contains_crisis_keywords(
+        "j'ai pensé au suicide pas du tout sérieusement", language="fr"
+    )
+    # German: "sterben" matches via "will sterben"; "nicht" in post-context
+    assert not MultilingualContentChecker.contains_crisis_keywords(
+        "ich will sterben nicht wirklich heute", language="de"
+    )
+    # Ensure the same text without negation still triggers
+    assert MultilingualContentChecker.contains_crisis_keywords(
+        "j'ai pensé au suicide tout à fait sérieusement", language="fr"
+    )
+
+
 def test_fallback_import_path_used():
     """Lines 15-16 are the ModuleNotFoundError fallback import. Exercise it
-    by patching sys.modules to hide the primary path, then restoring."""
-    import sys
-
-    # Temporarily shadow the primary path so the fallback fires.
-    backup = sys.modules.pop("training.clinical_safety_checker", None)
-    backup2 = sys.modules.pop("ai.training.clinical_safety_checker", None)
+    by patching sys.modules to hide the primary path AND remove the cached
+    multilingual_safety_checker module so the module body re-executes."""
+    # Remove the multilingual_safety_checker module from cache so re-import
+    # actually re-executes the module body (triggering the fallback).
+    msc_backup = sys.modules.pop("training.multilingual_safety_checker", None)
+    csc_backup = sys.modules.pop("training.clinical_safety_checker", None)
+    ai_csc_backup = sys.modules.pop("ai.training.clinical_safety_checker", None)
     try:
-        # Re-import forces the fallback path in lines 15-16 of the module.
-        from training.multilingual_safety_checker import MultilingualContentChecker as MC2
+        # Re-import forces the fallback path in lines 15-16.
+        # Compare against the fresh ClinicalContentAnalyzer from the fallback re-import
+        cls_under_test = importlib.import_module(
+            "training.multilingual_safety_checker"
+        ).MultilingualContentChecker
+        csc_fresh_cls = importlib.import_module(
+            "training.clinical_safety_checker"
+        ).ClinicalContentAnalyzer
 
-        assert issubclass(MC2, ClinicalContentAnalyzer)
+        assert issubclass(cls_under_test, csc_fresh_cls)
     finally:
         # Restore so subsequent tests are unaffected.
-        if backup is not None:
-            sys.modules["training.clinical_safety_checker"] = backup
-        if backup2 is not None:
-            sys.modules["ai.training.clinical_safety_checker"] = backup2
+        if msc_backup is not None:
+            sys.modules["training.multilingual_safety_checker"] = msc_backup
+        if csc_backup is not None:
+            sys.modules["training.clinical_safety_checker"] = csc_backup
+        if ai_csc_backup is not None:
+            sys.modules["ai.training.clinical_safety_checker"] = ai_csc_backup
