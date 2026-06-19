@@ -190,13 +190,6 @@ if st is not None:
         )
         assert len(result) == MIN_SAMPLES
 
-else:
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_pairs_preserved():
-        raise AssertionError("Skipped when hypothesis is unavailable")
-
-
 if st is not None:
 
     @given(
