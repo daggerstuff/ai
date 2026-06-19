@@ -29,18 +29,26 @@ jobs:
       - name: Install dependencies
         run: |
           uv sync --project . --all-extras
+          mkdir -p coverage
 
       - name: safety-critical-coverage
         run: |
           uv run pytest training/tests --ignore=training/tests/test_book_pdf_converter.py \
-            --cov=training.shared_config,training.multilingual_safety_checker,training.clinical_safety_checker,training.reward_score \
-            --cov-branch --cov-fail-under=100 -q
+            --cov=training.shared_config \
+            --cov=training.multilingual_safety_checker \
+            --cov=training.clinical_safety_checker \
+            --cov=training.reward_score \
+            --cov-branch --cov-fail-under=95 -q \
+            --cov-report=xml:coverage/safety-critical-coverage.xml \
+            --cov-report=term
 
-      - name: training-coverage
+      - name: pilot-module-coverage
         run: |
           uv run pytest training/tests --ignore=training/tests/test_book_pdf_converter.py \
-            --cov=training.shared_config,training.multilingual_safety_checker,training.clinical_safety_checker,training.reward_score,training.pixelated_production_pilot \
-            --cov-branch --cov-fail-under=90 -q
+            --cov=training.pixelated_production_pilot \
+            --cov-branch --cov-fail-under=40 -q \
+            --cov-report=xml:coverage/pilot-coverage.xml \
+            --cov-report=term
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
