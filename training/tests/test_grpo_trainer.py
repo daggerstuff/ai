@@ -329,28 +329,4 @@ if st is not None:
         for item in kept:
             assert item["composite_score"] >= threshold
 
-else:
 
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_empathy_score_range():
-        raise AssertionError("Skipped")
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_composite_score_range():
-        raise AssertionError("Skipped")
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_all_responses_safe():
-        raise AssertionError("Skipped")
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_crisis_resource_detected():
-        raise AssertionError("Skipped")
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_filter_respects_threshold():
-        raise AssertionError("Skipped")
-
-    @pytest.mark.skip(reason="hypothesis not installed")
-    def test_hypothesis_clinical_validity_score_range():
-        raise AssertionError("Skipped")
