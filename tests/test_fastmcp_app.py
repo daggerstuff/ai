@@ -12,12 +12,21 @@ from ai.api.mcp_server.memory_scope import scope_from_kwargs
 from ai.api.memory.null_memory import NullMemoryManager
 
 
+def _extract_text(result):
+    """Extract text content from various MCP tool result formats."""
+    if isinstance(result, list):
+        return result[0].text
+    if hasattr(result, "content"):
+        return result.content[0].text
+    return str(result)
+
+
 def _load_fastmcp_app_module():
     module_name = "test_fastmcp_app_module"
     module_path = Path(__file__).resolve().parents[1] / "api" / "mcp_server" / "fastmcp_app.py"
     spec = importlib.util.spec_from_file_location(module_name, module_path)
-    assert spec is not None
-    assert spec.loader is not None
+    assert spec is not None  # nosec B101
+    assert spec.loader is not None  # nosec B101
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
@@ -80,14 +89,17 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         fastmcp_app.mcp.call_tool(
             "memory_store",
             {
-                "content": "Baseline project checkpoint",
-                "user_id": "vivi",
-                "category": "project_context",
-                "auth_context": _auth_context(),
+                "req": {
+                    "content": "Baseline project checkpoint",
+                    "user_id": "vivi",
+                    "category": "project_context",
+                    "auth_context": _auth_context(),
+                }
             },
         )
     )
-    assert "Memory Secured" in store_result[0].text
+    store_text = _extract_text(store_result)
+    assert "Memory Secured" in store_text  # nosec B101
 
     status_result = asyncio.run(
         fastmcp_app.mcp.call_tool(
@@ -98,8 +110,9 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
             },
         )
     )
-    assert "Total Memories:** 1" in status_result[0].text
-    assert "**Health:** Healthy" in status_result[0].text
+    status_text = _extract_text(status_result)
+    assert "Total Memories:** 1" in status_text  # nosec B101
+    assert "**Health:** Healthy" in status_text  # nosec B101
 
 
 def test_memory_query_applies_limit_without_manager_limit_keyword(
@@ -117,7 +130,7 @@ def test_memory_query_applies_limit_without_manager_limit_keyword(
     )
 
     result = asyncio.run(
-        fastmcp_app.memory_query(
+        fastmcp_tools.memory_query(
             query="project",
             user_id="vivi",
             limit=1,
@@ -160,7 +173,7 @@ def test_memory_query_refills_candidates_after_scope_filtering(
     monkeypatch.setattr("ai.api.mcp_server.fastmcp_search.search_with_overfetch", fake_search_with_overfetch)
 
     result = asyncio.run(
-        fastmcp_app.memory_query(
+        fastmcp_tools.memory_query(
             query="project",
             user_id="vivi",
             limit=2,
