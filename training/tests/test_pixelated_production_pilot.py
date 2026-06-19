@@ -4,21 +4,22 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
-import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
 from training.pixelated_production_pilot import (
+    CheckpointVerificationCallback,
+    HubConfig,
+    RunConfig,
     _build_arg_parser,
+    _maybe_push_to_hub,
     _validate_numeric_args,
     check_disk_space,
     safe_path,
 )
 from training.shared_config import build_lora_config
-
 
 # ---------------------------------------------------------------------------
 # _build_arg_parser / --max_seq_length validation
@@ -385,6 +386,116 @@ class TestSecureLogHandler:
 class TestSafePathEdgeCases:
     def test_path_with_null_character_raises_permission_error(self) -> None:
         """A path with an embedded null raises PermissionError via resolution failure."""
-        from training.pixelated_production_pilot import WORKSPACE_ROOT
         with pytest.raises(PermissionError, match="Path resolution error"):
             safe_path("\x00")
+
+
+# ---------------------------------------------------------------------------
+# HubConfig
+# ---------------------------------------------------------------------------
+
+
+class TestHubConfig:
+    def test_default_config(self) -> None:
+        """Default HubConfig has push_to_hub=False and hub_model_id=None."""
+        cfg = HubConfig()
+        assert cfg.push_to_hub is False
+        assert cfg.hub_model_id is None
+
+    def test_custom_config(self) -> None:
+        """Custom HubConfig preserves the given values."""
+        cfg = HubConfig(push_to_hub=True, hub_model_id="org/my-model")
+        assert cfg.push_to_hub is True
+        assert cfg.hub_model_id == "org/my-model"
+
+
+# ---------------------------------------------------------------------------
+# RunConfig
+# ---------------------------------------------------------------------------
+
+
+class TestRunConfig:
+    def test_default_config(self) -> None:
+        """Default RunConfig has hub_config=None and skip_final_eval=False."""
+        cfg = RunConfig()
+        assert cfg.hub_config is None
+        assert cfg.skip_final_eval is False
+
+    def test_custom_config(self) -> None:
+        """Custom RunConfig preserves given values."""
+        hub = HubConfig(push_to_hub=True, hub_model_id="org/my-model")
+        cfg = RunConfig(hub_config=hub, skip_final_eval=True)
+        assert cfg.hub_config is not None
+        assert cfg.hub_config.push_to_hub is True
+        assert cfg.skip_final_eval is True
+
+
+# ---------------------------------------------------------------------------
+# _maybe_push_to_hub (pure-logic early-return paths, no ML deps)
+# ---------------------------------------------------------------------------
+
+
+class TestMaybePushToHub:
+    def test_none_hub_config_returns_early(self) -> None:
+        """When hub_config is None, _maybe_push_to_hub returns immediately."""
+        from unittest.mock import MagicMock
+
+        trainer = MagicMock()
+        tokenizer = MagicMock()
+        # Should not raise — early return before any Hub interaction
+        _maybe_push_to_hub(trainer, tokenizer, None)
+
+    def test_push_to_hub_false_returns_early(self) -> None:
+        """When push_to_hub is False, returns immediately."""
+        from unittest.mock import MagicMock
+
+        trainer = MagicMock()
+        tokenizer = MagicMock()
+        hub_cfg = HubConfig(push_to_hub=False, hub_model_id="org/model")
+        _maybe_push_to_hub(trainer, tokenizer, hub_cfg)
+
+    def test_missing_hub_model_id_returns_early(self) -> None:
+        """When hub_model_id is None, returns immediately."""
+        from unittest.mock import MagicMock
+
+        trainer = MagicMock()
+        tokenizer = MagicMock()
+        hub_cfg = HubConfig(push_to_hub=True, hub_model_id=None)
+        _maybe_push_to_hub(trainer, tokenizer, hub_cfg)
+
+
+# ---------------------------------------------------------------------------
+# CheckpointVerificationCallback
+# ---------------------------------------------------------------------------
+
+
+class TestCheckpointVerificationCallback:
+    def test_on_save_no_checkpoint_dir(self, caplog) -> None:
+        """When checkpoint_dir doesn't exist, a warning is logged."""
+        from transformers import TrainerControl, TrainerState, TrainingArguments
+
+        caplog.set_level(logging.WARNING)
+        callback = CheckpointVerificationCallback()
+        args = TrainingArguments(output_dir="/tmp/nonexistent_checkpoint_test_xyz", report_to="none")
+        state = TrainerState(global_step=42)
+        control = TrainerControl()
+
+        callback.on_save(args, state, control)
+
+        assert any("Expected checkpoint dir not found" in msg for msg in caplog.messages)
+
+    def test_on_save_missing_required_files(self, tmp_path, caplog) -> None:
+        """When required files are missing, an error is logged and temp dir removed."""
+        from transformers import TrainerControl, TrainerState, TrainingArguments
+
+        caplog.set_level(logging.ERROR)
+        callback = CheckpointVerificationCallback()
+        checkpoint_dir = tmp_path / "checkpoint-1"
+        checkpoint_dir.mkdir(parents=True)
+
+        args = TrainingArguments(output_dir=str(tmp_path), report_to="none")
+        state = TrainerState(global_step=1)
+        control = TrainerControl()
+
+        callback.on_save(args, state, control)
+        assert any("incomplete" in msg for msg in caplog.messages)
