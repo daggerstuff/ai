@@ -1,0 +1,50 @@
+name: Training Safety Coverage
+
+on:
+  pull_request:
+    branches: [staging]
+  push:
+    branches: [staging]
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv sync --project . --all-extras
+
+      - name: safety-critical-coverage
+        run: |
+          uv run pytest training/tests --ignore=training/tests/test_book_pdf_converter.py \
+            --cov=training.shared_config,training.multilingual_safety_checker,training.clinical_safety_checker,training.reward_score \
+            --cov-branch --cov-fail-under=100 -q
+
+      - name: training-coverage
+        run: |
+          uv run pytest training/tests --ignore=training/tests/test_book_pdf_converter.py \
+            --cov=training.shared_config,training.multilingual_safety_checker,training.clinical_safety_checker,training.reward_score,training.pixelated_production_pilot \
+            --cov-branch --cov-fail-under=90 -q
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: coverage/*.xml
+          retention-days: 15
