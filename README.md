@@ -79,6 +79,49 @@ cd pipelines
 python process_datasets.py
 ```
 
+## Test Suite & Training Pipeline
+
+### Python Test Suite
+
+Run all training tests (excluding legacy book PDF converter tests):
+
+```bash
+uv run pytest training/tests/ --ignore=training/tests/test_book_pdf_converter.py -q
+```
+
+### Coverage
+
+Coverage is enforced at 100 % across shared_config, the safety checkers, and reward_score:
+
+```bash
+uv run pytest training/tests/ --ignore=training/tests/test_book_pdf_converter.py \
+  --cov=training.shared_config,training.multilingual_safety_checker,training.clinical_safety_checker,training.reward_score \
+  --cov-branch --cov-fail-under=100 -q
+```
+
+### DPO / GRPO Smoke Tests
+
+Lightweight smoke tests for direct preference optimization and group-relative policy optimization:
+
+```bash
+uv run pytest training/tests/test_dpo_trainer.py training/tests/test_grpo_trainer.py -q
+```
+
+### Training Pipeline Environment
+
+The training pipeline runs on a CPU-only PyTorch stack. The `[tool.uv.sources]` section in
+`pyproject.toml` pins `torch`, `torchvision`, and `torchaudio` to the `pytorch-cpu` index to
+avoid pulling CUDA binaries that would fail on CPU-only runners.
+
+### Safety Checker Environment Variables
+
+Set the following environment variable in test/CI environments to disable ML model loading for
+safety checkers (enabled by default in `conftest.py`):
+
+```bash
+export AI_DISABLE_SAFETY_ML_MODELS=1
+```
+
 ## Production Deployment
 
 ### Configuration
