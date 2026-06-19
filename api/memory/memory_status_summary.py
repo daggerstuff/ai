@@ -22,7 +22,7 @@ def summarize_memory_status(
     total_memories = sum(category_counts.values())
     health = resolve_memory_health(
         readiness=backend_readiness,
-        memory_count=total_memories,
+        _memory_count=total_memories,
     )
     return MemoryStatusSummary(
         total_memories=total_memories,
