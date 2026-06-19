@@ -310,6 +310,21 @@ describe('PixelatedEmpathyAPI Method submitProcessingJob', () => {
     });
 });
 
+describe('PixelatedEmpathyAPI Method getStatisticsOverview', () => {
+    it('should call makeRequest with correct endpoint and return overview', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const makeRequestSpy = vi.spyOn(api, 'makeRequest');
+
+        const mockOverview = { total_conversations: 1000, active_users: 50 };
+        makeRequestSpy.mockResolvedValue({ data: mockOverview });
+
+        const result = await api.getStatisticsOverview();
+
+        expect(makeRequestSpy).toHaveBeenCalledWith('GET', '/statistics/overview');
+        expect(result).toEqual(mockOverview);
+    });
+});
+
 describe('PixelatedEmpathyAPI Method exportData', () => {
     it('should map options correctly to exportData payload', async () => {
         const api = new PixelatedEmpathyAPI('test_key');
