@@ -628,6 +628,34 @@ class ClinicalValidityScorer:
             return "annotation_needed"
         return "accepted"
 
+    @classmethod
+    def batch_score(cls, responses: list[str]) -> list[float]:
+        """Compute clinical validity scores for a list of responses.
+
+        Returns a list of scores in the same order as the input list.
+        Each score is in [0.0, 1.0].
+        """
+        return [cls.score(r) for r in responses]
+
+    @classmethod
+    def modality_coverage(cls, response: str) -> dict[str, int]:
+        """Count how many pattern matches each therapy modality has in the text.
+
+        Returns a dict mapping modality name (e.g. 'cbt', 'dbt', 'mi') to
+        the number of matching pattern groups found in the response.
+        """
+        if not response or not isinstance(response, str):
+            return dict.fromkeys(cls.THERAPY_MODALITIES, 0)
+        coverage: dict[str, int] = dict.fromkeys(cls.THERAPY_MODALITIES, 0)
+        for modality, patterns in cls.THERAPY_MODALITIES.items():
+            combined = "|".join(patterns)
+            regex = re.compile(combined, re.IGNORECASE)
+            matches = list(regex.finditer(response))
+            # Count unique match groups to avoid double-counting same text
+            match_texts = {m.group(0).lower() for m in matches}
+            coverage[modality] = len(match_texts)
+        return coverage
+
 
 def main() -> None:
     """CLI entry point for the clinical validity scorer.

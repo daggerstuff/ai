@@ -345,6 +345,7 @@ class TestThresholdConstants:
         assert ClinicalValidityScorer.ACCEPT_THRESHOLD == 0.6
 
 
+<<<<<<< HEAD
 class TestScoreDensity:
     """Property tests for score_density and score_density_detail.
 
@@ -774,3 +775,71 @@ class TestEdgeCases:
         """Test _determine_category with empty dict returns 'unknown'."""
         result = ClinicalValidityScorer._determine_category({})
         assert result == "unknown"
+=======
+class TestBatchScore:
+    def test_batch_score_same_length(self):
+        texts = ["Hello", "CBT cognitive restructuring", "The sky is blue", "Trauma triggers hypervigilance"]
+        scores = ClinicalValidityScorer.batch_score(texts)
+        assert len(scores) == len(texts)
+
+    def test_batch_score_preserves_order(self):
+        texts = [
+            "CBT cognitive restructuring exercise",
+            "DBT mindfulness distress tolerance",
+            "The weather is nice today",
+        ]
+        scores = ClinicalValidityScorer.batch_score(texts)
+        assert scores[0] == ClinicalValidityScorer.score(texts[0])
+        assert scores[1] == ClinicalValidityScorer.score(texts[1])
+        assert scores[2] == ClinicalValidityScorer.score(texts[2])
+
+    def test_batch_score_empty_list(self):
+        scores = ClinicalValidityScorer.batch_score([])
+        assert scores == []
+
+    def test_batch_score_all_in_range(self):
+        texts = [
+            "CBT cognitive reframing",
+            "DBT opposite action mindfulness",
+            "MI change talk sustain talk",
+            "Trauma triggers grounding",
+            "The sky is blue",
+        ]
+        scores = ClinicalValidityScorer.batch_score(texts)
+        assert all(0.0 <= s <= 1.0 for s in scores)
+
+
+class TestModalityCoverage:
+    def test_cbt_text_shows_cbt_modality(self):
+        text = "Let's work on cognitive restructuring to challenge those automatic thoughts."
+        coverage = ClinicalValidityScorer.modality_coverage(text)
+        assert "cbt" in coverage
+        assert coverage["cbt"] > 0
+
+    def test_dbt_text_shows_dbt_modality(self):
+        text = "Try opposite action and use mindfulness to stay in wise mind."
+        coverage = ClinicalValidityScorer.modality_coverage(text)
+        assert "dbt" in coverage
+        assert coverage["dbt"] > 0
+
+    def test_mi_text_shows_mi_modality(self):
+        text = "On a scale from 1 to 10, how important is this change for you?"
+        coverage = ClinicalValidityScorer.modality_coverage(text)
+        assert "mi" in coverage
+        assert coverage["mi"] > 0
+
+    def test_non_clinical_text_returns_zeros(self):
+        text = "I had a sandwich for lunch today."
+        coverage = ClinicalValidityScorer.modality_coverage(text)
+        assert all(v == 0 for v in coverage.values())
+
+    def test_coverage_returns_all_modality_keys(self):
+        text = "Hello world"
+        coverage = ClinicalValidityScorer.modality_coverage(text)
+        for modality in ClinicalValidityScorer.THERAPY_MODALITIES:
+            assert modality in coverage
+
+    def test_empty_text_returns_zeros(self):
+        coverage = ClinicalValidityScorer.modality_coverage("")
+        assert all(v == 0 for v in coverage.values())
+>>>>>>> a12ff043 (feat(scorer): enhance ClinicalValidityScorer to v4.0.0)
