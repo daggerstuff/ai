@@ -1173,23 +1173,6 @@ class TestClinicalValidityIntegration:
         )
         assert args.min_clinical_validity == 0.45
 
-    def test_validate_sample_with_min_clinical_validity_accepts_high(self):
-        """Test validate_sample accepts samples with clinical validity score above threshold."""
-        # A response that has CBT restructuring and reframing terms, which scores highly
-        sample = {
-            "instruction": VALID_INSTR,
-            "output": (
-                "Let's try a cognitive reframing exercise to challenge that automatic thought. "
-                "We can look at the evidence for and against this core belief together. "
-                "What comes up for you when you think about that?"
-            ),
-            "style_profile": "warm_professional",
-        }
-        ok, _ = validate_sample(sample, min_clinical_validity=0.30)
-        assert ok
-        assert "clinical_validity_score" in sample
-        assert sample["clinical_validity_score"] >= 0.30
-
     def test_validate_sample_with_min_clinical_validity_rejects_low(self):
         """Test validate_sample rejects samples with clinical validity score below threshold."""
         # A response with no clinical terms
@@ -1220,6 +1203,96 @@ class TestClinicalValidityIntegration:
         assert "clinical_validity_score" in pair
         assert "clinical_validity_detail" in pair
         assert pair["clinical_validity_score"] > 0.0
+
+
+# ---------------------------------------------------------------------------
+# VAL-SDG-002/003/004: Three-tier clinical validity routing
+# ---------------------------------------------------------------------------
+
+
+class TestClinicalValidityRouting:
+    """Test three-tier routing: accept (>=0.6), reject (<0.4), borderline (0.4-0.6)."""
+
+    @patch("training.sdg_pipeline.ClinicalValidityJudge.score")
+    def test_accept_routing_sample_passes(self, mock_score):
+        """VAL-SDG-002: Samples scoring >= 0.6 pass through to output JSONL."""
+        mock_score.return_value = 0.70  # "accepted" tier
+        sample = {
+            "instruction": VALID_INSTR,
+            "output": VALID_OUTPUT,
+            "style_profile": "warm_professional",
+        }
+        ok, reason = validate_sample(sample, min_clinical_validity=0.1)
+        assert ok
+        assert sample["clinical_validity_score"] == 0.70
+        # "accepted" classification is NOT added per spec (no classification field needed)
+        assert "clinical_validity_classification" not in sample
+
+    @patch("training.sdg_pipeline.ClinicalValidityJudge.score")
+    def test_reject_routing_sample_filtered(self, mock_score):
+        """VAL-SDG-003: Samples scoring < 0.4 are rejected and do NOT appear in output."""
+        mock_score.return_value = 0.30  # "excluded" tier
+        sample = {
+            "instruction": VALID_INSTR,
+            "output": VALID_OUTPUT,
+            "style_profile": "warm_professional",
+        }
+        ok, reason = validate_sample(sample, min_clinical_validity=0.1)
+        assert not ok
+        assert sample["clinical_validity_score"] == 0.30
+        assert sample["clinical_validity_classification"] == "excluded"
+        assert "clinical_validity_reason" in sample
+        assert "too low" in reason
+
+    @patch("training.sdg_pipeline.ClinicalValidityJudge.score")
+    def test_borderline_routing_annotation_needed(self, mock_score):
+        """VAL-SDG-004: Samples scoring 0.4-0.6 get classification='annotation_needed'."""
+        mock_score.return_value = 0.50  # "annotation_needed" tier
+        sample = {
+            "instruction": VALID_INSTR,
+            "output": VALID_OUTPUT,
+            "style_profile": "warm_professional",
+        }
+        ok, reason = validate_sample(sample, min_clinical_validity=0.1)
+        assert ok
+        assert sample["clinical_validity_score"] == 0.50
+        assert sample["clinical_validity_classification"] == "annotation_needed"
+        assert "clinical_validity_reason" in sample
+        assert sample["clinical_validity_reason"]  # non-empty reason
+
+    @patch("training.sdg_pipeline.ClinicalValidityJudge.score")
+    def test_all_scenarios_receive_validity_fields(self, mock_score):
+        """VAL-SDG-005: All scenarios (DPO, niche, nightmare) receive validity fields."""
+        for score_value, expected_cls in [(0.70, "accepted"), (0.30, "excluded")]:
+            mock_score.return_value = score_value
+            sample = {
+                "instruction": VALID_INSTR,
+                "output": VALID_OUTPUT,
+                "style_profile": "warm_professional",
+            }
+            validate_sample(sample, min_clinical_validity=0.1)
+            assert "clinical_validity_score" in sample
+            assert sample["clinical_validity_score"] == score_value
+            if expected_cls == "accepted":
+                assert "clinical_validity_classification" not in sample
+            else:
+                assert sample["clinical_validity_classification"] == expected_cls
+
+    @patch("training.sdg_pipeline.ClinicalValidityJudge.score")
+    def test_default_disables_routing(self, mock_score):
+        """VAL-SDG-008: Default (min_clinical_validity=0.0) passes all samples regardless."""
+        mock_score.return_value = 0.30  # would be excluded if validation ran
+        sample = {
+            "instruction": VALID_INSTR,
+            "output": VALID_OUTPUT,
+            "style_profile": "warm_professional",
+        }
+        ok, reason = validate_sample(sample, min_clinical_validity=0.0)
+        # With min_clinical_validity=0.0, validation is skipped entirely
+        assert ok
+        assert "clinical_validity_classification" not in sample
+        assert "clinical_validity_reason" not in sample
+        assert "clinical_validity_score" not in sample  # not added when disabled
 
 
 # ---------------------------------------------------------------------------
