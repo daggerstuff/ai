@@ -23,7 +23,6 @@ import re
 import sys
 from typing import ClassVar
 
-
 # Threshold constants for three-tier routing (PIX-3773)
 EXCLUDE_THRESHOLD = 0.4
 ACCEPT_THRESHOLD = 0.6
@@ -419,6 +418,41 @@ class ClinicalValidityScorer:
         return min(raw + diversity_bonus * 0.15, 1.0)
 
     @classmethod
+    def _score_dimension_density(cls, text: str, dimension: str) -> tuple:
+        """Compute density-specific scoring components.
+
+        Returns (matches, density_score) where density_score is properly
+        normalized to be <= the raw score and penalizes verbosity.
+        """
+        if not text or not isinstance(text, str):
+            return (0, 0.0)
+        pattern = cls._get_dimension_pattern(dimension)
+        matches = list(pattern.finditer(text))
+        sub_dimensions = len(cls.DIMENSION_PATTERNS[dimension])
+        if not matches:
+            return (0, 0.0)
+        match_texts = {m.group(0).lower() for m in matches}
+        diversity_bonus = min(1.0, len(match_texts) / 10.0)
+        token_count = max(1, len(text.split()))
+
+        # Compute raw score WITHOUT capping at 1.0 (to allow proper density calc)
+        # This is the "uncapped match rate" - how many match groups per sub-dimension
+        uncapped_match_rate = len(matches) / sub_dimensions
+
+        # Density penalty: longer text gets penalized more
+        # density_factor ranges from 1.0 (very short) to 0.5 (250+ tokens)
+        density_penalty = min(token_count / 250, 1.0)
+        density_factor = 1.0 - density_penalty * 0.5
+
+        # Density score: uncapped match rate normalized by token count and density factor
+        # This ensures:
+        # 1. density <= raw for all inputs (because we divide by token_count which is >= 1)
+        # 2. Verbose text gets penalized (higher token_count reduces score)
+        density_score = (uncapped_match_rate / token_count) * density_factor + diversity_bonus * 0.15 * density_factor
+
+        return (len(matches), min(density_score, 1.0))
+
+    @classmethod
     def score(cls, response: str) -> float:
         """Compute overall clinical validity score in [0.0, 1.0].
 
@@ -453,16 +487,19 @@ class ClinicalValidityScorer:
 
         Returns scores penalized by verbosity: a short, dense clinical response
         scores higher than a long rambling one with the same absolute matches.
+
+        The density score is computed as:
+            density = (matches / sub_dims) / max(1, tokens) * scale_factor
+
+        This is a true "clinical terms per token" measure, which properly penalizes
+        verbose text by reducing score as tokens increase.
         """
         if not response or not isinstance(response, str):
             return dict.fromkeys(cls.WEIGHTS, 0.0)
         results = {}
-        token_count = max(1, len(response.split()))
         for dimension in cls.WEIGHTS:
-            raw = cls._score_dimension(response, dimension)
-            density_penalty = min(token_count / 250, 1.0)
-            density_factor = 1.0 - density_penalty * 0.5
-            results[dimension] = round(raw * density_factor, 4)
+            _, density_score = cls._score_dimension_density(response, dimension)
+            results[dimension] = round(density_score, 4)
         return results
 
     @classmethod
