@@ -25,6 +25,7 @@ from training.sdg_pipeline import (
     NIGHTMARE_SCENARIOS,
     THERAPIST_STYLE_PROFILES,
     _call_nemo,
+    _clinical_validity_stats,
     _evaluate_therapist_style,
     _generate_dpo_pair,
     _generate_niche_sample,
@@ -1458,3 +1459,74 @@ class TestRunSdgFailureTracking:
         assert report["failed_calls"] == 0
         assert report["total_calls"] == 1
         assert report["failure_rate"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# VAL-SDG-006/007: Generation report clinical validity metrics
+# ---------------------------------------------------------------------------
+
+
+class TestReportClinicalValidityMetrics:
+    """Tests for report['clinical_validity'] pass_rate, borderline_count, by_modality."""
+
+    def test_clinical_validity_stats_pass_rate(self):
+        """VAL-SDG-006: pass_rate is float fraction of accepted samples (score >= 0.6)."""
+        samples = [
+            {"clinical_validity_score": 0.70, "scenario": "niche_category"},
+            {"clinical_validity_score": 0.75, "scenario": "niche_category"},
+            {"clinical_validity_score": 0.50, "scenario": "niche_category"},  # borderline
+        ]
+        stats = _clinical_validity_stats(samples)
+        assert "pass_rate" in stats
+        assert stats["pass_rate"] == pytest.approx(2 / 3, abs=0.001)
+        assert isinstance(stats["pass_rate"], float)
+
+    def test_clinical_validity_stats_borderline_count(self):
+        """VAL-SDG-007: borderline_count is int count of borderline samples (0.4 <= score < 0.6)."""
+        samples = [
+            {"clinical_validity_score": 0.50, "scenario": "niche_category"},  # borderline
+            {"clinical_validity_score": 0.75, "scenario": "niche_category"},  # accepted
+            {"clinical_validity_score": 0.55, "scenario": "niche_category"},  # borderline
+        ]
+        stats = _clinical_validity_stats(samples)
+        assert "borderline_count" in stats
+        assert stats["borderline_count"] == 2
+        assert isinstance(stats["borderline_count"], int)
+
+    def test_clinical_validity_stats_by_modality(self):
+        """Report includes clinical_validity.by_modality dict with per-scenario breakdown."""
+        samples = [
+            {"clinical_validity_score": 0.70, "scenario": "niche_category"},
+            {"clinical_validity_score": 0.50, "scenario": "niche_category"},
+            {"clinical_validity_score": 0.80, "scenario": "dpo_preference_pairs"},
+            {"clinical_validity_score": 0.30, "scenario": "dpo_preference_pairs"},  # rejected
+        ]
+        stats = _clinical_validity_stats(samples)
+        assert "by_modality" in stats
+        by_modality = stats["by_modality"]
+        assert isinstance(by_modality, dict)
+
+        # Check niche_category: 1 pass out of 2 total = 0.5
+        assert "niche_category" in by_modality
+        assert by_modality["niche_category"]["pass"] == 1
+        assert by_modality["niche_category"]["total"] == 2
+        assert by_modality["niche_category"]["pass_rate"] == pytest.approx(0.5, abs=0.001)
+
+        # Check dpo_preference_pairs: 1 pass out of 2 total = 0.5
+        assert "dpo_preference_pairs" in by_modality
+        assert by_modality["dpo_preference_pairs"]["pass"] == 1
+        assert by_modality["dpo_preference_pairs"]["total"] == 2
+        assert by_modality["dpo_preference_pairs"]["pass_rate"] == pytest.approx(0.5, abs=0.001)
+
+        # Verify types
+        for _modality, data in by_modality.items():
+            assert isinstance(data["pass"], int)
+            assert isinstance(data["total"], int)
+            assert isinstance(data["pass_rate"], float)
+            assert data["total"] >= data["pass"]
+
+    def test_clinical_validity_stats_empty_when_no_scores(self):
+        """When no samples have clinical_validity_score, stats dict is empty."""
+        samples = [{"instruction": "text", "output": "response"}]  # no clinical_validity_score
+        stats = _clinical_validity_stats(samples)
+        assert stats == {}
