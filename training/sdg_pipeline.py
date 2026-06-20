@@ -26,6 +26,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
+import requests
+
 from training.clinical_validity_judge import ClinicalValidityJudge
 from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.provenance import attach_provenance
@@ -54,6 +56,10 @@ RETRYABLE_HTTP_STATUS_CODES = {HTTP_TOO_MANY_REQUESTS, 500, 502, 503, 504}
 NEMO_RETRY_DELAYS = (1, 2, 4)
 FAILED_CALL_ABORT_THRESHOLD = 0.95
 _NEMO_RATE_STATE: dict = {"last_call_time": 0.0}
+
+# Annotation queue API configuration
+ANNOTATION_API_URL = "http://localhost:3102"
+ANNOTATION_QUEUE_ENDPOINT = f"{ANNOTATION_API_URL}/queue"
 
 _ABORT_MIN_CALLS = 50
 _ABORT_MIN_SAMPLE_CALLS = 10
@@ -991,6 +997,70 @@ def _validate_sample_style(sample: dict, output: str) -> str | None:
     return None
 
 
+def _post_to_annotation_queue(
+    sample_text: str,
+    score: float,
+    classification: str,
+    reason: str,
+) -> bool:
+    """Post a borderline sample to the annotation queue.
+
+    Args:
+        sample_text: The text sample to review.
+        score: The clinical validity score.
+        classification: Classification from ClinicalValidityScorer.
+        reason: Human-readable reason for routing.
+
+    Returns:
+        True if successfully posted, False otherwise.
+    """
+    if classification != "annotation_needed":
+        # Only borderline samples should be posted to annotation queue
+        return False
+
+    try:
+        # Get per-dimension scores from ClinicalValidityScorer
+        # Note: We need to call score_detail to get dimension scores
+        # Since we already have the overall score, we'll get detail scores
+        detail_scores = ClinicalValidityScorer.score_detail(sample_text)
+
+        payload = {
+            "sample_text": sample_text,
+            "original_score": score,
+            "per_dimension_scores": detail_scores,
+            "routing_reason": reason,
+        }
+
+        response = requests.post(
+            ANNOTATION_QUEUE_ENDPOINT,
+            json=payload,
+            timeout=5.0,
+        )
+
+        if response.status_code == HTTP_OK + 1:  # 201 Created
+            logger.debug(
+                "Borderline sample posted to annotation queue. Score: %.3f, Reason: %s",
+                score,
+                reason,
+            )
+            return True
+
+        logger.warning(
+            "Failed to post borderline sample to annotation queue. "
+            "Status: %d, Response: %s",
+            response.status_code,
+            response.text[:200],
+        )
+        return False
+
+    except Exception as e:
+        logger.warning(
+            "Error posting to annotation queue: %s. Sample will still be processed.",
+            str(e),
+        )
+        return False
+
+
 def _build_clinical_validity_reason(score: float, classification: str) -> str:
     """Build a human-readable reason for the clinical validity classification."""
     if classification == "excluded":
@@ -1038,7 +1108,16 @@ def _validate_clinical_validity(
         return f"Clinical validity score too low ({score:.3f} < {ClinicalValidityScorer.EXCLUDE_THRESHOLD})"
     if classification == "annotation_needed":
         sample["clinical_validity_classification"] = classification
-        sample["clinical_validity_reason"] = _build_clinical_validity_reason(score, classification)
+        reason = _build_clinical_validity_reason(score, classification)
+        sample["clinical_validity_reason"] = reason
+
+        # Post borderline sample to annotation queue
+        _post_to_annotation_queue(
+            sample_text=output,
+            score=score,
+            classification=classification,
+            reason=reason,
+        )
     return None
 
 
