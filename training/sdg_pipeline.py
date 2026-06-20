@@ -1862,11 +1862,41 @@ def _clinical_validity_stats(existing_samples: list[dict]) -> dict:
     cv_scores = [s.get("clinical_validity_score", 0.0) for s in existing_samples if "clinical_validity_score" in s]
     if not cv_scores:
         return {}
+
+    total = len(cv_scores)
+    accepted = sum(1 for s in cv_scores if s >= ClinicalValidityScorer.ACCEPT_THRESHOLD)
+    borderline = sum(
+        1
+        for s in cv_scores
+        if ClinicalValidityScorer.EXCLUDE_THRESHOLD <= s < ClinicalValidityScorer.ACCEPT_THRESHOLD
+    )
+
+    # Per-modality breakdown by scenario type
+    by_modality: dict[str, dict[str, int | float]] = {}
+    for sample in existing_samples:
+        scenario = sample.get("scenario", "")
+        if not scenario:
+            scenario = sample.get("metadata", {}).get("scenario", "unknown")
+        if scenario not in by_modality:
+            by_modality[scenario] = {"pass": 0, "total": 0, "pass_rate": 0.0}
+        score = sample.get("clinical_validity_score", 0.0)
+        by_modality[scenario]["total"] += 1
+        if score >= ClinicalValidityScorer.ACCEPT_THRESHOLD:
+            by_modality[scenario]["pass"] += 1
+
+    # Compute pass_rate per modality
+    for modality_data in by_modality.values():
+        if modality_data["total"] > 0:
+            modality_data["pass_rate"] = round(modality_data["pass"] / modality_data["total"], 4)
+
     return {
         "mean": round(sum(cv_scores) / len(cv_scores), 3),
         "min": round(min(cv_scores), 3),
         "max": round(max(cv_scores), 3),
         "samples_scored": len(cv_scores),
+        "pass_rate": round(accepted / total, 4) if total > 0 else 0.0,
+        "borderline_count": borderline,
+        "by_modality": by_modality,
     }
 
 
