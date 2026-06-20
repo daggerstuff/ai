@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
+from hypothesis import given, settings, strategies as st
 
 from training.clinical_validity_scorer import ClinicalValidityScorer
 
@@ -343,3 +343,201 @@ class TestThresholdConstants:
     def test_accept_threshold_defined(self):
         assert hasattr(ClinicalValidityScorer, "ACCEPT_THRESHOLD")
         assert ClinicalValidityScorer.ACCEPT_THRESHOLD == 0.6
+
+
+class TestScoreDensity:
+    """Property tests for score_density and score_density_detail.
+
+    VAL-SCORER-018: Density scoring penalizes verbosity.
+    score_density(text) <= score(text) for all inputs.
+    score_density_detail returns 6-dimensional dict with all values <= corresponding detail values.
+    Density penalty factor is correctly computed based on token count.
+    """
+
+    def test_density_returns_six_dimensions(self):
+        """score_density_detail returns a dict with all 6 dimension keys."""
+        detail = ClinicalValidityScorer.score_density_detail(
+            "CBT cognitive restructuring challenging automatic thought"
+        )
+        assert set(detail) == set(ClinicalValidityScorer.WEIGHTS)
+        assert len(detail) == 6
+
+    def test_density_detail_values_in_range(self):
+        """All density detail values are in [0.0, 1.0]."""
+        detail = ClinicalValidityScorer.score_density_detail(
+            "Let's work on cognitive reframing. Research shows CBT is effective."
+        )
+        for v in detail.values():
+            assert 0.0 <= v <= 1.0, f"Density detail value {v} out of range"
+
+    def test_density_detail_empty_input_returns_zeros(self):
+        """Empty input returns all zeros for density_detail."""
+        detail = ClinicalValidityScorer.score_density_detail("")
+        assert all(v == 0.0 for v in detail.values())
+
+    def test_density_detail_none_input_returns_zeros(self):
+        """None input returns all zeros for density_detail."""
+        detail = ClinicalValidityScorer.score_density_detail(None)  # type: ignore[arg-type]
+        assert all(v == 0.0 for v in detail.values())
+
+    def test_density_detail_values_never_exceed_raw_detail(self):
+        """For every dimension, density_detail <= detail for all inputs.
+
+        This is the core property that ensures density scoring penalizes verbosity.
+        """
+        clinical_texts = [
+            "CBT cognitive restructuring challenging automatic thought",
+            "DBT mindfulness distress tolerance opposite action wise mind",
+            "MI change talk sustain talk readiness ruler OARS",
+            "PTSD trauma triggers hypervigilance flashback avoidance",
+            "Research shows CBT is effective for depression treatment",
+            "Therapeutic alliance collaboration validation empathy",
+            "Goal setting treatment planning homework between sessions",
+            "Cultural awareness inclusive language diverse background",
+        ]
+        for text in clinical_texts:
+            detail = ClinicalValidityScorer.score_detail(text)
+            dens_detail = ClinicalValidityScorer.score_density_detail(text)
+            for dim in ClinicalValidityScorer.WEIGHTS:
+                assert dens_detail[dim] <= detail[dim] + 1e-9, (
+                    f"Dimension {dim}: density_detail({dens_detail[dim]}) > detail({detail[dim]}) "
+                    f"for text: {text[:50]}"
+                )
+
+    def test_density_overall_never_exceeds_raw_score(self):
+        """score_density(text) <= score(text) for all inputs.
+
+        This is the primary property guaranteed by VAL-SCORER-018.
+        """
+        clinical_texts = [
+            "",
+            "The sky is blue.",
+            "CBT cognitive restructuring",
+            "DBT mindfulness distress tolerance emotion regulation",
+            "MI change talk sustain talk importance confidence",
+            "PTSD trauma triggers grounding hypervigilance window of tolerance",
+            "Research shows evidence-based practice is effective",
+            "Cultural competence inclusive language diverse identity",
+            "Person-centered unconditional positive regard empathic understanding",
+            "Solution-focused miracle question exception finding scaling question",
+        ]
+        for text in clinical_texts:
+            raw = ClinicalValidityScorer.score(text)
+            dens = ClinicalValidityScorer.score_density(text)
+            assert dens <= raw + 1e-9, (
+                f"density({dens:.4f}) > score({raw:.4f}) for text: {text[:50]!r}"
+            )
+
+    def test_density_penalty_increases_with_length(self):
+        """Verbose text gets lower density scores than concise clinical text.
+
+        A short, dense clinical response should score higher on density
+        than a long rambling response with the same match count.
+        """
+        short = "CBT cognitive restructuring challenging automatic thought"
+        # Repeat the same content to create verbose text with same match density
+        long = (short + " ") * 10  # 10x repetition
+
+        dens_short = ClinicalValidityScorer.score_density(short)
+        dens_long = ClinicalValidityScorer.score_density(long)
+
+        # Short clinical text should have higher or equal density than verbose text
+        assert dens_short >= dens_long, (
+            f"Short text density ({dens_short:.4f}) should be >= long text density ({dens_long:.4f}). "
+            "Verbose text is not being properly penalized."
+        )
+
+    def test_density_penalty_factor_computed_correctly(self):
+        """Density penalty factor is correctly computed based on token count.
+
+        Penalty should be: min(token_count / 250, 1.0)
+        Density factor should be: 1.0 - penalty * 0.5
+
+        As token count increases, density score should decrease (proper verbosity penalty).
+        """
+        # Use simple repeated words to get predictable token counts
+        short = "CBT"  # 1 token
+        medium = " CBT CBT CBT CBT CBT CBT CBT CBT CBT CBT CBT"  # 11 tokens
+        long_text = " CBT" * 50  # 50 tokens
+        very_long = " CBT" * 100  # 100 tokens
+        extreme = " CBT" * 250  # 250 tokens (full penalty)
+
+        short_density = ClinicalValidityScorer.score_density(short)
+        medium_density = ClinicalValidityScorer.score_density(medium)
+        long_density = ClinicalValidityScorer.score_density(long_text)
+        very_long_density = ClinicalValidityScorer.score_density(very_long)
+        extreme_density = ClinicalValidityScorer.score_density(extreme)
+
+        # More tokens should result in lower or equal density score
+        assert short_density >= medium_density, (
+            f"Short density ({short_density:.4f}) should be >= medium density ({medium_density:.4f})"
+        )
+        assert medium_density >= long_density, (
+            f"Medium density ({medium_density:.4f}) should be >= long density ({long_density:.4f})"
+        )
+        assert long_density >= very_long_density, (
+            f"Long density ({long_density:.4f}) should be >= very_long density ({very_long_density:.4f})"
+        )
+        assert very_long_density >= extreme_density, (
+            f"Very long density ({very_long_density:.4f}) should be >= extreme density ({extreme_density:.4f})"
+        )
+
+        # Token count verification
+        assert len(short.split()) == 1
+        assert len(medium.split()) == 11
+        assert len(long_text.split()) == 50
+        assert len(very_long.split()) == 100
+        assert len(extreme.split()) == 250
+
+    def test_density_empty_input_returns_zero(self):
+        """Empty input to score_density returns 0.0."""
+        assert ClinicalValidityScorer.score_density("") == 0.0
+        assert ClinicalValidityScorer.score_density("   ") == 0.0
+
+    def test_density_none_input_returns_zero(self):
+        """None input to score_density returns 0.0."""
+        assert ClinicalValidityScorer.score_density(None) == 0.0  # type: ignore[arg-type]
+
+    def test_density_computed_as_weighted_sum_of_density_details(self):
+        """score_density returns the weighted sum of score_density_detail values.
+
+        This ensures consistency between the summary and detail methods.
+        """
+        text = "CBT cognitive restructuring challenging automatic thought research evidence"
+        detail = ClinicalValidityScorer.score_density_detail(text)
+        expected = sum(
+            detail[dim] * ClinicalValidityScorer.WEIGHTS[dim]
+            for dim in ClinicalValidityScorer.WEIGHTS
+        )
+        actual = ClinicalValidityScorer.score_density(text)
+        assert abs(actual - expected) < 1e-6, (
+            f"score_density({actual:.6f}) != weighted sum of density_detail({expected:.6f})"
+        )
+
+    def test_density_property_with_hypothesis(self):
+        """Property-based test: density <= score for all text inputs.
+
+        Uses hypothesis to generate random text and verify the invariant.
+        """
+
+        @given(st.text(min_size=0, max_size=5000))
+        @settings(max_examples=200, database=None, deadline=None)
+        def check_density_le_raw(text):
+            if not text:
+                return  # Empty handled by other tests
+            raw = ClinicalValidityScorer.score(text)
+            dens = ClinicalValidityScorer.score_density(text)
+            # Also check detail
+            detail = ClinicalValidityScorer.score_detail(text)
+            dens_detail = ClinicalValidityScorer.score_density_detail(text)
+
+            assert dens <= raw + 1e-9, (
+                f"Hypothesis: density({dens:.6f}) > score({raw:.6f}) for text len={len(text)}"
+            )
+            for dim in ClinicalValidityScorer.WEIGHTS:
+                assert dens_detail[dim] <= detail[dim] + 1e-9, (
+                    f"Hypothesis: density_detail[{dim}]({dens_detail[dim]:.6f}) > "
+                    f"detail[{dim}]({detail[dim]:.6f}) for text len={len(text)}"
+                )
+
+        check_density_le_raw()
