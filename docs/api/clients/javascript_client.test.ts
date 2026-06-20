@@ -107,10 +107,7 @@ describe("PixelatedEmpathyAPI Methods", () => {
 
     const result = await api.getConversation("conv-123");
 
-    expect(makeRequestSpy).toHaveBeenCalledWith(
-      "GET",
-      "/conversations/conv-123",
-    );
+    expect(makeRequestSpy).toHaveBeenCalledWith("GET", "/conversations/conv-123");
     expect(result).toEqual({ id: "conv-123" });
   });
 });
@@ -217,9 +214,9 @@ describe("PixelatedEmpathyAPI Method waitForJob", () => {
     };
 
     try {
-      await expect(
-        api.waitForJob("job-123", { timeout: 0.1, pollInterval: 0.01 }),
-      ).rejects.toThrow(PixelatedEmpathyAPIError);
+      await expect(api.waitForJob("job-123", { timeout: 0.1, pollInterval: 0.01 })).rejects.toThrow(
+        PixelatedEmpathyAPIError,
+      );
     } finally {
       Date.now = originalNow;
     }
@@ -423,10 +420,7 @@ describe("PixelatedEmpathyAPI Dataset Methods", () => {
 
     const result = await api.getDatasetInfo("test_dataset");
 
-    expect(makeRequestSpy).toHaveBeenCalledWith(
-      "GET",
-      "/datasets/test_dataset",
-    );
+    expect(makeRequestSpy).toHaveBeenCalledWith("GET", "/datasets/test_dataset");
     expect(result).toEqual(mockDatasetInfo);
   });
 });
@@ -566,10 +560,7 @@ describe("PixelatedEmpathyAPI Method getJobStatus", () => {
 
     const result = await api.getJobStatus("job-123");
 
-    expect(makeRequestSpy).toHaveBeenCalledWith(
-      "GET",
-      "/processing/jobs/job-123",
-    );
+    expect(makeRequestSpy).toHaveBeenCalledWith("GET", "/processing/jobs/job-123");
     expect(result).toEqual(mockStatus);
   });
 
@@ -820,10 +811,7 @@ describe("PixelatedEmpathyAPI Method toRecordArray edge cases", () => {
   it("should correctly filter out non-plain objects from arrays", () => {
     const api = new PixelatedEmpathyAPI("test_key");
     const input = [{ valid: true }, null, "string", [1, 2], { another: "yes" }];
-    expect(api.toRecordArray(input)).toEqual([
-      { valid: true },
-      { another: "yes" },
-    ]);
+    expect(api.toRecordArray(input)).toEqual([{ valid: true }, { another: "yes" }]);
   });
 });
 
@@ -990,7 +978,7 @@ describe("PixelatedEmpathyAPI Method sleep", () => {
     const sleepPromise = api.sleep(100);
 
     const resolved = vi.fn();
-    sleepPromise.then(resolved);
+    void sleepPromise.then(resolved);
 
     await vi.advanceTimersByTimeAsync(50);
 
