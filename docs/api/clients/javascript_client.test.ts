@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     PixelatedEmpathyAPI,
     PixelatedEmpathyAPIError,
@@ -892,6 +892,41 @@ describe('PixelatedEmpathyAPI Method formatValue edge cases', () => {
         const myFunc = function() { return 42; };
         // JSON.stringify(function) returns undefined
         expect(api.formatValue(myFunc)).toBeUndefined();
+    });
+});
+
+describe('PixelatedEmpathyAPI Method sleep', () => {
+    beforeEach(() => {
+        vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('should resolve after the specified delay', async () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const sleepPromise = api.sleep(100);
+
+        // Fast-forward time
+        vi.advanceTimersByTime(100);
+
+        // If it correctly resolves, this await will finish
+        await expect(sleepPromise).resolves.toBeUndefined();
+    });
+
+    it('should not resolve before the specified delay', () => {
+        const api = new PixelatedEmpathyAPI('test_key');
+        const sleepPromise = api.sleep(100);
+
+        const resolved = vi.fn();
+        sleepPromise.then(resolved);
+
+        // Fast-forward time partially
+        vi.advanceTimersByTime(50);
+
+        // Ensure promise has not resolved yet
+        expect(resolved).not.toHaveBeenCalled();
     });
 });
 
