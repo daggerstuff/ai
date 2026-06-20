@@ -541,3 +541,197 @@ class TestScoreDensity:
                 )
 
         check_density_le_raw()
+
+
+class TestBatchScore:
+    """Tests for batch_score method (VAL-SCORER-015)."""
+
+    def test_batch_score_same_length(self):
+        """batch_score returns list of same length as input."""
+        responses = ["CBT cognitive restructuring", "DBT mindfulness", "MI change talk"]
+        scores = ClinicalValidityScorer.batch_score(responses)
+        assert len(scores) == len(responses)
+
+    def test_batch_score_preserves_order(self):
+        """batch_score preserves order of input responses."""
+        responses = ["a", "b", "c"]
+        scores = ClinicalValidityScorer.batch_score(responses)
+        # Each response should get a score matching its content
+        for _i, (response, score) in enumerate(zip(responses, scores, strict=True)):
+            # Score should be valid float in [0, 1]
+            assert isinstance(score, float)
+            assert 0.0 <= score <= 1.0
+            # The order should be preserved
+            assert score == ClinicalValidityScorer.score(response)
+
+    def test_batch_score_empty_list(self):
+        """batch_score([]) returns []."""
+        scores = ClinicalValidityScorer.batch_score([])
+        assert scores == []
+        assert isinstance(scores, list)
+
+    def test_batch_score_all_in_range(self):
+        """All batch scores are in [0.0, 1.0]."""
+        responses = [
+            "CBT cognitive restructuring",
+            "DBT mindfulness exercise",
+            "MI change talk readiness",
+            "ACT acceptance commitment",
+            "generic non-clinical text",
+            "",
+            "   ",
+            None
+        ]
+        scores = ClinicalValidityScorer.batch_score(responses)
+        for score in scores:
+            assert isinstance(score, float)
+            assert 0.0 <= score <= 1.0, f"Score {score} out of range"
+
+    def test_batch_score_with_mixed_content(self):
+        """batch_score works with mixed clinical and non-clinical content."""
+        responses = [
+            "The sky is blue.",  # Non-clinical
+            "CBT cognitive restructuring challenging automatic thoughts",  # CBT
+            "DBT mindfulness distress tolerance opposite action",  # DBT
+            "MI change talk sustain talk importance confidence",  # MI
+            "",  # Empty
+            "   ",  # Whitespace
+            None  # None
+        ]
+        scores = ClinicalValidityScorer.batch_score(responses)
+        assert len(scores) == len(responses)
+
+        # Check that clinical text scores higher than non-clinical
+        non_clinical_score = scores[0]
+        cbt_score = scores[1]
+        dbt_score = scores[2]
+        mi_score = scores[3]
+
+        # Clinical text should score higher than generic text
+        assert cbt_score > non_clinical_score
+        assert dbt_score > non_clinical_score
+        assert mi_score > non_clinical_score
+
+        # Empty/whitespace/None should score 0.0
+        assert scores[4] == 0.0  # Empty
+        assert scores[5] == 0.0  # Whitespace
+        assert scores[6] == 0.0  # None
+
+
+class TestModalityCoverage:
+    """Tests for modality_coverage method (VAL-SCORER-016)."""
+
+    def test_modality_coverage_returns_all_modalities(self):
+        """modality_coverage returns dict with all therapy modality keys."""
+        result = ClinicalValidityScorer.modality_coverage("test")
+        expected_modalities = set(ClinicalValidityScorer.THERAPY_MODALITIES.keys())
+        assert set(result.keys()) == expected_modalities
+
+    def test_modality_coverage_cbt_text_has_cbt_matches(self):
+        """CBT text has 'cbt' key with count > 0."""
+        text = "CBT cognitive restructuring challenging automatic thought"
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result["cbt"]["count"] > 0
+        assert len(result["cbt"]["patterns"]) > 0
+
+    def test_modality_coverage_dbt_text_has_dbt_matches(self):
+        """DBT text has 'dbt' key with count > 0."""
+        text = "DBT mindfulness distress tolerance opposite action wise mind"
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result["dbt"]["count"] > 0
+        assert len(result["dbt"]["patterns"]) > 0
+
+    def test_modality_coverage_empty_text_returns_all_zeros(self):
+        """Empty text returns all modalities with zero counts."""
+        result = ClinicalValidityScorer.modality_coverage("")
+        for _modality, data in result.items():
+            assert data["count"] == 0
+            assert data["patterns"] == []
+
+    def test_modality_coverage_whitespace_text_returns_all_zeros(self):
+        """Whitespace text returns all modalities with zero counts."""
+        result = ClinicalValidityScorer.modality_coverage("   ")
+        for _modality, data in result.items():
+            assert data["count"] == 0
+            assert data["patterns"] == []
+
+    def test_modality_coverage_none_text_returns_all_zeros(self):
+        """None text returns all modalities with zero counts."""
+        result = ClinicalValidityScorer.modality_coverage(None)
+        for _modality, data in result.items():
+            assert data["count"] == 0
+            assert data["patterns"] == []
+
+    def test_modality_coverage_cbt_has_no_dbt_matches(self):
+        """Pure CBT text should have zero DBT matches."""
+        text = "CBT cognitive restructuring challenging automatic thought"
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result["cbt"]["count"] > 0
+        assert result["dbt"]["count"] == 0
+
+    def test_modality_coverage_dbt_has_no_cbt_matches(self):
+        """Pure DBT text should have zero CBT matches."""
+        text = "DBT mindfulness distress tolerance opposite action"
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result["dbt"]["count"] > 0
+        assert result["cbt"]["count"] == 0
+
+    def test_modality_coverage_mi_text_has_mi_matches(self):
+        """MI text has 'mi' key with count > 0."""
+        text = "MI change talk sustain talk readiness ruler OARS"
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result["mi"]["count"] > 0
+        assert len(result["mi"]["patterns"]) > 0
+
+    def test_modality_coverage_act_text_has_act_matches(self):
+        """ACT text has 'act' key with count > 0."""
+        text = "ACT acceptance commitment cognitive defusion values-based action"
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result["act"]["count"] > 0
+        assert len(result["act"]["patterns"]) > 0
+
+    def test_modality_coverage_returns_consistent_structure(self):
+        """modality_coverage returns consistent dict structure for all modalities."""
+        text = "CBT cognitive restructuring"
+        result = ClinicalValidityScorer.modality_coverage(text)
+
+        for _modality, data in result.items():
+            assert isinstance(data, dict)
+            assert "count" in data
+            assert "patterns" in data
+            assert isinstance(data["count"], int)
+            assert isinstance(data["patterns"], list)
+            assert all(isinstance(p, str) for p in data["patterns"])
+
+    def test_modality_coverage_with_mixed_modalities(self):
+        """Text with multiple modalities counts all matches correctly."""
+        text = "CBT cognitive restructuring and DBT mindfulness exercise"
+        result = ClinicalValidityScorer.modality_coverage(text)
+
+        # Should have matches for both CBT and DBT
+        assert result["cbt"]["count"] > 0
+        assert result["dbt"]["count"] > 0
+        # Other modalities should have zero counts
+        assert result["mi"]["count"] == 0
+        assert result["act"]["count"] == 0
+
+    def test_modality_coverage_patterns_are_actual_matches(self):
+        """Returned patterns should match the actual text segments found."""
+        text = "CBT cognitive restructuring challenging automatic thought"
+        result = ClinicalValidityScorer.modality_coverage(text)
+
+        for pattern in result["cbt"]["patterns"]:
+            # Each pattern should be found in the original text (case-insensitive)
+            assert pattern.lower() in text.lower()
+
+
+class TestVersionUpdate:
+    """Tests for VERSION update to 4.0.0 (VAL-SCORER-022)."""
+
+    def test_version_is_updated_to_4_0_0(self):
+        """VERSION constant is updated from 3.0.0 to 4.0.0."""
+        assert ClinicalValidityScorer.VERSION == "4.0.0"
+
+    def test_version_is_string(self):
+        """VERSION is a string."""
+        assert isinstance(ClinicalValidityScorer.VERSION, str)

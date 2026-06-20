@@ -58,7 +58,7 @@ class ClinicalValidityScorer:
         EBP_PATTERNS: Evidence-based practice markers.
     """
 
-    VERSION: ClassVar[str] = "3.0.0"
+    VERSION: ClassVar[str] = "4.0.0"
 
     THERAPY_MODALITIES: ClassVar[dict[str, tuple[str, ...]]] = {
         "cbt": (
@@ -572,6 +572,46 @@ class ClinicalValidityScorer:
             "category": cls._determine_category(detail),
             "detail": detail,
         }
+
+    @classmethod
+    def batch_score(cls, responses: list[str]) -> list[float]:
+        """Compute clinical validity scores for multiple responses.
+
+        Args:
+            responses: List of text responses to score
+
+        Returns:
+            List of scores in [0.0, 1.0], preserving the order of input responses
+        """
+        return [cls.score(response) for response in responses]
+
+    @classmethod
+    def modality_coverage(cls, text: str) -> dict[str, dict]:
+        """Count matches per therapy modality.
+
+        Args:
+            text: Text to analyze
+
+        Returns:
+            Dictionary mapping modality names (cbt, dbt, mi, etc.) to dicts
+            containing 'count' (match count) and 'patterns' (list of matched patterns)
+        """
+        if not text or not isinstance(text, str):
+            return {modality: {"count": 0, "patterns": []} for modality in cls.THERAPY_MODALITIES}
+
+        results = {}
+        for modality, patterns in cls.THERAPY_MODALITIES.items():
+            matches = []
+            for pattern in patterns:
+                # Find all matches for this pattern
+                pattern_matches = list(re.finditer(pattern, text, re.IGNORECASE))
+                if pattern_matches:
+                    matches.extend([m.group(0) for m in pattern_matches])
+            results[modality] = {
+                "count": len(matches),
+                "patterns": matches
+            }
+        return results
 
     @classmethod
     def classify_score(cls, score: float) -> str:
