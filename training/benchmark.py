@@ -513,17 +513,24 @@ def main() -> None:
     """CLI entry point for the benchmark."""
     parser = argparse.ArgumentParser(description="Run clinical validity scorer benchmark")
     parser.add_argument("--output", type=str, default=None, help="Output JSON file path")
+    parser.add_argument("--format", type=str, default="json", choices=["json"], help="Output format (default: json)")
     args = parser.parse_args()
 
     output_path = Path(args.output) if args.output else None
 
     try:
-        run_benchmark(output_path)
+        report = run_benchmark(output_path)
+        
+        # If no output file specified, print JSON to stdout
+        if output_path is None:
+            print(json.dumps(report, indent=2))
+        
         sys.exit(0)
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
-    except Exception:
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
 
