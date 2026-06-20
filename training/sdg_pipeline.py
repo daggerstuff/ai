@@ -991,18 +991,54 @@ def _validate_sample_style(sample: dict, output: str) -> str | None:
     return None
 
 
+def _build_clinical_validity_reason(score: float, classification: str) -> str:
+    """Build a human-readable reason for the clinical validity classification."""
+    if classification == "excluded":
+        return (
+            f"Score {score:.3f} below exclude threshold "
+            f"({ClinicalValidityScorer.EXCLUDE_THRESHOLD}). "
+            f"Requires annotation before use."
+        )
+    if classification == "annotation_needed":
+        return (
+            f"Score {score:.3f} in borderline range "
+            f"({ClinicalValidityScorer.EXCLUDE_THRESHOLD} - {ClinicalValidityScorer.ACCEPT_THRESHOLD}). "
+            f"Expert review recommended."
+        )
+    return (
+        f"Score {score:.3f} exceeds accept threshold "
+        f"({ClinicalValidityScorer.ACCEPT_THRESHOLD}). "
+        f"Clinically valid."
+    )
+
+
 def _validate_clinical_validity(
     sample: dict,
     output: str,
     min_clinical_validity: float,
     nemo_config: NemoConfig | None = None,
 ) -> str | None:
+    """Validate output using ClinicalValidityScorer with three-tier routing.
+
+    Routing logic (when min_clinical_validity > 0):
+        - Score >= 0.6: classification="accepted", sample passes through, no classification field added
+        - Score 0.4-0.6: classification="annotation_needed", reason added, sample passes
+        - Score < 0.4: classification="excluded", sample rejected
+
+    When min_clinical_validity=0.0: validation is skipped entirely, no classification added.
+    """
     if min_clinical_validity <= 0:
         return None
     score = ClinicalValidityJudge.score(output, nemo_config)
     sample["clinical_validity_score"] = score
-    if score < min_clinical_validity:
-        return f"Clinical validity score too low ({score:.3f} < {min_clinical_validity})"
+    classification = ClinicalValidityScorer.classify_score(score)
+    if classification == "excluded":
+        sample["clinical_validity_classification"] = classification
+        sample["clinical_validity_reason"] = _build_clinical_validity_reason(score, classification)
+        return f"Clinical validity score too low ({score:.3f} < {ClinicalValidityScorer.EXCLUDE_THRESHOLD})"
+    if classification == "annotation_needed":
+        sample["clinical_validity_classification"] = classification
+        sample["clinical_validity_reason"] = _build_clinical_validity_reason(score, classification)
     return None
 
 
