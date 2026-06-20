@@ -1,70 +1,53 @@
 #!/usr/bin/env python3
 """
-Test suite for clinical_accuracy_validator
-Generated test structure for production readiness validation.
+Test suite for clinical_accuracy_validator.
+Tests for ai.core.pipelines.clinical_accuracy_validator.ClinicalAccuracyValidator.
 """
 
-import unittest
-from unittest.mock import patch
+import pytest
 
-# Import the module being tested
-try:
-    from ai.core.pipelines.clinical_accuracy_validator import (
-        ClinicalAccuracyValidator,
-    )
-except ImportError:
-    try:
-        from ai.models.pixel_core.validation.clinical_accuracy_validator import (
-            ClinicalAccuracyValidator,
-        )
-    except ImportError:
-        try:
-            from ai.inference.clinical_accuracy_validator import (
-                ClinicalAccuracyValidator,
-            )
-        except ImportError:
-            # Create a mock class for testing
-            class ClinicalAccuracyValidator:
-                def __init__(self):
-                    pass
-
-                def process(self, data):
-                    return data
+from ai.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
 
 
-class TestClinicalAccuracyValidator(unittest.TestCase):
+class TestClinicalAccuracyValidator:
     """Test suite for ClinicalAccuracyValidator class."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up test fixtures."""
         self.module = ClinicalAccuracyValidator()
-        self.test_data = {"test": "data"}
+        self.test_data = {"text": "CBT therapy session focused on cognitive restructuring techniques"}
 
     def test_initialization(self):
         """Test module initialization."""
         assert self.module is not None
 
     def test_basic_functionality(self):
-        """Test basic module functionality."""
+        """Test basic module functionality with valid text data."""
         result = self.module.process(self.test_data)
         assert result is not None
+        assert hasattr(result, "score")
+        assert hasattr(result, "is_accurate")
+        assert hasattr(result, "issues")
 
-    def test_error_handling(self):
-        """Test error handling."""
-        with self.assertRaises(Exception):
+    def test_error_handling_none(self):
+        """Test error handling for None input."""
+        with pytest.raises(ValueError, match="Clinical validation input cannot be None"):
             self.module.process(None)
 
-    @patch("builtins.print")
-    def test_logging(self, _mock_print):
+    def test_error_handling_empty_text(self):
+        """Test error handling for empty text in dict."""
+        with pytest.raises(ValueError, match="No text content available"):
+            self.module.process({"text": ""})
+
+    def test_logging(self):
         """Test logging functionality."""
         self.module.process(self.test_data)
-        # Add specific logging tests here
 
 
-class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
+class TestClinicalAccuracyValidatorIntegration:
     """Integration tests for ClinicalAccuracyValidator."""
 
-    def setUp(self):
+    def setup_method(self):
         """Set up integration test fixtures."""
         self.module = ClinicalAccuracyValidator()
 
@@ -74,4 +57,4 @@ class TestClinicalAccuracyValidatorIntegration(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    pytest.main([__file__, "-v"])
