@@ -2,9 +2,6 @@
 """Property tests for Phase 27 reward score."""
 from __future__ import annotations
 
-import math
-
-import numpy as np
 import pytest
 
 from training.reward_score import RewardScoreCalculator, compute_reward, filter_by_threshold

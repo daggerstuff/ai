@@ -24,9 +24,8 @@ def client():
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(bind=engine)
 
-        with patch("annotation_api.database.get_engine", return_value=engine):
-            with TestClient(app) as test_client:
-                yield test_client
+        with patch("annotation_api.database.get_engine", return_value=engine), TestClient(app) as test_client:
+            yield test_client
 
 
 class TestReviewEndpoint:

@@ -739,21 +739,21 @@ class TestVersionUpdate:
 
 class TestEdgeCases:
     """Tests for edge cases to improve coverage."""
-    
+
     def test_borderline_score_annotation_needed_flag(self):
         """Test that borderline scores (0.4-0.6) trigger annotation_needed flag."""
         # Create a text that should score in the borderline range
         # Using a minimal therapeutic text that's not too strong
         text = "Let's try a cognitive exercise. Think about your thoughts."
         result = ClinicalValidityScorer.score_with_flags(text)
-        
+
         # Check if score is in borderline range
         score = result["validity_score"]
         if ClinicalValidityScorer.EXCLUDE_THRESHOLD <= score < ClinicalValidityScorer.ACCEPT_THRESHOLD:
             assert "annotation_needed" in result["flags"]
         # Note: This test might pass or fail depending on the actual score,
         # but it will exercise the borderline logic in _build_flags
-    
+
     def test_build_flags_borderline_score(self):
         """Direct test of _build_flags with borderline score."""
         # Mock detail scores with a borderline overall score
@@ -766,10 +766,10 @@ class TestEdgeCases:
             "dsm5": 0.5,
         }
         overall = 0.5  # Borderline score
-        
+
         flags = ClinicalValidityScorer._build_flags("test text", detail_scores, overall)
         assert "annotation_needed" in flags
-    
+
     def test_determine_category_empty_dict(self):
         """Test _determine_category with empty dict returns 'unknown'."""
         result = ClinicalValidityScorer._determine_category({})

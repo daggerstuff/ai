@@ -11,9 +11,9 @@ except ImportError:
     settings = None
     st = None
 
+from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.grpo_trainer import (
     CRISIS_RESOURCES,
-    EMPATHY_KEYWORDS,
     _clinical_validity_score,
     _crisis_score,
     _empathy_score,
@@ -21,8 +21,6 @@ from training.grpo_trainer import (
     filter_by_threshold,
     score,
 )
-from training.clinical_validity_scorer import ClinicalValidityScorer
-
 
 # ---------------------------------------------------------------------------
 # _safety_score

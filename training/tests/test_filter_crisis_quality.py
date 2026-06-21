@@ -70,7 +70,7 @@ def test_filter_crisis_dataset_keep_valid():
         filter_crisis_dataset(str(input_file), str(output_file))
 
         assert output_file.exists()
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             lines = f.readlines()
         assert len(lines) == 1
         assert json.loads(lines[0]) == valid_conv
@@ -119,7 +119,7 @@ def test_filter_crisis_dataset_keep_aligned_crisis():
         filter_crisis_dataset(str(input_file), str(output_file))
 
         assert output_file.exists()
-        with open(output_file, "r") as f:
+        with open(output_file) as f:
             lines = f.readlines()
         assert len(lines) == 1
         assert json.loads(lines[0]) == aligned_conv
