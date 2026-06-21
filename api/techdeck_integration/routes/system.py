@@ -191,7 +191,6 @@ def get_system_config():
 
     Query Parameters:
         section (str): Specific configuration section to retrieve
-        sensitive (bool): Include sensitive configuration data
 
     Returns:
         System configuration with environment and settings
@@ -206,7 +205,6 @@ def get_system_config():
     try:
         # Get query parameters
         section = request.args.get("section")
-        include_sensitive = request.args.get("sensitive", "false").lower() == "true"
 
         # Sanitize inputs
         section = sanitize_input(section) if section else None
@@ -214,7 +212,7 @@ def get_system_config():
         request_logger.info(f"Retrieving configuration for section: {section}")
 
         # Get configuration
-        config = _get_system_config(section, include_sensitive)
+        config = _get_system_config(section)
 
         # Log successful retrieval
         request_logger.info("System configuration retrieved successfully")
@@ -698,7 +696,7 @@ def _check_readiness(redis_client: RedisClient | None) -> dict[str, Any]:
         }
 
 
-def _get_system_config(section: str | None, include_sensitive: bool) -> dict[str, Any]:
+def _get_system_config(section: str | None) -> dict[str, Any]:
     """Retrieve system configuration."""
     try:
         # Base configuration (non-sensitive)
@@ -724,15 +722,6 @@ def _get_system_config(section: str | None, include_sensitive: bool) -> dict[str
                 "metrics_collection": True,
             },
         }
-
-        # Add sensitive configuration if requested
-        if include_sensitive:
-            config["security"].update(
-                {
-                    "jwt_secret_key": os.getenv("JWT_SECRET_KEY", "[REDACTED]"),
-                    "encryption_key": os.getenv("ENCRYPTION_KEY", "[REDACTED]"),
-                }
-            )
 
         # Return specific section if requested
         if section:
