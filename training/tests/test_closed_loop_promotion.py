@@ -38,7 +38,7 @@ def temp_data_dir():
 @pytest.fixture
 def in_memory_db():
     """Create a file-based SQLite database for testing.
-    
+
     Uses a temp file to ensure a single database instance across connections.
     """
     import tempfile
@@ -144,7 +144,7 @@ class TestRunOnce:
 
     def test_run_once_records_item_in_report(self, temp_data_dir, in_memory_db):
         """VAL-M3-LOOP-001: Promotion report records validated count."""
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="Good therapeutic response.",
             original_score=0.65,
@@ -168,7 +168,7 @@ class TestMergeIntoDataset:
     def test_merge_returns_correct_count(self, temp_data_dir, in_memory_db):
         """VAL-M3-LOOP-002: merge_into_dataset() appends and returns correct count."""
         # Create validated items first
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="Mergable therapeutic response.",
             original_score=0.7,
@@ -199,7 +199,7 @@ class TestSafetyRevalidation:
     def test_run_once_rejects_safety_violation(self, temp_data_dir, in_memory_db, caplog):
         """VAL-M3-LOOP-003: Item with crisis keywords is rejected as safety_violation."""
         # Create an item with crisis keywords
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="I want to kill myself. I have a plan to end my life.",
             original_score=0.5,
@@ -222,7 +222,7 @@ class TestSafetyRevalidation:
     def test_safe_item_passes_safety_check(self, temp_data_dir, in_memory_db):
         """VAL-M3-LOOP-003: Safe item without crisis keywords passes safety check."""
         # Item with NO crisis keywords (genuinely safe text)
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="The therapist used CBT techniques to help the patient develop coping strategies.",
             original_score=0.55,
@@ -300,7 +300,7 @@ class TestDuplicateRejection:
         sha_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
 
         # Create an item with the same text
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text=text,
             original_score=0.6,
@@ -328,7 +328,7 @@ class TestStructuredLogging:
 
     def test_every_item_emits_log_line(self, temp_data_dir, in_memory_db, caplog):
         """VAL-M3-LOOP-006: Every decision writes log with item_id, decision, reason, timestamp."""
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="Therapeutic response about coping skills.",
             original_score=0.7,
@@ -391,7 +391,7 @@ class TestSchemaValidation:
     def test_rejects_per_dimension_scores_outside_range(self, temp_data_dir, in_memory_db):
         """Items with per_dimension_scores outside [0, 1] are rejected as schema_violation."""
         # Create item with invalid per-dimension score
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="Valid text.",
             original_score=0.6,
@@ -406,7 +406,7 @@ class TestSchemaValidation:
 
     def test_rejects_negative_per_dimension_scores(self, temp_data_dir, in_memory_db):
         """Items with negative per-dimension scores are rejected."""
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="Valid text.",
             original_score=0.6,
@@ -427,7 +427,7 @@ class TestLowAgreementRejection:
         """Items with agreement below threshold are rejected as low_agreement."""
         # Original score 0.3 (exclude range), reviewer score 0.8 (accept range)
         # These disagree - agreement should be low
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="A borderline therapeutic response.",
             original_score=0.3,
@@ -444,7 +444,7 @@ class TestLowAgreementRejection:
     def test_accepts_high_agreement(self, temp_data_dir, in_memory_db):
         """Items with both scores in same range are validated."""
         # Both in accept range (>= 0.6)
-        item_id = _create_reviewed_item(
+        _create_reviewed_item(
             in_memory_db,
             sample_text="A good therapeutic response.",
             original_score=0.7,

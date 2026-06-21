@@ -71,7 +71,7 @@ class TestLoraTargetModules:
             lora_target_modules="gate_proj,up_proj,down_proj",
         )
         lora_config = build_lora_config(args)
-        assert set([module.strip() for module in (lora_config.target_modules or [])]) == {
+        assert {module.strip() for module in (lora_config.target_modules or [])} == {
             "gate_proj",
             "up_proj",
             "down_proj",

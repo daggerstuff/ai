@@ -242,7 +242,7 @@ class TestGRPOIntegration:
 
         Uses a mocked training run to exercise the metrics-writing logic.
         """
-        from training.grpo_trainer import run_grpo, build_parser
+        from training.grpo_trainer import build_parser, run_grpo
 
         data_path = tmp_path / "test_prompts.jsonl"
         data_path.write_text('{"prompt": "test"}\n', encoding="utf-8")

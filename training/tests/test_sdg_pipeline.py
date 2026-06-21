@@ -9,21 +9,20 @@ generation_report.json fields, and non-nightmare safety filtering.
 from __future__ import annotations
 
 import json
-import urllib.error
 from argparse import Namespace
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from training.sdg_pipeline import (
     CRISIS_RESOURCES,
     FAILED_CALL_ABORT_THRESHOLD,
-    GenerationStats,
-    NemoConfig,
     NICHE_CATEGORIES,
     NIGHTMARE_SCENARIOS,
     THERAPIST_STYLE_PROFILES,
+    GenerationStats,
+    NemoConfig,
     _call_nemo,
     _clinical_validity_stats,
     _evaluate_therapist_style,
@@ -1223,7 +1222,7 @@ class TestClinicalValidityRouting:
             "output": VALID_OUTPUT,
             "style_profile": "warm_professional",
         }
-        ok, reason = validate_sample(sample, min_clinical_validity=0.1)
+        ok, _reason = validate_sample(sample, min_clinical_validity=0.1)
         assert ok
         assert sample["clinical_validity_score"] == 0.70
         # "accepted" classification is NOT added per spec (no classification field needed)
@@ -1254,7 +1253,7 @@ class TestClinicalValidityRouting:
             "output": VALID_OUTPUT,
             "style_profile": "warm_professional",
         }
-        ok, reason = validate_sample(sample, min_clinical_validity=0.1)
+        ok, _reason = validate_sample(sample, min_clinical_validity=0.1)
         assert ok
         assert sample["clinical_validity_score"] == 0.50
         assert sample["clinical_validity_classification"] == "annotation_needed"
@@ -1288,7 +1287,7 @@ class TestClinicalValidityRouting:
             "output": VALID_OUTPUT,
             "style_profile": "warm_professional",
         }
-        ok, reason = validate_sample(sample, min_clinical_validity=0.0)
+        ok, _reason = validate_sample(sample, min_clinical_validity=0.0)
         # With min_clinical_validity=0.0, validation is skipped entirely
         assert ok
         assert "clinical_validity_classification" not in sample
@@ -1386,7 +1385,6 @@ class TestRunSdgFailureTracking:
 
         def track_calls(*args, **kwargs):
             call_record.append(1)
-            return None
 
         mock_gen.side_effect = track_calls
         args = Namespace(

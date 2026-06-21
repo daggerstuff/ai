@@ -31,20 +31,20 @@ from training.dedup_normalize import (
 class TestJaccardSimilarity:
 
     def test_identical_sets(self):
-        assert _jaccard_similarity(frozenset("a b c".split()), frozenset("a b c".split())) == 1.0
+        assert _jaccard_similarity(frozenset(["a", "b", "c"]), frozenset(["a", "b", "c"])) == 1.0
 
     def test_disjoint_sets(self):
-        assert _jaccard_similarity(frozenset("a b".split()), frozenset("c d".split())) == 0.0
+        assert _jaccard_similarity(frozenset(["a", "b"]), frozenset(["c", "d"])) == 0.0
 
     def test_partial_overlap(self):
-        result = _jaccard_similarity(frozenset("a b c".split()), frozenset("b c d".split()))
+        result = _jaccard_similarity(frozenset(["a", "b", "c"]), frozenset(["b", "c", "d"]))
         assert 0.0 < result < 1.0
 
     def test_empty_sets(self):
         assert _jaccard_similarity(frozenset(), frozenset()) == 1.0
 
     def test_one_empty(self):
-        assert _jaccard_similarity(frozenset("a b".split()), frozenset()) == 0.0
+        assert _jaccard_similarity(frozenset(["a", "b"]), frozenset()) == 0.0
 
 
 class TestExtractText:
@@ -112,7 +112,7 @@ class TestProcessFile:
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
 
-        kept, exact, near, chatml, refmt, total = process_file(
+        kept, exact, _near, _chatml, _refmt, total = process_file(
             input_file, seen, token_sets, 0.85, set(), rejection,
         )
         assert total == 2
@@ -130,7 +130,7 @@ class TestProcessFile:
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
 
-        kept, exact, near, chatml, refmt, total = process_file(
+        _kept, exact, near, _chatml, _refmt, total = process_file(
             input_file, seen, token_sets, 0.85, set(), rejection,
         )
         assert total == 2
@@ -241,7 +241,7 @@ if st is not None:
         result = _jaccard_similarity(tokens, tokens)
         assert result == 1.0
 
-    @given(st.from_regex(r'[a-zA-Z ]{1,50}', fullmatch=True))
+    @given(st.from_regex(r"[a-zA-Z ]{1,50}", fullmatch=True))
     @settings(max_examples=50)
     def test_hypothesis_edge_case_preserved(text: str):
         if not text.strip():

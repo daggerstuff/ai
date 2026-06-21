@@ -10,7 +10,6 @@ Covers all Oracle review recommendations:
 7. Context-aware crisis resource handling
 """
 
-import json
 import os
 import random
 import sys
@@ -31,7 +30,6 @@ import generate_nightmare_fuel_5k as nf
 def reset_random():
     """Reset random seed before each test for reproducibility."""
     random.seed(42)
-    yield
 
 
 @pytest.fixture
@@ -352,7 +350,7 @@ class TestLLMAugmentationRate:
         """PROMPT_VARIATION_RATE should either not exist or be 0."""
         if hasattr(nf, "PROMPT_VARIATION_RATE"):
             assert nf.PROMPT_VARIATION_RATE == 0, (
-                f"PROMPT_VARIATION_RATE should be 0 (removing deterministic variation)"
+                "PROMPT_VARIATION_RATE should be 0 (removing deterministic variation)"
             )
 
 
