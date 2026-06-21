@@ -17,6 +17,8 @@ class QueueItemStatus(StrEnum):
     """Status of a queue item."""
     PENDING = "pending"
     REVIEWED = "reviewed"
+    VALIDATED = "validated"
+    MERGED = "merged"
 
 
 class QueueItem(Base):
@@ -34,6 +36,11 @@ class QueueItem(Base):
 
     # Relationship to reviews
     reviews: Mapped[list[Review]] = relationship("Review", back_populates="queue_item", cascade="all, delete-orphan")
+
+    # Relationship to promotion audits
+    promotion_audits: Mapped[list[PromotionAudit]] = relationship(
+        "PromotionAudit", back_populates="queue_item", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("idx_queue_items_status", "status"),
@@ -66,3 +73,29 @@ class Review(Base):
 
     def __repr__(self) -> str:
         return f"Review(id={self.id}, item_id={self.item_id}, reviewer_score={self.reviewer_score})"
+
+
+class PromotionAudit(Base):
+    """Audit log for promotion actions on queue items."""
+
+    __tablename__ = "promotion_audits"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    item_id: Mapped[int] = mapped_column(ForeignKey("queue_items.id"), nullable=False)
+    promoter_id: Mapped[str] = mapped_column(String, nullable=False)
+    before_score: Mapped[float] = mapped_column(Float, nullable=False)
+    after_score: Mapped[float] = mapped_column(Float, nullable=False)
+    target_stage: Mapped[str] = mapped_column(String, nullable=False)
+    notes: Mapped[str] = mapped_column(Text, nullable=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # Relationship to queue item
+    queue_item: Mapped[QueueItem] = relationship("QueueItem", back_populates="promotion_audits")
+
+    __table_args__ = (
+        Index("idx_promotion_audits_item_id", "item_id"),
+        Index("idx_promotion_audits_timestamp", "timestamp"),
+    )
+
+    def __repr__(self) -> str:
+        return f"PromotionAudit(id={self.id}, item_id={self.item_id}, target_stage={self.target_stage})"
