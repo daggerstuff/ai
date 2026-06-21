@@ -149,6 +149,60 @@ async def submit_review(item_id: int, review: ReviewCreate) -> ReviewResponse:
         )
 
 
+@app.patch("/queue/{item_id}/review", response_model=ReviewResponse)
+async def submit_review_by_path(item_id: int, review: ReviewCreate) -> ReviewResponse:
+    """Submit a review for a queue item via PATCH path parameter.
+
+    This endpoint is idempotent: duplicate reviews are allowed and both are logged.
+    The latest review's score is authoritative for the item.
+    """
+    logger.info(
+        "Review submission: item_id=%s, reviewer_id=%s, timestamp=%s",
+        item_id,
+        review.reviewer_id,
+        datetime.now(UTC).isoformat(),
+    )
+    with get_db_session() as session:
+        # Check if item exists
+        item = session.query(QueueItem).filter(QueueItem.id == item_id).first()
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Queue item with ID {item_id} not found",
+            )
+
+        # Create review (idempotent - always creates a new row)
+        db_review = Review(
+            item_id=item_id,
+            reviewer_score=review.reviewer_score,
+            notes=review.notes,
+            reviewer_id=review.reviewer_id,
+            created_at=datetime.now(UTC),
+        )
+        session.add(db_review)
+
+        # Update item status to reviewed
+        item.status = QueueItemStatus.REVIEWED
+        session.flush()
+        session.refresh(db_review)
+
+        logger.info(
+            "Review persisted: item_id=%s, review_id=%s, reviewer_id=%s",
+            item_id,
+            db_review.id,
+            review.reviewer_id,
+        )
+
+        return ReviewResponse(
+            id=db_review.id,
+            item_id=db_review.item_id,
+            reviewer_score=db_review.reviewer_score,
+            notes=db_review.notes,
+            reviewer_id=db_review.reviewer_id,
+            created_at=db_review.created_at,
+        )
+
+
 @app.get("/queue/stats", response_model=QueueStats)
 async def get_queue_stats() -> QueueStats:
     """Get queue statistics."""
