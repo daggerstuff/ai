@@ -392,16 +392,13 @@ class AdvancedRoutingRules:
         boost_count = math.ceil(borderline_count * boost_factor)
 
         # Apply boost (move items to upstream_boost)
-        items_moved = 0
-        for item_id, score in borderline_items:
-            if items_moved >= boost_count:
+        for i, (item_id, score) in enumerate(borderline_items):
+            if i >= boost_count:
                 break
 
             result.upstream_boost.items.append(item_id)
             result.upstream_boost.scores.append(score)
             result.upstream_boost.reasons.append("borderline_rate_high")
-
-            items_moved += 1
 
         logger.info(
             "Borderline rate rule: borderline_count=%d, boost_count=%d, "

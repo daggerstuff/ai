@@ -990,7 +990,7 @@ describe("PixelatedEmpathyAPI Method sleep", () => {
     const sleepPromise = api.sleep(100);
 
     const resolved = vi.fn();
-    sleepPromise.then(resolved);
+    void sleepPromise.then(resolved);
 
     await vi.advanceTimersByTimeAsync(50);
 
