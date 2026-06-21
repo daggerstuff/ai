@@ -13,7 +13,7 @@ Tests cover:
 
 import pytest
 import torch
-import torch.nn as nn
+from torch import nn
 
 from training.models.base.resnet_emotional_memory import (
     EmotionalMemoryPool,
@@ -177,7 +177,7 @@ class TestEmotionalMemoryPool:
         mask = torch.ones(2, 16)
         mask[0, 8:] = 0
 
-        output, state = memory(x, mask)
+        output, _state = memory(x, mask)
         assert output.shape == x.shape
 
 
@@ -214,7 +214,7 @@ class TestHumanContextLayer:
         mask = torch.ones(2, 16)
         mask[0, 8:] = 0
 
-        output, state = layer(x, mask)
+        output, _state = layer(x, mask)
         assert output.shape == x.shape
 
 
@@ -250,7 +250,8 @@ class TestResNetEmotionalMemory:
 
         vad = outputs["vad"]
         assert vad.shape == (4, 3)
-        assert torch.all(vad >= -1.0) and torch.all(vad <= 1.0)
+        assert torch.all(vad >= -1.0)
+        assert torch.all(vad <= 1.0)
 
     def test_emotion_logits_shape(self):
         """Test emotion logits shape."""

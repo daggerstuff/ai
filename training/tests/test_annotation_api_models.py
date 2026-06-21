@@ -1,7 +1,7 @@
 """Tests for annotation_api models."""
 
 import json
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import create_engine

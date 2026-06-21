@@ -7,16 +7,14 @@ fallback behavior, and output schema.
 from __future__ import annotations
 
 import json
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
 import pytest
 
-from training.clinical_validity_scorer import ClinicalValidityScorer
-
 # SUT import — will fail until the module exists
 from training.clinical_validity_judge import ClinicalValidityJudge
+from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.sdg_pipeline import NemoConfig
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

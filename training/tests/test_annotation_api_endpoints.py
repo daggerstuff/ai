@@ -1,16 +1,13 @@
 """Tests for annotation_api FastAPI endpoints."""
 
-import json
-from datetime import datetime, UTC
 from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 
-from annotation_api.database import Base, get_engine, init_db
+from annotation_api.database import Base
 from annotation_api.main import app
-from annotation_api.models import QueueItem, QueueItemStatus, Review
 
 
 @pytest.fixture
@@ -22,7 +19,7 @@ def client():
             # Create all tables
             engine = create_engine("sqlite:///:memory:")
             Base.metadata.create_all(bind=engine)
-            
+
             # Patch the engine used by get_db_session
             with patch("annotation_api.database.get_engine", return_value=engine):
                 with TestClient(app) as test_client:

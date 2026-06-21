@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from training.scripts.create_folder_structure import create_folder_structure, print_structure
 
 

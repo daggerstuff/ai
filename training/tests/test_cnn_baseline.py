@@ -13,7 +13,7 @@ Tests cover:
 
 import pytest
 import torch
-import torch.nn as nn
+from torch import nn
 
 from training.models.base.cnn_feature_extractor import (
     CNNFeatureConfig,
@@ -224,7 +224,8 @@ class TestCNNFeatureExtractor:
 
         vad = outputs["vad"]
         assert vad.shape == (4, 3)
-        assert torch.all(vad >= -1.0) and torch.all(vad <= 1.0)
+        assert torch.all(vad >= -1.0)
+        assert torch.all(vad <= 1.0)
 
     def test_emotion_logits_shape(self):
         """Test emotion logits shape."""

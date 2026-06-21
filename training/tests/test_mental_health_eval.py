@@ -1,15 +1,19 @@
 """Tests for the mental health evaluation suite (Prop 13)."""
 from __future__ import annotations
+
 import json
 from pathlib import Path
+
 import pytest
+
 try:
     from hypothesis import given, settings, strategies as st
 except ImportError:
     given = None
     settings = None
     st = None
-from training.mental_health_eval import (_compute_metrics, _load_dataset, build_parser, run_eval)
+from training.mental_health_eval import _compute_metrics, _load_dataset, build_parser, run_eval
+
 EXPECTED_SAMPLE_COUNT = 2
 
 

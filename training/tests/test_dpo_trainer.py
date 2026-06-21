@@ -183,7 +183,7 @@ if st is not None:
         tmp.mkdir(exist_ok=True)
         data_path = tmp / "safe_pairs.jsonl"
         with open(data_path, "w", encoding="utf-8") as f:
-            for i in range(MIN_SAMPLES):
+            for _i in range(MIN_SAMPLES):
                 f.write(json.dumps({"prompt": safe_prompt, "chosen": safe_chosen, "rejected": safe_rejected}) + "\n")
         result = load_preference_dataset(
             data_path, 1024, logging.getLogger("test"),
@@ -210,7 +210,7 @@ if st is not None:
         tmp.mkdir(exist_ok=True)
         data_path = tmp / "mixed_pairs.jsonl"
         with open(data_path, "w", encoding="utf-8") as f:
-            for i in range(MIN_SAMPLES):
+            for _i in range(MIN_SAMPLES):
                 f.write(
                     json.dumps(
                         {"prompt": prompt, "chosen": chosen, "rejected": rejected}
