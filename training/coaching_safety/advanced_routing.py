@@ -35,6 +35,10 @@ EXPERT_DISAGREEMENT_THRESHOLD = 0.2
 # Borderline rate threshold: > 0.4 triggers upstream boost
 BORDERLINE_RATE_THRESHOLD = 0.4
 
+# Borderline score range boundaries (items between 0.4 and 0.6 are borderline)
+BORDERLINE_SCORE_LOW = 0.4
+BORDERLINE_SCORE_HIGH = 0.6
+
 # Default safety variance threshold
 DEFAULT_SAFETY_VARIANCE_THRESHOLD = 0.05
 
@@ -373,13 +377,13 @@ class AdvancedRoutingRules:
         borderline_items: list[tuple[str, float]] = []  # (item_id, score)
 
         for i, score in enumerate(result.human_review.scores):
-            if 0.4 <= score < 0.6:
+            if BORDERLINE_SCORE_LOW <= score < BORDERLINE_SCORE_HIGH:
                 item_id = result.human_review.items[i] if i < len(result.human_review.items) else f"hr_{i}"
                 borderline_items.append((item_id, score))
 
         # Also check accept items
         for i, score in enumerate(result.accept.scores):
-            if 0.4 <= score < 0.6:
+            if BORDERLINE_SCORE_LOW <= score < BORDERLINE_SCORE_HIGH:
                 item_id = result.accept.items[i] if i < len(result.accept.items) else f"acc_{i}"
                 borderline_items.append((item_id, score))
 
