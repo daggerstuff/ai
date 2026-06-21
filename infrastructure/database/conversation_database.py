@@ -402,58 +402,29 @@ class ConversationDatabase:
     def _insert_tags(self, conn: sqlite3.Connection, conversation: ConversationSchema):
         """Insert tags for a conversation."""
 
-        # Insert regular tags
+        tags_data = []
+
+        # Collect regular tags
         for tag in conversation.tags:
-            tag_id = str(uuid.uuid4())
-            conn.execute(
-                """
-                INSERT INTO conversation_tags (
-                    tag_id, conversation_id, tag_type, tag_value
-                )
-                VALUES (?, ?, ?, ?)
-            """,
-                (
-                    tag_id,
-                    conversation.conversation_id,
-                    "tag",
-                    tag,
-                ),
-            )
+            tags_data.append((str(uuid.uuid4()), conversation.conversation_id, "tag", tag))
 
-        # Insert categories
+        # Collect categories
         for category in conversation.categories:
-            tag_id = str(uuid.uuid4())
-            conn.execute(
-                """
-                INSERT INTO conversation_tags (
-                    tag_id, conversation_id, tag_type, tag_value
-                )
-                VALUES (?, ?, ?, ?)
-            """,
-                (
-                    tag_id,
-                    conversation.conversation_id,
-                    "category",
-                    category,
-                ),
-            )
+            tags_data.append((str(uuid.uuid4()), conversation.conversation_id, "category", category))
 
-        # Insert therapeutic techniques
+        # Collect therapeutic techniques
         for technique in conversation.therapeutic_techniques:
-            tag_id = str(uuid.uuid4())
-            conn.execute(
+            tags_data.append((str(uuid.uuid4()), conversation.conversation_id, "technique", technique))
+
+        if tags_data:
+            conn.executemany(
                 """
                 INSERT INTO conversation_tags (
                     tag_id, conversation_id, tag_type, tag_value
                 )
                 VALUES (?, ?, ?, ?)
-            """,
-                (
-                    tag_id,
-                    conversation.conversation_id,
-                    "technique",
-                    technique,
-                ),
+                """,
+                tags_data
             )
 
     @with_retry(component="conversation_database")
