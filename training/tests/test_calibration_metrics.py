@@ -7,6 +7,7 @@ VAL-M3-CAL-001, VAL-M3-CAL-002, and VAL-M3-CAL-003.
 from __future__ import annotations
 
 import json
+import shutil
 import tempfile
 from collections.abc import Generator
 from datetime import UTC, datetime
@@ -24,6 +25,19 @@ from training.coaching_safety.calibration_metrics import (
     _load_promotion_reports,
     aggregate,
 )
+
+# ---------------------------------------------------------------------------
+# Test data constants
+# ---------------------------------------------------------------------------
+
+# Total items in test borderline/reject reports (3 borderline + 5 non-borderline)
+THREE_ITEMS = 3
+# Four items in some tests
+FOUR_ITEMS = 4
+# Total items in test mixed tier reports (4 borderline + 4 non-borderline = 8 total)
+EIGHT_ITEMS = 8
+# Two reports in test data
+TWO_REPORTS = 2
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -116,7 +130,7 @@ def write_promotion_report(
 class TestTierComputation:
     """Test _get_tier, _is_borderline, _is_expert_disagreement helpers."""
 
-    @pytest.mark.parametrize("score,expected_tier", [
+    @pytest.mark.parametrize(("score", "expected_tier"), [
         (0.0, "exclude"),
         (0.1, "exclude"),
         (0.39, "exclude"),
@@ -131,7 +145,7 @@ class TestTierComputation:
         """Test tier classification for various scores."""
         assert _get_tier(score) == expected_tier
 
-    @pytest.mark.parametrize("score,expected", [
+    @pytest.mark.parametrize(("score", "expected"), [
         (0.0, False),
         (0.39, False),
         (0.4, True),
@@ -145,7 +159,7 @@ class TestTierComputation:
         """Test borderline detection for scores in [0.4, 0.6)."""
         assert _is_borderline(score) == expected
 
-    @pytest.mark.parametrize("scorer,expert,expected", [
+    @pytest.mark.parametrize(("scorer", "expert", "expected"), [
         (0.5, 0.5, False),
         (0.5, 0.7, False),
         (0.5, 0.3, False),
@@ -164,7 +178,7 @@ class TestTierComputation:
         """Test expert disagreement detection: |expert - scorer| > 0.2."""
         assert _is_expert_disagreement(scorer, expert) == expected
 
-    @pytest.mark.parametrize("scorer,expert,expected", [
+    @pytest.mark.parametrize(("scorer", "expert", "expected"), [
         (0.5, 0.5, 1.0),  # Same tier (borderline)
         (0.7, 0.5, 0.0),  # Different tiers (accept vs borderline)
         (0.3, 0.5, 0.0),  # Different tiers (exclude vs borderline)
@@ -211,7 +225,7 @@ class TestBorderlineRateExact:
 
         assert snapshot.borderline_rate == 0.0
         assert snapshot.borderline_count == 0
-        assert snapshot.total_items == 3
+        assert snapshot.total_items == THREE_ITEMS
 
     def test_borderline_rate_all_borderline(
         self,
@@ -233,8 +247,8 @@ class TestBorderlineRateExact:
         snapshot = aggregator.aggregate()
 
         assert snapshot.borderline_rate == 1.0
-        assert snapshot.borderline_count == 3
-        assert snapshot.total_items == 3
+        assert snapshot.borderline_count == THREE_ITEMS
+        assert snapshot.total_items == THREE_ITEMS
 
     def test_borderline_rate_exact_half(
         self,
@@ -264,8 +278,8 @@ class TestBorderlineRateExact:
         snapshot = aggregator.aggregate()
 
         assert snapshot.borderline_rate == 4 / 8
-        assert snapshot.borderline_count == 4
-        assert snapshot.total_items == 8
+        assert snapshot.borderline_count == FOUR_ITEMS
+        assert snapshot.total_items == EIGHT_ITEMS
 
     def test_borderline_rate_mixed_tiers(
         self,
@@ -296,8 +310,8 @@ class TestBorderlineRateExact:
         snapshot = aggregator.aggregate()
 
         assert snapshot.borderline_rate == 3 / 8
-        assert snapshot.borderline_count == 3
-        assert snapshot.total_items == 8
+        assert snapshot.borderline_count == THREE_ITEMS
+        assert snapshot.total_items == EIGHT_ITEMS
 
     def test_borderline_rate_empty_reports(
         self,
@@ -415,7 +429,7 @@ class TestExpertDisagreementRateExact:
         snapshot = aggregator.aggregate()
 
         assert snapshot.expert_disagreement_rate == 1.0
-        assert snapshot.disagreement_count == 3
+        assert snapshot.disagreement_count == THREE_ITEMS
 
     def test_disagreement_rate_exact_half(
         self,
@@ -445,7 +459,7 @@ class TestExpertDisagreementRateExact:
         snapshot = aggregator.aggregate()
 
         assert snapshot.expert_disagreement_rate == 4 / 8
-        assert snapshot.disagreement_count == 4
+        assert snapshot.disagreement_count == FOUR_ITEMS
 
     def test_disagreement_rate_at_boundary(
         self,
@@ -885,9 +899,9 @@ class TestPromotionReportLoading:
 
         reports = _load_promotion_reports(promotion_reports_dir)
 
-        assert len(reports) == 2
+        assert len(reports) == TWO_REPORTS
         total_received = sum(r.received for r in reports)
-        assert total_received == 8
+        assert total_received == EIGHT_ITEMS
 
     def test_promotion_report_reasons_parsed(
         self,
@@ -995,7 +1009,6 @@ class TestErrorHandling:
         ])
 
         # Delete the promotion reports dir
-        import shutil
         shutil.rmtree(promotion_reports_dir)
 
         aggregator = CalibrationMetricsAggregator(
@@ -1011,7 +1024,6 @@ class TestErrorHandling:
     def test_default_none_arguments(self) -> None:
         """Using default None arguments still works (defaults to data/reports/)."""
         # When dirs don't exist, we get empty reports but no crash
-        import tempfile
         with tempfile.TemporaryDirectory() as tmpdir:
             # Use a temp directory that doesn't have the expected structure
             # Pass explicit non-None paths to avoid the "default" branch coverage gap
@@ -1030,8 +1042,7 @@ class TestErrorHandling:
 
     def test_default_path_assignment(self) -> None:
         """When None is passed, defaults are assigned in __init__."""
-        import tempfile
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory():
             # Use a temp dir to isolate from any real data/reports
             # Create the default dir structure and verify defaults are set
             aggregator = CalibrationMetricsAggregator(
@@ -1047,7 +1058,6 @@ class TestErrorHandling:
         promotion_reports_dir: Path,
     ) -> None:
         """Warning logged when scoring reports directory doesn't exist."""
-        import tempfile
         nonexistent_dir = Path(tempfile.mkdtemp()) / "does_not_exist"
 
         # Write promotion report so we have something
