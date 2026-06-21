@@ -82,3 +82,43 @@ class ErrorResponse(BaseModel):
     """Schema for error responses."""
 
     detail: str
+
+
+class PromotionRequest(BaseModel):
+    """Schema for requesting promotion of a queue item."""
+
+    promoter_id: str = Field(..., description="Identifier for the promoter")
+    notes: str | None = Field(None, description="Optional notes for the promotion")
+
+
+class PromotionResponse(BaseModel):
+    """Schema for a promotion response."""
+
+    id: int
+    item_id: int
+    promoter_id: str
+    before_score: float
+    after_score: float
+    target_stage: str
+    notes: str | None
+    timestamp: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class QueueItemDetailResponse(BaseModel):
+    """Schema for detailed queue item response with promotion history."""
+
+    id: int
+    sample_text: str
+    original_score: float
+    per_dimension_scores: dict[str, float]
+    routing_reason: str
+    status: str
+    created_at: datetime
+    reviews: list[ReviewResponse]
+    promotion_history: list[PromotionResponse]
+
+    class Config:
+        from_attributes = True

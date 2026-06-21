@@ -7,14 +7,17 @@ import logging
 from datetime import UTC, datetime
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query, status
+from fastapi import FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import DATABASE_URL, get_db_session, init_db
-from .models import QueueItem, QueueItemStatus, Review
+from .models import PromotionAudit, QueueItem, QueueItemStatus, Review
 from .schemas import (
     HealthResponse,
+    PromotionRequest,
+    PromotionResponse,
     QueueItemCreate,
+    QueueItemDetailResponse,
     QueueItemResponse,
     QueueStats,
     ReviewCreate,
@@ -203,6 +206,130 @@ async def submit_review_by_path(item_id: int, review: ReviewCreate) -> ReviewRes
         )
 
 
+# Stage progression order for promotion workflow
+STAGE_ORDER = [
+    QueueItemStatus.PENDING,
+    QueueItemStatus.REVIEWED,
+    QueueItemStatus.VALIDATED,
+    QueueItemStatus.MERGED,
+]
+
+
+def _get_next_stage(current_status: QueueItemStatus) -> QueueItemStatus | None:
+    """Get the next stage in the promotion workflow.
+
+    Args:
+        current_status: The current status of the queue item.
+
+    Returns:
+        The next stage, or None if already at the final stage.
+    """
+    try:
+        current_index = STAGE_ORDER.index(current_status)
+        if current_index < len(STAGE_ORDER) - 1:
+            return STAGE_ORDER[current_index + 1]
+        return None
+    except ValueError:
+        return None
+
+
+@app.post("/queue/{item_id}/promote", response_model=PromotionResponse)
+async def promote_queue_item(
+    item_id: int,
+    promotion: PromotionRequest,
+    x_promoter_role: str | None = Header(None, alias="X-Promoter-Role"),
+) -> PromotionResponse:
+    """Promote a queue item to the next stage in the workflow.
+
+    Enforces staged workflow: pending -> reviewed -> validated -> merged.
+    Skipping a stage returns 409 Conflict.
+
+    Authentication is via X-Promoter-Role header (dev default: 'promoter').
+    Missing header returns 401. Wrong role returns 403.
+
+    Records promoter_id, timestamp, before_score, after_score, and optional notes.
+    """
+    # Authentication check
+    if x_promoter_role is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-Promoter-Role header",
+        )
+    if x_promoter_role != "promoter":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Invalid role '{x_promoter_role}'. Required role: 'promoter'",
+        )
+
+    logger.info(
+        "Promotion request: item_id=%s, promoter_id=%s, timestamp=%s",
+        item_id,
+        promotion.promoter_id,
+        datetime.now(UTC).isoformat(),
+    )
+
+    with get_db_session() as session:
+        # Check if item exists
+        item = session.query(QueueItem).filter(QueueItem.id == item_id).first()
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Queue item with ID {item_id} not found",
+            )
+
+        current_status = QueueItemStatus(item.status)
+        before_score = item.original_score
+
+        # Determine next stage
+        expected_next = _get_next_stage(current_status)
+        if expected_next is None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Item is already at the final stage '{current_status.value}'. Cannot promote further.",
+            )
+
+        # Update item status
+        item.status = expected_next
+        after_score = before_score  # Score stays the same during promotion
+
+        # Create promotion audit record
+        db_audit = PromotionAudit(
+            item_id=item_id,
+            promoter_id=promotion.promoter_id,
+            before_score=before_score,
+            after_score=after_score,
+            target_stage=expected_next.value,
+            notes=promotion.notes,
+            timestamp=datetime.now(UTC),
+        )
+        session.add(db_audit)
+        session.flush()
+        session.refresh(db_audit)
+
+        logger.info(
+            "Promotion persisted: item_id=%s, audit_id=%s, promoter_id=%s, "
+            "from=%s to=%s, before_score=%s, after_score=%s",
+            item_id,
+            db_audit.id,
+            promotion.promoter_id,
+            current_status.value,
+            expected_next.value,
+            before_score,
+            after_score,
+        )
+
+        return PromotionResponse(
+            id=db_audit.id,
+            item_id=db_audit.item_id,
+            promoter_id=db_audit.promoter_id,
+            before_score=db_audit.before_score,
+            after_score=db_audit.after_score,
+            target_stage=db_audit.target_stage,
+            notes=db_audit.notes,
+            timestamp=db_audit.timestamp,
+        )
+
+
 @app.get("/queue/stats", response_model=QueueStats)
 async def get_queue_stats() -> QueueStats:
     """Get queue statistics."""
@@ -214,9 +341,9 @@ async def get_queue_stats() -> QueueStats:
         return QueueStats(pending=pending, reviewed=reviewed, total=total)
 
 
-@app.get("/queue/detail", response_model=QueueItemResponse)
-async def get_item_detail(item_id: int = Query(..., alias="item_id")) -> QueueItemResponse:
-    """Get detailed information about a specific queue item."""
+@app.get("/queue/detail", response_model=QueueItemDetailResponse)
+async def get_item_detail(item_id: int = Query(..., alias="item_id")) -> QueueItemDetailResponse:
+    """Get detailed information about a specific queue item, including review and promotion history."""
     with get_db_session() as session:
         item = session.query(QueueItem).filter(QueueItem.id == item_id).first()
         if not item:
@@ -226,7 +353,36 @@ async def get_item_detail(item_id: int = Query(..., alias="item_id")) -> QueueIt
             )
 
         per_dimension_scores = json.loads(item.per_dimension_scores)
-        return QueueItemResponse(
+
+        # Build review responses
+        review_responses = [
+            ReviewResponse(
+                id=r.id,
+                item_id=r.item_id,
+                reviewer_score=r.reviewer_score,
+                notes=r.notes,
+                reviewer_id=r.reviewer_id,
+                created_at=r.created_at,
+            )
+            for r in item.reviews
+        ]
+
+        # Build promotion history responses
+        promotion_responses = [
+            PromotionResponse(
+                id=a.id,
+                item_id=a.item_id,
+                promoter_id=a.promoter_id,
+                before_score=a.before_score,
+                after_score=a.after_score,
+                target_stage=a.target_stage,
+                notes=a.notes,
+                timestamp=a.timestamp,
+            )
+            for a in item.promotion_audits
+        ]
+
+        return QueueItemDetailResponse(
             id=item.id,
             sample_text=item.sample_text,
             original_score=item.original_score,
@@ -234,6 +390,8 @@ async def get_item_detail(item_id: int = Query(..., alias="item_id")) -> QueueIt
             routing_reason=item.routing_reason,
             status=item.status,
             created_at=item.created_at,
+            reviews=review_responses,
+            promotion_history=promotion_responses,
         )
 
 
