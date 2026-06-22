@@ -7,6 +7,7 @@ FastAPI/Starlette are ASGI-native and work with any ASGI server.
 
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import HTTPException
@@ -157,7 +158,7 @@ middleware = [
     # Current wildcard is for development convenience
     Middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()],
         allow_methods=["*"],
         allow_headers=["*"],
     )
