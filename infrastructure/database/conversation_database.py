@@ -404,17 +404,14 @@ class ConversationDatabase:
 
         tags_data = []
 
-        # Collect regular tags
-        for tag in conversation.tags:
-            tags_data.append((str(uuid.uuid4()), conversation.conversation_id, "tag", tag))
-
-        # Collect categories
-        for category in conversation.categories:
-            tags_data.append((str(uuid.uuid4()), conversation.conversation_id, "category", category))
-
-        # Collect therapeutic techniques
-        for technique in conversation.therapeutic_techniques:
-            tags_data.append((str(uuid.uuid4()), conversation.conversation_id, "technique", technique))
+        # Collect tags, categories, and therapeutic techniques
+        for items, tag_type in [
+            (conversation.tags, "tag"),
+            (conversation.categories, "category"),
+            (conversation.therapeutic_techniques, "technique"),
+        ]:
+            for item in items:
+                tags_data.append((str(uuid.uuid4()), conversation.conversation_id, tag_type, item))
 
         if tags_data:
             conn.executemany(
@@ -424,7 +421,7 @@ class ConversationDatabase:
                 )
                 VALUES (?, ?, ?, ?)
                 """,
-                tags_data
+                tags_data,
             )
 
     @with_retry(component="conversation_database")
