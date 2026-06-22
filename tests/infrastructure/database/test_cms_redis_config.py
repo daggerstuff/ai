@@ -14,6 +14,7 @@ def test_get_invalidation_keys_missing_kwargs():
     """Test get_invalidation_keys when kwargs are missing."""
     # This will leave the placeholder unreplaced since kwargs is empty
     keys = get_invalidation_keys("document_updated")
+    assert len(keys) == 2
     assert "doc:{documentId}" in keys
     assert "stats:documents:{period}" in keys
 
