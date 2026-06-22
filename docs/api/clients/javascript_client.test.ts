@@ -988,6 +988,15 @@ describe("PixelatedEmpathyAPI Method sleep", () => {
 });
 
 describe("PixelatedEmpathyAPI Method safeParseResponse edge cases", () => {
+  it("should return parsed object if valid JSON object is passed", () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    const jsonStr = '{"success": true, "data": {"id": 1}}';
+    expect(api.safeParseResponse(jsonStr)).toEqual({
+      success: true,
+      data: { id: 1 },
+    });
+  });
+
   it("should return error object if parsed JSON is null", () => {
     const api = new PixelatedEmpathyAPI("test_key");
     const jsonStr = "null";
