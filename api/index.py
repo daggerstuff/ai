@@ -158,7 +158,7 @@ middleware = [
     # Current wildcard is for development convenience
     Middleware(
         CORSMiddleware,
-        allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),
+        allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()],
         allow_methods=["*"],
         allow_headers=["*"],
     )
