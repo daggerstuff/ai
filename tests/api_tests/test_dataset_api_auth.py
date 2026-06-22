@@ -8,6 +8,8 @@ import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
 
+os.environ["AUTH_SECRET_KEY"] = "test-secret"
+
 from api.dataset_api import (
     app,
     get_current_active_user_or_api_key,
