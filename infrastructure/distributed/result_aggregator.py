@@ -13,6 +13,7 @@ import threading
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+from collections.abc import Mapping
 from typing import Any
 
 # Configure logging
@@ -217,11 +218,30 @@ class ResultAggregator:
         # Common issues
         common_issues = self._analyze_common_issues(results)
 
+        # Collect data for processing time and worker performance in a single pass
+        processing_times = []
+        worker_data = defaultdict(
+            lambda: {"total_tasks": 0, "successful_tasks": 0, "quality_scores": [], "processing_times": []}
+        )
+
+        for result in results:
+            worker_id = result.get("worker_id", "unknown")
+            wd = worker_data[worker_id]
+            wd["total_tasks"] += 1
+
+            if result.get("success", False):
+                wd["successful_tasks"] += 1
+                wd["quality_scores"].append(result.get("quality_score", 0.0))
+
+            pt = result.get("processing_time")
+            if pt is not None and pt >= 0:
+                processing_times.append(pt)
+                wd["processing_times"].append(pt)
         # Processing time statistics
         processing_time_stats = self._calculate_processing_time_stats(results)
 
         # Worker performance
-        worker_performance = self._analyze_worker_performance(results)
+        worker_performance = self._analyze_worker_performance(worker_data)
 
         return AggregatedResult(
             batch_id=batch_id,
@@ -340,7 +360,7 @@ class ResultAggregator:
             "total": sum(processing_times),
         }
 
-    def _analyze_worker_performance(self, results: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
+    def _analyze_worker_performance(self, worker_data: Mapping[str, dict[str, Any]]) -> dict[str, dict[str, float]]:
         """Analyze performance by worker"""
         worker_stats = defaultdict(
             lambda: {
@@ -351,23 +371,6 @@ class ResultAggregator:
                 "total_processing_time": 0.0,
             }
         )
-
-        worker_data = defaultdict(
-            lambda: {"total_tasks": 0, "successful_tasks": 0, "quality_scores": [], "processing_times": []}
-        )
-
-        # Collect data by worker
-        for result in results:
-            worker_id = result.get("worker_id", "unknown")
-            worker_data[worker_id]["total_tasks"] += 1
-
-            if result.get("success", False):
-                worker_data[worker_id]["successful_tasks"] += 1
-                worker_data[worker_id]["quality_scores"].append(result.get("quality_score", 0.0))
-
-            processing_time = result.get("processing_time", 0.0)
-            if processing_time > 0:
-                worker_data[worker_id]["processing_times"].append(processing_time)
 
         # Calculate statistics for each worker
         for worker_id, data in worker_data.items():
@@ -380,6 +383,10 @@ class ResultAggregator:
                 worker_stats[worker_id]["avg_quality_score"] = statistics.mean(data["quality_scores"])
 
             if data["processing_times"]:
+                worker_stats[worker_id]["avg_processing_time"] = statistics.mean(data["processing_times"])
+                worker_stats[worker_id]["total_processing_time"] = sum(data["processing_times"])
+
+        return dict(worker_stats)
                 worker_stats[worker_id]["avg_processing_time"] = statistics.mean(data["processing_times"])
                 worker_stats[worker_id]["total_processing_time"] = sum(data["processing_times"])
 

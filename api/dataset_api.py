@@ -21,7 +21,7 @@ from security.fastapi_auth_middleware import (
 logger = logging.getLogger(__name__)
 
 # Initialize Authentication System (use a strong secret key in production)
-AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "super-secret-key-for-dev")
+AUTH_SECRET_KEY = os.environ["AUTH_SECRET_KEY"]
 auth_system = AuthenticationSystem(AUTH_SECRET_KEY)
 auth_deps = AuthenticationDependencies(auth_system)
 
