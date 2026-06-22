@@ -1,8 +1,14 @@
+import os
+
+os.environ["AUTH_SECRET_KEY"] = "test-secret-key"
+
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
+
+os.environ["AUTH_SECRET_KEY"] = "test-secret"
 
 from api.dataset_api import (
     app,
@@ -40,7 +46,7 @@ def mock_db_connection():
         # Let's use a very dumb mock that just ignores SQL errors and assumes everything is fine
         # We only care that the endpoints are testing the auth logic, not the sqlite execution.
 
-        def safe_fetchone(*args, **kwargs):
+        def safe_fetchone(*_, **__):
             # A magic mock that returns whatever is asked of it
             row = MagicMock()
             row.__getitem__.return_value = "test_table"  # for table_row["name"]
@@ -49,7 +55,7 @@ def mock_db_connection():
 
         mock_cursor.fetchone = safe_fetchone
 
-        def safe_fetchall(*args, **kwargs):
+        def safe_fetchall(*_, **__):
             row1 = MagicMock()
             row1.__getitem__.return_value = "test_table"
             row1.__getitem__.side_effect = lambda key: "test_table" if isinstance(key, str) else 0
@@ -67,7 +73,7 @@ def mock_db_connection():
 
 
 @pytest.mark.parametrize(
-    "method,path,required_scopes",
+    ("method", "path", "required_scopes"),
     [
         ("GET", "/datasets", [PermissionLevel.READ]),
         ("GET", "/datasets/test_db/metadata", [PermissionLevel.READ]),
@@ -86,7 +92,7 @@ def test_dataset_endpoints_with_permitted_scope(method, path, required_scopes):
 
 
 @pytest.mark.parametrize(
-    "method,path,required_scopes",
+    ("method", "path", "required_scopes"),
     [
         ("GET", "/datasets", [PermissionLevel.READ]),
         ("GET", "/datasets/test_db/metadata", [PermissionLevel.READ]),
@@ -94,6 +100,7 @@ def test_dataset_endpoints_with_permitted_scope(method, path, required_scopes):
     ],
 )
 def test_dataset_endpoints_with_forbidden_scope(method, path, required_scopes):
+    _ = required_scopes
     insufficient_scopes = []
 
     app.dependency_overrides[get_current_active_user_or_api_key] = _override_auth(scopes=insufficient_scopes)

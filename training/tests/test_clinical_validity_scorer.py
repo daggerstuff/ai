@@ -296,7 +296,7 @@ class TestCLIEntryPoint:
             ],
             capture_output=True,
             text=True,
-            cwd="/home/vivi/pixelated/ai",
+            cwd=".",
         )
         assert result.returncode == 0
         import json
@@ -314,7 +314,7 @@ class TestCLIEntryPoint:
             input="Test cognitive behavioral therapy automatic thoughts reframing",
             capture_output=True,
             text=True,
-            cwd="/home/vivi/pixelated/ai",
+            cwd=".",
         )
         assert result.returncode == 0
         import json
@@ -330,7 +330,7 @@ class TestCLIEntryPoint:
             [sys.executable, "-m", "training.clinical_validity_scorer", "--help"],
             capture_output=True,
             text=True,
-            cwd="/home/vivi/pixelated/ai",
+            cwd=".",
         )
         assert result.returncode == 0
 

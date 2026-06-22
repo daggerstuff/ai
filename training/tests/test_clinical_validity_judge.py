@@ -317,7 +317,7 @@ class TestCLI:
                 ],
                 capture_output=True,
                 text=True,
-                cwd="/home/vivi/pixelated/ai",
+                cwd=".",
             )
 
         # Without NeMo configured, it will fall back to regex
@@ -335,6 +335,6 @@ class TestCLI:
             [sys.executable, "-m", "training.clinical_validity_judge", "--help"],
             capture_output=True,
             text=True,
-            cwd="/home/vivi/pixelated/ai",
+            cwd=".",
         )
         assert result.returncode == 0

@@ -164,12 +164,14 @@ e.preventDefault()
 this.innerHTML = '⏳ Processing...'
 this.style.pointerEvents = 'none'
 this.setAttribute('aria-disabled', 'true')
+this.setAttribute('aria-busy', 'true')
 // Announce processing status to screen readers
 statusAnnouncer.textContent = 'Processing request, please wait...'
 // Simulate processing time
 setTimeout(() => {
 this.innerHTML = '✅ Complete'
 this.removeAttribute('aria-disabled')
+this.removeAttribute('aria-busy')
 this.style.pointerEvents = ''
 // Announce completion to screen readers
 statusAnnouncer.textContent = 'Request complete'
