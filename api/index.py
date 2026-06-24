@@ -155,10 +155,10 @@ routes = [
 
 middleware = [
     # NOTE: For production, restrict allow_origins to known frontend domains
-    # Current wildcard is for development convenience
+    # Must be configured explicitly via environment variables
     Middleware(
         CORSMiddleware,
-        allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()],
+        allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()],
         allow_methods=["*"],
         allow_headers=["*"],
     )

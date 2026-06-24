@@ -5,6 +5,9 @@ import time
 import uuid
 
 import pytest
+from starlette.applications import Starlette
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.testclient import TestClient
 
 from ai.api import index as api_index
@@ -150,3 +153,60 @@ def test_reflect_uses_signed_user_scope(monkeypatch) -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "success"
     assert bootstrap.calls == [("retain this reflection", "vivi")]
+
+
+def test_reflect_cors_rejected_by_default(monkeypatch) -> None:
+    # Ensure CORS_ORIGINS is not set
+    monkeypatch.delenv("CORS_ORIGINS", raising=False)
+
+    _configure_memory_auth(monkeypatch)
+    api_index._reflection_bootstrap = _DummyReflectionBootstrap()
+    client = TestClient(api_index.app)
+
+    # Pre-flight OPTIONS request from an arbitrary origin
+    response = client.options(
+        "/reflect",
+        headers={
+            "Origin": "https://attacker.com",
+            "Access-Control-Request-Method": "POST",
+        }
+    )
+
+    # Should be rejected (400) because the origin is not allowed
+    assert response.status_code == 400
+
+def test_reflect_cors_allowed_when_configured(monkeypatch) -> None:
+    # Configure an allowed origin
+    monkeypatch.setenv("CORS_ORIGINS", "https://app.pixelatedempathy.com")
+
+    _configure_memory_auth(monkeypatch)
+    api_index._reflection_bootstrap = _DummyReflectionBootstrap()
+
+    # Re-instantiate app to pick up new env var in middleware
+
+
+    new_middleware = [
+        Middleware(
+            CORSMiddleware,
+            allow_origins=[o.strip() for o in __import__("os").getenv("CORS_ORIGINS", "").split(",") if o.strip()],
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    ]
+
+    # We patch the middleware directly for the test app
+    test_app = Starlette(routes=api_index.routes, middleware=new_middleware)
+    client = TestClient(test_app)
+
+    # Pre-flight OPTIONS request from allowed origin
+    response = client.options(
+        "/reflect",
+        headers={
+            "Origin": "https://app.pixelatedempathy.com",
+            "Access-Control-Request-Method": "POST",
+        }
+    )
+
+    # Should be allowed (200)
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "https://app.pixelatedempathy.com"
