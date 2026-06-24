@@ -193,7 +193,7 @@ class LettaClient:
 
         P0 Fix: Set secure permissions on config directory (owner only: 0o700)
         """
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True, mode=stat.S_IRWXU)
 
         # P0 Fix: Set secure permissions on config directory
         os.chmod(CONFIG_DIR, stat.S_IRWXU)  # 0o700 - owner rwx only
