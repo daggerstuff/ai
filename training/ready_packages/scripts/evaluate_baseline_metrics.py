@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 # Add repo root to path to import S3DatasetLoader
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.append(str(REPO_ROOT))
 
@@ -267,7 +267,7 @@ class BaselineMetricsEvaluator:
         }
 
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 DATASET_DIRS = [
     REPO_ROOT / "ai/data/acquired_datasets",
@@ -319,9 +319,9 @@ def main():
     evaluator = BaselineMetricsEvaluator()
 
     if args.dry_run:
-        return _extracted_from_main_25(evaluator)
+        return _run_dry_run_evaluation(evaluator)
     if args.scan_all:
-        return _extracted_from_main_68(evaluator)
+        return _scan_local_datasets(evaluator)
     if args.scan_all_s3:
         return _scan_s3_datasets(evaluator, args.scan_all_s3)
     if args.input_file:
@@ -468,8 +468,7 @@ def _scan_s3_datasets(evaluator, s3_prefix: str) -> int:
     return 0
 
 
-# TODO Rename this here and in `main`
-def _extracted_from_main_68(evaluator):
+def _scan_local_datasets(evaluator):
     logger.info("Scanning all dataset directories...")
     all_results: dict[str, Any] = {}
 
@@ -499,8 +498,7 @@ def _extracted_from_main_68(evaluator):
     return 0
 
 
-# TODO Rename this here and in `main`
-def _extracted_from_main_25(evaluator):
+def _run_dry_run_evaluation(evaluator):
     logger.info("Running DRY RUN evaluation...")
     mock_data = [
         {
