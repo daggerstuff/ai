@@ -345,20 +345,22 @@ class MonitoringBridge:
             )
 
             # Insert notification results
-            for channel, success in results.items():
-                conn.execute(
-                    """
-                    INSERT INTO notification_results
-                    (alert_id, channel, success, error_message)
-                    VALUES (?, ?, ?, ?)
-                """,
+            conn.executemany(
+                """
+                INSERT INTO notification_results
+                (alert_id, channel, success, error_message)
+                VALUES (?, ?, ?, ?)
+            """,
+                (
                     (
                         alert_id,
                         channel.value,
                         success,
                         None if success else "Failed to send",
-                    ),
-                )
+                    )
+                    for channel, success in results.items()
+                ),
+            )
 
     async def process_external_alerts(self, alert_data: dict[str, Any]):
         """Process alerts from external monitoring systems"""
