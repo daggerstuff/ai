@@ -452,15 +452,13 @@ class MonitoringBridge:
 
             health_data = {}
             placeholders = ",".join("?" * len(key_metrics))
-            rows = conn.execute(
-                f"""
-                SELECT metric_name, metric_value, MAX(timestamp)
-                FROM system_metrics
-                WHERE metric_name IN ({placeholders})
-                GROUP BY metric_name
-                """,
-                key_metrics,
-            ).fetchall()
+            query = (
+                "SELECT metric_name, metric_value, MAX(timestamp) as timestamp "
+                "FROM system_metrics "
+                "WHERE metric_name IN (" + placeholders + ") "
+                "GROUP BY metric_name"
+            )
+            rows = conn.execute(query, key_metrics).fetchall()
 
             for row in rows:
                 health_data[row[0]] = {"value": row[1], "timestamp": row[2]}
