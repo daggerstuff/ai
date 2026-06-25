@@ -161,7 +161,21 @@ def test_reflect_cors_rejected_by_default(monkeypatch) -> None:
 
     _configure_memory_auth(monkeypatch)
     api_index._reflection_bootstrap = _DummyReflectionBootstrap()
-    client = TestClient(api_index.app)
+
+    # Construct a fresh app to pick up the current env state
+    origins = api_index.get_cors_origins()
+    test_app = Starlette(
+        routes=api_index.routes,
+        middleware=[
+            Middleware(
+                CORSMiddleware,
+                allow_origins=origins,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+        ],
+    )
+    client = TestClient(test_app)
 
     # Pre-flight OPTIONS request from an arbitrary origin
     response = client.options(
@@ -182,20 +196,19 @@ def test_reflect_cors_allowed_when_configured(monkeypatch) -> None:
     _configure_memory_auth(monkeypatch)
     api_index._reflection_bootstrap = _DummyReflectionBootstrap()
 
-    # Re-instantiate app to pick up new env var in middleware
-
-
-    new_middleware = [
-        Middleware(
-            CORSMiddleware,
-            allow_origins=[o.strip() for o in __import__("os").getenv("CORS_ORIGINS", "").split(",") if o.strip()],
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
-    ]
-
-    # We patch the middleware directly for the test app
-    test_app = Starlette(routes=api_index.routes, middleware=new_middleware)
+    # Construct a fresh app using the shared helper to pick up the new env
+    origins = api_index.get_cors_origins()
+    test_app = Starlette(
+        routes=api_index.routes,
+        middleware=[
+            Middleware(
+                CORSMiddleware,
+                allow_origins=origins,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+        ],
+    )
     client = TestClient(test_app)
 
     # Pre-flight OPTIONS request from allowed origin
