@@ -267,7 +267,6 @@ class BaselineMetricsEvaluator:
         }
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 
 DATASET_DIRS = [
     REPO_ROOT / "ai/data/acquired_datasets",
