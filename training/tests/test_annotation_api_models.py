@@ -82,7 +82,7 @@ class TestQueueItemModel:
         assert QueueItemStatus.REVIEWED == "reviewed"
         assert QueueItemStatus.VALIDATED == "validated"
         assert QueueItemStatus.MERGED == "merged"
-        assert len(list(QueueItemStatus)) == 4
+       assert len(list(QueueItemStatus)) == 4
 
 
 class TestReviewModel:
