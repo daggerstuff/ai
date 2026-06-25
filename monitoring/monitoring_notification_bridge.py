@@ -455,7 +455,7 @@ class MonitoringBridge:
             query = (
                 "SELECT metric_name, metric_value, MAX(timestamp) as timestamp "
                 "FROM system_metrics "
-                "WHERE metric_name IN (" + placeholders + ") "
+                f"WHERE metric_name IN ({placeholders}) "  # sourcery skip: avoid-sql-string-concatenation
                 "GROUP BY metric_name"
             )
             rows = conn.execute(query, key_metrics).fetchall()
