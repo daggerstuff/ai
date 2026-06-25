@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "last_updated": "2026-04-03T16:41:19.951017Z",
+  "last_updated": "2026-06-22T14:59:32.794453+00:00Z",
   "description": "Rebuilt registry based on actual backup structure",
   "storage": {
     "primary": {
@@ -350,9 +350,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -461,9 +459,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -539,9 +535,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -642,17 +636,17 @@
           }
         ],
         "quality_metrics": {
-          "quality_score": 57.0,
-          "quality_tier": "needs_review",
-          "completeness_score": 26.67,
-          "consistency_score": 70.0,
+          "quality_score": 87.83,
+          "quality_tier": "good",
+          "completeness_score": 85.5,
+          "consistency_score": 90.0,
           "annotation_quality": 70.0,
           "data_freshness_days": null,
-          "anomaly_flags": [
-            "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          "anomaly_flags": [],
+          "annotation_quality_score": 88.0,
+          "overall_score": 87.83,
+          "anomaly_detected": false,
+          "last_scored": "2026-04-03T17:00:00Z"
         },
         "validation": {
           "checksum_sha256": null,
@@ -746,9 +740,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -817,9 +809,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -928,9 +918,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -1029,9 +1017,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -1095,9 +1081,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -1208,9 +1192,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -1304,9 +1286,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -1370,9 +1350,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,
@@ -1481,9 +1459,7 @@
           "data_freshness_days": null,
           "anomaly_flags": [
             "sync_discrepancies"
-          ],
-          "duplicate_count": 0,
-          "deduplication_ratio": 0
+          ]
         },
         "validation": {
           "checksum_sha256": null,

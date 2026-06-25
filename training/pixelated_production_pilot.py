@@ -202,8 +202,6 @@ _DEFAULT_SYSTEM_PROMPT = (
     "You are not a replacement for professional mental health care."
 )
 DEFAULT_SYSTEM_PROMPT = os.getenv("WAYFARER_SYSTEM_PROMPT", _DEFAULT_SYSTEM_PROMPT)
-# TODO: consider a shorter inference-time prompt; this prompt (~150 tokens) consumes
-# ~15% of a 1024-token context window. Training and inference prompts can differ.
 
 
 # ClinicalSafetyChecker is now in clinical_safety_checker.py
