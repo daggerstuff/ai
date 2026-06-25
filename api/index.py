@@ -144,7 +144,7 @@ async def reflect(request):
         return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
     except Exception as e:
         logger.error(f"Reflection error: {e}")
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": "Internal server error"}, status_code=500)
 
 
 routes = [
