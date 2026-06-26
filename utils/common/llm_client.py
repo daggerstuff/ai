@@ -151,6 +151,11 @@ class FireworksDriver(OpenAIDriver):
         )
         self.base_url = os.environ.get("FIREWORKS_BASE_URL", self._DEFAULT_BASE_URL)
         model = os.environ.get("FIREWORKS_MODEL") or os.environ.get("LLM_MODEL", self._DEFAULT_MODEL)
+        # Strip the accounts/fireworks/models/ prefix when callers pass
+        # a fully-qualified Fireworks name (cubic #1).
+        prefix = "accounts/fireworks/models/"
+        if model.startswith(prefix):
+            model = model[len(prefix):]
         self.model = model
         if not self.api_key:
             logger.warning("No FIREWORKS_API_KEY found. FireworksDriver may fail.")
@@ -181,7 +186,10 @@ class LLMClient:
         self.driver_name = driver.lower()
         self.driver = self._build_driver(self.driver_name)
         self.rate_limiter = rate_limiter or default_rate_limiter()
-        self.provider = _provider_for_driver(self.driver_name)
+        # Derive provider from the ACTUAL driver class so an unknown name
+        # that fell back to MockDriver is never counted as a real provider
+        # upstream of the limiter (cubic #2).
+        self.provider = _provider_for_driver(type(self.driver).__name__.lower())
         self._resolved_model = getattr(self.driver, "model", "default")
 
     def _build_driver(self, name: str) -> LLMDriver:
@@ -194,9 +202,17 @@ class LLMClient:
         return MockDriver()
 
     def _estimated_tokens(self, prompt: str, system_prompt: str | None, kwargs: dict) -> int:
-        """Rough heuristic so the limiter has a cost estimate without counting tokens."""
+        """Rough heuristic so the limiter has a cost estimate.
 
-        extra = int(kwargs.get("max_tokens", 0)) if isinstance(kwargs, dict) else 0
+        Tolerates ``None``/non-int ``max_tokens`` instead of raising
+        ``TypeError`` (cubic #3).
+        """
+
+        extra = 0
+        if isinstance(kwargs, dict):
+            value = kwargs.get("max_tokens")
+            if isinstance(value, int) and value > 0:
+                extra = value
         text_len = len(prompt) + (len(system_prompt) if system_prompt else 0)
         return max(text_len // 4 + extra, 256)
 
@@ -223,9 +239,18 @@ class LLMClient:
             acquired = self.rate_limiter.acquire(
                 provider=self.provider,
                 model=self._resolved_model,
-                estimated_tokens=self._estimated_tokens(prompt, system_prompt, {}),
+                base_estimate = self._estimated_tokens(prompt, system_prompt, {})
+            try:
+                schema_budget = max(len(json.dumps(schema)) // 4, 256)
+            except (TypeError, ValueError):
+                schema_budget = 0
+            acquired = self.rate_limiter.acquire(
+                provider=self.provider,
+                model=self._resolved_model,
+                estimated_tokens=base_estimate + schema_budget,
             )
             if not acquired:
+
                 logger.warning(
                     "Rate limiter rejected acquire for provider=%s model=%s; returning empty",
                     self.provider,

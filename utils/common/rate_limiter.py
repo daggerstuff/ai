@@ -196,44 +196,65 @@ class TierAwareRateLimiter:
             return True
 
         key = (provider, model)
+        # Phase 1: ensure bucket is initialised WITHOUT doing blocking HTTP
+        # inside the global lock. (cubic #1)
         with self._lock:
             bucket = self._buckets.get(key)
-            if bucket is None:
-                tier_name, limits = self._resolver.resolve(provider)
-                bucket, concurrency = self._build_bucket(limits)
-                self._buckets[key] = bucket
-                self._concurrency[key] = concurrency
-                self._in_flight[key] = 0
-                logger.info(
-                    "Rate limiter initialized for %s/%s tier=%s prompt_tpm=%s generated_tpm=%s concurrency=%s",
-                    provider,
-                    model,
-                    tier_name,
-                    limits.prompt_tpm,
-                    limits.generated_tpm,
-                    concurrency,
-                )
-                bucket = self._buckets[key]
-                concurrency = self._concurrency[key]
+            concurrency = self._concurrency.get(key)
+        if bucket is None or concurrency is None:
+            tier_name, limits = self._resolver.resolve(provider)
+            new_bucket, new_concurrency = self._build_bucket(limits)
+            with self._lock:
+                bucket = self._buckets.setdefault(key, new_bucket)
+                concurrency = self._concurrency.setdefault(key, new_concurrency)
+                self._in_flight.setdefault(key, 0)
+                if bucket is new_bucket:
+                    logger.info(
+                        "Rate limiter initialized for %s/%s tier=%s prompt_tpm=%s generated_tpm=%s concurrency=%s",
+                        provider,
+                        model,
+                        tier_name,
+                        limits.prompt_tpm,
+                        limits.generated_tpm,
+                        concurrency,
+                    )
 
-            cap = self._concurrency[key]
-            if self._in_flight[key] >= cap:
+        # Phase 2: wait for the token bucket (does NOT hold the concurrency slot)
+        cost = max(estimated_tokens / 1000.0, 1.0)
+        acquired = bucket.wait_for(cost, timeout_seconds=timeout_seconds)
+        if not acquired:
+            return False
+
+        # Phase 3: claim a concurrency slot right before the provider call.
+        # The slot now brackets only the in-flight call (cubic #2).
+        with self._lock:
+            if self._in_flight[key] >= self._concurrency[key]:
                 return False
             self._in_flight[key] += 1
 
-        try:
-            cost = max(estimated_tokens / 1000.0, 1.0)
-            return bucket.wait_for(cost, timeout_seconds=timeout_seconds)
-        finally:
-            with self._lock:
-                self._in_flight[key] -= 1
+        # Caller MUST invoke release_in_flight() after the provider call.
+        return True
+
+    def release_in_flight(self, provider: str, model: str) -> None:
+        """Release a concurrency slot acquired via :meth:`acquire`.
+
+        The caller MUST invoke this after the provider call returns so the
+        per-tier concurrency cap reflects actual in-flight requests, not
+        queued ones.
+        """
+        if self.disabled():
+            return
+        key = (provider, model)
+        with self._lock:
+            current = self._in_flight.get(key, 0)
+            self._in_flight[key] = max(current - 1, 0)
 
     @staticmethod
     def _build_bucket(limits: TierLimit) -> tuple[TokenBucket, int]:
         # Refill rate sized to the generated-TPM cap; the limiter is conservative
         # (under-promises, never over) so callers cannot race past Fireworks'
         # published starter-tier ceiling.
-        refill = max(limits.generated_tpm / 60_000.0, 1.0)
+        refill = max(limits.generated_tpm / 60_000.0, 0.0)  # cubic #3: no min floor
         capacity = max(float(limits.concurrency) * 4.0, 4.0)
         return TokenBucket(refill_per_second=refill, capacity=capacity), int(limits.concurrency)
 

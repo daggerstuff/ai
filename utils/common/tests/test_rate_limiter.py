@@ -60,9 +60,7 @@ def test_resolver_env_unknown_tier_falls_back(monkeypatch: pytest.MonkeyPatch) -
     assert tier == "starter"
 
 
-def test_resolver_static_lookup_unused_for_non_fireworks(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_resolver_static_lookup_unused_for_non_fireworks() -> None:
     resolver = TierResolver()
     with patch.object(resolver, "_fetch_fireworks_account_tier") as probe:
         tier, _ = resolver.resolve("openai")
