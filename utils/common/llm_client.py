@@ -6,7 +6,36 @@ from typing import Any
 
 from openai import OpenAI
 
+from ai.utils.common.rate_limiter import (
+    TierAwareRateLimiter,
+    default_rate_limiter,
+)
+
 logger = logging.getLogger(__name__)
+
+PROVIDER_FIREWORKS = "fireworks"
+PROVIDER_OPENAI = "openai"
+PROVIDER_NVIDIA = "nvidia"
+
+
+def _provider_for_driver(driver: str) -> str:
+    """Map a driver name to its provider key for tier-aware rate limiting.
+
+    Today the dispatcher maps ``nvidia`` → ``OpenAIDriver`` because the NVIDIA
+    NIM endpoint is OpenAI-compatible. The provider key is what the rate
+    limiter keys on, not the driver class.
+    """
+
+    name = driver.lower()
+    if name in ("mock", "anthropic"):
+        return name
+    if name in ("openai",):
+        return PROVIDER_OPENAI
+    if name in ("fireworks",):
+        return PROVIDER_FIREWORKS
+    if name in ("nvidia", "nim"):
+        return PROVIDER_NVIDIA
+    return name
 
 
 class LLMDriver(abc.ABC):
@@ -103,20 +132,104 @@ class OpenAIDriver(LLMDriver):
             return {"error": str(e)}
 
 
-class LLMClient:
-    """
-    Client for interacting with LLMs.
-    Abstraction layer to switch between providers (Mock, OpenAI, Anthropic, vLLM).
+class FireworksDriver(OpenAIDriver):
+    """Fireworks-specific driver.
+
+    Fireworks exposes an OpenAI-compatible endpoint at ``/inference/v1`` so we
+    reuse :class:`OpenAIDriver`'s call shape and only override credentials.
+    Authentication is ``FIREWORKS_API_KEY`` and the model is
+    ``accounts/fireworks/models/<model>``; we strip the ``accounts/fireworks/models/``
+    prefix when callers pass a fully-qualified name.
     """
 
-    def __init__(self, driver: str = "mock", config: dict | None = None):
+    _DEFAULT_BASE_URL = "https://api.fireworks.ai/inference/v1"
+    _DEFAULT_MODEL = "accounts/fireworks/models/llama-v3p1-8b-instruct"
+
+    def __init__(self):
+        self.api_key = os.environ.get(
+            "FIREWORKS_API_KEY", os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
+        )
+        self.base_url = os.environ.get("FIREWORKS_BASE_URL", self._DEFAULT_BASE_URL)
+        model = os.environ.get("FIREWORKS_MODEL") or os.environ.get("LLM_MODEL", self._DEFAULT_MODEL)
+        self.model = model
+        if not self.api_key:
+            logger.warning("No FIREWORKS_API_KEY found. FireworksDriver may fail.")
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+
+
+class LLMClient:
+    """Client for interacting with LLMs.
+
+    Abstraction layer across providers. The ``driver`` argument selects which
+    :class:`LLMDriver` subclass binds; for back-compat, ``"openai"`` continues
+    to mean the OpenAI-compatible endpoint and ``"nvidia"`` aliases to the
+    same driver (NVIDIA NIM exposes an OpenAI-compatible API). ``"fireworks"``
+    routes to :class:`FireworksDriver`.
+
+    All non-mock drivers are gated by :class:`TierAwareRateLimiter` so the
+    process stays under Fireworks starter-tier TPM caps (see
+    ``rate_limiter.py``). Set ``RATELIMIT_DISABLED=1`` to bypass.
+    """
+
+    def __init__(
+        self,
+        driver: str = "mock",
+        config: dict | None = None,
+        rate_limiter: TierAwareRateLimiter | None = None,
+    ):
         self.config = config or {}
-        self.driver = OpenAIDriver() if driver.lower() == "openai" else MockDriver()
+        self.driver_name = driver.lower()
+        self.driver = self._build_driver(self.driver_name)
+        self.rate_limiter = rate_limiter or default_rate_limiter()
+        self.provider = _provider_for_driver(self.driver_name)
+        self._resolved_model = getattr(self.driver, "model", "default")
+
+    def _build_driver(self, name: str) -> LLMDriver:
+        if name == "mock":
+            return MockDriver()
+        if name == PROVIDER_FIREWORKS:
+            return FireworksDriver()
+        if name in ("openai", "nvidia", "nim"):
+            return OpenAIDriver()
+        return MockDriver()
+
+    def _estimated_tokens(self, prompt: str, system_prompt: str | None, kwargs: dict) -> int:
+        """Rough heuristic so the limiter has a cost estimate without counting tokens."""
+
+        extra = int(kwargs.get("max_tokens", 0)) if isinstance(kwargs, dict) else 0
+        text_len = len(prompt) + (len(system_prompt) if system_prompt else 0)
+        return max(text_len // 4 + extra, 256)
 
     def generate(self, prompt: str, system_prompt: str | None = None, **kwargs) -> str:
+        if self.provider not in ("mock",):
+            acquired = self.rate_limiter.acquire(
+                provider=self.provider,
+                model=self._resolved_model,
+                estimated_tokens=self._estimated_tokens(prompt, system_prompt, kwargs),
+            )
+            if not acquired:
+                logger.warning(
+                    "Rate limiter rejected acquire for provider=%s model=%s; returning empty",
+                    self.provider,
+                    self._resolved_model,
+                )
+                return ""
         return self.driver.generate(prompt, system_prompt, **kwargs)
 
     def generate_structured(
         self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None
     ) -> dict[str, Any]:
+        if self.provider not in ("mock",):
+            acquired = self.rate_limiter.acquire(
+                provider=self.provider,
+                model=self._resolved_model,
+                estimated_tokens=self._estimated_tokens(prompt, system_prompt, {}),
+            )
+            if not acquired:
+                logger.warning(
+                    "Rate limiter rejected acquire for provider=%s model=%s; returning empty",
+                    self.provider,
+                    self._resolved_model,
+                )
+                return {}
         return self.driver.generate_structured(prompt, schema, system_prompt)
