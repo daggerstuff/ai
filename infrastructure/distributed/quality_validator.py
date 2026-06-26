@@ -11,7 +11,6 @@ import json
 import logging
 import multiprocessing as mp
 import os
-import pickle
 import time
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict, dataclass
@@ -125,6 +124,12 @@ class ValidationResult:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ValidationResult":
+        """Create from dictionary"""
+        return cls(**data)
+
 
 
 class QualityValidator:
@@ -465,9 +470,9 @@ class DistributedQualityValidator:
             try:
                 self.celery_app = Celery("quality_validator", broker=self.celery_broker)
                 self.celery_app.conf.update(
-                    task_serializer="pickle",
-                    accept_content=["pickle"],
-                    result_serializer="pickle",
+                    task_serializer="json",
+                    accept_content=["json"],
+                    result_serializer="json",
                     timezone="UTC",
                     enable_utc=True,
                     task_routes={"quality_validator.validate_task": {"queue": "quality_validation"}},
@@ -516,7 +521,7 @@ class DistributedQualityValidator:
             if cache_hit and cached_result:
                 # Deserialize cached result
                 try:
-                    result_data = pickle.loads(cached_result)
+                    result_data = json.loads(cached_result.decode("utf-8"))
                     result = ValidationResult.from_dict(result_data)
                     result.task_id = task_id
 
@@ -718,7 +723,7 @@ class DistributedQualityValidator:
                 try:
                     # Serialize result for caching
                     result_data = asdict(result)
-                    serialized_result = pickle.dumps(result_data)
+                    serialized_result = json.dumps(result_data).encode("utf-8")
 
                     # Cache the result
                     self.cached_validator.cache_validation_result(
