@@ -453,20 +453,17 @@ class MonitoringBridge:
             ]
 
             health_data = {}
-            for metric in key_metrics:
-                latest = conn.execute(
-                    """
-                    SELECT metric_value, timestamp
-                    FROM system_metrics
-                    WHERE metric_name = ?
-                    ORDER BY timestamp DESC
-                    LIMIT 1
-                """,
-                    (metric,),
-                ).fetchone()
+            placeholders = ",".join("?" * len(key_metrics))
+            query = (
+                "SELECT metric_name, metric_value, MAX(timestamp) as timestamp "
+                "FROM system_metrics "
+                f"WHERE metric_name IN ({placeholders}) "  # sourcery skip: avoid-sql-string-concatenation
+                "GROUP BY metric_name"
+            )
+            rows = conn.execute(query, key_metrics).fetchall()
 
-                if latest:
-                    health_data[metric] = {"value": latest[0], "timestamp": latest[1]}
+            for row in rows:
+                health_data[row[0]] = {"value": row[1], "timestamp": row[2]}
 
             # Get alert counts
             recent_alerts = len(self.get_alert_history(hours=1))
