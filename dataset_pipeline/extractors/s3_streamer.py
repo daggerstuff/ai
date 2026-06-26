@@ -35,17 +35,60 @@ class S3Streamer:
             for obj in page.get('Contents', []):
                 yield obj['Key']
 
-    def stream_jsonl(self, key):
-        """Yields parsed JSON objects line-by-line from a JSONL file in S3."""
+    def stream_jsonl(self, key, chunk_bytes=512 * 1024 * 1024):
+        """
+        Yields parsed JSON objects line-by-line from a JSONL file in S3.
+        Reads in byte-range chunks to avoid connection drops on very large files.
+        """
         try:
-            response = self.client.get_object(Bucket=self.bucket, Key=key)
-            # Use iter_lines to stream the response body
-            for line in response['Body'].iter_lines():
-                if line:
-                    yield json.loads(line.decode('utf-8'))
+            head = self.client.head_object(Bucket=self.bucket, Key=key)
+            total_size = head['ContentLength']
         except self.client.exceptions.NoSuchKey:
             print(f"Warning: Key {key} not found in bucket {self.bucket}")
             return
+
+        leftover = b""
+        offset = 0
+
+        while offset < total_size:
+            end = min(offset + chunk_bytes - 1, total_size - 1)
+            try:
+                response = self.client.get_object(
+                    Bucket=self.bucket, Key=key,
+                    Range=f"bytes={offset}-{end}"
+                )
+                data = response['Body'].read()
+            except Exception as e:
+                print(f"Warning: range read failed at offset {offset}: {e}. Retrying...")
+                import time; time.sleep(3)
+                response = self.client.get_object(
+                    Bucket=self.bucket, Key=key,
+                    Range=f"bytes={offset}-{end}"
+                )
+                data = response['Body'].read()
+
+            chunk = leftover + data
+            lines = chunk.split(b'\n')
+            # Last element may be incomplete — carry it over
+            leftover = lines[-1]
+
+            for line in lines[:-1]:
+                line = line.strip()
+                if line:
+                    try:
+                        yield json.loads(line.decode('utf-8'))
+                    except Exception:
+                        pass
+
+            offset = end + 1
+
+        # Handle any remaining bytes
+        if leftover.strip():
+            try:
+                yield json.loads(leftover.decode('utf-8'))
+            except Exception:
+                pass
+
 
     def stream_text(self, key):
         """Yields decoded text line-by-line from a text file in S3."""
@@ -62,23 +105,69 @@ class S3Streamer:
         """Downloads a file directly to disk for processing (e.g. for EPUB/PDF)."""
         self.client.download_file(self.bucket, key, local_path)
 
-    def write_jsonl(self, key, iterator):
+    def write_jsonl(self, key, iterator, chunk_size_mb=64):
         """
-        Streams a large iterable of dicts as JSONL directly to S3.
-        Note: Boto3 upload_fileobj accepts a file-like object. We can use a generator
-        with smart_open, but for simplicity we will write to a local temp file and upload.
+        Streams an iterable of dicts as JSONL directly to S3 using multipart upload.
+        This avoids writing anything to local disk, preventing disk quota issues.
         """
-        import tempfile
+        import io
         
-        # We use a named temporary file to avoid keeping it all in RAM
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.jsonl') as temp_file:
-            temp_path = temp_file.name
+        part_number = 1
+        parts = []
+        buffer = io.BytesIO()
+        chunk_bytes = chunk_size_mb * 1024 * 1024  # e.g. 64MB chunks
+        
+        # Initiate multipart upload
+        mpu = self.client.create_multipart_upload(Bucket=self.bucket, Key=key)
+        upload_id = mpu['UploadId']
+        
+        try:
             for item in iterator:
-                temp_file.write(json.dumps(item) + '\n')
+                line = (json.dumps(item) + '\n').encode('utf-8')
+                buffer.write(line)
                 
-        # Upload the temp file
-        self.client.upload_file(temp_path, self.bucket, key)
-        
-        # Cleanup
-        os.unlink(temp_path)
-        print(f"Successfully uploaded dataset to {key}")
+                # When buffer hits the chunk size, upload that part
+                if buffer.tell() >= chunk_bytes:
+                    buffer.seek(0)
+                    response = self.client.upload_part(
+                        Bucket=self.bucket,
+                        Key=key,
+                        PartNumber=part_number,
+                        UploadId=upload_id,
+                        Body=buffer.read()
+                    )
+                    parts.append({'PartNumber': part_number, 'ETag': response['ETag']})
+                    print(f"  Uploaded part {part_number} ({chunk_size_mb}MB) to S3...")
+                    part_number += 1
+                    buffer = io.BytesIO()
+            
+            # Upload whatever remains in the buffer as the final part
+            if buffer.tell() > 0:
+                buffer.seek(0)
+                response = self.client.upload_part(
+                    Bucket=self.bucket,
+                    Key=key,
+                    PartNumber=part_number,
+                    UploadId=upload_id,
+                    Body=buffer.read()
+                )
+                parts.append({'PartNumber': part_number, 'ETag': response['ETag']})
+                print(f"  Uploaded final part {part_number} to S3.")
+            
+            # Complete the multipart upload
+            self.client.complete_multipart_upload(
+                Bucket=self.bucket,
+                Key=key,
+                UploadId=upload_id,
+                MultipartUpload={'Parts': parts}
+            )
+            print(f"Successfully uploaded dataset to {key} ({part_number} parts)")
+            
+        except Exception as e:
+            # Abort multipart upload on failure to avoid leaving partial data
+            self.client.abort_multipart_upload(
+                Bucket=self.bucket,
+                Key=key,
+                UploadId=upload_id
+            )
+            raise e
