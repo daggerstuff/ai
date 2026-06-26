@@ -168,6 +168,27 @@ describe("PixelatedEmpathyAPI Method getConversations", () => {
       offset: 0,
     });
   });
+
+  it("should handle minQuality of 0 correctly", async () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    const makeRequestSpy = vi.spyOn(api, "makeRequest");
+
+    let calledOptions: Record<string, unknown> = {};
+    makeRequestSpy.mockImplementation(
+      async (method: string, endpoint: string, options?: RequestOptions) => {
+        calledOptions = options ?? {};
+        return { data: { conversations: [] } };
+      },
+    );
+
+    await api.getConversations({ minQuality: 0 });
+
+    expect(calledOptions.params).toEqual({
+      limit: 100,
+      offset: 0,
+      min_quality: 0,
+    });
+  });
 });
 
 describe("PixelatedEmpathyAPI Method waitForJob", () => {
