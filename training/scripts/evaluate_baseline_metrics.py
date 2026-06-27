@@ -320,7 +320,7 @@ def main():
     if args.dry_run:
         return _run_dry_run_evaluation(evaluator)
     if args.scan_all:
-        return _scan_local_datasets(evaluator)
+        return _scan_dataset_directories(evaluator)
     if args.scan_all_s3:
         return _scan_s3_datasets(evaluator, args.scan_all_s3)
     if args.input_file:
@@ -467,7 +467,7 @@ def _scan_s3_datasets(evaluator, s3_prefix: str) -> int:
     return 0
 
 
-def _scan_local_datasets(evaluator):
+def _scan_dataset_directories(evaluator):
     logger.info("Scanning all dataset directories...")
     all_results: dict[str, Any] = {}
 
