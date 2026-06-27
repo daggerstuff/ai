@@ -3,27 +3,18 @@
 S3 Dataset Processor - Pulls actual 52.20GB from S3 and processes
 """
 
-from datetime import datetime, timezone
-
-
-
-
-
-
-
-
 import json
 import logging
 import os
+from datetime import UTC, datetime
 from pathlib import Path
 
-import boto3
 from botocore.exceptions import ClientError
 
+from scripts.rclone_boto3_shim import get_client
+
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -44,16 +35,16 @@ class S3DatasetProcessor:
         self.local_cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize S3 client
-        self.s3_client = boto3.client(
+        self.s3_client = get_client(
             "s3",
             endpoint_url=endpoint_url,
             aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
-            region_name='hel1',
+            region_name="hel1",
         )
 
         self.stats = {
-            "start_time": datetime.now(timezone.utc).isoformat(),
+            "start_time": datetime.now(UTC).isoformat(),
             "total_objects": 0,
             "total_size": 0,
             "processed_conversations": 0,
@@ -98,17 +89,18 @@ class S3DatasetProcessor:
                 size = obj["Size"]
 
                 # Filter for relevant file types
-                if any(key.endswith(ext) for ext in [".jsonl", ".json", ".csv"]):
-                    if size > 1024:  # Skip tiny files
-                        relevant_files.append(
-                            {
-                                "key": key,
-                                "size": size,
-                                "last_modified": obj.get("LastModified", "").isoformat()
-                                if obj.get("LastModified")
-                                else None,
-                            }
-                        )
+                relevant_exts = (".jsonl", ".json", ".csv")
+                min_relevant_bytes = 1024
+                if any(key.endswith(ext) for ext in relevant_exts) and size > min_relevant_bytes:
+                    relevant_files.append(
+                        {
+                            "key": key,
+                            "size": size,
+                            "last_modified": obj.get("LastModified", "").isoformat()
+                            if obj.get("LastModified")
+                            else None,
+                        }
+                    )
 
         # Sort by size descending
         relevant_files.sort(key=lambda x: x["size"], reverse=True)
@@ -137,12 +129,15 @@ class S3DatasetProcessor:
 
     def format_size(self, size_bytes: int) -> str:
         """Format size in human readable format"""
-        for unit in ["B", "KB", "MB", "GB"]:
-            if size_bytes < 1024.0:
-                return f"{size_bytes:.1f}{unit}"
+        size_units = ("B", "KB", "MB", "GB")
+        bytes_per_unit = 1024.0
+        size: float = float(size_bytes)
+        for unit in size_units:
+            if size < bytes_per_unit:
+                return f"{size:.1f}{unit}"
 
-            size_bytes /= 1024.0
-        return f"{size_bytes:.1f}TB"
+            size /= bytes_per_unit
+        return f"{size:.1f}TB"
 
     def process_s3_datasets(self) -> dict:
         """Main processing function for S3 datasets"""
@@ -186,13 +181,11 @@ class S3DatasetProcessor:
             "total_size": total_size,
             "files": files,
             "cache_dir": str(self.local_cache_dir),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         # Save report
-        report_path = Path(
-            "/home/vivi/pixelated/ai/training_ready/data/s3_processing_report.json"
-        )
+        report_path = Path("/home/vivi/pixelated/ai/training_ready/data/s3_processing_report.json")
         report_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(report_path, "w") as f:
@@ -246,38 +239,36 @@ def main():
         # Create S3 manifest
         manifest = processor.create_s3_manifest()
 
-        print("=" * 60)
-        print("S3 DATASET DISCOVERY")
-        print("=" * 60)
-        print(f"Bucket: {manifest['bucket']}")
-        print(f"Endpoint: {manifest['endpoint']}")
-        print(f"Total files: {manifest['total_objects']}")
-        print(f"Total size: {manifest['total_size'] / 1024**3:.2f}GB")
+        logger.info("=" * 60)
+        logger.info("S3 DATASET DISCOVERY")
+        logger.info("=" * 60)
+        logger.info(f"Bucket: {manifest['bucket']}")
+        logger.info(f"Endpoint: {manifest['endpoint']}")
+        logger.info(f"Total files: {manifest['total_objects']}")
+        logger.info(f"Total size: {manifest['total_size'] / 1024**3:.2f}GB")
 
         for category, files in manifest["categories"].items():
             size = sum(f["size"] for f in files)
-            print(f"{category}: {len(files)} files, {size / 1024**3:.2f}GB")
+            logger.info(f"{category}: {len(files)} files, {size / 1024**3:.2f}GB")
 
         if manifest["files"]:
-            print("\nTop 5 largest files:")
+            logger.info("Top 5 largest files:")
             for f in manifest["files"][:5]:
-                print(f"  {f['key']}: {f['size'] / 1024**3:.2f}GB")
+                logger.info(f"  {f['key']}: {f['size'] / 1024**3:.2f}GB")
 
-        print(
-            "\nManifest saved to: /home/vivi/pixelated/ai/training_ready/data/s3_processing_report.json"
-        )
+        logger.info("Manifest saved to: /home/vivi/pixelated/ai/training_ready/data/s3_processing_report.json")
 
         # Ask for confirmation to proceed
         response = input("\nProceed with downloading and processing? (y/N): ")
         if response.lower() == "y":
             result = processor.process_s3_datasets()
-            print(f"✅ Processing complete. Files cached in: {result['cache_dir']}")
+            logger.info(f"Processing complete. Files cached in: {result['cache_dir']}")
         else:
-            print("❌ Processing cancelled")
+            logger.info("Processing cancelled")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
-        print("Check AWS credentials and S3 access")
+        logger.info(f"Error: {e}")
+        logger.info("Check AWS credentials and S3 access")
 
 
 if __name__ == "__main__":

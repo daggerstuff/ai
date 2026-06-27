@@ -3,30 +3,24 @@
 Streaming S3 Dataset Processor - Processes 52.20GB without local storage
 """
 
-from datetime import datetime, timezone
-
-
-
-
-
-
-
-
+import csv
 import hashlib
+import io
 import json
 import logging
 import os
 import re
 import tempfile
-from typing import Any, Dict, Iterator
+from collections.abc import Iterator
+from datetime import UTC, datetime
+from typing import Any
 
-import boto3
 from botocore.exceptions import ClientError
 
+from scripts.rclone_boto3_shim import get_client
+
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -44,7 +38,7 @@ class StreamingS3Processor:
     ):
         self.source_bucket = source_bucket
         self.output_bucket = output_bucket
-        # Use provided endpoint or read from environment, default to Digital Ocean (bucket name should NOT be in endpoint)
+        # default to Digital Ocean (bucket name should NOT be in endpoint)
         endpoint = endpoint_url or os.environ.get("AWS_S3_ENDPOINT", "https://sfo3.digitaloceanspaces.com")
         # Remove bucket name from endpoint if present
         if "pixel-data" in endpoint:
@@ -53,7 +47,7 @@ class StreamingS3Processor:
         self.chunk_size = chunk_size
 
         # Initialize S3 client
-        self.s3_client = boto3.client(
+        self.s3_client = get_client(
             "s3",
             endpoint_url=self.endpoint_url,
             aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
@@ -93,16 +87,11 @@ class StreamingS3Processor:
             ]
 
             for prefix in prefixes:
-                for page in paginator.paginate(
-                    Bucket=self.source_bucket, Prefix=prefix
-                ):
+                for page in paginator.paginate(Bucket=self.source_bucket, Prefix=prefix):
                     if "Contents" in page:
                         for obj in page["Contents"]:
                             key = obj["Key"]
-                            if any(
-                                key.endswith(ext)
-                                for ext in [".json", ".jsonl", ".csv", ".txt"]
-                            ):
+                            if any(key.endswith(ext) for ext in [".json", ".jsonl", ".csv", ".txt"]):
                                 files.append(
                                     {
                                         "key": key,
@@ -136,9 +125,6 @@ class StreamingS3Processor:
                 else:
                     yield self.process_json_item(data)
             elif s3_key.endswith(".csv"):
-                import csv
-                import io
-
                 csv_content = response["Body"].read().decode("utf-8")
                 reader = csv.DictReader(io.StringIO(csv_content))
                 for row in reader:
@@ -153,20 +139,20 @@ class StreamingS3Processor:
             data = json.loads(line)
             cleaned = self.clean_record(data)
             return json.dumps(cleaned)
-        except:
+        except Exception:
             return line
 
-    def process_json_item(self, item: Dict) -> str:
+    def process_json_item(self, item: dict) -> str:
         """Process a JSON item"""
         cleaned = self.clean_record(item)
         return json.dumps(cleaned)
 
-    def process_csv_row(self, row: Dict) -> str:
+    def process_csv_row(self, row: dict) -> str:
         """Process a CSV row"""
         cleaned = self.clean_record(row)
         return json.dumps(cleaned)
 
-    def clean_record(self, record: Dict) -> Dict:
+    def clean_record(self, record: dict) -> dict:
         """Clean PII from record"""
         # Convert to string for regex processing
         record_str = json.dumps(record)
@@ -181,9 +167,7 @@ class StreamingS3Processor:
 
         cleaned_str = record_str
         for pattern_name, pattern in patterns.items():
-            cleaned_str = re.sub(
-                pattern, f"[{pattern_name.upper()}_REDACTED]", cleaned_str
-            )
+            cleaned_str = re.sub(pattern, f"[{pattern_name.upper()}_REDACTED]", cleaned_str)
 
         return json.loads(cleaned_str)
 
@@ -197,7 +181,7 @@ class StreamingS3Processor:
                 seen_hashes.add(content_hash)
                 yield line
 
-    def process_and_upload(self, s3_key: str) -> Dict[str, Any]:
+    def process_and_upload(self, s3_key: str) -> dict[str, Any]:
         """Process a file and upload cleaned version to S3"""
         try:
             # Create output key
@@ -218,9 +202,7 @@ class StreamingS3Processor:
                 tmp_file.flush()
 
                 # Upload to S3
-                self.s3_client.upload_file(
-                    tmp_file.name, self.output_bucket, output_key
-                )
+                self.s3_client.upload_file(tmp_file.name, self.output_bucket, output_key)
 
                 logger.info(f"Uploaded {record_count} records to {output_key}")
 
@@ -235,7 +217,7 @@ class StreamingS3Processor:
             logger.error(f"Error processing {s3_key}: {e}")
             return {"input_key": s3_key, "error": str(e), "success": False}
 
-    def process_all_datasets(self) -> Dict[str, Any]:
+    def process_all_datasets(self) -> dict[str, Any]:
         """Process all datasets in streaming fashion"""
         files = self.get_relevant_files()
 
@@ -244,9 +226,7 @@ class StreamingS3Processor:
             return {"success": False, "error": "No files found"}
 
         total_size = sum(f["size"] for f in files)
-        logger.info(
-            f"Processing {len(files)} files, total size: {total_size / 1024**3:.2f}GB"
-        )
+        logger.info(f"Processing {len(files)} files, total size: {total_size / 1024**3:.2f}GB")
 
         results = []
         for i, file_info in enumerate(files, 1):
@@ -261,14 +241,12 @@ class StreamingS3Processor:
             "processed_files": len([r for r in results if r["success"]]),
             "failed_files": len([r for r in results if not r["success"]]),
             "results": results,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "output_bucket": self.output_bucket,
         }
 
         # Save report to S3
-        report_key = (
-            f"processing_reports/report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
-        )
+        report_key = f"processing_reports/report_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}.json"
         self.s3_client.put_object(
             Bucket=self.output_bucket,
             Key=report_key,
@@ -287,31 +265,27 @@ def main():
         files = processor.get_relevant_files()
         total_size = sum(f["size"] for f in files)
 
-        print(f"📊 Found {len(files)} files in S3")
-        print(f"📏 Total size: {total_size / 1024**3:.2f}GB")
+        logger.info(f"Found {len(files)} files in S3")
+        logger.info(f"Total size: {total_size / 1024**3:.2f}GB")
 
         if files:
-            print("\n🗂️  Top files:")
+            logger.info("Top files:")
             for f in files[:5]:
-                print(f"   {f['key']}: {f['size'] / 1024**3:.2f}GB")
+                logger.info(f"   {f['key']}: {f['size'] / 1024**3:.2f}GB")
 
         response = input("\n🚀 Proceed with streaming processing? (y/N): ")
         if response.lower() == "y":
             result = processor.process_all_datasets()
-            print("✅ Processing complete!")
-            print(
-                f"   Processed: {result['processed_files']}/{result['total_files']} files"
-            )
-            print(f"   Clean data in: s3://{result['output_bucket']}/cleaned/")
-            print(
-                f"   Report saved: s3://{result['output_bucket']}/processing_reports/"
-            )
+            logger.info("Processing complete!")
+            logger.info(f"   Processed: {result['processed_files']}/{result['total_files']} files")
+            logger.info(f"   Clean data in: s3://{result['output_bucket']}/cleaned/")
+            logger.info(f"   Report saved: s3://{result['output_bucket']}/processing_reports/")
         else:
-            print("❌ Processing cancelled")
+            logger.info("Processing cancelled")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
-        print("🔧 Check AWS credentials and S3 access")
+        logger.info(f"Error: {e}")
+        logger.info("Check AWS credentials and S3 access")
 
 
 if __name__ == "__main__":
