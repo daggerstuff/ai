@@ -8,8 +8,8 @@ Also provides dream-cycle integration — the DreamManager runs NREM/REM-style
 consolidation after session processing to surface themes, patterns, and insights.
 """
 
-import os
 import logging
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum

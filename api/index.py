@@ -144,7 +144,7 @@ async def reflect(request):
         return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
     except Exception as e:
         logger.error(f"Reflection error: {e}")
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({"error": "Internal server error"}, status_code=500)
 
 
 routes = [
@@ -153,12 +153,22 @@ routes = [
     Route("/reflect", reflect, methods=["POST"]),
 ]
 
+def get_cors_origins() -> list[str]:
+    """Parse allowed CORS origins from the CORS_ORIGINS environment variable.
+
+    Returns a list of allowed origins. Defaults to an empty list (no cross-origin
+    requests allowed). Set CORS_ORIGINS as a comma-separated list of origins.
+    """
+    raw = os.getenv("CORS_ORIGINS", "")
+    return [o.strip() for o in raw.split(",") if o.strip()]
+
+
 middleware = [
     # NOTE: For production, restrict allow_origins to known frontend domains
-    # Current wildcard is for development convenience
+    # Must be configured explicitly via environment variables
     Middleware(
         CORSMiddleware,
-        allow_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()],
+        allow_origins=get_cors_origins(),
         allow_methods=["*"],
         allow_headers=["*"],
     )
