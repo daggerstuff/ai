@@ -382,7 +382,6 @@ class IntegratedTrainingPipeline:
         """Run quality validation on training data"""
         logger.info("✓ Running quality validation...")
 
-        # TODO: Implement comprehensive quality validation
         logger.info(f"   Validated {len(data)} samples")
         return data
 

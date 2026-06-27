@@ -107,7 +107,10 @@ describe("PixelatedEmpathyAPI Methods", () => {
 
     const result = await api.getConversation("conv-123");
 
-    expect(makeRequestSpy).toHaveBeenCalledWith("GET", "/conversations/conv-123");
+    expect(makeRequestSpy).toHaveBeenCalledWith(
+      "GET",
+      "/conversations/conv-123",
+    );
     expect(result).toEqual({ id: "conv-123" });
   });
 });
@@ -165,6 +168,27 @@ describe("PixelatedEmpathyAPI Method getConversations", () => {
       offset: 0,
     });
   });
+
+  it("should handle minQuality of 0 correctly", async () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    const makeRequestSpy = vi.spyOn(api, "makeRequest");
+
+    let calledOptions: Record<string, unknown> = {};
+    makeRequestSpy.mockImplementation(
+      async (method: string, endpoint: string, options?: RequestOptions) => {
+        calledOptions = options ?? {};
+        return { data: { conversations: [] } };
+      },
+    );
+
+    await api.getConversations({ minQuality: 0 });
+
+    expect(calledOptions.params).toEqual({
+      limit: 100,
+      offset: 0,
+      min_quality: 0,
+    });
+  });
 });
 
 describe("PixelatedEmpathyAPI Method waitForJob", () => {
@@ -214,9 +238,9 @@ describe("PixelatedEmpathyAPI Method waitForJob", () => {
     };
 
     try {
-      await expect(api.waitForJob("job-123", { timeout: 0.1, pollInterval: 0.01 })).rejects.toThrow(
-        PixelatedEmpathyAPIError,
-      );
+      await expect(
+        api.waitForJob("job-123", { timeout: 0.1, pollInterval: 0.01 }),
+      ).rejects.toThrow(PixelatedEmpathyAPIError);
     } finally {
       Date.now = originalNow;
     }
@@ -420,7 +444,10 @@ describe("PixelatedEmpathyAPI Dataset Methods", () => {
 
     const result = await api.getDatasetInfo("test_dataset");
 
-    expect(makeRequestSpy).toHaveBeenCalledWith("GET", "/datasets/test_dataset");
+    expect(makeRequestSpy).toHaveBeenCalledWith(
+      "GET",
+      "/datasets/test_dataset",
+    );
     expect(result).toEqual(mockDatasetInfo);
   });
 });
@@ -560,7 +587,10 @@ describe("PixelatedEmpathyAPI Method getJobStatus", () => {
 
     const result = await api.getJobStatus("job-123");
 
-    expect(makeRequestSpy).toHaveBeenCalledWith("GET", "/processing/jobs/job-123");
+    expect(makeRequestSpy).toHaveBeenCalledWith(
+      "GET",
+      "/processing/jobs/job-123",
+    );
     expect(result).toEqual(mockStatus);
   });
 
@@ -811,7 +841,10 @@ describe("PixelatedEmpathyAPI Method toRecordArray edge cases", () => {
   it("should correctly filter out non-plain objects from arrays", () => {
     const api = new PixelatedEmpathyAPI("test_key");
     const input = [{ valid: true }, null, "string", [1, 2], { another: "yes" }];
-    expect(api.toRecordArray(input)).toEqual([{ valid: true }, { another: "yes" }]);
+    expect(api.toRecordArray(input)).toEqual([
+      { valid: true },
+      { another: "yes" },
+    ]);
   });
 });
 
@@ -1022,5 +1055,25 @@ describe("PixelatedEmpathyAPI Method safeParseResponse edge cases", () => {
       success: false,
       message: "Invalid JSON response",
     });
+  });
+});
+
+describe("PixelatedEmpathyAPI Method makeRequest", () => {
+  it("should append query parameters correctly, filtering out null/undefined and handling existing query strings", async () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    const httpRequestSpy = vi.spyOn(api, "httpRequest").mockResolvedValue({
+      statusCode: 200,
+      headers: {},
+      body: '{"success": true}',
+    });
+
+    await api.makeRequest("GET", "/endpoint?initial=true", {
+      params: { valid: "value", num: 42, undef: undefined, nul: null },
+    });
+
+    expect(httpRequestSpy).toHaveBeenCalledWith(
+      "https://api.pixelatedempathy.com/v1/endpoint?initial=true&valid=value&num=42",
+      expect.anything(),
+    );
   });
 });

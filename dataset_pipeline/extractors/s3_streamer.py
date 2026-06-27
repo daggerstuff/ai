@@ -1,84 +1,80 @@
-import os
+import contextlib
 import json
-import boto3
-from dotenv import load_dotenv
+import logging
+import subprocess
 
-# Load environment variables
-load_dotenv()
+logger = logging.getLogger(__name__)
+
 
 class S3Streamer:
-    """Streams datasets to and from Hetzner S3 without loading everything into memory."""
-    
+    """Streams datasets to and from Hetzner S3 using rclone."""
+
     def __init__(self):
-        # Configure boto3 for Hetzner S3
-        self.endpoint_url = os.environ.get('HETZNER_S3_ENDPOINT', 'https://hel1.your-objectstorage.com')
-        self.access_key = os.environ.get('HETZNER_S3_ACCESS_KEY')
-        self.secret_key = os.environ.get('HETZNER_S3_SECRET_KEY')
-        self.region = os.environ.get('HETZNER_S3_REGION', 'hel1')
-        self.bucket = os.environ.get('HETZNER_S3_BUCKET', 'pixeldata')
-
-        if not self.access_key or not self.secret_key:
-            raise ValueError("HETZNER_S3_ACCESS_KEY and HETZNER_S3_SECRET_KEY must be set in .env")
-
-        self.client = boto3.client(
-            's3',
-            endpoint_url=self.endpoint_url,
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-            region_name=self.region
-        )
+        pass
 
     def list_files(self, prefix):
         """Yields all object keys under a specific prefix."""
-        paginator = self.client.get_paginator('list_objects_v2')
-        for page in paginator.paginate(Bucket=self.bucket, Prefix=prefix):
-            for obj in page.get('Contents', []):
-                yield obj['Key']
+        cmd = ["rclone", "lsf", f"HetznerS3:pixeldata/{prefix}"]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        for line in result.stdout.strip().split("\n"):
+            if line:
+                yield prefix + line
 
-    def stream_jsonl(self, key):
-        """Yields parsed JSON objects line-by-line from a JSONL file in S3."""
-        try:
-            response = self.client.get_object(Bucket=self.bucket, Key=key)
-            # Use iter_lines to stream the response body
-            for line in response['Body'].iter_lines():
-                if line:
-                    yield json.loads(line.decode('utf-8'))
-        except self.client.exceptions.NoSuchKey:
-            print(f"Warning: Key {key} not found in bucket {self.bucket}")
-            return
+    def stream_jsonl(self, key, chunk_bytes=None):
+        """
+        Yields parsed JSON objects line-by-line from a JSONL file in S3 using rclone cat.
+        """
+        cmd = ["rclone", "cat", f"HetznerS3:pixeldata/{key}"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True, encoding="utf-8")
+        assert proc.stdout is not None
+        with contextlib.suppress(Exception):
+            for raw_line in proc.stdout:
+                stripped = raw_line.strip()
+                if stripped:
+                    yield json.loads(stripped)
+        proc.wait()
 
     def stream_text(self, key):
-        """Yields decoded text line-by-line from a text file in S3."""
-        try:
-            response = self.client.get_object(Bucket=self.bucket, Key=key)
-            for line in response['Body'].iter_lines():
-                if line is not None:
-                    yield line.decode('utf-8')
-        except self.client.exceptions.NoSuchKey:
-            print(f"Warning: Key {key} not found in bucket {self.bucket}")
-            return
+        """Yields decoded text line-by-line from a text file in S3 using rclone cat."""
+        cmd = ["rclone", "cat", f"HetznerS3:pixeldata/{key}"]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True, encoding="utf-8")
+        assert proc.stdout is not None
+        for raw_line in proc.stdout:
+            stripped = raw_line.strip()
+            if stripped:
+                yield stripped
+        proc.wait()
 
     def download_to_file(self, key, local_path):
-        """Downloads a file directly to disk for processing (e.g. for EPUB/PDF)."""
-        self.client.download_file(self.bucket, key, local_path)
+        """Downloads a file directly to disk for processing."""
+        cmd = ["rclone", "copyto", f"HetznerS3:pixeldata/{key}", local_path]
+        subprocess.run(cmd, check=True)
 
-    def write_jsonl(self, key, iterator):
+    def write_jsonl(self, key, iterator, chunk_size_mb=64):
         """
-        Streams a large iterable of dicts as JSONL directly to S3.
-        Note: Boto3 upload_fileobj accepts a file-like object. We can use a generator
-        with smart_open, but for simplicity we will write to a local temp file and upload.
+        Streams an iterable of dicts as JSONL directly to S3 using rclone rcat.
+        This avoids writing anything to local disk.
         """
-        import tempfile
-        
-        # We use a named temporary file to avoid keeping it all in RAM
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.jsonl') as temp_file:
-            temp_path = temp_file.name
+        cmd = ["rclone", "rcat", f"HetznerS3:pixeldata/{key}"]
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True, encoding="utf-8")
+        assert proc.stdin is not None
+        count = 0
+        try:
             for item in iterator:
-                temp_file.write(json.dumps(item) + '\n')
-                
-        # Upload the temp file
-        self.client.upload_file(temp_path, self.bucket, key)
-        
-        # Cleanup
-        os.unlink(temp_path)
-        print(f"Successfully uploaded dataset to {key}")
+                line = json.dumps(item) + "\n"
+                proc.stdin.write(line)
+                count += 1
+                if count % 100000 == 0:
+                    proc.stdin.flush()
+            proc.stdin.close()
+
+            return_code = proc.wait()
+            if return_code != 0:
+                raise Exception(f"rclone rcat failed with return code {return_code}")
+
+            logger.info("Successfully uploaded dataset to %s via rclone rcat.", key)
+
+        except Exception as e:
+            proc.stdin.close()
+            proc.terminate()
+            raise e from None

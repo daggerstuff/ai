@@ -8,7 +8,6 @@ import pytest
 
 from ai.api.memory.memory_manager import MemoryManager, MessageRole
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------

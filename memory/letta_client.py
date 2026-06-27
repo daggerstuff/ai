@@ -191,12 +191,11 @@ class LettaClient:
         """
         Save agent ID to config file.
 
-        P0 Fix: Set secure permissions on config directory (owner only: 0o700)
+        Create config directory with owner-only permissions (0o700).
+        mode=stat.S_IRWXU on mkdir ensures the leaf dir is 0o700 atomically,
+        defending against permissive umask. Parent dirs use default umask.
         """
-        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-
-        # P0 Fix: Set secure permissions on config directory
-        os.chmod(CONFIG_DIR, stat.S_IRWXU)  # 0o700 - owner rwx only
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True, mode=stat.S_IRWXU)
 
         config_data = {}
         if CONFIG_FILE.exists():

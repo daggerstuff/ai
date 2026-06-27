@@ -205,6 +205,11 @@ ignore = []
 "training/scripts/hetzner_s3_processor.py" = ["T201"]
 "training/ready_packages/scripts/hetzner_s3_processor.py" = ["T201"]
 "training/ready_packages/packages/apex/quick_start.py" = ["T201"]
+# rclone_boto3_shim mirrors boto3's exact client API surface (Bucket/Key/Body/Prefix
+# are capitalized by AWS convention, unused Range kwarg kept for API parity, etc.)
+"scripts/rclone_boto3_shim.py" = ["N803", "ARG001", "ARG002", "PLR2004", "E701", "SIM210", "UP028", "PLC0415", "W293"]
+# s3_streamer keeps optional chunk_bytes/chunk_size_mb kwargs for forward-compat API
+"dataset_pipeline/extractors/s3_streamer.py" = ["ARG002"]
 [tool.ruff.lint.isort]
 known-first-party = ["ai", "src"]
 combine-as-imports = true
