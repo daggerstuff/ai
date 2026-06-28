@@ -38,12 +38,16 @@ def test_safe_execute_query_invalid_identifier_space():
     with pytest.raises(ValueError, match="Invalid identifier"):
         safe_execute_query(cursor, query_template, table="users space")
 
+    cursor.execute.assert_not_called()
+
 
 def test_safe_execute_query_invalid_identifier_dash():
     cursor = MagicMock()
     query_template = "SELECT * FROM {table}"
     with pytest.raises(ValueError, match="Invalid identifier"):
         safe_execute_query(cursor, query_template, table="users-name")
+
+    cursor.execute.assert_not_called()
 
 
 def test_safe_execute_query_no_params():
