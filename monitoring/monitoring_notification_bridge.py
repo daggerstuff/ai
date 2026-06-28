@@ -196,12 +196,18 @@ class MonitoringBridge:
             metric_names = list({rule[1] for rule in rules})
             placeholders = ",".join("?" * len(metric_names))
 
-            query = (
-                "SELECT metric_name, metric_value, MAX(timestamp) as timestamp, service_name "
-                "FROM system_metrics "
-                f"WHERE metric_name IN ({placeholders}) "  # sourcery skip: avoid-sql-string-concatenation
-                "GROUP BY metric_name"
-            )
+            # Use subquery to ensure metric_value and service_name match the MAX(timestamp) row
+            query = f"""
+                SELECT sm.metric_name, sm.metric_value, sm.timestamp, sm.service_name
+                FROM system_metrics sm
+                JOIN (
+                    SELECT metric_name, MAX(timestamp) AS max_ts
+                    FROM system_metrics
+                    WHERE metric_name IN ({placeholders})
+                    GROUP BY metric_name
+                ) latest ON latest.metric_name = sm.metric_name
+                         AND latest.max_ts = sm.timestamp
+            """
             latest_metrics_rows = conn.execute(query, metric_names).fetchall()
             latest_metrics = {row[0]: (row[1], row[2], row[3]) for row in latest_metrics_rows}
 
@@ -461,12 +467,19 @@ class MonitoringBridge:
 
             health_data = {}
             placeholders = ",".join("?" * len(key_metrics))
-            query = (
-                "SELECT metric_name, metric_value, MAX(timestamp) as timestamp "
-                "FROM system_metrics "
-                f"WHERE metric_name IN ({placeholders}) "  # sourcery skip: avoid-sql-string-concatenation
-                "GROUP BY metric_name"
-            )
+
+            # Use subquery to ensure metric_value matches the MAX(timestamp) row
+            query = f"""
+                SELECT sm.metric_name, sm.metric_value, sm.timestamp
+                FROM system_metrics sm
+                JOIN (
+                    SELECT metric_name, MAX(timestamp) AS max_ts
+                    FROM system_metrics
+                    WHERE metric_name IN ({placeholders})
+                    GROUP BY metric_name
+                ) latest ON latest.metric_name = sm.metric_name
+                         AND latest.max_ts = sm.timestamp
+            """
             rows = conn.execute(query, key_metrics).fetchall()
 
             for row in rows:
