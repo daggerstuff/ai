@@ -22,6 +22,8 @@ def test_safe_execute_query_invalid_where_semicolon():
     with pytest.raises(ValueError, match="Invalid where clause"):
         safe_execute_query(cursor, query_template, table="users", where="id = 1; DROP TABLE users")
 
+    cursor.execute.assert_not_called()
+
 
 def test_safe_execute_query_valid_identifier():
     cursor = MagicMock()
