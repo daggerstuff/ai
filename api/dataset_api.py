@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # Initialize Authentication System (use a strong secret key in production)
 AUTH_SECRET_KEY = os.environ.get("AUTH_SECRET_KEY")
 if not AUTH_SECRET_KEY:
-    raise ValueError("AUTH_SECRET_KEY environment variable must be configured securely.")
+    raise ValueError("AUTH_SECRET_KEY environment variable is missing or empty. It must be configured securely in production.")
 auth_system = AuthenticationSystem(AUTH_SECRET_KEY)
 auth_deps = AuthenticationDependencies(auth_system)
 
