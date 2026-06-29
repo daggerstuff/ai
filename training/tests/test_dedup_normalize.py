@@ -15,6 +15,7 @@ except ImportError:
     st = None
 
 from training.dedup_normalize import (
+    ProcessingContext,
     _attempt_reformat,
     _content_hash,
     _extract_text,
@@ -27,9 +28,13 @@ from training.dedup_normalize import (
     run_dedup,
 )
 
+# Constants for magic-value comparisons (PLR2004)
+TWO_INPUT_RECORDS = 2
+EXPECTED_OUTPUT_MESSAGE_COUNT = 2
+SHARD_EXPECT_5_RECORDS_SIZE2 = 3
+
 
 class TestJaccardSimilarity:
-
     def test_identical_sets(self):
         assert _jaccard_similarity(frozenset(["a", "b", "c"]), frozenset(["a", "b", "c"])) == 1.0
 
@@ -48,7 +53,6 @@ class TestJaccardSimilarity:
 
 
 class TestExtractText:
-
     def test_from_messages(self):
         record = {"messages": [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "world"}]}
         assert _extract_text(record) == "hello world"
@@ -63,7 +67,6 @@ class TestExtractText:
 
 
 class TestIsEdgeCase:
-
     def test_edge_case_true(self):
         assert _is_edge_case({"is_training_edge_case": True})
 
@@ -75,7 +78,6 @@ class TestIsEdgeCase:
 
 
 class TestVerifyChatmlBoundary:
-
     def test_valid_messages(self):
         record = {"messages": [{"role": "user", "content": "hello"}]}
         assert _verify_chatml_boundary(record)
@@ -90,19 +92,17 @@ class TestVerifyChatmlBoundary:
 
 
 class TestAttemptReformat:
-
     def test_reformats_instruction_output(self):
         record = {"instruction": "What is CBT?", "output": "Therapy approach."}
         result = _attempt_reformat(record)
         assert result is not None
         assert "messages" in result
-        assert len(result["messages"]) == 2
+        assert len(result["messages"]) == EXPECTED_OUTPUT_MESSAGE_COUNT
         assert result["messages"][0]["role"] == "user"
         assert result["messages"][1]["role"] == "assistant"
 
 
 class TestProcessFile:
-
     def test_exact_dedup(self, tmp_path: Path):
         input_file = tmp_path / "test.jsonl"
         content = json.dumps({"instruction": "Hello", "output": "World"}) + "\n"
@@ -111,13 +111,11 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-
-        kept, exact, _near, _chatml, _refmt, total = process_file(
-            input_file, seen, token_sets, 0.85, set(), rejection,
-        )
-        assert total == 2
-        assert exact == 1
-        assert len(kept) == 1
+        ctx = ProcessingContext(seen, set(), token_sets)
+        stats = process_file(input_file, 0.85, rejection, ctx)
+        assert stats.total_read == TWO_INPUT_RECORDS
+        assert stats.exact_dupes == 1
+        assert len(stats.kept) == 1
 
     def test_near_dedup(self, tmp_path: Path):
         input_file = tmp_path / "test.jsonl"
@@ -129,12 +127,10 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-
-        _kept, exact, near, _chatml, _refmt, total = process_file(
-            input_file, seen, token_sets, 0.85, set(), rejection,
-        )
-        assert total == 2
-        assert near >= 1 or exact >= 1
+        ctx = ProcessingContext(seen, set(), token_sets)
+        stats = process_file(input_file, 0.85, rejection, ctx)
+        assert stats.total_read == TWO_INPUT_RECORDS
+        assert stats.near_dupes >= 1 or stats.exact_dupes >= 1
 
     def test_edge_case_preserved(self, tmp_path: Path):
         input_file = tmp_path / "test.jsonl"
@@ -144,11 +140,9 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-
-        kept, _, _, _, _, _ = process_file(
-            input_file, seen, token_sets, 0.85, set(), rejection,
-        )
-        assert len(kept) == 1
+        ctx = ProcessingContext(seen, set(), token_sets)
+        stats = process_file(input_file, 0.85, rejection, ctx)
+        assert len(stats.kept) == 1
 
     def test_unreadable_jsonl_skipped(self, tmp_path: Path):
         input_file = tmp_path / "bad.jsonl"
@@ -157,16 +151,13 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-
-        kept, _, _, _, _, total = process_file(
-            input_file, seen, token_sets, 0.85, set(), rejection,
-        )
-        assert total == 1
-        assert len(kept) == 0
+        ctx = ProcessingContext(seen, set(), token_sets)
+        stats = process_file(input_file, 0.85, rejection, ctx)
+        assert stats.total_read == 1
+        assert len(stats.kept) == 0
 
 
 class TestRunDedup:
-
     def test_normalization_report_fields(self, tmp_path: Path):
         input_dir = tmp_path / "input"
         input_dir.mkdir()
@@ -177,10 +168,14 @@ class TestRunDedup:
 
         output_dir = tmp_path / "output"
 
-        args = build_parser().parse_args([
-            "--input_dirs", str(input_dir),
-            "--output_dir", str(output_dir),
-        ])
+        args = build_parser().parse_args(
+            [
+                "--input_dirs",
+                str(input_dir),
+                "--output_dir",
+                str(output_dir),
+            ]
+        )
         run_dedup(args)
 
         report_path = output_dir / "normalization_report.json"
@@ -201,15 +196,20 @@ class TestRunDedup:
 
         output_dir = tmp_path / "output"
 
-        args = build_parser().parse_args([
-            "--input_dirs", str(input_dir),
-            "--output_dir", str(output_dir),
-            "--shard_size", "2",
-        ])
+        args = build_parser().parse_args(
+            [
+                "--input_dirs",
+                str(input_dir),
+                "--output_dir",
+                str(output_dir),
+                "--shard_size",
+                "2",
+            ]
+        )
         run_dedup(args)
 
         shards = list(output_dir.glob("shard_*.jsonl"))
-        assert len(shards) == 3  # 5 records with shard_size=2 → 3 shards
+        assert len(shards) == SHARD_EXPECT_5_RECORDS_SIZE2  # 5 records with shard_size=2 → 3 shards
 
 
 # ---------------------------------------------------------------------------
