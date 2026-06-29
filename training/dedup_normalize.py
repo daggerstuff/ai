@@ -12,8 +12,10 @@ import hashlib
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("dedup_normalize")
 
@@ -83,31 +85,122 @@ def _attempt_reformat(record: dict) -> dict | None:
     return None
 
 
+class ProcessingContext:
+    """Bundled mutable state for deduplication. Reduces arg count in process_file."""
+
+    __slots__ = ("edge_case_hashes", "near_dedup_window", "seen_hashes", "token_sets")
+
+    def __init__(
+        self,
+        seen_hashes: set[str],
+        edge_case_hashes: set[str],
+        token_sets: list[tuple[frozenset[str], str]],
+        near_dedup_window: int = 2000,
+    ) -> None:
+        self.seen_hashes = seen_hashes
+        self.edge_case_hashes = edge_case_hashes
+        self.token_sets = token_sets
+        self.near_dedup_window = near_dedup_window
+
+
+class DedupStats:
+    """Returned from process_file."""
+
+    __slots__ = ("chatml_failures", "exact_dupes", "kept", "near_dupes", "reformatted", "total_read")
+
+    def __init__(self) -> None:
+        self.kept: list[dict] = []
+        self.exact_dupes = 0
+        self.near_dupes = 0
+        self.chatml_failures = 0
+        self.reformatted = 0
+        self.total_read = 0
+
+
+@dataclass
+class ProcessingState:
+    """Bundles all mutable state needed by per-record helpers.
+
+    Reduces helper function signatures from 7-9 args down to 3.
+    """
+
+    ctx: ProcessingContext
+    stats: DedupStats
+    rejection_log: list[dict]
+    input_path: Path
+    line_no: int
+    jaccard_threshold: float
+
+
+def _log_rejection(state: ProcessingState, reason: str) -> None:
+    state.rejection_log.append({"file": str(state.input_path), "line": state.line_no, "reason": reason})
+
+
+def _handle_edge_case(state: ProcessingState, record: dict[str, Any], text_hash: str) -> bool | None:
+    """Returns True if kept, False if rejected, None if not an edge case."""
+    state.ctx.edge_case_hashes.add(text_hash)
+    if _verify_chatml_boundary(record):
+        return True
+    reformatted_rec = _attempt_reformat(record)
+    if reformatted_rec:
+        record.clear()
+        record.update(reformatted_rec)
+        state.stats.reformatted += 1
+        return True
+    state.stats.chatml_failures += 1
+    _log_rejection(state, "ChatML boundary failure (edge case)")
+    return False
+
+
+def _handle_normal_record(
+    state: ProcessingState, record: dict[str, Any], text_hash: str, tokens: tuple[frozenset[str], str]
+) -> bool | None:
+    """Returns True if kept, False if rejected, None if not a near-duplicate."""
+    if text_hash in state.ctx.seen_hashes or text_hash in state.ctx.edge_case_hashes:
+        state.stats.exact_dupes += 1
+        return False
+
+    compare_window = (
+        state.ctx.token_sets[-state.ctx.near_dedup_window :] if state.ctx.near_dedup_window else state.ctx.token_sets
+    )
+    for existing_tokens, existing_hash in compare_window:
+        if existing_hash != text_hash and _jaccard_similarity(tokens[0], existing_tokens) > state.jaccard_threshold:
+            state.stats.near_dupes += 1
+            return False
+
+    if not _verify_chatml_boundary(record):
+        reformatted_rec = _attempt_reformat(record)
+        if reformatted_rec:
+            record.clear()
+            record.update(reformatted_rec)
+            state.stats.reformatted += 1
+        else:
+            state.stats.chatml_failures += 1
+            _log_rejection(state, "ChatML boundary failure")
+            return False
+
+    state.ctx.seen_hashes.add(text_hash)
+    state.ctx.token_sets.append(tokens)
+    return True
+
+
 def process_file(
     input_path: Path,
-    seen_hashes: set[str],
-    token_sets: list[tuple[frozenset[str], str]],
     jaccard_threshold: float,
-    edge_case_hashes: set[str],
     rejection_log: list[dict],
-    near_dedup_window: int = 2000,
-) -> tuple[list[dict], int, int, int, int, int]:
+    ctx: ProcessingContext,
+) -> DedupStats:
     """Process one JSONL file.
 
-    Returns (kept_records, exact_dupes, near_dupes, chatml_failures,
-             reformatted, total_read).
+    Returns DedupStats(kept_records, exact_dupes, near_dupes, chatml_failures,
+    reformatted, total_read).
     """
-    kept: list[dict] = []
-    exact_dupes = 0
-    near_dupes = 0
-    chatml_failures = 0
-    reformatted = 0
-    total_read = 0
+    stats = DedupStats()
 
     try:
         with open(input_path, encoding="utf-8", errors="replace") as f:
             for line_no, line in enumerate(f, 1):
-                total_read += 1
+                stats.total_read += 1
                 try:
                     record = json.loads(line)
                 except json.JSONDecodeError:
@@ -116,65 +209,24 @@ def process_file(
 
                 text = _extract_text(record)
                 text_hash = _content_hash(text)
+                tokens = (frozenset(_token_set(text)), text_hash)
 
                 if _is_edge_case(record):
-                    edge_case_hashes.add(text_hash)
-                    if not _verify_chatml_boundary(record):
-                        reformatted_rec = _attempt_reformat(record)
-                        if reformatted_rec:
-                            record = reformatted_rec
-                            reformatted += 1
-                        else:
-                            chatml_failures += 1
-                            rejection_log.append({
-                                "file": str(input_path),
-                                "line": line_no,
-                                "reason": "ChatML boundary failure (edge case)",
-                            })
-                            continue
-                    kept.append(record)
+                    state = ProcessingState(ctx, stats, rejection_log, input_path, line_no, jaccard_threshold)
+                    result = _handle_edge_case(state, record, text_hash)
+                    if result:
+                        stats.kept.append(record)
                     continue
 
-                if text_hash in seen_hashes or text_hash in edge_case_hashes:
-                    exact_dupes += 1
-                    continue
-
-                tokens = _token_set(text)
-                is_near_dup = False
-                compare_window = token_sets[-near_dedup_window:] if near_dedup_window else token_sets
-                for existing_tokens, existing_hash in compare_window:
-                    if existing_hash == text_hash:
-                        continue
-                    if _jaccard_similarity(tokens, existing_tokens) > jaccard_threshold:
-                        is_near_dup = True
-                        break
-
-                if is_near_dup:
-                    near_dupes += 1
-                    continue
-
-                if not _verify_chatml_boundary(record):
-                    reformatted_rec = _attempt_reformat(record)
-                    if reformatted_rec:
-                        record = reformatted_rec
-                        reformatted += 1
-                    else:
-                        chatml_failures += 1
-                        rejection_log.append({
-                            "file": str(input_path),
-                            "line": line_no,
-                            "reason": "ChatML boundary failure",
-                        })
-                        continue
-
-                seen_hashes.add(text_hash)
-                token_sets.append((tokens, text_hash))
-                kept.append(record)
+                state = ProcessingState(ctx, stats, rejection_log, input_path, line_no, jaccard_threshold)
+                result = _handle_normal_record(state, record, text_hash, tokens)
+                if result:
+                    stats.kept.append(record)
 
     except OSError as exc:
         logger.warning("Cannot read %s: %s", input_path, exc)
 
-    return kept, exact_dupes, near_dupes, chatml_failures, reformatted, total_read
+    return stats
 
 
 def run_dedup(args: argparse.Namespace) -> None:
@@ -184,9 +236,12 @@ def run_dedup(args: argparse.Namespace) -> None:
     jaccard_threshold = args.jaccard_threshold
     shard_size = args.shard_size
 
-    seen_hashes: set[str] = set()
-    edge_case_hashes: set[str] = set()
-    token_sets: list[tuple[frozenset[str], str]] = []
+    ctx = ProcessingContext(
+        seen_hashes=set(),
+        edge_case_hashes=set(),
+        token_sets=[],
+        near_dedup_window=args.near_dedup_window,
+    )
     rejection_log: list[dict] = []
 
     all_kept: list[dict] = []
@@ -203,21 +258,32 @@ def run_dedup(args: argparse.Namespace) -> None:
             logger.warning("Input directory not found: %s", input_path)
             continue
         for jsonl_file in sorted(input_path.rglob("*.jsonl")):
-            kept, exact, near, chatml, refmt, n_read = process_file(
-                jsonl_file, seen_hashes, token_sets, jaccard_threshold,
-                edge_case_hashes, rejection_log, args.near_dedup_window,
+            logger.info(f"Processing {jsonl_file.name}...")
+            stats = process_file(
+                jsonl_file,
+                jaccard_threshold,
+                rejection_log,
+                ctx,
             )
-            all_kept.extend(kept)
-            total_in += n_read
-            total_exact_dup += exact
-            total_near_dup += near
-            total_chatml_fail += chatml
-            total_reformatted += refmt
-            total_edge_preserved += sum(1 for r in kept if _is_edge_case(r))
+            logger.info(
+                "  %s: %d read, %d kept, %d exact, %d near dup",
+                jsonl_file.name,
+                stats.total_read,
+                len(stats.kept),
+                stats.exact_dupes,
+                stats.near_dupes,
+            )
+            all_kept.extend(stats.kept)
+            total_in += stats.total_read
+            total_exact_dup += stats.exact_dupes
+            total_near_dup += stats.near_dupes
+            total_chatml_fail += stats.chatml_failures
+            total_reformatted += stats.reformatted
+            total_edge_preserved += sum(1 for r in stats.kept if _is_edge_case(r))
 
     shard_count = 0
     for i in range(0, len(all_kept), shard_size):
-        shard = all_kept[i:i + shard_size]
+        shard = all_kept[i : i + shard_size]
         shard_path = output_dir / f"shard_{shard_count:04d}.jsonl"
         with open(shard_path, "w", encoding="utf-8") as f:
             for record in shard:
@@ -231,7 +297,7 @@ def run_dedup(args: argparse.Namespace) -> None:
                 f.write(json.dumps(entry) + "\n")
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "input_dirs": args.input_dirs,
         "total_samples_in": total_in,
         "exact_duplicates": total_exact_dup,
@@ -251,8 +317,12 @@ def run_dedup(args: argparse.Namespace) -> None:
 
     logger.info(
         "Dedup complete: %d in → %d out (%d exact dup, %d near dup, %d ChatML fail, %d edge preserved)",
-        total_in, len(all_kept), total_exact_dup, total_near_dup,
-        total_chatml_fail, total_edge_preserved,
+        total_in,
+        len(all_kept),
+        total_exact_dup,
+        total_near_dup,
+        total_chatml_fail,
+        total_edge_preserved,
     )
 
 
