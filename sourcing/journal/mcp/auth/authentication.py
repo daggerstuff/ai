@@ -113,7 +113,7 @@ class APIKeyAuth(AuthenticationHandler):
 
         # Extract API key from header (format: "Bearer <key>" or just "<key>")
         api_key = auth_header
-        if auth_header.startswith("Bearer ") or auth_header.startswith("ApiKey "):
+        if auth_header.startswith(("Bearer ", "ApiKey ")):
             api_key = auth_header[7:].strip()
 
         # Validate API key

@@ -104,7 +104,7 @@ def calculate_kappa(
     emotion_y2: list[str] = []
     common_tasks = 0
 
-    for task_id, anns_by_annotator in task_annotations.items():
+    for _task_id, anns_by_annotator in task_annotations.items():
         if ann1_id in anns_by_annotator and ann2_id in anns_by_annotator:
             common_tasks += 1
 
@@ -123,27 +123,15 @@ def calculate_kappa(
     if not common_tasks:
         raise ValueError("No overlapping tasks found for the selected annotator pair.")
 
-    crisis_kappa = None
-    crisis_accuracy = None
-    emotion_kappa = None
-    emotion_accuracy = None
 
     if crisis_y1:
-        crisis_kappa = cohen_kappa_score(crisis_y1, crisis_y2, weights="quadratic")
-        crisis_accuracy = accuracy_score(crisis_y1, crisis_y2)
+        cohen_kappa_score(crisis_y1, crisis_y2, weights="quadratic")
+        accuracy_score(crisis_y1, crisis_y2)
 
     if emotion_y1:
-        emotion_kappa = cohen_kappa_score(emotion_y1, emotion_y2)
-        emotion_accuracy = accuracy_score(emotion_y1, emotion_y2)
+        cohen_kappa_score(emotion_y1, emotion_y2)
+        accuracy_score(emotion_y1, emotion_y2)
 
-    print(f"Annotators: {ann1_id} vs {ann2_id}")
-    print(f"Common tasks: {common_tasks}")
-    crisis_kappa_out = "N/A" if crisis_kappa is None else f"{crisis_kappa:.4f}"
-    crisis_accuracy_out = "N/A" if crisis_accuracy is None else f"{crisis_accuracy:.4f}"
-    emotion_kappa_out = "N/A" if emotion_kappa is None else f"{emotion_kappa:.4f}"
-    emotion_accuracy_out = "N/A" if emotion_accuracy is None else f"{emotion_accuracy:.4f}"
-    print(f"Crisis Kappa (quadratic): {crisis_kappa_out}, Accuracy: {crisis_accuracy_out}")
-    print(f"Emotion Kappa (unweighted): {emotion_kappa_out}, Accuracy: {emotion_accuracy_out}")
 
 
 if __name__ == "__main__":

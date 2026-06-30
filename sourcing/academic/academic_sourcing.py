@@ -946,9 +946,7 @@ class AcademicSourcingEngine:
 
         # Helper to check if a source should be queried
         def should_query(source_name: str) -> bool:
-            if sources and source_name not in sources:
-                return False
-            return True
+            return not (sources and source_name not in sources)
 
         if strategy in [SourcingStrategy.API_ONLY, SourcingStrategy.HYBRID]:
             # Try API sources first (fast and structured)
@@ -984,7 +982,7 @@ class AcademicSourcingEngine:
 
         if strategy in [SourcingStrategy.PUBLISHER_ONLY, SourcingStrategy.HYBRID]:
             # Try publisher integrations (high quality, requires auth)
-            for publisher_type in self.publishers.keys():
+            for publisher_type in self.publishers:
                 if should_query(publisher_type.value):
                     results = self.fetch_from_publisher(publisher_type, query, limit)
                     all_results.extend(results)

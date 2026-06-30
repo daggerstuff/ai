@@ -168,7 +168,7 @@ def lock_config(config: dict[str, Any], seed: int | None = None, repo_path: Path
     git_info = GitInfo.capture(repo_path)
 
     # Create locked config
-    locked = LockedConfig(
+    return LockedConfig(
         created_at=datetime.now(UTC).isoformat() + "Z",
         git_info=git_info,
         random_seed=seed,
@@ -177,7 +177,6 @@ def lock_config(config: dict[str, Any], seed: int | None = None, repo_path: Path
         platform=platform.platform(),
     )
 
-    return locked
 
 
 def apply_locked_config(locked_config: LockedConfig) -> None:

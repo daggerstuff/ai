@@ -10,26 +10,26 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 # ─── Enumerations (must match TypeScript counterparts exactly) ────────────────
 
 
-class PIIStatus(str, Enum):
+class PIIStatus(StrEnum):
     ABSENT = "absent"
     REDACTED = "redacted"
     PRESENT = "present"
 
 
-class ConsentGate(str, Enum):
+class ConsentGate(StrEnum):
     OPEN = "open"
     RESTRICTED = "restricted"
     BLOCKED = "blocked"
 
 
-class ConsolidationPhase(str, Enum):
+class ConsolidationPhase(StrEnum):
     RAW = "raw"
     CONSOLIDATED = "consolidated"
     ARCHIVED = "archived"

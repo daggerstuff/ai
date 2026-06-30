@@ -197,10 +197,7 @@ class SmartQAAgent:
         question = self.generate_intelligent_question(analysis, segment["style"])
 
         # Determine response text
-        if analysis.get("response_portion"):
-            response = analysis["response_portion"]
-        else:
-            response = segment["text"]
+        response = analysis["response_portion"] if analysis.get("response_portion") else segment["text"]
 
         return {
             "input": question,

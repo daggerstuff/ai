@@ -185,8 +185,10 @@ class TestSyntheticTemplates:
         for i, tpl in enumerate(SYNTHETIC_TEMPLATES):
             assert "client" in tpl, f"Template {i} missing 'client'"
             assert "therapist" in tpl, f"Template {i} missing 'therapist'"
-            assert isinstance(tpl["client"], str) and len(tpl["client"]) > 10
-            assert isinstance(tpl["therapist"], str) and len(tpl["therapist"]) > 10
+            assert isinstance(tpl["client"], str)
+            assert len(tpl["client"]) > 10
+            assert isinstance(tpl["therapist"], str)
+            assert len(tpl["therapist"]) > 10
 
 
 # ===================================================================
@@ -606,7 +608,7 @@ class TestScoreConversations:
 
     def test_empty_therapist_content_gives_zero_score(self):
         conv = [{"messages": [{"role": "therapist", "content": ""}]}]
-        scores, details = score_conversations(conv)
+        scores, _details = score_conversations(conv)
         if scores:
             assert scores[0] == 0.0
 

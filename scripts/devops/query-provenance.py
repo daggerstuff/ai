@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import json
-import sys
 
 
 def main():
@@ -10,7 +9,7 @@ def main():
     parser.add_argument("--source-type")
     args = parser.parse_args()
 
-    with open(args.file, "r") as f:
+    with open(args.file) as f:
         for line in f:
             if not line.strip():
                 continue
@@ -19,7 +18,6 @@ def main():
                 continue
             if args.source_type is not None and record["provenance"].get("source_type") != args.source_type:
                 continue
-            print(json.dumps(record))
 
 
 if __name__ == "__main__":

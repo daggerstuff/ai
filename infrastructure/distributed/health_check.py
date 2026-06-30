@@ -82,7 +82,7 @@ class HealthCheckManager:
         component_name: str,
         component_type: ComponentType,
         check_function: Callable,
-        config: dict[str, Any] = None,
+        config: dict[str, Any] | None = None,
     ):
         """Register a health check for a component"""
         self.health_checks[component_name] = check_function
@@ -144,7 +144,7 @@ class HealthCheckManager:
         logger.info("Running comprehensive system health check...")
 
         # Run all health checks concurrently
-        tasks = [self.run_health_check(component_name) for component_name in self.health_checks.keys()]
+        tasks = [self.run_health_check(component_name) for component_name in self.health_checks]
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -287,7 +287,7 @@ class HealthCheckManager:
 
         return recommendations
 
-    def get_health_history(self, component_name: str = None, hours: int = 24) -> list[HealthCheckResult]:
+    def get_health_history(self, component_name: str | None = None, hours: int = 24) -> list[HealthCheckResult]:
         """Get health check history"""
         cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 

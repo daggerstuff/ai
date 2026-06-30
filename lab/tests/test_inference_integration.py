@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tempfile
 import time
 import unittest
@@ -716,11 +717,10 @@ def run_all_tests():
         for _test, _traceback in result.errors:
             pass
 
-    success = result.wasSuccessful()
+    return result.wasSuccessful()
 
-    return success
 
 
 if __name__ == "__main__":
     success = run_all_tests()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

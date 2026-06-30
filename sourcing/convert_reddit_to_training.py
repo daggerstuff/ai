@@ -27,8 +27,7 @@ class RedditConverter:
         import re as _re
 
         text = _re.sub(r"/u/\w+", "[user]", text)
-        text = _re.sub(r"/r/\w+", "[subreddit]", text)
-        return text
+        return _re.sub(r"/r/\w+", "[subreddit]", text)
 
     def _canonical_anon(self, username: str | None) -> str:
         if not username:

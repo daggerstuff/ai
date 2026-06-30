@@ -309,7 +309,7 @@ class QualityAnalyticsDashboard:
                     x=dates,
                     y=qualities,
                     mode="lines+markers",
-                    line=dict(color=self.color_schemes["trends"]),
+                    line={"color": self.color_schemes["trends"]},
                     name="Quality Trend",
                 ),
                 row=2,

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -15,7 +13,6 @@ from ai.memory.dream_memory_store import (
     MongoDBDreamStore,
 )
 from ai.memory.manager_factory import create_dream_manager
-
 
 # ---------------------------------------------------------------------------
 # DreamCycleRecord — pure data logic

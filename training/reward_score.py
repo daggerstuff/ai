@@ -67,7 +67,7 @@ def filter_by_threshold(
     safety_weight: float = 0.0,
 ) -> list[dict]:
     kept: list[dict] = []
-    for prompt, response in zip(prompts, responses):
+    for prompt, response in zip(prompts, responses, strict=False):
         crisis_score = 1.0
         clinical_score = 0.0
         composite = compute_reward(

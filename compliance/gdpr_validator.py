@@ -476,10 +476,7 @@ class GDPRValidator:
         # Check if sensitive data is being processed for non-essential purposes
         has_sensitive = any(category in sensitive_categories for category, _ in personal_data)
 
-        if has_sensitive and purpose in [ProcessingPurpose.MARKETING, ProcessingPurpose.ANALYTICS]:
-            return False
-
-        return True
+        return not (has_sensitive and purpose in [ProcessingPurpose.MARKETING, ProcessingPurpose.ANALYTICS])
 
     def _record_processing_activity(
         self,
@@ -492,7 +489,7 @@ class GDPRValidator:
         """Record data processing activity"""
         try:
             record_id = str(uuid.uuid4())
-            data_categories = list(set(category.value for category, _ in personal_data))
+            data_categories = list({category.value for category, _ in personal_data})
             data_fields = [value for _, value in personal_data]
 
             # Calculate retention period based on purpose
@@ -813,7 +810,7 @@ class GDPRValidator:
             recommendations.append(f"Address {len(violations)} recent GDPR violations")
 
         # Specific recommendations based on violations
-        violation_types = set(v.violation_type for v in violations)
+        violation_types = {v.violation_type for v in violations}
 
         if "consent_violation" in violation_types:
             recommendations.append("Strengthen consent management processes")

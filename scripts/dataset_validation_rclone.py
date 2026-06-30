@@ -179,7 +179,7 @@ def main():
                         )
 
                         if result["checksums"]:
-                            entry["validation"]["checksum_sha256"] = list(result["checksums"].values())[0].get("sha256")
+                            entry["validation"]["checksum_sha256"] = next(iter(result["checksums"].values())).get("sha256")
 
     # Save updated registry
     registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"

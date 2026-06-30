@@ -468,16 +468,16 @@ class AlertFatiguePreventionSystem:
 
         # Check duplicate count condition
         if "duplicate_count" in conditions:
-            threshold = list(conditions["duplicate_count"].values())[0]
-            operator = list(conditions["duplicate_count"].keys())[0]
+            threshold = next(iter(conditions["duplicate_count"].values()))
+            operator = next(iter(conditions["duplicate_count"].keys()))
 
             if not self._compare_values(group.count, threshold, operator):
                 return False
 
         # Check alerts per minute condition
         if "alerts_per_minute" in conditions:
-            threshold = list(conditions["alerts_per_minute"].values())[0]
-            operator = list(conditions["alerts_per_minute"].keys())[0]
+            threshold = next(iter(conditions["alerts_per_minute"].values()))
+            operator = next(iter(conditions["alerts_per_minute"].keys()))
 
             time_window = conditions.get("time_window_minutes", 10)
             cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window)
@@ -490,8 +490,8 @@ class AlertFatiguePreventionSystem:
 
         # Check similarity score condition
         if "similarity_score" in conditions:
-            threshold = list(conditions["similarity_score"].values())[0]
-            operator = list(conditions["similarity_score"].keys())[0]
+            threshold = next(iter(conditions["similarity_score"].values()))
+            operator = next(iter(conditions["similarity_score"].keys()))
 
             # Calculate average similarity within group
             if len(group.alerts) > 1:
@@ -507,8 +507,8 @@ class AlertFatiguePreventionSystem:
 
         # Check group count condition
         if "group_count" in conditions:
-            threshold = list(conditions["group_count"].values())[0]
-            operator = list(conditions["group_count"].keys())[0]
+            threshold = next(iter(conditions["group_count"].values()))
+            operator = next(iter(conditions["group_count"].keys()))
 
             if not self._compare_values(group.count, threshold, operator):
                 return False

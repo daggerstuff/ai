@@ -19,9 +19,10 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -32,7 +33,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class UpstreamDomain(str, Enum):
+class UpstreamDomain(StrEnum):
     """Upstream domains that can be affected by feedback."""
     ACQUISITION = "acquisition"  # PIX-188
     CURATION = "curation"  # PIX-247
@@ -40,7 +41,7 @@ class UpstreamDomain(str, Enum):
     REVIEW = "review"  # PIX-250
 
 
-class InterventionType(str, Enum):
+class InterventionType(StrEnum):
     """Types of interventions that can be generated."""
     RULE_CHANGE = "rule_change"  # Modify curation/validation rules
     THRESHOLD_CHANGE = "threshold_change"  # Adjust quality thresholds
@@ -53,7 +54,7 @@ class InterventionType(str, Enum):
 @dataclass
 class FailurePattern:
     """Identified failure pattern from evaluation."""
-    
+
     pattern_id: str
     pattern_type: str
     description: str
@@ -61,7 +62,7 @@ class FailurePattern:
     severity: str  # critical, high, medium, low
     frequency: float  # 0.0-1.0
     metrics_impacted: list[str]
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "pattern_id": self.pattern_id,
@@ -77,13 +78,13 @@ class FailurePattern:
 @dataclass
 class UpstreamMapping:
     """Mapping of failure to upstream cause."""
-    
+
     failure_pattern: FailurePattern
     likely_upstream_domain: UpstreamDomain
     confidence: float  # 0.0-1.0
     root_cause_hypothesis: str
     evidence: list[str]
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "failure_pattern": self.failure_pattern.to_dict(),
@@ -97,7 +98,7 @@ class UpstreamMapping:
 @dataclass
 class DatasetIntervention:
     """Concrete intervention to improve dataset quality."""
-    
+
     intervention_id: str
     intervention_type: InterventionType
     title: str
@@ -108,7 +109,7 @@ class DatasetIntervention:
     implementation_details: dict[str, Any]
     validation_criteria: list[str]
     related_patterns: list[str]
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "intervention_id": self.intervention_id,
@@ -127,22 +128,22 @@ class DatasetIntervention:
 @dataclass
 class FeedbackReport:
     """Complete feedback report with mappings and interventions."""
-    
+
     evaluation_source: str
     generated_at: str
     total_evaluated: int
     overall_score: float
-    
+
     # Analysis results
     failure_patterns: list[FailurePattern] = field(default_factory=list)
     upstream_mappings: list[UpstreamMapping] = field(default_factory=list)
     interventions: list[DatasetIntervention] = field(default_factory=list)
-    
+
     # Summary
     critical_issues: int = 0
     high_priority_issues: int = 0
     recommended_actions: int = 0
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "evaluation_source": self.evaluation_source,
@@ -162,7 +163,7 @@ class FeedbackReport:
 
 class EvaluationParser:
     """Parses evaluation results and extracts failure patterns."""
-    
+
     # Failure pattern templates
     PATTERN_TEMPLATES = {
         "memory_recall_low": {
@@ -196,62 +197,62 @@ class EvaluationParser:
             "metric": "generation_quality",
         },
     }
-    
+
     def __init__(self):
         self.patterns: list[FailurePattern] = []
-    
+
     def parse(
         self,
         evaluation_results: dict[str, Any],
     ) -> list[FailurePattern]:
         """
         Parse evaluation results and identify failure patterns.
-        
+
         Args:
             evaluation_results: Evaluation report data
-            
+
         Returns:
             List of identified failure patterns
         """
         self.patterns = []
-        
+
         # Extract metrics
         memory_metrics = evaluation_results.get("memory_metrics", {})
         quality_metrics = evaluation_results.get("quality_metrics", {})
-        
+
         # Check each pattern template
         self._check_pattern(
             "memory_recall_low",
             memory_metrics.get("avg_recall_recall", 1.0),
             evaluation_results,
         )
-        
+
         self._check_pattern(
             "memory_irrelevant",
             memory_metrics.get("avg_recall_precision", 1.0),
             evaluation_results,
         )
-        
+
         self._check_pattern(
             "context_drift",
             quality_metrics.get("avg_context_relevance", 1.0),
             evaluation_results,
         )
-        
+
         self._check_pattern(
             "reflection_absent",
             quality_metrics.get("avg_reflection_quality", 1.0),
             evaluation_results,
         )
-        
+
         self._check_pattern(
             "generation_incoherent",
             quality_metrics.get("avg_generation_quality", 1.0),
             evaluation_results,
         )
-        
+
         return self.patterns
-    
+
     def _check_pattern(
         self,
         pattern_key: str,
@@ -262,9 +263,9 @@ class EvaluationParser:
         template = self.PATTERN_TEMPLATES.get(pattern_key)
         if not template:
             return
-        
+
         threshold = template["threshold"]
-        
+
         # If below threshold, pattern is present
         if actual_value < threshold:
             pattern = FailurePattern(
@@ -279,7 +280,7 @@ class EvaluationParser:
                 metrics_impacted=[template["metric"]],
             )
             self.patterns.append(pattern)
-    
+
     def _extract_affected_examples(
         self,
         pattern_key: str,
@@ -289,7 +290,7 @@ class EvaluationParser:
         # In a full implementation, this would parse detailed results
         # For now, return placeholder
         return []
-    
+
     def _determine_severity(
         self,
         actual: float,
@@ -298,17 +299,16 @@ class EvaluationParser:
         """Determine severity based on gap from threshold."""
         if actual < threshold * 0.5:
             return "critical"
-        elif actual < threshold * 0.7:
+        if actual < threshold * 0.7:
             return "high"
-        elif actual < threshold * 0.9:
+        if actual < threshold * 0.9:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
 
 class UpstreamCauseMapper:
     """Maps failure patterns to likely upstream causes."""
-    
+
     # Mapping rules
     MAPPING_RULES = {
         "memory_deficiency": {
@@ -342,25 +342,25 @@ class UpstreamCauseMapper:
             "evidence_sources": ["privacy_audit", "pii_patterns"],
         },
     }
-    
+
     def map(
         self,
         failure_patterns: list[FailurePattern],
     ) -> list[UpstreamMapping]:
         """
         Map failure patterns to upstream causes.
-        
+
         Args:
             failure_patterns: List of identified failure patterns
-            
+
         Returns:
             List of upstream mappings with confidence scores
         """
         mappings = []
-        
+
         for pattern in failure_patterns:
             rule = self.MAPPING_RULES.get(pattern.pattern_type, {})
-            
+
             mapping = UpstreamMapping(
                 failure_pattern=pattern,
                 likely_upstream_domain=rule.get(
@@ -373,9 +373,9 @@ class UpstreamCauseMapper:
                 evidence=rule.get("evidence_sources", []),
             )
             mappings.append(mapping)
-        
+
         return mappings
-    
+
     def _calculate_confidence(self, pattern: FailurePattern) -> float:
         """Calculate confidence in upstream mapping."""
         # Higher confidence for severe, frequent patterns
@@ -385,16 +385,16 @@ class UpstreamCauseMapper:
             "medium": 0.6,
             "low": 0.4,
         }
-        
+
         base_confidence = severity_weight.get(pattern.severity, 0.5)
         frequency_boost = pattern.frequency * 0.2
-        
+
         return min(1.0, base_confidence + frequency_boost)
 
 
 class InterventionGenerator:
     """Generates concrete interventions from upstream mappings."""
-    
+
     # Intervention templates
     INTERVENTION_TEMPLATES = {
         UpstreamDomain.ACQUISITION: [
@@ -436,34 +436,34 @@ class InterventionGenerator:
             },
         ],
     }
-    
+
     def generate(
         self,
         mappings: list[UpstreamMapping],
     ) -> list[DatasetIntervention]:
         """
         Generate interventions from upstream mappings.
-        
+
         Args:
             mappings: List of upstream mappings
-            
+
         Returns:
             List of dataset interventions
         """
         interventions = []
-        
+
         for mapping in mappings:
             domain = mapping.likely_upstream_domain
             templates = self.INTERVENTION_TEMPLATES.get(domain, [])
-            
+
             for template in templates[:2]:  # Top 2 interventions per mapping
                 intervention = self._create_intervention(
                     template, mapping, domain
                 )
                 interventions.append(intervention)
-        
+
         return interventions
-    
+
     def _create_intervention(
         self,
         template: dict[str, Any],
@@ -472,7 +472,7 @@ class InterventionGenerator:
     ) -> DatasetIntervention:
         """Create a single intervention."""
         pattern = mapping.failure_pattern
-        
+
         # Fill in template
         description = template["description_template"].format(
             pattern_type=pattern.pattern_type,
@@ -481,7 +481,7 @@ class InterventionGenerator:
             current=f"{pattern.frequency:.2f}",
             target=f"{pattern.frequency + 0.2:.2f}",
         )
-        
+
         return DatasetIntervention(
             intervention_id=f"intervention_{mapping.failure_pattern.pattern_id}",
             intervention_type=template["type"],
@@ -497,7 +497,7 @@ class InterventionGenerator:
             },
             validation_criteria=[
                 f"{pattern.metrics_impacted[0]} improves by >10%",
-                f"Pattern frequency reduces by >50%",
+                "Pattern frequency reduces by >50%",
             ],
             related_patterns=[pattern.pattern_id],
         )
@@ -506,15 +506,15 @@ class InterventionGenerator:
 class FeedbackLoop:
     """
     Main feedback loop orchestrator.
-    
+
     Connects evaluation results to upstream actions.
     """
-    
+
     def __init__(self):
         self.parser = EvaluationParser()
         self.mapper = UpstreamCauseMapper()
         self.generator = InterventionGenerator()
-    
+
     def run(
         self,
         evaluation_report_path: str | Path,
@@ -522,35 +522,35 @@ class FeedbackLoop:
     ) -> FeedbackReport:
         """
         Run complete feedback loop.
-        
+
         Args:
             evaluation_report_path: Path to evaluation report JSON
             output_dir: Directory for output files
-            
+
         Returns:
             Complete feedback report
         """
         evaluation_report_path = Path(evaluation_report_path)
         output_dir = Path(output_dir)
-        
+
         # Load evaluation results
         with open(evaluation_report_path, encoding="utf-8") as f:
             evaluation_results = json.load(f)
-        
+
         # Parse failure patterns
         failure_patterns = self.parser.parse(evaluation_results)
-        
+
         # Map to upstream causes
         upstream_mappings = self.mapper.map(failure_patterns)
-        
+
         # Generate interventions
         interventions = self.generator.generate(upstream_mappings)
-        
+
         # Create report
         overall_score = evaluation_results.get("overall_score", 0.0)
         report = FeedbackReport(
             evaluation_source=str(evaluation_report_path),
-            generated_at=datetime.now(timezone.utc).isoformat(),
+            generated_at=datetime.now(UTC).isoformat(),
             total_evaluated=evaluation_results.get("evaluated_examples", 0),
             overall_score=overall_score,
             failure_patterns=failure_patterns,
@@ -564,23 +564,23 @@ class FeedbackLoop:
             ),
             recommended_actions=len(interventions),
         )
-        
+
         # Save report
         output_dir.mkdir(parents=True, exist_ok=True)
         report_path = output_dir / "feedback_report.json"
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2)
-        
+
         # Generate Linear issues for interventions
         self._create_linear_issues(interventions, output_dir)
-        
+
         logger.info(
             f"Feedback report saved to {report_path} "
             f"with {len(interventions)} interventions"
         )
-        
+
         return report
-    
+
     def _create_linear_issues(
         self,
         interventions: list[DatasetIntervention],
@@ -589,14 +589,14 @@ class FeedbackLoop:
         """Create Linear issue templates for interventions."""
         issues_path = output_dir / "linear_issues"
         issues_path.mkdir(exist_ok=True)
-        
+
         for intervention in interventions:
             issue_file = issues_path / f"{intervention.intervention_id}.md"
-            
+
             content = self._format_linear_issue(intervention)
             with open(issue_file, "w", encoding="utf-8") as f:
                 f.write(content)
-    
+
     def _format_linear_issue(
         self,
         intervention: DatasetIntervention,
@@ -634,11 +634,11 @@ class FeedbackLoop:
 def main():
     """CLI entry point."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(
         description="Run evaluation-to-data feedback loop"
     )
-    
+
     parser.add_argument(
         "--evaluation-report",
         type=str,
@@ -651,30 +651,20 @@ def main():
         default="./feedback/actions",
         help="Output directory for feedback actions",
     )
-    
+
     args = parser.parse_args()
-    
+
     loop = FeedbackLoop()
     report = loop.run(args.evaluation_report, args.output_dir)
-    
+
     # Print summary
-    print("\n=== Feedback Loop Summary ===")
-    print(f"Evaluation source: {report.evaluation_source}")
-    print(f"Total evaluated: {report.total_evaluated}")
-    print(f"Overall score: {report.overall_score:.3f}")
-    print(f"\nFailure patterns found: {len(report.failure_patterns)}")
-    print(f"  - Critical: {report.critical_issues}")
-    print(f"  - High: {report.high_priority_issues}")
-    print(f"\nUpstream mappings: {len(report.upstream_mappings)}")
-    print(f"Recommended interventions: {len(report.interventions)}")
-    
+
     if report.interventions:
-        print("\nTop interventions:")
-        for i, intervention in enumerate(report.interventions[:5], 1):
-            print(f"  {i}. [{intervention.priority.upper()}] {intervention.title}")
-    
+        for _i, _intervention in enumerate(report.interventions[:5], 1):
+            pass
+
     return 0
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

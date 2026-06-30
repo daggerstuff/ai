@@ -40,9 +40,9 @@ def generate_pairs(target_count, use_llm=False):
 
 def _call_nemo():
     try:
-        return None
+        return
     except Exception:
-        return None
+        return
 
 
 def _variate_response(text):

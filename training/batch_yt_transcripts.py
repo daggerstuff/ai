@@ -72,7 +72,7 @@ def build_ytdlp_cmd(output_dir: Path, url: str) -> list[str]:
 
 def fetch_one(video_id: str, output_dir: Path) -> tuple[str, bool]:
     """Download a single video's auto-subtitles using yt-dlp."""
-    subtitle_file = output_dir / f"{video_id}.vtt"
+    output_dir / f"{video_id}.vtt"
     txt_file = output_dir / f"{video_id}.txt"
 
     # Skip if .txt already exists
@@ -136,13 +136,7 @@ def convert_vtt_to_text(vtt_path: Path) -> str:
         line = line.strip()
         # Skip VTT metadata, timestamps, and empty lines
         if (
-            line.startswith("WEBVTT")
-            or line.startswith("Kind:")
-            or line.startswith("Language:")
-            or "-->" in line
-            or not line
-            or line.startswith("<c.")
-            or line.startswith("</c>")
+            line.startswith(("WEBVTT", "Kind:", "Language:", "<c.", "</c>")) or "-->" in line or not line
         ):
             continue
         # Remove VTT tags like <c.hand> etc

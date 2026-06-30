@@ -3,6 +3,7 @@ S3 Dataset Loader (Gilfoyle v24.0).
 FIXED: 100% Copy-Free iteration via pointer management.
 """
 
+import contextlib
 import json
 import logging
 import os
@@ -70,10 +71,8 @@ class S3DatasetLoader:
                     buffer = buffer[ptr:]
                     ptr = 0
             if buffer[ptr:].strip():
-                try:
+                with contextlib.suppress(BaseException):
                     yield json.loads(buffer[ptr:].decode("utf-8")), current_pos + len(buffer[ptr:])
-                except:
-                    pass
         except Exception as e:
             logger.error(f"S3 Fatal in {key}: {e}")
             raise

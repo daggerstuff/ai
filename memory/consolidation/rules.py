@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from ..consolidation_rules import ConsolidationConfig, ConsolidationRules
 from ..schema import MemoryBlock
@@ -18,7 +18,7 @@ from ..schema import MemoryBlock
 log = logging.getLogger(__name__)
 
 
-class TriggerType(str, Enum):
+class TriggerType(StrEnum):
     MANUAL = "manual"
     STEP_COUNT = "step_count"
     COMPACTION = "compaction"

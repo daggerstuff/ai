@@ -72,7 +72,7 @@ class ConfigSnapshot:
 class ConfigTracker:
     """Main configuration tracking system"""
 
-    def __init__(self, config_dir: str = None, tracking_dir: str = None):
+    def __init__(self, config_dir: str | None = None, tracking_dir: str | None = None):
         self.config_dir = Path(config_dir) if config_dir else Path(__file__).parent
         self.tracking_dir = Path(tracking_dir) if tracking_dir else self.config_dir / ".config_tracking"
 
@@ -92,7 +92,7 @@ class ConfigTracker:
             self._save_snapshots([])
 
     def track_change(
-        self, file_path: str, change_type: str, description: str = "", user: str = None, environment: str = None
+        self, file_path: str, change_type: str, description: str = "", user: str | None = None, environment: str | None = None
     ) -> str:
         """Track a configuration change"""
         file_path = str(Path(file_path).resolve())
@@ -146,7 +146,7 @@ class ConfigTracker:
         logger.info(f"Tracked configuration change: {change_id} - {description}")
         return change_id
 
-    def create_snapshot(self, description: str = "", environment: str = None) -> str:
+    def create_snapshot(self, description: str = "", environment: str | None = None) -> str:
         """Create a configuration snapshot"""
         if environment is None:
             environment = os.getenv("ENVIRONMENT", "unknown")
@@ -267,7 +267,7 @@ class ConfigTracker:
 
             # Restore each file
             restored_files = []
-            for file_path in target_snapshot.files.keys():
+            for file_path in target_snapshot.files:
                 backup_file = snapshot_backup_dir / Path(file_path).name
 
                 if backup_file.exists():
@@ -294,7 +294,7 @@ class ConfigTracker:
             logger.error(f"Snapshot rollback failed: {e}")
             return False
 
-    def get_change_history(self, file_path: str = None, limit: int = None) -> list[dict[str, Any]]:
+    def get_change_history(self, file_path: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
         """Get change history"""
         changes = self._load_changes()
 
@@ -312,7 +312,7 @@ class ConfigTracker:
 
         return changes
 
-    def get_snapshots(self, limit: int = None) -> list[dict[str, Any]]:
+    def get_snapshots(self, limit: int | None = None) -> list[dict[str, Any]]:
         """Get snapshot history"""
         snapshots = self._load_snapshots()
 

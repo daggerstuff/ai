@@ -169,7 +169,7 @@ class PgBaseRepository:
                 if row is None:
                     return None
                 columns = [desc[0] for desc in cur.description] if cur.description else []
-                return dict(zip(columns, row))
+                return dict(zip(columns, row, strict=False))
         finally:
             self._put_conn(conn)
 
@@ -183,7 +183,7 @@ class PgBaseRepository:
                 if not rows or not cur.description:
                     return []
                 columns = [desc[0] for desc in cur.description]
-                return [dict(zip(columns, row)) for row in rows]
+                return [dict(zip(columns, row, strict=False)) for row in rows]
         finally:
             self._put_conn(conn)
 

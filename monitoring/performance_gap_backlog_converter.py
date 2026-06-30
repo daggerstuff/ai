@@ -392,8 +392,7 @@ def _main() -> None:
 
     converter = PerformanceGapBacklogConverter()
     result = converter.convert({k: float(v) for k, v in raw_metrics.items() if v is not None})
-    output_path = converter.export(result, args.output)
-    print(json.dumps({"output": output_path, "changes": len(result.changes)}))
+    converter.export(result, args.output)
 
 
 if __name__ == "__main__":

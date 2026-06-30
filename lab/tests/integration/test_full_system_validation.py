@@ -435,7 +435,7 @@ class FullSystemValidator:
         except Exception as e:
             self.results.add_error(f"Disaster recovery test failed: {e}")
 
-    def save_results(self, output_path: Path = None):
+    def save_results(self, output_path: Path | None = None):
         """Save test results to file."""
         if not output_path:
             output_path = project_root / "tests/results/full_system_validation_report.json"

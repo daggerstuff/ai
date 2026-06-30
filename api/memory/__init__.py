@@ -20,10 +20,10 @@ from .memory_manager import (
 )
 
 __all__ = [
+    "MemoryContext",
     # Memory Management
     "MemoryManager",
     "MemoryMessage",
-    "MemoryContext",
     "MemoryType",
     "MessageRole",
     "get_memory_manager",

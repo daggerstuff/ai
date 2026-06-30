@@ -86,10 +86,7 @@ class ConversationContentAnalyzer:
 
         try:
             # Get datasets to analyze
-            if dataset_name:
-                datasets = [dataset_name]
-            else:
-                datasets = self._get_dataset_list()
+            datasets = [dataset_name] if dataset_name else self._get_dataset_list()
 
             content_insights = {}
 
@@ -571,7 +568,7 @@ def main():
 
     # Show sample insights
     if content_insights:
-        sample_dataset = list(content_insights.keys())[0]
+        sample_dataset = next(iter(content_insights.keys()))
         sample_insights = content_insights[sample_dataset]
 
         if sample_insights.common_themes:

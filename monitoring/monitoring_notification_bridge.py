@@ -163,8 +163,8 @@ class MonitoringBridge:
         self,
         metric_name: str,
         value: float,
-        unit: str = None,
-        service_name: str = None,
+        unit: str | None = None,
+        service_name: str | None = None,
         status: str = "normal",
     ):
         """Record a system metric"""

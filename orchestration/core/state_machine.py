@@ -1,6 +1,6 @@
-from typing import List, Dict, Optional, Any
 from enum import Enum
-import uuid
+from typing import Any
+
 
 class State(Enum):
     PRESENTATION = "presentation"
@@ -9,7 +9,7 @@ class State(Enum):
     ESCALATION = "escalation"
 
 class PersonaStateMachine:
-    def __init__(self, session_id: str, persona_definition: Dict[str, Any]):
+    def __init__(self, session_id: str, persona_definition: dict[str, Any]):
         self.session_id = session_id
         self.persona_definition = persona_definition
         self.current_state = State.PRESENTATION
@@ -23,12 +23,11 @@ class PersonaStateMachine:
         self.turn_count = 0
         self.neglect_count = 0
 
-    def transition(self, action: str, metadata: Optional[Dict[str, Any]] = None) -> State:
+    def transition(self, action: str, metadata: dict[str, Any] | None = None) -> State:
         self.turn_count += 1
         action_entry = {"turn": self.turn_count, "action": action, "state_before": self.current_state.value}
-        
-        previous_state = self.current_state
-        
+
+
         if self.current_state == State.PRESENTATION:
             if action == "ask_history":
                 self.current_state = State.HISTORY_REVEALED
@@ -42,9 +41,8 @@ class PersonaStateMachine:
                     self.variables["pain_level"] = min(10, self.variables["pain_level"] + 2)
                     self.variables["anxiety_level"] = min(10, self.variables["anxiety_level"] + 2)
             else:
-                self.neglect_count = 0 # Reset neglect if something else is done? 
+                self.neglect_count = 0 # Reset neglect if something else is done?
                 # Or keep it if pain isn't addressed? The spec says "3 turns without addressing pain"
-                pass
 
         elif self.current_state == State.HISTORY_REVEALED:
             if action == "perform_intervention":
@@ -53,18 +51,17 @@ class PersonaStateMachine:
                 # Maybe history revealed doesn't easily escalate or has different logic
                 pass
 
-        elif self.current_state == State.ESCALATION:
-            if action == "address_pain" or action == "soothe":
-                self.current_state = State.PRESENTATION # De-escalate
-                self.neglect_count = 0
-                self.variables["anxiety_level"] = max(1, self.variables["anxiety_level"] - 1)
+        elif self.current_state == State.ESCALATION and (action in {"address_pain", "soothe"}):
+            self.current_state = State.PRESENTATION # De-escalate
+            self.neglect_count = 0
+            self.variables["anxiety_level"] = max(1, self.variables["anxiety_level"] - 1)
 
         action_entry["state_after"] = self.current_state.value
         self.history.append(action_entry)
-        
+
         return self.current_state
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
             "current_state": self.current_state.value,
@@ -75,7 +72,7 @@ class PersonaStateMachine:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any], persona_definition: Dict[str, Any]) -> 'PersonaStateMachine':
+    def from_dict(cls, data: dict[str, Any], persona_definition: dict[str, Any]) -> "PersonaStateMachine":
         instance = cls(data["session_id"], persona_definition)
         instance.current_state = State(data["current_state"])
         instance.variables = data["variables"]

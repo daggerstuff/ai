@@ -152,6 +152,7 @@ def generate_with_ollama(prompt, model, max_retries=3, timeout=120, log_file=Non
             if attempt == max_retries:
                 return ""
             time.sleep(2 * attempt)
+    return None
 
 
 def parse_dialogue(text):

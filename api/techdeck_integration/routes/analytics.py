@@ -61,10 +61,7 @@ def get_usage_analytics():
         else:
             start_date = datetime.now(UTC) - timedelta(days=30)
 
-        if end_date_str:
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        else:
-            end_date = datetime.now(UTC)
+        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00")) if end_date_str else datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -144,10 +141,7 @@ def get_performance_analytics():
         else:
             start_date = datetime.now(UTC) - timedelta(days=7)
 
-        if end_date_str:
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        else:
-            end_date = datetime.now(UTC)
+        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00")) if end_date_str else datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -227,10 +221,7 @@ def get_pipeline_analytics():
         else:
             start_date = datetime.now(UTC) - timedelta(days=30)
 
-        if end_date_str:
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        else:
-            end_date = datetime.now(UTC)
+        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00")) if end_date_str else datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -308,10 +299,7 @@ def get_dataset_analytics():
         else:
             start_date = datetime.now(UTC) - timedelta(days=30)
 
-        if end_date_str:
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        else:
-            end_date = datetime.now(UTC)
+        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00")) if end_date_str else datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -474,10 +462,7 @@ def export_analytics():
         else:
             start_date = datetime.now(UTC) - timedelta(days=30)
 
-        if end_date_str:
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        else:
-            end_date = datetime.now(UTC)
+        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00")) if end_date_str else datetime.now(UTC)
 
         # Sanitize inputs
         export_type = sanitize_input(export_type)

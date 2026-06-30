@@ -286,7 +286,7 @@ class QualityTrendDemo:
                             transform=ax.transAxes,
                             verticalalignment="top",
                             fontsize=8,
-                            bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.7),
+                            bbox={"boxstyle": "round", "facecolor": "wheat", "alpha": 0.7},
                         )
 
                         # Rotate x-axis labels
@@ -366,7 +366,7 @@ class QualityTrendDemo:
                     f"Continue successful practices for: {', '.join([m.replace('_', ' ') for m in improving_metrics])}"
                 )
 
-            report = {
+            return {
                 "overall_trend": overall_trend,
                 "key_insights": insights,
                 "recommendations": recommendations,
@@ -382,7 +382,6 @@ class QualityTrendDemo:
                 },
             }
 
-            return report
 
         except Exception:
             return {}

@@ -62,7 +62,7 @@ class ProcessingStats:
 class MultiDatasetIntelligentPipeline:
     """Enhanced pipeline for processing multiple dataset sources"""
 
-    def __init__(self, output_dir: Path = None):
+    def __init__(self, output_dir: Path | None = None):
         self.agent = MultiPatternAgent()
         self.output_dir = output_dir or get_unified_training_dir()
         self.output_dir.mkdir(exist_ok=True)

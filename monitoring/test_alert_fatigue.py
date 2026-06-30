@@ -175,7 +175,7 @@ class AlertFatigueTestSuite:
 
         # Process alerts
         results = []
-        for alert in close_alerts + [distant_alert]:
+        for alert in [*close_alerts, distant_alert]:
             result = await self.afp_system.process_alert(alert)
             results.append(result)
 
@@ -393,7 +393,7 @@ class AlertFatigueTestSuite:
         processing_time = time.time() - start_time
 
         # Verify performance and grouping
-        unique_groups = len(set(r["group_id"] for r in results))
+        unique_groups = len({r["group_id"] for r in results})
         suppressed_count = sum(1 for r in results if not r["should_notify"])
 
         assert processing_time < 10, f"Processing took too long: {processing_time:.2f}s"

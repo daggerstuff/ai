@@ -455,7 +455,7 @@ def _run_cli() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
 
     score_p = sub.add_parser("score", help="Calculate overall score for 4 dimensions")
-    for dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
+    for _dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
         score_p.add_argument("--data-structure-quality", type=int, required=True, help="data structure quality (1-10)")
 
     intake_p = sub.add_parser("intake", help="Evaluate Gate 0 intake for a source")
@@ -500,11 +500,10 @@ def _run_cli() -> None:
             review_date=args.review_date,
         )
         decision = rubric.evaluate_intake(source)
-        print(f"passed={decision.passed}")
-        for q in decision.qualifying:
-            print(f"  [PASS] {q}")
-        for b in decision.blocking:
-            print(f"  [BLOCK] {b}")
+        for _q in decision.qualifying:
+            pass
+        for _b in decision.blocking:
+            pass
         sys.exit(0 if decision.passed else 1)
 
 

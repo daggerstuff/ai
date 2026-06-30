@@ -550,10 +550,7 @@ class ComplianceValidationSystem:
                 return False
 
         # Check non-compliant controls
-        if metrics["compliance_levels"]["non_compliant"] > criteria["max_non_compliant"]:
-            return False
-
-        return True
+        return not metrics["compliance_levels"]["non_compliant"] > criteria["max_non_compliant"]
 
     def _generate_compliance_report(self, execution_time: float, metrics: dict[str, Any]) -> dict[str, Any]:
         """Generate comprehensive compliance report"""

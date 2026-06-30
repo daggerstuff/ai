@@ -7,6 +7,8 @@ Generated test structure for production readiness validation.
 import unittest
 from unittest.mock import patch
 
+import pytest
+
 # Import the module being tested
 try:
     from ai.core.pipelines.analytics_dashboard import AnalyticsDashboard
@@ -47,7 +49,7 @@ class TestAnalyticsDashboard(unittest.TestCase):
 
     def test_error_handling(self):
         """Test error handling."""
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             self.module.process(None)
 
     @patch("builtins.print")

@@ -4,17 +4,11 @@ CCD Profile Templates for Pixelated Empathy
 Template definitions for different client types based on clinical conceptualizations.
 """
 
-from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any
 
 from ai.platform.ccd_schema import (
-    CCDFactorType,
-    CCDFactor,
-    CCDProblem,
-    CCDHypothesis,
-    CCDIntervention,
-    CCDFormulation,
     CCDConceptualization,
+    CCDFactorType,
 )
 from ai.platform.pixelated_empathy_core import ClientPersonality, DifficultyLevel, SessionObjective
 
@@ -23,7 +17,7 @@ class CCDProfileTemplates:
     """Template definitions for CCD profiles based on client personality types"""
 
     @staticmethod
-    def get_resistant_template() -> Dict[str, Any]:
+    def get_resistant_template() -> dict[str, Any]:
         """Get CCD template for resistant client personality"""
 
         # Create CCD conceptualization
@@ -212,7 +206,7 @@ class CCDProfileTemplates:
         }
 
     @staticmethod
-    def get_hostile_aggressive_template() -> Dict[str, Any]:
+    def get_hostile_aggressive_template() -> dict[str, Any]:
         """Get CCD template for hostile-aggressive client personality"""
 
         # Create CCD conceptualization
@@ -379,7 +373,7 @@ class CCDProfileTemplates:
         }
 
     @staticmethod
-    def get_borderline_traits_template() -> Dict[str, Any]:
+    def get_borderline_traits_template() -> dict[str, Any]:
         """Get CCD template for borderline traits client personality"""
 
         # Create CCD conceptualization
@@ -556,7 +550,7 @@ class CCDProfileTemplates:
         }
 
     @staticmethod
-    def get_all_templates() -> List[Dict[str, Any]]:
+    def get_all_templates() -> list[dict[str, Any]]:
         """Get all CCD profile templates"""
         return [
             CCDProfileTemplates.get_resistant_template(),
@@ -566,21 +560,21 @@ class CCDProfileTemplates:
 
 
 # Convenience functions for easy access
-def get_resistant_ccd_template() -> Dict[str, Any]:
+def get_resistant_ccd_template() -> dict[str, Any]:
     """Get CCD template for resistant client personality"""
     return CCDProfileTemplates.get_resistant_template()
 
 
-def get_hostile_aggressive_ccd_template() -> Dict[str, Any]:
+def get_hostile_aggressive_ccd_template() -> dict[str, Any]:
     """Get CCD template for hostile-aggressive client personality"""
     return CCDProfileTemplates.get_hostile_aggressive_template()
 
 
-def get_borderline_traits_ccd_template() -> Dict[str, Any]:
+def get_borderline_traits_ccd_template() -> dict[str, Any]:
     """Get CCD template for borderline traits client personality"""
     return CCDProfileTemplates.get_borderline_traits_template()
 
 
-def get_all_ccd_templates() -> List[Dict[str, Any]]:
+def get_all_ccd_templates() -> list[dict[str, Any]]:
     """Get all CCD profile templates"""
     return CCDProfileTemplates.get_all_templates()

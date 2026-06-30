@@ -426,9 +426,7 @@ class YouTubeChannelHunter:
             pass
         elif self.config.require_professional and not (channel.is_professional or channel.verified_professional):
             return False
-        if channel.quality_score > 0 and channel.quality_score < self.config.quality_threshold:
-            return False
-        return True
+        return not (channel.quality_score > 0 and channel.quality_score < self.config.quality_threshold)
 
 
 class YouTubeAPI:

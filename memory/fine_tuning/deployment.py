@@ -10,16 +10,17 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
-from ..schema import MemoryBlock
+from ai.memory.schema import MemoryBlock
+
 from .evaluation import EvaluationReport
 
 log = logging.getLogger(__name__)
 
 
-class DeploymentStatus(str, Enum):
+class DeploymentStatus(StrEnum):
     READY = "ready"
     DEPLOYING = "deploying"
     DEPLOYED = "deployed"

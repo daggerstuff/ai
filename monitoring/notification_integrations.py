@@ -517,7 +517,7 @@ class NotificationManager:
 
         if channels is None:
             # Default channel selection based on priority
-            if priority == NotificationPriority.CRITICAL or priority == NotificationPriority.HIGH:
+            if priority in (NotificationPriority.CRITICAL, NotificationPriority.HIGH):
                 channels = [
                     NotificationChannel.EMAIL,
                     NotificationChannel.SLACK,

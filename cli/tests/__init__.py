@@ -109,7 +109,7 @@ def cli_runner():
 class MockResponse:
     """Mock HTTP response for testing"""
 
-    def __init__(self, json_data: dict[str, Any] = None, status_code: int = 200, text: str = ""):
+    def __init__(self, json_data: dict[str, Any] | None = None, status_code: int = 200, text: str = ""):
         self.json_data = json_data or {}
         self.status_code = status_code
         self.text = text or ""
@@ -123,21 +123,21 @@ class MockResponse:
             raise Exception(f"HTTP {self.status_code}: {self.text}")
 
 
-def assert_command_success(result, expected_output: str = None):
+def assert_command_success(result, expected_output: str | None = None):
     """Assert that a CLI command executed successfully"""
     assert result.exit_code == 0, f"Command failed with exit code {result.exit_code}: {result.output}"
     if expected_output:
         assert expected_output in result.output
 
 
-def assert_command_failure(result, expected_error: str = None):
+def assert_command_failure(result, expected_error: str | None = None):
     """Assert that a CLI command failed as expected"""
     assert result.exit_code != 0, "Command should have failed but succeeded"
     if expected_error:
         assert expected_error in result.output
 
 
-def create_test_config_file(path: Path, content: str = None):
+def create_test_config_file(path: Path, content: str | None = None):
     """Create a test configuration file"""
     if content is None:
         content = """

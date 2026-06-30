@@ -291,7 +291,7 @@ class ParameterValidator:
                 )
 
         if allowed_fields:
-            invalid = [f for f in value.keys() if f not in allowed_fields]
+            invalid = [f for f in value if f not in allowed_fields]
             if invalid:
                 raise ValidationError(
                     f"{field_name} contains invalid fields: {', '.join(invalid)}",

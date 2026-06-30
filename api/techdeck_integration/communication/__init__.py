@@ -14,36 +14,36 @@ from .progress_tracker import ProgressTracker, ProgressUpdate, WebSocketConnecti
 from .state_manager import PipelineState, StageState, StateManager
 
 __all__ = [
-    # Event Bus
-    "EventBus",
-    "EventMessage",
-    "EventType",
-    "EventHandler",
-    # Pipeline Coordinator
-    "PipelineCoordinator",
-    "PipelineContext",
-    # State Manager
-    "StateManager",
-    "PipelineState",
-    "StageState",
-    # Progress Tracker
-    "ProgressTracker",
-    "ProgressUpdate",
-    "WebSocketConnection",
-    # Error Recovery
-    "ErrorRecoveryManager",
-    "RecoveryStrategy",
-    "RecoveryResult",
-    "RecoveryConfig",
+    "BiasDetectionConfig",
     # Bias Detection
     "BiasDetectionIntegration",
     "BiasMetrics",
-    "BiasDetectionConfig",
+    # Error Recovery
+    "ErrorRecoveryManager",
+    # Event Bus
+    "EventBus",
+    "EventHandler",
+    "EventMessage",
+    "EventType",
+    "PerformanceMetric",
     # Performance Monitor
     "PerformanceMonitor",
-    "PerformanceMetric",
     "PerformanceSummary",
     "PerformanceThreshold",
+    "PipelineContext",
+    # Pipeline Coordinator
+    "PipelineCoordinator",
+    "PipelineState",
+    # Progress Tracker
+    "ProgressTracker",
+    "ProgressUpdate",
+    "RecoveryConfig",
+    "RecoveryResult",
+    "RecoveryStrategy",
+    "StageState",
+    # State Manager
+    "StateManager",
+    "WebSocketConnection",
 ]
 
 # Module version

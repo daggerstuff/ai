@@ -93,7 +93,7 @@ class ProcessingState:
     failed_items: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def update_progress(self, completed_steps: int = None, current_step: str = None):
+    def update_progress(self, completed_steps: int | None = None, current_step: str | None = None):
         """Update processing progress"""
         if completed_steps is not None:
             self.completed_steps = completed_steps
@@ -294,8 +294,8 @@ class CheckpointStorage:
 
     def list_checkpoints(
         self,
-        process_id: str = None,
-        task_id: str = None,
+        process_id: str | None = None,
+        task_id: str | None = None,
         checkpoint_type: CheckpointType = None,
         status: CheckpointStatus = None,
     ) -> list[CheckpointMetadata]:
@@ -459,7 +459,7 @@ class CheckpointStorage:
 class CheckpointManager:
     """High-level checkpoint management system"""
 
-    def __init__(self, storage_path: str = None):
+    def __init__(self, storage_path: str | None = None):
         self.storage = CheckpointStorage(storage_path)
         self.active_processes: dict[str, ProcessingState] = {}
         self.checkpoint_callbacks: dict[str, list[Callable]] = {}
@@ -527,7 +527,7 @@ class CheckpointManager:
         checkpoint_type: CheckpointType,
         data: Any,
         description: str = "",
-        tags: list[str] = None,
+        tags: list[str] | None = None,
         ttl_hours: int = 24,
     ) -> str:
         """Create a new checkpoint"""
@@ -561,9 +561,9 @@ class CheckpointManager:
     def update_process_progress(
         self,
         process_id: str,
-        completed_steps: int = None,
-        current_step: str = None,
-        metadata: dict[str, Any] = None,
+        completed_steps: int | None = None,
+        current_step: str | None = None,
+        metadata: dict[str, Any] | None = None,
         auto_checkpoint: bool = True,
     ) -> ProcessingState:
         """Update process progress and optionally create checkpoint"""

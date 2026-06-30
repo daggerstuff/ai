@@ -432,7 +432,7 @@ async def get_trajectory(
                 "arousal": r.arousal,
                 "dominance": r.dominance,
             }
-            for b, r in zip(results, emotion_results)
+            for b, r in zip(results, emotion_results, strict=False)
         ],
     }
 

@@ -29,7 +29,7 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from .dream_memory_store import DreamMemoryStore, LocalDreamMemoryStore
@@ -38,7 +38,7 @@ from .reflection_types import MemoryCategory, MemoryMetadata
 logger = logging.getLogger(__name__)
 
 
-class DreamPhase(str, Enum):
+class DreamPhase(StrEnum):
     """Dream cycle phases."""
 
     NREM = "nrem"  # Non-REM sleep

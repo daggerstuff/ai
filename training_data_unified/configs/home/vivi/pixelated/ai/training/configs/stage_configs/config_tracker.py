@@ -71,7 +71,7 @@ class ConfigSnapshot:
 class ConfigTracker:
     """Main configuration tracking system"""
 
-    def __init__(self, config_dir: str = None, tracking_dir: str = None):
+    def __init__(self, config_dir: str | None = None, tracking_dir: str | None = None):
         self.config_dir = Path(config_dir) if config_dir else Path(__file__).parent
         self.tracking_dir = Path(tracking_dir) if tracking_dir else self.config_dir / ".config_tracking"
 
@@ -91,7 +91,7 @@ class ConfigTracker:
             self._save_snapshots([])
 
     def track_change(
-        self, file_path: str, change_type: str, description: str = "", user: str = None, environment: str = None
+        self, file_path: str, change_type: str, description: str = "", user: str | None = None, environment: str | None = None
     ) -> str:
         """Track a configuration change"""
         file_path = str(Path(file_path).resolve())
@@ -145,7 +145,7 @@ class ConfigTracker:
         logger.info(f"Tracked configuration change: {change_id} - {description}")
         return change_id
 
-    def create_snapshot(self, description: str = "", environment: str = None) -> str:
+    def create_snapshot(self, description: str = "", environment: str | None = None) -> str:
         """Create a configuration snapshot"""
         if environment is None:
             environment = os.getenv("ENVIRONMENT", "unknown")
@@ -199,7 +199,7 @@ class ConfigTracker:
 
         try:
             # Create backup of current state
-            current_backup_id = self.create_snapshot(f"Pre-rollback backup for {change_id}")
+            self.create_snapshot(f"Pre-rollback backup for {change_id}")
 
             # Restore the file
             if target_change.change_type == "delete":
@@ -255,7 +255,7 @@ class ConfigTracker:
 
         try:
             # Create backup of current state
-            current_backup_id = self.create_snapshot(f"Pre-rollback backup for snapshot {snapshot_id}")
+            self.create_snapshot(f"Pre-rollback backup for snapshot {snapshot_id}")
 
             # Restore files from snapshot backup
             snapshot_backup_dir = self.tracking_dir / "snapshots" / snapshot_id
@@ -266,7 +266,7 @@ class ConfigTracker:
 
             # Restore each file
             restored_files = []
-            for file_path in target_snapshot.files.keys():
+            for file_path in target_snapshot.files:
                 backup_file = snapshot_backup_dir / Path(file_path).name
 
                 if backup_file.exists():
@@ -293,7 +293,7 @@ class ConfigTracker:
             logger.error(f"Snapshot rollback failed: {e}")
             return False
 
-    def get_change_history(self, file_path: str = None, limit: int = None) -> list[dict[str, Any]]:
+    def get_change_history(self, file_path: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
         """Get change history"""
         changes = self._load_changes()
 
@@ -311,7 +311,7 @@ class ConfigTracker:
 
         return changes
 
-    def get_snapshots(self, limit: int = None) -> list[dict[str, Any]]:
+    def get_snapshots(self, limit: int | None = None) -> list[dict[str, Any]]:
         """Get snapshot history"""
         snapshots = self._load_snapshots()
 
@@ -623,14 +623,12 @@ def main():
 
     # Execute command
     if args.command == "track":
-        change_id = tracker.track_change(
+        tracker.track_change(
             args.file_path, args.change_type, args.description, args.user, args.environment
         )
-        print(f"Change tracked: {change_id}")
 
     elif args.command == "snapshot":
-        snapshot_id = tracker.create_snapshot(args.description, args.environment)
-        print(f"Snapshot created: {snapshot_id}")
+        tracker.create_snapshot(args.description, args.environment)
 
     elif args.command == "rollback":
         if args.change_id:
@@ -639,41 +637,34 @@ def main():
             success = tracker.rollback_to_snapshot(args.snapshot_id)
 
         if success:
-            print("Rollback completed successfully")
+            pass
         else:
-            print("Rollback failed")
             sys.exit(1)
 
     elif args.command == "history":
-        changes = tracker.get_change_history(args.file_path, args.limit)
-        print(json.dumps(changes, indent=2))
+        tracker.get_change_history(args.file_path, args.limit)
 
     elif args.command == "snapshots":
-        snapshots = tracker.get_snapshots(args.limit)
-        print(json.dumps(snapshots, indent=2))
+        tracker.get_snapshots(args.limit)
 
     elif args.command == "compare":
-        comparison = tracker.compare_configurations(args.snapshot1, args.snapshot2)
-        print(json.dumps(comparison, indent=2))
+        tracker.compare_configurations(args.snapshot1, args.snapshot2)
 
     elif args.command == "cleanup":
-        count = tracker.cleanup_old_backups(args.days)
-        print(f"Cleaned up {count} old backup files")
+        tracker.cleanup_old_backups(args.days)
 
     elif args.command == "export":
         success = tracker.export_tracking_data(args.output_file)
         if success:
-            print(f"Tracking data exported to: {args.output_file}")
+            pass
         else:
-            print("Export failed")
             sys.exit(1)
 
     elif args.command == "import":
         success = tracker.import_tracking_data(args.input_file)
         if success:
-            print(f"Tracking data imported from: {args.input_file}")
+            pass
         else:
-            print("Import failed")
             sys.exit(1)
 
 

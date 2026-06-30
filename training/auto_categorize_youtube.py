@@ -4,7 +4,6 @@
 import argparse
 import json
 import logging
-import sys
 from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
@@ -173,7 +172,7 @@ def run_categorization(args: argparse.Namespace) -> None:
         out_file = output_dir / jsonl_file.name
         channel_count = 0
 
-        with open(jsonl_file, "r", encoding="utf-8") as fin, open(out_file, "w", encoding="utf-8") as fout:
+        with open(jsonl_file, encoding="utf-8") as fin, open(out_file, "w", encoding="utf-8") as fout:
             for line in fin:
                 line = line.strip()
                 if not line:
@@ -196,7 +195,7 @@ def run_categorization(args: argparse.Namespace) -> None:
         "generated_at": datetime.now(UTC).isoformat(),
         "total_samples": total,
         "category_distribution": dict(category_counts.most_common()),
-        "channel_map": {ch: cat for ch, cat in CHANNEL_CATEGORIES.items()},
+        "channel_map": dict(CHANNEL_CATEGORIES.items()),
     }
     report_path = output_dir / "categorization_report.json"
     with open(report_path, "w", encoding="utf-8") as f:

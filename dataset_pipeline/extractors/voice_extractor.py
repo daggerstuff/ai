@@ -1,9 +1,10 @@
+
 from .s3_streamer import S3Streamer
-import os
+
 
 class VoiceExtractor:
     """Extracts voice transcripts from S3 and yields raw conversational items."""
-    
+
     def __init__(self, streamer: S3Streamer):
         self.streamer = streamer
         self.base_prefix = "archive/local_voice_import/"
@@ -13,15 +14,14 @@ class VoiceExtractor:
         # Find all JSONL files in the exports/ directories
         all_files = list(self.streamer.list_files(self.base_prefix))
         jsonl_files = [f for f in all_files if f.endswith(".jsonl")]
-        
+
         for file_key in jsonl_files:
             # e.g. archive/local_voice_import/big_think_voice/exports/bigthink_conversations.jsonl
             parts = file_key.split("/")
             # The directory name is like 'big_think_voice'
             category_dir = parts[-3] if len(parts) >= 3 else "unknown_voice"
-            
-            print(f"Processing voice file: {file_key} (Category: {category_dir})")
-            
+
+
             for record in self.streamer.stream_jsonl(file_key):
                 yield {
                     "raw_data": record,

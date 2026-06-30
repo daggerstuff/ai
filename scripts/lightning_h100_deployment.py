@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class LightningH100Deployer:
     """Lightning.ai H100 deployment system for therapeutic AI training"""
 
-    def __init__(self, unified_dataset_path: Path = None):
+    def __init__(self, unified_dataset_path: Path | None = None):
 
         self.unified_dataset_path = unified_dataset_path or get_unified_training_dir()
         self.lightning_workspace = get_lightning_dir() / "production"

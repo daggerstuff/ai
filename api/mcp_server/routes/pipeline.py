@@ -10,8 +10,9 @@ import logging
 from flask import Blueprint, g, jsonify, request
 
 # Internal imports
-from ..auth.middleware import require_mcp_auth, require_mcp_role
-from ..core.pipeline_integration import PipelineConfig
+from ai.api.mcp_server.auth.middleware import require_mcp_auth, require_mcp_role
+from ai.api.mcp_server.core.pipeline_integration import PipelineConfig
+
 from .agents import asyncio_run
 
 logger = logging.getLogger(__name__)

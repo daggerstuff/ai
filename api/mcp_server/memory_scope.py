@@ -123,9 +123,7 @@ def _is_shared(visibility: str | None) -> bool:
 def _matches_shared_scope(scope: MemoryScope, metadata: dict[str, Any]) -> bool:
     if not _matches_value(scope.org_id, metadata.get("org_id")):
         return False
-    if not _matches_value(scope.project_id, metadata.get("project_id")):
-        return False
-    return True
+    return _matches_value(scope.project_id, metadata.get("project_id"))
 
 
 def _matches_private_scope(scope: MemoryScope, metadata: dict[str, Any]) -> bool:
@@ -135,9 +133,7 @@ def _matches_private_scope(scope: MemoryScope, metadata: dict[str, Any]) -> bool
         return False
     if not _matches_value(scope.run_id, metadata.get("run_id")):
         return False
-    if not _matches_value(scope.session_id, metadata.get("session_id")):
-        return False
-    return True
+    return _matches_value(scope.session_id, metadata.get("session_id"))
 
 
 def _scope_matches(scope: MemoryScope, metadata: dict[str, Any]) -> bool:

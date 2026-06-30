@@ -24,6 +24,7 @@ import json
 import logging
 import re
 import secrets
+import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
@@ -208,9 +209,8 @@ class Anonymizer:
         result = self._replace_pattern(result, self.PATTERNS["ip_address"], "<IP_ADDRESS>")
 
         # Replace URLs
-        result = self._replace_pattern(result, self.PATTERNS["url"], "<URL>")
+        return self._replace_pattern(result, self.PATTERNS["url"], "<URL>")
 
-        return result
 
     def _replace_pattern(self, text: str, pattern: re.Pattern, placeholder: str) -> str:
         """Replace all matches of a pattern with a placeholder."""
@@ -316,10 +316,7 @@ class FineTuningDatasetPreparer:
         transcripts = []
 
         # Determine file extensions based on format
-        if format == "auto":
-            patterns = ["*.json", "*.jsonl", "*.txt"]
-        else:
-            patterns = [f"*.{format}"]
+        patterns = ["*.json", "*.jsonl", "*.txt"] if format == "auto" else [f"*.{format}"]
 
         for pattern in patterns:
             for file_path in transcript_path.glob(pattern):
@@ -892,9 +889,8 @@ class FineTuningDatasetPreparer:
         # Split and save
         logger.info("Splitting and saving dataset")
         splits = self.split_dataset(examples)
-        output_files = self.save_dataset(splits)
+        return self.save_dataset(splits)
 
-        return output_files
 
 
 def main():
@@ -1001,4 +997,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

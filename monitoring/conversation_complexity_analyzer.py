@@ -81,10 +81,7 @@ class ConversationComplexityAnalyzer:
 
         try:
             # Get datasets to analyze
-            if dataset_name:
-                datasets = [dataset_name]
-            else:
-                datasets = self._get_dataset_list()
+            datasets = [dataset_name] if dataset_name else self._get_dataset_list()
 
             complexity_analyses = {}
 
@@ -725,7 +722,7 @@ def main():
 
     # Show sample analysis
     if complexity_analyses:
-        sample_dataset = list(complexity_analyses.keys())[0]
+        sample_dataset = next(iter(complexity_analyses.keys()))
         sample_analysis = complexity_analyses[sample_dataset]
 
         if sample_analysis.patterns:

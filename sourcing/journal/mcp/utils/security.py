@@ -172,11 +172,7 @@ def detect_sql_injection(value: str) -> bool:
     if not isinstance(value, str):
         return False
 
-    for pattern in SQL_INJECTION_PATTERNS:
-        if pattern.search(value):
-            return True
-
-    return False
+    return any(pattern.search(value) for pattern in SQL_INJECTION_PATTERNS)
 
 
 def detect_command_injection(value: str) -> bool:
@@ -192,11 +188,7 @@ def detect_command_injection(value: str) -> bool:
     if not isinstance(value, str):
         return False
 
-    for pattern in COMMAND_INJECTION_PATTERNS:
-        if pattern.search(value):
-            return True
-
-    return False
+    return any(pattern.search(value) for pattern in COMMAND_INJECTION_PATTERNS)
 
 
 def validate_and_sanitize_input(

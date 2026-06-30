@@ -405,7 +405,7 @@ class AbliteratedCrisisGenerator:
             try:
                 # Generate client message
                 client_prompt = self._create_client_prompt(scenario, exchange, conversation["conversation"])
-                if client_response := self._call_model(context_messages + [{"role": "user", "content": client_prompt}]):
+                if client_response := self._call_model([*context_messages, {"role": "user", "content": client_prompt}]):
                     conversation["conversation"].append(
                         {
                             "speaker": "client",
@@ -418,14 +418,7 @@ class AbliteratedCrisisGenerator:
                     # Generate counselor response
                     counselor_prompt = self._create_counselor_prompt(scenario, client_response)
                     if counselor_response := self._call_model(
-                        context_messages
-                        + [
-                            {
-                                "role": "user",
-                                "content": f"Client said: {client_response}",
-                            },
-                            {"role": "user", "content": counselor_prompt},
-                        ]
+                        [*context_messages, {"role": "user", "content": f"Client said: {client_response}"}, {"role": "user", "content": counselor_prompt}]
                     ):
                         conversation["conversation"].append(
                             {
@@ -601,7 +594,7 @@ intervention."""
 
         return dataset
 
-    def save_dataset(self, dataset: list[dict], filename: str = None) -> str:
+    def save_dataset(self, dataset: list[dict], filename: str | None = None) -> str:
         """Save generated dataset to file"""
         if filename is None:
             timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")

@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 import random
-import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -149,11 +148,7 @@ format:
             )
             content = response.choices[0].message.content
             return json.loads(content)
-        except Exception as exc:
-            print(
-                f"LLM call failed for {self.persona_name} on model '{self.model}': {type(exc).__name__}: {exc}",
-                file=sys.stderr,
-            )
+        except Exception:
             if self.strict_llm:
                 raise
             # Fallback to generative mock instead of error

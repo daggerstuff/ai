@@ -126,9 +126,7 @@ class Channel:
         """Check if channel content can be used."""
         if not self.licensing:
             return False
-        if commercial and not self.licensing.commercial_use:
-            return False
-        return True
+        return not (commercial and not self.licensing.commercial_use)
 
 
 class ChannelQualityThresholds(BaseModel):

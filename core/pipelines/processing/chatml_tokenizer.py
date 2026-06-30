@@ -29,10 +29,7 @@ def tokenize_dataset(records: list[dict[str, Any]], *, tokeniser: Any | None = N
         ]
         text = "\n".join(text_chunks)
 
-        if tokeniser is not None and callable(tokeniser):
-            tokens = list(tokeniser(text))
-        else:
-            tokens = text.split()
+        tokens = list(tokeniser(text)) if tokeniser is not None and callable(tokeniser) else text.split()
 
         output.append(TokenizedRecord(tokens=tokens, char_count=len(text), record=record))
 

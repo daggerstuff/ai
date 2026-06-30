@@ -268,11 +268,7 @@ class MockPipelineOrchestrator:
             rec_stack.remove(stage_name)
             return False
 
-        for stage in self.stages:
-            if stage["name"] not in visited and has_cycle(stage["name"]):
-                return True
-
-        return False
+        return any(stage["name"] not in visited and has_cycle(stage["name"]) for stage in self.stages)
 
     def get_performance_metrics(self) -> dict[str, Any]:
         """Get performance metrics for the pipeline."""

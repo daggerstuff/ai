@@ -43,10 +43,7 @@ def _comment_repo(request: Request) -> CommentRepository:
 @router.get("/workflows")
 async def list_workflows(request: Request, resource_type: str | None = None) -> dict[str, Any]:
     repo = _workflow_repo(request)
-    if resource_type:
-        workflows = repo.find_by_resource_type(resource_type)
-    else:
-        workflows = repo.find_many(order_by="name")
+    workflows = repo.find_by_resource_type(resource_type) if resource_type else repo.find_many(order_by="name")
     return {"success": True, "data": workflows}
 
 

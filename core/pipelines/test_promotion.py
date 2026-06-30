@@ -138,7 +138,7 @@ class TestPromotionService:
     def test_hash_mismatch_detection(self, temp_output_dir, sample_records):
         """Data hash mismatch is detected."""
         # Create package with passing metrics
-        bundle = create_training_package(
+        create_training_package(
             stage_id="stage1_foundation",
             records=sample_records,
             output_dir=temp_output_dir,
@@ -163,7 +163,7 @@ class TestPromotionService:
     def test_token_expiry(self, temp_output_dir, sample_records):
         """Expired tokens are rejected."""
         # Create package with passing metrics
-        bundle = create_training_package(
+        create_training_package(
             stage_id="stage1_foundation",
             records=sample_records,
             output_dir=temp_output_dir,
@@ -190,7 +190,7 @@ class TestPromotionService:
     def test_mark_promoted(self, temp_output_dir, sample_records):
         """Promoted status is recorded correctly."""
         # Create package with passing metrics
-        bundle = create_training_package(
+        create_training_package(
             stage_id="stage1_foundation",
             records=sample_records,
             output_dir=temp_output_dir,

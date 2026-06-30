@@ -587,7 +587,7 @@ class ReprioritizationEngine:
                 existing.priority_tier = tier
                 existing.priority_score = score
                 existing.reason_for_change = change.reason
-                existing.evidence_pattern_ids = list(set(existing.evidence_pattern_ids + [accumulation.pattern_id]))
+                existing.evidence_pattern_ids = list({*existing.evidence_pattern_ids, accumulation.pattern_id})
                 reprioritized.append(existing)
             else:
                 new_item = BacklogItem(

@@ -48,12 +48,10 @@ class StressTest:
         return self.results
 
     async def spike_test(self):
-        res = await self.run_batch(100, 10)
-        return res
+        return await self.run_batch(100, 10)
 
     async def endurance_test(self):
-        res = await self.run_batch(10, 60)
-        return res
+        return await self.run_batch(10, 60)
 
 
 async def main():

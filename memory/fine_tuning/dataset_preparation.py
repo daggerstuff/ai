@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from ..schema import MemoryBlock
+from ai.memory.schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 
@@ -147,7 +147,7 @@ class DatasetPreparator:
         target = max(max_size, 1)
 
         balanced: list[TrainingExample] = []
-        for bucket_name, bucket in buckets.items():
+        for _bucket_name, bucket in buckets.items():
             if len(bucket) >= target:
                 balanced.extend(bucket[:target])
             else:

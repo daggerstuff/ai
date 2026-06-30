@@ -554,7 +554,7 @@ class TestSystemIntegration(unittest.TestCase):
         assert result == valid_config
 
         # Test invalid config
-        with self.assertRaises(KeyError):
+        with pytest.raises(KeyError):
             load_config({"database_path": "/path/to/db"})
 
 

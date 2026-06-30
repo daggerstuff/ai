@@ -6,6 +6,7 @@ Tests the clinical validity pipeline with edge case prompts to ensure robustness
 
 import json
 import logging
+import sys
 import time
 from dataclasses import asdict, dataclass
 from typing import Any
@@ -209,7 +210,7 @@ class ClinicalValidityStressTester:
             return False, f"Unexpected error: {actual_result['error']}"
 
         score = actual_result.get("score", 0.0)
-        is_accurate = actual_result.get("is_accurate", False)
+        actual_result.get("is_accurate", False)
         issues = actual_result.get("issues", [])
 
         # Evaluate based on category expectations
@@ -352,7 +353,7 @@ class ClinicalValidityStressTester:
             if not r.passed
         ]
 
-        report = {
+        return {
             "summary": {
                 "total_tests": total_tests,
                 "passed_tests": passed_tests,
@@ -370,9 +371,8 @@ class ClinicalValidityStressTester:
             "tester_version": "1.0",
         }
 
-        return report
 
-    def save_report(self, filepath: str = None) -> str:
+    def save_report(self, filepath: str | None = None) -> str:
         """Save the stress test report to a file."""
         if filepath is None:
             timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -392,60 +392,39 @@ class ClinicalValidityStressTester:
 
 def main():
     """Main function to run clinical validity stress tests."""
-    print("🧪 Clinical Validity Stress Testing Suite")
-    print("=" * 50)
 
     tester = ClinicalValidityStressTester()
 
     # Run all stress tests
-    results = tester.run_all_stress_tests()
+    tester.run_all_stress_tests()
 
     # Generate and display report
     report = tester.generate_report()
 
-    print("\n📊 STRESS TEST RESULTS")
-    print("=" * 50)
-    print(f"Total Tests: {report['summary']['total_tests']}")
-    print(f"Passed: {report['summary']['passed_tests']}")
-    print(f"Failed: {report['summary']['failed_tests']}")
-    print(f"Success Rate: {report['summary']['success_rate_percent']}%")
-    print(f"Average Execution Time: {report['performance']['average_execution_time_ms']}ms")
-    print(f"Max Execution Time: {report['performance']['max_execution_time_ms']}ms")
 
-    print("\n📈 CATEGORY BREAKDOWN")
-    print("-" * 30)
-    for category, stats in report["category_breakdown"].items():
-        print(f"{category:<25} {stats['passed']:>3}/{stats['total']:<3} ({stats['success_rate_percent']:>5.1f}%)")
+    for _category, _stats in report["category_breakdown"].items():
+        pass
 
     # Show failures if any
     if report["failures"]:
-        print(f"\n❌ FAILURES (showing first {min(5, len(report['failures']))})")
-        print("-" * 50)
-        for failure in report["failures"][:5]:
-            print(f"Test: {failure['test_name']}")
-            print(f"  Prompt: {failure['prompt']}")
-            print(f"  Expected: {failure['expected_behavior']}")
-            print(f"  Error: {failure['error_message']}")
-            print()
+        for _failure in report["failures"][:5]:
+            pass
     else:
-        print("\n✅ ALL TESTS PASSED!")
+        pass
 
     # Save report
     report_file = tester.save_report()
     if report_file:
-        print(f"\n💾 Detailed report saved to: {report_file}")
+        pass
 
     # Return appropriate exit code
     success_rate = report["summary"]["success_rate_percent"]
     if success_rate >= 80:
-        print("\n🎉 Stress testing completed successfully!")
         return 0
     if success_rate >= 60:
-        print("\n⚠️  Stress testing completed with minor issues.")
         return 1
-    print("\n💥 Stress testing failed - significant issues detected.")
     return 2
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

@@ -141,7 +141,7 @@ class TherapeuticSimulationEngine:
         self,
         client_profile: DifficultClientProfile,
         trainee_id: str,
-        supervisor_id: str = None,
+        supervisor_id: str | None = None,
     ) -> TrainingSession:
         """Initialize a new therapeutic simulation session"""
 

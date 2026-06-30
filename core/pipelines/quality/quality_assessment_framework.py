@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from ..quality.conversation_schema import Conversation
+from ai.core.pipelines.quality.conversation_schema import Conversation
 
 
 class QualityTier(Enum):
@@ -108,8 +108,7 @@ class QualityAssessmentFramework:
         # Penalize very short / numeric-only payloads heavily.
         if normalized.isdigit() or re.fullmatch(r"[\d\s]+", normalized):
             return 0.0
-        score = min(1.0, (hits / 3.0) + 0.1)
-        return score
+        return min(1.0, (hits / 3.0) + 0.1)
 
     def _assess_safety_compliance(self, content: str) -> float:
         normalized = self._normalize_message(content)

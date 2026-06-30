@@ -305,7 +305,7 @@ class TranscriptIngestor:
         # Try to detect from content
         try:
             content = self._read_file_preview(path)
-            if content.startswith("{") or content.startswith("["):
+            if content.startswith(("{", "[")):
                 return TranscriptFormat.JSON
             if content.startswith("WEBVTT"):
                 return TranscriptFormat.VTT

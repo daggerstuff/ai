@@ -8,6 +8,7 @@ Official Python client for the Pixelated Empathy AI API.
 
 import json
 import logging
+import sys
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -34,7 +35,7 @@ class APIResponse:
 class PixelatedEmpathyAPIError(Exception):
     """Base exception for API errors."""
 
-    def __init__(self, message: str, error_code: str = None, status_code: int = None):
+    def __init__(self, message: str, error_code: str | None = None, status_code: int | None = None):
         self.message = message
         self.error_code = error_code
         self.status_code = status_code
@@ -130,6 +131,7 @@ class PixelatedEmpathyAPI:
                     time.sleep(2**attempt)  # Exponential backoff
                     continue
                 raise PixelatedEmpathyAPIError(f"Request failed: {e}") from e
+        return None
 
     # Dataset methods
     def list_datasets(self) -> list[dict[str, Any]]:
@@ -230,8 +232,7 @@ class PixelatedEmpathyAPI:
             if not conversations:
                 break
 
-            for conversation in conversations:
-                yield conversation
+            yield from conversations
 
             offset += len(conversations)
 
@@ -275,7 +276,7 @@ class PixelatedEmpathyAPI:
 
     # Processing methods
     def submit_processing_job(
-        self, dataset_name: str, processing_type: str, parameters: dict[str, Any] = None
+        self, dataset_name: str, processing_type: str, parameters: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """
         Submit a processing job for dataset analysis or export.
@@ -333,7 +334,7 @@ class PixelatedEmpathyAPI:
 
     # Search methods
     def search_conversations(
-        self, query: str, filters: dict[str, Any] = None, limit: int = 100, offset: int = 0
+        self, query: str, filters: dict[str, Any] | None = None, limit: int = 100, offset: int = 0
     ) -> dict[str, Any]:
         """
         Search conversations using advanced filters and full-text search.
@@ -410,7 +411,7 @@ if __name__ == "__main__":
 
     # Check API health
     if not api.health_check():
-        exit(1)
+        sys.exit(1)
 
     # List datasets
     datasets = api.list_datasets()

@@ -11,7 +11,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from ..schema import MemoryBlock
+from ai.memory.schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 
@@ -96,7 +96,7 @@ class MemorySystemEvaluator:
             and performance.p95_latency_ms < 500
         )
 
-        elapsed = time.perf_counter() - t0
+        time.perf_counter() - t0
         report = EvaluationReport(
             retrieval=retrieval,
             response=response,

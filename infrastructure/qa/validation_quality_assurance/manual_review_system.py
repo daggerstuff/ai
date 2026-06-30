@@ -241,9 +241,9 @@ class ManualReviewSystem:
     def create_review_assignment(
         self,
         conversation: dict[str, Any],
-        reviewer_id: str = None,
+        reviewer_id: str | None = None,
         priority: ReviewPriority = ReviewPriority.MEDIUM,
-        criteria_ids: list[str] = None,
+        criteria_ids: list[str] | None = None,
         due_hours: int = 24,
     ) -> str:
         """Create a new review assignment"""
@@ -366,10 +366,7 @@ class ManualReviewSystem:
 
         # Safety content requires more time
         text = str(conversation.get("conversation", "")).lower()
-        if any(word in text for word in ["suicide", "crisis", "harm", "abuse"]):
-            safety_time = 15
-        else:
-            safety_time = 0
+        safety_time = 15 if any(word in text for word in ["suicide", "crisis", "harm", "abuse"]) else 0
 
         total_time = base_time + complexity_time + criteria_time + safety_time
         return int(total_time)
@@ -380,8 +377,8 @@ class ManualReviewSystem:
         reviewer_id: str,
         criteria_scores: dict[str, float],
         comments: str,
-        issues_identified: list[str] = None,
-        recommendations: list[str] = None,
+        issues_identified: list[str] | None = None,
+        recommendations: list[str] | None = None,
         approval_status: str = "approved",
     ) -> str:
         """Submit a completed review"""
@@ -480,7 +477,7 @@ class ManualReviewSystem:
             {"timestamp": review.completed_at, "overall_score": review.overall_score, "reviewer_id": review.reviewer_id}
         )
 
-    def get_pending_assignments(self, reviewer_id: str = None) -> list[ReviewAssignment]:
+    def get_pending_assignments(self, reviewer_id: str | None = None) -> list[ReviewAssignment]:
         """Get pending review assignments"""
         pending = []
 
@@ -502,7 +499,7 @@ class ManualReviewSystem:
         pending.sort(key=lambda x: (priority_order[x.priority], x.due_date))
         return pending
 
-    def get_review_results(self, conversation_id: str = None, reviewer_id: str = None) -> list[ReviewResult]:
+    def get_review_results(self, conversation_id: str | None = None, reviewer_id: str | None = None) -> list[ReviewResult]:
         """Get review results with optional filtering"""
         results = list(self.reviews.values())
 
@@ -514,7 +511,7 @@ class ManualReviewSystem:
 
         return results
 
-    def generate_review_report(self, start_date: str = None, end_date: str = None) -> dict[str, Any]:
+    def generate_review_report(self, start_date: str | None = None, end_date: str | None = None) -> dict[str, Any]:
         """Generate comprehensive review report"""
 
         # Filter reviews by date range if specified

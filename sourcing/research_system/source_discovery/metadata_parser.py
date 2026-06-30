@@ -414,10 +414,7 @@ class MetadataParser:
         if has_restricted:
             status = "restricted"
         elif has_available:
-            if "upon request" in text_lower or "on request" in text_lower:
-                status = "upon_request"
-            else:
-                status = "available"
+            status = "upon_request" if "upon request" in text_lower or "on request" in text_lower else "available"
         else:
             status = "unknown"
 

@@ -13,7 +13,6 @@ async def setup_db():
 
 
 async def run_benchmark(db, num_records, is_soft=True):
-    print(f"Benchmarking with {num_records} records, soft_delete={is_soft}")
 
     # insert items via create
     ids = []
@@ -21,12 +20,10 @@ async def run_benchmark(db, num_records, is_soft=True):
         item = await db.conversations.create({"messages": [], "tier": "standard", "metadata": {}})
         ids.append(item.get("id") or item.get("conversation_id"))
 
-    start = time.time()
-    result = await db.conversations.bulk_delete(ids, soft_delete=is_soft)
-    end = time.time()
+    time.time()
+    await db.conversations.bulk_delete(ids, soft_delete=is_soft)
+    time.time()
 
-    print(f"Time taken: {end - start:.4f}s")
-    print(f"Result: {result.success_count} success, {result.failed_count} failed")
 
 
 async def main():

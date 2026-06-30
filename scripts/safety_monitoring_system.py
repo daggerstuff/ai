@@ -139,7 +139,7 @@ class SafetyMonitoringSystem:
         self.alert_callbacks.append(callback)
         logger.info("Alert callback added")
 
-    async def process_user_input(self, user_input: str, user_id: str = None) -> dict[str, Any]:
+    async def process_user_input(self, user_input: str, user_id: str | None = None) -> dict[str, Any]:
         """
         Process user input for safety monitoring
         Returns safety assessment and response recommendations
@@ -301,7 +301,7 @@ class SafetyMonitoringSystem:
         return IncidentSeverity.LOW
 
     async def _create_incident(
-        self, user_input: str, crisis_assessment: dict[str, Any], severity: IncidentSeverity, _user_id: str = None
+        self, user_input: str, crisis_assessment: dict[str, Any], severity: IncidentSeverity, _user_id: str | None = None
     ) -> SafetyIncident:
         """Create safety incident record"""
 

@@ -445,8 +445,8 @@ class DistributedQualityValidator:
 
     def __init__(
         self,
-        redis_url: str = None,
-        celery_broker: str = None,
+        redis_url: str | None = None,
+        celery_broker: str | None = None,
         enable_caching: bool = True,
     ):
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -510,7 +510,7 @@ class DistributedQualityValidator:
         data_path: str,
         validation_type: str,
         priority: ValidationPriority = ValidationPriority.NORMAL,
-        metadata: dict[str, Any] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Submit a validation task for processing"""
         task_id = self._generate_task_id(data_path)
@@ -588,7 +588,7 @@ class DistributedQualityValidator:
         """Get task result"""
         return self.results.get(task_id)
 
-    def wait_for_task(self, task_id: str, timeout: float = None) -> ValidationResult | None:
+    def wait_for_task(self, task_id: str, timeout: float | None = None) -> ValidationResult | None:
         """Wait for task completion"""
         start_time = time.time()
 
@@ -615,7 +615,7 @@ class DistributedQualityValidator:
         data_paths: list[str],
         validation_type: str,
         batch_size: int = 10,
-        max_workers: int = None,
+        max_workers: int | None = None,
     ) -> list[ValidationResult]:
         """Validate multiple files in batches"""
         if not max_workers:

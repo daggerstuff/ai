@@ -365,7 +365,7 @@ Add research notes and findings here.
         lines.append("")
 
         # Overall progress
-        total_achieved = sum(getattr(progress, key, 0) for key in session.weekly_targets.keys())
+        total_achieved = sum(getattr(progress, key, 0) for key in session.weekly_targets)
         total_targets = sum(session.weekly_targets.values())
         overall_percentage = (total_achieved / total_targets * 100) if total_targets > 0 else 0
 

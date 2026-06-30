@@ -359,7 +359,7 @@ class PipelineMetricsCollector:
     ) -> None:
         """Internal method to record a failure with deduplication."""
         # Create failure pattern for deduplication
-        pattern = f"{stage or 'unknown'}:{gate or ''}:{error_message[:50]}"
+        f"{stage or 'unknown'}:{gate or ''}:{error_message[:50]}"
 
         failure_id = f"fail_{len(self._failure_records) + 1}"
 
@@ -617,7 +617,7 @@ class PipelineMetricsCollector:
             return HealthStatus.UNHEALTHY
 
         # Check for critical stage failures
-        for stage_name, metrics in throughput.stage_metrics.items():
+        for _stage_name, metrics in throughput.stage_metrics.items():
             if metrics.get("failures", 0) > 5:
                 return HealthStatus.UNHEALTHY
 

@@ -302,8 +302,7 @@ class DatasetExporter:
                 data = json.load(f)
 
                 if isinstance(data, list):
-                    for record in data:
-                        yield record
+                    yield from data
                 else:
                     # Single record
                     yield data
@@ -326,9 +325,11 @@ class DatasetExporter:
         encoding = None if self.config.compress_output else "utf-8"
 
         if self.config.compress_output and self.config.compression_format == "gzip":
-            open_func = lambda: gzip.open(output_path, mode, encoding=encoding)
+            def open_func():
+                return gzip.open(output_path, mode, encoding=encoding)
         else:
-            open_func = lambda: open(output_path, mode, encoding=encoding)
+            def open_func():
+                return open(output_path, mode, encoding=encoding)
 
         with open_func() as f:
             for record in records:

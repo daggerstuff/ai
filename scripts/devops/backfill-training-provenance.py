@@ -2,7 +2,6 @@
 import argparse
 import json
 import os
-import sys
 import tempfile
 
 
@@ -16,7 +15,7 @@ def main():
 
     records_changed = 0
     records = []
-    with open(args.file, "r") as f:
+    with open(args.file) as f:
         for line in f:
             if not line.strip():
                 continue
@@ -43,7 +42,6 @@ def main():
         tmp_path = tmp.name
     os.replace(tmp_path, args.file)
 
-    print(json.dumps({"records_changed": records_changed}))
 
 
 if __name__ == "__main__":

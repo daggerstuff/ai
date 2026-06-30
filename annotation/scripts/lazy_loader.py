@@ -182,10 +182,7 @@ class ZeroSetupAgent:
         """Process task with zero resource setup."""
 
         # Just access resources directly - they load automatically
-        if "crisis" in task_content.lower():
-            agent = crisis_expert
-        else:
-            agent = emotion_analyst
+        agent = crisis_expert if "crisis" in task_content.lower() else emotion_analyst
 
         # Resources load automatically when accessed
 

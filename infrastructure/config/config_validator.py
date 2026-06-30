@@ -66,7 +66,7 @@ class ValidationReport:
 
     results: list[ValidationResult] = field(default_factory=list)
 
-    def add_error(self, message: str, field: str = None, value: Any = None, suggestion: str = None):
+    def add_error(self, message: str, field: str | None = None, value: Any = None, suggestion: str | None = None):
         """Add an error to the report"""
         self.results.append(
             ValidationResult(
@@ -78,7 +78,7 @@ class ValidationReport:
             )
         )
 
-    def add_warning(self, message: str, field: str = None, value: Any = None, suggestion: str = None):
+    def add_warning(self, message: str, field: str | None = None, value: Any = None, suggestion: str | None = None):
         """Add a warning to the report"""
         self.results.append(
             ValidationResult(
@@ -90,7 +90,7 @@ class ValidationReport:
             )
         )
 
-    def add_info(self, message: str, field: str = None, value: Any = None):
+    def add_info(self, message: str, field: str | None = None, value: Any = None):
         """Add an info message to the report"""
         self.results.append(ValidationResult(level=ValidationLevel.INFO, message=message, field=field, value=value))
 
@@ -115,7 +115,7 @@ class ValidationReport:
 class ConfigValidator:
     """Main configuration validator"""
 
-    def __init__(self, config_dir: str = None):
+    def __init__(self, config_dir: str | None = None):
         self.config_dir = Path(config_dir) if config_dir else Path(__file__).parent
         self.report = ValidationReport()
 

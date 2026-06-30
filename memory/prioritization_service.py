@@ -22,8 +22,7 @@ def adjust_acquisition_priorities(
     # Map the priority tier to a simple list of identifiers; for now we use the tier name
     base_priority = [base_score.priority_tier.value]
     engine = ReprioritizationEngine(base_priority=base_priority)
-    new_order = engine.compute_new_order(evidence)
-    return new_order
+    return engine.compute_new_order(evidence)
 
 
 # Example usage (will be exercised in tests)
@@ -38,4 +37,3 @@ if __name__ == "__main__":
     sample_evidence = [
         EvidenceItem(source_id="eval1", evidence_type="gap", score=2.0, details={"task_id": "high"}),
     ]
-    print(adjust_acquisition_priorities(sample_score, sample_evidence))

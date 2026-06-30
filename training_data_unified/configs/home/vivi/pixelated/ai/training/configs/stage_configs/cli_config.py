@@ -102,8 +102,7 @@ class ConfigManager:
                 # Merge with defaults to ensure all keys exist
                 merged = self._merge_config(self.DEFAULT_CONFIG, config)
                 return self._apply_legacy_aliases(merged)
-            except Exception as e:
-                print(f"Warning: Could not load config from {self.config_path}: {e}")
+            except Exception:
                 return self._apply_legacy_aliases(deepcopy(self.DEFAULT_CONFIG))
         return self._apply_legacy_aliases(deepcopy(self.DEFAULT_CONFIG))
 
@@ -214,8 +213,7 @@ def load_config(config_path: Path | str | None = None) -> dict[str, Any]:
         config_path = Path(config_path)
     manager = ConfigManager(config_path) if config_path else _config_manager
     config = manager.load()
-    config = manager.apply_env_overrides(config)
-    return config
+    return manager.apply_env_overrides(config)
 
 
 def save_config(config: dict[str, Any], config_path: Path | str | None = None) -> None:

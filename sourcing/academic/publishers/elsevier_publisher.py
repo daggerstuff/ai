@@ -132,10 +132,7 @@ class ElsevierPublisher(BasePublisher):
             authors = []
             creator = record.get("dc:creator", "")
             if creator:
-                if isinstance(creator, list):
-                    authors = creator
-                else:
-                    authors = [creator]
+                authors = creator if isinstance(creator, list) else [creator]
 
             # Extract year
             pub_date = record.get("prism:coverDate", "")

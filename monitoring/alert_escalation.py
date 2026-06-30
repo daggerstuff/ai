@@ -132,7 +132,7 @@ class NotificationChannel:
 class AlertEscalationManager:
     """Manages alert escalation procedures"""
 
-    def __init__(self, db_path: str = None, config_path: str = None):
+    def __init__(self, db_path: str | None = None, config_path: str | None = None):
         self.db_path = db_path or "alert_escalation.db"
         self.config_path = config_path or "escalation_config.json"
 
@@ -332,7 +332,7 @@ class AlertEscalationManager:
         description: str,
         severity: AlertSeverity,
         source: str,
-        metadata: dict[str, Any] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Create a new alert and start escalation process"""
         alert_id = self._generate_alert_id()
@@ -629,7 +629,7 @@ Please acknowledge this alert in the monitoring system.
         alert: Alert,
         rule: EscalationRule,
         success: bool,
-        error_message: str = None,
+        error_message: str | None = None,
     ):
         """Log escalation attempt"""
         try:

@@ -311,7 +311,7 @@ class DreamManager:
         themes = []
 
         for memory in memories:
-            content = memory.get("content", "")
+            memory.get("content", "")
             category = memory.get("category", "general")
 
             # Extract theme from category

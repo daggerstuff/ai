@@ -11,7 +11,7 @@ This pipeline enhances the clinical quality of training data by:
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .clinical_validity_scorer import ClinicalValidityScorer
 
@@ -43,7 +43,7 @@ class ClinicalValidityEnhancer:
             f"enhancement_threshold={enhancement_threshold}"
         )
 
-    def load_jsonl(self, file_path: Path) -> List[Dict[str, Any]]:
+    def load_jsonl(self, file_path: Path) -> list[dict[str, Any]]:
         """Load JSONL file.
 
         Args:
@@ -57,7 +57,7 @@ class ClinicalValidityEnhancer:
             logger.warning(f"File not found: {file_path}")
             return records
 
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             for line_num, line in enumerate(f, 1):
                 line = line.strip()
                 if not line:
@@ -71,7 +71,7 @@ class ClinicalValidityEnhancer:
         logger.info(f"Loaded {len(records)} records from {file_path}")
         return records
 
-    def save_jsonl(self, records: List[Dict[str, Any]], file_path: Path) -> None:
+    def save_jsonl(self, records: list[dict[str, Any]], file_path: Path) -> None:
         """Save records to JSONL file.
 
         Args:
@@ -86,7 +86,7 @@ class ClinicalValidityEnhancer:
 
         logger.info(f"Saved {len(records)} records to {file_path}")
 
-    def score_record(self, record: Dict[str, Any]) -> Optional[float]:
+    def score_record(self, record: dict[str, Any]) -> float | None:
         """Score a single record for clinical validity.
 
         Args:
@@ -106,17 +106,16 @@ class ClinicalValidityEnhancer:
 
             if isinstance(score_result, dict) and "overall_score" in score_result:
                 return float(score_result["overall_score"])
-            elif isinstance(score_result, (int, float)):
+            if isinstance(score_result, (int, float)):
                 return float(score_result)
-            else:
-                logger.warning(f"Unexpected score format: {score_result}")
-                return None
+            logger.warning(f"Unexpected score format: {score_result}")
+            return None
 
         except Exception as e:
             logger.warning(f"Failed to score record: {e}")
             return None
 
-    def _extract_conversation_text(self, record: Dict[str, Any]) -> str:
+    def _extract_conversation_text(self, record: dict[str, Any]) -> str:
         """Extract plain text conversation from record.
 
         Args:
@@ -138,7 +137,7 @@ class ClinicalValidityEnhancer:
 
         return "\n".join(conversation_parts)
 
-    def enhance_record(self, record: Dict[str, Any], score: float) -> Dict[str, Any]:
+    def enhance_record(self, record: dict[str, Any], score: float) -> dict[str, Any]:
         """Enhance a record to improve clinical validity.
 
         Args:
@@ -184,7 +183,7 @@ class ClinicalValidityEnhancer:
 
         return enhanced_record
 
-    def _enhance_therapist_response(self, message: Dict[str, Any], score: float) -> Dict[str, Any]:
+    def _enhance_therapist_response(self, message: dict[str, Any], score: float) -> dict[str, Any]:
         """Enhance therapist response to improve clinical validity.
 
         Args:
@@ -205,22 +204,20 @@ class ClinicalValidityEnhancer:
         enhancement_notes = []
 
         # Strategy 1: Add open-ended questions for exploration
-        if score < 0.4:
-            if not content.strip().endswith("?") and len(content) > 10:
-                # Add a gentle open-ended question if not already present
-                if not any(word in content.lower() for word in ["how", "what", "tell me", "describe", "explore"]):
-                    content = content.rstrip(".") + ". How does that feel for you?"
-                    enhancement_notes.append("Added open-ended question")
+        if score < 0.4 and not content.strip().endswith("?") and len(content) > 10:
+            # Add a gentle open-ended question if not already present
+            if not any(word in content.lower() for word in ["how", "what", "tell me", "describe", "explore"]):
+                content = content.rstrip(".") + ". How does that feel for you?"
+                enhancement_notes.append("Added open-ended question")
 
         # Strategy 2: Add reflective statements
-        if score < 0.5:
-            if not any(
-                phrase in content.lower()
-                for phrase in ["it sounds like", "i hear", "what i'm hearing", "so you're saying", "it seems like"]
-            ):
-                # Prepend a reflective statement
-                content = "It sounds like you're dealing with something important. " + content
-                enhancement_notes.append("Added reflective statement")
+        if score < 0.5 and not any(
+            phrase in content.lower()
+            for phrase in ["it sounds like", "i hear", "what i'm hearing", "so you're saying", "it seems like"]
+        ):
+            # Prepend a reflective statement
+            content = "It sounds like you're dealing with something important. " + content
+            enhancement_notes.append("Added reflective statement")
 
         # Strategy 3: Normalize and validate experience
         if score < 0.6:
@@ -230,10 +227,9 @@ class ClinicalValidityEnhancer:
                 enhancement_notes.append("Added validation statement")
 
         # Strategy 4: Encourage elaboration
-        if score < 0.3:
-            if len(content.split()) < 15:  # Very brief response
-                content = content + " Would you be willing to tell me more about that?"
-                enhancement_notes.append("Added invitation to elaborate")
+        if score < 0.3 and len(content.split()) < 15:  # Very brief response
+            content = content + " Would you be willing to tell me more about that?"
+            enhancement_notes.append("Added invitation to elaborate")
 
         if enhancement_notes:
             logger.debug(f"Enhanced therapist response: {', '.join(enhancement_notes)}")
@@ -241,7 +237,7 @@ class ClinicalValidityEnhancer:
 
         return message
 
-    def _enhance_user_message(self, message: Dict[str, Any], score: float) -> Dict[str, Any]:
+    def _enhance_user_message(self, message: dict[str, Any], score: float) -> dict[str, Any]:
         """Enhance user message to improve clinical validity context.
 
         Args:
@@ -265,7 +261,7 @@ class ClinicalValidityEnhancer:
 
         return message
 
-    def process_file(self, input_path: Path, output_path: Path, stats_path: Optional[Path] = None) -> Dict[str, Any]:
+    def process_file(self, input_path: Path, output_path: Path, stats_path: Path | None = None) -> dict[str, Any]:
         """Process a JSONL file to enhance clinical validity.
 
         Args:
@@ -389,17 +385,11 @@ def main():
     )
 
     # Print summary
-    print(f"\nClinical Validity Enhancement Complete:")
-    print(f"  Total records: {stats['total_records']}")
-    print(f"  Processed: {stats['processed']}")
-    print(f"  Enhanced: {stats['enhanced']}")
-    print(f"  Errors: {stats['errors']}")
     if stats["processed"] > 0:
-        print(f"  Enhancement rate: {stats['enhanced'] / stats['processed'] * 100:.1f}%")
+        pass
 
-    print(f"\nScore Distribution:")
-    for category, count in stats["score_distribution"].items():
-        print(f"  {category.capitalize()} ({count}): {count / max(stats['scored'], 1) * 100:.1f}%")
+    for _category, _count in stats["score_distribution"].items():
+        pass
 
 
 if __name__ == "__main__":

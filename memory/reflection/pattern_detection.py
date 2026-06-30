@@ -11,7 +11,8 @@ import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 
-from ..schema import MemoryBlock
+from ai.memory.schema import MemoryBlock
+
 from .session_consolidation import SessionSummary
 
 log = logging.getLogger(__name__)
