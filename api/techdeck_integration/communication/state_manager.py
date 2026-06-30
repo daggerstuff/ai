@@ -776,10 +776,7 @@ class StateManager:
             key = f"{self.audit_trail_prefix}{execution_id}"
             existing_audit = await self.redis_client.get(key)
 
-            if existing_audit:
-                audit_trail = json.loads(existing_audit)
-            else:
-                audit_trail = []
+            audit_trail = json.loads(existing_audit) if existing_audit else []
 
             # Add new entry
             audit_trail.append(audit_entry)

@@ -148,7 +148,7 @@ class QualityRecommendationSystem:
             review_schedule = self._create_review_schedule(recommendations)
 
             # Create comprehensive plan
-            plan = RecommendationPlan(
+            return RecommendationPlan(
                 plan_id=f"QRP_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 generated_at=datetime.now(UTC),
                 recommendations=recommendations,
@@ -158,7 +158,6 @@ class QualityRecommendationSystem:
                 review_schedule=review_schedule,
             )
 
-            return plan
 
         except Exception:
             return RecommendationPlan(
@@ -559,7 +558,7 @@ class QualityRecommendationSystem:
                     "estimated_timeline_days": max([r.timeline_days for r in plan.recommendations])
                     if plan.recommendations
                     else 0,
-                    "total_affected_metrics": len(set([m for r in plan.recommendations for m in r.affected_metrics])),
+                    "total_affected_metrics": len({m for r in plan.recommendations for m in r.affected_metrics}),
                 },
                 "recommendations": [
                     {

@@ -80,7 +80,7 @@ class ValidationQualityAssuranceSystem:
     def process_conversation_qa(
         self,
         conversation: dict[str, Any],
-        options: dict[str, Any] = None,
+        options: dict[str, Any] | None = None,
     ) -> QualityAssuranceResult:
         """
         Task 5.7.2.4: Implement automated quality checking and validation
@@ -348,7 +348,7 @@ class ValidationQualityAssuranceSystem:
     def process_batch_qa(
         self,
         conversations: list[dict[str, Any]],
-        options: dict[str, Any] = None,
+        options: dict[str, Any] | None = None,
     ) -> list[QualityAssuranceResult]:
         """Process batch of conversations with quality assurance"""
 

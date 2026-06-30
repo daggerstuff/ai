@@ -481,7 +481,6 @@ if __name__ == "__main__":
         expires_in_days=30,
     )
 
-    print(f"Created API key: {api_key}")
 
     # Test authentication
     authenticated_user = auth_system.authenticate_user(
@@ -489,29 +488,24 @@ if __name__ == "__main__":
     )
     if authenticated_user:
         token = auth_system.generate_jwt_token(authenticated_user)
-        print(f"Generated JWT token: {token[:50]}...")
 
         # Verify token
         payload = auth_system.verify_jwt_token(token)
-        print(f"Token payload: {payload}")
 
     # Run security tests
     tester = AuthenticationTester(auth_system)
     test_results = tester.run_security_tests()
 
-    print("\nSecurity Test Results:")
-    for test_name, result in test_results.items():
+    for _test_name, result in test_results.items():
         status = "PASSED" if result else "FAILED"
-        print(f"  {test_name}: {status}")
 
     # Calculate overall security score
     passed_tests = sum(test_results.values())
     total_tests = len(test_results)
     security_score = (passed_tests / total_tests) * 100
 
-    print(f"\nOverall Security Score: {security_score:.1f}% ({passed_tests}/{total_tests} tests passed)")
 
     if security_score >= 90:
-        print("✅ SECURITY VALIDATION: PASSED - Production ready")
+        pass
     else:
-        print("❌ SECURITY VALIDATION: FAILED - Requires fixes before production")
+        pass

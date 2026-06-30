@@ -4,9 +4,9 @@ Cleans up /home/vivi/pixelated/ai/data/ by removing files that are:
 - Old pipeline artifacts, configs, score CSVs
 - Anything not raw source material worth keeping for future runs
 """
+import glob
 import os
 import shutil
-import glob
 
 DATA_DIR = "/home/vivi/pixelated/ai/data"
 
@@ -32,14 +32,13 @@ DELETE_PATTERNS = [
 def should_keep_folder(folder_name):
     lower = folder_name.lower()
     # Keep raw voice persona folders — they are the unique source material
-    return 'voice' in lower
+    return "voice" in lower
 
 def clean():
     deleted_files = 0
     deleted_bytes = 0
     kept_files = 0
 
-    print(f"Scanning {DATA_DIR} ...")
 
     # 1. Delete by pattern
     for pattern in DELETE_PATTERNS:
@@ -50,28 +49,26 @@ def clean():
                 os.remove(f)
                 deleted_files += 1
                 deleted_bytes += size
-                print(f"  DEL {f} ({size/1024:.1f} KB)")
 
     # 2. Walk top-level directories
     for entry in os.scandir(DATA_DIR):
         if not entry.is_dir():
             continue
-        
+
         folder = entry.name
         if should_keep_folder(folder):
-            print(f"  KEEP {folder}/ (voice source data)")
             # But still clean up score CSVs inside voice folders
             for f in glob.glob(os.path.join(entry.path, "**/*.csv"), recursive=True):
-                if 'clinical_scores' in f or 'review' in f:
+                if "clinical_scores" in f or "review" in f:
                     size = os.path.getsize(f)
                     os.remove(f)
                     deleted_files += 1
                     deleted_bytes += size
             kept_files += 1
             continue
-        
+
         # Remove entire non-voice folders that are pipeline artifacts
-        artifact_dirs = ['nemo_export', 'staged_datasets', 'compress', 'joiner']
+        artifact_dirs = ["nemo_export", "staged_datasets", "compress", "joiner"]
         if folder in artifact_dirs:
             size = sum(
                 os.path.getsize(os.path.join(dp, f))
@@ -80,16 +77,10 @@ def clean():
             )
             shutil.rmtree(entry.path)
             deleted_bytes += size
-            print(f"  DEL DIR {folder}/ ({size/1024/1024:.1f} MB)")
             continue
 
         kept_files += 1
-        print(f"  KEEP {folder}/ (manual review recommended)")
 
-    print(f"\n✅ Cleanup complete!")
-    print(f"   Files/dirs deleted: {deleted_files}")
-    print(f"   Space freed:        {deleted_bytes/1024/1024:.1f} MB")
-    print(f"   Folders kept:       {kept_files}")
 
 if __name__ == "__main__":
     clean()

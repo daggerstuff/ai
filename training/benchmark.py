@@ -520,11 +520,11 @@ def main() -> None:
 
     try:
         report = run_benchmark(output_path)
-        
+
         # If no output file specified, print JSON to stdout
         if output_path is None:
             print(json.dumps(report, indent=2))
-        
+
         sys.exit(0)
     except FileNotFoundError as e:
         print(f"Error: {e}", file=sys.stderr)

@@ -11,7 +11,7 @@ import argparse
 import json
 import logging
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger("data_audit")
@@ -146,7 +146,7 @@ def run_audit(args: argparse.Namespace) -> None:
     missing = sum(1 for v in categories.values() if v["status"] == "missing")
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "threshold": threshold,
         "input_dirs": [str(d) for d in input_dirs],
         "total_files_scanned": total_files,

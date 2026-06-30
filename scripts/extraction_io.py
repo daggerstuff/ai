@@ -214,7 +214,7 @@ def save_channel_output(channel_key: str, result: ChannelResult, output_base: Pa
         with open(scores_file, "w", encoding="utf-8", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(["conversation_id", "score", "technique", "alliance", "structure", "cultural", "ebp"])
-            for conv, score, detail in zip(result.conversations, result.scores, result.score_detail):
+            for conv, score, detail in zip(result.conversations, result.scores, result.score_detail, strict=False):
                 cid = conv.get("conversation_id", "")
                 writer.writerow(
                     [

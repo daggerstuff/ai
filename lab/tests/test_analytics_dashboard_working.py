@@ -91,7 +91,7 @@ class MockAnalyticsDashboard:
                     "avg_session_duration_min": round(avg_session_duration, 2),
                     "avg_satisfaction_score": round(avg_satisfaction, 2),
                     "total_sessions": len(engagement_metrics),
-                    "active_users": len(set(m.get("user_id") for m in engagement_metrics if m.get("user_id"))),
+                    "active_users": len({m.get("user_id") for m in engagement_metrics if m.get("user_id")}),
                 }
 
         # Therapeutic effectiveness metrics

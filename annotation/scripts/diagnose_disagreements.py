@@ -122,7 +122,7 @@ def compare_annotations(dr_a_file, dr_b_file):
     report = {
         "summary": {
             "total_tasks": len(common_tasks),
-            "agreements": {k: v for k, v in agreements.items()},
+            "agreements": dict(agreements.items()),
             "disagreement_counts": {k: len(v) for k, v in disagreements.items()},
         },
         "disagreements": disagreements,

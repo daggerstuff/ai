@@ -5,6 +5,7 @@ using key patterns from cms_redis_config.py. Handles read-through
 caching, write-through invalidation, and TTL management.
 """
 
+import contextlib
 import json
 import logging
 from typing import Any
@@ -203,10 +204,8 @@ class CMSCacheLayer:
             return []
         results: list[dict[str, Any]] = []
         for item in raw_items:
-            try:
+            with contextlib.suppress(json.JSONDecodeError, TypeError):
                 results.append(json.loads(item))
-            except (json.JSONDecodeError, TypeError):
-                pass
         return results
 
     # ------------------------------------------------------------------

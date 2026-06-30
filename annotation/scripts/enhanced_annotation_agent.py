@@ -292,10 +292,7 @@ Respond ONLY with valid JSON in this exact format:
 """
 
         # Get annotation
-        if self.client:
-            annotation = self._call_llm(prompt, data)
-        else:
-            annotation = self._mock_annotation(data)
+        annotation = self._call_llm(prompt, data) if self.client else self._mock_annotation(data)
 
         # Apply guardrails
         guardrail_checks = self._apply_guardrails(annotation)

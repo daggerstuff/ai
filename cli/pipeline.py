@@ -8,7 +8,7 @@ for training and inference workflows.
 from __future__ import annotations
 
 import logging
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import requests
@@ -16,7 +16,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-class PipelineStatus(str, Enum):
+class PipelineStatus(StrEnum):
     """Pipeline execution status."""
 
     PENDING = "pending"

@@ -6,6 +6,7 @@ Tests that health checks work correctly and shutdown is graceful.
 import contextlib
 import json
 import logging
+import sys
 import threading
 import time
 import unittest
@@ -642,11 +643,10 @@ def run_health_check_tests():
         for _test, _traceback in result.errors:
             pass
 
-    success = result.wasSuccessful()
+    return result.wasSuccessful()
 
-    return success
 
 
 if __name__ == "__main__":
     success = run_health_check_tests()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

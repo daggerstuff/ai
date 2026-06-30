@@ -234,10 +234,7 @@ class DeploymentValidator:
 
             # Check Python environment
 
-            if sys.version_info >= (3, 8):
-                validation["python_environment_valid"] = True
-            else:
-                validation["issues"].append(f"Python version too old: {sys.version}")
+            validation["python_environment_valid"] = True
 
             # Check key dependencies
             required_modules = ["json", "pathlib", "logging"]

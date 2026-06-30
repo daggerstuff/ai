@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 try:
@@ -32,7 +32,6 @@ except ModuleNotFoundError:
         from shared_config import (
             add_lora_args,
             build_lora_config,
-            log_token_length_distribution,
             shared_qlora_config,
         )
 
@@ -66,7 +65,7 @@ EMPATHY_KEYWORDS: frozenset[str] = frozenset({
 
 def _safety_score(response: str) -> float:
     """SAFETY FILTER DISABLED PER USER REQUEST - ALL RESPONSES CONSIDERED SAFE.
-    
+
     Original implementation returned 0.0 for unsafe content, 1.0 otherwise.
     Now returns 1.0 for all responses per user directive to allow
     difficult conversations for therapeutic training.
@@ -142,7 +141,7 @@ def filter_by_threshold(
 ) -> list[dict]:
     """Return only samples with composite score >= threshold."""
     kept: list[dict] = []
-    for prompt, response in zip(prompts, responses):
+    for prompt, response in zip(prompts, responses, strict=False):
         composite = score(prompt, response, empathy_weight, crisis_weight, clinical_weight)
         if composite >= threshold:
             kept.append({
@@ -162,7 +161,7 @@ def run_grpo(args: argparse.Namespace) -> None:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     try:
-        from trl import GRPOTrainer, GRPOConfig
+        from trl import GRPOConfig, GRPOTrainer
     except ImportError:
         logger.error("GRPOTrainer requires trl >= 0.14. Install with: pip install trl>=0.14")
         return
@@ -193,7 +192,7 @@ def run_grpo(args: argparse.Namespace) -> None:
     def reward_fn(prompts: list[str], responses: list[str]) -> list[float]:
         return [
             score(p, r, args.empathy_weight, args.crisis_weight, args.clinical_validity_weight)
-            for p, r in zip(prompts, responses)
+            for p, r in zip(prompts, responses, strict=False)
         ]
 
     training_args = GRPOConfig(
@@ -230,7 +229,7 @@ def run_grpo(args: argparse.Namespace) -> None:
     }
     metrics_path = output_dir / "grpo_metrics.json"
     with open(metrics_path, "w", encoding="utf-8") as f:
-        json.dump({"generated_at": datetime.now(timezone.utc).isoformat(), "metrics": metrics}, f, indent=2)
+        json.dump({"generated_at": datetime.now(UTC).isoformat(), "metrics": metrics}, f, indent=2)
         f.write("\n")
 
     logger.info("GRPO training complete. Final model at %s", final_dir)

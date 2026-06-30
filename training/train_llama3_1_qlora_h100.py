@@ -4,27 +4,24 @@ Llama 3.1 8B QLoRA Training Script for H100
 Optimized for 80GB VRAM and high throughput
 """
 
-import os
 import json
-import time
-import signal
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional, Dict, List
-from pathlib import Path
+import signal
+import time
+from datetime import UTC, datetime
 
 import torch
-from datasets import load_dataset, Dataset
+from datasets import load_dataset
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TrainingArguments,
-    Trainer,
     BitsAndBytesConfig,
-    TrainerCallback,
     DataCollatorForLanguageModeling,
+    Trainer,
+    TrainerCallback,
+    TrainingArguments,
 )
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 
 # Configure logging
 logging.basicConfig(
@@ -59,7 +56,7 @@ class TimeConstraintCallback(TrainerCallback):
     def on_train_begin(self, args, state, control, **kwargs):
         self.start_time = time.time()
         self.last_checkpoint_time = self.start_time
-        logger.info(f"⏰ Training started at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}")
+        logger.info(f"⏰ Training started at {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info(f"⏰ Maximum training duration: {self.max_hours} hours")
 
     def on_step_end(self, args, state, control, **kwargs):
@@ -87,7 +84,7 @@ class TimeConstraintCallback(TrainerCallback):
         return control
 
 def load_training_config(config_path: str) -> dict:
-    with open(config_path, "r") as f:
+    with open(config_path) as f:
         return json.load(f)
 
 def load_tokenizer(model_name: str) -> AutoTokenizer:
@@ -109,14 +106,13 @@ def preprocess_function(examples, tokenizer, max_seq_length: int):
             for turn in conv:
                 conversation_text += f"{turn['role']}: {turn['content']}\n"
             inputs.append(conversation_text.strip())
-    
-    tokenized = tokenizer(
+
+    return tokenizer(
         inputs,
         truncation=True,
         max_length=max_seq_length,
         padding=False,
     )
-    return tokenized
 
 def main(config_path: str):
     try:
@@ -126,7 +122,7 @@ def main(config_path: str):
         # Device check
         if not torch.cuda.is_available():
             raise RuntimeError("CUDA is not available. H100 required.")
-        
+
         logger.info(f"Using GPU: {torch.cuda.get_device_name(0)}")
 
         # Tokenizer
@@ -166,7 +162,7 @@ def main(config_path: str):
             device_map="auto",
             torch_dtype=torch.bfloat16 if config["model"]["torch_dtype"] == "bfloat16" else torch.float16,
             trust_remote_code=True,
-            use_flash_attention_2=True if torch.cuda.get_device_capability()[0] >= 8 else False
+            use_flash_attention_2=torch.cuda.get_device_capability()[0] >= 8
         )
 
         # Prepare for k-bit training
@@ -232,11 +228,11 @@ def main(config_path: str):
         logger.info(f"Saving final model to {config['training']['output_dir']}")
         trainer.save_model()
         tokenizer.save_pretrained(config["training"]["output_dir"])
-        
+
         logger.info("✅ Training completed successfully")
 
     except Exception as e:
-        logger.error(f"❌ Training failed: {str(e)}", exc_info=True)
+        logger.error(f"❌ Training failed: {e!s}", exc_info=True)
         raise
 
 if __name__ == "__main__":

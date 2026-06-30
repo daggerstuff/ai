@@ -190,27 +190,27 @@ def get_import_errors() -> list[str]:
 
 
 __all__ = [
-    # Version
-    "__version__",
+    "APIError",
     # Base classes and exceptions
     "BaseAPIClient",
-    "APIError",
-    "RateLimitError",
-    # API clients
-    "PubMedClient",
-    "DOAJClient",
-    "DryadClient",
-    "ZenodoClient",
     "ClinicalTrialsClient",
-    "UnifiedSearchClient",
+    "DOAJClient",
+    "DatasetDeduplicator",
+    "DryadClient",
     # Utilities
     "MetadataParser",
-    "DatasetDeduplicator",
+    # API clients
+    "PubMedClient",
+    "RateLimitError",
+    "UnifiedSearchClient",
+    "ZenodoClient",
+    # Version
+    "__version__",
     # Factory functions
     "create_all_clients",
-    "create_unified_client",
     "create_deduplicator",
     "create_metadata_parser",
+    "create_unified_client",
     # Introspection
     "get_available_clients",
     "get_import_errors",

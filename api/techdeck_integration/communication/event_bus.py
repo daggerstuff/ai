@@ -345,10 +345,7 @@ class EventBus:
             self.logger.debug(f"Processing event {event.event_type} for execution {event.execution_id}")
 
             # Use specific handler if provided, otherwise use registered handlers
-            if specific_handler:
-                handlers = [specific_handler]
-            else:
-                handlers = self.handlers.get(event.event_type, [])
+            handlers = [specific_handler] if specific_handler else self.handlers.get(event.event_type, [])
 
             # Process event with all applicable handlers
             for handler in handlers:
@@ -473,7 +470,7 @@ class EventBus:
         execution_id: str,
         bias_score: float,
         threshold: float,
-        recommendations: list[str] = None,
+        recommendations: list[str] | None = None,
     ) -> EventMessage:
         """
         Create a bias detection event with HIPAA++ compliant data.

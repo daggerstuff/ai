@@ -11,11 +11,8 @@ import logging
 from flask import Blueprint, current_app, jsonify, request
 
 # Internal imports
-from ..auth.middleware import require_mcp_auth, require_mcp_role
-from ..core.agent_manager import (
-    AgentDiscoveryCriteria,
-    AgentRegistrationData,
-)
+from ai.api.mcp_server.auth.middleware import require_mcp_auth, require_mcp_role
+from ai.api.mcp_server.core.agent_manager import AgentDiscoveryCriteria, AgentRegistrationData
 
 logger = logging.getLogger(__name__)
 agents_bp = Blueprint("agents", __name__)

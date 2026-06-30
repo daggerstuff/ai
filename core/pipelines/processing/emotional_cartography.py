@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class PlutchikEmotion(str, Enum):
+class PlutchikEmotion(StrEnum):
     JOY = "joy"
     TRUST = "trust"
     FEAR = "fear"

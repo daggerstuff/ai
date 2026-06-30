@@ -28,14 +28,13 @@ class LocalReflectionMemoryClient:
     async def add_memory(self, content: str, metadata: MemoryMetadata) -> str | None:
         # Gating is handled by the manager's gated_add_memory path.
         # Returns None if content is blocked by any gate.
-        doc_id = await asyncio.to_thread(
+        return await asyncio.to_thread(
             self.manager.add_memory,
             content=content,
             user_id=metadata.user_id or "system",
             metadata=metadata,
             category=metadata.category.value,
         )
-        return doc_id
 
     async def get_memory(self, memory_id: str, user_id: str | None = None) -> Memory:
         record = await asyncio.to_thread(self.manager.get_memory, memory_id, user_id)

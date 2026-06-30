@@ -24,7 +24,7 @@ class TestAcquisitionScore(unittest.TestCase):
             ethical_accessibility=9,
         )
         expected = round(8 * 0.35 + 7 * 0.25 + 6 * 0.20 + 9 * 0.20, 2)
-        self.assertEqual(score.overall_score, expected)
+        assert score.overall_score == expected
 
     def test_clamps_values_to_1_10(self):
         score = calculate_overall_score(
@@ -33,23 +33,23 @@ class TestAcquisitionScore(unittest.TestCase):
             training_integration=5,
             ethical_accessibility=5,
         )
-        self.assertEqual(score.therapeutic_relevance, 1)
-        self.assertEqual(score.data_structure_quality, 10)
+        assert score.therapeutic_relevance == 1
+        assert score.data_structure_quality == 10
 
     def test_priority_tier_high(self):
         score = calculate_overall_score(10, 10, 10, 10)
-        self.assertEqual(score.priority_tier, PriorityTier.HIGH)
-        self.assertTrue(score.passes_score_floor)
+        assert score.priority_tier == PriorityTier.HIGH
+        assert score.passes_score_floor
 
     def test_priority_tier_medium(self):
         score = calculate_overall_score(6, 6, 6, 6)
-        self.assertEqual(score.priority_tier, PriorityTier.MEDIUM)
-        self.assertTrue(score.passes_score_floor)
+        assert score.priority_tier == PriorityTier.MEDIUM
+        assert score.passes_score_floor
 
     def test_priority_tier_low(self):
         score = calculate_overall_score(3, 3, 3, 3)
-        self.assertEqual(score.priority_tier, PriorityTier.LOW)
-        self.assertFalse(score.passes_score_floor)
+        assert score.priority_tier == PriorityTier.LOW
+        assert not score.passes_score_floor
 
 
 class TestGate0Intake(unittest.TestCase):
@@ -69,8 +69,8 @@ class TestGate0Intake(unittest.TestCase):
             review_date="2026-05-08",
         )
         decision = self.rubric.evaluate_intake(source)
-        self.assertTrue(decision.passed)
-        self.assertEqual(len(decision.blocking), 0)
+        assert decision.passed
+        assert len(decision.blocking) == 0
 
     def test_blocks_unlicensed_source(self):
         source = SourceIntake(
@@ -83,8 +83,8 @@ class TestGate0Intake(unittest.TestCase):
             reproducible=False,
         )
         decision = self.rubric.evaluate_intake(source)
-        self.assertFalse(decision.passed)
-        self.assertGreater(len(decision.blocking), 0)
+        assert not decision.passed
+        assert len(decision.blocking) > 0
 
     def test_exception_eligible_license(self):
         source = SourceIntake(
@@ -99,13 +99,13 @@ class TestGate0Intake(unittest.TestCase):
             review_date="2026-05-09",
         )
         decision = self.rubric.evaluate_intake(source)
-        self.assertTrue(decision.passed)
-        self.assertTrue(any("exception" in q for q in decision.qualifying))
+        assert decision.passed
+        assert any("exception" in q for q in decision.qualifying)
 
     def test_approved_licenses_contains_expected(self):
-        self.assertIn("cc0-1.0", APPROVED_LICENSES)
-        self.assertIn("mit", APPROVED_LICENSES)
-        self.assertIn("cc-by-4.0", APPROVED_LICENSES)
+        assert "cc0-1.0" in APPROVED_LICENSES
+        assert "mit" in APPROVED_LICENSES
+        assert "cc-by-4.0" in APPROVED_LICENSES
 
     def test_blocks_unreviewed_source(self):
         source = SourceIntake(
@@ -118,7 +118,7 @@ class TestGate0Intake(unittest.TestCase):
             reproducible=True,
         )
         decision = self.rubric.evaluate_intake(source)
-        self.assertFalse(decision.passed)
+        assert not decision.passed
 
 
 class TestGate1Pilot(unittest.TestCase):
@@ -136,7 +136,7 @@ class TestGate1Pilot(unittest.TestCase):
             overall_pilot_score=7.5,
         )
         decision = self.rubric.evaluate_pilot(report)
-        self.assertTrue(decision.passed)
+        assert decision.passed
 
     def test_blocks_low_score_floor(self):
         report = PilotReport(
@@ -149,8 +149,8 @@ class TestGate1Pilot(unittest.TestCase):
             overall_pilot_score=5.5,
         )
         decision = self.rubric.evaluate_pilot(report)
-        self.assertFalse(decision.passed)
-        self.assertIn("floor is non-exceptable", decision.gates[0].details)
+        assert not decision.passed
+        assert "floor is non-exceptable" in decision.gates[0].details
 
     def test_blocks_low_relevance(self):
         report = PilotReport(
@@ -163,9 +163,9 @@ class TestGate1Pilot(unittest.TestCase):
             overall_pilot_score=6.5,
         )
         decision = self.rubric.evaluate_pilot(report)
-        self.assertFalse(decision.passed)
-        relevance_gate = [g for g in decision.gates if g.gate == "therapeutic_relevance"][0]
-        self.assertEqual(relevance_gate.decision, GateDecision.BLOCK)
+        assert not decision.passed
+        relevance_gate = next(g for g in decision.gates if g.gate == "therapeutic_relevance")
+        assert relevance_gate.decision == GateDecision.BLOCK
 
     def test_blocks_low_schema_coverage(self):
         report = PilotReport(
@@ -178,7 +178,7 @@ class TestGate1Pilot(unittest.TestCase):
             overall_pilot_score=7.0,
         )
         decision = self.rubric.evaluate_pilot(report)
-        self.assertFalse(decision.passed)
+        assert not decision.passed
 
     def test_blocks_high_dedup(self):
         report = PilotReport(
@@ -191,7 +191,7 @@ class TestGate1Pilot(unittest.TestCase):
             overall_pilot_score=7.0,
         )
         decision = self.rubric.evaluate_pilot(report)
-        self.assertFalse(decision.passed)
+        assert not decision.passed
 
 
 class TestGate2CurationExit(unittest.TestCase):
@@ -208,7 +208,7 @@ class TestGate2CurationExit(unittest.TestCase):
             records_rejected=2400,
         )
         decision = self.rubric.evaluate_curation_exit(report)
-        self.assertTrue(decision.passed)
+        assert decision.passed
 
     def test_blocks_low_retention(self):
         report = CurationExitReport(
@@ -220,7 +220,7 @@ class TestGate2CurationExit(unittest.TestCase):
             records_rejected=850,
         )
         decision = self.rubric.evaluate_curation_exit(report)
-        self.assertFalse(decision.passed)
+        assert not decision.passed
 
     def test_blocks_low_schema_validation(self):
         report = CurationExitReport(
@@ -232,7 +232,7 @@ class TestGate2CurationExit(unittest.TestCase):
             records_rejected=500,
         )
         decision = self.rubric.evaluate_curation_exit(report)
-        self.assertFalse(decision.passed)
+        assert not decision.passed
 
     def test_blocks_unsigned_manifest(self):
         report = CurationExitReport(
@@ -244,7 +244,7 @@ class TestGate2CurationExit(unittest.TestCase):
             records_rejected=500,
         )
         decision = self.rubric.evaluate_curation_exit(report)
-        self.assertFalse(decision.passed)
+        assert not decision.passed
 
 
 class TestPromote(unittest.TestCase):
@@ -281,8 +281,8 @@ class TestPromote(unittest.TestCase):
             records_rejected=2750,
         )
         gates = self.rubric.promote(intake, pilot, exit_report)
-        self.assertEqual(len(gates), 3)
-        self.assertTrue(all(g.decision == GateDecision.PASS for g in gates))
+        assert len(gates) == 3
+        assert all(g.decision == GateDecision.PASS for g in gates)
 
     def test_promote_stops_at_intake_failure(self):
         intake = SourceIntake(
@@ -295,8 +295,8 @@ class TestPromote(unittest.TestCase):
             reproducible=False,
         )
         gates = self.rubric.promote(intake)
-        self.assertEqual(len(gates), 1)
-        self.assertEqual(gates[0].decision, GateDecision.BLOCK)
+        assert len(gates) == 1
+        assert gates[0].decision == GateDecision.BLOCK
 
     def test_promote_stops_at_pilot_failure(self):
         intake = SourceIntake(
@@ -320,9 +320,9 @@ class TestPromote(unittest.TestCase):
             overall_pilot_score=6.5,
         )
         gates = self.rubric.promote(intake, pilot)
-        self.assertEqual(len(gates), 2)
-        self.assertEqual(gates[0].decision, GateDecision.PASS)
-        self.assertEqual(gates[1].decision, GateDecision.BLOCK)
+        assert len(gates) == 2
+        assert gates[0].decision == GateDecision.PASS
+        assert gates[1].decision == GateDecision.BLOCK
 
     def test_promote_pilot_only(self):
         intake = SourceIntake(
@@ -346,8 +346,8 @@ class TestPromote(unittest.TestCase):
             overall_pilot_score=7.0,
         )
         gates = self.rubric.promote(intake, pilot)
-        self.assertEqual(len(gates), 2)
-        self.assertTrue(all(g.decision == GateDecision.PASS for g in gates))
+        assert len(gates) == 2
+        assert all(g.decision == GateDecision.PASS for g in gates)
 
 
 class TestExceptionProcess(unittest.TestCase):
@@ -367,8 +367,8 @@ class TestExceptionProcess(unittest.TestCase):
             review_date="2026-05-09",
         )
         decision = self.rubric.grant_intake_exception(source, "approved via exception process")
-        self.assertTrue(decision.passed)
-        self.assertTrue(decision.exception_granted)
+        assert decision.passed
+        assert decision.exception_granted
 
     def test_exception_still_blocks_non_license_issue(self):
         source = SourceIntake(
@@ -383,8 +383,8 @@ class TestExceptionProcess(unittest.TestCase):
             review_date="2026-05-09",
         )
         decision = self.rubric.grant_intake_exception(source, "trying exception")
-        self.assertFalse(decision.passed)
-        self.assertTrue(any("pii" in b.lower() for b in decision.blocking))
+        assert not decision.passed
+        assert any("pii" in b.lower() for b in decision.blocking)
 
     def test_exception_noop_when_already_passed(self):
         source = SourceIntake(
@@ -399,16 +399,16 @@ class TestExceptionProcess(unittest.TestCase):
             review_date="2026-05-09",
         )
         decision = self.rubric.grant_intake_exception(source, "would not matter")
-        self.assertTrue(decision.passed)
-        self.assertFalse(decision.exception_granted)
+        assert decision.passed
+        assert not decision.exception_granted
 
 
 class TestScoreFromEvaluation(unittest.TestCase):
     def test_matches_calculate_overall_score(self):
         direct = calculate_overall_score(8, 7, 6, 9)
         factory = score_from_evaluation(8, 7, 6, 9)
-        self.assertEqual(direct.overall_score, factory.overall_score)
-        self.assertEqual(direct.priority_tier, factory.priority_tier)
+        assert direct.overall_score == factory.overall_score
+        assert direct.priority_tier == factory.priority_tier
 
 
 class TestToDict(unittest.TestCase):
@@ -421,9 +421,9 @@ class TestToDict(unittest.TestCase):
             overall_score=7.35,
         )
         d = score.to_dict()
-        self.assertEqual(d["overall_score"], 7.35)
-        self.assertEqual(d["priority_tier"], "medium")
-        self.assertTrue(d["passes_score_floor"])
+        assert d["overall_score"] == 7.35
+        assert d["priority_tier"] == "medium"
+        assert d["passes_score_floor"]
 
     def test_intake_decision_to_dict(self):
         src = SourceIntake(
@@ -439,8 +439,8 @@ class TestToDict(unittest.TestCase):
         )
         dec = self.rubric.evaluate_intake(src)
         d = dec.to_dict()
-        self.assertEqual(d["source_id"], "DICT-1")
-        self.assertTrue(d["passed"])
+        assert d["source_id"] == "DICT-1"
+        assert d["passed"]
 
     def setUp(self):
         self.rubric = AcquisitionRubric()
@@ -452,8 +452,8 @@ class TestIntegration(unittest.TestCase):
 
     def test_end_to_end_accept_path(self):
         score = calculate_overall_score(8, 7, 6, 9)
-        self.assertTrue(score.passes_score_floor)
-        self.assertEqual(score.priority_tier, PriorityTier.MEDIUM)
+        assert score.passes_score_floor
+        assert score.priority_tier == PriorityTier.MEDIUM
 
         source = SourceIntake(
             source_id="INT-ACCEPT",
@@ -467,7 +467,7 @@ class TestIntegration(unittest.TestCase):
             review_date="2026-05-09",
         )
         intake = self.rubric.evaluate_intake(source)
-        self.assertTrue(intake.passed)
+        assert intake.passed
 
         pilot = PilotReport(
             source_id="INT-ACCEPT",
@@ -479,7 +479,7 @@ class TestIntegration(unittest.TestCase):
             overall_pilot_score=score.overall_score,
         )
         pilot_dec = self.rubric.evaluate_pilot(pilot)
-        self.assertTrue(pilot_dec.passed)
+        assert pilot_dec.passed
 
         exit_rpt = CurationExitReport(
             source_id="INT-ACCEPT",
@@ -490,15 +490,15 @@ class TestIntegration(unittest.TestCase):
             records_rejected=2900,
         )
         exit_dec = self.rubric.evaluate_curation_exit(exit_rpt)
-        self.assertTrue(exit_dec.passed)
+        assert exit_dec.passed
 
         promote_gates = self.rubric.promote(source, pilot, exit_rpt)
-        self.assertEqual(len(promote_gates), 3)
-        self.assertTrue(all(g.decision == GateDecision.PASS for g in promote_gates))
+        assert len(promote_gates) == 3
+        assert all(g.decision == GateDecision.PASS for g in promote_gates)
 
     def test_end_to_end_exception_path(self):
         score = calculate_overall_score(7, 8, 7, 8)
-        self.assertTrue(score.passes_score_floor)
+        assert score.passes_score_floor
 
         source = SourceIntake(
             source_id="INT-EXCEPTION",
@@ -512,8 +512,8 @@ class TestIntegration(unittest.TestCase):
             review_date="2026-05-09",
         )
         intake = self.rubric.grant_intake_exception(source, "non-commercial license approved")
-        self.assertTrue(intake.passed)
-        self.assertTrue(intake.exception_granted)
+        assert intake.passed
+        assert intake.exception_granted
 
         pilot = PilotReport(
             source_id="INT-EXCEPTION",
@@ -524,11 +524,11 @@ class TestIntegration(unittest.TestCase):
             therapeutic_relevance_score=7,
             overall_pilot_score=score.overall_score,
         )
-        self.assertTrue(self.rubric.evaluate_pilot(pilot).passed)
+        assert self.rubric.evaluate_pilot(pilot).passed
 
     def test_end_to_end_reject_path(self):
         score = calculate_overall_score(3, 4, 3, 5)
-        self.assertFalse(score.passes_score_floor)
+        assert not score.passes_score_floor
 
         source = SourceIntake(
             source_id="INT-REJECT",
@@ -540,11 +540,11 @@ class TestIntegration(unittest.TestCase):
             reproducible=False,
         )
         intake = self.rubric.evaluate_intake(source)
-        self.assertFalse(intake.passed)
-        self.assertGreater(len(intake.blocking), 0)
+        assert not intake.passed
+        assert len(intake.blocking) > 0
 
         promote_gates = self.rubric.promote(source)
-        self.assertEqual(promote_gates[0].decision, GateDecision.BLOCK)
+        assert promote_gates[0].decision == GateDecision.BLOCK
 
     def test_dict_serialization_roundtrip(self):
         source = SourceIntake(
@@ -561,8 +561,8 @@ class TestIntegration(unittest.TestCase):
         intake = self.rubric.evaluate_intake(source)
         serialized = json.dumps(intake.to_dict())
         restored = json.loads(serialized)
-        self.assertEqual(restored["source_id"], "SER-TEST")
-        self.assertTrue(restored["passed"])
+        assert restored["source_id"] == "SER-TEST"
+        assert restored["passed"]
 
         pilot = PilotReport(
             source_id="SER-TEST",
@@ -576,8 +576,8 @@ class TestIntegration(unittest.TestCase):
         pilot_dec = self.rubric.evaluate_pilot(pilot)
         serialized_pilot = json.dumps(pilot_dec.to_dict())
         restored_pilot = json.loads(serialized_pilot)
-        self.assertEqual(restored_pilot["source_id"], "SER-TEST")
-        self.assertTrue(restored_pilot["passed"])
+        assert restored_pilot["source_id"] == "SER-TEST"
+        assert restored_pilot["passed"]
 
 
 if __name__ == "__main__":

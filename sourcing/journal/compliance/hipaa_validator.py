@@ -182,11 +182,7 @@ class HIPAAValidator:
                     text_to_check += f" {value.lower()}"
 
         # Check for PHI indicators
-        for indicator in self.PHI_INDICATORS:
-            if indicator in text_to_check:
-                return True
-
-        return False
+        return any(indicator in text_to_check for indicator in self.PHI_INDICATORS)
 
     def _check_compliance_checklist(
         self,

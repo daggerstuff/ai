@@ -58,7 +58,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
 from .crisis_intervention_detector import CrisisInterventionDetector
@@ -83,7 +83,7 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 
-class PrivacyTier(str, Enum):
+class PrivacyTier(StrEnum):
     """How much identifiable information a source contains."""
 
     NONE = "none"  # No identifiable information present
@@ -93,7 +93,7 @@ class PrivacyTier(str, Enum):
     PROHIBITED = "prohibited"  # Cannot be included under any circumstances
 
 
-class ContentSensitivity(str, Enum):
+class ContentSensitivity(StrEnum):
     """Risk level of the content itself, independent of privacy classification."""
 
     NORMAL = "normal"  # General therapeutic or educational content
@@ -102,7 +102,7 @@ class ContentSensitivity(str, Enum):
     PROHIBITED = "prohibited"  # Cannot be included in training data
 
 
-class RetentionPolicy(str, Enum):
+class RetentionPolicy(StrEnum):
     """Data-retention rules tied to privacy tier."""
 
     USE_IMMEDIATELY = "use_immediately"  # Tier NONE only
@@ -112,7 +112,7 @@ class RetentionPolicy(str, Enum):
     REJECT = "reject"  # Explicit rejection; do not process
 
 
-class GateDecision(str, Enum):
+class GateDecision(StrEnum):
     PASS = "pass"
     BLOCK = "block"
     ESCALATE = "escalate"  # Blocked but recoverable via human review

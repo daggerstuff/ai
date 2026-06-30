@@ -14,7 +14,6 @@ async def setup_db():
 
 
 async def run_benchmark(db, num_records, is_soft=True):
-    print(f"Benchmarking with {num_records} records, soft_delete={is_soft}")
 
     ids = []
     for _ in range(num_records):
@@ -22,12 +21,10 @@ async def run_benchmark(db, num_records, is_soft=True):
         ids.append(item.get("id") or item.get("conversation_id"))
 
     # Original performance
-    start = time.time()
-    result = await db.conversations.bulk_delete(ids, soft_delete=is_soft)
-    end = time.time()
+    time.time()
+    await db.conversations.bulk_delete(ids, soft_delete=is_soft)
+    time.time()
 
-    print(f"Original Time taken: {end - start:.4f}s")
-    print(f"Result: {result.success_count} success, {result.failed_count} failed")
 
     # New opt code setup
     ids_new = []
@@ -36,7 +33,7 @@ async def run_benchmark(db, num_records, is_soft=True):
         ids_new.append(item.get("id") or item.get("conversation_id"))
 
     # New opt code
-    start = time.time()
+    time.time()
     success_count = 0
     failed_count = 0
     errors = []
@@ -70,7 +67,7 @@ async def run_benchmark(db, num_records, is_soft=True):
                     update_sql = "UPDATE conversations SET deleted_at = ?, updated_at = ? WHERE conversation_id IN (#PLACEHOLDERS#)".replace(
                         "#PLACEHOLDERS#", found_placeholders
                     )
-                    params = [timestamp, timestamp] + found_ids
+                    params = [timestamp, timestamp, *found_ids]
                     await db.execute(update_sql, params)
                 else:
                     found_placeholders = ",".join("?" for _ in found_ids)
@@ -86,10 +83,8 @@ async def run_benchmark(db, num_records, is_soft=True):
             failed_count += len(chunk)
             errors.extend([(ids_new.index(cid), str(e)) for cid in chunk])
 
-    end = time.time()
+    time.time()
 
-    print(f"Optimized Time taken: {end - start:.4f}s")
-    print(f"Result: {success_count} success, {failed_count} failed")
 
 
 async def main():

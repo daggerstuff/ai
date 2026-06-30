@@ -141,12 +141,11 @@ class TrainingDataSelector:
                 continue
 
             # Check edge profile if not allowed
-            if not profile_config.allow_edge_profiles:
-                if self._is_edge_example(example):
-                    logger.warning(
-                        f"Skipping edge example in non-edge profile '{profile_name}': {example.get('id', 'unknown')}"
-                    )
-                    continue
+            if not profile_config.allow_edge_profiles and self._is_edge_example(example):
+                logger.warning(
+                    f"Skipping edge example in non-edge profile '{profile_name}': {example.get('id', 'unknown')}"
+                )
+                continue
 
             yield example
 
@@ -167,10 +166,7 @@ class TrainingDataSelector:
             return True
 
         # Check for crisis intensity flags
-        if metadata.get("crisis_intensity") in ["very_high", "extreme"]:
-            return True
-
-        return False
+        return metadata.get("crisis_intensity") in ["very_high", "extreme"]
 
     def _load_manifest(self) -> dict[str, Any]:
         """Load dataset manifest"""
@@ -192,8 +188,7 @@ class TrainingDataSelector:
             if not examples and isinstance(manifest, list):
                 examples = manifest
 
-        for example in examples:
-            yield example
+        yield from examples
 
     def assert_no_edge_in_profile(
         self,
@@ -225,9 +220,8 @@ class TrainingDataSelector:
         edge_examples = []
         for example in self._iterate_examples(manifest):
             example_stage = example.get("metadata", {}).get("stage")
-            if example_stage in profile_config.stage_ids:
-                if self._is_edge_example(example):
-                    edge_examples.append(example.get("id", "unknown"))
+            if example_stage in profile_config.stage_ids and self._is_edge_example(example):
+                edge_examples.append(example.get("id", "unknown"))
 
         if edge_examples:
             raise ValueError(

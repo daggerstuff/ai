@@ -762,7 +762,7 @@ class DatasetMerger:
             # Find duplicates (compare hash keys, not values)
             duplicate_indices = []
             existing_hash_set = set(existing_hashes.keys())
-            for record_hash in new_hashes.keys():
+            for record_hash in new_hashes:
                 if record_hash in existing_hash_set:
                     duplicate_indices.append(new_hashes[record_hash])
                     duplicates_removed += 1
@@ -1139,11 +1139,7 @@ class QualityChecker:
         text_content = self._extract_text_content(record, target_format)
 
         # Check for PII patterns
-        for pattern in pii_patterns:
-            if re.search(pattern, text_content, re.IGNORECASE):
-                return True
-
-        return False
+        return any(re.search(pattern, text_content, re.IGNORECASE) for pattern in pii_patterns)
 
     def _extract_text_content(self, record: dict[str, Any], target_format: str) -> str:
         """Extract text content from record for PII checking."""

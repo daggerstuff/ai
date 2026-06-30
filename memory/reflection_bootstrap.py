@@ -6,6 +6,7 @@ as a background task or on-demand.
 """
 
 import asyncio
+import contextlib
 import hashlib
 import logging
 import os
@@ -56,10 +57,8 @@ class ReflectionBootstrap:
         self._running = False
         if self._task:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
         if self._subagent is not None and hasattr(self._subagent, "close"):
             await self._subagent.close()
             self._subagent = None

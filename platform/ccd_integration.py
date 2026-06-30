@@ -6,16 +6,15 @@ therapeutic simulation engine and client profile structures.
 """
 
 import random
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any
 
 from ai.platform.ccd_schema import CCDConceptualization
 from ai.platform.pixelated_empathy_core import (
-    DifficultClientProfile,
     ClientPersonality,
+    DifficultClientProfile,
     DifficultyLevel,
     SessionObjective,
-    SupervisorEvaluation,
 )
 
 
@@ -24,11 +23,11 @@ class CCDIntegration:
 
     @staticmethod
     def ccd_profile_to_difficult_client_profile(
-        ccd_template: Dict[str, Any],
-        client_id: Optional[str] = None,
-        name: Optional[str] = None,
-        age: Optional[int] = None,
-        gender: Optional[str] = None,
+        ccd_template: dict[str, Any],
+        client_id: str | None = None,
+        name: str | None = None,
+        age: int | None = None,
+        gender: str | None = None,
     ) -> DifficultClientProfile:
         """
         Convert a CCD profile template to a DifficultClientProfile instance.
@@ -82,7 +81,7 @@ class CCDIntegration:
                     pass
 
         # Create DifficultClientProfile instance
-        profile = DifficultClientProfile(
+        return DifficultClientProfile(
             client_id=final_client_id,
             name=final_name,
             age=final_age,
@@ -115,13 +114,12 @@ class CCDIntegration:
             de_escalation_responses=CCDIntegration._generate_de_escalation_responses(personality_type),
         )
 
-        return profile
 
     @staticmethod
     def update_ccd_formulation_from_simulation(
         ccd_conceptualization: CCDConceptualization,
-        simulation_state: Dict[str, Any],
-        therapist_analysis: Dict[str, Any],
+        simulation_state: dict[str, Any],
+        therapist_analysis: dict[str, Any],
     ) -> CCDConceptualization:
         """
         Update CCD formulation based on simulation progress and therapist performance.
@@ -391,8 +389,7 @@ class CCDIntegration:
         if adjustments:
             adjustment_text = "; ".join(adjustments)
             return f"{base_summary}. Current simulation shows: {adjustment_text}."
-        else:
-            return base_summary
+        return base_summary
 
     @staticmethod
     def _adjust_strengths(
@@ -444,13 +441,11 @@ class CCDIntegration:
         adjusted = base_goals.copy()
 
         # If making good progress, add maintenance and advanced goals
-        if trust_level > 0.7 and resistance_level < 0.3:
-            if "Maintain therapeutic gains" not in adjusted:
-                adjusted.append("Maintain therapeutic gains")
+        if trust_level > 0.7 and resistance_level < 0.3 and "Maintain therapeutic gains" not in adjusted:
+            adjusted.append("Maintain therapeutic gains")
 
-        if breakthrough_opportunity:
-            if "Capitalize on breakthrough momentum" not in adjusted:
-                adjusted.append("Capitalize on breakthrough momentum")
+        if breakthrough_opportunity and "Capitalize on breakthrough momentum" not in adjusted:
+            adjusted.append("Capitalize on breakthrough momentum")
 
         return adjusted
 
@@ -527,11 +522,11 @@ class CCDIntegration:
 
 # Convenience functions for easy use
 def create_difficult_client_from_ccd_template(
-    ccd_template: Dict[str, Any],
-    client_id: Optional[str] = None,
-    name: Optional[str] = None,
-    age: Optional[int] = None,
-    gender: Optional[str] = None,
+    ccd_template: dict[str, Any],
+    client_id: str | None = None,
+    name: str | None = None,
+    age: int | None = None,
+    gender: str | None = None,
 ) -> DifficultClientProfile:
     """
     Create a DifficultClientProfile from a CCD template.
@@ -543,7 +538,7 @@ def create_difficult_client_from_ccd_template(
 
 
 def update_ccd_with_simulation_results(
-    ccd_conceptualization: CCDConceptualization, simulation_state: Dict[str, Any], therapist_analysis: Dict[str, Any]
+    ccd_conceptualization: CCDConceptualization, simulation_state: dict[str, Any], therapist_analysis: dict[str, Any]
 ) -> CCDConceptualization:
     """
     Update a CCD conceptualization with results from a therapeutic simulation.

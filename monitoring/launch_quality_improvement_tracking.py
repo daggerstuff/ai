@@ -60,12 +60,7 @@ class QualityImprovementTrackingLauncher:
         for package in self.required_packages:
             try:
                 if (
-                    package == "sqlite3"
-                    or package == "pandas"
-                    or package == "numpy"
-                    or package == "scipy"
-                    or package == "plotly"
-                    or package == "jinja2"
+                    package in {"sqlite3", "pandas", "numpy", "scipy", "plotly", "jinja2"}
                 ):
                     pass
 
@@ -180,8 +175,8 @@ class QualityImprovementTrackingLauncher:
         intervention_type: str,
         target_component: str,
         expected_improvement: float,
-        target_tier: str = None,
-        target_dataset: str = None,
+        target_tier: str | None = None,
+        target_dataset: str | None = None,
         created_by: str = "user",
     ) -> dict:
         """Create a new quality improvement intervention."""

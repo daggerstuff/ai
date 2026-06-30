@@ -1,8 +1,8 @@
 # Needs AUTH_SECRET_KEY for api.dataset_api import
-import os
 from unittest.mock import MagicMock
 
 import pytest
+
 
 @pytest.fixture
 def safe_execute_query(monkeypatch):

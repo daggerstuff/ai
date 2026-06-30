@@ -187,10 +187,7 @@ class SafetyFilter:
             flagged_categories.append(SafetyCategory.PRIVACY)
 
         # Calculate overall score (lower of all category scores)
-        if not category_scores:
-            overall_score = 1.0
-        else:
-            overall_score = 1.0 - max(category_scores.values())
+        overall_score = 1.0 if not category_scores else 1.0 - max(category_scores.values())
 
         return SafetyScore(
             overall_score=max(0.0, min(1.0, overall_score)),

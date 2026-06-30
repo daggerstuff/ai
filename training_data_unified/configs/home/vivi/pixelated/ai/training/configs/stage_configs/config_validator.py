@@ -47,7 +47,7 @@ class ValidationReport:
 
     results: list[ValidationResult] = field(default_factory=list)
 
-    def add_error(self, message: str, field: str = None, value: Any = None, suggestion: str = None):
+    def add_error(self, message: str, field: str | None = None, value: Any = None, suggestion: str | None = None):
         """Add an error to the report"""
         self.results.append(
             ValidationResult(
@@ -55,7 +55,7 @@ class ValidationReport:
             )
         )
 
-    def add_warning(self, message: str, field: str = None, value: Any = None, suggestion: str = None):
+    def add_warning(self, message: str, field: str | None = None, value: Any = None, suggestion: str | None = None):
         """Add a warning to the report"""
         self.results.append(
             ValidationResult(
@@ -63,7 +63,7 @@ class ValidationReport:
             )
         )
 
-    def add_info(self, message: str, field: str = None, value: Any = None):
+    def add_info(self, message: str, field: str | None = None, value: Any = None):
         """Add an info message to the report"""
         self.results.append(ValidationResult(level=ValidationLevel.INFO, message=message, field=field, value=value))
 
@@ -88,7 +88,7 @@ class ValidationReport:
 class ConfigValidator:
     """Main configuration validator"""
 
-    def __init__(self, config_dir: str = None):
+    def __init__(self, config_dir: str | None = None):
         self.config_dir = Path(config_dir) if config_dir else Path(__file__).parent
         self.report = ValidationReport()
 
@@ -361,13 +361,12 @@ class ConfigValidator:
                     config = yaml.safe_load(f)
 
                 # Check security settings
-                if "encryption" in config:
-                    if not config["encryption"].get("enabled", False):
-                        self.report.add_warning(
-                            "Encryption is disabled",
-                            field="encryption.enabled",
-                            suggestion="Enable encryption for production",
-                        )
+                if "encryption" in config and not config["encryption"].get("enabled", False):
+                    self.report.add_warning(
+                        "Encryption is disabled",
+                        field="encryption.enabled",
+                        suggestion="Enable encryption for production",
+                    )
 
                 if "authentication" in config:
                     auth_config = config["authentication"]
@@ -528,38 +527,25 @@ class ConfigValidator:
         if report is None:
             report = self.report
 
-        print("\n" + "=" * 80)
-        print("CONFIGURATION VALIDATION REPORT")
-        print("=" * 80)
 
-        summary = report.get_summary()
-        print("\nSUMMARY:")
-        print(f"  Errors:   {summary['error']}")
-        print(f"  Warnings: {summary['warning']}")
-        print(f"  Info:     {summary['info']}")
+        report.get_summary()
 
         if report.results:
-            print("\nDETAILS:")
             for result in report.results:
-                icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[result.level.value]
-                print(f"\n{icon} {result.level.value.upper()}: {result.message}")
+                {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[result.level.value]
 
                 if result.field:
-                    print(f"   Field: {result.field}")
+                    pass
                 if result.value is not None:
-                    print(f"   Value: {result.value}")
+                    pass
                 if result.suggestion:
-                    print(f"   Suggestion: {result.suggestion}")
+                    pass
 
-        print("\n" + "=" * 80)
 
         if report.has_errors:
-            print("❌ VALIDATION FAILED - Please fix errors before proceeding")
             return False
         if report.has_warnings:
-            print("⚠️  VALIDATION PASSED WITH WARNINGS - Review warnings for production")
             return True
-        print("✅ VALIDATION PASSED - Configuration is valid")
         return True
 
 
@@ -580,7 +566,7 @@ def main():
 
     if args.json:
         # Output JSON report
-        json_report = {
+        {
             "summary": report.get_summary(),
             "results": [
                 {
@@ -593,7 +579,6 @@ def main():
                 for r in report.results
             ],
         }
-        print(json.dumps(json_report, indent=2))
     else:
         # Print human-readable report
         success = validator.print_report(report)

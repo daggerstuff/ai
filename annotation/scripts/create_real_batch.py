@@ -14,7 +14,6 @@ ROLE_MAP = {
     "assistant": "assistant",
     "sys": "assistant",
     "therapist": "user",
-    "client": "user",
     "bot": "assistant",
 }
 

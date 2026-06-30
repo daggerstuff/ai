@@ -17,10 +17,7 @@ def _to_memory(item: Memory | dict[str, Any]) -> Memory | None:
         return item
     if isinstance(item, dict):
         metadata = item.get("metadata", {})
-        if isinstance(metadata, MemoryMetadata):
-            memory_metadata = metadata
-        else:
-            memory_metadata = MemoryMetadata.from_dict(metadata or {})
+        memory_metadata = metadata if isinstance(metadata, MemoryMetadata) else MemoryMetadata.from_dict(metadata or {})
         return Memory(
             id=str(item.get("id", "")),
             content=str(item.get("content", "")),

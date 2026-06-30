@@ -118,10 +118,7 @@ class DatasetDeduplicator:
 
         # Check publication year similarity (within 1 year)
         year_diff = abs(source1.publication_date.year - source2.publication_date.year)
-        if year_diff > 1:
-            return False
-
-        return True
+        return not year_diff > 1
 
     def _merge_duplicate_metadata(self, primary: DatasetSource, duplicate: DatasetSource) -> None:
         """
@@ -134,7 +131,7 @@ class DatasetDeduplicator:
             duplicate: Duplicate source with additional metadata
         """
         # Merge keywords
-        existing_keywords = set(kw.lower() for kw in primary.keywords)
+        existing_keywords = {kw.lower() for kw in primary.keywords}
         for keyword in duplicate.keywords:
             if keyword.lower() not in existing_keywords:
                 primary.keywords.append(keyword)
@@ -148,7 +145,7 @@ class DatasetDeduplicator:
             primary.abstract = duplicate.abstract
 
         # Merge authors
-        existing_authors = set(self.parser.normalize_author_name(author) for author in primary.authors)
+        existing_authors = {self.parser.normalize_author_name(author) for author in primary.authors}
         for author in duplicate.authors:
             normalized = self.parser.normalize_author_name(author)
             if normalized not in existing_authors:

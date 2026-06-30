@@ -712,7 +712,7 @@ class HIPAAValidator:
         recommendations = []
 
         # Violation-based recommendations
-        violation_types = set(v.violation_type for v in violations)
+        violation_types = {v.violation_type for v in violations}
 
         if HIPAAViolationType.UNAUTHORIZED_ACCESS in violation_types:
             recommendations.append("Implement stronger access controls and user authentication")

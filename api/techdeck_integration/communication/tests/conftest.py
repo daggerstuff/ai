@@ -606,7 +606,7 @@ def mock_logger():
         def critical(self, message: str, **kwargs):
             self.logs["critical"].append({"message": message, "kwargs": kwargs})
 
-        def get_logs(self, level: str = None):
+        def get_logs(self, level: str | None = None):
             if level:
                 return self.logs.get(level, [])
             return self.logs

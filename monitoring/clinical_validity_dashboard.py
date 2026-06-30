@@ -69,14 +69,14 @@ class ClinicalValidityDashboard:
 
             # Query clinical validity metrics from the last N hours
             query = f"""
-            SELECT 
+            SELECT
                 timestamp,
                 clinical_validity_score,
                 sample_size,
                 pipeline_stage,
                 data_source,
                 notes
-            FROM clinical_validity_metrics 
+            FROM clinical_validity_metrics
             WHERE timestamp >= datetime('now', '-{hours_back} hours')
             ORDER BY timestamp DESC
             """
@@ -234,7 +234,7 @@ class ClinicalValidityDashboard:
 
         fig.update_layout(
             height=300,
-            margin=dict(l=20, r=20, t=50, b=20),
+            margin={"l": 20, "r": 20, "t": 50, "b": 20},
             paper_bgcolor="white",
             font={"color": "darkblue", "family": "Arial"},
         )
@@ -260,7 +260,7 @@ class ClinicalValidityDashboard:
             fig.update_layout(
                 title="Clinical Validity Trend (24 Hours)",
                 height=300,
-                margin=dict(l=20, r=20, t=50, b=20),
+                margin={"l": 20, "r": 20, "t": 50, "b": 20},
             )
             return fig
 
@@ -274,8 +274,8 @@ class ClinicalValidityDashboard:
                 y=df["clinical_validity_score"],
                 mode="lines+markers",
                 name="Clinical Validity Score",
-                line=dict(color=self.color_schemes["trend"], width=2),
-                marker=dict(size=4),
+                line={"color": self.color_schemes["trend"], "width": 2},
+                marker={"size": 4},
             )
         )
 
@@ -316,11 +316,11 @@ class ClinicalValidityDashboard:
             title="Clinical Validity Trend (24 Hours)",
             xaxis_title="Time",
             yaxis_title="Clinical Validity Score",
-            yaxis=dict(range=[0, 1.0]),
+            yaxis={"range": [0, 1.0]},
             height=300,
-            margin=dict(l=20, r=20, t=50, b=20),
+            margin={"l": 20, "r": 20, "t": 50, "b": 20},
             hovermode="x unified",
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
         )
 
         return fig
@@ -344,7 +344,7 @@ class ClinicalValidityDashboard:
             fig.update_layout(
                 title="Clinical Validity Score Distribution",
                 height=250,
-                margin=dict(l=20, r=20, t=50, b=20),
+                margin={"l": 20, "r": 20, "t": 50, "b": 20},
             )
             return fig
 
@@ -391,7 +391,7 @@ class ClinicalValidityDashboard:
             xaxis_title="Clinical Validity Score",
             yaxis_title="Frequency",
             height=250,
-            margin=dict(l=20, r=20, t=50, b=20),
+            margin={"l": 20, "r": 20, "t": 50, "b": 20},
             bargap=0.1,
         )
 
@@ -441,11 +441,11 @@ class ClinicalValidityDashboard:
         st.sidebar.markdown(
             """
         ### About
-        This dashboard monitors clinical validity metrics 
+        This dashboard monitors clinical validity metrics
         for the Modern Dataset Project pipeline.
-        
+
         **Target**: ≥ 0.6 (Good) clinical validity score
-        **Current Goal**: Increase from 13.3% to ≥50% 
+        **Current Goal**: Increase from 13.3% to ≥50%
         """
         )
 

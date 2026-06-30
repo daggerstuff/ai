@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from ..crisis_intervention_detector import CrisisInterventionDetector
+from ai.core.pipelines.crisis_intervention_detector import CrisisInterventionDetector
 
 
 class CrisisLevel(Enum):

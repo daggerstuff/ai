@@ -192,7 +192,7 @@ class TestEvidenceAccumulation(unittest.TestCase):
             description="Test",
             action_threshold=Decimal("0.5"),
         )
-        for i in range(3):
+        for _i in range(3):
             point = EvidencePoint(
                 pattern_id="p1",
                 pattern_type="memory_deficiency",
@@ -401,7 +401,7 @@ class TestPriorityCalculator(unittest.TestCase):
         assert score >= self.calculator.urgent_threshold
 
     def test_high_priority(self):
-        score, tier = self.calculator.calculate_priority(
+        _score, tier = self.calculator.calculate_priority(
             evidence_weight=Decimal("4"),
             severity=EvidenceSeverity.HIGH,
             frequency=0.5,
@@ -410,7 +410,7 @@ class TestPriorityCalculator(unittest.TestCase):
         assert tier == PriorityTier.HIGH
 
     def test_medium_priority(self):
-        score, tier = self.calculator.calculate_priority(
+        _score, tier = self.calculator.calculate_priority(
             evidence_weight=Decimal("2.5"),
             severity=EvidenceSeverity.MEDIUM,
             frequency=0.3,
@@ -419,7 +419,7 @@ class TestPriorityCalculator(unittest.TestCase):
         assert tier == PriorityTier.MEDIUM
 
     def test_low_priority(self):
-        score, tier = self.calculator.calculate_priority(
+        _score, tier = self.calculator.calculate_priority(
             evidence_weight=Decimal("1.2"),
             severity=EvidenceSeverity.LOW,
             frequency=0.1,
@@ -428,7 +428,7 @@ class TestPriorityCalculator(unittest.TestCase):
         assert tier == PriorityTier.LOW
 
     def test_backlog_priority(self):
-        score, tier = self.calculator.calculate_priority(
+        _score, tier = self.calculator.calculate_priority(
             evidence_weight=Decimal("0.1"),
             severity=EvidenceSeverity.LOW,
             frequency=0.05,
@@ -905,11 +905,11 @@ class TestDecimalPrecision(unittest.TestCase):
             root_cause_hypothesis="Test",
         )
         acc.add_evidence(point)
-        self.assertIsInstance(acc.total_weight, Decimal)
+        assert isinstance(acc.total_weight, Decimal)
         for _ in range(100):
             acc.add_evidence(point)
-        self.assertIsInstance(acc.total_weight, Decimal)
-        self.assertEqual(acc.total_weight, acc.total_weight.quantize(Decimal("0.0001")))
+        assert isinstance(acc.total_weight, Decimal)
+        assert acc.total_weight == acc.total_weight.quantize(Decimal("0.0001"))
 
     def test_high_frequency_accumulation_no_drift(self):
         """100 identical evidence points accumulate without drift."""
@@ -933,7 +933,7 @@ class TestDecimalPrecision(unittest.TestCase):
         single_weight = acc.total_weight
         for _ in range(99):
             acc.add_evidence(point)
-        self.assertGreater(acc.total_weight, single_weight * 99)
+        assert acc.total_weight > single_weight * 99
         self.assertAlmostEqual(float(acc.total_weight), 100.0 * float(single_weight), delta=0.02 * float(single_weight))
 
     def test_to_dict_decimal_roundtrip(self):
@@ -956,10 +956,10 @@ class TestDecimalPrecision(unittest.TestCase):
         )
         acc.add_evidence(point)
         d = acc.to_dict()
-        self.assertIsInstance(d["total_weight"], float)
-        self.assertIsInstance(d["action_threshold"], float)
-        self.assertGreater(d["total_weight"], 0)
-        self.assertEqual(d["action_threshold"], 0.5)
+        assert isinstance(d["total_weight"], float)
+        assert isinstance(d["action_threshold"], float)
+        assert d["total_weight"] > 0
+        assert d["action_threshold"] == 0.5
 
     def test_to_dict_large_priority_score(self):
         """PriorityCalculator produces Decimal scores; to_dict handles large values."""
@@ -970,7 +970,7 @@ class TestDecimalPrecision(unittest.TestCase):
             frequency=1.0,
             domain=UpstreamDomain.PRIVACY,
         )
-        self.assertIsInstance(score, Decimal)
+        assert isinstance(score, Decimal)
         item = BacklogItem(
             item_id="test-large",
             domain=UpstreamDomain.PRIVACY,
@@ -983,15 +983,15 @@ class TestDecimalPrecision(unittest.TestCase):
             root_cause_hypothesis="Test",
         )
         d = item.to_dict()
-        self.assertIsInstance(d["priority_score"], float)
-        self.assertGreater(d["priority_score"], 0)
+        assert isinstance(d["priority_score"], float)
+        assert d["priority_score"] > 0
 
     def test_severity_weight_returns_decimal(self):
         """_severity_weight returns Decimal (not float) for all severities."""
         for severity in EvidenceSeverity:
             w = _severity_weight(severity)
-            self.assertIsInstance(w, Decimal)
-            self.assertGreater(w, 0)
+            assert isinstance(w, Decimal)
+            assert w > 0
 
 
 if __name__ == "__main__":

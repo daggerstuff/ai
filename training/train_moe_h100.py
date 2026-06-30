@@ -4,24 +4,12 @@ Therapeutic AI Training with MoE Architecture on H100
 Optimized for 12-hour training window with LoRA fine-tuning
 """
 
-from datetime import datetime, timezone
-
-
-
-
-
-
-
-
-
-
-
-
 import contextlib
 import json
 import os
 import signal
 import time
+from datetime import UTC, datetime
 from typing import Any
 
 import torch
@@ -45,14 +33,14 @@ MAX_TRAINING_HOURS = 12
 def should_apply_safety_filter(sample: dict, safety_config: dict) -> bool:
     """
     Determine if safety filtering should be applied to a sample.
-    
+
     Edge cases (crisis/trauma content marked for training) bypass safety filtering
     to ensure the model learns to handle these critical scenarios appropriately.
-    
+
     Args:
         sample: Training sample with optional is_training_edge_case flag
         safety_config: Safety configuration dict
-    
+
     Returns:
         True if safety filtering should be applied, False if bypassed
     """
@@ -61,14 +49,13 @@ def should_apply_safety_filter(sample: dict, safety_config: dict) -> bool:
         # Bypass safety filtering for training edge cases
         if sample.get("is_training_edge_case", False):
             return False
-    
+
     # Default: apply safety filtering
     return True
 
 
 def signal_handler(signum, frame):
     global shutdown_requested
-    print("\n🛑 Shutdown requested")
     shutdown_requested = True
 
 
@@ -88,8 +75,6 @@ class TimeConstraintCallback(TrainerCallback):
     def on_train_begin(self, args, state, control, **kwargs):
         self.start_time = time.time()
         self.last_checkpoint_time = self.start_time
-        print(f"⏰ Training started at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"⏰ Maximum training duration: {self.max_hours} hours")
 
     def on_step_end(self, args, state, control, **kwargs):
         global shutdown_requested
@@ -104,7 +89,6 @@ class TimeConstraintCallback(TrainerCallback):
 
         # Check if we're approaching time limit
         if elapsed_hours >= self.max_hours - 0.5:  # Stop 30 min before limit
-            print(f"\n⏰ Approaching {self.max_hours}-hour limit. Stopping training...")
             control.should_training_stop = True
             control.should_save = True
 
@@ -120,7 +104,6 @@ class TimeConstraintCallback(TrainerCallback):
         if elapsed_since_checkpoint >= self.checkpoint_interval_minutes:
             control.should_save = True
             self.last_checkpoint_time = current_time
-            print(f"💾 Checkpoint at {elapsed_hours:.2f} hours")
 
         # Log time progress
         if state.global_step % 100 == 0:
@@ -152,13 +135,12 @@ class MoETrainingCallback(TrainerCallback):
         global shutdown_requested
 
         if shutdown_requested:
-            print("🛑 Stopping training")
             control.should_training_stop = True
             return control
 
         if logs:
             self.step_count += 1
-            current_loss = logs.get("loss", logs.get("train_loss", 0))
+            logs.get("loss", logs.get("train_loss", 0))
 
             # Early stopping based on validation loss
             if "eval_loss" in logs:
@@ -170,7 +152,6 @@ class MoETrainingCallback(TrainerCallback):
                     self.patience_counter += 1
 
                 if self.patience_counter >= self.patience:
-                    print(f"\n⚠️ Early stopping triggered (patience={self.patience})")
                     control.should_training_stop = True
                     control.should_save = True
 
@@ -183,11 +164,7 @@ class MoETrainingCallback(TrainerCallback):
 
             # Log progress
             if "epoch" in logs:
-                progress = (logs["epoch"] / args.num_train_epochs) * 100
-                print(
-                    f"📊 Progress: {progress:.1f}% | "
-                    f"Loss: {current_loss:.4f} | Step: {self.step_count}"
-                )
+                (logs["epoch"] / args.num_train_epochs) * 100
 
             # Enhanced logging
             enhanced_logs = logs.copy()
@@ -213,13 +190,12 @@ def setup_wandb(config_path: str = "wandb_config.json"):
         config = json.load(f)
 
     if not torch.cuda.is_available():
-        print("⚠️ No CUDA - using offline mode")
         os.environ["WANDB_MODE"] = "offline"
 
     return wandb.init(
         project=config["project"],
         entity=config.get("entity"),
-        name=f"{config['name']}_moe_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+        name=f"{config['name']}_moe_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
         tags=config["tags"] + ["moe", "h100", "lora"],
         notes=f"MoE training with LoRA on H100 - {config['notes']}",
         config=config["config"],
@@ -276,11 +252,9 @@ def load_training_data(
         from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
 
         loader = S3DatasetLoader()
-        print(f"📊 Loading dataset from S3: {s3_path}...")
         data = loader.load_json(s3_path)
     elif dataset_path:
         # Fallback to local file
-        print(f"📊 Loading dataset from local: {dataset_path}...")
         with open(dataset_path) as f:
             data = json.load(f)
     else:
@@ -295,7 +269,6 @@ def load_training_data(
             s3_path = get_s3_dataset_path(
                 "training_dataset.json", category="professional_therapeutic"
             )
-            print(f"📊 Auto-loading dataset from S3: {s3_path}...")
             data = load_dataset_from_s3(
                 "training_dataset.json", category="professional_therapeutic"
             )
@@ -309,7 +282,6 @@ def load_training_data(
 
     # Optionally append Nemotron teacher SFT examples (generic reasoning warmup)
     if nemotron_teacher_s3_path and nemotron_teacher_max_samples > 0:
-        print(f"📊 Loading Nemotron teacher SFT from: {nemotron_teacher_s3_path}...")
         loader = S3DatasetLoader()
 
         teacher_count = 0
@@ -322,13 +294,9 @@ def load_training_data(
             if teacher_count >= nemotron_teacher_max_samples:
                 break
 
-        print(
-            f"   ✅ Added {teacher_count} Nemotron teacher examples to training texts"
-        )
 
     dataset = Dataset.from_dict({"text": texts})
 
-    print(f"📊 Dataset: {len(dataset)} samples")
 
     return dataset, texts
 
@@ -396,10 +364,8 @@ def create_h100_training_args(
 def main():
     global shutdown_requested, training_start_time
 
-    print("🚀 Therapeutic AI Training with MoE Architecture")
-    print("=" * 60)
 
-    training_start_time = datetime.now(timezone.utc)
+    training_start_time = datetime.now(UTC)
     wandb_run = None
 
     try:
@@ -407,7 +373,6 @@ def main():
         wandb_run = setup_wandb()
 
         # Load configurations
-        print("📋 Loading configurations...")
         with open("training_config.json") as f:
             training_config = json.load(f)
 
@@ -423,10 +388,6 @@ def main():
             nemotron_teacher_s3_path = nemotron_cfg.get("s3_path")
             nemotron_teacher_max_samples = int(nemotron_cfg.get("max_samples", 0))
             if not nemotron_teacher_s3_path:
-                print(
-                    "⚠️ nemotron_teacher.enabled is true but "
-                    "s3_path is not set; ignoring."
-                )
                 nemotron_teacher_s3_path = None
                 nemotron_teacher_max_samples = 0
 
@@ -451,10 +412,8 @@ def main():
         device_available = torch.cuda.is_available()
 
         if not device_available:
-            print("❌ CUDA not available. This script requires GPU.")
             return
 
-        print(f"🚀 Creating MoE model from {BASE_MODEL_NAME}...")
 
         # Create MoE configuration
         moe_config = MoEConfig(
@@ -478,11 +437,6 @@ def main():
             BASE_MODEL_NAME, moe_config=moe_config, device="auto"
         )
 
-        print("✅ MoE model created successfully")
-        print(f"   - Experts: {moe_config.num_experts}")
-        print(f"   - Domains: {', '.join(moe_config.expert_domains)}")
-        print(f"   - LoRA rank: {moe_config.lora_r}")
-        print(f"   - Context length: {moe_config.max_position_embeddings}")
 
         # Log model info
         total_params = sum(p.numel() for p in model.parameters())
@@ -499,10 +453,7 @@ def main():
             }
         )
 
-        print("📊 Model parameters:")
-        print(f"   - Total: {total_params:,}")
-        trainable_percent = (trainable_params / total_params) * 100
-        print(f"   - Trainable: {trainable_params:,} ({trainable_percent:.2f}%)")
+        (trainable_params / total_params) * 100
 
         # Setup tokenizer
         tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
@@ -520,12 +471,10 @@ def main():
             result["labels"] = result["input_ids"].copy()
             return result
 
-        print("🔤 Tokenizing dataset...")
         tokenized_dataset = dataset.map(
             tokenize_function, batched=True, remove_columns=["text"], desc="Tokenizing"
         )
 
-        print(f"📊 Tokenized: {len(tokenized_dataset)} samples")
 
         if len(tokenized_dataset) == 0:
             raise ValueError("Empty dataset after tokenization!")
@@ -535,7 +484,6 @@ def main():
         train_dataset = split_dataset["train"]
         eval_dataset = split_dataset["test"]
 
-        print(f"📊 Train: {len(train_dataset)} | Eval: {len(eval_dataset)}")
 
         # Create H100-optimized training arguments
         training_args = create_h100_training_args(
@@ -568,18 +516,13 @@ def main():
         if not shutdown_requested:
             wandb.log({"training/status": "started"})
 
-            print("\n🎯 Starting training...")
-            print(f"⏰ Maximum duration: {MAX_TRAINING_HOURS} hours")
-            effective_batch = (
+            (
                 training_args.per_device_train_batch_size
                 * training_args.gradient_accumulation_steps
             )
-            print(f"📊 Effective batch size: {effective_batch}")
-            print("=" * 60)
 
             trainer.train()
 
-            print("\n💾 Saving model...")
             trainer.save_model()
             tokenizer.save_pretrained(training_args.output_dir)
 
@@ -588,19 +531,15 @@ def main():
 
             wandb.log({"training/status": "completed"})
 
-            training_duration = (
-                datetime.now(timezone.utc) - training_start_time
+            (
+                datetime.now(UTC) - training_start_time
             ).total_seconds() / 3600
-            print(f"\n✅ Training completed in {training_duration:.2f} hours!")
-            print(f"📁 Model saved to: {training_args.output_dir}")
 
     except KeyboardInterrupt:
-        print("\n🛑 Training interrupted by user")
         if wandb_run:
             wandb.log({"training/status": "interrupted"})
 
     except Exception as e:
-        print(f"\n❌ Training failed: {e}")
         if wandb_run:
             with contextlib.suppress(Exception):
                 wandb.log({"training/status": "failed", "training/error": str(e)})
@@ -611,12 +550,10 @@ def main():
             with contextlib.suppress(Exception):
                 wandb.finish()
         if training_start_time:
-            total_duration = (
-                datetime.now(timezone.utc) - training_start_time
+            (
+                datetime.now(UTC) - training_start_time
             ).total_seconds() / 3600
-            print(f"\n⏰ Total runtime: {total_duration:.2f} hours")
 
-        print("🧹 Cleanup complete")
 
 
 if __name__ == "__main__":

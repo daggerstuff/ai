@@ -75,7 +75,7 @@ class OptimizationMetrics:
 class CheckpointCleanupOptimizer:
     """Advanced checkpoint cleanup and optimization system"""
 
-    def __init__(self, checkpoint_manager, storage_path: str = None):
+    def __init__(self, checkpoint_manager, storage_path: str | None = None):
         self.checkpoint_manager = checkpoint_manager
         self.storage_path = Path(storage_path or checkpoint_manager.storage.storage_path)
 
@@ -457,7 +457,7 @@ class CheckpointCleanupOptimizer:
             # Keep only the latest checkpoint, delete others
             if similar_checkpoints:
                 # Sort by creation time, keep newest
-                all_similar = similar_checkpoints + [checkpoint]
+                all_similar = [*similar_checkpoints, checkpoint]
                 all_similar.sort(key=lambda c: c.created_at, reverse=True)
 
                 # Delete all but the newest

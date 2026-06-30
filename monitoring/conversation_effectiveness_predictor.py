@@ -684,7 +684,7 @@ class ConversationEffectivenessPredictor:
                 0.95,
                 f"R² = {r2:.3f}",
                 transform=axes[0, 2].transAxes,
-                bbox=dict(boxstyle="round", facecolor="white", alpha=0.8),
+                bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.8},
             )
 
         # 4. Feature Importance (Random Forest)

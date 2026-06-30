@@ -98,7 +98,7 @@ class QualityPerformanceOptimizer:
             success_criteria = self._define_success_criteria(performance_metrics)
 
             # Create optimization plan
-            plan = OptimizationPlan(
+            return OptimizationPlan(
                 plan_id=f"QPO_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}",
                 generated_at=datetime.now(UTC),
                 performance_metrics=performance_metrics,
@@ -109,7 +109,6 @@ class QualityPerformanceOptimizer:
                 success_criteria=success_criteria,
             )
 
-            return plan
 
         except Exception:
             return OptimizationPlan(

@@ -226,8 +226,8 @@ with tabs[2]:
             plot_bgcolor="#232336",
             font_color="#7df9ff",
             title_font_color="#84cc16",
-            xaxis=dict(color="#7df9ff", gridcolor="#232336"),
-            yaxis=dict(color="#7df9ff", gridcolor="#232336"),
+            xaxis={"color": "#7df9ff", "gridcolor": "#232336"},
+            yaxis={"color": "#7df9ff", "gridcolor": "#232336"},
         )
         st.plotly_chart(scatter, use_container_width=True)
 

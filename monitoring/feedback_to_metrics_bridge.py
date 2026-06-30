@@ -163,7 +163,7 @@ def _enrich_with_interventions(
 
         # Map intervention back to metric via related_patterns.
         related = intervention.get("related_patterns", [])
-        for pattern_ref in related:
+        for _pattern_ref in related:
             # Extract pattern_type from pattern_id (e.g., "pattern_memory_recall_low" → "memory_deficiency")
             # This is a heuristic; the actual mapping lives in failure_patterns.
             pass
@@ -246,9 +246,8 @@ def _main() -> None:
     if args.output:
         Path(args.output).parent.mkdir(parents=True, exist_ok=True)
         Path(args.output).write_text(output, encoding="utf-8")
-        print(f"Written to {args.output}")
     else:
-        print(output)
+        pass
 
 
 if __name__ == "__main__":

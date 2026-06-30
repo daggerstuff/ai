@@ -28,7 +28,7 @@ class MockPipelineOrchestrator:
         self.error_handlers = {}
         self.retry_config = {"max_retries": 3, "backoff_factor": 2}
 
-    def add_stage(self, stage_name: str, processor: Any, config: dict[str, Any] = None) -> bool:
+    def add_stage(self, stage_name: str, processor: Any, config: dict[str, Any] | None = None) -> bool:
         """Add a processing stage to the pipeline."""
         if not stage_name or not isinstance(stage_name, str) or str(stage_name).strip() == "":
             return False
@@ -45,7 +45,7 @@ class MockPipelineOrchestrator:
         self.stages.append(stage)
         return True
 
-    def execute_pipeline(self, input_data: Any, _pipeline_config: dict[str, Any] = None) -> dict[str, Any]:
+    def execute_pipeline(self, input_data: Any, _pipeline_config: dict[str, Any] | None = None) -> dict[str, Any]:
         """Execute the complete pipeline."""
         if not input_data:
             return {
@@ -268,11 +268,7 @@ class MockPipelineOrchestrator:
             rec_stack.remove(stage_name)
             return False
 
-        for stage in self.stages:
-            if stage["name"] not in visited and has_cycle(stage["name"]):
-                return True
-
-        return False
+        return any(stage["name"] not in visited and has_cycle(stage["name"]) for stage in self.stages)
 
     def get_performance_metrics(self) -> dict[str, Any]:
         """Get performance metrics for the pipeline."""

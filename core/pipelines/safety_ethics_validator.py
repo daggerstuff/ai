@@ -30,7 +30,6 @@ class SafetyEthicsValidator:
         if data is None:
             raise ValueError("Input payload cannot be None")
 
-        print(f"SafetyEthicsValidator.process called with type={type(data).__name__}")
         text = self._extract_text(data)
 
         violations: list[str] = []

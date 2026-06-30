@@ -250,10 +250,7 @@ class BaseAgent(ABC):
         conversation = self._extract_conversation(task)
 
         # Generate annotation
-        if self.client:
-            result = self._call_llm(conversation)
-        else:
-            result = self._mock_annotation(task)
+        result = self._call_llm(conversation) if self.client else self._mock_annotation(task)
 
         # Create metadata
         metadata = AgentMetadata(

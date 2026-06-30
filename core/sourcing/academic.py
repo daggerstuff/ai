@@ -1640,25 +1640,25 @@ async def resolve_doi(doi: str, config: AcademicSourcingConfig | None = None) ->
 # ============================================================================
 
 __all__ = [
+    # Main class
+    "AcademicSourcing",
     # Configuration
     "AcademicSourcingConfig",
-    "RateLimitConfig",
-    "CacheConfig",
+    "AccessStatus",
     # Data classes
     "Author",
+    # Pydantic models
+    "AuthorModel",
+    "CacheConfig",
     "Citation",
+    "CitationModel",
     "PaperMetadata",
+    "PaperMetadataModel",
+    "RateLimitConfig",
     # Enums
     "SourceType",
     "StudyType",
-    "AccessStatus",
-    # Pydantic models
-    "AuthorModel",
-    "CitationModel",
-    "PaperMetadataModel",
-    # Main class
-    "AcademicSourcing",
+    "resolve_doi",
     # Convenience functions
     "search_papers",
-    "resolve_doi",
 ]

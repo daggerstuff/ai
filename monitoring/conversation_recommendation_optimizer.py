@@ -1217,7 +1217,7 @@ def main():
             for rec_list in rec_category.values()
             if isinstance(rec_list, list)
         )
-        for category in results["recommendations"].keys():
+        for category in results["recommendations"]:
             sum(
                 len(rec_list)
                 for rec_list in results["recommendations"][category].values()

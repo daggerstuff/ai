@@ -363,6 +363,7 @@ class S3DatasetLoader:
 
         if last_exception:
             raise last_exception
+        return None
 
     def upload_file(
         self,

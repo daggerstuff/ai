@@ -358,7 +358,7 @@ class SecurityTestFramework:
 
                 for malicious_input in malicious_inputs:
                     # Test each field with malicious input
-                    for field in base_payload.keys():
+                    for field in base_payload:
                         test_payload = base_payload.copy()
                         test_payload[field] = malicious_input
 

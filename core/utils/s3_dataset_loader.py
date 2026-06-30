@@ -145,8 +145,7 @@ class S3DatasetLoader:
         response = client.get_object(Bucket=bucket_name, Key=object_key)
         payload = json.loads(response["Body"].read().decode("utf-8"))
         if isinstance(payload, list):
-            for item in payload:
-                yield item
+            yield from payload
         else:
             yield payload
 
@@ -172,7 +171,7 @@ class S3DatasetLoader:
 
     def stream_json(self, bucket: str, key: str) -> Iterator[dict[str, Any]]:
         lowered = key.lower()
-        if lowered.endswith(".jsonl") or lowered.endswith(".ndjson"):
+        if lowered.endswith((".jsonl", ".ndjson")):
             return self.stream_jsonl(bucket, key)
         return self.stream_json_array(bucket, key)
 
@@ -216,14 +215,13 @@ class S3DatasetLoader:
             self._ensure_client().head_object(Bucket=bucket_name, Key=object_key)
             return True
         except Exception as exc:
-            if botocore and hasattr(botocore.exceptions, "ClientError"):
-                if isinstance(
-                    exc,
-                    botocore.exceptions.ClientError,
-                ):
-                    code = exc.response.get("Error", {}).get("Code", "")
-                    if code in {"404", "NotFound", "NoSuchKey"}:
-                        return False
+            if botocore and hasattr(botocore.exceptions, "ClientError") and isinstance(
+                exc,
+                botocore.exceptions.ClientError,
+            ):
+                code = exc.response.get("Error", {}).get("Code", "")
+                if code in {"404", "NotFound", "NoSuchKey"}:
+                    return False
             return False
 
 

@@ -152,7 +152,7 @@ class MetricsCollector:
         self.time_series_data: dict[str, deque] = defaultdict(lambda: deque(maxlen=1440))  # 1 minute intervals
 
     def record_metric(
-        self, name: str, value: float, metric_type: MetricType, tags: dict[str, str] = None, unit: str = ""
+        self, name: str, value: float, metric_type: MetricType, tags: dict[str, str] | None = None, unit: str = ""
     ):
         """Record a metric"""
         metric = Metric(
@@ -173,9 +173,9 @@ class MetricsCollector:
         response_time_ms: float,
         request_size: int = 0,
         response_size: int = 0,
-        user_id: str = None,
-        session_id: str = None,
-        trace_id: str = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        trace_id: str | None = None,
     ):
         """Record API performance metrics"""
         perf_metric = PerformanceMetrics(
@@ -213,8 +213,8 @@ class MetricsCollector:
         stack_trace: str,
         endpoint: str,
         method: str,
-        user_id: str = None,
-        context: dict[str, Any] = None,
+        user_id: str | None = None,
+        context: dict[str, Any] | None = None,
     ):
         """Record error event"""
         error_event = ErrorEvent(
@@ -236,7 +236,7 @@ class MetricsCollector:
             "api.errors", 1, MetricType.COUNTER, {"endpoint": endpoint, "method": method, "error_type": error_type}
         )
 
-    def record_business_metric(self, metric_name: str, value: float, dimensions: dict[str, str] = None):
+    def record_business_metric(self, metric_name: str, value: float, dimensions: dict[str, str] | None = None):
         """Record business metric"""
         business_metric = BusinessMetrics(
             metric_name=metric_name, value=value, timestamp=datetime.now(UTC), dimensions=dimensions or {}
@@ -254,7 +254,7 @@ class PerformanceAnalyzer:
     def __init__(self, metrics_collector: MetricsCollector):
         self.collector = metrics_collector
 
-    def get_response_time_percentiles(self, endpoint: str = None, time_window_minutes: int = 60) -> dict[str, float]:
+    def get_response_time_percentiles(self, endpoint: str | None = None, time_window_minutes: int = 60) -> dict[str, float]:
         """Calculate response time percentiles"""
         cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
@@ -277,7 +277,7 @@ class PerformanceAnalyzer:
             "max": np.max(response_times),
         }
 
-    def get_error_rate(self, endpoint: str = None, time_window_minutes: int = 60) -> float:
+    def get_error_rate(self, endpoint: str | None = None, time_window_minutes: int = 60) -> float:
         """Calculate error rate percentage"""
         cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
@@ -295,7 +295,7 @@ class PerformanceAnalyzer:
 
         return (error_requests / total_requests) * 100
 
-    def get_throughput(self, endpoint: str = None, time_window_minutes: int = 60) -> float:
+    def get_throughput(self, endpoint: str | None = None, time_window_minutes: int = 60) -> float:
         """Calculate requests per minute"""
         cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 
@@ -461,11 +461,11 @@ class DashboardGenerator:
 
         # Business metrics
         total_users = len(
-            set(
+            {
                 m.user_id
                 for m in self.collector.performance_metrics
                 if m.user_id and m.timestamp >= current_time - timedelta(hours=24)
-            )
+            }
         )
 
         total_requests = len(
@@ -513,9 +513,9 @@ class DashboardGenerator:
         top_errors = self.analyzer.get_top_errors(limit=5, time_window_minutes=60)
 
         # Endpoint performance
-        endpoints = set(
+        endpoints = {
             m.endpoint for m in self.collector.performance_metrics if m.timestamp >= current_time - timedelta(hours=1)
-        )
+        }
 
         endpoint_metrics = {}
         for endpoint in endpoints:
@@ -570,11 +570,11 @@ class DashboardGenerator:
             "business_kpis": aggregated_kpis,
             "user_engagement": {
                 "active_users": len(
-                    set(
+                    {
                         m.user_id
                         for m in self.collector.performance_metrics
                         if m.user_id and m.timestamp >= current_time - timedelta(hours=1)
-                    )
+                    }
                 ),
                 "session_duration": 15.5,  # Would be calculated from session data
                 "api_usage_per_user": 12.3,

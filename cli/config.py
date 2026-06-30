@@ -44,13 +44,13 @@ class APIConfig(BaseModel):
     verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
     @validator("timeout")
-    def validate_timeout(cls, v):
+    def validate_timeout(self, v):
         if v <= 0:
             raise ValueError("Timeout must be positive")
         return v
 
     @validator("max_retries")
-    def validate_retries(cls, v):
+    def validate_retries(self, v):
         if v < 0:
             raise ValueError("Max retries must be non-negative")
         return v
@@ -67,7 +67,7 @@ class AuthConfig(BaseModel):
     auth_url: str = Field(default="http://localhost:8000/auth", description="Authentication endpoint")
 
     @validator("jwt_token", "refresh_token", "client_secret")
-    def validate_sensitive_data(cls, v):
+    def validate_sensitive_data(self, v):
         # Ensure sensitive data is handled securely
         return v
 
@@ -83,7 +83,7 @@ class PipelineConfig(BaseModel):
     audit_logging: bool = Field(default=True, description="Enable audit logging")
 
     @validator("default_timeout", "max_concurrent_jobs", "checkpoint_interval")
-    def validate_positive_values(cls, v):
+    def validate_positive_values(self, v):
         if v <= 0:
             raise ValueError("Value must be positive")
         return v
@@ -102,7 +102,7 @@ class LoggingConfig(BaseModel):
     backup_count: int = Field(default=5, description="Number of backup log files")
 
     @validator("level")
-    def validate_log_level(cls, v):
+    def validate_log_level(self, v):
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if v.upper() not in valid_levels:
             raise ValueError(f"Invalid log level. Must be one of: {valid_levels}")
@@ -119,7 +119,7 @@ class SecurityConfig(BaseModel):
     rate_limit: int = Field(default=100, description="Rate limit per minute")
 
     @validator("rate_limit")
-    def validate_rate_limit(cls, v):
+    def validate_rate_limit(self, v):
         if v <= 0:
             raise ValueError("Rate limit must be positive")
         return v
@@ -243,9 +243,7 @@ class CLIConfig(BaseModel):
 
     def validate(self) -> bool:
         """Validate auth configuration."""
-        if self.auth is None:
-            return False
-        return True
+        return self.auth is not None
 
     def _load_configuration(self) -> None:
         """Load configuration from files and environment variables"""
@@ -515,14 +513,14 @@ class ConfigProfile(BaseModel):
     max_retries: int = Field(default=3, description="Max retries")
 
     @validator("name")
-    def validate_name(cls, v):
+    def validate_name(self, v):
         if not v or not v.strip():
             raise ValueError("Profile name cannot be empty")
         return v
 
     @validator("api_base_url")
-    def validate_url(cls, v):
-        if v and not (v.startswith("http://") or v.startswith("https://")):
+    def validate_url(self, v):
+        if v and not (v.startswith(("http://", "https://"))):
             raise ValueError(f"Invalid URL: {v}")
         return v
 

@@ -688,7 +688,7 @@ class ResearchInstrumentAcquisition:
 
         all_instruments = []
 
-        for instrument_type in self.instruments.keys():
+        for instrument_type in self.instruments:
             instrument = self.acquire_instrument_from_source(instrument_type)
             if instrument:
                 all_instruments.append(instrument)

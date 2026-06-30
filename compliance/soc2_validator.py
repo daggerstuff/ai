@@ -493,7 +493,7 @@ class SOC2Validator:
 
         # Test all controls
         control_results = []
-        for control_id in self.controls.keys():
+        for control_id in self.controls:
             try:
                 test_result = self.test_control(control_id)
                 control_results.append(test_result)

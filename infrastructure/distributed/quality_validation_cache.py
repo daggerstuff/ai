@@ -53,7 +53,7 @@ class CacheEntry:
 class QualityValidationCache:
     """Caching system for quality validation results"""
 
-    def __init__(self, redis_url: str = None, cache_ttl: int = 86400):  # 24 hours default
+    def __init__(self, redis_url: str | None = None, cache_ttl: int = 86400):  # 24 hours default
         self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379/1")
         self.cache_ttl = cache_ttl
 
@@ -187,7 +187,7 @@ class QualityValidationCache:
             logger.error(f"Failed to cache result: {e}")
             return False
 
-    def invalidate_cache(self, data_path: str = None, validation_type: str = None) -> bool:
+    def invalidate_cache(self, data_path: str | None = None, validation_type: str | None = None) -> bool:
         """Invalidate cache entries"""
         try:
             if data_path and validation_type:
@@ -297,7 +297,7 @@ class CachedQualityValidator:
         logger.info("Cached quality validator initialized")
 
     def validate_with_cache(
-        self, data_path: str, validation_type: str, metadata: dict[str, Any] = None
+        self, data_path: str, validation_type: str, metadata: dict[str, Any] | None = None
     ) -> tuple[bool, bytes | None]:
         """Validate with caching"""
         metadata = metadata or {}

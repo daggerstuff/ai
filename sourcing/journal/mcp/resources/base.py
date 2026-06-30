@@ -119,10 +119,7 @@ class MCPResource(ABC):
 
         # Format based on MIME type
         if mime == "application/json":
-            if isinstance(content, (dict, list)):
-                text = json.dumps(content, indent=2, default=str)
-            else:
-                text = str(content)
+            text = json.dumps(content, indent=2, default=str) if isinstance(content, (dict, list)) else str(content)
         elif mime.startswith("text/"):
             text = str(content)
         else:

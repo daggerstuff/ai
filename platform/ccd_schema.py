@@ -10,7 +10,7 @@ and understand a client's presenting problems, history, and treatment needs.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 
 class CCDFactorType(Enum):
@@ -28,8 +28,8 @@ class CCDFactor:
 
     factor_type: CCDFactorType
     description: str
-    severity: Optional[float] = None  # 0-1 scale, if applicable
-    evidence: List[str] = field(default_factory=list)  # Supporting evidence/examples
+    severity: float | None = None  # 0-1 scale, if applicable
+    evidence: list[str] = field(default_factory=list)  # Supporting evidence/examples
 
 
 @dataclass
@@ -39,8 +39,8 @@ class CCDProblem:
     problem_statement: str
     severity: float  # 0-1 scale
     duration: str  # Time period (e.g., "6 months", "2 years")
-    impact_domains: List[str] = field(default_factory=list)  # Life areas affected
-    factors: List[CCDFactor] = field(default_factory=list)  # Contributing factors
+    impact_domains: list[str] = field(default_factory=list)  # Life areas affected
+    factors: list[CCDFactor] = field(default_factory=list)  # Contributing factors
 
 
 @dataclass
@@ -49,9 +49,9 @@ class CCDHypothesis:
 
     hypothesis_statement: str
     confidence: float  # 0-1 scale
-    supporting_evidence: List[str] = field(default_factory=list)
-    contradicting_evidence: List[str] = field(default_factory=list)
-    testable_predictions: List[str] = field(default_factory=list)
+    supporting_evidence: list[str] = field(default_factory=list)
+    contradicting_evidence: list[str] = field(default_factory=list)
+    testable_predictions: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -60,11 +60,11 @@ class CCDIntervention:
 
     intervention_description: str
     modality: str  # e.g., "CBT", "DBT", "Psychodynamic"
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
-    outcome: Optional[str] = None  # e.g., "effective", "partially_effective", "ineffective"
-    barriers: List[str] = field(default_factory=list)
-    facilitators: List[str] = field(default_factory=list)
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    outcome: str | None = None  # e.g., "effective", "partially_effective", "ineffective"
+    barriers: list[str] = field(default_factory=list)
+    facilitators: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -72,9 +72,9 @@ class CCDFormulation:
     """Complete case formulation/summary"""
 
     summary: str
-    strengths: List[str] = field(default_factory=list)
-    vulnerabilities: List[str] = field(default_factory=list)
-    treatment_goals: List[str] = field(default_factory=list)
+    strengths: list[str] = field(default_factory=list)
+    vulnerabilities: list[str] = field(default_factory=list)
+    treatment_goals: list[str] = field(default_factory=list)
     prognosis: str = "guardedly_optimistic"  # optimistic, guarded_optimistic, guarded, poor
     confidence: float = 0.7  # Confidence in formulation (0-1 scale)
 
@@ -87,22 +87,22 @@ class CCDConceptualization:
     timestamp: datetime = field(default_factory=datetime.now)
 
     # Core CCD components
-    problems: List[CCDProblem] = field(default_factory=list)
-    factors: List[CCDFactor] = field(default_factory=list)
-    hypotheses: List[CCDHypothesis] = field(default_factory=list)
-    interventions: List[CCDIntervention] = field(default_factory=list)
-    formulation: Optional[CCDFormulation] = None
+    problems: list[CCDProblem] = field(default_factory=list)
+    factors: list[CCDFactor] = field(default_factory=list)
+    hypotheses: list[CCDHypothesis] = field(default_factory=list)
+    interventions: list[CCDIntervention] = field(default_factory=list)
+    formulation: CCDFormulation | None = None
 
     # Metadata
-    clinician_notes: List[str] = field(default_factory=list)
-    revision_history: List[Dict[str, Any]] = field(default_factory=list)
+    clinician_notes: list[str] = field(default_factory=list)
+    revision_history: list[dict[str, Any]] = field(default_factory=list)
 
     def add_factor(
         self,
         factor_type: CCDFactorType,
         description: str,
-        severity: Optional[float] = None,
-        evidence: Optional[List[str]] = None,
+        severity: float | None = None,
+        evidence: list[str] | None = None,
     ):
         """Add a factor to the conceptualization"""
         factor = CCDFactor(factor_type=factor_type, description=description, severity=severity, evidence=evidence or [])
@@ -114,8 +114,8 @@ class CCDConceptualization:
         problem_statement: str,
         severity: float,
         duration: str,
-        impact_domains: Optional[List[str]] = None,
-        factors: Optional[List[CCDFactor]] = None,
+        impact_domains: list[str] | None = None,
+        factors: list[CCDFactor] | None = None,
     ):
         """Add a problem to the conceptualization"""
         problem = CCDProblem(
@@ -132,9 +132,9 @@ class CCDConceptualization:
         self,
         hypothesis_statement: str,
         confidence: float,
-        supporting_evidence: Optional[List[str]] = None,
-        contradicting_evidence: Optional[List[str]] = None,
-        testable_predictions: Optional[List[str]] = None,
+        supporting_evidence: list[str] | None = None,
+        contradicting_evidence: list[str] | None = None,
+        testable_predictions: list[str] | None = None,
     ):
         """Add a hypothesis to the conceptualization"""
         hypothesis = CCDHypothesis(
@@ -151,11 +151,11 @@ class CCDConceptualization:
         self,
         intervention_description: str,
         modality: str,
-        start_date: Optional[datetime] = None,
-        end_date: Optional[datetime] = None,
-        outcome: Optional[str] = None,
-        barriers: Optional[List[str]] = None,
-        facilitators: Optional[List[str]] = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        outcome: str | None = None,
+        barriers: list[str] | None = None,
+        facilitators: list[str] | None = None,
     ):
         """Add an intervention to the conceptualization"""
         intervention = CCDIntervention(
@@ -173,9 +173,9 @@ class CCDConceptualization:
     def set_formulation(
         self,
         summary: str,
-        strengths: Optional[List[str]] = None,
-        vulnerabilities: Optional[List[str]] = None,
-        treatment_goals: Optional[List[str]] = None,
+        strengths: list[str] | None = None,
+        vulnerabilities: list[str] | None = None,
+        treatment_goals: list[str] | None = None,
         prognosis: str = "guardedly_optimistic",
         confidence: float = 0.7,
     ):
@@ -194,10 +194,10 @@ class CCDConceptualization:
         """Log a revision to the conceptualization"""
         self.revision_history.append({"timestamp": datetime.now().isoformat(), "description": description})
 
-    def get_factors_by_type(self, factor_type: CCDFactorType) -> List[CCDFactor]:
+    def get_factors_by_type(self, factor_type: CCDFactorType) -> list[CCDFactor]:
         """Get all factors of a specific type"""
         return [f for f in self.factors if f.factor_type == factor_type]
 
-    def get_active_problems(self) -> List[CCDProblem]:
+    def get_active_problems(self) -> list[CCDProblem]:
         """Get problems with severity above threshold"""
         return [p for p in self.problems if p.severity > 0.3]

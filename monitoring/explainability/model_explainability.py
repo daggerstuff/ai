@@ -176,10 +176,7 @@ class ExplainabilityEngine:
         input_ids.requires_grad_(True)
 
         # Forward pass
-        if attention_mask is not None:
-            outputs = model(input_ids, attention_mask=attention_mask)
-        else:
-            outputs = model(input_ids)
+        outputs = model(input_ids, attention_mask=attention_mask) if attention_mask is not None else model(input_ids)
 
         # Get logits for target class
         logits = outputs.logits if hasattr(outputs, "logits") else outputs[0]

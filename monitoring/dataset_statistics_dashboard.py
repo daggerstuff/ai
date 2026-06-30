@@ -474,9 +474,9 @@ class DatasetStatisticsDashboard:
                 ax.set_title("Quality Metrics Heatmap")
                 ax.set_yticks(range(len(quality_labels)))
                 ax.set_yticklabels(quality_labels)
-                ax.set_xticks(range(len(list(dataset_stats.values())[0].quality_metrics)))
+                ax.set_xticks(range(len(next(iter(dataset_stats.values())).quality_metrics)))
                 ax.set_xticklabels(
-                    [k.replace("_", " ").title() for k in list(dataset_stats.values())[0].quality_metrics.keys()],
+                    [k.replace("_", " ").title() for k in next(iter(dataset_stats.values())).quality_metrics],
                     rotation=45,
                     ha="right",
                 )
@@ -706,7 +706,7 @@ def main():
 
     # Show key insights
     if insights:
-        sample_insights = list(insights.values())[0]
+        sample_insights = next(iter(insights.values()))
         for _insight in sample_insights.key_insights[:3]:
             pass
 

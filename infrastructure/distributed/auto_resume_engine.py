@@ -300,7 +300,7 @@ class AutoResumeEngine:
         process_id: str,
         task_id: str,
         resume_handler: Callable,
-        metadata: dict[str, Any] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Register a process for automatic resumption"""
 
@@ -327,7 +327,7 @@ class AutoResumeEngine:
 
         logger.info(f"Unregistered process {process_id} from auto-resume")
 
-    def heartbeat(self, process_id: str, metadata: dict[str, Any] = None):
+    def heartbeat(self, process_id: str, metadata: dict[str, Any] | None = None):
         """Send heartbeat for a process"""
 
         if process_id in self.active_processes:

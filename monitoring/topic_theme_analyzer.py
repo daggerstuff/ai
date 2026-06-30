@@ -97,14 +97,13 @@ class TopicThemeAnalyzer:
             # Generate insights
             insights = self._generate_topic_theme_insights(topic_analyses, theme_analyses)
 
-            results = {
+            return {
                 "topics": topic_analyses,
                 "themes": theme_analyses,
                 "insights": insights,
                 "total_conversations_analyzed": len(conversations),
             }
 
-            return results
 
         except Exception:
             return {}

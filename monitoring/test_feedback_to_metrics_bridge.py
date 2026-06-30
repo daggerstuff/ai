@@ -121,7 +121,7 @@ class TestComputeMetricScores:
         patterns = [
             {"pattern_type": "unknown_type", "frequency": 0.5, "severity": "high", "description": ""},
         ]
-        metrics, reasons = _compute_metric_scores(patterns)
+        metrics, _reasons = _compute_metric_scores(patterns)
         # Should remain at defaults.
         assert metrics["clinical_reasoning_accuracy"] == pytest.approx(0.90, abs=0.01)
 

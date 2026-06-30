@@ -189,9 +189,9 @@ class StatePersistenceManager:
     def register_persistent_state(
         self,
         process_id: str,
-        task_id: str = None,
+        task_id: str | None = None,
         scope: StateScope = StateScope.PROCESS,
-        initial_data: dict[str, Any] = None,
+        initial_data: dict[str, Any] | None = None,
     ) -> str:
         """Register a new persistent state"""
 
@@ -224,7 +224,7 @@ class StatePersistenceManager:
         self,
         state_id: str,
         updates: dict[str, Any],
-        metadata_updates: dict[str, Any] = None,
+        metadata_updates: dict[str, Any] | None = None,
     ):
         """Update persistent state data"""
 

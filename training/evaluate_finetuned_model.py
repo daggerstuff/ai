@@ -25,7 +25,6 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import (
     AutoModelForCausalLM,
@@ -42,24 +41,24 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EvaluationResult:
     """Results from evaluating a single example."""
-    
+
     example_id: str
     example_type: str
-    
+
     # Memory metrics
     memory_recall_precision: float = 0.0
     memory_recall_recall: float = 0.0
     memory_relevance_score: float = 0.0
-    
+
     # Generation metrics
     generation_quality: float = 0.0
     context_relevance: float = 0.0
     reflection_quality: float = 0.0
-    
+
     # Metadata
     predicted_text: str = ""
     target_text: str = ""
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "example_id": self.example_id,
@@ -78,27 +77,27 @@ class EvaluationResult:
 @dataclass
 class EvaluationReport:
     """Comprehensive evaluation report."""
-    
+
     model_path: str
     test_examples: int
     evaluated_examples: int
-    
+
     # Memory metrics
     avg_memory_recall_precision: float = 0.0
     avg_memory_recall_recall: float = 0.0
     avg_memory_relevance: float = 0.0
-    
+
     # Quality metrics
     avg_generation_quality: float = 0.0
     avg_context_relevance: float = 0.0
     avg_reflection_quality: float = 0.0
-    
+
     # Overall
     overall_score: float = 0.0
-    
+
     # Detailed results
     results: list[EvaluationResult] = field(default_factory=list)
-    
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "model_path": self.model_path,
@@ -120,7 +119,7 @@ class EvaluationReport:
 
 class ModelEvaluator:
     """Evaluator for fine-tuned models."""
-    
+
     def __init__(
         self,
         model_path: str,
@@ -130,7 +129,7 @@ class ModelEvaluator:
         self.model_path = Path(model_path)
         self.base_model_name = base_model_name
         self.device = device
-        
+
         # Load model and tokenizer
         logger.info(f"Loading model from {model_path}")
         self.model = AutoModelForCausalLM.from_pretrained(
@@ -143,9 +142,9 @@ class ModelEvaluator:
             model_path if (model_path / "tokenizer_config.json").exists() else base_model_name
         )
         self.model.eval()
-        
+
         logger.info(f"Model loaded on device: {device}")
-    
+
     def evaluate(
         self,
         test_data_path: str | Path,
@@ -153,30 +152,30 @@ class ModelEvaluator:
     ) -> EvaluationReport:
         """
         Evaluate model on test data.
-        
+
         Args:
             test_data_path: Path to test data JSONL
             max_samples: Maximum number of samples to evaluate
-            
+
         Returns:
             Evaluation report
         """
         test_data_path = Path(test_data_path)
-        
+
         # Load test examples
         test_examples = self._load_test_data(test_data_path, max_samples)
-        
+
         logger.info(f"Evaluating on {len(test_examples)} test examples")
-        
+
         # Evaluate each example
         results = []
         for example in tqdm(test_examples, desc="Evaluating"):
             result = self._evaluate_example(example)
             results.append(result)
-        
+
         # Aggregate results
         return self._aggregate_results(results, len(test_examples))
-    
+
     def _load_test_data(
         self,
         path: Path,
@@ -184,7 +183,7 @@ class ModelEvaluator:
     ) -> list[dict[str, Any]]:
         """Load test data from JSONL."""
         examples = []
-        
+
         with open(path, encoding="utf-8") as f:
             for i, line in enumerate(f):
                 if max_samples and i >= max_samples:
@@ -194,9 +193,9 @@ class ModelEvaluator:
                         examples.append(json.loads(line))
                     except json.JSONDecodeError:
                         logger.warning(f"Failed to parse line {i}")
-        
+
         return examples
-    
+
     def _evaluate_example(self, example: dict[str, Any]) -> EvaluationResult:
         """Evaluate a single example."""
         example_id = example.get("id", "unknown")
@@ -204,31 +203,31 @@ class ModelEvaluator:
         input_text = example.get("input", "")
         target_text = example.get("target", "")
         memories = example.get("relevant_memories", [])
-        
+
         # Generate prediction
         predicted_text = self._generate_response(input_text, memories)
-        
+
         # Compute metrics
         memory_precision, memory_recall = self._compute_memory_metrics(
             predicted_text, memories
         )
-        
+
         relevance_score = self._compute_relevance_score(
             predicted_text, target_text
         )
-        
+
         generation_quality = self._compute_generation_quality(
             predicted_text, target_text
         )
-        
+
         context_relevance = self._compute_context_relevance(
             predicted_text, input_text
         )
-        
+
         reflection_quality = self._compute_reflection_quality(
             predicted_text, example_type
         )
-        
+
         return EvaluationResult(
             example_id=example_id,
             example_type=example_type,
@@ -241,7 +240,7 @@ class ModelEvaluator:
             predicted_text=predicted_text,
             target_text=target_text,
         )
-    
+
     def _generate_response(
         self,
         input_text: str,
@@ -258,7 +257,7 @@ class ModelEvaluator:
             full_input = f"Relevant memories:\n{memory_context}\n\n{input_text}"
         else:
             full_input = input_text
-        
+
         # Tokenize
         inputs = self.tokenizer(
             full_input,
@@ -266,10 +265,10 @@ class ModelEvaluator:
             truncation=True,
             max_length=max_length,
         )
-        
+
         if self.device == "cuda":
             inputs = {k: v.cuda() for k, v in inputs.items()}
-        
+
         # Generate
         with torch.no_grad():
             outputs = self.model.generate(
@@ -279,15 +278,15 @@ class ModelEvaluator:
                 top_p=0.9,
                 do_sample=True,
             )
-        
+
         # Decode
         response = self.tokenizer.decode(
             outputs[0][inputs["input_ids"].shape[1]:],
             skip_special_tokens=True,
         )
-        
+
         return response.strip()
-    
+
     def _compute_memory_metrics(
         self,
         predicted_text: str,
@@ -296,18 +295,18 @@ class ModelEvaluator:
         """Compute memory recall precision and recall."""
         if not memories:
             return 1.0, 1.0
-        
+
         # Check if predicted text contains memory content
         memory_contents = [m.get("content", "").lower() for m in memories]
         predicted_lower = predicted_text.lower()
-        
+
         matches = sum(1 for content in memory_contents if content in predicted_lower)
-        
+
         precision = matches / len(memories) if memories else 1.0
         recall = matches / max(len(memories), 1)
-        
+
         return precision, recall
-    
+
     def _compute_relevance_score(
         self,
         predicted_text: str,
@@ -316,18 +315,18 @@ class ModelEvaluator:
         """Compute relevance score using simple text overlap."""
         if not target_text:
             return 0.0
-        
+
         predicted_words = set(predicted_text.lower().split())
         target_words = set(target_text.lower().split())
-        
+
         if not target_words:
             return 0.0
-        
+
         overlap = len(predicted_words & target_words)
         score = overlap / len(target_words)
-        
+
         return min(1.0, score)
-    
+
     def _compute_generation_quality(
         self,
         predicted_text: str,
@@ -336,20 +335,20 @@ class ModelEvaluator:
         """Compute generation quality score."""
         if not target_text or not predicted_text:
             return 0.0
-        
+
         # Simple BLEU-like approximation
         predicted_words = predicted_text.lower().split()
         target_words = target_text.lower().split()
-        
+
         if not predicted_words or not target_words:
             return 0.0
-        
+
         # Word overlap ratio
         overlap = len(set(predicted_words) & set(target_words))
         quality = overlap / max(len(predicted_words), len(target_words))
-        
+
         return min(1.0, quality)
-    
+
     def _compute_context_relevance(
         self,
         predicted_text: str,
@@ -358,16 +357,16 @@ class ModelEvaluator:
         """Compute context relevance score."""
         if not input_text or not predicted_text:
             return 0.0
-        
+
         # Check if predicted text is relevant to input
         input_words = set(input_text.lower().split())
         predicted_words = set(predicted_text.lower().split())
-        
+
         overlap = len(input_words & predicted_words)
         relevance = overlap / max(len(input_words), 1)
-        
+
         return min(1.0, relevance)
-    
+
     def _compute_reflection_quality(
         self,
         predicted_text: str,
@@ -376,25 +375,25 @@ class ModelEvaluator:
         """Compute reflection quality score."""
         if not predicted_text:
             return 0.0
-        
+
         # Check for reflection indicators
         reflection_indicators = [
             "insight", "reflect", "understand", "learned",
             "pattern", "awareness", "realize", "growth"
         ]
-        
+
         predicted_lower = predicted_text.lower()
-        matches = sum(1 for indicator in reflection_indicators 
+        matches = sum(1 for indicator in reflection_indicators
                      if indicator in predicted_lower)
-        
+
         quality = matches / len(reflection_indicators)
-        
+
         # Boost for memory-related example types
         if "memory" in example_type:
             quality = min(1.0, quality * 1.2)
-        
+
         return quality
-    
+
     def _aggregate_results(
         self,
         results: list[EvaluationResult],
@@ -407,7 +406,7 @@ class ModelEvaluator:
                 test_examples=total_examples,
                 evaluated_examples=0,
             )
-        
+
         # Compute averages
         avg_memory_precision = statistics.mean(
             r.memory_recall_precision for r in results
@@ -427,7 +426,7 @@ class ModelEvaluator:
         avg_reflection_quality = statistics.mean(
             r.reflection_quality for r in results
         )
-        
+
         # Overall score (weighted average)
         overall_score = (
             avg_memory_precision * 0.25 +
@@ -435,8 +434,8 @@ class ModelEvaluator:
             avg_generation_quality * 0.25 +
             avg_context_relevance * 0.25
         )
-        
-        report = EvaluationReport(
+
+        return EvaluationReport(
             model_path=str(self.model_path),
             test_examples=total_examples,
             evaluated_examples=len(results),
@@ -449,18 +448,17 @@ class ModelEvaluator:
             overall_score=overall_score,
             results=results,
         )
-        
-        return report
+
 
 
 def main():
     """CLI entry point."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(
         description="Evaluate fine-tuned model"
     )
-    
+
     parser.add_argument(
         "--model-path",
         type=str,
@@ -491,41 +489,27 @@ def main():
         default=None,
         help="Output path for evaluation report (JSON)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Evaluate
     evaluator = ModelEvaluator(
         model_path=args.model_path,
         base_model_name=args.base_model,
     )
-    
+
     report = evaluator.evaluate(
         test_data_path=args.test_data,
         max_samples=args.max_samples,
     )
-    
+
     # Print summary
-    print("\n=== Evaluation Report ===")
-    print(f"Model: {report.model_path}")
-    print(f"Test examples: {report.test_examples}")
-    print(f"Evaluated: {report.evaluated_examples}")
-    print(f"\nMemory Metrics:")
-    print(f"  - Recall Precision: {report.avg_memory_recall_precision:.3f}")
-    print(f"  - Recall Recall: {report.avg_memory_recall_recall:.3f}")
-    print(f"  - Relevance: {report.avg_memory_relevance:.3f}")
-    print(f"\nQuality Metrics:")
-    print(f"  - Generation Quality: {report.avg_generation_quality:.3f}")
-    print(f"  - Context Relevance: {report.avg_context_relevance:.3f}")
-    print(f"  - Reflection Quality: {report.avg_reflection_quality:.3f}")
-    print(f"\nOverall Score: {report.overall_score:.3f}")
-    
+
     # Save report if requested
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2)
-        print(f"\nReport saved to {args.output}")
-    
+
     return 0
 
 
