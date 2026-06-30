@@ -153,7 +153,7 @@ class PixelatedEmpathyPlatform:
         personality_type: ClientPersonality,
         difficulty_level: DifficultyLevel,
         learning_objectives: list[SessionObjective],
-        custom_profile: dict = None,
+        custom_profile: dict | None = None,
     ) -> dict:
         """Create a new therapeutic training session"""
 
@@ -218,7 +218,7 @@ class PixelatedEmpathyPlatform:
         self,
         session_id: str,
         therapist_input: str,
-        supervisor_observations: list[dict] = None,
+        supervisor_observations: list[dict] | None = None,
     ) -> dict:
         """Process a single training interaction (therapist input + AI client response)"""
 

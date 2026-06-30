@@ -58,8 +58,7 @@ class MongoBaseRepository:
         else:
             query = {id_field: doc_id}
 
-        doc = await self.collection.find_one(query)
-        return doc
+        return await self.collection.find_one(query)
 
     async def update(self, doc_id: str, data: dict[str, Any], id_field: str = "_id") -> dict[str, Any] | None:
         """Update fields on a document. Returns the updated document."""

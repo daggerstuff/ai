@@ -168,8 +168,7 @@ class TestLargeDatasetLoading(PerformanceTestBase):
             # Measure loading performance
             def load_data():
                 db_uri = f"sqlite:///{db_path}"
-                df = pd.read_sql_query("SELECT * FROM conversations", db_uri)
-                return df
+                return pd.read_sql_query("SELECT * FROM conversations", db_uri)
 
             perf_metrics = self.measure_performance(load_data)
 
@@ -207,8 +206,7 @@ class TestLargeDatasetLoading(PerformanceTestBase):
                 finally:
                     reader.close()
 
-                df = pd.concat(chunks, ignore_index=True)
-                return df
+                return pd.concat(chunks, ignore_index=True)
 
             perf_metrics = self.measure_performance(load_data_chunked)
 

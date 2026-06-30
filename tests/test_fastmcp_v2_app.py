@@ -128,7 +128,7 @@ class TestOutputFormats:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
 
         params = MemoryStoreInput(
             content="Test memory content",
@@ -161,7 +161,7 @@ class TestOutputFormats:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
 
         params = MemoryQueryInput(
             query="project",
@@ -193,7 +193,7 @@ class TestOutputFormats:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
 
         params = MemoryListInput(
             user_id="test-user",
@@ -240,7 +240,7 @@ class TestErrorMessages:
             )
 
         # Mock memory_in_scope to return False
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
         monkeypatch.setattr(fastmcp_v2_tools, "memory_in_scope", lambda **kw: False)
 
         params = MemoryGetInput(
@@ -277,7 +277,7 @@ class TestPagination:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
 
         params = MemoryListInput(
             user_id="test-user",
@@ -305,7 +305,7 @@ class TestPagination:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
 
         params = MemoryQueryInput(
             query="test",
@@ -376,10 +376,10 @@ class TestIntegration:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
 
         # Also mock the status tool to use the same context
-        monkeypatch.setattr(fastmcp_shared, "stdio_trusted_tool_context", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_shared, "stdio_trusted_tool_context", mock_context)
 
         # Create
         store_params = MemoryStoreInput(
@@ -421,7 +421,7 @@ class TestIntegration:
                 scope=scope_from_kwargs(user_id=kwargs.get("user_id", "test-user")),
             )
 
-        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", lambda **kw: mock_context(**kw))
+        monkeypatch.setattr(fastmcp_v2_tools, "authorized_tool_context_from_json", mock_context)
 
         # Run multiple stores concurrently
         async def store_one(i):

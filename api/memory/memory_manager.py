@@ -202,7 +202,7 @@ class MemoryManager:
         session_id: str,
         emotions: dict[str, float],
         context: str,
-        triggers: list[str] = None,
+        triggers: list[str] | None = None,
     ) -> bool:
         content = f"Emotional state: {emotions}. Context: {context}. Triggers: {triggers}"
         return self.add_message(

@@ -10,12 +10,12 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 log = logging.getLogger(__name__)
 
 
-class FeedbackType(str, Enum):
+class FeedbackType(StrEnum):
     SUCCESS = "success"
     FAILURE = "failure"
     PARTIAL = "partial"

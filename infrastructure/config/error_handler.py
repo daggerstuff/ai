@@ -68,7 +68,7 @@ class ConfigError:
 class ConfigErrorHandler:
     """Main configuration error handler"""
 
-    def __init__(self, config_dir: str = None):
+    def __init__(self, config_dir: str | None = None):
         self.config_dir = Path(config_dir) if config_dir else Path(__file__).parent
         self.errors: list[ConfigError] = []
         self.recovery_strategies: dict[ErrorCategory, list[Callable]] = {
@@ -457,7 +457,7 @@ backup:
             logger.error(f"Failed to generate error report: {e}")
 
     @contextmanager
-    def error_context(self, category: ErrorCategory, field: str = None):
+    def error_context(self, category: ErrorCategory, field: str | None = None):
         """Context manager for handling errors in a specific context"""
         try:
             yield
@@ -495,7 +495,7 @@ backup:
 # Convenience functions for common error types
 def handle_config_error(
     message: str,
-    field: str = None,
+    field: str | None = None,
     value: Any = None,
     severity: ErrorSeverity = ErrorSeverity.HIGH,
 ) -> bool:
@@ -511,7 +511,7 @@ def handle_config_error(
     return handler.handle_error(error)
 
 
-def handle_validation_error(message: str, field: str = None, value: Any = None) -> bool:
+def handle_validation_error(message: str, field: str | None = None, value: Any = None) -> bool:
     """Handle a validation error"""
     handler = ConfigErrorHandler()
     error = ConfigError(
@@ -524,7 +524,7 @@ def handle_validation_error(message: str, field: str = None, value: Any = None) 
     return handler.handle_error(error)
 
 
-def handle_security_error(message: str, field: str = None, severity: ErrorSeverity = ErrorSeverity.CRITICAL) -> bool:
+def handle_security_error(message: str, field: str | None = None, severity: ErrorSeverity = ErrorSeverity.CRITICAL) -> bool:
     """Handle a security error"""
     handler = ConfigErrorHandler()
     error = ConfigError(

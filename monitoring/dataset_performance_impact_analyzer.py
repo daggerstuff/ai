@@ -783,7 +783,7 @@ class DatasetPerformanceImpactAnalyzer:
         strategic_data = impact_analysis["strategic_impact"]["strategic_scores"]
 
         high_value_datasets = []
-        for dataset in roi_data.keys():
+        for dataset in roi_data:
             roi_score = roi_data[dataset]["roi_percentage"]
             strategic_score = strategic_data[dataset]["overall_strategic_score"]
 

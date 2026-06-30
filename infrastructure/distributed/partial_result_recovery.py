@@ -108,7 +108,7 @@ class PartialResultManager:
         task_id: str,
         result_type: ResultType,
         data: Any,
-        metadata: dict[str, Any] = None,
+        metadata: dict[str, Any] | None = None,
         sequence_number: int = 0,
     ) -> str:
         """Store a partial result"""
@@ -163,7 +163,7 @@ class PartialResultManager:
         logger.info(f"Stored partial result {result_id}")
         return result_id
 
-    def recover_partial_results(self, process_id: str, result_types: list[ResultType] = None) -> list[PartialResult]:
+    def recover_partial_results(self, process_id: str, result_types: list[ResultType] | None = None) -> list[PartialResult]:
         """Recover partial results for a process"""
 
         with sqlite3.connect(self.db_path) as conn:
@@ -296,7 +296,7 @@ class PartialResultManager:
         return self._merge_results_data(valid_results)
 
     def continue_processing_from_results(
-        self, process_id: str, continuation_handler: Callable, result_types: list[ResultType] = None
+        self, process_id: str, continuation_handler: Callable, result_types: list[ResultType] | None = None
     ) -> Any:
         """Continue processing from recovered partial results"""
 
@@ -328,7 +328,7 @@ class PartialResultManager:
             logger.error(f"Continuation handler failed for {process_id}: {e}")
             raise
 
-    def cleanup_partial_results(self, process_id: str = None, older_than_hours: int = 24) -> int:
+    def cleanup_partial_results(self, process_id: str | None = None, older_than_hours: int = 24) -> int:
         """Clean up old partial results"""
 
         cutoff_time = datetime.now(UTC) - timedelta(hours=older_than_hours)

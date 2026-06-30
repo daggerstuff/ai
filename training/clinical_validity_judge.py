@@ -19,9 +19,7 @@ import json
 import logging
 import re
 import sys
-from typing import Any
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from training.clinical_validity_scorer import ClinicalValidityScorer
 
@@ -134,7 +132,7 @@ class ClinicalValidityJudge:
                 "validity_score": 0.0,
                 "flags": ["empty_input"],
                 "category": "unknown",
-                "detail": {dim: 0.0 for dim in ClinicalValidityScorer.WEIGHTS},
+                "detail": dict.fromkeys(ClinicalValidityScorer.WEIGHTS, 0.0),
             }
 
         # --- Non-English guard (skip LLM call) ---
@@ -143,7 +141,7 @@ class ClinicalValidityJudge:
                 "validity_score": 0.0,
                 "flags": ["non_english_content"],
                 "category": "unknown",
-                "detail": {dim: 0.0 for dim in ClinicalValidityScorer.WEIGHTS},
+                "detail": dict.fromkeys(ClinicalValidityScorer.WEIGHTS, 0.0),
             }
 
         # --- Try LLM judge ---

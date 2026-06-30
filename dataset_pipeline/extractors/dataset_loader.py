@@ -1,10 +1,11 @@
 import csv
-from io import StringIO
+
 from .s3_streamer import S3Streamer
+
 
 class DatasetLoader:
     """Loads standardized/external JSONL and CSV datasets from S3."""
-    
+
     def __init__(self, streamer: S3Streamer):
         self.streamer = streamer
 
@@ -13,11 +14,10 @@ class DatasetLoader:
         import json
         files = list(self.streamer.list_files(prefix))
         for f in files:
-            if not (f.endswith(".jsonl") or f.endswith(".json")):
+            if not (f.endswith((".jsonl", ".json"))):
                 continue
-                
-            print(f"Loading JSON/JSONL dataset: {f}")
-            
+
+
             # If it's a huge standard JSON array
             if f.endswith(".json") and "combined_dataset" not in f:
                 # We have to load the whole file into memory to parse it as JSON array
@@ -34,8 +34,8 @@ class DatasetLoader:
                                     "file_key": f
                                 }
                             }
-                except Exception as e:
-                    print(f"Error parsing JSON {f}: {e}")
+                except Exception:
+                    pass
             else:
                 # Normal JSONL streaming
                 for record in self.streamer.stream_jsonl(f):
@@ -47,21 +47,20 @@ class DatasetLoader:
                             "file_key": f
                         }
                     }
-                
+
     def load_csv(self, prefix, source_family, category):
         """Streams a CSV dataset from a specific S3 prefix and yields dicts."""
         files = list(self.streamer.list_files(prefix))
         for f in files:
             if not f.endswith(".csv"):
                 continue
-                
-            print(f"Loading CSV dataset: {f}")
-            
+
+
             # Since S3Streamer yields lines, we can use csv.DictReader
             # but we need an iterator that returns strings
             line_iterator = self.streamer.stream_text(f)
             reader = csv.DictReader(line_iterator)
-            
+
             for row in reader:
                 yield {
                     "raw_data": row,

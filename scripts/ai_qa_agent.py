@@ -211,10 +211,7 @@ def test_ai_agent():
     """Test the AI agent"""
 
     # Try OpenAI first, fallback to local
-    if os.getenv("OPENAI_API_KEY"):
-        agent = AIQAAgent()
-    else:
-        agent = LocalAIQAAgent()
+    agent = AIQAAgent() if os.getenv("OPENAI_API_KEY") else LocalAIQAAgent()
 
     test_segment = {
         "text": "And I guess to take this one step further, I've heard you talk about that one of the main problems with society today is that a lot of people who have mental health struggles and they're struggling with situations this where they feel stuck and they can't get out of their own way at times. They feel people are against them. They're dealing with trauma. And then they might go see somebody who's not trained in trauma. They don't have the experience. How can somebody begin to take that path and make sure that they're finding somebody that is trained in that and then also that they're able to self-regulate themselves. When needed. , that's a huge question because unfortunately, look, I've been through medical training. I'm a physician. And the average physician never hears any of the stuff I just talked about. The average psychiatrist doesn't get any training in trauma.",

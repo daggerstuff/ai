@@ -151,10 +151,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         with self._lock:
             for key, value in metrics.items():
                 current_value = session.progress_metrics.get(key, 0)
-                if value >= current_value:
-                    new_value = value
-                else:
-                    new_value = current_value + value
+                new_value = value if value >= current_value else current_value + value
                 session.progress_metrics[key] = new_value
                 if hasattr(progress, key):
                     setattr(progress, key, new_value)

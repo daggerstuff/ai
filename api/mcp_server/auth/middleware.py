@@ -111,7 +111,7 @@ class MCPAuthMiddleware:
 
         # Support both "Agent <token>" and "Bearer <token>" for compatibility
         token = ""
-        if auth_header.startswith("Agent ") or auth_header.startswith("Bearer "):
+        if auth_header.startswith(("Agent ", "Bearer ")):
             token = auth_header.split(" ")[1]
         else:
             raise AuthenticationError("Missing or invalid agent authorization header")

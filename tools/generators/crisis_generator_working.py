@@ -197,7 +197,7 @@ Keep response under 100 words and show best practices in crisis intervention."""
 
         return dataset
 
-    def save_dataset(self, dataset: list[dict], filename: str = None) -> str:
+    def save_dataset(self, dataset: list[dict], filename: str | None = None) -> str:
         """Save dataset to file"""
         if filename is None:
             timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")

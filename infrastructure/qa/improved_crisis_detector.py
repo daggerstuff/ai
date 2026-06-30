@@ -424,9 +424,8 @@ async def test_improved_detector():
         is_correct = result.is_crisis == expected
         correct += is_correct
 
-    accuracy = (correct / total) * 100
+    return (correct / total) * 100
 
-    return accuracy
 
 
 if __name__ == "__main__":

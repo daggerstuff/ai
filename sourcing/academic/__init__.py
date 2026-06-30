@@ -46,37 +46,37 @@ from .therapy_dataset_sourcing import (
 # from .anonymization.anonymizer import ContentAnonymizer
 
 __all__ = [
+    "APAPublisher",
+    # API
+    "AcademicSourcingAPI",
     # Main engine
     "AcademicSourcingEngine",
-    "BookMetadata",
-    "SourceType",
-    "SourcingStrategy",
-    "create_academic_sourcing_engine",
-    # Therapy dataset sourcing
-    "TherapyDatasetSourcing",
-    "DatasetMetadata",
-    "DatasetSource",
-    "ConversationFormat",
-    "find_therapy_datasets",
     # Publisher base classes
     "BasePublisher",
     "BookContent",
     "BookFormat",
-    "APAPublisher",
-    "ElsevierPublisher",
-    "SpringerPublisher",
-    "WileyPublisher",
-    "OxfordPublisher",
+    "BookMetadata",
     "CambridgePublisher",
-    "TaylorFrancisPublisher",
+    "ConversationFormat",
+    "DOIResolver",
     # DOI Resolution
     "DOISearcher",
-    "DOIResolver",
-    # API
-    "AcademicSourcingAPI",
+    "DatasetMetadata",
+    "DatasetSource",
+    "ElsevierPublisher",
+    "OxfordPublisher",
+    "SourceType",
+    "SourcingStrategy",
+    "SpringerPublisher",
+    "TaylorFrancisPublisher",
+    # Therapy dataset sourcing
+    "TherapyDatasetSourcing",
+    "WileyPublisher",
+    "create_academic_sourcing_engine",
+    "find_therapy_datasets",
+    "get_all_publishers",
     # Utility functions
     "get_publisher",
-    "get_all_publishers",
 ]
 
 

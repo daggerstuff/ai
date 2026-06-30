@@ -6,16 +6,15 @@ Tests for Case Conceptualization Diagram (CCD) data structures.
 
 import unittest
 from datetime import datetime
-from typing import List
 
 from ai.platform.ccd_schema import (
-    CCDFactorType,
+    CCDConceptualization,
     CCDFactor,
-    CCDProblem,
+    CCDFactorType,
+    CCDFormulation,
     CCDHypothesis,
     CCDIntervention,
-    CCDFormulation,
-    CCDConceptualization,
+    CCDProblem,
 )
 
 
@@ -24,10 +23,10 @@ class TestCCDFactorType(unittest.TestCase):
 
     def test_factor_types_exist(self):
         """Test that all expected factor types exist"""
-        self.assertEqual(CCDFactorType.PREDISPOSING.value, "predisposing")
-        self.assertEqual(CCDFactorType.PRECIPITATING.value, "precipitating")
-        self.assertEqual(CCDFactorType.PERPETUATING.value, "perpetuating")
-        self.assertEqual(CCDFactorType.PROTECTIVE.value, "protective")
+        assert CCDFactorType.PREDISPOSING.value == "predisposing"
+        assert CCDFactorType.PRECIPITATING.value == "precipitating"
+        assert CCDFactorType.PERPETUATING.value == "perpetuating"
+        assert CCDFactorType.PROTECTIVE.value == "protective"
 
 
 class TestCCDFactor(unittest.TestCase):
@@ -42,20 +41,20 @@ class TestCCDFactor(unittest.TestCase):
             evidence=["Patient reports abuse at age 8", "Medical records confirm"],
         )
 
-        self.assertEqual(factor.factor_type, CCDFactorType.PREDISPOSING)
-        self.assertEqual(factor.description, "Childhood trauma history")
-        self.assertEqual(factor.severity, 0.8)
-        self.assertEqual(len(factor.evidence), 2)
-        self.assertIn("Patient reports abuse at age 8", factor.evidence)
+        assert factor.factor_type == CCDFactorType.PREDISPOSING
+        assert factor.description == "Childhood trauma history"
+        assert factor.severity == 0.8
+        assert len(factor.evidence) == 2
+        assert "Patient reports abuse at age 8" in factor.evidence
 
     def test_factor_defaults(self):
         """Test CCD factor with default values"""
         factor = CCDFactor(factor_type=CCDFactorType.PRECIPITATING, description="Job loss")
 
-        self.assertEqual(factor.factor_type, CCDFactorType.PRECIPITATING)
-        self.assertEqual(factor.description, "Job loss")
-        self.assertIsNone(factor.severity)
-        self.assertEqual(factor.evidence, [])
+        assert factor.factor_type == CCDFactorType.PRECIPITATING
+        assert factor.description == "Job loss"
+        assert factor.severity is None
+        assert factor.evidence == []
 
 
 class TestCCDProblem(unittest.TestCase):
@@ -70,21 +69,21 @@ class TestCCDProblem(unittest.TestCase):
             impact_domains=["work", "relationships", "self-care"],
         )
 
-        self.assertEqual(problem.problem_statement, "Persistent depressive symptoms")
-        self.assertEqual(problem.severity, 0.7)
-        self.assertEqual(problem.duration, "8 months")
-        self.assertEqual(len(problem.impact_domains), 3)
-        self.assertIn("work", problem.impact_domains)
+        assert problem.problem_statement == "Persistent depressive symptoms"
+        assert problem.severity == 0.7
+        assert problem.duration == "8 months"
+        assert len(problem.impact_domains) == 3
+        assert "work" in problem.impact_domains
 
     def test_problem_defaults(self):
         """Test CCD problem with default values"""
         problem = CCDProblem(problem_statement="Anxiety symptoms", severity=0.5, duration="3 months")
 
-        self.assertEqual(problem.problem_statement, "Anxiety symptoms")
-        self.assertEqual(problem.severity, 0.5)
-        self.assertEqual(problem.duration, "3 months")
-        self.assertEqual(problem.impact_domains, [])
-        self.assertEqual(problem.factors, [])
+        assert problem.problem_statement == "Anxiety symptoms"
+        assert problem.severity == 0.5
+        assert problem.duration == "3 months"
+        assert problem.impact_domains == []
+        assert problem.factors == []
 
 
 class TestCCDHypothesis(unittest.TestCase):
@@ -100,23 +99,21 @@ class TestCCDHypothesis(unittest.TestCase):
             testable_predictions=["If behavioral activation increases, depression should decrease"],
         )
 
-        self.assertEqual(
-            hypothesis.hypothesis_statement, "Depression maintained by negative thought patterns and social withdrawal"
-        )
-        self.assertEqual(hypothesis.confidence, 0.8)
-        self.assertEqual(len(hypothesis.supporting_evidence), 2)
-        self.assertEqual(len(hypothesis.contradicting_evidence), 1)
-        self.assertEqual(len(hypothesis.testable_predictions), 1)
+        assert hypothesis.hypothesis_statement == "Depression maintained by negative thought patterns and social withdrawal"
+        assert hypothesis.confidence == 0.8
+        assert len(hypothesis.supporting_evidence) == 2
+        assert len(hypothesis.contradicting_evidence) == 1
+        assert len(hypothesis.testable_predictions) == 1
 
     def test_hypothesis_defaults(self):
         """Test CCD hypothesis with default values"""
         hypothesis = CCDHypothesis(hypothesis_statement="Client has anxiety disorder", confidence=0.6)
 
-        self.assertEqual(hypothesis.hypothesis_statement, "Client has anxiety disorder")
-        self.assertEqual(hypothesis.confidence, 0.6)
-        self.assertEqual(hypothesis.supporting_evidence, [])
-        self.assertEqual(hypothesis.contradicting_evidence, [])
-        self.assertEqual(hypothesis.testable_predictions, [])
+        assert hypothesis.hypothesis_statement == "Client has anxiety disorder"
+        assert hypothesis.confidence == 0.6
+        assert hypothesis.supporting_evidence == []
+        assert hypothesis.contradicting_evidence == []
+        assert hypothesis.testable_predictions == []
 
 
 class TestCCDIntervention(unittest.TestCase):
@@ -132,25 +129,23 @@ class TestCCDIntervention(unittest.TestCase):
             facilitators=["Strong therapeutic alliance", "Patient motivated to change"],
         )
 
-        self.assertEqual(
-            intervention.intervention_description, "Weekly CBT sessions focusing on cognitive restructuring"
-        )
-        self.assertEqual(intervention.modality, "CBT")
-        self.assertEqual(intervention.outcome, "partially_effective")
-        self.assertEqual(len(intervention.barriers), 1)
-        self.assertEqual(len(intervention.facilitators), 2)
+        assert intervention.intervention_description == "Weekly CBT sessions focusing on cognitive restructuring"
+        assert intervention.modality == "CBT"
+        assert intervention.outcome == "partially_effective"
+        assert len(intervention.barriers) == 1
+        assert len(intervention.facilitators) == 2
 
     def test_intervention_defaults(self):
         """Test CCD intervention with default values"""
         intervention = CCDIntervention(intervention_description="Medication management", modality="Psychopharmacology")
 
-        self.assertEqual(intervention.intervention_description, "Medication management")
-        self.assertEqual(intervention.modality, "Psychopharmacology")
-        self.assertIsNone(intervention.start_date)
-        self.assertIsNone(intervention.end_date)
-        self.assertIsNone(intervention.outcome)
-        self.assertEqual(intervention.barriers, [])
-        self.assertEqual(intervention.facilitators, [])
+        assert intervention.intervention_description == "Medication management"
+        assert intervention.modality == "Psychopharmacology"
+        assert intervention.start_date is None
+        assert intervention.end_date is None
+        assert intervention.outcome is None
+        assert intervention.barriers == []
+        assert intervention.facilitators == []
 
 
 class TestCCDFormulation(unittest.TestCase):
@@ -167,26 +162,23 @@ class TestCCDFormulation(unittest.TestCase):
             confidence=0.75,
         )
 
-        self.assertEqual(
-            formulation.summary,
-            "Client presents with moderate depression exacerbated by work stress and social isolation",
-        )
-        self.assertEqual(len(formulation.strengths), 2)
-        self.assertEqual(len(formulation.vulnerabilities), 2)
-        self.assertEqual(len(formulation.treatment_goals), 2)
-        self.assertEqual(formulation.prognosis, "guardedly_optimistic")
-        self.assertEqual(formulation.confidence, 0.75)
+        assert formulation.summary == "Client presents with moderate depression exacerbated by work stress and social isolation"
+        assert len(formulation.strengths) == 2
+        assert len(formulation.vulnerabilities) == 2
+        assert len(formulation.treatment_goals) == 2
+        assert formulation.prognosis == "guardedly_optimistic"
+        assert formulation.confidence == 0.75
 
     def test_formulation_defaults(self):
         """Test CCD formulation with default values"""
         formulation = CCDFormulation(summary="Test formulation")
 
-        self.assertEqual(formulation.summary, "Test formulation")
-        self.assertEqual(formulation.strengths, [])
-        self.assertEqual(formulation.vulnerabilities, [])
-        self.assertEqual(formulation.treatment_goals, [])
-        self.assertEqual(formulation.prognosis, "guardedly_optimistic")
-        self.assertEqual(formulation.confidence, 0.7)
+        assert formulation.summary == "Test formulation"
+        assert formulation.strengths == []
+        assert formulation.vulnerabilities == []
+        assert formulation.treatment_goals == []
+        assert formulation.prognosis == "guardedly_optimistic"
+        assert formulation.confidence == 0.7
 
 
 class TestCCDConceptualization(unittest.TestCase):
@@ -199,15 +191,15 @@ class TestCCDConceptualization(unittest.TestCase):
 
     def test_conceptualization_creation(self):
         """Test creating a CCD conceptualization"""
-        self.assertEqual(self.conceptualization.client_id, self.client_id)
-        self.assertIsInstance(self.conceptualization.timestamp, datetime)
-        self.assertEqual(self.conceptualization.problems, [])
-        self.assertEqual(self.conceptualization.factors, [])
-        self.assertEqual(self.conceptualization.hypotheses, [])
-        self.assertEqual(self.conceptualization.interventions, [])
-        self.assertIsNone(self.conceptualization.formulation)
-        self.assertEqual(self.conceptualization.clinician_notes, [])
-        self.assertEqual(self.conceptualization.revision_history, [])
+        assert self.conceptualization.client_id == self.client_id
+        assert isinstance(self.conceptualization.timestamp, datetime)
+        assert self.conceptualization.problems == []
+        assert self.conceptualization.factors == []
+        assert self.conceptualization.hypotheses == []
+        assert self.conceptualization.interventions == []
+        assert self.conceptualization.formulation is None
+        assert self.conceptualization.clinician_notes == []
+        assert self.conceptualization.revision_history == []
 
     def test_add_factor(self):
         """Test adding a factor to conceptualization"""
@@ -218,13 +210,13 @@ class TestCCDConceptualization(unittest.TestCase):
             evidence=["Mother diagnosed with depression", "Maternal aunt with anxiety disorder"],
         )
 
-        self.assertEqual(len(self.conceptualization.factors), 1)
+        assert len(self.conceptualization.factors) == 1
         factor = self.conceptualization.factors[0]
-        self.assertEqual(factor.factor_type, CCDFactorType.PREDISPOSING)
-        self.assertEqual(factor.description, "Family history of depression")
-        self.assertEqual(factor.severity, 0.6)
-        self.assertEqual(len(factor.evidence), 2)
-        self.assertEqual(len(self.conceptualization.revision_history), 1)
+        assert factor.factor_type == CCDFactorType.PREDISPOSING
+        assert factor.description == "Family history of depression"
+        assert factor.severity == 0.6
+        assert len(factor.evidence) == 2
+        assert len(self.conceptualization.revision_history) == 1
 
     def test_add_problem(self):
         """Test adding a problem to conceptualization"""
@@ -235,13 +227,13 @@ class TestCCDConceptualization(unittest.TestCase):
             impact_domains=["work", "social life", "physical health"],
         )
 
-        self.assertEqual(len(self.conceptualization.problems), 1)
+        assert len(self.conceptualization.problems) == 1
         problem = self.conceptualization.problems[0]
-        self.assertEqual(problem.problem_statement, "Chronic anxiety and worry")
-        self.assertEqual(problem.severity, 0.8)
-        self.assertEqual(problem.duration, "2 years")
-        self.assertEqual(len(problem.impact_domains), 3)
-        self.assertEqual(len(self.conceptualization.revision_history), 1)
+        assert problem.problem_statement == "Chronic anxiety and worry"
+        assert problem.severity == 0.8
+        assert problem.duration == "2 years"
+        assert len(problem.impact_domains) == 3
+        assert len(self.conceptualization.revision_history) == 1
 
     def test_add_hypothesis(self):
         """Test adding a hypothesis to conceptualization"""
@@ -252,15 +244,13 @@ class TestCCDConceptualization(unittest.TestCase):
             testable_predictions=["If cognitive restructuring reduces catastrophic thinking, anxiety should decrease"],
         )
 
-        self.assertEqual(len(self.conceptualization.hypotheses), 1)
+        assert len(self.conceptualization.hypotheses) == 1
         hypothesis = self.conceptualization.hypotheses[0]
-        self.assertEqual(
-            hypothesis.hypothesis_statement, "Anxiety maintained by catastrophic thinking and avoidance behaviors"
-        )
-        self.assertEqual(hypothesis.confidence, 0.85)
-        self.assertEqual(len(hypothesis.supporting_evidence), 2)
-        self.assertEqual(len(hypothesis.testable_predictions), 1)
-        self.assertEqual(len(self.conceptualization.revision_history), 1)
+        assert hypothesis.hypothesis_statement == "Anxiety maintained by catastrophic thinking and avoidance behaviors"
+        assert hypothesis.confidence == 0.85
+        assert len(hypothesis.supporting_evidence) == 2
+        assert len(hypothesis.testable_predictions) == 1
+        assert len(self.conceptualization.revision_history) == 1
 
     def test_add_intervention(self):
         """Test adding an intervention to conceptualization"""
@@ -272,14 +262,14 @@ class TestCCDConceptualization(unittest.TestCase):
             facilitators=["Openness to experiential exercises"],
         )
 
-        self.assertEqual(len(self.conceptualization.interventions), 1)
+        assert len(self.conceptualization.interventions) == 1
         intervention = self.conceptualization.interventions[0]
-        self.assertEqual(intervention.intervention_description, "Weekly ACT sessions")
-        self.assertEqual(intervention.modality, "ACT")
-        self.assertEqual(intervention.outcome, "effective")
-        self.assertEqual(len(intervention.barriers), 1)
-        self.assertEqual(len(intervention.facilitators), 1)
-        self.assertEqual(len(self.conceptualization.revision_history), 1)
+        assert intervention.intervention_description == "Weekly ACT sessions"
+        assert intervention.modality == "ACT"
+        assert intervention.outcome == "effective"
+        assert len(intervention.barriers) == 1
+        assert len(intervention.facilitators) == 1
+        assert len(self.conceptualization.revision_history) == 1
 
     def test_set_formulation(self):
         """Test setting a case formulation"""
@@ -292,17 +282,15 @@ class TestCCDConceptualization(unittest.TestCase):
             confidence=0.8,
         )
 
-        self.assertIsNotNone(self.conceptualization.formulation)
+        assert self.conceptualization.formulation is not None
         formulation = self.conceptualization.formulation
-        self.assertEqual(
-            formulation.summary, "Client presents with anxiety disorder maintained by avoidance and cognitive fusion"
-        )
-        self.assertEqual(len(formulation.strengths), 2)
-        self.assertEqual(len(formulation.vulnerabilities), 2)
-        self.assertEqual(len(formulation.treatment_goals), 2)
-        self.assertEqual(formulation.prognosis, "optimistic")
-        self.assertEqual(formulation.confidence, 0.8)
-        self.assertEqual(len(self.conceptualization.revision_history), 1)
+        assert formulation.summary == "Client presents with anxiety disorder maintained by avoidance and cognitive fusion"
+        assert len(formulation.strengths) == 2
+        assert len(formulation.vulnerabilities) == 2
+        assert len(formulation.treatment_goals) == 2
+        assert formulation.prognosis == "optimistic"
+        assert formulation.confidence == 0.8
+        assert len(self.conceptualization.revision_history) == 1
 
     def test_get_factors_by_type(self):
         """Test getting factors by type"""
@@ -316,14 +304,14 @@ class TestCCDConceptualization(unittest.TestCase):
         precipitating_factors = self.conceptualization.get_factors_by_type(CCDFactorType.PRECIPITATING)
         protective_factors = self.conceptualization.get_factors_by_type(CCDFactorType.PROTECTIVE)
 
-        self.assertEqual(len(predisposing_factors), 2)
-        self.assertEqual(len(precipitating_factors), 1)
-        self.assertEqual(len(protective_factors), 1)
+        assert len(predisposing_factors) == 2
+        assert len(precipitating_factors) == 1
+        assert len(protective_factors) == 1
 
-        self.assertEqual(predisposing_factors[0].description, "Genetic vulnerability")
-        self.assertEqual(predisposing_factors[1].description, "Childhood emotional neglect")
-        self.assertEqual(precipitating_factors[0].description, "Recent breakup")
-        self.assertEqual(protective_factors[0].description, "Strong friendship network")
+        assert predisposing_factors[0].description == "Genetic vulnerability"
+        assert predisposing_factors[1].description == "Childhood emotional neglect"
+        assert precipitating_factors[0].description == "Recent breakup"
+        assert protective_factors[0].description == "Strong friendship network"
 
     def test_get_active_problems(self):
         """Test getting active problems (severity > 0.3)"""
@@ -335,15 +323,15 @@ class TestCCDConceptualization(unittest.TestCase):
 
         active_problems = self.conceptualization.get_active_problems()
 
-        self.assertEqual(len(active_problems), 2)  # Only moderate and severe problems
+        assert len(active_problems) == 2  # Only moderate and severe problems
         severities = [p.severity for p in active_problems]
-        self.assertIn(0.6, severities)
-        self.assertIn(0.9, severities)
+        assert 0.6 in severities
+        assert 0.9 in severities
 
         # Check that mild and very mild problems are excluded
         problem_statements = [p.problem_statement for p in active_problems]
-        self.assertNotIn("Mild anxiety", problem_statements)
-        self.assertNotIn("Very mild stress", problem_statements)
+        assert "Mild anxiety" not in problem_statements
+        assert "Very mild stress" not in problem_statements
 
 
 if __name__ == "__main__":

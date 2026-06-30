@@ -50,9 +50,9 @@ def test_basic_functionality():
     assert intensity == 1.0
 
     # Test is_crisis_term
-    assert expansion.is_crisis_term("kill myself") == True
-    assert expansion.is_crisis_term("hello world") == False
-    assert expansion.is_crisis_term("cut myself") == True
+    assert expansion.is_crisis_term("kill myself")
+    assert not expansion.is_crisis_term("hello world")
+    assert expansion.is_crisis_term("cut myself")
 
     # Test get_all_crisis_terms
     all_terms = expansion.get_all_crisis_terms()
@@ -154,22 +154,22 @@ def test_custom_terms():
         expansion.load_from_file(temp_filepath)
 
         # Test English custom term
-        assert expansion.is_crisis_term("custom crisis term") == True
+        assert expansion.is_crisis_term("custom crisis term")
         category = expansion.categorize_term("custom crisis term")
         assert category == CrisisCategory.SELF_HARM.value
         intensity = expansion.get_intensity("custom crisis term")
         assert intensity == 0.7
 
         # Test Spanish custom term
-        assert expansion.is_crisis_term("otro término personalizado") == True
+        assert expansion.is_crisis_term("otro término personalizado")
         category = expansion.categorize_term("otro término personalizado")
         assert category == CrisisCategory.SUBSTANCE_ABUSE.value
         intensity = expansion.get_intensity("otro término personalizado")
         assert intensity == 0.8
 
         # Test synonyms
-        assert expansion.is_crisis_term("custom synonym 1") == True
-        assert expansion.is_crisis_term("sinónimo personalizado 1") == True
+        assert expansion.is_crisis_term("custom synonym 1")
+        assert expansion.is_crisis_term("sinónimo personalizado 1")
 
     finally:
         # Clean up temp file

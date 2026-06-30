@@ -224,7 +224,7 @@ def slice_datasets(output_dir: Path, dry_run: bool = False) -> dict[str, Any]:
                 # Handle directory sources
                 records = []
                 for f in source.glob("*.json*"):
-                    if f.suffix == ".jsonl" or f.suffix == ".json":
+                    if f.suffix in {".jsonl", ".json"}:
                         records.extend(load_jsonl_file(f))
             else:
                 report["warnings"].append(f"Unknown file type: {source_path}")

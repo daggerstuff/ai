@@ -947,7 +947,7 @@ class HealthCheckManager:
                 success=False,
                 duration_seconds=duration,
                 components_shutdown=shutdown_components,
-                components_failed=failed_components + ["critical_shutdown_error"],
+                components_failed=[*failed_components, "critical_shutdown_error"],
                 error_messages=error_messages,
                 warning_messages=warning_messages,
                 timestamp=datetime.now(UTC).isoformat(),
@@ -1311,7 +1311,7 @@ def integrate_with_asgi_server(server_type: str = "uvicorn"):
     signal.signal(signal.SIGINT, shutdown_handler)
 
     # Register cleanup on exit
-    atexit.register(lambda: health_manager.initiate_graceful_shutdown())
+    atexit.register(health_manager.initiate_graceful_shutdown)
 
 
 # Example usage and testing

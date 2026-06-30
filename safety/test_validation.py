@@ -93,9 +93,7 @@ def test_validation():
         if result.warnings:
             pass
 
-    if results["failed"] > 0:
-        return False
-    return True
+    return not results["failed"] > 0
 
 
 def test_batch_validation():

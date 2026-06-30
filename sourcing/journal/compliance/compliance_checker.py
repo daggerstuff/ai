@@ -336,7 +336,4 @@ class ComplianceChecker:
             return True
 
         # 4. Overall low compliance score
-        if result.overall_compliance_score < 0.5:
-            return True
-
-        return False
+        return result.overall_compliance_score < 0.5

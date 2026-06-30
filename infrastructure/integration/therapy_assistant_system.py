@@ -461,7 +461,7 @@ class TherapyAssistantEngine:
         self,
         session_id: str,
         transcript_segment: str,
-        _therapist_request: str = None,
+        _therapist_request: str | None = None,
     ) -> dict:
         """Provide real-time assistance during therapy session"""
 

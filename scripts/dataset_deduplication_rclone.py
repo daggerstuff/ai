@@ -20,7 +20,7 @@ from rclone_dataset_accessor import (
 )
 
 
-def compute_record_hash(record: dict[str, Any], key_fields: list[str] = None) -> str:
+def compute_record_hash(record: dict[str, Any], key_fields: list[str] | None = None) -> str:
     """Compute SHA256 hash of a record for deduplication."""
     if key_fields:
         hash_content = json.dumps({k: record.get(k) for k in key_fields if k in record}, sort_keys=True)
@@ -32,7 +32,7 @@ def compute_record_hash(record: dict[str, Any], key_fields: list[str] = None) ->
 
 
 def find_duplicates_in_dataset(
-    records: list[dict[str, Any]], key_fields: list[str] = None
+    records: list[dict[str, Any]], key_fields: list[str] | None = None
 ) -> tuple[list[dict[str, Any]], dict[str, list[int]]]:
     """Find duplicate records within a dataset."""
     seen_hashes: dict[str, int] = {}
@@ -52,7 +52,7 @@ def find_duplicates_in_dataset(
 
 
 def deduplicate_dataset(
-    dataset_name: str, dataset_entry: dict[str, Any], key_fields: list[str] = None
+    dataset_name: str, dataset_entry: dict[str, Any], key_fields: list[str] | None = None
 ) -> dict[str, Any]:
     """Deduplicate a single dataset."""
     s3_path = dataset_entry.get("path", "")

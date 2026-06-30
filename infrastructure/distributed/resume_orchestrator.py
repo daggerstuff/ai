@@ -163,8 +163,8 @@ class ResumeOrchestrator:
         task_id: str,
         resume_handler: Callable,
         priority: ProcessPriority = ProcessPriority.MEDIUM,
-        resource_requirements: dict[str, int] = None,
-        metadata: dict[str, Any] = None,
+        resource_requirements: dict[str, int] | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Register a process for orchestrated resumption"""
 
@@ -524,7 +524,7 @@ class ResumeOrchestrator:
         dependencies = [
             dep
             for dep in self.process_dependencies
-            if dep.dependent_process == process_id or dep.dependency_process == process_id
+            if process_id in (dep.dependent_process, dep.dependency_process)
         ]
 
         return {

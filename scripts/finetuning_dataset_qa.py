@@ -19,6 +19,7 @@ import json
 import logging
 import re
 import statistics
+import sys
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -400,7 +401,7 @@ class QualityAssurance:
         """Check format validity of examples."""
         issues = []
 
-        for i, example in enumerate(examples):
+        for _i, example in enumerate(examples):
             # Check required fields
             missing = self.REQUIRED_FIELDS - set(example.keys())
             if missing:
@@ -525,7 +526,7 @@ class QualityAssurance:
             )
 
         # Check for inconsistent split assignments
-        splits = set(ex.get("split") for ex in examples if ex.get("split"))
+        {ex.get("split") for ex in examples if ex.get("split")}
 
         return issues
 
@@ -636,7 +637,7 @@ class QualityAssurance:
         input_lengths = [len(ex.get("input", "").split()) for ex in examples]
         target_lengths = [len(ex.get("target", "").split()) for ex in examples]
 
-        stats = {
+        return {
             "input_length": {
                 "mean": statistics.mean(input_lengths) if input_lengths else 0,
                 "median": statistics.median(input_lengths) if input_lengths else 0,
@@ -653,7 +654,6 @@ class QualityAssurance:
             "conversation_types": dict(Counter(ex.get("conversation_type") for ex in examples)),
         }
 
-        return stats
 
 
 def main():
@@ -685,36 +685,20 @@ def main():
     report = qa.run_full_check(args.dataset_path)
 
     # Print summary
-    print("\n=== Quality Assurance Report ===")
-    print(f"Dataset: {report.dataset_path}")
-    print(f"Total Examples: {report.total_examples}")
-    print(f"\nOverall Quality Score: {report.overall_quality_score:.2f}")
-    print(f"  - Format Validity: {report.format_validity_score:.2f}")
-    print(f"  - Completeness: {report.completeness_score:.2f}")
-    print(f"  - Consistency: {report.consistency_score:.2f}")
-    print(f"  - Bias Score: {report.bias_score:.2f}")
 
-    print(f"\nIssues Found: {len(report.issues)}")
-    print(f"  - Critical: {report.critical_issues}")
-    print(f"  - High: {report.high_issues}")
-    print(f"  - Medium: {report.medium_issues}")
-    print(f"  - Low: {report.low_issues}")
 
     if report.recommendations:
-        print("\nRecommendations:")
-        for rec in report.recommendations:
-            print(f"  - {rec}")
+        for _rec in report.recommendations:
+            pass
 
     if report.issues and args.verbose:
-        print("\nDetailed Issues:")
-        for issue in report.issues:
-            print(f"  [{issue.severity.upper()}] {issue.description}")
+        for _issue in report.issues:
+            pass
 
     # Save report if requested
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2)
-        print(f"\nReport saved to {args.output}")
 
     # Return exit code based on quality
     if report.overall_quality_score < 0.5:
@@ -723,4 +707,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

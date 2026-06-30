@@ -290,7 +290,7 @@ class QualityAnomalyDetector:
                 diversities = []
                 for i in range(0, len(data), window_size):
                     window = data[i : i + window_size]
-                    unique_datasets = len(set(r["dataset_source"] for r in window if r["dataset_source"]))
+                    unique_datasets = len({r["dataset_source"] for r in window if r["dataset_source"]})
                     diversities.append(float(unique_datasets))
                 return diversities
 
@@ -449,7 +449,7 @@ Quality anomaly detected in {metric.replace("_", " ")}.
             )
 
         # Anomaly type specific actions
-        anomaly_types = set(a.anomaly_type for a in anomalies)
+        anomaly_types = {a.anomaly_type for a in anomalies}
         if "spike" in anomaly_types:
             actions.append("Investigate sudden increase in metric values")
         if "drop" in anomaly_types:

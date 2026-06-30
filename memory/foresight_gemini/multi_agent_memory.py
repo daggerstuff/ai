@@ -372,7 +372,7 @@ class MultiAgentMemory:
             new_context = CollaborationContext(
                 user_id=context.user_id,
                 session_id=context.session_id,
-                agents=context.agents + [target_agent],
+                agents=[*context.agents, target_agent],
                 current_agent=target_agent,
             )
 

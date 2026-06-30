@@ -12,7 +12,7 @@ from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from ..schema import MemoryBlock
+from ai.memory.schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 

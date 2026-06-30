@@ -111,7 +111,7 @@ class TherapeuticMemoryConfig:
 
     custom_instructions: str = field(default=DEFAULT_MEMORY_INSTRUCTIONS)
     confidence_threshold: float = field(default=0.8)
-    pii_patterns: list[str] = field(default_factory=lambda: DEFAULT_PII_PATTERNS.copy())
+    pii_patterns: list[str] = field(default_factory=DEFAULT_PII_PATTERNS.copy)
     inference_mode: InferenceMode = field(default=InferenceMode.QUALITY)
     categories: list[MemoryCategory] = field(default_factory=lambda: list(MemoryCategory))
     enable_crisis_detection: bool = field(default=True)
@@ -153,10 +153,7 @@ class PIIFilter:
         Returns:
             True if PII is detected, False otherwise
         """
-        for pattern in self._compiled_patterns:
-            if pattern.search(text):
-                return True
-        return False
+        return any(pattern.search(text) for pattern in self._compiled_patterns)
 
     def redact_pii(self, text: str, replacement: str = "[REDACTED]") -> str:
         """
@@ -262,11 +259,7 @@ class SpeculationFilter:
                 return False
 
         # Check for speculation indicators
-        for indicator in cls.SPECULATION_INDICATORS:
-            if indicator in text_lower:
-                return True
-
-        return False
+        return any(indicator in text_lower for indicator in cls.SPECULATION_INDICATORS)
 
     @classmethod
     def get_confidence_adjustment(cls, text: str) -> float:
@@ -353,11 +346,7 @@ class CrisisDetector:
                 return True
 
         # Check patterns
-        for pattern in self._compiled_patterns:
-            if pattern.search(text):
-                return True
-
-        return False
+        return any(pattern.search(text) for pattern in self._compiled_patterns)
 
     def get_crisis_severity(self, text: str) -> str:
         """

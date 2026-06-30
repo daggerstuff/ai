@@ -369,14 +369,14 @@ class CheckpointTestSuite:
         # Test invalid checkpoint ID
         try:
             self.manager.storage.load_checkpoint("invalid_checkpoint_id")
-            assert False, "Should raise exception for invalid checkpoint ID"
+            raise AssertionError("Should raise exception for invalid checkpoint ID")
         except ValueError:
             pass  # Expected
 
         # Test updating non-existent process
         try:
             self.manager.update_process_progress("non_existent_process", 5)
-            assert False, "Should raise exception for non-existent process"
+            raise AssertionError("Should raise exception for non-existent process")
         except ValueError:
             pass  # Expected
 

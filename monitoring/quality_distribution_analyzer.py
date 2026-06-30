@@ -513,7 +513,7 @@ class QualityDistributionAnalyzer:
                         transform=ax.transAxes,
                         verticalalignment="top",
                         fontsize=8,
-                        bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.7),
+                        bbox={"boxstyle": "round", "facecolor": "wheat", "alpha": 0.7},
                     )
 
                 # Remove empty subplots

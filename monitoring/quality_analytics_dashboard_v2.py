@@ -652,8 +652,8 @@ class QualityAnalyticsDashboard:
                         x=dates,
                         y=qualities,
                         mode="lines+markers",
-                        line=dict(color=self.color_schemes["trends"], width=3),
-                        marker=dict(size=8),
+                        line={"color": self.color_schemes["trends"], "width": 3},
+                        marker={"size": 8},
                         text=[f"{c} conversations" for c in counts],
                         hovertemplate="<b>%{x}</b><br>Quality: %{y:.3f}<br>%{text}<extra></extra>",
                     ),
@@ -683,16 +683,16 @@ class QualityAnalyticsDashboard:
 
             # Update layout
             fig.update_layout(
-                title=dict(
-                    text=f"Quality Analytics Overview - {analytics.total_conversations:,} Conversations",
-                    x=0.5,
-                    font=dict(size=20, color="#2c3e50"),
-                ),
+                title={
+                    "text": f"Quality Analytics Overview - {analytics.total_conversations:,} Conversations",
+                    "x": 0.5,
+                    "font": {"size": 20, "color": "#2c3e50"},
+                },
                 height=800,
                 showlegend=False,
                 plot_bgcolor="white",
                 paper_bgcolor="white",
-                font=dict(family="Arial, sans-serif", size=12),
+                font={"family": "Arial, sans-serif", "size": 12},
             )
 
             # Update axes
@@ -766,7 +766,7 @@ class QualityAnalyticsDashboard:
                 )
 
             # 2. Component Correlation Matrix
-            quality_cols = [col for col in self.quality_components.keys() if col in df.columns]
+            quality_cols = [col for col in self.quality_components if col in df.columns]
             if len(quality_cols) > 1:
                 # Filter out zero values for correlation
                 corr_df = df[quality_cols].replace(0, np.nan)

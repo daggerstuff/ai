@@ -6,6 +6,7 @@ Tests that all inference endpoints properly filter content for safety.
 import contextlib
 import json
 import logging
+import sys
 import time
 import unittest
 from unittest.mock import patch
@@ -514,11 +515,10 @@ def run_safety_filtering_tests():
         for _test, _traceback in result.errors:
             pass
 
-    success = result.wasSuccessful()
+    return result.wasSuccessful()
 
-    return success
 
 
 if __name__ == "__main__":
     success = run_safety_filtering_tests()
-    exit(0 if success else 1)
+    sys.exit(0 if success else 1)

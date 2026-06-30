@@ -242,7 +242,7 @@ class IntelligentQAAgent:
 
         return {
             "type": content_type,
-            "confidence": scores[content_type] if content_type in scores else 0.3,
+            "confidence": scores.get(content_type, 0.3),
         }
 
     def assess_question_quality(self, question: str) -> float:

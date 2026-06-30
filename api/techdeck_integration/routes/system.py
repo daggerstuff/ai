@@ -464,10 +464,7 @@ def get_system_logs():
         else:
             start_date = datetime.now(UTC) - timedelta(hours=24)
 
-        if end_date_str:
-            end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-        else:
-            end_date = datetime.now(UTC)
+        end_date = datetime.fromisoformat(end_date_str.replace("Z", "+00:00")) if end_date_str else datetime.now(UTC)
 
         if start_date >= end_date:
             raise ValidationError("Start date must be before end date")
@@ -830,7 +827,7 @@ def _get_system_metrics(_redis_client: RedisClient, metric_type: str, duration: 
         # Generate sample metrics data
         current_time = start_time
         while current_time <= end_time:
-            if metric_type == "cpu" or metric_type == "all":
+            if metric_type in {"cpu", "all"}:
                 cpu_value = 45 + (current_time.minute % 20)  # Simulate variation
                 metrics.append(
                     {
@@ -840,7 +837,7 @@ def _get_system_metrics(_redis_client: RedisClient, metric_type: str, duration: 
                     }
                 )
 
-            if metric_type == "memory" or metric_type == "all":
+            if metric_type in {"memory", "all"}:
                 memory_value = 65 + (current_time.minute % 10)
                 metrics.append(
                     {
@@ -850,7 +847,7 @@ def _get_system_metrics(_redis_client: RedisClient, metric_type: str, duration: 
                     }
                 )
 
-            if metric_type == "disk" or metric_type == "all":
+            if metric_type in {"disk", "all"}:
                 disk_value = 70 + (current_time.hour % 5)
                 metrics.append(
                     {
@@ -860,7 +857,7 @@ def _get_system_metrics(_redis_client: RedisClient, metric_type: str, duration: 
                     }
                 )
 
-            if metric_type == "network" or metric_type == "all":
+            if metric_type in {"network", "all"}:
                 network_value = 100 + (current_time.minute % 50)
                 metrics.append(
                     {

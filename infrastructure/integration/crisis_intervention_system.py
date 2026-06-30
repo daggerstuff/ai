@@ -171,7 +171,7 @@ class CrisisDetectionEngine:
     def assess_crisis_risk(
         self,
         message: str,
-        conversation_history: list[str] = None,
+        conversation_history: list[str] | None = None,
         confidence_override: float | None = None,
     ) -> CrisisAssessment:
         """Comprehensive crisis risk assessment"""
@@ -445,7 +445,7 @@ class TherapeuticCrisisResponder:
         self,
         message: str,
         assessment: CrisisAssessment,
-        conversation_context: list[str] = None,
+        conversation_context: list[str] | None = None,
     ) -> CrisisResponse:
         """Generate appropriate therapeutic response for crisis situation"""
         # Empathy-first lead constructed from user's message and assessment
@@ -674,7 +674,7 @@ class CrisisInterventionSystem:
         self.responder = TherapeuticCrisisResponder()
         self.active_crisis_sessions = {}
 
-    async def handle_crisis_message(self, user_id: str, message: str, conversation_history: list[str] = None) -> dict:
+    async def handle_crisis_message(self, user_id: str, message: str, conversation_history: list[str] | None = None) -> dict:
         """Handle incoming message with crisis assessment and response"""
 
         # Step 1: Crisis assessment

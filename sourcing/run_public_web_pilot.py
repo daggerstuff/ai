@@ -75,8 +75,7 @@ class RedditConverter:
         import re
 
         text = re.sub(r"/u/\w+", "[user]", text)
-        text = re.sub(r"/r/\w+", "[subreddit]", text)
-        return text
+        return re.sub(r"/r/\w+", "[subreddit]", text)
 
     def _canonical_anon(self, username: str | None) -> str:
         if not username:
@@ -104,14 +103,14 @@ class RedditConverter:
             prompt = body
 
         pairs: list[dict] = []
-        comments = post.get("all_awards")  # Pushshift stores comments in 'all_awards' as a placeholder
+        post.get("all_awards")  # Pushshift stores comments in 'all_awards' as a placeholder
 
         # Try top comment from PullPush batch fetch
         top_comment = post.get("top_comment", {})
         if prompt and top_comment and isinstance(top_comment, dict):
             comment_body = self._scrub(top_comment.get("body", ""))
             comment_author = top_comment.get("author", "")
-            if comment_body and comment_body != "[deleted]" and comment_body != "[removed]":
+            if comment_body and comment_body not in {"[deleted]", "[removed]"}:
                 pairs.append(
                     {
                         "messages": [
@@ -338,7 +337,7 @@ def evaluate_therapeutic_relevance(samples: list[dict]) -> int:
 
     weighted = sum((i + 1) * c for i, c in enumerate(score_buckets))
     avg = weighted / len(samples) if samples else 0
-    return min(10, max(1, int(round(avg))))
+    return min(10, max(1, round(avg)))
 
 
 def evaluate_gate1(
@@ -406,13 +405,12 @@ def evaluate_gate2(
             r = normalizer.normalize_record(s)
             if r is not None and "messages" in r:
                 msgs = r["messages"]
-                if isinstance(msgs, list) and len(msgs) >= 2:
-                    if all(
-                        isinstance(m, dict) and "content" in m and m["content"].strip()
-                        for m in msgs
-                        if m.get("role") in ("user", "assistant")
-                    ):
-                        schema_valid += 1
+                if isinstance(msgs, list) and len(msgs) >= 2 and all(
+                    isinstance(m, dict) and "content" in m and m["content"].strip()
+                    for m in msgs
+                    if m.get("role") in ("user", "assistant")
+                ):
+                    schema_valid += 1
         except Exception:
             pass
     schema_validation_pct = round(schema_valid / len(samples) * 100, 2) if samples else 0.0

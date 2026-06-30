@@ -97,11 +97,11 @@ def extract_dialogue(filepath: str):
     if "Couples Therapy" in fname:
         show_type = "couples"
         therapist_name = "Dr. Orna Guralnik"
-        title = fname.replace(".json", "").replace(" ｜ Couples Therapy", "").strip()
+        fname.replace(".json", "").replace(" ｜ Couples Therapy", "").strip()
     elif "The Therapist" in fname:
         show_type = "therapist"
         therapist_name = "Dr. Siri Sat Nam Singh"
-        title = fname.replace(".json", "").replace(" ｜ The Therapist", "").strip()
+        fname.replace(".json", "").replace(" ｜ The Therapist", "").strip()
     else:
         return None, None, None
 
@@ -147,9 +147,8 @@ def extract_dialogue(filepath: str):
         prev_r = roles[i - 1]
         next_r = roles[i + 1]
         curr_r = roles[i]
-        if curr_r != prev_r and curr_r != next_r and prev_r == next_r:
-            if abs(scored[i]["score"]) <= 1.0:
-                roles[i] = prev_r
+        if curr_r not in (prev_r, next_r) and prev_r == next_r and abs(scored[i]["score"]) <= 1.0:
+            roles[i] = prev_r
 
     # 5. Merge consecutive same-role into turns
     messages = [{"role": "system", "content": f"You are {therapist_name}. This is a therapy session."}]
@@ -195,7 +194,6 @@ def main():
         fname = Path(fp).name
         messages, t_turns, c_turns = extract_dialogue(fp)
         if messages is None or t_turns is None or c_turns is None:
-            print(f"{fname}: FAILED")
             stats.append({"file": fname, "status": "failed"})
             continue
 
@@ -226,9 +224,6 @@ def main():
                 "total_turns": dialogue_turns,
             }
         )
-        print(
-            f"{fname}: OK  therapist={t_turns} client={c_turns} total={dialogue_turns}"
-        )
 
     with open(MERGED_OUT, "w") as f:
         for rec in all_records:
@@ -240,8 +235,6 @@ def main():
     total_c = sum(s.get("client_turns", 0) for s in stats if s["status"] == "ok")
     total = sum(s.get("total_turns", 0) for s in stats if s["status"] == "ok")
 
-    print(f"\nSUCCESS: {ok_count}/{len(files)}  |  therapist={total_t} client={total_c} total={total}")
-    print(f"Merged JSONL: {MERGED_OUT}")
 
     stats_path = MERGED_OUT.replace(".jsonl", "_stats.json")
     with open(stats_path, "w") as f:

@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import contextlib
 
+import pytest
 from quality_analytics_dashboard_v2 import QualityAnalytics, QualityAnalyticsDashboard
 
 # Configure logging for tests
@@ -415,7 +416,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
     def test_11_error_handling(self):
         """Test error handling with invalid database."""
         # Test with non-existent database
-        with self.assertRaises(FileNotFoundError):
+        with pytest.raises(FileNotFoundError):
             QualityAnalyticsDashboard(db_path="/nonexistent/path/db.sqlite")
 
         # Test with corrupted data

@@ -99,7 +99,7 @@ def create_enhanced_dataset_entry(original_entry: dict[str, Any]) -> dict[str, A
     return enhanced_entry
 
 
-def enhance_registry(input_path: Path, output_path: Path, limit: int = None) -> dict[str, Any]:
+def enhance_registry(input_path: Path, output_path: Path, limit: int | None = None) -> dict[str, Any]:
     """
     Enhance the dataset registry with new fields for all datasets.
 

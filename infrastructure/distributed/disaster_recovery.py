@@ -104,7 +104,7 @@ class RecoverySession:
 class DisasterRecoveryManager:
     """Manages disaster recovery procedures and automation"""
 
-    def __init__(self, config: dict[str, Any] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.recovery_plans: dict[str, DisasterRecoveryPlan] = {}
         self.active_sessions: dict[str, RecoverySession] = {}

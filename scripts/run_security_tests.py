@@ -126,7 +126,7 @@ class ComprehensiveSecurityValidator:
 
         # Test 2: JWT token structure
         try:
-            user = list(auth_system.users.values())[0]  # Get first user
+            user = next(iter(auth_system.users.values()))  # Get first user
             token = auth_system.generate_jwt_token(user)
 
             # Token should have 3 parts (header.payload.signature)

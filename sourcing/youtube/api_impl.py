@@ -140,8 +140,7 @@ class YouTubeAPI:
         try:
             from youtubesearchpython import Video
 
-            data = Video.get(f"https://www.youtube.com/watch?v={video_id}")
-            return data
+            return Video.get(f"https://www.youtube.com/watch?v={video_id}")
 
         except Exception as e:
             logger.error(f"Failed to get video details for {video_id}: {e}")
@@ -203,4 +202,3 @@ def get_api_quota_status() -> tuple[bool, int, int]:
 
 if __name__ == "__main__":
     ok = test_api_connection()
-    print(f"InnerTube connection: {'OK' if ok else 'FAILED'}")

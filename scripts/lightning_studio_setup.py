@@ -9,6 +9,7 @@ import subprocess
 from pathlib import Path
 
 import lightning
+
 from ai.utils.torch_proxy import torch
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

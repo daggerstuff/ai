@@ -1,9 +1,9 @@
+from typing import Any
+
 from orchestration.celery_app import celery_app
-from orchestration.safety.guards import InputGuard, OutputGuard
-from orchestration.core.state_machine import PersonaStateMachine
 from orchestration.core.inference import InferenceEngine, MockLLMProvider
-from typing import Dict, Any
-import json
+from orchestration.core.state_machine import PersonaStateMachine
+from orchestration.safety.guards import InputGuard, OutputGuard
 
 # Simulated database/store
 # In a real app, this would be Redis/Postgres
@@ -23,10 +23,10 @@ PERSONA_STORE = {
 }
 
 @celery_app.task
-def run_safety_input_guard(session_id: str, user_input: str) -> Dict[str, Any]:
+def run_safety_input_guard(session_id: str, user_input: str) -> dict[str, Any]:
     guard = InputGuard()
     result = guard.run(user_input)
-    
+
     return {
         "session_id": session_id,
         "user_input": user_input,
@@ -36,10 +36,10 @@ def run_safety_input_guard(session_id: str, user_input: str) -> Dict[str, Any]:
     }
 
 @celery_app.task
-def update_persona_state(input_data: Dict[str, Any]) -> Dict[str, Any]:
+def update_persona_state(input_data: dict[str, Any]) -> dict[str, Any]:
     session_id = input_data["session_id"]
     intent = input_data["intent"]
-    
+
     # Load persona and session state
     persona_def = PERSONA_STORE.get("default") # Placeholder
     session_state = SESSION_STORE.get(session_id, {
@@ -53,20 +53,20 @@ def update_persona_state(input_data: Dict[str, Any]) -> Dict[str, Any]:
         },
         "history": []
     })
-    
+
     sm = PersonaStateMachine.from_dict(session_state, persona_def)
     sm.transition(intent)
-    
+
     # Save back
     new_state = sm.to_dict()
     SESSION_STORE[session_id] = new_state
-    
+
     input_data["current_state"] = new_state
     input_data["persona_definition"] = persona_def
     return input_data
 
 @celery_app.task
-def generate_llm_response(data: Dict[str, Any]) -> Dict[str, Any]:
+def generate_llm_response(data: dict[str, Any]) -> dict[str, Any]:
     if not data.get("input_passed"):
         data["llm_output"] = "I'm sorry, I cannot process that request."
         return data
@@ -77,23 +77,22 @@ def generate_llm_response(data: Dict[str, Any]) -> Dict[str, Any]:
         data["persona_definition"],
         data["current_state"]
     )
-    
+
     data["llm_output"] = response
     return data
 
 @celery_app.task
-def run_safety_output_guard(data: Dict[str, Any]) -> Dict[str, Any]:
+def run_safety_output_guard(data: dict[str, Any]) -> dict[str, Any]:
     guard = OutputGuard(data["persona_definition"])
     result = guard.run(data["llm_output"], data["current_state"]["current_state"])
-    
+
     data["output_passed"] = result.passed
     data["sanitized_output"] = result.sanitized_text
     data["guard_message"] = result.message
-    
+
     return data
 
 @celery_app.task
-def broadcast_response(data: Dict[str, Any]) -> Dict[str, Any]:
+def broadcast_response(data: dict[str, Any]) -> dict[str, Any]:
     # In a real app, this would send to a WebSocket or similar
-    print(f"BROADCASTING to {data['session_id']}: {data['sanitized_output']}")
     return data

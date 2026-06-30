@@ -172,10 +172,7 @@ def command_import_channels(args) -> int:
                     metrics_obj = QualityMetrics()
 
                 # Parse licensing info
-                if data.get("licensing"):
-                    licensing_obj = LicensingInfo(**data["licensing"])
-                else:
-                    licensing_obj = LicensingInfo()
+                licensing_obj = LicensingInfo(**data["licensing"]) if data.get("licensing") else LicensingInfo()
 
                 # Determine status
                 status = ChannelStatus(data.get("status", "unknown"))

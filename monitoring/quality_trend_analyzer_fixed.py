@@ -169,7 +169,7 @@ class QualityTrendAnalyzer:
                 if metric_value is not None:
                     period_values.append(metric_value)
                     # Convert period key back to datetime
-                    if period == "daily" or period == "weekly":
+                    if period in {"daily", "weekly"}:
                         timestamps.append(datetime.strptime(period_key, "%Y-%m-%d"))
                     elif period == "monthly":
                         timestamps.append(datetime.strptime(f"{period_key}-01", "%Y-%m-%d"))
@@ -282,7 +282,7 @@ class QualityTrendAnalyzer:
             # Statistical tests
             statistical_tests = self._perform_statistical_tests(trends)
 
-            report = TrendReport(
+            return TrendReport(
                 period=period,
                 overall_trend=overall_trend,
                 key_insights=insights,
@@ -291,7 +291,6 @@ class QualityTrendAnalyzer:
                 statistical_tests=statistical_tests,
             )
 
-            return report
 
         except Exception:
             return TrendReport(

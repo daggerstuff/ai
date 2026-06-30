@@ -63,14 +63,7 @@ class QualityDistributionAnalysisLauncher:
         for package in self.required_packages:
             try:
                 if (
-                    package == "sqlite3"
-                    or package == "pandas"
-                    or package == "numpy"
-                    or package == "scipy"
-                    or package == "plotly"
-                    or package == "seaborn"
-                    or package == "matplotlib"
-                    or package == "jinja2"
+                    package in {"sqlite3", "pandas", "numpy", "scipy", "plotly", "seaborn", "matplotlib", "jinja2"}
                 ):
                     pass
 
@@ -201,8 +194,8 @@ class QualityDistributionAnalysisLauncher:
         include_visualizations: bool = True,
         include_comparisons: bool = True,
         output_format: str = "both",
-        tier_filter: list = None,
-        dataset_filter: list = None,
+        tier_filter: list | None = None,
+        dataset_filter: list | None = None,
     ) -> dict:
         """Run comprehensive distribution analysis."""
         logger.info(f"📊 Running distribution analysis ({days_back} days back)...")
@@ -342,8 +335,8 @@ class QualityDistributionAnalysisLauncher:
         include_visualizations: bool = True,
         include_comparisons: bool = True,
         output_format: str = "both",
-        tier_filter: list = None,
-        dataset_filter: list = None,
+        tier_filter: list | None = None,
+        dataset_filter: list | None = None,
         skip_validation: bool = False,
     ) -> bool:
         """

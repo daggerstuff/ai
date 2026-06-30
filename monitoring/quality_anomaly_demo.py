@@ -171,7 +171,7 @@ class QualityAnomalyDemo:
                 priority = len([r for r in data if r["tier"] and "priority" in str(r["tier"])])
                 return (priority / total) * 100 if total > 0 else None
             if metric == "dataset_diversity":
-                unique_datasets = len(set(r["dataset_source"] for r in data if r["dataset_source"]))
+                unique_datasets = len({r["dataset_source"] for r in data if r["dataset_source"]})
                 return float(unique_datasets)
 
             return None

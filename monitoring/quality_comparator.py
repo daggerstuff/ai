@@ -317,10 +317,7 @@ class QualityComparator:
                 ((len(data1) - 1) * data1.var() + (len(data2) - 1) * data2.var()) / (len(data1) + len(data2) - 2)
             )
 
-            if pooled_std > 0:
-                effect_size = abs(data1.mean() - data2.mean()) / pooled_std
-            else:
-                effect_size = 0.0
+            effect_size = abs(data1.mean() - data2.mean()) / pooled_std if pooled_std > 0 else 0.0
 
             # Determine practical significance
             practical_significance = effect_size >= self.effect_size_thresholds["small"]

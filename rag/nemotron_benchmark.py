@@ -17,6 +17,7 @@ import asyncio
 import json
 import os
 import statistics
+import sys
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
@@ -315,9 +316,7 @@ class NemotronBenchmark:
 
     def print_results(self, all_results: dict[str, dict[str, ModelResult]]):
         """Print formatted benchmark results"""
-        print("NEMOTRON MODEL BENCHMARK RESULTS")
         if not all_results:
-            print("No results were returned.")
             return
 
         model_scores = {}
@@ -332,18 +331,10 @@ class NemotronBenchmark:
                 if result.avg_latency_ms > 0:
                     latencies.append(result.avg_latency_ms)
 
-                task_label = getattr(result.task_type, "name", str(result.task_type)).upper()
-                print(
-                    f"{model} | {task_label}: "
-                    f"success={result.success_rate:.1f}% "
-                    f"latency_p50={result.p50_latency_ms:.1f}ms "
-                    f"latency_p95={result.p95_latency_ms:.1f}ms "
-                    f"latency_p99={result.p99_latency_ms:.1f}ms "
-                    f"errors={result.error_count}"
-                )
+                getattr(result.task_type, "name", str(result.task_type)).upper()
                 if result.errors:
-                    for error, count in result.errors.items():
-                        print(f"  - {error}: {count}")
+                    for _error, _count in result.errors.items():
+                        pass
 
             model_scores[model] = {
                 "success_rate": (total_success / total_requests) * 100 if total_requests > 0 else 0,
@@ -356,9 +347,8 @@ class NemotronBenchmark:
             reverse=True,
         )
 
-        print("\nMODEL LEADERBOARD")
-        for rank, (model, scores) in enumerate(sorted_models, 1):
-            print(f"{rank}. {model} | success={scores['success_rate']:.1f}% avg_latency={scores['avg_latency']:.1f}ms")
+        for _rank, (model, _scores) in enumerate(sorted_models, 1):
+            pass
 
     def save_results(
         self,
@@ -439,7 +429,7 @@ async def main():
     args = parser.parse_args()
 
     if not args.api_key:
-        exit(1)
+        sys.exit(1)
 
     config = BenchmarkConfig(
         api_key=args.api_key,

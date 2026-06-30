@@ -11,14 +11,14 @@ import logging
 import math
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from ..schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 
 
-class ForgetAction(str, Enum):
+class ForgetAction(StrEnum):
     PRESERVE = "preserve"
     ARCHIVE = "archive"
     DELETE = "delete"
@@ -100,7 +100,7 @@ class ForgettingEngine:
         """Return memories eligible for pruning, sorted by retention score (lowest first)."""
         decisions = self.batch_evaluate(memories, now_ms)
         candidates = [
-            (m, d) for m, d in zip(memories, decisions) if d.action in (ForgetAction.ARCHIVE, ForgetAction.DELETE)
+            (m, d) for m, d in zip(memories, decisions, strict=False) if d.action in (ForgetAction.ARCHIVE, ForgetAction.DELETE)
         ]
         candidates.sort(key=lambda x: x[1].retention_score)
         return candidates

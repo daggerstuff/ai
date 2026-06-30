@@ -78,15 +78,7 @@ class DatasetCleaner:
             if "expert_id" not in conversation or conversation["expert_id"] not in [0, 1, 2, 3]:
                 return False
 
-            if "style" not in conversation or conversation["style"] not in [
-                "therapeutic",
-                "educational",
-                "empathetic",
-                "practical",
-            ]:
-                return False
-
-            return True
+            return not ("style" not in conversation or conversation["style"] not in ["therapeutic", "educational", "empathetic", "practical"])
 
         except Exception:
             return False

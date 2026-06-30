@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import json
 import os
-import shutil
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -14,10 +12,9 @@ def _load_manifest() -> dict[str, Any]:
     if not REGISTRY_PATH.exists():
         return {"schema_version": "1.0", "active_run_id": None, "checkpoints": []}
     try:
-        with open(REGISTRY_PATH, "r") as f:
+        with open(REGISTRY_PATH) as f:
             return json.load(f)
     except json.JSONDecodeError:
-        print(f"Error: corrupted registry file {REGISTRY_PATH}", file=sys.stderr)
         raise SystemExit(1)
 
 
@@ -34,7 +31,6 @@ def cmd_tag(args: Any) -> None:
     for cp in manifest["checkpoints"]:
         if cp["run_id"] == args.run_id:
             if not getattr(args, "force", False):
-                print(f"Error: run_id {args.run_id} already exists")
                 raise SystemExit(1)
             # Remove old duplicate if forced
             manifest["checkpoints"] = [c for c in manifest["checkpoints"] if c["run_id"] != args.run_id]
@@ -51,7 +47,6 @@ def cmd_tag(args: Any) -> None:
         try:
             checkpoint["metrics"] = json.loads(args.metrics)
         except json.JSONDecodeError:
-            print(f"Error: invalid JSON in --metrics: {args.metrics}", file=sys.stderr)
             raise SystemExit(1)
 
     manifest["checkpoints"].append(checkpoint)
@@ -66,19 +61,16 @@ def cmd_show(args: Any) -> None:
     manifest = _load_manifest()
     for cp in manifest["checkpoints"]:
         if cp["run_id"] == args.run_id:
-            print(json.dumps(cp, indent=2))
             return
-    print(f"Error: run_id {args.run_id} not found")
     raise SystemExit(1)
 
 
 def cmd_list(args: Any) -> None:
     manifest = _load_manifest()
     if not manifest["checkpoints"]:
-        print("No checkpoints registered")
         return
-    for cp in manifest["checkpoints"]:
-        print(f"{cp['run_id']} - {cp['base_model']}")
+    for _cp in manifest["checkpoints"]:
+        pass
 
 
 def cmd_rollback(args: Any) -> None:
@@ -90,7 +82,6 @@ def cmd_rollback(args: Any) -> None:
             break
 
     if not found:
-        print(f"Error: run_id {args.run_id} not found")
         raise SystemExit(1)
 
     manifest["active_run_id"] = args.run_id

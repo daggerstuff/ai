@@ -51,23 +51,23 @@ from .speech_recognition import (
 )
 
 __all__ = [
-    # Speech recognition
-    "SpeechRecognizer",
-    "TranscriptionResult",
-    "TranscriptionSegment",
-    "SpeechAudioPreprocessor",
     # Audio emotion recognition
     "AudioEmotionRecognizer",
+    "AudioEmotionResult",
     "AudioPreprocessor",
     "EmotionTrajectory",
     "EmotionalState",
-    "AudioEmotionResult",
+    "FusedEmotionalState",
+    "ModalityWeights",
     # Multimodal fusion
     "MultimodalFusion",
-    "ModalityWeights",
-    "FusedEmotionalState",
-    "TextToSpeechGenerator",
     "MultimodalResponseGenerator",
+    "SpeechAudioPreprocessor",
+    # Speech recognition
+    "SpeechRecognizer",
+    "TextToSpeechGenerator",
+    "TranscriptionResult",
+    "TranscriptionSegment",
 ]
 
 __version__ = "0.1.0"

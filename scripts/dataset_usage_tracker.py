@@ -6,7 +6,7 @@ training job correlations, and data freshness.
 import argparse
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -55,7 +55,7 @@ class DatasetUsageTracker:
 
     def save_registry(self, registry: dict[str, Any]) -> None:
         """Save the updated registry."""
-        registry["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+        registry["last_updated"] = datetime.now(UTC).isoformat() + "Z"
         with open(self.registry_path, "w") as f:
             json.dump(registry, f, indent=2, ensure_ascii=False)
 
@@ -71,13 +71,13 @@ class DatasetUsageTracker:
             "dataset_name": dataset_name,
             "access_history": [],
             "training_jobs": [],
-            "created_at": datetime.now(timezone.utc).isoformat() + "Z",
+            "created_at": datetime.now(UTC).isoformat() + "Z",
         }
 
     def save_analytics(self, dataset_name: str, analytics: dict[str, Any]) -> None:
         """Save analytics data for a dataset."""
         analytics_file = self.analytics_dir / f"{dataset_name}_analytics.json"
-        analytics["last_updated"] = datetime.now(timezone.utc).isoformat() + "Z"
+        analytics["last_updated"] = datetime.now(UTC).isoformat() + "Z"
 
         with open(analytics_file, "w") as f:
             json.dump(analytics, f, indent=2)
@@ -104,7 +104,7 @@ class DatasetUsageTracker:
 
         access_record = asdict(
             AccessRecord(
-                timestamp=datetime.now(timezone.utc).isoformat() + "Z",
+                timestamp=datetime.now(UTC).isoformat() + "Z",
                 access_type=access_type,
                 job_id=job_id,
                 user=user,
@@ -145,7 +145,7 @@ class DatasetUsageTracker:
         job_record = asdict(
             TrainingJobRecord(
                 job_id=job_id,
-                timestamp=datetime.now(timezone.utc).isoformat() + "Z",
+                timestamp=datetime.now(UTC).isoformat() + "Z",
                 stage=stage,
                 model=model,
                 epochs=epochs,
@@ -183,7 +183,7 @@ class DatasetUsageTracker:
             last_modified = response.get("LastModified")
 
             if last_modified:
-                delta = datetime.now(timezone.utc) - last_modified.replace(tzinfo=None)
+                delta = datetime.now(UTC) - last_modified.replace(tzinfo=None)
                 return delta.days
 
             return None
@@ -224,7 +224,7 @@ class DatasetUsageTracker:
             job
             for job in training_jobs
             if datetime.fromisoformat(job["timestamp"].rstrip("Z"))
-            > datetime.now(timezone.utc) - timedelta(days=30)
+            > datetime.now(UTC) - timedelta(days=30)
         ]
 
         return {
@@ -336,8 +336,7 @@ class DatasetUsageTracker:
 
                 stats["total_updated"] += 1
 
-            except Exception as e:
-                print(f"Error updating {dataset_path_key}: {e}")
+            except Exception:
                 stats["total_skipped"] += 1
 
         # Save updated registry
@@ -374,32 +373,20 @@ def main():
     tracker = DatasetUsageTracker(args.registry)
 
     if args.action == "update":
-        print("Updating usage metrics in registry...")
-        print(f"Registry: {args.registry}")
-        print(f"Limit: {args.limit or 'None (all datasets)'}")
-        print()
 
-        stats = tracker.update_registry_usage_metrics(limit=args.limit)
+        tracker.update_registry_usage_metrics(limit=args.limit)
 
-        print("\nUpdate Statistics:")
-        print(f"  Total updated: {stats['total_updated']}")
-        print(f"  Total skipped: {stats['total_skipped']}")
 
     elif args.action == "access":
         if not args.dataset:
-            print("Error: --dataset required for 'access' action")
             return
 
-        print(f"Recording access for: {args.dataset}")
         tracker.record_access(args.dataset, access_type="exploration")
-        print("Access recorded.")
 
     elif args.action == "job":
         if not args.dataset:
-            print("Error: --dataset required for 'job' action")
             return
 
-        print(f"Recording training job for: {args.dataset}")
         tracker.record_training_job(
             args.dataset,
             job_id="test-job-001",
@@ -408,7 +395,6 @@ def main():
             epochs=1,
             status="completed",
         )
-        print("Training job recorded.")
 
 
 if __name__ == "__main__":

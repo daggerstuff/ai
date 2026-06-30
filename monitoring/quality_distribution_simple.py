@@ -40,14 +40,13 @@ class SimpleQualityDistributionAnalyzer:
             df = pd.DataFrame(data)
 
             # Analyze different metrics
-            results = {
+            return {
                 "conversation_length": self._analyze_metric(df, "turn_count", "Conversation Length"),
                 "content_richness": self._analyze_metric(df, "word_count", "Content Richness"),
                 "tier_distribution": self._analyze_categorical(df, "tier", "Tier Distribution"),
                 "dataset_distribution": self._analyze_categorical(df, "dataset_source", "Dataset Distribution"),
             }
 
-            return results
 
         except Exception:
             return {}

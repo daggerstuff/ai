@@ -124,10 +124,7 @@ class DialogueParser:
             "could you",
             "do you",
         ]
-        if any(text_lower.startswith(starter) for starter in question_starters):
-            return True
-
-        return False
+        return bool(any(text_lower.startswith(starter) for starter in question_starters))
 
     def is_answer(self, text: str) -> bool:
         """Determine if text is an answer/response"""
@@ -136,10 +133,7 @@ class DialogueParser:
         # Answer indicators
 
         # Should be substantial content
-        if len(text.split()) < 10:
-            return False
-
-        return True
+        return not len(text.split()) < 10
 
     def validate_qa_pair(self, question: str, answer: str) -> bool:
         """Validate that question and answer are coherent"""

@@ -194,7 +194,7 @@ def _extract_teaching_style(text: str, profile: dict):
 
 def _build_profile_report(channel_name: str, profile: dict) -> str:
     report = [f"# {channel_name} Voice Profile\n"]
-    total = len(profile.get("analogies", [])) + len(profile.get("examples", []))
+    len(profile.get("analogies", [])) + len(profile.get("examples", []))
     report.append(f"**Analyzed**: {len(profile.get('sentence_starters', {}))} unique patterns\n\n")
 
     report.append("## Top Sentence Starters\n")
@@ -491,7 +491,7 @@ def score_conversations(conversations: list[dict]) -> tuple[list[float], list[di
 
 def annotate_conversations(conversations: list[dict], scores: list[float], details: list[dict]):
     """Add clinical validity scores to conversation metadata."""
-    for conv, score, detail in zip(conversations, scores, details):
+    for conv, score, detail in zip(conversations, scores, details, strict=False):
         conv.setdefault("metadata", {})["clinical_validity"] = {
             "score": round(score, 4),
             "dimensions": {k: round(v, 4) for k, v in detail.items()},
@@ -642,20 +642,15 @@ def process_all_channels(
         result = process_channel(ck, num_conversations, source_dir, enable_scoring, force_synthetic)
         results.append(result)
         save_channel_output(ck, result)
-        print()
     return results
 
 
 def list_channels():
     """Print all known channels and their status."""
-    print("\nKnown therapist channels:")
-    print(f"  {'Channel':35s} {'Transcripts':12s} {'Profile':10s} {'Config':8s}")
-    print("  " + "-" * 65)
 
-    for ck, cfg in sorted(CHANNEL_CONFIGS.items()):
-        ingested_count = len(load_channel_transcripts(ck, INGESTED_DIR))
-        has_profile = (OUTPUT_BASE / f"{ck.lower()}_voice" / f"{ck.lower()}_voice_profile.json").exists()
-        print(f"  {ck:35s} {ingested_count!s:12s} {'YES' if has_profile else '--':10s} {'YES':8s}")
+    for ck, _cfg in sorted(CHANNEL_CONFIGS.items()):
+        len(load_channel_transcripts(ck, INGESTED_DIR))
+        (OUTPUT_BASE / f"{ck.lower()}_voice" / f"{ck.lower()}_voice_profile.json").exists()
 
     other = []
     if INGESTED_DIR.exists():
@@ -675,13 +670,11 @@ def list_channels():
                     other.append(prefix)
 
     if other:
-        print(f"\n  Channels with transcripts but no config ({len(other)}):")
-        for o in sorted(other)[:10]:
-            print(f"    - {o}")
+        for _o in sorted(other)[:10]:
+            pass
         if len(other) > 10:
-            print(f"    ... and {len(other) - 10} more")
+            pass
 
-    print()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -763,11 +756,6 @@ def main(argv: list[str] | None = None):
                 f.write(report)
             logger.info("Saved quality report: %s", report_file)
 
-            print()
-            print("=" * 70)
-            print(report)
-            print("=" * 70)
-            print("Done")
 
     elif args.channel:
         ck = resolve_channel_key(args.channel)
@@ -786,15 +774,8 @@ def main(argv: list[str] | None = None):
         if args.save:
             save_channel_output(ck, result, output_base)
 
-        print()
-        print(f"=== {result.name} ===")
-        print(f"  Transcripts: {len(result.transcripts)}")
-        print(f"  Conversations: {len(result.conversations)}")
         if result.scores:
-            print(f"  Mean clinical validity: {result.mean_score:.4f}")
-            print(f"  Pass rate (>=0.5): {result.pass_rate:.1%}")
-            print(f"  High quality (>=0.7): {result.high_quality_rate:.1%}")
-        print()
+            pass
 
     else:
         logger.error("Specify --channel or --all. Use --help for details.")

@@ -289,7 +289,6 @@ class TrainingReadinessGates:
     def _check_completeness(self, records: list[dict[str, Any]]) -> GateResult:
         """Check that required metadata fields are present."""
         missing_fields: dict[str, int] = {}
-        records_missing: list[str] = []
 
         for field in REQUIRED_METADATA_FIELDS:
             missing_count = sum(1 for r in records if not r.get(field) and not r.get("metadata", {}).get(field))
@@ -490,7 +489,7 @@ class TrainingReadinessGates:
         blocked = False
         escalated = False
 
-        for gate_name, gate_data in gates.items():
+        for _gate_name, gate_data in gates.items():
             if not gate_data:
                 continue
             decision = gate_data.get("decision", "").lower()

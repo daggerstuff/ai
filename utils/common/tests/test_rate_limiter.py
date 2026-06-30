@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import os
 import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from ai.utils.common.rate_limiter import (
     DEFAULT_TIER_LIMITS,
     PROVIDER_ENV_TIER,

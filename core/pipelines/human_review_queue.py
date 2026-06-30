@@ -28,16 +28,17 @@ Usage
 
 from __future__ import annotations
 
+import contextlib
 import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 
-class ReviewStatus(str, Enum):
+class ReviewStatus(StrEnum):
     """Status of a review item."""
 
     PENDING = "pending"
@@ -46,7 +47,7 @@ class ReviewStatus(str, Enum):
     RETURNED = "returned"  # Sent back for additional information
 
 
-class ReviewerRole(str, Enum):
+class ReviewerRole(StrEnum):
     """Reviewer role types."""
 
     CLINICAL = "clinical"  # Clinical oversight for sensitive content
@@ -251,7 +252,7 @@ class EscalationCriteria:
 
         # Check gate decisions for explicit escalation
         gates = gate_result.get("gates", {})
-        for gate_key, gate_data in gates.items():
+        for _gate_key, gate_data in gates.items():
             if not gate_data:
                 continue
             decision = gate_data.get("decision", "").lower()
@@ -572,10 +573,8 @@ class ReviewFeedbackCollector:
                 line = line.strip()
                 if not line:
                     continue
-                try:
+                with contextlib.suppress(json.JSONDecodeError):
                     self._decisions.append(json.loads(line))
-                except json.JSONDecodeError:
-                    pass
 
     def _persist_decision(self, decision: dict[str, Any]) -> None:
         """Append a decision to persistent storage."""
@@ -588,10 +587,7 @@ class ReviewFeedbackCollector:
         Args:
             decision: ReviewDecision instance or dict representation
         """
-        if isinstance(decision, ReviewDecision):
-            decision_dict = decision.to_dict()
-        else:
-            decision_dict = decision
+        decision_dict = decision.to_dict() if isinstance(decision, ReviewDecision) else decision
 
         self._decisions.append(decision_dict)
         self._persist_decision(decision_dict)
@@ -762,7 +758,7 @@ class ReviewFeedbackCollector:
 
         # Analyze what conditions lead to approvals
         approved_decisions = [d for d in decisions if d["decision"] == "approved"]
-        rejected_decisions = [d for d in decisions if d["decision"] == "rejected"]
+        [d for d in decisions if d["decision"] == "rejected"]
 
         # Simple pattern detection based on reason keywords
         approval_keywords: dict[str, int] = {}
@@ -847,7 +843,7 @@ class HumanReviewQueue:
 
         # Report if any entries were moved to dead-letter
         if malformed_count > 0:
-            print(f"Warning: {malformed_count} malformed entries moved to dead-letter file")
+            pass
 
     def _handle_malformed_entry(self, line: str, line_num: int, error: str) -> None:
         """Move malformed entry to dead-letter file for analysis.
@@ -939,19 +935,16 @@ class HumanReviewQueue:
         reasons = []
 
         # Check Gate 1 (PII)
-        if g1 := gates.get("gate1"):
-            if g1.get("decision") == "escalate":
-                reasons.append(f"G1 (PII): {g1.get('reason', '')}")
+        if (g1 := gates.get("gate1")) and g1.get("decision") == "escalate":
+            reasons.append(f"G1 (PII): {g1.get('reason', '')}")
 
         # Check Gate 2 (Safety)
-        if g2 := gates.get("gate2"):
-            if g2.get("decision") == "escalate":
-                reasons.append(f"G2 (Safety): {g2.get('reason', '')}")
+        if (g2 := gates.get("gate2")) and g2.get("decision") == "escalate":
+            reasons.append(f"G2 (Safety): {g2.get('reason', '')}")
 
         # Check Gate 3 (License)
-        if g3 := gates.get("gate3"):
-            if g3.get("decision") == "escalate":
-                reasons.append(f"G3 (License): {g3.get('reason', '')}")
+        if (g3 := gates.get("gate3")) and g3.get("decision") == "escalate":
+            reasons.append(f"G3 (License): {g3.get('reason', '')}")
 
         return "; ".join(reasons) if reasons else "Manual review required"
 
@@ -967,9 +960,8 @@ class HumanReviewQueue:
             tags.append(f"tier-{tier}")
 
         # Tag by sensitivity
-        if sensitivity := gate_result.get("content_sensitivity"):
-            if sensitivity != "normal":
-                tags.append(f"sensitivity-{sensitivity}")
+        if (sensitivity := gate_result.get("content_sensitivity")) and sensitivity != "normal":
+            tags.append(f"sensitivity-{sensitivity}")
 
         # Tag by finding type
         if pii_findings := gate_result.get("pii_findings", []):
@@ -1293,14 +1285,14 @@ class QueueMetricsExporter:
             # Bucket counts (buckets are in hours)
             buckets = [1, 4, 12, 24, 72]
             for h in times_hours:
-                for i, bucket in enumerate(buckets):
+                for _i, bucket in enumerate(buckets):
                     if h <= bucket:
                         metrics.queue_time_seconds_buckets[f"{bucket}h"] += 1
                 metrics.queue_time_seconds_buckets["infinite"] += 1
 
         # Feedback stats if available
         if self.feedback_collector:
-            feedback = self.feedback_collector.get_feedback(lookback_days=7)
+            self.feedback_collector.get_feedback(lookback_days=7)
             # Could add additional metrics from feedback here
 
         return metrics
@@ -1436,39 +1428,28 @@ def main() -> None:
         items = queue.list_items(status=status)
 
         if not items:
-            print("No items found in queue")
             return
 
-        print(f"{'ITEM_ID':<16} {'SOURCE_ID':<15} {'STATUS':<10} {'PRIORITY':<10} CREATED")
-        print("-" * 70)
         for item in items[:20]:  # Show first 20
-            print(
-                f"{item.item_id:<16} {item.source_id:<15} {item.status.value:<10} {item.priority:<10} {item.created_at[:19]}"
-            )
+            pass
 
         if len(items) > 20:
-            print(f"... and {len(items) - 20} more items")
+            pass
 
     elif args.command == "stats":
         stats = queue.get_stats()
-        print(f"Total items: {stats['total_items']}")
-        print(f"Pending: {stats['pending_count']}")
-        print(f"Approved: {stats['approved_count']}")
-        print(f"Rejected: {stats['rejected_count']}")
         if stats["avg_queue_time_hours"]:
-            print(f"Average queue time: {stats['avg_queue_time_hours']} hours")
+            pass
 
     elif args.command == "metrics":
         exporter = QueueMetricsExporter(queue)
         format_type = getattr(args, "format", "json") or "json"
 
         if format_type == "prometheus":
-            print(exporter.export_prometheus())
+            pass
         else:
-            import json
 
-            metrics = exporter.export_json()
-            print(json.dumps(metrics, indent=2))
+            exporter.export_json()
 
     elif args.command == "alerts":
         exporter = QueueMetricsExporter(queue)
@@ -1479,35 +1460,25 @@ def main() -> None:
             try:
                 thresholds = _json.loads(args.alert_thresholds)
             except _json.JSONDecodeError:
-                print("Error: Invalid JSON for --alert-thresholds")
                 return
         alerts = exporter.check_alerts(thresholds)
 
         if not alerts:
-            print("No alerts triggered")
+            pass
         else:
-            import json
 
-            print(f"Alerts triggered: {len(alerts)}")
             for alert in alerts:
-                severity = alert.get("severity", "unknown").upper()
-                print(f"[{severity}] {alert.get('message', 'Unknown alert')}")
-                print(f"  Metric: {alert.get('metric')} = {alert.get('value')}")
-                print(f"  Threshold: {alert.get('threshold')}")
-                print()
+                alert.get("severity", "unknown").upper()
 
     elif args.command in ("approve", "reject"):
         if not args.item_id:
-            print("Error: --item-id required for approve/reject")
             return
 
         if not args.reason:
-            print("Error: --reason required for approve/reject")
             return
 
         item = queue.get_item(args.item_id)
         if not item:
-            print(f"Error: Item {args.item_id} not found")
             return
 
         reviewer = Reviewer(id=args.reviewer_id, role=ReviewerRole.DATA_STEWARD)
@@ -1520,9 +1491,7 @@ def main() -> None:
             reason=args.reason,
         )
 
-        updated_item = queue.apply_decision(review_decision)
-        print(f"Item {args.item_id} marked as {updated_item.status.value}")
-        print(f"Reason: {args.reason}")
+        queue.apply_decision(review_decision)
 
 
 if __name__ == "__main__":

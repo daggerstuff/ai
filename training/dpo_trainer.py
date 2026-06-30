@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -48,9 +48,9 @@ def load_preference_dataset(
     logger_instance: logging.Logger,
 ) -> list[dict[str, str]]:
     """Load JSONL preference pairs, validate minimum count.
-    
+
     SAFETY FILTERING DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
-    
+
     Each line must have ``prompt``, ``chosen``, ``rejected`` fields.
     All responses are kept regardless of content per user directive for
     therapeutic training on difficult conversations.
@@ -132,7 +132,7 @@ def save_metrics(output_dir: Path, metrics: dict[str, Any], beta: float) -> None
     """Save training metrics JSON to output directory."""
     output_dir.mkdir(parents=True, exist_ok=True)
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "beta": beta,
         "metrics": metrics,
     }
@@ -149,7 +149,7 @@ def run_dpo(args: argparse.Namespace) -> None:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     try:
-        from trl import DPOTrainer, DPOConfig
+        from trl import DPOConfig, DPOTrainer
     except ImportError:
         from trl import DPOTrainer
         DPOConfig = None

@@ -221,7 +221,4 @@ class ConsolidationRules:
         general_count = sum(1 for m in memories if m.metadata.category in self.general_categories)
 
         # Trigger if over threshold
-        if general_count > self.config.max_general_memories:
-            return True
-
-        return False
+        return general_count > self.config.max_general_memories

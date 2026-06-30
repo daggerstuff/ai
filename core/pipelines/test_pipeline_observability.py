@@ -35,10 +35,10 @@ class TestPipelineMetricsCollector(unittest.TestCase):
         )
 
         throughput = self.collector.get_throughput_metrics()
-        self.assertEqual(throughput.total_records_in, 100)
-        self.assertEqual(throughput.total_records_out, 95)
-        self.assertIn("normalize", throughput.stage_metrics)
-        self.assertEqual(throughput.stage_metrics["normalize"]["count"], 1)
+        assert throughput.total_records_in == 100
+        assert throughput.total_records_out == 95
+        assert "normalize" in throughput.stage_metrics
+        assert throughput.stage_metrics["normalize"]["count"] == 1
         self.assertAlmostEqual(throughput.stage_metrics["normalize"]["avg_ms"], 45.5, places=1)
 
     def test_record_stage_execution_tracks_failures(self):
@@ -53,7 +53,7 @@ class TestPipelineMetricsCollector(unittest.TestCase):
         )
 
         throughput = self.collector.get_throughput_metrics()
-        self.assertEqual(throughput.stage_metrics["validate"]["failures"], 1)
+        assert throughput.stage_metrics["validate"]["failures"] == 1
 
     def test_multiple_stage_executions_aggregate_correctly(self):
         """Test that multiple executions are properly aggregated."""
@@ -67,7 +67,7 @@ class TestPipelineMetricsCollector(unittest.TestCase):
             )
 
         throughput = self.collector.get_throughput_metrics()
-        self.assertEqual(throughput.stage_metrics["normalize"]["count"], 5)
+        assert throughput.stage_metrics["normalize"]["count"] == 5
         self.assertAlmostEqual(throughput.stage_metrics["normalize"]["avg_ms"], 50.0, places=0)
 
     def test_throughput_metrics_with_time_window(self):
@@ -82,19 +82,19 @@ class TestPipelineMetricsCollector(unittest.TestCase):
         )
 
         # Get metrics with very small window
-        throughput_old = self.collector.get_throughput_metrics(window_seconds=1)
+        self.collector.get_throughput_metrics(window_seconds=1)
         # Note: this may pass if execution is fast; timing-dependent test
 
     def test_get_health_summary_returns_valid_structure(self):
         """Test that health summary has all required fields."""
         health = self.collector.get_health_summary()
 
-        self.assertIsInstance(health, PipelineHealthSummary)
-        self.assertIn("status", health.to_dict())
-        self.assertIn("throughput", health.to_dict())
-        self.assertIn("readiness", health.to_dict())
-        self.assertIn("failures", health.to_dict())
-        self.assertIn("last_updated", health.to_dict())
+        assert isinstance(health, PipelineHealthSummary)
+        assert "status" in health.to_dict()
+        assert "throughput" in health.to_dict()
+        assert "readiness" in health.to_dict()
+        assert "failures" in health.to_dict()
+        assert "last_updated" in health.to_dict()
 
     def test_health_status_is_healthy_when_no_failures(self):
         """Test that health status is HEALTHY with no failures."""
@@ -107,11 +107,11 @@ class TestPipelineMetricsCollector(unittest.TestCase):
         )
 
         health = self.collector.get_health_summary()
-        self.assertEqual(health.status, HealthStatus.HEALTHY.value)
+        assert health.status == HealthStatus.HEALTHY.value
 
     def test_health_status_is_degraded_with_failures(self):
         """Test that health status is DEGRADED with failures."""
-        for i in range(3):
+        for _i in range(3):
             self.collector.record_stage_execution(
                 stage_name="validate",
                 duration_ms=10.0,
@@ -122,11 +122,11 @@ class TestPipelineMetricsCollector(unittest.TestCase):
             )
 
         health = self.collector.get_health_summary()
-        self.assertEqual(health.status, HealthStatus.DEGRADED.value)
+        assert health.status == HealthStatus.DEGRADED.value
 
     def test_health_status_is_unhealthy_with_many_failures(self):
         """Test that health status is UNHEALTHY with many failures."""
-        for i in range(25):
+        for _i in range(25):
             self.collector.record_stage_execution(
                 stage_name="validate",
                 duration_ms=10.0,
@@ -137,7 +137,7 @@ class TestPipelineMetricsCollector(unittest.TestCase):
             )
 
         health = self.collector.get_health_summary()
-        self.assertEqual(health.status, HealthStatus.UNHEALTHY.value)
+        assert health.status == HealthStatus.UNHEALTHY.value
 
     def test_prometheus_metrics_format(self):
         """Test that Prometheus metrics are in correct format."""
@@ -151,10 +151,10 @@ class TestPipelineMetricsCollector(unittest.TestCase):
 
         metrics_output = get_prometheus_metrics()
 
-        self.assertIn("pipeline_health_status", metrics_output)
-        self.assertIn("pipeline_stage_duration_ms", metrics_output)
-        self.assertIn("pipeline_stage_records_total", metrics_output)
-        self.assertIn("pipeline_health_last_updated", metrics_output)
+        assert "pipeline_health_status" in metrics_output
+        assert "pipeline_stage_duration_ms" in metrics_output
+        assert "pipeline_stage_records_total" in metrics_output
+        assert "pipeline_health_last_updated" in metrics_output
 
     def test_global_collector_singleton(self):
         """Test that global collector is singleton."""
@@ -163,7 +163,7 @@ class TestPipelineMetricsCollector(unittest.TestCase):
         collector1 = get_metrics_collector()
         collector2 = get_metrics_collector()
 
-        self.assertIs(collector1, collector2)
+        assert collector1 is collector2
 
     def test_convenience_functions_work(self):
         """Test convenience record functions."""
@@ -182,7 +182,7 @@ class TestPipelineMetricsCollector(unittest.TestCase):
         )
 
         health = get_health_summary()
-        self.assertIsNotNone(health.failures.total_failures)
+        assert health.failures.total_failures is not None
 
 
 class TestFailureTracker(unittest.TestCase):
@@ -203,9 +203,9 @@ class TestFailureTracker(unittest.TestCase):
         )
 
         failures = self.collector.get_failure_metrics()
-        self.assertEqual(failures.total_failures, 1)
-        self.assertEqual(failures.by_stage["validate"], 1)
-        self.assertEqual(failures.by_gate["quality_floors"], 1)
+        assert failures.total_failures == 1
+        assert failures.by_stage["validate"] == 1
+        assert failures.by_gate["quality_floors"] == 1
 
     def test_regression_detected_when_same_failure_repeats(self):
         """Test that regressions are detected when same pattern repeats."""
@@ -222,9 +222,9 @@ class TestFailureTracker(unittest.TestCase):
             )
 
         failures = self.collector.get_failure_metrics()
-        self.assertEqual(failures.regressions_detected, 1)
-        self.assertEqual(len(failures.alert_regressions), 1)
-        self.assertEqual(failures.alert_regressions[0].occurrences, 3)
+        assert failures.regressions_detected == 1
+        assert len(failures.alert_regressions) == 1
+        assert failures.alert_regressions[0].occurrences == 3
 
     def test_no_regression_when_failure_is_unique(self):
         """Test that unique failures don't trigger regression alerts."""
@@ -245,7 +245,7 @@ class TestFailureTracker(unittest.TestCase):
         )
 
         failures = self.collector.get_failure_metrics()
-        self.assertEqual(failures.regressions_detected, 0)
+        assert failures.regressions_detected == 0
 
 
 class TestReadinessIntegration(unittest.TestCase):
@@ -281,8 +281,8 @@ class TestReadinessIntegration(unittest.TestCase):
         self.collector.record_readiness_result(result)
 
         readiness = self.collector.get_readiness_metrics()
-        self.assertEqual(readiness.total_validations, 1)
-        self.assertEqual(readiness.passed, 1)
+        assert readiness.total_validations == 1
+        assert readiness.passed == 1
 
     def test_failed_readiness_result_triggers_failure(self):
         """Test that failed readiness results are recorded as failures."""
@@ -305,11 +305,11 @@ class TestReadinessIntegration(unittest.TestCase):
         self.collector.record_readiness_result(result)
 
         readiness = self.collector.get_readiness_metrics()
-        self.assertEqual(readiness.total_validations, 1)
-        self.assertEqual(readiness.failed, 1)
+        assert readiness.total_validations == 1
+        assert readiness.failed == 1
 
         failures = self.collector.get_failure_metrics()
-        self.assertGreater(failures.total_failures, 0)
+        assert failures.total_failures > 0
 
 
 class TestHealthSummarySerialization(unittest.TestCase):
@@ -329,12 +329,12 @@ class TestHealthSummarySerialization(unittest.TestCase):
         health = collector.get_health_summary()
         health_dict = health.to_dict()
 
-        self.assertIsInstance(health_dict, dict)
-        self.assertEqual(health_dict["status"], "healthy")
-        self.assertIsInstance(health_dict["throughput"], dict)
-        self.assertIsInstance(health_dict["readiness"], dict)
-        self.assertIsInstance(health_dict["failures"], dict)
-        self.assertIn("last_updated", health_dict)
+        assert isinstance(health_dict, dict)
+        assert health_dict["status"] == "healthy"
+        assert isinstance(health_dict["throughput"], dict)
+        assert isinstance(health_dict["readiness"], dict)
+        assert isinstance(health_dict["failures"], dict)
+        assert "last_updated" in health_dict
 
 
 class TestEdgeCases(unittest.TestCase):
@@ -347,21 +347,21 @@ class TestEdgeCases(unittest.TestCase):
     def test_empty_collector_returns_zeros(self):
         """Test that empty collector returns zero values."""
         throughput = self.collector.get_throughput_metrics()
-        self.assertEqual(throughput.total_records_in, 0)
-        self.assertEqual(throughput.total_records_out, 0)
+        assert throughput.total_records_in == 0
+        assert throughput.total_records_out == 0
 
         readiness = self.collector.get_readiness_metrics()
-        self.assertEqual(readiness.total_validations, 0)
+        assert readiness.total_validations == 0
 
         failures = self.collector.get_failure_metrics()
-        self.assertEqual(failures.total_failures, 0)
+        assert failures.total_failures == 0
 
     def test_health_summary_with_no_data(self):
         """Test health summary structure with no data."""
         health = self.collector.get_health_summary()
 
-        self.assertEqual(health.status, HealthStatus.HEALTHY.value)
-        self.assertEqual(health.throughput.total_records_in, 0)
+        assert health.status == HealthStatus.HEALTHY.value
+        assert health.throughput.total_records_in == 0
 
     def test_max_history_trimming(self):
         """Test that old metrics are trimmed when exceeding max_history."""
@@ -369,7 +369,7 @@ class TestEdgeCases(unittest.TestCase):
         collector = PipelineMetricsCollector(max_history=5)
 
         # Add more than max_history entries
-        for i in range(10):
+        for _i in range(10):
             collector.record_stage_execution(
                 stage_name="normalize",
                 duration_ms=50.0,
@@ -380,7 +380,7 @@ class TestEdgeCases(unittest.TestCase):
 
         throughput = collector.get_throughput_metrics()
         # Should have only 5 entries (the most recent)
-        self.assertEqual(throughput.stage_metrics["normalize"]["count"], 5)
+        assert throughput.stage_metrics["normalize"]["count"] == 5
 
 
 if __name__ == "__main__":

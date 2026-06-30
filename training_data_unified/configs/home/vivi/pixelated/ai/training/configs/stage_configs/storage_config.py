@@ -62,7 +62,7 @@ class StorageConfig:
         # Local path
         local_base = Path(os.getenv("DATASET_STORAGE_LOCAL_PATH", "ai/dataset_pipeline/data"))
 
-        config = cls(
+        return cls(
             backend=backend,
             local_base_path=local_base,
             # S3
@@ -94,7 +94,6 @@ class StorageConfig:
             logs_prefix=os.getenv("DATASET_LOGS_PREFIX", "logs"),
         )
 
-        return config
 
     def get_export_path(self, version: str, filename: str) -> str:
         """Get storage path for dataset export"""
@@ -102,7 +101,7 @@ class StorageConfig:
             export_dir = self.local_base_path / self.exports_prefix / version
             export_dir.mkdir(parents=True, exist_ok=True)
             return str(export_dir / filename)
-        if self.backend == StorageBackend.S3 or self.backend == StorageBackend.GCS:
+        if self.backend in (StorageBackend.S3, StorageBackend.GCS):
             return f"{self.exports_prefix}/{version}/{filename}"
         raise ValueError(f"Unknown backend: {self.backend}")
 
@@ -112,7 +111,7 @@ class StorageConfig:
             checkpoint_dir = self.local_base_path / self.checkpoints_prefix / run_id
             checkpoint_dir.mkdir(parents=True, exist_ok=True)
             return str(checkpoint_dir / checkpoint_name)
-        if self.backend == StorageBackend.S3 or self.backend == StorageBackend.GCS:
+        if self.backend in (StorageBackend.S3, StorageBackend.GCS):
             return f"{self.checkpoints_prefix}/{run_id}/{checkpoint_name}"
         raise ValueError(f"Unknown backend: {self.backend}")
 
@@ -122,7 +121,7 @@ class StorageConfig:
             log_dir = self.local_base_path / self.logs_prefix / run_id
             log_dir.mkdir(parents=True, exist_ok=True)
             return str(log_dir / log_filename)
-        if self.backend == StorageBackend.S3 or self.backend == StorageBackend.GCS:
+        if self.backend in (StorageBackend.S3, StorageBackend.GCS):
             return f"{self.logs_prefix}/{run_id}/{log_filename}"
         raise ValueError(f"Unknown backend: {self.backend}")
 

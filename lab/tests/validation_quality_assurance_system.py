@@ -86,7 +86,7 @@ class ClinicalStandardsValidator:
             # Extract conversation text
             conversations = json.loads(conversation_data.get("conversations_json", "[]"))
             full_text = " ".join(
-                [turn[list(turn.keys())[0]] for turn in conversations if isinstance(turn, dict)]
+                [turn[next(iter(turn.keys()))] for turn in conversations if isinstance(turn, dict)]
             ).lower()
 
             # 1. Empathy Assessment
@@ -502,7 +502,7 @@ class AutomatedQualityChecker:
         try:
             conversations_json = json.loads(conversation.get("conversations_json", "[]"))
             full_text = " ".join(
-                [turn[list(turn.keys())[0]] for turn in conversations_json if isinstance(turn, dict)]
+                [turn[next(iter(turn.keys()))] for turn in conversations_json if isinstance(turn, dict)]
             ).lower()
 
             # Simple quality indicators
@@ -522,7 +522,7 @@ class AutomatedQualityChecker:
         try:
             conversations_json = json.loads(conversation.get("conversations_json", "[]"))
             full_text = " ".join(
-                [turn[list(turn.keys())[0]] for turn in conversations_json if isinstance(turn, dict)]
+                [turn[next(iter(turn.keys()))] for turn in conversations_json if isinstance(turn, dict)]
             ).lower()
 
             empathy_words = ["understand", "feel", "sorry", "care", "support", "help"]
@@ -539,7 +539,7 @@ class AutomatedQualityChecker:
         try:
             conversations_json = json.loads(conversation.get("conversations_json", "[]"))
             full_text = " ".join(
-                [turn[list(turn.keys())[0]] for turn in conversations_json if isinstance(turn, dict)]
+                [turn[next(iter(turn.keys()))] for turn in conversations_json if isinstance(turn, dict)]
             ).lower()
 
             professional_indicators = [

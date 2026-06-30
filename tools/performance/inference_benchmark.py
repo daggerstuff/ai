@@ -8,6 +8,7 @@ import argparse
 import asyncio
 import json
 import statistics
+import sys
 import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
@@ -376,12 +377,12 @@ async def main():
 
         # Exit with appropriate code
         if results.success_rate >= 99.0 and results.p95_latency < 2.0:
-            exit(0)
+            sys.exit(0)
         else:
-            exit(1)
+            sys.exit(1)
 
     except Exception:
-        exit(1)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

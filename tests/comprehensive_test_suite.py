@@ -172,7 +172,7 @@ class TestDataIntegrityValidation(unittest.TestCase):
                     try:
                         conversations = json.loads(row["conversations_json"])
                         actual_words = sum(
-                            len(turn[list(turn.keys())[0]].split()) for turn in conversations if isinstance(turn, dict)
+                            len(turn[next(iter(turn.keys()))].split()) for turn in conversations if isinstance(turn, dict)
                         )
                         if abs(actual_words - row["word_count"]) > 5:  # Allow small variance
                             inconsistent_count += 1

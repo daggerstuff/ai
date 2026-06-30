@@ -154,7 +154,7 @@ class MockTherapeuticResponseGenerator:
             "modality": modality,
             "primary_technique": primary_technique,
             "supporting_techniques": supporting_techniques,
-            "techniques": [primary_technique] + supporting_techniques,
+            "techniques": [primary_technique, *supporting_techniques],
             "rationale": f"Selected {primary_technique} based on {analysis['therapeutic_needs']}",
         }
 

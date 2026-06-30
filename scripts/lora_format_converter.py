@@ -93,7 +93,7 @@ class LoRAFormatConverter:
             json.dump(val_conversations, f, indent=2, ensure_ascii=False)
 
         # Create expert-specific datasets for analysis
-        expert_conversations = {style: [] for style in self.expert_mapping.keys()}
+        expert_conversations = {style: [] for style in self.expert_mapping}
         for conv in all_conversations:
             expert_conversations[conv["style"]].append(conv)
 

@@ -247,7 +247,7 @@ class TestQualityAnalyticsDashboard:
 
         # Check that all quality levels are represented
         expected_levels = ["Poor", "Fair", "Good", "Excellent"]
-        for level in analytics.quality_distribution.keys():
+        for level in analytics.quality_distribution:
             assert level in expected_levels
 
     def test_tier_performance_calculation(self, dashboard):
@@ -263,7 +263,7 @@ class TestQualityAnalyticsDashboard:
             "professional",
             "research",
         ]
-        for tier in analytics.tier_performance.keys():
+        for tier in analytics.tier_performance:
             assert tier in expected_tiers
 
         # Check that performance values are valid

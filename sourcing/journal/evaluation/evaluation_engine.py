@@ -349,7 +349,7 @@ class DatasetEvaluationEngine:
         score += content_type_score
 
         # Normalize to 1-10 scale
-        final_score = max(1, min(10, int(round(score))))
+        final_score = max(1, min(10, round(score)))
 
         # Boost score for open access datasets with available data
         if source.open_access and source.data_availability == "available":
@@ -426,7 +426,7 @@ class DatasetEvaluationEngine:
             notes_parts.append("Clinical trial (structured data expected)")
 
         # Normalize to 1-10 scale
-        final_score = max(1, min(10, int(round(score))))
+        final_score = max(1, min(10, round(score)))
 
         notes = "; ".join(notes_parts) if notes_parts else "Standard data structure"
 
@@ -486,7 +486,7 @@ class DatasetEvaluationEngine:
             notes_parts.append("No accessible URL (integration difficulty)")
 
         # Normalize to 1-10 scale
-        final_score = max(1, min(10, int(round(score))))
+        final_score = max(1, min(10, round(score)))
 
         notes = "; ".join(notes_parts) if notes_parts else "Standard integration requirements"
 
@@ -546,7 +546,7 @@ class DatasetEvaluationEngine:
             notes_parts.append("Formal publication (licensing typically clear)")
 
         # Normalize to 1-10 scale
-        final_score = max(1, min(10, int(round(score))))
+        final_score = max(1, min(10, round(score)))
 
         # Flag for manual review if score is low
         if final_score < 5:

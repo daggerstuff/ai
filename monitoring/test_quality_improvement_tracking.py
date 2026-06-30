@@ -173,7 +173,7 @@ def run_comprehensive_test():
         # Test 3: Start Intervention
         try:
             success = tracker.start_intervention(intervention_id)
-            assert success == True
+            assert success
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Start Intervention: PASSED")
         except Exception as e:
@@ -184,7 +184,7 @@ def run_comprehensive_test():
         # Test 4: Record Progress Measurement
         try:
             success = tracker.record_progress_measurement(intervention_id, "Test measurement")
-            assert success == True
+            assert success
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Record Progress Measurement: PASSED")
         except Exception as e:
@@ -198,7 +198,7 @@ def run_comprehensive_test():
 
             time.sleep(0.1)
             success = tracker.complete_intervention(intervention_id)
-            assert success == True
+            assert success
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Complete Intervention: PASSED")
         except Exception as e:

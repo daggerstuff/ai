@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from .pattern_detection import PatternReport
 from .session_consolidation import SessionSummary
@@ -17,7 +17,7 @@ from .session_consolidation import SessionSummary
 log = logging.getLogger(__name__)
 
 
-class ActionPriority(str, Enum):
+class ActionPriority(StrEnum):
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
