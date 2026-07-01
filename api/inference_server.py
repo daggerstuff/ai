@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import sys
 
@@ -11,6 +12,7 @@ app = FastAPI(title="Pixelated Empathy EI Engine - Local Inference")
 
 # Global model instance
 model = None
+INTERNAL_ERROR_MSG = "Internal server error"
 
 
 class ChatMessage(BaseModel):
@@ -85,7 +87,8 @@ def chat_completion(request: ChatCompletionRequest):
             "usage": response["usage"],
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        logging.exception("Chat completion failed:")
+        raise HTTPException(status_code=500, detail=INTERNAL_ERROR_MSG) from e
 
 
 @app.get("/health")
