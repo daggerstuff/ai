@@ -12,6 +12,10 @@
 6. \1
 7. \1
 
+## Specialized Inference Guides
+
+- [Red Hat AI Inference Setup Guide](red-hat-ai-inference.md)
+
 ---
 
 ## Deployment Overview
