@@ -50,7 +50,7 @@ nvidia-cuda-cupti-cu12==12.8.90
 mypy_extensions==1.1.0
 triton==3.4.0
 nvidia-cusparse-cu12==12.5.8.93
-transformers==5.0.0rc3
+transformers==5.3.0
 pooch==1.8.2
 pfzy==0.3.4
 numpy==2.2.6
