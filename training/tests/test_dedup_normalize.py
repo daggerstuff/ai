@@ -111,7 +111,7 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-        ctx = ProcessingContext(seen, set(), token_sets)
+        ctx = ProcessingContext(seen_hashes=seen, edge_case_hashes=set(), token_sets=token_sets)
         stats = process_file(input_file, 0.85, rejection, ctx)
         assert stats.total_read == TWO_INPUT_RECORDS
         assert stats.exact_dupes == 1
@@ -127,7 +127,7 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-        ctx = ProcessingContext(seen, set(), token_sets)
+        ctx = ProcessingContext(seen_hashes=seen, edge_case_hashes=set(), token_sets=token_sets)
         stats = process_file(input_file, 0.85, rejection, ctx)
         assert stats.total_read == TWO_INPUT_RECORDS
         assert stats.near_dupes >= 1 or stats.exact_dupes >= 1
@@ -140,7 +140,7 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-        ctx = ProcessingContext(seen, set(), token_sets)
+        ctx = ProcessingContext(seen_hashes=seen, edge_case_hashes=set(), token_sets=token_sets)
         stats = process_file(input_file, 0.85, rejection, ctx)
         assert len(stats.kept) == 1
 
@@ -151,7 +151,7 @@ class TestProcessFile:
         seen: set[str] = set()
         token_sets: list[tuple[frozenset[str], str]] = []
         rejection: list[dict] = []
-        ctx = ProcessingContext(seen, set(), token_sets)
+        ctx = ProcessingContext(seen_hashes=seen, edge_case_hashes=set(), token_sets=token_sets)
         stats = process_file(input_file, 0.85, rejection, ctx)
         assert stats.total_read == 1
         assert len(stats.kept) == 0
