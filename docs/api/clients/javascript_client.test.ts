@@ -6,6 +6,17 @@ import {
   type RequestOptions,
 } from "./javascript_client";
 
+describe("PixelatedEmpathyAPIError Initialization", () => {
+  it("should initialize with correct properties", () => {
+    const error = new PixelatedEmpathyAPIError("Test error message", "TEST_CODE", 500);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.name).toBe("PixelatedEmpathyAPIError");
+    expect(error.message).toBe("Test error message");
+    expect(error.errorCode).toBe("TEST_CODE");
+    expect(error.statusCode).toBe(500);
+  });
+});
+
 describe("PixelatedEmpathyAPI healthCheck", () => {
   it("should return true when health check succeeds", async () => {
     const api = new PixelatedEmpathyAPI("test_key");

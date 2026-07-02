@@ -8,16 +8,34 @@ edge-case preservation, ChatML boundary verification, and sharded JSONL output.
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import hashlib
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 logger = logging.getLogger("dedup_normalize")
 
 _INST_BOUNDARY = re.compile(r"\[/INST\]")
+
+
+@dataclasses.dataclass
+class ProcessingContext:
+    seen_hashes: set[str]
+    edge_case_hashes: set[str]
+    token_sets: list[tuple[frozenset[str], str]]
+
+
+@dataclasses.dataclass
+class DedupStats:
+    kept: list[dict]
+    exact_dupes: int
+    near_dupes: int
+    chatml_failures: int
+    reformatted: int
+    total_read: int
 
 
 def _content_hash(text: str) -> str:
@@ -85,17 +103,14 @@ def _attempt_reformat(record: dict) -> dict | None:
 
 def process_file(
     input_path: Path,
-    seen_hashes: set[str],
-    token_sets: list[tuple[frozenset[str], str]],
     jaccard_threshold: float,
-    edge_case_hashes: set[str],
     rejection_log: list[dict],
+    ctx: ProcessingContext,
     near_dedup_window: int = 2000,
-) -> tuple[list[dict], int, int, int, int, int]:
+) -> DedupStats:
     """Process one JSONL file.
 
-    Returns (kept_records, exact_dupes, near_dupes, chatml_failures,
-             reformatted, total_read).
+    Returns DedupStats.
     """
     kept: list[dict] = []
     exact_dupes = 0
@@ -118,7 +133,7 @@ def process_file(
                 text_hash = _content_hash(text)
 
                 if _is_edge_case(record):
-                    edge_case_hashes.add(text_hash)
+                    ctx.edge_case_hashes.add(text_hash)
                     if not _verify_chatml_boundary(record):
                         reformatted_rec = _attempt_reformat(record)
                         if reformatted_rec:
@@ -135,13 +150,13 @@ def process_file(
                     kept.append(record)
                     continue
 
-                if text_hash in seen_hashes or text_hash in edge_case_hashes:
+                if text_hash in ctx.seen_hashes or text_hash in ctx.edge_case_hashes:
                     exact_dupes += 1
                     continue
 
                 tokens = _token_set(text)
                 is_near_dup = False
-                compare_window = token_sets[-near_dedup_window:] if near_dedup_window else token_sets
+                compare_window = ctx.token_sets[-near_dedup_window:] if near_dedup_window else ctx.token_sets
                 for existing_tokens, existing_hash in compare_window:
                     if existing_hash == text_hash:
                         continue
@@ -167,14 +182,21 @@ def process_file(
                         })
                         continue
 
-                seen_hashes.add(text_hash)
-                token_sets.append((tokens, text_hash))
+                ctx.seen_hashes.add(text_hash)
+                ctx.token_sets.append((tokens, text_hash))
                 kept.append(record)
 
     except OSError as exc:
         logger.warning("Cannot read %s: %s", input_path, exc)
 
-    return kept, exact_dupes, near_dupes, chatml_failures, reformatted, total_read
+    return DedupStats(
+        kept=kept,
+        exact_dupes=exact_dupes,
+        near_dupes=near_dupes,
+        chatml_failures=chatml_failures,
+        reformatted=reformatted,
+        total_read=total_read,
+    )
 
 
 def run_dedup(args: argparse.Namespace) -> None:
@@ -184,9 +206,11 @@ def run_dedup(args: argparse.Namespace) -> None:
     jaccard_threshold = args.jaccard_threshold
     shard_size = args.shard_size
 
-    seen_hashes: set[str] = set()
-    edge_case_hashes: set[str] = set()
-    token_sets: list[tuple[frozenset[str], str]] = []
+    ctx = ProcessingContext(
+        seen_hashes=set(),
+        edge_case_hashes=set(),
+        token_sets=[],
+    )
     rejection_log: list[dict] = []
 
     all_kept: list[dict] = []
@@ -204,18 +228,18 @@ def run_dedup(args: argparse.Namespace) -> None:
             continue
         for jsonl_file in sorted(input_path.rglob("*.jsonl")):
             logger.info(f"Processing {jsonl_file.name}...")
-            kept, exact, near, chatml, refmt, n_read = process_file(
-                jsonl_file, seen_hashes, token_sets, jaccard_threshold,
-                edge_case_hashes, rejection_log, args.near_dedup_window,
+            stats = process_file(
+                jsonl_file, jaccard_threshold,
+                rejection_log, ctx, args.near_dedup_window,
             )
-            logger.info(f"  {jsonl_file.name}: {n_read} read, {len(kept)} kept, {exact} exact, {near} near dup")
-            all_kept.extend(kept)
-            total_in += n_read
-            total_exact_dup += exact
-            total_near_dup += near
-            total_chatml_fail += chatml
-            total_reformatted += refmt
-            total_edge_preserved += sum(1 for r in kept if _is_edge_case(r))
+            logger.info(f"  {jsonl_file.name}: {stats.total_read} read, {len(stats.kept)} kept, {stats.exact_dupes} exact, {stats.near_dupes} near dup")
+            all_kept.extend(stats.kept)
+            total_in += stats.total_read
+            total_exact_dup += stats.exact_dupes
+            total_near_dup += stats.near_dupes
+            total_chatml_fail += stats.chatml_failures
+            total_reformatted += stats.reformatted
+            total_edge_preserved += sum(1 for r in stats.kept if _is_edge_case(r))
 
     shard_count = 0
     for i in range(0, len(all_kept), shard_size):
@@ -233,7 +257,7 @@ def run_dedup(args: argparse.Namespace) -> None:
                 f.write(json.dumps(entry) + "\n")
 
     report = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "input_dirs": args.input_dirs,
         "total_samples_in": total_in,
         "exact_duplicates": total_exact_dup,
