@@ -93,6 +93,8 @@ class PatientPsiEngine:
         self._profile_registry = profile_registry or ProfileRegistry()
         self._style_registry = style_registry or StyleRegistry()
         self._sessions: dict[str, SimulationSession] = {}
+        import threading
+        self._lock = threading.Lock()
 
     def create_session(self, config: SimulationConfig) -> str:
         """Create a new simulation session.
@@ -120,7 +122,8 @@ class PatientPsiEngine:
             coherence_model=coherence_model,
             style=style,
         )
-        self._sessions[session_id] = session
+        with self._lock:
+            self._sessions[session_id] = session
         return session_id
 
     def interact(
@@ -177,14 +180,15 @@ class PatientPsiEngine:
         session.turns.append(turn)
         session.updated_at = datetime.now()
 
-        if session.state_machine.state.turn_count >= session.config.max_turns:
+        if session.state_machine.state.turn_count >= session.config.max_turns or new_phase == ConversationPhase.CLOSURE:
             session.status = SimulationStatus.COMPLETED
 
         return turn
 
     def get_session(self, session_id: str) -> SimulationSession | None:
         """Return a session by ID, or None if not found."""
-        return self._sessions.get(session_id)
+        with self._lock:
+            return self._sessions.get(session_id)
 
     def terminate_session(self, session_id: str) -> bool:
         """Mark a session as terminated.
@@ -195,38 +199,42 @@ class PatientPsiEngine:
         Returns:
             True if the session was found and terminated, False otherwise.
         """
-        session = self._sessions.get(session_id)
-        if session is None:
-            return False
-        session.status = SimulationStatus.TERMINATED
-        return True
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session is None:
+                return False
+            session.status = SimulationStatus.TERMINATED
+            session.updated_at = datetime.now()
+            return True
 
     def list_active_sessions(self) -> list[SessionInfo]:
         """Return metadata for all currently active sessions."""
         active: list[SessionInfo] = []
-        for session in self._sessions.values():
-            if session.status == SimulationStatus.ACTIVE:
-                active.append(
-                    SessionInfo(
-                        session_id=session.session_id,
-                        config=session.config,
-                        state=session.state_machine.state,
-                        turn_count=session.state_machine.state.turn_count,
-                        status=session.status,
-                        created_at=session.created_at,
-                        updated_at=session.updated_at,
+        with self._lock:
+            for session in self._sessions.values():
+                if session.status == SimulationStatus.ACTIVE:
+                    active.append(
+                        SessionInfo(
+                            session_id=session.session_id,
+                            config=session.config,
+                            state=session.state_machine.state,
+                            turn_count=session.state_machine.state.turn_count,
+                            status=session.status,
+                            created_at=session.created_at,
+                            updated_at=session.updated_at,
+                        )
                     )
-                )
         return active
 
     def _get_active_session(self, session_id: str) -> SimulationSession:
         """Retrieve a session, raising KeyError if not found or not active."""
-        session = self._sessions.get(session_id)
-        if session is None:
-            raise KeyError(f"Session {session_id!r} not found")
-        if session.status != SimulationStatus.ACTIVE:
-            raise KeyError(f"Session {session_id!r} is not active (status: {session.status.value})")
-        return session
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session is None:
+                raise KeyError(f"Session {session_id!r} not found")
+            if session.status != SimulationStatus.ACTIVE:
+                raise KeyError(f"Session {session_id!r} is not active (status: {session.status.value})")
+            return session
 
     def _detect_trigger(self, therapist_utterance: str) -> str:
         """Map therapist input to a state machine trigger keyword.
@@ -236,7 +244,7 @@ class PatientPsiEngine:
         lower = therapist_utterance.lower()
         _has = lambda *words: any(re.search(rf"\b{re.escape(w)}\b", lower) for w in words)
 
-        if _has("safe", "sorry", "trauma"):
+        if _has("sorry", "trauma"):
             return "trauma_disclosure"
         if _has("feel", "feeling", "emotion", "how does that make"):
             return "therapist_insight_question"

@@ -131,9 +131,9 @@ class TestStateMachine:
     def test_engagement_increases_on_successful_engaging(self) -> None:
         sm = StateMachine(self.profile)
         sm.state.engagement_level = 0.3
-        sm.transition("therapist_greeting", seed=42)
-        if sm.state.phase == ConversationPhase.ENGAGING:
-            assert sm.state.engagement_level > 0.3
+        phase = sm.transition("therapist_greeting", seed=1)
+        assert phase == ConversationPhase.ENGAGING
+        assert sm.state.engagement_level > 0.3
 
 
 class TestStateTransition:

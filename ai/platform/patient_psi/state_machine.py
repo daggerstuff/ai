@@ -301,15 +301,6 @@ class StateMachine:
         elif self.state.phase == ConversationPhase.ENGAGING:
             self.state.resistance_level = max(0.0, self.state.resistance_level - 0.04)
 
-    def _build_transition_context(self, trigger: str) -> dict:
-        """Assemble context used by profile-based probability modulation."""
-        return {
-            "trigger": trigger,
-            "phase": self.state.phase,
-            "profile_name": self.profile.name,
-            "severity_mid": sum(self.profile.severity_range) / 2.0,
-            "default_style": str(self.profile.default_style),
-        }
 
     def _modulate_probabilities(
         self,
@@ -384,7 +375,8 @@ class StateMachine:
 
         if not candidates:
             # No explicit rule — natural drift toward engaging
-            self.state.phase = ConversationPhase.ENGAGING
+            if self.state.phase != ConversationPhase.CLOSURE:
+                self.state.phase = ConversationPhase.ENGAGING
             self._decay_resistance()
             return self.state.phase
 
@@ -393,7 +385,8 @@ class StateMachine:
         weighted, total_weight = self._modulate_probabilities(candidates, resistance_base)
 
         if total_weight <= 0:
-            self.state.phase = ConversationPhase.ENGAGING
+            if self.state.phase != ConversationPhase.CLOSURE:
+                self.state.phase = ConversationPhase.ENGAGING
             self._decay_resistance()
             return self.state.phase
 

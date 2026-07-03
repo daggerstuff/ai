@@ -247,7 +247,6 @@ class _BeliefMatch:
 
     core_belief_hits: int = 0
     intermediate_belief_hits: int = 0
-    contradiction_signals: int = 0
     total_core: int = 0
     total_intermediate: int = 0
 
@@ -255,6 +254,7 @@ class _BeliefMatch:
 def _match_beliefs(text: str, profile: ClinicalProfile) -> _BeliefMatch:
     """Count how many profile beliefs are referenced or contradicted."""
     lower = text.lower()
+    response_tokens = set(re.findall(r"\w+", lower))
     match = _BeliefMatch()
 
     # Core beliefs
@@ -263,7 +263,7 @@ def _match_beliefs(text: str, profile: ClinicalProfile) -> _BeliefMatch:
     for cb in config.get("core_beliefs", []):
         if isinstance(cb, dict):
             content = cb.get("content", "")
-            if any(word in lower for word in re.findall(r"\w{4,}", content.lower())):
+            if any(word in response_tokens for word in re.findall(r"\w{4,}", content.lower())):
                 match.core_belief_hits += 1
 
     # Intermediate beliefs
@@ -271,13 +271,8 @@ def _match_beliefs(text: str, profile: ClinicalProfile) -> _BeliefMatch:
     for ib in config.get("intermediate_beliefs", []):
         if isinstance(ib, dict):
             content = ib.get("content", "")
-            if any(word in lower for word in re.findall(r"\w{4,}", content.lower())):
+            if any(word in response_tokens for word in re.findall(r"\w{4,}", content.lower())):
                 match.intermediate_belief_hits += 1
-
-    # Contradiction signals (absolutist words in a context of doubt)
-    abs_count = _count_patterns(lower, _ABSOLUTIST_WORDS)
-    hedges = _count_patterns(lower, ["maybe", "sort of", "kind of", "i guess", "perhaps"])
-    match.contradiction_signals = abs_count + hedges
 
     return match
 
