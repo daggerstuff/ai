@@ -191,6 +191,9 @@ ignore = []
 [tool.ruff.lint.per-file-ignores]
 "scripts/verify_stage2_persona_quality.py" = ["E402", "PLC0415"]
 "Stage1_Training_Notebook.ipynb" = ["E402", "PLC0415", "Q000", "I001", "T201"]
+# Tests: bare numeric assertions are acceptable; broad ValueError catches are
+# explicit pydantic/PydanticField validation tests
+"tests/test_patient_psi_*.py" = ["PLR2004", "PT011"]
 # FastAPI uses Depends() in argument defaults as its canonical DI pattern (B008)
 # and auth-gating parameters are injected but appear "unused" in the body (ARG001)
 "api/dataset_api.py" = ["B008", "ARG001"]
