@@ -33,12 +33,7 @@ _HISTORY_SNIPPET_CHARS = 120
 _LOW_THRESHOLD = 0.35
 _HIGH_THRESHOLD = 0.7
 
-# How many CCD component sections to include at each difficulty level
-_SECTION_COUNTS: dict[_DifficultyLevel, int] = {
-    "low": 2,  # identity + core beliefs only
-    "medium": 4,  # + coping strategies + emotional patterns
-    "high": 6,  # + situation interpretations + behavioral patterns
-}
+
 
 
 def _classify_difficulty(difficulty: float) -> _DifficultyLevel:
@@ -153,8 +148,12 @@ def _build_ccd_section(
         items = list(ccd.get(key, []))
         # Augment situation_interpretations with a "dist" key for the template
         if key == "situation_interpretations":
+            new_items = []
             for i in items:
-                i["dist"] = f" [distortion: {i['distortion_type']}]" if i.get("distortion_type") else ""
+                new_i = dict(i)
+                new_i["dist"] = f" [distortion: {new_i['distortion_type']}]" if new_i.get("distortion_type") else ""
+                new_items.append(new_i)
+            items = new_items
         max_items = 4 if key in {"situation_interpretations", "behavioral_responses", "cognitive_triads"} else 8
         _append_section(lines, items, header, fmt, max_items=max_items)
 

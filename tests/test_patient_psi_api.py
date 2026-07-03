@@ -91,7 +91,7 @@ class TestPatientPsiAPI:
         )
         assert resp.status_code == 400
 
-    def test_interact_deterministic_with_seed(self) -> None:
+    def test_same_seed_produces_same_transition(self) -> None:
         create = client.post(
             "/api/v1/patient-psi/sessions", json={"profile_name": "generalized_anxiety", "max_turns": 20}
         )
@@ -159,8 +159,12 @@ class TestPatientPsiAPI:
 
     def test_list_active_sessions_filter_by_profile(self) -> None:
         client.post("/api/v1/patient-psi/sessions", json={"profile_name": "generalized_anxiety"})
+        client.post("/api/v1/patient-psi/sessions", json={"profile_name": "generalized_anxiety"})
+        client.post("/api/v1/patient-psi/sessions", json={"profile_name": "major_depressive_disorder"})
+
         resp = client.get("/api/v1/patient-psi/sessions?profile=major_depressive_disorder")
         sessions = resp.json()["sessions"]
+        assert len(sessions) == 1
         assert all(s["profile_name"] == "major_depressive_disorder" for s in sessions)
 
     # ── Profiles ────────────────────────────────────────────────────────
