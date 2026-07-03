@@ -147,10 +147,16 @@ async def reflect(request):
         return JSONResponse({"error": "Internal server error"}, status_code=500)
 
 
+from starlette.routing import Route, Mount
+from ai.platform.patient_psi.api import create_app
+
+patient_psi_app = create_app(prefix="/api/v1/patient-psi")
+
 routes = [
     Route("/", root),
     Route("/health", health),
     Route("/reflect", reflect, methods=["POST"]),
+    Mount("", app=patient_psi_app),
 ]
 
 def get_cors_origins() -> list[str]:

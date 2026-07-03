@@ -82,25 +82,25 @@ class TestCoherenceModel:
         assert score.cognitive_dissonance > 0.0
 
     def test_distressed_phase_modulation(self) -> None:
-        score = self.model_dep.evaluate(
-            "I feel terrible. Everything is falling apart.",
-            context={"phase": "distressed"},
-        )
-        assert isinstance(score, CoherenceScore)
+        text = "I feel terrible. Everything is falling apart."
+        base_score = self.model_dep.evaluate(text)
+        mod_score = self.model_dep.evaluate(text, context={"phase": "distressed"})
+        assert mod_score.emotional_congruence > base_score.emotional_congruence
+        assert mod_score.narrative_coherence < base_score.narrative_coherence
 
     def test_resistant_phase_modulation(self) -> None:
-        score = self.model_dep.evaluate(
-            "I don't want to talk about this.",
-            context={"phase": "resistant"},
-        )
-        assert isinstance(score, CoherenceScore)
+        text = "I don't want to talk about this."
+        base_score = self.model_dep.evaluate(text)
+        mod_score = self.model_dep.evaluate(text, context={"phase": "resistant"})
+        assert mod_score.belief_consistency <= base_score.belief_consistency
+        assert mod_score.narrative_coherence < base_score.narrative_coherence
 
     def test_insight_phase_modulation(self) -> None:
-        score = self.model_dep.evaluate(
-            "I think I understand now why I react that way. It's because of what happened when I was young.",
-            context={"phase": "insight"},
-        )
-        assert isinstance(score, CoherenceScore)
+        text = "I think I understand now why I react that way."
+        base_score = self.model_dep.evaluate(text)
+        mod_score = self.model_dep.evaluate(text, context={"phase": "insight"})
+        assert mod_score.narrative_coherence > base_score.narrative_coherence
+        assert mod_score.belief_consistency >= base_score.belief_consistency
 
     def test_predict_coherence_range(self) -> None:
         low, high = self.model_dep.predict_coherence_range()
@@ -109,8 +109,9 @@ class TestCoherenceModel:
         assert low < high
 
     def test_different_profiles_have_different_ranges(self) -> None:
-        _low_bpd, _high_bpd = self.model_bpd.predict_coherence_range()
-        _low_dep, _high_dep = self.model_dep.predict_coherence_range()
+        low_bpd, high_bpd = self.model_bpd.predict_coherence_range()
+        low_dep, high_dep = self.model_dep.predict_coherence_range()
+        assert (low_bpd, high_bpd) != (low_dep, high_dep)
 
     def test_all_dimensions_return_float(self) -> None:
         score = self.model_dep.evaluate("I feel completely lost and alone.")
@@ -156,5 +157,7 @@ class TestCoherenceModel:
             assert score.cognitive_dissonance <= 1.0
 
     def test_hedging_does_not_artificially_inflate_coherence(self) -> None:
-        score = self.model_dep.evaluate("I guess maybe sort of feel kind of okay I suppose perhaps")
-        assert score.narrative_coherence <= 0.5
+        score = self.model_dep.evaluate(
+            "I guess maybe sort of feel kind of okay I suppose perhaps but I don't know and it's confusing to me right now"
+        )
+        assert score.narrative_coherence < 0.5

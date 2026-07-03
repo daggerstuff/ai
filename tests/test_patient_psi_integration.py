@@ -35,6 +35,7 @@ def _draw(seed: int) -> tuple[str, str, str]:
         "/api/v1/patient-psi/sessions",
         json={"profile_name": "generalized_anxiety", "max_turns": 20},
     )
+    assert create.status_code == 201
     session_id = create.json()["session_id"]
 
     interact = client.post(
