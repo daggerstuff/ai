@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { exec, execSync } from 'child_process'
+import { exec, execSync, execFile } from 'child_process'
 import fs from 'fs'
 import path from 'path'
 import readline from 'readline'
@@ -8,6 +8,7 @@ import { promisify } from 'util'
 
 // Convert exec to promise-based
 const execPromise = promisify(exec)
+const execFilePromise = promisify(execFile)
 
 // Configuration
 const MODEL = 'artifish/llama3.2-uncensored'
@@ -26,11 +27,11 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 async function checkOllama() {
   try {
     // Check if Ollama is installed
-    await execPromise('which ollama')
+    await execFilePromise('which', ['ollama'])
     console.log('✓ Ollama is installed')
 
     // Check if the model is available
-    const { stdout } = await execPromise('ollama list')
+    const { stdout } = await execFilePromise('ollama', ['list'])
     if (stdout.includes(MODEL)) {
       console.log(`✓ Model "${MODEL}" is available`)
       return true
@@ -89,14 +90,11 @@ function readPrompts() {
 
 // Generate dialogue for a single prompt using Ollama
 async function generateDialogue(prompt, retryCount = 0) {
-  const sanitizedPrompt = prompt.instructions.replace(/"/g, '\\"')
-  const ollama_cmd = `ollama run ${MODEL} "${sanitizedPrompt}" --temperature ${TEMPERATURE}`
-
   try {
     console.log(
       `Executing Ollama with model ${MODEL} (temperature: ${TEMPERATURE})...`,
     )
-    const { stdout, stderr } = await execPromise(ollama_cmd, {
+    const { stdout, stderr } = await execFilePromise('ollama', ['run', MODEL, prompt.instructions, '--temperature', String(TEMPERATURE)], {
       maxBuffer: 1024 * 1024 * 10,
     }) // 10MB buffer
 
