@@ -133,7 +133,7 @@ class TestPatientPsiEngine:
             ("What do you think about that?", "therapist_insight_question"),
             ("That sounds difficult", "challenging_topic"),
             ("I hear you", "therapist_validation"),
-            ("Do you feel safe?", "trauma_disclosure"),
+            ("Tell me about the trauma", "trauma_disclosure"),
             ("Goodbye for now", "session_end"),
             ("Let's stop here", "session_end_early"),
             ("Tell me more", "elaboration"),
