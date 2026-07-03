@@ -85,7 +85,8 @@ def create_session(request: CreateSessionRequest) -> SessionResponse:
     try:
         session_id = _engine.create_session(request)
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        msg = str(exc.args[0]) if exc.args else str(exc)
+        raise HTTPException(status_code=404, detail=msg) from exc
 
     session = _engine.get_session(session_id)
     assert session is not None
@@ -107,7 +108,7 @@ def interact(session_id: str, request: InteractRequest) -> InteractResponse:
     try:
         turn = _engine.interact(session_id, request.message, seed=request.seed)
     except KeyError as exc:
-        msg = str(exc)
+        msg = str(exc.args[0]) if exc.args else str(exc)
         if "not active" in msg:
             raise HTTPException(status_code=400, detail=msg) from exc
         raise HTTPException(status_code=404, detail=msg) from exc
