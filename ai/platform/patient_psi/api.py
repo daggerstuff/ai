@@ -85,8 +85,7 @@ def create_session(request: CreateSessionRequest) -> SessionResponse:
     try:
         session_id = _engine.create_session(request)
     except KeyError as exc:
-        msg = str(exc.args[0]) if exc.args else str(exc)
-        raise HTTPException(status_code=404, detail=msg) from exc
+        raise HTTPException(status_code=404, detail="Profile not found") from exc
 
     session = _engine.get_session(session_id)
     assert session is not None
@@ -110,8 +109,8 @@ def interact(session_id: str, request: InteractRequest) -> InteractResponse:
     except KeyError as exc:
         msg = str(exc.args[0]) if exc.args else str(exc)
         if "not active" in msg:
-            raise HTTPException(status_code=400, detail=msg) from exc
-        raise HTTPException(status_code=404, detail=msg) from exc
+            raise HTTPException(status_code=400, detail="Session is not active") from exc
+        raise HTTPException(status_code=404, detail="Session not found") from exc
 
     return InteractResponse(session_id=session_id, turn=turn)
 
