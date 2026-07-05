@@ -8,10 +8,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
-
-from fastapi import FastAPI
 
 from ai.platform.patient_psi.engine import (
     PatientPsiEngine,
@@ -20,7 +18,6 @@ from ai.platform.patient_psi.engine import (
     SimulationTurn,
 )
 from ai.platform.patient_psi.profiles import ProfileRegistry
-from ai.platform.patient_psi.styles import ConversationalStyle
 
 # ── Module-level engine singleton ─────────────────────────────────────
 
@@ -85,8 +82,7 @@ def create_session(request: CreateSessionRequest) -> SessionResponse:
     try:
         session_id = _engine.create_session(request)
     except KeyError as exc:
-        msg = str(exc.args[0]) if exc.args else str(exc)
-        raise HTTPException(status_code=404, detail=msg) from exc
+        raise HTTPException(status_code=404, detail="Profile not found") from exc
 
     session = _engine.get_session(session_id)
     assert session is not None
@@ -110,8 +106,8 @@ def interact(session_id: str, request: InteractRequest) -> InteractResponse:
     except KeyError as exc:
         msg = str(exc.args[0]) if exc.args else str(exc)
         if "not active" in msg:
-            raise HTTPException(status_code=400, detail=msg) from exc
-        raise HTTPException(status_code=404, detail=msg) from exc
+            raise HTTPException(status_code=400, detail="Session not active") from exc
+        raise HTTPException(status_code=404, detail="Session not found") from exc
 
     return InteractResponse(session_id=session_id, turn=turn)
 
