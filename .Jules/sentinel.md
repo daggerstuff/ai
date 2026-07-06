@@ -1,0 +1,1 @@
+## 2025-05-18 - Fix Error Message Leak | Vulnerability: Error message leak in patient_psi API | Learning: Returning String(exc) or exc.args directly exposes internal system state or raw error details to the user | Prevention: Always return generic, predefined error messages for 404 or 400 responses instead of raw exceptions.

@@ -8,23 +8,28 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
-
-from fastapi import FastAPI
 
 from ai.platform.patient_psi.engine import (
     PatientPsiEngine,
+    SessionNotActiveError,
+    SessionNotFoundError,
     SimulationConfig,
     SimulationStatus,
     SimulationTurn,
 )
 from ai.platform.patient_psi.profiles import ProfileRegistry
-from ai.platform.patient_psi.styles import ConversationalStyle
 
 # ── Module-level engine singleton ─────────────────────────────────────
 
 _profile_registry = ProfileRegistry()
+
+# Error message constants (avoid leaking internal exception details).
+PROFILE_NOT_FOUND_MSG = "Profile not found"
+SESSION_NOT_FOUND_MSG = "Session not found"
+SESSION_NOT_ACTIVE_MSG = "Session is not active"
+
 _engine = PatientPsiEngine(profile_registry=_profile_registry)
 
 router = APIRouter(tags=["patient-psi"])
@@ -85,8 +90,7 @@ def create_session(request: CreateSessionRequest) -> SessionResponse:
     try:
         session_id = _engine.create_session(request)
     except KeyError as exc:
-        msg = str(exc.args[0]) if exc.args else str(exc)
-        raise HTTPException(status_code=404, detail=msg) from exc
+        raise HTTPException(status_code=404, detail=PROFILE_NOT_FOUND_MSG) from exc
 
     session = _engine.get_session(session_id)
     assert session is not None
@@ -107,11 +111,10 @@ def interact(session_id: str, request: InteractRequest) -> InteractResponse:
     """Process a therapist utterance and return the patient response."""
     try:
         turn = _engine.interact(session_id, request.message, seed=request.seed)
-    except KeyError as exc:
-        msg = str(exc.args[0]) if exc.args else str(exc)
-        if "not active" in msg:
-            raise HTTPException(status_code=400, detail=msg) from exc
-        raise HTTPException(status_code=404, detail=msg) from exc
+    except SessionNotActiveError as exc:
+        raise HTTPException(status_code=400, detail=SESSION_NOT_ACTIVE_MSG) from exc
+    except SessionNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=SESSION_NOT_FOUND_MSG) from exc
 
     return InteractResponse(session_id=session_id, turn=turn)
 
@@ -121,7 +124,7 @@ def get_session(session_id: str) -> SessionResponse:
     """Get simulation session status."""
     session = _engine.get_session(session_id)
     if session is None:
-        raise HTTPException(status_code=404, detail="Session not found")
+        raise HTTPException(status_code=404, detail=SESSION_NOT_FOUND_MSG)
 
     return SessionResponse(
         session_id=session.session_id,
@@ -138,7 +141,7 @@ def get_session(session_id: str) -> SessionResponse:
 def terminate_session(session_id: str) -> SessionResponse:
     """Terminate a simulation session."""
     if not _engine.terminate_session(session_id):
-        raise HTTPException(status_code=404, detail="Session not found")
+        raise HTTPException(status_code=404, detail=SESSION_NOT_FOUND_MSG)
 
     session = _engine.get_session(session_id)
     assert session is not None
