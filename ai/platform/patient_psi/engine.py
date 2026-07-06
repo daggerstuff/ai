@@ -82,6 +82,19 @@ class SimulationSession:
     updated_at: datetime = field(default_factory=datetime.now)
 
 
+class SessionNotFoundError(KeyError):
+    """Raised when a session ID does not map to any session."""
+
+
+class SessionNotActiveError(KeyError):
+    """Raised when a session exists but is not in ACTIVE status."""
+
+    def __init__(self, session_id: str, status: str) -> None:
+        self.session_id = session_id
+        self.status = status
+        super().__init__(f"Session {session_id!r} is not active (status: {status})")
+
+
 class PatientPsiEngine:
     """Orchestrates PATIENT-Ψ cognitive patient simulation sessions."""
 
@@ -94,6 +107,7 @@ class PatientPsiEngine:
         self._style_registry = style_registry or StyleRegistry()
         self._sessions: dict[str, SimulationSession] = {}
         import threading
+
         self._lock = threading.Lock()
 
     def create_session(self, config: SimulationConfig) -> str:
@@ -227,13 +241,13 @@ class PatientPsiEngine:
         return active
 
     def _get_active_session(self, session_id: str) -> SimulationSession:
-        """Retrieve a session, raising KeyError if not found or not active."""
+        """Retrieve a session, raising a typed error if not found or not active."""
         with self._lock:
             session = self._sessions.get(session_id)
             if session is None:
-                raise KeyError(f"Session {session_id!r} not found")
+                raise SessionNotFoundError(session_id)
             if session.status != SimulationStatus.ACTIVE:
-                raise KeyError(f"Session {session_id!r} is not active (status: {session.status.value})")
+                raise SessionNotActiveError(session_id, session.status.value)
             return session
 
     def _detect_trigger(self, therapist_utterance: str) -> str:

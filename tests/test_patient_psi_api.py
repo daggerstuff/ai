@@ -30,6 +30,8 @@ class TestPatientPsiAPI:
         resp = client.post("/api/v1/patient-psi/sessions", json={"profile_name": "nonexistent"})
         assert resp.status_code == 404
 
+        assert resp.json()["detail"] == "Profile not found"
+
     def test_create_session_rejects_invalid_config(self) -> None:
         resp = client.post(
             "/api/v1/patient-psi/sessions", json={"profile_name": "generalized_anxiety", "difficulty": 99}
@@ -79,6 +81,8 @@ class TestPatientPsiAPI:
         )
         assert resp.status_code == 404
 
+        assert resp.json()["detail"] == "Session not found"
+
     def test_interact_terminated_session_returns_400(self) -> None:
         create = client.post("/api/v1/patient-psi/sessions", json={"profile_name": "generalized_anxiety"})
         session_id = create.json()["session_id"]
@@ -90,6 +94,8 @@ class TestPatientPsiAPI:
             json={"message": "Hello"},
         )
         assert resp.status_code == 400
+
+        assert resp.json()["detail"] == "Session is not active"
 
     def test_same_seed_produces_same_transition(self) -> None:
         create = client.post(
