@@ -389,6 +389,26 @@ describe("PixelatedEmpathyAPI Method getStatisticsOverview", () => {
 });
 
 describe("PixelatedEmpathyAPI Method exportData", () => {
+  it("should use default format 'jsonl' when options are not provided", async () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    const makeRequestSpy = vi.spyOn(api, "makeRequest");
+    let calledOptions: Record<string, unknown> = {};
+
+    makeRequestSpy.mockImplementation(
+      async (method: string, endpoint: string, options?: RequestOptions) => {
+        calledOptions = options ?? {};
+        return { data: { export_url: "http://example.com/export" } };
+      },
+    );
+
+    await api.exportData("my-dataset");
+
+    expect(calledOptions.data).toEqual({
+      dataset: "my-dataset",
+      format: "jsonl",
+    });
+  });
+
   it("should map options correctly to exportData payload", async () => {
     const api = new PixelatedEmpathyAPI("test_key");
     const makeRequestSpy = vi.spyOn(api, "makeRequest");
