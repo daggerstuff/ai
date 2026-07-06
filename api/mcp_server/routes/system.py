@@ -45,7 +45,7 @@ def get_health():
 
     except Exception as e:
         logger.error(f"Error checking system health: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": "System health check failed"}), 500
 
 
 @system_bp.route("/metrics", methods=["GET"])
