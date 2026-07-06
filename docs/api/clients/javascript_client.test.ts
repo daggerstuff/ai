@@ -461,6 +461,34 @@ describe("PixelatedEmpathyAPI Dataset Methods", () => {
     );
     expect(result).toEqual(mockDatasetInfo);
   });
+
+  it("getDatasetInfo should return empty object if dataset info is missing from response", async () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    const makeRequestSpy = vi.spyOn(api, "makeRequest");
+    makeRequestSpy.mockResolvedValueOnce({ data: undefined });
+
+    const result = await api.getDatasetInfo("test_dataset");
+
+    expect(makeRequestSpy).toHaveBeenCalledWith(
+      "GET",
+      "/datasets/test_dataset",
+    );
+    expect(result).toEqual({});
+  });
+
+  it("getDatasetInfo should return empty object if response has no data property", async () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    const makeRequestSpy = vi.spyOn(api, "makeRequest");
+    makeRequestSpy.mockResolvedValueOnce({});
+
+    const result = await api.getDatasetInfo("test_dataset");
+
+    expect(makeRequestSpy).toHaveBeenCalledWith(
+      "GET",
+      "/datasets/test_dataset",
+    );
+    expect(result).toEqual({});
+  });
 });
 
 describe("PixelatedEmpathyAPI Method searchConversations", () => {
