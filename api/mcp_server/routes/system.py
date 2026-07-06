@@ -75,4 +75,4 @@ def get_metrics():
 
     except Exception as e:
         logger.error(f"Error fetching system metrics: {e}")
-        return jsonify({"success": False, "error": str(e)}), 500
+        return jsonify({"success": False, "error": "System metrics check failed"}), 500
