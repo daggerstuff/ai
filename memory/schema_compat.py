@@ -2,13 +2,13 @@
 Schema compatibility layer between TS and Python memory types.
 
 Provides bidirectional conversion between:
-  - ``foresight_mcp.schema.UnifiedMemory`` (canonical Python Pydantic, mirrors
+  - ``foresight.schema.UnifiedMemory`` (canonical Python Pydantic, mirrors
     ``@pixelated/memory-schema`` TypeScript types)
   - ``ai.memory.schema.MemoryBlock``         (legacy Python Pydantic — kept
     in sync via this module)
 
 TS canonical:    packages/memory-schema/src/types.ts
-Python MCP:       foresight_mcp/schema.py
+Python MCP:       foresight/schema.py
 Python legacy:    ai/memory/schema.py
 """
 
@@ -17,7 +17,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from foresight_mcp.schema import (
+from foresight.schema import (
     MEMORY_SCHEMA_VERSION,
     EmotionalContext,
     MemoryScope,
@@ -167,7 +167,7 @@ def from_legacy_block(legacy: LegacyMemoryBlock) -> UnifiedMemory:
 
     This is the primary entry point for the MCP server's Python-side code
     (``ai/memory/``) to interoperate with the unified schema used by
-    ``foresight_mcp``.
+    ``foresight``.
     """
     imp = legacy.importance or LegacyMemoryImportance(
         raw=0.0, recency=0.0, relevance=0.0, emotionalWeight=1.0, actionability=0.0
@@ -247,7 +247,7 @@ def assert_schemas_in_sync() -> None:
     4. Bidirectional round-trip preserves id, content, tenant_id
     """
     # Check version constant
-    assert MEMORY_SCHEMA_VERSION == "1.0.0", f"Schema version mismatch: foresight_mcp has {MEMORY_SCHEMA_VERSION!r}"
+    assert MEMORY_SCHEMA_VERSION == "1.0.0", f"Schema version mismatch: foresight has {MEMORY_SCHEMA_VERSION!r}"
 
     # Check field overlap for to_legacy_block
     unified_fields = set(UnifiedMemory.model_fields.keys())
