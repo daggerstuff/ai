@@ -386,7 +386,7 @@ services:
       - mongo-data:/data/db
 
   redis:
-    image: redis:6-alpine
+    image: redis:latest
     ports:
       - "6379:6379"
     volumes:

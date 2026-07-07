@@ -180,7 +180,7 @@ services:
 
   # Database
   db:
-    image: postgres:15
+    image: postgres:17
     environment:
       POSTGRES_DB: pixelated_empathy
       POSTGRES_USER: postgres
@@ -194,7 +194,7 @@ services:
 
   # Redis Cache
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     ports:
       - '6379:6379'
     volumes:
@@ -350,7 +350,7 @@ services:
         max-file: '3'
 
   db:
-    image: postgres:15
+    image: postgres:17
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -365,7 +365,7 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     command:
       redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy
       allkeys-lru
@@ -511,7 +511,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:15
+          image: postgres:17
           env:
             - name: POSTGRES_DB
               value: 'pixelated_empathy'
