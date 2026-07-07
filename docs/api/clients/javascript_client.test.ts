@@ -897,6 +897,15 @@ describe("PixelatedEmpathyAPI Method toRecordArray edge cases", () => {
     expect(api.toRecordArray(undefined)).toEqual([]);
   });
 
+  it("should correctly handle non-array inputs by returning empty array", () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    expect(api.toRecordArray(null)).toEqual([]);
+    expect(api.toRecordArray("string")).toEqual([]);
+    expect(api.toRecordArray(123)).toEqual([]);
+    expect(api.toRecordArray({ a: 1 })).toEqual([]);
+    expect(api.toRecordArray(() => {})).toEqual([]);
+  });
+
   it("should correctly filter out non-plain objects from arrays", () => {
     const api = new PixelatedEmpathyAPI("test_key");
     const input = [{ valid: true }, null, "string", [1, 2], { another: "yes" }];
