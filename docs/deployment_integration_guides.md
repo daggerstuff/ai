@@ -405,7 +405,7 @@ services:
     restart: unless-stopped
 
   database:
-    image: postgres:13
+    image: postgres:17
     environment:
       - POSTGRES_DB=pixelated_empathy
       - POSTGRES_USER=pixelated

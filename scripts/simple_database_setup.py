@@ -83,9 +83,9 @@ def check_database_connection():
     logger.info("💡 Try these solutions:")
     logger.info("   1. Connect as your user: psql postgres")
     logger.info(
-        "   2. Set up Docker PostgreSQL: sudo docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres:15"
+        "   2. Set up Docker PostgreSQL: sudo docker run -d -p 5433:5432 -e POSTGRES_PASSWORD=postgres postgres:17"
     )
-    logger.info("   3. Check PostgreSQL authentication: sudo nano /etc/postgresql/15/main/pg_hba.conf")
+    logger.info("   3. Check PostgreSQL authentication: sudo nano /etc/postgresql/17/main/pg_hba.conf")
     return False
 
 
