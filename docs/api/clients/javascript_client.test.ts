@@ -17,6 +17,19 @@ describe("PixelatedEmpathyAPIError Initialization", () => {
   });
 });
 
+describe("RateLimitError Initialization", () => {
+  it("should initialize with correct properties and format message", () => {
+    const error = new RateLimitError(30);
+    expect(error).toBeInstanceOf(Error);
+    expect(error).toBeInstanceOf(PixelatedEmpathyAPIError);
+    expect(error.name).toBe("RateLimitError");
+    expect(error.retryAfter).toBe(30);
+    expect(error.message).toBe("Rate limit exceeded. Retry after 30 seconds.");
+    expect(error.errorCode).toBeNull();
+    expect(error.statusCode).toBeNull();
+  });
+});
+
 describe("PixelatedEmpathyAPI healthCheck", () => {
   it("should return true when health check succeeds", async () => {
     const api = new PixelatedEmpathyAPI("test_key");
