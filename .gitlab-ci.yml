@@ -140,25 +140,6 @@ build:docker:
 # This GitLab pipeline handles validation, tests, and image build/publish only.
 # The following stages are preserved for reference or fallback.
 
-# Deploy to staging (manual trigger only)
-deploy:staging:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-  - apk add --no-cache curl
-  script: |
-    echo "🚀 Deploying AI module to staging environment..."
-    echo "Container image: $CONTAINER_IMAGE"
-    echo "⚠️ Deployment logic not implemented yet"
-
-  environment:
-    name: 'staging'
-    url: 'https://staging.pixelatedempathy.com'
-  only:
-  - master
-  - main
-  when: manual
-
 # Deploy to production (manual trigger only)
 deploy:production:
   stage: deploy
