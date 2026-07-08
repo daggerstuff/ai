@@ -172,7 +172,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 
     except Exception as e:
         logger.error(f"Error in {name}: {e}")
-        return [TextContent(type="text", text=f"❌ Error: {e!s}")]
+        return [TextContent(type="text", text="❌ An internal error occurred while processing the tool call.")]
 
 
 async def main():
