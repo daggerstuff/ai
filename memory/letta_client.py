@@ -29,7 +29,6 @@ DEFAULT_BASE_URL = "https://api.letta.ai"
 CONFIG_DIR = Path.home() / ".letta" / "claude-subconscious"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
-# P0 Fix: Retry configuration
 MAX_RETRIES = 3
 RETRY_DELAY = 1.0  # seconds
 RETRY_BACKOFF = 2.0
@@ -37,7 +36,7 @@ RETRY_BACKOFF = 2.0
 
 def retry_on_failure(max_retries=MAX_RETRIES, delay=RETRY_DELAY, backoff=RETRY_BACKOFF):
     """
-    P0 Fix: Retry decorator with exponential backoff.
+    Retry decorator with exponential backoff.
 
     Args:
         max_retries: Maximum number of retry attempts
@@ -205,15 +204,12 @@ class LettaClient:
         config_data["agent_id"] = agent_id
         config_data["last_updated"] = datetime.now(UTC).isoformat()
 
-        # P0 Fix: Set secure permissions on config file (owner read/write only)
         CONFIG_FILE.write_text(json.dumps(config_data, indent=2))
         os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
 
     async def stream_transcript(self, messages: list[dict[str, Any]], session_id: str) -> None:
         """
         Stream session transcript to Letta agent.
-
-        P0 Fix: Added timeout and proper error handling
 
         Args:
             messages: List of message dicts with role/content/timestamp
@@ -227,7 +223,6 @@ class LettaClient:
             return
 
         try:
-            # P0 Fix: Add timeout to prevent hanging
             await asyncio.wait_for(
                 self._stream_messages(messages, session_id),
                 timeout=60.0,  # 60 second timeout for entire transcript
