@@ -813,6 +813,31 @@ describe("PixelatedEmpathyAPI Method normalizePayload", () => {
 });
 
 describe("PixelatedEmpathyAPI Method httpRequest timeout", () => {
+  it('should throw the original error if fetch fails with a non-AbortError', async () => {
+    const api = new PixelatedEmpathyAPI("test_key");
+    api.maxRetries = 0; // Prevent automatic retry loops
+
+    // Mock fetch globally
+    const originalFetch = global.fetch;
+    global.fetch = vi.fn().mockImplementation(() => {
+      const error = new Error("Network connection lost");
+      error.name = "TypeError";
+      return Promise.reject(error);
+    });
+
+    try {
+      await expect(
+        api.httpRequest("http://test.com", {
+          method: "GET",
+          headers: {},
+          timeout: 10,
+        }),
+      ).rejects.toThrow("Network connection lost");
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
   it('should throw Error with message "Request timeout" on AbortError', async () => {
     const api = new PixelatedEmpathyAPI("test_key");
     api.maxRetries = 0; // Prevent automatic retry loops
