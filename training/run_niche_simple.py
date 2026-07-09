@@ -61,7 +61,7 @@ def main():
         log(f"[{i}/{len(CATEGORIES)}] {cat}")
 
         env = {
-            "NVIDIA_API_KEY": "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",
+            "NVIDIA_API_KEY": os.environ.get("NVIDIA_API_KEY", ""),
             "NVIDIA_BASE_URL": nemo_endpoint,
             "NEMO_ENDPOINT": nemo_endpoint,
         }
