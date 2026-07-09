@@ -47,8 +47,7 @@ def get_s3_client():
 def get_sweep_pid():
     try:
         # Look for the python process running the sweep script
-        cmd = ["pgrep", "-f", "full_ai_sweep_s3.py"]
-        pids = subprocess.check_output(cmd).decode().strip().split("\n")
+        pids = subprocess.check_output(["pgrep", "-f", "full_ai_sweep_s3.py"]).decode().strip().split("\n")
         # Return the most recent one (highest PID usually)
         return pids[-1] if pids and pids[0] else None
     except Exception:
