@@ -53,7 +53,8 @@ class AgentMemoryTools:
     OpenAI Agent SDK, LangChain, or other agent frameworks.
 
     Usage:
-        tools = AgentMemoryTools(api_key="m0-xxx")
+        import os
+        tools = AgentMemoryTools(api_key=os.environ.get("API_KEY"))
         await tools.add_to_memory(context, "User prefers morning meetings")
         results = await tools.search_memory(context, "meeting preferences")
     """
