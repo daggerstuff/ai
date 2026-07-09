@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Enhanced V5 Production Monitor"""
 
+import asyncio
 import json
-import time
 from datetime import UTC, datetime
 from pathlib import Path
 
 
-def monitor_v5():
+async def monitor_v5():
     """Monitor V5 production system"""
 
     try:
@@ -24,11 +24,13 @@ def monitor_v5():
             with open(log_file, "a") as f:
                 f.write(json.dumps(status) + "\n")
 
-            time.sleep(60)  # Check every minute
+            await asyncio.sleep(60)  # Check every minute
 
+    except asyncio.CancelledError:
+        pass
     except KeyboardInterrupt:
         pass
 
 
 if __name__ == "__main__":
-    monitor_v5()
+    asyncio.run(monitor_v5())
