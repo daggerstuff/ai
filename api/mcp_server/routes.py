@@ -1165,6 +1165,6 @@ def create_health_router(get_manager: ManagerGetter) -> APIRouter:
             }
         except Exception as e:
             logger.error(f"Health check failed: {e}")
-            return JSONResponse(status_code=503, content={"status": "unhealthy", "error": str(e)})
+            return JSONResponse(status_code=503, content={"status": "unhealthy", "error": "Service unavailable"})
 
     return router
