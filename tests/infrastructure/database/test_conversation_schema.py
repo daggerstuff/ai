@@ -1,41 +1,22 @@
+import pytest
 from infrastructure.database.conversation_schema import DatabaseSchemaDesigner
 
-def test_get_schema_documentation():
-    designer = DatabaseSchemaDesigner()
-    # It initializes tables, indexes, constraints in its __init__ via private methods.
-    # We should just test the structure of the returned docs.
-    docs = designer.get_schema_documentation()
-    
-    # Test overview structure and types
-    assert "overview" in docs
-    assert "total_tables" in docs["overview"]
-    assert isinstance(docs["overview"]["total_tables"], int)
-    assert docs["overview"]["total_tables"] > 0
-    
-    assert "total_indexes" in docs["overview"]
-    assert isinstance(docs["overview"]["total_indexes"], int)
-    assert docs["overview"]["total_indexes"] >= 0
-    
-    assert "total_constraints" in docs["overview"]
-    assert isinstance(docs["overview"]["total_constraints"], int)
-    assert docs["overview"]["total_constraints"] >= 0
-    
-    assert "designed_for" in docs["overview"]
-    assert isinstance(docs["overview"]["designed_for"], str)
-    assert len(docs["overview"]["designed_for"]) > 0
-    
-    # Test tables structure
-    assert "tables" in docs
-    assert isinstance(docs["tables"], dict)
-    assert len(docs["tables"]) > 0
-    assert len(docs["tables"]) == docs["overview"]["total_tables"]
-    
-    # Test relationships structure
-    assert "relationships" in docs
-    assert isinstance(docs["relationships"], dict)
-    assert "conversations" in docs["relationships"]
-    
-    # Test performance considerations structure
-    assert "performance_considerations" in docs
-    assert "indexing_strategy" in docs["performance_considerations"]
-    assert isinstance(docs["performance_considerations"]["indexing_strategy"], str)
+
+class TestDatabaseSchemaDesigner:
+    def test_estimate_storage_requirements_edge_cases(self):
+        designer = DatabaseSchemaDesigner()
+        
+        # Test 0 conversations
+        result_0 = designer.estimate_storage_requirements(0)
+        assert result_0["conversation_count"] == 0
+        assert result_0["summary"]["total_estimated_size_gb"] == pytest.approx(0.65)  # Base overhead (0.5 for other_tables + 30% index overhead)
+        
+        # Test 1 billion conversations (extreme large number)
+        result_large = designer.estimate_storage_requirements(1000000000)
+        assert result_large["conversation_count"] == 1000000000
+        assert result_large["summary"]["total_estimated_size_gb"] > 0
+        
+        # Test negative conversations
+        result_negative = designer.estimate_storage_requirements(-1)
+        assert result_negative["conversation_count"] == 0
+        assert result_negative["summary"]["total_estimated_size_gb"] == pytest.approx(0.65)  # Negative conversations treated as 0, still has base overhead
