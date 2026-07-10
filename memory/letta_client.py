@@ -204,7 +204,10 @@ class LettaClient:
         config_data["agent_id"] = agent_id
         config_data["last_updated"] = datetime.now(UTC).isoformat()
 
-        CONFIG_FILE.write_text(json.dumps(config_data, indent=2))
+        flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+        mode = stat.S_IRUSR | stat.S_IWUSR
+        with os.fdopen(os.open(CONFIG_FILE, flags, mode), "w") as f:
+            f.write(json.dumps(config_data, indent=2))
         os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
 
     async def stream_transcript(self, messages: list[dict[str, Any]], session_id: str) -> None:
