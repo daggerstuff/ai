@@ -715,32 +715,37 @@ class ConversationRepository(BaseModelRepository[dict]):
 
         timestamp = datetime.now(UTC).isoformat()
 
-        async for idx, item in self._async_enumerate(items):
-            try:
-                conversation_id = item.get("conversation_id", str(uuid.uuid4()))
-                params = [
-                    conversation_id,
-                    json.dumps(item.get("messages", [])),
-                    json.dumps(item.get("metadata", {})),
-                    item.get("tier", "standard"),
-                    item.get("processing_status", "pending"),
-                    json.dumps(item.get("emotion_tags", [])),
-                    item.get("crisis_detected", False),
-                    timestamp,
-                    timestamp,
-                ]
+        for item in items:
+            if "conversation_id" not in item:
+                item["conversation_id"] = str(uuid.uuid4())
 
-                await self.db_manager.execute(sql, params)
-                success_count += 1
+        params_generator = (
+            [
+                item.get("conversation_id"),
+                json.dumps(item.get("messages", [])),
+                json.dumps(item.get("metadata", {})),
+                item.get("tier", "standard"),
+                item.get("processing_status", "pending"),
+                json.dumps(item.get("emotion_tags", [])),
+                item.get("crisis_detected", False),
+                timestamp,
+                timestamp,
+            ]
+            for item in items
+        )
 
-                # Cache the new conversation
-                cache_key = f"conversation:{conversation_id}"
-                self.db_manager.cache.set(cache_key, {**item, "conversation_id": conversation_id})
+        try:
+            row_count = await self.db_manager.executemany(sql, params_generator)
+            success_count = row_count
 
-            except Exception as e:
-                failed_count += 1
-                errors.append((idx, str(e)))
-                self.logger.error(f"Failed to create conversation at index {idx}: {e}")
+            # Cache the new conversations
+            for item in items:
+                cache_key = f"conversation:{item['conversation_id']}"
+                self.db_manager.cache.set(cache_key, item)
+        except Exception as e:
+            failed_count = len(items)
+            errors.append((0, str(e)))
+            self.logger.error(f"Failed to bulk create conversations: {e}")
 
         self.db_manager.metrics.operations_created += success_count
         total_time = time.time() - start_time
@@ -1034,6 +1039,42 @@ class DatabaseManager:
         return ConversationRepository(self)
 
     # Database operations
+    async def executemany(self, sql: str, params_list: builtins.list[Sequence[Any]] | Any) -> int:
+        """Execute a SQL statement multiple times with different parameters and return affected row count."""
+        if not self._initialized:
+            self.initialize()
+
+        if self._pool is None:
+            raise RuntimeError("Database not initialized")
+        conn = self._pool.get_connection()
+        try:
+            start_time = time.time()
+            cursor = conn.executemany(str(sql), params_list)
+            row_count = cursor.rowcount
+            conn.commit()
+
+            execution_time = time.time() - start_time
+
+            self.metrics.queries_executed += 1
+            self.metrics.total_query_time += execution_time
+
+            if self.config.log_queries:
+                self.logger.debug(f"Executed many: {sql[:100]}... in {execution_time:.3f}s")
+
+            if execution_time > self.config.log_slow_queries_threshold:
+                self.metrics.slow_queries += 1
+                self.logger.warning(f"Slow query (executemany, {execution_time:.3f}s): {sql[:200]}...")
+
+            return int(row_count)
+
+        except Exception as e:
+            self.metrics.queries_failed += 1
+            conn.rollback()
+            self.logger.error(f"Executemany query failed: {e}\nSQL: {sql[:200]}")
+            raise
+        finally:
+            self._pool.release_connection(conn)
+
     async def execute(self, sql: str, params: Sequence[Any] | None = None) -> int:
         """Execute a SQL statement and return affected row count."""
         if not self._initialized:

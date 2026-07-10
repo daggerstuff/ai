@@ -39,7 +39,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("/home/vivi/pixelated/ai/logs/enterprise_validation.log"),
+        logging.FileHandler("logs/enterprise_validation.log"),
         logging.StreamHandler(),
     ],
 )
@@ -275,7 +275,7 @@ class SecurityValidator:
                     return None
 
             async with httpx.AsyncClient() as client:
-                tasks = [make_request(client) for _ in range(20)]
+                tasks = (make_request(client) for _ in range(20))
                 results = await asyncio.gather(*tasks)
 
             for status_code in results:
@@ -537,7 +537,7 @@ class PerformanceValidator:
                 return None
 
             async with httpx.AsyncClient() as client:
-                tasks = [make_request(client) for _ in range(50)]
+                tasks = (make_request(client) for _ in range(50))
                 results = await asyncio.gather(*tasks)
 
             response_times = [r for r in results if r is not None]
