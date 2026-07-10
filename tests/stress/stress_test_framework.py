@@ -381,12 +381,16 @@ class StressTestFramework:
 
             # Delete test messages
             cursor.execute(
-                "DELETE FROM messages WHERE conversation_id LIKE 'stress_test_%' OR conversation_id LIKE 'memory_test_%'"
+                "DELETE FROM messages WHERE conversation_id LIKE %s OR conversation_id LIKE %s",
+                ("stress_test_%", "memory_test_%"),
             )
             messages_deleted = cursor.rowcount
 
             # Delete test conversations
-            cursor.execute("DELETE FROM conversations WHERE id LIKE 'stress_test_%' OR id LIKE 'memory_test_%'")
+            cursor.execute(
+                "DELETE FROM conversations WHERE id LIKE %s OR id LIKE %s",
+                ("stress_test_%", "memory_test_%"),
+            )
             conversations_deleted = cursor.rowcount
 
             conn.commit()
