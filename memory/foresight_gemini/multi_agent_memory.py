@@ -106,7 +106,8 @@ class MultiAgentMemory:
     - Conversation summary for agent context
 
     Usage:
-        memory = MultiAgentMemory(api_key="hs-xxx")
+        import os
+        memory = MultiAgentMemory(api_key=os.environ.get("API_KEY"))
         context = CollaborationContext(
             user_id="user123",
             session_id="session456",
