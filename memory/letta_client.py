@@ -205,7 +205,7 @@ class LettaClient:
         config_data["agent_id"] = agent_id
         config_data["last_updated"] = datetime.now(UTC).isoformat()
 
-        # P0 Fix: Set secure permissions on config file (owner read/write only)
+        # Set secure permissions on config file (owner read/write only)
         CONFIG_FILE.write_text(json.dumps(config_data, indent=2))
         os.chmod(CONFIG_FILE, stat.S_IRUSR | stat.S_IWUSR)  # 0o600
 
