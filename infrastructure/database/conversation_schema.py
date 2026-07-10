@@ -441,6 +441,7 @@ class DatabaseSchemaDesigner:
 
     def estimate_storage_requirements(self, conversation_count: int = 2590000) -> dict[str, Any]:
         """Estimate storage requirements for the given number of conversations."""
+        conversation_count = max(0, conversation_count)
 
         # Average sizes (in bytes)
         avg_conversation_size = 2048  # Average conversation JSON size
