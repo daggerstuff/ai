@@ -12,7 +12,7 @@ Features:
 - Citation tracking for evidence-based responses
 
 Usage:
-    config = NemotronRAGConfig(api_key="nvapi-xxx")
+    config = NemotronRAGConfig(api_key=os.environ.get("NVIDIA_API_KEY"))
     pipeline = TherapeuticRAGPipeline(config)
 
     # Ingest documents
@@ -324,7 +324,7 @@ class TherapeuticRAGPipeline:
     - Crisis-aware query handling
 
     Example:
-        config = NemotronRAGConfig(api_key="nvapi-xxx")
+        config = NemotronRAGConfig(api_key=os.environ.get("NVIDIA_API_KEY"))
         pipeline = TherapeuticRAGPipeline(config)
 
         # Ingest documents
