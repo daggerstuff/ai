@@ -4,8 +4,8 @@ Enhanced V5 Production Monitoring
 Real-time monitoring and alerting system
 """
 
+import asyncio
 import json
-import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -18,7 +18,7 @@ class ProductionMonitor:
         self.log_file = Path("../logs/crisis_detection.log")
         self.metrics_file = Path("../logs/production_metrics.json")
 
-    def monitor_system(self):
+    async def monitor_system(self):
         """Monitor production system"""
 
         while True:
@@ -36,12 +36,12 @@ class ProductionMonitor:
                 self._log_status(health_status, metrics, alerts)
 
                 # Wait for next check
-                time.sleep(60)  # Check every minute
+                await asyncio.sleep(60)  # Check every minute
 
             except KeyboardInterrupt:
                 break
             except Exception:
-                time.sleep(60)
+                await asyncio.sleep(60)
 
     def _check_system_health(self):
         """Check system health"""
@@ -86,4 +86,4 @@ class ProductionMonitor:
 
 if __name__ == "__main__":
     monitor = ProductionMonitor()
-    monitor.monitor_system()
+    asyncio.run(monitor.monitor_system())
