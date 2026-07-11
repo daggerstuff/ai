@@ -141,6 +141,14 @@ describe("PixelatedEmpathyAPI Method waitForJob", () => {
  const result = await api.waitForJob("job-123");
  expect(result).toEqual({ status: "completed", progress: 100 });
  });
+ it("should resolve immediately if job is already failed", async () => {
+ const api = new PixelatedEmpathyAPI("test_key");
+ api.getJobStatus = async (jobId: string) => {
+ return { status: "failed", progress: null };
+ };
+ const result = await api.waitForJob("job-123");
+ expect(result).toEqual({ status: "failed", progress: null });
+ });
  it("should poll until job is completed", async () => {
  const api = new PixelatedEmpathyAPI("test_key");
  let callCount = 0;
