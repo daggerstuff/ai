@@ -27,7 +27,7 @@ async def run_benchmark():
     print(f"Running benchmark with {len(items)} items...")
 
     # Test unoptimized bulk_create
-    start_time = time.time()
+    start_time = time.perf_counter()
 
     sql = """
     INSERT INTO conversations (
@@ -56,10 +56,10 @@ async def run_benchmark():
 
             await db_manager.execute(sql, params)
             success_count += 1
-        except Exception as e:
-            pass
+except Exception as e:
+            print(f"[benchmark] insert failed: {e}")
 
-    end_time = time.time()
+    end_time = time.perf_counter()
 
     duration = end_time - start_time
     print(f"Unoptimized Duration: {duration:.4f} seconds")
@@ -81,9 +81,9 @@ async def run_benchmark():
         })
 
     # Test optimized bulk_create
-    start_time = time.time()
+    start_time = time.perf_counter()
     result = await db_manager.conversations.bulk_create(items2)
-    end_time = time.time()
+    end_time = time.perf_counter()
 
     duration = end_time - start_time
     print(f"Optimized Duration: {duration:.4f} seconds")
