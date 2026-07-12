@@ -293,12 +293,24 @@ def _prepare_foresight_retain_items(
             base_metadata=base_metadata,
         )
     except RetainScopeConflictError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        logger.error("Retain scope conflict while preparing retained items: %s", exc)
+        raise HTTPException(
+            status_code=400,
+            detail="The requested retain operation could not be completed due to a scope conflict.",
+        ) from exc
     except DocumentAccessError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        logger.error("Document access denied while preparing retained items: %s", exc)
+        raise HTTPException(
+            status_code=404,
+            detail="The requested document could not be accessed.",
+        ) from exc
     except Exception as exc:
         if exc.__class__.__name__ == "DocumentAccessError":
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+            logger.error("Document access denied while preparing retained items: %s", exc)
+            raise HTTPException(
+                status_code=404,
+                detail="The requested document could not be accessed.",
+            ) from exc
         raise
 
 
