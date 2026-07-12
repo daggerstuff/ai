@@ -293,12 +293,24 @@ def _prepare_foresight_retain_items(
             base_metadata=base_metadata,
         )
     except RetainScopeConflictError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        logger.error("Retain scope conflict while preparing retained items: %s", exc)
+        raise HTTPException(
+            status_code=400,
+            detail="The requested retain operation could not be completed due to a scope conflict.",
+        ) from exc
     except DocumentAccessError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        logger.error("Document access denied while preparing retained items: %s", exc)
+        raise HTTPException(
+            status_code=404,
+            detail="The requested document could not be accessed.",
+        ) from exc
     except Exception as exc:
         if exc.__class__.__name__ == "DocumentAccessError":
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
+            logger.error("Document access denied while preparing retained items: %s", exc)
+            raise HTTPException(
+                status_code=404,
+                detail="The requested document could not be accessed.",
+            ) from exc
         raise
 
 
@@ -741,7 +753,6 @@ def _register_memory_get(router: APIRouter, get_manager: ManagerGetter) -> None:
     async def get_memory_endpoint(
         request_context: Request,
         memory_id: str,
-        _user_id: str | None = None,
         org_id: str | None = None,
         project_id: str | None = None,
         session_id: str | None = None,
@@ -781,7 +792,6 @@ def _register_memory_delete(router: APIRouter, get_manager: ManagerGetter) -> No
     async def delete_memory_endpoint(
         request_context: Request,
         memory_id: str,
-        _user_id: str | None = None,
         org_id: str | None = None,
         project_id: str | None = None,
         session_id: str | None = None,
@@ -830,7 +840,7 @@ def _register_memory_list(router: APIRouter, get_manager: ManagerGetter) -> None
         limit: int | None = None,
         offset: int = 0,
         category: str | None = None,
-        tag: list[str] | None = Query(default=None),
+        tags: list[str] | None = Query(default=None),
         x_memory_actor_id: str | None = Header(default=None),
         x_memory_user_id: str | None = Header(default=None),
         x_memory_timestamp: str | None = Header(default=None),
@@ -858,7 +868,7 @@ def _register_memory_list(router: APIRouter, get_manager: ManagerGetter) -> None
                 limit=limit,
                 offset=offset,
                 category=category,
-                tags=tag,
+                tags=tags,
             ),
         )
 
