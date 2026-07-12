@@ -56,7 +56,7 @@ async def run_benchmark():
 
             await db_manager.execute(sql, params)
             success_count += 1
-except Exception as e:
+        except Exception as e:
             print(f"[benchmark] insert failed: {e}")
 
     end_time = time.perf_counter()
