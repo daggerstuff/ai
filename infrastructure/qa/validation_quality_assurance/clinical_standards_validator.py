@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-import numpy as np
 import spacy
 
 # Configure logging
@@ -197,7 +196,7 @@ class ClinicalStandardsValidator:
             cultural_score,
             safety_score,
         ]
-        overall_score = np.mean(scores)
+        overall_score = (sum(scores) / len(scores))
 
         # Identify violations and recommendations
         violations = self._identify_violations(full_text)
@@ -425,7 +424,7 @@ class ClinicalStandardsValidator:
             recommendations.append("Review professional guidelines and standards")
 
         # General recommendations
-        if np.mean(scores) < 0.7:
+        if (sum(scores) / len(scores)) < 0.7:
             recommendations.append("Consider additional clinical training")
             recommendations.append("Implement regular supervision and consultation")
 
