@@ -146,6 +146,11 @@ torch = [{ index = "pytorch-cpu" }]
 torchvision = [{ index = "pytorch-cpu" }]
 torchaudio = [{ index = "pytorch-cpu" }]
 
+[tool.uv.workspace]
+members = [
+    "training/dataflow_eval",
+]
+
 
 [tool.ruff]
 target-version = "py313"
