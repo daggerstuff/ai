@@ -101,7 +101,7 @@ class OpenAIDriver(LLMDriver):
                 temperature=0.7,
                 max_tokens=max_tokens,
             )
-            return response.choices[0].message.content
+            return response.choices[0].message.content or ""
         except Exception as e:
             logger.error(f"LLM Generation failed: {e}")
             return f"[ERROR: {e!s}]"
@@ -155,7 +155,7 @@ class FireworksDriver(OpenAIDriver):
         # a fully-qualified Fireworks name (cubic #1).
         prefix = "accounts/fireworks/models/"
         if model.startswith(prefix):
-            model = model[len(prefix):]
+            model = model[len(prefix) :]
         self.model = model
         if not self.api_key:
             logger.warning("No FIREWORKS_API_KEY found. FireworksDriver may fail.")
@@ -236,10 +236,7 @@ class LLMClient:
         self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None
     ) -> dict[str, Any]:
         if self.provider not in ("mock",):
-            acquired = self.rate_limiter.acquire(
-                provider=self.provider,
-                model=self._resolved_model,
-                base_estimate = self._estimated_tokens(prompt, system_prompt, {})
+            base_estimate = self._estimated_tokens(prompt, system_prompt, {})
             try:
                 schema_budget = max(len(json.dumps(schema)) // 4, 256)
             except (TypeError, ValueError):
@@ -250,7 +247,6 @@ class LLMClient:
                 estimated_tokens=base_estimate + schema_budget,
             )
             if not acquired:
-
                 logger.warning(
                     "Rate limiter rejected acquire for provider=%s model=%s; returning empty",
                     self.provider,
