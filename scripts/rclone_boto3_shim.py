@@ -11,7 +11,7 @@ class RcloneS3Paginator:
         self.remote = remote
 
     def paginate(self, Bucket, Prefix=""):
-        cmd = ["rclone", "lsf", f"{self.remote}:{Bucket}/{Prefix}", "--format", "ps", "--files-only"]
+        cmd = ["rclone", "lsf", f"{self.remote}:{Bucket}/{Prefix}", "-R", "--format", "ps", "--files-only"]
         logger.info(f"Rclone list: {' '.join(cmd)}")
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         contents = []
@@ -69,10 +69,25 @@ class RcloneS3Client:
 
     def put_object(self, Bucket, Key, Body):
         cmd = ["rclone", "rcat", f"{self.remote}:{Bucket}/{Key}"]
-        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True if isinstance(Body, str) else False)
-        assert proc.stdin is not None
-        proc.stdin.write(Body)
-        proc.stdin.close()
+        
+        if isinstance(Body, str):
+            proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
+            assert proc.stdin is not None
+            proc.stdin.write(Body)
+            proc.stdin.close()
+        elif hasattr(Body, '__iter__') and not isinstance(Body, (bytes, bytearray)):
+            # Handle string iterators (generators)
+            proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
+            assert proc.stdin is not None
+            for chunk in Body:
+                proc.stdin.write(chunk)
+            proc.stdin.close()
+        else:
+            proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+            assert proc.stdin is not None
+            proc.stdin.write(Body)
+            proc.stdin.close()
+            
         proc.wait()
 
     def upload_file(self, Filename, Bucket, Key):
