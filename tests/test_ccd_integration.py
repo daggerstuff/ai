@@ -395,16 +395,24 @@ class TestCCDIntegration(unittest.TestCase):
     def test_invalid_learning_objective_parsing(self):
         """Test parsing of invalid learning objectives."""
         ccd_template = get_resistant_ccd_template()
+        # Capture the valid objectives before introducing an invalid one
+        original_objectives = list(ccd_template["learning_objectives"])
+
         # Add an invalid objective
         ccd_template["learning_objectives"].append("invalid_objective_value")
 
         # It should ignore the invalid objective without throwing an error
         profile = CCDIntegration.ccd_profile_to_difficult_client_profile(ccd_template)
 
-        # Verify it created successfully and didn't include the invalid one
-
-        for obj in profile.learning_objectives:
+        # Verify it created successfully and didn't include the invalid one.
+        # The invalid value must be ignored: the resulting objectives must match
+        # the original valid set exactly in count and membership, proving the
+        # invalid objective was dropped rather than normalized into a valid enum.
+        result_objectives = profile.learning_objectives
+        assert len(result_objectives) == len(original_objectives)
+        for obj in result_objectives:
             assert isinstance(obj, SessionObjective)
+            assert obj.value in original_objectives
 
     def test_adjust_formulation_summary_no_change(self):
         """Test _adjust_formulation_summary with neutral inputs"""
