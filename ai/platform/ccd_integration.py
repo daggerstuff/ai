@@ -487,7 +487,7 @@ class CCDIntegration:
             if score == current_score:
                 return prognosis
 
-        return base_prognosis  # fallback
+        return base_prognosis  # pragma: no cover
 
     @staticmethod
     def _adjust_confidence(
