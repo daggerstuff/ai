@@ -4116,6 +4116,59 @@
       "backed_up_to_s3": false,
       "status": "available",
       "registered_at": "2026-06-23T01:18:48.837785+00:00"
+    },
+    "training_v3": {
+      "final_dataset": {
+        "path": "s3://pixel-data/final_dataset/shards/curriculum/stage2/synthetic_persona_batch_10000.jsonl",
+        "stage": "stage2_therapeutic_expertise",
+        "type": "conversation",
+        "quality_profile": "promoted_feeder",
+        "focus": "simulation"
+      },
+      "training_v3_strongest": {
+        "path": "s3://pixel-data/datasets/training_v3/",
+        "stage": "stage1_foundation",
+        "type": "conversation",
+        "quality_profile": "promoted_feeder",
+        "focus": "simulation"
+      },
+      "training_v2_strongest": {
+        "path": "s3://pixel-data/datasets/training_v2/final_instruct/",
+        "stage": "stage1_foundation",
+        "type": "conversation",
+        "quality_profile": "promoted_feeder",
+        "focus": "simulation"
+      }
+    },
+    "professional_therapeutic": {
+      "long_context_therapy": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/curated/",
+        "stage": "stage1_foundation",
+        "type": "conversation",
+        "quality_profile": "promoted_feeder",
+        "focus": "simulation"
+      }
+    }
+  },
+  "voice_persona": {
+    "tier4_voice_persona": {
+      "path": "s3://pixel-data/acquired/kaggle/tier4_reddit_archive/",
+      "stage": "stage4_voice_persona",
+      "type": "conversation",
+      "quality_profile": "promoted_feeder",
+      "focus": "simulation"
+    }
+  },
+  "edge_case_sources": {
+    "safety_dpo_pairs_10k": {
+      "path": "s3://pixel-data/training/v1/stage3_stress_test/processed/safety_dpo_pairs_10k.jsonl",
+      "fallback_paths": {
+        "local": "/home/vivi/pixelated/ai/data/generated/dpo_preference_pairs_10k.jsonl"
+      },
+      "stage": "stage3_edge_stress_test",
+      "type": "conversation",
+      "quality_profile": "promoted_feeder",
+      "focus": "safety_dpo"
     }
   }
 }
