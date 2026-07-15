@@ -9,6 +9,8 @@ import transformers
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("PairGeneration")
 
+AI_ROOT = Path(__file__).resolve().parents[2]
+
 class AuthenticityValidator:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
         logger.info(f"Loading authenticity classification model on device {device}...")
@@ -33,10 +35,10 @@ class AuthenticityValidator:
 
 class TherapeuticPairGenerator:
     def __init__(
-        self, input_dir: str = "ai/data/features", output_dir: str = "ai/data/pairs", empathy_threshold: float = 0.5
+        self, input_dir: str | Path | None = None, output_dir: str | Path | None = None, empathy_threshold: float = 0.5
     ):
-        self.input_dir = Path(input_dir)
-        self.output_dir = Path(output_dir)
+        self.input_dir = Path(input_dir) if input_dir else AI_ROOT / "data/features"
+        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/pairs"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.empathy_threshold = empathy_threshold
         self.authenticity_validator = AuthenticityValidator()

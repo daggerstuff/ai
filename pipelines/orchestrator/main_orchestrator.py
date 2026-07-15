@@ -12,9 +12,11 @@ from pipelines.voice.transcription import TranscriptionOrchestrator
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("MainOrchestrator")
 
+AI_ROOT = Path(__file__).resolve().parents[2]
+
 class PipelineOrchestrator:
-    def __init__(self, db_path: str = "ai/training_corpus/assets/registry.db"):
-        self.db_path = Path(db_path)
+    def __init__(self, db_path: str | Path | None = None):
+        self.db_path = Path(db_path) if db_path else AI_ROOT / "training_corpus/assets/registry.db"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self._init_db()
@@ -45,7 +47,7 @@ class PipelineOrchestrator:
         logger.info(f"Registered shard {shard_id} for {source_file} with {pair_count} pairs.")
 
     def register_all_shards(self) -> None:
-        pairs_dir = Path("ai/data/pairs")
+        pairs_dir = AI_ROOT / "data/pairs"
         if not pairs_dir.exists():
             return
 

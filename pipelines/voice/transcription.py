@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import Any
 
 import torch
-
 import whisperx
-from typing import cast, Any
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("TranscriptionPipeline")
+
+AI_ROOT = Path(__file__).resolve().parents[2]
 
 class DiarizedTranscriptionPipeline:
     def __init__(self, device=None, compute_type="float16", hf_token=None, batch_size=16):
@@ -26,22 +26,24 @@ class DiarizedTranscriptionPipeline:
         self.model_a, self.metadata = whisperx.load_align_model(language_code="en", device=self.device)
 
         logger.info("Loading diarization model...")
-        self.diarize_model = getattr(whisperx, "DiarizationPipeline")(use_auth_token=self.hf_token, device=self.device)
+        self.diarize_model = whisperx.DiarizationPipeline(use_auth_token=self.hf_token, device=self.device)  # type: ignore
 
     def process_audio(self, audio_file: str, min_confidence: float = 0.80) -> list[dict[str, Any]]:
         logger.info(f"Transcribing {audio_file}...")
-        audio = getattr(whisperx, "load_audio")(audio_file)
+        audio = whisperx.load_audio(audio_file)  # type: ignore
 
         # 1. Transcribe
         result = self.model.transcribe(audio, batch_size=self.batch_size)
 
         # 2. Align whisper output
-        result = getattr(whisperx, "align")(result["segments"], self.model_a, self.metadata, audio, self.device, return_char_alignments=False)
+        result = whisperx.align(  # type: ignore
+            result["segments"], self.model_a, self.metadata, audio, self.device, return_char_alignments=False
+        )
 
         # 3. Assign speaker labels
         logger.info(f"Diarizing {audio_file}...")
         diarize_segments = self.diarize_model(audio, min_speakers=2, max_speakers=2)
-        result = getattr(whisperx, "assign_word_speakers")(diarize_segments, result)
+        result = whisperx.assign_word_speakers(diarize_segments, result)  # type: ignore
 
         # 4. Filter and format output
         final_segments = []
@@ -61,7 +63,8 @@ class DiarizedTranscriptionPipeline:
 
             speaker = segment.get("speaker", "UNKNOWN")
 
-            # Map SPEAKER_00 to Therapist, SPEAKER_01 to Client (Heuristic based on most talking time, often therapist leads)
+            # Map SPEAKER_00 to Therapist, SPEAKER_01 to Client
+            # (Heuristic based on most talking time, often therapist leads)
             # In production, we can run a classifier to distinguish role. Here we just maintain separate tags.
             role = "Therapist" if speaker == "SPEAKER_00" else "Client" if speaker == "SPEAKER_01" else speaker
 
@@ -76,9 +79,11 @@ class DiarizedTranscriptionPipeline:
         return final_segments
 
 class TranscriptionOrchestrator:
-    def __init__(self, input_dir="ai/data/segmented_audio", output_dir="ai/data/transcripts"):
-        self.input_dir = Path(input_dir)
-        self.output_dir = Path(output_dir)
+    def __init__(
+        self, input_dir: str | Path | None = None, output_dir: str | Path | None = None
+    ):
+        self.input_dir = Path(input_dir) if input_dir else AI_ROOT / "data/segmented_audio"
+        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/transcripts"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.pipeline = None
 

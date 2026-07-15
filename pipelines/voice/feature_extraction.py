@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, cast, Callable
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -12,10 +12,12 @@ from sklearn.preprocessing import StandardScaler
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("FeatureExtraction")
 
+AI_ROOT = Path(__file__).resolve().parents[2]
+
 class FeatureExtractor:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
         logger.info(f"Loading emotion classification model on device {device}...")
-        pipeline_func = cast(Any, getattr(transformers, "pipeline"))
+        pipeline_func = cast(Any, transformers.pipeline)
         self.emotion_classifier = pipeline_func(
             "text-classification", model="SamLowe/roberta-base-go_emotions", device=device
         )
@@ -53,7 +55,10 @@ class FeatureExtractor:
 
             # Empathy scoring
             try:
-                emp_result = cast(dict[str, Any], self.empathy_classifier(text, candidate_labels=["empathetic", "neutral", "dismissive"]))
+                emp_result = cast(
+                dict[str, Any],
+                self.empathy_classifier(text, candidate_labels=["empathetic", "neutral", "dismissive"])
+            )
                 labels_list = cast(list[str], emp_result["labels"])
                 scores_list = cast(list[float], emp_result["scores"])
                 emp_score = scores_list[labels_list.index("empathetic")]
@@ -124,9 +129,9 @@ class PersonalityClusterer:
 
 
 class FeatureExtractionPipeline:
-    def __init__(self, input_dir: str = "ai/data/transcripts", output_dir: str = "ai/data/features"):
-        self.input_dir = Path(input_dir)
-        self.output_dir = Path(output_dir)
+    def __init__(self, input_dir: str | Path | None = None, output_dir: str | Path | None = None):
+        self.input_dir = Path(input_dir) if input_dir else AI_ROOT / "data/transcripts"
+        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/features"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.extractor = FeatureExtractor()
         self.clusterer = PersonalityClusterer(n_clusters=5)

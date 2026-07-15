@@ -14,9 +14,11 @@ from faster_whisper import WhisperModel
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("AudioIngestion")
 
+AI_ROOT = Path(__file__).resolve().parents[2]
+
 class PipelineRegistry:
-    def __init__(self, db_path="ai/training_corpus/assets/registry.db"):
-        self.db_path = Path(db_path)
+    def __init__(self, db_path: str | Path | None = None):
+        self.db_path = Path(db_path) if db_path else AI_ROOT / "training_corpus/assets/registry.db"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
         self._init_db()
@@ -37,10 +39,23 @@ class PipelineRegistry:
                 )
             """)
 
-    def update_status(self, video_id, status, qc_passed=None, snr=None, loudness=None, clipping_ratio=None, language=None, chunks_created=0, error_message=None):
+    def update_status(  # noqa: PLR0913
+        self,
+        video_id,
+        status,
+        qc_passed=None,
+        snr=None,
+        loudness=None,
+        clipping_ratio=None,
+        language=None,
+        chunks_created=0,
+        error_message=None,
+    ):
         with self.conn:
             self.conn.execute("""
-                INSERT INTO processed_audio (video_id, status, qc_passed, snr, loudness, clipping_ratio, language, chunks_created, error_message)
+                INSERT INTO processed_audio (
+                    video_id, status, qc_passed, snr, loudness, clipping_ratio, language, chunks_created, error_message
+                )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(video_id) DO UPDATE SET
                     status=excluded.status,
@@ -51,7 +66,9 @@ class PipelineRegistry:
                     language=excluded.language,
                     chunks_created=excluded.chunks_created,
                     error_message=excluded.error_message
-            """, (video_id, status, qc_passed, snr, loudness, clipping_ratio, language, chunks_created, error_message))
+            """, (
+                video_id, status, qc_passed, snr, loudness, clipping_ratio, language, chunks_created, error_message
+            ))
 
     def get_status(self, video_id):
         cursor = self.conn.cursor()
@@ -61,8 +78,8 @@ class PipelineRegistry:
 
 
 class AudioDownloader:
-    def __init__(self, output_dir="ai/data/raw_audio"):
-        self.output_dir = Path(output_dir)
+    def __init__(self, output_dir: str | Path | None = None):
+        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/raw_audio"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def download_audio(self, video_url: str) -> tuple[str, str]:
@@ -146,8 +163,8 @@ class QualityControl:
         }
 
 class AudioSegmenter:
-    def __init__(self, output_dir="ai/data/segmented_audio", chunk_length_s=30.0):
-        self.output_dir = Path(output_dir)
+    def __init__(self, output_dir: str | Path | None = None, chunk_length_s: float = 30.0):
+        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/segmented_audio"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.chunk_length_s = chunk_length_s
 
