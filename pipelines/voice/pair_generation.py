@@ -6,10 +6,20 @@ from typing import Any, cast
 import torch
 import transformers
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("PairGeneration")
 
 AI_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _redacted(text: str) -> str:
+    """Log only the length and a short prefix of therapeutic content (PHI)."""
+    if not text:
+        return "<empty>"
+    return f"{len(text)} chars, starts: {text[:24]!r}..."
+
 
 class AuthenticityValidator:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
@@ -23,19 +33,25 @@ class AuthenticityValidator:
         if not text.strip():
             return False
         try:
-            result = cast(dict[str, Any], self.classifier(text, candidate_labels=["authentic", "scripted", "robotic"]))
+            result = cast(
+                dict[str, Any],
+                self.classifier(text, candidate_labels=["authentic", "scripted", "robotic"]),
+            )
             labels_list = cast(list[str], result["labels"])
             scores_list = cast(list[float], result["scores"])
             auth_score = scores_list[labels_list.index("authentic")]
             return auth_score >= threshold
         except Exception as e:
-            logger.warning(f"Authenticity check failed: {e}")
+            logger.warning("Authenticity check failed (%s): %s", _redacted(text), e)
             return False
 
 
 class TherapeuticPairGenerator:
     def __init__(
-        self, input_dir: str | Path | None = None, output_dir: str | Path | None = None, empathy_threshold: float = 0.5
+        self,
+        input_dir: str | Path | None = None,
+        output_dir: str | Path | None = None,
+        empathy_threshold: float = 0.5,
     ):
         self.input_dir = Path(input_dir) if input_dir else AI_ROOT / "data/features"
         self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/pairs"
@@ -47,7 +63,7 @@ class TherapeuticPairGenerator:
         pairs = []
         for i in range(len(segments) - 1):
             current_seg = segments[i]
-            next_seg = segments[i+1]
+            next_seg = segments[i + 1]
 
             if current_seg.get("role") == "Client" and next_seg.get("role") == "Therapist":
                 client_text = current_seg.get("text", "")
@@ -62,19 +78,23 @@ class TherapeuticPairGenerator:
                     continue
 
                 if not self.authenticity_validator.is_authentic(therapist_text):
-                    logger.debug(f"Rejecting pair due to failed authenticity check: {therapist_text}")
+                    logger.debug(
+                        f"Rejecting pair due to failed authenticity check ({_redacted(therapist_text)})"
+                    )
                     continue
 
-                pairs.append({
-                    "prompt": client_text,
-                    "response": therapist_text,
-                    "context": {
-                        "client_emotion": current_seg.get("features", {}).get("emotion"),
-                        "therapist_emotion": features.get("emotion"),
-                        "therapist_empathy": empathy_score,
-                        "therapist_rhythm": features.get("rhythm_wps")
+                pairs.append(
+                    {
+                        "prompt": client_text,
+                        "response": therapist_text,
+                        "context": {
+                            "client_emotion": current_seg.get("features", {}).get("emotion"),
+                            "therapist_emotion": features.get("emotion"),
+                            "therapist_empathy": empathy_score,
+                            "therapist_rhythm": features.get("rhythm_wps"),
+                        },
                     }
-                })
+                )
         return pairs
 
     def process_all(self) -> None:
@@ -103,7 +123,9 @@ class TherapeuticPairGenerator:
                     for pair in valid_pairs:
                         f.write(json.dumps(pair) + "\n")
 
-                logger.info(f"Saved {len(valid_pairs)} high-quality therapeutic pairs to {out_file}")
+                logger.info(
+                    f"Saved {len(valid_pairs)} high-quality therapeutic pairs to {out_file}"
+                )
 
             except Exception as e:
                 logger.error(f"Failed to process {file_path}: {e}")

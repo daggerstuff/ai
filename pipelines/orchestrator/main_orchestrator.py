@@ -1,6 +1,7 @@
 import logging
 import sqlite3
 import sys
+import threading
 import uuid
 from pathlib import Path
 
@@ -9,16 +10,21 @@ from pipelines.voice.feature_extraction import FeatureExtractionPipeline
 from pipelines.voice.pair_generation import TherapeuticPairGenerator
 from pipelines.voice.transcription import TranscriptionOrchestrator
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("MainOrchestrator")
 
 AI_ROOT = Path(__file__).resolve().parents[2]
+
 
 class PipelineOrchestrator:
     def __init__(self, db_path: str | Path | None = None):
         self.db_path = Path(db_path) if db_path else AI_ROOT / "training_corpus/assets/registry.db"
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        # timeout avoids "database is locked" under concurrent access; a lock serializes writes.
+        self.conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=30)
+        self._lock = threading.Lock()
         self._init_db()
 
         self.ingestion = AudioIngestionPipeline(max_workers=2)
@@ -27,7 +33,7 @@ class PipelineOrchestrator:
         self.pair_generation = TherapeuticPairGenerator()
 
     def _init_db(self) -> None:
-        with self.conn:
+        with self._lock, self.conn:
             self.conn.execute("""
                 CREATE TABLE IF NOT EXISTS training_shards (
                     shard_id TEXT PRIMARY KEY,
@@ -39,11 +45,14 @@ class PipelineOrchestrator:
 
     def register_shard(self, source_file: str, pair_count: int, export_path: str) -> None:
         shard_id = str(uuid.uuid4())
-        with self.conn:
-            self.conn.execute("""
+        with self._lock, self.conn:
+            self.conn.execute(
+                """
                 INSERT INTO training_shards (shard_id, source_file, pair_count, export_path)
                 VALUES (?, ?, ?, ?)
-            """, (shard_id, source_file, pair_count, export_path))
+            """,
+                (shard_id, source_file, pair_count, export_path),
+            )
         logger.info(f"Registered shard {shard_id} for {source_file} with {pair_count} pairs.")
 
     def register_all_shards(self) -> None:
@@ -53,7 +62,9 @@ class PipelineOrchestrator:
 
         for pair_file in pairs_dir.glob("*.jsonl"):
             cursor = self.conn.cursor()
-            cursor.execute("SELECT shard_id FROM training_shards WHERE export_path = ?", (str(pair_file),))
+            cursor.execute(
+                "SELECT shard_id FROM training_shards WHERE export_path = ?", (str(pair_file),)
+            )
             if cursor.fetchone():
                 continue
 
@@ -94,13 +105,19 @@ class PipelineOrchestrator:
         try:
             with open(channel_list_path, encoding="utf-8") as f:
                 channels = [line.strip() for line in f if line.strip()]
-
-            logger.info(f"Loaded {len(channels)} channels for batch processing.")
-            for i, channel in enumerate(channels, 1):
-                logger.info(f"Processing channel {i}/{len(channels)}")
-                self.run_channel(channel)
         except Exception as e:
-            logger.error(f"Batch run failed: {e}")
+            logger.error(f"Could not read channel list {channel_list_path}: {e}")
+            return
+
+        logger.info(f"Loaded {len(channels)} channels for batch processing.")
+        for i, channel in enumerate(channels, 1):
+            logger.info(f"Processing channel {i}/{len(channels)}")
+            # Isolate per-channel failures so one bad channel does not abort the batch.
+            try:
+                self.run_channel(channel)
+            except Exception as e:
+                logger.error(f"Channel {channel} failed, skipping: {e}")
+
 
 if __name__ == "__main__":
     orchestrator = PipelineOrchestrator()

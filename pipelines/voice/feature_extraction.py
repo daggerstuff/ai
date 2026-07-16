@@ -9,10 +9,20 @@ import transformers
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("FeatureExtraction")
 
 AI_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _redacted(text: str) -> str:
+    """Log only the length and a short prefix of therapeutic content (PHI)."""
+    if not text:
+        return "<empty>"
+    return f"{len(text)} chars, starts: {text[:24]!r}..."
+
 
 class FeatureExtractor:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
@@ -49,21 +59,27 @@ class FeatureExtractor:
                 emotion = emo_result[0]["label"]
                 emo_score = emo_result[0]["score"]
             except Exception as e:
-                logger.warning(f"Emotion classification failed for text '{text}': {e}")
+                logger.warning(
+                    "Emotion classification failed for text (%s): %s", _redacted(text), e
+                )
                 emotion = "neutral"
                 emo_score = 0.0
 
             # Empathy scoring
             try:
                 emp_result = cast(
-                dict[str, Any],
-                self.empathy_classifier(text, candidate_labels=["empathetic", "neutral", "dismissive"])
-            )
+                    dict[str, Any],
+                    self.empathy_classifier(
+                        text, candidate_labels=["empathetic", "neutral", "dismissive"]
+                    ),
+                )
                 labels_list = cast(list[str], emp_result["labels"])
                 scores_list = cast(list[float], emp_result["scores"])
                 emp_score = scores_list[labels_list.index("empathetic")]
             except Exception as e:
-                logger.warning(f"Empathy classification failed for text '{text}': {e}")
+                logger.warning(
+                    "Empathy classification failed for text (%s): %s", _redacted(text), e
+                )
                 emp_score = 0.0
 
             # Rhythm extraction
@@ -74,7 +90,7 @@ class FeatureExtractor:
                 "emotion": emotion,
                 "emotion_score": float(emo_score),
                 "empathy_score": float(emp_score),
-                "rhythm_wps": float(rhythm)
+                "rhythm_wps": float(rhythm),
             }
             enriched.append(new_seg)
         return enriched
@@ -94,12 +110,14 @@ class PersonalityClusterer:
         return [
             feats.get("empathy_score", 0.0),
             feats.get("rhythm_wps", 0.0),
-            feats.get("emotion_score", 0.0)
+            feats.get("emotion_score", 0.0),
         ]
 
     def fit_predict(self, segments: list[dict[str, Any]]) -> list[int]:
         if len(segments) < self.n_clusters:
-            logger.warning(f"Not enough segments to cluster. Found {len(segments)}, need at least {self.n_clusters}.")
+            logger.warning(
+                f"Not enough segments to cluster. Found {len(segments)}, need at least {self.n_clusters}."
+            )
             return [-1] * len(segments)
 
         x_data = np.array([self._extract_feature_vector(s) for s in segments])
@@ -119,9 +137,11 @@ class PersonalityClusterer:
         current_centroids = self.kmeans.cluster_centers_
         # Compute drift as the norm of the difference between sorted centroids
         # Sorting is a naive way to align clusters if labels shifted, though bipartite matching is better
-        drift = np.linalg.norm(np.sort(current_centroids, axis=0) - np.sort(self.reference_centroids, axis=0))
+        drift = np.linalg.norm(
+            np.sort(current_centroids, axis=0) - np.sort(self.reference_centroids, axis=0)
+        )
 
-        if drift > 1.0: # Arbitrary threshold for flagging significant drift
+        if drift > 1.0:  # Arbitrary threshold for flagging significant drift
             logger.warning(f"Significant cluster drift detected! Score: {drift:.2f}")
 
         self.reference_centroids = current_centroids
@@ -169,7 +189,7 @@ class FeatureExtractionPipeline:
                 output_data = {
                     "file": file_path.name,
                     "drift_score": drift_score,
-                    "segments": enriched_segments
+                    "segments": enriched_segments,
                 }
 
                 with open(out_file, "w", encoding="utf-8") as f:
@@ -179,6 +199,7 @@ class FeatureExtractionPipeline:
 
             except Exception as e:
                 logger.error(f"Failed to process {file_path}: {e}")
+
 
 if __name__ == "__main__":
     pipeline = FeatureExtractionPipeline()
