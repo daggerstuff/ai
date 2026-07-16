@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, cast, Callable
 
 import numpy as np
 import torch
@@ -14,20 +14,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger("FeatureExtraction")
 
-AI_ROOT = Path(__file__).resolve().parents[2]
 
+def _redacted(text: str, max_chars: int = 24) -> str:
+    """Return a short non-sensitive preview of therapeutic text for logs.
 
-def _redacted(text: str) -> str:
-    """Log only the length and a short prefix of therapeutic content (PHI)."""
-    if not text:
-        return "<empty>"
-    return f"{len(text)} chars, starts: {text[:24]!r}..."
+    Full transcript content is sensitive (PHI). Logs must never contain it.
+    """
+    stripped = text.strip().replace("\n", " ")
+    if len(stripped) <= max_chars:
+        return stripped
+    return stripped[:max_chars] + "..."
 
 
 class FeatureExtractor:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
         logger.info(f"Loading emotion classification model on device {device}...")
-        pipeline_func = cast(Any, transformers.pipeline)
+        pipeline_func = cast(Any, getattr(transformers, "pipeline"))
         self.emotion_classifier = pipeline_func(
             "text-classification", model="SamLowe/roberta-base-go_emotions", device=device
         )
@@ -59,9 +61,7 @@ class FeatureExtractor:
                 emotion = emo_result[0]["label"]
                 emo_score = emo_result[0]["score"]
             except Exception as e:
-                logger.warning(
-                    "Emotion classification failed for text (%s): %s", _redacted(text), e
-                )
+                logger.warning(f"Emotion classification failed for segment (len={len(text)}): {e}")
                 emotion = "neutral"
                 emo_score = 0.0
 
@@ -78,7 +78,7 @@ class FeatureExtractor:
                 emp_score = scores_list[labels_list.index("empathetic")]
             except Exception as e:
                 logger.warning(
-                    "Empathy classification failed for text (%s): %s", _redacted(text), e
+                    f"Empathy classification failed for segment (len={len(text)}, preview={_redacted(text)}): {e}"
                 )
                 emp_score = 0.0
 
@@ -149,9 +149,11 @@ class PersonalityClusterer:
 
 
 class FeatureExtractionPipeline:
-    def __init__(self, input_dir: str | Path | None = None, output_dir: str | Path | None = None):
-        self.input_dir = Path(input_dir) if input_dir else AI_ROOT / "data/transcripts"
-        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/features"
+    def __init__(
+        self, input_dir: str = "ai/data/transcripts", output_dir: str = "ai/data/features"
+    ):
+        self.input_dir = Path(input_dir)
+        self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.extractor = FeatureExtractor()
         self.clusterer = PersonalityClusterer(n_clusters=5)
