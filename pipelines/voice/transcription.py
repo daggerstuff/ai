@@ -1,11 +1,11 @@
 import json
 import logging
 import os
-from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
 import torch
+
 import whisperx
 from whisperx.diarize import DiarizationPipeline
 
@@ -14,30 +14,30 @@ logging.basicConfig(
 )
 logger = logging.getLogger("TranscriptionPipeline")
 
-AI_ROOT = Path(__file__).resolve().parents[2]
-
 
 def _assign_roles_by_duration(result: dict[str, Any]) -> dict[str, str]:
-    """Map WhisperX speaker labels to roles by speaking duration.
+    """Rank speakers by speaking time.
 
-    WhisperX SPEAKER_XX labels are arbitrary and must NOT be trusted as
-    therapist/client roles (doing so inverts pairs). We rank speakers by total
-    speaking time and assign the most-talkative speaker to Therapist. If fewer
-    than two distinct speakers are present, we default to UNKNOWN to avoid
-    fabricating a role.
+    The most talkative speaker is assigned the Therapist role, the second
+    most talkative the Client role. Speakers that cannot be ranked fall back
+    to their raw label so downstream logic never silently drops a turn.
     """
-    durations: dict[str, float] = defaultdict(float)
+    durations: dict[str, float] = {}
     for segment in result.get("segments", []):
         speaker = segment.get("speaker")
         if not speaker:
             continue
-        durations[speaker] += float(segment.get("end", 0.0)) - float(segment.get("start", 0.0))
+        start = segment.get("start", 0.0)
+        end = segment.get("end", 0.0)
+        durations[speaker] = durations.get(speaker, 0.0) + max(0.0, end - start)
 
-    if len(durations) < 2:
-        return {speaker: "UNKNOWN" for speaker in durations}
-
-    ranked = sorted(durations, key=lambda s: durations[s], reverse=True)
-    return {ranked[0]: "Therapist", ranked[1]: "Client", **{s: "UNKNOWN" for s in ranked[2:]}}
+    ranked = sorted(durations.items(), key=lambda kv: kv[1], reverse=True)
+    role_map: dict[str, str] = {}
+    if len(ranked) >= 1:
+        role_map[ranked[0][0]] = "Therapist"
+    if len(ranked) >= 2:
+        role_map[ranked[1][0]] = "Client"
+    return role_map
 
 
 class DiarizedTranscriptionPipeline:
@@ -58,8 +58,6 @@ class DiarizedTranscriptionPipeline:
         )
 
         logger.info("Loading diarization model...")
-        # whisperx >=3.8 renamed the constructor kwarg to `token` (not `use_auth_token`)
-        # and exposes the class via whisperx.diarize.
         self.diarize_model = DiarizationPipeline(token=self.hf_token, device=self.device)
 
     def process_audio(self, audio_file: str, min_confidence: float = 0.80) -> list[dict[str, Any]]:
@@ -84,12 +82,12 @@ class DiarizedTranscriptionPipeline:
         diarize_segments = self.diarize_model(audio, min_speakers=2, max_speakers=2)
         result = whisperx.assign_word_speakers(diarize_segments, result)
 
-        # Resolve roles from speaking duration, NOT from arbitrary speaker labels.
         role_map = _assign_roles_by_duration(result)
 
         # 4. Filter and format output
         final_segments = []
         for segment in result["segments"]:
+            # WhisperX can return words with individual confidences. We take the mean.
             words = segment.get("words", [])
             valid_words = [w for w in words if "score" in w]
 
@@ -99,9 +97,7 @@ class DiarizedTranscriptionPipeline:
             avg_confidence = sum(w["score"] for w in valid_words) / len(valid_words)
 
             if avg_confidence < min_confidence:
-                logger.debug(
-                    f"Discarding segment due to low confidence ({avg_confidence:.2f}): {segment['text']}"
-                )
+                logger.debug(f"Discarding segment due to low confidence ({avg_confidence:.2f})")
                 continue
 
             speaker = segment.get("speaker", "UNKNOWN")
@@ -121,9 +117,9 @@ class DiarizedTranscriptionPipeline:
 
 
 class TranscriptionOrchestrator:
-    def __init__(self, input_dir: str | Path | None = None, output_dir: str | Path | None = None):
-        self.input_dir = Path(input_dir) if input_dir else AI_ROOT / "data/segmented_audio"
-        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/transcripts"
+    def __init__(self, input_dir="ai/data/segmented_audio", output_dir="ai/data/transcripts"):
+        self.input_dir = Path(input_dir)
+        self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.pipeline = None
 

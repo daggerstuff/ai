@@ -11,14 +11,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger("PairGeneration")
 
-AI_ROOT = Path(__file__).resolve().parents[2]
 
+def _redacted(text: str, max_chars: int = 24) -> str:
+    """Return a short non-sensitive preview of therapeutic text for logs.
 
-def _redacted(text: str) -> str:
-    """Log only the length and a short prefix of therapeutic content (PHI)."""
-    if not text:
-        return "<empty>"
-    return f"{len(text)} chars, starts: {text[:24]!r}..."
+    Full transcript content is sensitive (PHI). Logs must never contain it.
+    """
+    stripped = text.strip().replace("\n", " ")
+    if len(stripped) <= max_chars:
+        return stripped
+    return stripped[:max_chars] + "..."
 
 
 class AuthenticityValidator:
@@ -42,19 +44,19 @@ class AuthenticityValidator:
             auth_score = scores_list[labels_list.index("authentic")]
             return auth_score >= threshold
         except Exception as e:
-            logger.warning("Authenticity check failed (%s): %s", _redacted(text), e)
+            logger.warning(f"Authenticity check failed: {e}")
             return False
 
 
 class TherapeuticPairGenerator:
     def __init__(
         self,
-        input_dir: str | Path | None = None,
-        output_dir: str | Path | None = None,
+        input_dir: str = "ai/data/features",
+        output_dir: str = "ai/data/pairs",
         empathy_threshold: float = 0.5,
     ):
-        self.input_dir = Path(input_dir) if input_dir else AI_ROOT / "data/features"
-        self.output_dir = Path(output_dir) if output_dir else AI_ROOT / "data/pairs"
+        self.input_dir = Path(input_dir)
+        self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.empathy_threshold = empathy_threshold
         self.authenticity_validator = AuthenticityValidator()
@@ -79,7 +81,7 @@ class TherapeuticPairGenerator:
 
                 if not self.authenticity_validator.is_authentic(therapist_text):
                     logger.debug(
-                        f"Rejecting pair due to failed authenticity check ({_redacted(therapist_text)})"
+                        f"Rejecting pair due to failed authenticity check (len={len(therapist_text)}, preview={_redacted(therapist_text)})"
                     )
                     continue
 
