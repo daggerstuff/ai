@@ -9,8 +9,22 @@ import transformers
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("FeatureExtraction")
+
+
+def _redacted(text: str, max_chars: int = 24) -> str:
+    """Return a short non-sensitive preview of therapeutic text for logs.
+
+    Full transcript content is sensitive (PHI). Logs must never contain it.
+    """
+    stripped = text.strip().replace("\n", " ")
+    if len(stripped) <= max_chars:
+        return stripped
+    return stripped[:max_chars] + "..."
+
 
 class FeatureExtractor:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
@@ -47,18 +61,25 @@ class FeatureExtractor:
                 emotion = emo_result[0]["label"]
                 emo_score = emo_result[0]["score"]
             except Exception as e:
-                logger.warning(f"Emotion classification failed for text '{text}': {e}")
+                logger.warning(f"Emotion classification failed for segment (len={len(text)}): {e}")
                 emotion = "neutral"
                 emo_score = 0.0
 
             # Empathy scoring
             try:
-                emp_result = cast(dict[str, Any], self.empathy_classifier(text, candidate_labels=["empathetic", "neutral", "dismissive"]))
+                emp_result = cast(
+                    dict[str, Any],
+                    self.empathy_classifier(
+                        text, candidate_labels=["empathetic", "neutral", "dismissive"]
+                    ),
+                )
                 labels_list = cast(list[str], emp_result["labels"])
                 scores_list = cast(list[float], emp_result["scores"])
                 emp_score = scores_list[labels_list.index("empathetic")]
             except Exception as e:
-                logger.warning(f"Empathy classification failed for text '{text}': {e}")
+                logger.warning(
+                    f"Empathy classification failed for segment (len={len(text)}, preview={_redacted(text)}): {e}"
+                )
                 emp_score = 0.0
 
             # Rhythm extraction
@@ -69,7 +90,7 @@ class FeatureExtractor:
                 "emotion": emotion,
                 "emotion_score": float(emo_score),
                 "empathy_score": float(emp_score),
-                "rhythm_wps": float(rhythm)
+                "rhythm_wps": float(rhythm),
             }
             enriched.append(new_seg)
         return enriched
@@ -89,12 +110,14 @@ class PersonalityClusterer:
         return [
             feats.get("empathy_score", 0.0),
             feats.get("rhythm_wps", 0.0),
-            feats.get("emotion_score", 0.0)
+            feats.get("emotion_score", 0.0),
         ]
 
     def fit_predict(self, segments: list[dict[str, Any]]) -> list[int]:
         if len(segments) < self.n_clusters:
-            logger.warning(f"Not enough segments to cluster. Found {len(segments)}, need at least {self.n_clusters}.")
+            logger.warning(
+                f"Not enough segments to cluster. Found {len(segments)}, need at least {self.n_clusters}."
+            )
             return [-1] * len(segments)
 
         x_data = np.array([self._extract_feature_vector(s) for s in segments])
@@ -114,9 +137,11 @@ class PersonalityClusterer:
         current_centroids = self.kmeans.cluster_centers_
         # Compute drift as the norm of the difference between sorted centroids
         # Sorting is a naive way to align clusters if labels shifted, though bipartite matching is better
-        drift = np.linalg.norm(np.sort(current_centroids, axis=0) - np.sort(self.reference_centroids, axis=0))
+        drift = np.linalg.norm(
+            np.sort(current_centroids, axis=0) - np.sort(self.reference_centroids, axis=0)
+        )
 
-        if drift > 1.0: # Arbitrary threshold for flagging significant drift
+        if drift > 1.0:  # Arbitrary threshold for flagging significant drift
             logger.warning(f"Significant cluster drift detected! Score: {drift:.2f}")
 
         self.reference_centroids = current_centroids
@@ -124,7 +149,9 @@ class PersonalityClusterer:
 
 
 class FeatureExtractionPipeline:
-    def __init__(self, input_dir: str = "ai/data/transcripts", output_dir: str = "ai/data/features"):
+    def __init__(
+        self, input_dir: str = "ai/data/transcripts", output_dir: str = "ai/data/features"
+    ):
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -164,7 +191,7 @@ class FeatureExtractionPipeline:
                 output_data = {
                     "file": file_path.name,
                     "drift_score": drift_score,
-                    "segments": enriched_segments
+                    "segments": enriched_segments,
                 }
 
                 with open(out_file, "w", encoding="utf-8") as f:
@@ -174,6 +201,7 @@ class FeatureExtractionPipeline:
 
             except Exception as e:
                 logger.error(f"Failed to process {file_path}: {e}")
+
 
 if __name__ == "__main__":
     pipeline = FeatureExtractionPipeline()
