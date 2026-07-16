@@ -391,5 +391,72 @@ class TestCCDIntegration(unittest.TestCase):
         assert isinstance(profile.response_patterns, dict)
 
 
+
+    def test_invalid_learning_objective_parsing(self):
+        """Test parsing of invalid learning objectives."""
+        ccd_template = get_resistant_ccd_template()
+        # Capture the valid objectives before introducing an invalid one
+        original_objectives = list(ccd_template["learning_objectives"])
+
+        # Add an invalid objective
+        ccd_template["learning_objectives"].append("invalid_objective_value")
+
+        # It should ignore the invalid objective without throwing an error
+        profile = CCDIntegration.ccd_profile_to_difficult_client_profile(ccd_template)
+
+        # Verify it created successfully and didn't include the invalid one.
+        # The invalid value must be ignored: the resulting objectives must match
+        # the original valid set exactly in count and membership, proving the
+        # invalid objective was dropped rather than normalized into a valid enum.
+        result_objectives = profile.learning_objectives
+        assert len(result_objectives) == len(original_objectives)
+        for obj in result_objectives:
+            assert isinstance(obj, SessionObjective)
+            assert obj.value in original_objectives
+
+    def test_adjust_formulation_summary_no_change(self):
+        """Test _adjust_formulation_summary with neutral inputs"""
+        result = CCDIntegration._adjust_formulation_summary("Base summary", 0.5, 0.5, False, 0.5)
+        assert result == "Base summary"
+
+    def test_adjust_vulnerabilities_removal(self):
+        """Test _adjust_vulnerabilities removes vulnerabilities correctly"""
+        # Test removing trust vulnerabilities
+        vulnerabilities = ["Trust issues", "Other issues"]
+        adjusted = CCDIntegration._adjust_vulnerabilities(vulnerabilities, 0.8, 0.5, {})
+        assert "Other issues" in adjusted
+        assert "Trust issues" not in adjusted
+
+        # Test removing resistance vulnerabilities
+        vulnerabilities = ["Resistant to help", "Other issues"]
+        adjusted = CCDIntegration._adjust_vulnerabilities(vulnerabilities, 0.5, 0.2, {})
+        assert "Other issues" in adjusted
+        assert "Resistant to help" not in adjusted
+
+    def test_adjust_prognosis_edge_cases(self):
+        """Test prognosis edge cases"""
+        # Test fallback branch
+        result = CCDIntegration._adjust_prognosis("unknown_prognosis", 0.5, 0.5, False, 0.5)
+        # Because prognosis_scores.get(..., 1) returns 1 (guarded), it becomes guarded and will hit loop
+        assert result == "guarded"
+
+        # To hit the fallback return base_prognosis we need a current_score that is not in the dict (0,1,2,3).
+        # We can't actually do that because current_score is initialized to 0, 1, 2, or 3,
+        # and min/max operations keep it in [0, 3]. So the fallback is mathematically unreachable
+        # unless prognosis_scores changes. But let's test the other missing lines (468, 475)
+
+        # Test 468: trust_level > 0.8, current_score goes up
+        result = CCDIntegration._adjust_prognosis("poor", 0.9, 0.5, False, 0.5)
+        assert result == "guarded"
+
+        # Test 475: resistance_level > 0.8, current_score goes down
+        result = CCDIntegration._adjust_prognosis("guarded", 0.5, 0.9, False, 0.5)
+        assert result == "poor"
+
+
 if __name__ == "__main__":
     unittest.main()
+
+
+
+            # actually we can't easily patch local variables
