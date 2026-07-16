@@ -94,6 +94,7 @@ dependencies = [
   "kaggle>=2.2.2",
   "pymupdf>=1.27.2.3",
   "psycopg2-binary>=2.9.12",
+  "whisperx>=3.8.6",
 ]
 
 [dependency-groups]
