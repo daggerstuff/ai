@@ -56,7 +56,9 @@ async def create_reflection_subagent(
 
     # Create or use provided memory client
     if memory_client is None:
-        memory_client = LocalReflectionMemoryClient(LocalForesightMemoryManager())
+        memory_client = LocalReflectionMemoryClient(
+            LocalForesightMemoryManager(db_path=os.environ.get("FORESIGHT_DB_PATH", "foresight.db"))
+        )
 
     # Create Nvidia NIM callback
     llm_callback = create_nvidia_callback(model=resolved_model)

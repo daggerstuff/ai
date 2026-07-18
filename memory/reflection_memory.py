@@ -12,6 +12,7 @@ which routes through gated_add_memory() — no duplicate gating needed here.
 
 
 import asyncio
+import os
 from typing import Any
 
 from .local_foresight_manager import LocalForesightMemoryManager
@@ -23,7 +24,9 @@ class LocalReflectionMemoryClient:
     """Async-friendly adapter over LocalForesightMemoryManager for reflection."""
 
     def __init__(self, manager: LocalForesightMemoryManager | None = None) -> None:
-        self.manager = manager or LocalForesightMemoryManager()
+        self.manager = manager or LocalForesightMemoryManager(
+            db_path=os.environ.get("FORESIGHT_DB_PATH", "foresight.db")
+        )
 
     async def add_memory(self, content: str, metadata: MemoryMetadata) -> str | None:
         # Gating is handled by the manager's gated_add_memory path.
