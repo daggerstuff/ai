@@ -15,7 +15,7 @@ import uvicorn
 def main() -> None:
     """Run the ASGI app on the port expected by the Helm chart."""
     port = int(os.getenv("PIXEL_API_PORT", "8000"))
-    uvicorn.run("ai.api.main:app", host="0.0.0.0", port=port)
+    uvicorn.run("ai.api.index:app", host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
