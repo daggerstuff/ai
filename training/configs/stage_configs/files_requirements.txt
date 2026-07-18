@@ -49,7 +49,7 @@ nvidia-cuda-cupti-cu12==12.8.90
 mypy_extensions==1.1.0
 triton==3.4.0
 nvidia-cusparse-cu12==12.5.8.93
-transformers==5.8.0
+transformers==5.14.1
 pooch==1.8.2
 pfzy==0.3.4
 numpy==2.2.6
@@ -100,7 +100,7 @@ nvidia-cudnn-cu12==9.10.2.21
 networkx==3.5
 iniconfig==2.1.0
 redis==6.4.0
-pyarrow==24.0.0
+pyarrow==25.0.0
 six==1.17.0
 aiofiles==24.1.0
 librosa==0.11.0
@@ -121,7 +121,7 @@ nvidia-nvjitlink-cu12==12.8.93
 httpx==0.28.1
 charset-normalizer==3.4.3
 nvidia-nvtx-cu12==12.8.90
-torch==2.12.1
+torch==2.13.0
 plotly==6.3.0
 huggingface-hub==0.34.4
 python-magic==0.4.27
