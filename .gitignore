@@ -174,12 +174,7 @@ training/*
 !training/**/README*
 !training/tests/
 training/tests/*
-!training/tests/**/*.py
-!training_corpus/*.py
-!training_corpus/**/*.py
 # But ignore built corpus data and assets
-training_corpus/
-training_corpus/assets/
 docs/training/ENV_QUICKSTART.md
 docs/training/HERMES_RL_SETUP.md
 docs/training/ENV_QUICKSTART.md
