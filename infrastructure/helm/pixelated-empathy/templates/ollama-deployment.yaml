@@ -21,8 +21,22 @@ spec:
         {{- include "pixelated-empathy.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: ollama
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: ollama
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
           image: "{{ .Values.ollama.image.repository }}:{{ .Values.ollama.image.tag }}"
           imagePullPolicy: {{ .Values.ollama.image.pullPolicy }}
           ports:

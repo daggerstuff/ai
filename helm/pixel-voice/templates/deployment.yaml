@@ -18,8 +18,12 @@ spec:
         app.kubernetes.io/component: api
     spec:
       automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}-api
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -49,6 +53,9 @@ spec:
                   name: {{ .Values.redis.auth.existingSecret | default (printf "%s-redis" .Release.Name) }}
                   key: {{ .Values.redis.auth.secretKeys.passwordKey | default "redis-password" }}
 {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
 {{- with .Values.resources }}
 {{ toYaml . | nindent 12 }}
@@ -62,6 +69,9 @@ spec:
               memory: 128Mi
               ephemeral-storage: "1Gi"
 {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -83,8 +93,12 @@ spec:
         app.kubernetes.io/component: worker
     spec:
       automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}-worker
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
           livenessProbe:
@@ -114,6 +128,9 @@ spec:
                   name: {{ .Values.redis.auth.existingSecret | default (printf "%s-redis" .Release.Name) }}
                   key: {{ .Values.redis.auth.secretKeys.passwordKey | default "redis-password" }}
 {{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           resources:
 {{- with .Values.worker.resources }}
 {{ toYaml . | nindent 12 }}
@@ -127,3 +144,6 @@ spec:
               memory: 128Mi
               ephemeral-storage: "1Gi"
 {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
