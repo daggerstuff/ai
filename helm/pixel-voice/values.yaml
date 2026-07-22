@@ -1,79 +1,23 @@
 # Default values for pixel-voice.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
+# This file is used by Trivy's Helm evaluator and as a fallback base.
 
-replicaCount: 1
+# -- Pod-level security context (applied via spec.securityContext).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
 
-image:
-  repository: your-repo/pixel-voice-app
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+# -- Container-level security context (applied via spec.containers[].securityContext).
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-service:
-  type: ClusterIP
-  port: 80
-
-ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-  - host: chart-example.local
-    paths:
-    - path: /
-      pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
+# -- Resources (applied via spec.containers[].resources).
 resources: {}
-
-# --- Application Configuration ---
-appConfig:
-  FASTAPI_ENV: "production"
-
-# --- Celery Worker Configuration ---
-worker:
-  replicaCount: 1
-  image:
-    repository: your-repo/pixel-voice-worker
-    pullPolicy: IfNotPresent
-    tag: ""
-  resources: {}
-
-# --- PostgreSQL Dependency ---
-postgresql:
-  enabled: true
-  auth:
-    database: pixel_voice_db
-    username: user
-    password: ""
-    existingSecret: ""
-  primary:
-    persistence:
-      enabled: true
-      size: 8Gi
-
-# --- Redis Dependency ---
-redis:
-  enabled: true
-  auth:
-    enabled: true
-    password: ""
-    secretKeys:
-      passwordKey: redis-password
-    existingSecret: ""
-  master:
-    service:
-      type: ClusterIP
-  replica:
-    service:
-      type: ClusterIP
