@@ -6,8 +6,16 @@ from typing import Any
 
 import torch
 
-import whisperx
-from whisperx.diarize import DiarizationPipeline
+try:
+    import whisperx
+    from whisperx.diarize import DiarizationPipeline
+except ImportError:
+    raise ImportError(
+        "whisperx and faster-whisper are not included in the main project dependencies. "
+        "To use the voice pipeline, install them in a separate virtual environment:\n"
+        "  uv venv .venv-voice\n"
+        "  uv pip install -r requirements-voice.txt"
+    ) from None
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
