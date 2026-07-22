@@ -491,7 +491,7 @@ describe("PixelatedEmpathyAPI response parsing helpers", () => {
  try {
  const parsed = JSON.parse(jsonStr) as unknown;
  if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
- return { success: true, data: parsed as Record<string, unknown> };
+ return { success: true, data: parsed };
  }
  } catch {
  // fall through
