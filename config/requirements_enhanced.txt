@@ -2,7 +2,7 @@
 # Core ML and Data Processing
 datasets>=3.2.0
 transformers>=4.48.3
-torch>=2.12.1
+torch>=2.13.0
 numpy>=2.2.1
 pandas>=2.2.3
 scikit-learn>=1.6.1
