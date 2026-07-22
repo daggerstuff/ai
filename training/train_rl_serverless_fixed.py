@@ -16,8 +16,20 @@ WANDB_API_KEY = os.environ.get("WANDB_API_KEY", "")
 if not WANDB_API_KEY:
     raise ValueError("WANDB_API_KEY is required for serverless training.")
 
+from openai import AsyncOpenAI
+
 import art
 from art.serverless.backend import ServerlessBackend
+
+AZURE_API_KEY = os.environ.get("AZURE_OPENAI_API_KEY", "")
+if not AZURE_API_KEY:
+    raise ValueError("AZURE_OPENAI_API_KEY is required for Azure rollouts.")
+
+AZURE_CLIENT = AsyncOpenAI(
+    api_key=AZURE_API_KEY,
+    base_url=os.environ.get("AZURE_OPENAI_ENDPOINT", "https://slutrock-resource.services.ai.azure.com/openai/v1"),
+)
+AZURE_MODEL = os.environ.get("AZURE_OPENAI_MODEL_NAME", "masked-qwen")
 
 # Configuration
 PROJECT = "wayfarer-ab-test"
@@ -34,7 +46,6 @@ MAX_RL_STEPS = 100
 
 async def rollout(model: art.Model, messages: list) -> art.Trajectory:
     """Generate a response and compute reward."""
-    client = model.openai_client()
 
     # Build trajectory from messages (all but last = context, last = expected assistant)
     context = messages[:-1] if len(messages) > 1 else messages
@@ -54,9 +65,9 @@ async def rollout(model: art.Model, messages: list) -> art.Trajectory:
     # Ensure trajectory ends with user message for generation
     trajectory.messages_and_choices = list(context)
 
-    # Generate completion
-    completion = await client.chat.completions.create(
-        model=model.get_inference_name(),
+    # Generate completion via Azure OpenAI-compatible endpoint
+    completion = await AZURE_CLIENT.chat.completions.create(
+        model=AZURE_MODEL,
         messages=trajectory.messages(),
         max_tokens=1024,
         temperature=0.8,
