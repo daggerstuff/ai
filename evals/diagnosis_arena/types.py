@@ -155,3 +155,108 @@ class BenchmarkSummary:
     by_dimension: dict[str, float] = field(default_factory=dict)
     error_distribution: dict[str, int] = field(default_factory=dict)
     timestamp: str = ""
+
+
+@dataclass(frozen=True)
+class GeneratedDiagnosis:
+    """A model's diagnostic response to a ClinicalCase."""
+
+    response_id: str
+    case_id: str
+    format: ResponseFormat
+    hypothesis_list: tuple[str, ...] = ()
+    differential_list: tuple[str, ...] = ()
+    evidence_cited: tuple[str, ...] = ()
+    final_diagnosis: str = ""
+    reasoning: str = ""
+    mcq_selected: str = ""
+
+
+@dataclass(frozen=True)
+class JudgmentResult:
+    """Aggregated judgment for a (case, response) pair, compatible with JSON persistence."""
+
+    response_id: str
+    case_id: str
+    tier: TierScore
+    dimensions: tuple[DimensionScore, ...] = ()
+    error_tags: tuple[str, ...] = ()
+    latency_ms: float = 0.0
+    judge_model: str = ""
+
+    @property
+    def tier_numeric(self) -> float:
+        return self.tier.numeric
+
+    @property
+    def aggregate_dimension_score(self) -> float:
+        if not self.dimensions:
+            return 0.0
+        total = 0.0
+        for dim in self.dimensions:
+            total += dim.score * DIMENSION_WEIGHTS.get(dim.name, 0.0)
+        return total
+
+
+@dataclass(frozen=True)
+class EvaluationReport:
+    """Aggregate metrics for a model on a benchmark, persisted to JSON/Markdown."""
+
+    model_label: str
+    format: ResponseFormat
+    total_cases: int
+    total_generations: int
+    tier_distribution: dict[str, int]
+    dimension_stats: dict[str, float]
+    overall_accuracy: float
+    open_ended_accuracy: float = 0.0
+    mcq_accuracy: float = 0.0
+    difficulty_breakdown: dict[str, float] = field(default_factory=dict)
+    error_taxonomy_counts: dict[str, int] = field(default_factory=dict)
+    latency_p95_ms: float = 0.0
+    raw_judgments: tuple[JudgmentResult, ...] = ()
+
+
+@dataclass(frozen=True)
+class BenchmarkArtifactStore:
+    """On-disk artifact layout for benchmark cases and evaluation reports."""
+
+    root: Path = field(default_factory=lambda: Path("artifacts/diagnosis_arena"))
+
+    def report_path(self) -> Path:
+        return self.root / "reports"
+
+    def case_path(self) -> Path:
+        return self.root / "cases"
+
+    def write_case(self, case: ClinicalCase) -> Path:
+        path = self.case_path() / f"{case.case_id}.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(
+                {
+                    "case_id": case.case_id,
+                    "difficulty": case.difficulty.value,
+                    "presentation": case.presentation,
+                    "history": case.history,
+                    "exam": case.exam,
+                    "labs": case.labs,
+                    "imaging": case.imaging,
+                    "progression": case.progression,
+                    "mcq_options": list(case.mcq_options),
+                    "final_diagnosis": case.final_diagnosis,
+                    "differential_diagnoses": list(case.differential_diagnoses),
+                    "supporting_evidence": list(case.supporting_evidence),
+                    "key_differentiators": list(case.key_differentiators),
+                },
+                indent=2,
+            )
+        )
+        return path
+
+    def case_manifest(self) -> list[str]:
+        return sorted(p.name.removesuffix(".json") for p in self.case_path().glob("*.json"))
+
+    def latest_report(self) -> Path | None:
+        reports = sorted(self.report_path().glob("report-*.json"))
+        return reports[-1] if reports else None
