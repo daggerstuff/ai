@@ -36,6 +36,26 @@ class QualityTier(Enum):
         return cls.ARCHIVE
 
 
+class InquiryType(str, Enum):
+    """
+    Inquiry type taxonomy from the Inquiry-Diagnosis paper (arXiv 2501.09484).
+
+    The paper identifies four mutually exclusive inquiry types that a
+    therapist can use, each with distinct diagnostic-utility profiles.
+
+    - CLOSED_ENDED: Verification / fact-checking questions.
+    - OPEN_ENDED:   Exploratory / patient-led prompts.
+    - GUIDED:       Hypothesis-testing / channeled prompts.
+    - REFLECTIVE:   Meta-cognitive / therapeutic reflections.
+    """
+
+    CLOSED_ENDED = "closed_ended"
+    OPEN_ENDED = "open_ended"
+    GUIDED = "guided"
+    REFLECTIVE = "reflective"
+    UNKNOWN = "unknown"
+
+
 @dataclass
 class QualityMetrics:
     therapeutic_score: float
