@@ -89,8 +89,10 @@ def test_is_chatml_compliant_rejects_non_system_first() -> None:
 
 def test_has_json_leakage_detects_braces_and_quotes() -> None:
     assert bus._has_json_leakage('{"a": 1}')
-    assert bus._has_json_leakage("a'b")
     assert bus._has_json_leakage('say "hi"')
+    # Single quotes are legitimate natural-language punctuation (apostrophes,
+    # possessives) and are NOT flagged as JSON leakage.
+    assert not bus._has_json_leakage("patient's history")
     assert not bus._has_json_leakage("plain text without json chars")
 
 
