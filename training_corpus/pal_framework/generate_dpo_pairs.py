@@ -101,8 +101,12 @@ def build_prompt(persona_string: str, dialogue_history: str) -> str:
 
 
 def _has_json_leakage(text: str) -> bool:
-    """Return True if the text contains JSON formatting characters."""
-    return any(ch in text for ch in "{}\"'")
+    """Return True if the text contains JSON structural characters.
+
+    Flags curly braces and double quotes but NOT single quotes, which are
+    legitimate natural-language punctuation (apostrophes, possessives).
+    """
+    return any(ch in text for ch in "{}\"")
 
 
 def _response_has_json_leakage(response: str) -> bool:

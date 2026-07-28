@@ -169,8 +169,11 @@ def test_has_json_leakage_detects_braces() -> None:
 
 
 def test_has_json_leakage_detects_quotes() -> None:
-    assert _has_json_leakage("has 'single' quotes")
+    # Double quotes are JSON structural chars and must be flagged.
     assert _has_json_leakage('has "double" quotes')
+    # Single quotes are legitimate natural-language punctuation (apostrophes,
+    # possessives like "patient's") and are NOT flagged as JSON leakage.
+    assert not _has_json_leakage("has 'single' quotes")
     assert _has_json_leakage("clean text") is False
 
 
@@ -302,8 +305,9 @@ def test_build_dpo_pair_rejects_json_leakage_chosen() -> None:
 
 
 def test_build_dpo_pair_rejects_json_leakage_rejected() -> None:
+    # Double quotes are JSON structural chars; single quotes are not.
     with pytest.raises(ValueError, match="rejected_response contains JSON"):
-        build_dpo_pair(_persona(), "dialogue", "clean chosen", "has 'quotes'")
+        build_dpo_pair(_persona(), "dialogue", "clean chosen", 'has "double" quotes')
 
 
 def test_build_dpo_pair_rejects_token_overflow() -> None:

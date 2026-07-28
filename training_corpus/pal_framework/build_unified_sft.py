@@ -45,24 +45,16 @@ VALID_TASK_TYPES = (TASK_SELECTION, TASK_DIALOGUE)
 
 def is_chatml_compliant(messages: list[dict[str, Any]]) -> bool:
     """Strict ChatML shape check: non-empty list of {role, content: str} dicts."""
-    if not messages:
-        return False
-    if not isinstance(messages, list):
+    if not isinstance(messages, list) or not messages:
         return False
     for m in messages:
-        if not isinstance(m, dict):
+        if not isinstance(m, dict) or m.get("role") not in VALID_ROLES:
             return False
-        if m.get("role") not in VALID_ROLES:
-            return False
-        if not isinstance(m.get("content"), str):
-            return False
-        if not m["content"]:
+        if not isinstance(m.get("content"), str) or not m["content"]:
             return False
     # ChatML requires the first turn to be ``system`` per the PAL paper template
     # (both Phase 2.1 and Phase 2.2 emit system-first messages).
-    if messages[0].get("role") != "system":
-        return False
-    return True
+    return messages[0].get("role") == "system"
 
 
 def estimate_tokens(messages: list[dict[str, str]]) -> int:
@@ -80,9 +72,11 @@ def _has_json_leakage(s: str) -> bool:
     indicate raw JSON bled through into the natural-language text.
 
     The PAL paper requires personae be expressed in natural language only;
-    any ``{`` ``}`` ``"`` ``'`` strongly suggests JSON formatting leaked.
+    any ``{`` ``}`` or ``"`` strongly suggests JSON formatting leaked.
+    Single quotes (``'``) are NOT flagged — they are legitimate natural-language
+    punctuation (apostrophes in contractions like "patient's" or possessives).
     """
-    return any(ch in s for ch in ("{", "}", '"', "'"))
+    return any(ch in s for ch in ("{", "}", '"'))
 
 
 def _messages_have_json_leakage(messages: list[dict[str, str]]) -> bool:
@@ -100,9 +94,7 @@ def validate_record(record: dict[str, Any], max_tokens: int = DEFAULT_MAX_TOKENS
         return False
     if not validate_token_bounds(messages, max_tokens):
         return False
-    if _messages_have_json_leakage(messages):
-        return False
-    return True
+    return not _messages_have_json_leakage(messages)
 
 
 def load_records(
@@ -149,7 +141,7 @@ class UnifiedStats:
     dropped: int
 
 
-def build_unified_dataset(
+def build_unified_dataset(  # noqa: PLR0913 — all 6 params are necessary for the public API
     selection_path: Path,
     dialogue_path: Path,
     output_path: Path,
@@ -173,7 +165,6 @@ def build_unified_dataset(
 
     # Interleave: alternating selection/dialogue, sampling from each source.
     # If one side runs out first, fill the remainder from the other side.
-    half = target_records // 2
     sel_pool = list(selection)
     dia_pool = list(dialogue)
     rng.shuffle(sel_pool)
@@ -257,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
         (args.dialogue_input, "dialogue_input"),
     ):
         if not p.exists():
-            print(f"{label} not found: {p}", file=sys.stderr)
+            print(f"{label} not found: {p}", file=sys.stderr)  # noqa: T201 — CLI entry point
             return 1
 
     stats = build_unified_dataset(
@@ -268,12 +259,12 @@ def main(argv: list[str] | None = None) -> int:
         seed=args.seed,
         max_tokens=args.max_tokens,
     )
-    print(
+    print(  # noqa: T201 — CLI entry point
         f"wrote {stats.total} records to {args.output} "
         f"(selection={stats.selection}, dialogue={stats.dialogue}, dropped={stats.dropped})"
     )
     if stats.total < args.target_records:
-        print(
+        print(  # noqa: T201 — CLI entry point
             f"WARNING: wrote {stats.total} < target {args.target_records}",
             file=sys.stderr,
         )
