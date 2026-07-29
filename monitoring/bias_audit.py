@@ -75,7 +75,15 @@ class BiasAuditReport:
 
     def summary(self) -> dict[str, Any]:
         """High-level summary for dashboards."""
+<<<<<<< HEAD
         all_disparities = self.demographic_disparities + self.diagnostic_disparities + self.linguistic_disparities
+=======
+        all_disparities = (
+            self.demographic_disparities
+            + self.diagnostic_disparities
+            + self.linguistic_disparities
+        )
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         max_disp = max((d.max_disparity for d in all_disparities), default=0.0)
         significant_count = sum(1 for d in all_disparities if d.significant)
         return {
@@ -88,12 +96,17 @@ class BiasAuditReport:
         }
 
 
+<<<<<<< HEAD
 def _coerce_score(value: Any) -> float | None:
     """Convert model output to a numeric score.
 
     Returns None for unparseable values instead of silently returning 0.0,
     which would inflate bias metrics by clustering non-numeric outputs at zero.
     """
+=======
+def _coerce_score(value: Any) -> float:
+    """Convert model output to a numeric score."""
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     if isinstance(value, (int, float)):
         return float(value)
     if isinstance(value, str):
@@ -103,10 +116,19 @@ def _coerce_score(value: Any) -> float | None:
         match = re.search(r"\d+(?:\.\d+)?", value)
         if match:
             return float(match.group())
+<<<<<<< HEAD
     return None
 
 
 def _compute_subgroup_metrics(scores: list[float], group_key: str) -> StratifiedMetric:
+=======
+    return 0.0
+
+
+def _compute_subgroup_metrics(
+    scores: list[float], group_key: str
+) -> StratifiedMetric:
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     arr = np.array(scores)
     return StratifiedMetric(
         group=group_key,
@@ -150,6 +172,7 @@ class BiasAuditor:
         from datetime import UTC, datetime
 
         scored_examples = []
+<<<<<<< HEAD
         skipped = 0
         for ex in examples:
             output = inference_fn(ex)
@@ -162,12 +185,25 @@ class BiasAuditor:
             scored_examples.append(ex)
         if skipped:
             logger.warning(f"Bias audit: skipped {skipped}/{len(examples)} examples with unparseable scores")
+=======
+        for ex in examples:
+            output = inference_fn(ex)
+            ex = dict(ex)
+            ex["score"] = _coerce_score(output)
+            scored_examples.append(ex)
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
         demographic = self._evaluate_demographic(scored_examples)
         diagnostic = self._evaluate_diagnostic(scored_examples)
         linguistic = self._evaluate_linguistic(scored_examples)
 
+<<<<<<< HEAD
         recommendations = self._generate_recommendations(demographic + diagnostic + linguistic)
+=======
+        recommendations = self._generate_recommendations(
+            demographic + diagnostic + linguistic
+        )
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
         return BiasAuditReport(
             model_name=self.model_name,
@@ -179,6 +215,7 @@ class BiasAuditor:
             timestamp=datetime.now(UTC).isoformat(),
         )
 
+<<<<<<< HEAD
     def _evaluate_demographic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
         """Evaluate performance disparity across demographic groups.
 
@@ -208,6 +245,29 @@ class BiasAuditor:
                 continue
 
             subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
+=======
+    def _evaluate_demographic(
+        self, examples: list[dict[str, Any]]
+    ) -> list[DisparityResult]:
+        """Evaluate performance disparity across demographic groups."""
+        results: list[DisparityResult] = []
+        demographic_keys = ["age_group", "gender", "ses", "ethnicity"]
+
+        for key in demographic_keys:
+            groups: dict[str, list[float]] = {}
+            for ex in examples:
+                group = ex.get(key)
+                if not group:
+                    continue
+                groups.setdefault(str(group), []).append(ex["score"])
+
+            if len(groups) < 2:
+                continue
+
+            subgroup_metrics = [
+                _compute_subgroup_metrics(scores, g) for g, scores in groups.items()
+            ]
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
             means = {m.group: m.mean_score for m in subgroup_metrics}
             max_group = max(means, key=means.get)
             min_group = min(means, key=means.get)
@@ -229,7 +289,13 @@ class BiasAuditor:
 
         return results
 
+<<<<<<< HEAD
     def _evaluate_diagnostic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
+=======
+    def _evaluate_diagnostic(
+        self, examples: list[dict[str, Any]]
+    ) -> list[DisparityResult]:
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         """Evaluate systematic under/over-prediction across diagnostic conditions."""
         groups: dict[str, list[float]] = {}
         for ex in examples:
@@ -239,6 +305,7 @@ class BiasAuditor:
         if len(groups) < 2:
             return []
 
+<<<<<<< HEAD
         subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
         means = {m.group: m.mean_score for m in subgroup_metrics}
         max_group = max(means, key=means.get)
@@ -248,6 +315,15 @@ class BiasAuditor:
             means[max_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n)
             - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
         )
+=======
+        subgroup_metrics = [
+            _compute_subgroup_metrics(scores, g) for g, scores in groups.items()
+        ]
+        means = {m.group: m.mean_score for m in subgroup_metrics}
+        max_group = max(means, key=means.get)
+        min_group = min(means, key=means.get)
+        max_disparity = means[max_group] - means[min_group]
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         p_value, significant = _statistical_test(groups)
 
         return [
@@ -263,7 +339,13 @@ class BiasAuditor:
             )
         ]
 
+<<<<<<< HEAD
     def _evaluate_linguistic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
+=======
+    def _evaluate_linguistic(
+        self, examples: list[dict[str, Any]]
+    ) -> list[DisparityResult]:
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         """Evaluate sensitivity to language style and formality."""
         groups: dict[str, list[float]] = {}
         for ex in examples:
@@ -273,6 +355,7 @@ class BiasAuditor:
         if len(groups) < 2:
             return []
 
+<<<<<<< HEAD
         subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
         means = {m.group: m.mean_score for m in subgroup_metrics}
         max_group = max(means, key=means.get)
@@ -282,6 +365,15 @@ class BiasAuditor:
             means[max_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n)
             - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
         )
+=======
+        subgroup_metrics = [
+            _compute_subgroup_metrics(scores, g) for g, scores in groups.items()
+        ]
+        means = {m.group: m.mean_score for m in subgroup_metrics}
+        max_group = max(means, key=means.get)
+        min_group = min(means, key=means.get)
+        max_disparity = means[max_group] - means[min_group]
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         p_value, significant = _statistical_test(groups)
 
         return [
@@ -297,7 +389,13 @@ class BiasAuditor:
             )
         ]
 
+<<<<<<< HEAD
     def _generate_recommendations(self, disparities: list[DisparityResult]) -> list[str]:
+=======
+    def _generate_recommendations(
+        self, disparities: list[DisparityResult]
+    ) -> list[str]:
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         """Generate mitigation recommendations based on disparities."""
         recommendations: list[str] = []
         for d in disparities:
@@ -309,7 +407,13 @@ class BiasAuditor:
                 f"Consider balanced sampling, bias-aware loss weighting, or post-hoc calibration."
             )
         if not recommendations:
+<<<<<<< HEAD
             recommendations.append("No disparities exceeded the threshold. Continue monitoring production drift.")
+=======
+            recommendations.append(
+                "No disparities exceeded the threshold. Continue monitoring production drift."
+            )
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         return recommendations
 
 
@@ -331,13 +435,25 @@ def main() -> None:
     examples = [
         {
             "input": "I feel hopeless and can't sleep.",
+<<<<<<< HEAD
             "demographic_tags": ["age_26_45", "gender_male", "ses_low"],
+=======
+            "age_group": "age_26_45",
+            "gender": "gender_male",
+            "ses": "ses_low",
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
             "diagnostic_tag": "major_depressive_disorder",
             "linguistic_style": "formal",
         },
         {
             "input": "I'm super anxious about everything lately.",
+<<<<<<< HEAD
             "demographic_tags": ["age_18_25", "gender_female", "ses_middle"],
+=======
+            "age_group": "age_18_25",
+            "gender": "gender_female",
+            "ses": "ses_middle",
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
             "diagnostic_tag": "social_anxiety_disorder",
             "linguistic_style": "informal",
         },

@@ -20,26 +20,48 @@ from typing import Any, Callable
 import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score
 
+<<<<<<< HEAD
 from training.mental_health_instruction_dataset import MentalHealthTaskType
+=======
+from ai.training.mental_health_instruction_dataset import MentalHealthTaskType
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
 logger = logging.getLogger(__name__)
 
 
 TASK_PROMPTS: dict[str, str] = {
     MentalHealthTaskType.SYMPTOM_CLASSIFICATION.value: (
+<<<<<<< HEAD
         "Identify the primary mental health symptoms described in the text. Return a comma-separated list of symptoms."
+=======
+        "Identify the primary mental health symptoms described in the text. "
+        "Return a comma-separated list of symptoms."
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     ),
     MentalHealthTaskType.SEVERITY_ESTIMATION.value: (
         "Estimate the severity of the described mental health symptoms on a scale of 1-10. "
         "Respond with only the number."
     ),
     MentalHealthTaskType.RISK_ASSESSMENT.value: (
+<<<<<<< HEAD
         "Assess the level of risk described in the text. Respond with one of: none, low, moderate, high, imminent."
     ),
     MentalHealthTaskType.EMPATHY_SCORING.value: (
         "Score the empathy of the therapist response. Provide an overall empathy score from 1-5."
     ),
     MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value: ("Respond as a compassionate, evidence-based therapist."),
+=======
+        "Assess the level of risk described in the text. "
+        "Respond with one of: none, low, moderate, high, imminent."
+    ),
+    MentalHealthTaskType.EMPATHY_SCORING.value: (
+        "Score the empathy of the therapist response. "
+        "Provide an overall empathy score from 1-5."
+    ),
+    MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value: (
+        "Respond as a compassionate, evidence-based therapist."
+    ),
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 }
 
 
@@ -111,7 +133,11 @@ class ComparisonStudyReport:
         for task, results in by_task.items():
             best[task] = max(
                 results,
+<<<<<<< HEAD
                 key=lambda r: r.f1 if r.f1 is not None else r.clinical_relevance,
+=======
+                key=lambda r: (r.f1 if r.f1 is not None else r.clinical_relevance),
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
             ).approach
         return best
 
@@ -155,12 +181,21 @@ def _normalize_prediction(pred: Any, task_type: str) -> str:
 
 
 def _exact_match(pred: str, ref: str) -> bool:
+<<<<<<< HEAD
     return pred.strip().lower() == ref.strip().lower()
 
 
 def _token_f1(pred: str, ref: str) -> float:
     pred_tokens = set(pred.lower().split())
     ref_tokens = set(ref.lower().split())
+=======
+    return pred == ref.lower().strip()
+
+
+def _token_f1(pred: str, ref: str) -> float:
+    pred_tokens = set(pred.split())
+    ref_tokens = set(ref.lower().strip().split())
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     if not pred_tokens and not ref_tokens:
         return 1.0
     if not pred_tokens or not ref_tokens:
@@ -196,9 +231,15 @@ def _clinical_relevance_score(pred: str, ref: str, task_type: str) -> float:
 
 
 def _hallucination_score(pred: str, ref: str) -> float:
+<<<<<<< HEAD
     """Proxy hallucination: prediction contains tokens not in reference."""
     pred_tokens = set(pred.lower().split())
     ref_tokens = set(ref.lower().strip().split())
+=======
+    """Proxy hallucination: prediction contains tokens not in reference for classification tasks."""
+    pred_tokens = set(pred.split(","))
+    ref_tokens = set(ref.lower().strip().split(","))
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     if not pred_tokens:
         return 0.0
     extra = pred_tokens - ref_tokens
@@ -216,12 +257,16 @@ class IFTComparisonStudy:
     ):
         self.zero_shot_fn = zero_shot_fn
         self.few_shot_fn = few_shot_fn or zero_shot_fn
+<<<<<<< HEAD
         if ift_fn is None:
             raise ValueError(
                 "IFTComparisonStudy requires an explicit ift_fn. "
                 "Passing None silently falls back to zero-shot, defeating the comparison."
             )
         self.ift_fn = ift_fn
+=======
+        self.ift_fn = ift_fn or zero_shot_fn
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
     def _build_zero_shot_prompt(self, task_type: str, input_text: str) -> str:
         prompt = TASK_PROMPTS.get(task_type, "")
@@ -256,7 +301,13 @@ class IFTComparisonStudy:
                 ("few-shot", self.few_shot_fn, self._build_few_shot_prompt),
                 ("ift", self.ift_fn, self._build_zero_shot_prompt),
             ]:
+<<<<<<< HEAD
                 metrics = self._evaluate_approach(task_examples, fn, prompt_builder, task_type)
+=======
+                metrics = self._evaluate_approach(
+                    task_examples, fn, prompt_builder, task_type
+                )
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
                 results.append(
                     ComparisonResult(
                         approach=approach,

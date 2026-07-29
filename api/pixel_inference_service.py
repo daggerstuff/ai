@@ -1175,6 +1175,7 @@ async def enable_ab_test(percent: float):
         "status": "success",
         "ift_traffic_percent": inference_engine.ab_router.config.ift_traffic_percent,
     }
+<<<<<<< HEAD
 # ---------------------------------------------------------------------------
 # PIX-3912: Mera Clinical Prediction Endpoints
 # ---------------------------------------------------------------------------
@@ -1215,6 +1216,8 @@ async def clinical_predict(request: ClinicalPredictionRequest):
 # ---------------------------------------------------------------------------
 # PAL Inference Endpoints
 # ---------------------------------------------------------------------------
+=======
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
 
 @app.post("/ab-test/disable")

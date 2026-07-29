@@ -32,7 +32,11 @@ from transformers import (
     TrainingArguments,
 )
 
+<<<<<<< HEAD
 from training.mental_health_instruction_dataset import (
+=======
+from ai.training.mental_health_instruction_dataset import (
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     MentalHealthInstructionDatasetBuilder,
     MentalHealthTaskType,
 )
@@ -126,6 +130,7 @@ class MentalHealthIFTTrainer:
             )
             torch_dtype = torch.bfloat16
 
+<<<<<<< HEAD
         attn_impl = None
         if torch.cuda.is_available():
             try:
@@ -135,13 +140,19 @@ class MentalHealthIFTTrainer:
             except ImportError:
                 logger.warning("flash_attn not installed; falling back to default attention")
 
+=======
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         self.model = AutoModelForCausalLM.from_pretrained(
             self.config.base_model,
             quantization_config=bnb_config,
             torch_dtype=torch_dtype,
             device_map="auto",
             trust_remote_code=True,
+<<<<<<< HEAD
             attn_implementation=attn_impl,
+=======
+            attn_implementation="flash_attention_2" if torch.cuda.is_available() else None,
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         )
 
         if self.config.use_qlora:
@@ -191,6 +202,7 @@ class MentalHealthIFTTrainer:
         if self.config.curriculum_learning:
             raw_train = self._apply_curriculum(raw_train)
 
+<<<<<<< HEAD
         # Validation set: stratified holdout from actual training data, not separate seed vignettes
         split = raw_train.train_test_split(test_size=0.1, seed=self.config.seed)
         self.train_dataset = split["train"].map(
@@ -199,6 +211,19 @@ class MentalHealthIFTTrainer:
             remove_columns=split["train"].column_names,
         )
         raw_val = split["test"]
+=======
+        self.train_dataset = raw_train.map(
+            self._format_and_tokenize,
+            batched=True,
+            remove_columns=raw_train.column_names,
+        )
+
+        # Validation set
+        builder = MentalHealthInstructionDatasetBuilder(seed=self.config.seed)
+        builder.build_from_seed_vignettes(augment_per_vignette=400)
+        _, val = builder.stratified_split(train_ratio=0.9)
+        raw_val = Dataset.from_list([ex.to_alpaca() for ex in val])
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         self.eval_dataset = raw_val.map(
             self._format_and_tokenize,
             batched=True,
@@ -220,7 +245,13 @@ class MentalHealthIFTTrainer:
     def _format_and_tokenize(self, examples: dict[str, Any]) -> dict[str, Any]:
         """Format Alpaca examples into prompt-completion strings and tokenize."""
         prompts = []
+<<<<<<< HEAD
         for instruction, input_text, output in zip(examples["instruction"], examples["input"], examples["output"]):
+=======
+        for instruction, input_text, output in zip(
+            examples["instruction"], examples["input"], examples["output"]
+        ):
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
             if input_text:
                 prompt = f"### Instruction:\n{instruction}\n\n### Input:\n{input_text}\n\n### Response:\n{output}"
             else:
@@ -235,8 +266,11 @@ class MentalHealthIFTTrainer:
             return_overflowing_tokens=False,
         )
         tokenized["labels"] = tokenized["input_ids"].copy()
+<<<<<<< HEAD
         if "task_type" in examples:
             tokenized["task_type"] = examples["task_type"]
+=======
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         return tokenized
 
     def train(self) -> dict[str, Any]:

@@ -11,8 +11,11 @@ Provides:
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 from collections import deque
 
+=======
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 import hashlib
 import json
 import logging
@@ -24,7 +27,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable
 
+<<<<<<< HEAD
 from utils.torch_proxy import torch
+=======
+from ai.utils.torch_proxy import torch
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +101,13 @@ class IFTModelWrapper:
     """Wrapper for loading and generating from an IFT model."""
 
     def __init__(self, model_path: str | None = None):
+<<<<<<< HEAD
         self.model_path = model_path or os.getenv("PIXEL_IFT_MODEL_PATH", "./ai/models/mental_ift/final")
+=======
+        self.model_path = model_path or os.getenv(
+            "PIXEL_IFT_MODEL_PATH", "./ai/models/mental_ift/final"
+        )
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         self.tokenizer: Any = None
         self.model: Any = None
         self.loaded = False
@@ -113,12 +126,17 @@ class IFTModelWrapper:
             from transformers import AutoModelForCausalLM, AutoTokenizer
 
             logger.info(f"Loading IFT model from {self.model_path}")
+<<<<<<< HEAD
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, trust_remote_code=False)
+=======
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, trust_remote_code=True)
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
             if self.tokenizer.pad_token is None:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
 
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
+<<<<<<< HEAD
                 torch_dtype=torch.bfloat16
                 if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
                 else torch.float32,
@@ -132,6 +150,12 @@ class IFTModelWrapper:
 
                 self.model = PeftModel.from_pretrained(self.model, str(self.model_path))
                 logger.info("Loaded QLoRA adapter on top of base model")
+=======
+                torch_dtype=torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float32,
+                device_map="auto" if torch.cuda.is_available() else None,
+                trust_remote_code=True,
+            )
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
             self.model.eval()
             self.loaded = True
             logger.info("IFT model loaded successfully")
@@ -154,9 +178,13 @@ class IFTModelWrapper:
 
         try:
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
+<<<<<<< HEAD
             inputs = {
                 k: v.to(self.model.device if hasattr(self.model, "device") else self.device) for k, v in inputs.items()
             }
+=======
+            inputs = {k: v.to(self.model.device if hasattr(self.model, "device") else self.device) for k, v in inputs.items()}
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
             with torch.no_grad():
                 outputs = self.model.generate(
@@ -183,7 +211,11 @@ class ABTestRouter:
         self.config = config or ABTestConfig()
         self.ift_model = IFTModelWrapper()
         self.baseline_fn: Callable[[str], str] | None = None
+<<<<<<< HEAD
         self.log: deque[ABTestLogEntry] = deque(maxlen=10_000)
+=======
+        self.log: list[ABTestLogEntry] = []
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         self.rollback_active = False
         self.ift_quality_score = 1.0
 
@@ -247,7 +279,13 @@ class ABTestRouter:
         if self.config.auto_rollback and destination == "ift":
             self._update_quality_score(safety_score)
             if self.ift_quality_score < self.config.quality_threshold:
+<<<<<<< HEAD
                 logger.warning(f"IFT quality score {self.ift_quality_score:.3f} below threshold; activating rollback")
+=======
+                logger.warning(
+                    f"IFT quality score {self.ift_quality_score:.3f} below threshold; activating rollback"
+                )
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
                 self.rollback_active = True
 
         return destination, response
@@ -271,7 +309,11 @@ class ABTestRouter:
         self.config.enabled = True
         self.config.ift_traffic_percent = max(0.0, min(1.0, traffic_percent))
         self.rollback_active = False
+<<<<<<< HEAD
         logger.info(f"A/B test enabled: {self.config.ift_traffic_percent * 100:.1f}% IFT traffic")
+=======
+        logger.info(f"A/B test enabled: {self.config.ift_traffic_percent*100:.1f}% IFT traffic")
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
 
     def rollback(self) -> None:
         """Force rollback to baseline."""
@@ -308,15 +350,20 @@ def build_task_prompt(
     conversation_history: list[dict[str, Any]] | None = None,
 ) -> str:
     """Build a task-specific prompt for mental health inference."""
+<<<<<<< HEAD
     templates = TASK_PROMPT_TEMPLATES.get(
         task_type, TASK_PROMPT_TEMPLATES[MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value]
     )
+=======
+    templates = TASK_PROMPT_TEMPLATES.get(task_type, TASK_PROMPT_TEMPLATES[MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value])
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     system = templates.get("system", "")
     instruction = templates.get("instruction", "")
 
     history_text = ""
     if conversation_history:
         history_text = "\n".join(
+<<<<<<< HEAD
             f"{msg.get('role', 'user').capitalize()}: {msg.get('content', '')}" for msg in conversation_history[-3:]
         )
 
@@ -325,10 +372,23 @@ def build_task_prompt(
         prompt_parts.append(f"Conversation history:\n{history_text}")
     prompt_parts.append(f"### Input:\n{user_query}")
     prompt_parts.append("### Response:\n")
+=======
+            f"{msg.get('role', 'user').capitalize()}: {msg.get('content', '')}"
+            for msg in conversation_history[-3:]
+        )
+
+    prompt_parts = [f"<|system|>\n{system}"]
+    prompt_parts.append(f"<|user|>\n{instruction}")
+    if history_text:
+        prompt_parts.append(f"Conversation history:\n{history_text}")
+    prompt_parts.append(f"Input:\n{user_query}")
+    prompt_parts.append("<|assistant|>\n")
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     return "\n\n".join(prompt_parts)
 
 
 def detect_task_type(query: str, context_type: str | None = None) -> str:
+<<<<<<< HEAD
     """Heuristic task-type detection from query and context.
 
     Risk detection is checked FIRST — a query containing both symptom and crisis
@@ -340,13 +400,25 @@ def detect_task_type(query: str, context_type: str | None = None) -> str:
         return MentalHealthTaskType.RISK_ASSESSMENT.value
     if context_type == "crisis":
         return MentalHealthTaskType.RISK_ASSESSMENT.value
+=======
+    """Heuristic task-type detection from query and context."""
+    q = query.lower()
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
     if any(k in q for k in ["symptom", "symptoms", "signs of", "do i have"]):
         return MentalHealthTaskType.SYMPTOM_CLASSIFICATION.value
     if any(k in q for k in ["severity", "how severe", "scale of", "rate my"]):
         return MentalHealthTaskType.SEVERITY_ESTIMATION.value
+<<<<<<< HEAD
     if any(k in q for k in ["empathy", "empathetic", "score this response"]):
         return MentalHealthTaskType.EMPATHY_SCORING.value
     if context_type in ["clinical", "support"]:
+=======
+    if any(k in q for k in ["risk", "suicide", "self-harm", "hurt myself", "kill myself"]):
+        return MentalHealthTaskType.RISK_ASSESSMENT.value
+    if any(k in q for k in ["empathy", "empathetic", "score this response"]):
+        return MentalHealthTaskType.EMPATHY_SCORING.value
+    if context_type in ["crisis", "clinical", "support"]:
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
         return MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value
     return MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value
 

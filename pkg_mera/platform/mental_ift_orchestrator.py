@@ -16,13 +16,18 @@ from __future__ import annotations
 import json
 import logging
 import os
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
 import random
 import uuid
 from dataclasses import asdict, dataclass, replace
+=======
+from dataclasses import asdict, dataclass
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
 from api.ift_inference import ABTestConfig, ABTestRouter
 from evals.ift_comparison import IFTComparisonStudy
 from monitoring.bias_audit import BiasAuditor
@@ -30,6 +35,15 @@ from training.mental_health_instruction_dataset import (
     MentalHealthInstructionDatasetBuilder,
 )
 from training.mental_ift_trainer import IFTConfig, MentalHealthIFTTrainer
+=======
+from ai.api.ift_inference import ABTestConfig, ABTestRouter
+from ai.evals.ift_comparison import IFTComparisonStudy
+from ai.monitoring.bias_audit import BiasAuditor
+from ai.training.mental_health_instruction_dataset import (
+    MentalHealthInstructionDatasetBuilder,
+)
+from ai.training.mental_ift_trainer import IFTConfig, MentalHealthIFTTrainer
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +127,12 @@ class MentalHealthIFTOrchestrator:
             for ex in list(builder.examples):
                 if len(builder.examples) >= min_examples:
                     break
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
+=======
+                from dataclasses import replace
+                import uuid
+
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
                 builder.examples.append(replace(ex, id=str(uuid.uuid4()), source=f"{ex.source}_augmented"))
 
         train_path, val_path = builder.save(dataset_dir, format="alpaca")
@@ -152,23 +172,37 @@ class MentalHealthIFTOrchestrator:
         self.trainer.setup_model()
         self.trainer.prepare_datasets()
 
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
         train_metrics = self.trainer.train()
+=======
+        # In a real run, call trainer.train(). Here we record readiness.
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
         metrics = {
             "model_ready": True,
             "base_model": ift_config.base_model,
             "trainable_parameters": "see logs",
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
         }
         metrics.update(train_metrics)
+=======
+            "curriculum_learning": ift_config.curriculum_learning,
+        }
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
         artifacts = {"model_dir": ift_config.output_dir}
         return metrics, artifacts
 
     def _run_bias_audit(self) -> tuple[dict[str, Any], dict[str, str]]:
         """Stage 3: Bias audit."""
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
         from training.mental_health_instruction_dataset import SEED_VIGNETTES
+=======
+        from ai.training.mental_health_instruction_dataset import SEED_VIGNETTES
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
 
         auditor = BiasAuditor(model_name="mental-health-ift", threshold=0.05)
 
         def inference_fn(ex: dict[str, Any]) -> float:
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
             """Use the trained IFT model for severity prediction when available,
             fall back to ground-truth severity with a logged warning otherwise."""
             if self.trainer is not None and self.trainer.model is not None and self.trainer.tokenizer is not None:
@@ -200,6 +234,9 @@ class MentalHealthIFTOrchestrator:
                 "Bias audit: no trained model available; using ground-truth severity as placeholder. "
                 "Results will NOT reflect model bias."
             )
+=======
+            # Dummy severity score inference for audit demo
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
             return float(ex.get("severity", 5))
 
         examples = []
@@ -221,6 +258,7 @@ class MentalHealthIFTOrchestrator:
         builder.build_from_seed_vignettes(augment_per_vignette=5)
         examples = [ex.to_alpaca() for ex in builder.examples]
 
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
         def zero_shot_inference(prompt: str) -> str:
             """Zero-shot: pass the instruction directly with no examples."""
             if self.trainer is not None and self.trainer.model is not None and self.trainer.tokenizer is not None:
@@ -234,12 +272,16 @@ class MentalHealthIFTOrchestrator:
                     output_ids = self.trainer.model.generate(**inputs, max_new_tokens=64, do_sample=False)
                 return tok.decode(output_ids[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True)  # type: ignore[union-attr]
             # Fallback: keyword-based heuristic
+=======
+        def dummy_inference(prompt: str) -> str:
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
             if "symptom" in prompt.lower():
                 return "anxiety, low mood"
             if "severity" in prompt.lower():
                 return "6"
             if "risk" in prompt.lower():
                 return "moderate"
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
             return "I hear you, and that sounds really difficult."
 
         def few_shot_inference(prompt: str) -> str:
@@ -283,6 +325,16 @@ class MentalHealthIFTOrchestrator:
             zero_shot_fn=zero_shot_inference,
             few_shot_fn=few_shot_inference,
             ift_fn=ift_inference,
+=======
+            if "empathy" in prompt.lower():
+                return "4"
+            return "I hear you, and that sounds really difficult."
+
+        study = IFTComparisonStudy(
+            zero_shot_fn=dummy_inference,
+            few_shot_fn=dummy_inference,
+            ift_fn=dummy_inference,
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
         )
         report = study.evaluate(examples, model_name="mental-health-ift")
         report_path = self.output_dir / "comparison_study_report.json"
@@ -324,6 +376,7 @@ class MentalHealthIFTOrchestrator:
         """Stage 7: Continuous fine-tuning from therapist-approved production data."""
         logger.info(f"Starting continuous fine-tuning with {len(production_feedback)} examples")
 
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
         approved = [
             ex
             for ex in production_feedback
@@ -331,6 +384,10 @@ class MentalHealthIFTOrchestrator:
             and ex.get("quality_score", 0) >= self.config.get("min_quality_score", 0.7)
             and ex.get("diversity_score", 0) >= self.config.get("min_diversity_score", 0.3)
         ]
+=======
+        # Filter to approved examples
+        approved = [ex for ex in production_feedback if ex.get("therapist_approved", False)]
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
         if len(approved) < self.config.get("min_continuous_examples", 100):
             return {"status": "skipped", "reason": "insufficient_approved_data", "approved_count": len(approved)}
 
@@ -340,7 +397,12 @@ class MentalHealthIFTOrchestrator:
         incremental_dir = self.output_dir / "continuous" / datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         train_path, _ = builder.save(incremental_dir, format="alpaca")
 
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
         gate_passed = self._evaluate_continuous_gate(evaluation_gate, approved)
+=======
+        # Evaluation gate placeholder
+        gate_passed = evaluation_gate == "diagnosis_arena"
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
 
         metrics = {
             "status": "success" if gate_passed else "gate_failed",
@@ -351,6 +413,7 @@ class MentalHealthIFTOrchestrator:
         }
         return metrics
 
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
     def _evaluate_continuous_gate(self, gate_type: str, examples: list[dict[str, Any]]) -> bool:
         if gate_type == "diagnosis_arena":
             return len(examples) >= self.config.get("min_continuous_examples", 100)
@@ -365,6 +428,8 @@ class MentalHealthIFTOrchestrator:
         logger.warning(f"Unknown evaluation gate '{gate_type}'; failing closed")
         return False
 
+=======
+>>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
     def get_pipeline_report(self) -> dict[str, Any]:
         """Return aggregated pipeline report."""
         return {
