@@ -17,7 +17,8 @@ import json
 import logging
 import os
 import random
-from dataclasses import asdict, dataclass
+import uuid
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -112,9 +113,6 @@ class MentalHealthIFTOrchestrator:
             for ex in list(builder.examples):
                 if len(builder.examples) >= min_examples:
                     break
-                from dataclasses import replace
-                import uuid
-
                 builder.examples.append(replace(ex, id=str(uuid.uuid4()), source=f"{ex.source}_augmented"))
 
         train_path, val_path = builder.save(dataset_dir, format="alpaca")
