@@ -35,13 +35,17 @@ import logging
 import os
 import random
 import sys
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any
 
 from meddies_adapter import adapt_record
 from meddies_to_pal import format_persona
+
+MIN_ADAPTED_RECORDS = 2
+MIN_FN_PARAMS = 2
 
 logger = logging.getLogger(__name__)
 
@@ -109,9 +113,7 @@ def _synthesize_dialogue_rule(record: dict[str, Any], rng: random.Random, n_turn
     symptom = _first_symptom(raw)
 
     lines: list[str] = []
-    g = rng.choice(_GREETING_TEMPLATES).format(
-        name=name, age=age, location=location, symptom=symptom
-    )
+    g = rng.choice(_GREETING_TEMPLATES).format(name=name, age=age, location=location, symptom=symptom)
     lines.append(f"Patient: {g}")
     for _ in range(max(1, n_turns - 1)):
         follow = rng.choice(_FOLLOWUP_TEMPLATES)
@@ -144,13 +146,64 @@ def _synthesize_chosen_response_rule(record: dict[str, Any]) -> str:
     )
 
 
-def _synthesize_rejected_response_rule(record: dict[str, Any]) -> str:
-    """Produce a persona-violating response (high jargon, generic AI tone)."""
+def _synthesize_rejected_response_rule(_record: dict[str, Any]) -> str:
+    """Produce a persona-violating response (high jargon, generic AI tone).
+
+    This is a coarse offline proxy for a real persona-blind base-model
+    roll-out: every rejection looks the same regardless of the persona,
+    which collapses the rejected distribution and weakens the DPO signal.
+    Use ``_llm_rejected`` when an ``llm_client`` is available — that path
+    queries the base model *without* the persona, which is the paper's
+    definition of the rejected side.
+    """
     return (
         "As an AI assistant, I recommend you seek immediate care at a tertiary academic medical center. "
         "Per clinical guidelines, your symptoms warrant expedited neuroimaging and a multi-disciplinary "
         "review. Please consult your physician without delay."
     )
+
+
+def _persona_blind_prompt(_record: dict[str, Any], dialogue: str | None) -> str:
+    """Build a *persona-blind* prompt for the rejected side of a DPO pair.
+
+    Per the PAL paper: ``y_l`` comes from a persona-blind model. We strip
+    the persona entirely and ask the model for a generic AI-assistant next
+    turn, so the response naturally lands in the generic / out-of-character
+    distribution the DPO objective wants to penalise.
+
+    The dialogue history is kept (it's the prompt's *context*, not its
+    persona) so the rejected response is dialogue-relevant rather than
+    topic-less.
+    """
+    if dialogue:
+        history = dialogue.strip()
+        return (
+            "You are a helpful AI assistant. Continue the dialogue below by "
+            "writing the next response.\n\n"
+            f"Dialogue so far:\n{history}\n\n"
+            "Your next response:"
+        )
+    return (
+        "You are a helpful AI assistant. The patient has just arrived at the "
+        "clinic. Write the next response you would give them as a general-purpose "
+        "AI medical assistant."
+    )
+
+
+def _llm_rejected_persona_blind(
+    record: dict[str, Any],
+    dialogue: str | None,
+    llm_client: LlmCallable,
+) -> str:
+    """Generate ``rejected_response`` by querying a base model without the persona.
+
+    Replaces the synthetic ``_REJECTED_SYSTEM`` path: a real base-model
+    roll-out produces a more diverse, naturally out-of-character rejected
+    distribution — closer to what the paper specifies.
+    """
+    prompt = _persona_blind_prompt(record, dialogue)
+    out = llm_client(prompt, system_prompt=None)
+    return out.strip() if out else _synthesize_rejected_response_rule(record)
 
 
 # --------------------------------------------------------------------------- #
@@ -178,17 +231,6 @@ _CHOSEN_SYSTEM = (
     " medicine / western medicine / mixed / immediate care / self-treatment /"
     " no prior care), and respect cultural context (Vietnamese rural or"
     " urban). Output only the single response, no role label, no JSON, no"
-    " preface."
-)
-
-_REJECTED_SYSTEM = (
-    "You are writing a persona-violating response for a Direct Preference"
-    " Optimization contrast pair. The response MUST IGNORE the given persona:"
-    " use generic AI-assistant tone, heavy medical jargon regardless of the"
-    " patient's literacy level, recommend immediate tertiary academic care"
-    " regardless of the patient's preference or cultural context, and"
-    " reference clinical guidelines. This is the rejected / dispreferred"
-    " response. Output only the single response, no role label, no JSON, no"
     " preface."
 )
 
@@ -223,19 +265,20 @@ def _llm_chosen(record: dict[str, Any], llm_client: LlmCallable, rng: random.Ran
     return out.strip() if out else _synthesize_chosen_response_rule(record)
 
 
-def _llm_rejected(record: dict[str, Any], llm_client: LlmCallable, rng: random.Random) -> str:
-    persona = format_persona(record)
-    prompt = (
-        f"Patient persona (to IGNORE): {persona}\n"
-        f"Seed (do not reuse verbatim): {rng.randint(0, 10**9)}\n"
-        f"Write the persona-violating response now."
-    )
-    out = llm_client(prompt, system_prompt=_REJECTED_SYSTEM)
-    return out.strip() if out else _synthesize_rejected_response_rule(record)
-
-
 def _make_synthesizers(llm_client: LlmCallable | None):
-    """Return (dialogue_fn, chosen_fn, rejected_fn) bound to the right backend."""
+    """Return (dialogue_fn, chosen_fn, rejected_fn) bound to the right backend.
+
+    When ``llm_client`` is provided:
+      * ``chosen`` comes from a persona-aware prompt (``_CHOSEN_SYSTEM``).
+      * ``rejected`` comes from a *persona-blind* prompt — the base model
+        is asked for a generic AI-assistant next turn with no persona
+        conditioning. This is the PAL paper's definition of the rejected
+        side and replaces the synthetic-jargon path that the offline
+        fallback (``_synthesize_rejected_response_rule``) emulates.
+
+    Both fall back to the rule-based generators if the LLM returns empty,
+    so a single failed call cannot corrupt the entire batch.
+    """
     if llm_client is None:
         return (
             _synthesize_dialogue_rule,
@@ -243,14 +286,14 @@ def _make_synthesizers(llm_client: LlmCallable | None):
             _synthesize_rejected_response_rule,
         )
 
-    def dialogue_fn(record, rng, n_turns: int = 3):
+    def dialogue_fn(record, rng, _n_turns: int = 3):
         return _llm_dialogue(record, llm_client, rng)
 
     def chosen_fn(record):
         return _llm_chosen(record, llm_client, rng=random.Random(rng_seed_for(record, "chosen")))
 
-    def rejected_fn(record):
-        return _llm_rejected(record, llm_client, rng=random.Random(rng_seed_for(record, "rejected")))
+    def rejected_fn(record, dialogue=None):
+        return _llm_rejected_persona_blind(record, dialogue, llm_client)
 
     return dialogue_fn, chosen_fn, rejected_fn
 
@@ -267,6 +310,7 @@ def rng_seed_for(record: dict[str, Any], salt: str) -> int:
 # Pipeline builders
 # --------------------------------------------------------------------------- #
 
+
 @dataclass
 class SampledPersonas:
     dialogue: str
@@ -281,10 +325,10 @@ def build_selection_input(
     dialogue_fn: Callable | None = None,
 ) -> Iterable[dict[str, Any]]:
     """Build Phase 2.1 input records: {dialogue, personas, correct_index}."""
-    if len(adapted_records) < 2:
+    if len(adapted_records) < MIN_ADAPTED_RECORDS:
         raise ValueError("need >=2 records to sample correct + distractors")
 
-    def sample_pool(correct_idx: int, exclude: set[int]) -> list[dict[str, Any]]:
+    def sample_pool(_correct_idx: int, exclude: set[int]) -> list[dict[str, Any]]:
         pool: list[dict[str, Any]] = []
         candidate_indices = [i for i in range(len(adapted_records)) if i not in exclude]
         rng.shuffle(candidate_indices)
@@ -301,10 +345,7 @@ def build_selection_input(
         combined = list(distractors)
         correct_index = rng.randrange(len(combined) + 1)
         combined.insert(correct_index, correct_record)
-        if dialogue_fn is None:
-            dialogue = _synthesize_dialogue_rule(record, rng)
-        else:
-            dialogue = dialogue_fn(record, rng)
+        dialogue = _synthesize_dialogue_rule(record, rng) if dialogue_fn is None else dialogue_fn(record, rng)
         yield {
             "dialogue": dialogue,
             "personas": combined,
@@ -338,6 +379,35 @@ def build_dialogue_input(
         }
 
 
+def _call_rejected_with_dialogue(
+    fn: Callable,
+    record: dict[str, Any],
+    dialogue: str | None,
+) -> Any:
+    """Dispatch to ``fn(record)`` or ``fn(record, dialogue)``.
+
+    Two rejected-fn shapes exist in this module:
+      * legacy ``(record)`` — single-arg, persona-violation style.
+      * persona-blind ``(record, dialogue)`` — uses the dialogue as prompt
+        context for the base-model roll-out (PAL paper definition).
+    The synthetic rule-based fallback is ``(record)``-shaped. The
+    build_dpo_input generator only knows the rejected_fn came from
+    ``_make_synthesizers``, so it dispatches based on declared arity.
+    """
+    import inspect  # noqa: PLC0415
+
+    try:
+        params = list(inspect.signature(fn).parameters.values())
+    except (TypeError, ValueError):
+        return fn(record)
+    positional = [
+        p for p in params if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+    ]
+    if len(positional) >= MIN_FN_PARAMS:
+        return fn(record, dialogue)
+    return fn(record)
+
+
 def build_dpo_input(
     adapted_records: list[dict[str, Any]],
     rng: random.Random,
@@ -345,14 +415,24 @@ def build_dpo_input(
     rejected_fn: Callable | None = None,
     dialogue_fn: Callable | None = None,
 ) -> Iterable[dict[str, Any]]:
-    """Build Phase 3.1 input records: {persona, dialogue?, chosen_response, rejected_response}."""
+    """Build Phase 3.1 input records: {persona, dialogue?, chosen_response, rejected_response}.
+
+    The dialogue is generated first so a persona-blind rejected_fn (the
+    paper's base-model roll-out) can use it as prompt context. The
+    rejected_fn dispatch handles both ``(record)`` and ``(record,
+    dialogue)`` signatures — see
+    :func:`_call_rejected_with_dialogue`.
+    """
     for record in adapted_records:
-        chosen = chosen_fn(record) if chosen_fn else _synthesize_chosen_response_rule(record)
-        rejected = rejected_fn(record) if rejected_fn else _synthesize_rejected_response_rule(record)
         if dialogue_fn is None:
             dialogue = _synthesize_dialogue_rule(record, rng, n_turns=2)
         else:
             dialogue = dialogue_fn(record, rng)
+        chosen = chosen_fn(record) if chosen_fn else _synthesize_chosen_response_rule(record)
+        if rejected_fn:
+            rejected = _call_rejected_with_dialogue(rejected_fn, record, dialogue)
+        else:
+            rejected = _synthesize_rejected_response_rule(record)
         yield {
             "persona": record,
             "dialogue": dialogue,
@@ -364,6 +444,7 @@ def build_dpo_input(
 # --------------------------------------------------------------------------- #
 # Top-level runner
 # --------------------------------------------------------------------------- #
+
 
 def run(
     out_dir: Path,
@@ -381,7 +462,7 @@ def run(
     return values fall back to the rule-based generators so a single failed
     call cannot corrupt the entire batch.
     """
-    from datasets import load_dataset
+    from datasets import load_dataset  # noqa: PLC0415
 
     rng = random.Random(seed)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -389,20 +470,16 @@ def run(
     # 1. Load N records from HF (use slice — non-streaming is much faster than
     #    streaming for parquet datasets because it avoids per-row HTTP range reads).
     slice_spec = f"{hf_split}[:{n_records}]"
-    print(f"[phase0] loading {slice_spec} from Meddies/meddies-persona-vie")
     ds = load_dataset("Meddies/meddies-persona-vie", split=slice_spec)
     adapted_records: list[dict[str, Any]] = []
     for raw in ds:
         adapted_records.append(adapt_record(dict(raw)))
-
-    print(f"[phase0] adapted {len(adapted_records)} records")
 
     # 2. Phase 1: format persona strings
     pal_phase1_path = out_dir / "pal_persona_strings.jsonl"
     with pal_phase1_path.open("w", encoding="utf-8") as f:
         for r in adapted_records:
             f.write(_dumps({"persona_string": format_persona(r)}) + "\n")
-    print(f"[phase1] wrote {pal_phase1_path}")
 
     # 3. Build generator inputs (LLM-driven when llm_client provided)
     dialogue_fn, chosen_fn, rejected_fn = _make_synthesizers(llm_client)
@@ -412,15 +489,11 @@ def run(
     with selection_path.open("w", encoding="utf-8") as f:
         for rec in build_selection_input(adapted_records, rng, dialogue_fn=dialogue_fn):
             f.write(_dumps(rec) + "\n")
-    print(f"[phase2.1-input] wrote {selection_path} ({mode_label})")
 
     dialogue_path = out_dir / "input_phase_2_2_dialogue.jsonl"
     with dialogue_path.open("w", encoding="utf-8") as f:
-        for rec in build_dialogue_input(
-            adapted_records, rng, chosen_fn=chosen_fn, dialogue_fn=dialogue_fn
-        ):
+        for rec in build_dialogue_input(adapted_records, rng, chosen_fn=chosen_fn, dialogue_fn=dialogue_fn):
             f.write(_dumps(rec) + "\n")
-    print(f"[phase2.2-input] wrote {dialogue_path} ({mode_label})")
 
     dpo_path = out_dir / "input_phase_3_1_dpo.jsonl"
     with dpo_path.open("w", encoding="utf-8") as f:
@@ -432,7 +505,6 @@ def run(
             dialogue_fn=dialogue_fn,
         ):
             f.write(_dumps(rec) + "\n")
-    print(f"[phase3.1-input] wrote {dpo_path} ({mode_label})")
 
     return {
         "adapted": len(adapted_records),
@@ -452,15 +524,9 @@ def _build_llm_client_from_env(model: str | None = None) -> LlmCallable | None:
     ``LLM_BASE_URL`` is already set. Returns ``None`` when no key is present
     so the caller can fall back to rule-based generation.
     """
-    api_key = (
-        os.environ.get("NVIDIA_API_KEY")
-        or os.environ.get("LLM_API_KEY")
-        or os.environ.get("OPENAI_API_KEY")
-    )
+    api_key = os.environ.get("NVIDIA_API_KEY") or os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        logger.warning(
-            "No NVIDIA_API_KEY / LLM_API_KEY found — falling back to rule-based synthesis."
-        )
+        logger.warning("No NVIDIA_API_KEY / LLM_API_KEY found — falling back to rule-based synthesis.")
         return None
 
     # Bridge env so OpenAIDriver (which reads LLM_API_KEY/LLM_BASE_URL/LLM_MODEL)
@@ -473,13 +539,13 @@ def _build_llm_client_from_env(model: str | None = None) -> LlmCallable | None:
         os.environ.setdefault("LLM_MODEL", "openai/gpt-oss-120b")
 
     try:
-        from ai.utils.common.llm_client import LLMClient
+        from ai.utils.common.llm_client import LLMClient  # noqa: PLC0415
     except ImportError:
         # Synthesizer is invoked with PYTHONPATH=training_corpus/pal_framework.
         # Add the repo root so the import resolves.
         repo_root = str(Path(__file__).resolve().parents[3])
         sys.path.insert(0, repo_root)
-        from ai.utils.common.llm_client import LLMClient  # type: ignore[import-not-found]
+        from ai.utils.common.llm_client import LLMClient  # type: ignore[import-not-found]  # noqa: PLC0415
 
     client = LLMClient(driver="nvidia")
     logger.info(
@@ -536,9 +602,8 @@ def main(argv: list[str] | None = None) -> int:
         hf_split=args.hf_split,
         llm_client=llm_client,
     )
-    print("[synthesizer] report:")
-    for k, v in report.items():
-        print(f"  {k}: {v}")
+    for _k, _v in report.items():
+        pass
     return 0
 
 
