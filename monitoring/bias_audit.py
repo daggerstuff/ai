@@ -180,21 +180,30 @@ class BiasAuditor:
         )
 
     def _evaluate_demographic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
-        """Evaluate performance disparity across demographic groups."""
+        """Evaluate performance disparity across demographic groups.
+
+        Parses demographic_tags list (e.g. ["age_18_25", "gender_male"])
+        into category-based groups for disparity analysis.
+        """
         results: list[DisparityResult] = []
-        demographic_keys = ["age_group", "gender", "ses", "ethnicity"]
+        categories: dict[str, dict[str, list[float]]] = {}
 
-        for key in demographic_keys:
-            groups: dict[str, list[float]] = {}
-            for ex in examples:
-                group = ex.get(key)
-                if not group:
-                    continue
-                groups.setdefault(str(group), []).append(ex["score"])
+        for ex in examples:
+            tags = ex.get("demographic_tags") or []
+            if isinstance(tags, str):
+                tags = [tags]
+            for tag in tags:
+                tag_str = str(tag)
+                # Parse category from tag: "age_18_25" -> "age", "gender_male" -> "gender"
+                parts = tag_str.split("_", 1)
+                cat = parts[0] if parts else tag_str
+                groups = categories.setdefault(cat, {})
+                groups.setdefault(tag_str, []).append(ex["score"])
 
+        for key, groups in categories.items():
             if len(groups) < 2:
                 logger.warning(
-                    f"Bias audit: demographic key '{key}' has <2 groups ({list(groups.keys())}); skipping disparity analysis"
+                    f"Bias audit: demographic category '{key}' has <2 groups ({list(groups.keys())}); skipping disparity analysis"
                 )
                 continue
 
@@ -234,11 +243,11 @@ class BiasAuditor:
         means = {m.group: m.mean_score for m in subgroup_metrics}
         max_group = max(means, key=means.get)
         min_group = min(means, key=means.get)
-        # Weighted disparity: weight by relative group size so small groups don't dominate
         total_n = sum(m.n for m in subgroup_metrics)
-        max_disparity = means[max_group] * (
-            subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n
-        ) - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
+        max_disparity = abs(
+            means[max_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n)
+            - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
+        )
         p_value, significant = _statistical_test(groups)
 
         return [
@@ -269,9 +278,10 @@ class BiasAuditor:
         max_group = max(means, key=means.get)
         min_group = min(means, key=means.get)
         total_n = sum(m.n for m in subgroup_metrics)
-        max_disparity = means[max_group] * (
-            subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n
-        ) - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
+        max_disparity = abs(
+            means[max_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n)
+            - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
+        )
         p_value, significant = _statistical_test(groups)
 
         return [

@@ -93,6 +93,8 @@ class MentalHealthInstruction:
             "demographic_tags": self.demographic_tags,
             "diagnostic_tag": self.diagnostic_tag,
             "linguistic_style": self.linguistic_style,
+            "source": self.source,
+            "clinical_reviewed": self.clinical_reviewed,
         }
 
 

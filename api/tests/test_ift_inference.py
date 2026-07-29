@@ -1,12 +1,12 @@
 """Tests for IFT inference router and prompt builder."""
 
-from ai.api.ift_inference import (
+from api.ift_inference import (
     ABTestConfig,
     ABTestRouter,
     build_task_prompt,
     detect_task_type,
 )
-from ai.training.mental_health_instruction_dataset import MentalHealthTaskType
+from training.mental_health_instruction_dataset import MentalHealthTaskType
 
 
 def test_detect_task_type():

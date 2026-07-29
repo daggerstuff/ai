@@ -11,6 +11,8 @@ Provides:
 
 from __future__ import annotations
 
+from collections import deque
+
 import hashlib
 import json
 import logging
@@ -182,7 +184,7 @@ class ABTestRouter:
         self.config = config or ABTestConfig()
         self.ift_model = IFTModelWrapper()
         self.baseline_fn: Callable[[str], str] | None = None
-        self.log: list[ABTestLogEntry] = []
+        self.log: deque[ABTestLogEntry] = deque(maxlen=10_000)
         self.rollback_active = False
         self.ift_quality_score = 1.0
 
