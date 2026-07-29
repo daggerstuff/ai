@@ -6,6 +6,7 @@ with special handling for crisis content.
 """
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -206,7 +207,7 @@ class ConsolidationRules:
 
     def should_trigger_consolidation(
         self,
-        memories: list[Memory],
+        memories: Sequence[Memory],
     ) -> bool:
         """
         Check if consolidation should be triggered.

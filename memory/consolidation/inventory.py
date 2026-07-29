@@ -101,14 +101,15 @@ class InventoryEngine:
         with self._storage_path.open("r", encoding="utf-8") as f:
             raw_items: list[dict[str, object]] = json.load(f)
         with self._lock:
-            self._items = {
-                str(item["id"]): InventoryItem(
+            for item in raw_items:
+                meta = item.get("metadata", {})
+                if not isinstance(meta, dict):
+                    meta = {}
+                self._items[str(item["id"])] = InventoryItem(
                     id=str(item["id"]),
                     name=str(item["name"]),
-                    metadata=dict(item.get("metadata", {})),
+                    metadata=dict(meta),
                 )
-                for item in raw_items
-            }
         log.debug("Inventory loaded from %s – %d items", self._storage_path, len(self._items))
 
     def save(self) -> None:
