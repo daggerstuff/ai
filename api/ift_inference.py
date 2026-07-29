@@ -12,10 +12,15 @@ Provides:
 from __future__ import annotations
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from collections import deque
 
 =======
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+from collections import deque
+
+>>>>>>> 6b3e88de (fix(PIX-3911): Phase 3 bug fixes — bias audit parsing, abs disparity, deque log, hallucination scoring, to_chat fields, test imports)
 import hashlib
 import json
 import logging
@@ -247,10 +252,14 @@ class ABTestRouter:
         self.ift_model = IFTModelWrapper()
         self.baseline_fn: Callable[[str], str] | None = None
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.log: deque[ABTestLogEntry] = deque(maxlen=10_000)
 =======
         self.log: list[ABTestLogEntry] = []
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        self.log: deque[ABTestLogEntry] = deque(maxlen=10_000)
+>>>>>>> 6b3e88de (fix(PIX-3911): Phase 3 bug fixes — bias audit parsing, abs disparity, deque log, hallucination scoring, to_chat fields, test imports)
         self.rollback_active = False
         self.ift_quality_score = 1.0
 

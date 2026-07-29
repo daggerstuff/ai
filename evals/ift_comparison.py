@@ -248,6 +248,7 @@ def _clinical_relevance_score(pred: str, ref: str, task_type: str) -> float:
 
 def _hallucination_score(pred: str, ref: str) -> float:
 <<<<<<< HEAD
+<<<<<<< HEAD
     """Proxy hallucination: prediction contains tokens not in reference."""
     pred_tokens = set(pred.lower().split())
     ref_tokens = set(ref.lower().strip().split())
@@ -256,6 +257,11 @@ def _hallucination_score(pred: str, ref: str) -> float:
     pred_tokens = set(pred.split(","))
     ref_tokens = set(ref.lower().strip().split(","))
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+    """Proxy hallucination: prediction contains tokens not in reference."""
+    pred_tokens = set(pred.lower().split())
+    ref_tokens = set(ref.lower().strip().split())
+>>>>>>> 6b3e88de (fix(PIX-3911): Phase 3 bug fixes — bias audit parsing, abs disparity, deque log, hallucination scoring, to_chat fields, test imports)
     if not pred_tokens:
         return 0.0
     extra = pred_tokens - ref_tokens

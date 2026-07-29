@@ -1,20 +1,28 @@
 """Tests for IFT inference router and prompt builder."""
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from api.ift_inference import (
 =======
 from ai.api.ift_inference import (
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+from api.ift_inference import (
+>>>>>>> 6b3e88de (fix(PIX-3911): Phase 3 bug fixes — bias audit parsing, abs disparity, deque log, hallucination scoring, to_chat fields, test imports)
     ABTestConfig,
     ABTestRouter,
     build_task_prompt,
     detect_task_type,
 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 from training.mental_health_instruction_dataset import MentalHealthTaskType
 =======
 from ai.training.mental_health_instruction_dataset import MentalHealthTaskType
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+from training.mental_health_instruction_dataset import MentalHealthTaskType
+>>>>>>> 6b3e88de (fix(PIX-3911): Phase 3 bug fixes — bias audit parsing, abs disparity, deque log, hallucination scoring, to_chat fields, test imports)
 
 
 def test_detect_task_type():

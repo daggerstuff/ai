@@ -102,10 +102,15 @@ class MentalHealthInstruction:
             "diagnostic_tag": self.diagnostic_tag,
             "linguistic_style": self.linguistic_style,
 <<<<<<< HEAD
+<<<<<<< HEAD
             "source": self.source,
             "clinical_reviewed": self.clinical_reviewed,
 =======
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+            "source": self.source,
+            "clinical_reviewed": self.clinical_reviewed,
+>>>>>>> 6b3e88de (fix(PIX-3911): Phase 3 bug fixes — bias audit parsing, abs disparity, deque log, hallucination scoring, to_chat fields, test imports)
         }
 
 

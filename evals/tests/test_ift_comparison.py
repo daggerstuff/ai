@@ -1,12 +1,17 @@
 """Tests for IFT vs prompt engineering comparison study."""
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from evals.ift_comparison import IFTComparisonStudy
 from training.mental_health_instruction_dataset import MentalHealthTaskType
 =======
 from ai.evals.ift_comparison import IFTComparisonStudy
 from ai.training.mental_health_instruction_dataset import MentalHealthTaskType
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+from evals.ift_comparison import IFTComparisonStudy
+from training.mental_health_instruction_dataset import MentalHealthTaskType
+>>>>>>> 6b3e88de (fix(PIX-3911): Phase 3 bug fixes — bias audit parsing, abs disparity, deque log, hallucination scoring, to_chat fields, test imports)
 
 
 def dummy_inference(prompt: str) -> str:
