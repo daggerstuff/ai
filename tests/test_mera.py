@@ -14,19 +14,19 @@ from __future__ import annotations
 
 import pytest
 
-from platform.mera import (
-    HierarchicalEmbedder,
-    HierarchicalContrastiveTrainer,
-    FlatContrastiveTrainer,
-    MemorizeStage,
-    RankStage,
-    MeraPipeline,
-    TherapeuticConceptHierarchy,
-    build_default_hierarchy,
-    MemorizeRankConfig,
-    PatientPresentation,
+from ai.platform.mera import (
     ClinicalFinding,
     EvidenceType,
+    FlatContrastiveTrainer,
+    HierarchicalContrastiveTrainer,
+    HierarchicalEmbedder,
+    MemorizeRankConfig,
+    MemorizeStage,
+    MeraPipeline,
+    PatientPresentation,
+    RankStage,
+    TherapeuticConceptHierarchy,
+    build_default_hierarchy,
 )
 
 
@@ -88,7 +88,7 @@ class TestMemorizeAndRank:
             ],
         )
         result = stage.memorize(presentation)
-        assert isinstance(result, type(__import__("platform.mera.types", fromlist=["MeraResult"]).MeraResult))
+        assert isinstance(result, type(__import__("ai.platform.mera.types", fromlist=["MeraResult"]).MeraResult))
         # The memorize stage should return at least one candidate when hierarchy has conditions.
         # Note: the embedded MeraResult carries candidates; confirm non-empty list via internal call.
         candidates = stage.retrieve(presentation, top_k=10)
