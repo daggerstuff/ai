@@ -43,13 +43,13 @@ from .types import (
 
 def _stable_index(token: str, dim: int) -> int:
     """Deterministic bucket index for *token* into ``[0, dim)``."""
-    h = hashlib.sha1(token.encode("utf-8")).digest()
+    h = hashlib.sha1(token.encode("utf-8"), usedforsecurity=False).digest()
     return int.from_bytes(h[:4], "little") % dim
 
 
 def _sign(token: str, dim: int) -> float:
     """Deterministic +1/-1 sign for a token's contribution to its bucket."""
-    h = hashlib.sha1(token.encode("utf-8")).digest()
+    h = hashlib.sha1(token.encode("utf-8"), usedforsecurity=False).digest()
     return 1.0 if (h[4] & 1) else -1.0
 
 
