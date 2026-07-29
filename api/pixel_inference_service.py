@@ -39,6 +39,23 @@ from ai.api.ift_inference import ABTestConfig, ABTestRouter, build_task_prompt, 
 from ai.api.memory import get_memory_manager
 from ai.api.sentry_logging import initialize_sentry_logging
 
+# ---------------------------------------------------------------------------
+# PAL Inference imports
+# ---------------------------------------------------------------------------
+_PAL_FRAMEWORK = str(
+    Path(__file__).resolve().parents[1] / "training_corpus" / "pal_framework",
+)
+if _PAL_FRAMEWORK not in sys.path:
+    sys.path.insert(0, _PAL_FRAMEWORK)
+
+from inference_wrapper import (  # type: ignore[import-untyped]
+    DEFAULT_LATENCY_BUDGET_SECONDS,
+    JsonLeakageError,
+    LatencyExceededError,
+    PalInferenceWrapper,
+    SelectionParseError,
+)
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 initialize_sentry_logging(service_name="pixel-inference-service")
@@ -71,17 +88,6 @@ def sanitize_agent_output(raw_text: str | None) -> str:
                 continue
         output_lines.append(line.rstrip())
     return "\n".join(output_lines)
-
-
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
-MAX_BATCH_CONCURRENCY = int(os.getenv("PIXEL_MAX_BATCH_CONCURRENCY", "16"))
 
 # Request/Response Models
 
@@ -189,6 +195,52 @@ class ModelStatusResponse(BaseModel):
     available_features: list[str]
     performance_metrics: dict[str, Any]
     last_inference_time_ms: float | None = None
+
+
+# ---------------------------------------------------------------------------
+# PAL Inference Models
+# ---------------------------------------------------------------------------
+
+
+class PalInferRequest(BaseModel):
+    """PAL inference request — one dialogue string."""
+
+    dialogue: str = Field(
+        ..., min_length=1, description="The patient dialogue to infer a persona for."
+    )
+
+
+class PalSelectionResponse(BaseModel):
+    """Stage 1 persona selection result."""
+
+    persona_string: str = Field(..., description="Selected persona as natural-language string.")
+    selected_index: int = Field(..., ge=0, description="Zero-based index of selected persona.")
+    latency_seconds: float = Field(..., ge=0.0, description="Wall-clock seconds for Stage 1.")
+
+
+class PalGenerationResponse(BaseModel):
+    """Stage 2 response generation result."""
+
+    response: str = Field(..., description="Generated assistant response.")
+    latency_seconds: float = Field(..., ge=0.0, description="Wall-clock seconds for Stage 2.")
+
+
+class PalGenerateRequest(BaseModel):
+    """PAL generation request."""
+
+    persona_string: str = Field(
+        ..., min_length=1, description="The persona string to use for response generation."
+    )
+    dialogue_history: str = Field(..., description="The dialogue history up to this point.")
+
+
+class PalInferResponse(BaseModel):
+    """End-to-end PAL inference result."""
+
+    selection: PalSelectionResponse
+    generation: PalGenerationResponse
+    total_latency_seconds: float = Field(..., ge=0.0, description="Total wall-clock seconds for both stages.")
+    dialogue: str = Field(..., description="The input dialogue echoed back.")
 
 
 # Pixel Inference Service
@@ -595,6 +647,125 @@ class PixelInferenceEngine:
         )
 
 
+# ---------------------------------------------------------------------------
+# PAL Stub LLM Clients (used when no real endpoint is configured)
+# ---------------------------------------------------------------------------
+
+
+class _PalStubSelector:
+    """Returns option '1' for every request — the first candidate persona."""
+
+    def __call__(self, _messages: list[dict[str, str]]) -> str:
+        return "1"
+
+
+class _PalStubGenerator:
+    """Returns a canned persona-aligned response."""
+
+    def __call__(self, _messages: list[dict[str, str]]) -> str:
+        return (
+            "I have been feeling this way for a while now. "
+            "Thank you for explaining things clearly, doctor."
+        )
+
+
+def _pal_load_candidate_personas() -> list[dict[str, Any]]:
+    """Load candidate personas from PAL_CANDIDATE_PERSONAS env var.
+
+    Expects a JSON array of Meddies-shaped persona dicts. Falls back to
+    two default personas so the service starts without configuration.
+    """
+    raw = os.environ.get("PAL_CANDIDATE_PERSONAS")
+    if raw:
+        try:
+            personas = json.loads(raw)
+            if not isinstance(personas, list) or not personas:
+                raise ValueError("PAL_CANDIDATE_PERSONAS must be a non-empty JSON array")
+            return personas
+        except (json.JSONDecodeError, ValueError) as exc:
+            logger.warning("Failed to parse PAL_CANDIDATE_PERSONAS, falling back to defaults: %s", exc)
+
+    return [
+        {
+            "demographics": {"age": 45, "gender": "female", "location": "Hanoi"},
+            "healthcare_behavior": {"health_literacy": "low", "preference": "traditional medicine"},
+        },
+        {
+            "demographics": {"age": 30, "gender": "male", "location": "HCMC"},
+            "healthcare_behavior": {"health_literacy": "high", "preference": "modern medicine"},
+        },
+    ]
+
+
+def _pal_build_latency_budget() -> float:
+    """Read PAL latency budget from env, falling back to the wrapper default."""
+    raw = os.environ.get("PAL_LATENCY_BUDGET_SECONDS", str(DEFAULT_LATENCY_BUDGET_SECONDS))
+    try:
+        return float(raw)
+    except ValueError:
+        return DEFAULT_LATENCY_BUDGET_SECONDS
+
+
+def _pal_init_wrapper() -> PalInferenceWrapper | None:
+    """Initialize the PAL inference wrapper, returning None on failure."""
+    try:
+        # Attempt real LLM clients when endpoints are configured
+        selector_endpoint = os.environ.get("PAL_SELECTOR_ENDPOINT")
+        generator_endpoint = os.environ.get("PAL_GENERATOR_ENDPOINT")
+
+        if selector_endpoint:
+            try:
+                from openai import OpenAI  # type: ignore[import-untyped]
+                _openai_selector = OpenAI(base_url=selector_endpoint)
+                selector_model = os.environ.get("PAL_SELECTOR_MODEL", "gpt-4o-mini")
+
+                def _selector(messages: list[dict[str, str]]) -> str:
+                    resp = _openai_selector.chat.completions.create(model=selector_model, messages=messages)  # type: ignore[arg-type]
+                    return resp.choices[0].message.content or "1"
+
+                selector = _selector
+            except ImportError:
+                logger.warning("openai not installed; falling back to stub selector")
+                selector = _PalStubSelector()
+        else:
+            selector = _PalStubSelector()
+
+        if generator_endpoint:
+            try:
+                from openai import OpenAI  # type: ignore[import-untyped]
+                _openai_generator = OpenAI(base_url=generator_endpoint)
+                generator_model = os.environ.get("PAL_GENERATOR_MODEL", "gpt-4o-mini")
+
+                def _generator(messages: list[dict[str, str]]) -> str:
+                    resp = _openai_generator.chat.completions.create(model=generator_model, messages=messages)  # type: ignore[arg-type]
+                    return resp.choices[0].message.content or ""
+
+                generator = _generator
+            except ImportError:
+                logger.warning("openai not installed; falling back to stub generator")
+                generator = _PalStubGenerator()
+        else:
+            generator = _PalStubGenerator()
+
+        personas = _pal_load_candidate_personas()
+        budget = _pal_build_latency_budget()
+        wrapper = PalInferenceWrapper(
+            selector_client=selector,
+            generator_client=generator,
+            candidate_personas=personas,
+            latency_budget_seconds=budget,
+        )
+        logger.info(
+            "PAL wrapper initialized: %d candidate personas, %.2fs budget",
+            len(personas),
+            budget,
+        )
+        return wrapper
+    except Exception:
+        logger.exception("Failed to initialize PAL wrapper")
+        return None
+
+
 # FastAPI Application
 
 app = FastAPI(
@@ -606,21 +777,42 @@ app = FastAPI(
 # Global inference engine
 inference_engine = PixelInferenceEngine()
 
+# PAL inference wrapper (initialized in startup)
+pal_wrapper: PalInferenceWrapper | None = None
+
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize model on startup"""
+    """Initialize models and PAL wrapper on startup"""
+    global pal_wrapper
+
     logger.info("Starting Pixel Inference API")
+
+    # Initialize Pixel model
     if not inference_engine.load_model():
-        logger.error("Failed to load model on startup")
+        logger.error("Failed to load Pixel model on startup")
+
+    # Initialize PAL wrapper
+    pal_wrapper = _pal_init_wrapper()
+    if pal_wrapper is None:
+        logger.warning("PAL wrapper not initialized — PAL endpoints will return 503")
+    else:
+        logger.info("PAL wrapper ready on startup")
 
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with Pixel + PAL status"""
     return {
         "status": "healthy" if inference_engine.model_loaded else "degraded",
         "model_loaded": inference_engine.model_loaded,
+        "pal": {
+            "wrapper_initialized": pal_wrapper is not None,
+            "n_candidate_personas": len(pal_wrapper.candidate_personas) if pal_wrapper else 0,
+            "latency_budget_seconds": (
+                pal_wrapper.latency_budget_seconds if pal_wrapper else DEFAULT_LATENCY_BUDGET_SECONDS
+            ),
+        },
         "timestamp": datetime.now(UTC).isoformat(),
     }
 

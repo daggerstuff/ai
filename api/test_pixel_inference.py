@@ -21,6 +21,11 @@ import pytest
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+# Add PAL framework path for test imports
+_PAL_FRAMEWORK = str(Path(__file__).resolve().parents[1] / "training_corpus" / "pal_framework")
+if _PAL_FRAMEWORK not in sys.path:
+    sys.path.insert(0, _PAL_FRAMEWORK)
+
 from ai.api.pixel_inference_service import (
     ConversationMessage,
     PixelInferenceEngine,
@@ -374,6 +379,164 @@ class TestPixelInferencePerformance:
 
         # Should handle at least 5 queries per second
         assert throughput > 5, f"Throughput too low: {throughput} queries/sec (expected >5)"
+
+
+# ---------------------------------------------------------------------------
+# PAL Endpoint Tests
+# ---------------------------------------------------------------------------
+
+
+class TestPalEndpoints:
+    """Test suite for PAL inference endpoints on the Pixel service."""
+
+    @pytest.fixture
+    def client(self):
+        """Build a TestClient with PAL wrapper initialized (stub clients)."""
+        import importlib
+        from unittest.mock import patch
+
+        with patch.dict(
+            os.environ,
+            {
+                "PAL_SELECTOR_ENDPOINT": "",
+                "PAL_GENERATOR_ENDPOINT": "",
+                "PAL_LATENCY_BUDGET_SECONDS": "10.0",
+            },
+            clear=False,
+        ):
+            import ai.api.pixel_inference_service as svc
+
+            svc.pal_wrapper = None
+            importlib.reload(svc)
+            from fastapi.testclient import TestClient
+
+            with TestClient(svc.app) as tc:
+                yield tc
+
+    def test_pal_select_persona(self, client) -> None:
+        """POST /api/v1/pal/select returns 200 with valid input."""
+        resp = client.post("/api/v1/pal/select", json={"dialogue": "Patient: I feel tired."})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data["persona_string"], str)
+        assert len(data["persona_string"]) > 0
+        assert isinstance(data["selected_index"], int)
+        assert data["latency_seconds"] >= 0.0
+
+    def test_pal_select_empty_dialogue(self, client) -> None:
+        """POST /api/v1/pal/select with empty dialogue returns 422."""
+        resp = client.post("/api/v1/pal/select", json={"dialogue": ""})
+        assert resp.status_code == 422
+
+    def test_pal_select_missing_dialogue(self, client) -> None:
+        """POST /api/v1/pal/select with missing dialogue returns 422."""
+        resp = client.post("/api/v1/pal/select", json={})
+        assert resp.status_code == 422
+
+    def test_pal_generate_response(self, client) -> None:
+        """POST /api/v1/pal/generate returns 200 with valid input."""
+        resp = client.post(
+            "/api/v1/pal/generate",
+            json={
+                "persona_string": "This patient is a 45-year-old female from Hanoi.",
+                "dialogue_history": "Patient: I feel tired.",
+            },
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert isinstance(data["response"], str)
+        assert len(data["response"]) > 0
+        assert data["latency_seconds"] >= 0.0
+
+    def test_pal_generate_empty_persona(self, client) -> None:
+        """POST /api/v1/pal/generate with empty persona returns 422."""
+        resp = client.post(
+            "/api/v1/pal/generate",
+            json={"persona_string": "", "dialogue_history": "Patient: hello"},
+        )
+        assert resp.status_code == 422
+
+    def test_pal_generate_missing_fields(self, client) -> None:
+        """POST /api/v1/pal/generate with missing fields returns 422."""
+        resp = client.post("/api/v1/pal/generate", json={"persona_string": "p"})
+        assert resp.status_code == 422
+
+    def test_pal_end_to_end(self, client) -> None:
+        """POST /api/v1/pal/infer returns 200 with valid input."""
+        resp = client.post("/api/v1/pal/infer", json={"dialogue": "Patient: I feel tired."})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "selection" in data
+        assert "generation" in data
+        assert data["selection"]["persona_string"]
+        assert data["generation"]["response"]
+        assert data["total_latency_seconds"] >= 0.0
+        assert data["dialogue"] == "Patient: I feel tired."
+
+    def test_pal_infer_empty_dialogue(self, client) -> None:
+        """POST /api/v1/pal/infer with empty dialogue returns 422."""
+        resp = client.post("/api/v1/pal/infer", json={"dialogue": ""})
+        assert resp.status_code == 422
+
+    def test_pal_infer_missing_dialogue(self, client) -> None:
+        """POST /api/v1/pal/infer with missing dialogue returns 422."""
+        resp = client.post("/api/v1/pal/infer", json={})
+        assert resp.status_code == 422
+
+    def test_pal_infer_vietnamese(self, client) -> None:
+        """POST /api/v1/pal/infer handles Vietnamese dialogue."""
+        resp = client.post(
+            "/api/v1/pal/infer",
+            json={"dialogue": "Bệnh nhân: Tôi cảm thấy mệt mỏi. Bác sĩ: Bao lâu rồi?"},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["generation"]["response"]
+        assert "mệt" in data["dialogue"] or "mỏi" in data["dialogue"]
+
+    def test_pal_health_contains_pal_info(self, client) -> None:
+        """GET /health includes PAL health info."""
+        resp = client.get("/health")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "pal" in data
+        assert "wrapper_initialized" in data["pal"]
+        assert "n_candidate_personas" in data["pal"]
+        assert "latency_budget_seconds" in data["pal"]
+        assert data["pal"]["wrapper_initialized"] is True
+        assert data["pal"]["n_candidate_personas"] >= 1
+
+    def test_pal_select_no_json_leakage(self, client) -> None:
+        """Selected persona must contain no JSON formatting characters."""
+        resp = client.post("/api/v1/pal/select", json={"dialogue": "Patient: I feel tired."})
+        assert resp.status_code == 200
+        persona = resp.json()["persona_string"]
+        for char in ("{", "}", '"', "'"):
+            assert char not in persona, f"JSON leakage detected: {char} in {persona!r}"
+
+    def test_pal_generate_no_json_leakage(self, client) -> None:
+        """Generated response must contain no JSON formatting characters."""
+        resp = client.post(
+            "/api/v1/pal/generate",
+            json={
+                "persona_string": "This patient is a 45-year-old female from Hanoi.",
+                "dialogue_history": "Patient: I feel tired.",
+            },
+        )
+        assert resp.status_code == 200
+        response = resp.json()["response"]
+        for char in ("{", "}"):
+            assert char not in response, f"JSON leakage detected: {char} in {response!r}"
+
+    def test_pal_404_on_unknown(self, client) -> None:
+        """Unknown PAL routes return 404."""
+        resp = client.get("/api/v1/pal/nonexistent")
+        assert resp.status_code == 404
+
+    def test_pal_method_not_allowed(self, client) -> None:
+        """GET on POST-only PAL endpoint returns 405."""
+        resp = client.get("/api/v1/pal/infer")
+        assert resp.status_code == 405
 
 
 if __name__ == "__main__":
