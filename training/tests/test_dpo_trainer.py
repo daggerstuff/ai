@@ -106,6 +106,76 @@ class TestLoadPreferenceDataset:
         )
         assert len(result) == MIN_SAMPLES
 
+    def test_coerces_conversational_message_list_schema(self, tmp_path: Path):
+        """PAL ``generate_dpo_pairs.py`` emits chosen/rejected as message
+        lists (TRL conversational DPO format). The loader must coerce these
+        to the standard string schema ``run_dpo`` expects.
+        """
+        data_path = tmp_path / "pal_dpo.jsonl"
+        records = [
+            {
+                "prompt": f"Given this persona: P{i}\n\nGenerate the next response.",
+                "chosen": [{"role": "assistant", "content": f"in-character {i}"}],
+                "rejected": [{"role": "assistant", "content": f"jargon {i}"}],
+            }
+            for i in range(MIN_SAMPLES)
+        ]
+        self._make_jsonl(data_path, records)
+
+        result = load_preference_dataset(
+            data_path, 1024, logging.getLogger("test"),
+        )
+        assert len(result) == MIN_SAMPLES
+        for i, sample in enumerate(result):
+            assert sample["prompt"] == records[i]["prompt"]
+            assert sample["chosen"] == f"in-character {i}"
+            assert sample["rejected"] == f"jargon {i}"
+
+    def test_mixed_schema_file_loads_both(self, tmp_path: Path):
+        """A dataset mixing standard-string and conversational records must
+        load both without error, coercing only the message-list ones.
+        """
+        data_path = tmp_path / "mixed.jsonl"
+        records = [{"prompt": "Q0", "chosen": "A0", "rejected": "B0"}]
+        for i in range(1, MIN_SAMPLES):
+            records.append(
+                {
+                    "prompt": f"Q{i}",
+                    "chosen": [{"role": "assistant", "content": f"A{i}"}],
+                    "rejected": [{"role": "assistant", "content": f"B{i}"}],
+                }
+            )
+        self._make_jsonl(data_path, records)
+
+        result = load_preference_dataset(
+            data_path, 1024, logging.getLogger("test"),
+        )
+        assert len(result) == MIN_SAMPLES
+        assert result[0]["chosen"] == "A0"
+        assert result[1]["chosen"] == "A1"
+
+    def test_conversational_record_missing_assistant_turn_skipped(self, tmp_path: Path):
+        """A conversational record with no assistant turn yields no response
+        text and must be skipped, not crash.
+        """
+        data_path = tmp_path / "bad.jsonl"
+        records = [
+            {
+                "prompt": "Q0",
+                "chosen": [{"role": "user", "content": "no assistant turn"}],
+                "rejected": [{"role": "user", "content": "no assistant turn"}],
+            },
+        ]
+        for i in range(1, MIN_SAMPLES + 1):
+            records.append({"prompt": f"Q{i}", "chosen": f"A{i}", "rejected": f"B{i}"})
+        self._make_jsonl(data_path, records)
+
+        result = load_preference_dataset(
+            data_path, 1024, logging.getLogger("test"),
+        )
+        # The one bad conversational record is skipped; the rest pass.
+        assert len(result) == MIN_SAMPLES
+
 
 class TestCheckpointVerificationCallback:
 

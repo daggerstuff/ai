@@ -216,6 +216,7 @@ class ImportanceScorer:
                 relevance=0.0,
                 emotionalWeight=1.0,
                 actionability=0.5,
+                reveriePotential=0.0,
             ),
             emotions=MemoryEmotions(valence=-0.3, arousal=0.7, categories=["anxiety"]),
             gating=MemoryGating(),
@@ -224,6 +225,8 @@ class ImportanceScorer:
                 lastProcessed=0,
                 remCycles=0,
                 schemaReferences=[],
+                reverieEligible=False,
+                reveriePhase="",
             ),
         )
         start = time.perf_counter()

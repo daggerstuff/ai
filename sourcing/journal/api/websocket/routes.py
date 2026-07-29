@@ -1,7 +1,7 @@
 """
 WebSocket routes for real-time updates.
 
-This module provides WebSocket endpoints for streaming progress updates.
+Security: JWT auth mandatory, rate limiting, origin validation, audit logging.
 """
 
 import asyncio
@@ -12,14 +12,69 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
 from ai.sourcing.journal.api.auth.jwt import get_user_from_token
+from ai.sourcing.journal.api.config import get_settings
 from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 from ai.sourcing.journal.api.websocket.manager import manager
 
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 router = APIRouter()
+
+# WebSocket-specific rate limit state (user_id -> [timestamps])
+_ws_connect_timestamps: dict[str, list[float]] = {}
+WS_RATE_LIMIT_PER_MINUTE = 30
+
+
+def _check_ws_rate_limit(user_id: str) -> bool:
+    """Check if user has exceeded WebSocket connection rate limit."""
+    import time
+
+    now = time.time()
+    window = 60.0  # 1 minute
+
+    if user_id not in _ws_connect_timestamps:
+        _ws_connect_timestamps[user_id] = []
+
+    # Prune old timestamps
+    _ws_connect_timestamps[user_id] = [ts for ts in _ws_connect_timestamps[user_id] if now - ts < window]
+
+    if len(_ws_connect_timestamps[user_id]) >= WS_RATE_LIMIT_PER_MINUTE:
+        return False
+
+    _ws_connect_timestamps[user_id].append(now)
+    return True
+
+
+async def _authenticate_ws(websocket: WebSocket) -> dict | None:
+    """Authenticate WebSocket connection. Returns user dict or None if failed."""
+    token = websocket.query_params.get("token")
+    if not token:
+        logger.warning("WebSocket connection rejected: no token provided")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return None
+
+    try:
+        user = get_user_from_token(token)
+        user_id = user.get("user_id")
+        if not user_id:
+            logger.warning("WebSocket connection rejected: no user_id in token")
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return None
+
+        if not _check_ws_rate_limit(user_id):
+            logger.warning(f"WebSocket connection rejected: rate limit exceeded for user {user_id}")
+            await websocket.close(code=status.WS_1013_TRY_AGAIN_LATER)
+            return None
+
+        logger.info(f"WebSocket authenticated for user {user_id}")
+        return user
+    except Exception as e:
+        logger.warning(f"WebSocket authentication failed: {e}")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return None
 
 
 @router.websocket("/ws/progress/{session_id}")
@@ -27,26 +82,22 @@ async def websocket_progress(
     websocket: WebSocket,
     session_id: str,
 ) -> None:
-    """
-    WebSocket endpoint for real-time progress updates.
+    """WebSocket endpoint for real-time progress updates."""
+    user = await _authenticate_ws(websocket)
+    if user is None:
+        return
 
-    Connects to a session and streams progress updates as they occur.
-    Query parameters (optional):
-    - token: JWT token for authentication (can be passed via query string)
-    """
-    # Optional: Check for token in query params
-    token = websocket.query_params.get("token")
-    if token:
-        try:
-            user = get_user_from_token(token)
-            logger.info(f"WebSocket authenticated for user {user.get('user_id')}")
-        except Exception as e:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-            logger.warning(f"WebSocket authentication failed: {e}")
-            return
-
-    # Connect to session
-    await manager.connect(websocket, session_id)
+    origin = websocket.headers.get("origin")
+    accepted = await manager.connect(
+        websocket,
+        session_id,
+        user_id=user.get("user_id"),
+        origin=origin,
+        allowed_origins=settings.cors_origins,
+    )
+    if not accepted:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
 
     try:
         # Send initial progress state
@@ -116,30 +167,24 @@ async def websocket_progress_poll(
     websocket: WebSocket,
     session_id: str,
 ) -> None:
-    """
-    WebSocket endpoint for polling progress updates.
-
-    Polls progress at regular intervals and sends updates.
-    Query parameters (optional):
-    - interval: Polling interval in seconds (default: 5)
-    - token: JWT token for authentication
-    """
-    # Get interval from query params
+    """WebSocket endpoint for polling progress updates."""
     interval = int(websocket.query_params.get("interval", "5"))
 
-    # Optional: Check for token in query params
-    token = websocket.query_params.get("token")
-    if token:
-        try:
-            user = get_user_from_token(token)
-            logger.info(f"WebSocket authenticated for user {user.get('user_id')}")
-        except Exception as e:
-            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-            logger.warning(f"WebSocket authentication failed: {e}")
-            return
+    user = await _authenticate_ws(websocket)
+    if user is None:
+        return
 
-    # Connect to session
-    await manager.connect(websocket, session_id)
+    origin = websocket.headers.get("origin")
+    accepted = await manager.connect(
+        websocket,
+        session_id,
+        user_id=user.get("user_id"),
+        origin=origin,
+        allowed_origins=settings.cors_origins,
+    )
+    if not accepted:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
 
     try:
         service = CommandHandlerService()
