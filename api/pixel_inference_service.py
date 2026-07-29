@@ -35,6 +35,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from pixel.models.pixel_base_model import PixelBaseModel
 
+from ai.api.ift_inference import ABTestConfig, ABTestRouter, build_task_prompt, detect_task_type
 from ai.api.memory import get_memory_manager
 from ai.api.sentry_logging import initialize_sentry_logging
 
@@ -109,6 +110,8 @@ class PixelInferenceRequest(BaseModel):
     use_eq_awareness: bool = Field(True, description="Enable EQ-aware response generation")
     include_metrics: bool = Field(True, description="Include quality metrics in response")
     max_tokens: int = Field(200, description="Max tokens to generate")
+    task_type: str | None = Field(None, description="Mental health task type (auto-detected if omitted)")
+    force_model: str | None = Field(None, description="Force 'baseline' or 'ift' model; overrides A/B routing")
     gestalt_directive: str | None = Field(None, description="Supervisor override directive")
 
 
@@ -201,6 +204,14 @@ class PixelInferenceEngine:
         self.inference_count = 0
         self.total_inference_time = 0.0
         self.model_path = os.getenv("PIXEL_MODEL_PATH", "ai/models/pixel_core/models/pixel_base_model.pt")
+        self.ab_router = ABTestRouter(
+            ABTestConfig(
+                enabled=os.getenv("PIXEL_IFT_AB_ENABLED", "false").lower() == "true",
+                ift_traffic_percent=float(os.getenv("PIXEL_IFT_TRAFFIC_PERCENT", "0.0")),
+                auto_rollback=os.getenv("PIXEL_IFT_AUTO_ROLLBACK", "true").lower() == "true",
+            )
+        )
+        self.ab_router.register_baseline(self._baseline_generate)
         # Per-agent metrics
         self.agent_stats = {
             "Coordinator": {"calls": 0, "total_time": 0, "errors": 0},
@@ -237,9 +248,16 @@ class PixelInferenceEngine:
         self.total_inference_time = 0.0
 
     def load_model(self) -> bool:
-        """Load Pixel model from disk"""
+        """Load Pixel model from disk and initialize IFT A/B router."""
         try:
-            return self._ensure_model_loaded()
+            base_loaded = self._ensure_model_loaded()
+            if base_loaded:
+                # Attempt to load IFT model asynchronously; failure does not degrade base model
+                try:
+                    self.ab_router.load_ift_model()
+                except Exception as e:
+                    logger.warning(f"IFT model load skipped: {e}")
+            return base_loaded
         except Exception as e:
             logger.error(f"Error loading model: {e}")
             self.model_loaded = False
@@ -278,27 +296,49 @@ class PixelInferenceEngine:
         return torch.randn(1, seq_len, 768, device=self.device)
 
     async def generate_response(self, request: PixelInferenceRequest) -> PixelInferenceResponse:
-        """Generate response using Pixel model"""
+        """Generate response using Pixel model with optional IFT A/B routing."""
         if not self.model_loaded:
             raise RuntimeError("Model not loaded")
 
         start_time = datetime.now(UTC)
 
         try:
-            # Preprocess input
-            input_tensor = self.preprocess_input(request.user_query, request.conversation_history)
+            # Detect mental health task type
+            task_type = request.task_type or detect_task_type(request.user_query, request.context_type)
 
-            # Forward pass through model
+            # Build task-specific prompt
+            history = [m.model_dump() if hasattr(m, "model_dump") else m.dict() for m in request.conversation_history]
+            prompt = build_task_prompt(task_type, request.user_query, history)
+
+            # Route to baseline or IFT model
+            force_model = request.force_model
+            if force_model:
+                destination = force_model
+                if destination == "ift":
+                    response_text = self.ab_router.ift_model.generate(prompt, max_new_tokens=request.max_tokens)
+                else:
+                    response_text = self._baseline_generate(prompt)
+            else:
+                destination, response_text = self.ab_router.generate(
+                    prompt,
+                    task_type=task_type,
+                    user_id=request.user_id,
+                    session_id=request.session_id,
+                )
+
+            # If IFT returned empty, fall back to baseline
+            if not response_text.strip():
+                response_text = self._baseline_generate(prompt)
+                destination = "baseline"
+
+            # Preprocess input for Pixel base model (EQ/metadata)
+            input_tensor = self.preprocess_input(request.user_query, request.conversation_history)
             with torch.no_grad():
                 model_output = self.model(input_tensor, history=request.conversation_history)
 
-            # Extract outputs
             persona_mode = self._detect_persona_mode(request.context_type)
             eq_scores = self._extract_eq_scores(model_output)
             metadata = self._build_metadata(model_output, request)
-
-            # Generate response text (in production, use language head)
-            response_text = self._generate_response_text(request.user_query, persona_mode, eq_scores)
 
             # Calculate inference time
             inference_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
@@ -323,6 +363,7 @@ class PixelInferenceEngine:
                 persona_mode=persona_mode,
                 confidence=0.92,
                 warning=warning,
+                shared_state={"model_used": destination, "task_type": task_type},
             )
 
         except Exception as e:
@@ -504,8 +545,22 @@ class PixelInferenceEngine:
 
         return responses.get(persona_mode, responses["therapy"])
 
+    def _baseline_generate(self, prompt: str) -> str:
+        """Baseline prompt-engineered generation (used by A/B router)."""
+        # In production this would call the base LLM with the prompt.
+        # Here we simulate a prompt-aware response for A/B comparison.
+        if "symptom" in prompt.lower():
+            return "anxiety, low mood"
+        if "severity" in prompt.lower():
+            return "5"
+        if "risk" in prompt.lower():
+            return "low"
+        if "empathy" in prompt.lower():
+            return "cognitive: 4, affective: 4, compassionate: 4"
+        return "I hear you, and that sounds really difficult. I'm here to support you."
+
     def get_status(self) -> ModelStatusResponse:
-        """Get current model status"""
+        """Get current model status including IFT/A-B state"""
         avg_inference_time = self.total_inference_time / self.inference_count if self.inference_count > 0 else None
         return ModelStatusResponse(
             model_loaded=self.model_loaded,
@@ -518,6 +573,10 @@ class PixelInferenceEngine:
                 "clinical_prediction",
                 "empathy_tracking",
                 "bias_detection",
+                "ift_model",
+                "ab_test_routing",
+                "task_specific_prompts",
+                "auto_rollback",
             ],
             performance_metrics={
                 "inference_count": self.inference_count,
@@ -526,6 +585,11 @@ class PixelInferenceEngine:
                 ),
                 "total_inference_time_ms": self.total_inference_time,
                 "device": str(self.device),
+                "ift_model_loaded": self.ab_router.ift_model.loaded,
+                "ab_test_enabled": self.ab_router.config.enabled,
+                "ift_traffic_percent": self.ab_router.config.ift_traffic_percent,
+                "rollback_active": self.ab_router.rollback_active,
+                "ab_test_stats": self.ab_router.get_stats(),
             },
             last_inference_time_ms=avg_inference_time,
         )
@@ -705,6 +769,44 @@ async def infer_stream(request: PixelInferenceRequest):
     return StreamingResponse(
         (f"event: {e['event']}\ndata: {e['data']}\n\n" async for e in event_generator()), media_type="text/event-stream"
     )
+
+
+@app.post("/ab-test/enable")
+async def enable_ab_test(percent: float):
+    """Enable A/B test with given IFT traffic percentage (0.0 - 1.0)."""
+    inference_engine.ab_router.enable_ift(percent)
+    return {
+        "status": "success",
+        "ift_traffic_percent": inference_engine.ab_router.config.ift_traffic_percent,
+    }
+
+
+@app.post("/ab-test/disable")
+async def disable_ab_test():
+    """Disable A/B test routing (all traffic to baseline)."""
+    inference_engine.ab_router.config.enabled = False
+    inference_engine.ab_router.config.ift_traffic_percent = 0.0
+    return {"status": "success", "message": "A/B test disabled"}
+
+
+@app.post("/ab-test/rollback")
+async def rollback_ift():
+    """Force rollback to baseline model."""
+    inference_engine.ab_router.rollback()
+    return {"status": "success", "message": "IFT rolled back to baseline"}
+
+
+@app.post("/ab-test/restore")
+async def restore_ift():
+    """Restore IFT model after rollback."""
+    inference_engine.ab_router.restore()
+    return {"status": "success", "message": "IFT model restored"}
+
+
+@app.get("/ab-test/stats")
+async def get_ab_test_stats():
+    """Get A/B test statistics."""
+    return inference_engine.ab_router.get_stats()
 
 
 if __name__ == "__main__":
