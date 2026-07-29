@@ -33,10 +33,14 @@ from transformers import (
 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from training.mental_health_instruction_dataset import (
 =======
 from ai.training.mental_health_instruction_dataset import (
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+from training.mental_health_instruction_dataset import (
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
     MentalHealthInstructionDatasetBuilder,
     MentalHealthTaskType,
 )
@@ -203,6 +207,7 @@ class MentalHealthIFTTrainer:
             raw_train = self._apply_curriculum(raw_train)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Validation set: stratified holdout from actual training data, not separate seed vignettes
         split = raw_train.train_test_split(test_size=0.1, seed=self.config.seed)
         self.train_dataset = split["train"].map(
@@ -213,10 +218,16 @@ class MentalHealthIFTTrainer:
         raw_val = split["test"]
 =======
         self.train_dataset = raw_train.map(
+=======
+        # Validation set: stratified holdout from actual training data, not separate seed vignettes
+        split = raw_train.train_test_split(test_size=0.1, seed=self.config.seed)
+        self.train_dataset = split["train"].map(
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
             self._format_and_tokenize,
             batched=True,
-            remove_columns=raw_train.column_names,
+            remove_columns=split["train"].column_names,
         )
+<<<<<<< HEAD
 
         # Validation set
         builder = MentalHealthInstructionDatasetBuilder(seed=self.config.seed)
@@ -224,6 +235,9 @@ class MentalHealthIFTTrainer:
         _, val = builder.stratified_split(train_ratio=0.9)
         raw_val = Dataset.from_list([ex.to_alpaca() for ex in val])
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        raw_val = split["test"]
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         self.eval_dataset = raw_val.map(
             self._format_and_tokenize,
             batched=True,
@@ -246,12 +260,16 @@ class MentalHealthIFTTrainer:
         """Format Alpaca examples into prompt-completion strings and tokenize."""
         prompts = []
 <<<<<<< HEAD
+<<<<<<< HEAD
         for instruction, input_text, output in zip(examples["instruction"], examples["input"], examples["output"]):
 =======
         for instruction, input_text, output in zip(
             examples["instruction"], examples["input"], examples["output"]
         ):
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        for instruction, input_text, output in zip(examples["instruction"], examples["input"], examples["output"]):
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
             if input_text:
                 prompt = f"### Instruction:\n{instruction}\n\n### Input:\n{input_text}\n\n### Response:\n{output}"
             else:
@@ -267,10 +285,15 @@ class MentalHealthIFTTrainer:
         )
         tokenized["labels"] = tokenized["input_ids"].copy()
 <<<<<<< HEAD
+<<<<<<< HEAD
         if "task_type" in examples:
             tokenized["task_type"] = examples["task_type"]
 =======
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        if "task_type" in examples:
+            tokenized["task_type"] = examples["task_type"]
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         return tokenized
 
     def train(self) -> dict[str, Any]:

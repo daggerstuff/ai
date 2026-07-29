@@ -76,6 +76,7 @@ class BiasAuditReport:
     def summary(self) -> dict[str, Any]:
         """High-level summary for dashboards."""
 <<<<<<< HEAD
+<<<<<<< HEAD
         all_disparities = self.demographic_disparities + self.diagnostic_disparities + self.linguistic_disparities
 =======
         all_disparities = (
@@ -84,6 +85,9 @@ class BiasAuditReport:
             + self.linguistic_disparities
         )
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        all_disparities = self.demographic_disparities + self.diagnostic_disparities + self.linguistic_disparities
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         max_disp = max((d.max_disparity for d in all_disparities), default=0.0)
         significant_count = sum(1 for d in all_disparities if d.significant)
         return {
@@ -97,16 +101,22 @@ class BiasAuditReport:
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
 def _coerce_score(value: Any) -> float | None:
     """Convert model output to a numeric score.
 
     Returns None for unparseable values instead of silently returning 0.0,
     which would inflate bias metrics by clustering non-numeric outputs at zero.
     """
+<<<<<<< HEAD
 =======
 def _coerce_score(value: Any) -> float:
     """Convert model output to a numeric score."""
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
     if isinstance(value, (int, float)):
         return float(value)
     if isinstance(value, str):
@@ -116,6 +126,7 @@ def _coerce_score(value: Any) -> float:
         match = re.search(r"\d+(?:\.\d+)?", value)
         if match:
             return float(match.group())
+<<<<<<< HEAD
 <<<<<<< HEAD
     return None
 
@@ -129,6 +140,12 @@ def _compute_subgroup_metrics(
     scores: list[float], group_key: str
 ) -> StratifiedMetric:
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+    return None
+
+
+def _compute_subgroup_metrics(scores: list[float], group_key: str) -> StratifiedMetric:
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
     arr = np.array(scores)
     return StratifiedMetric(
         group=group_key,
@@ -173,6 +190,7 @@ class BiasAuditor:
 
         scored_examples = []
 <<<<<<< HEAD
+<<<<<<< HEAD
         skipped = 0
         for ex in examples:
             output = inference_fn(ex)
@@ -186,17 +204,30 @@ class BiasAuditor:
         if skipped:
             logger.warning(f"Bias audit: skipped {skipped}/{len(examples)} examples with unparseable scores")
 =======
+=======
+        skipped = 0
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         for ex in examples:
             output = inference_fn(ex)
             ex = dict(ex)
-            ex["score"] = _coerce_score(output)
+            score = _coerce_score(output)
+            if score is None:
+                skipped += 1
+                continue
+            ex["score"] = score
             scored_examples.append(ex)
+<<<<<<< HEAD
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        if skipped:
+            logger.warning(f"Bias audit: skipped {skipped}/{len(examples)} examples with unparseable scores")
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
 
         demographic = self._evaluate_demographic(scored_examples)
         diagnostic = self._evaluate_diagnostic(scored_examples)
         linguistic = self._evaluate_linguistic(scored_examples)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         recommendations = self._generate_recommendations(demographic + diagnostic + linguistic)
 =======
@@ -204,6 +235,9 @@ class BiasAuditor:
             demographic + diagnostic + linguistic
         )
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        recommendations = self._generate_recommendations(demographic + diagnostic + linguistic)
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
 
         return BiasAuditReport(
             model_name=self.model_name,
@@ -215,6 +249,7 @@ class BiasAuditor:
             timestamp=datetime.now(UTC).isoformat(),
         )
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     def _evaluate_demographic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
         """Evaluate performance disparity across demographic groups.
@@ -249,6 +284,9 @@ class BiasAuditor:
     def _evaluate_demographic(
         self, examples: list[dict[str, Any]]
     ) -> list[DisparityResult]:
+=======
+    def _evaluate_demographic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         """Evaluate performance disparity across demographic groups."""
         results: list[DisparityResult] = []
         demographic_keys = ["age_group", "gender", "ses", "ethnicity"]
@@ -262,12 +300,19 @@ class BiasAuditor:
                 groups.setdefault(str(group), []).append(ex["score"])
 
             if len(groups) < 2:
+                logger.warning(
+                    f"Bias audit: demographic key '{key}' has <2 groups ({list(groups.keys())}); skipping disparity analysis"
+                )
                 continue
 
+<<<<<<< HEAD
             subgroup_metrics = [
                 _compute_subgroup_metrics(scores, g) for g, scores in groups.items()
             ]
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+            subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
             means = {m.group: m.mean_score for m in subgroup_metrics}
             max_group = max(means, key=means.get)
             min_group = min(means, key=means.get)
@@ -290,12 +335,16 @@ class BiasAuditor:
         return results
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def _evaluate_diagnostic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
 =======
     def _evaluate_diagnostic(
         self, examples: list[dict[str, Any]]
     ) -> list[DisparityResult]:
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+    def _evaluate_diagnostic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         """Evaluate systematic under/over-prediction across diagnostic conditions."""
         groups: dict[str, list[float]] = {}
         for ex in examples:
@@ -305,6 +354,7 @@ class BiasAuditor:
         if len(groups) < 2:
             return []
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
         means = {m.group: m.mean_score for m in subgroup_metrics}
@@ -324,6 +374,17 @@ class BiasAuditor:
         min_group = min(means, key=means.get)
         max_disparity = means[max_group] - means[min_group]
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
+        means = {m.group: m.mean_score for m in subgroup_metrics}
+        max_group = max(means, key=means.get)
+        min_group = min(means, key=means.get)
+        # Weighted disparity: weight by relative group size so small groups don't dominate
+        total_n = sum(m.n for m in subgroup_metrics)
+        max_disparity = means[max_group] * (
+            subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n
+        ) - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         p_value, significant = _statistical_test(groups)
 
         return [
@@ -340,12 +401,16 @@ class BiasAuditor:
         ]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def _evaluate_linguistic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
 =======
     def _evaluate_linguistic(
         self, examples: list[dict[str, Any]]
     ) -> list[DisparityResult]:
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+    def _evaluate_linguistic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         """Evaluate sensitivity to language style and formality."""
         groups: dict[str, list[float]] = {}
         for ex in examples:
@@ -355,6 +420,7 @@ class BiasAuditor:
         if len(groups) < 2:
             return []
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
         means = {m.group: m.mean_score for m in subgroup_metrics}
@@ -374,6 +440,16 @@ class BiasAuditor:
         min_group = min(means, key=means.get)
         max_disparity = means[max_group] - means[min_group]
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+        subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
+        means = {m.group: m.mean_score for m in subgroup_metrics}
+        max_group = max(means, key=means.get)
+        min_group = min(means, key=means.get)
+        total_n = sum(m.n for m in subgroup_metrics)
+        max_disparity = means[max_group] * (
+            subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n
+        ) - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         p_value, significant = _statistical_test(groups)
 
         return [
@@ -390,12 +466,16 @@ class BiasAuditor:
         ]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def _generate_recommendations(self, disparities: list[DisparityResult]) -> list[str]:
 =======
     def _generate_recommendations(
         self, disparities: list[DisparityResult]
     ) -> list[str]:
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+    def _generate_recommendations(self, disparities: list[DisparityResult]) -> list[str]:
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         """Generate mitigation recommendations based on disparities."""
         recommendations: list[str] = []
         for d in disparities:
@@ -408,12 +488,16 @@ class BiasAuditor:
             )
         if not recommendations:
 <<<<<<< HEAD
+<<<<<<< HEAD
             recommendations.append("No disparities exceeded the threshold. Continue monitoring production drift.")
 =======
             recommendations.append(
                 "No disparities exceeded the threshold. Continue monitoring production drift."
             )
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+            recommendations.append("No disparities exceeded the threshold. Continue monitoring production drift.")
+>>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates)
         return recommendations
 
 
