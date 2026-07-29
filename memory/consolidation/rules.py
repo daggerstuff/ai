@@ -145,7 +145,9 @@ class ConsolidationTriggerEngine:
 
     def should_trigger(self, memories: list[MemoryBlock]) -> bool:
         """Check if consolidation should run based on current state."""
-        if self._rules.should_trigger_consolidation(memories):
+        # Count non-crisis memories as "general" (MemoryBlock has no MemoryCategory)
+        general_count = sum(1 for m in memories if not m.gating.crisisFlag)
+        if general_count > self._rules.config.max_general_memories:
             return True
         if any(m.gating.crisisFlag for m in memories):
             return True
