@@ -23,6 +23,7 @@ from ai.platform.mera import (
     MemorizeRankConfig,
     MemorizeStage,
     MeraPipeline,
+    MeraResult,
     PatientPresentation,
     RankStage,
     TherapeuticConceptHierarchy,
@@ -88,7 +89,7 @@ class TestMemorizeAndRank:
             ],
         )
         result = stage.memorize(presentation)
-        assert isinstance(result, type(__import__("ai.platform.mera.types", fromlist=["MeraResult"]).MeraResult))
+        assert isinstance(result, MeraResult)
         # The memorize stage should return at least one candidate when hierarchy has conditions.
         # Note: the embedded MeraResult carries candidates; confirm non-empty list via internal call.
         candidates = stage.retrieve(presentation, top_k=10)
