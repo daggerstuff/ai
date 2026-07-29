@@ -21,8 +21,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable
+from peft import PeftModel
 
-from ai.utils.torch_proxy import torch
+from utils.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 
@@ -92,9 +93,7 @@ class IFTModelWrapper:
     """Wrapper for loading and generating from an IFT model."""
 
     def __init__(self, model_path: str | None = None):
-        self.model_path = model_path or os.getenv(
-            "PIXEL_IFT_MODEL_PATH", "./ai/models/mental_ift/final"
-        )
+        self.model_path = model_path or os.getenv("PIXEL_IFT_MODEL_PATH", "./ai/models/mental_ift/final")
         self.tokenizer: Any = None
         self.model: Any = None
         self.loaded = False
@@ -113,16 +112,25 @@ class IFTModelWrapper:
             from transformers import AutoModelForCausalLM, AutoTokenizer
 
             logger.info(f"Loading IFT model from {self.model_path}")
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, trust_remote_code=True)
+            self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, trust_remote_code=False)
             if self.tokenizer.pad_token is None:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
 
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
-                torch_dtype=torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float32,
+                torch_dtype=torch.bfloat16
+                if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+                else torch.float32,
                 device_map="auto" if torch.cuda.is_available() else None,
-                trust_remote_code=True,
+                trust_remote_code=False,
             )
+            # Load QLoRA adapter if present
+            adapter_config = Path(self.model_path) / "adapter_config.json"
+            if adapter_config.exists():
+                from peft import PeftModel
+
+                self.model = PeftModel.from_pretrained(self.model, str(self.model_path))
+                logger.info("Loaded QLoRA adapter on top of base model")
             self.model.eval()
             self.loaded = True
             logger.info("IFT model loaded successfully")
@@ -145,7 +153,9 @@ class IFTModelWrapper:
 
         try:
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
-            inputs = {k: v.to(self.model.device if hasattr(self.model, "device") else self.device) for k, v in inputs.items()}
+            inputs = {
+                k: v.to(self.model.device if hasattr(self.model, "device") else self.device) for k, v in inputs.items()
+            }
 
             with torch.no_grad():
                 outputs = self.model.generate(
@@ -236,9 +246,7 @@ class ABTestRouter:
         if self.config.auto_rollback and destination == "ift":
             self._update_quality_score(safety_score)
             if self.ift_quality_score < self.config.quality_threshold:
-                logger.warning(
-                    f"IFT quality score {self.ift_quality_score:.3f} below threshold; activating rollback"
-                )
+                logger.warning(f"IFT quality score {self.ift_quality_score:.3f} below threshold; activating rollback")
                 self.rollback_active = True
 
         return destination, response
@@ -262,7 +270,7 @@ class ABTestRouter:
         self.config.enabled = True
         self.config.ift_traffic_percent = max(0.0, min(1.0, traffic_percent))
         self.rollback_active = False
-        logger.info(f"A/B test enabled: {self.config.ift_traffic_percent*100:.1f}% IFT traffic")
+        logger.info(f"A/B test enabled: {self.config.ift_traffic_percent * 100:.1f}% IFT traffic")
 
     def rollback(self) -> None:
         """Force rollback to baseline."""
@@ -299,38 +307,45 @@ def build_task_prompt(
     conversation_history: list[dict[str, Any]] | None = None,
 ) -> str:
     """Build a task-specific prompt for mental health inference."""
-    templates = TASK_PROMPT_TEMPLATES.get(task_type, TASK_PROMPT_TEMPLATES[MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value])
+    templates = TASK_PROMPT_TEMPLATES.get(
+        task_type, TASK_PROMPT_TEMPLATES[MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value]
+    )
     system = templates.get("system", "")
     instruction = templates.get("instruction", "")
 
     history_text = ""
     if conversation_history:
         history_text = "\n".join(
-            f"{msg.get('role', 'user').capitalize()}: {msg.get('content', '')}"
-            for msg in conversation_history[-3:]
+            f"{msg.get('role', 'user').capitalize()}: {msg.get('content', '')}" for msg in conversation_history[-3:]
         )
 
-    prompt_parts = [f"<|system|>\n{system}"]
-    prompt_parts.append(f"<|user|>\n{instruction}")
+    prompt_parts = [f"### Instruction:\n{system}\n\n{instruction}"]
     if history_text:
         prompt_parts.append(f"Conversation history:\n{history_text}")
-    prompt_parts.append(f"Input:\n{user_query}")
-    prompt_parts.append("<|assistant|>\n")
+    prompt_parts.append(f"### Input:\n{user_query}")
+    prompt_parts.append("### Response:\n")
     return "\n\n".join(prompt_parts)
 
 
 def detect_task_type(query: str, context_type: str | None = None) -> str:
-    """Heuristic task-type detection from query and context."""
+    """Heuristic task-type detection from query and context.
+
+    Risk detection is checked FIRST — a query containing both symptom and crisis
+    keywords must always route to risk assessment, not symptom classification.
+    """
     q = query.lower()
+    # Risk detection MUST come first — safety-critical priority
+    if any(k in q for k in ["risk", "suicide", "self-harm", "hurt myself", "kill myself"]):
+        return MentalHealthTaskType.RISK_ASSESSMENT.value
+    if context_type == "crisis":
+        return MentalHealthTaskType.RISK_ASSESSMENT.value
     if any(k in q for k in ["symptom", "symptoms", "signs of", "do i have"]):
         return MentalHealthTaskType.SYMPTOM_CLASSIFICATION.value
     if any(k in q for k in ["severity", "how severe", "scale of", "rate my"]):
         return MentalHealthTaskType.SEVERITY_ESTIMATION.value
-    if any(k in q for k in ["risk", "suicide", "self-harm", "hurt myself", "kill myself"]):
-        return MentalHealthTaskType.RISK_ASSESSMENT.value
     if any(k in q for k in ["empathy", "empathetic", "score this response"]):
         return MentalHealthTaskType.EMPATHY_SCORING.value
-    if context_type in ["crisis", "clinical", "support"]:
+    if context_type in ["clinical", "support"]:
         return MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value
     return MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value
 
