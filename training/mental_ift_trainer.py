@@ -135,6 +135,9 @@ class MentalHealthIFTTrainer:
             torch_dtype = torch.bfloat16
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements)
         attn_impl = None
         if torch.cuda.is_available():
             try:
@@ -144,8 +147,11 @@ class MentalHealthIFTTrainer:
             except ImportError:
                 logger.warning("flash_attn not installed; falling back to default attention")
 
+<<<<<<< HEAD
 =======
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements)
         self.model = AutoModelForCausalLM.from_pretrained(
             self.config.base_model,
             quantization_config=bnb_config,
@@ -153,10 +159,14 @@ class MentalHealthIFTTrainer:
             device_map="auto",
             trust_remote_code=True,
 <<<<<<< HEAD
+<<<<<<< HEAD
             attn_implementation=attn_impl,
 =======
             attn_implementation="flash_attention_2" if torch.cuda.is_available() else None,
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+            attn_implementation=attn_impl,
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements)
         )
 
         if self.config.use_qlora:

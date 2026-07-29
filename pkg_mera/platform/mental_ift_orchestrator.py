@@ -21,12 +21,15 @@ import os
 import random
 import uuid
 from dataclasses import asdict, dataclass, replace
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
 =======
 =======
 import random
 >>>>>>> 30f2438c (fix(PIX-3911): critical pipeline fixes - inference wiring, bias audit, evaluation gates):ai/platform/mental_ift_orchestrator.py
 from dataclasses import asdict, dataclass
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
+=======
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements):ai/platform/mental_ift_orchestrator.py
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -141,11 +144,14 @@ class MentalHealthIFTOrchestrator:
                 if len(builder.examples) >= min_examples:
                     break
 <<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
+<<<<<<< HEAD:pkg_mera/platform/mental_ift_orchestrator.py
 =======
                 from dataclasses import replace
                 import uuid
 
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline):ai/platform/mental_ift_orchestrator.py
+=======
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements):ai/platform/mental_ift_orchestrator.py
                 builder.examples.append(replace(ex, id=str(uuid.uuid4()), source=f"{ex.source}_augmented"))
 
         train_path, val_path = builder.save(dataset_dir, format="alpaca")

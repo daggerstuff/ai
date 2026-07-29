@@ -541,17 +541,22 @@ def main() -> None:
         {
             "input": "I feel hopeless and can't sleep.",
 <<<<<<< HEAD
+<<<<<<< HEAD
             "demographic_tags": ["age_26_45", "gender_male", "ses_low"],
 =======
             "age_group": "age_26_45",
             "gender": "gender_male",
             "ses": "ses_low",
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+            "demographic_tags": ["age_26_45", "gender_male", "ses_low"],
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements)
             "diagnostic_tag": "major_depressive_disorder",
             "linguistic_style": "formal",
         },
         {
             "input": "I'm super anxious about everything lately.",
+<<<<<<< HEAD
 <<<<<<< HEAD
             "demographic_tags": ["age_18_25", "gender_female", "ses_middle"],
 =======
@@ -559,6 +564,9 @@ def main() -> None:
             "gender": "gender_female",
             "ses": "ses_middle",
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+            "demographic_tags": ["age_18_25", "gender_female", "ses_middle"],
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements)
             "diagnostic_tag": "social_anxiety_disorder",
             "linguistic_style": "informal",
         },

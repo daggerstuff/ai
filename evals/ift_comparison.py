@@ -198,6 +198,7 @@ def _normalize_prediction(pred: Any, task_type: str) -> str:
 
 def _exact_match(pred: str, ref: str) -> bool:
 <<<<<<< HEAD
+<<<<<<< HEAD
     return pred.strip().lower() == ref.strip().lower()
 
 
@@ -212,6 +213,14 @@ def _token_f1(pred: str, ref: str) -> float:
     pred_tokens = set(pred.split())
     ref_tokens = set(ref.lower().strip().split())
 >>>>>>> 13c4a84d (feat(PIX-3911): implement Mental-LLM instruction fine-tuning pipeline)
+=======
+    return pred.strip().lower() == ref.strip().lower()
+
+
+def _token_f1(pred: str, ref: str) -> float:
+    pred_tokens = set(pred.lower().split())
+    ref_tokens = set(ref.lower().split())
+>>>>>>> d477af45 (fix(ift): Phase 4 P2 quality improvements)
     if not pred_tokens and not ref_tokens:
         return 1.0
     if not pred_tokens or not ref_tokens:
