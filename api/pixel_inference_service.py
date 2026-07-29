@@ -56,7 +56,34 @@ from inference_wrapper import (  # type: ignore[import-untyped]
     SelectionParseError,
 )
 
+# ---------------------------------------------------------------------------
+# PIX-3912: Mera Hierarchical Clinical Prediction imports
+# ---------------------------------------------------------------------------
+try:
+    from ai.core.pipelines.inference.candidate_retrieval import (
+        CandidateDiagnosis,
+        CandidateRetrievalEngine,
+    )
+    from ai.core.pipelines.inference.evidence_scoring import (
+        EvidenceFinding,
+        EvidenceScoringEngine,
+        ScoredDiagnosis,
+    )
+    from ai.memory.therapeutic_concept_hierarchy import (
+        TherapeuticConceptHierarchy,
+        build_default_therapeutic_hierarchy,
+    )
+
+    _MERA_AVAILABLE = True
+except Exception as _mera_import_exc:
+    _MERA_AVAILABLE = False
+    _mera_import_error = str(_mera_import_exc)
+else:
+    _mera_import_error = None
+
 logger = logging.getLogger(__name__)
+if not _MERA_AVAILABLE and _mera_import_error:
+    logger.warning("Mera clinical prediction modules not available: %s", _mera_import_error)
 logging.basicConfig(level=logging.INFO)
 initialize_sentry_logging(service_name="pixel-inference-service")
 
@@ -238,6 +265,59 @@ class PalInferResponse(BaseModel):
     generation: PalGenerationResponse
     total_latency_seconds: float = Field(..., ge=0.0, description="Total wall-clock seconds for both stages.")
     dialogue: str = Field(..., description="The input dialogue echoed back.")
+
+
+# ---------------------------------------------------------------------------
+# PIX-3912: Mera Clinical Prediction Models
+# ---------------------------------------------------------------------------
+
+
+class ClinicalPredictionRequest(BaseModel):
+    """Request for hierarchical clinical diagnosis prediction."""
+
+    patient_presentation: str = Field(..., description="Free-text clinical description of the patient")
+    test_results: list[dict[str, Any]] | None = Field(None, description="Optional lab/test results")
+    progression_notes: str | None = Field(None, description="Optional notes on symptom progression")
+    top_k: int = Field(5, ge=1, le=20, description="Number of ranked diagnoses to return")
+    include_evidence: bool = Field(True, description="Include detailed evidence chains")
+    initial_guess: str | None = Field(None, description="Optional condition_id from prior screening")
+
+
+class DiagnosisEvidenceItem(BaseModel):
+    """A single piece of evidence supporting or contradicting a diagnosis."""
+
+    finding_type: str
+    description: str
+    weight: float
+    direction: str
+    confidence: float
+
+
+class RankedDiagnosis(BaseModel):
+    """A ranked diagnosis with scores and evidence."""
+
+    rank: int
+    condition_id: str
+    condition_name: str
+    final_score: float
+    retrieval_score: float
+    evidence_score: float
+    symptom_score: float
+    typical_presentation_score: float
+    test_result_score: float
+    progression_score: float
+    confidence: float
+    hierarchy_path: list[str]
+    evidence: list[DiagnosisEvidenceItem] | None = None
+
+
+class ClinicalPredictionResponse(BaseModel):
+    """Response from the Mera hierarchical clinical prediction pipeline."""
+
+    ranked_diagnoses: list[RankedDiagnosis]
+    inference_time_ms: float
+    pipeline_version: str = "mera-v1.0"
+    hierarchy_coverage: int = Field(0, description="Number of conditions in the hierarchy")
 
 
 # Pixel Inference Service
@@ -645,6 +725,124 @@ class PixelInferenceEngine:
 
 
 # ---------------------------------------------------------------------------
+# PIX-3912: Mera Clinical Prediction Engine
+# ---------------------------------------------------------------------------
+
+
+class MeraClinicalPredictionEngine:
+    """
+    Hierarchical clinical prediction engine inspired by Mera (arXiv 2501.17326).
+
+    Pipeline: patient presentation → hierarchy encoding → candidate retrieval →
+    evidence scoring → ranked diagnosis.
+    """
+
+    def __init__(self):
+        self.hierarchy: TherapeuticConceptHierarchy | None = None
+        self.retrieval_engine: CandidateRetrievalEngine | None = None
+        self.scoring_engine: EvidenceScoringEngine | None = None
+        self._initialized = False
+
+    def initialize(self) -> bool:
+        """Load hierarchy and initialize retrieval/scoring engines."""
+        if self._initialized:
+            return True
+        if not _MERA_AVAILABLE:
+            logger.warning("Mera modules not available; clinical prediction disabled")
+            return False
+
+        try:
+            self.hierarchy = build_default_therapeutic_hierarchy()
+            self.retrieval_engine = CandidateRetrievalEngine(self.hierarchy)
+            self.scoring_engine = EvidenceScoringEngine(self.hierarchy)
+            self._initialized = True
+            logger.info(
+                "MeraClinicalPredictionEngine initialized: %d conditions in hierarchy",
+                len(self.hierarchy),
+            )
+            return True
+        except Exception as e:
+            logger.exception("Failed to initialize MeraClinicalPredictionEngine: %s", e)
+            return False
+
+    async def predict(
+        self, request: ClinicalPredictionRequest
+    ) -> ClinicalPredictionResponse:
+        """Run the full Memorize & Rank pipeline."""
+        if not self._initialized and not self.initialize():
+            raise RuntimeError("Mera clinical prediction engine not initialized")
+
+        start_time = datetime.now(UTC)
+
+        # Stage 1: Memorize — candidate retrieval
+        candidates = self.retrieval_engine.retrieve(
+            patient_presentation=request.patient_presentation,
+            top_k=request.top_k * 2,  # retrieve more for ranking stage
+            initial_guess=request.initial_guess,
+        )
+
+        # Stage 2: Rank — evidence-based scoring
+        scored = self.scoring_engine.score(
+            candidates=candidates,
+            patient_presentation=request.patient_presentation,
+            test_results=request.test_results,
+            progression_notes=request.progression_notes,
+        )
+
+        # Take top_k
+        top_scored = scored[: request.top_k]
+
+        # Build response
+        ranked_diagnoses: list[RankedDiagnosis] = []
+        for rank, diag in enumerate(top_scored, start=1):
+            evidence_items: list[DiagnosisEvidenceItem] | None = None
+            if request.include_evidence:
+                evidence_items = [
+                    DiagnosisEvidenceItem(
+                        finding_type=f.finding_type,
+                        description=f.description,
+                        weight=f.weight,
+                        direction=f.direction,
+                        confidence=f.confidence,
+                    )
+                    for f in diag.findings
+                ]
+
+            ranked_diagnoses.append(
+                RankedDiagnosis(
+                    rank=rank,
+                    condition_id=diag.condition_id,
+                    condition_name=diag.condition_name,
+                    final_score=round(diag.final_score, 4),
+                    retrieval_score=round(diag.retrieval_score, 4),
+                    evidence_score=round(diag.evidence_score, 4),
+                    symptom_score=round(diag.symptom_score, 4),
+                    typical_presentation_score=round(diag.typical_presentation_score, 4),
+                    test_result_score=round(diag.test_result_score, 4),
+                    progression_score=round(diag.progression_score, 4),
+                    confidence=round(diag.confidence, 4),
+                    hierarchy_path=diag.hierarchy_path,
+                    evidence=evidence_items,
+                )
+            )
+
+        inference_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
+
+        return ClinicalPredictionResponse(
+            ranked_diagnoses=ranked_diagnoses,
+            inference_time_ms=inference_time,
+            hierarchy_coverage=len(self.hierarchy) if self.hierarchy else 0,
+        )
+
+    def get_status(self) -> dict[str, Any]:
+        return {
+            "initialized": self._initialized,
+            "hierarchy_size": len(self.hierarchy) if self.hierarchy else 0,
+            "mera_available": _MERA_AVAILABLE,
+        }
+
+
+# ---------------------------------------------------------------------------
 # PAL Stub LLM Clients (used when no real endpoint is configured)
 # ---------------------------------------------------------------------------
 
@@ -795,10 +993,19 @@ async def startup_event():
     else:
         logger.info("PAL wrapper ready on startup")
 
+    # Initialize Mera clinical prediction engine
+    if _MERA_AVAILABLE:
+        if clinical_prediction_engine.initialize():
+            logger.info("Mera clinical prediction engine ready on startup")
+        else:
+            logger.warning("Mera clinical prediction engine failed to initialize")
+    else:
+        logger.info("Mera clinical prediction modules not available — skipping initialization")
+
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint with Pixel + PAL status"""
+    """Health check endpoint with Pixel + PAL + Clinical Prediction status"""
     return {
         "status": "healthy" if inference_engine.model_loaded else "degraded",
         "model_loaded": inference_engine.model_loaded,
@@ -809,6 +1016,7 @@ async def health_check():
                 pal_wrapper.latency_budget_seconds if pal_wrapper else DEFAULT_LATENCY_BUDGET_SECONDS
             ),
         },
+        "clinical_prediction": clinical_prediction_engine.get_status(),
         "timestamp": datetime.now(UTC).isoformat(),
     }
 
@@ -967,6 +1175,46 @@ async def enable_ab_test(percent: float):
         "status": "success",
         "ift_traffic_percent": inference_engine.ab_router.config.ift_traffic_percent,
     }
+# ---------------------------------------------------------------------------
+# PIX-3912: Mera Clinical Prediction Endpoints
+# ---------------------------------------------------------------------------
+
+# Global clinical prediction engine
+clinical_prediction_engine = MeraClinicalPredictionEngine()
+
+
+@app.get("/clinical-prediction/status")
+async def clinical_prediction_status():
+    """Get status of the Mera clinical prediction engine."""
+    return clinical_prediction_engine.get_status()
+
+
+@app.post("/clinical-prediction", response_model=ClinicalPredictionResponse)
+async def clinical_predict(request: ClinicalPredictionRequest):
+    """
+    Hierarchical clinical diagnosis prediction (Mera Memorize & Rank).
+
+    Pipeline:
+    1. Memorize: retrieve candidate diagnoses via hybrid retrieval
+       (semantic + hierarchy + keyword + memory)
+    2. Rank: score candidates against patient evidence
+       (symptoms, typical presentation, test results, progression)
+    """
+    if not _MERA_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Mera clinical prediction modules not available")
+
+    try:
+        return await clinical_prediction_engine.predict(request)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+    except Exception:
+        logger.exception("Clinical prediction error")
+        raise HTTPException(status_code=500, detail="Clinical prediction failed") from None
+
+
+# ---------------------------------------------------------------------------
+# PAL Inference Endpoints
+# ---------------------------------------------------------------------------
 
 
 @app.post("/ab-test/disable")
