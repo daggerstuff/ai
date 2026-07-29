@@ -188,3 +188,4 @@ config/emergency_security_config.json
 docs/Books/
 simulated_client/
 data/annotation_queue.db
+.omo/
