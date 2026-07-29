@@ -126,13 +126,22 @@ class MentalHealthIFTTrainer:
             )
             torch_dtype = torch.bfloat16
 
+        attn_impl = None
+        if torch.cuda.is_available():
+            try:
+                import flash_attn  # noqa: F401
+
+                attn_impl = "flash_attention_2"
+            except ImportError:
+                logger.warning("flash_attn not installed; falling back to default attention")
+
         self.model = AutoModelForCausalLM.from_pretrained(
             self.config.base_model,
             quantization_config=bnb_config,
             torch_dtype=torch_dtype,
             device_map="auto",
             trust_remote_code=True,
-            attn_implementation="flash_attention_2" if torch.cuda.is_available() else None,
+            attn_implementation=attn_impl,
         )
 
         if self.config.use_qlora:

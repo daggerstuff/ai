@@ -155,12 +155,12 @@ def _normalize_prediction(pred: Any, task_type: str) -> str:
 
 
 def _exact_match(pred: str, ref: str) -> bool:
-    return pred == ref.lower().strip()
+    return pred.strip().lower() == ref.strip().lower()
 
 
 def _token_f1(pred: str, ref: str) -> float:
-    pred_tokens = set(pred.split())
-    ref_tokens = set(ref.lower().strip().split())
+    pred_tokens = set(pred.lower().split())
+    ref_tokens = set(ref.lower().split())
     if not pred_tokens and not ref_tokens:
         return 1.0
     if not pred_tokens or not ref_tokens:

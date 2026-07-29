@@ -331,17 +331,13 @@ def main() -> None:
     examples = [
         {
             "input": "I feel hopeless and can't sleep.",
-            "age_group": "age_26_45",
-            "gender": "gender_male",
-            "ses": "ses_low",
+            "demographic_tags": ["age_26_45", "gender_male", "ses_low"],
             "diagnostic_tag": "major_depressive_disorder",
             "linguistic_style": "formal",
         },
         {
             "input": "I'm super anxious about everything lately.",
-            "age_group": "age_18_25",
-            "gender": "gender_female",
-            "ses": "ses_middle",
+            "demographic_tags": ["age_18_25", "gender_female", "ses_middle"],
             "diagnostic_tag": "social_anxiety_disorder",
             "linguistic_style": "informal",
         },
