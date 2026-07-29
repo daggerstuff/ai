@@ -42,6 +42,36 @@ logger = logging.getLogger("dpo_trainer")
 MIN_SAMPLES = 20
 
 
+def _coerce_response(field: Any) -> str:
+    """Normalize a ``chosen``/``rejected`` field to a plain response string.
+
+    TRL ``DPOTrainer`` accepts two schemas:
+      * standard:   {"prompt": str, "chosen": str, "rejected": str}
+      * conversational: {"prompt": str,
+                         "chosen":   [{"role": "assistant", "content": str}, ...],
+                         "rejected": [{"role": "assistant", "content": str}, ...]}
+
+    The PAL pipeline (``generate_dpo_pairs.py``) emits the conversational
+    form where the single assistant turn holds the response text. The
+    existing therapeutic ``run_dpo`` path uses the standard form. We coerce
+    the conversational record down to its assistant turn text so this loader
+    stays on the standard-string schema the rest of ``run_dpo`` expects; if a
+    chat-template-aware downstream path is wanted later, keep the message
+    lists instead (see ``PalDpoDataset.to_list`` in ``pal_dataloader.py``).
+    """
+    if isinstance(field, str):
+        return field
+    if isinstance(field, list):
+        # Conversational: take the last assistant turn's content as the response.
+        for msg in reversed(field):
+            if isinstance(msg, dict) and msg.get("role") == "assistant":
+                content = msg.get("content")
+                if isinstance(content, str):
+                    return content
+        # No assistant turn — fall through to empty so the record is skipped.
+    return ""
+
+
 def load_preference_dataset(
     data_path: Path,
     max_seq_length: int,
@@ -51,9 +81,11 @@ def load_preference_dataset(
 
     SAFETY FILTERING DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
 
-    Each line must have ``prompt``, ``chosen``, ``rejected`` fields.
-    All responses are kept regardless of content per user directive for
-    therapeutic training on difficult conversations.
+    Each line must have ``prompt``, ``chosen``, ``rejected`` fields. Both the
+    standard (string) and conversational (message-list) TRL DPO schemas are
+    accepted; the conversational form is coerced to its assistant-turn
+    string. All responses are kept regardless of content per user directive
+    for therapeutic training on difficult conversations.
 
     Raises ValueError if fewer than MIN_SAMPLES remain after validation.
     """
@@ -62,6 +94,7 @@ def load_preference_dataset(
 
     pairs: list[dict[str, str]] = []
     skipped = 0
+    conv_coerced = 0
 
     with open(data_path, encoding="utf-8") as f:
         for line_no, line in enumerate(f, 1):
@@ -72,8 +105,18 @@ def load_preference_dataset(
                 continue
 
             prompt = record.get("prompt", "")
-            chosen = record.get("chosen", "")
-            rejected = record.get("rejected", "")
+            chosen_raw = record.get("chosen", "")
+            rejected_raw = record.get("rejected", "")
+
+            # Track whether this was a conversational record so the log line
+            # makes the schema coercion visible.
+            was_conversational = isinstance(chosen_raw, list) or isinstance(rejected_raw, list)
+
+            chosen = _coerce_response(chosen_raw)
+            rejected = _coerce_response(rejected_raw)
+
+            if was_conversational:
+                conv_coerced += 1
 
             if not all([prompt, chosen, rejected]):
                 logger_instance.warning("Missing fields at line %d", line_no)
@@ -102,6 +145,15 @@ def load_preference_dataset(
         log_token_length_distribution(
             rejected_lengths, max_seq_length, logger_instance, "dpo_rejected",
         )
+
+    if pairs:
+        # Report schema mix so a silent conversational→string coercion
+        # during PAL DPO runs is visible in logs.
+        if conv_coerced:
+            logger_instance.info(
+                "Coerced %d conversational (message-list) records to string form",
+                conv_coerced,
+            )
 
     logger_instance.info(
         "Loaded %d preference pairs (%d skipped due to missing fields)", len(pairs), skipped,
