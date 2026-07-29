@@ -196,9 +196,9 @@ def _clinical_relevance_score(pred: str, ref: str, task_type: str) -> float:
 
 
 def _hallucination_score(pred: str, ref: str) -> float:
-    """Proxy hallucination: prediction contains tokens not in reference for classification tasks."""
-    pred_tokens = set(pred.split(","))
-    ref_tokens = set(ref.lower().strip().split(","))
+    """Proxy hallucination: prediction contains tokens not in reference."""
+    pred_tokens = set(pred.lower().split())
+    ref_tokens = set(ref.lower().strip().split())
     if not pred_tokens:
         return 0.0
     extra = pred_tokens - ref_tokens
