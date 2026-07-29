@@ -89,6 +89,7 @@ def sanitize_agent_output(raw_text: str | None) -> str:
         output_lines.append(line.rstrip())
     return "\n".join(output_lines)
 
+
 # Request/Response Models
 
 
@@ -205,9 +206,7 @@ class ModelStatusResponse(BaseModel):
 class PalInferRequest(BaseModel):
     """PAL inference request — one dialogue string."""
 
-    dialogue: str = Field(
-        ..., min_length=1, description="The patient dialogue to infer a persona for."
-    )
+    dialogue: str = Field(..., min_length=1, description="The patient dialogue to infer a persona for.")
 
 
 class PalSelectionResponse(BaseModel):
@@ -228,9 +227,7 @@ class PalGenerationResponse(BaseModel):
 class PalGenerateRequest(BaseModel):
     """PAL generation request."""
 
-    persona_string: str = Field(
-        ..., min_length=1, description="The persona string to use for response generation."
-    )
+    persona_string: str = Field(..., min_length=1, description="The persona string to use for response generation.")
     dialogue_history: str = Field(..., description="The dialogue history up to this point.")
 
 
@@ -511,7 +508,7 @@ class PixelInferenceEngine:
 
         # Step 4: Final response generation
         final_response = await self.generate_response(request)
-        final_response.shared_state = current_state
+        final_response.shared_state = {**current_state, **(final_response.shared_state or {})}
 
         self.record_agent_step("Coordinator", 100)
         yield AgentActivity(
@@ -663,10 +660,7 @@ class _PalStubGenerator:
     """Returns a canned persona-aligned response."""
 
     def __call__(self, _messages: list[dict[str, str]]) -> str:
-        return (
-            "I have been feeling this way for a while now. "
-            "Thank you for explaining things clearly, doctor."
-        )
+        return "I have been feeling this way for a while now. Thank you for explaining things clearly, doctor."
 
 
 def _pal_load_candidate_personas() -> list[dict[str, Any]]:
@@ -716,6 +710,7 @@ def _pal_init_wrapper() -> PalInferenceWrapper | None:
         if selector_endpoint:
             try:
                 from openai import OpenAI  # type: ignore[import-untyped]
+
                 _openai_selector = OpenAI(base_url=selector_endpoint)
                 selector_model = os.environ.get("PAL_SELECTOR_MODEL", "gpt-4o-mini")
 
@@ -733,6 +728,7 @@ def _pal_init_wrapper() -> PalInferenceWrapper | None:
         if generator_endpoint:
             try:
                 from openai import OpenAI  # type: ignore[import-untyped]
+
                 _openai_generator = OpenAI(base_url=generator_endpoint)
                 generator_model = os.environ.get("PAL_GENERATOR_MODEL", "gpt-4o-mini")
 

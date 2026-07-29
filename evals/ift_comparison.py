@@ -20,31 +20,26 @@ from typing import Any, Callable
 import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score
 
-from ai.training.mental_health_instruction_dataset import MentalHealthTaskType
+from training.mental_health_instruction_dataset import MentalHealthTaskType
 
 logger = logging.getLogger(__name__)
 
 
 TASK_PROMPTS: dict[str, str] = {
     MentalHealthTaskType.SYMPTOM_CLASSIFICATION.value: (
-        "Identify the primary mental health symptoms described in the text. "
-        "Return a comma-separated list of symptoms."
+        "Identify the primary mental health symptoms described in the text. Return a comma-separated list of symptoms."
     ),
     MentalHealthTaskType.SEVERITY_ESTIMATION.value: (
         "Estimate the severity of the described mental health symptoms on a scale of 1-10. "
         "Respond with only the number."
     ),
     MentalHealthTaskType.RISK_ASSESSMENT.value: (
-        "Assess the level of risk described in the text. "
-        "Respond with one of: none, low, moderate, high, imminent."
+        "Assess the level of risk described in the text. Respond with one of: none, low, moderate, high, imminent."
     ),
     MentalHealthTaskType.EMPATHY_SCORING.value: (
-        "Score the empathy of the therapist response. "
-        "Provide an overall empathy score from 1-5."
+        "Score the empathy of the therapist response. Provide an overall empathy score from 1-5."
     ),
-    MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value: (
-        "Respond as a compassionate, evidence-based therapist."
-    ),
+    MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value: ("Respond as a compassionate, evidence-based therapist."),
 }
 
 
@@ -116,7 +111,7 @@ class ComparisonStudyReport:
         for task, results in by_task.items():
             best[task] = max(
                 results,
-                key=lambda r: (r.f1 if r.f1 is not None else r.clinical_relevance),
+                key=lambda r: r.f1 if r.f1 is not None else r.clinical_relevance,
             ).approach
         return best
 
@@ -221,7 +216,12 @@ class IFTComparisonStudy:
     ):
         self.zero_shot_fn = zero_shot_fn
         self.few_shot_fn = few_shot_fn or zero_shot_fn
-        self.ift_fn = ift_fn or zero_shot_fn
+        if ift_fn is None:
+            raise ValueError(
+                "IFTComparisonStudy requires an explicit ift_fn. "
+                "Passing None silently falls back to zero-shot, defeating the comparison."
+            )
+        self.ift_fn = ift_fn
 
     def _build_zero_shot_prompt(self, task_type: str, input_text: str) -> str:
         prompt = TASK_PROMPTS.get(task_type, "")
@@ -256,9 +256,7 @@ class IFTComparisonStudy:
                 ("few-shot", self.few_shot_fn, self._build_few_shot_prompt),
                 ("ift", self.ift_fn, self._build_zero_shot_prompt),
             ]:
-                metrics = self._evaluate_approach(
-                    task_examples, fn, prompt_builder, task_type
-                )
+                metrics = self._evaluate_approach(task_examples, fn, prompt_builder, task_type)
                 results.append(
                     ComparisonResult(
                         approach=approach,

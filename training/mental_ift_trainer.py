@@ -32,7 +32,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from ai.training.mental_health_instruction_dataset import (
+from training.mental_health_instruction_dataset import (
     MentalHealthInstructionDatasetBuilder,
     MentalHealthTaskType,
 )
@@ -182,17 +182,14 @@ class MentalHealthIFTTrainer:
         if self.config.curriculum_learning:
             raw_train = self._apply_curriculum(raw_train)
 
-        self.train_dataset = raw_train.map(
+        # Validation set: stratified holdout from actual training data, not separate seed vignettes
+        split = raw_train.train_test_split(test_size=0.1, seed=self.config.seed)
+        self.train_dataset = split["train"].map(
             self._format_and_tokenize,
             batched=True,
-            remove_columns=raw_train.column_names,
+            remove_columns=split["train"].column_names,
         )
-
-        # Validation set
-        builder = MentalHealthInstructionDatasetBuilder(seed=self.config.seed)
-        builder.build_from_seed_vignettes(augment_per_vignette=400)
-        _, val = builder.stratified_split(train_ratio=0.9)
-        raw_val = Dataset.from_list([ex.to_alpaca() for ex in val])
+        raw_val = split["test"]
         self.eval_dataset = raw_val.map(
             self._format_and_tokenize,
             batched=True,
@@ -214,9 +211,7 @@ class MentalHealthIFTTrainer:
     def _format_and_tokenize(self, examples: dict[str, Any]) -> dict[str, Any]:
         """Format Alpaca examples into prompt-completion strings and tokenize."""
         prompts = []
-        for instruction, input_text, output in zip(
-            examples["instruction"], examples["input"], examples["output"]
-        ):
+        for instruction, input_text, output in zip(examples["instruction"], examples["input"], examples["output"]):
             if input_text:
                 prompt = f"### Instruction:\n{instruction}\n\n### Input:\n{input_text}\n\n### Response:\n{output}"
             else:
@@ -231,6 +226,8 @@ class MentalHealthIFTTrainer:
             return_overflowing_tokens=False,
         )
         tokenized["labels"] = tokenized["input_ids"].copy()
+        if "task_type" in examples:
+            tokenized["task_type"] = examples["task_type"]
         return tokenized
 
     def train(self) -> dict[str, Any]:

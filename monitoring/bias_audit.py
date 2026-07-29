@@ -75,11 +75,7 @@ class BiasAuditReport:
 
     def summary(self) -> dict[str, Any]:
         """High-level summary for dashboards."""
-        all_disparities = (
-            self.demographic_disparities
-            + self.diagnostic_disparities
-            + self.linguistic_disparities
-        )
+        all_disparities = self.demographic_disparities + self.diagnostic_disparities + self.linguistic_disparities
         max_disp = max((d.max_disparity for d in all_disparities), default=0.0)
         significant_count = sum(1 for d in all_disparities if d.significant)
         return {
@@ -92,8 +88,12 @@ class BiasAuditReport:
         }
 
 
-def _coerce_score(value: Any) -> float:
-    """Convert model output to a numeric score."""
+def _coerce_score(value: Any) -> float | None:
+    """Convert model output to a numeric score.
+
+    Returns None for unparseable values instead of silently returning 0.0,
+    which would inflate bias metrics by clustering non-numeric outputs at zero.
+    """
     if isinstance(value, (int, float)):
         return float(value)
     if isinstance(value, str):
@@ -103,12 +103,10 @@ def _coerce_score(value: Any) -> float:
         match = re.search(r"\d+(?:\.\d+)?", value)
         if match:
             return float(match.group())
-    return 0.0
+    return None
 
 
-def _compute_subgroup_metrics(
-    scores: list[float], group_key: str
-) -> StratifiedMetric:
+def _compute_subgroup_metrics(scores: list[float], group_key: str) -> StratifiedMetric:
     arr = np.array(scores)
     return StratifiedMetric(
         group=group_key,
@@ -152,19 +150,24 @@ class BiasAuditor:
         from datetime import UTC, datetime
 
         scored_examples = []
+        skipped = 0
         for ex in examples:
             output = inference_fn(ex)
             ex = dict(ex)
-            ex["score"] = _coerce_score(output)
+            score = _coerce_score(output)
+            if score is None:
+                skipped += 1
+                continue
+            ex["score"] = score
             scored_examples.append(ex)
+        if skipped:
+            logger.warning(f"Bias audit: skipped {skipped}/{len(examples)} examples with unparseable scores")
 
         demographic = self._evaluate_demographic(scored_examples)
         diagnostic = self._evaluate_diagnostic(scored_examples)
         linguistic = self._evaluate_linguistic(scored_examples)
 
-        recommendations = self._generate_recommendations(
-            demographic + diagnostic + linguistic
-        )
+        recommendations = self._generate_recommendations(demographic + diagnostic + linguistic)
 
         return BiasAuditReport(
             model_name=self.model_name,
@@ -176,9 +179,7 @@ class BiasAuditor:
             timestamp=datetime.now(UTC).isoformat(),
         )
 
-    def _evaluate_demographic(
-        self, examples: list[dict[str, Any]]
-    ) -> list[DisparityResult]:
+    def _evaluate_demographic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
         """Evaluate performance disparity across demographic groups."""
         results: list[DisparityResult] = []
         demographic_keys = ["age_group", "gender", "ses", "ethnicity"]
@@ -192,11 +193,12 @@ class BiasAuditor:
                 groups.setdefault(str(group), []).append(ex["score"])
 
             if len(groups) < 2:
+                logger.warning(
+                    f"Bias audit: demographic key '{key}' has <2 groups ({list(groups.keys())}); skipping disparity analysis"
+                )
                 continue
 
-            subgroup_metrics = [
-                _compute_subgroup_metrics(scores, g) for g, scores in groups.items()
-            ]
+            subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
             means = {m.group: m.mean_score for m in subgroup_metrics}
             max_group = max(means, key=means.get)
             min_group = min(means, key=means.get)
@@ -218,9 +220,7 @@ class BiasAuditor:
 
         return results
 
-    def _evaluate_diagnostic(
-        self, examples: list[dict[str, Any]]
-    ) -> list[DisparityResult]:
+    def _evaluate_diagnostic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
         """Evaluate systematic under/over-prediction across diagnostic conditions."""
         groups: dict[str, list[float]] = {}
         for ex in examples:
@@ -230,13 +230,15 @@ class BiasAuditor:
         if len(groups) < 2:
             return []
 
-        subgroup_metrics = [
-            _compute_subgroup_metrics(scores, g) for g, scores in groups.items()
-        ]
+        subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
         means = {m.group: m.mean_score for m in subgroup_metrics}
         max_group = max(means, key=means.get)
         min_group = min(means, key=means.get)
-        max_disparity = means[max_group] - means[min_group]
+        # Weighted disparity: weight by relative group size so small groups don't dominate
+        total_n = sum(m.n for m in subgroup_metrics)
+        max_disparity = means[max_group] * (
+            subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n
+        ) - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
         p_value, significant = _statistical_test(groups)
 
         return [
@@ -252,9 +254,7 @@ class BiasAuditor:
             )
         ]
 
-    def _evaluate_linguistic(
-        self, examples: list[dict[str, Any]]
-    ) -> list[DisparityResult]:
+    def _evaluate_linguistic(self, examples: list[dict[str, Any]]) -> list[DisparityResult]:
         """Evaluate sensitivity to language style and formality."""
         groups: dict[str, list[float]] = {}
         for ex in examples:
@@ -264,13 +264,14 @@ class BiasAuditor:
         if len(groups) < 2:
             return []
 
-        subgroup_metrics = [
-            _compute_subgroup_metrics(scores, g) for g, scores in groups.items()
-        ]
+        subgroup_metrics = [_compute_subgroup_metrics(scores, g) for g, scores in groups.items()]
         means = {m.group: m.mean_score for m in subgroup_metrics}
         max_group = max(means, key=means.get)
         min_group = min(means, key=means.get)
-        max_disparity = means[max_group] - means[min_group]
+        total_n = sum(m.n for m in subgroup_metrics)
+        max_disparity = means[max_group] * (
+            subgroup_metrics[[m.group for m in subgroup_metrics].index(max_group)].n / total_n
+        ) - means[min_group] * (subgroup_metrics[[m.group for m in subgroup_metrics].index(min_group)].n / total_n)
         p_value, significant = _statistical_test(groups)
 
         return [
@@ -286,9 +287,7 @@ class BiasAuditor:
             )
         ]
 
-    def _generate_recommendations(
-        self, disparities: list[DisparityResult]
-    ) -> list[str]:
+    def _generate_recommendations(self, disparities: list[DisparityResult]) -> list[str]:
         """Generate mitigation recommendations based on disparities."""
         recommendations: list[str] = []
         for d in disparities:
@@ -300,9 +299,7 @@ class BiasAuditor:
                 f"Consider balanced sampling, bias-aware loss weighting, or post-hoc calibration."
             )
         if not recommendations:
-            recommendations.append(
-                "No disparities exceeded the threshold. Continue monitoring production drift."
-            )
+            recommendations.append("No disparities exceeded the threshold. Continue monitoring production drift.")
         return recommendations
 
 

@@ -76,6 +76,8 @@ class MentalHealthInstruction:
             "demographic_tags": self.demographic_tags,
             "diagnostic_tag": self.diagnostic_tag,
             "linguistic_style": self.linguistic_style,
+            "source": self.source,
+            "clinical_reviewed": self.clinical_reviewed,
         }
 
     def to_chat(self, system_prompt: str | None = None) -> dict[str, Any]:
@@ -240,7 +242,9 @@ class MentalHealthInstructionDatasetBuilder:
                     MentalHealthInstruction(
                         id=str(uuid.uuid4()),
                         task_type=MentalHealthTaskType.THERAPY_RESPONSE_GENERATION.value,
-                        instruction=random.choice(INSTRUCTION_TEMPLATES[MentalHealthTaskType.THERAPY_RESPONSE_GENERATION]),
+                        instruction=random.choice(
+                            INSTRUCTION_TEMPLATES[MentalHealthTaskType.THERAPY_RESPONSE_GENERATION]
+                        ),
                         input=base_text,
                         output=self._generate_therapeutic_response(vignette),
                         demographic_tags=vignette["demographic_tags"],
@@ -284,7 +288,9 @@ class MentalHealthInstructionDatasetBuilder:
             "What comes up when you try that?"
         )
 
-    def add_conversation_turns(self, conversations: list[dict[str, Any]], source: str = "conversation") -> list[MentalHealthInstruction]:
+    def add_conversation_turns(
+        self, conversations: list[dict[str, Any]], source: str = "conversation"
+    ) -> list[MentalHealthInstruction]:
         """Convert therapy conversation turns into instruction examples."""
         for conv in conversations:
             client = conv.get("client") or conv.get("user_message") or ""
@@ -313,7 +319,9 @@ class MentalHealthInstructionDatasetBuilder:
         logger.info(f"Added {len(self.examples)} examples after conversation ingestion")
         return self.examples
 
-    def stratified_split(self, train_ratio: float = 0.9) -> tuple[list[MentalHealthInstruction], list[MentalHealthInstruction]]:
+    def stratified_split(
+        self, train_ratio: float = 0.9
+    ) -> tuple[list[MentalHealthInstruction], list[MentalHealthInstruction]]:
         """Split dataset while preserving task-type distribution."""
         by_task: dict[str, list[MentalHealthInstruction]] = {}
         for ex in self.examples:
@@ -369,7 +377,9 @@ def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
-def build_default_dataset(output_dir: str | Path = "./ai/data/mental_health_ift", min_examples: int = 10000) -> tuple[Path, Path]:
+def build_default_dataset(
+    output_dir: str | Path = "./ai/data/mental_health_ift", min_examples: int = 10000
+) -> tuple[Path, Path]:
     """Build a default mental health IFT dataset, augmenting seed data to reach min_examples."""
     builder = MentalHealthInstructionDatasetBuilder()
     builder.build_from_seed_vignettes(augment_per_vignette=max(1, min_examples // (len(SEED_VIGNETTES) * 5)))
