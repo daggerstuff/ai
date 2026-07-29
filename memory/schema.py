@@ -33,6 +33,7 @@ class ConsolidationPhase(StrEnum):
     RAW = "raw"
     CONSOLIDATED = "consolidated"
     ARCHIVED = "archived"
+    LATENT = "latent"
     FORGOTTEN = "forgotten"
 
 
@@ -47,6 +48,9 @@ class MemoryImportance(BaseModel):
     relevance: float = Field(ge=0.0, le=1.0, description="Cosine similarity to query")
     emotionalWeight: float = Field(ge=1.0, le=5.0, description="Crisis multiplier (1.0=normal, 5.0=crisis)")
     actionability: float = Field(ge=0.0, le=1.0, description="Goal-relevance score")
+    reveriePotential: float = Field(
+        default=0.0, ge=0.0, le=1.0, description="Potential for subconscious surfacing as reverie"
+    )
 
 
 class MemoryEmotions(BaseModel):
@@ -76,6 +80,10 @@ class MemoryConsolidation(BaseModel):
     lastProcessed: int = Field(ge=0, description="Unix timestamp ms")
     remCycles: int = Field(ge=0, description="Remaining consolidation cycles")
     schemaReferences: list[str] = Field(default_factory=list, description="Prior schema version pointers")
+    reverieEligible: bool = Field(default=False, description="Whether this memory can surface as a reverie")
+    reveriePhase: str = Field(
+        default="dormant", description="Reverie lifecycle phase: dormant|seeded|surfacing|active|fading"
+    )
 
 
 # ─── Primary entity ────────────────────────────────────────────────────────────
@@ -95,7 +103,7 @@ class MemoryBlock(BaseModel):
 
     importance: MemoryImportance = Field(
         default_factory=lambda: MemoryImportance(
-            raw=0.0, recency=0.0, relevance=0.0, emotionalWeight=1.0, actionability=0.0
+            raw=0.0, recency=0.0, relevance=0.0, emotionalWeight=1.0, actionability=0.0, reveriePotential=0.0
         )
     )
     emotions: MemoryEmotions = Field(default_factory=lambda: MemoryEmotions(valence=0.0, arousal=0.0, categories=[]))
@@ -113,6 +121,8 @@ class MemoryBlock(BaseModel):
             lastProcessed=0,
             remCycles=0,
             schemaReferences=[],
+            reverieEligible=False,
+            reveriePhase="dormant",
         )
     )
 
@@ -130,6 +140,7 @@ class MemoryBlock(BaseModel):
                     "relevance": 0.91,
                     "emotionalWeight": 2.0,
                     "actionability": 0.65,
+                    "reveriePotential": 0.0,
                 },
                 "emotions": {
                     "valence": -0.3,
@@ -147,6 +158,8 @@ class MemoryBlock(BaseModel):
                     "lastProcessed": 1715600000000,
                     "remCycles": 3,
                     "schemaReferences": [],
+                    "reverieEligible": False,
+                    "reveriePhase": "dormant",
                 },
             }
         }

@@ -12,6 +12,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from ..reverie_types import ReverieSeed
 from ..schema import MemoryBlock
 
 log = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ class DreamResult:
     cross_links: list[CrossLink]
     schemas: list[Schema]
     summaries: dict[str, str]
+    reverie_seeds: list[ReverieSeed]
     elapsed_ms: float
     memories_processed: int
 
@@ -67,6 +69,7 @@ class RemDreamScheduler:
         cross_links = self._crosslink(sorted_memories)
         schemas = self._extract_schemas(sorted_memories)
         summaries = self._summarize(sorted_memories)
+        reverie_seeds = self._reverie_seeding(sorted_memories)
 
         elapsed = (time.perf_counter() - t0) * 1000
 
@@ -75,6 +78,7 @@ class RemDreamScheduler:
             cross_links=cross_links,
             schemas=schemas,
             summaries=summaries,
+            reverie_seeds=reverie_seeds,
             elapsed_ms=round(elapsed, 2),
             memories_processed=len(memories),
         )
@@ -160,6 +164,40 @@ class RemDreamScheduler:
         for session_id, group in session_groups.items():
             summaries[session_id] = self._summarizer(group)
         return summaries
+
+    def _reverie_seeding(self, memories: list[MemoryBlock]) -> list[ReverieSeed]:
+        """Phase 5: Identify archived/forgotten memories as reverie candidates.
+
+        Memories with emotionalWeight >= 2.0 that are not crisis-flagged
+        become reverie seeds — latent memories eligible for fishhook detection.
+        """
+        seeds: list[ReverieSeed] = []
+        now_ms = int(time.time() * 1000)
+
+        for m in memories:
+            if m.gating.crisisFlag:
+                continue
+            if m.importance.emotionalWeight < 2.0:
+                continue
+            if m.consolidation.phase not in ("archived", "forgotten", "latent"):
+                continue
+
+            emotional = min(m.importance.emotionalWeight / 5.0, 1.0)
+            category_diversity = min(len(m.emotions.categories) / 5.0, 1.0)
+            schema_richness = min(len(m.consolidation.schemaReferences) / 3.0, 1.0)
+            age_days = max((now_ms - m.timestamp) / 86400000.0, 0.0)
+            recency = max(1.0 - age_days / 30.0, 0.0)
+            potential = 0.4 * emotional + 0.2 * category_diversity + 0.2 * schema_richness + 0.2 * recency
+
+            seeds.append(
+                ReverieSeed(
+                    memory_id=m.id,
+                    reason=f"Emotional weight {m.importance.emotionalWeight}, phase {m.consolidation.phase}",
+                    potential=round(potential, 4),
+                )
+            )
+
+        return seeds
 
     @staticmethod
     def _default_summarizer(memories: list[MemoryBlock]) -> str:
