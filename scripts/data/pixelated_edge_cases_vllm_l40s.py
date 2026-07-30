@@ -335,6 +335,17 @@ def _ensure_vllm_running() -> "subprocess.Popen | None":
     venv_bin = os.path.dirname(sys.executable)
     env = os.environ.copy()
     env["PATH"] = venv_bin + os.pathsep + env.get("PATH", "")
+
+    hf_token = env.get("HF_TOKEN") or env.get("HUGGING_FACE_HUB_TOKEN")
+    if not hf_token:
+        for line in open("/workspace/.env"):
+            line = line.strip()
+            if line.startswith("HF_TOKEN="):
+                hf_token = line.split("=", 1)[1]
+                break
+    if hf_token:
+        env["HF_TOKEN"] = hf_token
+        env["HUGGING_FACE_HUB_TOKEN"] = hf_token
     cmd = [
         "vllm",
         "serve",
