@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai.platform.deep_rare.clinical_safety import (
+from ai.pkg_mera.platform.deep_rare.clinical_safety import (
     AuditAction,
     AuditTrail,
     ClinicalSafetyContext,
@@ -13,7 +13,7 @@ from ai.platform.deep_rare.clinical_safety import (
     SafetyLevel,
     SafetyViolation,
 )
-from ai.platform.deep_rare.schema import (
+from ai.pkg_mera.platform.deep_rare.schema import (
     Evidence,
     Hypothesis,
     PatientCase,

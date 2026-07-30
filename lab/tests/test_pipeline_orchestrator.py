@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.core.pipelines.pipeline_orchestrator import PipelineOrchestrator
+    from ai.pkg_mera.core.pipelines.pipeline_orchestrator import PipelineOrchestrator
 except ImportError:
     try:
         from ai.models.pixel_core.validation.pipeline_orchestrator import (

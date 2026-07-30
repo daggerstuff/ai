@@ -2,7 +2,7 @@
 
 import tempfile
 
-from ai.platform.mental_ift_orchestrator import MentalHealthIFTOrchestrator
+from ai.pkg_mera.platform.mental_ift_orchestrator import MentalHealthIFTOrchestrator
 
 
 def test_orchestrator_initialization():

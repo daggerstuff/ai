@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ai.core.utils.transcript_corrector import TranscriptCorrector as _TranscriptCorrector
+from ai.pkg_mera.core.utils.transcript_corrector import TranscriptCorrector as _TranscriptCorrector
 
 
 @dataclass

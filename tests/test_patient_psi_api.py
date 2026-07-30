@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from ai.platform.patient_psi.api import create_app
+from ai.pkg_mera.platform.patient_psi.api import create_app
 
 app = create_app(prefix="/api/v1/patient-psi")
 

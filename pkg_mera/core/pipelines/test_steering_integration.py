@@ -5,14 +5,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from ai.core.pipelines.reprioritization_engine import (
+from ai.pkg_mera.core.pipelines.reprioritization_engine import (
     BacklogItem,
     InterventionType,
     PriorityTier,
     ReprioritizationEngine,
     UpstreamDomain,
 )
-from ai.core.pipelines.steering_integration import (
+from ai.pkg_mera.core.pipelines.steering_integration import (
     ApplicationStatus,
     SteeringAction,
     SteeringActionType,

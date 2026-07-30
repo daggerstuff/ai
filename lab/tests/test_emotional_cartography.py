@@ -1,6 +1,6 @@
 import unittest
 
-from ai.core.pipelines.processing.emotional_cartography import (
+from ai.pkg_mera.core.pipelines.processing.emotional_cartography import (
     EmotionalCartographer,
     EmotionalState,
     PlutchikEmotion,

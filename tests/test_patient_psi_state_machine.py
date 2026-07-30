@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from ai.platform.patient_psi.profiles import ProfileRegistry
-from ai.platform.patient_psi.state_machine import (
+from ai.pkg_mera.platform.patient_psi.profiles import ProfileRegistry
+from ai.pkg_mera.platform.patient_psi.state_machine import (
     ConversationPhase,
     ConversationState,
     StateMachine,
