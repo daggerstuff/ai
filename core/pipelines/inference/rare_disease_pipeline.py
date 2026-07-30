@@ -18,9 +18,9 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from platform.deep_rare import DeepRareConfig, PatientCase, PipelineConfig, RareDiseasePipeline
-from platform.deep_rare.observability import HealthSnapshot, ObservabilityContext
-from platform.deep_rare.schema import DiagnosisResult, EvaluationMetrics
+from ai.platform.deep_rare import DeepRareConfig, PatientCase, PipelineConfig, RareDiseasePipeline
+from ai.platform.deep_rare.observability import HealthSnapshot, ObservabilityContext
+from ai.platform.deep_rare.schema import DiagnosisResult, EvaluationMetrics
 
 __all__ = ["RareDiseaseInferenceService"]
 
