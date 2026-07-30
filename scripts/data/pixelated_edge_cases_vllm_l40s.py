@@ -28,6 +28,7 @@ import json
 import logging
 import os
 import random
+import subprocess
 import time
 import threading
 from collections import deque
@@ -288,6 +289,77 @@ def load_config_builder() -> dd.DataDesignerConfigBuilder:
     return config_builder
 
 
+def _vllm_health_ok() -> bool:
+    """Check if a vLLM server is already listening on localhost:8000."""
+    import urllib.request
+
+    try:
+        urllib.request.urlopen("http://localhost:8000/health", timeout=2)
+        return True
+    except Exception:
+        return False
+
+
+def _ensure_vllm_running() -> "subprocess.Popen | None":
+    """
+    Launch a local vLLM server if one is not already running.
+
+    Uses `uv run` so vLLM is installed on demand via the script's PEP-723
+    dependency block (no separate pip install step required).
+
+    Returns the Popen handle (caller owns cleanup) or None if a server was
+    already up.
+    """
+    if _vllm_health_ok():
+        logger.info("vLLM already running on localhost:8000 — skipping launch")
+        return None
+
+    if os.environ.get("PIXELATED_SKIP_VLLM") == "1":
+        logger.warning("PIXELATED_SKIP_VLLM=1 — vLLM not launched; NIM fallback only")
+        return None
+
+    model = os.environ.get("PIXELATED_VLLM_MODEL", "gurubot/wayfarer-2-12B")
+    port = int(os.environ.get("PIXELATED_VLLM_PORT", "8000"))
+    gpu_util = os.environ.get("PIXELATED_VLLM_GPU_UTIL", "0.9")
+    log_path = os.environ.get("PIXELATED_VLLM_LOG", "/workspace/vllm_server.log")
+
+    # uv run resolves the vllm dep from the PEP-723 block automatically.
+    cmd = [
+        "uv",
+        "run",
+        "--with",
+        "vllm",
+        "vllm",
+        "serve",
+        model,
+        "--port",
+        str(port),
+        "--gpu-memory-utilization",
+        gpu_util,
+    ]
+    logger.info("Launching vLLM: %s (log -> %s)", " ".join(cmd), log_path)
+    log_f = open(log_path, "w")
+    proc = subprocess.Popen(cmd, stdout=log_f, stderr=subprocess.STDOUT, start_new_session=True)
+
+    # Wait for /health to respond (model download + load can take minutes).
+    import time as _t
+
+    deadline = _t.time() + int(os.environ.get("PIXELATED_VLLM_BOOT_TIMEOUT", "900"))
+    while _t.time() < deadline:
+        if proc.poll() is not None:
+            logger.error("vLLM exited early (code=%d); see %s", proc.returncode, log_path)
+            return None
+        if _vllm_health_ok():
+            logger.info("vLLM ready on localhost:%d (pid=%d)", port, proc.pid)
+            return proc
+        _t.sleep(5)
+    logger.error(
+        "vLLM did not become healthy within %ss; see %s", os.environ.get("PIXELATED_VLLM_BOOT_TIMEOUT", "900"), log_path
+    )
+    proc.terminate()
+    return None
+
+
 if __name__ == "__main__":
     import sys
     from pathlib import Path
@@ -299,6 +371,9 @@ if __name__ == "__main__":
     dataset_name = os.environ.get("PIXELATED_DATASET_NAME", "pixelated_edge_cases")
     artifact_path = Path(os.environ.get("PIXELATED_ARTIFACT_PATH", "/workspace/artifacts"))
     resume_mode = ResumeMode(os.environ.get("PIXELATED_RESUME", "never"))
+
+    # Auto-launch local vLLM so the L40S GPU is actually used.
+    vllm_proc = _ensure_vllm_running()
 
     logger.info(
         "Starting data-designer run: dataset=%s num_records=%d artifact_path=%s resume=%s",
@@ -319,6 +394,14 @@ if __name__ == "__main__":
     except Exception:
         logger.exception("data-designer run failed")
         sys.exit(1)
+    finally:
+        if vllm_proc is not None:
+            logger.info("Shutting down vLLM (pid=%d)", vllm_proc.pid)
+            vllm_proc.terminate()
+            try:
+                vllm_proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                vllm_proc.kill()
 
     try:
         count = results.count_records()
