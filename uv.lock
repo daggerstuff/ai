@@ -17,6 +17,7 @@ constraints = [
     { name = "diskcache", specifier = ">=6.0.0" },
     { name = "dynaconf", specifier = ">=3.2.13" },
     { name = "filelock", specifier = ">=3.20.3" },
+    { name = "gitpython", specifier = ">=3.1.55" },
     { name = "langchain-core", specifier = ">=1.2.22" },
     { name = "nbconvert", specifier = ">=7.17.0" },
     { name = "pillow", specifier = ">=12.1.1" },
