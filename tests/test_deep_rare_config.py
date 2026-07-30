@@ -6,7 +6,7 @@ import os
 
 import pytest
 
-from ai.platform.deep_rare.config import (
+from ai.pkg_mera.platform.deep_rare.config import (
     DeepRareConfig,
     FeatureFlags,
     LoggingConfig,

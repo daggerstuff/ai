@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.core.pipelines.analytics_dashboard import AnalyticsDashboard
+    from ai.pkg_mera.core.pipelines.analytics_dashboard import AnalyticsDashboard
 except ImportError:
     try:
         from ai.models.pixel_core.validation.analytics_dashboard import (

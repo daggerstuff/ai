@@ -16,7 +16,7 @@ from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from ai.platform.patient_psi.api import create_app
+from ai.pkg_mera.platform.patient_psi.api import create_app
 
 
 # ── Helpers ───────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-"""Compatibility wrapper for legacy imports in ``ai.core.api.techdeck_integration.auth.middleware``."""
+"""Compatibility wrapper for legacy imports in ``ai.pkg_mera.core.api.techdeck_integration.auth.middleware``."""
 
 from __future__ import annotations
 

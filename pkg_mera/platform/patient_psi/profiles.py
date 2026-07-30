@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict
 
-from ai.platform.patient_psi.styles import ConversationalStyle
+from ai.pkg_mera.platform.patient_psi.styles import ConversationalStyle
 
 
 class ClinicalProfile(BaseModel):

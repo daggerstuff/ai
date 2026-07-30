@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.core.pipelines.safety_ethics_validator import SafetyEthicsValidator
+    from ai.pkg_mera.core.pipelines.safety_ethics_validator import SafetyEthicsValidator
 except ImportError:
     try:
         from ai.models.pixel_core.validation.safety_ethics_validator import (

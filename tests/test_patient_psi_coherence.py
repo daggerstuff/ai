@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from ai.platform.patient_psi.coherence import CoherenceModel, CoherenceScore
-from ai.platform.patient_psi.profiles import ProfileRegistry
+from ai.pkg_mera.platform.patient_psi.coherence import CoherenceModel, CoherenceScore
+from ai.pkg_mera.platform.patient_psi.profiles import ProfileRegistry
 
 
 class TestCoherenceScore:

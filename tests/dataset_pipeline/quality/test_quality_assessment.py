@@ -1,6 +1,6 @@
 import unittest
 
-from ai.core.pipelines.quality.quality_assessment_framework import (
+from ai.pkg_mera.core.pipelines.quality.quality_assessment_framework import (
     QualityAssessmentFramework,
     QualityTier,
 )

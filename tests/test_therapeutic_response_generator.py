@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.core.pipelines.therapeutic_response_generator import (
+    from ai.pkg_mera.core.pipelines.therapeutic_response_generator import (
         TherapeuticResponseGenerator,
     )
 except ImportError:

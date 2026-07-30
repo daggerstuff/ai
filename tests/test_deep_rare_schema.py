@@ -6,7 +6,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from ai.platform.deep_rare.schema import (
+from ai.pkg_mera.platform.deep_rare.schema import (
     DifferentialDiagnosis,
     DiseaseProfile,
     DiagnosisResult,

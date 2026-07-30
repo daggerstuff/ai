@@ -148,7 +148,7 @@ async def reflect(request):
 
 
 from starlette.routing import Route, Mount
-from ai.platform.patient_psi.api import create_app
+from ai.pkg_mera.platform.patient_psi.api import create_app
 
 patient_psi_app = create_app(prefix="/api/v1/patient-psi")
 

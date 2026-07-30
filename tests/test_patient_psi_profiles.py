@@ -5,8 +5,8 @@ import unittest
 
 import pytest
 
-from ai.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
-from ai.platform.patient_psi.styles import ConversationalStyle
+from ai.pkg_mera.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
+from ai.pkg_mera.platform.patient_psi.styles import ConversationalStyle
 
 
 class TestProfileRegistry(unittest.TestCase):

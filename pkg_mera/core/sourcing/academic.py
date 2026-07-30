@@ -16,7 +16,7 @@ Key Features:
 - Citation graph support
 
 Usage:
-    from ai.core.sourcing.academic import AcademicSourcing
+    from ai.pkg_mera.core.sourcing.academic import AcademicSourcing
 
     sourcing = AcademicSourcing()
     results = sourcing.search(

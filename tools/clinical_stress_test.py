@@ -38,7 +38,7 @@ class ClinicalValidityStressTester:
 
         # Import the clinical validator if available
         try:
-            from ai.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
+            from ai.pkg_mera.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
 
             self.validator = ClinicalAccuracyValidator()
             logger.info("✅ Loaded ClinicalAccuracyValidator for stress testing")

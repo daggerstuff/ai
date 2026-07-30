@@ -6,7 +6,7 @@ import unittest
 import pytest
 from pydantic import ValidationError
 
-from ai.platform.patient_psi.schema import (
+from ai.pkg_mera.platform.patient_psi.schema import (
     BehavioralResponse,
     CognitiveTriad,
     CompensatoryStrategy,

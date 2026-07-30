@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-from ai.core.pipelines.youtube_processor import (
+from ai.pkg_mera.core.pipelines.youtube_processor import (
     AntiDetectionConfig,
     ProxyConfig,
     RateLimitConfig,

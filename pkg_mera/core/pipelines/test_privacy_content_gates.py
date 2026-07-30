@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from core.pipelines.privacy_content_gates import (
+from ai.pkg_mera.core.pipelines.privacy_content_gates import (
     APPROVED_LICENSES,
     EXCEPTION_LICENSES,
     ContentSensitivity,
