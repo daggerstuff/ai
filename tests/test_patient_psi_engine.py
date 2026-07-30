@@ -7,15 +7,15 @@ import time
 import pytest
 from pydantic import ValidationError
 
-from ai.platform.patient_psi.coherence import CoherenceScore
-from ai.platform.patient_psi.engine import (
+from ai.pkg_mera.platform.patient_psi.coherence import CoherenceScore
+from ai.pkg_mera.platform.patient_psi.engine import (
     PatientPsiEngine,
     SimulationConfig,
     SimulationStatus,
 )
-from ai.platform.patient_psi.profiles import ProfileRegistry
-from ai.platform.patient_psi.state_machine import ConversationPhase
-from ai.platform.patient_psi.styles import ConversationalStyle
+from ai.pkg_mera.platform.patient_psi.profiles import ProfileRegistry
+from ai.pkg_mera.platform.patient_psi.state_machine import ConversationPhase
+from ai.pkg_mera.platform.patient_psi.styles import ConversationalStyle
 
 
 class TestSimulationConfig:

@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.core.pipelines.clinical_accuracy_validator import (
+    from ai.pkg_mera.core.pipelines.clinical_accuracy_validator import (
         ClinicalAccuracyValidator,
     )
 except ImportError:

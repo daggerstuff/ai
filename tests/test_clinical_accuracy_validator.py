@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
 Test suite for clinical_accuracy_validator.
-Tests for ai.core.pipelines.clinical_accuracy_validator.ClinicalAccuracyValidator.
+Tests for ai.pkg_mera.core.pipelines.clinical_accuracy_validator.ClinicalAccuracyValidator.
 """
 
 import pytest
 
-from ai.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
+from ai.pkg_mera.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
 
 
 class TestClinicalAccuracyValidator:

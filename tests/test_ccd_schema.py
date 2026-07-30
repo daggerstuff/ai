@@ -7,7 +7,7 @@ Tests for Case Conceptualization Diagram (CCD) data structures.
 import unittest
 from datetime import datetime
 
-from ai.platform.ccd_schema import (
+from ai.pkg_mera.platform.ccd_schema import (
     CCDConceptualization,
     CCDFactor,
     CCDFactorType,

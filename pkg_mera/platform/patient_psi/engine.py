@@ -15,14 +15,14 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from ai.platform.patient_psi.coherence import CoherenceModel, CoherenceScore
-from ai.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
-from ai.platform.patient_psi.state_machine import (
+from ai.pkg_mera.platform.patient_psi.coherence import CoherenceModel, CoherenceScore
+from ai.pkg_mera.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
+from ai.pkg_mera.platform.patient_psi.state_machine import (
     ConversationPhase,
     ConversationState,
     StateMachine,
 )
-from ai.platform.patient_psi.styles import ConversationalStyle, StyleRegistry
+from ai.pkg_mera.platform.patient_psi.styles import ConversationalStyle, StyleRegistry
 
 
 class SimulationConfig(BaseModel):

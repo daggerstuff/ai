@@ -7,7 +7,7 @@ deterministic — no LLM judge is exercised.
 
 import unittest
 
-from ai.core.pipelines.quality.conversation_quality_pattern_analyzer import (
+from ai.pkg_mera.core.pipelines.quality.conversation_quality_pattern_analyzer import (
     HallucinationDetector,
     HallucinationFinding,
     HallucinationReport,
@@ -21,7 +21,7 @@ from ai.core.pipelines.quality.conversation_quality_pattern_analyzer import (
     liebig_quality_score,
     session_distribution,
 )
-from ai.core.pipelines.quality.conversation_schema import Conversation, Message
+from ai.pkg_mera.core.pipelines.quality.conversation_schema import Conversation, Message
 
 
 class TestInquiryTypeClassification(unittest.TestCase):

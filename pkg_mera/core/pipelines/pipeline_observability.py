@@ -28,7 +28,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from ai.core.pipelines.training_readiness_gates import (
+from ai.pkg_mera.core.pipelines.training_readiness_gates import (
     ReadinessResult,
     ReadinessStatus,
 )

@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from ai.platform.deep_rare.pipeline import PipelineConfig, RareDiseasePipeline
-from ai.platform.deep_rare.schema import (
+from ai.pkg_mera.platform.deep_rare.pipeline import PipelineConfig, RareDiseasePipeline
+from ai.pkg_mera.platform.deep_rare.schema import (
     EvaluationMetrics,
     PatientCase,
     SymptomProfile,

@@ -1,4 +1,4 @@
-"""Compatibility shim for legacy imports in ``ai.core.sourcing.youtube.processor``."""
+"""Compatibility shim for legacy imports in ``ai.pkg_mera.core.sourcing.youtube.processor``."""
 
 from __future__ import annotations
 
