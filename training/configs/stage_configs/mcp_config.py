@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ai.core.sourcing.journal.cli.config import load_config
+from ai.pkg_mera.core.sourcing.journal.cli.config import load_config
 
 
 @dataclass

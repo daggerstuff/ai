@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai.platform.patient_psi.styles import (
+from ai.pkg_mera.platform.patient_psi.styles import (
     ConversationalStyle,
     StyleRegistry,
     StyleTemplate,

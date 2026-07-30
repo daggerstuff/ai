@@ -15,7 +15,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from ai.platform.patient_psi.profiles import ClinicalProfile
+from ai.pkg_mera.platform.patient_psi.profiles import ClinicalProfile
 
 # ---------------------------------------------------------------------------
 # Constants

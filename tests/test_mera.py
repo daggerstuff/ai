@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai.platform.mera import (
+from ai.pkg_mera.platform.mera import (
     ClinicalFinding,
     EvidenceType,
     FlatContrastiveTrainer,

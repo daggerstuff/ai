@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import ai.core.pipelines.unsloth_finetune as unsloth_mod
+import ai.pkg_mera.core.pipelines.unsloth_finetune as unsloth_mod
 
 
 class TestUnslothFinetunePipeline:

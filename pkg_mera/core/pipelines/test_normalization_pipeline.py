@@ -3,12 +3,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ai.core.pipelines.processing.data_normalizer import (
+from ai.pkg_mera.core.pipelines.processing.data_normalizer import (
     Conversation,
     DataNormalizer,
     Message,
 )
-from ai.core.pipelines.processing.normalization_pipeline import (
+from ai.pkg_mera.core.pipelines.processing.normalization_pipeline import (
     DedupStrategy,
     DuplicateEvidence,
     NormalizationPipeline,

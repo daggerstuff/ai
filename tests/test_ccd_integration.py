@@ -7,18 +7,18 @@ the existing therapeutic simulation engine and client profile structures.
 
 import unittest
 
-from ai.platform.ccd_integration import (
+from ai.pkg_mera.platform.ccd_integration import (
     CCDIntegration,
     create_difficult_client_from_ccd_template,
     update_ccd_with_simulation_results,
 )
-from ai.platform.ccd_profiles import (
+from ai.pkg_mera.platform.ccd_profiles import (
     get_borderline_traits_ccd_template,
     get_hostile_aggressive_ccd_template,
     get_resistant_ccd_template,
 )
-from ai.platform.ccd_schema import CCDConceptualization
-from ai.platform.pixelated_empathy_core import (
+from ai.pkg_mera.platform.ccd_schema import CCDConceptualization
+from ai.pkg_mera.platform.pixelated_empathy_core import (
     ClientPersonality,
     DifficultClientProfile,
     DifficultyLevel,

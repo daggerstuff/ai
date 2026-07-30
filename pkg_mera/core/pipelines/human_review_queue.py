@@ -22,8 +22,8 @@ Usage
   queue.apply_decision(decision)
 
   # CLI usage
-  # uv run python -m ai.core.pipelines.human_review_queue list
-  # uv run python -m ai.core.pipelines.human_review_queue approve ITEM_ID --reason "..."
+  # uv run python -m ai.pkg_mera.core.pipelines.human_review_queue list
+  # uv run python -m ai.pkg_mera.core.pipelines.human_review_queue approve ITEM_ID --reason "..."
 """
 
 from __future__ import annotations

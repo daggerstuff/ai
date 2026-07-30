@@ -8,7 +8,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Body, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ai.core.pipelines.human_review_queue import (
+from ai.pkg_mera.core.pipelines.human_review_queue import (
     EscalationCriteria,
     HumanReviewQueue,
     ReviewDecision,
