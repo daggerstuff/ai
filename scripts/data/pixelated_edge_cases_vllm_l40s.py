@@ -36,6 +36,9 @@ from pydantic import BaseModel, Field
 from openai import OpenAI
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+# Silence OpenAI client's INFO-level retry spam ("Retrying request to /chat/completions in X seconds").
+# NIM 429 backpressure retries still work, but stay quiet. Actual errors still surface at WARNING+.
+logging.getLogger("openai").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = (
@@ -53,7 +56,7 @@ _KEY_INDEX = 0
 _KEY_LOCK = threading.Lock()
 
 # 1. Local vLLM Engine Client (L40s 80GB GPU)
-VLLM_CLIENT = OpenAI(api_key="vllm", base_url="http://localhost:8000/v1")
+VLLM_CLIENT = OpenAI(api_key="vllm", base_url="http://localhost:8000/v1", max_retries=0)
 
 # 2. Triple NVIDIA NIM Key Rotation Pool
 NVIDIA_KEYS = [
