@@ -4,6 +4,7 @@
 #   "pydantic",
 #   "openai",
 #   "vllm",
+#   "weave",
 # ]
 # ///
 
@@ -36,6 +37,7 @@ from collections import deque
 import data_designer.config as dd
 from pydantic import BaseModel, Field
 from openai import OpenAI
+import weave
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 # Silence OpenAI client's INFO-level retry spam ("Retrying request to /chat/completions in X seconds").
@@ -83,6 +85,7 @@ def get_next_nim_client() -> OpenAI:
         return client
 
 
+@weave.op
 def execute_vllm_local(prompt: str) -> str:
     """High-speed local inference on NVIDIA L40s 80GB GPU via vLLM."""
     try:
@@ -99,6 +102,7 @@ def execute_vllm_local(prompt: str) -> str:
         return ""
 
 
+@weave.op
 def execute_nim_request(model: str, prompt: str) -> str:
     """Executes request across triple-key NVIDIA NIM pool."""
     client = get_next_nim_client()
@@ -116,6 +120,7 @@ def execute_nim_request(model: str, prompt: str) -> str:
         return ""
 
 
+@weave.op
 @dd.custom_column_generator(
     required_columns=["category", "diagnosis", "persona_niche", "client_name"],
     side_effect_columns=["messages", "turns_count"],
@@ -376,6 +381,8 @@ if __name__ == "__main__":
 
     # Auto-launch local vLLM so the L40S GPU is actually used.
     vllm_proc = _ensure_vllm_running()
+
+    weave.init(os.environ.get("PIXELATED_WEAVE_PROJECT", "pixelated-empathy-kan28"))
 
     logger.info(
         "Starting data-designer run: dataset=%s num_records=%d artifact_path=%s resume=%s",
