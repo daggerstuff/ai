@@ -8,6 +8,7 @@ Mera-inspired hierarchical clinical prediction with Memorize & Rank:
 
 from .candidate_retrieval import CandidateDiagnosis, CandidateRetrievalEngine, RetrievalEvidence
 from .evidence_scoring import EvidenceFinding, EvidenceScoringEngine, ScoredDiagnosis
+from .rare_disease_pipeline import RareDiseaseInferenceService
 
 __all__ = [
     "CandidateDiagnosis",
@@ -16,4 +17,5 @@ __all__ = [
     "EvidenceFinding",
     "EvidenceScoringEngine",
     "ScoredDiagnosis",
+    "RareDiseaseInferenceService",
 ]
