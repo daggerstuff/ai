@@ -90,7 +90,7 @@ def execute_vllm_local(prompt: str) -> str:
     """High-speed local inference on NVIDIA L40s 80GB GPU via vLLM."""
     try:
         res = VLLM_CLIENT.chat.completions.create(
-            model="gurubot/wayfarer-2-12B",
+            model="LatitudeGames/Wayfarer-12B",
             messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
             max_tokens=1500,
             temperature=0.85,
@@ -324,7 +324,7 @@ def _ensure_vllm_running() -> "subprocess.Popen | None":
         logger.warning("PIXELATED_SKIP_VLLM=1 — vLLM not launched; NIM fallback only")
         return None
 
-    model = os.environ.get("PIXELATED_VLLM_MODEL", "gurubot/wayfarer-2-12B")
+    model = os.environ.get("PIXELATED_VLLM_MODEL", "LatitudeGames/Wayfarer-12B")
     port = int(os.environ.get("PIXELATED_VLLM_PORT", "8000"))
     gpu_util = os.environ.get("PIXELATED_VLLM_GPU_UTIL", "0.9")
     log_path = os.environ.get("PIXELATED_VLLM_LOG", "/workspace/vllm_server.log")
