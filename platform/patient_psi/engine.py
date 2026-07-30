@@ -78,8 +78,8 @@ class SimulationSession:
     style: ConversationalStyle
     turns: list[SimulationTurn] = field(default_factory=list)
     status: SimulationStatus = SimulationStatus.ACTIVE
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class SessionNotFoundError(KeyError):
