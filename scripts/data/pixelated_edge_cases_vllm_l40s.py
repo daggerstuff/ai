@@ -29,6 +29,7 @@ import logging
 import os
 import random
 import subprocess
+import sys
 import time
 import threading
 from collections import deque
@@ -323,12 +324,13 @@ def _ensure_vllm_running() -> "subprocess.Popen | None":
     gpu_util = os.environ.get("PIXELATED_VLLM_GPU_UTIL", "0.9")
     log_path = os.environ.get("PIXELATED_VLLM_LOG", "/workspace/vllm_server.log")
 
-    # uv run resolves the vllm dep from the PEP-723 block automatically.
+    # The parent `uv run` already installed vllm into this env, so the `vllm`
+    # CLI lives next to sys.executable. Prepend that dir to PATH so the
+    # subprocess can find it without re-invoking uv (and without needing uv on PATH).
+    venv_bin = os.path.dirname(sys.executable)
+    env = os.environ.copy()
+    env["PATH"] = venv_bin + os.pathsep + env.get("PATH", "")
     cmd = [
-        "uv",
-        "run",
-        "--with",
-        "vllm",
         "vllm",
         "serve",
         model,
@@ -339,7 +341,7 @@ def _ensure_vllm_running() -> "subprocess.Popen | None":
     ]
     logger.info("Launching vLLM: %s (log -> %s)", " ".join(cmd), log_path)
     log_f = open(log_path, "w")
-    proc = subprocess.Popen(cmd, stdout=log_f, stderr=subprocess.STDOUT, start_new_session=True)
+    proc = subprocess.Popen(cmd, stdout=log_f, stderr=subprocess.STDOUT, start_new_session=True, env=env)
 
     # Wait for /health to respond (model download + load can take minutes).
     import time as _t
