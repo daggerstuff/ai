@@ -17,7 +17,7 @@ from unittest import mock
 import pandas as pd
 import pytest
 
-from ai.core.pipelines.processing import clean
+from ai.pkg_mera.core.pipelines.processing import clean
 
 
 @pytest.fixture

@@ -36,10 +36,10 @@ import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-# Ensure ai.core.pipelines is on path
+# Ensure ai.pkg_mera.core.pipelines is on path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.core.pipelines.acquisition_rubric import (
+from ai.pkg_mera.core.pipelines.acquisition_rubric import (
     GATE_1_DEDUP_CEILING,
     GATE_1_RELEVANCE_FLOOR,
     GATE_1_SCHEMA_FLOOR,
@@ -378,7 +378,7 @@ def evaluate_gate2(
     schema_cov: float,
 ) -> Gate2Results:
     """Gate 2: net retention + schema validation after normalization."""
-    from ai.core.pipelines.processing.data_normalizer import DataNormalizer
+    from ai.pkg_mera.core.pipelines.processing.data_normalizer import DataNormalizer
 
     normalizer = DataNormalizer()
     passed = 0

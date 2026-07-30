@@ -7,8 +7,8 @@ import logging
 
 import pytest
 
-from ai.platform.deep_rare.clinical_safety import AuditAction, AuditTrail, SafetyLevel, SafetyViolation
-from ai.platform.deep_rare.observability import (
+from ai.pkg_mera.platform.deep_rare.clinical_safety import AuditAction, AuditTrail, SafetyLevel, SafetyViolation
+from ai.pkg_mera.platform.deep_rare.observability import (
     AuditExporter,
     HealthSnapshot,
     MetricsCollector,
@@ -16,7 +16,7 @@ from ai.platform.deep_rare.observability import (
     StructuredFormatter,
     TraceContext,
 )
-from ai.platform.deep_rare.schema import (
+from ai.pkg_mera.platform.deep_rare.schema import (
     DiagnosisResult,
     DifferentialDiagnosis,
     EvaluationMetrics,

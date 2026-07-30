@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from ai.core.pipelines.acquisition_rubric import (
+from ai.pkg_mera.core.pipelines.acquisition_rubric import (
     APPROVED_LICENSES,
     AcquisitionRubric,
     AcquisitionScore,

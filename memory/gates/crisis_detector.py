@@ -13,7 +13,7 @@ from enum import StrEnum
 from re import Pattern
 from typing import Any, ClassVar
 
-from ai.core.pipelines.crisis_intervention_detector import (
+from ai.pkg_mera.core.pipelines.crisis_intervention_detector import (
     CrisisInterventionDetector,
     CrisisInterventionResult,
 )

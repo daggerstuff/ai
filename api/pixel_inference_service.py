@@ -60,11 +60,11 @@ from inference_wrapper import (  # type: ignore[import-untyped]
 # PIX-3912: Mera Hierarchical Clinical Prediction imports
 # ---------------------------------------------------------------------------
 try:
-    from ai.core.pipelines.inference.candidate_retrieval import (
+    from ai.pkg_mera.core.pipelines.inference.candidate_retrieval import (
         CandidateDiagnosis,
         CandidateRetrievalEngine,
     )
-    from ai.core.pipelines.inference.evidence_scoring import (
+    from ai.pkg_mera.core.pipelines.inference.evidence_scoring import (
         EvidenceFinding,
         EvidenceScoringEngine,
         ScoredDiagnosis,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai.core.pipelines.training_readiness_gates import (
+from ai.pkg_mera.core.pipelines.training_readiness_gates import (
     STAGE_QUALITY_THRESHOLDS,
     GateResult,
     ReadinessGate,

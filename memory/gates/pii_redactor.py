@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from ai.core.pipelines.processing.pii_scrubber import (
+from ai.pkg_mera.core.pipelines.processing.pii_scrubber import (
     PiiScrubber,
     PiiScrubberConfig,
     ScrubResult,

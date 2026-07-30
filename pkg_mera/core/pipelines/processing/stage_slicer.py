@@ -6,7 +6,7 @@ Splits validated corpus into stage-specific slices for training.
 Each slice is small enough to inspect and version cleanly.
 
 Usage:
-    python -m ai.core.pipelines.processing.stage_slicer --output-dir ai/data/staged_datasets
+    python -m ai.pkg_mera.core.pipelines.processing.stage_slicer --output-dir ai/data/staged_datasets
 """
 
 import argparse
