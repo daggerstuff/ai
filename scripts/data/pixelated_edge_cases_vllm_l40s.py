@@ -487,6 +487,7 @@ if __name__ == "__main__":
 
     from data_designer.interface import DataDesigner
     from data_designer.engine.storage.artifact_storage import ResumeMode
+    from data_designer.config.run_config import RunConfig
 
     num_records = int(os.environ.get("PIXELATED_NUM_RECORDS", "10"))
     dataset_name = os.environ.get("PIXELATED_DATASET_NAME", "pixelated_edge_cases")
@@ -518,6 +519,15 @@ if __name__ == "__main__":
 
     try:
         dd_runner = DataDesigner(artifact_path=artifact_path)
+        dd_runner.set_run_config(
+            RunConfig(
+                max_concurrent_row_groups=int(os.environ.get("PIXELATED_MAX_ROW_GROUPS", "10")),
+                non_inference_max_parallel_workers=int(os.environ.get("PIXELATED_MAX_WORKERS", "16")),
+                buffer_size=int(os.environ.get("PIXELATED_BUFFER_SIZE", "500")),
+                max_in_flight_tasks=int(os.environ.get("PIXELATED_MAX_IN_FLIGHT", "2048")),
+                otel_metrics_port=None,
+            )
+        )
         results = dd_runner.create(
             load_config_builder(),
             num_records=num_records,
