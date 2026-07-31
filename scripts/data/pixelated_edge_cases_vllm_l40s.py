@@ -60,6 +60,68 @@ _QUEUE_LOCK = threading.Lock()
 _KEY_INDEX = 0
 _KEY_LOCK = threading.Lock()
 
+_MAX_QUEUE_SIZE = 50
+_producer_running = False
+
+
+def _build_batch_prompt(persona: str = "a client", diag: str = "various conditions") -> str:
+    return (
+        f"Generate 5 distinct realistic 4-turn therapy dialogues between clients ({persona}, {diag}) and Pixel (therapist). "
+        f"Each session must have 4 alternate turns (user, assistant, user, assistant). "
+        f'Output strictly JSON matching: {{"sessions": [[{{"role": "user"|"assistant", "content": "..."}}]]}}'
+    )
+
+
+def _parse_sessions(raw_payload: str) -> list:
+    if not raw_payload:
+        return []
+    try:
+        clean_json = raw_payload.replace("```json", "").replace("```", "").strip()
+        data = json.loads(clean_json)
+        if isinstance(data, dict) and "sessions" in data and isinstance(data["sessions"], list):
+            result = []
+            for s in data["sessions"]:
+                if isinstance(s, list) and len(s) > 0:
+                    result.append([{"role": "system", "content": SYSTEM_PROMPT}] + s)
+            return result
+    except Exception:
+        pass
+    return []
+
+
+def _wayfarer_producer():
+    """Background thread: continuously fills _WAYFARER_QUEUE via local vLLM."""
+    while _producer_running:
+        with _QUEUE_LOCK:
+            if len(_WAYFARER_QUEUE) >= _MAX_QUEUE_SIZE:
+                time.sleep(0.5)
+                continue
+        raw = execute_vllm_local(_build_batch_prompt())
+        sessions = _parse_sessions(raw)
+        if sessions:
+            with _QUEUE_LOCK:
+                _WAYFARER_QUEUE.extend(sessions)
+        else:
+            time.sleep(1)
+
+
+def _nim_producer():
+    """Background thread: continuously fills _NIM_QUEUE via NVIDIA NIM."""
+    while _producer_running:
+        with _QUEUE_LOCK:
+            if len(_NIM_QUEUE) >= _MAX_QUEUE_SIZE:
+                time.sleep(0.5)
+                continue
+        nim_m = random.choice(["meta/llama-3.1-8b-instruct", "nvidia/llama-3.1-nemotron-70b-instruct"])
+        raw = execute_nim_request(nim_m, _build_batch_prompt())
+        sessions = _parse_sessions(raw)
+        if sessions:
+            with _QUEUE_LOCK:
+                _NIM_QUEUE.extend(sessions)
+        else:
+            time.sleep(1)
+
+
 # 1. Local vLLM Engine Client (L40s 80GB GPU)
 VLLM_CLIENT = OpenAI(api_key="vllm", base_url="http://localhost:8000/v1", max_retries=0)
 
@@ -143,11 +205,7 @@ def generate_curated_session(row: dict) -> dict:
             row["curated_session"] = f"{cat}:{diag}:{name}"
             return row
 
-    batch_prompt = (
-        f"Generate 5 distinct realistic 4-turn therapy dialogues between clients ({persona}, {diag}) and Pixel (therapist). "
-        f"Each session must have 4 alternate turns (user, assistant, user, assistant). "
-        f'Output strictly JSON matching: {{"sessions": [[{{"role": "user"|"assistant", "content": "..."}}]]}}'
-    )
+    batch_prompt = _build_batch_prompt(persona, diag)
 
     raw_payload = ""
 
@@ -161,17 +219,7 @@ def generate_curated_session(row: dict) -> dict:
         nim_m = random.choice(["meta/llama-3.1-8b-instruct", "nvidia/llama-3.1-nemotron-70b-instruct"])
         raw_payload = execute_nim_request(nim_m, batch_prompt)
 
-    parsed_sessions = []
-    if raw_payload:
-        try:
-            clean_json = raw_payload.replace("```json", "").replace("```", "").strip()
-            data = json.loads(clean_json)
-            if isinstance(data, dict) and "sessions" in data and isinstance(data["sessions"], list):
-                for s in data["sessions"]:
-                    if isinstance(s, list) and len(s) > 0:
-                        parsed_sessions.append([{"role": "system", "content": SYSTEM_PROMPT}] + s)
-        except Exception:
-            pass
+    parsed_sessions = _parse_sessions(raw_payload)
 
     if not parsed_sessions:
         parsed_sessions = [
@@ -366,9 +414,8 @@ def _ensure_vllm_running() -> "subprocess.Popen | None":
         str(port),
         "--gpu-memory-utilization",
         gpu_util,
-        "--enforce-eager",
         "--max-model-len",
-        os.environ.get("PIXELATED_VLLM_MAX_MODEL_LEN", "8192"),
+        os.environ.get("PIXELATED_VLLM_MAX_MODEL_LEN", "4096"),
     ]
     logger.info("Launching vLLM: %s (log -> %s)", " ".join(cmd), log_path)
     log_f = open(log_path, "w")
@@ -408,6 +455,14 @@ if __name__ == "__main__":
     # Auto-launch local vLLM so the L40S GPU is actually used.
     vllm_proc = _ensure_vllm_running()
 
+    # Start background pre-generator threads to keep queues topped up.
+    _producer_running = True
+    wayfarer_t = threading.Thread(target=_wayfarer_producer, daemon=True)
+    nim_t = threading.Thread(target=_nim_producer, daemon=True)
+    wayfarer_t.start()
+    nim_t.start()
+    logger.info("Background producers started (Wayfarer + NIM queue fillers)")
+
     weave.init(os.environ.get("PIXELATED_WEAVE_PROJECT", "pixelated-empathy-kan28"))
 
     logger.info(
@@ -430,6 +485,9 @@ if __name__ == "__main__":
         logger.exception("data-designer run failed")
         sys.exit(1)
     finally:
+        _producer_running = False
+        wayfarer_t.join(timeout=5)
+        nim_t.join(timeout=5)
         if vllm_proc is not None:
             logger.info("Shutting down vLLM (pid=%d)", vllm_proc.pid)
             vllm_proc.terminate()
