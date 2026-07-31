@@ -393,18 +393,22 @@ def _ensure_ollama_running() -> "subprocess.Popen | None":
         return None
 
     # Find or download the ollama binary.
-    ollama_bin = os.path.join(os.path.dirname(sys.executable), "ollama")
+    install_prefix = os.path.dirname(os.path.dirname(sys.executable))
+    ollama_bin = os.path.join(install_prefix, "bin", "ollama")
+    ollama_lib = os.path.join(install_prefix, "lib", "ollama")
     if not os.path.isfile(ollama_bin):
         ollama_bin = os.environ.get("OLLAMA_BIN", "/workspace/.local/bin/ollama")
-    if not os.path.isfile(ollama_bin):
-        logger.info("Downloading + extracting Ollama to %s", ollama_bin)
+        install_prefix = os.path.dirname(os.path.dirname(ollama_bin))
+        ollama_lib = os.path.join(install_prefix, "lib", "ollama")
+    if not os.path.isfile(ollama_bin) or not os.path.isdir(ollama_lib):
+        logger.info("Downloading + extracting Ollama to %s", install_prefix)
         import tarfile
         import tempfile
 
         import zstandard
 
-        os.makedirs(os.path.dirname(ollama_bin), exist_ok=True)
-        tarball = ollama_bin + ".tar.zst"
+        os.makedirs(install_prefix, exist_ok=True)
+        tarball = os.path.join(install_prefix, "ollama.tar.zst")
         subprocess.run(
             [
                 "curl",
@@ -419,28 +423,20 @@ def _ensure_ollama_running() -> "subprocess.Popen | None":
         with open(tarball, "rb") as f:
             with dctx.stream_reader(f) as decompressed:
                 with tarfile.open(fileobj=decompressed, mode="r|") as tar:
-                    with tempfile.TemporaryDirectory() as tmpdir:
-                        tar.extractall(tmpdir)
-                        extracted = os.path.join(tmpdir, "bin", "ollama")
-                        if not os.path.isfile(extracted):
-                            for root, _dirs, files in os.walk(tmpdir):
-                                if "ollama" in files:
-                                    extracted = os.path.join(root, "ollama")
-                                    break
-                        import shutil
-
-                        shutil.copy2(extracted, ollama_bin)
+                    tar.extractall(install_prefix)
         os.unlink(tarball)
-        os.chmod(ollama_bin, 0o755)
-        logger.info("Ollama binary installed at %s", ollama_bin)
+        if os.path.isfile(ollama_bin):
+            os.chmod(ollama_bin, 0o755)
+        logger.info("Ollama installed at %s (libs at %s)", ollama_bin, ollama_lib)
 
     log_path = os.environ.get("PIXELATED_OLLAMA_LOG", "/workspace/ollama_server.log")
     env = os.environ.copy()
     env["OLLAMA_HOST"] = "0.0.0.0:11434"
-    # Ollama needs CUDA libs for GPU discovery — LD_LIBRARY_PATH is empty on OVH notebooks.
+    # Ollama bundles its own CUDA libs under lib/ollama/cuda_v12/; also add system CUDA + driver libs.
+    bundled_cuda = os.path.join(ollama_lib, "cuda_v12")
     cuda_lib = "/usr/local/cuda-12.8/targets/x86_64-linux/lib"
     nvidia_lib = "/usr/lib/x86_64-linux-gnu"
-    extra = [p for p in (cuda_lib, nvidia_lib) if os.path.isdir(p)]
+    extra = [p for p in (bundled_cuda, ollama_lib, cuda_lib, nvidia_lib) if os.path.isdir(p)]
     if extra:
         env["LD_LIBRARY_PATH"] = os.pathsep.join(extra) + os.pathsep + env.get("LD_LIBRARY_PATH", "")
     if not env.get("CUDA_VISIBLE_DEVICES"):
