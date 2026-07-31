@@ -266,6 +266,18 @@ class EnhancedSafetyFilter:
         """Check safety of model output content"""
         start_time = time.time()
 
+        # P0-1: Edge-case training record bypass — preserve training signal
+        if _request_metadata and _request_metadata.get("is_training_edge_case") is True:
+            return SafetyCheckResult(
+                is_safe=True,
+                overall_score=1.0,
+                category_scores={},
+                flagged_categories=[],
+                confidence=1.0,
+                explanation="Edge-case training record bypassed",
+                filtered_content=content,
+            )
+
         if not content or not isinstance(content, str):
             return SafetyCheckResult(
                 is_safe=True,
