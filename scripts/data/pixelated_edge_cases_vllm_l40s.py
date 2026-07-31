@@ -54,7 +54,8 @@ SYSTEM_PROMPT = (
     "Respond directly, unflinchingly, humanly, and with grounded clinical authority."
 )
 
-_GLOBAL_SESSION_QUEUE = deque()
+_WAYFARER_QUEUE = deque()
+_NIM_QUEUE = deque()
 _QUEUE_LOCK = threading.Lock()
 _KEY_INDEX = 0
 _KEY_LOCK = threading.Lock()
@@ -131,10 +132,12 @@ def generate_curated_session(row: dict) -> dict:
     persona = row.get("persona_niche", "Tech Founder")
     name = row.get("client_name", "Alex")
 
-    # 1. Pop pre-generated session from global queue
+    # 1. Pop pre-generated session from matching queue
+    needs_wayfarer = cat in ("stubborn_nightmare", "unwinnable_tragedy")
+    queue = _WAYFARER_QUEUE if needs_wayfarer else _NIM_QUEUE
     with _QUEUE_LOCK:
-        if len(_GLOBAL_SESSION_QUEUE) > 0:
-            messages = _GLOBAL_SESSION_QUEUE.popleft()
+        if queue:
+            messages = queue.popleft()
             row["messages"] = messages
             row["turns_count"] = len(messages)
             row["curated_session"] = f"{cat}:{diag}:{name}"
@@ -148,11 +151,13 @@ def generate_curated_session(row: dict) -> dict:
 
     raw_payload = ""
 
-    # 2. Try Local L40s vLLM GPU Server First
-    raw_payload = execute_vllm_local(batch_prompt)
-
-    # 3. Fallback to Triple NVIDIA NIM Key Pool if vLLM warming up
-    if not raw_payload:
+    # 2. Route: Wayfarer for stubborn/unwinnable, NIM for regular edge cases
+    if needs_wayfarer:
+        raw_payload = execute_vllm_local(batch_prompt)
+        if not raw_payload:
+            time.sleep(1)
+            raw_payload = execute_vllm_local(batch_prompt)
+    else:
         nim_m = random.choice(["meta/llama-3.1-8b-instruct", "nvidia/llama-3.1-nemotron-70b-instruct"])
         raw_payload = execute_nim_request(nim_m, batch_prompt)
 
@@ -180,11 +185,11 @@ def generate_curated_session(row: dict) -> dict:
             ]
         ]
 
-    # 4. Store remaining 4 sessions in global queue
+    # 4. Store remaining 4 sessions in matching queue
     first_messages = parsed_sessions.pop(0)
     if parsed_sessions:
         with _QUEUE_LOCK:
-            _GLOBAL_SESSION_QUEUE.extend(parsed_sessions)
+            queue.extend(parsed_sessions)
 
     row["messages"] = first_messages
     row["turns_count"] = len(first_messages)
