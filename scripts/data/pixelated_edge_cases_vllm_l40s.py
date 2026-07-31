@@ -4,6 +4,7 @@
 #   "pydantic",
 #   "openai",
 #   "weave",
+#   "zstandard",
 # ]
 # ///
 
@@ -396,12 +397,42 @@ def _ensure_ollama_running() -> "subprocess.Popen | None":
     if not os.path.isfile(ollama_bin):
         ollama_bin = os.environ.get("OLLAMA_BIN", "/workspace/.local/bin/ollama")
     if not os.path.isfile(ollama_bin):
-        logger.info("Downloading Ollama binary to %s", ollama_bin)
-        import urllib.request
+        logger.info("Downloading + extracting Ollama to %s", ollama_bin)
+        import tarfile
+        import tempfile
+
+        import zstandard
 
         os.makedirs(os.path.dirname(ollama_bin), exist_ok=True)
-        urllib.request.urlretrieve("https://ollama.com/download/ollama-linux-amd64", ollama_bin)
+        tarball = ollama_bin + ".tar.zst"
+        subprocess.run(
+            [
+                "curl",
+                "-fsSL",
+                "-o",
+                tarball,
+                "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst",
+            ],
+            check=True,
+        )
+        dctx = zstandard.ZstdDecompressor()
+        with open(tarball, "rb") as f:
+            with dctx.stream_reader(f) as decompressed:
+                with tarfile.open(fileobj=decompressed, mode="r|") as tar:
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        tar.extractall(tmpdir)
+                        extracted = os.path.join(tmpdir, "bin", "ollama")
+                        if not os.path.isfile(extracted):
+                            for root, _dirs, files in os.walk(tmpdir):
+                                if "ollama" in files:
+                                    extracted = os.path.join(root, "ollama")
+                                    break
+                        import shutil
+
+                        shutil.copy2(extracted, ollama_bin)
+        os.unlink(tarball)
         os.chmod(ollama_bin, 0o755)
+        logger.info("Ollama binary installed at %s", ollama_bin)
 
     log_path = os.environ.get("PIXELATED_OLLAMA_LOG", "/workspace/ollama_server.log")
     env = os.environ.copy()
