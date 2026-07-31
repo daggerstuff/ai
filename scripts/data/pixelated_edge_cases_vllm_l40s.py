@@ -437,6 +437,14 @@ def _ensure_ollama_running() -> "subprocess.Popen | None":
     log_path = os.environ.get("PIXELATED_OLLAMA_LOG", "/workspace/ollama_server.log")
     env = os.environ.copy()
     env["OLLAMA_HOST"] = "0.0.0.0:11434"
+    # Ollama needs CUDA libs for GPU discovery — LD_LIBRARY_PATH is empty on OVH notebooks.
+    cuda_lib = "/usr/local/cuda-12.8/targets/x86_64-linux/lib"
+    nvidia_lib = "/usr/lib/x86_64-linux-gnu"
+    extra = [p for p in (cuda_lib, nvidia_lib) if os.path.isdir(p)]
+    if extra:
+        env["LD_LIBRARY_PATH"] = os.pathsep.join(extra) + os.pathsep + env.get("LD_LIBRARY_PATH", "")
+    if not env.get("CUDA_VISIBLE_DEVICES"):
+        env["CUDA_VISIBLE_DEVICES"] = "0"
     cmd = [ollama_bin, "serve"]
     logger.info("Launching Ollama: %s (log -> %s)", " ".join(cmd), log_path)
     log_f = open(log_path, "w")
