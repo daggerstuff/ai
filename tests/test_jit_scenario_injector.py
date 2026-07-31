@@ -1,7 +1,8 @@
 """Tests for the JIT scenario injector (IMPLEMENTATION_PLAN.md work #3)."""
 
 import unittest
-from unittest.mock import patch
+from dataclasses import dataclass
+from unittest.mock import MagicMock, patch
 
 from triggers.jit_scenario_injector import (
     DEFAULT_DIFFICULTY,
@@ -10,6 +11,7 @@ from triggers.jit_scenario_injector import (
     JITScenarioInjector,
     TriggerDecision,
     inject_for_decision,
+    subscribe_to_event_bus,
 )
 
 
@@ -182,7 +184,169 @@ class JITScenarioInjectorTest(unittest.TestCase):
         decision = TriggerDecision(should_trigger=True, clinician_id="c1")
         with patch("triggers.jit_scenario_injector._injector") as mock_injector:
             inject_for_decision(decision, domain_gap="g")
-            mock_injector.inject_for_decision.assert_called_once_with(decision, domain_gap="g", difficulty=None)
+            mock_injector.inject_for_decision.assert_called_once_with(
+                decision, domain_gap="g", difficulty=None, session_context=None
+            )
+
+    def test_is_training_edge_case_tag_in_block_content(self):
+        injector, fake_gen, fake_bs = self._injector_with_fakes()
+        decision = TriggerDecision(should_trigger=True, clinician_id="c1")
+        with patch(
+            "triggers.jit_scenario_injector._load_foresight_block_system",
+            return_value=fake_bs,
+        ):
+            result = injector.inject_for_decision(decision)
+        self.assertIsNotNone(result)
+        assert result is not None
+        self.assertIn("is_training_edge_case: true", result["content"])
+
+    def test_hipaa_gate_blocks_non_training_session(self):
+        injector, fake_gen, fake_bs = self._injector_with_fakes()
+        decision = TriggerDecision(should_trigger=True, clinician_id="c1")
+        with patch(
+            "triggers.jit_scenario_injector._load_foresight_block_system",
+            return_value=fake_bs,
+        ):
+            result = injector.inject_for_decision(
+                decision, session_context={"is_training_session": False, "session_id": "s1"}
+            )
+        self.assertIsNone(result)
+        self.assertEqual(fake_gen.calls, [])
+
+    def test_hipaa_gate_allows_training_session(self):
+        injector, fake_gen, fake_bs = self._injector_with_fakes()
+        decision = TriggerDecision(should_trigger=True, clinician_id="c1")
+        with patch(
+            "triggers.jit_scenario_injector._load_foresight_block_system",
+            return_value=fake_bs,
+        ):
+            result = injector.inject_for_decision(
+                decision, session_context={"is_training_session": True, "session_id": "s2"}
+            )
+        self.assertIsNotNone(result)
+
+    def test_hipaa_gate_no_context_allows(self):
+        injector, fake_gen, fake_bs = self._injector_with_fakes()
+        decision = TriggerDecision(should_trigger=True, clinician_id="c1")
+        with patch(
+            "triggers.jit_scenario_injector._load_foresight_block_system",
+            return_value=fake_bs,
+        ):
+            result = injector.inject_for_decision(decision, session_context=None)
+        self.assertIsNotNone(result)
+
+
+@dataclass
+class FakeEvent:
+    event_type: str
+    payload: dict
+
+
+class FakeEventType:
+    BIAS_THRESHOLD_EXCEEDED = "bias_threshold_exceeded"
+    CRISIS_THRESHOLD_EXCEEDED = "crisis_threshold_exceeded"
+
+
+class FakeEventBus:
+    def __init__(self):
+        self.subscriptions = {}
+
+    def subscribe(self, event_type, handler):
+        self.subscriptions.setdefault(event_type, []).append(handler)
+
+    def emit(self, event):
+        for handler in self.subscriptions.get(event.event_type, []):
+            handler(event)
+
+
+class EventBusIntegrationTest(unittest.TestCase):
+    def _injector_with_fakes(self):
+        fake_gen = _FakeGenerator()
+        fake_bs = _FakeBlockSystem()
+        injector = JITScenarioInjector(generator=fake_gen)
+        return injector, fake_gen, fake_bs
+
+    def test_subscribe_returns_true_with_event_bus(self):
+        injector, _, _ = self._injector_with_fakes()
+        bus = FakeEventBus()
+        with patch(
+            "triggers.jit_scenario_injector._load_foresight_event_bus",
+            return_value=MagicMock(EventType=FakeEventType),
+        ):
+            result = injector.subscribe_to_event_bus(bus)
+        self.assertTrue(result)
+        self.assertTrue(injector._event_bus_subscribed)
+
+    def test_subscribe_returns_false_without_event_bus(self):
+        injector, _, _ = self._injector_with_fakes()
+        with patch(
+            "triggers.jit_scenario_injector._load_foresight_event_bus",
+            return_value=None,
+        ):
+            result = injector.subscribe_to_event_bus()
+        self.assertFalse(result)
+
+    def test_bias_event_triggers_injection(self):
+        injector, fake_gen, fake_bs = self._injector_with_fakes()
+        bus = FakeEventBus()
+        with (
+            patch(
+                "triggers.jit_scenario_injector._load_foresight_event_bus",
+                return_value=MagicMock(EventType=FakeEventType),
+            ),
+            patch(
+                "triggers.jit_scenario_injector._load_foresight_block_system",
+                return_value=fake_bs,
+            ),
+        ):
+            injector.subscribe_to_event_bus(bus)
+            bus.emit(
+                FakeEvent(
+                    event_type=FakeEventType.BIAS_THRESHOLD_EXCEEDED,
+                    payload={
+                        "clinician_id": "c42",
+                        "overall_bias_score": 0.8,
+                        "detected_biases": ["authority_bias"],
+                    },
+                )
+            )
+        self.assertEqual(len(fake_gen.calls), 1)
+        self.assertEqual(fake_gen.calls[0]["domain_gap"], "authority_bias")
+        self.assertEqual(fake_gen.calls[0]["difficulty"], "critical")
+        self.assertIn("c42", fake_bs.registry.stored[JIT_SCENARIO_BLOCK_LABEL].content)
+
+    def test_crisis_event_triggers_injection(self):
+        injector, fake_gen, fake_bs = self._injector_with_fakes()
+        bus = FakeEventBus()
+        with (
+            patch(
+                "triggers.jit_scenario_injector._load_foresight_event_bus",
+                return_value=MagicMock(EventType=FakeEventType),
+            ),
+            patch(
+                "triggers.jit_scenario_injector._load_foresight_block_system",
+                return_value=fake_bs,
+            ),
+        ):
+            injector.subscribe_to_event_bus(bus)
+            bus.emit(
+                FakeEvent(
+                    event_type=FakeEventType.CRISIS_THRESHOLD_EXCEEDED,
+                    payload={
+                        "clinician_id": "c99",
+                        "overall_bias_score": 0.5,
+                    },
+                )
+            )
+        self.assertEqual(len(fake_gen.calls), 1)
+        self.assertEqual(fake_gen.calls[0]["difficulty"], "high")
+
+    def test_module_level_subscribe_wrapper(self):
+        with patch("triggers.jit_scenario_injector._injector") as mock_injector:
+            mock_injector.subscribe_to_event_bus.return_value = True
+            result = subscribe_to_event_bus(event_bus="fake_bus")
+            mock_injector.subscribe_to_event_bus.assert_called_once_with("fake_bus")
+            self.assertTrue(result)
 
 
 if __name__ == "__main__":
