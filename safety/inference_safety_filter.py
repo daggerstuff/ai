@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from ..dataset_pipeline.traceability_system import TraceabilityManager
+# from ..dataset_pipeline.traceability_system import TraceabilityManager  # TODO: fix import
 from ..monitoring.observability import observability
 
 # Import our existing systems
@@ -23,7 +23,19 @@ from .enhanced_safety_filter import (
     SafetyLevel,
 )
 
+# R1: Receipt emission
+try:
+    from ai.receipts.receipt import ReceiptEnvelope, Ledger
+except ImportError:
+    ReceiptEnvelope = None  # type: ignore
+    Ledger = None  # type: ignore
+
 logger = logging.getLogger(__name__)
+
+# Module-level ledger for receipt chaining
+_receipt_ledger = None
+if Ledger is not None:
+    _receipt_ledger = Ledger()
 
 
 class SafetyFilterMode(Enum):
@@ -51,6 +63,7 @@ class InferenceSafetyResult:
     processing_time_ms: float = 0.0
     traceability_info: dict[str, Any] | None = None
     metadata: dict[str, Any] | None = None
+    receipt_root_hash: str | None = None
 
 
 class InferenceSafetyFilter:
@@ -70,7 +83,7 @@ class InferenceSafetyFilter:
         self.total_requests = 0
         self.last_filtered_content = None
 
-    def set_traceability_manager(self, traceability_manager: TraceabilityManager):
+    def set_traceability_manager(self, traceability_manager: "TraceabilityManager"):
         """Set the traceability manager for tracking filtered content"""
         self.traceability_manager = traceability_manager
         self.logger.info("Traceability manager set for inference safety filter")
@@ -207,6 +220,47 @@ class InferenceSafetyFilter:
         if crisis_detected:
             observability.metrics_collector.increment_counter("inference_crisis_detected")
 
+        # R1: Emit cryptographic receipt for this inference turn
+        receipt_root_hash = None
+        if ReceiptEnvelope is not None and _receipt_ledger is not None:
+            try:
+                model_fingerprint = model_info.get("model_fingerprint") if model_info else None
+                if not model_fingerprint:
+                    model_fingerprint = model_info.get("name", "unknown") if model_info else "unknown"
+
+                prompt_hash = None
+                if user_context and "prompt" in user_context:
+                    prompt_hash = hashlib.sha256(user_context["prompt"].encode()).hexdigest()
+                elif request_metadata and "prompt_hash" in request_metadata:
+                    prompt_hash = request_metadata["prompt_hash"]
+
+                output_hash = hashlib.sha256(content.encode()).hexdigest()
+
+                fhe_ciphertext_hash = None
+                if request_metadata and "fhe_ciphertext_hash" in request_metadata:
+                    fhe_ciphertext_hash = request_metadata["fhe_ciphertext_hash"]
+
+                bias_score = safety_result.overall_score
+
+                parent_receipt_hash = None
+                if request_metadata and "parent_receipt_hash" in request_metadata:
+                    parent_receipt_hash = request_metadata["parent_receipt_hash"]
+                elif _receipt_ledger._receipts:
+                    parent_receipt_hash = _receipt_ledger._receipts[-1].receipt_hash
+
+                receipt = ReceiptEnvelope.compute(
+                    prev_hash=parent_receipt_hash or "0" * 64,
+                    model_fingerprint=model_fingerprint,
+                    prompt_hash=prompt_hash or "0" * 64,
+                    output_hash=output_hash,
+                    fhe_ciphertext_hash=fhe_ciphertext_hash or "0" * 64,
+                )
+                _receipt_ledger.append(receipt)
+                receipt_root_hash = _receipt_ledger.root_hash()
+                logger.debug(f"Receipt emitted: root_hash={receipt_root_hash[:16]}...")
+            except Exception as e:
+                logger.warning(f"Failed to emit receipt: {e}")
+
         return InferenceSafetyResult(
             is_safe=safety_result.is_safe,
             content_filtered=content_filtered,
@@ -226,6 +280,7 @@ class InferenceSafetyFilter:
                 "filter_mode": self.filter_mode.value,
                 "safety_level": self.safety_filter.safety_level.value,
             },
+            receipt_root_hash=receipt_root_hash,
         )
 
     def _create_traceability_record(
