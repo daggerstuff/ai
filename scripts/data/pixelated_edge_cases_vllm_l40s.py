@@ -3,19 +3,18 @@
 #   "data-designer",
 #   "pydantic",
 #   "openai",
-#   "vllm",
 #   "weave",
 # ]
 # ///
 
 """
-High-Speed OVHcloud L40s 80GB GPU vLLM + Triple-Key NVIDIA NIM Generator
-========================================================================
+OVHcloud L40s GPU Ollama + Triple-Key NVIDIA NIM Generator
+==========================================================
 
 Architecture:
-1. Local vLLM Engine on L40s GPU (http://localhost:8000/v1):
-   - Serves Wayfarer-2 / Llama-3 locally on-GPU at 400+ tokens/sec.
-   - Zero network latency, zero rate limits, sub-second 5-session batch output.
+1. Local Ollama Engine on L40s GPU (http://localhost:11434/v1):
+   - Serves Wayfarer-12B + self-after-dark locally on-GPU via GGUF quantized models.
+   - Zero compilation issues, zero network latency, sub-second batch output.
 2. Triple Active NVIDIA NIM Key Pool (Fallback / Augmentation):
    - Key 1: REDACTED_NVIDIA_KEY_1
    - Key 2: REDACTED_NVIDIA_KEY_2
@@ -90,13 +89,29 @@ def _parse_sessions(raw_payload: str) -> list:
 
 
 def _wayfarer_producer():
-    """Background thread: continuously fills _WAYFARER_QUEUE via local vLLM."""
+    """Background thread: fills _WAYFARER_QUEUE via local Ollama (Wayfarer-12B)."""
     while _producer_running:
         with _QUEUE_LOCK:
             if len(_WAYFARER_QUEUE) >= _MAX_QUEUE_SIZE:
                 time.sleep(0.5)
                 continue
-        raw = execute_vllm_local(_build_batch_prompt())
+        raw = execute_ollama("gurubot/wayfarer-2-12B:latest", _build_batch_prompt())
+        sessions = _parse_sessions(raw)
+        if sessions:
+            with _QUEUE_LOCK:
+                _WAYFARER_QUEUE.extend(sessions)
+        else:
+            time.sleep(1)
+
+
+def _wayfarer2_producer():
+    """Background thread: fills _WAYFARER_QUEUE via local Ollama (self-after-dark)."""
+    while _producer_running:
+        with _QUEUE_LOCK:
+            if len(_WAYFARER_QUEUE) >= _MAX_QUEUE_SIZE:
+                time.sleep(0.5)
+                continue
+        raw = execute_ollama("gurubot/self-after-dark:latest", _build_batch_prompt())
         sessions = _parse_sessions(raw)
         if sessions:
             with _QUEUE_LOCK:
@@ -122,8 +137,8 @@ def _nim_producer():
             time.sleep(1)
 
 
-# 1. Local vLLM Engine Client (L40s 80GB GPU)
-VLLM_CLIENT = OpenAI(api_key="vllm", base_url="http://localhost:8000/v1", max_retries=0)
+# 1. Local Ollama Engine Client (L40s GPU, OpenAI-compatible API on port 11434)
+OLLAMA_CLIENT = OpenAI(api_key="ollama", base_url="http://localhost:11434/v1", max_retries=0)
 
 # 2. Triple NVIDIA NIM Key Rotation Pool
 NVIDIA_KEYS = [
@@ -149,19 +164,19 @@ def get_next_nim_client() -> OpenAI:
 
 
 @weave.op
-def execute_vllm_local(prompt: str) -> str:
-    """High-speed local inference on NVIDIA L40s 80GB GPU via vLLM."""
+def execute_ollama(model: str, prompt: str) -> str:
+    """Local inference on L40s GPU via Ollama (OpenAI-compatible API)."""
     try:
-        res = VLLM_CLIENT.chat.completions.create(
-            model="LatitudeGames/Wayfarer-12B",
+        res = OLLAMA_CLIENT.chat.completions.create(
+            model=model,
             messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
             max_tokens=1500,
             temperature=0.85,
-            timeout=10.0,
+            timeout=30.0,
         )
         return res.choices[0].message.content or ""
     except Exception as e:
-        logger.debug("Local vLLM error (falling back to NIM): %s", e)
+        logger.debug("Ollama error (%s): %s", model, e)
         return ""
 
 
@@ -211,10 +226,11 @@ def generate_curated_session(row: dict) -> dict:
 
     # 2. Route: Wayfarer for stubborn/unwinnable, NIM for regular edge cases
     if needs_wayfarer:
-        raw_payload = execute_vllm_local(batch_prompt)
+        model = random.choice(["gurubot/wayfarer-2-12B:latest", "gurubot/self-after-dark:latest"])
+        raw_payload = execute_ollama(model, batch_prompt)
         if not raw_payload:
             time.sleep(1)
-            raw_payload = execute_vllm_local(batch_prompt)
+            raw_payload = execute_ollama(model, batch_prompt)
     else:
         nim_m = random.choice(["meta/llama-3.1-8b-instruct", "nvidia/llama-3.1-nemotron-70b-instruct"])
         raw_payload = execute_nim_request(nim_m, batch_prompt)
@@ -348,96 +364,86 @@ def load_config_builder() -> dd.DataDesignerConfigBuilder:
     return config_builder
 
 
-def _vllm_health_ok() -> bool:
-    """Check if a vLLM server is already listening on localhost:8000."""
+def _ollama_health_ok() -> bool:
+    """Check if a local Ollama server is listening on localhost:11434."""
     import urllib.request
 
     try:
-        urllib.request.urlopen("http://localhost:8000/health", timeout=2)
+        urllib.request.urlopen("http://localhost:11434/api/tags", timeout=2)
         return True
     except Exception:
         return False
 
 
-def _ensure_vllm_running() -> "subprocess.Popen | None":
+def _ensure_ollama_running() -> "subprocess.Popen | None":
     """
-    Launch a local vLLM server if one is not already running.
+    Launch a local Ollama server if one is not already running.
 
-    Uses `uv run` so vLLM is installed on demand via the script's PEP-723
-    dependency block (no separate pip install step required).
-
-    Returns the Popen handle (caller owns cleanup) or None if a server was
-    already up.
+    Downloads the Ollama binary if not installed, starts `ollama serve`,
+    then pulls both therapy models. Returns the Popen handle (caller owns
+    cleanup) or None if a server was already up.
     """
-    if _vllm_health_ok():
-        logger.info("vLLM already running on localhost:8000 — skipping launch")
+    if _ollama_health_ok():
+        logger.info("Ollama already running on localhost:11434 — skipping launch")
         return None
 
-    if os.environ.get("PIXELATED_SKIP_VLLM") == "1":
-        logger.warning("PIXELATED_SKIP_VLLM=1 — vLLM not launched; NIM fallback only")
+    if os.environ.get("PIXELATED_SKIP_OLLAMA") == "1":
+        logger.warning("PIXELATED_SKIP_OLLAMA=1 — Ollama not launched; NIM fallback only")
         return None
 
-    model = os.environ.get("PIXELATED_VLLM_MODEL", "LatitudeGames/Wayfarer-12B")
-    port = int(os.environ.get("PIXELATED_VLLM_PORT", "8000"))
-    gpu_util = os.environ.get("PIXELATED_VLLM_GPU_UTIL", "0.9")
-    log_path = os.environ.get("PIXELATED_VLLM_LOG", "/workspace/vllm_server.log")
+    # Find or download the ollama binary.
+    ollama_bin = os.path.join(os.path.dirname(sys.executable), "ollama")
+    if not os.path.isfile(ollama_bin):
+        ollama_bin = os.environ.get("OLLAMA_BIN", "/workspace/.local/bin/ollama")
+    if not os.path.isfile(ollama_bin):
+        logger.info("Downloading Ollama binary to %s", ollama_bin)
+        import urllib.request
 
-    # The parent `uv run` already installed vllm into this env, so the `vllm`
-    # CLI lives next to sys.executable. Prepend that dir to PATH so the
-    # subprocess can find it without re-invoking uv (and without needing uv on PATH).
-    venv_bin = os.path.dirname(sys.executable)
+        os.makedirs(os.path.dirname(ollama_bin), exist_ok=True)
+        urllib.request.urlretrieve("https://ollama.com/download/ollama-linux-amd64", ollama_bin)
+        os.chmod(ollama_bin, 0o755)
+
+    log_path = os.environ.get("PIXELATED_OLLAMA_LOG", "/workspace/ollama_server.log")
     env = os.environ.copy()
-    env["PATH"] = venv_bin + os.pathsep + env.get("PATH", "")
-
-    import sysconfig
-
-    py_inc = sysconfig.get_path("include")
-    if py_inc and os.path.isfile(os.path.join(py_inc, "Python.h")):
-        env["C_INCLUDE_PATH"] = py_inc + os.pathsep + env.get("C_INCLUDE_PATH", "")
-        env["CPLUS_INCLUDE_PATH"] = py_inc + os.pathsep + env.get("CPLUS_INCLUDE_PATH", "")
-
-    hf_token = env.get("HF_TOKEN") or env.get("HUGGING_FACE_HUB_TOKEN")
-    if not hf_token:
-        for line in open("/workspace/.env"):
-            line = line.strip()
-            if line.startswith("HF_TOKEN="):
-                hf_token = line.split("=", 1)[1]
-                break
-    if hf_token:
-        env["HF_TOKEN"] = hf_token
-        env["HUGGING_FACE_HUB_TOKEN"] = hf_token
-    cmd = [
-        "vllm",
-        "serve",
-        model,
-        "--port",
-        str(port),
-        "--gpu-memory-utilization",
-        gpu_util,
-        "--max-model-len",
-        os.environ.get("PIXELATED_VLLM_MAX_MODEL_LEN", "4096"),
-    ]
-    logger.info("Launching vLLM: %s (log -> %s)", " ".join(cmd), log_path)
+    env["OLLAMA_HOST"] = "0.0.0.0:11434"
+    cmd = [ollama_bin, "serve"]
+    logger.info("Launching Ollama: %s (log -> %s)", " ".join(cmd), log_path)
     log_f = open(log_path, "w")
     proc = subprocess.Popen(cmd, stdout=log_f, stderr=subprocess.STDOUT, start_new_session=True, env=env)
 
-    # Wait for /health to respond (model download + load can take minutes).
+    # Wait for /api/tags to respond.
     import time as _t
 
-    deadline = _t.time() + int(os.environ.get("PIXELATED_VLLM_BOOT_TIMEOUT", "900"))
+    deadline = _t.time() + int(os.environ.get("PIXELATED_OLLAMA_BOOT_TIMEOUT", "300"))
     while _t.time() < deadline:
         if proc.poll() is not None:
-            logger.error("vLLM exited early (code=%d); see %s", proc.returncode, log_path)
+            logger.error("Ollama exited early (code=%d); see %s", proc.returncode, log_path)
             return None
-        if _vllm_health_ok():
-            logger.info("vLLM ready on localhost:%d (pid=%d)", port, proc.pid)
-            return proc
-        _t.sleep(5)
-    logger.error(
-        "vLLM did not become healthy within %ss; see %s", os.environ.get("PIXELATED_VLLM_BOOT_TIMEOUT", "900"), log_path
-    )
-    proc.terminate()
-    return None
+        if _ollama_health_ok():
+            logger.info("Ollama ready on localhost:11434 (pid=%d)", proc.pid)
+            break
+        _t.sleep(3)
+    else:
+        logger.error(
+            "Ollama did not become healthy within %ss; see %s",
+            os.environ.get("PIXELATED_OLLAMA_BOOT_TIMEOUT", "300"),
+            log_path,
+        )
+        proc.terminate()
+        return None
+
+    # Pull both therapy models.
+    models = [
+        os.environ.get("PIXELATED_OLLAMA_MODEL_1", "gurubot/wayfarer-2-12B:latest"),
+        os.environ.get("PIXELATED_OLLAMA_MODEL_2", "gurubot/self-after-dark:latest"),
+    ]
+    for m in models:
+        logger.info("Pulling Ollama model: %s", m)
+        pull_proc = subprocess.Popen([ollama_bin, "pull", m], stdout=log_f, stderr=subprocess.STDOUT, env=env)
+        pull_proc.wait()
+
+    logger.info("All Ollama models pulled and ready")
+    return proc
 
 
 if __name__ == "__main__":
@@ -452,16 +458,18 @@ if __name__ == "__main__":
     artifact_path = Path(os.environ.get("PIXELATED_ARTIFACT_PATH", "/workspace/artifacts"))
     resume_mode = ResumeMode(os.environ.get("PIXELATED_RESUME", "never"))
 
-    # Auto-launch local vLLM so the L40S GPU is actually used.
-    vllm_proc = _ensure_vllm_running()
+    # Auto-launch local Ollama so the L40S GPU is actually used.
+    ollama_proc = _ensure_ollama_running()
 
     # Start background pre-generator threads to keep queues topped up.
     _producer_running = True
     wayfarer_t = threading.Thread(target=_wayfarer_producer, daemon=True)
+    wayfarer2_t = threading.Thread(target=_wayfarer2_producer, daemon=True)
     nim_t = threading.Thread(target=_nim_producer, daemon=True)
     wayfarer_t.start()
+    wayfarer2_t.start()
     nim_t.start()
-    logger.info("Background producers started (Wayfarer + NIM queue fillers)")
+    logger.info("Background producers started (Wayfarer + self-after-dark + NIM)")
 
     weave.init(os.environ.get("PIXELATED_WEAVE_PROJECT", "pixelated-empathy-kan28"))
 
@@ -487,14 +495,15 @@ if __name__ == "__main__":
     finally:
         _producer_running = False
         wayfarer_t.join(timeout=5)
+        wayfarer2_t.join(timeout=5)
         nim_t.join(timeout=5)
-        if vllm_proc is not None:
-            logger.info("Shutting down vLLM (pid=%d)", vllm_proc.pid)
-            vllm_proc.terminate()
+        if ollama_proc is not None:
+            logger.info("Shutting down Ollama (pid=%d)", ollama_proc.pid)
+            ollama_proc.terminate()
             try:
-                vllm_proc.wait(timeout=30)
+                ollama_proc.wait(timeout=30)
             except subprocess.TimeoutExpired:
-                vllm_proc.kill()
+                ollama_proc.kill()
 
     try:
         count = results.count_records()
