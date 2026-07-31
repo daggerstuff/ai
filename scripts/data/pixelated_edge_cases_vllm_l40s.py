@@ -336,6 +336,13 @@ def _ensure_vllm_running() -> "subprocess.Popen | None":
     env = os.environ.copy()
     env["PATH"] = venv_bin + os.pathsep + env.get("PATH", "")
 
+    import sysconfig
+
+    py_inc = sysconfig.get_path("include")
+    if py_inc and os.path.isfile(os.path.join(py_inc, "Python.h")):
+        env["C_INCLUDE_PATH"] = py_inc + os.pathsep + env.get("C_INCLUDE_PATH", "")
+        env["CPLUS_INCLUDE_PATH"] = py_inc + os.pathsep + env.get("CPLUS_INCLUDE_PATH", "")
+
     hf_token = env.get("HF_TOKEN") or env.get("HUGGING_FACE_HUB_TOKEN")
     if not hf_token:
         for line in open("/workspace/.env"):
@@ -354,6 +361,9 @@ def _ensure_vllm_running() -> "subprocess.Popen | None":
         str(port),
         "--gpu-memory-utilization",
         gpu_util,
+        "--enforce-eager",
+        "--max-model-len",
+        os.environ.get("PIXELATED_VLLM_MAX_MODEL_LEN", "8192"),
     ]
     logger.info("Launching vLLM: %s (log -> %s)", " ".join(cmd), log_path)
     log_f = open(log_path, "w")
