@@ -17,6 +17,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
+from ai.api.emotions_service import app as emotions_app
 from ai.api.mcp_server.memory_auth import authorize_memory_access
 from ai.memory.reflection_bootstrap import create_and_start
 
@@ -147,7 +148,8 @@ async def reflect(request):
         return JSONResponse({"error": "Internal server error"}, status_code=500)
 
 
-from starlette.routing import Route, Mount
+from starlette.routing import Mount
+
 from ai.pkg_mera.platform.patient_psi.api import create_app
 
 patient_psi_app = create_app(prefix="/api/v1/patient-psi")
@@ -156,8 +158,10 @@ routes = [
     Route("/", root),
     Route("/health", health),
     Route("/reflect", reflect, methods=["POST"]),
+    Mount("/analyze", app=emotions_app),
     Mount("", app=patient_psi_app),
 ]
+
 
 def get_cors_origins() -> list[str]:
     """Parse allowed CORS origins from the CORS_ORIGINS environment variable.
