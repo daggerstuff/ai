@@ -1,12 +1,28 @@
+import logging
 import os
 import tempfile
 
-import ebooklib
-import fitz
-from bs4 import BeautifulSoup
-from ebooklib import epub
+try:
+    import fitz
+    HAS_PDF = True
+except ImportError:
+    fitz = None
+    HAS_PDF = False
+
+try:
+    import ebooklib
+    from bs4 import BeautifulSoup
+    from ebooklib import epub
+    HAS_EPUB = True
+except ImportError:
+    ebooklib = None
+    epub = None
+    BeautifulSoup = None
+    HAS_EPUB = False
 
 from .s3_streamer import S3Streamer
+
+logger = logging.getLogger(__name__)
 
 
 class BookExtractor:
@@ -15,10 +31,9 @@ class BookExtractor:
     def __init__(self, streamer: S3Streamer):
         self.streamer = streamer
         self.base_prefix = "archive/local_books_import/"
+        self.has_pdf = HAS_PDF
+        self.has_epub = HAS_EPUB
 
-        # We already installed these via uv
-        self.has_pdf = True
-        self.has_epub = True
 
     def chunk_text(self, text, chunk_size=500):
         """Splits text into word chunks."""
