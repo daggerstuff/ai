@@ -35,10 +35,12 @@ import sys
 import time
 import threading
 import urllib.request
+from typing import cast
 from collections import deque
 import data_designer.config as dd
 from pydantic import BaseModel, Field
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam
 import weave
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -154,7 +156,7 @@ def _generate_multiturn_session(client: OpenAI, model: str, system_prompt: str, 
     try:
         resp = client.chat.completions.create(
             model=model,
-            messages=messages,
+            messages=cast(list[ChatCompletionMessageParam], messages),
             max_tokens=500,
             temperature=0.85,
             timeout=60.0,
@@ -169,7 +171,7 @@ def _generate_multiturn_session(client: OpenAI, model: str, system_prompt: str, 
             messages.append({"role": "user", "content": followup})
             resp = client.chat.completions.create(
                 model=model,
-                messages=messages,
+                messages=cast(list[ChatCompletionMessageParam], messages),
                 max_tokens=500,
                 temperature=0.85,
                 timeout=60.0,
