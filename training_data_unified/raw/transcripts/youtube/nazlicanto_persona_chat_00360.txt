@@ -1,0 +1,5 @@
+Speaker 1: Hey! I'm good, thanks! How about you?
+Speaker 2: I'm good, thanks for checking in!
+Speaker 1: Awesome! Where are you from?
+Speaker 2: I come from Toronto, Canada!
+Speaker 1: Sweet! I've always wanted to check out Canada... What's the deal with that place?

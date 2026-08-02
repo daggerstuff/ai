@@ -1,0 +1,18 @@
+User 1: Hi, what's your name?
+User 2: Hi, I'm [name]. What's yours?
+User 1: I'm [name]. What do you like to do for fun?
+User 2: I like to play music, read books, and hang out with friends.
+User 1: Me too! I love to play music, especially guitar. I also love to read. What kind of books do you like to read?
+User 2: I like to read all kinds of books, but I especially like historical fiction and fantasy.
+User 1: I love historical fiction too! I just finished reading a book about the American Revolution. It was so good!
+User 2: That sounds like a great book! I'll have to check it out.
+User 1: You should! It's really good. So, what else do you like to do?
+User 2: I also like to go to the movies, play video games, and watch TV.
+User 1: Me too! I love to go to the movies. I just saw a really good movie last week. It was called "The Batman."
+User 2: I heard that movie was really good! I'm going to have to see it soon.
+User 1: You should! It's definitely worth seeing.
+User 2: So, what are you up to this weekend?
+User 1: I'm not sure yet. I might go to the movies or go out with friends.
+User 2: That sounds like fun! I'm going to hang out with my friends this weekend.
+User 1: Sounds good! Have a nice weekend!
+User 2: You too!

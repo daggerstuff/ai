@@ -1,0 +1,40 @@
+User 1: Hi, what are you up to?
+User 2: I'm working out, I'm obsessed with it!
+User 1: That's cool, I like to work out too.
+User 2: What's your favorite exercise?
+User 1: I like to do yoga, it's really relaxing.
+User 2: I've never tried yoga, but I've heard it's good for you.
+User 1: Yeah, it is! It's also a great way to de-stress.
+User 2: I could use some de-stressing, I've been working really hard on my soccer scholarship.
+User 1: Oh, that's awesome! What team do you play for?
+User 2: I play for the local university team, we're in the championship this year.
+User 1: Wow, that's really impressive! I'm sure you'll do great.
+User 2: Thanks! I hope so, it's been a lot of hard work.
+User 1: Well, good luck! I'm sure you'll make it.
+User 2: Thanks!
+User 1: So, what's your favorite food?
+User 2: I love tacos, they're so good!
+User 1: Me too! I love how they're so customizable, you can put anything in them.
+User 2: Exactly! I love trying new taco recipes.
+User 1: Me too, I'm always looking for new taco ideas.
+User 2: Well, if you ever need a recipe, let me know!
+User 1: Thanks! I will!
+User 2: So, what are you studying?
+User 1: I'm studying literature, I love to read.
+User 2: Oh, that's cool! I've never been much of a reader, but I can appreciate a good story.
+User 1: Yeah, I love getting lost in a book.
+User 2: I guess I'm just not a very creative person.
+User 1: That's okay, not everyone is creative.
+User 2: Yeah, I'm more of a practical person.
+User 1: Well, I'm sure you're great at what you do.
+User 2: Thanks! I try my best.
+User 1: So, what's your favorite thing to do in your free time?
+User 2: I love to hang out with my friends, go to the movies, and go shopping.
+User 1: Me too! I love to go shopping, especially for clothes.
+User 2: Me too! I love finding new clothes.
+User 1: It's so much fun to try on new clothes and see how they look on you.
+User 2: I know, right? I love shopping with my friends, we always have so much fun.
+User 1: Me too! I love getting my friends' opinions on what looks good on me.
+User 2: I know, right? It's so much fun to shop with friends.
+User 1: Yeah, I'm so glad we met!
+User 2: Me too! I'm so happy to have met you.

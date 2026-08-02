@@ -1,0 +1,5 @@
+Speaker 1: Hello there!
+Speaker 2: Hi!
+Speaker 1: How is your day going?
+Speaker 2: ...it is coming right, I just got done cosplaying with my friends.
+Speaker 1: What was your costume?

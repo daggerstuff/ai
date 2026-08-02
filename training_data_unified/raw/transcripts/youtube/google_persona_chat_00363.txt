@@ -1,0 +1,22 @@
+User 1: Hey! I'm (name).
+User 2: Hey, I'm Jovannie. It's nice to meet you!
+User 1: You too! What do you like to do for fun?
+User 2: I like to hang out with my friends, go to concerts, and eat pizza puffs.
+User 1: I like to hang out with my friends too, but I don't like pizza puffs. I hate tomatoes.
+User 2: Really? That's too bad. Pizza puffs are delicious!
+User 1: I know, right? I just can't stand the taste of tomatoes.
+User 2: Well, I guess you can't have everything.
+User 1: Yeah, you're right. What else do you like to do for fun?
+User 2: I also like to go to concerts and play video games.
+User 1: I love concerts! I've been to a few recently.
+User 2: Oh, what bands did you see?
+User 1: I saw Miley Cyrus and PnB Rock.
+User 2: No way! I live down the street from them!
+User 1: That's so cool! I didn't know you lived in Nashville.
+User 2: Yeah, I do. It's a great place to live.
+User 1: I'm sure it is. I've always wanted to visit.
+User 2: You should! It's a beautiful city.
+User 1: Maybe I will one day.
+User 2: I hope you do!
+User 1: Thanks. It was nice talking to you, Jovannie.
+User 2: It was nice talking to you too, (name).

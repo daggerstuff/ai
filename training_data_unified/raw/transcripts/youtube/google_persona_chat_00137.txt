@@ -1,0 +1,41 @@
+User 1: Hello!
+User 2: Hey!
+User 1: What do you like to do for fun?
+User 2: I like to go to comic con, play the guitar, and write short films.
+User 1: Wow, those are all really cool hobbies! I love cats, and I play a lot of video games.
+User 2: I love cats too! I have two of them.
+User 1: That's so cute! I have three.
+User 2: Really? We should have a cat playdate!
+User 1: That would be so fun!
+User 2: I'm free this weekend if you are.
+User 1: I am! Let's do it.
+User 2: Great! I'll bring my cats and you bring yours.
+User 1: Sounds good!
+User 2: I'm excited!
+User 1: Me too!
+User 2: So, what do you do for a living?
+User 1: I'm a cake decorator.
+User 2: That's so cool! I love cakes.
+User 1: Thanks! I love making them.
+User 2: So, what's your favorite cake to make?
+User 1: I love making chocolate cakes.
+User 2: Me too! They're so delicious.
+User 1: I know, right?
+User 2: Do you have any photos of your cakes?
+User 1: Yeah, I have some on my phone.
+User 2: I'd love to see them!
+User 1: Okay, let me show you.
+User 2: Wow, those are amazing!
+User 1: Thanks! I'm glad you like them.
+User 2: I really do. You're a very talented baker.
+User 1: Thanks! I appreciate that.
+User 2: So, what's your favorite video game?
+User 1: I love playing Mario Kart.
+User 2: Me too! That's my favorite too.
+User 1: We should play together sometime.
+User 2: That would be so much fun!
+User 1: Great! I'll bring my Switch.
+User 2: Perfect! I'll bring my Wii U.
+User 1: Sounds good!
+User 2: I'm so excited!
+User 1: Me too

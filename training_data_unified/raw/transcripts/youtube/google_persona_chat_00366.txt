@@ -1,0 +1,28 @@
+User 1: Hi, I'm [user 1's name].
+User 2: Hi, I'm [user 2's name].
+User 1: It's nice to meet you! What do you do for fun?
+User 2: I like to read, write, and spend time with my dogs.
+User 1: That sounds nice. I love to read, too. What kind of books do you like to read?
+User 2: I like to read all kinds of books, but I'm especially interested in animal behavior and animal rights.
+User 1: Oh, that's cool. I'm a big fan of dogs. I have two myself.
+User 2: I love dogs! They're such loyal and loving animals.
+User 1: I know, right? They're the best.
+User 2: I'm also trying to write an ebook on animals.
+User 1: Oh, that's awesome! What's it about?
+User 2: It's about the different types of animals and their behaviors.
+User 1: That sounds really interesting. I'd love to read it when you're finished.
+User 2: Thank you! I'll let you know when it's done.
+User 1: Great! So, what do you do for work?
+User 2: I'm a mall cop.
+User 1: Oh, that's cool! I've never met a mall cop before.
+User 2: It's a fun job. I get to meet a lot of different people.
+User 1: I bet. I imagine you see some pretty interesting things.
+User 2: You're right, I do. But it's all in a day's work.
+User 1: I'm sure. So, what do you do for fun when you're not working?
+User 2: I like to go to the gym, read, and spend time with my dogs.
+User 1: That sounds like a lot of fun. I'm a big fan of the gym, too.
+User 2: I know, right? It's a great way to stay in shape.
+User 1: I agree. So, what are your plans for the future?
+User 2: I'm not sure yet. I'm still trying to figure that out.
+User 1: Well, whatever you decide to do, I'm sure you'll be great at it.
+User 2: Thank you! I appreciate that.

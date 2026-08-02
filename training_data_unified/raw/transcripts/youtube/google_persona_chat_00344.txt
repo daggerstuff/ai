@@ -1,0 +1,20 @@
+User 1: I love going to concerts.
+User 2: Me too! I go to at least 10 a year.
+User 1: That's awesome! I've only been to a few.
+User 2: What's your favorite concert you've ever been to?
+User 1: I think it was Lady Gaga. She was so amazing live.
+User 2: I love Lady Gaga! She's my current favorite singer.
+User 1: She's so talented. I love her music.
+User 2: Have you seen her new concert tour?
+User 1: No, I haven't had a chance yet.
+User 2: You should! It's amazing.
+User 1: I will if I can.
+User 2: You won't regret it.
+User 1: I hope not.
+User 2: So, what do you do for a living?
+User 1: I'm a nurse.
+User 2: Oh, that's cool. I'm a retail worker.
+User 1: Oh, I've heard that can be tough.
+User 2: It can be, but it's not too bad.
+User 1: Well, it's nice to meet you.
+User 2: You too.

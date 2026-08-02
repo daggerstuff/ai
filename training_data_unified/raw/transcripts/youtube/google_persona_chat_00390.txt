@@ -1,0 +1,25 @@
+User 1: Hey, I'm [user 1 name].
+User 2: Hi, I'm [user 2 name].
+User 1: What do you like to do for fun?
+User 2: I like to go to the farmer's market every weekend.
+User 1: Oh, cool! I love going to the farmer's market too.
+User 2: Me too! I love getting fresh produce and supporting local farmers.
+User 1: I know, right? It's so much better than going to the grocery store.
+User 2: I agree! And it's also a lot more fun.
+User 1: So, what do you like to do in Nashville?
+User 2: I like to play music in my spare time.
+User 1: Oh, that's cool! What kind of music do you play?
+User 2: I play guitar and sing.
+User 1: Nice! I play guitar too.
+User 2: Oh, cool! What kind of music do you play?
+User 1: I play a lot of different kinds of music, but I mostly play country music.
+User 2: Oh, nice! I love country music.
+User 1: Me too! It's so relaxing and easy to listen to.
+User 2: I agree! Do you ever go to any concerts?
+User 1: I do! I went to a country music concert last weekend.
+User 2: Oh, cool! Who did you see?
+User 1: I saw Luke Bryan.
+User 2: Oh, nice! I love Luke Bryan.
+User 1: Me too! He's so good live.
+User 2: I agree! I'm so glad we met!
+User 1: Me too! It was nice talking to you.

@@ -1,0 +1,30 @@
+User 1: Hey there!
+User 2: Hello!
+User 1: What's up?
+User 2: Not much, just watching some TV.
+User 1: What are you watching?
+User 2: South Park.
+User 1: I've never seen that show before.
+User 2: It's a really funny show.
+User 1: I'll have to check it out sometime.
+User 2: You should. It's one of my favorites.
+User 1: So, what do you do for fun?
+User 2: I like to go to the movies, hang out with friends, and play video games.
+User 1: I like to go to the movies too. What kind of movies do you like?
+User 2: I like all kinds of movies, but I especially like comedies and action movies.
+User 1: I like comedies too. I think they're a good way to relax.
+User 2: Me too. I like to laugh when I watch movies.
+User 1: So, what's your favorite movie of all time?
+User 2: That's a tough question. I have a lot of favorite movies.
+User 1: Me too. I'm not sure I could pick just one.
+User 2: I think I would have to say my favorite movie is The Shawshank Redemption.
+User 1: I've heard good things about that movie. I'll have to check it out sometime.
+User 2: You should. It's a really great movie.
+User 1: So, what are you doing tomorrow?
+User 2: I'm not sure yet. What are you doing?
+User 1: I'm going to go to the movies. I'm seeing the new Spider-Man movie.
+User 2: Oh, I love Spider-Man! I'm going to see that movie too.
+User 1: Great! We should go together.
+User 2: That would be fun.
+User 1: Cool. I'll pick you up at 7:00.
+User 2: See you then!

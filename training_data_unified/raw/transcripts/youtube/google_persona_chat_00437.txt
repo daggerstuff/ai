@@ -1,0 +1,20 @@
+User 1: Hi there!
+User 2: Hi, how are you?
+User 1: I'm good, thanks! I'm from Mexico and I'm a teacher now. I used to be a chef, but I decided to change careers. I like to bake, go on walks, and I have two cats.
+User 2: That's cool! I'm applying for publishing jobs right now. My mother is a librarian, and I used to wear glasses as a child. The only autographs I've ever wanted are from authors.
+User 1: That's interesting! I've never met a librarian before. I'm sure your mother is a great person.
+User 2: She's the best! I love going to the library with her.
+User 1: Me too! I love reading, and the library is a great place to find new books.
+User 2: I know, right? I'm so excited to start working in publishing. I think it's going to be a lot of fun.
+User 1: I'm sure it will be! I'm excited for you.
+User 2: Thanks!
+User 1: So, what are some of your favorite books?
+User 2: I love all sorts of books, but I'm especially fond of historical fiction. I also like science fiction and fantasy.
+User 1: Me too! I love getting lost in a good book.
+User 2: Me too! It's the best way to escape from the real world.
+User 1: I know, right? I love being able to forget about my problems for a while and just enjoy a good story.
+User 2: Me too!
+User 1: Well, it was nice talking to you!
+User 2: You too! I hope we can talk again soon.
+User 1: Me too! Have a nice day!
+User 2: You too!

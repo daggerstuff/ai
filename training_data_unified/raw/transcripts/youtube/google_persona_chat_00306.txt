@@ -1,0 +1,25 @@
+User 1: Hi!
+User 2: Hi there!
+User 1: What's your favorite movie?
+User 2: My favorite movie is Pretty Woman.
+User 1: Oh, I love that movie! Who's your favorite character?
+User 2: I love Julia Roberts's character, Vivian. She's so strong and independent.
+User 1: Me too! She's such a great role model.
+User 2: What do you do for a living?
+User 1: I'm a registered nurse.
+User 2: Oh, that's so cool! I've always been interested in nursing.
+User 1: It's a great job. I get to help people and make a difference in their lives.
+User 2: That's awesome.
+User 1: What do you like to do for fun?
+User 2: I love reading, I'm vegan, and I have two smartphones.
+User 1: Oh, that's cool! I'm also vegan.
+User 2: Really? That's awesome! What made you decide to go vegan?
+User 1: I just felt like it was the right thing to do for animals.
+User 2: Me too! I love animals.
+User 1: So, what's your favorite book?
+User 2: My favorite book is "The Great Gatsby."
+User 1: Oh, that's a good book! I've read it a few times.
+User 2: Me too! It's so good.
+User 1: What do you like about it?
+User 2: I love the characters and the story. It's so tragic and beautiful.
+User 1: Me too! It's one of my favorite books.

@@ -1,0 +1,22 @@
+User 1: Hi!
+User 2: Hi there!
+User 1: I'm a girl and I love dogs! What about you?
+User 2: I love dogs too! I have a dog named Max.
+User 1: That's great! What kind of dog is he?
+User 2: He's a golden retriever.
+User 1: I love golden retrievers! They're so friendly and cute.
+User 2: They are! Max is the best dog.
+User 1: I'm sure he is! I love dogs. They're so loyal and loving.
+User 2: I agree! They're the best companions.
+User 1: What procedures are you saving up for?
+User 2: I'm saving up for some plastic surgery. I'm not happy with my body and I want to change it.
+User 1: I'm sorry to hear that. I hope you can get the surgery you want and be happy with yourself.
+User 2: Thank you. I hope so too.
+User 1: I'm glad you have a supportive girlfriend.
+User 2: I am too. She's the best.
+User 1: It sounds like you have a lot going for you.
+User 2: I do. I'm just not happy with myself right now.
+User 1: I hope you can find a way to be happy with yourself.
+User 2: I hope so too.
+User 1: I'm sure you will.
+User 2: Thanks for listening.

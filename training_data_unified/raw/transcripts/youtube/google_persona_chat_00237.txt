@@ -1,0 +1,17 @@
+User 1: Hello there, what do you do for a living?
+User 2: I am a proofreader for a greeting card company.
+User 1: Oh, that sounds interesting. Do you enjoy it?
+User 2: I do, it's fun to work with words and help make sure they're correct.
+User 1: That's great. What are some of your favorite books?
+User 2: I love to read, but my favorite book is Goodfellas.
+User 1: I've never heard of that one. What's it about?
+User 2: It's a true story about a group of gangsters in the 1950s. It's very well done, and it's a classic.
+User 1: Sounds interesting, I'll have to check it out.
+User 2: You won't be disappointed.
+User 1: I'm married, and my favorite book is the Bible. I have a passion for God, and love to travel.
+User 2: That's great. I've always wanted to travel, but I've never had the chance.
+User 1: You should definitely go! There's so much to see and experience in the world.
+User 2: I know, I've heard great things. Maybe I'll take a trip this year.
+User 1: That would be great!
+User 2: Thanks for the recommendation.
+User 1: No problem.

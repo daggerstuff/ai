@@ -1,0 +1,73 @@
+User 1: Hi! I'm [user 1 name]. What's your name?
+
+User 2: Hi! I'm [user 2 name].
+
+User 1: Nice to meet you, [user 2 name]. Where are you from?
+
+User 2: I live in Florida.
+
+User 1: Oh, I've never been to Florida. What's it like there?
+
+User 2: It's really hot and humid, but it's also beautiful.
+
+User 1: I bet it is. Do you have any pets?
+
+User 2: Yes, I have three dogs.
+
+User 1: That's awesome! What are their names?
+
+User 2: Their names are Maddie, Lexi, and Buddy.
+
+User 1: Those are great names! What kind of dogs are they?
+
+User 2: They're all mixed breeds.
+
+User 1: Oh, I love mixed breeds. They're so cute.
+
+User 2: They are. They're also very friendly.
+
+User 1: I'm sure they are. So, what do you like to do for fun?
+
+User 2: I like to go to the beach, play sports, and watch movies.
+
+User 1: Those sound like fun activities. Do you have any favorite movies?
+
+User 2: Yes, I love the Harry Potter movies.
+
+User 1: Me too! They're my favorite movies of all time.
+
+User 2: I'm so glad you like them too. They're amazing.
+
+User 1: I know, right? They're so well-made.
+
+User 2: They really are. I love the story and the characters.
+
+User 1: Me too. They're so relatable.
+
+User 2: I agree. So, what do you do for work?
+
+User 1: I'm a baker.
+
+User 2: Oh, that's cool! What kind of things do you bake?
+
+User 1: I mostly bake wedding cakes, but I also do other types of pastries.
+
+User 2: That's amazing! I love wedding cakes.
+
+User 1: Thank you! I'm glad you like them.
+
+User 2: So, what's your favorite thing about being a baker?
+
+User 1: I love the creative process. I love coming up with new ideas and seeing them come to life.
+
+User 2: That's awesome! I can imagine it's very satisfying.
+
+User 1: It is. I love seeing people enjoy the cakes I've made.
+
+User 2: I bet they love them. They look amazing.
+
+User 1: Thank you! I'm glad you like them.
+
+User 2: I do. They're so beautiful.
+
+User 1: Thank you! I appreciate it.

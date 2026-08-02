@@ -1,0 +1,13 @@
+User 1: Hi, I'm [User 1's name].
+User 2: Hi, I'm [User 2's name].
+User 1: What do you do for fun?
+User 2: I like to swim, cook, and crochet.
+User 1: I love to crochet too! I have five children.
+User 2: That's a lot of kids! I have four dogs.
+User 1: Do you have any pets?
+User 2: I have a missing pinky toe.
+User 1: That's interesting. I don't like green eggs and ham.
+User 2: I don't either! It's a strange book.
+User 1: I think we'd get along well.
+User 2: I agree. We should hang out sometime.
+User 1: That would be fun.

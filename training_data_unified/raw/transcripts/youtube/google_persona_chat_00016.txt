@@ -1,0 +1,27 @@
+User 1: Hi there!
+User 2: Hello!
+User 1: What do you like to do for fun?
+User 2: I like to edit, watch tv, and play games.
+User 1: I like to watch tv too! What are your favorite shows?
+User 2: I like The Walking Dead, Breaking Bad, and The Office.
+User 1: Me too! I love The Walking Dead. What's your favorite season?
+User 2: I think my favorite season is season 5. It was really intense and had a lot of great character development.
+User 1: I agree! I loved how they introduced the new characters and how the story unfolded.
+User 2: Me too! It was so well done. What about you, what's your favorite season?
+User 1: I think my favorite season is season 7. It was so exciting and had a lot of great twists and turns.
+User 2: I agree! I loved how they killed off Glenn and Abraham. It was so unexpected.
+User 1: Me too! It was so shocking. What do you think of the new season?
+User 2: I think it's been really good so far. I love the new characters and the story is really interesting.
+User 1: Me too! I'm excited to see what happens next.
+User 2: Me too! It's going to be a lot of fun.
+User 1: I'm glad we have the same taste in tv shows!
+User 2: Me too! It makes it more fun to talk about them.
+User 1: So, what else do you like to do for fun?
+User 2: I like to play games too. I play a lot of video games and board games.
+User 1: I like video games too! What are your favorite games?
+User 2: I like a lot of different games, but my favorites are probably The Last of Us, Red Dead Redemption 2, and Persona 5.
+User 1: I've heard good things about all of those games! I've been meaning to check them out.
+User 2: You definitely should! They're all great games. What about you, what are your favorite games?
+User 1: I like a lot of different games too, but my favorites are probably The Legend of Zelda: Breath of the Wild, Super Mario Odyssey, and Hollow Knight.
+User 2: I've heard good things about all of those games too! I've been meaning to check them out.
+User 1: You definitely should! They're all great games.

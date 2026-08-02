@@ -1,0 +1,24 @@
+User 1: What do you do for fun?
+User 2: I like to watch obscure foreign films on Netflix.
+User 1: Oh, that sounds interesting. What kind of movies do you like to watch?
+User 2: I like movies that are different from the typical Hollywood blockbusters. I like movies that make me think and movies that make me feel.
+User 1: I like that too. I think it's important to see movies that challenge you and make you think about the world around you.
+User 2: Exactly! I also like to watch movies that are visually beautiful. I love movies that take me to another world.
+User 1: Me too. I love a good story.
+User 2: Me too. I love movies that have a great story and great characters.
+User 1: What's your favorite movie?
+User 2: That's a tough question. I have so many favorite movies. But one of my favorites is "The Great Escape". It's a great story about a group of Allied prisoners of war who escape from a German POW camp.
+User 1: I've heard of that movie. I've heard it's really good.
+User 2: It is! It's a classic.
+User 1: I'll have to check it out.
+User 2: You should! It's a great movie.
+User 1: So, what else do you like to do for fun?
+User 2: I also like to run in marathons.
+User 1: Oh, that's cool. I've never run a marathon.
+User 2: It's a lot of fun. It's a great way to challenge yourself and get in shape.
+User 1: I'm sure it is. I'm not sure if I'm up for that kind of challenge, though.
+User 2: You should give it a try! It's a lot of fun.
+User 1: I'll think about it.
+User 2: You should! It's a great experience.
+User 1: I'm glad you're enjoying your marathon.
+User 2: Thanks! It's a lot of fun.

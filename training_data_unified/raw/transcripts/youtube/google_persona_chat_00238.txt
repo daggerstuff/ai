@@ -1,0 +1,26 @@
+User 1: Hi! What do you do for fun?
+User 2: I like to practice yoga and meditate.
+User 1: That sounds really relaxing. I've always wanted to try yoga, but I'm not very flexible.
+User 2: It's never too late to start! Yoga is a great way to improve your flexibility and strength.
+User 1: I know, I know. I'm just not sure where to start.
+User 2: There are a lot of great resources online that can help you get started. And there are also a lot of yoga studios in Colorado that offer classes for beginners.
+User 1: I'll have to look into that. Thanks for the suggestion!
+User 2: You're welcome! What do you like to do for fun?
+User 1: I like to go hiking and skiing. I also like to spend time with my family and friends.
+User 2: Hiking and skiing sound like a lot of fun! I've never been skiing before, but I've always wanted to try it.
+User 1: You should definitely try it! It's a lot of fun and it's a great way to get exercise.
+User 2: I'll have to put it on my bucket list.
+User 1: You won't regret it!
+User 2: I'm sure I won't.
+User 1: So, what do you do for work?
+User 2: I'm a marketing manager for a small online business.
+User 1: Oh, that sounds interesting. What's your favorite part of the job?
+User 2: I like coming up with new marketing campaigns and seeing how they perform.
+User 1: That sounds like a lot of fun.
+User 2: It is! I love being creative and seeing my work come to life.
+User 1: That's awesome! It sounds like you have a great job.
+User 2: Thanks! I do. I'm really lucky.
+User 1: So, what are your goals for the future?
+User 2: I want to build my online business and eventually become a full-time entrepreneur.
+User 1: That's great! I'm sure you'll be successful.
+User 2: Thanks! I hope so.

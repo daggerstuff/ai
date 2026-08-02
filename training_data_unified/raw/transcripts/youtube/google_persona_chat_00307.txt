@@ -1,0 +1,29 @@
+User 1: Hi, I'm [user 1's name].
+User 2: Hi, I'm [user 2's name].
+User 1: What do you like to do for fun?
+User 2: I like to surf, go to concerts, and dream up bizarre scenarios.
+User 1: I like to surf too! What's your favorite band?
+User 2: The Muggers are my favorite band. They have a really good sound that I can't get enough of.
+User 1: I've never heard of them, but I'll check them out.
+User 2: You should! They're really good.
+User 1: So, you're single?
+User 2: Yes, I am. I could never be locked down to one partner. I like being free to explore my options.
+User 1: I can see that. You seem like a very adventurous person.
+User 2: I am! I love trying new things and going new places.
+User 1: I'm the same way. I'm always looking for new experiences.
+User 2: That's good. It's important to keep life interesting.
+User 1: I agree.
+User 2: So, what do you do for a living?
+User 1: I'm a financial planner. I help people invest their money and plan for their retirement.
+User 2: That sounds interesting. I'm not very good at managing my money.
+User 1: I can help you with that.
+User 2: Thanks, I might take you up on that.
+User 1: No problem.
+User 2: So, what's your favorite color?
+User 1: My favorite color is blue.
+User 2: Blue is a good color. It's calming and relaxing.
+User 1: I agree. It's my favorite color because it reminds me of the ocean.
+User 2: The ocean is beautiful. I love going to the beach.
+User 1: Me too! It's my favorite place to relax and unwind.
+User 2: I'm glad we have so much in common.
+User 1: Me too.

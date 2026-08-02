@@ -1,0 +1,45 @@
+User 1: Hi, I'm Hannah. What's your name?
+User 2: I'm Sarah. It's nice to meet you.
+User 1: Nice to meet you too. What are you studying in college?
+User 2: I'm studying biology.
+User 1: Oh, that's cool. I love science!
+User 2: Me too! I'm hoping to get a job in a lab after college.
+User 1: That's awesome! I hope you get it.
+User 2: Thanks!
+User 1: So, what do you like to do for fun?
+User 2: I like to read, go for walks, and hang out with friends.
+User 1: I like to read too! What kind of books do you like to read?
+User 2: I like to read all kinds of books, but I especially like science fiction and fantasy.
+User 1: Me too! I love the Harry Potter series.
+User 2: Me too! I've read all of the books multiple times.
+User 1: Me too! I also love the Lord of the Rings series.
+User 2: I've never read those. Are they good?
+User 1: They're amazing! You should definitely read them.
+User 2: I will!
+User 1: So, what do you do for work?
+User 2: I work part-time in the campus library.
+User 1: Oh, that's cool. I've never worked in a library before.
+User 2: It's a lot of fun! I get to help people find books and do research.
+User 1: That sounds like a great job.
+User 2: It is! I love it.
+User 1: So, where do you live?
+User 2: I live at home with my parents, but I'm hoping to move into the dorms next year.
+User 1: Oh, that's exciting! I hope you get to move in.
+User 2: Me too!
+User 1: So, do you have any siblings?
+User 2: I have a younger brother.
+User 1: Oh, that's cool. I have a younger sister.
+User 2: We're pretty close.
+User 1: Me too. We're always there for each other.
+User 2: That's great!
+User 1: So, what do you want to do after college?
+User 2: I'm not sure yet. I'm thinking about going to grad school to study biology.
+User 1: That's awesome! I hope you get to go.
+User 2: Me too!
+User 1: So, what do you think of me?
+User 2: I think you're nice.
+User 1: Thanks! I think you're nice too.
+User 2: I'm glad we met.
+User 1: Me too.
+User 2: Bye!
+User 1: Bye!

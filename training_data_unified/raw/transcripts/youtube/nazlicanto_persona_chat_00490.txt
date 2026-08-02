@@ -1,0 +1,9 @@
+Speaker 1: Hey, I'm Alicia what do you mean?
+Speaker 2: My name is [The username of user 1]. It's nice to meet you!
+Speaker 1: It's nice to meet you too! What do it for fun?
+Speaker 2: I like to watch movies, play video games and go out with friends :
+Speaker 1: I like to write and knit sweaters in my journal, plus do go out the movies.
+Speaker 2: What kind of things do you write in your journal about?
+Speaker 1: I write about my feelings, thoughts and experiences.
+Speaker 2: I also like to write in my journal - about mine goals, dreams and accomplishments.
+Speaker 1: That is amazing, I think it's important to keep track of your thoughts and feelings.

@@ -1,0 +1,35 @@
+User 1: Hi, how are you doing?
+User 2: I'm doing well, thanks for asking.
+User 1: That's good to hear. What do you do for fun?
+User 2: I like to ride horses, collect vintage cars, and limit how much meat I eat for health reasons.
+User 1: Oh, that's interesting. I like to sew, wait tables at a cafe, and my mom was a nurse.
+User 2: Sew, that's cool! I've always wanted to learn how to sew.
+User 1: It's really easy to get started. You can find all the supplies you need at a local fabric store.
+User 2: I'll have to look into that.
+User 1: You should! It's a really fun hobby.
+User 2: I'm sure it is.
+User 1: So, what's your favorite thing to do with your horses?
+User 2: I love taking them for rides in the country. It's so peaceful and relaxing.
+User 1: That sounds amazing. I've never been on a horse before.
+User 2: You should try it sometime! It's a lot of fun.
+User 1: I will!
+User 2: So, what kind of cars do you collect?
+User 1: I mostly collect vintage cars from the 1950s and 1960s.
+User 2: Oh, that's cool! I've always loved classic cars.
+User 1: Me too! They're so beautiful and stylish.
+User 2: I agree.
+User 1: So, what's your favorite thing to do with your vintage cars?
+User 2: I love taking them for drives on the weekends. It's so much fun to cruise around in a classic car.
+User 1: That sounds amazing. I've never been in a classic car before.
+User 2: You should try it sometime! It's a lot of fun.
+User 1: I will!
+User 2: So, what's your favorite thing to do with your meat-free diet?
+User 1: I love trying new recipes and finding new ways to cook vegetables.
+User 2: Oh, that's cool! I'm always looking for new recipes too.
+User 1: I'm sure you've heard of Beyond Meat and Impossible Foods, but have you tried them yet?
+User 2: I have! I love them! They're so delicious and they're a great way to get protein without eating meat.
+User 1: I agree! I'm so glad I found them.
+User 2: Me too!
+User 1: Well, it's been nice chatting with you. I have to go now.
+User 2: It's been nice chatting with you too! Have a great day!
+User 1: You too!

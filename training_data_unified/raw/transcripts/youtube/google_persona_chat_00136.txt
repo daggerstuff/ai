@@ -1,0 +1,25 @@
+User 1: Hi! What do you like to do for fun?
+User 2: I love to play video games, watch TV, and read. I also love cats.
+User 1: Me too! I love cats too. I have two cats of my own.
+User 2: Oh, that's great! What are their names?
+User 1: Their names are Mittens and Oliver.
+User 2: Those are adorable names!
+User 1: Thanks! What video games do you like to play?
+User 2: I like to play all kinds of video games, but my favorite is probably The Legend of Zelda.
+User 1: Oh, that's a great game! I love the Zelda series too.
+User 2: Me too! I'm so excited for the new one coming out.
+User 1: Me too! I've been waiting for it for years.
+User 2: Me too! It looks like it's going to be amazing.
+User 1: I hope so! I'm sure it will be.
+User 2: Me too!
+User 1: So, what do you want to be when you grow up?
+User 2: I want to be an astronaut. I've always loved space and astronomy.
+User 1: That's awesome! I've always wanted to be an astronaut too, but I know it's really hard to get into the space program.
+User 2: I know it is, but I'm determined to try.
+User 1: I'm sure you'll do great!
+User 2: Thanks! I hope so!
+User 1: So, what else do you like to do?
+User 2: I like to read, play video games, watch TV, and hang out with friends.
+User 1: Me too! I love doing all of those things.
+User 2: Me too! We should hang out sometime.
+User 1: That would be fun! Let's exchange numbers.

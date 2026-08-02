@@ -1,0 +1,27 @@
+User 1: Hi, I'm [user 1 name].
+User 2: Hi, I'm [user 2 name].
+User 1: What do you do for a living?
+User 2: I'm a stay-at-home mom, but I used to be a chef.
+User 1: Oh, that's cool. I'm a journalist, but I sell washers at Sears instead.
+User 2: Why did you change careers?
+User 1: I couldn't find a job in journalism, so I took the first job I could get.
+User 2: That's too bad. I hope you can find a job in journalism soon.
+User 1: Thanks. I'm still looking.
+User 2: Well, good luck.
+User 1: Thanks. What do you like to do for fun?
+User 2: I like to cook, garden, and spend time with my family.
+User 1: That sounds nice. I like to play music, read, and watch movies.
+User 2: What kind of music do you play?
+User 1: I play the bass.
+User 2: Oh, that's cool. I used to play the guitar.
+User 1: What kind of music do you like to listen to?
+User 2: I like all kinds of music, but I mostly listen to rock and pop.
+User 1: Me too. I also like some country music.
+User 2: Oh, I like some country music too.
+User 1: What's your favorite movie?
+User 2: I have a lot of favorite movies, but one of my favorites is The Princess Bride.
+User 1: Oh, I love that movie! It's one of my favorites too.
+User 2: Well, it looks like we have a lot in common.
+User 1: I think so too.
+User 2: I'm glad we met.
+User 1: Me too.

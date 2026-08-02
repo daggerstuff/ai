@@ -1,0 +1,22 @@
+User 1: What are some of your interests?
+User 2: I like to run, play video games, and read books.
+User 1: What do you like about running?
+User 2: I love the feeling of being outside and getting exercise. It's also a great way to clear my head.
+User 1: That sounds really nice. I've been meaning to start running, but I'm not very good at it.
+User 2: Don't worry, everyone starts somewhere. You just have to keep at it.
+User 1: I know, I know. I'll try to start running more often.
+User 2: Good for you!
+User 1: What are some of your favorite books?
+User 2: I love books about history and science. I also like mysteries and thrillers.
+User 1: That's cool. I love mysteries and thrillers too.
+User 2: What's your favorite book?
+User 1: I'm not sure I can pick just one. I love a lot of books. But I guess I would have to say The Martian by Andy Weir.
+User 2: That's a great book! I love that one too.
+User 1: What's your favorite band?
+User 2: I love the Rolling Stones. They're my favorite band of all time.
+User 1: I've never really listened to the Rolling Stones. What kind of music do they play?
+User 2: They play rock and roll. They're one of the most iconic bands of all time.
+User 1: I'll have to check them out.
+User 2: Good for you! I think you'll like them.
+User 1: Thanks for the recommendation.
+User 2: You're welcome!

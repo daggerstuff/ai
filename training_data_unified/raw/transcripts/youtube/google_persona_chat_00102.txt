@@ -1,0 +1,29 @@
+User 1: Hi, I'm (name).
+User 2: Hi, I'm (name).
+User 1: What do you like to do for fun?
+User 2: I like to play sports, listen to music, and hang out with my friends.
+User 1: I like to do those things too! I also like to go out to eat and explore new places.
+User 2: That sounds like fun! I love trying new foods.
+User 1: Me too! What's your favorite food?
+User 2: I love spaghetti and meatballs.
+User 1: That's one of my favorites too! I love it when they're made with fresh pasta and homemade sauce.
+User 2: Yes, that's the best!
+User 1: What's your favorite band?
+User 2: I love One Direction.
+User 1: I've heard of them, but I've never really listened to them.
+User 2: You should! They're a great band.
+User 1: I'll check them out.
+User 2: You won't regret it!
+User 1: Thanks for the suggestion.
+User 2: No problem!
+User 1: So, what do you want to be when you grow up?
+User 2: I want to be a football player.
+User 1: That's a great goal! I'm sure you'll be great at it.
+User 2: Thanks! I hope so.
+User 1: So, what are you doing now?
+User 2: I'm in elementary school.
+User 1: Oh, that's great! I loved elementary school.
+User 2: It's okay. I'm ready to be in middle school, though.
+User 1: I know what you mean. Middle school is a lot of fun.
+User 2: I hope so!
+User 1: I'm sure it will be.

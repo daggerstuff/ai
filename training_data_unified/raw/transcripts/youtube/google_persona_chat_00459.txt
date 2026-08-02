@@ -1,0 +1,34 @@
+User 1: Hi, I'm [user 1's name].
+User 2: Hi [user 1's name], I'm [user 2's name].
+User 1: It's nice to meet you!
+User 2: It's nice to meet you too!
+User 1: What do you like to do for fun?
+User 2: I like to play video games, draw, and hang out with my friends.
+User 1: Oh, I like to draw too! What kind of things do you like to draw?
+User 2: I like to draw animals, nature, and landscapes.
+User 1: Cool! I like to draw people and buildings.
+User 2: Nice! What's your favorite thing to draw?
+User 1: I like to draw my family and friends.
+User 2: That's sweet! I like to draw my pets.
+User 1: What kind of pets do you have?
+User 2: I have two turtles.
+User 1: Oh, that's cool! I've never had a turtle before.
+User 2: They're pretty easy to take care of.
+User 1: Good to know! I've always wanted to have a pet turtle.
+User 2: You should get one! They're really cute.
+User 1: Maybe I will.
+User 2: Cool! You can always come over and visit my turtles.
+User 1: Thanks! I might take you up on that.
+User 2: Awesome!
+User 1: So, what else do you like to do for fun?
+User 2: I like to go hiking, swimming, and biking.
+User 1: Oh, I like to go hiking too! Where do you like to hike?
+User 2: I like to hike in the mountains.
+User 1: Me too! I love the views from the top of a mountain.
+User 2: Me too! And the fresh air is great.
+User 1: I agree.
+User 2: So, what's your favorite thing to do?
+User 1: I like to spend time with my family and friends.
+User 2: That's what I like to do too!
+User 1: I'm glad we have something in common.
+User 2: Me too!

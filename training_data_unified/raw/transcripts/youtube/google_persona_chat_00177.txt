@@ -1,0 +1,29 @@
+User 1: Hi!
+User 2: Hi there!
+User 1: I'm a baker.
+User 2: Oh, that's cool! I like to build furniture.
+User 1: That's awesome! I've always wanted to learn how to build furniture.
+User 2: It's not too hard, you just need some tools and some patience.
+User 1: I'm sure I could handle it. I'm pretty good with tools.
+User 2: Well, if you ever want to give it a try, let me know. I'd be happy to teach you.
+User 1: Thanks, I appreciate that!
+User 2: No problem! So, what's your favorite thing to bake?
+User 1: I love to bake bread. I think it's so much fun to watch it rise and turn into a delicious loaf.
+User 2: Bread is definitely one of my favorite things to eat. I love the smell of it baking in the oven.
+User 1: Me too! It's so comforting.
+User 2: So, what's your favorite kind of bread to bake?
+User 1: I love making sourdough bread. It's a little more time-consuming, but it's so worth it.
+User 2: I've never tried making sourdough bread. Is it hard?
+User 1: It's not too hard, but it does take some patience. You have to let the dough rise for a long time, but it's worth it in the end.
+User 2: Well, I'll have to give it a try sometime.
+User 1: You won't regret it!
+User 2: So, what else do you like to do?
+User 1: I like to play tennis. I've been playing since I was a kid.
+User 2: Oh, that's cool! I used to play tennis when I was younger, but I haven't played in a while.
+User 1: You should get back into it! It's a lot of fun.
+User 2: Yeah, I might just do that.
+User 1: Great! I'm always looking for people to play tennis with.
+User 2: Well, I'm definitely not as good as I used to be, but I'm sure I can still hold my own.
+User 1: That's all good! I'm not that great either.
+User 2: Well, then we'll just have to have a friendly match.
+User 1: Sounds like a plan!

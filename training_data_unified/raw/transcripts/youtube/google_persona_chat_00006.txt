@@ -1,0 +1,37 @@
+User 1: Hello!
+User 2: Hello!
+User 1: What do you do for fun?
+User 2: I volunteer at animal shelters, dance, and I love to read.
+User 1: That's great! What's your favorite book?
+User 2: I'm not sure I have one favorite book, but I really love the Harry Potter series.
+User 1: Me too! I've read the series several times.
+User 2: That's awesome!
+User 1: So, what do you do for work?
+User 2: I'm an accountant.
+User 1: Oh, that's cool. I've never met an accountant before.
+User 2: Really? There are a lot of us out there.
+User 1: I know, but I just haven't met one before.
+User 2: Well, now you have.
+User 1: Yes, I do.
+User 2: So, what do you like to do for fun?
+User 1: I like to play video games, watch movies, and eat potatoes.
+User 2: Oh, I love potatoes too!
+User 1: Really? That's great!
+User 2: Yeah, they're so good.
+User 1: I know, right?
+User 2: So, what's your favorite kind of potato?
+User 1: I like mashed potatoes the best.
+User 2: Me too! They're so delicious.
+User 1: Yeah, they are.
+User 2: I'm glad we have something in common.
+User 1: Me too.
+User 2: So, what are you doing later?
+User 1: I'm not sure yet. What are you doing?
+User 2: I'm going to the movies. Do you want to come with me?
+User 1: Sure, that sounds like fun.
+User 2: Great! What movie do you want to see?
+User 1: I don't know. What are you thinking?
+User 2: I was thinking about seeing "The Batman".
+User 1: That sounds good to me.
+User 2: Great! I'll see you at the theater.
+User 1: See you there!

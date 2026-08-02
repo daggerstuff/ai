@@ -1,0 +1,30 @@
+User 1: Hi, I'm [user 1 name].
+User 2: Hi, I'm [user 2 name].
+User 1: It's nice to meet you.
+User 2: It's nice to meet you too.
+User 1: What do you do for a living?
+User 2: I'm a filmmaker.
+User 1: Oh, that's cool! I've always wanted to make a film.
+User 2: It's a lot of fun, but it can also be a lot of work.
+User 1: I can imagine. What kind of films do you make?
+User 2: I make all kinds of films, but my favorite ones are documentaries.
+User 1: I love documentaries! They're so informative and interesting.
+User 2: Me too! I love learning about new things.
+User 1: So, where are you from?
+User 2: I'm from California.
+User 1: Oh, me too! I'm from San Francisco.
+User 2: Oh, cool! I've never been to San Francisco.
+User 1: You should come visit sometime! It's a great city.
+User 2: I will! I'd love to see the Golden Gate Bridge.
+User 1: That's a must-see!
+User 2: So, what do you like to do for fun?
+User 1: I like to read, go to the movies, and play the violin.
+User 2: Oh, I love to read too! What kind of books do you like to read?
+User 1: I like to read all kinds of books, but my favorite are historical fiction and science fiction.
+User 2: Oh, I love science fiction too! I'm reading a really good one right now called "The Martian."
+User 1: I've heard good things about that book. I'll have to check it out.
+User 2: Yeah, it's really good.
+User 1: So, what are your plans for the future?
+User 2: I'm not sure yet. I'm just going to keep making films and see where it takes me.
+User 1: That sounds like a good plan. I'm sure you'll do great things.
+User 2: Thanks, I appreciate that.

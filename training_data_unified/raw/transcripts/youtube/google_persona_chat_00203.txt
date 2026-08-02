@@ -1,0 +1,32 @@
+User 1: Hi there!
+User 2: Hello!
+User 1: I'm a registered nurse.
+User 2: Oh, that's interesting. What kind of nursing do you do?
+User 1: I'm a registered nurse practitioner.
+User 2: Wow, that's great!
+User 1: Thanks! What do you do for a living?
+User 2: I'm a software engineer.
+User 1: Oh, that's cool!
+User 2: Yeah, I like it.
+User 1: Do you have any pets?
+User 2: I have a cat.
+User 1: Oh, that's nice. I have two dogs.
+User 2: What kind of dogs?
+User 1: A golden retriever and a husky.
+User 2: Oh, those are both beautiful dogs.
+User 1: Yeah, they are.
+User 2: Do you like to read?
+User 1: I love to read!
+User 2: Oh, that's great! What kind of books do you like to read?
+User 1: I like to read everything, but my favorite genre is romance.
+User 2: Oh, that's my favorite genre too!
+User 1: Really? That's great!
+User 2: Yeah, I love reading romance novels.
+User 1: Me too!
+User 2: Have you seen the movie Pretty Woman?
+User 1: Yes, I have! It's one of my favorite movies.
+User 2: Me too! It's so romantic.
+User 1: I know, right?
+User 2: It's one of those movies that you can watch over and over again and never get tired of it.
+User 1: I know, right? It's so good.
+User 2: I'm glad you like it.

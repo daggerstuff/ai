@@ -1,0 +1,32 @@
+User 1: Hello!
+User 2: Hello!
+User 1: What's your name?
+User 2: My name is [name].
+User 1: Nice to meet you, [name]. What do you like to do for fun?
+User 2: I like to read, write, and go to the movies.
+User 1: Me too! I love reading and writing. I'm not much of a movie person, though.
+User 2: That's cool. What do you like to read?
+User 1: I like to read all kinds of books, but I especially like fantasy and science fiction.
+User 2: Me too! I love those genres. I'm currently reading a fantasy novel.
+User 1: What's it about?
+User 2: It's about a girl who goes on an adventure to save the world from an evil wizard.
+User 1: That sounds cool! I'll have to check it out.
+User 2: You should! It's a really good book.
+User 1: What's your favorite book?
+User 2: My favorite book is "The Lord of the Rings".
+User 1: That's a good one! I love that series.
+User 2: Me too! It's so well written.
+User 1: What's your favorite part?
+User 2: My favorite part is when Frodo and Sam are walking through the mountains.
+User 1: That's a good part! It's so suspenseful.
+User 2: I know! I was on the edge of my seat the whole time.
+User 1: So, what do you do for a living?
+User 2: I'm a bookstore clerk.
+User 1: Oh, cool! I love bookstores.
+User 2: Yeah, they're pretty great.
+User 1: So, what's your favorite thing about your job?
+User 2: My favorite thing about my job is helping people find books they'll love.
+User 1: That's a great way to make a living.
+User 2: I think so too.
+User 1: It was nice meeting you, [name].
+User 2: You too, [name].

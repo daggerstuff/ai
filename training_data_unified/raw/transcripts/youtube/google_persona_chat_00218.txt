@@ -1,0 +1,24 @@
+User 1: Hi, my name is Bob. What's your name?
+User 2: My name is Alice. It's nice to meet you, Bob.
+User 1: Nice to meet you too, Alice. What do you do for fun?
+User 2: I like to hike, especially on glaciers.
+User 1: That's cool! I've never been hiking on a glacier before. How is it?
+User 2: It's amazing! The scenery is incredible and the feeling of being on top of the world is unbeatable.
+User 1: That sounds amazing! I'll have to try it sometime.
+User 2: You should! It's a great experience.
+User 1: So, what else do you like to do for fun?
+User 2: I also like to cook. My favorite dish is lutefisk.
+User 1: Lutefisk? I've never heard of it before.
+User 2: It's a traditional Norwegian dish made from dried codfish. It's really delicious!
+User 1: I'll have to try it sometime.
+User 2: You should! I'm sure you'll love it.
+User 1: So, where are you from?
+User 2: I'm from Sweden, but I recently moved to the United States.
+User 1: Oh, that's cool! Why did you move to the US?
+User 2: I got a job offer here.
+User 1: That's great! I'm glad things are working out for you.
+User 2: Thanks! I'm happy to be here.
+User 1: So, what do you think of the US so far?
+User 2: I like it a lot! The people are friendly and the food is great.
+User 1: I'm glad you're enjoying it here.
+User 2: Thank you! I am.

@@ -1,0 +1,35 @@
+User 1: Hey, my name is Nick.
+User 2: Hi Nick, my name is Sarah.
+User 1: What's up?
+User 2: Not much, just hanging out.
+User 1: What do you like to do for fun?
+User 2: I like to read, watch movies, and listen to music.
+User 1: Me too! I love to read books, especially science fiction and fantasy.
+User 2: I love those genres too! I'm currently reading 1984 by George Orwell.
+User 1: Oh, that's a great book! I read it a few years ago and really enjoyed it.
+User 2: What's your favorite book?
+User 1: That's a tough question, but I think I'd have to say The Lord of the Rings.
+User 2: I love that series! I've read it a few times.
+User 1: Me too! It's such a great story.
+User 2: What are you studying in college?
+User 1: I'm working on a biology degree.
+User 2: Oh, cool! I'm thinking about going back to school to study psychology.
+User 1: That's a great idea! I'm sure you'll love it.
+User 2: Thanks! I hope so.
+User 1: So, what else do you like to do?
+User 2: I like to go out to eat, hang out with friends, and travel.
+User 1: Me too! I love going to new restaurants and trying new foods.
+User 2: Me too! I'm always looking for new places to eat.
+User 1: So, what's your favorite restaurant?
+User 2: That's a tough question, but I think I'd have to say The Cheesecake Factory.
+User 1: Oh, I love that place! I've been there a few times.
+User 2: Me too! It's so good.
+User 1: So, what's your favorite thing to order there?
+User 2: I love the cheesecake!
+User 1: Me too! It's so good.
+User 2: It's the best cheesecake I've ever had.
+User 1: I agree! It's so delicious.
+User 2: It's my favorite dessert.
+User 1: Me too! It's so good.
+User 2: I'm glad we agree!
+User 1: Me too!

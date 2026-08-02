@@ -1,0 +1,37 @@
+Speaker 1: What's up!
+Speaker 2: Hey! How's it going?
+Speaker 1: Don't bother being nice! Just chilling - What about you?
+Speaker 2: Not too bad! Just arrived back from campus.
+Speaker 1: What's your major?
+Speaker 2: The field of computer science
+Speaker 1: Wow, that course sounds challenging but really interesting.
+Speaker 2: Yeah, it's challenging, but I like it!
+Speaker 1: What are your goals with your degree?
+Speaker 2: I haven't decided yet, but I might get into programming or web development.
+Speaker 1: You have two solid choices and I'm confident you'll rock it no matter which one you go for.
+Speaker 2: I'm hoping for the same thing!
+Speaker 1: What do you enjoy doing the most?
+Speaker 2: Pizza is my favorite food!
+Speaker 1: What type of pizza do you like the best?
+Speaker 2: Pepperoni and pineapple are the bomb!
+Speaker 1: That combination is something new to me, I've never had it before.
+Speaker 2: You totally gotta try it! It's awesome!
+Speaker 1: I might just do it!
+Speaker 2: Are you currently hitched or what?
+Speaker 1: Yup, I've been hitched for five years.
+Speaker 2: That's awesome! How did you and your wife first meet?
+Speaker 1: We first crossed paths during our high school days.
+Speaker 2: That's really nice!
+Speaker 1: Sure was.
+Speaker 2: What exactly do you do for work?
+Speaker 1: I work in the wedding industry.
+Speaker 2: Oh wow! That job sounds like a blast.
+Speaker 1: I really enjoy assisting individuals in organizing their big events.
+Speaker 2: Awesome!
+Speaker 1: I really enjoy preparing meals and making dessert.
+Speaker 2: What do you like cooking the most?
+Speaker 1: I really enjoy cooking pasta!
+Speaker 2: What pasta dish do you like the most?
+Speaker 1: I'm a big fan of this creamy pesto pasta recipe I have.
+Speaker 2: That sounds yummy, I'll give it a go sometime.
+Speaker 1: You gotta try it! It's awesome.

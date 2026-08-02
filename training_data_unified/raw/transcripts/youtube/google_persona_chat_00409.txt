@@ -1,0 +1,22 @@
+User 1: Hi! I'm [name].
+User 2: Hi, I'm [name].
+User 1: What do you do for fun?
+User 2: I like to draw and paint.
+User 1: That's cool! I like to draw too, but I'm not very good at it.
+User 2: I'm sure you're better than you think.
+User 1: Thanks. What do you like to draw?
+User 2: I like to draw animals and landscapes.
+User 1: Those are fun things to draw. I like drawing people.
+User 2: I can never seem to get people's faces right.
+User 1: I know what you mean. It's hard to get the proportions right.
+User 2: Yeah, it is.
+User 1: Do you have any favorite artists?
+User 2: I like Van Gogh and Monet.
+User 1: Me too! They're both so good.
+User 2: Yeah, they are.
+User 1: What do you like about their work?
+User 2: I like their use of color and light.
+User 1: Me too. It's really beautiful.
+User 2: Yeah, it is.
+User 1: I'm glad we have similar interests.
+User 2: Me too. It's always nice to meet someone who shares your interests.

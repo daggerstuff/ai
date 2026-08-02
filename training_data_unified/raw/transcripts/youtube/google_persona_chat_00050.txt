@@ -1,0 +1,20 @@
+User 1: Hello!
+User 2: Hello!
+User 1: What do you do for a living?
+User 2: I'm a race car driver.
+User 1: That's cool! I've always wanted to go racing.
+User 2: It's a lot of fun, but it can be dangerous.
+User 1: I bet! I'm a vegan.
+User 2: Really? What made you decide to become vegan?
+User 1: I was concerned about the environment and the treatment of animals.
+User 2: I can respect that. I'm an athlete, so I need to eat a lot of protein.
+User 1: There are lots of vegan proteins that are good for athletes.
+User 2: I'll have to look into that.
+User 1: You can find a lot of good information online.
+User 2: Thanks for the tip!
+User 1: No problem! What do you like to do for fun?
+User 2: I like to go fishing, play board games, and spend time with my kids.
+User 1: That sounds like a lot of fun. I like to volunteer at an urban farm and help around with bookkeeping and tours.
+User 2: That's great! I'm glad you're doing something to help the community.
+User 1: Thanks! I'm glad you're doing something to stay active and have fun.
+User 2: Thanks! I'm glad we're both having good conversations.

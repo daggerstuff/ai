@@ -1,0 +1,36 @@
+User 1: Hello, my name is [user 1 name]. What's your name?
+User 2: Hi, my name is Arnold.
+User 1: Nice to meet you, Arnold. What do you like to do for fun?
+User 2: I like to watch TV, play video games, and eat ham and cheese sandwiches.
+User 1: That sounds fun. I like to go to festivals and listen to music.
+User 2: That sounds like fun too. I've never been to a festival before.
+User 1: You should go to one sometime. They're really fun.
+User 2: I will. What's your favorite band?
+User 1: My favorite band is The Story So Far.
+User 2: I've never heard of them before.
+User 1: They're a really good band. You should check them out.
+User 2: I will. Thanks for the recommendation.
+User 1: No problem.
+User 2: Do you have any siblings?
+User 1: Yes, I have two brothers.
+User 2: How old are they?
+User 1: They're 12 and 14.
+User 2: I have a younger sister. She's 8.
+User 1: How old are you?
+User 2: I'm 10.
+User 1: So you're the oldest?
+User 2: Yeah, I am.
+User 1: That must be tough sometimes.
+User 2: It can be, but it's also fun.
+User 1: I'm sure it is.
+User 2: So, what do you do for school?
+User 1: I'm in the 8th grade.
+User 2: Oh, I'm in the 5th grade.
+User 1: Cool.
+User 2: So, what do you want to be when you grow up?
+User 1: I'm not sure yet. I'm thinking about being a teacher.
+User 2: That's a good idea.
+User 1: Thanks.
+User 2: So, what do you want to do for the rest of the day?
+User 1: I'm not sure. Maybe watch some TV.
+User 2: That sounds like fun.

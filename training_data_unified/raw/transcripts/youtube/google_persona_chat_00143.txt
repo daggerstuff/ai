@@ -1,0 +1,26 @@
+User 1: What do you do for a living?
+User 2: I'm a ballerina.
+User 1: Wow! That's so cool! I've always wanted to take ballet lessons.
+User 2: It's a lot of hard work, but it's also a lot of fun.
+User 1: I'm sure it is. I know I'd be a klutz, but I'd love to try.
+User 2: You should! I think you'd be great at it.
+User 1: Thanks! I might just do that.
+User 2: Awesome!
+User 1: So, how long have you been dancing?
+User 2: Since I was a little girl. My mother is a ballerina, so I grew up watching her dance.
+User 1: That's so cool! I bet she's a great inspiration for you.
+User 2: She is. She's always been there to support me and help me along the way.
+User 1: That's amazing.
+User 2: Thank you.
+User 1: So, what do you like most about dancing?
+User 2: I love the feeling of being on stage and performing for an audience. It's like I can forget about everything else and just be in the moment.
+User 1: That sounds amazing. I can imagine how that would feel.
+User 2: It's the best.
+User 1: So, what are your plans for the future?
+User 2: I'm planning to retire in six months. I'm ready to move on to the next chapter in my life.
+User 1: That's exciting! What are you going to do next?
+User 2: I'm not sure yet. I'm just going to take some time to relax and figure it out.
+User 1: That sounds like a good idea.
+User 2: Thanks.
+User 1: Well, it was nice talking to you.
+User 2: Nice talking to you too.

@@ -1,0 +1,25 @@
+User 1: Hi, I'm [user 1].
+User 2: Hi, I'm [user 2].
+User 1: I'm a scientist.
+User 2: That's cool! I'm a big fan of science.
+User 1: Thanks! I'm also an artist.
+User 2: That's cool too! What kind of art do you do?
+User 1: I do all sorts of art, but I'm mostly into drawing and painting.
+User 2: That's awesome! I love drawing and painting too.
+User 1: Maybe we can trade some art sometime.
+User 2: That would be fun!
+User 1: I have three kids.
+User 2: Oh, wow! I have six older sisters.
+User 1: That's a lot of siblings!
+User 2: It is, but it's a lot of fun too.
+User 1: I bet it is. I love being a parent.
+User 2: I can imagine. It must be a lot of work, but it's probably worth it.
+User 1: It is. I love my kids more than anything in the world.
+User 2: That's sweet.
+User 1: I'm also an avid fan of the Boston Celtics.
+User 2: That's a good team! I'm a big fan of the Los Angeles Lakers.
+User 1: Oh, that's a good team too! I've always liked LeBron James.
+User 2: He's a great player! I also like Anthony Davis.
+User 1: He's a great player too! I'm excited to see how the Lakers do this year.
+User 2: Me too! I think they have a good chance of winning the championship.
+User 1: I hope so! I'd love to see them win it all.

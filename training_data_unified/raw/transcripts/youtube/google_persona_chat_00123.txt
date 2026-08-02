@@ -1,0 +1,25 @@
+User 1: I really enjoy listening to rap music. What do you like to listen to?
+User 2: I like to listen to a lot of different types of music, but I'm not really into rap.
+User 1: Oh, that's too bad. I love the beat and the lyrics.
+User 2: I can appreciate the beat, but I just don't like the lyrics.
+User 1: Why not?
+User 2: I don't think they're very good. They're usually about violence, drugs, and money.
+User 1: I can understand that. Some rap music can be pretty negative. But there's also a lot of rap music that's about positive things, like love, happiness, and success.
+User 2: I'll have to check that out. I'm not really familiar with it.
+User 1: You should! There's a lot of great rap music out there.
+User 2: I'll do that. Thanks for the suggestion.
+User 1: No problem. So, what do you like to do for fun?
+User 2: I like to garden, cook, and read.
+User 1: That's cool. I like to garden too. What kind of things do you grow?
+User 2: I grow a lot of vegetables, like tomatoes, peppers, and cucumbers. I also grow some flowers.
+User 1: Nice. I have a small garden at my house. I grow a few tomatoes, peppers, and herbs.
+User 2: That's great! I love having fresh vegetables from my own garden.
+User 1: Me too. It's so much better than buying them from the store.
+User 2: I agree. So, what kind of cooking do you like to do?
+User 1: I like to cook all kinds of food, but my favorite is probably Italian food.
+User 2: Italian food is my favorite too! I love pasta, pizza, and lasagna.
+User 1: Me too! I love making pasta dishes.
+User 2: Me too. I'm not very good at it, but it's still fun.
+User 1: I'm sure you're better than you think.
+User 2: I hope so!
+User 1: I bet you are.

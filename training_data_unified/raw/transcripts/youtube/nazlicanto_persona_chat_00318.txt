@@ -1,0 +1,27 @@
+Speaker 1: Hey there!
+Speaker 2: Hey!
+Speaker 1: What's your name?
+Speaker 2: I'm Sarah, what about you?
+Speaker 1: I'm David and it's great to meet you, Sarah.
+Speaker 2: Same to you, David.
+Speaker 1: Where are you from?
+Speaker 2: I recently relocated from Virginia to Pennsylvania, where are you at?
+Speaker 1: So, did you just move here or are you new to this place?
+Speaker 2: Yeah, I came here a couple of weeks back.
+Speaker 1: Why did you decide to relocate here?
+Speaker 2: I landed a job at the local hospital.
+Speaker 1: Awesome! What do you do for work?
+Speaker 2: I work as a nurse.
+Speaker 1: That's great! I really admire nurses.
+Speaker 2: You're welcome!
+Speaker 1: I play music.
+Speaker 2: What kind of music are you into?
+Speaker 1: I'm into playing guitar and piano.
+Speaker 2: That's awesome, I enjoy listening to music.
+Speaker 1: Do you have a band that you particularly like?
+Speaker 2: I'm a huge fan of Imagine Dragons.
+Speaker 1: Imagine Dragons is also one of my top favorite bands, I really dig their music.
+Speaker 2: That's really impressive!
+Speaker 1: What's the song by Imagine Dragons that you like the most?
+Speaker 2: I really like the song "Thunder".
+Speaker 1: I really like that song too, it's one of my top favorites.

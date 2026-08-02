@@ -1,0 +1,3 @@
+Speaker 1: What's up?
+Speaker 2: Not much, just finished writing a poem.
+Speaker 1: That's awesome, would you mind sharing it?

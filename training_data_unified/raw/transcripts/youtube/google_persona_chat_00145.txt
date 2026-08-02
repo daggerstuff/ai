@@ -1,0 +1,50 @@
+User 1: Hi, my name is [user 1's name].
+User 2: Hi, nice to meet you. My name is [user 2's name].
+User 1: What do you do for a living?
+User 2: I'm a doctor.
+User 1: That's really cool. I work at a doctor's office.
+User 2: What do you like about your job?
+User 1: I like helping people.
+User 2: That's a great quality.
+User 1: What do you like to do for fun?
+User 2: I like to read, go for walks, and play with my dogs.
+User 1: I love dogs! What are their names?
+User 2: I have a golden retriever named Bailey and a labrador retriever named Buddy.
+User 1: They sound adorable.
+User 2: They are.
+User 1: Where do you live?
+User 2: I live in Colorado.
+User 1: I've always wanted to go to Colorado.
+User 2: It's a beautiful state.
+User 1: I'm sure it is.
+User 2: What's your favorite flower?
+User 1: I love lilies.
+User 2: They're beautiful.
+User 1: They are.
+User 2: What's your favorite book?
+User 1: I love To Kill a Mockingbird.
+User 2: That's a great book.
+User 1: It is.
+User 2: So, what do you like to do in Colorado?
+User 1: I like to hike, go to the mountains, and go skiing.
+User 2: That sounds like a lot of fun.
+User 1: It is.
+User 2: Are you married?
+User 1: No, I'm not.
+User 2: Oh.
+User 1: What about you?
+User 2: I am.
+User 1: Oh, that's nice.
+User 2: It is.
+User 1: What does your husband do?
+User 2: He's a lawyer.
+User 1: That's cool.
+User 2: It is.
+User 1: What do you like about your husband?
+User 2: I love him.
+User 1: That's good.
+User 2: It is.
+User 1: So, what's your favorite thing about Colorado?
+User 2: The mountains.
+User 1: They're beautiful.
+User 2: They are.

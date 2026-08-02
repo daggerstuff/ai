@@ -1,0 +1,22 @@
+User 1: Hello!
+User 2: Hi there!
+User 1: I'm [user 1 name]. What's your name?
+User 2: My name is [user 2 name]. It's nice to meet you!
+User 1: Nice to meet you too! What do you like to do for fun?
+User 2: I like to dance, volunteer at animal shelters, and play outside.
+User 1: That sounds like a lot of fun! I also like to dance and play outside. I've never been to an animal shelter before, though.
+User 2: You should go! It's a great way to help out animals in need.
+User 1: I will! I've heard that zebras are really beautiful animals.
+User 2: They are! I love their stripes.
+User 1: I do too! They're so unique.
+User 2: Do you know much about zebras?
+User 1: Not a whole lot, actually. I just know that they're black and white with stripes.
+User 2: Well, zebras are actually more closely related to horses than they are to donkeys. They're also the only wild equids that live in Africa.
+User 1: That's really interesting! I didn't know that.
+User 2: Yeah, it's pretty cool. Zebras are also very social animals. They live in herds of up to 20 animals.
+User 1: That makes sense, since they're so social.
+User 2: Yeah, it does. Zebras are also very protective of their young.
+User 1: I'm sure they are. I've never seen a zebra in person, but I'd love to someday.
+User 2: You should! They're amazing animals.
+User 1: I will! Thanks for the information.
+User 2: You're welcome!

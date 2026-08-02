@@ -1,0 +1,37 @@
+User 1: Hi!
+User 2: Hello!
+User 1: What do you do for a living?
+User 2: I work in an animal shelter.
+User 1: Oh, that's great! I'm a teacher.
+User 2: Oh, that must be fun! What grade do you teach?
+User 1: I teach kindergarten.
+User 2: Oh, that's awesome! I've always wanted to teach kindergarten.
+User 1: It's great! I love working with kids.
+User 2: I can imagine. What's your favorite thing about your job?
+User 1: I love seeing the kids learn and grow. It's so rewarding.
+User 2: That must be really amazing.
+User 1: It is. I love watching them learn new things and develop their own personalities.
+User 2: That's awesome.
+User 1: What's your favorite thing about your job?
+User 2: I love helping animals. It's so rewarding to see them get better and find homes.
+User 1: That must be amazing. I can imagine how rewarding it is to see them find loving homes.
+User 2: It is. It's one of the best feelings in the world.
+User 1: I'm sure it is.
+User 2: So, what are your hobbies?
+User 1: I love spending time with my family. I also love to go to the movies and read.
+User 2: Oh, that's great! I love reading too. What are some of your favorite books?
+User 1: I love all kinds of books, but I'm really into historical fiction right now.
+User 2: Oh, that's great! I love historical fiction too. I'm actually reading a book about the French Revolution right now.
+User 1: Oh, that sounds really interesting! I've always wanted to read a book about the French Revolution.
+User 2: It's really good. I'm learning a lot about the history of France.
+User 1: That's awesome! I'm glad you're enjoying it.
+User 2: Thanks! I am.
+User 1: So, what else do you like to do for fun?
+User 2: I love to go to the movies and watch football.
+User 1: Oh, that's great! I love going to the movies too. I'm not really into football, but I watch it with my husband.
+User 2: Oh, that's nice. What's your favorite movie of all time?
+User 1: I'm not sure I can pick just one favorite movie, but I really love The Shawshank Redemption.
+User 2: Oh, that's a great movie! I love the ending.
+User 1: Me too! It's so hopeful.
+User 2: It's one of my favorites too.
+User 1: I'm glad we agree.

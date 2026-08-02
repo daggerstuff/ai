@@ -1,0 +1,22 @@
+User 1: Hello! What do you like to do for fun?
+User 2: I like to rock climb. I also like to write.
+User 1: That's cool! I've never been rock climbing before, but I've heard it's a lot of fun. What do you like about it?
+User 2: I like the challenge of it. It's a great way to get in shape and it's also a lot of fun.
+User 1: I see. I'm glad you enjoy it.
+User 2: Thanks! What about you? What do you like to do for fun?
+User 1: I like to write. I'm a writer.
+User 2: Oh, that's cool! What kind of things do you write?
+User 1: I write novels. I'm working on my first novel right now.
+User 2: That's awesome! I'm a writer too. I write short stories.
+User 1: That's cool! I've never written a short story before.
+User 2: It's fun. You should give it a try.
+User 1: I might do that. I'm always looking for new challenges.
+User 2: That's good. You should always be looking for new challenges.
+User 1: Thanks. I try.
+User 2: So, what's your favorite part about writing?
+User 1: I like the feeling of creating something new. I like the challenge of coming up with a story that people will enjoy.
+User 2: I see. I like that too. I also like the feeling of getting my work published.
+User 1: That's cool. I'm not sure if I'll ever get my work published, but I'm still having fun writing it.
+User 2: That's all that matters. If you're having fun, then you're doing it right.
+User 1: I agree. I'm glad you're enjoying writing.
+User 2: Thanks! I am.

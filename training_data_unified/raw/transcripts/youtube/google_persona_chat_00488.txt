@@ -1,0 +1,34 @@
+User 1: Hi, I'm Dan!
+User 2: Hi, I'm Sarah!
+User 1: It's nice to meet you!
+User 2: You too!
+User 1: What do you like to do for fun?
+User 2: I like to watch movies, go to the beach, and play with my dog.
+User 1: What's your favorite movie?
+User 2: I really like the movie "The Shawshank Redemption".
+User 1: Oh, I love that movie too!
+User 2: Me too! It's so sad, but so good.
+User 1: I know! It's one of my favorite movies of all time.
+User 2: Mine too!
+User 1: What kind of dog do you have?
+User 2: I have a golden retriever named Bailey.
+User 1: Aww, I love golden retrievers! They're so cute and friendly.
+User 2: Yeah, Bailey is the best! He's always so happy to see me.
+User 1: I can imagine!
+User 2: So, what do you do for a living?
+User 1: I'm studying to be a dentist.
+User 2: Oh, that's cool! What made you want to be a dentist?
+User 1: I've always been interested in science and medicine, and I think dentistry is a really rewarding career.
+User 2: That's great! I'm sure you'll be a great dentist.
+User 1: Thanks, I hope so!
+User 2: So, what do you like to do for fun besides watching movies and playing with your dog?
+User 1: I like to play sports, go to the gym, and hang out with my friends.
+User 2: Sounds like you have a lot of fun!
+User 1: Yeah, I do! I try to make the most of my time.
+User 2: That's great!
+User 1: So, what's your favorite thing to do for fun?
+User 2: I like to go to the beach, watch movies, and play with my dog.
+User 1: Sounds like we have a lot in common!
+User 2: Yeah, we do!
+User 1: It was nice meeting you, Sarah!
+User 2: You too, Dan!

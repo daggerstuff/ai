@@ -1,0 +1,29 @@
+User 1: What's up?
+User 2: Not much, just working.
+User 1: What do you do for work?
+User 2: I'm a software engineer.
+User 1: Oh, cool! I've always wanted to be a software engineer.
+User 2: It's a lot of fun, but it can be challenging.
+User 1: I'm sure it is. What's your favorite part about it?
+User 2: I love the problem solving. I like coming up with creative solutions to problems.
+User 1: That's what I like about math.
+User 2: Me too! I always loved math.
+User 1: It's a shame I'm not very good at it.
+User 2: You're not alone.
+User 1: So, what do you do for fun?
+User 2: I like to go hiking, biking, and camping.
+User 1: That sounds like fun. I love the outdoors.
+User 2: Me too! I'm a bit of a hippie.
+User 1: Oh, really? I love that! I drive a large, blue van and I love to recycle. I also have two tattoos.
+User 2: That's so cool! I've always wanted to get a tattoo, but I'm too afraid of the pain.
+User 1: It's not that bad. I promise!
+User 2: Well, maybe I'll get one someday.
+User 1: You should! They're really fun.
+User 2: I'll think about it.
+User 1: Good! So, what do you want to do for fun this weekend?
+User 2: I'm not sure yet. What do you have in mind?
+User 1: I was thinking we could go camping. I have a lot of gear and I know a great spot.
+User 2: That sounds like fun! I've never been camping before.
+User 1: Oh, you're in for a treat! Camping is the best.
+User 2: I'm excited!
+User 1: Good! Let's make it a date.

@@ -1,0 +1,20 @@
+User 1: What's your favorite music?
+User 2: I like rock and roll.
+User 1: Cool, me too! What bands do you like?
+User 2: I like the Beatles, the Rolling Stones, and Led Zeppelin.
+User 1: I love the Beatles! I also like the Who and Pink Floyd.
+User 2: Oh, I love Pink Floyd too! What's your favorite album?
+User 1: My favorite album is Dark Side of the Moon.
+User 2: That's a great album! My favorite is Wish You Were Here.
+User 1: That's a good one too! What's your favorite song by Pink Floyd?
+User 2: My favorite song is "Comfortably Numb".
+User 1: That's a great song! What's your favorite band from Russia?
+User 2: I like Kino.
+User 1: I've never heard of them. What kind of music do they play?
+User 2: They're a rock band. They're pretty good.
+User 1: I'll have to check them out. Do you like to travel?
+User 2: Yeah, I love to travel. I've been to a lot of different countries.
+User 1: I've only been to a few countries. I'd love to travel more.
+User 2: You should! It's a great way to learn about different cultures.
+User 1: I know, I know. I'll get on it.
+User 2: Good! You won't regret it.

@@ -1,0 +1,14 @@
+User 1: Hi, my name is (name)! What's your name?
+User 2: Hi, I'm (name)!
+User 1: It's nice to meet you, (name)! What do you do for a living?
+User 2: I'm a college student and a full-time working mom.
+User 1: Wow, that must be a lot of work! How do you manage to do it all?
+User 2: It's not easy, but I make it work. I have a lot of help from my family and friends.
+User 1: That's great to hear! What's your favorite thing about being a mom?
+User 2: My favorite thing about being a mom is getting to watch my children grow and learn. It's so amazing to see the world through their eyes.
+User 1: That sounds beautiful. What are your plans for the future?
+User 2: I'm going to finish college and become a teacher. I can't wait to start my new life!
+User 1: That's great! I'm sure you'll be a great teacher.
+User 2: Thanks! I'm excited to start.
+User 1: Well, it was nice talking to you, (name)! I hope we can chat again soon.
+User 2: It was nice talking to you too, (name)! Have a great day!

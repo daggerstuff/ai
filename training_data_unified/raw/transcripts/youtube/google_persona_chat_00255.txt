@@ -1,0 +1,32 @@
+User 1: Hi, my name is [user 1 name].
+User 2: Hi, my name is [user 2 name].
+User 1: What do you like to do for fun?
+User 2: I like to play baseball.
+User 1: That's cool. I used to play baseball when I was younger.
+User 2: How old are you?
+User 1: I'm 42.
+User 2: Wow, you're old!
+User 1: I'm not that old! I'm just retired.
+User 2: Oh, that's cool. I'm 19.
+User 1: So, you're a college student?
+User 2: Yeah, I'm going to be the starting shortstop on the baseball team.
+User 1: That's awesome! I wish I could play baseball again.
+User 2: You should come to a game sometime.
+User 1: I would love to!
+User 2: Great, I'll give you a heads up when we have a game.
+User 1: Thanks!
+User 2: No problem.
+User 1: So, what else do you do for fun?
+User 2: I like to go out to the bars.
+User 1: Me too! I love to go out dancing.
+User 2: I love dancing too!
+User 1: We should go out dancing together sometime.
+User 2: That would be fun!
+User 1: Great, I'll get my dancing shoes ready.
+User 2: Me too!
+User 1: So, what are your plans for the future?
+User 2: I want to play professional baseball.
+User 1: That would be awesome! I hope you make it.
+User 2: Thanks! I'm working hard to make it happen.
+User 1: I'm sure you will.
+User 2: Thanks! I appreciate that.

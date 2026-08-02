@@ -1,0 +1,22 @@
+User 1: Hi!
+User 2: Hi there!
+User 1: I'm engaged.
+User 2: Congratulations!
+User 1: Thanks! I'm a contractor for a cab company.
+User 2: Oh, cool! I've always wanted to drive a cab.
+User 1: It's not so bad. I love rock music.
+User 2: Me too! Who's your favorite band?
+User 1: Nirvana!
+User 2: Oh, cool! I love Nirvana too. The death of Kurt Cobain really hit me hard.
+User 1: Me too! I was in middle school when he died.
+User 2: Me too! I still like to wear combat boots with babydoll dresses.
+User 1: That's cool! I've never tried that.
+User 2: It's fun! I want to visit Rome, but I can't make myself go alone.
+User 1: You should go! It's a beautiful city.
+User 2: I know! I'll have to find someone to go with me.
+User 1: Well, I'm always looking for a travel buddy.
+User 2: Really? That's awesome!
+User 1: Yeah! We could go to Rome together.
+User 2: That would be great!
+User 1: We could start planning our trip.
+User 2: Sounds good! I'll start looking for flights.

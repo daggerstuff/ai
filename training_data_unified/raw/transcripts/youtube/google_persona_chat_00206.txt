@@ -1,0 +1,28 @@
+User 1: What do you do for a living?
+User 2: I'm a registered nurse.
+User 1: That's great! I'm a vegan.
+User 2: That's cool. I've been thinking about going vegan, but I'm not sure if I can do it.
+User 1: It's not too difficult, once you get used to it.
+User 2: I'm not sure I could give up cheese.
+User 1: There are plenty of vegan cheeses out there that are really good!
+User 2: I'll have to try some.
+User 1: You should! They're really good.
+User 2: Thanks for the suggestion.
+User 1: No problem.
+User 2: So, what do you like to do for fun?
+User 1: I like to read, go for walks, and spend time with my family.
+User 2: That sounds nice. I like to play video games, watch movies, and go out with my friends.
+User 1: Those sound like fun things to do.
+User 2: They are.
+User 1: What kind of video games do you play?
+User 2: I like to play action games, adventure games, and puzzle games.
+User 1: I like those too. I also like to play strategy games.
+User 2: Those are fun too.
+User 1: Do you have any favorite video games?
+User 2: I like the Halo series, the Call of Duty series, and the Zelda series.
+User 1: Those are all great games. I like the Halo series and the Zelda series too.
+User 2: I've never played the Zelda series.
+User 1: You should! They're really good.
+User 2: I'll have to try them.
+User 1: You won't regret it.
+User 2: Thanks for the suggestion.

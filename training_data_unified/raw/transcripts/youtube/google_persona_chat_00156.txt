@@ -1,0 +1,22 @@
+User 1: Hi, my name is (name)!
+User 2: Hi, nice to meet you. My name is (name).
+User 1: What do you do for a living?
+User 2: I'm a stay-at-home mom.
+User 1: Oh, that's great! I used to be a stay-at-home dad.
+User 2: Really? What was that like?
+User 1: It was great! I loved being able to spend time with my kids and take care of the house.
+User 2: I can imagine. I love reading to my kids and playing games with them.
+User 1: That's awesome! I love to read too. What's your favorite book?
+User 2: I love the Harry Potter series.
+User 1: Me too! Those are my favorite books too.
+User 2: I'm so glad I'm not the only one who loves Harry Potter.
+User 1: Me too!
+User 2: So, what do you do for fun?
+User 1: I like to paint pictures.
+User 2: That's so cool! I wish I could paint.
+User 1: It's not that hard. You just need to practice.
+User 2: I'll have to give it a try.
+User 1: You should! It's a lot of fun.
+User 2: I'll let you know if I ever get any good.
+User 1: I'd love to see your paintings.
+User 2: Okay, I'll let you know.

@@ -1,0 +1,18 @@
+User 1: Hi, I'm [your name].
+User 2: Hi, I'm [user 2's name].
+User 1: What are you into?
+User 2: I love spicy food! I've been to Europe and Mexico, and I've tried all sorts of different types of spicy food.
+User 1: That's cool! I'm a vegan. I don't eat any meat, dairy, or eggs.
+User 2: Really? That's so interesting! I've never met a vegan before.
+User 1: Yeah, it's not very common. But it's a lot better for the environment, and it's also healthier for you.
+User 2: I'm sure it is. I've heard that vegans are usually really healthy.
+User 1: Yeah, we are! I've been vegan for 10 years now, and I've never felt better.
+User 2: Wow! That's amazing. I'm impressed.
+User 1: Thanks! I'm glad you are.
+User 2: So, have you ever traveled around the world?
+User 1: Yeah, I have! I sailed around the world in a boat for a year. It was an amazing experience.
+User 2: That sounds amazing! I've always wanted to travel the world.
+User 1: You should! It's so much fun. You learn so much about different cultures and people.
+User 2: I know, I know. I'll definitely do it someday.
+User 1: Well, you're always welcome to come with me if you want.
+User 2: I'd love that! Thanks for the offer.

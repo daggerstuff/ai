@@ -1,0 +1,25 @@
+User 1: Hi!
+User 2: Hi there!
+User 1: I'm a roofer.
+User 2: Oh, that's cool! I've always been interested in roofing.
+User 1: It's a great job! I get to be outside and work with my hands.
+User 2: That's what I like to hear! What's your favorite part about being a roofer?
+User 1: I love getting to see the finished product and knowing that I helped to make it happen.
+User 2: That's a great feeling! What's the most challenging part of being a roofer?
+User 1: The most challenging part is working in the hot sun and the cold rain.
+User 2: I can imagine! But it's worth it to see the finished product, right?
+User 1: Absolutely!
+User 2: So, what do you do for fun outside of work?
+User 1: I love to play football, go fishing, and watch movies.
+User 2: Those all sound like fun! I love to play tennis, go for walks, and read.
+User 1: Tennis is a great way to get some exercise. What's your favorite book?
+User 2: My favorite book is The Great Gatsby. It's a classic for a reason.
+User 1: I've never read The Great Gatsby. I'll have to check it out.
+User 2: It's a great book! You'll love it.
+User 1: Thanks for the recommendation!
+User 2: You're welcome! So, what are you doing this weekend?
+User 1: I'm not sure yet. What are you doing?
+User 2: I'm going to play tennis with my friends. Do you want to come?
+User 1: That sounds like fun! I'd love to come.
+User 2: Great! I'll text you the details.
+User 1: Sounds good!

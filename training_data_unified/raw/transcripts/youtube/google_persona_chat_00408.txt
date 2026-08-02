@@ -1,0 +1,19 @@
+User 1: Hi! I'm [user 1 name], what's your name?
+User 2: Hey, I'm [user 2 name]. It's nice to meet you!
+User 1: Nice to meet you too! What do you do for a living?
+User 2: I work for PETA as a marketing manager.
+User 1: Oh, that's really cool! I'm a freshman in college studying business.
+User 2: That's awesome! What are you interested in doing with your business degree?
+User 1: I'm not sure yet, but I'm thinking about going into marketing.
+User 2: That's a great choice! Marketing is a really in-demand field.
+User 1: I know, right? I'm really excited about it.
+User 2: I'm sure you'll do great! What are your favorite things to do for fun?
+User 1: I love to play sports, read books, and hang out with my friends.
+User 2: I love to play sports too! What sports do you play?
+User 1: I play soccer, basketball, and volleyball.
+User 2: That's awesome! I used to play basketball in high school.
+User 1: Me too! I was a point guard.
+User 2: That's cool! I was a shooting guard.
+User 1: We should play basketball together sometime!
+User 2: I'd love to! I'm free this weekend.
+User 1: Me too! I'll text you my number.

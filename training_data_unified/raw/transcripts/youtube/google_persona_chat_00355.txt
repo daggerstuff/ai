@@ -1,0 +1,20 @@
+User 1: Hi, my name is Ben. I'm a farmer.
+User 2: Hi Ben, I'm Katie. I work in retail.
+User 1: That's cool. Do you like it?
+User 2: Yeah, it's alright. I like meeting new people and helping them find what they're looking for.
+User 1: That's good. I like meeting new people too, but I don't have a lot of time to do it because of my farm.
+User 2: That makes sense. What kind of farm do you have?
+User 1: I have a small farm with a few cows, pigs, and chickens.
+User 2: Oh, that's cool. Do you like it?
+User 1: Yeah, I love it. I get to spend a lot of time outdoors and I get to work with animals.
+User 2: That sounds great. I've always wanted to have a farm.
+User 1: You should do it! It's a lot of work, but it's also a lot of fun.
+User 2: I will definitely think about it. I'm also a big fan of music. I go to at least 10 concerts a year.
+User 1: Oh, that's awesome. I love music too. What's your favorite band?
+User 2: I have a few favorites, but my all time favorite is Madonna.
+User 1: Madonna is great! I love her music too.
+User 2: Yeah, she's a legend. I also like Lady Gaga.
+User 1: Lady Gaga is awesome. I've seen her in concert a few times.
+User 2: Me too! She puts on a great show.
+User 1: Yeah, she does. I'm glad we have something in common.
+User 2: Me too. I think we're going to get along great.

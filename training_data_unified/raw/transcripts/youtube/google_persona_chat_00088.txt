@@ -1,0 +1,21 @@
+User 1: Hi, I'm Mary!
+User 2: Hi, I'm (user 1).
+User 1: Nice to meet you!
+User 2: Nice to meet you too!
+User 1: Where are you from?
+User 2: I'm from Colorado.
+User 1: Oh, really? I've never been to Colorado. What's it like there?
+User 2: It's beautiful! The mountains are amazing, and the weather is great.
+User 1: That sounds amazing! I've always wanted to go skiing in the mountains.
+User 2: You should definitely come to Colorado! We have some of the best skiing in the country.
+User 1: I'll have to put that on my bucket list.
+User 2: You won't regret it.
+User 1: So, what do you do for fun?
+User 2: I love to ski in the winter and hike in the summer.
+User 1: That sounds like a lot of fun! I'm not very athletic, but I love to travel.
+User 2: I love to travel too! I've been to a few different countries, but I'm always looking for new places to explore.
+User 1: Me too! I've been to a few countries in Europe, but I've never been to Asia.
+User 2: Asia is amazing! I've been to Japan and China, and I loved both of them.
+User 1: Those are two places I've always wanted to go! I'm sure they're amazing.
+User 2: They are! You should definitely go sometime.
+User 1: I will! I'm sure I'll love it.

@@ -1,0 +1,25 @@
+User 1: Hello! What's your name?
+User 2: Hi! My name is Jessica.
+User 1: It's nice to meet you, Jessica! What do you do for a living?
+User 2: I'm a waitress at a popular Houston club.
+User 1: Oh, that sounds like a fun job! What's your favorite thing about it?
+User 2: I love interacting with people and making them happy.
+User 1: That's great! I'm sure you're very good at it.
+User 2: Thank you! I try my best.
+User 1: So, what are you doing this weekend?
+User 2: I'm actually going to Australia to marry my boyfriend!
+User 1: That's amazing! Congratulations!
+User 2: Thank you! I'm so excited!
+User 1: I'm sure you'll have a great time.
+User 2: I know I will!
+User 1: So, what do you like to do for fun?
+User 2: I like to go jogging and read books.
+User 1: That's great! I love to read too. What kind of books do you like to read?
+User 2: I like to read anything I can get my hands on, but I especially love romance novels.
+User 1: Me too! I love a good romance novel.
+User 2: I know, right? They're so much fun!
+User 1: So, what are some of your favorite books?
+User 2: I love the Outlander series by Diana Gabaldon and the Bridgerton series by Julia Quinn.
+User 1: I've heard good things about those books! I've been meaning to check them out.
+User 2: You should! They're both great series.
+User 1: I will! Thanks for the recommendation.

@@ -1,0 +1,26 @@
+User 1: Hello!
+User 2: Hello!
+User 1: Nice to meet you! What is your name?
+User 2: I'm Sarah, what's your name?
+User 1: My name is [user 1's name]. It's nice to meet you, Sarah.
+User 2: It's nice to meet you too!
+User 1: So, what do you like to do for fun?
+User 2: I like to draw, I'm actually pretty good at it!
+User 1: Oh, really? That's cool! I've always wanted to learn how to draw.
+User 2: It's never too late to start! I could teach you, if you'd like.
+User 1: That would be really great! I'd love to learn.
+User 2: Okay, so what do you want to draw?
+User 1: I don't know, what do you suggest?
+User 2: We could draw a picture of a cat.
+User 1: A cat, okay! I like cats.
+User 2: Okay, so let's start with the head.
+User 1: Okay.
+User 2: And then we'll add the body, the legs, and the tail.
+User 1: Okay.
+User 2: And then we'll add some details, like the eyes, the nose, and the whiskers.
+User 1: Okay.
+User 2: And there you have it, your very own cat drawing!
+User 1: That's so cool! I love it!
+User 2: I'm glad you like it!
+User 1: Thank you for teaching me how to draw!
+User 2: You're welcome! I'm glad I could help.

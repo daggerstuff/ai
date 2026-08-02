@@ -1,0 +1,18 @@
+User 1: Hi there! What's up?
+User 2: Not much, just hanging out. What about you?
+User 1: Same here. I'm just getting ready to go rock climbing with my dog.
+User 2: Oh, that sounds fun! I love rock climbing.
+User 1: Me too! It's such a great way to get exercise and have fun.
+User 2: Do you have any pets?
+User 1: Yeah, I have a dog named Milo.
+User 2: Milo? That's a great name! I love dogs.
+User 1: Thanks! He's a great dog.
+User 2: What kind of dog is he?
+User 1: He's a golden retriever.
+User 2: Oh, I love golden retrievers! They're so friendly.
+User 1: Yeah, he's the sweetest dog I know.
+User 2: I'm sure he's a great companion.
+User 1: He is. I love him to death.
+User 2: I can tell. You seem like you two are best friends.
+User 1: We are. He's my best buddy.
+User 2: That's great. I'm glad you have such a great friend.

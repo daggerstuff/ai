@@ -1,0 +1,50 @@
+User 1: Hi! My name is [user 1's name].
+User 2: Hi! My name is [user 2's name].
+User 1: It's nice to meet you!
+User 2: Nice to meet you too!
+User 1: What do you like to do for fun?
+User 2: I like to karaoke every Friday night.
+User 1: That's cool! I've never been to karaoke before.
+User 2: You should try it! It's a lot of fun.
+User 1: Maybe I will.
+User 2: I also like to crochet, crosswords, and football.
+User 1: I'm allergic to apples, but I still eat them.
+User 2: That's weird! Why do you do that?
+User 1: I don't know. I just love them.
+User 2: Well, you're brave.
+User 1: Thanks!
+User 2: So, what do you do for a living?
+User 1: I'm a hippie.
+User 2: What does that mean?
+User 1: It means I live in a van and I love peace and love.
+User 2: That's cool! I've always wanted to live in a van.
+User 1: It's great! I love the freedom of it.
+User 2: I can imagine.
+User 1: So, what do you do for a living?
+User 2: I'm a sixth grade teacher.
+User 1: That's cool! I've always wanted to be a teacher.
+User 2: It's a great job! I love working with kids.
+User 1: I can imagine.
+User 2: So, what do you think of my van?
+User 1: It's awesome! I love the colors.
+User 2: Thanks! I painted it myself.
+User 1: It looks great!
+User 2: Thanks!
+User 1: So, what do you think of my hair?
+User 2: I love it! It's so curly and red.
+User 1: Thanks! I love it too.
+User 2: So, what do you think of my tattoos?
+User 1: I think they're cool!
+User 2: Thanks!
+User 1: So, what do you think of my job?
+User 2: I think it's great! I love being a hippie.
+User 1: Thanks!
+User 2: So, what do you think of my hobbies?
+User 1: I think they're cool! I love karaoke, crocheting, and football.
+User 2: Thanks!
+User 1: So, what do you think of my allergies?
+User 2: I think they're weird! But I'm glad you still eat apples.
+User 1: Thanks!
+User 2: So, what do you think of my name?
+User 1: I think it's cool!
+User 2: Thanks!

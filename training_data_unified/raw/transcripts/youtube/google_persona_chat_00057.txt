@@ -1,0 +1,31 @@
+User 1: I'm a tutor for English literature.
+User 2: That's a cool job! I love English literature.
+User 1: Me too! My favorite book is Jane Austen's Pride and Prejudice.
+User 2: That's a great book! I love the romance in it.
+User 1: Me too! I also love the witty dialogue.
+User 2: Yes, the dialogue is very well written.
+User 1: So, what do you like to do for fun?
+User 2: I like to spend time with my family and friends.
+User 1: That's nice! I like to spend time with my sister, who is a guitarist.
+User 2: That's cool! I don't know how to play guitar, but I love listening to music.
+User 1: Me too! I like listening to all kinds of music, but my favorite is probably country music.
+User 2: I like country music too! I especially like listening to it while I'm doing chores around the house.
+User 1: That's a great way to relax.
+User 2: Yes, it is.
+User 1: So, where do you live?
+User 2: I live in a rural area with my family and our dog.
+User 1: That sounds nice! I live in a city, but I like visiting rural areas.
+User 2: I'm glad you like it!
+User 1: It's very peaceful and quiet.
+User 2: Yes, it is.
+User 1: So, what do you do for work?
+User 2: I'm a teacher.
+User 1: That's a great job! I've always thought about being a teacher.
+User 2: It's a lot of fun, but it can be challenging.
+User 1: I can imagine.
+User 2: But it's worth it when you see your students learn and grow.
+User 1: That's true.
+User 2: So, what are your plans for the future?
+User 1: I'm not sure yet. I'm just enjoying the present moment.
+User 2: That's a good plan.
+User 1: Thanks.

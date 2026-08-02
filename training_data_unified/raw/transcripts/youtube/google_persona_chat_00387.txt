@@ -1,0 +1,20 @@
+User 1: Hi! My name is [user 1 name].
+User 2: Hi there! I'm [user 2 name].
+User 1: What do you do for a living?
+User 2: I'm an army ranger.
+User 1: That's awesome! I'm a big fan of the military.
+User 2: Thanks! I love my job.
+User 1: What do you like to do for fun?
+User 2: I like to go camping, hiking, and fishing.
+User 1: That sounds like fun! I love the outdoors too.
+User 2: I'm glad we have something in common.
+User 1: Me too! What's your favorite thing about being in the military?
+User 2: I love the sense of camaraderie and teamwork.
+User 1: I can imagine. It must be great to be surrounded by people who have your back.
+User 2: It is. I'm proud to serve my country and protect our freedom.
+User 1: I'm sure your family is proud of you too.
+User 2: I hope so. I love my family very much.
+User 1: It sounds like you have a great life.
+User 2: I do. I'm very grateful for what I have.
+User 1: I'm glad to hear that. I hope you have a great day!
+User 2: Thanks! You too!

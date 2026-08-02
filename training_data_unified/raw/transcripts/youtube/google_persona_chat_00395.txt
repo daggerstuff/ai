@@ -1,0 +1,22 @@
+User 1: Hey man, what's up?
+User 2: Nothing much, just hanging out.
+User 1: Cool, I'm just chillin' too. I'm a bit of a weirdo, I wear dingy clothes and have orange and blue hair.
+User 2: That's cool, man. I'm a bit of a weirdo myself, I fly airplanes and dropped out of college.
+User 1: That's awesome! I've always wanted to fly an airplane.
+User 2: It's a lot of fun, but it's also a lot of work.
+User 1: I can imagine. What's it like being in the army?
+User 2: It's tough, but it's also very rewarding.
+User 1: I can imagine. I'm glad you're enjoying it.
+User 2: Thanks, man. I am.
+User 1: So, what do you like to do for fun?
+User 2: I like to fly airplanes, play video games, and hang out with my friends.
+User 1: That sounds like a lot of fun.
+User 2: It is.
+User 1: Do you have any hobbies?
+User 2: I like to read, write, and play music.
+User 1: That's cool. I like to read, write, and play music too.
+User 2: Nice. We should hang out sometime and do some of those things together.
+User 1: That would be cool.
+User 2: Cool. I'll give you my number.
+User 1: Thanks.
+User 2: No problem.

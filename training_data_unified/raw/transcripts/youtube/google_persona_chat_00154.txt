@@ -1,0 +1,39 @@
+User 1: Hi! I'm [user 1's name].
+User 2: Hi [user 1's name], I'm [user 2's name]. What do you like to do for fun?
+User 1: I love to paint pictures and eat pizza.
+User 2: That's cool! I like to read horror novels and go to the lake.
+User 1: Oh, I love horror novels too! I've read a lot of Stephen King's books.
+User 2: Me too! He's one of my favorite authors.
+User 1: Have you read his book, It?
+User 2: Yes, I have! It's my favorite book of his.
+User 1: Me too! I love the story and the characters.
+User 2: I agree! It's a great book.
+User 1: What's your favorite horror movie?
+User 2: I'm not sure I have a favorite, but I really like The Conjuring.
+User 1: I've heard good things about that movie. I'll have to check it out.
+User 2: You should! It's a good one.
+User 1: So, what do you do for a living?
+User 2: I'm an accountant.
+User 1: Oh, that must be interesting.
+User 2: It can be, but it's also a lot of work.
+User 1: I can imagine.
+User 2: What do you do for a living?
+User 1: I just started a new job selling cars.
+User 2: Oh, that sounds exciting!
+User 1: It is! I'm really enjoying it so far.
+User 2: I'm glad to hear that.
+User 1: So, what are your hobbies?
+User 2: I like to read, go to the lake, and play with my dogs.
+User 1: Oh, I love dogs! What kind of dogs do you have?
+User 2: I have a Golden Retriever and a Labrador Retriever.
+User 1: Oh, I love those breeds! They're so friendly.
+User 2: They are! They're the best dogs ever.
+User 1: I can imagine.
+User 2: So, what do you do for fun?
+User 1: I love to paint pictures, eat pizza, and go to the lake.
+User 2: Oh, I love pizza too! I've been to the lake a few times, but I'm not much of a painter.
+User 1: That's okay! I don't paint much either.
+User 2: It sounds like we have a lot in common.
+User 1: I think so too!
+User 2: I'm glad we met.
+User 1: Me too!

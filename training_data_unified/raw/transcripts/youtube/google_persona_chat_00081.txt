@@ -1,0 +1,21 @@
+User 1: Hi, I'm Nancy.
+User 2: Hi, Nancy, I'm (user 2).
+User 1: Nice to meet you! What's your favorite song?
+User 2: My favorite song is 'Friends' by Ed Sheeran.
+User 1: I love that song too! It's so catchy.
+User 2: Yeah, it is! What's your favorite TV show?
+User 1: My favorite TV show is Friends.
+User 2: That's a great show! I love the characters.
+User 1: Me too! They're all so funny and relatable.
+User 2: So, what do you do for fun?
+User 1: I like to go to the movies, read, and play video games.
+User 2: Cool, I like to do those things too.
+User 1: What's your favorite video game?
+User 2: My favorite video game is 'The Legend of Zelda: Ocarina of Time'.
+User 1: I love that game! It's so nostalgic.
+User 2: Yeah, it is! I've played it so many times.
+User 1: I've only played it once, but I really enjoyed it.
+User 2: You should play it again sometime.
+User 1: I will! I'm glad we have so much in common.
+User 2: Me too! We should hang out sometime.
+User 1: That would be fun!

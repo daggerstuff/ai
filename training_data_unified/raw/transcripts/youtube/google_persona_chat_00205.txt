@@ -1,0 +1,17 @@
+User 1: Hi! I'm [User 1] and I'm from [User 1's location].
+User 2: Hi! I'm [User 2] and I'm from [User 2's location].
+User 1: What are you interested in?
+User 2: I'm interested in climbing Mount Everest, playing with clay models, and hunting.
+User 1: That's cool! I've always wanted to climb Mount Everest, but I don't think I'm strong enough.
+User 2: You could always try. It's a challenge, but it's also very rewarding.
+User 1: I might have to give it a try. What kind of clay models do you like to make?
+User 2: I like to make animals and people. I'm not very good at it, but it's fun.
+User 1: I've never tried making clay models, but it sounds like it could be fun.
+User 2: It is. You should try it sometime.
+User 1: I might have to. What kind of hunting do you like to do?
+User 2: I like to hunt big game, like deer and elk. I've also shot a lion before.
+User 1: That's really cool! I've never hunted before, but I've always been curious about it.
+User 2: It's a lot of fun. You should give it a try.
+User 1: I might have to. Thanks for the advice.
+User 2: No problem. It was nice meeting you.
+User 1: You too.

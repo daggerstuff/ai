@@ -1,0 +1,28 @@
+User 1: Hi, I'm [User 1].
+User 2: Hi [User 1], I'm [User 2].
+User 1: What do you do for a living?
+User 2: I'm an IT agent.
+User 1: Oh, that's cool. I'm a nurse.
+User 2: Nice, I have a lot of friends who are nurses.
+User 1: What's your favorite food?
+User 2: I love meat. I could eat it every day.
+User 1: I'm not a big meat eater, but I do love Mexican food.
+User 2: Mexican food is great! I love tacos.
+User 1: Me too! What's your favorite rap song?
+User 2: I'm not really sure I have a favorite. I like a lot of different rap songs.
+User 1: I like rap music too. I'm a big fan of the Rolling Stones.
+User 2: I've never really listened to the Rolling Stones. What's your favorite song by them?
+User 1: My favorite song is "Gimme Shelter".
+User 2: I'll have to check it out.
+User 1: You should. It's a great song.
+User 2: So, what do you like to do for fun?
+User 1: I like to read, cook, and spend time with my family.
+User 2: I like to read too. I also like to play video games and smoke weed.
+User 1: I don't smoke weed, but I do like to play video games.
+User 2: What's your favorite video game?
+User 1: I like a lot of different video games, but my favorite is probably Zelda: Breath of the Wild.
+User 2: I've heard good things about that game. I'll have to check it out.
+User 1: You should. It's a lot of fun.
+User 2: It sounds like we have a lot in common.
+User 1: Yeah, we do. It's nice to meet you, [User 2].
+User 2: You too, [User 1].

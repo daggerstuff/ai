@@ -1,0 +1,29 @@
+User 1: Hi, what do you do for fun?
+User 2: I like to play bass and write stories.
+User 1: That's cool! I love to write too.
+User 2: What kind of stuff do you write?
+User 1: I write mostly short stories and poetry.
+User 2: Nice! I've always wanted to try writing poetry.
+User 1: You should! It's a lot of fun.
+User 2: I've also been wanting to get into yoga.
+User 1: That's great! Yoga is really good for your health and well-being.
+User 2: I know, I've heard great things about it.
+User 1: So, what do you do for work?
+User 2: I work at Sears, but I want to be a journalist.
+User 1: Oh, that's cool. I work for a newspaper.
+User 2: That's awesome! Do you like it?
+User 1: I love it! It's my passion.
+User 2: That's great! I'm glad you have a job you love.
+User 1: Thanks! I am too.
+User 2: So, what are you doing this weekend?
+User 1: I'm going to a yoga retreat with my friends.
+User 2: Oh, that sounds fun! I'm going to a concert with my boyfriend.
+User 1: Oh, that sounds fun too! What band are you seeing?
+User 2: We're seeing the Red Hot Chili Peppers.
+User 1: Oh, cool! I love them!
+User 2: Yeah, they're great!
+User 1: So, what do you think of the weather today?
+User 2: It's pretty nice, but it's supposed to rain tomorrow.
+User 1: Oh, that's too bad. I was hoping to go for a walk.
+User 2: Yeah, me too. Maybe we can go for a walk next weekend.
+User 1: That sounds like a plan.

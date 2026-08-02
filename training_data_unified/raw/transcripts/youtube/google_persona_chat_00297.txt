@@ -1,0 +1,36 @@
+User 1: Hey, what's up?
+User 2: Not much, just got back from a run.
+User 1: Oh, that's cool. I like to run too.
+User 2: Me too, it's a great way to clear your head.
+User 1: I know, right? I usually run around the park near my house.
+User 2: That's a good spot. I usually run in the woods.
+User 1: The woods are nice, but I'm not a big fan of bugs.
+User 2: Yeah, I know what you mean. But the woods are so peaceful and quiet.
+User 1: I know, they're great for clearing your head.
+User 2: So, what do you do for a living?
+User 1: I'm an environmental engineer.
+User 2: Oh, that's cool. What kind of stuff do you do?
+User 1: I work on projects to clean up pollution and protect the environment.
+User 2: That's a great job. I'm sure you're making a difference in the world.
+User 1: I hope so. I'm trying my best.
+User 2: So, where are you from?
+User 1: I'm from Portland, Maine.
+User 2: Oh, that's cool. I've never been to Maine.
+User 1: You should come visit sometime. It's a beautiful state.
+User 2: I will, if I can.
+User 1: So, what do you like to do for fun?
+User 2: I like to read, run, and play music.
+User 1: Oh, that's cool. I like to read too. What kind of books do you like to read?
+User 2: I like to read a variety of books, but my favorite genre is nonfiction.
+User 1: Me too. I like to learn new things.
+User 2: I know, right? It's so interesting to learn about different things.
+User 1: I know, right? I love learning new things.
+User 2: So, what are you reading right now?
+User 1: I'm reading a book about the history of the United States.
+User 2: Oh, that's cool. I've always been interested in history.
+User 1: Me too. It's so fascinating to learn about the past.
+User 2: I know, right? It's amazing to see how things have changed over time.
+User 1: I know, right? It's crazy to think about how different things were just a few hundred years ago.
+User 2: I know, right? It's hard to imagine a world without electricity or cars.
+User 1: I know, right? It's amazing how far we've come.
+User 2: I know, right? It's crazy to think about how much the world has changed in just a few hundred years.

@@ -1,0 +1,3 @@
+Speaker 1: Hey, how's it going?
+Speaker 2: Hey, I'm doing well too, thanks for checking in. How about yourself?
+Speaker 1: What's going on today?

@@ -1,0 +1,41 @@
+User 1: I'm really tall, do you know anyone taller than me?
+User 2: My twin brother is taller than you, by a little bit.
+User 1: Oh wow, I'm not used to seeing someone taller than me.
+User 2: Yeah, he's pretty tall.
+User 1: So, what do you like to do for fun?
+User 2: I like to bake cakes, and read books.
+User 1: That's cool! I like to read books too.
+User 2: What's your favorite book?
+User 1: My favorite book is The Lord of the Rings.
+User 2: Oh, that's a great book! I've read it a few times.
+User 1: Me too! It's so good.
+User 2: What's your favorite part?
+User 1: The part where Frodo and Sam are climbing Mt. Doom.
+User 2: Oh yeah, that's a great part.
+User 1: I know! It's so suspenseful.
+User 2: Yeah, it is.
+User 1: What do you like to do for work?
+User 2: I'm a baker.
+User 1: That's awesome! I love baking cakes.
+User 2: Yeah, it's a lot of fun.
+User 1: What's your favorite kind of cake to bake?
+User 2: I like to make chocolate cakes.
+User 1: Oh yeah, I love chocolate cake!
+User 2: Yeah, it's so good.
+User 1: What's your favorite thing about your job?
+User 2: I like seeing people enjoy my cakes.
+User 1: That's a great feeling.
+User 2: Yeah, it is.
+User 1: What's your favorite thing about yourself?
+User 2: I'm a hard worker.
+User 1: That's a great quality to have.
+User 2: Yeah, I think so too.
+User 1: What's your favorite thing about me?
+User 2: I don't know you that well yet.
+User 1: Well, what do you like about the conversation so far?
+User 2: I like that you're so tall.
+User 1: Thanks! I'm glad you like it.
+User 2: I like that you're so interested in my job.
+User 1: Thank you! I'm glad you're so passionate about it.
+User 2: I like that you're so easy to talk to.
+User 1: Thank you! I'm glad you think so.

@@ -1,0 +1,35 @@
+User 1: Hello! I'm glad to meet you.
+User 2: Thank you. Same to you.
+User 1: I'm a nurse. I work in the emergency room.
+User 2: Oh, that's interesting. I work in finance.
+User 1: What do you like about finance?
+User 2: I like the challenge of it. It's always changing, and there's always something new to learn.
+User 1: I can understand that. I like the challenge of nursing too. It's never dull.
+User 2: What's your favorite thing about being a nurse?
+User 1: I like helping people. I like being able to make a difference in their lives.
+User 2: That's very noble of you. I admire that.
+User 1: Thank you. I'm glad to hear that.
+User 2: So, what do you do for fun?
+User 1: I like to read, go for walks, and spend time with my family.
+User 2: That sounds nice. I like to eat out, go to the movies, and play video games.
+User 1: I like to eat out too. What kind of food do you like?
+User 2: I like all kinds of food, but my favorite is probably Italian.
+User 1: Me too! I love Italian food. I love the pasta and the pizza.
+User 2: Me too! I also love the bread.
+User 1: I know, right? It's so good.
+User 2: So, what are some of your favorite books?
+User 1: I like a lot of different kinds of books, but my favorite authors are Stephen King, Agatha Christie, and John Grisham.
+User 2: I've read a few Stephen King books. They're really good.
+User 1: Yeah, they are. I'm a big fan of his.
+User 2: I'm glad to hear that. What kind of books do you like to read?
+User 1: I like to read all kinds of books, but I especially like thrillers, mysteries, and horror.
+User 2: I like those too. I'm a big fan of crime thrillers.
+User 1: Me too! I love the suspense.
+User 2: Me too! It's so exciting.
+User 1: Yeah, it is.
+User 2: So, what are some of your favorite movies?
+User 1: I like a lot of different movies, but my favorite genres are thrillers, mysteries, and horror.
+User 2: I like those too. I'm a big fan of crime thrillers.
+User 1: Me too! I love the suspense.
+User 2: Me too! It's so exciting.
+User 1: Yeah, it is.

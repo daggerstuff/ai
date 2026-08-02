@@ -1,0 +1,20 @@
+User 1: Hello!
+User 2: Hello!
+User 1: What do you like to do for fun?
+User 2: I like to cook, sing, run, and sim.
+User 1: Oh, cool! I like to bake, play tennis, and watch Silicon Valley.
+User 2: Baking! I love baking! I also love to bake with my sisters.
+User 1: That's so cool! I'm the only baker in my family.
+User 2: That's okay! I'm sure you're a great baker.
+User 1: Thanks! I try to be.
+User 2: I'm sure you are. What's your favorite thing to bake?
+User 1: I love to bake cookies. I love the way they smell and taste.
+User 2: Cookies are delicious! I love the chocolate chip cookies you make.
+User 1: Thanks! I love making them.
+User 2: What's your favorite TV show?
+User 1: I love Silicon Valley. It's so funny and clever.
+User 2: I've never seen it. Is it good?
+User 1: It's really good! It's about the tech industry in Silicon Valley.
+User 2: Oh, that sounds interesting. I'll have to check it out.
+User 1: You should! It's really funny.
+User 2: Cool! Thanks for the recommendation.

@@ -1,0 +1,33 @@
+User 1: Hello!
+User 2: Hello! How are you today?
+User 1: I'm doing well, thanks for asking! I'm a big fan of the Tigers baseball team. Do you like baseball?
+User 2: I love baseball! I'm a big fan of the St. Louis Cardinals.
+User 1: Oh, that's cool! I've been to a few Cardinals games. They're a great team.
+User 2: They are! I'm glad to hear you've been to a few games.
+User 1: Yeah, I've been to a few Tigers games too. They're a lot of fun.
+User 2: I'm sure they are! I've always wanted to go to a Tigers game.
+User 1: You should! They're a great team to watch.
+User 2: I will! Thanks for the suggestion.
+User 1: No problem! What else do you like to do for fun?
+User 2: I love to go dancing. I also love country music.
+User 1: Oh, that's cool! I love to dance too. I'm not very good at it, but I enjoy it.
+User 2: I'm sure you're better than you think! I'm not very good at it either, but I have fun doing it.
+User 1: We should go dancing together sometime!
+User 2: That would be fun! I'd love to dance with you.
+User 1: Great! We can set it up for next weekend.
+User 2: Sounds good!
+User 1: What else do you like to do for fun?
+User 2: I love animals. I have a farm with pigs, horses, and hens.
+User 1: Oh, that's cool! I love animals too. I have a cat and a dog.
+User 2: I love cats and dogs! They're the best animals.
+User 1: I agree! They're so cute and cuddly.
+User 2: They are! I love to play with them.
+User 1: Me too! They're always so happy to see me.
+User 2: They are! I'm glad we agree on animals.
+User 1: Me too! They're the best.
+User 2: I'm glad we're getting along so well.
+User 1: Me too! I'm having a lot of fun talking to you.
+User 2: I am too! You're so easy to talk to.
+User 1: Thank you! You're too!
+User 2: I'm glad we met.
+User 1: Me too

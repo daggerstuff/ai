@@ -1,0 +1,28 @@
+User 1: Hi, I'm (name). What's your name?
+User 2: Hi, I'm (name). It's nice to meet you.
+User 1: Nice to meet you too! What do you like to do for fun?
+User 2: I love to cook, chat with my friends, and go out to eat.
+User 1: Oh, I like to cook too! What's your favorite thing to cook?
+User 2: I love to make pasta dishes. I'm really good at it.
+User 1: I love pasta! I'm not so good at cooking it, though.
+User 2: Well, you can always practice. Maybe I can help you learn how to cook it better.
+User 1: That would be great! I would love to learn from you.
+User 2: Okay, then we can cook together sometime.
+User 1: That sounds like a lot of fun.
+User 2: Yeah, it will be.
+User 1: So, what else do you like to do?
+User 2: I also like to go out to eat with my friends and family.
+User 1: Me too! I love trying new restaurants.
+User 2: Yeah, me too. I like to explore different cuisines.
+User 1: That's great. I'm always up for trying new things.
+User 2: Me too. It's the best way to find new favorite foods.
+User 1: I agree. So, what's your favorite type of food?
+User 2: I love all types of food, but I really like Italian food.
+User 1: Me too! I love pasta and pizza.
+User 2: Yeah, me too. They're my favorite foods.
+User 1: So, we have a lot in common.
+User 2: We do. We both love to cook, eat, and chat with friends.
+User 1: We should hang out sometime.
+User 2: That would be great! We could cook dinner together or go out to eat.
+User 1: Either one sounds good to me.
+User 2: Okay, then we should definitely do it.

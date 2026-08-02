@@ -1,0 +1,46 @@
+User 1: Hi! I'm [name].
+User 2: Hi, I'm [name].
+User 1: Nice to meet you!
+User 2: You too!
+User 1: How are you doing today?
+User 2: Good! I'm just getting ready to go hunting.
+User 1: Oh, that sounds fun! I've never been hunting before.
+User 2: You should try it sometime! It's a great way to get outdoors and enjoy nature.
+User 1: I might have to. I love being outdoors.
+User 2: What do you like to do outdoors?
+User 1: I like to go hiking, biking, and swimming.
+User 2: Those all sound like fun activities!
+User 1: They are! I also like to go camping.
+User 2: Me too! I love the feeling of being in the wilderness.
+User 1: Me too! It's so peaceful and relaxing.
+User 2: I know what you mean.
+User 1: So, what do you like to do for fun?
+User 2: I like to go hunting, watch football, and play video games.
+User 1: I like to watch football too! What team do you like?
+User 2: I'm a big fan of the Dallas Cowboys.
+User 1: Oh, that's a good team. I'm a fan of the New York Giants.
+User 2: Well, I guess we'll have to agree to disagree.
+User 1: We can do that.
+User 2: So, what do you do for work?
+User 1: I'm a teacher.
+User 2: Oh, that sounds like a fun job.
+User 1: It is! I love working with kids.
+User 2: I bet you do!
+User 1: I do. It's so rewarding.
+User 2: I can imagine.
+User 1: So, what do you do for work?
+User 2: I'm a salesman.
+User 1: Oh, that sounds like a challenging job.
+User 2: It can be, but it's also a lot of fun.
+User 1: I bet it is.
+User 2: It is.
+User 1: So, what are you looking for in a friend?
+User 2: I'm looking for someone who is kind, funny, and intelligent.
+User 1: That sounds like a good list of qualities.
+User 2: It is. I think those are the most important things in a friend.
+User 1: I agree.
+User 2: So, what do you think? Do you think we could be friends?
+User 1: I think so! I think we would get along well.
+User 2: I think so too!
+User 1: Great! I'm looking forward to getting to know you better.
+User 2: Me too!

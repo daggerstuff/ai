@@ -1,0 +1,19 @@
+User 1: I'm a waiter at a cafe.
+User 2: Oh, that sounds like a fun job.
+User 1: It's not bad. I get to meet a lot of different people.
+User 2: I can see that. You seem to be a very friendly person.
+User 1: Thanks, I try to be.
+User 2: I can tell. You also have a very nice smile.
+User 1: Thank you. My mother was a nurse, and she always said that a smile is the best medicine.
+User 2: That's a lovely sentiment. I'm sure she was a wonderful woman.
+User 1: She was. She's been gone for a few years now, but I still think about her all the time.
+User 2: I'm sorry to hear that. But I'm sure she's proud of you.
+User 1: Thanks. I like to think so.
+User 2: So, what else do you like to do?
+User 1: I love to sew. I've been sewing since I was a little girl.
+User 2: That's awesome! I've always wanted to learn how to sew.
+User 1: It's not too hard. You just need to have a good teacher.
+User 2: I know someone who can teach me.
+User 1: Great! I'm sure you'll be a pro in no time.
+User 2: Thanks! I'm excited to learn.
+User 1: You're welcome. I'm always happy to help.

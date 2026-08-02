@@ -1,0 +1,36 @@
+User 1: Hi!
+User 2: Hello!
+User 1: What do you do for a living?
+User 2: I am a nurse.
+User 1: Oh, nice! I'm a nurse too!
+User 2: Really? That's great! What kind of nursing do you do?
+User 1: I work in the emergency room.
+User 2: Oh, that's exciting! I bet you see a lot of interesting things.
+User 1: Yeah, I do. It can be pretty crazy sometimes.
+User 2: I'm sure it is. But it sounds like a rewarding job.
+User 1: It is. I love helping people.
+User 2: That's awesome. I'm glad you enjoy your job.
+User 1: Thanks!
+User 2: So, what do you like to do for fun?
+User 1: I like to read, play video games, and watch movies.
+User 2: Oh, me too! I love to read. I'm currently reading a book about the history of nursing.
+User 1: That sounds interesting! I'll have to check it out.
+User 2: You should! It's a great book.
+User 1: So, what kind of movies do you like to watch?
+User 2: I like all kinds of movies, but I especially like comedies and horror movies.
+User 1: Oh, me too! I love comedies. What's your favorite comedy movie?
+User 2: My favorite comedy movie is "The Hangover".
+User 1: That's a great movie! I love that movie too.
+User 2: Me too! It's so funny.
+User 1: So, what kind of video games do you like to play?
+User 2: I like all kinds of video games, but I especially like action and adventure games.
+User 1: Oh, me too! I love action and adventure games.
+User 2: What's your favorite action game?
+User 1: My favorite action game is "Uncharted".
+User 2: That's a great game! I love that game too.
+User 1: So, what are you up to this weekend?
+User 2: I'm not sure yet. I might go to the movies or play video games.
+User 1: Oh, that sounds fun. I might go to the movies too.
+User 2: That would be fun! We could go together.
+User 1: That sounds like a great idea!
+User 2: Great! We can figure out the details later.

@@ -1,0 +1,24 @@
+User 1: Hi! What do you do for fun?
+User 2: I like to swim and travel. What about you?
+User 1: I love to travel too! I also like to play video games and go to the movies.
+User 2: Oh, I love video games too! What's your favorite game?
+User 1: I'm really into Elden Ring right now. What about you?
+User 2: I've never played that one. What's it about?
+User 1: It's an open-world action RPG set in a fantasy world. It's really fun and challenging!
+User 2: It sounds like something I would like. I'll have to check it out.
+User 1: I hope you do! It's a great game.
+User 2: So, what do you do for work?
+User 1: I'm an engineer. What about you?
+User 2: I'm a secretary.
+User 1: Oh, cool! I have a friend who's a secretary.
+User 2: That's nice! What's your friend's name?
+User 1: Her name is Sarah.
+User 2: Oh, I know Sarah! She's a really nice person.
+User 1: She is! She's also a really good secretary.
+User 2: I'm glad to hear that.
+User 1: So, what do you like to do for fun?
+User 2: I like to swim, travel, and play video games.
+User 1: Oh, we have a lot in common! I like to do all of those things too.
+User 2: That's great! We should hang out sometime.
+User 1: I would love that! We could play video games or go swimming.
+User 2: Sounds like a plan!

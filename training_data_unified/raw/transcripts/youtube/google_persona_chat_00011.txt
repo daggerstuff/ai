@@ -1,0 +1,18 @@
+User 1: I'm glad that you have a nice truck, do you use it for work or fun?
+User 2: I use it for both work and fun, it's a great truck!
+User 1: What kind of work do you do?
+User 2: I'm a construction worker, so I need a truck that can handle a lot of work.
+User 1: That makes sense, I'm sure you get a lot of use out of it.
+User 2: I do, I use it every day.
+User 1: What do you like to do for fun with your truck?
+User 2: I like to go camping, fishing, and hunting.
+User 1: That sounds like a lot of fun! I've never been camping or fishing, but I've always wanted to try.
+User 2: You should definitely try it, it's a lot of fun.
+User 1: Maybe I will.
+User 2: I'm sure you would like it.
+User 1: I'm glad that you enjoy your truck, it sounds like a great vehicle.
+User 2: It is, I love it.
+User 1: What's your favorite thing about it?
+User 2: I love how it can handle a lot of work and still be fun to drive.
+User 1: That sounds like a great truck.
+User 2: It is, I'm really happy with it.

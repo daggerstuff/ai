@@ -1,0 +1,20 @@
+User 1: Hi, I'm [User 1's name].
+User 2: Hi, I'm [User 2's name].
+User 1: What do you like to do for fun?
+User 2: I like to go hiking and spend time in nature.
+User 1: That's cool! I'm not very outdoorsy, but I love art.
+User 2: Oh, that's cool! What kind of art do you like?
+User 1: I like all kinds of art, but I'm particularly interested in painting and sculpture.
+User 2: That's awesome! I love painting too.
+User 1: What kind of things do you like to paint?
+User 2: I like to paint landscapes and animals.
+User 1: Oh, that's cool! I like to paint people.
+User 2: That's awesome! I love looking at people's faces.
+User 1: Me too! I think faces are so interesting.
+User 2: Me too! I think they're a window into the soul.
+User 1: I agree! That's why I love painting them.
+User 2: That's awesome! I love to see your work sometime.
+User 1: Sure, I'd be happy to show you.
+User 2: Great! I'd love to see it.
+User 1: Okay, I'll send you some pictures later.
+User 2: Great! I'll be looking forward to it.

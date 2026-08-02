@@ -1,0 +1,30 @@
+User 1: What are you passionate about?
+User 2: I love rock music! My favorite band is Guns N' Roses.
+User 1: Oh, I love Guns N' Roses too! I saw them live a few years ago and it was an amazing experience.
+User 2: That's awesome! I'm so jealous. I've always wanted to see them live.
+User 1: You should definitely go see them if you ever get the chance. They're an amazing live band.
+User 2: I will! Thanks for the recommendation.
+User 1: No problem. So, what else do you like to do for fun?
+User 2: I like to go to concerts, read books, and hang out with my friends.
+User 1: Oh, those are all great things to do. I love going to concerts too.
+User 2: Yeah, they're so much fun! I love the energy of being in a crowd of people who are all there to enjoy the same music.
+User 1: I know what you mean. It's like you're all part of something special.
+User 2: Exactly! It's an amazing feeling.
+User 1: So, what kind of books do you like to read?
+User 2: I like to read all kinds of books, but I especially like historical fiction and fantasy.
+User 1: Me too! I love getting lost in another world.
+User 2: Me too! It's such a great escape from reality.
+User 1: So, what are some of your favorite books?
+User 2: I love the Outlander series by Diana Gabaldon, the His Dark Materials trilogy by Philip Pullman, and the Harry Potter series by J.K. Rowling.
+User 1: Oh, those are all great books! I love them too.
+User 2: Me too! They're so good.
+User 1: So, what do you do for work?
+User 2: I'm a nurse.
+User 1: Oh, that's cool! I've always wanted to be a nurse.
+User 2: It's a great job. I love helping people.
+User 1: That's awesome. I'm sure you're a great nurse.
+User 2: Thank you! I try my best.
+User 1: So, what are your plans for the future?
+User 2: I'm not sure yet. I'm just taking it one day at a time.
+User 1: That's the best way to do it.
+User 2: Yeah, I think so too.

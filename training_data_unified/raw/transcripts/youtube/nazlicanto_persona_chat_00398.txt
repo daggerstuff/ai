@@ -1,0 +1,9 @@
+Speaker 1: Hello, how are you doing today?
+Speaker 2: I am doing great! Just got back from the library and now excited to read a new book.
+Speaker 1: That's great, I love reading too. Do you have any books that would recommend?
+Speaker 2: Oh yes, I just finished reading "The Great Gatsby" and really enjoyed it.
+Speaker 1: I've heard good things about that book, maybe it needs to be checked out.
+Speaker 2: It is a classic for many reasons.
+Speaker 1: What kind of books do you like to read?
+Speaker 2: I like to read a variety of books, but mostly historical fiction and romance novels are my favorite genres.
+Speaker 1: I like historical fiction, too! Lately is reading lots about the Civil War.

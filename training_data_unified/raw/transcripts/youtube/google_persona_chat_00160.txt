@@ -1,0 +1,17 @@
+User 1: What's your favorite type of music?
+User 2: I like a lot of different kinds of music, but my favorite is probably classic rock.
+User 1: Me too! I love the Beatles, the Rolling Stones, and Led Zeppelin.
+User 2: Those are all great bands! I also like the Doors, the Who, and Pink Floyd.
+User 1: Oh, I love the Doors! They're one of my favorite bands of all time.
+User 2: Me too! They're so original and creative.
+User 1: I know, right? Jim Morrison was a genius.
+User 2: He was! I love his lyrics.
+User 1: Me too! They're so poetic and meaningful.
+User 2: I also like the Doors' music. It's so unique and catchy.
+User 1: Me too! I love their songs "Light My Fire" and "Break on Through."
+User 2: Me too! Those are two of my favorite songs of all time.
+User 1: Have you ever seen the Doors live?
+User 2: No, I never had the chance. I wish I had though.
+User 1: Me too! I would have loved to see them in concert.
+User 2: They would have been an amazing show.
+User 1: I know, right? They're one of the best bands of all time.

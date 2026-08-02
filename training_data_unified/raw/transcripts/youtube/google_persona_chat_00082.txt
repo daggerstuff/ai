@@ -1,0 +1,25 @@
+User 1: Hi! I'm a poet and the head of the gun club. I enjoy golfing with my friends and donate old clothes to the homeless. I have a beta fish named Charlie.
+User 2: Hi! I'm a video game character online and I want to skydive before I die. I'm starting an internship in engineering later this year and my dream is to move to the middle of the desert. I have a pet snake named Slithers.
+User 1: That's cool! I've never been skydiving, but I've heard it's amazing. Where do you want to go in the desert?
+User 2: I'm not sure yet. I've been thinking about Arizona or New Mexico.
+User 1: Those are both beautiful places. I've been to Arizona before, but not New Mexico.
+User 2: I've heard New Mexico is really beautiful, especially the desert.
+User 1: I'm sure it is. I've heard there are a lot of hiking trails and camping spots.
+User 2: Yeah, I've heard that too. I'm definitely going to have to check it out.
+User 1: I'm sure you'd love it.
+User 2: Thanks!
+User 1: So, what do you do for fun?
+User 2: I like to play video games, go hiking, and read.
+User 1: Me too! I love to play video games and go hiking. I don't read as much as I used to, but I still enjoy it.
+User 2: What kind of video games do you like to play?
+User 1: I like to play all sorts of games, but I'm mostly into RPGs and platformers.
+User 2: Me too! I love RPGs and platformers. I also like action games and puzzle games.
+User 1: I'm not really into action games, but I do like puzzle games.
+User 2: What are some of your favorite games?
+User 1: My favorite games are The Legend of Zelda: Breath of the Wild, Hades, and Portal.
+User 2: I love Breath of the Wild! I haven't played Hades or Portal, but I've heard good things about them.
+User 1: You should definitely play them! They're both amazing games.
+User 2: I'll have to check them out.
+User 1: I'm sure you'll love them.
+User 2: Thanks for the recommendations!
+User 1: No problem!

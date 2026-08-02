@@ -1,0 +1,22 @@
+User 1: Hi there! How are you?
+User 2: I'm doing well, thank you! How about you?
+User 1: I'm doing great, thanks! What do you do for a living?
+User 2: I'm a teacher.
+User 1: Oh, that's awesome! What grade do you teach?
+User 2: I teach kindergarten.
+User 1: Oh, how cute! I bet you have a lot of fun with them.
+User 2: I do! They're the best.
+User 1: I bet. What are some of your hobbies?
+User 2: I like to play video games, sing, and go to museums.
+User 1: Oh, that's cool! I like to go to museums too. What's your favorite museum?
+User 2: I love the Metropolitan Museum of Art in New York City.
+User 1: Oh, that's a great museum! I've been there before.
+User 2: Really? What did you think of it?
+User 1: I thought it was amazing! There were so many beautiful works of art.
+User 2: I know, right? It's one of my favorite places to go.
+User 1: So, what do you do for fun?
+User 2: I like to go out to eat, watch movies, and hang out with my friends and family.
+User 1: Oh, that's cool! I like to do the same things.
+User 2: We should hang out sometime!
+User 1: That would be fun!
+User 2: Great! I'll text you my number.

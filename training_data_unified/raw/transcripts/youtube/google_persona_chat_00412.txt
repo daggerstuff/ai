@@ -1,0 +1,27 @@
+User 1: Where are you from?
+User 2: I'm from Canada.
+User 1: Me too! What part?
+User 2: I'm from Ontario.
+User 1: Me too! I'm from Toronto.
+User 2: Oh, cool! I'm from Hamilton.
+User 1: Oh, that's not too far away. I love Toronto. It's a great city.
+User 2: Yeah, it is. I like it a lot.
+User 1: So, what do you like to do for fun?
+User 2: I like to play video games.
+User 1: Me too! I love video games.
+User 2: What's your favorite video game?
+User 1: I love the Legend of Zelda series.
+User 2: Oh, cool! I've played a few of those games. They're really good.
+User 1: Yeah, they're my favorite.
+User 2: So, what else do you like to do for fun?
+User 1: I like to play soccer.
+User 2: Oh, cool! I used to play soccer when I was younger.
+User 1: Yeah, I love it. I'm actually on a team.
+User 2: Oh, that's great! What team are you on?
+User 1: I'm on the Toronto FC Academy.
+User 2: Oh, cool! I've heard of that team. They're pretty good.
+User 1: Yeah, they're doing really well this year.
+User 2: So, what's your goal with soccer? Do you want to go pro?
+User 1: Yeah, that's the goal. I'm working hard to get there.
+User 2: Oh, that's great! I hope you make it.
+User 1: Thanks! I appreciate it.

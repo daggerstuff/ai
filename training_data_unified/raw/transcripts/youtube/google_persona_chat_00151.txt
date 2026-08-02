@@ -1,0 +1,24 @@
+User 1: Hey, what's up?
+User 2: Not much, just hanging out.
+User 1: Same here. I'm just getting ready for a barbecue.
+User 2: Oh, that sounds fun! What are you making?
+User 1: I'm making a bunch of different things, but my favorite is probably the barbecue sandwiches.
+User 2: I love barbecue sandwiches! What kind of meat are you using?
+User 1: I'm using some really good smoked pork shoulder.
+User 2: Oh, that sounds delicious!
+User 1: It is! I'm also making some chicken, some ribs, and some vegetables.
+User 2: That sounds like a great barbecue!
+User 1: Thanks! I'm really excited about it.
+User 2: I'm sure it will be a lot of fun.
+User 1: I hope so!
+User 2: So, what else do you like to do for fun?
+User 1: I like to go to the beach, play video games, and hang out with my friends.
+User 2: Sounds like we have a lot in common. I love the beach, too.
+User 1: Me too! It's so relaxing.
+User 2: Do you have any favorite video games?
+User 1: I really like the Zelda games.
+User 2: I love Zelda! That's one of my favorite series.
+User 1: It's so good! I can't wait for the new one to come out.
+User 2: Me too! It looks amazing.
+User 1: I'm glad we're on the same page.
+User 2: Me too! It's nice to find someone who likes the same things I do.

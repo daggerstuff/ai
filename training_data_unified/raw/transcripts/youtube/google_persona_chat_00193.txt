@@ -1,0 +1,25 @@
+User 1: Hello there!
+User 2: Hello there!
+User 1: What do you like to do for fun?
+User 2: I like to bake cakes, especially for my grandchildren.
+User 1: That's nice! What's your favorite cake to bake?
+User 2: My grandsons love chocolate cake, so I usually make that.
+User 1: That sounds delicious! Do you have any other hobbies?
+User 2: I also enjoy reading.
+User 1: Me too! What are some of your favorite books?
+User 2: I like to read romance novels.
+User 1: Oh, I love romance novels too! What's your favorite romance novel?
+User 2: My favorite romance novel is The Notebook.
+User 1: That's a great book! I love the movie too.
+User 2: Me too! It's so romantic.
+User 1: So, what do you do for work?
+User 2: I'm a registered nurse.
+User 1: That's a great job! I'm a nurse too.
+User 2: Oh, that's awesome! What kind of nursing do you do?
+User 1: I'm a pediatric nurse.
+User 2: That's great! I used to be a pediatric nurse too.
+User 1: Oh, really? That's cool! What made you decide to retire?
+User 2: I just wanted to spend more time with my grandchildren.
+User 1: That's understandable. I'm sure they love having you around.
+User 2: They do. I'm so glad I retired.
+User 1: I'm glad to hear that.

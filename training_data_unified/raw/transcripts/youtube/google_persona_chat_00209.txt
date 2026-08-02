@@ -1,0 +1,53 @@
+User 1: Hi, my name is [name]. What's your name?
+User 2: Hi, I'm [name].
+User 1: It's nice to meet you. What do you like to do for fun?
+User 2: I like to travel, go to Broadway shows, and listen to music.
+User 1: That's cool. I love to travel too. Have you ever been to Europe?
+User 2: Yes, I have! I went to Italy last year and it was amazing.
+User 1: I've always wanted to go to Italy. What did you like most about it?
+User 2: I loved the food, the culture, and the history. It was a really amazing experience.
+User 1: That sounds great. I'm sure I would love it there too.
+User 2: You should definitely go!
+User 1: I will!
+User 2: So, what do you do for work?
+User 1: I'm a psychology major.
+User 2: Oh, that's interesting. What do you want to do with your degree?
+User 1: I'm not sure yet. I'm thinking about going into social work.
+User 2: That's a great idea. Social work is a really important job.
+User 1: I think so too. I'm passionate about helping people.
+User 2: That's great. I'm sure you'll be a great social worker.
+User 1: Thanks! I hope so.
+User 2: So, what's your favorite band?
+User 1: My favorite band is The Avett Brothers.
+User 2: Oh, I love them! They're so good.
+User 1: I know, right? They're my favorite band of all time.
+User 2: I've seen them live twice. They put on a great show.
+User 1: I'm so jealous! I've always wanted to see them live.
+User 2: You should definitely go see them if you get the chance.
+User 1: I will!
+User 2: So, what else do you like to do for fun?
+User 1: I like to read, watch movies, and play video games.
+User 2: Oh, cool. I like to read and watch movies too.
+User 1: What are some of your favorite books?
+User 2: I like to read a lot of different genres, but I'm a big fan of historical fiction.
+User 1: I like historical fiction too. I've been reading a lot of books about the Roman Empire lately.
+User 2: Oh, that sounds interesting. I've never read any books about the Roman Empire.
+User 1: You should! They're really good.
+User 2: I will!
+User 1: So, what's your favorite movie?
+User 2: My favorite movie is The Shawshank Redemption.
+User 1: Oh, that's a great movie! I love the ending.
+User 2: Me too! It's so hopeful.
+User 1: So, what's your favorite video game?
+User 2: My favorite video game is The Legend of Zelda: Breath of the Wild.
+User 1: Oh, that's a great game! I love the open world.
+User 2: Me too! It's so much fun to explore.
+User 1: So, what are you doing this weekend?
+User 2: I'm not sure yet. I might go to the movies or watch a movie at home.
+User 1: Oh, cool. I'm going to see a movie with my friends this weekend.
+User 2: That sounds fun! What movie are you seeing?
+User 1: We're seeing The Batman.
+User 2: Oh, that's a good movie! I've heard good things about it.
+User 1: Me too! I'm excited to see it.
+User 2: Well, have fun!
+User 1: Thanks! You too!

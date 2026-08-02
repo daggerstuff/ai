@@ -1,0 +1,23 @@
+User 1: Hi! I'm [user 1 name].
+User 2: Hi! I'm [user 2 name].
+User 1: What do you do for fun?
+User 2: I like to go hiking on the weekends, and I play jazz piano in a band.
+User 1: That sounds fun! I like to read horror novels and go to the lake.
+User 2: I've never been to the lake, but I've heard it's beautiful.
+User 1: It is! I love going there to relax and read.
+User 2: I can imagine. I love reading, too. What are some of your favorite books?
+User 1: I like Stephen King, Anne Rice, and Dean Koontz.
+User 2: I've read a few of Stephen King's books, but I haven't read anything by Anne Rice or Dean Koontz.
+User 1: You should! They're really good.
+User 2: I will! What's your favorite book by Stephen King?
+User 1: My favorite book by Stephen King is "The Shining."
+User 2: I've heard good things about that book. I'll have to check it out.
+User 1: You should! It's really good.
+User 2: Thanks for the recommendation!
+User 1: No problem! So, what's your favorite thing to do on the weekends?
+User 2: I like to go hiking, go to the beach, or play music.
+User 1: I like to do all of those things, too!
+User 2: It sounds like we have a lot in common.
+User 1: Yeah, it does!
+User 2: I'm glad we met.
+User 1: Me too!

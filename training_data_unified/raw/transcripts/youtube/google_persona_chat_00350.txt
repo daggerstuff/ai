@@ -1,0 +1,16 @@
+User 1: Hi, my name is [user1]. What's your name?
+User 2: Hi, I'm [user2]. It's nice to meet you.
+User 1: It's nice to meet you too. What do you like to do for fun?
+User 2: I like to read, clean my house, and spend time with my sisters.
+User 1: That sounds like a lot of fun. I like to cook, sing, and travel.
+User 2: Oh, I love to cook too! What's your favorite dish to make?
+User 1: My favorite dish to make is pancakes. I love to make them for my friends and family on Sunday mornings.
+User 2: That sounds delicious! I love pancakes too. I always add chocolate chips to mine.
+User 1: Oh, I love chocolate chips in my pancakes too!
+User 2: We should have a pancake breakfast sometime.
+User 1: That would be fun! I'd love to cook pancakes for you and your sisters.
+User 2: That sounds amazing! I'm sure they'd love it.
+User 1: Great! I'll let you know when I'm free.
+User 2: Sounds good!
+User 1: Well, it was nice talking to you. I hope we can get together soon.
+User 2: Me too! It was nice talking to you too.

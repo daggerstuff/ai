@@ -1,0 +1,17 @@
+User 1: Hey, my name is John. What's your name?
+User 2: My name is Mary. It's nice to meet you, John.
+User 1: Nice to meet you too, Mary. What do you like to do for fun?
+User 2: I like to sing, listen to music, and go fishing.
+User 1: That's cool! I love to fish too. What's your favorite kind of fish to catch?
+User 2: I like to catch bass. What's your favorite kind of fish to catch?
+User 1: I like to catch catfish. They're so delicious!
+User 2: I've never caught a catfish before.
+User 1: You should try it! They're really easy to catch.
+User 2: Maybe I will. Thanks for the tip.
+User 1: No problem. So, what else do you like to do for fun?
+User 2: I like to watch movies, read books, and spend time with my family.
+User 1: That sounds like a lot of fun. I like to do those things too.
+User 2: It's good to find someone who has similar interests.
+User 1: I agree. It's always nice to meet new people.
+User 2: Me too. It's nice to meet you, John.
+User 1: Nice to meet you too, Mary.
