@@ -1,0 +1,39 @@
+User 1: Hi, my name is [name]. What's your name?
+User 2: Hi [name], my name is [name].
+User 1: Nice to meet you, [name].
+User 2: Nice to meet you too, [name].
+User 1: What do you like to do for fun?
+User 2: I like to go to the mall, play tennis, and go on dates.
+User 1: That sounds fun. I like to go to the beach, play video games, and hang out with friends.
+User 2: I love the beach! I used to live in a beach town, and I miss it every day.
+User 1: I can imagine! I love the sun, the sand, and the sound of the waves.
+User 2: Me too! I would love to go to the beach with you sometime.
+User 1: That would be fun! I'm always up for a day at the beach.
+User 2: Great! We'll have to make plans sometime.
+User 1: Sounds good.
+User 2: What do you do for work?
+User 1: I'm a teacher at a local elementary school.
+User 2: That sounds like a great job. I'm a tennis instructor at the local country club.
+User 1: That sounds like a fun job too. I've always wanted to learn how to play tennis.
+User 2: I could give you some lessons sometime.
+User 1: That would be great! Thanks, [name].
+User 2: No problem, [name].
+User 1: What's your favorite movie?
+User 2: My favorite movie is The Princess Bride.
+User 1: I love that movie! It's so funny and charming.
+User 2: I know, right? It's one of my all-time favorites.
+User 1: What's your favorite book?
+User 2: My favorite book is The Catcher in the Rye.
+User 1: I've heard good things about that book. I'll have to check it out.
+User 2: You should! It's a great book.
+User 1: I will.
+User 2: What's your favorite TV show?
+User 1: My favorite TV show is The Office.
+User 2: I love that show! It's so funny.
+User 1: I know, right? It's one of my all-time favorites.
+User 2: What's your favorite food?
+User 1: My favorite food is pizza.
+User 2: Me too! I love pizza.
+User 1: What's your favorite place to go on vacation?
+User 2: My favorite place to go on vacation is the beach.
+User 1: I love the beach too! I'm always up for a day at the beach.

@@ -1,0 +1,32 @@
+User 1: Hi, I'm [name].
+User 2: Hi, I'm [name]. What do you like to do for fun?
+User 1: I like to go to the beach, ride my bike, and play with my dog.
+User 2: Nice! I like to go surfing, work on my car, and play with my dog.
+User 1: What kind of car do you have?
+User 2: I have a Corvette.
+User 1: Nice! I've always wanted a Corvette.
+User 2: They're great cars. I love driving mine.
+User 1: What do you do for work?
+User 2: I'm a mechanic.
+User 1: Oh, cool! I've always wanted to learn how to work on cars.
+User 2: It's not too hard. You just need to be patient and willing to learn.
+User 1: I'm sure I could handle it. I'm pretty good with my hands.
+User 2: Well, if you ever need any help, just let me know.
+User 1: Thanks, I appreciate it.
+User 2: No problem. So, where are you from?
+User 1: I'm from California.
+User 2: Nice! I'm from California too.
+User 1: What part of California?
+User 2: I'm from San Diego.
+User 1: Oh, cool! I'm from Los Angeles.
+User 2: No way! I've always wanted to go to Los Angeles.
+User 1: It's a great city. You should definitely come visit sometime.
+User 2: I will. Thanks for the offer.
+User 1: No problem. So, what do you like to do in your free time?
+User 2: I like to go to the beach, play with my dog, and work on my car.
+User 1: Nice! I like to do a lot of the same things.
+User 2: That's cool. We should hang out sometime.
+User 1: That sounds like fun. We can go to the beach or something.
+User 2: Great. I'm free this weekend.
+User 1: Me too. Let's do it.
+User 2: Sounds good. I'll text you the details.

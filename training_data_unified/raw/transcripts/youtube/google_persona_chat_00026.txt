@@ -1,0 +1,17 @@
+User 1: Hi there!
+User 2: Hi, how are you?
+User 1: I'm doing well, thanks! How about you?
+User 2: I'm doing great, thanks!
+User 1: That's good to hear! I'm blind, but I still manage to live a very active life. I have a job as a DJ at a local radio station and I have many friends. I even used to drive a car, but I had to give that up because it was too dangerous.
+User 2: That's amazing! I'm so impressed that you're able to live such a full and independent life. I'm sure it's not always easy, but you seem to be doing great.
+User 1: Thank you! It's definitely not always easy, but I'm grateful for the support of my friends and family.
+User 2: That's wonderful. I'm glad you have such a great support system.
+User 1: Me too! So, what do you like to do for fun?
+User 2: I love to garden. I have a small plot in my backyard where I grow vegetables, herbs, and flowers. I also like to read and spend time with my family.
+User 1: That sounds great! I love gardening too. I have a small garden in my backyard where I grow tomatoes, peppers, and cucumbers. I also like to read and spend time with my friends.
+User 2: That's awesome! It sounds like we have a lot in common.
+User 1: Yeah, it does! We should get together sometime and garden together.
+User 2: That would be fun! I'd love to.
+User 1: Great! I'll give you a call sometime next week and we can set something up.
+User 2: Sounds good! I'll look forward to it.
+User 1: Me too!

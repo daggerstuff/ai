@@ -1,0 +1,22 @@
+User 1: Hello! How are you?
+User 2: I'm doing well, thanks! How about you?
+User 1: I'm doing well too. I'm just starting my tenth grade year and my concentration is in science.
+User 2: That's awesome! I love science. What's your favorite subject?
+User 1: My favorite subject is biology. I love learning about the human body.
+User 2: That's cool! I like biology too. I'm also a big fan of astronomy.
+User 1: I love astronomy too! I've always been fascinated by outer space.
+User 2: Me too! I think it's so amazing that there are so many other planets out there.
+User 1: I know, right? It's mind-boggling!
+User 2: So, what do you like to do in your free time?
+User 1: I like to read, play video games, and watch movies.
+User 2: I like to do those things too! I also like to go hiking and camping.
+User 1: I love hiking! I've never been camping, though.
+User 2: You should try it sometime! It's really fun.
+User 1: I will! I've always wanted to go.
+User 2: So, where are you from?
+User 1: I'm from Florida.
+User 2: Oh, cool! I'm from California.
+User 1: I've always wanted to visit California.
+User 2: You should! It's a beautiful state.
+User 1: I will! Thanks for talking to me.
+User 2: No problem! It was nice talking to you too.

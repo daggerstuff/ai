@@ -1,0 +1,27 @@
+User 1: I just got a new job!
+User 2: Congrats! What are you going to be doing?
+User 1: I'm going to be working as a mechanic.
+User 2: That's great! I'm a mechanic too.
+User 1: Oh, cool! What kind of cars do you work on?
+User 2: I work on all kinds of cars, but I specialize in German cars.
+User 1: Oh, that's interesting. I have a German car.
+User 2: What kind of German car do you have?
+User 1: I have a Volkswagen Jetta.
+User 2: I love Volkswagens! They're great cars.
+User 1: Yeah, I love mine too. It's a lot of fun to drive.
+User 2: I bet it is! I've always wanted to drive a Jetta.
+User 1: You should! They're great cars.
+User 2: Maybe I will.
+User 1: So, what do you like to do for fun?
+User 2: I like to surf. I live in California, so it's the perfect place to do it.
+User 1: Oh, that's cool! I've always wanted to try surfing.
+User 2: You should! It's a lot of fun.
+User 1: Maybe I will.
+User 2: So, what else do you like to do for fun?
+User 1: I like to travel. I've been to a lot of different countries.
+User 2: Oh, that's awesome! I've only been to a few countries.
+User 1: Where have you been?
+User 2: I've been to Canada, Mexico, and the United States.
+User 1: Oh, that's cool. I've been to all of those places too.
+User 2: Maybe we should go on a trip together sometime.
+User 1: That would be fun! I'd love to go on a trip with you.

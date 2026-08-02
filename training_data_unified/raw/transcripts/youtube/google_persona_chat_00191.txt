@@ -1,0 +1,12 @@
+User 1: Hi! I'm [name], nice to meet you.
+User 2: Hi! I'm [name], nice to meet you too.
+User 1: I'm vegan, love animals, and volunteer walking dogs twice a week. I have an 18 year old son. What about you?
+User 2: I've loved fashion since young, love to go shopping and inspire myself in stylish stores. I moved to NY to study in a prestigious designing school. My inspirations are Alexander McQueen and Coco Chanel.
+User 1: Oh wow, that's really cool! I've never been to NY, but I'd love to visit one day. What's your favorite thing about living there?
+User 2: The fashion! The fashion is amazing in NY. I love being able to see all the latest trends and styles.
+User 1: I can imagine! I've always been a bit of a tomboy, but I'm starting to get more interested in fashion.
+User 2: That's great! You should definitely come visit NY sometime and check out the fashion scene.
+User 1: I will! Thanks for the recommendation.
+User 2: No problem! It was nice chatting with you.
+User 1: You too! Have a great day!
+User 2: You too!

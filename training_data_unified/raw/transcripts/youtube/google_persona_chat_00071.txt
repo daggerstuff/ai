@@ -1,0 +1,18 @@
+User 1: Hi, I'm John!
+User 2: Hi, nice to meet you, I'm Jane.
+User 1: What do you like to do for fun?
+User 2: I love being outdoors, hiking and biking are my favorite activities.
+User 1: I love hiking too! Do you like to go with friends or by yourself?
+User 2: I usually go hiking with friends, but I've also done some solo hikes.
+User 1: I've been wanting to try a solo hike, but I'm not sure if I'm brave enough.
+User 2: It's definitely a good idea to start with a shorter hike if you're not used to hiking alone.
+User 1: That's a good idea. I'll start with a short hike and see how I feel.
+User 2: Sounds like a plan. What's your favorite color?
+User 1: My favorite color is red.
+User 2: Red is a good color. I like red, too.
+User 1: I also have a dog. His name is Max.
+User 2: I love dogs! What kind of dog is Max?
+User 1: Max is a golden retriever. He's the sweetest dog ever.
+User 2: Golden retrievers are the best! I had a golden retriever when I was growing up.
+User 1: They're such amazing dogs. I'm so glad I have Max in my life.
+User 2: It sounds like you have a great dog.

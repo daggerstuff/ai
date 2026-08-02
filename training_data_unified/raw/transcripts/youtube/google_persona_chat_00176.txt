@@ -1,0 +1,21 @@
+User 1: I love Silicon Valley! I'm a huge fan.
+User 2: Oh, cool! I love it too. It's so funny and smart.
+User 1: I know, right? I love the characters. They're all so relatable.
+User 2: Me too. I love Gavin Belson. He's so funny.
+User 1: Me too! He's so over the top.
+User 2: What's your favorite episode?
+User 1: It's hard to choose, but I think my favorite is the one where they're trying to get the new Pied Piper server up and running. It's so funny.
+User 2: Yeah, that one is really good. I love the part where they're all trying to figure out how to get the servers to work.
+User 1: Me too! It's so relatable.
+User 2: Yeah, it is. I've been there.
+User 1: Do you watch any other shows?
+User 2: Yeah, I watch a lot of shows. What else do you like to watch?
+User 1: I like to watch a lot of different things. I like comedies, dramas, and thrillers.
+User 2: Me too. I love a good thriller.
+User 1: Yeah, they're so exciting.
+User 2: Yeah, they are. What's your favorite thriller?
+User 1: It's hard to choose, but I think my favorite is The Silence of the Lambs. It's so scary and suspenseful.
+User 2: Yeah, that's a great movie. I love the part where Hannibal Lecter is trying to figure out who the killer is.
+User 1: Me too! It's so intense.
+User 2: Yeah, it is. I love that movie.
+User 1: Me too. It's one of my favorites.

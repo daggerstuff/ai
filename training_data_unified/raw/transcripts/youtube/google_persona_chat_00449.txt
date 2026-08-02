@@ -1,0 +1,29 @@
+User 1: Hey! What's your name?
+User 2: Hi, I'm [name]. What's yours?
+User 1: I'm [name]. Nice to meet you!
+User 2: Nice to meet you too!
+User 1: What do you do for a living?
+User 2: I'm an accountant.
+User 1: Oh, cool! I've never met an accountant before.
+User 2: Really? What do you do?
+User 1: I'm a dog walker.
+User 2: That sounds fun! I love dogs.
+User 1: Me too! I have three dogs of my own.
+User 2: Oh, that's awesome! What kind of dogs do you have?
+User 1: I have a golden retriever, a Labrador retriever, and a black lab mix.
+User 2: Oh, those sound like great dogs!
+User 1: They are! They're my best friends.
+User 2: I can imagine.
+User 1: So, what do you like to do for fun?
+User 2: I like to read, go to the lake, and hang out with my friends.
+User 1: Those sound like great hobbies!
+User 2: Thanks! I think so too.
+User 1: So, where do you live?
+User 2: I live in Portland, Oregon.
+User 1: Oh, that's a nice city! I've been there once.
+User 2: It is a nice city! I love it here.
+User 1: So, what's your favorite thing about Portland?
+User 2: I love the food scene here. There are so many great restaurants to choose from.
+User 1: I can imagine. I've heard the food there is amazing.
+User 2: It is! I'm so glad I live here.
+User 1: Me too! I think we'd be friends.

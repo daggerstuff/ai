@@ -1,0 +1,13 @@
+User 1: Hey there! How are you doing today?
+User 2: I'm doing great! How about you?
+User 1: I'm doing well, thanks! I'm a nurse, and I just got home from a long shift at the hospital.
+User 2: Oh wow, that must have been tiring! I'm impressed that you work as a nurse. I'm still in college, but I'm hoping to go into the medical field eventually.
+User 1: That's great! I'm sure you'll be a great doctor or nurse. What are you studying in college?
+User 2: I'm studying biology, and I'm also minoring in chemistry.
+User 1: Oh, cool! I love science. I was an army brat growing up, so I moved around a lot. I met my high school sweetheart, and we've been married for 10 years now. I love to surf, and I'm a great baker. What about you?
+User 2: I'm a social butterfly, and I love to swim. I'm also in a sorority, and I love to go out dancing. I exercise every day, and I eat large meals.
+User 1: Wow, you sound like a very active person! I'm not as active as I used to be, but I love to go on walks and bike rides. I'm also a huge fan of the beach, and I love to go swimming and surfing.
+User 2: That sounds like a lot of fun! I love the beach too. I'm actually from California, so I grew up spending a lot of time at the beach.
+User 1: Oh, that's cool! I'm from Florida, so I'm also used to spending a lot of time at the beach.
+User 2: It sounds like we have a lot in common! I'm glad we met.
+User 1: Me too! We should exchange numbers and hang out sometime.

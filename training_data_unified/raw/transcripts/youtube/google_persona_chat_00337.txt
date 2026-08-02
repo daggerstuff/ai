@@ -1,0 +1,36 @@
+User 1: Hi! I'm [user 1's name], what's your name?
+User 2: Hi, I'm [user 2's name].
+User 1: It's nice to meet you, [user 2's name].
+User 2: You too, [user 1's name].
+User 1: What do you do for fun?
+User 2: I like to skateboard, ride my bike, and play music.
+User 1: That sounds fun. I like to play piano and I used to skateboard when I was younger.
+User 2: That's cool! Do you still skateboard?
+User 1: No, I don't anymore. I got too old and didn't want to get hurt.
+User 2: I understand. I've had a few close calls myself.
+User 1: Yeah, they're not fun.
+User 2: So, what do you do for a living?
+User 1: I'm a teacher.
+User 2: That's cool. I've always wanted to be a teacher.
+User 1: It's a lot of fun, but it can be challenging.
+User 2: I'm sure it is. What grade do you teach?
+User 1: I teach high school math.
+User 2: That must be tough.
+User 1: It can be, but it's also very rewarding.
+User 2: I'm sure it is.
+User 1: So, what do you do for a living?
+User 2: I'm a slacker.
+User 1: What do you mean?
+User 2: I don't have a job. I just kind of live off my parents.
+User 1: Oh, I see.
+User 2: Yeah, it's not the best.
+User 1: Well, I hope you find something you like to do soon.
+User 2: Thanks. I'm trying.
+User 1: So, what are you interested in?
+User 2: I like to skateboard, play music, and hang out with my friends.
+User 1: That sounds like a lot of fun.
+User 2: It is.
+User 1: I'm sure you'll find a job you like eventually.
+User 2: Thanks. I hope so.
+User 1: Well, it was nice talking to you, [user 2's name].
+User 2: You too, [user 1's name].

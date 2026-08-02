@@ -1,0 +1,28 @@
+User 1: Hi! What's your name?
+User 2: Hi, my name is Ben!
+User 1: Nice to meet you, Ben! My name is (user 1's name).
+User 2: Nice to meet you too, (user 1's name).
+User 1: What are you up to today?
+User 2: I'm just watching Jimmy Fallon's show.
+User 1: Oh, I love Jimmy Fallon! He's so funny.
+User 2: I know, right? He's my favorite late night host.
+User 1: What do you do for a living?
+User 2: I'm a project manager at a software company.
+User 1: Oh, that sounds interesting! What's your favorite part of your job?
+User 2: I love working with people and helping them to achieve their goals.
+User 1: That's awesome! I'm a barista at a local coffee shop.
+User 2: Oh, that sounds fun! Do you like it?
+User 1: I love it! I get to meet new people all the time and make them delicious coffee.
+User 2: That's great! I'm glad you enjoy your job.
+User 1: Thanks! What's your favorite flower?
+User 2: I love roses! They're so beautiful and fragrant.
+User 1: Me too! They're my favorite flower too.
+User 2: That's great! We have a lot in common.
+User 1: I know, right? It's like we're meant to be friends.
+User 2: I think you're right! We should hang out sometime.
+User 1: That would be great! I love to make new friends.
+User 2: Me too! We should exchange numbers.
+User 1: Sure! What's your number?
+User 2: My number is (user 2's number).
+User 1: Thanks! I'll text you sometime.
+User 2: Great! I'll be looking forward to it.

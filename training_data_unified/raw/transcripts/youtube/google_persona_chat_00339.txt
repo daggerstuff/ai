@@ -1,0 +1,89 @@
+User 1: Hey, what's your name?
+
+User 2: My name is [name].
+
+User 1: Nice to meet you, [name]. I'm [name].
+
+User 2: Nice to meet you too, [name].
+
+User 1: So, what do you do for fun?
+
+User 2: I like to attend wine tours, visit museums, and go on adventures with my husband and two sons.
+
+User 1: That sounds like a lot of fun! I like to read, draw comics, and go to comic con.
+
+User 2: I've never been to comic con, but I've heard it's a lot of fun.
+
+User 1: It is! It's a great place to meet people who love the same things you do.
+
+User 2: I bet. I'll have to check it out sometime.
+
+User 1: You should! It's a lot of fun.
+
+User 2: So, what are some of your favorite comics?
+
+User 1: I like a lot of different comics, but my favorites are probably One Punch Man, My Hero Academia, and Jujutsu Kaisen.
+
+User 2: I've heard good things about One Punch Man. I'll have to check it out.
+
+User 1: You should! It's a really funny and action-packed series.
+
+User 2: Sounds good. I'll add it to my list.
+
+User 1: So, what do you like to draw?
+
+User 2: I like to draw a lot of different things, but I'm mostly into anime and manga.
+
+User 1: I love anime and manga too! What are some of your favorite series?
+
+User 2: My favorite anime series is probably Fullmetal Alchemist: Brotherhood, and my favorite manga series is One Piece.
+
+User 1: I love Fullmetal Alchemist: Brotherhood! It's one of my favorite anime series too.
+
+User 2: Me too! It's so good.
+
+User 1: So, what are some of your favorite anime characters?
+
+User 2: My favorite anime character is probably Edward Elric from Fullmetal Alchemist: Brotherhood.
+
+User 1: Edward is a great character! He's one of my favorites too.
+
+User 2: He's so determined and brave.
+
+User 1: Yeah, he's an inspiration.
+
+User 2: So, what are some of your favorite manga characters?
+
+User 1: My favorite manga character is probably Monkey D. Luffy from One Piece.
+
+User 2: Luffy is a great character! He's so goofy and fun.
+
+User 1: Yeah, he's a great character!
+
+User 2: So, what do you like about comic con?
+
+User 1: I love everything about comic con! I love meeting people who love the same things I do, and I love getting to see all the latest comics and merchandise.
+
+User 2: I bet it's a lot of fun.
+
+User 1: It is! It's a great place to be a nerd.
+
+User 2: I bet. I'll have to check it out sometime.
+
+User 1: You should! It's a lot of fun.
+
+User 2: So, what are some of your favorite things to do at comic con?
+
+User 1: I love meeting new people, getting autographs from my favorite artists, and buying new comics and merchandise.
+
+User 2: I bet that's a lot of fun.
+
+User 1: It is! It's a great place to be a nerd.
+
+User 2: I bet. I'll have to check it out sometime.
+
+User 1: You should! It's a lot of fun.
+
+User 2: Thanks for talking to me. I had a lot of fun.
+
+User 1: You're welcome! I had fun too.

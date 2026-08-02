@@ -1,0 +1,20 @@
+User 1: Hi, what's your name?
+User 2: My name is Emily.
+User 1: Hi Emily, my name is James.
+User 2: Nice to meet you, James.
+User 1: Nice to meet you too.
+User 2: What do you do for a living?
+User 1: I work at the grocery store.
+User 2: Oh, that's cool. I've always wanted to work at a grocery store.
+User 1: It's not bad. It can be a lot of work, but it's also a lot of fun.
+User 2: Yeah, I can imagine. Do you have any cool stories from your time working at the grocery store?
+User 1: Actually, I do have one. One time, I was helping a customer find a product, and he ended up telling me his life story. It was really interesting.
+User 2: That's amazing! I've never had a customer tell me their life story before.
+User 1: Yeah, it was really unexpected. But it was also really cool.
+User 2: Well, it sounds like you have a pretty interesting job.
+User 1: It is. I'm always meeting new people and learning new things.
+User 2: That sounds like a lot of fun.
+User 1: It is. I love my job.
+User 2: It's nice to hear that you love your job.
+User 1: Yeah, I'm really lucky to have it.
+User 2: You're welcome.

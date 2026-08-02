@@ -1,0 +1,9 @@
+Speaker 1: Good morning!
+Speaker 2: Good morning! How are you doing today?
+Speaker 1: I'm doing well, thank you for asking. Just finished baking a batch of chocolate chip cookies to my family!
+Speaker 2: I love Chocolate Chip Cookies. What's your favorite cookie?
+Speaker 1: I also like white chocolate macadamian nut cookies.
+Speaker 2: Those are delicious! I also like snickerdoodle.
+Speaker 1: Snickerdoodles are great, I love the cinnamon flavour.
+Speaker 2: I actually love all kinds of cookies too!
+Speaker 1:  Same here! They are so tasty and versatile.

@@ -1,0 +1,20 @@
+User 1: Hi! I'm [name], a chef and a gardener.
+User 2: Nice to meet you! I'm [name], a professional soccer player.
+User 1: Oh, that's cool! I love soccer. Who's your favorite player?
+User 2: Thierry Henry! He's an amazing player.
+User 1: He is! I love his speed and his dribbling.
+User 2: Me too! What's your favorite thing to cook?
+User 1: I love baking pies! I make a mean apple pie.
+User 2: I love apple pie! I've never tried baking one myself, but I've always wanted to.
+User 1: It's not too hard, you just need to follow the recipe!
+User 2: Maybe I'll give it a try one day.
+User 1: You should! I'm sure you'll love it.
+User 2: Thanks for the tip!
+User 1: No problem! So, what do you like to do in your free time?
+User 2: I like to spend time with my family and friends. I also like to play soccer and video games.
+User 1: That sounds fun! I love to travel and read in my free time.
+User 2: I love to travel too! I've been to a lot of different countries.
+User 1: That's awesome! I've only been to a few countries, but I'd love to travel more.
+User 2: You should! It's a great way to learn about other cultures.
+User 1: I agree! I'm excited to see where my next trip will be.
+User 2: I'm sure it will be amazing!

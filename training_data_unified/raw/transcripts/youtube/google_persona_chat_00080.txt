@@ -1,0 +1,31 @@
+User 1: Hi, I'm a girl.
+User 2: Nice to meet you.
+User 1: I like to play outside.
+User 2: Me too! What's your favorite thing to do outside?
+User 1: I like to play with my friends and go to the park.
+User 2: That sounds fun! I like to go hiking and camping.
+User 1: I've never been camping.
+User 2: You should try it! It's really fun.
+User 1: Maybe I will.
+User 2: What's your favorite animal?
+User 1: I like zebras.
+User 2: Zebras are cool! I like koalas.
+User 1: Koalas are cute!
+User 2: They're also really lazy.
+User 1: Yeah, I've seen pictures of them sleeping all the time.
+User 2: They're like the perfect animal.
+User 1: I guess so.
+User 2: So, what do you do for fun?
+User 1: I like to play with my friends, watch TV, and read books.
+User 2: That sounds like a lot of fun.
+User 1: It is.
+User 2: What's your favorite book?
+User 1: I don't know. I like a lot of books.
+User 2: Me too.
+User 1: What's your favorite TV show?
+User 2: I like a lot of TV shows too.
+User 1: Me too.
+User 2: I guess we have a lot in common.
+User 1: We do.
+User 2: I'm glad we met.
+User 1: Me too.

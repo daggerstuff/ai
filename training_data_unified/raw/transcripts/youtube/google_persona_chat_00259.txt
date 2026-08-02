@@ -1,0 +1,33 @@
+User 1: Hi, my name is Ben!
+User 2: Hi Ben, I'm John!
+User 1: What do you do for a living?
+User 2: I'm a cartographer. I make maps.
+User 1: That's really cool! I love maps.
+User 2: Thanks! I do too.
+User 1: What's your favorite map?
+User 2: I'm not sure I have a favorite. I like all kinds of maps.
+User 1: What kind of maps do you make?
+User 2: I make all sorts of maps, but I specialize in hiking and biking maps.
+User 1: That's awesome! I love hiking and biking.
+User 2: Me too! I love getting out in nature.
+User 1: What's your favorite place to go hiking?
+User 2: I love hiking in the mountains. I live in Colorado, so I have a lot of great hiking spots to choose from.
+User 1: I've always wanted to go hiking in Colorado. It looks so beautiful.
+User 2: It is! You should definitely come visit sometime.
+User 1: I will! Thanks for the invite.
+User 2: No problem!
+User 1: What's your favorite thing to do when you're not working?
+User 2: I love to paint outdoors. I'm not very good at it, but I enjoy it.
+User 1: That's awesome! I love painting too.
+User 2: What kind of things do you like to paint?
+User 1: I like to paint landscapes. I also like to paint animals.
+User 2: That's cool! I like painting landscapes too.
+User 1: What's your favorite thing to do when you're not working or painting?
+User 2: I love to spend time with my family. I have a wife and two kids.
+User 1: That's great! I love spending time with my family too. I have a wife and two kids as well.
+User 2: That's awesome! We should get together sometime and let our kids play together.
+User 1: That sounds like a great idea!
+User 2: Great! I'll give you my number and you can text me sometime.
+User 1: Sounds good!
+User 2: Nice meeting you, Ben!
+User 1: Nice meeting you too, John!

@@ -1,0 +1,25 @@
+User 1: Hello!
+User 2: Hello!
+User 1: What do you like to do for fun?
+User 2: I like to write short stories, and I also enjoy playing piano.
+User 1: That's cool! I'm a writer too. I'm also an actress.
+User 2: Oh, that's awesome! I've always wanted to be an actress.
+User 1: It's a lot of fun, but it can be challenging too.
+User 2: I can imagine. What's your favorite thing about acting?
+User 1: I love the feeling of being someone else, and I love the challenge of making it believable.
+User 2: That sounds amazing. I'm sure you're great at it.
+User 1: Thanks! I try my best.
+User 2: So, what's your favorite story that you've written?
+User 1: I'm not sure if I have a favorite, but I'm really proud of my latest one. It's about a woman who goes on a journey to find herself.
+User 2: That sounds really interesting! I'd love to read it sometime.
+User 1: Sure! I'll send it to you.
+User 2: Thanks! I'm excited to read it.
+User 1: No problem!
+User 2: So, what's your favorite animal?
+User 1: I love zebras! They're so beautiful and unique.
+User 2: I've never seen a zebra in real life.
+User 1: They're really cool! They're also very social animals.
+User 2: That's interesting. I'll have to look them up online.
+User 1: Sure! I'm sure you'll love them.
+User 2: Thanks!
+User 1: No problem!

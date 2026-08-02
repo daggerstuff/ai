@@ -1,0 +1,23 @@
+User 1: Hi! My name is [name], I enjoy spending my weekends browsing antique stores. What are you up to today?
+User 2: Hi! My name is [name], I don't work today and I'm going to go swimming.
+User 1: That sounds like fun! I love swimming too.
+User 2: Me too! I'm a bit of a water baby.
+User 1: I can relate. I love to swim in the ocean, lake, pool, anywhere!
+User 2: Me too! I love the feeling of the water on my skin.
+User 1: It's so refreshing.
+User 2: I know right!
+User 1: So, what's your favorite kind of swimming?
+User 2: I like to swim for exercise, but I also like to swim for fun.
+User 1: I hear that. I like to swim for exercise too, but I also like to go swimming with my friends and family.
+User 2: That's fun! I like to go swimming with my family too.
+User 1: So, do you have any favorite swimming spots?
+User 2: I like to swim at the beach.
+User 1: I love the beach! I love the sand and the waves.
+User 2: Me too! I love the feeling of the sun on my skin and the sound of the waves crashing.
+User 1: It's so relaxing.
+User 2: I know right!
+User 1: So, what do you like to do when you're not swimming?
+User 2: I like to read, listen to music, and spend time with my family and friends.
+User 1: I like to do those things too! I love to read, listen to music, and hang out with my family and friends.
+User 2: We sound like we have a lot in common.
+User 1: I think so too!

@@ -1,0 +1,39 @@
+User 1: Hi, I'm [user 1].
+User 2: Hi, I'm [user 2]. It's nice to meet you.
+User 1: Nice to meet you too.
+User 2: So, what do you do for a living?
+User 1: I work in TV.
+User 2: Oh, that's cool. What kind of TV shows do you work on?
+User 1: I've worked on a variety of shows, but my favorite was a reality show about a group of lesbians who lived together in a house.
+User 2: That sounds really interesting. I'm a lesbian too.
+User 1: Oh, cool! What's your name?
+User 2: My name is [user 2].
+User 1: Nice to meet you, [user 2].
+User 2: You too, [user 1].
+User 1: So, what are you doing next week?
+User 2: I'm getting married!
+User 1: Oh, congratulations!
+User 2: Thank you!
+User 1: Where are you getting married?
+User 2: In a park.
+User 1: Oh, that's beautiful.
+User 2: It is.
+User 1: Where are you going for your honeymoon?
+User 2: We're going to Niagara Falls.
+User 1: Oh, that's amazing.
+User 2: I know, I'm so excited.
+User 1: I'm sure you'll have a great time.
+User 2: Thank you.
+User 1: So, what's your family like?
+User 2: They're not very happy about me getting married.
+User 1: Why not?
+User 2: They don't like my fiancé.
+User 1: Why not?
+User 2: They think he's not good enough for me.
+User 1: But that's not your family's decision. It's yours.
+User 2: I know, but it's hard to ignore them.
+User 1: I understand. But you have to do what's best for you.
+User 2: I know.
+User 1: I'm sure you'll make the right decision.
+User 2: Thank you.
+User 1: You're welcome.

@@ -1,0 +1,30 @@
+User 1: Hey! It's nice to meet you!
+User 2: Hi! It's nice to meet you too!
+User 1: What do you like to do for fun?
+User 2: I like to stay fit, I love animals, and I watch TED talks.
+User 1: Oh, that's cool! I'm single, and I love watching superheroes shows, I read ebooks more than hardcopies, and I prefer iPhone over Samsung.
+User 2: That's awesome! I've never actually watched a superhero show, but I've heard good things about them.
+User 1: You should check them out! They're really great.
+User 2: I will!
+User 1: So, what do you do for work?
+User 2: I'm a personal trainer.
+User 1: Oh, that's cool! I've always wanted to be a personal trainer.
+User 2: It's a lot of fun! I love helping people get fit and healthy.
+User 1: That's great!
+User 2: What do you do for work?
+User 1: I'm a software engineer.
+User 2: Oh, that's cool! I've always been interested in programming.
+User 1: It's a lot of fun! I love creating new things.
+User 2: That's great!
+User 1: So, what do you think of the recent Supreme Court decision on abortion?
+User 2: I think it's a terrible decision. It's going to make it a lot harder for women to get the care they need.
+User 1: I agree. It's a huge step back for women's rights.
+User 2: It is.
+User 1: So, what do you think we can do to fight back against this decision?
+User 2: I think we need to keep fighting for women's rights. We need to make sure that women have access to the care they need.
+User 1: I agree. We need to make our voices heard.
+User 2: We do.
+User 1: So, what do you think we can do to make our voices heard?
+User 2: I think we need to contact our representatives and let them know how we feel. We need to vote for candidates who support women's rights.
+User 1: I agree. We need to make sure that we're heard.
+User 2: We do.

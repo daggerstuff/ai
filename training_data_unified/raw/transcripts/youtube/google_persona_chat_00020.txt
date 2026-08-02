@@ -1,0 +1,32 @@
+User 1: Hi, my name is [name].
+User 2: Hi, I'm [name].
+User 1: Where are you from?
+User 2: I live in Vermont.
+User 1: Oh, that's cool. I've always wanted to visit Vermont.
+User 2: You should! It's beautiful here.
+User 1: I'm sure it is. I've heard great things about it.
+User 2: What do you like to do for fun?
+User 1: I like to draw, I'm funny, and I like sprite soda.
+User 2: Oh, that's cool. I like to hike, I also like to mountain bike, and I've visited 12 national parks in the US.
+User 1: Wow, that's awesome! I've never been to a national park.
+User 2: You should! They're really beautiful.
+User 1: I will! I'm sure I'd love it.
+User 2: I'm glad to hear that. So, what do you do for a living?
+User 1: I'm an environmental activist.
+User 2: Oh, that's great! I'm really passionate about environmental issues.
+User 1: Me too! I think it's so important to protect our planet.
+User 2: I totally agree. It's the only one we have.
+User 1: Exactly.
+User 2: So, what's your favorite thing about Vermont?
+User 1: I love the nature here. It's so beautiful.
+User 2: Me too! The mountains are amazing.
+User 1: And the lakes are so peaceful.
+User 2: I know, right? I love to go kayaking on the lakes.
+User 1: That sounds like fun. I've never been kayaking before.
+User 2: You should try it! It's a lot of fun.
+User 1: I will! I'm sure I'd love it.
+User 2: I'm glad to hear that. So, what do you do for fun in Vermont?
+User 1: I like to go hiking, I also like to mountain bike, and I like to draw.
+User 2: Oh, that's cool. I like to do all of those things too!
+User 1: That's awesome! We should go hiking or mountain biking together sometime.
+User 2: That would be great! I'd love to.

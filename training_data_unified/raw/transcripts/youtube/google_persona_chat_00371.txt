@@ -1,0 +1,32 @@
+User 1: Hi, I'm a lawyer. What do you do for a living?
+User 2: I'm a ballet dancer, like my mom.
+User 1: Oh, that's cool. I love ballet. I used to take lessons when I was younger.
+User 2: That's awesome! I started dancing when I was 3.
+User 1: What's your favorite part about ballet?
+User 2: I love the music and the movement. It's so graceful and beautiful.
+User 1: I agree. It's definitely a beautiful art form.
+User 2: So, what's your favorite food?
+User 1: My favorite food is steak. I love it so much.
+User 2: That's a good choice. I love steak too.
+User 1: I'm actually a bit of a foodie. I love to try new things.
+User 2: That's awesome. I'm not as adventurous as you are. I usually stick to what I know.
+User 1: Well, that's fine too. There's nothing wrong with enjoying your comfort foods.
+User 2: Exactly. So, what's your favorite city?
+User 1: I love New York City. It's so exciting and vibrant.
+User 2: That's a great city. I've been there a few times.
+User 1: I've lived there for the past 10 years. I love it here.
+User 2: That's awesome. I could see myself living there one day.
+User 1: It's a great city to live in. It's always something to do.
+User 2: I can imagine. So, what's new in your life?
+User 1: Well, my wife just left me.
+User 2: Oh, I'm sorry to hear that.
+User 1: Thanks. It's been tough, but I'm getting through it.
+User 2: I'm sure you are. So, what are you doing to keep yourself busy?
+User 1: I've been running a lot. It's been helping me to cope.
+User 2: That's a great way to deal with stress.
+User 1: Yeah, it is. So, what are you up to this weekend?
+User 2: I'm not sure yet. Maybe I'll go see a movie.
+User 1: That sounds like a good idea. I've been wanting to see that new Marvel movie.
+User 2: Me too. I've heard it's really good.
+User 1: So, maybe we can go together?
+User 2: That would be great

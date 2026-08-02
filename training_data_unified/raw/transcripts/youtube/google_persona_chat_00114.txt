@@ -1,0 +1,38 @@
+User 1: Hey, I'm [name].
+User 2: Hi, I'm [name].
+User 1: What do you like to do for fun?
+User 2: I like to read, play video games, and go out with friends.
+User 1: That sounds fun. I like to read and play video games too.
+User 2: What's your favorite book?
+User 1: My favorite book is The Hitchhiker's Guide to the Galaxy.
+User 2: I've heard good things about that book. I've never read it though.
+User 1: You should! It's a really funny book.
+User 2: I might have to check it out. What's your favorite video game?
+User 1: My favorite video game is The Legend of Zelda: Breath of the Wild.
+User 2: I've heard good things about that game too. I've never played it though.
+User 1: You should! It's a really beautiful game.
+User 2: I might have to check it out.
+User 1: What do you do for work?
+User 2: I'm a nurse at a hospital.
+User 1: Oh, that's cool. I've always been interested in nursing.
+User 2: It's a great job. I get to help people all day long.
+User 1: That's so rewarding.
+User 2: It is. I love it.
+User 1: So, what do you like to do outside of work?
+User 2: I like to read, go out with friends, and watch movies.
+User 1: That sounds like a lot of fun.
+User 2: It is. I like to keep busy.
+User 1: Me too. So, what do you like to read?
+User 2: I like to read a lot of different things, but I mostly read romance novels.
+User 1: I've never read a romance novel before.
+User 2: You should! They're really good.
+User 1: I might have to check it out.
+User 2: You won't regret it.
+User 1: So, what are some of your favorite movies?
+User 2: My favorite movies are The Princess Bride, The Shawshank Redemption, and The Notebook.
+User 1: I've seen The Princess Bride and The Shawshank Redemption. They're both great movies.
+User 2: I know, right? They're so good.
+User 1: I've never seen The Notebook.
+User 2: You should! It's a really romantic movie.
+User 1: I might have to check it out.
+User 2: You won't regret it.

@@ -1,0 +1,33 @@
+User 1: Hi, I'm Susan.
+User 2: Hi, I'm Alex.
+User 1: It's nice to meet you, Alex.
+User 2: It's nice to meet you too, Susan.
+User 1: What do you like to do for fun?
+User 2: I like to listen to classical music and read books.
+User 1: I like classical music too! What's your favorite piece?
+User 2: I love Beethoven's Moonlight Sonata.
+User 1: That's a great choice. I love that piece too.
+User 2: What do you like to read?
+User 1: I like to read science fiction and fantasy novels.
+User 2: Oh, that's cool. I don't really read much fiction.
+User 1: What do you do for a living?
+User 2: I'm a software engineer.
+User 1: Oh, that's cool. I'm a stay-at-home mom.
+User 2: Nice. How many kids do you have?
+User 1: I have two kids.
+User 2: That's great. Do you like being a stay-at-home mom?
+User 1: Yes, I love it. It's a lot of work, but it's also very rewarding.
+User 2: I can imagine. I don't have any kids, but I know that it's a lot of work.
+User 1: It is, but it's also the most rewarding thing I've ever done.
+User 2: I'm glad you enjoy it.
+User 1: Thanks.
+User 2: So, what do you think life in space would be like?
+User 1: I think it would be amazing! It would be so much fun to explore other planets and learn about new life.
+User 2: I agree. It would be so cool to see what's out there.
+User 1: I think it would be really scary too. I mean, there could be all sorts of dangerous things out there.
+User 2: That's true. But it would also be exciting.
+User 1: Yeah, it would be.
+User 2: So, do you think we'll ever actually go to space?
+User 1: I think we will eventually. We're already making progress, and I think it's just a matter of time before we make it to other planets.
+User 2: I hope you're right. I would love to go to space one day.
+User 1: Me too! It would be an amazing experience.

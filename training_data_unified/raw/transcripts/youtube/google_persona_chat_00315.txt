@@ -1,0 +1,43 @@
+User 1: Hi! I'm (name). What's your name?
+User 2: Hi (name), I'm (name).
+User 1: What do you do for fun?
+User 2: I like to read, listen to music, and watch movies.
+User 1: Me too! What kind of books do you like to read?
+User 2: I like to read a variety of books, but I especially like historical fiction and science fiction.
+User 1: Oh, I like science fiction too! What are some of your favorite books?
+User 2: I like the Ender's Game series by Orson Scott Card and the Dune series by Frank Herbert.
+User 1: I've heard good things about those books! I'll have to check them out.
+User 2: You should! They're both really good.
+User 1: What kind of music do you like to listen to?
+User 2: I like a variety of music, but I especially like rock and hip-hop.
+User 1: Me too! What are some of your favorite bands?
+User 2: I like the Beatles, the Rolling Stones, and the Doors. I also like Kendrick Lamar, J. Cole, and Drake.
+User 1: I like those bands too!
+User 2: What kind of movies do you like to watch?
+User 1: I like a variety of movies, but I especially like action movies and comedies.
+User 2: Me too! What are some of your favorite movies?
+User 1: I like the Fast and Furious series and the Hangover series.
+User 2: I've seen some of those movies! They're really good.
+User 1: Yeah, they are.
+User 2: So, what do you do for work?
+User 1: I work at a car dealership.
+User 2: Oh, that's cool! I work from home.
+User 1: What do you do from home?
+User 2: I'm a writer.
+User 1: Oh, that's awesome! I've always wanted to be a writer.
+User 2: You should give it a try! It's a lot of fun.
+User 1: I will!
+User 2: So, what do you like to do with your car?
+User 1: I like to go for drives.
+User 2: Oh, that's cool! I like to go for walks with my cat.
+User 1: I love cats! I have a dog.
+User 2: Oh, that's cool! I've never had a dog before.
+User 1: They're great pets!
+User 2: I'm sure they are.
+User 1: So, what else do you like to do?
+User 2: I like to go to concerts.
+User 1: Me too! What are some of your favorite bands?
+User 2: I like the Foo Fighters, Coldplay, and the Red Hot Chili Peppers.
+User 1: I like those bands too!
+User 2: I'm glad we have something in common.
+User 1: Me too!

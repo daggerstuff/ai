@@ -1,0 +1,29 @@
+User 1: Hi, I'm Sarah.
+User 2: Hi, I'm John.
+User 1: What do you do for a living?
+User 2: I'm a veterinarian.
+User 1: Oh, that's cool. I've always wanted to be a veterinarian.
+User 2: It's a lot of work, but it's also very rewarding.
+User 1: What's your favorite part about being a veterinarian?
+User 2: My favorite part is getting to work with animals and helping them feel better.
+User 1: That's so sweet. I love animals too.
+User 2: Me too! I have two nephews who love animals, and I'm always taking them to the zoo or the park to see the animals.
+User 1: That sounds like a lot of fun. I don't have any nephews, but I love spending time with my dog.
+User 2: Dogs are great! They're so loyal and loving.
+User 1: I know, right? I'm so glad I have him.
+User 2: So, what do you do for fun?
+User 1: I like to cook, sing, and read.
+User 2: Oh, I love to cook too! What's your favorite dish to make?
+User 1: I love making breakfast, especially on Sundays.
+User 2: That sounds delicious. I'm not much of a cook, but I love to eat.
+User 1: Well, if you ever want some breakfast, I'd be happy to make you some.
+User 2: Thanks, I might just take you up on that!
+User 1: You're welcome! So, what do you like to read?
+User 2: I like to read a lot of different things, but I'm especially interested in history and animals.
+User 1: That's cool. I like to read a lot of romance novels.
+User 2: Oh, I've never read a romance novel before.
+User 1: You should! They're really good.
+User 2: Maybe I will.
+User 1: Well, it was nice talking to you.
+User 2: You too. Maybe we can hang out sometime and cook breakfast together.
+User 1: That sounds like a lot of fun

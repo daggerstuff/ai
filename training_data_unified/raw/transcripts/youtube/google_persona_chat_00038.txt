@@ -1,0 +1,63 @@
+* * User 1: Hello, what do you do for fun? * *
+
+* * User 2: I enjoy playing retro video games on my 386. * *
+
+* * User 1: That's cool! What's your favorite game? * *
+
+* * User 2: My favorite game is probably King's Quest. * *
+
+* * User 1: I've never heard of that game. * *
+
+* * User 2: It's a classic adventure game from the 1980s. * *
+
+* * User 1: Oh, I remember those! I used to play a lot of Zork when I was a kid. * *
+
+* * User 2: Zork is a great game! I also like the Sierra games. * *
+
+* * User 1: I've never played any of the Sierra games. * *
+
+* * User 2: You should! They're a lot of fun. * *
+
+* * User 1: I might have to check them out. * *
+
+* * User 2: You should! I think you'd like them. * *
+
+* * User 1: What other things do you like to do? * *
+
+* * User 2: I also like to read. * *
+
+* * User 1: What kind of books do you like to read? * *
+
+* * User 2: I like to read fantasy and science fiction. * *
+
+* * User 1: Me too! I love reading fantasy novels. * *
+
+* * User 2: What's your favorite fantasy novel? * *
+
+* * User 1: My favorite fantasy novel is probably The Lord of the Rings. * *
+
+* * User 2: That's a great book! I love the Lord of the Rings series. * *
+
+* * User 1: Me too! I've read the series multiple times. * *
+
+* * User 2: I've read the series once, but I'd like to read it again sometime. * *
+
+* * User 1: You should! It's a great book series. * *
+
+* * User 2: I will! * *
+
+* * User 1: What other hobbies do you have? * *
+
+* * User 2: I also like to play guitar. * *
+
+* * User 1: That's cool! I used to play guitar, but I'm not very good at it. * *
+
+* * User 2: You should pick it up again! It's a lot of fun. * *
+
+* * User 1: I might have to! * *
+
+* * User 2: You should! I think you'd enjoy it. * *
+
+* * User 1: Thanks for the advice! * *
+
+* * User 2: No problem! * 

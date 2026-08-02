@@ -1,0 +1,23 @@
+User 1: Hi there!
+User 2: Hello!
+User 1: I'm really interested in Canada. Have you ever been there?
+User 2: I have! I've been there twice.
+User 1: That's awesome! What was your favorite part about it?
+User 2: I loved the mountains. They were so beautiful.
+User 1: I've heard they're amazing. I've always wanted to go skiing there.
+User 2: It's a great place to ski. I went snowboarding there once and it was so much fun.
+User 1: That sounds amazing! I've never been snowboarding before.
+User 2: You should definitely try it! It's a lot of fun.
+User 1: I will! Thanks for the recommendation.
+User 2: No problem! Where are you from?
+User 1: I'm from California.
+User 2: Oh, cool! I've never been to California.
+User 1: You should definitely visit! It's a beautiful state.
+User 2: I will! Thanks for the recommendation.
+User 1: No problem! So, what do you do for a living?
+User 2: I'm a teacher.
+User 1: Oh, that's cool! What grade do you teach?
+User 2: I teach kindergarten.
+User 1: That must be fun! I love working with kids.
+User 2: It is! It's the best job in the world.
+User 1: It sounds like it!

@@ -1,0 +1,22 @@
+User 1: Hi, I'm [user 1's name].
+User 2: Hi, I'm [user 2's name].
+User 1: What do you do for fun?
+User 2: I like to go to the beach, party, and work.
+User 1: I like to run track, swim, and play video games.
+User 2: That's cool! I used to run track in high school.
+User 1: Oh, really? What position did you run?
+User 2: I was a sprinter.
+User 1: Me too! I was a sprinter in high school and college.
+User 2: That's awesome! What was your best time in the 100m dash?
+User 1: My best time was 10.8 seconds.
+User 2: Wow, that's really fast! My best time was 12.0 seconds.
+User 1: Thanks! I was really competitive in high school and college.
+User 2: I can imagine!
+User 1: So, what do you like to do at the beach?
+User 2: I like to swim, sunbathe, and play beach volleyball.
+User 1: That sounds fun! I like to do those things too.
+User 2: We should go to the beach together sometime.
+User 1: That would be fun!
+User 2: Great! I'll text you my number.
+User 1: Okay, I'll text you mine too.
+User 2: Perfect!

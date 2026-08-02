@@ -1,0 +1,20 @@
+User 1: I'm from California too!
+User 2: That's cool! What part of California are you from?
+User 1: I'm from San Diego.
+User 2: Oh, I've been there a few times. It's a beautiful city.
+User 1: Thanks! It is. I love living there.
+User 2: I'm from the Bay Area.
+User 1: Oh, that's a nice area too. I like it up there.
+User 2: Yeah, it's pretty cool.
+User 1: What do you like to do for fun?
+User 2: I like to read, shop, and go hiking.
+User 1: I like to read too! What kind of books do you like to read?
+User 2: I like to read a lot of different things, but I'm especially interested in history and science.
+User 1: I like history and science too! I'm actually a history major.
+User 2: Oh, that's cool! What's your favorite historical period?
+User 1: I'm really interested in the Renaissance period.
+User 2: That's a good one. I like the Renaissance period too.
+User 1: It's a really interesting time in history.
+User 2: Yeah, it is. There was a lot of change and innovation during that period.
+User 1: I know, right? It's really fascinating.
+User 2: Yeah, it is.

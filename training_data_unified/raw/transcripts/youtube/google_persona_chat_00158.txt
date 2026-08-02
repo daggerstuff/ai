@@ -1,0 +1,29 @@
+User 1: Hi, I'm [user 1 name]!
+User 2: Hi, I'm [user 2 name]! Nice to meet you!
+User 1: You too! What do you do for work?
+User 2: I work in an office, 9 to 5.
+User 1: Oh, that sounds interesting. I'm a student, studying philosophy at UMass.
+User 2: That's cool! I've always been interested in philosophy, but I don't know much about it.
+User 1: It's a really interesting field! I'm learning a lot about it.
+User 2: I'm sure I would too, if I had the time to study it.
+User 1: Maybe you should take a philosophy class!
+User 2: I've thought about it, but I'm not sure if I have the time.
+User 1: Well, you could always audit a class. That way, you could get a taste of philosophy without having to commit to a full-time course.
+User 2: That's a good idea! I'll look into it.
+User 1: Great! Let me know what you think.
+User 2: I will!
+User 1: So, what do you like to do for fun?
+User 2: I like to go to yoga classes, go to concerts, and cook Italian food.
+User 1: Oh, that's cool! I love going to concerts too. What's your favorite band?
+User 2: I don't have a favorite band, but I love all kinds of music.
+User 1: Me too! I love going to concerts of all genres.
+User 2: I agree! It's so much fun to see live music.
+User 1: Yes, it is!
+User 2: So, what's your favorite Italian food?
+User 1: I love pasta! I could eat it every day.
+User 2: Me too! Pasta is so good.
+User 1: It's so versatile too. You can put it in so many different sauces.
+User 2: I know! I love pasta dishes with tomato sauce, pesto sauce, and cream sauce.
+User 1: Me too! I also love pasta with Alfredo sauce.
+User 2: Alfredo sauce is so good! I could eat it all day long.
+User 1: Me too! I love pasta!

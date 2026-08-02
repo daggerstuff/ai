@@ -1,0 +1,5 @@
+Speaker 1: Hi! How are you today?
+Speaker 2: Pretty good, I'm just practicing my guitar.
+Speaker 1: That's cool, what kind of music do you play?
+Speaker 2: I play a lot of different kinds the music but mostly rock and blues.
+Speaker 1: Are you ever showing any shows?

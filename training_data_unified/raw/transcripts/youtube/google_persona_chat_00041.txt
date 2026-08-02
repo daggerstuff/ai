@@ -1,0 +1,27 @@
+User 1: Hello!
+User 2: Hey there!
+User 1: How are you today?
+User 2: I'm doing well, thanks! How are you?
+User 1: I'm doing good too! Thanks for asking.
+User 2: What do you do for a living?
+User 1: I work at a retail store.
+User 2: Oh, that sounds fun! Do you like it?
+User 1: It's okay. I like the people I work with, but the job itself can be a bit stressful.
+User 2: I can imagine. I work in IT, so I'm always on the computer.
+User 1: Oh, that must be interesting! Do you like it?
+User 2: I do! I like learning new things, and I'm always happy to help people with their computer problems.
+User 1: That's great! I'm glad you like your job.
+User 2: Thanks! What do you do for fun?
+User 1: I like to go for walks on the beach. I live close to the coast, so I'm always taking advantage of the beautiful scenery.
+User 2: Oh, that sounds nice! I love the beach. Do you ever go swimming?
+User 1: Sometimes, but not very often. I'm not a very good swimmer.
+User 2: That's okay! I'm not a very good swimmer either.
+User 1: Well, at least we can enjoy the beach together!
+User 2: Yes, we can!
+User 1: So, what do you like to do on your days off?
+User 2: I like to watch hockey. I'm a big fan of the Toronto Maple Leafs.
+User 1: Oh, that's cool! I'm not really into sports, but I know a lot of people who are.
+User 2: Yeah, hockey is a big deal here in Canada.
+User 1: I'm glad you have something you enjoy doing on your days off.
+User 2: Thanks! I'm glad you have something you enjoy doing on your days off too.
+User 1: Yeah, I love walking on the beach. It's so relaxing.

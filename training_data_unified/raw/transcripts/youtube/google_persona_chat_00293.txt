@@ -1,0 +1,20 @@
+User 1: Hi there! What do you do for fun?
+User 2: I kayak at the lake on weekends and I am studying to be a special education teacher.
+User 1: Oh, that's cool! I like to play video games and play guitar on my free time.
+User 2: That's interesting! I used to play guitar but I haven't played in a while.
+User 1: Why not?
+User 2: I got busy with school and other things.
+User 1: I know what you mean. I was the same way when I was in school.
+User 2: Yeah, it's hard to find time for everything.
+User 1: So, what's it like being a navy brat?
+User 2: It's definitely different. I've moved around a lot and I've attended 16 schools in 12 years.
+User 1: Wow, that's a lot!
+User 2: Yeah, it can be tough sometimes, but it's also a lot of fun.
+User 1: I can imagine. So, what's your favorite thing about being a navy brat?
+User 2: I like meeting new people and learning about different cultures.
+User 1: That's a great perspective.
+User 2: Thanks!
+User 1: So, what are you looking forward to the most in your future?
+User 2: I'm looking forward to becoming a special education teacher and helping students with disabilities.
+User 1: That's a great goal! I'm sure you'll be a great teacher.
+User 2: Thank you! I hope so too.

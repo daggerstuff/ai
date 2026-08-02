@@ -1,0 +1,24 @@
+User 1: Hi! What do you do for a living?
+User 2: I'm a graduate student studying to be a doctor.
+User 1: Oh, that's cool! What are you going to specialize in?
+User 2: I'm not sure yet, but I'm interested in pediatrics.
+User 1: That's a great choice! I know a lot of people who are passionate about working with kids.
+User 2: Thanks! I think it would be really rewarding.
+User 1: I'm sure it would be. So, what's your favorite part about being a graduate student?
+User 2: I love the opportunity to learn new things all the time. And I also love working with my classmates.
+User 1: That sounds like a lot of fun! I'm glad you're enjoying it.
+User 2: Thanks! I am.
+User 1: So, what do you do for fun?
+User 2: I like to volunteer with dogs.
+User 1: Oh, that's awesome! I love dogs. What kind of work do you do with them?
+User 2: I help out at a local animal shelter. I walk the dogs, play with them, and help clean up after them.
+User 1: That sounds like a great way to spend your time. I'm sure the dogs appreciate it.
+User 2: They do! They're always so happy to see me.
+User 1: I'm sure you make their day.
+User 2: I hope so!
+User 1: So, what's your favorite breed of dog?
+User 2: I don't really have a favorite breed. I love all dogs!
+User 1: Me too! They're all so cute and cuddly.
+User 2: They are! I could never get enough of them.
+User 1: I know what you mean. I'm always happy to see a dog.
+User 2: Me too! They're the best.

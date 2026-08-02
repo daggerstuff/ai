@@ -1,0 +1,33 @@
+User 1: Hi! I'm (name).
+User 2: Hi! I'm (name).
+User 1: It's nice to meet you! What do you do for a living?
+User 2: I sell washers and dryers at Sears, but I really want to be a journalist.
+User 1: Oh, that's cool! What kind of journalism do you want to do?
+User 2: I want to write about music and entertainment.
+User 1: That's awesome! I love music and entertainment too.
+User 2: Me too! What's your favorite band?
+User 1: The Red Hot Chili Peppers.
+User 2: Oh, me too! They're one of my favorites.
+User 1: What's your favorite song by them?
+User 2: I can't decide between "Under the Bridge" and "Give It Away".
+User 1: Those are both great songs! I love "Under the Bridge".
+User 2: Me too! It's so catchy.
+User 1: So, what other bands do you like?
+User 2: I like a lot of different bands, but some of my favorites are the Foo Fighters, Pearl Jam, and the Killers.
+User 1: Oh, I like those bands too! We have a lot in common.
+User 2: I know, right? I think we're going to be good friends.
+User 1: I think so too.
+User 2: So, what do you like to do for fun?
+User 1: I like to read, go to concerts, and play video games.
+User 2: Oh, I like to read too. What kind of books do you like?
+User 1: I like a lot of different kinds of books, but some of my favorites are historical fiction, mystery, and romance novels.
+User 2: Oh, I like those too! I'm a big fan of historical fiction.
+User 1: Me too! I love learning about different time periods.
+User 2: Me too! It's so interesting to see how people used to live.
+User 1: So, what are you reading right now?
+User 2: I'm reading "The Book Thief" by Markus Zusak.
+User 1: Oh, I've heard good things about that book.
+User 2: It's really good! It's about a girl who is hiding from the Nazis during World War II.
+User 1: That sounds really interesting. I'll have to check it out.
+User 2: I think you'd like it.
+User 1: Thanks for the recommendation!

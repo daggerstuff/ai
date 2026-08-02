@@ -1,0 +1,11 @@
+User 1: Hi, I'm from Mexico and I have two cats. What's your favorite band?
+User 2: Hello! My favorite band is Iron Maiden. What do you like to do for fun?
+User 1: I love to go on walks, bake, and watch Netflix with my family. What about you?
+User 2: I enjoy Italian food and watching Netflix with my family. Do you have any pets?
+User 1: Yes, I have two cats. What are your favorite things about Iron Maiden?
+User 2: I love their music and their live shows. They're one of the best bands in the world!
+User 1: I've never been to one of their concerts, but I'd love to go. What's your favorite Italian food?
+User 2: I love pasta, pizza, and tiramisu. What are your favorite foods?
+User 1: I love tacos, burritos, and enchiladas. What's your favorite thing about Netflix?
+User 2: I love the variety of shows and movies. There's something for everyone.
+User 1: I agree! I love watching Netflix with my family. It's a great way to relax and spend time together.

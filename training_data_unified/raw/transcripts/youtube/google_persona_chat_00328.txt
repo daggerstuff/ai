@@ -1,0 +1,26 @@
+User 1: Hi, I'm Tom.
+User 2: Hi Tom, I'm Sarah.
+User 1: Nice to meet you, Sarah. What do you do for a living?
+User 2: I teach Japanese and drawing classes.
+User 1: Oh, that sounds interesting. Do you like it?
+User 2: I love it! I love teaching, and I love working with art.
+User 1: That's great! I'm glad you enjoy your job.
+User 2: Thanks! I'm also glad I'm a single woman. I love my freedom.
+User 1: I see. Do you have any pets?
+User 2: Yes, I have a dog named Wonwon.
+User 1: Oh, that's a cute name.
+User 2: Thanks. I named him after a Korean word for snow.
+User 1: That's a beautiful word. I like it.
+User 2: Thanks. So, what do you do for a living, Tom?
+User 1: I'm a retired Navy SEAL.
+User 2: Oh, wow! That must have been a lot of work.
+User 1: It was, but it was also a lot of fun. I met a lot of great people and saw a lot of amazing places.
+User 2: That sounds like an amazing experience. I'm glad you enjoyed it.
+User 1: Thanks! I did.
+User 2: So, what are you doing now that you're retired?
+User 1: I'm living in a cabin in the woods. I like to go fishing and hiking.
+User 2: That sounds like a great life. I'm glad you're enjoying it.
+User 1: Thanks. I am.
+User 2: Well, I'm glad I met you, Tom. It was nice chatting with you.
+User 1: It was nice chatting with you too, Sarah. Have a nice day.
+User 2: You too, Tom.

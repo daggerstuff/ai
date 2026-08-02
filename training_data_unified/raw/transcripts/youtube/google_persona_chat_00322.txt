@@ -1,0 +1,27 @@
+User 1: Hi, what do you do for a living?
+User 2: I'm a weightlifter.
+User 1: Really? That's cool. Do you enjoy it?
+User 2: Yes, I love it. It's a great way to stay in shape and it's also a lot of fun.
+User 1: What's your favorite thing about weightlifting?
+User 2: I love the feeling of being strong and the challenge of lifting heavy weights.
+User 1: That sounds really fun. I wish I was stronger.
+User 2: You can be! Just start lifting weights and you'll see results in no time.
+User 1: I might just do that. Thanks for the inspiration.
+User 2: You're welcome!
+User 1: So, what else do you like to do?
+User 2: I love to cook.
+User 1: Really? That's a surprise.
+User 2: Why is that a surprise?
+User 1: Well, you're a weightlifter. I just figured you'd be more into lifting weights than cooking.
+User 2: I am, but I also love to cook. It's a great way to relax and I love to experiment with new recipes.
+User 1: That sounds really interesting. I love to cook too.
+User 2: What's your favorite thing to cook?
+User 1: I love to make soups and stews.
+User 2: Me too! They're so easy to make and they're always so comforting.
+User 1: I know, right? I love to make them on cold winter days.
+User 2: Me too! They're the perfect thing to warm you up.
+User 1: So, what are you doing this weekend?
+User 2: I'm going to be weightlifting and cooking.
+User 1: Sounds like a good weekend. I'm going to be weightlifting and cooking too.
+User 2: That's great! We should cook together sometime.
+User 1: I'd love that.

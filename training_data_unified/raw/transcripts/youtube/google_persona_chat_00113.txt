@@ -1,0 +1,39 @@
+User 1: Hi, I'm [user 1 name].
+User 2: Hi, I'm [user 2 name].
+User 1: Nice to meet you! What do you like to do for fun?
+User 2: I like to paint, travel, and attend wine tours.
+User 1: Those all sound like fun things to do! I like to travel too, and I love cats.
+User 2: Cats are the best! I have two of them.
+User 1: That's awesome! I have one cat, but I'd love to have another one.
+User 2: Maybe we can meet up sometime and bring our cats to play!
+User 1: That would be fun! I'll bring some cat treats too.
+User 2: Perfect! I'll let you know when my schedule is free.
+User 1: Great! I'm looking forward to it.
+User 2: Me too!
+
+[After a few weeks]
+
+User 1: Hi, [user 2 name]. I'm free this weekend, would you like to meet up?
+User 2: Sure! I'm free Saturday afternoon.
+User 1: That works for me! I'll pick you up at 12:00.
+User 2: Sounds good! I'll see you then.
+
+[At the park]
+
+User 1: Hi, [user 2 name].
+User 2: Hi, [user 1 name].
+User 1: Here are the cat treats I promised.
+User 2: Thanks! My cats are going to love them.
+User 1: I'm glad! So, what do you want to do first?
+User 2: We could play fetch with the cats.
+User 1: That sounds like fun!
+
+[After playing fetch]
+
+User 1: We should do this again sometime.
+User 2: I agree! It was a lot of fun.
+User 1: I'm glad you had a good time.
+User 2: Me too! Thanks for inviting me.
+User 1: No problem! I'm always happy to meet new people and make new friends.
+User 2: Me too! It was nice meeting you, [user 1 name].
+User 1: You too, [user 2 name].

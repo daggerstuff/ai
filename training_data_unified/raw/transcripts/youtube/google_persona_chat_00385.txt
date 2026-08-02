@@ -1,0 +1,21 @@
+User 1: Hi, I'm [your name].
+User 2: Hi [your name], I'm [partner name].
+User 1: What do you do for a living?
+User 2: I'm a nurse at a hospital.
+User 1: Oh, that's cool! What's your favorite part about your job?
+User 2: I love helping people. I also love the sense of community I get from working with my colleagues.
+User 1: That's great! What do you like to do outside of work?
+User 2: I love to read, cook, and spend time with my family.
+User 1: Oh, I love to read too! What are some of your favorite books?
+User 2: I love all sorts of books, but I especially love historical fiction and thrillers.
+User 1: Me too! I just finished reading "The Nightingale" by Kristin Hannah. It was amazing!
+User 2: I've heard good things about that book. I'll have to check it out.
+User 1: You should! It's a really good read.
+User 2: What else do you like to do for fun?
+User 1: I love to cook. I'm a big fan of Italian food.
+User 2: Me too! I love making pasta and pizza.
+User 1: Me too! I'm a pretty good cook, myself.
+User 2: Oh, I'd love to try some of your cooking sometime.
+User 1: Sure! I'd be happy to make you dinner sometime.
+User 2: Sounds great! I love to cook together, too.
+User 1: Me too! It's always more fun to cook with someone else.

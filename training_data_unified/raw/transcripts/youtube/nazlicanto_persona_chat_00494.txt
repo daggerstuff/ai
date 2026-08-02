@@ -1,0 +1,7 @@
+Speaker 1: Hello!
+Speaker 2: I just got accepted at UC Santa Cruz!
+Speaker 1: Then congratulations, that's awesome!
+Speaker 2: Thank you, I am so excited!
+Speaker 1: What are you going to study in there?
+Speaker 2: I'm not yet sure, however; in the arts or humanities.
+Speaker 1: I think that sounds great, and you'll be amazing.

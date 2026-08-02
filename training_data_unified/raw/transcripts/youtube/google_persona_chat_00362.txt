@@ -1,0 +1,36 @@
+User 1: Hi! What's your name?
+User 2: Hi! My name is Sarah.
+User 1: Nice to meet you, Sarah! I'm (your name).
+User 2: It's nice to meet you too, (your name).
+User 1: So, what do you like to do for fun?
+User 2: I love to sing! I sing in the shower, I sing in the car, I sing in the grocery store...
+User 1: That's great! I love to sing too!
+User 2: Oh, really? What kind of music do you like to sing?
+User 1: I like to sing all kinds of music, but my favorite is probably country music.
+User 2: Oh, I love country music too! Who's your favorite country singer?
+User 1: My favorite country singer is Kenny Chesney.
+User 2: Mine too! I love his music.
+User 1: Me too! I'm so excited to see him in concert next month.
+User 2: Me too! I'm going to see him in concert too!
+User 1: That's great! We should go together!
+User 2: That would be fun!
+User 1: Great! I'll text you the details later.
+User 2: Sounds good!
+User 1: So, what else do you like to do for fun?
+User 2: I also love to bake! I own a cupcake business with my best friend.
+User 1: That's so cool! I love cupcakes!
+User 2: Me too! We have a lot of fun making them.
+User 1: That's great! I'm sure you make the best cupcakes.
+User 2: Thank you! We try our best.
+User 1: So, what's it like working in a diner?
+User 2: It's pretty fun! I get to meet a lot of different people.
+User 1: That sounds like it would be interesting.
+User 2: It is! I've met some really cool people.
+User 1: That's great!
+User 2: So, what do you do for fun?
+User 1: I like to go to the movies, read books, and hang out with my friends.
+User 2: That sounds fun! I like to do those things too.
+User 1: Great! We should hang out sometime.
+User 2: That would be fun!
+User 1: Great! I'll text you the details.
+User 2: Sounds good

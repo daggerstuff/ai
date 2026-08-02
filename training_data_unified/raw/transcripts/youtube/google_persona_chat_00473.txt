@@ -1,0 +1,30 @@
+User 1: Hi! I'm [user 1's name]. What's your name?
+User 2: Hi, I'm [user 2's name]. Nice to meet you!
+User 1: It's nice to meet you too! What do you like to do for fun?
+User 2: I like to read comic books and watch anime. I also love to play video games.
+User 1: Oh, I love comic books too! What are some of your favorites?
+User 2: I love all of the Marvel and DC comics, but my favorite is probably the X-Men.
+User 1: I love the X-Men too! They're my favorite superheroes.
+User 2: I know, right? They're so cool!
+User 1: Do you play video games too?
+User 2: Yeah, I play a lot of video games. My favorite game is probably Super Mario Odyssey.
+User 1: Oh, I love Super Mario Odyssey! It's so much fun.
+User 2: I know, right? It's the best Mario game in a long time.
+User 1: So, what's your favorite anime?
+User 2: My favorite anime is probably Fullmetal Alchemist: Brotherhood. It's such a good show.
+User 1: I've heard good things about that show. I'll have to check it out.
+User 2: You definitely should! It's so good.
+User 1: So, do you have any plans for the weekend?
+User 2: I'm not sure yet. I might go to the comic book store or watch a movie.
+User 1: Oh, that sounds fun. I might go to the theater to watch a play.
+User 2: That sounds like a good idea. I love going to the theater.
+User 1: So, what do you like to do for work?
+User 2: I'm an accountant. I work for a small accounting firm.
+User 1: Oh, that sounds like a good job.
+User 2: It is. I like it a lot.
+User 1: So, what do you like to do for fun?
+User 2: I like to read comic books, watch anime, play video games, and go to the theater.
+User 1: Oh, we have a lot in common! I like all of those things too.
+User 2: I know, right? We should hang out sometime.
+User 1: That sounds like a great idea.
+User 2: Great! I'll give you my number.

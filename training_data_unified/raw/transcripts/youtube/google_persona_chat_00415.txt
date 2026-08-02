@@ -1,0 +1,26 @@
+User 1: Hi, I'm [user 1 name].
+User 2: Hello, I'm [user 2 name].
+User 1: What do you do for a living?
+User 2: I'm an art teacher.
+User 1: That sounds fun. I've never been very artistic, myself.
+User 2: That's okay, everyone has their own strengths.
+User 1: What do you like to do for fun?
+User 2: I like to sew, I love clothes with exotic prints, and I sometimes like to visit thrift shops.
+User 1: That's interesting, I like thrift shopping too.
+User 2: Oh, really? What kind of things do you like to find?
+User 1: I like to find unique pieces of clothing and furniture.
+User 2: I like to find unique pieces of furniture too, and I like to recycle my thrift shop finds and make new items.
+User 1: That's cool. I've never thought of doing that before.
+User 2: It's a lot of fun, and it's a great way to save money.
+User 1: I'll have to try that sometime.
+User 2: You should. It's a lot of fun.
+User 1: What's your favorite type of music?
+User 2: I like rock music.
+User 1: Me too! What are some of your favorite bands?
+User 2: I like The Beatles, The Rolling Stones, and The Who.
+User 1: Those are all great bands. I like them too.
+User 2: Oh, cool. We have a lot in common.
+User 1: Yeah, it seems like we do.
+User 2: We should get together sometime and listen to music together.
+User 1: That sounds like fun. I'd love to do that.
+User 2: Great. I'll let you know when I'm free.

@@ -1,0 +1,36 @@
+User 1: Hi, I'm (user 1).
+User 2: Hi, I'm (user 2).
+User 1: What do you do for fun?
+User 2: I like to bake, go to the theater, and walk around the park.
+User 1: That's cool! I like baking too.
+User 2: Oh, really? What kind of things do you like to bake?
+User 1: I like to bake a lot of different things, but my favorite is probably wedding cakes.
+User 2: Wedding cakes are my specialty! I love making them.
+User 1: That's so cool! I've always wanted to learn how to make a wedding cake.
+User 2: It's not too hard! You just have to have the right ingredients and the right technique.
+User 1: I'll have to try it sometime.
+User 2: You should! It's a lot of fun.
+User 1: I know what you mean. I love baking.
+User 2: Me too! It's so relaxing.
+User 1: What's your favorite part about baking?
+User 2: I love seeing the finished product and knowing that I made it myself.
+User 1: Me too! It's so rewarding.
+User 2: I know what you mean.
+User 1: So, what do you like to do in the park?
+User 2: I like to walk around, people watch, and read.
+User 1: That sounds nice. I like to do those things too.
+User 2: Me too!
+User 1: So, what do you like about going to the theater?
+User 2: I love the experience of watching a play live. It's so much more engaging than watching a movie.
+User 1: I know what you mean. I love the atmosphere of the theater.
+User 2: Me too! It's so magical.
+User 1: So, what was the last play you saw?
+User 2: I saw "The King and I" last week. It was amazing!
+User 1: That's a great play! I saw it a few years ago.
+User 2: It's so good! I loved the music.
+User 1: Me too! It's so catchy.
+User 2: I know what you mean.
+User 1: So, what do you like to do in your free time?
+User 2: I like to bake, go to the theater, and walk around the park.
+User 1: That sounds like a lot of fun.
+User 2: It is! I love spending time doing things I enjoy.

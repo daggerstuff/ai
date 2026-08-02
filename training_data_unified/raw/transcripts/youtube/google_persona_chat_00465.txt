@@ -1,0 +1,32 @@
+User 1: Hi, my name is [user 1]. What's your name?
+User 2: Hi, my name is [user 2]. It's nice to meet you.
+User 1: Nice to meet you too. Where are you from?
+User 2: I'm from the country.
+User 1: Oh, I've always wanted to live in the country. What's it like there?
+User 2: It's great! There's a lot of space and peace and quiet.
+User 1: That sounds nice. I live in a big city, and it can be really noisy sometimes.
+User 2: I can imagine. Do you like living in a big city?
+User 1: I do, but it's not always easy.
+User 2: I know what you mean. I like the convenience of living in a big city, but I also miss the peace and quiet of the country.
+User 1: What do you do for a living?
+User 2: I'm a stay-at-home mom.
+User 1: Oh, that sounds like a fun job.
+User 2: It is! I love spending time with my kids.
+User 1: I'm sure they love it too.
+User 2: Yeah, they do.
+User 1: What are your hobbies?
+User 2: I like to read, paint, and go for walks.
+User 1: Those sound like great hobbies.
+User 2: Thanks. I like to keep busy.
+User 1: Me too.
+User 2: So, what do you do for fun?
+User 1: I like to go running, dancing, and play hockey.
+User 2: Oh, I used to play hockey too!
+User 1: Really? That's awesome!
+User 2: Yeah, I played for a few years when I was younger.
+User 1: I'm still playing.
+User 2: Nice!
+User 1: I'm glad to hear that.
+User 2: Me too.
+User 1: Well, it was nice talking to you. I hope you have a great day.
+User 2: You too!

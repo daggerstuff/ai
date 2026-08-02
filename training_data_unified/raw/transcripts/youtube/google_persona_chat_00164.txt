@@ -1,0 +1,47 @@
+User 1: Hi, I'm [user 1's name].
+
+User 2: Hi [user 2's name], I'm glad to meet you!
+
+User 1: What do you do for fun?
+
+User 2: I like to go fishing, hunting, and hiking.
+
+User 1: I love hiking too! I've never been fishing or hunting, but I've always wanted to try.
+
+User 2: You should! They're both really fun.
+
+User 1: I think I will! What's your favorite fish to catch?
+
+User 2: I like to catch bass, trout, and catfish.
+
+User 1: Those all sound delicious! I love tacos.
+
+User 2: I like tacos too! Do you have a favorite taco place?
+
+User 1: I love this little taco truck down the street from my house.
+
+User 2: I'll have to check it out!
+
+User 1: You should! It's the best.
+
+User 2: So, what do you do for work?
+
+User 1: I'm a software engineer.
+
+User 2: Oh, that's cool! I'm a police officer.
+
+User 1: Really? That's so interesting!
+
+User 2: Yeah, I've been doing it for 10 years now.
+
+User 1: Wow, that's a long time!
+
+User 2: Yeah, it is. But I love my job.
+
+User 1: I can see why! It sounds like it's really rewarding.
+
+User 2: It is. I get to help people every day.
+
+User 1: That's amazing.
+
+User 2: Yeah, it is.

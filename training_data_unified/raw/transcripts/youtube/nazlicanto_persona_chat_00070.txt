@@ -1,0 +1,7 @@
+Speaker 1: Nothing much, just a book: how about you?
+Speaker 2: Here I am reading Anne of Green Gables. Have you read it?
+Speaker 1: No, but I've heard good things about it : what do you like about that
+Speaker 2: The characters and the story is very heartwarming to me and inspiring.
+Speaker 1: It sounds like something I would enjoy and will have to check it out.
+Speaker 2: You should! I think you'll enjoy it.
+Speaker 1: Thanks for your recommendation - What do you like to finish doing something else more fun than sailing?

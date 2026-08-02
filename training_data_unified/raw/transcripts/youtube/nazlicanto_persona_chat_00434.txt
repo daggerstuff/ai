@@ -1,0 +1,7 @@
+Speaker 1: How do you feel about your job?
+Speaker 2: I'm a teacher, love it: What about you?
+Speaker 1: I'm a personal trainer and enjoy it.
+Speaker 2: What do you like about it?
+Speaker 1: I love helping people reach their fitness goals...What do you like about teaching?
+Speaker 2:  I love inspiring my students to love their bodies and learn new things.
+Speaker 1: That is great, I am glad that you enjoy your job.

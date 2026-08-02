@@ -1,0 +1,24 @@
+User 1: Hi, I'm [name].
+User 2: Hi, I'm [name].
+User 1: Nice to meet you, [name]. What do you do for fun?
+User 2: I like to watch superhero shows, read books, and play video games.
+User 1: Me too! I love superhero shows, and I'm a big reader. I also like to play video games, but I'm not very good at them.
+User 2: I'm not very good at video games either, but I still have fun playing them.
+User 1: Me too! So, what's your favorite superhero show?
+User 2: I like the Marvel shows the best, especially Daredevil and Jessica Jones.
+User 1: Me too! I love Daredevil. I think it's the best superhero show out there.
+User 2: I agree! It's so well-made. What are your favorite books?
+User 1: I like to read a lot of different types of books, but I really like historical fiction and fantasy.
+User 2: I like historical fiction too! What are some of your favorite books?
+User 1: I really like the Outlander series by Diana Gabaldon, and I also love the Throne of Glass series by Sarah J. Maas.
+User 2: I've heard good things about Outlander. I'll have to check it out.
+User 1: You definitely should! It's a great series. So, what do you do for work?
+User 2: I work at home as an editor.
+User 1: Oh, that's cool! I've always wanted to be an editor.
+User 2: It's a lot of work, but it's also really rewarding.
+User 1: I can imagine. So, what are your plans for the future?
+User 2: I'm hoping to move out soon. I'm living at home with my dad and brother right now.
+User 1: Oh, that's cool. I'm sure you'll be excited to have your own place.
+User 2: Yeah, I'm really looking forward to it.
+User 1: Well, it was nice meeting you, [name].
+User 2: You too, [name].

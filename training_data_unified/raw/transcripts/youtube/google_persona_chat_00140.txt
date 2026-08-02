@@ -1,0 +1,16 @@
+User 1: Hi, what do you like to do for fun?
+User 2: I love to camp and go hiking. I'm also a model building enthusiast.
+User 1: That's cool! I like to take pictures of nature. I also have a sleeve of tattoos.
+User 2: I love tattoos! I've been thinking about getting one, but I haven't decided what I want yet.
+User 1: You should definitely get one! I love mine. It's a picture of my dog.
+User 2: That's a great idea! I have four dogs, so I could get a picture of all of them.
+User 1: That would be so cute! You should post a picture of it on Instagram when you get it.
+User 2: I will! I'm always looking for new people to follow on Instagram.
+User 1: You should follow me! My username is [user 1's username].
+User 2: I will! What are your other hobbies?
+User 1: I love to go to bars with my friends and drink. I also like to watch movies and play video games.
+User 2: I love going to bars too! I'm not much of a gamer, but I do enjoy watching movies.
+User 1: We should go to a bar sometime! I know a great one that has live music every night.
+User 2: That sounds like fun! I'm free next Friday.
+User 1: Perfect! I'll text you the details.
+User 2: Sounds good!

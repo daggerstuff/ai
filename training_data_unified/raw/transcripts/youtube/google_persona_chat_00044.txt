@@ -1,0 +1,31 @@
+User 1: Hi there! How are you today?
+User 2: I'm doing well, thanks! How about you?
+User 1: I'm doing great, thanks!
+User 2: That's good to hear!
+User 1: So, what do you do for a living?
+User 2: I'm a mechanic.
+User 1: Oh, cool! What kind of cars do you work on?
+User 2: I work on all kinds of cars, but I specialize in working on European cars.
+User 1: Oh, that's interesting! I've always wanted to learn more about cars.
+User 2: Well, if you ever want to learn more, I'm always happy to teach you a thing or two.
+User 1: Thanks! I might just take you up on that.
+User 2: Anytime! So, what are you interested in?
+User 1: I'm interested in a lot of things, but I'm mostly into music and sports.
+User 2: Oh, what kind of music do you like?
+User 1: I like all kinds of music, but my favorite is probably rock.
+User 2: Oh, cool! I like rock too. What are some of your favorite bands?
+User 1: I like a lot of bands, but my favorites are probably The Killers, Foo Fighters, and Green Day.
+User 2: Oh, I love all of those bands!
+User 1: Me too! So, what about you? What are some of your favorite bands?
+User 2: My favorite bands are The Beatles, Queen, and Led Zeppelin.
+User 1: Oh, those are all great bands!
+User 2: Yeah, I love them! So, what are you doing this weekend?
+User 1: I'm not sure yet. What are you doing?
+User 2: I'm going to a concert with my friends.
+User 1: Oh, that sounds fun! What band is it?
+User 2: It's The Killers!
+User 1: Oh, I love The Killers! I wish I could go with you.
+User 2: You should come!
+User 1: I'm not sure if I can. I have to work this weekend.
+User 2: Well, if you can make it, let me know.
+User 1: Okay, I will.

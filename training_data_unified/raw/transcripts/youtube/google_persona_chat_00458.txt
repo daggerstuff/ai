@@ -1,0 +1,32 @@
+User 1: What do you like to do for fun?
+User 2: I like to kayak at the lake on weekends.
+User 1: That sounds fun! I've never been kayaking before.
+User 2: You should try it! It's a lot of fun.
+User 1: I might have to give it a try. Do you do anything else for fun?
+User 2: I like to go camping and hiking. I also like to go to the movies and play video games.
+User 1: That sounds like a lot of fun. I like to go camping and hiking too. I also like to play video games.
+User 2: Cool! What kind of video games do you like to play?
+User 1: I like to play all kinds of video games, but my favorite genre is RPG.
+User 2: I like RPG games too! What's your favorite RPG?
+User 1: My favorite RPG is Final Fantasy X.
+User 2: That's a good one! I like that game too.
+User 1: What's your favorite thing about Final Fantasy X?
+User 2: I like the story and the characters. The story is really well-written and the characters are all very likeable.
+User 1: I agree! The story is very emotional and the characters are all very well-developed.
+User 2: Yeah, it's one of my favorite games.
+User 1: Me too! It's a shame they never made a sequel.
+User 2: I know! I would have loved to see what happened next.
+User 1: Maybe they'll make one someday.
+User 2: I hope so!
+User 1: Me too.
+User 2: So, what else do you like to do for fun?
+User 1: I like to draw. I'm not very good at it, but I enjoy it.
+User 2: That's cool! I like to draw too. I'm not very good at it either, but it's fun.
+User 1: I like to draw people and animals.
+User 2: I like to draw landscapes and plants.
+User 1: That's cool! I've never tried drawing plants.
+User 2: It's fun! You should give it a try.
+User 1: I might have to.
+User 2: Cool! I'd love to see your drawings.
+User 1: I'll send you some of them later.
+User 2: Great! I look forward to it.

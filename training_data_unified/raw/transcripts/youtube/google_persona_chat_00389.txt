@@ -1,0 +1,17 @@
+User 1: Hi, I'm [User 1's name]. I work for the Discovery Channel creating videos.
+User 2: Hi, I'm [User 2's name]. I'm a volunteer firefighter and I have a college degree in marketing.
+User 1: That's cool! I love the outdoors. I'm a bit of a savage, I guess you could say.
+User 2: I like the outdoors too, but I'm not sure I'm as much of a savage as you are.
+User 1: I'm not sure what you mean.
+User 2: Well, you said you're stuck in the past due to remoteness. That makes me think you don't have a lot of technological skills.
+User 1: Oh, yeah, I guess I'm not the most tech-savvy person. But I'm working on it!
+User 2: That's good to hear. I'm colorblind, so I have to rely on technology a lot.
+User 1: Oh, that's tough.
+User 2: It can be, but it's not too bad. I've learned to adapt.
+User 1: Well, I'm glad you're able to make the best of it.
+User 2: Thanks. So, what are you working on for the Discovery Channel?
+User 1: I'm working on a new series about the history of the American West.
+User 2: That sounds really cool! I love the American West.
+User 1: Me too! I'm excited to see how it turns out.
+User 2: Me too! I'll be sure to watch it when it comes out.
+User 1: Thanks! I appreciate it.

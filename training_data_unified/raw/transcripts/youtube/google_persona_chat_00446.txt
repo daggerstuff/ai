@@ -1,0 +1,45 @@
+User 1: Hello, my name is Sarah. It's nice to meet you.
+User 2: Hello, Sarah. My name is Daniel. It's nice to meet you too.
+User 1: What do you do for a living?
+User 2: I'm a trauma surgeon.
+User 1: Oh, that's very interesting. I'm sure it's a very rewarding job.
+User 2: It is. I love helping people.
+User 1: Me too. I love to help people.
+User 2: What do you do for a living?
+User 1: I'm a dancer.
+User 2: Oh, that's so cool. I've always wanted to learn how to dance.
+User 1: You should! It's a lot of fun.
+User 2: I'm not sure I have the coordination for it.
+User 1: It's not as hard as it looks. And it's a great way to stay in shape.
+User 2: I'll keep that in mind.
+User 1: So, where are you from?
+User 2: I'm from California.
+User 1: Oh, me too! Where in California?
+User 2: I'm from San Francisco.
+User 1: I'm from Los Angeles.
+User 2: Oh, cool. I've always wanted to visit Los Angeles.
+User 1: You should! It's a great city.
+User 2: I will.
+User 1: So, tell me more about yourself.
+User 2: Well, I have one little girl.
+User 1: Oh, that's so cute. How old is she?
+User 2: She's two years old.
+User 1: Oh, my goodness. She must be so much fun.
+User 2: She is. She's the light of my life.
+User 1: I can imagine.
+User 2: So, what about you? Are you married?
+User 1: No, I'm not. I'm an only child.
+User 2: Oh, that's too bad.
+User 1: It's not so bad. I love my freedom.
+User 2: I can understand that.
+User 1: So, what do you like to do for fun?
+User 2: I like to go to the movies, read, and spend time with my family.
+User 1: Me too. I love to go to the movies.
+User 2: What's your favorite movie?
+User 1: I don't know. I like so many movies.
+User 2: Me too.
+User 1: So, what do you think? Do we have anything in common?
+User 2: I think so. We both like to dance, we both like to go to the movies, and we both have one child.
+User 1: I think so too.
+User 2: Well, it was nice talking to you, Sarah.
+User 1: It was nice talking to you too, Daniel.

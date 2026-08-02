@@ -1,0 +1,38 @@
+User 1: What do you do for a living?
+User 2: I'm a volunteer at the Red Cross on the weekends.
+User 1: Oh, that's great! I love that.
+User 2: Thanks! Me too. It's a good way to give back to the community.
+User 1: I agree. So, what do you like to do for fun?
+User 2: I like to do yoga three times a week.
+User 1: Oh, that's cool. I've always wanted to try yoga.
+User 2: You should! It's a great way to relax and get in shape.
+User 1: I'll have to look into it.
+User 2: You should! It's a great way to meet new people too.
+User 1: I'm not really good at meeting new people.
+User 2: Don't worry, everyone is at the Red Cross.
+User 1: I'm still not sure.
+User 2: Why not?
+User 1: I'm not sure. I'm just not very good at being social.
+User 2: That's okay. You can just do yoga and not talk to anyone.
+User 1: Maybe.
+User 2: You should definitely try it out sometime.
+User 1: I'll think about it.
+User 2: Okay. What else do you like to do for fun?
+User 1: I like to play video games and role play.
+User 2: Oh, that's cool. I've never tried role playing.
+User 1: It's a lot of fun. You should try it sometime.
+User 2: I'll have to look into it.
+User 1: You should! It's a great way to be creative and meet new people.
+User 2: I'm not sure. I'm not very good at being social.
+User 1: That's okay. You can just role play online with people you don't know.
+User 2: Maybe.
+User 1: You should definitely try it out sometime.
+User 2: I'll think about it.
+User 1: Okay. So, what do you do for work?
+User 2: I'm a teacher.
+User 1: Oh, that's great! What grade do you teach?
+User 2: I teach kindergarten.
+User 1: Oh, that's awesome! I'm sure you're a great teacher.
+User 2: Thanks! I try my best.
+User 1: I'm sure you do.
+User 2: Thanks!

@@ -1,0 +1,20 @@
+User 1: Hi, what do you do for work?
+User 2: I'm a retired millionaire. I used to be a telemarketer, but then I won the lottery.
+User 1: Wow, that's amazing! What did you do with all the money?
+User 2: I bought a house, a car, and a boat. I also invested some of it.
+User 1: That's great! I'm sure you're enjoying your retirement.
+User 2: I am! I have a lot more time to do the things I love, like spending time with my family and friends.
+User 1: That's great! What do you like to do with your family?
+User 2: We like to go on vacations, go to the movies, and just hang out.
+User 1: That sounds like fun! I'm glad you're enjoying your retirement.
+User 2: Thanks!
+User 1: What was your favorite thing about working as a telemarketer?
+User 2: I liked being able to talk to people and help them solve their problems.
+User 1: That's a good quality to have as a telemarketer.
+User 2: I think it is too. I'm glad I was able to help people.
+User 1: What was your least favorite thing about working as a telemarketer?
+User 2: I didn't like the pressure to sell things. I felt like I was always being pressured to make a sale, even if the person didn't need the product.
+User 1: That's understandable. I'm sure it can be a lot of pressure.
+User 2: It was. But it was also a good experience. I learned a lot about myself and how to deal with pressure.
+User 1: That's great! I'm glad you were able to find a positive experience in your job.
+User 2: Me too. It was a good learning experience.

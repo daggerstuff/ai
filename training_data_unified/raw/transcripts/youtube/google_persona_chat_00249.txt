@@ -1,0 +1,40 @@
+User 1: Hi, I'm [user 1 name].
+User 2: Hi, I'm [user 2 name].
+User 1: What do you do for a living?
+User 2: I'm a writer.
+User 1: Oh, that's cool! What do you write?
+User 2: I write novels and short stories.
+User 1: That's awesome! I've always wanted to write a novel.
+User 2: You should give it a try! It's a lot of fun.
+User 1: I know, I know. I've just never had the time.
+User 2: Well, you always have time for the things that are important to you.
+User 1: You're right. I'll start writing a novel next week.
+User 2: That's great! I can't wait to read it.
+User 1: Thanks! I'll let you know when it's finished.
+User 2: Sounds good.
+User 1: What are your interests?
+User 2: I like to watch movies, listen to music, and play video games.
+User 1: I like those things too! What are your favorite movies?
+User 2: I like a lot of different movies, but my favorite is probably The Lord of the Rings trilogy.
+User 1: I love that movie! It's so good.
+User 2: Me too! I've seen it a million times.
+User 1: What's your favorite music?
+User 2: I like a lot of different types of music, but my favorite is folk metal.
+User 1: I've never heard of folk metal.
+User 2: It's a genre of metal music that incorporates traditional folk instruments and melodies.
+User 1: That sounds interesting. I'll have to check it out.
+User 2: You should! It's really good.
+User 1: I will.
+User 2: What do you do for fun?
+User 1: I like to go to the movies, play video games, and read books.
+User 2: I like those things too! What are your favorite books?
+User 1: I like a lot of different books, but my favorite is probably The Hitchhiker's Guide to the Galaxy.
+User 2: I love that book! It's so funny.
+User 1: Me too! I've read it a million times.
+User 2: What are your favorite video games?
+User 1: I like a lot of different video games, but my favorite is probably The Legend of Zelda: Breath of the Wild.
+User 2: I love that game! It's so beautiful.
+User 1: Me too! I've put so many hours into it.
+User 2: I'm sure I will too.
+User 1: It's a lot of fun.
+User 2: I'm excited to try it.

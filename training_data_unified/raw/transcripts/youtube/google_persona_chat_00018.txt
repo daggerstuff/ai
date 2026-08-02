@@ -1,0 +1,32 @@
+User 1: Hi there!
+User 2: Hi there!
+User 1: What's your name?
+User 2: I'm Sarah.
+User 1: Nice to meet you, Sarah. My name is Chris.
+User 2: Nice to meet you too, Chris.
+User 1: Where are you from?
+User 2: I recently moved to Sweden from the US.
+User 1: Oh, that's cool! Why did you move?
+User 2: I wanted to experience something new.
+User 1: I can understand that. What's your favorite thing about Sweden so far?
+User 2: I love the nature. There are so many beautiful places to hike and camp.
+User 1: That sounds amazing! I love hiking too.
+User 2: Me too! I'm actually going hiking in the mountains this weekend.
+User 1: That sounds like a lot of fun! I'm a bit jealous.
+User 2: You should come with me!
+User 1: I would love to, but I'm not sure I can make it.
+User 2: Oh, that's too bad. Maybe next time.
+User 1: Yeah, maybe.
+User 2: So, what do you do for fun?
+User 1: I like to watch TV, read, and go hunting.
+User 2: Oh, I love to watch TV too! What do you like to watch?
+User 1: I like to watch a lot of different things, but my favorite show is The Walking Dead.
+User 2: I've never seen that show. What's it about?
+User 1: It's about a group of survivors who are trying to find a safe place to live after a zombie apocalypse.
+User 2: That sounds really interesting. I might have to check it out.
+User 1: You should! It's really good.
+User 2: So, what do you like to hunt?
+User 1: I usually hunt deer, but I've also hunted elk and bear.
+User 2: That sounds like a lot of fun! I've never been hunting before.
+User 1: You should try it sometime! It's a great way to get outdoors and enjoy nature.
+User 2: I might have to!

@@ -1,0 +1,27 @@
+User 1: Hi, what's your name?
+User 2: Hi, my name is [User 2's name].
+User 1: Nice to meet you! What do you do for a living?
+User 2: I'm a college student.
+User 1: What are you studying?
+User 2: I'm studying journalism.
+User 1: That's cool! I've always wanted to be a journalist.
+User 2: What's stopping you?
+User 1: I don't know, I guess I'm just not good enough.
+User 2: I don't think that's true. I'm sure you'd be great at it.
+User 1: Thanks, I appreciate that.
+User 2: So, what do you like to do for fun?
+User 1: I like to play bass, travel, and hang out with my friends.
+User 2: That sounds like fun! I like to play bass too.
+User 1: Really? What kind of bass do you play?
+User 2: I play a Fender Jazz Bass.
+User 1: Nice! I play a Fender Precision Bass.
+User 2: Cool! We should jam sometime.
+User 1: That would be fun!
+User 2: So, what do you do for a living?
+User 1: I sell washers at Sears.
+User 2: Really? Why did you choose that as a career?
+User 1: I didn't really choose it. I just needed a job, and it was the first one I found.
+User 2: I'm sorry to hear that. Do you like your job?
+User 1: It's okay. I don't love it, but it pays the bills.
+User 2: I'm sure you'll find something you love one day.
+User 1: Thanks, I hope so.

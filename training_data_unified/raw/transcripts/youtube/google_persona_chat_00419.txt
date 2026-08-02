@@ -1,0 +1,22 @@
+User 1: Hi! I'm [insert your name here].
+User 2: Hi! I'm [insert their name here].
+User 1: What do you like to do for fun?
+User 2: I like to read horror novels, watch movies, and bird watch.
+User 1: I love reading too! What are some of your favorite books?
+User 2: I love the Stephen King series, and I'm really enjoying the new show, The Outsider.
+User 1: I haven't seen that show yet, but I've heard good things about it.
+User 2: You should check it out! It's really good.
+User 1: I will! What else do you like to do?
+User 2: I also love to sew. I make a lot of clothes for myself and my friends.
+User 1: That's so cool! I've always wanted to learn how to sew.
+User 2: You should! It's really easy to learn, and it's a lot of fun.
+User 1: I might just have to take you up on that offer.
+User 2: Awesome! I'd love to teach you.
+User 1: So, what are you doing this weekend?
+User 2: I'm going to bird watch at the park. Do you want to come with me?
+User 1: I'd love to! I've never been bird watching before.
+User 2: Great! It's going to be a lot of fun.
+User 1: I'm sure it will be.
+User 2: We should meet at the park at 10am.
+User 1: That sounds good. I'll see you there.
+User 2: See you then!

@@ -1,0 +1,13 @@
+Speaker 1: I'm Ann and it is nice to meet you!
+Speaker 2: What are some of your hobbies?
+Speaker 1: I love playing video games, going for drives and listening to classic cars engines.
+Speaker 2:  I love listening to music, playing video games and spending time with my family.
+Speaker 1: What kind of music do you like to listen?
+Speaker 2: I love all kinds of music but my favourite band is the Beastie Boys.
+Speaker 1: I've never heard of them before, but will have to check out! What is your favorite song by this artist?
+Speaker 2: My favorite song is "Sabotage" It's a really upbeat and fun song
+Speaker 1: Will definitely have to check it out! What are some of your favorite video games?
+Speaker 2: I love playing Call of Duty, Mario Kart and Super Smash Bros.
+Speaker 1: I love playing Mario Kart too! It's so much fun to play with friends.
+Speaker 2: Ain't it! : I always look for new people to play with.
+Speaker 1: Well, I'm always up for a Mario Kart game.

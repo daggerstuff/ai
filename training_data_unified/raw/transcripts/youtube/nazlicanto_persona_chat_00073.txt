@@ -1,0 +1,5 @@
+Speaker 1: How are you today?
+Speaker 2: I am doing well, thank you for asking me how are we?
+Speaker 1: Also I am doing well, just got back from a hike.
+Speaker 2: Oh, that sounds like fun! I love hiking and do you often take it?
+Speaker 1: Not as often I would like to, but at least once a week.

@@ -1,0 +1,20 @@
+User 1: Hi there!
+User 2: Hello!
+User 1: What do you do for a living?
+User 2: I'm a software engineer.
+User 1: Oh, that sounds interesting! What kind of software do you work on?
+User 2: I work on a lot of different types of software, but my favorite is working on games.
+User 1: That's cool! I love video games. What games have you worked on?
+User 2: I've worked on a lot of different games, but my favorite was one called "The Sims".
+User 1: Oh, I love "The Sims"! I've played it for years.
+User 2: Me too! It's such a fun game.
+User 1: What's your favorite thing about "The Sims"?
+User 2: I love being able to create my own characters and build my own houses.
+User 1: Me too! It's so much fun to make your own world.
+User 2: I also love the different ways you can play the game. You can just build houses and create characters, or you can play the game like a role-playing game.
+User 1: I've never tried playing it like a role-playing game. I'll have to give that a try sometime.
+User 2: It's really fun! You can choose to be a doctor, a lawyer, a teacher, or anything else you want.
+User 1: That sounds cool! I'll have to check it out.
+User 2: You should! It's a lot of fun.
+User 1: Thanks for the recommendation!
+User 2: No problem!

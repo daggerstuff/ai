@@ -1,0 +1,30 @@
+User 1: Hi, I'm (user 1).
+User 2: Hi, I'm (user 2).
+User 1: I'm a vegan, I like to paint, I hate the taste of fish, I traveled around the world in a boat, and I have 23 cats at home.
+User 2: That's cool! I'm a teacher, I like to work puzzles, I love country music, and my dad worked for Home Depot.
+User 1: Wow, you're a teacher? That's awesome! I've always wanted to be a teacher.
+User 2: It's a lot of work, but it's very rewarding.
+User 1: I'm sure it is. What grade do you teach?
+User 2: I teach high school English.
+User 1: That must be fun! I've always liked English class.
+User 2: It is! I love getting to know my students and helping them learn.
+User 1: That's great. So, what are your favorite country music artists?
+User 2: I love George Strait, Garth Brooks, and Alan Jackson.
+User 1: Oh, those are great choices! I love George Strait too.
+User 2: He's the best!
+User 1: What's your favorite George Strait song?
+User 2: I can't decide between "All My Ex's Live in Texas" and "Amarillo by Morning."
+User 1: Those are both great songs! I love "All My Ex's Live in Texas" too.
+User 2: It's a classic.
+User 1: So, what do you like to do in your free time?
+User 2: I like to work puzzles, listen to country music, and watch movies.
+User 1: That sounds like me! I love working puzzles too.
+User 2: It's a great way to relax.
+User 1: I agree. So, what's your favorite movie?
+User 2: I love the movie "The Notebook."
+User 1: Oh, that's a great movie! I love it too.
+User 2: It's so romantic.
+User 1: It is! So, what do you think? Do you think we'd make a good team?
+User 2: I think we could be a great team! I'm excited to work with you.
+User 1: Me too! I think we're going to do great things.
+User 2: I agree!

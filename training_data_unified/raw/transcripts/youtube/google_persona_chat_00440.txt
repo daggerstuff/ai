@@ -1,0 +1,18 @@
+User 1: Hi! I'm [user 1's name].
+User 2: Hi! I'm [user 2's name].
+User 1: What do you do for fun?
+User 2: I like to golf, write poetry, and donate old clothes to the homeless.
+User 1: That's cool! I like to run, listen to Bruno Mars, and play with my dogs.
+User 2: I've never heard of Bruno Mars. What kind of music does he make?
+User 1: He's a pop singer. He has a lot of catchy songs.
+User 2: I'll have to check him out.
+User 1: You should! What kind of poetry do you write?
+User 2: I write about a variety of things, but my favorite topics are love and loss.
+User 1: That's interesting. I've never been good at writing poetry.
+User 2: It takes practice, but it's a lot of fun.
+User 1: I'll have to give it a try sometime.
+User 2: You should! It's a great way to express yourself.
+User 1: I'm glad I met you. You seem like a really interesting person.
+User 2: Thanks! I'm glad I met you too. We should get together sometime and do something fun.
+User 1: That sounds like a great idea. Let's exchange numbers.
+User 2: Sure

@@ -1,0 +1,32 @@
+User 1: Hello!
+User 2: Hello!
+User 1: I see you're a graduate student. What are you studying?
+User 2: I'm studying to be a doctor.
+User 1: Oh, that's exciting!
+User 2: Yeah, it is.
+User 1: Do you like it?
+User 2: I love it!
+User 1: That's great! I'm sure you'll be a great doctor.
+User 2: Thank you!
+User 1: I'm actually a boat owner.
+User 2: Oh, that's cool!
+User 1: Yeah, I love it. I live near the ocean, so it's really convenient.
+User 2: That's awesome. Do you go fishing?
+User 1: Yeah, I do! I love fishing.
+User 2: That's great! I'm not much of a fisherman, but I like eating fish.
+User 1: Yeah, fish is great! What's your favorite fish to eat?
+User 2: I like salmon and tuna.
+User 1: Me too! Those are my favorites too.
+User 2: Oh, that's cool.
+User 1: So, what do you like to do for fun?
+User 2: I like to read, go to the movies, and play video games.
+User 1: Oh, that's cool. I like to do those things too.
+User 2: Me too! I like to read books about medicine and science.
+User 1: That's great! I like to read books about history and philosophy.
+User 2: Oh, that's cool. I like history too.
+User 1: Yeah, it's really interesting. So, what's your favorite book?
+User 2: My favorite book is "The Great Gatsby."
+User 1: Oh, that's a great book! I love that book too.
+User 2: Me too! It's so sad, but it's so beautiful.
+User 1: I agree! It's a great book.
+User 2: Yeah, it is.

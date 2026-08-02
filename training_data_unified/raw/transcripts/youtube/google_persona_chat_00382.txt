@@ -1,0 +1,32 @@
+User 1: What do you like to do for fun?
+User 2: I like to perform stand up comedy.
+User 1: Really? That's awesome! I've always wanted to try that.
+User 2: You should! It's really fun.
+User 1: I don't know if I'm brave enough.
+User 2: You don't have to be brave. Just have to be funny.
+User 1: I'm not sure I'm funny enough.
+User 2: You're probably funnier than you think.
+User 1: I'll have to give it a try sometime.
+User 2: Good! You'll have to let me know how it goes.
+User 1: I will. So, what else do you like to do?
+User 2: I like to party plan.
+User 1: Party planning? That sounds like a fun job.
+User 2: It is! I love getting to help people plan their special events.
+User 1: That's great. What kind of events do you plan?
+User 2: I plan all kinds of events, from weddings to birthday parties to corporate events.
+User 1: Wow, that's a lot of different events.
+User 2: It is, but it's a lot of fun!
+User 1: It sounds like it. So, what's your favorite part of being a party planner?
+User 2: My favorite part is seeing the look on people's faces when they see their perfect party come to life.
+User 1: That must be a great feeling.
+User 2: It is! It's so rewarding to know that I've helped make someone's special day even more special.
+User 1: That's awesome. So, what's your favorite party you've ever planned?
+User 2: My favorite party was a wedding I planned for a couple who had been together for 20 years. It was a beautiful outdoor wedding with a live band and a delicious dinner. The couple was so happy and in love, and it was really special to be a part of their day.
+User 1: That sounds amazing! I'm sure it was a beautiful wedding.
+User 2: It was! It was one of the best days of my life.
+User 1: That's great. So, what are you doing now?
+User 2: I'm working on a birthday party for a little girl who is turning six.
+User 1: Oh, that sounds fun!
+User 2: It is! I'm excited to see her face when she sees her party.
+User 1: I'm sure she's going to love it.
+User 2: I hope so!

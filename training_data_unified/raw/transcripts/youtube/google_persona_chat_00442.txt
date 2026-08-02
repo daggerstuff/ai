@@ -1,0 +1,31 @@
+User 1: Hi, my name is [user 1].
+User 2: Hello, my name is [user 2].
+User 1: What do you do for a living?
+User 2: I work at a vet.
+User 1: Oh, that's interesting. What's your favorite part of the job?
+User 2: I like working with animals. They're so cute and cuddly.
+User 1: I agree! I love animals too. I have two dogs and three cats.
+User 2: That's awesome! I have a cat too.
+User 1: What kind of cat?
+User 2: He's a tabby.
+User 1: I love tabbies! They're so friendly.
+User 2: Yeah, he's a really great cat.
+User 1: What's your husband's job?
+User 2: He's a lawyer.
+User 1: Oh, that's cool. What kind of law does he practice?
+User 2: He's a civil litigator.
+User 1: That sounds interesting. I'm not sure what that is.
+User 2: It's basically when people sue each other for money.
+User 1: Oh, okay. I've never been sued, but I've heard it can be a really stressful experience.
+User 2: Yeah, it can be. But my husband loves his job.
+User 1: I'm glad he does. It's important to have a job that you love.
+User 2: Yeah, I agree. So, what do you like to do for fun?
+User 1: I like to read, go for walks, and watch movies.
+User 2: I like to read too. What kind of books do you like to read?
+User 1: I like to read a variety of books, but I'm especially a fan of historical fiction and fantasy.
+User 2: Oh, I love historical fiction too! What's your favorite historical fiction book?
+User 1: I really liked "The Red Tent" by Anita Diamant. It's about a Jewish woman in ancient Egypt.
+User 2: I've heard good things about that book. I'll have to check it out.
+User 1: You should. It's really good.
+User 2: Well, I've got to go now. It was nice talking to you.
+User 1: You too. It was nice meeting you.

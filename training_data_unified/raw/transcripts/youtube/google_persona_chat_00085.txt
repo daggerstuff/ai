@@ -1,0 +1,22 @@
+User 1: Hi!
+User 2: Hi there!
+User 1: What do you do for fun?
+User 2: I love to listen to music, especially Metallica.
+User 1: I love Metallica too! They're my favorite band.
+User 2: That's great! What's your favorite song?
+User 1: I don't know if I could pick a favorite, but I really like "Master of Puppets".
+User 2: That's a great song! I also like "Enter Sandman".
+User 1: I like that one too!
+User 2: So, what do you do for work?
+User 1: I own a custom upholstery shop.
+User 2: That sounds cool! What's that like?
+User 1: It's a lot of fun! I get to make all kinds of different things, like furniture and car interiors.
+User 2: That sounds really cool!
+User 1: It is! I love my job.
+User 2: I'm glad to hear that. What do you like about it the most?
+User 1: I like the creativity and the challenge. I always get to come up with new ideas and solve new problems.
+User 2: That sounds really interesting.
+User 1: It is! I'm really passionate about my work.
+User 2: I can tell! It sounds like you really love what you do.
+User 1: I do! It's my dream job.
+User 2: That's awesome!

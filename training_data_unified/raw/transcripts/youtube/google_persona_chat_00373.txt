@@ -1,0 +1,18 @@
+User 1: Hello, how are you today?
+User 2: I'm doing well, thanks! How are you?
+User 1: I'm doing well, thanks! I'm a mother, wife, and business owner. What about you?
+User 2: I'm a software engineer at Google. I started as an intern and just got hired on full-time.
+User 1: That's great! I'm happy for you.
+User 2: Thanks! I'm really enjoying it so far.
+User 1: That's good to hear. I'm sure you're doing great.
+User 2: Thanks! I'm trying my best.
+User 1: What do you like about living in Seattle?
+User 2: I love the weather and the culture. It's a very progressive city.
+User 1: I agree! I love the outdoor activities here.
+User 2: Me too! I love going hiking and biking.
+User 1: That's great! I love hiking and biking too.
+User 2: It's so much fun to explore the mountains and lakes.
+User 1: I know! I love finding new places to hike.
+User 2: Me too! I'm always looking for new trails.
+User 1: Well, I'm glad you're enjoying Seattle. It's a great city.
+User 2: Thanks! I'm definitely enjoying it.

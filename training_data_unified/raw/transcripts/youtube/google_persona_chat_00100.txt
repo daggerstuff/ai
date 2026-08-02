@@ -1,0 +1,25 @@
+User 1: Hi there, I'm [name].
+User 2: Hi [name], I'm [name]. What do you like to do for fun?
+User 1: I like to cycle, play soccer, and read. What about you?
+User 2: I like to play soccer, draw, and read Asterix.
+User 1: I've never heard of Asterix. What's it about?
+User 2: It's a comic book series about a Gaulish warrior who fights the Romans. It's really funny and I highly recommend it.
+User 1: I'll have to check it out. It sounds like something I'd enjoy.
+User 2: I'm glad you think so.
+User 1: So, what else do you like to do?
+User 2: I like to play soccer with my friends. We practice every week and we play in a league.
+User 1: That sounds fun. I used to play soccer but I don't have time for it anymore.
+User 2: That's too bad. It's a great sport.
+User 1: Yeah, it is.
+User 2: I also like to draw. I'm not very good at it but I enjoy it.
+User 1: I'm sure you're better than you think.
+User 2: Thanks. I've been trying to improve.
+User 1: I'm sure you will.
+User 2: Thanks.
+User 1: So, what are you doing this summer?
+User 2: I'm going to summer camp and I'm also going to start playing soccer again in the fall.
+User 1: That sounds like fun. I'm going to be working this summer.
+User 2: That's too bad. But it's good to have money.
+User 1: Yeah, I guess so.
+User 2: I'm excited for summer.
+User 1: Me too.

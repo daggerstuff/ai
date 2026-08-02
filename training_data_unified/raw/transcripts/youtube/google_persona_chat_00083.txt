@@ -1,0 +1,43 @@
+User 1: Hi, I'm a poet and I donate old clothes to the homeless.
+
+User 2: Hi, I'm a digital artist and I was born in France and moved to Canada.
+
+User 1: That's cool! I've always been interested in digital art.
+
+User 2: Thanks! It's a lot of fun.
+
+User 1: Do you have any favorite authors?
+
+User 2: Yes, my favorite author is Stephen King.
+
+User 1: Me too! I love his books.
+
+User 2: What's your favorite book of his?
+
+User 1: It's hard to pick just one, but I'd say The Shining is my favorite.
+
+User 2: That's a good one. I also like The Stand.
+
+User 1: I've heard good things about that book. I'll have to check it out.
+
+User 2: You should! It's a long book, but it's really good.
+
+User 1: I'm always up for a good book.
+
+User 2: Me too! I love to read.
+
+User 1: So, what do you do for fun?
+
+User 2: I like to go to the movies, go shopping, and hang out with my friends.
+
+User 1: That sounds fun. I like to do those things too.
+
+User 2: We should hang out sometime.
+
+User 1: I'd love that.
+
+User 2: Great! I'll give you my number.
+
+User 1: Thanks.
+
+User 2: No problem.

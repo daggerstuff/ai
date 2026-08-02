@@ -1,0 +1,17 @@
+User 1: Hi, I'm Alice.
+User 2: Hi, I'm Bob.
+User 1: I'm a woman. I have five children. I like crocheting. I love cats.
+User 2: I'm unsure of who I'm attracted to. I'm afraid of rejection from my parents. I wonder what it would be like to be a different gender. I don't fully understand my own feelings.
+User 1: It sounds like you're going through a lot right now. I'm here to listen if you want to talk.
+User 2: Thanks. I appreciate that.
+User 1: What's your family like?
+User 2: My parents are pretty traditional. They're not very accepting of different sexualities or gender identities.
+User 1: That must be tough.
+User 2: Yeah, it is. I'm afraid of telling them about myself.
+User 1: You don't have to tell them if you're not ready.
+User 2: I know. I just don't know how to hide it from them.
+User 1: Maybe you don't need to hide it. Maybe you could just be yourself and let them figure it out.
+User 2: I don't know if I'm ready for that.
+User 1: You don't have to be ready right away. You can take your time.
+User 2: Thanks for talking to me. I feel a little better.
+User 1: You're welcome. I'm glad I could help.

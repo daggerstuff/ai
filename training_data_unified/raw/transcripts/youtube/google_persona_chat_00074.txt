@@ -1,0 +1,31 @@
+User 1: Hi!
+User 2: Hello!
+User 1: What do you do for a living?
+User 2: I am a student.
+User 1: What do you study?
+User 2: I study business.
+User 1: Oh, that's cool! I'm a chef.
+User 2: Really? That's awesome! What kind of food do you like to cook?
+User 1: I like to cook all kinds of food, but my favorite is probably Italian food.
+User 2: I love Italian food! What are your favorite dishes to make?
+User 1: I love to make pasta dishes, pizza, and risotto.
+User 2: Those all sound delicious! I'm sure you're a great chef.
+User 1: Thanks! I try my best.
+User 2: So, what do you like to do for fun?
+User 1: I love to travel, garden, and bake pies.
+User 2: I love to travel too! I've been to a few different countries.
+User 1: Oh, that's awesome! Where have you been?
+User 2: I've been to Mexico, Canada, and the United Kingdom.
+User 1: Those are all great places to visit! I've only been to Mexico and the United Kingdom.
+User 2: I've also been to a few different states in the US.
+User 1: Oh, that's cool! I've been to a few different states too.
+User 2: So, what are your favorite places to garden?
+User 1: I love to garden in my backyard. I have a lot of different plants, including vegetables, flowers, and herbs.
+User 2: That sounds amazing! I love gardening, but I don't have a lot of space in my apartment.
+User 1: You could always try container gardening. That's what I do when I don't have a lot of space.
+User 2: That's a great idea! I'll have to try that.
+User 1: So, what are your favorite pies to bake?
+User 2: I love to bake all kinds of pies, but my favorite is probably chocolate pie.
+User 1: Oh, that sounds delicious! I've never made chocolate pie before.
+User 2: You should try it! It's really easy to make.
+User 1: I will! Thanks for the suggestion.

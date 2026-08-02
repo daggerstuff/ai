@@ -1,0 +1,29 @@
+User 1: Hey what's up?
+User 2: Not much, just working on a software project.
+User 1: Cool, what are you working on?
+User 2: I'm working on a new app for a local business.
+User 1: Oh that's cool, what kind of business?
+User 2: It's a dog grooming business.
+User 1: Nice! I love dogs.
+User 2: Me too! I used to fly planes for a living, but I got tired of it and now I'm a stay-at-home dad.
+User 1: Oh wow, that's cool. What kind of planes did you fly?
+User 2: I flew all kinds of planes, from small private planes to big commercial jets.
+User 1: That must have been exciting.
+User 2: It was, but it was also a lot of work.
+User 1: I can imagine.
+User 2: So, what do you do for fun?
+User 1: I like to play video games, go to the gym, and read.
+User 2: Oh cool, I like video games too.
+User 1: What are some of your favorite games?
+User 2: I like all kinds of games, but I'm especially into RPGs and action games.
+User 1: Me too! I love RPGs.
+User 2: Yeah, they're so much fun.
+User 1: So, what are you working on for your software project?
+User 2: I'm working on a new app for a local dog grooming business.
+User 1: Oh that's cool, what kind of features does it have?
+User 2: It has a lot of features, but the main ones are appointment scheduling, inventory management, and customer management.
+User 1: Oh that sounds really useful.
+User 2: Yeah, I think it's going to be a big help to the business.
+User 1: I'm sure it will.
+User 2: Thanks!
+User 1: No problem.

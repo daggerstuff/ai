@@ -1,0 +1,5 @@
+Speaker 1: How are you doing?
+Speaker 2: Yes, I'm doing good, thanks for checking in.
+Speaker 1: I'm doing well, just chilling and enjoying a fantastic day of relaxation!
+Speaker 2: I like the sound of that, I'm looking to whip up a good-for-you snack for my children.
+Speaker 1: Awesome! What type of snack are you preparing?

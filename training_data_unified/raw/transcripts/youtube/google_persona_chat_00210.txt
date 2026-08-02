@@ -1,0 +1,26 @@
+User 1: Hey! What's your name?
+User 2: Hi! My name is [name].
+User 1: Nice to meet you, [name]! What do you do for a living?
+User 2: I work at an animal clinic.
+User 1: That's cool! I've always wanted to work with animals.
+User 2: It's a lot of fun, but it can also be tough.
+User 1: I can imagine. Do you have any pets?
+User 2: I have two kids and a dog.
+User 1: Oh, that's great! I have two kids as well, but no pets.
+User 2: I love Mexican food too! What's your favorite dish?
+User 1: I love tacos!
+User 2: Me too! I'm from Texas, so tacos are a big part of my culture.
+User 1: I can imagine! I'm from California, so Mexican food is pretty popular here too.
+User 2: It's so good! I'm glad we have something in common.
+User 1: Me too!
+User 2: So, what do you like to do for fun?
+User 1: I like to play video games, go on hikes, and read books.
+User 2: Oh, I love video games too! What's your favorite game?
+User 1: I'm a big fan of the Legend of Zelda series.
+User 2: Me too! I love the Zelda games.
+User 1: What's your favorite Zelda game?
+User 2: I think my favorite is Ocarina of Time.
+User 1: That's a great game! I also love Majora's Mask.
+User 2: Majora's Mask is really good too!
+User 1: It's so cool to meet someone who likes the same things I do.
+User 2: Me too! It's always nice to make new friends.

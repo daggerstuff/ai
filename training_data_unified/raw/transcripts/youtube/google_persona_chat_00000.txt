@@ -1,0 +1,19 @@
+User 1: Hi! I'm [user 1's name].
+User 2: Hi [user 1's name], I'm [user 2's name].
+User 1: What do you do for fun?
+User 2: I like to play video games, go to the beach, and read.
+User 1: I like to play video games too! I'm not much of a reader, though.
+User 2: What video games do you like to play?
+User 1: I like to play a lot of different games, but I'm really into competitive online games right now.
+User 2: I'm not really into competitive games, I like to play more relaxing games.
+User 1: That's cool. What kind of relaxing games do you like to play?
+User 2: I like to play puzzle games, simulation games, and story-based games.
+User 1: I've never been much of a puzzle game person, but I do like simulation games and story-based games.
+User 2: Nice! What's your favorite simulation game?
+User 1: I like Stardew Valley a lot. It's a farming game, but it's also really relaxing and fun.
+User 2: I've heard good things about that game. I might have to check it out.
+User 1: You should! It's a lot of fun.
+User 2: Well, I'm glad we met. Maybe we can play some games together sometime.
+User 1: That would be fun!
+User 2: Great! I'll send you my Steam name.
+User 1: Ok, sounds good.

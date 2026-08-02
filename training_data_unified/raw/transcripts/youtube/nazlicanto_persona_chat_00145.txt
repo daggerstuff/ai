@@ -1,0 +1,5 @@
+Speaker 1: How are you doing today?
+Speaker 2: Hello! I'm doing well, thanks for the questions
+Speaker 1: It's great to hear this - what are you up for today?
+Speaker 2: I'm just getting ready to go do some shopping, how about you?
+Speaker 1: I actually go home from work as a software engineer.

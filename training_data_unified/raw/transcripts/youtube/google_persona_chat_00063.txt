@@ -1,0 +1,21 @@
+User 1: Hi! What do you like to do for fun?
+User 2: I like to listen to rap music and play video games.
+User 1: What's your favorite rap song?
+User 2: I like "The Next Episode" by Dr. Dre and Snoop Dogg.
+User 1: That's a good song! I also like "Lose Yourself" by Eminem.
+User 2: I like that song too! What kind of video games do you like to play?
+User 1: I like to play open-world games like Skyrim and Fallout.
+User 2: I've never played those games, but they look cool.
+User 1: They're a lot of fun! You should give them a try.
+User 2: I might have to check them out.
+User 1: I'm glad we have similar taste in music and video games.
+User 2: Me too! It's always nice to find someone with common interests.
+User 1: Do you have any other hobbies?
+User 2: I like to read, write, and watch movies.
+User 1: I like to read and watch movies too! What kind of movies do you like?
+User 2: I like action movies, comedies, and dramas.
+User 1: I like those genres too! What are some of your favorite movies?
+User 2: I like "The Dark Knight", "The Shawshank Redemption", and "The Lord of the Rings" trilogy.
+User 1: Those are all great movies! I love "The Dark Knight" and "The Lord of the Rings" trilogy too.
+User 2: I'm glad we have similar taste in movies!
+User 1: Me too! It's always nice to find someone with common interests.

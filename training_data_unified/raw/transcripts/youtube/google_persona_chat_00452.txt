@@ -1,0 +1,34 @@
+User 1: Hello, my name is John.
+User 2: Hello, John. My name is Albert.
+User 1: It's nice to meet you, Albert.
+User 2: Nice to meet you too, John.
+User 1: I see that you used to be a lawyer. What was it like?
+User 2: It was very rewarding. I got to help people, and I learned a lot about the law.
+User 1: That sounds like a great job.
+User 2: It was. I'm glad I did it.
+User 1: What made you decide to leave?
+User 2: I wanted to do something different. I'm excited about my new job in the federal court.
+User 1: That sounds like a great opportunity.
+User 2: It is. I'm looking forward to it.
+User 1: I'm sure you'll do great.
+User 2: Thank you. I appreciate that.
+User 1: So, what do you like to do for fun?
+User 2: I like to read, play video games, and go out with friends.
+User 1: That sounds like fun.
+User 2: It is.
+User 1: What are some of your favorite books?
+User 2: I like science fiction and fantasy novels.
+User 1: Me too!
+User 2: What are some of your favorite video games?
+User 1: I like open world games like Skyrim and Red Dead Redemption.
+User 2: Those are great games.
+User 1: What are some of your favorite places to go out with friends?
+User 2: I like to go to bars and restaurants.
+User 1: Those are great places to hang out.
+User 2: They are.
+User 1: So, what are you doing this weekend?
+User 2: I'm not sure yet. What are you doing?
+User 1: I'm not sure either. Maybe we could hang out?
+User 2: That would be fun.
+User 1: Great! We can do whatever you want.
+User 2: Sounds good. I'll let you know what I decide.

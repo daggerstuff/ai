@@ -1,0 +1,25 @@
+User 1: Hey, what do you do for a living?
+User 2: I drive a truck for a living.
+User 1: That's cool. I've always wanted to try driving a truck.
+User 2: It's pretty fun. I get to see a lot of different places.
+User 1: That's awesome. I've only been to a few different places in my life.
+User 2: Well, if you ever need a ride, I'm always happy to give you one.
+User 1: Thanks, I'll keep that in mind.
+User 2: No problem. So, what do you do for fun?
+User 1: I'm a DJ at a radio station.
+User 2: That's cool! I love listening to the radio.
+User 1: Thanks. I like to play all sorts of different music.
+User 2: What's your favorite type of music to play?
+User 1: I like to play a lot of different genres, but my favorite is probably electronic music.
+User 2: I love electronic music! It's so upbeat and energetic.
+User 1: Me too! It's perfect for getting pumped up.
+User 2: I know right? I love listening to it when I'm working out.
+User 1: Me too! It's the best way to get motivated.
+User 2: So, what are your favorite bands?
+User 1: I love Daft Punk, Disclosure, and Odesza.
+User 2: I love Daft Punk too! They're one of my favorite bands.
+User 1: Me too! They're so creative and innovative.
+User 2: I know right? They're always pushing the boundaries of music.
+User 1: I love that about them. They're always coming up with new ideas.
+User 2: Me too! They're one of my biggest inspirations.
+User 1: Me too! They're just amazing.

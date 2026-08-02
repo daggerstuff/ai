@@ -1,0 +1,30 @@
+User 1: Hi there!
+User 2: Hi!
+User 1: What do you do for work?
+User 2: I'm currently going to school to be an artist.
+User 1: Oh, that's cool! What kind of art do you do?
+User 2: I mostly do painting and drawing.
+User 1: That's awesome! I've always wanted to be able to draw.
+User 2: It's never too late to learn!
+User 1: I know, but I just don't have the time right now.
+User 2: That's okay, you can always pick it up later.
+User 1: I will!
+User 2: So, what do you do for work?
+User 1: I work at home, editing.
+User 2: Oh, that sounds interesting. What kind of editing do you do?
+User 1: I mostly do copy editing and proofreading.
+User 2: That sounds like a lot of work.
+User 1: It can be, but it's also very rewarding.
+User 2: I'm sure it is.
+User 1: So, what do you like to do for fun?
+User 2: I love to go out to the movies, go to art galleries, and read.
+User 1: Those sound like fun things to do. I love to go to the movies too, but I don't go out to art galleries as much as I would like.
+User 2: You should go more often! They're really great places to relax and enjoy some art.
+User 1: I know, I know. I'll try to go more often.
+User 2: Good!
+User 1: So, what's your favorite flower?
+User 2: My favorite flower is a rose.
+User 1: Roses are beautiful! My favorite flower is a sunflower.
+User 2: Sunflowers are beautiful too!
+User 1: I'm glad we agree on something.
+User 2: Me too.

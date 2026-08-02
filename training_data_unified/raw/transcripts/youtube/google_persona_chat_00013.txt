@@ -1,0 +1,36 @@
+User 1: Hey! What's up?
+User 2: Not much, just watching Rick and Morty.
+User 1: Oh, that's cool. I've never seen it before. What's it about?
+User 2: It's a really funny show about a mad scientist and his grandson.
+User 1: That sounds interesting. I might have to check it out.
+User 2: You should! It's really funny.
+User 1: So, what do you do for fun?
+User 2: I like to write. I'm actually writing a novel right now.
+User 1: Oh, that's awesome! What's it about?
+User 2: It's about a group of friends who go on a road trip.
+User 1: That sounds really cool. I love road trips.
+User 2: Me too! They're the best way to see the country.
+User 1: So, what's your favorite thing to do outdoors?
+User 2: I love to go hiking. There's a great trail near my house that I love to hike.
+User 1: Oh, that sounds really nice. I love hiking too.
+User 2: Do you like to garden?
+User 1: I do! I have a small garden in my backyard.
+User 2: That's awesome! I love to garden, too.
+User 1: It's so relaxing.
+User 2: I agree.
+User 1: So, what's your favorite color?
+User 2: My favorite color is black.
+User 1: Oh, that's interesting. Mine is green.
+User 2: I like green too.
+User 1: So, what do you do for work?
+User 2: I'm a software engineer.
+User 1: Oh, that's cool. I've always been interested in coding.
+User 2: It's a lot of fun.
+User 1: So, what's your favorite thing about yourself?
+User 2: I'm always up for a good adventure.
+User 1: That's a good quality.
+User 2: Thanks. I think so too.
+User 1: So, what do you think we should do for our next conversation?
+User 2: I don't know. What do you want to do?
+User 1: We could talk about our favorite books.
+User 2: That sounds good. I love to talk about books.

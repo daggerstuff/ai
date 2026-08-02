@@ -1,0 +1,17 @@
+Speaker 1: My name is Ryan. What's yours?
+Speaker 2: I'm John. Thanks for chatting with me. It's nice to meet you.
+Speaker 1: It's nice to meet you too. What do you do for fun?
+Speaker 2: I like to read, play video games, and go to the movies.
+Speaker 1: I like to do those things too. I also like to go hiking and camping.
+Speaker 2: I've never been hiking or camping before. What's it like?
+Speaker 1: It's really fun! You get to see nature and explore new places.
+Speaker 2: That sounds like it could be a lot of fun. I'd like to try it sometime.
+Speaker 1: You should! It's a great way to get some exercise and fresh air.
+Speaker 2: Thanks for the recommendation. I'll keep that in mind.
+Speaker 1: No problem. What do you do for work?
+Speaker 2: I'm a software engineer.
+Speaker 1: That sounds like a cool job. What's it like?
+Speaker 2: It's a lot of fun. I get to work on a lot of different projects and learn new things all the time.
+Speaker 1: That sounds like a great job. I'm glad you like it.
+Speaker 2: Thanks. I'm glad too.
+Speaker 1: You too. Bye.

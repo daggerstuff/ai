@@ -1,0 +1,9 @@
+Speaker 1: Congratulations, what are you planning to do next?
+Speaker 2: I'm not sure yet, but think about going to college.
+Speaker 1: What do you want to study?
+Speaker 2: I'm still not sure, but i am interested in music.
+Speaker 1: Oh, that's cool! Do you play any instruments?
+Speaker 2: I play guitar and the piano.
+Speaker 1: That is awesome! I used to play the piano, but haven't played it since years.
+Speaker 2: Then you should start again! It's a lot of fun.
+Speaker 1: I know, miss it and maybe soon will start playing again.

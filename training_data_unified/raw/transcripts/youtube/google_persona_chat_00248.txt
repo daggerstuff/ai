@@ -1,0 +1,25 @@
+User 1: Hi! What do you like to do for fun?
+User 2: I love to go horse racing! I've been betting on horses since high school and I've made a lot of money doing it. I'm actually trying to open my own teaching program for horse racing.
+User 1: That's really cool! I've never been to a horse race, but I've always wanted to go.
+User 2: You should go! It's so much fun! I can teach you everything you need to know about betting on horses.
+User 1: That would be great! I'll definitely take you up on that.
+User 2: Sounds good!
+User 1: What else do you like to do for fun?
+User 2: I love to travel. I've been to all over the world. I love experiencing new cultures and learning about different people.
+User 1: That sounds amazing! I've always wanted to travel more, but I don't have the money.
+User 2: You don't need a lot of money to travel. You can do it on the cheap. I've been to some amazing places for under $500.
+User 1: That's true. I'll have to look into that.
+User 2: You should! Traveling is the best way to learn about the world.
+User 1: I'm sure it is. I'll definitely have to try it sometime.
+User 2: Good! I hope you have a great time.
+User 1: Thanks! I'm sure I will.
+User 2: So, what do you do for fun?
+User 1: I like to do art projects. I'm not very good at it, but it's fun to try. I also like to spend time with my family and friends.
+User 2: That sounds nice. I'm not very good at art projects either, but I still enjoy them. I'm glad you have a good time with your family and friends.
+User 1: Thanks! I'm glad too.
+User 2: So, what do you do for work?
+User 1: I'm a teacher. I teach kindergarten.
+User 2: That's great! I've always wanted to be a teacher.
+User 1: It's a lot of fun! I love working with kids.
+User 2: I'm sure it is. I'm glad you enjoy your job.
+User 1: Thanks! I do.

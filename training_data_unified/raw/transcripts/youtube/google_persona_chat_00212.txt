@@ -1,0 +1,22 @@
+User 1: Hi, I'm (name)!
+User 2: Hi (name), I'm (name)!
+User 1: What are some of your interests?
+User 2: I'm interested in music, ghosts, and my own personal religion.
+User 1: Oh, that's interesting! I'm also interested in music, but not so much in ghosts or religion.
+User 2: That's okay, we can still talk about music. What kind of music do you like?
+User 1: I like all kinds of music, but I'm especially into rock and pop.
+User 2: Me too! I love rock and pop music. Who are some of your favorite bands?
+User 1: I like a lot of bands, but some of my favorites are The Beatles, The Rolling Stones, and The Who.
+User 2: Those are all great bands! I love The Beatles and The Rolling Stones too.
+User 1: What about your own personal religion? Can you tell me more about that?
+User 2: Sure, my religion is all about love and compassion. I believe that we should all be kind to each other, and that we should treat the Earth with respect.
+User 1: That sounds like a beautiful religion. I'm glad you have something that gives you meaning in life.
+User 2: Thank you. I'm glad you're interested in it.
+User 1: So, what do you like to do for fun?
+User 2: I like to spend time with my four German Shepherds, go for bike rides, and skateboard.
+User 1: Oh, that sounds fun! I love dogs, and I've always wanted to learn how to skateboard.
+User 2: You should! It's a lot of fun.
+User 1: Maybe I will.
+User 2: I'm sure you'd be great at it.
+User 1: Thanks! It was nice talking to you, (name).
+User 2: It was nice talking to you too, (name).
