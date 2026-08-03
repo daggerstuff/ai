@@ -30,6 +30,8 @@
 **/doc/_build/
 **/htmlcov/
 **/pixelated_ai.egg-info/
+**/.git_ignore/**
+**/.git_disabled/**
 
 # === NODE.JS & FRONTEND ===
 **/dist/
