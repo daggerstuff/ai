@@ -12,9 +12,12 @@ class S3Streamer:
     def __init__(self):
         pass
 
-    def list_files(self, prefix):
+    def list_files(self, prefix, recursive=False):
         """Yields all object keys under a specific prefix."""
-        cmd = ["rclone", "lsf", f"HetznerS3:pixeldata/{prefix}"]
+        cmd = ["rclone", "lsf"]
+        if recursive:
+            cmd.append("--recursive")
+        cmd.append(f"HetznerS3:pixeldata/{prefix}")
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         for line in result.stdout.strip().split("\n"):
             if line:
