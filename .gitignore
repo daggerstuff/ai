@@ -176,6 +176,7 @@ training/*
 !training/**/README*
 !training/tests/
 training/tests/*
+!training/tests/test_pal_persona_consistency_eval.py
 # But ignore built corpus data and assets
 docs/training/ENV_QUICKSTART.md
 docs/training/HERMES_RL_SETUP.md
