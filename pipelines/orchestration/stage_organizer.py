@@ -299,7 +299,14 @@ def enforce_quotas(
     configs: dict[Stage, StageConfig],
 ) -> dict[Stage, list[dict[str, Any]]]:
     """
-    Enforce stage quota percentages by capping over-represented stages.
+    Enforce stage quota percentages WITHOUT silent data loss (P0-4).
+
+    Quotas are soft capacity targets, not hard caps. Under-represented
+    stages keep all of their records; their unused capacity is redistributed
+    to over-represented stages so overflow is absorbed instead of dropped.
+    If overflow still exceeds the redistributable budget, records are
+    retained anyway and a warning is logged - no record is ever silently
+    discarded.
 
     Args:
         stage_records: Dict mapping stage to list of records
@@ -307,8 +314,18 @@ def enforce_quotas(
         configs: Stage configuration dict
 
     Returns:
-        Dict with capped record lists per stage
+        Dict with record lists per stage; every input record is preserved
     """
+    # Absolute target counts derived from configured percentages.
+    targets: dict[Stage, int] = {
+        stage: int(total_records * config.target_percentage) for stage, config in configs.items()
+    }
+
+    # Unused capacity from under-represented stages is redistributable.
+    redistributable = sum(
+        max(0, targets[stage] - len(records)) for stage, records in stage_records.items() if stage in targets
+    )
+
     result: dict[Stage, list[dict[str, Any]]] = {}
 
     for stage, records in stage_records.items():
@@ -317,18 +334,26 @@ def enforce_quotas(
             result[stage] = records
             continue
 
-        target_count = int(total_records * config.target_percentage)
-        if len(records) > target_count:
-            # Cap at target, shuffle to avoid bias
-            rng = random.Random(42)
-            capped = records.copy()
-            rng.shuffle(capped)
-            result[stage] = capped[:target_count]
-            logger.info(
-                f"Capped {stage.value} from {len(records)} to {target_count} (target {config.target_percentage:.0%})"
+        target_count = targets[stage]
+        if len(records) <= target_count:
+            # Under (or at) target: keep everything.
+            result[stage] = records
+            continue
+
+        # Over target: retain overflow via redistributed slack.
+        budget = target_count + redistributable
+        if len(records) > budget:
+            logger.warning(
+                f"Overflow for {stage.value} ({len(records)} records) exceeds "
+                f"redistributable budget ({budget}); retaining all records "
+                f"to honor no-silent-data-loss policy"
             )
         else:
-            result[stage] = records
+            logger.info(
+                f"Redistributed quota for {stage.value}: retained {len(records)} "
+                f"records (target {target_count}, redistributable slack {redistributable})"
+            )
+        result[stage] = records
 
     return result
 

@@ -128,8 +128,8 @@ class TestSplitDataset:
 class TestQuotaEnforcement:
     """Test stage quota enforcement."""
 
-    def test_enforce_quotas_caps_overrepresented(self):
-        """Quotas cap over-represented stages."""
+    def test_enforce_quotas_redistributes_overflow_no_drop(self):
+        """Quotas redistribute overflow; over-represented stages are never capped (P0-4)."""
         stage_records = {
             Stage.STAGE1_FOUNDATION: [{"id": i} for i in range(100)],
             Stage.STAGE2_THERAPEUTIC_EXPERTISE: [{"id": i} for i in range(10)],
@@ -141,10 +141,13 @@ class TestQuotaEnforcement:
 
         result = enforce_quotas(stage_records, total_records=110, configs=configs)
 
-        # Stage 1 should be capped at 50% of 110 = 55
-        assert len(result[Stage.STAGE1_FOUNDATION]) == 55
-        # Stage 2 should remain at 10 (under quota)
+        # Stage 1 exceeds its 55-record target, but overflow is retained, not dropped.
+        assert len(result[Stage.STAGE1_FOUNDATION]) == 100
+        # Stage 2 stays at 10 (under quota).
         assert len(result[Stage.STAGE2_THERAPEUTIC_EXPERTISE]) == 10
+        # No record is silently discarded.
+        total = sum(len(r) for r in result.values())
+        assert total == 110
 
     def test_enforce_quotas_preserves_underrepresented(self):
         """Quotas preserve under-represented stages."""
