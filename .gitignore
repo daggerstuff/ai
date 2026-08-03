@@ -158,6 +158,7 @@ AGENTS.md
 codemap.md
 data/
 datasets/
+dataset/
 compiled_dataset/
 lightning/
 .moderne/
