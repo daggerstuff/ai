@@ -106,16 +106,21 @@ EDGE_CASE_SOURCES: frozenset[str] = frozenset({"edge_cases", "stress_test", "adv
 
 
 def _lineage_for(metadata: dict) -> dict | None:
-    """Resolve lineage stamps from record provenance (no content heuristics)."""
-    family = metadata.get("source_family", "")
-    if family in STAGE_LINEAGE_BY_FAMILY:
-        return STAGE_LINEAGE_BY_FAMILY[family]
+    """Resolve lineage stamps from record provenance (no content heuristics).
 
+    Order: longest file_key prefix match first (most specific), then
+    source_family fallback. Checking family first would shadow more
+    specific path stamps for records that carry both fields.
+    """
     file_key = metadata.get("file_key", "")
-    for prefix, lineage in sorted(STAGE_LINEAGE_BY_PREFIX.items(), key=len, reverse=True):
+    for prefix, lineage in sorted(
+        STAGE_LINEAGE_BY_PREFIX.items(), key=lambda item: len(item[0]), reverse=True
+    ):
         if file_key.startswith(prefix):
             return lineage
-    return None
+
+    family = metadata.get("source_family", "")
+    return STAGE_LINEAGE_BY_FAMILY.get(family)
 
 
 def _stamp_lineage(chatml: dict, metadata: dict) -> dict:
@@ -135,6 +140,45 @@ def _stamp_lineage(chatml: dict, metadata: dict) -> dict:
     return chatml
 
 
+
+def _convert_and_stamp(
+    record: dict,
+    converter: ChatMLConverter,
+    quality: QualityFilter,
+) -> dict | None:
+    """Convert a raw record to ChatML, stamp lineage, and filter by quality.
+
+    Returns the stamped chatml record if it passes quality filter, else None.
+    """
+    chatml = converter.convert(record)
+    _stamp_lineage(chatml, record.get("metadata", {}))
+    if quality.passes_filter(chatml):
+        return chatml
+    return None
+
+
+def _sample_dataset(
+    dataset_buckets: dict[str, list[dict]],
+    ratios: dict[str, float],
+    target_size: int,
+) -> list[dict]:
+    """Sample each bucket to its target ratio and return shuffled final dataset."""
+    final_dataset: list[dict] = []
+    for category, ratio in ratios.items():
+        bucket_data = dataset_buckets.get(category, [])
+        target_count = int(target_size * ratio)
+        if not bucket_data:
+            continue
+        if len(bucket_data) > target_count:
+            sampled = random.sample(bucket_data, target_count)
+        else:
+            sampled = bucket_data
+        final_dataset.extend(sampled)
+    random.shuffle(final_dataset)
+    return final_dataset
+
+
+
 def main():
     streamer = S3Streamer()
     voice_ext = VoiceExtractor(streamer)
@@ -145,8 +189,20 @@ def main():
     quality = QualityFilter()
     ratios = load_ratios()
 
-    # Categorized buckets
-    dataset_buckets = {
+    dataset_buckets = _collect_buckets(voice_ext, book_ext, data_ext, converter, quality)
+    final_dataset = _sample_dataset(dataset_buckets, ratios, target_size=100000)
+    streamer.write_jsonl("final_dataset/final_training_dataset.jsonl", final_dataset)
+
+
+def _collect_buckets(
+    voice_ext: VoiceExtractor,
+    book_ext: BookExtractor,
+    data_ext: DatasetLoader,
+    converter: ChatMLConverter,
+    quality: QualityFilter,
+) -> dict[str, list[dict]]:
+    """Extract records from all sources into categorized buckets."""
+    buckets: dict[str, list[dict]] = {
         "psychology_knowledge": [],
         "voice_training": [],
         "mental_health_conversations": [],
@@ -157,90 +213,55 @@ def main():
     }
 
     for record in voice_ext.extract_all():
-        chatml = converter.convert(record)
-        _stamp_lineage(chatml, record.get("metadata", {}))
-        if quality.passes_filter(chatml):
-            dataset_buckets["voice_training"].append(chatml)
+        chatml = _convert_and_stamp(record, converter, quality)
+        if chatml:
+            buckets["voice_training"].append(chatml)
 
     for record in book_ext.extract_all():
-        chatml = converter.convert(record)
-        _stamp_lineage(chatml, record.get("metadata", {}))
-        if quality.passes_filter(chatml):
-            dataset_buckets["psychology_knowledge"].append(chatml)
+        chatml = _convert_and_stamp(record, converter, quality)
+        if chatml:
+            buckets["psychology_knowledge"].append(chatml)
 
     # Mental Health Conversations (tier1_priority dir + stage1 + stage2 dirs)
-    # NOTE: list_files(prefix) concatenates the yielded basename onto the prefix,
-    # so passing a full file path double-concatenates and yields broken keys
-    # (0 records). Load by directory prefix instead.
     mh_prefixes = [
         "archive/gdrive/tier1_priority/",
         "datasets/training_v3/stage1_foundation/",
         "datasets/training_v3/stage2_specialist_addiction/",
         "datasets/training_v3/stage2_specialist_personality/",
     ]
-    for f in mh_prefixes:
-        for record in data_ext.load_jsonl(f, "mental_health_conversations", "mental_health"):
-            chatml = converter.convert(record)
-            _stamp_lineage(chatml, record.get("metadata", {}))
-            if quality.passes_filter(chatml):
-                dataset_buckets["mental_health_conversations"].append(chatml)
+    for prefix in mh_prefixes:
+        for record in data_ext.load_jsonl(prefix, "mental_health_conversations", "mental_health"):
+            chatml = _convert_and_stamp(record, converter, quality)
+            if chatml:
+                buckets["mental_health_conversations"].append(chatml)
 
-    # Reasoning Enhancement (cot_reasoning)
     for record in data_ext.load_jsonl("cot_reasoning/", "reasoning_enhancement", "cot"):
-        chatml = converter.convert(record)
-        _stamp_lineage(chatml, record.get("metadata", {}))
-        if quality.passes_filter(chatml):
-            dataset_buckets["reasoning_enhancement"].append(chatml)
+        chatml = _convert_and_stamp(record, converter, quality)
+        if chatml:
+            buckets["reasoning_enhancement"].append(chatml)
 
-    # Personality Balancing (stage4_voice_persona from HF)
     for record in data_ext.load_jsonl(
         "datasets/training_v3/stage4_voice_persona/", "personality_balancing", "synthetic_persona"
     ):
-        chatml = converter.convert(record)
-        _stamp_lineage(chatml, record.get("metadata", {}))
-        if quality.passes_filter(chatml):
-            dataset_buckets["personality_balancing"].append(chatml)
+        chatml = _convert_and_stamp(record, converter, quality)
+        if chatml:
+            buckets["personality_balancing"].append(chatml)
 
-    # Stage 3 — Edge cases / stress tests
-    # Real S3 layout: datasets/consolidated/edge_cases/edge_case_output/ holds
-    # augmented_prompts_10k.json (~10K prompt records) + priority_edge_case_prompts.json.
-    for record in data_ext.load_jsonl("datasets/consolidated/edge_cases/edge_case_output/", "edge_cases", "edge_case"):
-        chatml = converter.convert(record)
-        _stamp_lineage(chatml, record.get("metadata", {}))
-        if quality.passes_filter(chatml):
-            dataset_buckets["edge_cases"].append(chatml)
+    for record in data_ext.load_jsonl(
+        "datasets/consolidated/edge_cases/edge_case_output/", "edge_cases", "edge_case"
+    ):
+        chatml = _convert_and_stamp(record, converter, quality)
+        if chatml:
+            buckets["edge_cases"].append(chatml)
 
-    # Stage 5 — Crisis intervention / safety content
-    for record in data_ext.load_jsonl("archive/gdrive/tier3_edge_crisis/", "crisis_intervention", "crisis"):
-        chatml = converter.convert(record)
-        _stamp_lineage(chatml, record.get("metadata", {}))
-        if quality.passes_filter(chatml):
-            dataset_buckets["crisis_intervention"].append(chatml)
+    for record in data_ext.load_jsonl(
+        "archive/gdrive/tier3_edge_crisis/", "crisis_intervention", "crisis"
+    ):
+        chatml = _convert_and_stamp(record, converter, quality)
+        if chatml:
+            buckets["crisis_intervention"].append(chatml)
 
-    target_size = 100000
-    final_dataset = []
-
-    for category, ratio in ratios.items():
-        bucket_data = dataset_buckets.get(category, [])
-        target_count = int(target_size * ratio)
-
-        if len(bucket_data) == 0:
-            continue
-
-        if len(bucket_data) > target_count:
-            sampled = random.sample(bucket_data, target_count)
-        else:
-            # If we don't have enough, just take everything we have
-            sampled = bucket_data
-
-        final_dataset.extend(sampled)
-
-    random.shuffle(final_dataset)
-
-    output_key = "final_dataset/final_training_dataset.jsonl"
-
-    # Write to S3
-    streamer.write_jsonl(output_key, final_dataset)
+    return buckets
 
 
 if __name__ == "__main__":

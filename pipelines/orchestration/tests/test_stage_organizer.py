@@ -149,6 +149,13 @@ class TestQuotaEnforcement:
         total = sum(len(r) for r in result.values())
         assert total == 110
 
+        # Per-stage ID integrity: every input record must appear in its
+        # original stage (no silent reshuffling or replacement).
+        stage1_ids = {r["id"] for r in result[Stage.STAGE1_FOUNDATION]}
+        stage2_ids = {r["id"] for r in result[Stage.STAGE2_THERAPEUTIC_EXPERTISE]}
+        assert stage1_ids == {i for i in range(100)}
+        assert stage2_ids == {i for i in range(10)}
+
     def test_enforce_quotas_preserves_underrepresented(self):
         """Quotas preserve under-represented stages."""
         stage_records = {

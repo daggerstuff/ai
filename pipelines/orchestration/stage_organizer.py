@@ -321,10 +321,17 @@ def enforce_quotas(
         stage: int(total_records * config.target_percentage) for stage, config in configs.items()
     }
 
-    # Unused capacity from under-represented stages is redistributable.
-    redistributable = sum(
-        max(0, targets[stage] - len(records)) for stage, records in stage_records.items() if stage in targets
+    # Unused capacity from under-represented AND missing configured stages
+    # is redistributable to over-target stages.
+    remaining_slack = sum(
+        max(0, targets.get(stage, 0) - len(records))
+        for stage, records in stage_records.items()
+        if stage in targets
     )
+    # Missing configured stages contribute their full target as slack.
+    for stage in configs:
+        if stage not in stage_records:
+            remaining_slack += targets[stage]
 
     result: dict[Stage, list[dict[str, Any]]] = {}
 
@@ -340,18 +347,21 @@ def enforce_quotas(
             result[stage] = records
             continue
 
-        # Over target: retain overflow via redistributed slack.
-        budget = target_count + redistributable
-        if len(records) > budget:
+        # Over target: consume redistributable slack for this stage.
+        overflow = len(records) - target_count
+        if overflow > remaining_slack:
             logger.warning(
-                f"Overflow for {stage.value} ({len(records)} records) exceeds "
-                f"redistributable budget ({budget}); retaining all records "
-                f"to honor no-silent-data-loss policy"
+                f"Overflow for {stage.value} ({len(records)} records, overflow "
+                f"{overflow}) exceeds remaining redistributable budget "
+                f"({remaining_slack}); retaining all records to honor "
+                f"no-silent-data-loss policy"
             )
         else:
+            remaining_slack -= overflow
             logger.info(
                 f"Redistributed quota for {stage.value}: retained {len(records)} "
-                f"records (target {target_count}, redistributable slack {redistributable})"
+                f"records (target {target_count}, overflow {overflow}, "
+                f"remaining slack {remaining_slack})"
             )
         result[stage] = records
 
