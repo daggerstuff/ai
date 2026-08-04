@@ -143,7 +143,10 @@ def _build_sft_jsonl(path: Path, n: int) -> int:
             response = RESPONSES_CHOSEN[i % len(RESPONSES_CHOSEN)]
             example = build_sft_example(persona, dialogue, response, max_tokens=MAX_TOKENS)
             fout.write(
-                json.dumps({"messages": example.messages, "metadata": example.metadata}, ensure_ascii=False) + "\n"
+                json.dumps(
+                    {"messages": example.messages, "metadata": example.metadata}, ensure_ascii=False
+                )
+                + "\n"
             )
             count += 1
             i += 1
@@ -163,7 +166,9 @@ def _build_dpo_jsonl(path: Path, n: int) -> int:
             chosen_text = RESPONSES_CHOSEN[i % len(RESPONSES_CHOSEN)]
             rejected_text = RESPONSES_REJECTED[i % len(RESPONSES_REJECTED)]
             # build_dpo_pair takes persona dict (renders to NL internally)
-            pair = build_dpo_pair(persona, dialogue, chosen_text, rejected_text, max_tokens=MAX_TOKENS)
+            pair = build_dpo_pair(
+                persona, dialogue, chosen_text, rejected_text, max_tokens=MAX_TOKENS
+            )
             fout.write(
                 json.dumps(
                     {
@@ -202,11 +207,11 @@ def run_sft(model_id: str, sft_jsonl: Path, output_dir: Path) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info("SFT: loading tokenizer + model %s", model_id)
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, revision="main")
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(model_id, revision="main")
     model.config.use_cache = False
 
     # LoRA targets that exist in tiny-gpt2: q_proj/v_proj/c_proj (GPT-2 uses
@@ -295,7 +300,9 @@ def run_sft(model_id: str, sft_jsonl: Path, output_dir: Path) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # DPO (plain LoRA, no QLoRA — CPU-compatible)
 # ---------------------------------------------------------------------------
-def run_dpo(model_id: str, base_checkpoint: Path, dpo_jsonl: Path, output_dir: Path) -> dict[str, Any]:
+def run_dpo(
+    model_id: str, base_checkpoint: Path, dpo_jsonl: Path, output_dir: Path
+) -> dict[str, Any]:
     """Run DPO with TRL DPOTrainer + LoRA on CPU. Base model = SFT checkpoint."""
     from datasets import Dataset  # noqa: PLC0415
     from peft import LoraConfig  # noqa: PLC0415
@@ -306,14 +313,14 @@ def run_dpo(model_id: str, base_checkpoint: Path, dpo_jsonl: Path, output_dir: P
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info("DPO: loading tokenizer + model from %s", base_checkpoint)
-    tokenizer = AutoTokenizer.from_pretrained(str(base_checkpoint))
+    tokenizer = AutoTokenizer.from_pretrained(str(base_checkpoint), revision="main")
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     # Load the SFT'd model. `base_checkpoint` points at the SFT final_model dir,
     # which contains the merged or adapter-only weights. We re-load from the
     # original tiny model and merge the adapter so DPO starts from SFT weights.
-    model = AutoModelForCausalLM.from_pretrained(model_id)
+    model = AutoModelForCausalLM.from_pretrained(model_id, revision="main")
     try:
         from peft import PeftModel  # noqa: PLC0415
 
@@ -433,12 +440,12 @@ class _TinyGpt2Client:
 
         source = str(checkpoint_dir) if checkpoint_dir else model_id
         logger.info("Inference client: loading model from %s", source)
-        self.tokenizer = AutoTokenizer.from_pretrained(source)
+        self.tokenizer = AutoTokenizer.from_pretrained(source, revision="main")
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
         # Load base + merge adapter if checkpoint provided
-        base = AutoModelForCausalLM.from_pretrained(model_id).to(self.device)
+        base = AutoModelForCausalLM.from_pretrained(model_id, revision="main").to(self.device)
         if checkpoint_dir is not None:
             try:
                 from peft import PeftModel  # noqa: PLC0415
@@ -511,7 +518,11 @@ def run_inference_and_cscore(
         try:
             result = wrapper_on.infer(dialogue)
             elapsed = time.time() - t0
-            records_on.append(_build_records_for_cscore(result.selection.persona_string, result.generation.response))
+            records_on.append(
+                _build_records_for_cscore(
+                    result.selection.persona_string, result.generation.response
+                )
+            )
             latencies_on.append(elapsed)
             if elapsed > budget_seconds:
                 latency_budget_ok = False
@@ -532,7 +543,10 @@ def run_inference_and_cscore(
             result = client_off(
                 [
                     {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": f"Dialogue:\n{dialogue}\n\nGenerate the next response."},
+                    {
+                        "role": "user",
+                        "content": f"Dialogue:\n{dialogue}\n\nGenerate the next response.",
+                    },
                 ]
             )
             records_off.append(_build_records_for_cscore(neutral_persona, result))
@@ -547,7 +561,7 @@ def run_inference_and_cscore(
 
     return {
         "latency_budget_seconds": budget_seconds,
-        "latency_on_seconds": [round(l, 4) for l in latencies_on],
+        "latency_on_seconds": [round(lat_val, 4) for lat_val in latencies_on],
         "latency_on_mean": round(sum(latencies_on) / max(len(latencies_on), 1), 4),
         "latency_on_max": round(max(latencies_on) if latencies_on else 0.0, 4),
         "latency_within_budget": latency_budget_ok,
@@ -616,7 +630,9 @@ def main() -> int:
         report.error = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
 
     # Render report
-    report_path = repo_root / "training_corpus" / "wrapper" / "pal_framework" / "phase6_smoke_results.json"
+    report_path = (
+        repo_root / "training_corpus" / "wrapper" / "pal_framework" / "phase6_smoke_results.json"
+    )
     report_dict = {
         "tiny_model": report.tiny_model,
         "sft": report.sft,
@@ -628,8 +644,11 @@ def main() -> int:
         "n_examples_dpo": N_EXAMPLES_DPO,
         "latency_budget_seconds": LATENCY_BUDGET_SMOKE,
     }
-    report_path.write_text(json.dumps(report_dict, indent=2) + "\n", encoding="utf-8")
-    logger.info("Report written to %s", report_path)
+    try:
+        report_path.write_text(json.dumps(report_dict, indent=2) + "\n", encoding="utf-8")
+        logger.info("Report written to %s", report_path)
+    except OSError as exc:
+        logger.warning("Cannot write report to %s: %s", report_path, exc)
 
     # Console summary
     print("\n" + "=" * 60)
@@ -658,7 +677,7 @@ def main() -> int:
     try:
         shutil.rmtree(work_dir, ignore_errors=True)
     except Exception:
-        pass
+        logger.warning("Cleanup failed for %s", work_dir, exc_info=True)
 
     return 0 if report.overall_success else 1
 
