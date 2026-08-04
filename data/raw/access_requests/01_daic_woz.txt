@@ -1,0 +1,34 @@
+Subject: Request for DAIC-WOZ Dataset Access — Academic Research
+
+To: dcapswoz@ict.usc.edu
+(Submit via form at https://dcapswoz.ict.usc.edu/ — "Apply Now" button)
+
+---
+
+Dear DAIC-WOZ Team,
+
+I am writing to request access to the DAIC-WOZ dataset (Distress Analysis Interview Corpus — Wizard of Oz) for academic research purposes.
+
+Researcher: Chad Coburn
+Institution: University of Cincinnati
+Email: coburncd@mail.uc.edu
+Role: Researcher
+
+Intended Use:
+We are developing a clinical AI platform (Pixelated Empathy) that focuses on mental health support and therapeutic conversation analysis. The DAIC-WOZ dataset would be used to train models for depression and PTSD detection from clinical interview transcripts. Our work aims to improve automated mental health screening tools.
+
+Data Handling:
+- Data will be stored securely on University of Cincinnati infrastructure
+- Access limited to authorized research team members
+- Used solely for academic research purposes
+- No redistribution of raw data
+- All publications will properly cite the DAIC-WOZ dataset
+
+I am happy to sign any data usage agreements and comply with all terms of use.
+
+Thank you for your consideration.
+
+Best regards,
+Chad Coburn
+University of Cincinnati
+coburncd@mail.uc.edu
