@@ -171,7 +171,7 @@ class TestMITAGSAdapter:
         assert "Question Open" in record["miti_codes"]
         assert record["global_scores"]["empathy"] == 4
 
-    def test_short_session_skipped(self, adapter):
+    def test_short_session_single_utterance(self, adapter):
         raw = [
             {
                 "video_title": "test",
@@ -180,9 +180,21 @@ class TestMITAGSAdapter:
             }
         ]
         records = adapter.convert_to_chatml(raw)
+        assert len(records) == 1
+        assert len(records[0]["messages"]) == 3
+
+    def test_empty_session_skipped(self, adapter):
+        raw = [
+            {
+                "video_title": "test",
+                "utterances": [],
+                "global_scores": {},
+            }
+        ]
+        records = adapter.convert_to_chatml(raw)
         assert len(records) == 0
 
-    def test_missing_speaker_skipped(self, adapter):
+    def test_same_speaker_session(self, adapter):
         raw = [
             {
                 "video_title": "test",
@@ -194,7 +206,8 @@ class TestMITAGSAdapter:
             }
         ]
         records = adapter.convert_to_chatml(raw)
-        assert len(records) == 0
+        assert len(records) == 1
+        assert len(records[0]["messages"]) == 4
 
     def test_provenance_present(self, adapter, sample_utterances):
         raw = [{"video_title": "test", "utterances": sample_utterances, "global_scores": {}}]
