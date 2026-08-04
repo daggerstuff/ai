@@ -13,9 +13,15 @@ Options:
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import traceback
 from pathlib import Path
+
+# Set HF cache env vars BEFORE any HF/datasets imports
+_HF_CACHE = str(Path(__file__).resolve().parents[2] / "data" / "raw" / ".hf_cache")
+os.environ.setdefault("HF_HOME", _HF_CACHE)
+os.environ.setdefault("HF_HUB_CACHE", str(Path(_HF_CACHE) / "hub"))
 
 from ai.sourcing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
 

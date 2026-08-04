@@ -1,8 +1,7 @@
-"""Tests for the DAIC-WOZ adapter."""
+"""Tests for the DAIC-WOZ adapter (HuggingFace mirror)."""
 
 from __future__ import annotations
 
-import csv
 import json
 from pathlib import Path
 from typing import Any
@@ -11,78 +10,89 @@ import pytest
 
 from ai.sourcing.dataset_adapters.daic_woz_adapter import DAICWozAdapter
 
-_TRANSCRIPT_FIELDS = ["participant_id", "speaker", "transcript", "timestamp"]
-_LABEL_FIELDS = ["participant_id", "phq8_score", "pcl_c_score"]
-
 
 @pytest.fixture
 def adapter(tmp_path):
     return DAICWozAdapter("daic_woz", tmp_path)
 
 
+def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row) + "\n")
+
+
+def _make_utterance(pid: int, speaker: str, text: str, **extra) -> dict[str, Any]:
+    row = {
+        "participant_id": pid,
+        "speaker": speaker,
+        "text": text,
+        "start_time": 0.0,
+        "stop_time": 1.0,
+        "PHQ8_Binary": 1.0,
+        "PHQ8_Score": 15.0,
+        "PTSD_severity": 30.0,
+        "PTSD_label": 1.0,
+        "Gender": 0.0,
+        "age": 41.0,
+    }
+    row.update(extra)
+    return row
+
+
 @pytest.fixture
-def sample_transcript_rows():
+def sample_utterances():
+    """Utterance-level rows from HF parquet (audio column already removed)."""
     return [
-        {"participant_id": "300", "speaker": "Ellie", "transcript": "How are you feeling today?", "timestamp": "0.0"},
-        {
-            "participant_id": "300",
-            "speaker": "Participant",
-            "transcript": "I've been feeling down.",
-            "timestamp": "2.0",
-        },
-        {"participant_id": "300", "speaker": "Ellie", "transcript": "Can you tell me more?", "timestamp": "4.0"},
-        {
-            "participant_id": "300",
-            "speaker": "Participant",
-            "transcript": "Nothing seems to matter.",
-            "timestamp": "6.0",
-        },
+        _make_utterance(303, "Ellie", "hi i'm ellie thanks for coming in today"),
+        _make_utterance(303, "Participant", "hi nice to meet you"),
+        _make_utterance(303, "Ellie", "how are you feeling today"),
+        _make_utterance(303, "Participant", "i've been feeling down"),
+        _make_utterance(304, "Ellie", "hello welcome"),
+        _make_utterance(304, "Participant", "thank you"),
     ]
 
 
 @pytest.fixture
-def sample_label_rows():
-    return [
-        {"participant_id": "300", "phq8_score": "15", "pcl_c_score": "35"},
-    ]
-
-
-@pytest.fixture
-def sample_session(sample_transcript_rows, sample_label_rows):
-    """Extract output format."""
+def sample_session(sample_utterances):
+    """Extract output format: session grouped by participant_id."""
+    pid_303 = [u for u in sample_utterances if u["participant_id"] == 303]
     return {
-        "session_id": "300",
-        "utterances": [
-            {**{k.lower(): v for k, v in r.items()}, "_source_file": "300_TRANSCRIPT"} for r in sample_transcript_rows
-        ],
-        "labels": {k.lower(): v for k, v in sample_label_rows[0].items()},
-        "_source_file": "300_TRANSCRIPT",
+        "session_id": "303",
+        "utterances": pid_303,
+        "labels": {
+            "PHQ8_Binary": 1.0,
+            "PHQ8_Score": 15.0,
+            "PTSD_severity": 30.0,
+            "PTSD_label": 1.0,
+            "Gender": 0.0,
+            "age": 41.0,
+        },
     }
 
 
-def _write_csv(path: Path, rows: list[dict[str, str]], fields: list[str]) -> None:
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
 class TestDAICWozAdapter:
-    def test_download_creates_readme(self, adapter):
+    def test_download_creates_readme_on_failure(self, adapter, monkeypatch):
+        """When HF download fails, README is created."""
+        monkeypatch.setattr("datasets.load_dataset", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("no HF")))
         adapter.download()
         assert (adapter._raw_dir / "README.txt").exists()
 
-    def test_download_idempotent(self, adapter):
+    def test_download_skips_if_data_exists(self, adapter):
+        """If JSONL files already exist, download is a no-op."""
+        _write_jsonl(adapter._raw_dir / "train.jsonl", [_make_utterance(303, "Ellie", "hi")])
         adapter.download()
-        adapter.download()
-        assert (adapter._raw_dir / "README.txt").exists()
+        # Should NOT create README since data already exists
+        assert not (adapter._raw_dir / "README.txt").exists()
 
-    def test_extract_returns_sessions(self, adapter, sample_transcript_rows, sample_label_rows):
-        _write_csv(adapter._raw_dir / "300_TRANSCRIPT.csv", sample_transcript_rows, _TRANSCRIPT_FIELDS)
-        _write_csv(adapter._raw_dir / "labels.csv", sample_label_rows, _LABEL_FIELDS)
+    def test_extract_groups_by_participant(self, adapter, sample_utterances):
+        _write_jsonl(adapter._raw_dir / "train.jsonl", sample_utterances)
         sessions = adapter.extract()
-        assert len(sessions) >= 1
-        assert sessions[0]["labels"]["phq8_score"] == "15"
+        assert len(sessions) == 2  # participants 303 and 304
+        s303 = [s for s in sessions if s["session_id"] == "303"][0]
+        assert len(s303["utterances"]) == 4
+        assert s303["labels"]["PHQ8_Score"] == 15.0
 
     def test_convert_basic(self, adapter, sample_session):
         records = adapter.convert_to_chatml([sample_session])
@@ -90,49 +100,74 @@ class TestDAICWozAdapter:
         rec = records[0]
         assert rec["source"] == "daic_woz"
         assert rec["task_type"] == "severity_estimation"
-        assert rec["diagnostic_tag"] == "depression"
-        assert rec["phq8_score"] == "15"
-        assert rec["severity"] == "moderately_severe"
+        assert rec["diagnostic_tag"] == "depression"  # PHQ8_Binary=1
+        assert rec["phq8_score"] == "15.0"
+        assert rec["severity"] == "moderately_severe"  # score 15
         assert rec["messages"][0]["role"] == "system"
         assert "PHQ-8" in rec["messages"][0]["content"]
-        assert rec["messages"][1]["role"] == "assistant"
-        assert rec["messages"][2]["role"] == "user"
+        assert rec["messages"][1]["role"] == "assistant"  # Ellie first
+        assert rec["messages"][2]["role"] == "user"  # Participant
 
-    def test_convert_skips_no_user(self, adapter):
-        session = {
-            "session_id": "301",
-            "utterances": [
-                {"speaker": "ellie", "transcript": "Hello", "_source_file": "t"},
-                {"speaker": "interviewer", "transcript": "How are you?", "_source_file": "t"},
-            ],
-            "labels": {},
-        }
+    def test_convert_skips_empty_session(self, adapter):
+        session = {"session_id": "999", "utterances": [], "labels": {}}
         records = adapter.convert_to_chatml([session])
         assert len(records) == 0
+
+    def test_convert_single_speaker_user_only(self, adapter):
+        """Single speaker (user only) gets synthetic assistant message."""
+        session = {
+            "session_id": "305",
+            "utterances": [
+                {"speaker": "Participant", "text": "i feel sad"},
+                {"speaker": "Participant", "text": "nothing matters"},
+            ],
+            "labels": {"PHQ8_Score": 20, "PHQ8_Binary": 1},
+        }
+        records = adapter.convert_to_chatml([session])
+        assert len(records) == 1
+        roles = [m["role"] for m in records[0]["messages"]]
+        assert "user" in roles
+        assert "assistant" in roles  # synthetic
+
+    def test_convert_single_speaker_assistant_only(self, adapter):
+        """Single speaker (assistant only) gets synthetic user message."""
+        session = {
+            "session_id": "306",
+            "utterances": [
+                {"speaker": "Ellie", "text": "how are you"},
+                {"speaker": "Ellie", "text": "tell me more"},
+            ],
+            "labels": {"PHQ8_Score": 5, "PHQ8_Binary": 0},
+        }
+        records = adapter.convert_to_chatml([session])
+        assert len(records) == 1
+        roles = [m["role"] for m in records[0]["messages"]]
+        assert "assistant" in roles
+        assert "user" in roles  # synthetic
 
     def test_phq8_severity_mapping(self, adapter):
         session = {
             "session_id": "302",
             "utterances": [
-                {"speaker": "ellie", "transcript": "Hi", "_source_file": "t"},
-                {"speaker": "participant", "transcript": "Hello", "_source_file": "t"},
+                {"speaker": "ellie", "text": "Hi"},
+                {"speaker": "participant", "text": "Hello"},
             ],
-            "labels": {"phq8_score": "22", "pcl_c_score": ""},
+            "labels": {"PHQ8_Score": 22, "PHQ8_Binary": 1},
         }
         records = adapter.convert_to_chatml([session])
         assert records[0]["severity"] == "severe"
 
-    def test_provenance_present(self, adapter, sample_session):
+    def test_provenance_huggingface(self, adapter, sample_session):
         records = adapter.convert_to_chatml([sample_session])
-        assert records[0]["provenance"]["access_method"] == "request"
-        assert "dcapswoz" in records[0]["provenance"]["source_url"]
+        assert records[0]["provenance"]["access_method"] == "huggingface"
+        assert "saeedzou/DAIC-WOZ" in records[0]["provenance"]["source_url"]
 
-    def test_full_run(self, adapter, sample_transcript_rows, sample_label_rows):
-        _write_csv(adapter._raw_dir / "300_TRANSCRIPT.csv", sample_transcript_rows, _TRANSCRIPT_FIELDS)
-        _write_csv(adapter._raw_dir / "labels.csv", sample_label_rows, _LABEL_FIELDS)
+    def test_full_run(self, adapter, sample_utterances, monkeypatch):
+        _write_jsonl(adapter._raw_dir / "train.jsonl", sample_utterances)
+        monkeypatch.setattr("datasets.load_dataset", lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("skip")))
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) >= 1
+        assert len(lines) == 2  # 2 participants
         record = json.loads(lines[0])
         assert record["source"] == "daic_woz"
