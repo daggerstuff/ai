@@ -46,6 +46,9 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     reddit_mental_nlp_adapter,
     counseling_conversations_adapter,
     reddit_mental_health_posts_adapter,
+    empath_adapter,
+    mentalchat16k_adapter,
+    kokorochat_adapter,
 )
 
 
