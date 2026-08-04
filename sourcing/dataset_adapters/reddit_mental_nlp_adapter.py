@@ -82,6 +82,7 @@ class RedditMentalNLPAdapter(BaseDatasetAdapter):
 
     def convert_to_chatml(self, raw_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         records: list[dict[str, Any]] = []
+        seen: set[str] = set()
 
         for row in raw_data:
             text = (
@@ -104,6 +105,11 @@ class RedditMentalNLPAdapter(BaseDatasetAdapter):
 
             if not label:
                 label = "unspecified"
+
+            dedup_key = f"{' '.join(text.lower().split())}|{label.lower()}"
+            if dedup_key in seen:
+                continue
+            seen.add(dedup_key)
 
             diagnostic = self._map_diagnosis(label)
 

@@ -95,6 +95,7 @@ class RedditMentalHealthPostsAdapter(BaseDatasetAdapter):
     def convert_to_chatml(self, raw_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Convert Reddit posts to ChatML records."""
         records: list[dict[str, Any]] = []
+        seen: set[str] = set()
 
         for row in raw_data:
             body = (row.get("body") or "").strip()
@@ -104,6 +105,12 @@ class RedditMentalHealthPostsAdapter(BaseDatasetAdapter):
                 continue
 
             subreddit = (row.get("subreddit") or "").strip().lower()
+
+            dedup_key = f"{' '.join(text.lower().split())}|{subreddit}"
+            if dedup_key in seen:
+                continue
+            seen.add(dedup_key)
+
             diagnosis = _SUBREDDIT_TO_DIAGNOSIS.get(subreddit, subreddit or "unspecified")
 
             messages: list[dict[str, str]] = [
