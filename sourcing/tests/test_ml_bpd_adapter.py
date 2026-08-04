@@ -12,12 +12,18 @@ import pytest
 from ai.sourcing.dataset_adapters.ml_bpd_adapter import MLBPDAdapter
 
 _CSV_FIELDS = [
-    "patient_id",
-    "age",
-    "gender",
-    "bis11_score",
-    "symptom_severity",
-    "treatment_outcome",
+    "GPO.",
+    "EXP.",
+    "Sexo",
+    "Edad",
+    "Hijos",
+    "Educación",
+    "Años_estudio",
+    "BDI_TOTAL_PRE",
+    "BAI_TOTAL_PRE",
+    "BIS_TOTAL_PRE",
+    "DERS_TOTAL_PRE",
+    "BEST_TOTAL_PRE",
 ]
 
 
@@ -28,48 +34,60 @@ def adapter(tmp_path):
 
 @pytest.fixture
 def sample_csv_rows_raw():
-    """CSV format (as read from file)."""
     return [
         {
-            "patient_id": "1",
-            "age": "28",
-            "gender": "female",
-            "bis11_score": "72",
-            "symptom_severity": "severe",
-            "treatment_outcome": " responder",
+            "GPO.": "DBT",
+            "EXP.": "001",
+            "Sexo": "Mujer",
+            "Edad": "28",
+            "Hijos": "0",
+            "Educación": "3",
+            "Años_estudio": "12",
+            "BDI_TOTAL_PRE": "32",
+            "BAI_TOTAL_PRE": "25",
+            "BIS_TOTAL_PRE": "72",
+            "DERS_TOTAL_PRE": "45",
+            "BEST_TOTAL_PRE": "38",
         },
         {
-            "patient_id": "2",
-            "age": "35",
-            "gender": "male",
-            "bis11_score": "65",
-            "symptom_severity": "moderate",
-            "treatment_outcome": "non-responder",
+            "GPO.": "DBT",
+            "EXP.": "002",
+            "Sexo": "Hombre",
+            "Edad": "35",
+            "Hijos": "1",
+            "Educación": "2",
+            "Años_estudio": "10",
+            "BDI_TOTAL_PRE": "18",
+            "BAI_TOTAL_PRE": "12",
+            "BIS_TOTAL_PRE": "65",
+            "DERS_TOTAL_PRE": "30",
+            "BEST_TOTAL_PRE": "22",
         },
     ]
 
 
 @pytest.fixture
 def sample_records():
-    """Extract output format (lowercase keys + _source_file)."""
     return [
         {
-            "patient_id": "1",
-            "age": "28",
-            "gender": "female",
-            "bis11_score": "72",
-            "symptom_severity": "severe",
-            "treatment_outcome": "responder",
-            "_source_file": "data",
+            "Sexo": "Mujer",
+            "Edad": "28",
+            "BDI_TOTAL_PRE": "32",
+            "BAI_TOTAL_PRE": "25",
+            "BIS_TOTAL_PRE": "72",
+            "DERS_TOTAL_PRE": "45",
+            "BEST_TOTAL_PRE": "38",
+            "_source_file": "training_noSession.csv",
         },
         {
-            "patient_id": "2",
-            "age": "35",
-            "gender": "male",
-            "bis11_score": "65",
-            "symptom_severity": "moderate",
-            "treatment_outcome": "non-responder",
-            "_source_file": "data",
+            "Sexo": "Hombre",
+            "Edad": "35",
+            "BDI_TOTAL_PRE": "18",
+            "BAI_TOTAL_PRE": "12",
+            "BIS_TOTAL_PRE": "65",
+            "DERS_TOTAL_PRE": "30",
+            "BEST_TOTAL_PRE": "22",
+            "_source_file": "training_noSession.csv",
         },
     ]
 
@@ -81,29 +99,67 @@ def _write_csv(path: Path, rows: list[dict[str, str]]) -> None:
         writer.writerows(rows)
 
 
+_DEFAULT_ROWS: list[dict[str, str]] = [
+    {
+        "GPO.": "DBT",
+        "EXP.": "001",
+        "Sexo": "Mujer",
+        "Edad": "28",
+        "Hijos": "0",
+        "Educación": "3",
+        "Años_estudio": "12",
+        "BDI_TOTAL_PRE": "32",
+        "BAI_TOTAL_PRE": "25",
+        "BIS_TOTAL_PRE": "72",
+        "DERS_TOTAL_PRE": "45",
+        "BEST_TOTAL_PRE": "38",
+    },
+    {
+        "GPO.": "DBT",
+        "EXP.": "002",
+        "Sexo": "Hombre",
+        "Edad": "35",
+        "Hijos": "1",
+        "Educación": "2",
+        "Años_estudio": "10",
+        "BDI_TOTAL_PRE": "18",
+        "BAI_TOTAL_PRE": "12",
+        "BIS_TOTAL_PRE": "65",
+        "DERS_TOTAL_PRE": "30",
+        "BEST_TOTAL_PRE": "22",
+    },
+]
+
+
+def _make_repo(adapter: MLBPDAdapter, rows: list[dict[str, str]] | None = None) -> Path:
+    repo_dir = adapter._raw_dir / "machine_learning_BPD"
+    repo_dir.mkdir(parents=True, exist_ok=True)
+    _write_csv(repo_dir / "training_noSession.csv", rows if rows is not None else _DEFAULT_ROWS)
+    return repo_dir
+
+
 class TestMLBPDAdapter:
-    def test_download_skips_if_exists(self, adapter, monkeypatch):
-        for fname in ("data.csv", "BPD_data.csv", "treatment_outcome.csv", "bis11_scores.csv", "symptom_severity.csv"):
-            (adapter._raw_dir / fname).write_text("exists", encoding="utf-8")
-        called: list[Any] = []
-        monkeypatch.setattr("urllib.request.urlretrieve", lambda *a: called.append(a))
+    def test_download_skips_if_exists(self, adapter):
+        repo_dir = adapter._raw_dir / "machine_learning_BPD"
+        repo_dir.mkdir(parents=True)
+        (repo_dir / "training_noSession.csv").write_text("exists", encoding="utf-8")
         adapter.download()
-        assert len(called) == 0
+        assert not (adapter._raw_dir / "README.txt").exists()
 
     def test_download_creates_readme_on_failure(self, adapter, monkeypatch):
-        def fake_retrieve(*_args):
-            raise ConnectionError("no network")
+        def fake_run(*_a, **_kw):
+            raise Exception("no network")
 
-        monkeypatch.setattr("urllib.request.urlretrieve", fake_retrieve)
+        monkeypatch.setattr("subprocess.run", fake_run)
         adapter.download()
         assert (adapter._raw_dir / "README.txt").exists()
 
     def test_extract_returns_records(self, adapter, sample_csv_rows_raw):
-        _write_csv(adapter._raw_dir / "data.csv", sample_csv_rows_raw)
+        _make_repo(adapter, sample_csv_rows_raw)
         records = adapter.extract()
         assert len(records) == 2
-        assert records[0]["patient_id"] == "1"
-        assert records[0]["_source_file"] == "data"
+        assert records[0]["Edad"] == "28"
+        assert records[0]["_source_file"] == "training_noSession.csv"
 
     def test_convert_basic(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
@@ -119,33 +175,48 @@ class TestMLBPDAdapter:
         assert "gender_female" in rec["demographic_tags"]
         assert "age_26_45" in rec["demographic_tags"]
 
-    def test_convert_builds_description_from_fields(self, adapter):
+    def test_convert_builds_description_from_clinical_cols(self, adapter):
         raw = [
             {
-                "patient_id": "3",
-                "age": "40",
-                "gender": "f",
-                "bis11_score": "70",
-                "symptom_severity": "moderate",
-                "treatment_outcome": "",
-                "_source_file": "bpd_data",
+                "Sexo": "Mujer",
+                "Edad": "40",
+                "BDI_TOTAL_PRE": "25",
+                "BAI_TOTAL_PRE": "18",
+                "BIS_TOTAL_PRE": "70",
+                "DERS_TOTAL_PRE": "35",
+                "BEST_TOTAL_PRE": "28",
+                "_source_file": "testing_noSession.csv",
             }
         ]
         records = adapter.convert_to_chatml(raw)
         assert len(records) == 1
-        # Description built from available fields
         user_content = records[0]["messages"][1]["content"]
-        assert "bis11_score" in user_content or "70" in user_content
+        assert "BDI_TOTAL_PRE" in user_content
+        assert "25" in user_content
+
+    def test_convert_severity_from_bdi(self, adapter):
+        raw = [
+            {
+                "Sexo": "Mujer",
+                "Edad": "22",
+                "BDI_TOTAL_PRE": "35",
+                "BAI_TOTAL_PRE": "20",
+                "BIS_TOTAL_PRE": "68",
+                "_source_file": "training_noSession.csv",
+            }
+        ]
+        records = adapter.convert_to_chatml(raw)
+        assert len(records) == 1
+        assert records[0]["messages"][2]["content"] == "severe"
 
     def test_convert_skips_empty(self, adapter):
         raw = [
             {
-                "patient_id": "4",
-                "age": "",
-                "gender": "",
-                "bis11_score": "",
-                "symptom_severity": "",
-                "treatment_outcome": "",
+                "Sexo": "",
+                "Edad": "",
+                "BDI_TOTAL_PRE": "",
+                "BAI_TOTAL_PRE": "",
+                "BIS_TOTAL_PRE": "",
                 "_source_file": "empty",
             }
         ]
@@ -158,9 +229,8 @@ class TestMLBPDAdapter:
         assert "github.com/saidejp/machine_learning_BPD" in records[0]["provenance"]["source_url"]
 
     def test_full_run(self, adapter, sample_csv_rows_raw, monkeypatch):
-        _write_csv(adapter._raw_dir / "data.csv", sample_csv_rows_raw)
-        # Skip download since file already exists
-        monkeypatch.setattr("urllib.request.urlretrieve", lambda *a: None)
+        _make_repo(adapter, sample_csv_rows_raw)
+        monkeypatch.setattr("subprocess.run", lambda *a, **kw: None)
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
