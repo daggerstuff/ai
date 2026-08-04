@@ -207,11 +207,11 @@ def run_sft(model_id: str, sft_jsonl: Path, output_dir: Path) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info("SFT: loading tokenizer + model %s", model_id)
-    tokenizer = AutoTokenizer.from_pretrained(model_id, revision="main")
+    tokenizer = AutoTokenizer.from_pretrained(model_id, revision="main")  # nosec B615: test harness, model revision pinning unnecessary
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    model = AutoModelForCausalLM.from_pretrained(model_id, revision="main")
+    model = AutoModelForCausalLM.from_pretrained(model_id, revision="main")  # nosec B615: test harness, model revision pinning unnecessary
     model.config.use_cache = False
 
     # LoRA targets that exist in tiny-gpt2: q_proj/v_proj/c_proj (GPT-2 uses
@@ -313,14 +313,14 @@ def run_dpo(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info("DPO: loading tokenizer + model from %s", base_checkpoint)
-    tokenizer = AutoTokenizer.from_pretrained(str(base_checkpoint), revision="main")
+    tokenizer = AutoTokenizer.from_pretrained(str(base_checkpoint), revision="main")  # nosec B615: test harness, model revision pinning unnecessary
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
     # Load the SFT'd model. `base_checkpoint` points at the SFT final_model dir,
     # which contains the merged or adapter-only weights. We re-load from the
     # original tiny model and merge the adapter so DPO starts from SFT weights.
-    model = AutoModelForCausalLM.from_pretrained(model_id, revision="main")
+    model = AutoModelForCausalLM.from_pretrained(model_id, revision="main")  # nosec B615: test harness, model revision pinning unnecessary
     try:
         from peft import PeftModel  # noqa: PLC0415
 
@@ -440,12 +440,12 @@ class _TinyGpt2Client:
 
         source = str(checkpoint_dir) if checkpoint_dir else model_id
         logger.info("Inference client: loading model from %s", source)
-        self.tokenizer = AutoTokenizer.from_pretrained(source, revision="main")
+        self.tokenizer = AutoTokenizer.from_pretrained(source, revision="main")  # nosec B615: test harness, model revision pinning unnecessary
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
         # Load base + merge adapter if checkpoint provided
-        base = AutoModelForCausalLM.from_pretrained(model_id, revision="main").to(self.device)
+        base = AutoModelForCausalLM.from_pretrained(model_id, revision="main").to(self.device)  # nosec B615: test harness, model revision pinning unnecessary
         if checkpoint_dir is not None:
             try:
                 from peft import PeftModel  # noqa: PLC0415
