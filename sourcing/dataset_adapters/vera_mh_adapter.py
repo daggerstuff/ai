@@ -55,13 +55,21 @@ class VERAMHAdapter(BaseDatasetAdapter):
         rubric_file = self._raw_dir / "rubric.csv"
 
         if not personas_file.exists():
-            urllib.request.urlretrieve(_PERSONAS_URL, personas_file)
+            try:
+                urllib.request.urlretrieve(_PERSONAS_URL, personas_file)
+            except Exception:
+                (self._raw_dir / "README.txt").write_text(
+                    "VERA-MH data download.\n"
+                    "1. Visit: https://github.com/SpringCare/VERA-MH\n"
+                    "2. Download personas.json and rubric.csv\n"
+                    "3. Place them in this directory.\n",
+                    encoding="utf-8",
+                )
 
         if not rubric_file.exists():
             try:
                 urllib.request.urlretrieve(_RUBRIC_URL, rubric_file)
             except Exception:
-                # Rubric is supplementary; personas.json is authoritative
                 pass
 
     def extract(self) -> list[dict[str, Any]]:
