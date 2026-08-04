@@ -43,7 +43,7 @@ from ai.api.sentry_logging import initialize_sentry_logging
 # PAL Inference imports
 # ---------------------------------------------------------------------------
 _PAL_FRAMEWORK = str(
-    Path(__file__).resolve().parents[1] / "training_corpus" / "pal_framework",
+    Path(__file__).resolve().parents[1] / "training_corpus" / "wrapper" / "pal_framework",
 )
 if _PAL_FRAMEWORK not in sys.path:
     sys.path.insert(0, _PAL_FRAMEWORK)
@@ -765,9 +765,7 @@ class MeraClinicalPredictionEngine:
             logger.exception("Failed to initialize MeraClinicalPredictionEngine: %s", e)
             return False
 
-    async def predict(
-        self, request: ClinicalPredictionRequest
-    ) -> ClinicalPredictionResponse:
+    async def predict(self, request: ClinicalPredictionRequest) -> ClinicalPredictionResponse:
         """Run the full Memorize & Rank pipeline."""
         if not self._initialized and not self.initialize():
             raise RuntimeError("Mera clinical prediction engine not initialized")
@@ -1175,6 +1173,8 @@ async def enable_ab_test(percent: float):
         "status": "success",
         "ift_traffic_percent": inference_engine.ab_router.config.ift_traffic_percent,
     }
+
+
 # ---------------------------------------------------------------------------
 # PIX-3912: Mera Clinical Prediction Endpoints
 # ---------------------------------------------------------------------------
