@@ -51,6 +51,9 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     kokorochat_adapter,
     psycheval_adapter,
     mitch_hamidi_bpd_nlp_adapter,
+    mental_health_multiagent_adapter,
+    psy_insight_adapter,
+    dsm_vector_space_adapter,
 )
 
 
