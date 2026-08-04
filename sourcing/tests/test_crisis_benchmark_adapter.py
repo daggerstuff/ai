@@ -39,23 +39,26 @@ def sample_records(sample_json_data):
     return [{**item, "_source_file": "crisis.json"} for item in sample_json_data]
 
 
-def _write_json(path: Path, data: Any) -> None:
+def _write_jsonl(path: Path, data: Any) -> None:
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f)
+        for item in data:
+            f.write(json.dumps(item) + "\n")
 
 
 class TestCrisisBenchmarkAdapter:
-    def test_download_creates_readme(self, adapter):
+    def test_download_creates_readme(self, adapter, monkeypatch):
+        monkeypatch.setattr("datasets.load_dataset", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no network")))
         adapter.download()
         assert (adapter._raw_dir / "README.txt").exists()
 
-    def test_download_idempotent(self, adapter):
+    def test_download_idempotent(self, adapter, monkeypatch):
+        monkeypatch.setattr("datasets.load_dataset", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no network")))
         adapter.download()
         adapter.download()
         assert (adapter._raw_dir / "README.txt").exists()
 
     def test_extract_returns_records(self, adapter, sample_json_data):
-        _write_json(adapter._raw_dir / "crisis.json", sample_json_data)
+        _write_jsonl(adapter._raw_dir / "crisis.json", sample_json_data)
         records = adapter.extract()
         assert len(records) == 2
         assert records[0]["crisis_category"] == "suicide"
@@ -93,10 +96,11 @@ class TestCrisisBenchmarkAdapter:
     def test_provenance_present(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
         assert records[0]["provenance"]["access_method"] == "huggingface"
-        assert "ellisalicante.org" in records[0]["provenance"]["source_url"]
+        assert "huggingface.co" in records[0]["provenance"]["source_url"]
 
-    def test_full_run(self, adapter, sample_json_data):
-        _write_json(adapter._raw_dir / "crisis.json", sample_json_data)
+    def test_full_run(self, adapter, sample_json_data, monkeypatch):
+        _write_jsonl(adapter._raw_dir / "crisis.json", sample_json_data)
+        monkeypatch.setattr("datasets.load_dataset", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no network")))
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")

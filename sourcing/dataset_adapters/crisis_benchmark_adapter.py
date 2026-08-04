@@ -23,7 +23,8 @@ from typing import Any
 from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
 from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
-_SOURCE_URL = "https://ellisalicante.org/datasets/mental-health-crisis-llms/"
+_SOURCE_URL = "https://huggingface.co/datasets/arnaiztech/llms-mental-health-crisis-benchmark"
+_HF_REPO_ID = "arnaiztech/llms-mental-health-crisis-benchmark"
 _ACCESS_METHOD = "huggingface"
 _ORIGINAL_FORMAT = "hf_dataset"
 
@@ -61,7 +62,7 @@ Acquisition:
   placed here. Alternatively use the `datasets` library:
 
       from datasets import load_dataset
-      ds = load_dataset("<crisis_benchmark_repo>")  # see source page
+      ds = load_dataset("arnaiztech/llms-mental-health-crisis-benchmark")
 
 Expected fields (per row/record):
   - crisis_category   : one of the 7 crisis categories
@@ -83,27 +84,41 @@ class CrisisBenchmarkAdapter(BaseDatasetAdapter):
     """
 
     def download(self) -> None:
-        """Write a README with the dataset download link."""
-        readme = self._raw_dir / "README.txt"
-        if not readme.exists():
-            readme.write_text(_README_TEXT, encoding="utf-8")
+        """Download from HuggingFace via `datasets` library, or write README fallback."""
+        jsonl_files = list(self._raw_dir.glob("*.json"))
+        if jsonl_files:
+            return
+
+        try:
+            from datasets import load_dataset
+
+            ds = load_dataset(_HF_REPO_ID)
+            for split in ds:
+                out_path = self._raw_dir / f"{split}.json"
+                with open(out_path, "w", encoding="utf-8") as f:
+                    for row in ds[split]:
+                        f.write(json.dumps(row) + "\n")
+        except Exception:
+            readme = self._raw_dir / "README.txt"
+            if not readme.exists():
+                readme.write_text(_README_TEXT, encoding="utf-8")
 
     def extract(self) -> list[dict[str, Any]]:
-        """Read rows from *.json and *.csv files placed in the raw dir."""
+        """Read rows from *.json (JSONL) and *.csv files in the raw dir."""
         records: list[dict[str, Any]] = []
 
         for path in sorted(self._raw_dir.glob("*.json")):
-            if path.name == "README.txt":
-                continue
             try:
                 with open(path, encoding="utf-8") as f:
-                    data = json.load(f)
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        item = json.loads(line)
+                        if isinstance(item, dict):
+                            records.append({**item, "_source_file": path.name})
             except (OSError, json.JSONDecodeError):
                 continue
-            items = data if isinstance(data, list) else [data]
-            for item in items:
-                if isinstance(item, dict):
-                    records.append({**item, "_source_file": path.name})
 
         for path in sorted(self._raw_dir.glob("*.csv")):
             try:
@@ -122,12 +137,23 @@ class CrisisBenchmarkAdapter(BaseDatasetAdapter):
 
         for row in raw_data:
             input_text = (
-                row.get("input_text") or row.get("input") or row.get("prompt") or row.get("crisis_input") or ""
+                row.get("input_text")
+                or row.get("input")
+                or row.get("prompt")
+                or row.get("crisis_input")
+                or row.get("inputs_joined")
+                or ""
             ).strip()
+            if not input_text:
+                inputs = row.get("inputs")
+                if isinstance(inputs, list) and inputs:
+                    input_text = " ".join(str(t) for t in inputs)
             if not input_text:
                 continue
 
-            crisis_category = self._normalize_crisis_category(row.get("crisis_category") or row.get("category") or "")
+            crisis_category = self._normalize_crisis_category(
+                row.get("crisis_category") or row.get("category") or row.get("source_dataset_id") or ""
+            )
             safe_response = (
                 row.get("safe_response") or row.get("reference_response") or row.get("gold_response") or ""
             ).strip()
