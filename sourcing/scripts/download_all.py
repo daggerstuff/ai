@@ -49,6 +49,8 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     daic_woz_adapter,
     bbrd_adapter,
     reddit_mental_nlp_adapter,
+    counseling_conversations_adapter,
+    reddit_mental_health_posts_adapter,
 )
 
 
