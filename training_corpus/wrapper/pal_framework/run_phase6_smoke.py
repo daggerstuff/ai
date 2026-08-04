@@ -191,8 +191,6 @@ def run_sft(model_id: str, sft_jsonl: Path, output_dir: Path) -> dict[str, Any]:
     from transformers import (  # noqa: PLC0415
         AutoModelForCausalLM,
         AutoTokenizer,
-        DataCollatorForLanguageModeling,
-        DataCollatorForSeq2Seq,
         Trainer,
         TrainingArguments,
     )
