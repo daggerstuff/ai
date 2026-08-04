@@ -74,7 +74,7 @@ class AnnoMIAdapter(BaseDatasetAdapter):
                         "utterance_id": row.get("utterance_id", row.get("ID", "")),
                         "transcript_id": row.get("transcript_id", ""),
                         "interlocutor": row.get("interlocutor", "").strip().lower(),
-                        "utterance": row.get("utterance", "").strip(),
+                        "utterance": row.get("utterance_text", row.get("utterance", row.get("utterance", ""))).strip(),
                         "mi_quality": row.get("mi_quality", "").strip().lower(),
                         "main_therapist_behaviour": row.get("main_therapist_behaviour", "").strip().lower(),
                         "client_talk_type": row.get("client_talk_type", "").strip().lower(),

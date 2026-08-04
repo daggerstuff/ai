@@ -100,7 +100,7 @@ class ESConvAdapter(BaseDatasetAdapter):
 
             for turn in dialog:
                 speaker = str(turn.get("speaker", "")).lower()
-                utterance = (turn.get("utterance") or turn.get("text") or "").strip()
+                utterance = (turn.get("utterance") or turn.get("text") or turn.get("content") or "").strip()
                 if not utterance:
                     continue
                 role = "user" if speaker in ("seeker", "user", "client", "human") else "assistant"

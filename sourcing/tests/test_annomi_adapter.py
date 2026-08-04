@@ -238,8 +238,10 @@ class TestAnnoMIAdapter:
         assert records[0]["provenance"]["access_method"] == "github"
         assert records[0]["provenance"]["source_url"] == "https://github.com/uccollab/AnnoMI"
 
-    def test_full_run(self, adapter, sample_csv_rows_raw):
+    def test_full_run(self, adapter, sample_csv_rows_raw, monkeypatch):
         _write_csv(adapter._raw_dir / "AnnoMI-simple.csv", sample_csv_rows_raw)
+        _write_csv(adapter._raw_dir / "AnnoMI-full.csv", sample_csv_rows_raw)
+        monkeypatch.setattr("urllib.request.urlretrieve", lambda *a: None)
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")

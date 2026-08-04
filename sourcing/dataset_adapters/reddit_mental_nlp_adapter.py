@@ -84,12 +84,22 @@ class RedditMentalNLPAdapter(BaseDatasetAdapter):
         records: list[dict[str, Any]] = []
 
         for row in raw_data:
-            text = (row.get("text") or row.get("post") or row.get("content") or row.get("body") or "").strip()
+            text = (
+                row.get("text") or row.get("selftext") or row.get("post") or row.get("content") or row.get("body") or ""
+            ).strip()
+            title = (row.get("title") or "").strip()
+            if not text and title:
+                text = title
             if not text:
                 continue
 
             label = (
-                row.get("label") or row.get("disorder") or row.get("category") or row.get("diagnosis") or ""
+                row.get("label")
+                or row.get("disorder")
+                or row.get("category")
+                or row.get("diagnosis")
+                or row.get("subreddit")
+                or ""
             ).strip()
 
             if not label:

@@ -54,13 +54,21 @@ class MITPsychosisAdapter(BaseDatasetAdapter):
         taxonomy_file = self._raw_dir / "taxonomy.csv"
 
         if not harmful_file.exists():
-            urllib.request.urlretrieve(_HARMFUL_URL, harmful_file)
+            try:
+                urllib.request.urlretrieve(_HARMFUL_URL, harmful_file)
+            except Exception:
+                (self._raw_dir / "README.txt").write_text(
+                    "MIT ai-psychosis data download.\n"
+                    "1. Visit: https://github.com/mitmedialab/ai-psychosis\n"
+                    "2. Download data/harmful-responses.csv and data/taxonomy.csv\n"
+                    "3. Place them in this directory.\n",
+                    encoding="utf-8",
+                )
 
         if not taxonomy_file.exists():
             try:
                 urllib.request.urlretrieve(_TAXONOMY_URL, taxonomy_file)
             except Exception:
-                # Taxonomy is supplementary; harmful-responses is authoritative
                 pass
 
     def extract(self) -> list[dict[str, Any]]:
