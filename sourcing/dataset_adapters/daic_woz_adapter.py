@@ -1,52 +1,49 @@
 """Adapter for the DAIC-WOZ / E-DAIC clinical interview dataset.
 
 Source: https://dcapswoz.ict.usc.edu/
-Format: Transcripts CSV + Audio WAV + Features
+HuggingFace mirror: saeedzou/DAIC-WOZ (parquet, 46,721 utterance-level rows)
+Format: Transcripts + Audio (audio column ignored for text pipeline)
 Data: 189 sessions, PTSD/depression. Labels: PHQ-8, PCL-C.
-License: Academic license (request-based access)
+License: Academic license (HF mirror available)
 
 Output task_type: severity_estimation
-Uses transcript CSV only (text training). Audio modality ignored for text pipeline.
+Uses transcript text only (no audio). Groups utterances by participant.
 """
 
 from __future__ import annotations
 
-import csv
 import json
+import os
 from pathlib import Path
 from typing import Any
 
 from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
 from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
+_HF_REPO_ID = "saeedzou/DAIC-WOZ"
 _SOURCE_URL = "https://dcapswoz.ict.usc.edu/"
 
 _README_TEXT = """\
 DAIC-WOZ / E-DAIC — Clinical Interview Dataset
-===============================================
+==============================================
 
 Source: https://dcapswoz.ict.usc.edu/
+HuggingFace mirror: saeedzou/DAIC-WOZ
 
 Stats:
-  - 189 sessions
+  - 46,721 utterance-level rows (train: 25,209, dev: 8,949, test: 12,563)
+  - 189 participants
   - PTSD and depression detection
   - Labels: PHQ-8, PCL-C
-  - Format: transcripts CSV + audio WAV + features
+  - Format: parquet (text + audio; audio ignored for text pipeline)
 
-Acquisition:
-  Request access from USC ICT. After approval, download the transcript
-  CSV files and place them in this directory. The adapter reads any *.csv
-  files with transcript data.
+HF columns:
+  participant_id, speaker, text, start_time, stop_time,
+  PHQ8_Binary, PHQ8_Score, PTSD_severity, PTSD_label, Gender, age,
+  PHQ8 sub-scores, PCL-C sub-scores
 
-Expected transcript CSV columns:
-  - participant_id  (or speaker)
-  - transcript       (or utterance, text)
-  - timestamp        (optional)
-
-Labels should be in a separate file (e.g., labels.csv) with:
-  - participant_id
-  - phq8_score
-  - pcl_c_score (optional)
+Downloaded via `datasets.load_dataset('saeedzou/DAIC-WOZ')`.
+Audio column removed to avoid torchcodec dependency.
 """
 
 
@@ -54,60 +51,72 @@ Labels should be in a separate file (e.g., labels.csv) with:
 class DAICWozAdapter(BaseDatasetAdapter):
     """Adapter for DAIC-WOZ clinical interview transcripts.
 
-    Request-based access. Uses transcript CSV files only (no audio).
-    Groups utterances by participant/session. PHQ-8 → severity_estimation.
+    Downloads from HuggingFace mirror (saeedzou/DAIC-WOZ).
+    Groups utterances by participant_id. PHQ-8 → severity_estimation.
     """
 
     def download(self) -> None:
-        """Create README with access instructions."""
+        """Download from HuggingFace or create README if HF unavailable."""
+        jsonl_files = list(self._raw_dir.glob("*.jsonl"))
+        if jsonl_files:
+            return  # Already downloaded
+
+        # Try HF download
         readme = self._raw_dir / "README.txt"
-        if not readme.exists():
-            readme.write_text(_README_TEXT, encoding="utf-8")
+        try:
+            import datasets
+
+            cache_dir = str(self.output_dir.parent / ".hf_cache")
+            os.environ.setdefault("HF_HOME", cache_dir)
+            os.environ.setdefault("HF_HUB_CACHE", os.path.join(cache_dir, "hub"))
+            ds = datasets.load_dataset(_HF_REPO_ID, cache_dir=cache_dir)
+            ds = ds.remove_columns("audio")  # Avoid torchcodec dependency
+            self._raw_dir.mkdir(parents=True, exist_ok=True)
+            for split in ds:
+                path = self._raw_dir / f"{split}.jsonl"
+                with open(path, "w", encoding="utf-8") as f:
+                    for row in ds[split]:
+                        f.write(json.dumps(row) + "\n")
+        except Exception:
+            if not readme.exists():
+                readme.write_text(_README_TEXT, encoding="utf-8")
 
     def extract(self) -> list[dict[str, Any]]:
-        """Extract transcript sessions from CSV files."""
+        """Extract sessions from JSONL files, grouped by participant_id."""
+        sessions: dict[str, list[dict[str, Any]]] = {}
+        labels: dict[str, dict[str, Any]] = {}
+
+        for jf in sorted(self._raw_dir.glob("*.jsonl")):
+            with open(jf, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    row = json.loads(line)
+                    pid = str(row.get("participant_id", ""))
+                    if not pid:
+                        continue
+                    sessions.setdefault(pid, []).append(row)
+                    # Collect labels from first row of each participant
+                    if pid not in labels:
+                        labels[pid] = {
+                            "PHQ8_Binary": row.get("PHQ8_Binary"),
+                            "PHQ8_Score": row.get("PHQ8_Score"),
+                            "PTSD_severity": row.get("PTSD_severity"),
+                            "PTSD_label": row.get("PTSD_label"),
+                            "Gender": row.get("Gender"),
+                            "age": row.get("age"),
+                        }
+
         records: list[dict[str, Any]] = []
-
-        # Load labels if available
-        labels: dict[str, dict[str, str]] = {}
-        for cf in sorted(self._raw_dir.glob("*label*")):
-            if not cf.name.endswith(".csv"):
-                continue
-            try:
-                with open(cf, encoding="utf-8") as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        pid = str(row.get("participant_id", row.get("id", ""))).strip()
-                        if pid:
-                            labels[pid] = {k.lower(): v for k, v in row.items()}
-            except Exception:
-                pass
-
-        # Load transcripts grouped by session
-        sessions: dict[str, list[dict[str, str]]] = {}
-        for cf in sorted(self._raw_dir.glob("*.csv")):
-            if "label" in cf.name.lower() or cf.name == "README.txt":
-                continue
-            try:
-                with open(cf, encoding="utf-8") as f:
-                    reader = csv.DictReader(f)
-                    for row in reader:
-                        lower = {k.lower(): v for k, v in row.items()}
-                        session_id = str(lower.get("participant_id", lower.get("session_id", lower.get("id", cf.stem))))
-                        sessions.setdefault(session_id, []).append({**lower, "_source_file": cf.stem})
-            except Exception:
-                pass
-
-        for session_id, utterances in sessions.items():
+        for pid, utterances in sessions.items():
             records.append(
                 {
-                    "session_id": session_id,
+                    "session_id": pid,
                     "utterances": utterances,
-                    "labels": labels.get(session_id, {}),
-                    "_source_file": utterances[0].get("_source_file", "") if utterances else "",
+                    "labels": labels.get(pid, {}),
                 }
             )
-
         return records
 
     def convert_to_chatml(self, raw_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -119,58 +128,72 @@ class DAICWozAdapter(BaseDatasetAdapter):
                 continue
 
             labels = session.get("labels", {})
-            phq8 = labels.get("phq8_score", "")
-            pclc = labels.get("pcl_c_score", "")
+            phq8_score = labels.get("PHQ8_Score", "")
+            phq8_binary = labels.get("PHQ8_Binary", "")
+            ptsd_severity = labels.get("PTSD_severity", "")
+            ptsd_label = labels.get("PTSD_label", "")
+            gender = labels.get("Gender", "")
+            age = labels.get("age", "")
 
-            # Build conversation from utterances
             messages: list[dict[str, str]] = [
                 {
                     "role": "system",
-                    "content": self._build_system(phq8=phq8, pclc=pclc),
+                    "content": self._build_system(
+                        phq8_score=phq8_score,
+                        ptsd_severity=ptsd_severity,
+                        gender=gender,
+                        age=age,
+                    ),
                 }
             ]
 
             has_user = False
             has_assistant = False
             for utt in utterances:
-                speaker = str(utt.get("speaker", utt.get("participant", utt.get("role", "")))).lower()
-                text = str(utt.get("transcript", utt.get("utterance", utt.get("text", "")))).strip()
+                speaker = str(utt.get("speaker", "")).strip()
+                text = str(utt.get("text", "")).strip()
                 if not text:
                     continue
 
-                if speaker in ("ellie", "interviewer", "therapist", "counselor", "assistant"):
+                # In DAIC-WOZ, "Ellie" is the virtual interviewer, participant is the patient
+                if speaker.lower() == "ellie":
                     messages.append({"role": "assistant", "content": text})
                     has_assistant = True
-                elif speaker in ("participant", "patient", "client", "user"):
-                    messages.append({"role": "user", "content": text})
-                    has_user = True
                 else:
-                    # Default to user for unknown speakers
                     messages.append({"role": "user", "content": text})
                     has_user = True
 
             if not has_user or not has_assistant:
-                continue
+                # Single-speaker session — add synthetic counterpart
+                if has_user and not has_assistant:
+                    messages.append({"role": "assistant", "content": "[continuation]"})
+                elif has_assistant and not has_user:
+                    messages.insert(1, {"role": "user", "content": "[session context]"})
+                else:
+                    continue
 
-            # Determine severity from PHQ-8
-            severity = self._phq8_to_severity(phq8)
+            severity = self._phq8_to_severity(str(phq8_score))
 
             record: dict[str, Any] = {
                 "messages": messages,
                 "source": "daic_woz",
                 "task_type": "severity_estimation",
-                "diagnostic_tag": "depression" if phq8 else None,
+                "diagnostic_tag": "depression" if phq8_binary else "ptsd",
                 "demographic_tags": [],
                 "linguistic_style": "mixed",
                 "clinical_reviewed": True,
                 "session_id": session.get("session_id", ""),
-                "phq8_score": phq8,
-                "pcl_c_score": pclc,
+                "phq8_score": str(phq8_score) if phq8_score != "" else None,
+                "phq8_binary": str(phq8_binary) if phq8_binary != "" else None,
+                "ptsd_severity": str(ptsd_severity) if ptsd_severity != "" else None,
+                "ptsd_label": str(ptsd_label) if ptsd_label != "" else None,
+                "gender": str(gender) if gender != "" else None,
+                "age": str(age) if age != "" else None,
                 "severity": severity,
                 "provenance": self._build_provenance(
-                    source_url=_SOURCE_URL,
-                    access_method="request",
-                    original_format="csv_audio",
+                    source_url="https://huggingface.co/datasets/" + _HF_REPO_ID,
+                    access_method="huggingface",
+                    original_format="parquet",
                 ),
             }
             records.append(record)
@@ -178,12 +201,22 @@ class DAICWozAdapter(BaseDatasetAdapter):
         return records
 
     @staticmethod
-    def _build_system(phq8: str, pclc: str) -> str:
-        parts: list[str] = ["DAIC-WOZ clinical interview transcript (USC ICT)."]
-        if phq8:
-            parts.append(f"PHQ-8 score: {phq8}.")
-        if pclc:
-            parts.append(f"PCL-C score: {pclc}.")
+    def _build_system(phq8_score: Any, ptsd_severity: Any, gender: Any, age: Any) -> str:
+        parts: list[str] = [
+            "DAIC-WOZ clinical interview transcript (USC ICT).",
+            "Virtual interviewer Ellie conducted automated depression/PTSD screening.",
+        ]
+        if phq8_score not in (None, "", "None"):
+            parts.append(f"PHQ-8 score: {phq8_score}.")
+        if ptsd_severity not in (None, "", "None"):
+            parts.append(f"PTSD severity: {ptsd_severity}.")
+        if age not in (None, "", "None"):
+            parts.append(f"Age: {age}.")
+        if gender not in (None, "", "None"):
+            gender_str = (
+                "female" if str(gender) in ("0", "0.0") else "male" if str(gender) in ("1", "1.0") else str(gender)
+            )
+            parts.append(f"Gender: {gender_str}.")
         parts.append("Assess depression and PTSD symptom severity from the interview.")
         return " ".join(parts)
 
@@ -192,7 +225,7 @@ class DAICWozAdapter(BaseDatasetAdapter):
         if not phq8:
             return "unknown"
         try:
-            score = int(phq8)
+            score = float(phq8)
             if score < 5:
                 return "minimal"
             elif score < 10:
@@ -203,5 +236,5 @@ class DAICWozAdapter(BaseDatasetAdapter):
                 return "moderately_severe"
             else:
                 return "severe"
-        except ValueError:
+        except (ValueError, TypeError):
             return "unknown"
