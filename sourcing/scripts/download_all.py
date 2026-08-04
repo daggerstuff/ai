@@ -49,6 +49,8 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     empath_adapter,
     mentalchat16k_adapter,
     kokorochat_adapter,
+    psycheval_adapter,
+    mitch_hamidi_bpd_nlp_adapter,
 )
 
 
