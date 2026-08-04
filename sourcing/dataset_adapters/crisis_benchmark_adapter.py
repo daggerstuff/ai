@@ -90,9 +90,12 @@ class CrisisBenchmarkAdapter(BaseDatasetAdapter):
             return
 
         try:
+            import os
+
             from datasets import load_dataset
 
-            ds = load_dataset(_HF_REPO_ID)
+            cache_dir = os.environ.get("HF_HOME", os.environ.get("HF_DATASETS_CACHE", None))
+            ds = load_dataset(_HF_REPO_ID, cache_dir=cache_dir)
             for split in ds:
                 out_path = self._raw_dir / f"{split}.json"
                 with open(out_path, "w", encoding="utf-8") as f:
