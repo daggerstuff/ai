@@ -341,38 +341,44 @@ async def generate_cases_async(
     num_cases: int = DEFAULT_NUM_CASES,
     concurrency: int = DEFAULT_CONCURRENCY,
     checkpoint: CheckpointManager | None = None,
+    skip_ids: set[str] | None = None,
 ) -> list[dict]:
     """Generate ``num_cases`` cases concurrently, checkpointing as we go.
 
     When ``checkpoint`` is provided, the manager records attempted/validated/
     rejected counts and periodically flushes validated records to the JSONL
-    checkpoint file. Any record whose ``id`` already exists in the checkpoint is
-    skipped on resume so the caller does not pay to regenerate it.
+    checkpoint file. Any record whose ``id`` is in ``skip_ids`` is skipped so
+    the caller does not pay to regenerate it on resume. The caller computes
+    ``skip_ids`` once (e.g. via ``CheckpointManager.existing_record_ids()``) and
+    passes it in to avoid a redundant JSONL re-parse on large checkpoints.
     """
 
     semaphore = asyncio.Semaphore(max(1, concurrency))
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
 
-    # Resume: do not regenerate cases already checkpointed.
-    skip_ids: set[str] = set()
-    if checkpoint is not None:
-        skip_ids = checkpoint.existing_record_ids()
-        if skip_ids:
-            print(f"[checkpoint] resuming — {len(skip_ids)} record(s) already present")
+    resolved_skip_ids: set[str] = skip_ids or set()
+    if resolved_skip_ids:
+        print(f"[checkpoint] resuming — {len(resolved_skip_ids)} record(s) already present")
 
     pending_records: list[dict] = []
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
         tasks = [_generate_case(session, semaphore, case_index, num_cases) for case_index in range(num_cases)]
         for coro in asyncio.as_completed(tasks):
-            result = await coro
+            try:
+                result = await coro
+            except Exception as exc:
+                print(f"[generate] case failed: {exc}")
+                if checkpoint is not None:
+                    await checkpoint.record_rejected()
+                continue
             if checkpoint is not None:
                 await checkpoint.record_attempted()
             if result is None:
                 if checkpoint is not None:
                     await checkpoint.record_rejected()
                 continue
-            if result["id"] in skip_ids:
+            if result["id"] in resolved_skip_ids:
                 continue
             pending_records.append(result)
             if checkpoint is not None:
@@ -470,15 +476,20 @@ async def main_async(  # noqa: PLR0913
     existing = checkpoint.existing_record_ids()
     if existing and resume:
         print(f"[checkpoint] resume enabled — {len(existing)} record(s) already checkpointed")
+        run_skip_ids: set[str] = existing
     elif existing and not resume:
         print(f"[checkpoint] resume disabled — starting fresh ({len(existing)} record(s) will be ignored)")
-        # Start a new batch id so state reflects a fresh run.
+        # Start a new batch id so state reflects a fresh run; do not skip any IDs.
         checkpoint.state = GenerationState(current_category=category)
+        run_skip_ids = set()
+    else:
+        run_skip_ids = set()
 
     sessions = await generate_cases_async(
         num_cases=num_cases,
         concurrency=concurrency,
         checkpoint=checkpoint,
+        skip_ids=run_skip_ids,
     )
     prep_file = "./nf_cache/nf_step0.jsonl"
     pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)

@@ -208,6 +208,7 @@ class TestCheckpointManager:
         manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
         await manager.record_validated({"id": "existing", "scenario": "seed", "messages": []})
         await manager.finalize()
+        skip_ids = manager.existing_record_ids()
 
         async def fake_scenario(*_args, **_kwargs):
             return "scenario"
@@ -226,7 +227,7 @@ class TestCheckpointManager:
             patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
             patch.object(nfg.uuid, "uuid4", return_value="existing"),
         ):
-            cases = await nfg.generate_cases_async(num_cases=1, concurrency=1, checkpoint=manager)
+            cases = await nfg.generate_cases_async(num_cases=1, concurrency=1, checkpoint=manager, skip_ids=skip_ids)
 
         # The one generated case collides with the seeded id and must be skipped.
         assert cases == []
@@ -285,3 +286,63 @@ class TestCheckpointManager:
         manager.state_path.write_text("not json")
         manager2 = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
         assert manager2.state.total_validated == 0
+
+    @pytest.mark.asyncio
+    async def test_generate_cases_async_swallows_exception_and_continues(self, tmp_path):
+        """A network failure on one case must not crash the loop or skip finalize."""
+
+        call_count = 0
+
+        async def flaky_generate_case(_session, _sem, _idx, _total):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("boom")
+            return {
+                "id": "ok",
+                "scenario": "s",
+                "messages": [
+                    {"role": "user", "content": "Patient line"},
+                    {"role": "assistant", "content": "Therapist line"},
+                ],
+            }
+
+        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
+        with patch.object(nfg, "_generate_case", side_effect=flaky_generate_case):
+            cases = await nfg.generate_cases_async(num_cases=2, concurrency=1, checkpoint=manager)
+
+        # The failed case is recorded as rejected; the successful case is returned.
+        assert len(cases) == 1
+        assert cases[0]["id"] == "ok"
+        assert manager.state.total_rejected == 1
+        assert manager.state.total_attempted == 1
+        assert manager.state.total_validated == 1
+        # finalize ran despite the exception — records.jsonl was written.
+        assert manager.records_path.exists()
+
+    @pytest.mark.asyncio
+    async def test_resume_false_does_not_skip_existing_ids(self, tmp_path):
+        """When skip_ids is empty (resume=False path), existing records are regenerated."""
+
+        async def fake_scenario(*_args, **_kwargs):
+            return "scenario"
+
+        async def fake_session(_session, scenario):
+            return {
+                "scenario": scenario,
+                "messages": [
+                    {"role": "user", "content": "Patient line"},
+                    {"role": "assistant", "content": "Therapist line"},
+                ],
+            }
+
+        with (
+            patch.object(nfg, "generate_nightmare_scenario_async", side_effect=fake_scenario),
+            patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
+            patch.object(nfg.uuid, "uuid4", return_value="existing"),
+        ):
+            cases = await nfg.generate_cases_async(num_cases=1, concurrency=1, skip_ids=set())
+
+        # No skip_ids passed → case is returned even though id == "existing".
+        assert len(cases) == 1
+        assert cases[0]["id"] == "existing"
