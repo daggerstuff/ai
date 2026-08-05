@@ -233,16 +233,37 @@ def should_keep(source: str, hash_val: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def merge_consecutive_roles(messages: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Merge consecutive same-role messages into one (ChatML requires alternating roles)."""
+    if not messages:
+        return messages
+    merged: list[dict[str, str]] = []
+    for msg in messages:
+        if merged and merged[-1]["role"] == msg["role"] and msg["role"] != "system":
+            merged[-1]["content"] += "\n" + msg["content"]
+        else:
+            merged.append(dict(msg))
+    return merged
+
+
+def filter_empty_messages(messages: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Remove messages with empty, whitespace-only, or orphaned-punctuation content."""
+    return [m for m in messages if m.get("content", "").strip() not in ("", ".")]
+
+
 def to_chatml(record: dict[str, Any], tier: str, system_prompt: str | None = None) -> dict[str, Any]:
     """Convert record to ChatML format with metadata."""
-    messages = record.get("messages", [])
+    messages = filter_empty_messages(record.get("messages", []))
+    messages = merge_consecutive_roles(messages)
+
+    if not any(m["role"] == "user" for m in messages) or not any(m["role"] == "assistant" for m in messages):
+        return {}
 
     # Ensure system prompt is present
     if system_prompt:
         if not messages or messages[0].get("role") != "system":
             messages = [{"role": "system", "content": system_prompt}] + messages
         else:
-            # Replace existing system prompt
             messages[0] = {"role": "system", "content": system_prompt}
 
     return {
@@ -260,7 +281,8 @@ def to_chatml(record: dict[str, Any], tier: str, system_prompt: str | None = Non
 
 def to_alpaca(record: dict[str, Any], tier: str) -> dict[str, Any] | None:
     """Convert single-turn (3-msg) record to Alpaca instruction format."""
-    messages = record.get("messages", [])
+    messages = filter_empty_messages(record.get("messages", []))
+    messages = merge_consecutive_roles(messages)
     non_system = [m for m in messages if m.get("role") != "system"]
     if len(non_system) != 2:
         return None
@@ -309,9 +331,9 @@ def to_chatml_from_alpaca(alpaca_record: dict[str, Any]) -> dict[str, Any]:
 
 def to_safety(record: dict[str, Any], tier: str) -> dict[str, Any]:
     """Convert adversarial record to safety training format."""
-    messages = record.get("messages", [])
+    messages = filter_empty_messages(record.get("messages", []))
+    messages = merge_consecutive_roles(messages)
 
-    # Ensure system prompt is present
     if not messages or messages[0].get("role") != "system":
         messages = [{"role": "system", "content": SAFETY_SYSTEM_PROMPT}] + messages
     else:
@@ -419,6 +441,8 @@ def run_pipeline(
                 task_type = record.get("task_type", "")
                 sys_prompt = SYSTEM_PROMPTS.get(task_type, DEFAULT_SYSTEM_PROMPT)
                 chatml_record = to_chatml(record, tier, sys_prompt)
+                if not chatml_record:
+                    continue
                 handles["sft_chatml"][split].write(json.dumps(chatml_record, ensure_ascii=False) + "\n")
                 stats.split_counts["sft_chatml"][split] += 1
 
