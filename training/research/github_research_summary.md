@@ -159,7 +159,7 @@ This report maps GitHub repositories that may contain **clinical edge case data,
 - **Last updated**: 2025-10-17T14:54:35Z
 - **License**: AGPL-3.0
 - **Source queries**: depression detection NLP dataset
-- **Description**:  Depression is one of the most common mental disorders with millions of people suffering from it.It has been found to have an impact on the texts written by the affected masses.In this study our main aim was to utilise tweets to predict the possibility of a user at-risk of depression through the use of Natural Language Processing(NLP) tools and deep learning algorithms.LSTM has been used as a baseline model that resulted in an accuracy of 95.12% and an F1 score of 0.9436. We implemented a hybrid Bi-LSTM + CNN model which we trained on learned embeddings from the tweet dataset was able to improve upon previous works and produce precision and recall of 0.9943 and 0.9988 respectively,giving an F1 score of 0.9971.
+- **Description**:  Depression is one of the most common mental disorders with millions of people suffering from it. It has been found to have an impact on the texts written by the affected masses.In this study our main aim was to utilise tweets to predict the possibility of a user at-risk of depression through the use of Natural Language Processing(NLP) tools and deep learning algorithms.LSTM has been used as a baseline model that resulted in an accuracy of 95.12% and an F1 score of 0.9436. We implemented a hybrid Bi-LSTM + CNN model which we trained on learned embeddings from the tweet dataset was able to improve upon previous works and produce precision and recall of 0.9943 and 0.9988 respectively,giving an F1 score of 0.9971.
 - **Detected data formats**: (not detected from description)
 - **Likely relevant files**: README.md (data reference), data/, datasets/, fine_tune.py, models/, training/
 - **Matched clinical categories**: crisis_intervention, depression
@@ -205,7 +205,7 @@ This report maps GitHub repositories that may contain **clinical edge case data,
 
 ## Recommended Repositories for Data Extraction (PIX-4239)
 
-Ranked by likely extraction value. PIX-4239 should prioritize in this order:
+Ranked by likely extraction value. PIX-4239 should prioritize in this order. This list mirrors the 18 scored repos above, with FrancescoCuria (rank 6) and Emo-gml/PsyLLM (rank 7) included to preserve psychosis-gap category coverage:
 
 1. **Karan-g-2003/deep-mental-health-voice** — score 31.7, formats: unknown
    - https://github.com/Karan-g-2003/deep-mental-health-voice
@@ -217,69 +217,84 @@ Ranked by likely extraction value. PIX-4239 should prioritize in this order:
    - _Why_: anxiety, depression, stress; This project fine-tunes a pretrained NLP model to classify mental-health-related signals from text (e.g., stress, anxiety, depression categories) using an ethics-focused NLP pipeline that emphasizes bias mitigation and responsible mental-health signal detection.
    - _Clone_: `full clone (small)`
 
-3. **nikitha1009/Mental-Health-Text-Classification-using-SVM** — score 29.32, formats: unknown
+3. **maazkareem-ai/Sentiment-Analysis-for-Mental-Health-Monitoring-using-ML** — score 29.46, formats: unknown
+   - https://github.com/maazkareem-ai/Sentiment-Analysis-for-Mental-Health-Monitoring-using-ML
+   - _Why_: anxiety, bipolar, depression, stress, suicidal_ideation; A Machine Learning–based research project that detects and classifies mental health conditions such as Normal, Depression, Anxiety, Stress, Bipolar, Suicidal and Personality disorder from social media text using sentiment analysis.
+   - _Clone_: `full clone (small)`
+
+4. **nikitha1009/Mental-Health-Text-Classification-using-SVM** — score 29.32, formats: unknown
    - https://github.com/nikitha1009/Mental-Health-Text-Classification-using-SVM
    - _Why_: anxiety, depression, suicidal_ideation; Developed a multi-class NLP-based mental health classification system using TF-IDF feature extraction and Linear SVM to detect Anxiety, Depression, and Suicidal Ideation from text data.
    - _Clone_: `full clone (small)`
 
-4. **Jahangirhussen/Thesis-Bangla-Suicidal-Ideation-Detection-Final-Year-Thesis** — score 27.23, formats: unknown
+5. **Jahangirhussen/Thesis-Bangla-Suicidal-Ideation-Detection-Final-Year-Thesis** — score 27.23, formats: unknown
    - https://github.com/Jahangirhussen/Thesis-Bangla-Suicidal-Ideation-Detection-Final-Year-Thesis
    - _Why_: suicidal_ideation; Final Year Thesis project on Bangla Suicidal Intent Detection using NLP, Machine Learning, and Deep Learning. Detects suicidal intent from Bangla social media text.
    - _Clone_: `full clone (small)`
 
-5. **aaronstone1699/Depression-detection** — score 25.74, formats: unknown
-   - https://github.com/aaronstone1699/Depression-detection
-   - _Why_: crisis_intervention, depression;  Depression is one of the most common mental disorders with millions of people suffering from it.It has been found to have an impact on the texts writ
+6. **FrancescoCuria/Mental-Health-NLP-Classifiers** — score 26.93, formats: unknown
+   - https://github.com/FrancescoCuria/Mental-Health-NLP-Classifiers
+   - _Why_: anxiety, bipolar, bpd, depression, psychosis; Multi-class classification of mental health conditions (BPD, Bipolar, Depression, Anxiety, Schizophrenia) from online text using DistilBERT embeddings, affective/toxicity features, and SVM/XGBoost/MLP models, with LIME and SHAP explainability. Preserves the psychosis-gap category coverage identified as low-coverage above.
    - _Clone_: `full clone (small)`
 
-6. **parulsaini42/Detecting-Depression-in-Tweets-using-Machine-Learning-Classifiers** — score 25.45, formats: unknown
+7. **Emo-gml/PsyLLM** — score 26.04, formats: unknown
+   - https://github.com/Emo-gml/PsyLLM
+   - _Why_: broad mental health; Beyond Empathy: Integrating Diagnostic and Therapeutic Reasoning with Large Language Models for Mental Health Counseling.
+   - _Clone_: `full clone (small)`
+
+8. **aaronstone1699/Depression-detection** — score 25.74, formats: unknown
+   - https://github.com/aaronstone1699/Depression-detection
+   - _Why_: crisis_intervention, depression;  Depression is one of the most common mental disorders with millions of people suffering from it. It has been found to have an impact on the texts writ
+   - _Clone_: `full clone (small)`
+
+9. **parulsaini42/Detecting-Depression-in-Tweets-using-Machine-Learning-Classifiers** — score 25.45, formats: unknown
    - https://github.com/parulsaini42/Detecting-Depression-in-Tweets-using-Machine-Learning-Classifiers
    - _Why_: depression; Machine learning, when used with social media, can be useful in diagnosis of mental health illnesses as it provides insights into an individual’s beha
    - _Clone_: `full clone (small)`
 
-7. **FortuneIgboanugo/Mental-Health-Predictor** — score 25.0, formats: unknown
+10. **FortuneIgboanugo/Mental-Health-Predictor** — score 25.0, formats: unknown
    - https://github.com/FortuneIgboanugo/Mental-Health-Predictor
    - _Why_: anxiety, depression; This Python project predicts mental health issues like depression and anxiety using logistic regression and NLP. It processes clinical notes, PHQ, and
    - _Clone_: `full clone (small)`
 
-8. **ayushipoddar132/Multimodal-Emotion-Mental-Health-Detection-System-** — score 24.7, formats: unknown
+11. **ayushipoddar132/Multimodal-Emotion-Mental-Health-Detection-System-** — score 24.7, formats: unknown
    - https://github.com/ayushipoddar132/Multimodal-Emotion-Mental-Health-Detection-System-
    - _Why_: anxiety, depression, stress; •Developed a multimodal machine learning system for detecting stress, anxiety, and depression using text, audio, and video data from the DAIC-WOZ data
    - _Clone_: `full clone (small)`
 
-9. **dia2018/What-is-the-Difference-Between-AI-and-Machine-Learning** — score 23.96, formats: unknown
+12. **dia2018/What-is-the-Difference-Between-AI-and-Machine-Learning** — score 23.96, formats: unknown
    - https://github.com/dia2018/What-is-the-Difference-Between-AI-and-Machine-Learning
-   - _Why_: broad relevance; Artificial Intelligence and Machine Learning have empowered our lives to a large extent. The number of advancements made in this space has revolutioni
-   - _Clone_: `full clone (small)`
+    - _Why_: broad relevance; Artificial Intelligence and Machine Learning have empowered our lives to a large extent. The number of advancements made in this space has revolutionized our society and continues making society a better place to live in. Discusses AI/ML fundamentals, Computer Vision, and Natural Language Processing — a useful primer on the foundational NLP techniques relevant to mental-health text classification.
+    - _Clone_: `full clone (small)`
 
-10. **Emdya/Mental-Health-Sentiment-Analysis** — score 23.96, formats: unknown
+13. **Emdya/Mental-Health-Sentiment-Analysis** — score 23.96, formats: unknown
    - https://github.com/Emdya/Mental-Health-Sentiment-Analysis
    - _Why_: anxiety, depression; This project applies Natural Language Processing (NLP) and machine learning techniques to classify emotional states in mental health-related text. Using labeled datasets of posts and comments, it demonstrates how sentiment analysis pipelines can flag signals of anxiety and depression, making it directly relevant for detecting clinical edge cases in language data.
    - _Clone_: `full clone (small)`
 
-11. **bucuram/depression-datasets-nlp** — score 23.36, formats: unknown
+14. **bucuram/depression-datasets-nlp** — score 23.36, formats: unknown
    - https://github.com/bucuram/depression-datasets-nlp
    - _Why_: depression; A collection of datasets for depression detection/ modelling from social media data
    - _Clone_: `full clone (small)`
 
-12. **abdurahman78/DeepLearningDataset** — score 23.21, formats: ['csv']
+15. **abdurahman78/DeepLearningDataset** — score 23.21, formats: ['csv']
    - https://github.com/abdurahman78/DeepLearningDataset
    - _Why_: depression, stress, suicidal_ideation; This repository offers a curated dataset on mental health, depression, and suicidal risk detection to support NLP, sentiment analysis, and early detec
    - _Clone_: `full clone (small)`
 
-13. **Khushishah-bot/Speech-Emotional-Recognitional-A-Machine-Learning-Based-Approach** — score 21.88, formats: unknown
+16. **Khushishah-bot/Speech-Emotional-Recognitional-A-Machine-Learning-Based-Approach** — score 21.88, formats: unknown
    - https://github.com/Khushishah-bot/Speech-Emotional-Recognitional-A-Machine-Learning-Based-Approach
    - _Why_: broad relevance; Speech Emotional Recognition(SER) system that classifies emotions and predicts intensity from voice,. Using RAVDESS dataset, features(MFCC, Chrome, Me
    - _Clone_: `full clone (small)`
 
-14. **NovaGeeklord02/Depression-Detection-on-DAIC-WOZ-EDAIC-WOZ** — score 21.28, formats: unknown
+17. **NovaGeeklord02/Depression-Detection-on-DAIC-WOZ-EDAIC-WOZ** — score 21.28, formats: unknown
    - https://github.com/NovaGeeklord02/Depression-Detection-on-DAIC-WOZ-EDAIC-WOZ
-   - _Why_: depression; Depression detection using RoBERTa on DAIC-WOZ and EDAIC-WOZ datasets. Transformer-based classification with RoBERTa, benchmarked against BERT. Explor
-   - _Clone_: `full clone (small)`
+    - _Why_: depression; Depression detection using RoBERTa on DAIC-WOZ and EDAIC-WOZ datasets. Transformer-based classification with RoBERTa, benchmarked against BERT. Explores advanced NLP techniques for mental health analysis.
+    - _Clone_: `full clone (small)`
 
-15. **Kishan-prajapati-242/ATCTM** — score 21.28, formats: unknown
+18. **Kishan-prajapati-242/ATCTM** — score 21.28, formats: unknown
    - https://github.com/Kishan-prajapati-242/ATCTM
-   - _Why_: depression; Context-aware, multi-task NLP model for depression detection using real-life events. Classifies event type, emotion, sentiment, sarcasm, tense, and certainty.
+   - _Why_: depression; Context-aware, multi-task NLP model for depression detection using real-life events. Classifies event type, emotion, sentiment, sarcasm, tense, and certainty. Built on a custom 490-event dataset with Gen-Z context. BERT-based. Accepted at CML 2025.
    - _Clone_: `full clone (small)`
 
 ## Observations & Gaps
@@ -323,7 +338,7 @@ These categories have very few hit repos; consider supplementing with curated da
 2. **For each candidate**, the extraction workflow should be:
    - Fetch README first via `gh api repos/<full_name>/readme` to confirm contents.
    - List tree: `gh api repos/<full_name>/git/trees/<default_branch>?recursive=1`.
-   - Download only the relevant data files (prefer raw.githubusercontent.com for individual files >100MB to avoid clone overhead).
+    - Download only the relevant data files (prefer `raw.githubusercontent.com` for individual files under 100MB to avoid clone overhead; use full clone or Git LFS for files >100MB).
    - Record SHA + license in the extraction manifest for provenance.
 3. **For gap categories** (zero or low coverage), PIX-4239 should separately consult known clinical NLP datasets:
    - **DAIC-WOZ** (Distress Analysis Interview Corpus — depression/PTSD)
@@ -336,12 +351,7 @@ These categories have very few hit repos; consider supplementing with curated da
 
 ## Reproduction
 
-```bash
-# Re-run the 26 search queries (requires gh CLI authenticated)
-python3 /tmp/pix4238-searches/fetch_repos.py > raw_results.json
-# + variant_results.json and more_results.json (see scripts in same dir)
-# Then: python3 <this script> to regenerate the map + summary
-```
+The 26 GitHub search queries described in the Methodology section were performed ad-hoc via interactive GitHub API searches (using `gh api search/repositories`) in a terminal session. No standalone Python scripts were saved — the queries, results, and heuristic scoring were captured inline in this summary and in `training/research/github_hackathon_map.json`. To reproduce, re-run equivalent `gh search repos ...` queries with the query strings documented above and apply the same scoring rubric (Category coverage 0-50 + Value signals 0-50).
 
 ---
 
