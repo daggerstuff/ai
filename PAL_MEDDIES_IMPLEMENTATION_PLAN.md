@@ -40,9 +40,9 @@ Translate dense Vietnamese Meddies JSON into fluid English NL persona strings.
 
 Two SFT tasks per the paper, joined into one JSONL.
 
-* [x] **2.1 Persona selection (Task 1)** — `ai/training_corpus/pal_framework/generate_selection_dataset.py`. Builds prompts that ask the model to pick the correct persona from 3–4 distractors given a dialogue. PIX-4072.
-* [x] **2.2 Persona-conditioned dialogue (Task 2)** — `ai/training_corpus/pal_framework/generate_sft_dialogue.py`. Builds `messages`-format ChatML records; assistant turn = persona-adherent response. PIX-4073.
-* [x] **2.3 Unified 10k JSONL** — `ai/training_corpus/pal_framework/build_unified_sft.py`. Combines selection + dialogue into one mixed-task file with `task_type` metadata. ChatML-validated.
+* [x] **2.1 Persona selection (Task 1)** — `training_corpus/pal_framework/generate_selection_dataset.py`. Builds prompts that ask the model to pick the correct persona from 3–4 distractors given a dialogue. PIX-4072.
+* [x] **2.2 Persona-conditioned dialogue (Task 2)** — `training_corpus/pal_framework/generate_sft_dialogue.py`. Builds `messages`-format ChatML records; assistant turn = persona-adherent response. PIX-4073.
+* [x] **2.3 Unified 10k JSONL** — `training_corpus/pal_framework/build_unified_sft.py`. Combines selection + dialogue into one mixed-task file with `task_type` metadata. ChatML-validated.
 
 ## Phase 3 — DPO Preference Pairs ✅ (with one open caveat)
 
@@ -68,7 +68,7 @@ The DPO trainer (`ai/training/dpo_trainer.py`) has its safety filter **disabled*
 
 ## Phase 4 — Select-then-Generate Inference ✅
 
-* [x] **4.1 Inference wrapper** — `ai/training_corpus/pal_framework/inference_wrapper.py`. Two-stage inference: (1) select persona from dialogue, (2) condition generation on the selected persona. 2.0s latency budget. PIX-4077.
+* [x] **4.1 Inference wrapper** — `training_corpus/pal_framework/inference_wrapper.py`. Two-stage inference: (1) select persona from dialogue, (2) condition generation on the selected persona. 2.0s latency budget. PIX-4077.
 
 ## Phase 5 — Evaluation (paper §C.score) ✅
 
