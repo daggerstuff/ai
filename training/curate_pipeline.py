@@ -27,6 +27,7 @@ Balancing:
 Usage:
   uv run python ai/training/curate_pipeline.py [--input PATH] [--output DIR] [--dry-run]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -46,39 +47,70 @@ from typing import Any
 DEFAULT_INPUT = "ai/data/raw/deduped/all_desloped.jsonl"
 DEFAULT_OUTPUT = "ai/data/curated"
 
-# System prompt injected into all SFT records
-SYSTEM_PROMPT = (
+# System prompts per task type — preserves source/clinical context
+SYSTEM_PROMPTS: dict[str, str] = {
+    "therapy_response_generation": (
+        "You are Pixelated Empathy, an evidence-based clinical AI assistant trained in "
+        "motivational interviewing, CBT, DBT, and ACT. Respond therapeutically with "
+        "empathic reflection, open questions, and validation. Never give medical advice."
+    ),
+    "symptom_classification": (
+        "You are Pixelated Empathy, a clinical AI assistant. Classify the user's "
+        "symptoms and respond with supportive guidance. Do not diagnose — encourage "
+        "professional evaluation when indicated."
+    ),
+    "severity_estimation": (
+        "You are Pixelated Empathy, a clinical AI assistant. Estimate symptom "
+        "severity based on standardized clinical scales (PHQ-9, GAD-7, BDI, etc.) "
+        "and provide appropriate supportive guidance."
+    ),
+    "risk_assessment": (
+        "You are Pixelated Empathy, a clinical AI assistant. Assess risk factors "
+        "in the user's message and respond with appropriate safety guidance. "
+        "If imminent risk is detected, direct the user to emergency services."
+    ),
+    "adversarial_safety": (
+        "You are a clinical safety assistant. Evaluate the input for risk factors "
+        "and respond with appropriate safety guidance. If imminent risk is detected, "
+        "direct the user to emergency services."
+    ),
+}
+
+DEFAULT_SYSTEM_PROMPT = (
     "You are Pixelated Empathy, an evidence-based clinical AI assistant. "
     "Your responses must be empathetic, validating, and grounded in established "
     "therapeutic modalities (such as CBT, DBT, or ACT)."
 )
 
-# Safety-specific system prompt
-SAFETY_SYSTEM_PROMPT = (
-    "You are a clinical safety assistant. Evaluate the input for risk factors "
-    "and respond with appropriate safety guidance. If imminent risk is detected, "
-    "direct the user to emergency services."
-)
+SAFETY_SYSTEM_PROMPT = SYSTEM_PROMPTS["adversarial_safety"]
 
 # Split ratios (train/val/test)
 SPLIT_RATIOS = {"train": 0.70, "val": 0.15, "test": 0.15}
 
 # Downsampling: source -> keep fraction (deterministic hash-based)
 DOWNSAMPLE_RATES: dict[str, float] = {
-    "reddit_mental_nlp": 0.17,        # 597K → ~100K
+    "reddit_mental_nlp": 0.17,  # 597K → ~100K
     "reddit_mental_health_posts": 0.50,  # 88K → ~44K
 }
 
 # Sources that are multi-turn therapy dialogues (T2_SILVER candidates)
 MULTI_TURN_SOURCES = {
-    "annomi", "empath", "esconv", "psy_insight", "kokorochat",
-    "hope", "daic_woz", "mental_health_multiagent", "psycheval",
+    "annomi",
+    "empath",
+    "esconv",
+    "psy_insight",
+    "kokorochat",
+    "hope",
+    "daic_woz",
+    "mental_health_multiagent",
+    "psycheval",
     "counseling_conversations",
 }
 
 # ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class TierStats:
@@ -120,15 +152,14 @@ class PipelineStats:
                 }
                 for t, ts in self.tier_stats.items()
             },
-            "split_counts": {
-                k: dict(v) for k, v in self.split_counts.items()
-            },
+            "split_counts": {k: dict(v) for k, v in self.split_counts.items()},
         }
 
 
 # ---------------------------------------------------------------------------
 # Tier classification
 # ---------------------------------------------------------------------------
+
 
 def classify_tier(record: dict[str, Any]) -> str:
     """Classify a record into a quality tier."""
@@ -158,18 +189,18 @@ def classify_tier(record: dict[str, Any]) -> str:
 # Deduplication
 # ---------------------------------------------------------------------------
 
+
 def content_hash(record: dict[str, Any]) -> str:
     """Hash the conversation content for deduplication."""
     messages = record.get("messages", [])
-    text_blob = "||".join(
-        f"{m.get('role', '')}:{m.get('content', '')}" for m in messages
-    )
+    text_blob = "||".join(f"{m.get('role', '')}:{m.get('content', '')}" for m in messages)
     return hashlib.md5(text_blob.encode("utf-8")).hexdigest()
 
 
 # ---------------------------------------------------------------------------
 # Split assignment
 # ---------------------------------------------------------------------------
+
 
 def assign_split(hash_val: str) -> str:
     """Deterministic split assignment based on content hash."""
@@ -186,6 +217,7 @@ def assign_split(hash_val: str) -> str:
 # Downsampling
 # ---------------------------------------------------------------------------
 
+
 def should_keep(source: str, hash_val: str) -> bool:
     """Deterministic downsampling for overrepresented sources."""
     rate = DOWNSAMPLE_RATES.get(source, 1.0)
@@ -199,6 +231,7 @@ def should_keep(source: str, hash_val: str) -> bool:
 # ---------------------------------------------------------------------------
 # Format conversion
 # ---------------------------------------------------------------------------
+
 
 def to_chatml(record: dict[str, Any], tier: str, system_prompt: str | None = None) -> dict[str, Any]:
     """Convert record to ChatML format with metadata."""
@@ -226,25 +259,19 @@ def to_chatml(record: dict[str, Any], tier: str, system_prompt: str | None = Non
 
 
 def to_alpaca(record: dict[str, Any], tier: str) -> dict[str, Any] | None:
-    """Convert 3-msg record (system/user/assistant) to Alpaca instruction format."""
+    """Convert single-turn (3-msg) record to Alpaca instruction format."""
     messages = record.get("messages", [])
-    if len(messages) < 3:
+    non_system = [m for m in messages if m.get("role") != "system"]
+    if len(non_system) != 2:
+        return None
+    if non_system[0].get("role") != "user" or non_system[1].get("role") != "assistant":
         return None
 
-    # Find user and assistant messages (skip system)
-    user_msg = None
-    assistant_msg = None
-    system_msg = None
-    for msg in messages:
-        role = msg.get("role", "")
-        if role == "system" and system_msg is None:
-            system_msg = msg.get("content", "")
-        elif role == "user" and user_msg is None:
-            user_msg = msg.get("content", "")
-        elif role == "assistant" and assistant_msg is None:
-            assistant_msg = msg.get("content", "")
+    system_msg = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
+    user_msg = non_system[0].get("content", "")
+    assistant_msg = non_system[1].get("content", "")
 
-    if not user_msg or not assistant_msg:
+    if not user_msg.strip() or not assistant_msg.strip():
         return None
 
     return {
@@ -303,6 +330,7 @@ def to_safety(record: dict[str, Any], tier: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
+
 
 def run_pipeline(
     input_path: str,
@@ -383,46 +411,37 @@ def run_pipeline(
             # T4_SAFETY → safety format
             if tier == "T4_SAFETY":
                 safety_record = to_safety(record, tier)
-                handles["safety"][split].write(
-                    json.dumps(safety_record, ensure_ascii=False) + "\n"
-                )
+                handles["safety"][split].write(json.dumps(safety_record, ensure_ascii=False) + "\n")
                 stats.split_counts["safety"][split] += 1
 
-            # All tiers → ChatML SFT format
-            chatml_record = to_chatml(record, tier, SYSTEM_PROMPT)
-            handles["sft_chatml"][split].write(
-                json.dumps(chatml_record, ensure_ascii=False) + "\n"
-            )
-            stats.split_counts["sft_chatml"][split] += 1
+            # All non-safety tiers → ChatML SFT format (T4_SAFETY goes only to safety/)
+            if tier != "T4_SAFETY":
+                task_type = record.get("task_type", "")
+                sys_prompt = SYSTEM_PROMPTS.get(task_type, DEFAULT_SYSTEM_PROMPT)
+                chatml_record = to_chatml(record, tier, sys_prompt)
+                handles["sft_chatml"][split].write(json.dumps(chatml_record, ensure_ascii=False) + "\n")
+                stats.split_counts["sft_chatml"][split] += 1
 
             # T3_BRONZE 3-msg records → Alpaca instruction + ChatML format
             if tier == "T3_BRONZE":
                 alpaca_record = to_alpaca(record, tier)
                 if alpaca_record:
-                    handles["sft_alpaca"][split].write(
-                        json.dumps(alpaca_record, ensure_ascii=False) + "\n"
-                    )
+                    handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
                     stats.split_counts["sft_alpaca"][split] += 1
                     # Also write ChatML version of the same record
                     alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
-                    handles["sft_alpaca_chatml"][split].write(
-                        json.dumps(alpaca_chatml, ensure_ascii=False) + "\n"
-                    )
+                    handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
                     stats.split_counts["sft_alpaca_chatml"][split] += 1
 
             # T1_GOLD and T2_SILVER 3-msg records → Alpaca + ChatML
             if tier in ("T1_GOLD", "T2_SILVER"):
                 alpaca_record = to_alpaca(record, tier)
                 if alpaca_record:
-                    handles["sft_alpaca"][split].write(
-                        json.dumps(alpaca_record, ensure_ascii=False) + "\n"
-                    )
+                    handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
                     stats.split_counts["sft_alpaca"][split] += 1
                     # Also write ChatML version of the same record
                     alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
-                    handles["sft_alpaca_chatml"][split].write(
-                        json.dumps(alpaca_chatml, ensure_ascii=False) + "\n"
-                    )
+                    handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
                     stats.split_counts["sft_alpaca_chatml"][split] += 1
 
             tier_stats.included += 1
@@ -456,6 +475,7 @@ def run_pipeline(
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main():
     parser = argparse.ArgumentParser(description="Curated dataset pipeline")
