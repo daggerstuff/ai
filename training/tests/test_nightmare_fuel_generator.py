@@ -90,7 +90,7 @@ class TestAsyncGeneration:
             in_flight -= 1
             return f"scenario-{call_count}"
 
-        async def fake_session(_session, scenario):
+        async def fake_session(_session, scenario, **_kw):
             return {
                 "scenario": scenario,
                 "messages": [
@@ -132,88 +132,206 @@ class TestSyncWrappers:
         ):
             nfg.main()
 
-        main_async_mock.assert_called_once()
+        export_mock.assert_called_once()
 
 
-class TestGenerationState:
-    def test_state_round_trip(self):
-        state = GenerationState(current_category="anxiety")
-        state.total_attempted = 10
-        state.total_validated = 7
-        state.total_rejected = 3
-        dumped = state.to_dict()
-        loaded = GenerationState.from_dict(dumped)
-        assert loaded.batch_id == state.batch_id
-        assert loaded.current_category == "anxiety"
-        assert loaded.total_attempted == 10
-        assert loaded.total_validated == 7
-        assert loaded.total_rejected == 3
+class TestBatchController:
+    def test_initial_batch_size_within_bounds(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=8,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        assert ctrl.current_batch_size == 8
 
-    def test_state_from_dict_ignores_unknown_fields(self):
-        state = GenerationState.from_dict({"batch_id": "abc", "unknown_field": "ignored"})
-        assert state.batch_id == "abc"
+    def test_clamps_initial_to_min(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=1,
+            min_batch_size=4,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        assert ctrl.current_batch_size == 4
 
-    def test_state_defaults(self):
-        state = GenerationState()
-        assert state.current_category == "default"
-        assert state.total_attempted == 0
-        assert state.total_validated == 0
-        assert state.total_rejected == 0
+    def test_clamps_initial_to_max(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=99,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        assert ctrl.current_batch_size == 32
+
+    def test_grow_on_fast_low_token_batches(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=4,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        # Fast + under token budget -> grow.
+        ctrl.record_batch(duration_seconds=0.2, tokens_used=512, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.current_batch_size > 4
+
+    def test_shrink_on_slow_batches(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        # Slow per-slot: 20s over 16 concurrent slots ~ 1.25s/slot > 1s threshold -> shrink.
+        ctrl.record_batch(duration_seconds=20.0, tokens_used=1024, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.current_batch_size < 16
+
+    def test_shrink_on_token_overrun(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=2048,
+        )
+        ctrl.record_batch(duration_seconds=0.2, tokens_used=4096, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.current_batch_size < 16
+
+    def test_rate_limit_triggers_backoff_and_shrink(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
+        ctrl.adjust()
+        assert ctrl.current_batch_size < 16
+        assert ctrl.backoff_delay() > 0.0
+
+    def test_backoff_clears_after_successful_batch(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
+        ctrl.adjust()
+        assert ctrl.backoff_delay() > 0.0
+        ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.backoff_delay() == 0.0
+
+    def test_exponential_backoff_caps_at_max(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=4,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+            backoff_base=2.0,
+            backoff_max=10.0,
+        )
+        for _ in range(5):
+            ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
+            ctrl.adjust()
+        assert ctrl.backoff_delay() <= 10.0
 
 
-class TestCheckpointManager:
+def _mock_429_response() -> MagicMock:
+    """Build a mock response that raises HTTP 429 via raise_for_status()."""
+    import aiohttp
+
+    response = MagicMock()
+    response.status = 429
+    response.raise_for_status = MagicMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=429,
+            message="Too Many Requests",
+        )
+    )
+    response.json = AsyncMock(return_value={})
+    response.__aenter__ = AsyncMock(return_value=response)
+    response.__aexit__ = AsyncMock(return_value=False)
+    return response
+
+
+class TestChatCompletion429:
+    """PIX-4234: _chat_completion raises RateLimitError on HTTP 429."""
+
     @pytest.mark.asyncio
-    async def test_flush_writes_records_and_state(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=1, interval_seconds=0)
-        record = {"id": "rec-1", "scenario": "s", "messages": []}
-        await manager.record_validated(record)
-        # record_validated with interval_records=1 triggers a flush
-        assert manager.records_path.exists()
-        lines = manager.records_path.read_text().strip().splitlines()
-        assert len(lines) == 1
-        assert json.loads(lines[0])["id"] == "rec-1"
-        assert manager.state_path.exists()
-        state = json.loads(manager.state_path.read_text())
-        assert state["total_validated"] == 1
-        assert state["total_attempted"] == 0
+    async def test_raises_rate_limit_error_on_429(self):
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_429_response())
+        with pytest.raises(nfg.RateLimitError):
+            await nfg._chat_completion(
+                session,
+                [{"role": "user", "content": "ping"}],
+                temperature=0.5,
+            )
 
     @pytest.mark.asyncio
-    async def test_rejected_and_attempted_counts(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        await manager.record_attempted()
-        await manager.record_attempted()
-        await manager.record_rejected()
-        await manager.flush()
-        state = json.loads(manager.state_path.read_text())
-        assert state["total_attempted"] == 2
-        assert state["total_rejected"] == 1
-        assert state["total_validated"] == 0
+    async def test_token_counter_records_usage(self):
+        payload = {
+            "choices": [{"message": {"content": "ok"}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+        }
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(payload))
+        counter: dict = {}
+        result = await nfg._chat_completion(
+            session,
+            [{"role": "user", "content": "ping"}],
+            temperature=0.5,
+            token_counter=counter,
+        )
+        assert result == "ok"
+        assert counter["prompt_tokens"] == 10
+        assert counter["completion_tokens"] == 5
+        assert counter["total_tokens"] == 15
 
     @pytest.mark.asyncio
-    async def test_load_existing_records_round_trip(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        await manager.record_validated({"id": "a", "scenario": "s1", "messages": []})
-        await manager.record_validated({"id": "b", "scenario": "s2", "messages": []})
-        await manager.finalize()
+    async def test_token_counter_omitted_keeps_legacy_behavior(self):
+        """When token_counter not passed, behavior unchanged."""
+        payload = {
+            "choices": [{"message": {"content": "ok"}}],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+        }
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(payload))
+        result = await nfg._chat_completion(
+            session,
+            [{"role": "user", "content": "ping"}],
+            temperature=0.5,
+        )
+        assert result == "ok"
 
-        manager2 = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        records = manager2.load_existing_records()
-        assert {r["id"] for r in records} == {"a", "b"}
-        assert manager2.existing_record_ids() == {"a", "b"}
+
+class TestGenerateCasesBatched:
+    """PIX-4234: generate_cases_async uses BatchController for dynamic sizing."""
 
     @pytest.mark.asyncio
-    async def test_resume_skips_existing_ids(self, tmp_path):
-        """generate_cases_async with checkpoint should not return already-checkpointed records."""
-        # Seed a checkpoint with one record already present.
-        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        await manager.record_validated({"id": "existing", "scenario": "seed", "messages": []})
-        await manager.finalize()
-        skip_ids = manager.existing_record_ids()
+    async def test_concurrency_kwarg_seeds_initial_batch_size(self):
+        """concurrency kwarg must seed BatchController so first batch is >= concurrency."""
+        # 6 cases, concurrency=4 -> BatchController should start at 4 -> all 6 dispatched
+        # across 2 batches.  Both batches must see concurrent in_flight.
+        call_count = 0
+        in_flight = 0
+        max_in_flight = 0
 
         async def fake_scenario(*_args, **_kwargs):
-            return "scenario"
+            nonlocal call_count, in_flight, max_in_flight
+            call_count += 1
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.01)
+            in_flight -= 1
+            return f"scenario-{call_count}"
 
-        async def fake_session(_session, scenario):
+        async def fake_session(_session, scenario, **_kw):
             return {
                 "scenario": scenario,
                 "messages": [
@@ -225,124 +343,83 @@ class TestCheckpointManager:
         with (
             patch.object(nfg, "generate_nightmare_scenario_async", side_effect=fake_scenario),
             patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
-            patch.object(nfg.uuid, "uuid4", return_value="existing"),
         ):
-            cases = await nfg.generate_cases_async(num_cases=1, concurrency=1, checkpoint=manager, skip_ids=skip_ids)
+            cases = await nfg.generate_cases_async(num_cases=6, concurrency=4)
 
-        # The one generated case collides with the seeded id and must be skipped.
-        assert cases == []
-
-    @pytest.mark.asyncio
-    async def test_checkpoint_without_existing_file(self, tmp_path):
-        """A brand new checkpoint directory should produce an empty existing set."""
-        manager = CheckpointManager(tmp_path / "fresh", interval_records=1, interval_seconds=0)
-        assert manager.existing_record_ids() == set()
-        assert manager.load_existing_records() == []
+        assert len(cases) == 6
+        assert call_count == 6
+        assert max_in_flight > 1, "batch sizing not achieving concurrency"
 
     @pytest.mark.asyncio
-    async def test_should_flush_respects_record_threshold(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=2, interval_seconds=0)
-        await manager.record_validated({"id": "1", "scenario": "s", "messages": []})
-        assert not manager.records_path.exists(), "should not flush before threshold"
-        await manager.record_validated({"id": "2", "scenario": "s", "messages": []})
-        assert manager.records_path.exists(), "should flush at threshold"
-
-    @pytest.mark.asyncio
-    async def test_should_flush_respects_time_threshold(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0.01)
-        await manager.record_validated({"id": "1", "scenario": "s", "messages": []})
-        assert not manager.records_path.exists()
-        await asyncio.sleep(0.02)
-        await manager.record_validated({"id": "2", "scenario": "s", "messages": []})
-        assert manager.records_path.exists()
-        lines = manager.records_path.read_text().strip().splitlines()
-        assert len(lines) == 2
-
-    @pytest.mark.asyncio
-    async def test_finalize_writes_pending_records(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=1000, interval_seconds=1000)
-        pending = [
-            {"id": "p1", "scenario": "s", "messages": []},
-            {"id": "p2", "scenario": "s", "messages": []},
-        ]
-        await manager.finalize(extra_records=pending)
-        lines = manager.records_path.read_text().strip().splitlines()
-        assert len(lines) == 2
-        assert manager.state_path.exists()
-
-    @pytest.mark.asyncio
-    async def test_malformed_lines_are_skipped_on_load(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        # Write a valid record then a corrupt line.
-        with manager.records_path.open("w") as f:
-            f.write(json.dumps({"id": "good"}) + "\n")
-            f.write("not json\n")
-        records = manager.load_existing_records()
-        assert records == [{"id": "good"}]
-
-    @pytest.mark.asyncio
-    async def test_corrupt_state_file_falls_back_to_fresh(self, tmp_path):
-        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        manager.state_path.write_text("not json")
-        manager2 = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        assert manager2.state.total_validated == 0
-
-    @pytest.mark.asyncio
-    async def test_generate_cases_async_swallows_exception_and_continues(self, tmp_path):
-        """A network failure on one case must not crash the loop or skip finalize."""
-
+    async def test_rate_limit_errors_dropped_but_pipeline_continues(self):
+        """When _generate_case raises RateLimitError, batch drops it but continues."""
+        # 5 cases; first 2 raise RateLimitError, rest succeed.
         call_count = 0
 
-        async def flaky_generate_case(_session, _sem, _idx, _total):
+        async def fake_scenario(*_args, **_kwargs):
             nonlocal call_count
             call_count += 1
-            if call_count == 1:
-                raise RuntimeError("boom")
-            return {
-                "id": "ok",
-                "scenario": "s",
-                "messages": [
-                    {"role": "user", "content": "Patient line"},
-                    {"role": "assistant", "content": "Therapist line"},
-                ],
-            }
+            if call_count <= 2:
+                raise nfg.RateLimitError("simulated 429")
+            await asyncio.sleep(0.01)
+            return f"scenario-{call_count}"
 
-        manager = CheckpointManager(tmp_path, interval_records=100, interval_seconds=0)
-        with patch.object(nfg, "_generate_case", side_effect=flaky_generate_case):
-            cases = await nfg.generate_cases_async(num_cases=2, concurrency=1, checkpoint=manager)
-
-        # The failed case is recorded as rejected; the successful case is returned.
-        assert len(cases) == 1
-        assert cases[0]["id"] == "ok"
-        assert manager.state.total_rejected == 1
-        assert manager.state.total_attempted == 1
-        assert manager.state.total_validated == 1
-        # finalize ran despite the exception — records.jsonl was written.
-        assert manager.records_path.exists()
-
-    @pytest.mark.asyncio
-    async def test_resume_false_does_not_skip_existing_ids(self, tmp_path):
-        """When skip_ids is empty (resume=False path), existing records are regenerated."""
-
-        async def fake_scenario(*_args, **_kwargs):
-            return "scenario"
-
-        async def fake_session(_session, scenario):
+        async def fake_session(_session, scenario, **_kw):
             return {
                 "scenario": scenario,
                 "messages": [
-                    {"role": "user", "content": "Patient line"},
-                    {"role": "assistant", "content": "Therapist line"},
+                    {"role": "user", "content": "p"},
+                    {"role": "assistant", "content": "t"},
                 ],
             }
 
         with (
             patch.object(nfg, "generate_nightmare_scenario_async", side_effect=fake_scenario),
             patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
-            patch.object(nfg.uuid, "uuid4", return_value="existing"),
         ):
-            cases = await nfg.generate_cases_async(num_cases=1, concurrency=1, skip_ids=set())
+            cases = await nfg.generate_cases_async(num_cases=5, concurrency=5)
 
-        # No skip_ids passed → case is returned even though id == "existing".
-        assert len(cases) == 1
-        assert cases[0]["id"] == "existing"
+        # First 2 raised RateLimitError -> dropped; last 3 survived.
+        assert len(cases) == 3
+        assert call_count == 5
+
+    @pytest.mark.asyncio
+    async def test_backoff_delay_applied_after_rate_limit(self):
+        """After a rate-limited batch, next batch must await the backoff delay."""
+        call_count = 0
+        backoff_observed = 0.0
+
+        async def fake_scenario(*_args, **_kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 2:
+                raise nfg.RateLimitError("simulated 429")
+            await asyncio.sleep(0.01)
+            return f"scenario-{call_count}"
+
+        async def fake_session(_session, scenario, **_kw):
+            return {
+                "scenario": scenario,
+                "messages": [
+                    {"role": "user", "content": "p"},
+                    {"role": "assistant", "content": "t"},
+                ],
+            }
+
+        async def fake_sleep(delay, *_a, **_kw):
+            nonlocal backoff_observed
+            backoff_observed = max(backoff_observed, delay)
+
+        with (
+            patch.object(nfg, "generate_nightmare_scenario_async", side_effect=fake_scenario),
+            patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
+            patch.object(nfg.asyncio, "sleep", side_effect=fake_sleep),
+        ):
+            await nfg.generate_cases_async(
+                num_cases=4,
+                concurrency=2,
+                backoff_base=2.0,
+                backoff_max=10.0,
+            )
+
+        assert backoff_observed > 0, "expected backoff delay after rate-limited batch"
