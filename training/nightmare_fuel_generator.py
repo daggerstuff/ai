@@ -138,6 +138,7 @@ async def _chat_completion(
     messages: list[dict[str, str]],
     *,
     temperature: float,
+    token_counter: dict | None = None,
 ) -> str:
     payload = {"model": MODEL, "messages": messages, "temperature": temperature}
     async with session.post(
@@ -146,8 +147,15 @@ async def _chat_completion(
         headers={"Authorization": "Bearer dummy"},
         timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
     ) as response:
+        if response.status == 429:
+            raise RateLimitError("HTTP 429: rate limit exceeded")
         response.raise_for_status()
         data = await response.json()
+    if token_counter is not None and "usage" in data:
+        usage = data["usage"]
+        token_counter["prompt_tokens"] = usage.get("prompt_tokens", 0)
+        token_counter["completion_tokens"] = usage.get("completion_tokens", 0)
+        token_counter["total_tokens"] = usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
     return data["choices"][0]["message"]["content"]
 
 

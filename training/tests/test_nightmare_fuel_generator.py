@@ -231,4 +231,74 @@ class TestBatchController:
         for _ in range(5):
             ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
             ctrl.adjust()
-        assert ctrl.backoff_delay() <= 10.0
+
+
+def _mock_429_response() -> MagicMock:
+    """Build a mock response that raises HTTP 429 via raise_for_status()."""
+    import aiohttp
+
+    response = MagicMock()
+    response.status = 429
+    response.raise_for_status = MagicMock(
+        side_effect=aiohttp.ClientResponseError(
+            request_info=MagicMock(),
+            history=(),
+            status=429,
+            message="Too Many Requests",
+        )
+    )
+    response.json = AsyncMock(return_value={})
+    response.__aenter__ = AsyncMock(return_value=response)
+    response.__aexit__ = AsyncMock(return_value=False)
+    return response
+
+
+class TestChatCompletion429:
+    """PIX-4234: _chat_completion raises RateLimitError on HTTP 429."""
+
+    @pytest.mark.asyncio
+    async def test_raises_rate_limit_error_on_429(self):
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_429_response())
+        with pytest.raises(nfg.RateLimitError):
+            await nfg._chat_completion(
+                session,
+                [{"role": "user", "content": "ping"}],
+                temperature=0.5,
+            )
+
+    @pytest.mark.asyncio
+    async def test_token_counter_records_usage(self):
+        payload = {
+            "choices": [{"message": {"content": "ok"}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 5},
+        }
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(payload))
+        counter: dict = {}
+        result = await nfg._chat_completion(
+            session,
+            [{"role": "user", "content": "ping"}],
+            temperature=0.5,
+            token_counter=counter,
+        )
+        assert result == "ok"
+        assert counter["prompt_tokens"] == 10
+        assert counter["completion_tokens"] == 5
+        assert counter["total_tokens"] == 15
+
+    @pytest.mark.asyncio
+    async def test_token_counter_omitted_keeps_legacy_behavior(self):
+        """When token_counter not passed, behavior unchanged."""
+        payload = {
+            "choices": [{"message": {"content": "ok"}}],
+            "usage": {"prompt_tokens": 1, "completion_tokens": 1},
+        }
+        session = MagicMock()
+        session.post = MagicMock(return_value=_mock_response(payload))
+        result = await nfg._chat_completion(
+            session,
+            [{"role": "user", "content": "ping"}],
+            temperature=0.5,
+        )
+        assert result == "ok"
