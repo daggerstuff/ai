@@ -175,6 +175,8 @@ training/*
 !training/**/*.pyi
 !training/**/*.md
 !training/**/README*
+!training/research/
+!training/research/*.json
 !training/tests/
 training/tests/*
 !training/tests/test_pal_persona_consistency_eval.py
