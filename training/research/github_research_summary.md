@@ -57,7 +57,7 @@ This report maps GitHub repositories that may contain **clinical edge case data,
 - **Last updated**: 2026-01-08T08:37:30Z
 - **License**: —
 - **Source queries**: anxiety NLP classification
-- **Description**: This project fine-tunes a pretrained NLP model to classify mental-health-related signals from text (e.g., stress, anxiety, depression categories) using an ethics-first approach. It includes dataset evaluation (EDA), preprocessing, stratified splitting, 10-epoch training, and full metric reporting.
+- **Description**: This project fine-tunes a pretrained NLP model to classify mental-health-related signals from text (e.g., stress, anxiety, depression categories) using an ethics-focused NLP pipeline that emphasizes bias mitigation and responsible mental-health signal detection.g an ethics-first approach. It includes dataset evaluation (EDA), preprocessing, stratified splitting, 10-epoch training, and full metric reporting.
 - **Detected data formats**: (not detected from description)
 - **Likely relevant files**: README.md (data reference), data/, datasets/, fine_tune.py, models/, preprocessing/, training/
 - **Matched clinical categories**: anxiety, depression, stress
@@ -91,7 +91,7 @@ This report maps GitHub repositories that may contain **clinical edge case data,
 - **Last updated**: 2026-02-19T08:57:46Z
 - **License**: —
 - **Source queries**: suicidal ideation NLP dataset, anxiety NLP classification
-- **Description**: Developed a multi-class NLP-based mental health classification system using TF-IDF feature extraction and Linear SVM to detect Anxiety, Depression, Suicidal ideation, and Normal text patterns from a 49K+ dataset. Implemented model evaluation, class balancing, and real-time prediction pipeline.
+- **Description**: Developed a multi-class NLP-based mental health classification system using TF-IDF feature extraction and Linear SVM to detect Anxiety, Depression, and Suicidal Ideation from text data.icidal ideation, and Normal text patterns from a 49K+ dataset. Implemented model evaluation, class balancing, and real-time prediction pipeline.
 - **Detected data formats**: (not detected from description)
 - **Likely relevant files**: README.md (data reference), data/, datasets/, fine_tune.py, models/, training/
 - **Matched clinical categories**: anxiety, depression, suicidal_ideation
@@ -108,7 +108,7 @@ This report maps GitHub repositories that may contain **clinical edge case data,
 - **Last updated**: 2025-12-04T07:00:01Z
 - **License**: MIT
 - **Source queries**: suicidal ideation NLP dataset
-- **Description**: Final Year Thesis project on Bangla Suicidal Intent Detection using NLP, Machine Learning, and Deep Learning. Detects suicidal intent from Bangla social media posts and text. Includes dataset, preprocessing, model training, evaluation, and visualization.
+- **Description**: Final Year Thesis project on Bangla Suicidal Intent Detection using NLP, Machine Learning, and Deep Learning. Detects suicidal intent from Bangla social media text.al media posts and text. Includes dataset, preprocessing, model training, evaluation, and visualization.
 - **Detected data formats**: (not detected from description)
 - **Likely relevant files**: README.md (data reference), data/, datasets/, fine_tune.py, models/, preprocessing/, training/
 - **Matched clinical categories**: suicidal_ideation
@@ -214,17 +214,17 @@ Ranked by likely extraction value. PIX-4239 should prioritize in this order:
 
 2. **umarfaraz511/Mental-Health-Text-Classification-Ethics-Focused-NLP-** — score 29.91, formats: unknown
    - https://github.com/umarfaraz511/Mental-Health-Text-Classification-Ethics-Focused-NLP-
-   - _Why_: anxiety, depression, stress; This project fine-tunes a pretrained NLP model to classify mental-health-related signals from text (e.g., stress, anxiety, depression categories) usin
+   - _Why_: anxiety, depression, stress; This project fine-tunes a pretrained NLP model to classify mental-health-related signals from text (e.g., stress, anxiety, depression categories) using an ethics-focused NLP pipeline that emphasizes bias mitigation and responsible mental-health signal detection.
    - _Clone_: `full clone (small)`
 
 3. **nikitha1009/Mental-Health-Text-Classification-using-SVM** — score 29.32, formats: unknown
    - https://github.com/nikitha1009/Mental-Health-Text-Classification-using-SVM
-   - _Why_: anxiety, depression, suicidal_ideation; Developed a multi-class NLP-based mental health classification system using TF-IDF feature extraction and Linear SVM to detect Anxiety, Depression, Su
+   - _Why_: anxiety, depression, suicidal_ideation; Developed a multi-class NLP-based mental health classification system using TF-IDF feature extraction and Linear SVM to detect Anxiety, Depression, and Suicidal Ideation from text data.
    - _Clone_: `full clone (small)`
 
 4. **Jahangirhussen/Thesis-Bangla-Suicidal-Ideation-Detection-Final-Year-Thesis** — score 27.23, formats: unknown
    - https://github.com/Jahangirhussen/Thesis-Bangla-Suicidal-Ideation-Detection-Final-Year-Thesis
-   - _Why_: suicidal_ideation; Final Year Thesis project on Bangla Suicidal Intent Detection using NLP, Machine Learning, and Deep Learning. Detects suicidal intent from Bangla soci
+   - _Why_: suicidal_ideation; Final Year Thesis project on Bangla Suicidal Intent Detection using NLP, Machine Learning, and Deep Learning. Detects suicidal intent from Bangla social media text.
    - _Clone_: `full clone (small)`
 
 5. **aaronstone1699/Depression-detection** — score 25.74, formats: unknown
@@ -254,7 +254,7 @@ Ranked by likely extraction value. PIX-4239 should prioritize in this order:
 
 10. **Emdya/Mental-Health-Sentiment-Analysis** — score 23.96, formats: unknown
    - https://github.com/Emdya/Mental-Health-Sentiment-Analysis
-   - _Why_: anxiety, depression; This project applies Natural Language Processing (NLP) and machine learning techniques to classify emotional states in mental health-related text. Usi
+   - _Why_: anxiety, depression; This project applies Natural Language Processing (NLP) and machine learning techniques to classify emotional states in mental health-related text. Using labeled datasets of posts and comments, it demonstrates how sentiment analysis pipelines can flag signals of anxiety and depression, making it directly relevant for detecting clinical edge cases in language data.
    - _Clone_: `full clone (small)`
 
 11. **bucuram/depression-datasets-nlp** — score 23.36, formats: unknown
@@ -279,7 +279,7 @@ Ranked by likely extraction value. PIX-4239 should prioritize in this order:
 
 15. **Kishan-prajapati-242/ATCTM** — score 21.28, formats: unknown
    - https://github.com/Kishan-prajapati-242/ATCTM
-   - _Why_: depression; Context-aware, multi-task NLP model for depression detection using real-life events. Classifies event type, emotion, sentiment, sarcasm, tense, and ce
+   - _Why_: depression; Context-aware, multi-task NLP model for depression detection using real-life events. Classifies event type, emotion, sentiment, sarcasm, tense, and certainty.
    - _Clone_: `full clone (small)`
 
 ## Observations & Gaps
@@ -294,12 +294,12 @@ Ranked by likely extraction value. PIX-4239 should prioritize in this order:
 - **bpd**: 4 repos
 - **bipolar**: 4 repos
 - **psychosis**: 2 repos
-- **ocd**: 1 repos
+- **ocd**: 1 repo
 - **eating_disorder**: 5 repos
 - **social_anxiety**: 0 repos
 - **substance_use**: 2 repos
 - **emotion_dysregulation**: 0 repos
-- **crisis_intervention**: 1 repos
+- **crisis_intervention**: 1 repo
 
 ### Gaps - Zero-coverage Categories
 
