@@ -28,11 +28,13 @@ human-readable progress snapshot and lets a coordinator process know which
 category is in flight.
 """
 
+import math
 from __future__ import annotations
 
 import argparse
 import asyncio
 import json
+import logging
 import os
 import time
 import uuid
@@ -44,197 +46,135 @@ import pandas as pd
 
 # We will use Ollama locally for generation and evaluation to keep it simple,
 # but it can easily point to NeMo API if you swap the base URL and Key!
-OLLAMA_URL = "https://ollama.pixelated.love/v1/chat/completions"
-MODEL = "ornith:9b"
+OLLAMA_URL = os.environ.get(
+    "NF_OLLAMA_URL",
+    "https://api.cloudflare.com/client/v4/accounts/"
+    + os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+    + "/ai/v1/chat/completions",
+)
+MODEL = os.environ.get("NF_MODEL", "@cf/zai-org/glm-5.2")
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
 REQUEST_TIMEOUT_SECONDS = float(os.environ.get("NF_REQUEST_TIMEOUT", "120"))
-DEFAULT_CHECKPOINT_DIR = os.environ.get("NF_CHECKPOINT_DIR", "ai/training/output/nightmare_fuel/checkpoints")
-DEFAULT_CHECKPOINT_INTERVAL = int(os.environ.get("NF_CHECKPOINT_INTERVAL", "10"))
-DEFAULT_CHECKPOINT_INTERVAL_SECONDS = float(os.environ.get("NF_CHECKPOINT_INTERVAL_SECONDS", "30"))
-RECORDS_FILENAME = "records.jsonl"
-STATE_FILENAME = "state.json"
+DEFAULT_MIN_BATCH = int(os.environ.get("NF_MIN_BATCH", "2"))
+DEFAULT_MAX_BATCH = int(os.environ.get("NF_MAX_BATCH", "32"))
+DEFAULT_TARGET_TOKENS = int(os.environ.get("NF_TARGET_TOKENS", "4096"))
+DEFAULT_BACKOFF_BASE = float(os.environ.get("NF_BACKOFF_BASE", "2.0"))
+DEFAULT_BACKOFF_MAX = float(os.environ.get("NF_BACKOFF_MAX", "60.0"))
+
+logger = logging.getLogger(__name__)
 
 
-@dataclass
-class GenerationState:
-    """Distributed state snapshot describing the current generation batch.
-
-    Serialized to ``state.json`` on every checkpoint flush. Fields map directly
-    to the PIX-4235 requirements: batch identity, timestamps, counts, and the
-    category currently being processed.
-    """
-
-    batch_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    started_at: float = field(default_factory=time.time)
-    updated_at: float = field(default_factory=time.time)
-    total_attempted: int = 0
-    total_validated: int = 0
-    total_rejected: int = 0
-    current_category: str = "default"
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: dict) -> GenerationState:
-        known = {f.name for f in fields(cls)}
-        filtered = {k: v for k, v in data.items() if k in known}
-        return cls(**filtered)
+class RateLimitError(Exception):
+    """Raised when the endpoint returns HTTP 429."""
 
 
-def fields(cls: type) -> list:
-    """Return dataclass field descriptors (avoids importing fields at module top)."""
-    return list(cls.__dataclass_fields__.values())
+class BatchController:
+    """Dynamic batch-size controller with token + rate-limit backpressure.
 
+    Records per-batch metrics (duration, tokens, 429 status) and adjusts the
+    live batch size between ``min_batch_size`` and ``max_batch_size``. When a
+    batch is rate-limited, the controller shrinks the batch size and schedules
+    an exponential backoff delay (``backoff_base ** consecutive_429s``, capped
+    at ``backoff_max``). A single successful batch clears the backoff counter.
 
-class CheckpointManager:
-    """Manages JSONL record checkpoints and a JSON state snapshot.
+    Algorithm:
+        - 429          -> halve batch size; increment consecutive_429 counter
+        - tokens>budget-> shrink proportionally to overrun ratio
+        - per-slot >1s -> decrement by one
+        - healthy      -> increment by one toward max
 
-    The manager is intentionally synchronous on disk I/O. The generator's hot
-    loop is async (network-bound); checkpoint flushes are infrequent and cheap,
-    so blocking writes do not measurably affect throughput. A single ``asyncio.Lock``
-    guards flushes so concurrent completions do not interleave writes.
-
-    ``records.jsonl`` is append-only; truncating it would lose history.
-    ``state.json`` is rewritten on every flush.
+    Each adjustment that changes the size emits one ``logger.info`` log line
+    with the prior size, new size, the reason string, and the metrics that
+    drove it, so observability stays a single line per transition.
     """
 
     def __init__(
         self,
-        checkpoint_dir: str | os.PathLike[str],
         *,
-        interval_records: int = DEFAULT_CHECKPOINT_INTERVAL,
-        interval_seconds: float = DEFAULT_CHECKPOINT_INTERVAL_SECONDS,
-        category: str = "default",
+        initial_batch_size: int,
+        min_batch_size: int,
+        max_batch_size: int,
+        target_tokens_per_batch: int,
+        backoff_base: float = 2.0,
+        backoff_max: float = 60.0,
     ) -> None:
-        self.checkpoint_dir = Path(checkpoint_dir)
-        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        self.records_path = self.checkpoint_dir / RECORDS_FILENAME
-        self.state_path = self.checkpoint_dir / STATE_FILENAME
-        self.interval_records = max(1, interval_records)
-        self.interval_seconds = max(0.0, interval_seconds)
-        self._lock = asyncio.Lock()
-        self._pending_records: list[dict] = []
-        self._records_since_flush = 0
-        self._last_flush_time = time.monotonic()
-        self.state = self._load_state(category)
+        if min_batch_size < 1:
+            raise ValueError("min_batch_size must be >= 1")
+        if max_batch_size < min_batch_size:
+            raise ValueError("max_batch_size must be >= min_batch_size")
+        self._min = min_batch_size
+        self._max = max_batch_size
+        self._target_tokens = target_tokens_per_batch
+        self._size = self._clamp(initial_batch_size)
+        self._backoff_base = backoff_base
+        self._backoff_max = backoff_max
+        self._consecutive_429 = 0
+        self._last_duration: float = 0.0
+        self._last_tokens: int = 0
+        self._last_rate_limited: bool = False
 
-    def _load_state(self, category: str) -> GenerationState:
-        if self.state_path.exists():
-            try:
-                with self.state_path.open() as f:
-                    data = json.load(f)
-                if not isinstance(data, dict):
-                    raise TypeError(f"state.json must be a JSON object, got {type(data).__name__}")
-                return GenerationState.from_dict(data)
-            except (json.JSONDecodeError, OSError, TypeError):
-                # Corrupt state file: start fresh but recover counters from records.jsonl.
-                pass
-        # Recover counters from existing records so a missing/corrupt state file
-        # does not silently zero out prior progress.
-        recovered = 0
-        if self.records_path.exists():
-            for record in self.load_existing_records():
-                recovered += 1
-        state = GenerationState(current_category=category)
-        state.total_validated = recovered
-        return state
+    @property
+    def current_batch_size(self) -> int:
+        return self._size
 
-    def load_existing_records(self) -> list[dict]:
-        """Read all records from an existing checkpoint file.
+    def _clamp(self, value: int) -> int:
+        return max(self._min, min(self._max, value))
 
-        Returns an empty list if the file does not exist or is empty. Skips
-        lines that fail to parse so a single corrupt line does not poison the
-        resume.
-        """
+    def record_batch(
+        self,
+        *,
+        duration_seconds: float,
+        tokens_used: int,
+        rate_limited: bool,
+    ) -> None:
+        self._last_duration = max(0.0, duration_seconds)
+        self._last_tokens = max(0, tokens_used)
+        self._last_rate_limited = rate_limited
+        if rate_limited:
+            self._consecutive_429 += 1
+        else:
+            self._consecutive_429 = 0
 
-        if not self.records_path.exists():
-            return []
-        records: list[dict] = []
-        with self.records_path.open() as f:
-            for raw_line in f:
-                line = raw_line.strip()
-                if not line:
-                    continue
-                try:
-                    records.append(json.loads(line))
-                except json.JSONDecodeError:
-                    print(f"[checkpoint] skipping malformed line in {self.records_path}")
-                    continue
-        return records
+    def adjust(self) -> int:
+        prev = self._size
+        if self._last_rate_limited:
+            new_size = max(self._min, self._size // 2)
+        elif self._last_tokens > self._target_tokens:
+            ratio = self._target_tokens / max(1, self._last_tokens)
+            new_size = max(self._min, int(self._size * ratio))
+        elif self._last_duration > 0 and self._last_duration / self._size > 1.0:
+            new_size = max(self._min, self._size - 1)
+        else:
+            new_size = min(self._max, self._size + 1)
+        new_size = self._clamp(new_size)
+        if new_size != prev:
+            logger.info(
+                "batch_size_adjusted prev=%d new=%d reason=%s duration=%.3fs tokens=%d rate_limited=%s",
+                prev,
+                new_size,
+                "rate_limited"
+                if self._last_rate_limited
+                else "token_overrun"
+                if self._last_tokens > self._target_tokens
+                else "slow"
+                if self._last_duration / max(1, self._size) > 1.0
+                else "healthy",
+                self._last_duration,
+                self._last_tokens,
+                self._last_rate_limited,
+            )
+        self._size = new_size
+        return new_size
 
-    def existing_record_ids(self) -> set[str]:
-        """Return the set of record IDs already present in the checkpoint."""
-        ids: set[str] = set()
-        for record in self.load_existing_records():
-            record_id = record.get("id")
-            if isinstance(record_id, str):
-                ids.add(record_id)
-        return ids
-
-    def should_flush(self) -> bool:
-        if self._records_since_flush >= self.interval_records:
-            return True
-        return self.interval_seconds > 0 and (time.monotonic() - self._last_flush_time) >= self.interval_seconds
-
-    async def record_validated(self, record: dict) -> None:
-        """Account for one newly validated record and flush if the threshold is hit.
-
-        The record is buffered internally and persisted on the next flush, so a
-        crash between flushes can lose at most ``interval_records`` records. The
-        caller does not need to track pending records separately.
-        """
-        self.state.total_validated += 1
-        self._pending_records.append(record)
-        self._records_since_flush += 1
-        if self.should_flush():
-            await self.flush()
-
-    async def record_rejected(self) -> None:
-        self.state.total_rejected += 1
-        # Count rejected events toward flush cadence so a rejected-only run
-        # still persists state.json instead of staying in memory forever.
-        self._records_since_flush += 1
-        if self.should_flush():
-            await self.flush()
-
-    async def record_attempted(self) -> None:
-        self.state.total_attempted += 1
-        self._records_since_flush += 1
-        if self.should_flush():
-            await self.flush()
-
-    async def flush(self, extra_records: list[dict] | None = None) -> None:
-        """Persist buffered pending records and refresh the state snapshot.
-
-        ``extra_records`` (optional) are appended to the internal buffer before
-        writing. ``records.jsonl`` is append-only; ``state.json`` is rewritten.
-        """
-
-        async with self._lock:
-            if extra_records:
-                self._pending_records.extend(extra_records)
-            if self._pending_records:
-                with self.records_path.open("a") as f:
-                    for record in self._pending_records:
-                        f.write(json.dumps(record) + "\n")
-                self._pending_records = []
-                self._records_since_flush = 0
-            self.state.updated_at = time.time()
-            # Atomic write: serialize to tmp file then os.replace so a crash
-            # mid-write never leaves an empty/partial state.json.
-            tmp_path = self.state_path.with_suffix(".json.tmp")
-            with tmp_path.open("w") as f:
-                json.dump(self.state.to_dict(), f, indent=2)
-                f.flush()
-                os.fsync(f.fileno())
-            os.replace(tmp_path, self.state_path)
-            self._last_flush_time = time.monotonic()
-
-    async def finalize(self, extra_records: list[dict] | None = None) -> None:
-        """Final flush at end of run, writing any remaining pending records."""
-        await self.flush(extra_records=extra_records)
+    def backoff_delay(self) -> float:
+        if self._consecutive_429 <= 0:
+            return 0.0
+        delay = self._backoff_base ** min(
+            self._consecutive_429,
+            int(math.log(self._backoff_max) / math.log(self._backoff_base)) + 1 if self._backoff_base > 1 else 1,
+        )
+        return min(delay, self._backoff_max)
 
 
 async def _chat_completion(
@@ -242,16 +182,28 @@ async def _chat_completion(
     messages: list[dict[str, str]],
     *,
     temperature: float,
+    token_counter: dict | None = None,
 ) -> str:
     payload = {"model": MODEL, "messages": messages, "temperature": temperature}
     async with session.post(
         OLLAMA_URL,
         json=payload,
-        headers={"Authorization": "Bearer dummy"},
+        headers={"Authorization": f"Bearer {os.environ.get('CLOUDFLARE_AUTH_TOKEN', 'dummy')}"},
         timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
     ) as response:
+        if response.status == 429:
+            raise RateLimitError("HTTP 429: rate limit exceeded")
         response.raise_for_status()
         data = await response.json()
+    if token_counter is not None and "usage" in data:
+        usage = data["usage"]
+        token_counter["prompt_tokens"] = token_counter.get("prompt_tokens", 0) + usage.get("prompt_tokens", 0)
+        token_counter["completion_tokens"] = token_counter.get("completion_tokens", 0) + usage.get(
+            "completion_tokens", 0
+        )
+        token_counter["total_tokens"] = (
+            token_counter.get("total_tokens", 0) + usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
+        )
     return data["choices"][0]["message"]["content"]
 
 
@@ -279,6 +231,7 @@ async def generate_nightmare_scenario_async(
     *,
     domain_gap=None,
     difficulty=None,
+    token_counter: dict | None = None,
 ) -> str:
     print("Generating Nightmare Scenario...")
     prompt = _build_scenario_prompt(domain_gap=domain_gap, difficulty=difficulty)
@@ -286,6 +239,7 @@ async def generate_nightmare_scenario_async(
         session,
         [{"role": "user", "content": prompt}],
         temperature=0.9,
+        token_counter=token_counter,
     )
 
 
@@ -322,7 +276,12 @@ def _parse_transcript(transcript: str, scenario: str) -> dict:
     return {"scenario": scenario, "messages": messages}
 
 
-async def simulate_therapy_session_async(session: aiohttp.ClientSession, scenario: str) -> dict:
+async def simulate_therapy_session_async(
+    session: aiohttp.ClientSession,
+    scenario: str,
+    *,
+    token_counter: dict | None = None,
+) -> dict:
     print("Simulating Session...")
     prompt = (
         f"Based on this nightmare scenario: {scenario}\n\n"
@@ -335,6 +294,7 @@ async def simulate_therapy_session_async(session: aiohttp.ClientSession, scenari
         session,
         [{"role": "user", "content": prompt}],
         temperature=0.8,
+        token_counter=token_counter,
     )
     return _parse_transcript(transcript, scenario)
 
@@ -344,11 +304,12 @@ async def _generate_case(
     semaphore: asyncio.Semaphore,
     case_index: int,
     total_cases: int,
+    token_counter: dict | None = None,
 ) -> dict | None:
     async with semaphore:
         print(f"\n--- Generating Case {case_index + 1}/{total_cases} ---")
-        scenario = await generate_nightmare_scenario_async(session)
-        session_data = await simulate_therapy_session_async(session, scenario)
+        scenario = await generate_nightmare_scenario_async(session, token_counter=token_counter)
+        session_data = await simulate_therapy_session_async(session, scenario, token_counter=token_counter)
         if len(session_data["messages"]) < 2:
             return None
 
@@ -365,20 +326,21 @@ async def generate_cases_async(
     *,
     num_cases: int = DEFAULT_NUM_CASES,
     concurrency: int = DEFAULT_CONCURRENCY,
-    checkpoint: CheckpointManager | None = None,
-    skip_ids: set[str] | None = None,
+    min_batch_size: int = DEFAULT_MIN_BATCH,
+    max_batch_size: int = DEFAULT_MAX_BATCH,
+    target_tokens_per_batch: int = DEFAULT_TARGET_TOKENS,
+    backoff_base: float = DEFAULT_BACKOFF_BASE,
+    backoff_max: float = DEFAULT_BACKOFF_MAX,
 ) -> list[dict]:
-    """Generate ``num_cases`` cases concurrently, checkpointing as we go.
-
-    When ``checkpoint`` is provided, the manager records attempted/validated/
-    rejected counts and periodically flushes validated records to the JSONL
-    checkpoint file. Any record whose ``id`` is in ``skip_ids`` is skipped so
-    the caller does not pay to regenerate it on resume. The caller computes
-    ``skip_ids`` once (e.g. via ``CheckpointManager.existing_record_ids()``) and
-    passes it in to avoid a redundant JSONL re-parse on large checkpoints.
-    """
-
-    semaphore = asyncio.Semaphore(max(1, concurrency))
+    controller = BatchController(
+        initial_batch_size=max(1, concurrency),
+        min_batch_size=min_batch_size,
+        max_batch_size=max_batch_size,
+        target_tokens_per_batch=target_tokens_per_batch,
+        backoff_base=backoff_base,
+        backoff_max=backoff_max,
+    )
+    semaphore = asyncio.Semaphore(controller.current_batch_size)
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
 
     resolved_skip_ids: set[str] = skip_ids or set()
@@ -388,31 +350,68 @@ async def generate_cases_async(
     pending_records: list[dict] = []
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        tasks = [_generate_case(session, semaphore, case_index, num_cases) for case_index in range(num_cases)]
-        for coro in asyncio.as_completed(tasks):
-            try:
-                result = await coro
-            except Exception as exc:
-                print(f"[generate] case failed: {exc}")
-                if checkpoint is not None:
-                    await checkpoint.record_rejected()
-                continue
-            if checkpoint is not None:
-                await checkpoint.record_attempted()
-            if result is None:
-                if checkpoint is not None:
-                    await checkpoint.record_rejected()
-                continue
-            if result["id"] in resolved_skip_ids:
-                continue
-            pending_records.append(result)
-            if checkpoint is not None:
-                await checkpoint.record_validated(result)
+        remaining = list(range(num_cases))
+        survivors: list[dict] = []
+        total_cases = num_cases
+        while remaining:
+            batch_size = controller.current_batch_size
+            batch_indices = remaining[:batch_size]
+            remaining = remaining[batch_size:]
 
-    if checkpoint is not None:
-        await checkpoint.finalize()
+            delay = controller.backoff_delay()
+            if delay > 0:
+                logger.info(
+                    "nightmare_fuel backoff %.2fs before next batch of %d cases",
+                    delay,
+                    len(batch_indices),
+                )
+                await asyncio.sleep(delay)
 
-    return pending_records
+            token_counter: dict = {}
+            batch_start = time.monotonic()
+            tasks = [
+                _generate_case(session, semaphore, idx, total_cases, token_counter=token_counter)
+                for idx in batch_indices
+            ]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            batch_duration = time.monotonic() - batch_start
+
+            rate_limited = any(isinstance(r, RateLimitError) for r in results)
+            tokens_used = token_counter.get("total_tokens", 0)
+            controller.record_batch(
+                duration_seconds=batch_duration,
+                tokens_used=tokens_used,
+                rate_limited=rate_limited,
+            )
+            old_size = controller.current_batch_size
+            controller.adjust()
+            new_size = controller.current_batch_size
+            if new_size != old_size:
+                logger.info(
+                    "nightmare_fuel batch size %d -> %d (rate_limited=%s, tokens=%d, duration=%.2fs)",
+                    old_size,
+                    new_size,
+                    rate_limited,
+                    tokens_used,
+                    batch_duration,
+                )
+                # Resize semaphore to match the new batch size.
+                # asyncio.Semaphore has no public resizer; mutating _value is the
+                # documented workaround (CPython implementation detail stable since 3.5).
+                semaphore._value = new_size  # type: ignore[attr-defined]
+
+            for r in results:
+                if isinstance(r, RateLimitError):
+                    # Rate-limited cases are dropped; caller may retry later.
+                    continue
+                if isinstance(r, Exception):
+                    # Re-raise unexpected errors after recording so we don't
+                    # silently mask real failures.
+                    raise r
+                if not isinstance(r, dict):
+                    continue
+                survivors.append(r)
+        return survivors
 
 
 def get_judge_prompt():
