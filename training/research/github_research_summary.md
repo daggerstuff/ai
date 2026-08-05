@@ -159,7 +159,7 @@ This report maps GitHub repositories that may contain **clinical edge case data,
 - **Last updated**: 2025-10-17T14:54:35Z
 - **License**: AGPL-3.0
 - **Source queries**: depression detection NLP dataset
-- **Description**:  Depression is one of the most common mental disorders with millions of people suffering from it.It has been found to have an impact on the texts written by the affected masses.In this study our main aim was to utilise tweets to predict the possibility of a user at-risk of depression through the use of Natural Language Processing(NLP) tools and deep learning algorithms.LSTM has been used as a baseline model that resulted in an accuracy of 95.12% and an F1 score of 0.9436. We implemented a hybrid Bi-LSTM + CNN model which we trained on learned embeddings from the tweet dataset was able to improve upon previous works and produce precision and recall of 0.9943 and 0.9988 respectively,giving an F1 score of 0.9971.
+- **Description**:  Depression is one of the most common mental disorders with millions of people suffering from it. It has been found to have an impact on the texts written by the affected masses.In this study our main aim was to utilise tweets to predict the possibility of a user at-risk of depression through the use of Natural Language Processing(NLP) tools and deep learning algorithms.LSTM has been used as a baseline model that resulted in an accuracy of 95.12% and an F1 score of 0.9436. We implemented a hybrid Bi-LSTM + CNN model which we trained on learned embeddings from the tweet dataset was able to improve upon previous works and produce precision and recall of 0.9943 and 0.9988 respectively,giving an F1 score of 0.9971.
 - **Detected data formats**: (not detected from description)
 - **Likely relevant files**: README.md (data reference), data/, datasets/, fine_tune.py, models/, training/
 - **Matched clinical categories**: crisis_intervention, depression
@@ -205,7 +205,7 @@ This report maps GitHub repositories that may contain **clinical edge case data,
 
 ## Recommended Repositories for Data Extraction (PIX-4239)
 
-Ranked by likely extraction value. PIX-4239 should prioritize in this order. This list mirrors the Top 10 scored repos above (FrancescoCuria and Emo-gml are included explicitly to preserve the psychosis-gap category coverage that FrancescoCuria provides):
+Ranked by likely extraction value. PIX-4239 should prioritize in this order. This list mirrors the 18 scored repos above, with FrancescoCuria (rank 6) and Emo-gml/PsyLLM (rank 7) included to preserve psychosis-gap category coverage:
 
 1. **Karan-g-2003/deep-mental-health-voice** — score 31.7, formats: unknown
    - https://github.com/Karan-g-2003/deep-mental-health-voice
@@ -244,7 +244,7 @@ Ranked by likely extraction value. PIX-4239 should prioritize in this order. Thi
 
 8. **aaronstone1699/Depression-detection** — score 25.74, formats: unknown
    - https://github.com/aaronstone1699/Depression-detection
-   - _Why_: crisis_intervention, depression;  Depression is one of the most common mental disorders with millions of people suffering from it.It has been found to have an impact on the texts writ
+   - _Why_: crisis_intervention, depression;  Depression is one of the most common mental disorders with millions of people suffering from it. It has been found to have an impact on the texts writ
    - _Clone_: `full clone (small)`
 
 9. **parulsaini42/Detecting-Depression-in-Tweets-using-Machine-Learning-Classifiers** — score 25.45, formats: unknown
