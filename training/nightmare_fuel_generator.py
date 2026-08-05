@@ -124,11 +124,22 @@ class CheckpointManager:
         if self.state_path.exists():
             try:
                 with self.state_path.open() as f:
-                    return GenerationState.from_dict(json.load(f))
-            except (json.JSONDecodeError, OSError):
-                # Corrupt state file: start fresh but keep batch_id from a new uuid.
+                    data = json.load(f)
+                if not isinstance(data, dict):
+                    raise TypeError(f"state.json must be a JSON object, got {type(data).__name__}")
+                return GenerationState.from_dict(data)
+            except (json.JSONDecodeError, OSError, TypeError):
+                # Corrupt state file: start fresh but recover counters from records.jsonl.
                 pass
-        return GenerationState(current_category=category)
+        # Recover counters from existing records so a missing/corrupt state file
+        # does not silently zero out prior progress.
+        recovered = 0
+        if self.records_path.exists():
+            for record in self.load_existing_records():
+                recovered += 1
+        state = GenerationState(current_category=category)
+        state.total_validated = recovered
+        return state
 
     def load_existing_records(self) -> list[dict]:
         """Read all records from an existing checkpoint file.
@@ -182,9 +193,17 @@ class CheckpointManager:
 
     async def record_rejected(self) -> None:
         self.state.total_rejected += 1
+        # Count rejected events toward flush cadence so a rejected-only run
+        # still persists state.json instead of staying in memory forever.
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
 
     async def record_attempted(self) -> None:
         self.state.total_attempted += 1
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
 
     async def flush(self, extra_records: list[dict] | None = None) -> None:
         """Persist buffered pending records and refresh the state snapshot.
@@ -203,8 +222,14 @@ class CheckpointManager:
                 self._pending_records = []
                 self._records_since_flush = 0
             self.state.updated_at = time.time()
-            with self.state_path.open("w") as f:
+            # Atomic write: serialize to tmp file then os.replace so a crash
+            # mid-write never leaves an empty/partial state.json.
+            tmp_path = self.state_path.with_suffix(".json.tmp")
+            with tmp_path.open("w") as f:
                 json.dump(self.state.to_dict(), f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, self.state_path)
             self._last_flush_time = time.monotonic()
 
     async def finalize(self, extra_records: list[dict] | None = None) -> None:
