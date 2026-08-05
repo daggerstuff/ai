@@ -10,8 +10,11 @@ Usage:
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TypeVar
 
 from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+
+_T = TypeVar("_T", bound=type[BaseDatasetAdapter])
 
 # Registry will be populated as adapters are implemented.
 # Each entry: dataset_name -> adapter class
@@ -27,7 +30,7 @@ def register_adapter(name: str):
             ...
     """
 
-    def decorator(cls: type[BaseDatasetAdapter]) -> type[BaseDatasetAdapter]:
+    def decorator(cls: _T) -> _T:
         _ADAPTER_REGISTRY[name.lower()] = cls
         return cls
 
