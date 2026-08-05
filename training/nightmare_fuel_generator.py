@@ -28,6 +28,7 @@ human-readable progress snapshot and lets a coordinator process know which
 category is in flight.
 """
 
+import math
 from __future__ import annotations
 
 import argparse
@@ -169,7 +170,10 @@ class BatchController:
     def backoff_delay(self) -> float:
         if self._consecutive_429 <= 0:
             return 0.0
-        delay = self._backoff_base**self._consecutive_429
+        delay = self._backoff_base ** min(
+            self._consecutive_429,
+            int(math.log(self._backoff_max) / math.log(self._backoff_base)) + 1 if self._backoff_base > 1 else 1,
+        )
         return min(delay, self._backoff_max)
 
 
