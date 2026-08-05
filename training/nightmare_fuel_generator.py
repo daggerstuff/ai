@@ -62,6 +62,12 @@ DEFAULT_TARGET_TOKENS = int(os.environ.get("NF_TARGET_TOKENS", "4096"))
 DEFAULT_BACKOFF_BASE = float(os.environ.get("NF_BACKOFF_BASE", "2.0"))
 DEFAULT_BACKOFF_MAX = float(os.environ.get("NF_BACKOFF_MAX", "60.0"))
 
+DEFAULT_CHECKPOINT_DIR = os.environ.get("NF_CHECKPOINT_DIR", "ai/training/output/nightmare_fuel/checkpoints")
+DEFAULT_CHECKPOINT_INTERVAL = int(os.environ.get("NF_CHECKPOINT_INTERVAL", "10"))
+DEFAULT_CHECKPOINT_INTERVAL_SECONDS = float(os.environ.get("NF_CHECKPOINT_INTERVAL_SECONDS", "30"))
+RECORDS_FILENAME = "records.jsonl"
+STATE_FILENAME = "state.json"
+
 logger = logging.getLogger(__name__)
 
 
