@@ -1,9 +1,44 @@
+"""Nightmare Fuel synthetic therapy session generator.
+
+This module generates challenging clinical "nightmare" scenarios, simulates
+therapy transcripts, and runs them through a strict clinical validity gate.
+
+The generator was rewritten in PIX-4233 to use asyncio + aiohttp for concurrent
+requests. PIX-4235 adds distributed state tracking and JSONL checkpointing so
+that long runs (100k+ candidates) can resume from where they left off after a
+crash or interruption instead of losing all progress.
+
+Checkpointing model
+-------------------
+Two artifacts live under the checkpoint directory:
+
+* ``<checkpoint_dir>/records.jsonl`` — append-only JSONL of completed,
+  gate-validated records. Each line is one record dict. This is the source of
+  truth for "what is already done".
+* ``<checkpoint_dir>/state.json`` — a small JSON document describing the
+  current generation batch: ``batch_id``, ``started_at`` / ``updated_at``
+  timestamps, ``total_attempted`` / ``total_validated`` / ``total_rejected``
+  counts, and ``current_category``. This is the distributed state the brief
+  asks for; it is rewritten (not appended) on every flush so it always reflects
+  the latest snapshot.
+
+Resume works by reading ``records.jsonl`` to discard IDs already present, then
+skipping ahead in the remaining work. The state file gives the operator a
+human-readable progress snapshot and lets a coordinator process know which
+category is in flight.
+"""
+
+from __future__ import annotations
+
+import argparse
 import asyncio
 import json
 import logging
 import os
 import time
 import uuid
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
 
 import aiohttp
 import pandas as pd
@@ -303,6 +338,13 @@ async def generate_cases_async(
     )
     semaphore = asyncio.Semaphore(controller.current_batch_size)
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
+
+    resolved_skip_ids: set[str] = skip_ids or set()
+    if resolved_skip_ids:
+        print(f"[checkpoint] resuming — {len(resolved_skip_ids)} record(s) already present")
+
+    pending_records: list[dict] = []
+
     async with aiohttp.ClientSession(timeout=timeout) as session:
         remaining = list(range(num_cases))
         survivors: list[dict] = []
@@ -427,7 +469,16 @@ def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
     return pd.read_json(final_file, lines=True)
 
 
-async def main_async() -> None:
+async def main_async(  # noqa: PLR0913
+    *,
+    num_cases: int = DEFAULT_NUM_CASES,
+    concurrency: int = DEFAULT_CONCURRENCY,
+    checkpoint_dir: str = DEFAULT_CHECKPOINT_DIR,
+    checkpoint_interval: int = DEFAULT_CHECKPOINT_INTERVAL,
+    checkpoint_interval_seconds: float = DEFAULT_CHECKPOINT_INTERVAL_SECONDS,
+    resume: bool = True,
+    category: str = "default",
+) -> None:
     print("=======================================")
     print("   Nightmare Fuel Synthetic Generator")
     print("=======================================")
@@ -435,7 +486,31 @@ async def main_async() -> None:
     os.makedirs("ai/training/output/nightmare_fuel", exist_ok=True)
     os.makedirs("./nf_cache", exist_ok=True)
 
-    sessions = await generate_cases_async()
+    checkpoint = CheckpointManager(
+        checkpoint_dir,
+        interval_records=checkpoint_interval,
+        interval_seconds=checkpoint_interval_seconds,
+        category=category,
+    )
+
+    existing = checkpoint.existing_record_ids()
+    if existing and resume:
+        print(f"[checkpoint] resume enabled — {len(existing)} record(s) already checkpointed")
+        run_skip_ids: set[str] = existing
+    elif existing and not resume:
+        print(f"[checkpoint] resume disabled — starting fresh ({len(existing)} record(s) will be ignored)")
+        # Start a new batch id so state reflects a fresh run; do not skip any IDs.
+        checkpoint.state = GenerationState(current_category=category)
+        run_skip_ids = set()
+    else:
+        run_skip_ids = set()
+
+    sessions = await generate_cases_async(
+        num_cases=num_cases,
+        concurrency=concurrency,
+        checkpoint=checkpoint,
+        skip_ids=run_skip_ids,
+    )
     prep_file = "./nf_cache/nf_step0.jsonl"
     pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)
 
@@ -444,7 +519,52 @@ async def main_async() -> None:
 
 
 def main() -> None:
-    asyncio.run(main_async())
+    parser = argparse.ArgumentParser(description="Nightmare Fuel synthetic therapy session generator")
+    parser.add_argument("--num-cases", type=int, default=DEFAULT_NUM_CASES, help="Number of cases to generate")
+    parser.add_argument("--concurrency", type=int, default=DEFAULT_CONCURRENCY, help="Max concurrent requests")
+    parser.add_argument(
+        "--checkpoint-dir",
+        type=str,
+        default=DEFAULT_CHECKPOINT_DIR,
+        help="Directory for JSONL checkpoint + JSON state file",
+    )
+    parser.add_argument(
+        "--checkpoint-interval",
+        type=int,
+        default=DEFAULT_CHECKPOINT_INTERVAL,
+        help="Flush checkpoint after every N validated records",
+    )
+    parser.add_argument(
+        "--checkpoint-interval-seconds",
+        type=float,
+        default=DEFAULT_CHECKPOINT_INTERVAL_SECONDS,
+        help="Flush checkpoint after at most T seconds between flushes",
+    )
+    parser.add_argument(
+        "--resume",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Resume from existing checkpoint if present (use --no-resume to start fresh)",
+    )
+    parser.add_argument(
+        "--category",
+        type=str,
+        default="default",
+        help="Category label recorded in the distributed state file",
+    )
+    args = parser.parse_args()
+
+    asyncio.run(
+        main_async(
+            num_cases=args.num_cases,
+            concurrency=args.concurrency,
+            checkpoint_dir=args.checkpoint_dir,
+            checkpoint_interval=args.checkpoint_interval,
+            checkpoint_interval_seconds=args.checkpoint_interval_seconds,
+            resume=args.resume,
+            category=args.category,
+        )
+    )
 
 
 if __name__ == "__main__":

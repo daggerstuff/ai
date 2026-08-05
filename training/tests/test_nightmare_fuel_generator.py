@@ -1,13 +1,15 @@
-"""Tests for nightmare_fuel_generator async rewrite."""
+"""Tests for nightmare_fuel_generator async rewrite + PIX-4235 checkpointing."""
 
 from __future__ import annotations
 
 import asyncio
+import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from training import nightmare_fuel_generator as nfg
+from training.nightmare_fuel_generator import CheckpointManager, GenerationState
 
 
 def _mock_response(payload: dict) -> MagicMock:
@@ -118,12 +120,15 @@ class TestSyncWrappers:
             assert nfg.generate_nightmare_scenario() == "sync scenario"
 
     def test_main_runs_async_pipeline(self, tmp_path):
+        """main() should call main_async which drives the pipeline.
+
+        We patch sys.argv to provide argparse defaults and patch the async
+        entrypoint so we do not exercise the network or the disk pipeline.
+        """
+
         with (
-            patch.object(nfg, "generate_cases_async", new=AsyncMock(return_value=[{"id": "1"}])),
-            patch.object(nfg, "_run_clinical_gate", return_value=MagicMock(empty=False, iterrows=lambda: [])),
-            patch.object(nfg, "_export_survivors") as export_mock,
-            patch.object(nfg.os, "makedirs"),
-            patch.object(nfg.pd.DataFrame, "to_json"),
+            patch("sys.argv", ["nightmare_fuel_generator"]),
+            patch.object(nfg, "main_async", new=AsyncMock()) as main_async_mock,
         ):
             nfg.main()
 
