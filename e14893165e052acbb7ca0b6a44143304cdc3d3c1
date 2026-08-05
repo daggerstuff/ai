@@ -1,0 +1,22 @@
+sourcing/scripts/dedup_datasets.py
+  s_8966adf124d5a9::t_4fd6ac1ad4bd8f 1-68,71-88,94-129,140-165
+  s_8966adf124d5a9::t_363a679ec3f789 130-139
+  s_8966adf124d5a9::t_1ece313e718efc 69-70
+  s_8966adf124d5a9::t_dfbcc3f2fc2396 89-93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e14893165e052acbb7ca0b6a44143304cdc3d3c1",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
