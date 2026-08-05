@@ -1,6 +1,8 @@
 import asyncio
 import json
+import logging
 import os
+import time
 import uuid
 
 import aiohttp
@@ -13,6 +15,122 @@ MODEL = "ornith:9b"
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
 REQUEST_TIMEOUT_SECONDS = float(os.environ.get("NF_REQUEST_TIMEOUT", "120"))
+DEFAULT_MIN_BATCH = int(os.environ.get("NF_MIN_BATCH", "2"))
+DEFAULT_MAX_BATCH = int(os.environ.get("NF_MAX_BATCH", "32"))
+DEFAULT_TARGET_TOKENS = int(os.environ.get("NF_TARGET_TOKENS", "4096"))
+DEFAULT_BACKOFF_BASE = float(os.environ.get("NF_BACKOFF_BASE", "2.0"))
+DEFAULT_BACKOFF_MAX = float(os.environ.get("NF_BACKOFF_MAX", "60.0"))
+
+logger = logging.getLogger(__name__)
+
+
+class RateLimitError(Exception):
+    """Raised when the endpoint returns HTTP 429."""
+
+
+class BatchController:
+    """Dynamic batch-size controller with token + rate-limit backpressure.
+
+    Records per-batch metrics (duration, tokens, 429 status) and adjusts the
+    live batch size between ``min_batch_size`` and ``max_batch_size``. When a
+    batch is rate-limited, the controller shrinks the batch size and schedules
+    an exponential backoff delay (``backoff_base ** consecutive_429s``, capped
+    at ``backoff_max``). A single successful batch clears the backoff counter.
+
+    Algorithm:
+        - 429          -> halve batch size; increment consecutive_429 counter
+        - tokens>budget-> shrink proportionally to overrun ratio
+        - per-slot >1s -> decrement by one
+        - healthy      -> increment by one toward max
+
+    Each adjustment that changes the size emits one ``logger.info`` log line
+    with the prior size, new size, the reason string, and the metrics that
+    drove it, so observability stays a single line per transition.
+    """
+
+    def __init__(
+        self,
+        *,
+        initial_batch_size: int,
+        min_batch_size: int,
+        max_batch_size: int,
+        target_tokens_per_batch: int,
+        backoff_base: float = 2.0,
+        backoff_max: float = 60.0,
+    ) -> None:
+        if min_batch_size < 1:
+            raise ValueError("min_batch_size must be >= 1")
+        if max_batch_size < min_batch_size:
+            raise ValueError("max_batch_size must be >= min_batch_size")
+        self._min = min_batch_size
+        self._max = max_batch_size
+        self._target_tokens = target_tokens_per_batch
+        self._size = self._clamp(initial_batch_size)
+        self._backoff_base = backoff_base
+        self._backoff_max = backoff_max
+        self._consecutive_429 = 0
+        self._last_duration: float = 0.0
+        self._last_tokens: int = 0
+        self._last_rate_limited: bool = False
+
+    @property
+    def current_batch_size(self) -> int:
+        return self._size
+
+    def _clamp(self, value: int) -> int:
+        return max(self._min, min(self._max, value))
+
+    def record_batch(
+        self,
+        *,
+        duration_seconds: float,
+        tokens_used: int,
+        rate_limited: bool,
+    ) -> None:
+        self._last_duration = max(0.0, duration_seconds)
+        self._last_tokens = max(0, tokens_used)
+        self._last_rate_limited = rate_limited
+        if rate_limited:
+            self._consecutive_429 += 1
+        else:
+            self._consecutive_429 = 0
+
+    def adjust(self) -> int:
+        prev = self._size
+        if self._last_rate_limited:
+            new_size = max(self._min, self._size // 2)
+        elif self._last_tokens > self._target_tokens:
+            ratio = self._target_tokens / max(1, self._last_tokens)
+            new_size = max(self._min, int(self._size * ratio))
+        elif self._last_duration > 0 and self._last_duration / self._size > 1.0:
+            new_size = max(self._min, self._size - 1)
+        else:
+            new_size = min(self._max, self._size + 1)
+        new_size = self._clamp(new_size)
+        if new_size != prev:
+            logger.info(
+                "batch_size_adjusted prev=%d new=%d reason=%s duration=%.3fs tokens=%d rate_limited=%s",
+                prev,
+                new_size,
+                "rate_limited"
+                if self._last_rate_limited
+                else "token_overrun"
+                if self._last_tokens > self._target_tokens
+                else "slow"
+                if self._last_duration / max(1, self._size) > 1.0
+                else "healthy",
+                self._last_duration,
+                self._last_tokens,
+                self._last_rate_limited,
+            )
+        self._size = new_size
+        return new_size
+
+    def backoff_delay(self) -> float:
+        if self._consecutive_429 <= 0:
+            return 0.0
+        delay = self._backoff_base**self._consecutive_429
+        return min(delay, self._backoff_max)
 
 
 async def _chat_completion(

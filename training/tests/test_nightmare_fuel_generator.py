@@ -128,3 +128,107 @@ class TestSyncWrappers:
             nfg.main()
 
         export_mock.assert_called_once()
+
+
+class TestBatchController:
+    def test_initial_batch_size_within_bounds(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=8,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        assert ctrl.current_batch_size == 8
+
+    def test_clamps_initial_to_min(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=1,
+            min_batch_size=4,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        assert ctrl.current_batch_size == 4
+
+    def test_clamps_initial_to_max(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=99,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        assert ctrl.current_batch_size == 32
+
+    def test_grow_on_fast_low_token_batches(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=4,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        # Fast + under token budget -> grow.
+        ctrl.record_batch(duration_seconds=0.2, tokens_used=512, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.current_batch_size > 4
+
+    def test_shrink_on_slow_batches(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        # Slow per-slot: 20s over 16 concurrent slots ~ 1.25s/slot > 1s threshold -> shrink.
+        ctrl.record_batch(duration_seconds=20.0, tokens_used=1024, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.current_batch_size < 16
+
+    def test_shrink_on_token_overrun(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=2048,
+        )
+        ctrl.record_batch(duration_seconds=0.2, tokens_used=4096, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.current_batch_size < 16
+
+    def test_rate_limit_triggers_backoff_and_shrink(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
+        ctrl.adjust()
+        assert ctrl.current_batch_size < 16
+        assert ctrl.backoff_delay() > 0.0
+
+    def test_backoff_clears_after_successful_batch(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=16,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+        )
+        ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
+        ctrl.adjust()
+        assert ctrl.backoff_delay() > 0.0
+        ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=False)
+        ctrl.adjust()
+        assert ctrl.backoff_delay() == 0.0
+
+    def test_exponential_backoff_caps_at_max(self):
+        ctrl = nfg.BatchController(
+            initial_batch_size=4,
+            min_batch_size=2,
+            max_batch_size=32,
+            target_tokens_per_batch=4096,
+            backoff_base=2.0,
+            backoff_max=10.0,
+        )
+        for _ in range(5):
+            ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
+            ctrl.adjust()
+        assert ctrl.backoff_delay() <= 10.0
