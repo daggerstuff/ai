@@ -183,6 +183,7 @@ async def generate_nightmare_scenario_async(
     *,
     domain_gap=None,
     difficulty=None,
+    token_counter: dict | None = None,
 ) -> str:
     print("Generating Nightmare Scenario...")
     prompt = _build_scenario_prompt(domain_gap=domain_gap, difficulty=difficulty)
@@ -190,6 +191,7 @@ async def generate_nightmare_scenario_async(
         session,
         [{"role": "user", "content": prompt}],
         temperature=0.9,
+        token_counter=token_counter,
     )
 
 
@@ -226,7 +228,12 @@ def _parse_transcript(transcript: str, scenario: str) -> dict:
     return {"scenario": scenario, "messages": messages}
 
 
-async def simulate_therapy_session_async(session: aiohttp.ClientSession, scenario: str) -> dict:
+async def simulate_therapy_session_async(
+    session: aiohttp.ClientSession,
+    scenario: str,
+    *,
+    token_counter: dict | None = None,
+) -> dict:
     print("Simulating Session...")
     prompt = (
         f"Based on this nightmare scenario: {scenario}\n\n"
@@ -239,6 +246,7 @@ async def simulate_therapy_session_async(session: aiohttp.ClientSession, scenari
         session,
         [{"role": "user", "content": prompt}],
         temperature=0.8,
+        token_counter=token_counter,
     )
     return _parse_transcript(transcript, scenario)
 
@@ -248,11 +256,12 @@ async def _generate_case(
     semaphore: asyncio.Semaphore,
     case_index: int,
     total_cases: int,
+    token_counter: dict | None = None,
 ) -> dict | None:
     async with semaphore:
         print(f"\n--- Generating Case {case_index + 1}/{total_cases} ---")
-        scenario = await generate_nightmare_scenario_async(session)
-        session_data = await simulate_therapy_session_async(session, scenario)
+        scenario = await generate_nightmare_scenario_async(session, token_counter=token_counter)
+        session_data = await simulate_therapy_session_async(session, scenario, token_counter=token_counter)
         if len(session_data["messages"]) < 2:
             return None
 
@@ -269,13 +278,85 @@ async def generate_cases_async(
     *,
     num_cases: int = DEFAULT_NUM_CASES,
     concurrency: int = DEFAULT_CONCURRENCY,
+    min_batch_size: int = DEFAULT_MIN_BATCH,
+    max_batch_size: int = DEFAULT_MAX_BATCH,
+    target_tokens_per_batch: int = DEFAULT_TARGET_TOKENS,
+    backoff_base: float = DEFAULT_BACKOFF_BASE,
+    backoff_max: float = DEFAULT_BACKOFF_MAX,
 ) -> list[dict]:
-    semaphore = asyncio.Semaphore(max(1, concurrency))
+    controller = BatchController(
+        initial_batch_size=max(1, concurrency),
+        min_batch_size=min_batch_size,
+        max_batch_size=max_batch_size,
+        target_tokens_per_batch=target_tokens_per_batch,
+        backoff_base=backoff_base,
+        backoff_max=backoff_max,
+    )
+    semaphore = asyncio.Semaphore(controller.current_batch_size)
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        tasks = [_generate_case(session, semaphore, case_index, num_cases) for case_index in range(num_cases)]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-    return [case for case in results if not isinstance(case, Exception) and case is not None]
+        remaining = list(range(num_cases))
+        survivors: list[dict] = []
+        total_cases = num_cases
+        while remaining:
+            batch_size = controller.current_batch_size
+            batch_indices = remaining[:batch_size]
+            remaining = remaining[batch_size:]
+
+            delay = controller.backoff_delay()
+            if delay > 0:
+                logger.info(
+                    "nightmare_fuel backoff %.2fs before next batch of %d cases",
+                    delay,
+                    len(batch_indices),
+                )
+                await asyncio.sleep(delay)
+
+            token_counter: dict = {}
+            batch_start = time.monotonic()
+            tasks = [
+                _generate_case(session, semaphore, idx, total_cases, token_counter=token_counter)
+                for idx in batch_indices
+            ]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            batch_duration = time.monotonic() - batch_start
+
+            rate_limited = any(isinstance(r, RateLimitError) for r in results)
+            tokens_used = token_counter.get("total_tokens", 0)
+            controller.record_batch(
+                duration_seconds=batch_duration,
+                tokens_used=tokens_used,
+                rate_limited=rate_limited,
+            )
+            old_size = controller.current_batch_size
+            controller.adjust()
+            new_size = controller.current_batch_size
+            if new_size != old_size:
+                logger.info(
+                    "nightmare_fuel batch size %d -> %d (rate_limited=%s, tokens=%d, duration=%.2fs)",
+                    old_size,
+                    new_size,
+                    rate_limited,
+                    tokens_used,
+                    batch_duration,
+                )
+                # Resize semaphore to match the new batch size.
+                # asyncio.Semaphore has no public resizer; mutating _value is the
+                # documented workaround (CPython implementation detail stable since 3.5).
+                semaphore._value = new_size  # type: ignore[attr-defined]
+
+            for r in results:
+                if isinstance(r, RateLimitError):
+                    # Rate-limited cases are dropped; caller may retry later.
+                    continue
+                if isinstance(r, Exception):
+                    # Re-raise unexpected errors after recording so we don't
+                    # silently mask real failures.
+                    raise r
+                if not isinstance(r, dict):
+                    continue
+                survivors.append(r)
+        return survivors
 
 
 def get_judge_prompt():

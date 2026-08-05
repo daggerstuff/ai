@@ -88,7 +88,7 @@ class TestAsyncGeneration:
             in_flight -= 1
             return f"scenario-{call_count}"
 
-        async def fake_session(_session, scenario):
+        async def fake_session(_session, scenario, **_kw):
             return {
                 "scenario": scenario,
                 "messages": [
@@ -302,3 +302,118 @@ class TestChatCompletion429:
             temperature=0.5,
         )
         assert result == "ok"
+
+
+class TestGenerateCasesBatched:
+    """PIX-4234: generate_cases_async uses BatchController for dynamic sizing."""
+
+    @pytest.mark.asyncio
+    async def test_concurrency_kwarg_seeds_initial_batch_size(self):
+        """concurrency kwarg must seed BatchController so first batch is >= concurrency."""
+        # 6 cases, concurrency=4 -> BatchController should start at 4 -> all 6 dispatched
+        # across 2 batches.  Both batches must see concurrent in_flight.
+        call_count = 0
+        in_flight = 0
+        max_in_flight = 0
+
+        async def fake_scenario(*_args, **_kwargs):
+            nonlocal call_count, in_flight, max_in_flight
+            call_count += 1
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.01)
+            in_flight -= 1
+            return f"scenario-{call_count}"
+
+        async def fake_session(_session, scenario, **_kw):
+            return {
+                "scenario": scenario,
+                "messages": [
+                    {"role": "user", "content": "Patient line"},
+                    {"role": "assistant", "content": "Therapist line"},
+                ],
+            }
+
+        with (
+            patch.object(nfg, "generate_nightmare_scenario_async", side_effect=fake_scenario),
+            patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
+        ):
+            cases = await nfg.generate_cases_async(num_cases=6, concurrency=4)
+
+        assert len(cases) == 6
+        assert call_count == 6
+        assert max_in_flight > 1, "batch sizing not achieving concurrency"
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_errors_dropped_but_pipeline_continues(self):
+        """When _generate_case raises RateLimitError, batch drops it but continues."""
+        # 5 cases; first 2 raise RateLimitError, rest succeed.
+        call_count = 0
+
+        async def fake_scenario(*_args, **_kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 2:
+                raise nfg.RateLimitError("simulated 429")
+            await asyncio.sleep(0.01)
+            return f"scenario-{call_count}"
+
+        async def fake_session(_session, scenario, **_kw):
+            return {
+                "scenario": scenario,
+                "messages": [
+                    {"role": "user", "content": "p"},
+                    {"role": "assistant", "content": "t"},
+                ],
+            }
+
+        with (
+            patch.object(nfg, "generate_nightmare_scenario_async", side_effect=fake_scenario),
+            patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
+        ):
+            cases = await nfg.generate_cases_async(num_cases=5, concurrency=5)
+
+        # First 2 raised RateLimitError -> dropped; last 3 survived.
+        assert len(cases) == 3
+        assert call_count == 5
+
+    @pytest.mark.asyncio
+    async def test_backoff_delay_applied_after_rate_limit(self):
+        """After a rate-limited batch, next batch must await the backoff delay."""
+        call_count = 0
+        backoff_observed = 0.0
+
+        async def fake_scenario(*_args, **_kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 2:
+                raise nfg.RateLimitError("simulated 429")
+            await asyncio.sleep(0.01)
+            return f"scenario-{call_count}"
+
+        async def fake_session(_session, scenario, **_kw):
+            return {
+                "scenario": scenario,
+                "messages": [
+                    {"role": "user", "content": "p"},
+                    {"role": "assistant", "content": "t"},
+                ],
+            }
+
+        async def fake_sleep(delay, *_a, **_kw):
+            nonlocal backoff_observed
+            backoff_observed = max(backoff_observed, delay)
+
+        with (
+            patch.object(nfg, "generate_nightmare_scenario_async", side_effect=fake_scenario),
+            patch.object(nfg, "simulate_therapy_session_async", side_effect=fake_session),
+            patch.object(nfg.asyncio, "sleep", side_effect=fake_sleep),
+        ):
+            await nfg.generate_cases_async(
+                num_cases=4,
+                concurrency=2,
+                backoff_base=2.0,
+                backoff_max=10.0,
+            )
+
+        assert backoff_observed > 0, "expected backoff delay after rate-limited batch"
