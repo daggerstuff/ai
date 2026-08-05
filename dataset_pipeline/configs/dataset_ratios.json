@@ -1,7 +1,9 @@
 {
-  "psychology_knowledge": 0.30,
-  "voice_training": 0.25,
-  "mental_health_conversations": 0.20,
-  "reasoning_enhancement": 0.15,
-  "personality_balancing": 0.10
+  "psychology_knowledge": 0.25,
+  "voice_training": 0.2,
+  "mental_health_conversations": 0.15,
+  "reasoning_enhancement": 0.1,
+  "personality_balancing": 0.08,
+  "edge_cases": 0.12,
+  "crisis_intervention": 0.1
 }

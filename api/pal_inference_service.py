@@ -29,7 +29,7 @@ from pydantic import BaseModel, Field
 # Ensure the pal_framework package is importable
 # ---------------------------------------------------------------------------
 _TRAINING_CORPUS = str(
-    Path(__file__).resolve().parents[1] / "training_corpus" / "pal_framework",
+    Path(__file__).resolve().parents[1] / "training_corpus" / "wrapper" / "pal_framework",
 )
 if _TRAINING_CORPUS not in sys.path:
     sys.path.insert(0, _TRAINING_CORPUS)
