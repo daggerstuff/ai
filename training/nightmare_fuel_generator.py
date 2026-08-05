@@ -28,8 +28,8 @@ human-readable progress snapshot and lets a coordinator process know which
 category is in flight.
 """
 
-import math
 from __future__ import annotations
+import math
 
 import argparse
 import asyncio
