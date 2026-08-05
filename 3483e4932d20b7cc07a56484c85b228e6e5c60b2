@@ -1,0 +1,22 @@
+training/curate_pipeline.py
+  s_8966adf124d5a9::t_39fd76d7e0203d 50-79,85
+  s_8966adf124d5a9::t_aebd12b5190039 262,264-267,270-274
+  s_8966adf124d5a9::t_d3b9194c3e4e07 419-421
+  s_8966adf124d5a9::t_49c32f5a36f199 30,92,98-106,114,155,163,192,196,204,220,334,414,417-418,422-423,429,433,440,444
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "3483e4932d20b7cc07a56484c85b228e6e5c60b2",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
