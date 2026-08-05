@@ -40,9 +40,9 @@ Translate dense Vietnamese Meddies JSON into fluid English NL persona strings.
 
 Two SFT tasks per the paper, joined into one JSONL.
 
-* [x] **2.1 Persona selection (Task 1)** — `ai/training_corpus/wrapper/pal_framework/generate_selection_dataset.py`. Builds prompts that ask the model to pick the correct persona from 3–4 distractors given a dialogue. PIX-4072.
-* [x] **2.2 Persona-conditioned dialogue (Task 2)** — `ai/training_corpus/wrapper/pal_framework/generate_sft_dialogue.py`. Builds `messages`-format ChatML records; assistant turn = persona-adherent response. PIX-4073.
-* [x] **2.3 Unified 10k JSONL** — `ai/training_corpus/wrapper/pal_framework/build_unified_sft.py`. Combines selection + dialogue into one mixed-task file with `task_type` metadata. ChatML-validated.
+* [x] **2.1 Persona selection (Task 1)** — `ai/training_corpus/pal_framework/generate_selection_dataset.py`. Builds prompts that ask the model to pick the correct persona from 3–4 distractors given a dialogue. PIX-4072.
+* [x] **2.2 Persona-conditioned dialogue (Task 2)** — `ai/training_corpus/pal_framework/generate_sft_dialogue.py`. Builds `messages`-format ChatML records; assistant turn = persona-adherent response. PIX-4073.
+* [x] **2.3 Unified 10k JSONL** — `ai/training_corpus/pal_framework/build_unified_sft.py`. Combines selection + dialogue into one mixed-task file with `task_type` metadata. ChatML-validated.
 
 ## Phase 3 — DPO Preference Pairs ✅ (with one open caveat)
 
@@ -68,7 +68,7 @@ The DPO trainer (`ai/training/dpo_trainer.py`) has its safety filter **disabled*
 
 ## Phase 4 — Select-then-Generate Inference ✅
 
-* [x] **4.1 Inference wrapper** — `ai/training_corpus/wrapper/pal_framework/inference_wrapper.py`. Two-stage inference: (1) select persona from dialogue, (2) condition generation on the selected persona. 2.0s latency budget. PIX-4077.
+* [x] **4.1 Inference wrapper** — `ai/training_corpus/pal_framework/inference_wrapper.py`. Two-stage inference: (1) select persona from dialogue, (2) condition generation on the selected persona. 2.0s latency budget. PIX-4077.
 
 ## Phase 5 — Evaluation (paper §C.score) ✅
 
@@ -87,18 +87,18 @@ The DPO trainer (`ai/training/dpo_trainer.py`) has its safety filter **disabled*
 
 | Phase | File | Purpose |
 |---|---|---|
-| 1.1 | `training_corpus/wrapper/pal_framework/meddies_to_pal.py` | Fixture → NL persona |
-| 1.2 | `training_corpus/wrapper/pal_framework/meddies_adapter.py` | Real Meddies → fixture |
-| 1.3 | `training_corpus/wrapper/pal_framework/test_meddies_to_pal.py` | NL formatting tests |
-| 2.1 | `training_corpus/wrapper/pal_framework/generate_selection_dataset.py` | SFT Task 1 |
-| 2.2 | `training_corpus/wrapper/pal_framework/generate_sft_dialogue.py` | SFT Task 2 |
-| 2.3 | `training_corpus/wrapper/pal_framework/build_unified_sft.py` | Unified mixed-task JSONL |
-| 3.1 | `training_corpus/wrapper/pal_framework/generate_dpo_pairs.py` | DPO pair generation |
-| 3.2 | `training_corpus/wrapper/pal_framework/lint_dpo_dataset.py` | DPO schema lint |
+| 1.1 | `training_corpus/pal_framework/meddies_to_pal.py` | Fixture → NL persona |
+| 1.2 | `training_corpus/pal_framework/meddies_adapter.py` | Real Meddies → fixture |
+| 1.3 | `training_corpus/pal_framework/test_meddies_to_pal.py` | NL formatting tests |
+| 2.1 | `training_corpus/pal_framework/generate_selection_dataset.py` | SFT Task 1 |
+| 2.2 | `training_corpus/pal_framework/generate_sft_dialogue.py` | SFT Task 2 |
+| 2.3 | `training_corpus/pal_framework/build_unified_sft.py` | Unified mixed-task JSONL |
+| 3.1 | `training_corpus/pal_framework/generate_dpo_pairs.py` | DPO pair generation |
+| 3.2 | `training_corpus/pal_framework/lint_dpo_dataset.py` | DPO schema lint |
 | 3.3 | `training/dpo_trainer.py` | Trainer loader (schema coerce) |
 | 3.4 | `training/tests/test_dpo_trainer.py` | Trainer tests |
-| 3.5 | `training_corpus/wrapper/pal_framework/meddies_synthesizer.py` (`_persona_blind_prompt`, `_llm_rejected_persona_blind`) | Persona-blind rejected source |
-| 4.1 | `training_corpus/wrapper/pal_framework/inference_wrapper.py` | Select-then-Generate inference |
+| 3.5 | `training_corpus/pal_framework/meddies_synthesizer.py` (`_persona_blind_prompt`, `_llm_rejected_persona_blind`) | Persona-blind rejected source |
+| 4.1 | `training_corpus/pal_framework/inference_wrapper.py` | Select-then-Generate inference |
 | 5.1 | `training/pal_persona_consistency_eval.py` | C.score NLI eval |
 | 5.2 | `training/tests/test_pal_persona_consistency_eval.py` | Eval tests |
 | — | `training/pal_dataloader.py` (271 lines) | PAL-aware SFT/DPO dataloaders for HuggingFace Trainer |
