@@ -231,6 +231,7 @@ class TestBatchController:
         for _ in range(5):
             ctrl.record_batch(duration_seconds=0.5, tokens_used=512, rate_limited=True)
             ctrl.adjust()
+        assert ctrl.backoff_delay() <= 10.0
 
 
 def _mock_429_response() -> MagicMock:

@@ -10,8 +10,13 @@ import pandas as pd
 
 # We will use Ollama locally for generation and evaluation to keep it simple,
 # but it can easily point to NeMo API if you swap the base URL and Key!
-OLLAMA_URL = "https://ollama.pixelated.love/v1/chat/completions"
-MODEL = "ornith:9b"
+OLLAMA_URL = os.environ.get(
+    "NF_OLLAMA_URL",
+    "https://api.cloudflare.com/client/v4/accounts/"
+    + os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+    + "/ai/v1/chat/completions",
+)
+MODEL = os.environ.get("NF_MODEL", "@cf/zai-org/glm-5.2")
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
 REQUEST_TIMEOUT_SECONDS = float(os.environ.get("NF_REQUEST_TIMEOUT", "120"))
@@ -144,7 +149,7 @@ async def _chat_completion(
     async with session.post(
         OLLAMA_URL,
         json=payload,
-        headers={"Authorization": "Bearer dummy"},
+        headers={"Authorization": f"Bearer {os.environ.get('CLOUDFLARE_AUTH_TOKEN', 'dummy')}"},
         timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
     ) as response:
         if response.status == 429:
@@ -153,9 +158,13 @@ async def _chat_completion(
         data = await response.json()
     if token_counter is not None and "usage" in data:
         usage = data["usage"]
-        token_counter["prompt_tokens"] = usage.get("prompt_tokens", 0)
-        token_counter["completion_tokens"] = usage.get("completion_tokens", 0)
-        token_counter["total_tokens"] = usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
+        token_counter["prompt_tokens"] = token_counter.get("prompt_tokens", 0) + usage.get("prompt_tokens", 0)
+        token_counter["completion_tokens"] = token_counter.get("completion_tokens", 0) + usage.get(
+            "completion_tokens", 0
+        )
+        token_counter["total_tokens"] = (
+            token_counter.get("total_tokens", 0) + usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
+        )
     return data["choices"][0]["message"]["content"]
 
 
