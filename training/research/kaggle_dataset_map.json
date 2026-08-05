@@ -4,7 +4,12 @@
     "linear_issue": "PIX-4237",
     "created": "2026-08-05",
     "purpose": "Map Kaggle NLP datasets targeting BPD splitting and CPTSD addiction clinical edge cases",
-    "generator_categories": ["BPD", "CPTSD", "addiction", "trauma"],
+    "generator_categories": [
+      "BPD",
+      "CPTSD",
+      "addiction",
+      "trauma"
+    ],
     "search_queries": [
       "BPD splitting borderline personality disorder NLP dataset",
       "CPTSD complex PTSD addiction substance abuse NLP dataset",
@@ -21,12 +26,17 @@
       "size": "103,488 rows, 46.53 MB",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD"],
+        "categories": [
+          "BPD"
+        ],
         "score": 9,
         "notes": "Contains 'Personality Disorder' label covering unstable moods/behavior patterns - closest available proxy to BPD splitting. 7-class multilabel."
       },
       "description": "Large-scale textual corpus for multiclass psychological status classification. Labels: Anxiety, Normal, Depression, Stress, Personality Disorder, Bipolar, Suicidal. Text is first-person reflections, emotional descriptions, or symptom narratives.",
-      "columns": ["text", "status"],
+      "columns": [
+        "text",
+        "status"
+      ],
       "preprocessing": "Lowercase normalization, remove special chars/URLs, lemmatization, tokenize. Balance 'Personality Disorder' class (only 17% of data). BERT/DistilBERT fine-tuning recommended."
     },
     {
@@ -37,12 +47,17 @@
       "size": "51,074 rows, ~30 MB",
       "license": "CC BY-SA 4.0",
       "relevance": {
-        "categories": ["BPD"],
+        "categories": [
+          "BPD"
+        ],
         "score": 9,
-        "notes": "Aggregated from multiple Kaggle sources including personality disorder, stress, bipolar, suicidal. 'Personality disorder' label maps to AvPD but contains BPD-adjacent content."
+        "notes": "Aggregated from multiple Kaggle sources including personality disorder, stress, bipolar, suicidal. 'Personality Disorder' label maps to BPD (closest Kaggle proxy — captures unstable moods/behaviors characteristic of BPD splitting)."
       },
       "description": "Curated amalgamation of multiple publicly available mental health datasets from Kaggle. Sources include: 3k Conversations Dataset for Chatbot, Depression Reddit Cleaned, Human Stress Prediction, Mental Health Dataset Bipolar, Reddit Mental Health Data, Students Anxiety and Depression Dataset, Suicidal Mental Health Dataset, Suicidal Tweet Detection Dataset.",
-      "columns": ["statement", "status"],
+      "columns": [
+        "statement",
+        "status"
+      ],
       "preprocessing": "LabelEncoder for 7-class target. Clean text, remove special chars. BERT tokenizer w/ max_length=128. Stratified 80/20 split."
     },
     {
@@ -53,12 +68,20 @@
       "size": "~701,809 rows",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD", "CPTSD"],
+        "categories": [
+          "BPD",
+          "CPTSD"
+        ],
         "score": 10,
         "notes": "Direct BPD subreddit label. Also includes anxiety, depression, bipolar, mental illness, schizophrenia. No explicit CPTSD label but PTSD-adjacent subreddits present."
       },
       "description": "User-generated text from Reddit mental health subreddits. Categorized by subreddit origin: BPD, Anxiety, Depression, Bipolar, Mental Illness, Schizophrenia. Combined_text field concatenates title + body.",
-      "columns": ["subreddit", "title", "body", "combined_text"],
+      "columns": [
+        "subreddit",
+        "title",
+        "body",
+        "combined_text"
+      ],
       "preprocessing": "Combine title+body into combined_text. Remove nulls. Clean punctuation, stop words, special chars. Word2Vec embeddings. Lemmatization. Tokenize."
     },
     {
@@ -69,12 +92,17 @@
       "size": "~49,301 rows per class (balanced 4-class)",
       "license": "CC BY 4.0",
       "relevance": {
-        "categories": ["BPD"],
+        "categories": [
+          "BPD"
+        ],
         "score": 6,
         "notes": "4-class only (Anxiety, Depression, Normal, Suicidal) - no personality disorder class. Useful as control/baseline."
       },
       "description": "Curated, cleaned, relabeled 4-class corpus combining Suicide Watch, Sentiment Analysis for Mental Health, and Murarka Reddit Mental Health Classification. Balanced classes.",
-      "columns": ["text", "label"],
+      "columns": [
+        "text",
+        "label"
+      ],
       "preprocessing": "Pre-cleaned. Stratified 80/10/10 split. MentalBERT fine-tuning recommended."
     },
     {
@@ -85,12 +113,17 @@
       "size": "197,204 rows, 118.18 MB",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD"],
+        "categories": [
+          "BPD"
+        ],
         "score": 5,
         "notes": "4-class only (Anxiety, Depression, Normal, Suicidal). No BPD/CPTSD specificity but massive balanced volume."
       },
       "description": "Balanced text dataset w/ 4 mental health categories: Anxiety, Depression, Normal, Suicidal. Fully balanced w/ 49,301 samples per class.",
-      "columns": ["text", "label"],
+      "columns": [
+        "text",
+        "label"
+      ],
       "preprocessing": "Pre-balanced. Standard NLP cleaning. Good for baseline training."
     },
     {
@@ -101,12 +134,18 @@
       "size": "~50,700 rows (5 balanced classes)",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD"],
+        "categories": [
+          "BPD"
+        ],
         "score": 4,
         "notes": "5-class: Depression, Anxiety, Suicide, Neutral, Casual. No BPD/CPTSD labels."
       },
       "description": "Balanced 5-class social media dataset for mental health text analysis. Labels: Depression, Anxiety, Suicide, Neutral, Casual.",
-      "columns": ["text", "advanced_label", "label_name"],
+      "columns": [
+        "text",
+        "advanced_label",
+        "label_name"
+      ],
       "preprocessing": "Pre-balanced. Low complexity preprocessing."
     },
     {
@@ -117,12 +156,17 @@
       "size": "Unknown (Kaggle page requires auth)",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD", "CPTSD"],
+        "categories": [
+          "BPD",
+          "CPTSD"
+        ],
         "score": 6,
         "notes": "Requires Kaggle auth to inspect. TBD - inspect post-download for labels."
       },
       "description": "Mental health text corpus. Structure TBD pending Kaggle auth inspection.",
-      "columns": ["TBD"],
+      "columns": [
+        "TBD"
+      ],
       "preprocessing": "TBD"
     },
     {
@@ -133,12 +177,17 @@
       "size": "Unknown (Kaggle page crashed on scrape)",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD", "CPTSD"],
+        "categories": [
+          "BPD",
+          "CPTSD"
+        ],
         "score": 5,
         "notes": "Needs manual inspection for label coverage."
       },
       "description": "Mental health text dataset. Kaggle page returned rendering error during scraping - requires manual inspection.",
-      "columns": ["TBD"],
+      "columns": [
+        "TBD"
+      ],
       "preprocessing": "TBD"
     },
     {
@@ -149,12 +198,17 @@
       "size": "Unknown (CAPTCHA-gated)",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD", "CPTSD"],
+        "categories": [
+          "BPD",
+          "CPTSD"
+        ],
         "score": 6,
         "notes": "Reddit-sourced. CAPTCHA blocked inspection. Manual review needed."
       },
       "description": "Reddit-based sentiment and mental health dataset. Kaggle CAPTCHA blocked automated inspection.",
-      "columns": ["TBD"],
+      "columns": [
+        "TBD"
+      ],
       "preprocessing": "TBD"
     },
     {
@@ -165,46 +219,44 @@
       "size": "~53,000 rows, 31.47 MB",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD"],
+        "categories": [
+          "BPD"
+        ],
         "score": 8,
         "notes": "7-class including Personality Disorder and Bipolar. Similar to Mental Health Condition Classification but aggregated from different sources."
       },
       "description": "Aggregated mental health statements from Reddit, Twitter, social media. 7 classes: Depression, Suicidal, Anxiety, Stress, Bipolar, Personality Disorder, Normal. Combined Data.csv format.",
-      "columns": ["id", "statement", "status"],
-      "preprocessing": "Standard NLP: lowercase, remove punctuation/stopwords, lemmatize. Multi-class classification. ~2,652 samples per class (balanced)."
-    },
-    {
-      "id": "lancaster-bbrd-bpd",
-      "name": "BPD and Behaviour Reddit Dataset (BBRD)",
-      "url": "https://research.lancaster-university.uk/en/datasets/bpd-and-behaviour-reddit-dataset-bbrd/",
-      "format": "CSV (gated, request access)",
-      "size": "68,590 posts from 992 unique users; ~17,000 manually annotated for clinical behaviors",
-      "license": "CC BY (non-commercial research, data usage agreement required)",
-      "relevance": {
-        "categories": ["BPD"],
-        "score": 10,
-        "notes": "GOLD STANDARD for BPD. Manually verified BPD self-identification. Clinically annotated behaviors including suicidality, self-harm, substance use, impulsive behaviors, intense emotions. Direct BPD splitting signal source."
-      },
-      "description": "Reddit posts from r/BPD and r/BorderlinePDisorder subreddits, 992 users w/ self-identified BPD (manually verified). Oct 2011 - Dec 2023. Includes clinically meaningful behavior annotations by trained raters: suicidality (attempts/ideation, recent/past), deliberate self-harm, psychiatric medication usage, therapy behaviors, substance use, impulsive behaviors, psychotic symptoms, social behaviors, intense emotions. ~17,000 posts manually annotated.",
-      "columns": ["post_text", "post_date", "post_score", "num_comments", "subreddit", "user_demographics", "suicidality", "self_harm", "medication_usage", "therapy_behaviors", "substance_use", "impulsive_behaviors", "psychotic_symptoms", "social_behaviors", "intense_emotions"],
-      "preprocessing": "Request access via Data Usage Agreement. Text already cleaned. Use behavioral annotation columns for supervised BPD splitting cycle labels (idealization/devaluation). Link posts per user for temporal pattern extraction."
+      "columns": [
+        "id",
+        "statement",
+        "status"
+      ],
+      "preprocessing": "Standard NLP: lowercase, remove punctuation/stopwords, lemmatize. Multi-class classification. ~53,000 rows across 7 classes (imbalanced; 'Personality Disorder' is the smallest class)."
     },
     {
       "id": "kaggle-mental-health-subreddits-konopelko",
       "name": "Mental Health Subreddits (Konopelko)",
       "url": "https://www.kaggle.com/code/lizakonopelko/mental-health-subreddits/notebook",
-      "format": "CSV (train/test split)",
+      "format": "CSV (Kaggle notebook, not direct dataset page)",
       "size": "Unknown",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["CPTSD"],
+        "categories": [
+          "CPTSD"
+        ],
         "score": 7,
         "notes": "Binary Depression vs PTSD classification. PTSD is closest proxy to CPTSD available on Kaggle."
       },
       "description": "Reddit comments categorized into Depression or PTSD classes. Train/test split provided. Used in multiple academic studies for PTSD vs anxiety/depression classification.",
-      "columns": ["subreddit", "text", "label"],
-      "preprocessing": "Pre-split. Bag-of-Words, TF-IDF, Word2Vec, FastText embeddings evaluated. Random Forest, Naive Bayes, Logistic Regression, XGBoost classifiers."
-    },
+      "columns": [
+        "subreddit",
+        "text",
+        "label"
+      ],
+      "preprocessing": "Note: URL points to Kaggle notebook, not a direct dataset page. Data is accessible via the notebook. Pre-split. Bag-of-Words, TF-IDF, Word2Vec, FastText embeddings evaluated. Random Forest, Naive Bayes, Logistic Regression, XGBoost classifiers."
+    }
+  ],
+  "models": [
     {
       "id": "kaggle-models-mentalhealth-bert",
       "name": "MentalHealthBERT Fine-Tuned Model",
@@ -213,16 +265,55 @@
       "size": "BERT-base sized",
       "license": "Kaggle terms (public)",
       "relevance": {
-        "categories": ["BPD", "CPTSD"],
+        "categories": [
+          "BPD",
+          "CPTSD"
+        ],
         "score": 8,
         "notes": "Pre-trained mental health NLP model. Transfer learning baseline for our generator. Fine-tuned on 4-class (Anxiety, Depression, Normal, Suicidal) w/ 89.7% accuracy."
       },
       "description": "Fine-tuned mental/mental-bert-base-uncased for 4-class mental health text classification. Achieves 89.7% accuracy. Pre-trained on Reddit mental health conversations - good domain transfer candidate.",
-      "columns": ["N/A (model)"],
+      "columns": [
+        "N/A (model)"
+      ],
       "preprocessing": "Use as base model for domain-adaptive pretraining on BPD/CPTSD corpus. Fine-tune on our edge case labels."
     }
   ],
   "non_kaggle_related_resources": [
+    {
+      "id": "lancaster-bbrd-bpd",
+      "name": "BPD and Behaviour Reddit Dataset (BBRD)",
+      "url": "https://research.lancaster-university.uk/en/datasets/bpd-and-behaviour-reddit-dataset-bbrd/",
+      "format": "CSV (gated, request access)",
+      "size": "68,590 posts from 992 unique users; ~17,000 manually annotated for clinical behaviors",
+      "license": "CC BY (non-commercial research, data usage agreement required)",
+      "relevance": {
+        "categories": [
+          "BPD"
+        ],
+        "score": 10,
+        "notes": "GOLD STANDARD for BPD. Manually verified BPD self-identification. Clinically annotated behaviors including suicidality, self-harm, substance use, impulsive behaviors, intense emotions. Direct BPD splitting signal source."
+      },
+      "description": "Reddit posts from r/BPD and r/BorderlinePDisorder subreddits, 992 users w/ self-identified BPD (manually verified). Oct 2011 - Dec 2023. Includes clinically meaningful behavior annotations by trained raters: suicidality (attempts/ideation, recent/past), deliberate self-harm, psychiatric medication usage, therapy behaviors, substance use, impulsive behaviors, psychotic symptoms, social behaviors, intense emotions. ~17,000 posts manually annotated.",
+      "columns": [
+        "post_text",
+        "post_date",
+        "post_score",
+        "num_comments",
+        "subreddit",
+        "user_demographics",
+        "suicidality",
+        "self_harm",
+        "medication_usage",
+        "therapy_behaviors",
+        "substance_use",
+        "impulsive_behaviors",
+        "psychotic_symptoms",
+        "social_behaviors",
+        "intense_emotions"
+      ],
+      "preprocessing": "Request access via Data Usage Agreement. Text already cleaned. Use behavioral annotation columns for supervised BPD splitting cycle labels (idealization/devaluation). Link posts per user for temporal pattern extraction."
+    },
     {
       "id": "zenodo-reddit-mental-health-3941387",
       "name": "Reddit Mental Health Dataset (Low et al.)",
@@ -231,7 +322,11 @@
       "size": "826,961 unique users across 28 subreddits, 2018-2020",
       "license": "CC BY (research)",
       "relevance": {
-        "categories": ["BPD", "CPTSD", "addiction"],
+        "categories": [
+          "BPD",
+          "CPTSD",
+          "addiction"
+        ],
         "score": 10,
         "notes": "Direct r/bpd, r/ptsd, r/addiction, r/alcoholism subreddits. TF-IDF features pre-extracted. LIWC features included."
       },
@@ -246,7 +341,11 @@
       "size": "Largest public mental health Reddit dataset (orders of magnitude larger than similar resources)",
       "license": "Research access (contact authors)",
       "relevance": {
-        "categories": ["BPD", "CPTSD", "addiction"],
+        "categories": [
+          "BPD",
+          "CPTSD",
+          "addiction"
+        ],
         "score": 9,
         "notes": "9 mental health conditions w/ self-reported diagnoses using high-precision patterns. Matched control users."
       },
@@ -261,7 +360,10 @@
       "size": "322 ACE concepts, 780+ documents w/ suicide concept",
       "license": "MIT (open)",
       "relevance": {
-        "categories": ["CPTSD", "trauma"],
+        "categories": [
+          "CPTSD",
+          "trauma"
+        ],
         "score": 9,
         "notes": "Directly relevant to CPTSD roots (adverse childhood experiences). UMLS CUI concept extraction from Reddit Mental Health Corpus."
       },
@@ -276,7 +378,9 @@
       "size": "1,380 posts, 30 entity types",
       "license": "SMM4H 2024 Shared Task (research access)",
       "relevance": {
-        "categories": ["addiction"],
+        "categories": [
+          "addiction"
+        ],
         "score": 9,
         "notes": "Clinical and social impacts of substance use. 30 entity types. Opioid-focused but transferable."
       },
@@ -291,7 +395,9 @@
       "size": "6,435 documents, 6,267 annotations",
       "license": "Research (contact authors)",
       "relevance": {
-        "categories": ["addiction"],
+        "categories": [
+          "addiction"
+        ],
         "score": 8,
         "notes": "DRUG, DOSE, EFFECT entities. Toxicologist-annotated. 7 drug-related subreddits."
       },
@@ -306,7 +412,10 @@
       "size": "1,500 Reddit posts",
       "license": "Open access (UCL)",
       "relevance": {
-        "categories": ["CPTSD", "trauma"],
+        "categories": [
+          "CPTSD",
+          "trauma"
+        ],
         "score": 10,
         "notes": "6 categories of psychological abuse: Rules/control, Justifying/minimizing/denying, Threats/intimidation, Shaming/degrading, Isolation, Surveillance/monitoring. Relevant to CPTSD etiology (coercive control)."
       },
@@ -321,7 +430,9 @@
       "size": "491 personal stories",
       "license": "CC BY (HuggingFace)",
       "relevance": {
-        "categories": ["addiction"],
+        "categories": [
+          "addiction"
+        ],
         "score": 7,
         "notes": "First-person addiction narratives w/ annotated motivation and danger assessment."
       },
@@ -336,7 +447,9 @@
       "size": "46,934,806 posts/comments from 37 drug subreddits, 2016-2026",
       "license": "Gated (IRB ethics oversight, public-health research only)",
       "relevance": {
-        "categories": ["addiction"],
+        "categories": [
+          "addiction"
+        ],
         "score": 8,
         "notes": "Massive opioid-specific corpus. IRB-gated. Pseudonymized authors."
       },
@@ -351,7 +464,10 @@
       "size": "5,561 victim narratives",
       "license": "Research access (accredited researchers only)",
       "relevance": {
-        "categories": ["CPTSD", "trauma"],
+        "categories": [
+          "CPTSD",
+          "trauma"
+        ],
         "score": 9,
         "notes": "Victim narratives from DV/sexual assault subreddits. LLM feature extraction. Causal DAG modeling between narrative elements."
       },
@@ -366,7 +482,10 @@
       "size": "75,985 posts from 4 subreddits, 966 annotated",
       "license": "Research access (Boğaziçi University IRB exempt)",
       "relevance": {
-        "categories": ["BPD", "trauma"],
+        "categories": [
+          "BPD",
+          "trauma"
+        ],
         "score": 8,
         "notes": "NPD trait detection - adjacent to BPD (Cluster B). Relevant to CPTSD originating from narcissistic abuse."
       },

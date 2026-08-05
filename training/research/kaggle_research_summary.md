@@ -98,7 +98,7 @@ Ranked by composite relevance to Nightmare Fuel generator seed categories (BPD, 
 - **License:** Kaggle terms (public)
 - **Relevance:** BPD=8
 - **Contents:** 7-class (Depression, Suicidal, Anxiety, Stress, Bipolar, Personality Disorder, Normal). Aggregated from Reddit, Twitter, social media.
-- **Preprocessing:** Lowercase, remove punctuation/stopwords, lemmatize. Multi-class. ~2,652 samples per class (balanced).
+- **Preprocessing:** Lowercase, remove punctuation/stopwords, lemmatize. Multi-class. ~53,000 rows across 7 classes (imbalanced; 'Personality Disorder' is smallest class).
 - **Maps to:** BPD via Personality Disorder class. Aggregate source diversity complements other BPD proxy datasets.
 
 ### 10. MentalHealthBERT Fine-Tuned Model — Kaggle Models
