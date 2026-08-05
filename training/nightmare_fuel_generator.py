@@ -8,7 +8,7 @@ import pandas as pd
 
 # We will use Ollama locally for generation and evaluation to keep it simple,
 # but it can easily point to NeMo API if you swap the base URL and Key!
-OLLAMA_URL = "https://ollama.[REDACTED].love/v1/chat/completions"
+OLLAMA_URL = "https://ollama.pixelated.love/v1/chat/completions"
 MODEL = "ornith:9b"
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
@@ -68,7 +68,7 @@ async def generate_nightmare_scenario_async(
 
 
 def generate_nightmare_scenario(domain_gap=None, difficulty=None) -> str:
-    """Sync wrapper for callers that are not already running an event loop."""
+    """Sync wrapper that works in both sync and async contexts."""
 
     async def _run() -> str:
         timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
@@ -79,7 +79,15 @@ def generate_nightmare_scenario(domain_gap=None, difficulty=None) -> str:
                 difficulty=difficulty,
             )
 
-    return asyncio.run(_run())
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(_run())
+
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, _run()).result()
 
 
 def _parse_transcript(transcript: str, scenario: str) -> dict:
@@ -139,11 +147,9 @@ async def generate_cases_async(
     semaphore = asyncio.Semaphore(max(1, concurrency))
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        tasks = [
-            _generate_case(session, semaphore, case_index, num_cases) for case_index in range(num_cases)
-        ]
-        results = await asyncio.gather(*tasks)
-    return [case for case in results if case is not None]
+        tasks = [_generate_case(session, semaphore, case_index, num_cases) for case_index in range(num_cases)]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+    return [case for case in results if not isinstance(case, Exception) and case is not None]
 
 
 def get_judge_prompt():

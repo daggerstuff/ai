@@ -76,10 +76,16 @@ class TestAsyncGeneration:
     @pytest.mark.asyncio
     async def test_generate_cases_async_runs_concurrently(self):
         call_count = 0
+        in_flight = 0
+        max_in_flight = 0
 
         async def fake_scenario(*_args, **_kwargs):
-            nonlocal call_count
+            nonlocal call_count, in_flight, max_in_flight
             call_count += 1
+            in_flight += 1
+            max_in_flight = max(max_in_flight, in_flight)
+            await asyncio.sleep(0.01)
+            in_flight -= 1
             return f"scenario-{call_count}"
 
         async def fake_session(_session, scenario):
@@ -99,6 +105,7 @@ class TestAsyncGeneration:
 
         assert len(cases) == 3
         assert call_count == 3
+        assert max_in_flight > 1, "concurrency not achieved: tasks ran sequentially"
 
 
 class TestSyncWrappers:
@@ -110,11 +117,13 @@ class TestSyncWrappers:
         ):
             assert nfg.generate_nightmare_scenario() == "sync scenario"
 
-    def test_main_runs_async_pipeline(self):
+    def test_main_runs_async_pipeline(self, tmp_path):
         with (
             patch.object(nfg, "generate_cases_async", new=AsyncMock(return_value=[{"id": "1"}])),
             patch.object(nfg, "_run_clinical_gate", return_value=MagicMock(empty=False, iterrows=lambda: [])),
             patch.object(nfg, "_export_survivors") as export_mock,
+            patch.object(nfg.os, "makedirs"),
+            patch.object(nfg.pd.DataFrame, "to_json"),
         ):
             nfg.main()
 
