@@ -198,12 +198,13 @@ async def rollout(model: art.TrainableModel, messages: list[dict]) -> art.Trajec
         metrics={},
     )
 
-    client = model.openai_client
+    client = model.openai_client()
     completion = await client.chat.completions.create(
         model=model.get_inference_name(),
         messages=trajectory.messages(),
         max_tokens=DEFAULT_MAX_TOKENS,
         temperature=DEFAULT_TEMP,
+        extra_body={"return_token_ids": True},
     )
     choice = completion.choices[0]
     trajectory.messages_and_choices.append(choice)
@@ -265,7 +266,7 @@ async def run_rl(
             model,
             train_groups,
             learning_rate=learning_rate,
-            precalculate_logprobs=True,
+            precalculate_logprobs=False,
         )
         await model.log(
             train_groups,

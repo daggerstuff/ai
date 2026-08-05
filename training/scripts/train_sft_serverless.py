@@ -122,7 +122,7 @@ async def run_sft(
         sys.exit(1)
 
     print(f"Filtering {TRAIN_FILE.name} (assistant-ending only)...")
-    tmp_path = CURATED_DIR / "train_filtered.jsonl"
+    tmp_path = CURATED_DIR / f"train_filtered_{model_name}.jsonl"
     kept, total = filter_assistant_ending(TRAIN_FILE, tmp_path)
     if max_records and kept > max_records:
         with open(tmp_path) as f:
