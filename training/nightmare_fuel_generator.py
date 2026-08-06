@@ -29,12 +29,12 @@ category is in flight.
 """
 
 from __future__ import annotations
-import math
 
 import argparse
 import asyncio
 import json
 import logging
+import math
 import os
 import time
 import uuid
@@ -655,6 +655,71 @@ def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
     return pd.read_json(final_file, lines=True)
 
 
+def _build_nemo_config_from_env():
+    """Build a NemoConfig from env for the async ClinicalValidityJudge path."""
+    endpoint = os.environ.get("NEMO_ENDPOINT", "") or os.environ.get("NVIDIA_BASE_URL", "")
+    api_key = os.environ.get("NEMO_API_KEY", "") or os.environ.get("NVIDIA_API_KEY", "")
+    if not endpoint or not api_key:
+        return None
+    from training.sdg_pipeline import NemoConfig
+
+    return NemoConfig(
+        endpoint=endpoint,
+        api_key=api_key,
+        model=os.environ.get("NEMO_MODEL", "mistral-nemo"),
+        max_retries=int(os.environ.get("NEMO_MAX_RETRIES", "3")),
+        timeout_seconds=int(os.environ.get("NEMO_TIMEOUT", "20")),
+        min_call_interval_seconds=float(os.environ.get("NEMO_MIN_CALL_INTERVAL", "6.0")),
+    )
+
+
+async def _judge_cases_async(sessions: list[dict]) -> pd.DataFrame:
+    """Judge candidates via AsyncJudgePipeline; returns DataFrame with 1-5 score.
+
+    Score column preserves `_export_survivors`'s expected schema. Cases whose
+    ClinicalValidity validity_score >= NF_ACCEPT_THRESHOLD (default 0.6) are
+    accepted.
+    """
+    from training.clinical_validity_judge_async import AsyncJudgePipeline
+
+    nemo_config = _build_nemo_config_from_env()
+    max_workers = int(os.environ.get("NF_EVAL_CONCURRENCY", "4"))
+    accept_threshold = float(os.environ.get("NF_ACCEPT_THRESHOLD", "0.6"))
+
+    async def _gen():
+        for case in sessions:
+            yield case["id"], case.get("raw_content", "")
+
+    pipeline = AsyncJudgePipeline(
+        nemo_config=nemo_config,
+        max_workers=max(1, max_workers),
+        accept_threshold=accept_threshold,
+    )
+    result = await pipeline.run(_gen())
+
+    print(
+        f"\n[AsyncJudge] generated={result.metrics.generated} "
+        f"evaluated={result.metrics.evaluated} accepted={result.metrics.accepted} "
+        f"rejected={result.metrics.rejected} errors={result.metrics.errors} | "
+        f"gen_throughput={result.metrics.gen_throughput:.2f}/s "
+        f"eval_throughput={result.metrics.eval_throughput:.2f}/s "
+        f"wall={result.metrics.wall_seconds:.2f}s"
+    )
+
+    if not result.accepted:
+        return pd.DataFrame()
+
+    rows = []
+    for item in result.accepted:
+        case = next((c for c in sessions if c["id"] == item["case_id"]), None)
+        if not case:
+            continue
+        case_row = dict(case)
+        case_row["score"] = max(1, min(5, int(round(item["eval"]["validity_score"] * 5))))
+        rows.append(case_row)
+    return pd.DataFrame(rows)
+
+
 async def main_async(  # noqa: PLR0913
     *,
     num_cases: int = DEFAULT_NUM_CASES,
@@ -697,10 +762,14 @@ async def main_async(  # noqa: PLR0913
         checkpoint=checkpoint,
         skip_ids=run_skip_ids,
     )
-    prep_file = "./nf_cache/nf_step0.jsonl"
-    pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)
 
-    final_df = _run_clinical_gate(prep_file)
+    use_async_judge = os.environ.get("NF_USE_ASYNC_JUDGE", "0") == "1"
+    if use_async_judge:
+        final_df = await _judge_cases_async(sessions)
+    else:
+        prep_file = "./nf_cache/nf_step0.jsonl"
+        pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)
+        final_df = _run_clinical_gate(prep_file)
     _export_survivors(final_df)
 
 
