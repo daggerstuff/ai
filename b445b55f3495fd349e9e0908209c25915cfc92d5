@@ -1,0 +1,34 @@
+sourcing/dataset_adapters/mental_health_multiagent_adapter.py
+  s_8966adf124d5a9::t_55f4fa9ceb0fff 1-122
+sourcing/tests/test_psy_insight_adapter.py
+  s_8966adf124d5a9::t_27833035612627 1-136
+sourcing/tests/test_mental_health_multiagent_adapter.py
+  s_8966adf124d5a9::t_3b25eb3a89f97a 1-93
+sourcing/scripts/download_all.py
+  s_8966adf124d5a9::t_1bcf12e74e2fb7 54-56
+sourcing/tests/test_dsm_vector_space_adapter.py
+  s_8966adf124d5a9::t_d27c502881fa86 13,19-25,28-34,43-45,47,58-59,61-62,71-72,76-77,82,86-88,93
+  s_8966adf124d5a9::t_99fdb8dcf49190 1-12,14-18,26-27,35-42,46,48-57,60,63-70,73-75,78-81,83-85,89-92,94-113
+sourcing/dataset_adapters/psy_insight_adapter.py
+  s_8966adf124d5a9::t_0d55866c72516e 1-139
+sourcing/dataset_adapters/dsm_vector_space_adapter.py
+  s_8966adf124d5a9::t_5b95e9cc52d66d 4-7,11,56,66-70,77,81-89,92-108,111-112,116,125
+  s_8966adf124d5a9::t_249b82955d3326 1-3,8-10,12-55,57-65,72-76,78-80,90-91,109-110,113-115,117-119,136-137
+  s_8966adf124d5a9::t_017ca24a560011 71,120-124,126-135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b445b55f3495fd349e9e0908209c25915cfc92d5",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

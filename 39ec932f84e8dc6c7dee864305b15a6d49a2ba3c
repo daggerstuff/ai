@@ -1,0 +1,21 @@
+api/test_pixel_inference.py
+  s_b6215a7af8168d::t_bfe0a198c1c59a 25
+api/pixel_inference_service.py
+  s_b6215a7af8168d::t_cbb82fcb314595 46,768,1176-1177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "39ec932f84e8dc6c7dee864305b15a6d49a2ba3c",
+  "prompts": {},
+  "sessions": {
+    "s_b6215a7af8168d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0315d1279ffe1BaV8K6AmvF040",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
