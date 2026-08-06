@@ -1,0 +1,23 @@
+training/scripts/train_rl_serverless.py
+  s_8966adf124d5a9::t_afdc4dfc8aca61 207
+  s_8966adf124d5a9::t_6b94223fc20f5a 201
+  s_8966adf124d5a9::t_8918516a7cbae0 269
+training/scripts/train_sft_serverless.py
+  s_8966adf124d5a9::t_cc986bc7061753 125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f264088815789ba1c96481e10807998df5da457b",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

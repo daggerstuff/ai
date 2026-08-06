@@ -1,0 +1,19 @@
+dataset_pipeline/processors/toxicity_detector.py
+  s_30adb0eaa632fb::t_217d256cfc8188 493-497
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0df2282c0b6fb17f145381553311bc9c1301aaa6",
+  "prompts": {},
+  "sessions": {
+    "s_30adb0eaa632fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

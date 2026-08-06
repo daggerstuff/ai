@@ -1,0 +1,21 @@
+training/research/kaggle_research_summary.md
+  ai_agent 1-151
+.gitignore
+  ai_agent 178-179
+training/research/kaggle_dataset_map.json
+  ai_agent 1-496
+training/research/github_hackathon_map.json
+  ai_agent 1-7205
+training/tests/test_nightmare_fuel_generator.py
+  ai_agent 1,6,12,123-128,130-131,135-348
+training/nightmare_fuel_generator.py
+  ai_agent 1-33,37,39-40,52-237,368-369,371-380,383-389,392-415,477-486,494-518,527-572
+training/research/github_research_summary.md
+  ai_agent 1-348
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2c5a094bc12fdbff5738b4615839262d091cd536",
+  "prompts": {}
+}
