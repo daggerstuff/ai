@@ -223,7 +223,7 @@ class HackathonSafetyProcessor:
 
 def _stable_record_id(record: dict[str, Any]) -> str:
     """Derive a stable ephemeral id from message content for shard correlation."""
-    h = hashlib.sha1()
+    h = hashlib.sha1(usedforsecurity=False)
     for msg in record.get("messages", []):
         role = msg.get("role", "")
         content = msg.get("content", "")

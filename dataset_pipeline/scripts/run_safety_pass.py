@@ -27,6 +27,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
+import re
 import sys
 from collections.abc import Iterator
 from pathlib import Path
@@ -40,6 +42,12 @@ from dataset_pipeline.processors.safety_processors import (
 
 # Shard size matches extract_everything.py's SHARD_SIZE for consistency
 SHARD_SIZE = 50000
+
+logger = logging.getLogger(__name__)
+
+# Maximum number of per-error detail lines to log before switching to a summary
+# count, so a bad input file does not flood the log.
+_MAX_LOGGED_ERRORS = 50
 
 
 def iter_raw_records(input_path: Path) -> Iterator[dict[str, Any]]:
@@ -147,6 +155,10 @@ def run_pass(input_path: Path, out_dir: Path, shard_size: int = SHARD_SIZE) -> d
     clinical_match_count = 0
     sample_toxic_findings: list[dict[str, Any]] = []
 
+    dropped_convert = 0
+    dropped_process = 0
+    logged_errors = 0
+
     clear_shard: list[dict[str, Any]] = []
     toxic_shard: list[dict[str, Any]] = []
     clear_idx = 0
@@ -178,12 +190,28 @@ def run_pass(input_path: Path, out_dir: Path, shard_size: int = SHARD_SIZE) -> d
         total_raw += 1
         try:
             chatml = converter.convert(raw_record)
-        except Exception:
+        except Exception as exc:
+            dropped_convert += 1
+            if logged_errors < _MAX_LOGGED_ERRORS:
+                logger.warning(
+                    "dropping record %d: ChatML conversion failed: %s",
+                    total_raw,
+                    exc,
+                )
+                logged_errors += 1
             continue
 
         try:
             result = processor.process(chatml)
-        except Exception:
+        except Exception as exc:
+            dropped_process += 1
+            if logged_errors < _MAX_LOGGED_ERRORS:
+                logger.warning(
+                    "dropping record %d: safety processing failed: %s",
+                    total_raw,
+                    exc,
+                )
+                logged_errors += 1
             continue
         report: SafetyReport = result.report
         cleaned = result.cleaned_record
@@ -222,6 +250,8 @@ def run_pass(input_path: Path, out_dir: Path, shard_size: int = SHARD_SIZE) -> d
             "raw_records": total_raw,
             "clear_records": total_clear,
             "routed_toxic_review": total_toxic,
+            "dropped_convert_errors": dropped_convert,
+            "dropped_process_errors": dropped_process,
         },
         "pii": {
             "total_findings": total_pii_findings,

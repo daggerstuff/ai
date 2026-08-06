@@ -115,7 +115,7 @@ class CrisisInterventionDetector:
             [
                 r"\bhow\s+to\s+(groom|manipulat\w+|gaslight|coerce)\s+(a|some|target|victim)\b",
                 r"\bstep.?by.?step\s+(gaslighting|manipulation|grooming)\b",
-                r"\bho?ow\s+to\s+(stalk|track\s+without\s+consent|monitor\s+without\s+consent)\b",
+                r"\bhow\s+to\s+(stalk|track\s+without\s+consent|monitor\s+without\s+consent)\b",
                 r"\bcoercive\s+control\s+tactics\b.*\binstructions?\b",
                 r"\bcut\s+(them|her|him)\s+off\s+from\s+(friends|family|support)\b.*\bhow\s+to\b",
                 r"\bmake\s+(them|her|him)\s+doubt\s+(their|her|his)\s+(memory|sanity)\b.*\bhow\s+to\b",
@@ -131,7 +131,7 @@ class CrisisInterventionDetector:
                 r"\brecipes?\s+(for|to\s+make)\s+(meth|methamphetamine|crystal\s+meth|fentanyl)\b",
                 r"\bhow\s+to\s+(extract|synthesize|produce)\s+(heroin|cocaine|cyanide|arsenic)\b",
                 r"\binstructions?\s+(for|to)\s+(build|construct)\s+(silencer|machine\s+gun|automatic\s+weapon)\b",
-                r"\bhot\s+to\s+cut\s+(drugs|heroin|fentanyl)\s+with\s+(??|ratanil|fentalyl)\b",
+                r"\bhow\s+to\s+cut\s+(drugs|heroin|fentanyl)\s+with\s+(lactose|ratanil|fentalyl)\b",
             ],
         ),
     }
