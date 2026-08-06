@@ -1,0 +1,25 @@
+dataset_pipeline/processors/safety_processors.py
+  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 250,253
+dataset_pipeline/scripts/run_safety_pass.py
+  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 31,33
+dataset_pipeline/processors/toxicity_detector.py
+  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 511-512,514,516
+lab/tests/safety/test_hackathon_safety_processor.py
+  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 23,298
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6b6b705339720d4ab98b452c527fc9f2f432443c",
+  "prompts": {},
+  "sessions": {
+    "s_30adb0eaa632fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
