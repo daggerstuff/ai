@@ -1,0 +1,27 @@
+training/scripts/train_sft_serverless.py
+  s_8966adf124d5a9::t_e55f4f937fff7d 127-133
+  s_8966adf124d5a9::t_ec9715b8a2ae4f 143
+  s_8966adf124d5a9::t_8e902ee891bb57 189-204,207-210,218-219
+  s_8966adf124d5a9::t_e29c79af131e0e 101-102
+  s_8966adf124d5a9::t_1a67ed6af040fa 139
+  s_8966adf124d5a9::t_61ab75deeea54e 1-100,103-124,126,134-138,140-142,144-188,205-206,211-217,220-225
+  s_8966adf124d5a9::t_65787399baa3e5 125
+training/scripts/train_rl_serverless.py
+  s_8966adf124d5a9::t_6a112f2c83d3b3 1-314
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "60fdcd1b1d1c98ee885f34b2570ec23f34e5e7e0",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
