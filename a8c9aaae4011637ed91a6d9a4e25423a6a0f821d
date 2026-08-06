@@ -1,0 +1,19 @@
+pkg_mera/core/pipelines/crisis_intervention_detector.py
+  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-165,171-173,206-247,309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a8c9aaae4011637ed91a6d9a4e25423a6a0f821d",
+  "prompts": {},
+  "sessions": {
+    "s_88d27a7764a71b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
