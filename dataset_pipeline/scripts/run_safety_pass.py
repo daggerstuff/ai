@@ -28,15 +28,15 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from dataset_pipeline.processors.chatml_converter import ChatMLConverter
 from dataset_pipeline.processors.safety_processors import (
     HackathonSafetyProcessor,
     SafetyReport,
 )
-
 
 # Shard size matches extract_everything.py's SHARD_SIZE for consistency
 SHARD_SIZE = 50000

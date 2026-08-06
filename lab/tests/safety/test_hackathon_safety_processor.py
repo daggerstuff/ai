@@ -13,26 +13,22 @@ Covers:
 from __future__ import annotations
 
 import json
-import sys
-import tempfile
 from pathlib import Path
 
 import pytest
 
 from dataset_pipeline.processors.safety_processors import (
     HackathonSafetyProcessor,
-    SafetyReport,
     SafetyProcessResult,
+    SafetyReport,
 )
 from dataset_pipeline.processors.toxicity_detector import (
     HeuristicToxicityDetector,
-    ToxicityResult,
 )
 from pkg_mera.core.pipelines.processing.pii_scrubber import (
     PiiScrubber,
     PiiScrubberConfig,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -297,8 +293,9 @@ class TestPipelineIntegrationImport:
 
     def test_upload_shard_accepts_prefix(self) -> None:
         pytest.importorskip("fitz", reason="PyMuPDF not installed")
-        from dataset_pipeline.orchestration.extract_everything import upload_shard
         import inspect
+
+        from dataset_pipeline.orchestration.extract_everything import upload_shard
 
         sig = inspect.signature(upload_shard)
         assert "prefix" in sig.parameters, "upload_shard missing prefix kwarg"

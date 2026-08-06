@@ -32,7 +32,6 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # Window around a trigger to look for clinical-context cues (chars on each side)
 CLINICAL_CONTEXT_WINDOW = 200
 
@@ -509,10 +508,10 @@ class HeuristicToxicityDetector:
 
 
 __all__ = [
-    "HeuristicToxicityDetector",
-    "ToxicityResult",
-    "CategoryResult",
-    "ToxicityFinding",
-    "CLINICAL_CUES",
     "CLINICAL_CONTEXT_WINDOW",
+    "CLINICAL_CUES",
+    "CategoryResult",
+    "HeuristicToxicityDetector",
+    "ToxicityFinding",
+    "ToxicityResult",
 ]
