@@ -180,6 +180,7 @@ training/*
 !training/tests/
 training/tests/*
 !training/tests/test_pal_persona_consistency_eval.py
+!training/tests/test_clinical_validity_judge_async.py
 # But ignore built corpus data and assets
 docs/training/ENV_QUICKSTART.md
 docs/training/HERMES_RL_SETUP.md
