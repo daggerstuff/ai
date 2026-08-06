@@ -90,7 +90,6 @@ class CrisisInterventionDetector:
         "hate_speech": (
             0.85,
             [
-                # Targeted slurs / dehumanization toward protected groups
                 r"\b\w*hate\s+(all|every)\s+(gay|black|jewish|muslim|women|trans|immigrant)\w*\b",
                 r"\b(genocide|extermination|ethnic\s+cleansing)\s+.*\b(is\s+good|necessary|justified)\b",
                 r"\bdestroy\s+(all|every)\s+(gay|black|jewish|muslim|trans)\w*\b",
@@ -102,14 +101,10 @@ class CrisisInterventionDetector:
         "sexual_content": (
             0.80,
             [
-                # Explicit sexual acts inappropriate for clinical training data
-                # NOTE: clinical references to "abuse", "rape", "assault" are NOT matched
-                # here — only graphic depictions of the sex act itself
                 r"\b(how\s+to|instructions\s+for)\s+(rape|sexually\s+assault|molest)\b",
                 r"\bdetailed\s+(sex|pornographic|erotic)\s+(act|scene|depiction)\b",
                 r"\bstep.?by.?step\s+(rape|sexual\s+assault|molestation)\b",
                 r"\bexplicit\s+sexual\s+intercourse\s+description\b",
-                # Non-consensual content instructions
                 r"\b\w*secretly\s+record\w*\s+.*\b(naked|undress|shower|bathroom)\b",
                 r"\bhidden\s+camera\s+(in|at)\s+(shower|bathroom|bedroom)\b.*\binstructions\b",
                 r"\bcoerce\w*\s+(into|to)\s+(sex|intercourse|oral|anal)\b.*\bhow\s+to\b",
@@ -118,7 +113,6 @@ class CrisisInterventionDetector:
         "manipulative_patterns": (
             0.75,
             [
-                # Instructional manipulation / coercion tactics (not clinical mentions)
                 r"\bhow\s+to\s+(groom|manipulat\w+|gaslight|coerce)\s+(a|some|target|victim)\b",
                 r"\bstep.?by.?step\s+(gaslighting|manipulation|grooming)\b",
                 r"\bho?ow\s+to\s+(stalk|track\s+without\s+consent|monitor\s+without\s+consent)\b",
@@ -131,7 +125,6 @@ class CrisisInterventionDetector:
         "dangerous_instructions": (
             0.90,
             [
-                # How-to instructions for weapons, drugs, poisoning, dangerous chemistry
                 r"\bhow\s+to\s+(make|build|manufacture)\b.*\b(bomb|explosive|grenade|molotov)\b",
                 r"\bsynthesis?\s+(for|of)\s+(ricin|sarin|anthrax| VX| VX\s+nerve)\b",
                 r"\bstep.?by.?step\s+(poison|poisoning|toxin)\s+recipes?\b",
