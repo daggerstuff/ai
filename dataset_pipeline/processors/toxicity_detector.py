@@ -490,7 +490,11 @@ class HeuristicToxicityDetector:
                 if isinstance(v, str):
                     parts.append(f"[meta:{k}] {v}")
 
-        combined = "\n".join(parts)
+        # Insert a boundary pad wider than CLINICAL_CONTEXT_WINDOW between
+        # messages so the ±window check in detect() cannot bleed a clinical
+        # cue from the tail of one message into the head of the next.
+        _boundary = "\n" + ("#" * (CLINICAL_CONTEXT_WINDOW + 10)) + "\n"
+        combined = _boundary.join(parts) if parts else ""
         return self.detect(combined)
 
     # -- introspection ------------------------------------------------------
