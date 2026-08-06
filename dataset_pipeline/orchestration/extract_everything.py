@@ -2,7 +2,10 @@ import contextlib
 import csv as csv_module
 import glob
 import json
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 import subprocess
 
 from dataset_pipeline.extractors.book_extractor import BookExtractor
@@ -406,7 +409,7 @@ def main():
                     total_routed_toxic += 1
                     toxic_review_shard.append(chatml)
                     if len(toxic_review_shard) >= SHARD_SIZE:
-                        upload_shard(streamer, toxic_review_shard, shard_num, prefix="final_dataset/v5_toxic_review/")
+                        upload_shard(streamer, toxic_review_shard, shard_num, prefix="final_dataset/v5_toxic_review")
                         shard_num += 1
                         toxic_review_shard = []
                         save_checkpoint(streamer, completed_files, shard_num)
@@ -423,8 +426,8 @@ def main():
                         current_shard = []
                         # Save checkpoint after every shard
                         save_checkpoint(streamer, completed_files, shard_num)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("Record processing failed: %s", exc)
 
     # Phase 1: Google Drive (both accounts) — S3 was already extracted
     process_source(stream_gdrive_records(book_ext), "GDrive")
@@ -438,11 +441,13 @@ def main():
 
     # PIX-4240: flush the toxic_review tail shard if anything remains
     if toxic_review_shard:
-        upload_shard(streamer, toxic_review_shard, shard_num, prefix="final_dataset/v5_toxic_review/")
+        upload_shard(streamer, toxic_review_shard, shard_num, prefix="final_dataset/v5_toxic_review")
         shard_num += 1
 
     # Final checkpoint
     save_checkpoint(streamer, completed_files, shard_num)
+
+    print(f"Pipeline complete: {total_raw} raw, {total_valid} valid, {total_routed_toxic} toxic review")
 
 
 if __name__ == "__main__":

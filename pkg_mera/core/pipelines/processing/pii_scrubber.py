@@ -139,7 +139,7 @@ class PiiScrubber:
             "url_with_identifying_path": re.compile(
                 r"\bhttps?://[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"
                 r"(?:/[A-Za-z0-9._~!\$&'()*+,;=@\-]+)*"
-                r"(?:/(?:u|user|users|profile|profiles|p|photos|photo|drive|file|d|doc|document|docs|folder|albums?|media|attachments?)/[A-Za-z0-9_\-]{4,})"
+                r"(?:/(?:u|user|users|profile|profiles|p|photos|photo|drive|file|d|doc|document|docs|folder|folders|albums?|media|attachments?)/[A-Za-z0-9_\-]{4,})"
                 r"(?:/[A-Za-z0-9._~!\$&'()*+,;=\-]*)*"
                 r"(?:\?[^\s]*)?",
                 re.IGNORECASE,

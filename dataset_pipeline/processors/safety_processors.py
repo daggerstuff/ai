@@ -41,7 +41,6 @@ from dataset_pipeline.processors.toxicity_detector import (
 from pkg_mera.core.pipelines.processing.pii_scrubber import (
     PiiScrubber,
     PiiScrubberConfig,
-    ScrubResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,7 +49,7 @@ logger = logging.getLogger(__name__)
 # Records with total toxicity score >= this threshold are routed to the
 # "toxic_review" output. Below it but > 0 are flagged with the report but
 # stay in the main output (the toxicity is advisory-only until review).
-TOXIC_ROUTE_THRESHOLD: float = 1.0
+TOXIC_ROUTE_THRESHOLD: float = 0.85
 
 
 @dataclass
@@ -115,7 +114,7 @@ class HackathonSafetyProcessor:
         if pii_config is None:
             pii_config = PiiScrubberConfig(
                 redaction_style="[TYPE]",
-                use_spacy_for_names=False,  # deterministic by default
+                use_spacy_for_names=True,  # enable NER for name detection
                 log_findings=False,
             )
         self._scrubber = PiiScrubber(pii_config)
@@ -146,28 +145,27 @@ class HackathonSafetyProcessor:
         record_copy = copy.deepcopy(chatml_record)
         cleaned = self._scrubber.scrub_dict(record_copy)
 
-        # Collect per-string PII counts — scrub_dict returns only the cleaned
-        # tree without counts, so we re-walk and aggregate by re-scrubbing each
-        # str value with metadata enabled. For pipeline throughput this is
-        # acceptable (one extra scan over str values, no I/O).
+        # Collect PII counts from the original record's string values in a
+        # single pass. We scrub each string value once and aggregate counts;
+        # the deep-copy scrub_dict above already produced the cleaned tree.
         pii_counts: dict[str, int] = {}
         pii_total = 0
+
+        def _count_pii(text: str) -> None:
+            nonlocal pii_total
+            if not isinstance(text, str) or not text:
+                return
+            sr = self._scrubber.scrub(text)
+            for k, v in sr.pii_counts.items():
+                pii_counts[k] = pii_counts.get(k, 0) + v
+                pii_total += v
+
         for msg in chatml_record.get("messages", []):
-            content = msg.get("content")
-            if isinstance(content, str):
-                sr: ScrubResult = self._scrubber.scrub(content)
-                for k, v in sr.pii_counts.items():
-                    pii_counts[k] = pii_counts.get(k, 0) + v
-                    pii_total += v
-        # Metadata str values may also carry PII (book names, file paths)
+            _count_pii(msg.get("content", ""))
         meta = chatml_record.get("metadata", {})
         if isinstance(meta, dict):
             for v in meta.values():
-                if isinstance(v, str):
-                    sr = self._scrubber.scrub(v)
-                    for k, vc in sr.pii_counts.items():
-                        pii_counts[k] = pii_counts.get(k, 0) + vc
-                        pii_total += vc
+                _count_pii(v)
 
         # Stage 2: heuristic toxicity detection (operates on cleaned record so
         # PII redaction tokens don't accidentally trip clinical cues)

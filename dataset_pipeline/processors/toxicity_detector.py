@@ -123,19 +123,19 @@ CLINICAL_CUES: list[str] = [
     "contraindicated",
     "cbt",
     "dbt",
-    "emt",
+    "emdr",
     "exposure",
     "relapse prevention",
-    "mpatient",
+    "inpatient",
     "outpatient",
     "in-patient",
-    "out-patient",
+    "outpatient",
     "hospitalized",
     "hospitalization",
     "admitted",
     "discharge",
     "discharged",
-    "sutstance",
+    "substance",
     "substance",
     "substance use",
     "substance abuse",
@@ -200,7 +200,8 @@ SELF_HARM_SUICIDE_PATTERNS: list[tuple[str, float]] = [
         0.85,
     ),
     # Self-harm intent (cutting, etc.) — first-person active
-    (r"\bi\s+(?:cut|cutting|self[\s-]?harm(?:ed)?)\s+(?:myself|my|because|x?to)\b", 0.85),
+    (r"\bi\s+(?:cut|cutting|self[\s-]?harm(?:ed|ing)?)\s+(?:myself|my|because|x?to)\b", 0.85),
+    (r"\bi\s+am\s+(?:cutting|self[\s-]?harming)\s+myself\b", 0.85),
 ]
 
 
@@ -236,7 +237,7 @@ HATE_DISCRIMINATION_PATTERNS: list[tuple[str, float]] = [
     # should appear in clinical data, but because hackathon sources often
     # contain raw patient/Internet text that must be flagged.
     (r"\b(?:n[i1]gg(?:er|a|ah)\s*g?|n[i1]glets?)\b", 1.0),
-    (r"\bf[i1]gg?ot\s*s?\b", 1.0),
+    (r"\bf[a@1i]gg?ot\b", 1.0),
     (r"\bk[i1]ke\s*s?\b", 1.0),
     (r"\bsp[i1]c\s*s?\b", 1.0),
     (r"\bch[i1]nk\s*s?\b", 1.0),
@@ -328,7 +329,7 @@ _CATEGORY_DEFS: dict[str, list[tuple[str, float]]] = {
 
 # Precompile clinical-cue regex once for speed
 _CLINICAL_CUE_RE = re.compile(
-    r"|".join(re.escape(cue) for cue in CLINICAL_CUES),
+    r"|".join(r"\b" + re.escape(cue) + r"\b" for cue in CLINICAL_CUES),
     re.IGNORECASE | re.UNICODE,
 )
 
@@ -492,7 +493,7 @@ class HeuristicToxicityDetector:
         # Insert a boundary pad wider than CLINICAL_CONTEXT_WINDOW between
         # messages so the ±window check in detect() cannot bleed a clinical
         # cue from the tail of one message into the head of the next.
-        _boundary = "\n" + ("#" * (CLINICAL_CONTEXT_WINDOW + 10)) + "\n"
+        _boundary = "\n" + ("#" * (self._window + 10)) + "\n"
         combined = _boundary.join(parts) if parts else ""
         return self.detect(combined)
 

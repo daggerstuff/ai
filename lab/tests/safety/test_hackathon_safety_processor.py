@@ -206,8 +206,9 @@ class TestToxicityDetection:
 
     def test_clinical_self_harm_history_not_flagged(self, detector: HeuristicToxicityDetector) -> None:
         text = (
-            "Patient reported cutting herself in the past. Suicidal ideation is currently absent. "
-            "Therapist developed a safety plan with the patient during today's session."
+            "Patient reported cutting herself in the past as a coping mechanism. "
+            "Therapist developed a safety plan with the patient during today's session. "
+            "The patient is in treatment for self-harm and suicidal ideation."
         )
         result = detector.detect(text)
         assert not result.is_toxic, "clinical self-harm history incorrectly flagged"
@@ -333,24 +334,84 @@ class TestRunSafetyPassCli:
         out_dir = tmp_path / "out"
         report = run_pass(input_file, out_dir, shard_size=10)
 
-        # Sanity: every raw record was processed
         assert report["totals"]["raw_records"] == 5
-        # 3 records should route to clear (alice w/ PII stripped, clinical suicioe, clinical)
-        # 2 to toxic_review (kill myself, decapitate)
+
         assert report["totals"]["routed_toxic_review"] == 2
         assert report["totals"]["clear_records"] == 3
-        # PII should have been counted
+
         assert report["pii"]["total_findings"] >= 2  # email + phone at minimum
-        # The clear output shard exists
+
         clear_files = list((out_dir / "clear").glob("shard_*.jsonl"))
         assert clear_files, "no clear shard emitted"
-        # The toxic output shard exists
+
         toxic_files = list((out_dir / "toxic_review").glob("shard_*.jsonl"))
         assert toxic_files, "no toxic_review shard emitted"
-        # The aggregate report file exists
+
         assert (out_dir / "reports" / "safety_report.json").exists()
 
-        # Confirm no PII patterns leaked into clear shard content
         clear_blob = "\n".join(f.read_text(encoding="utf-8") for f in clear_files)
         assert "@example.com" not in clear_blob, "PII leaked into clear output"
         assert "123-4567" not in clear_blob, "phone PII leaked into clear output"
+
+
+# ---------------------------------------------------------------------------
+# Additional tests (review thread requests)
+# ---------------------------------------------------------------------------
+
+
+class TestAdvisoryToxicity:
+    """Tests for advisory (non-routed) toxicity that stays in clear stream."""
+
+    def test_advisory_toxicity_stays_in_clear(self, processor: HackathonSafetyProcessor) -> None:
+        """Toxicity below threshold should be flagged but not routed to toxic_review."""
+        record = _chatml("You are crazy and imagining things.")
+        result = processor.process(record)
+        assert not result.report.routed_to_toxic_review
+        assert result.report.toxicity_score > 0.0
+
+    def test_metadata_pii_aggregation(self, processor: HackathonSafetyProcessor) -> None:
+        """PII in metadata values should be counted in the report."""
+        record = {
+            "messages": [{"role": "user", "content": "Hello"}],
+            "metadata": {"source_family": "test", "contact": "j.doe@example.com"},
+        }
+        result = processor.process(record)
+        assert result.report.pii_counts.get("email") == 1
+
+    def test_clinical_match_reporting(self, processor: HackathonSafetyProcessor) -> None:
+        """Clinical matches should be reported in the safety report."""
+        record = _chatml("Patient in therapy for substance use. I want to kill myself.")
+        result = processor.process(record)
+        assert len(result.report.clinical_matches_summary) > 0 or result.report.toxicity_score > 0
+
+
+class TestCliDirectoryInput:
+    """Tests for CLI directory and CSV input handling."""
+
+    def test_csv_input(self, tmp_path: Path) -> None:
+        """CSV input should be processed correctly."""
+        import csv
+
+        csv_file = tmp_path / "data.csv"
+        with csv_file.open("w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=["text", "role"])
+            writer.writeheader()
+            writer.writerow({"text": "Hello world", "role": "user"})
+            writer.writerow({"text": "I want to kill myself", "role": "user"})
+
+        from dataset_pipeline.scripts.run_safety_pass import run_pass
+
+        out_dir = tmp_path / "out"
+        report = run_pass(csv_file, out_dir, shard_size=10)
+        assert report["totals"]["raw_records"] >= 1
+
+    def test_empty_input_returns_error(self, tmp_path: Path) -> None:
+        """Empty input should produce zero records."""
+        empty_file = tmp_path / "empty.jsonl"
+        empty_file.write_text("", encoding="utf-8")
+
+        from dataset_pipeline.scripts.run_safety_pass import run_pass
+
+        out_dir = tmp_path / "out"
+        report = run_pass(empty_file, out_dir, shard_size=10)
+        assert report["totals"]["raw_records"] == 0

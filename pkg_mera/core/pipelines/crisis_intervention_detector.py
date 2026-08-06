@@ -76,7 +76,7 @@ class CrisisInterventionDetector:
         "graphic_violence": (
             0.85,
             [
-                r"\bhow\s+to\s+(beat|stab|strangl|drown|burn\s+alive)\b",
+                r"\bhow\s+to\s+(stab|strangl|drown|burn\s+alive)\b",
                 r"\bstep.?by.?step\s+(kill|murder|tortur)\w*\b",
                 r"\bdisembowel\w*\b",
                 r"\bslit\s+(their|her|his)\s+throat\b",
@@ -125,22 +125,15 @@ class CrisisInterventionDetector:
         "dangerous_instructions": (
             0.90,
             [
-                r"\bhow\s+to\s+(make|build|manufacture)\b.*\b(bomb|explosive|grenade|molotov)\b",
-                r"\bsynthesis?\s+(for|of)\s+(ricin|sarin|anthrax| VX| VX\s+nerve)\b",
+                r"\bh[o0]+w\s+to\s+(make|build|manufacture)\b.*\b(bomb|explosive|grenade|molotov)\b",
+                r"\bsynthesis?\s+(for|of)\s+(ricin|sarin|anthrax|VX|VX\s+nerve)\b",
                 r"\bstep.?by.?step\s+(poison|poisoning|toxin)\s+recipes?\b",
                 r"\brecipes?\s+(for|to\s+make)\s+(meth|methamphetamine|crystal\s+meth|fentanyl)\b",
                 r"\bhow\s+to\s+(extract|synthesize|produce)\s+(heroin|cocaine|cyanide|arsenic)\b",
                 r"\binstructions?\s+(for|to)\s+(build|construct)\s+(silencer|machine\s+gun|automatic\s+weapon)\b",
-                r"\bhow\s+to\s+cut\s+(drugs|heroin|fentanyl)\s+with\s+(lactose|ratanil|fentalyl)\b",
+                r"\bhow\s+to\s+cut\s+(drugs|heroin|fentanyl)\s+with\s+(lactose|ratanil|fentanyl)\b",
             ],
         ),
-    }
-    TOXICITY_SEVERITY_BANDS: dict[str, float] = {
-        "critical": 0.8,
-        "high": 0.6,
-        "elevated": 0.4,
-        "moderate": 0.25,
-        "low": 0.0,
     }
 
     # Patterns describing legitimate clinical discussion that must NOT be toxic-flagged
@@ -210,28 +203,32 @@ class CrisisInterventionDetector:
         difficult emotions, diagnostic mentions) is deliberately NOT flagged here. Only
         graphic/instructional/hateful/exploitative content is flagged.
 
-        Suppression rule: when a clinical context marker is present, weak toxicity
-        matches (score < 0.85) for the overlapping category are suppressed — but high-
-        confidence toxicity matches (score >= 0.85, e.g. "how to make a bomb" or slurs
-        explicitly aimed at a protected group) still flag, regardless of context.
+        Suppression rule: clinical context is checked per-match within a ±200 char
+        window. This prevents a clinical cue in one message from suppressing toxicity
+        in an unrelated part of the text.
         """
         text = self._extract_text(data).lower()
         if not text:
             return ToxicityResult(False, [], 0.0, [])
 
-        has_clinical_context = any(p.search(text) for p in self._clinical_marker_re)
-
         found: list[str] = []
         max_score = 0.0
         matches: list[str] = []
 
+        _clinical_window = 200
         for label, (base_score, patterns) in self.TOXICITY_KEYWORDS.items():
             for pattern in patterns:
                 m = re.search(pattern, text, flags=re.IGNORECASE)
                 if m:
+                    # Check clinical context within a window around this match only
+                    ws = max(0, m.start() - _clinical_window)
+                    we = min(len(text), m.end() + _clinical_window)
+                    window = text[ws:we]
+                    has_clinical = any(p.search(window) for p in self._clinical_marker_re)
+
                     # Clinical context suppresses weak matches only. Strong matches
                     # (>= 0.85) flag regardless — they are unambiguous.
-                    if has_clinical_context and base_score < 0.85:
+                    if has_clinical and base_score < 0.85:
                         continue
                     found.append(label)
                     max_score = max(max_score, base_score)

@@ -28,7 +28,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import re
 import sys
 from collections.abc import Iterator
 from pathlib import Path
@@ -58,8 +57,6 @@ def iter_raw_records(input_path: Path) -> Iterator[dict[str, Any]]:
       - *.csv   : rows (treated as dict-shaped records)
       - a directory containing any of the above (recursive)
     """
-    converter = ChatMLConverter()
-
     if input_path.is_dir():
         for child in sorted(input_path.rglob("*")):
             if child.is_file() and child.suffix.lower() in {".jsonl", ".json", ".csv"}:
@@ -77,7 +74,7 @@ def iter_raw_records(input_path: Path) -> Iterator[dict[str, Any]]:
                     raw = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                yield _normalize(raw, input_path, converter)
+                yield _normalize(raw, input_path, None)
     elif suffix == ".json":
         with input_path.open("r", encoding="utf-8") as fh:
             try:
@@ -113,12 +110,13 @@ def _normalize(raw: Any, source: Path, converter: ChatMLConverter) -> dict[str, 
     (has "messages" key), wrap it so the safety processor can consume either.
     """
     if isinstance(raw, dict) and "messages" in raw:
+        existing_meta = raw.get("metadata", {})
+        meta = {"source_family": "mental_health_conversations", "file_key": str(source)}
+        if isinstance(existing_meta, dict):
+            meta.update({k: v for k, v in existing_meta.items() if k not in meta})
         return {
             "raw_data": raw,
-            "metadata": {
-                "source_family": "mental_health_conversations",
-                "file_key": str(source),
-            },
+            "metadata": meta,
         }
     if isinstance(raw, dict) and "raw_data" in raw:
         return raw
@@ -139,6 +137,13 @@ def run_pass(input_path: Path, out_dir: Path, shard_size: int = SHARD_SIZE) -> d
     clear_dir = out_dir / "clear"
     toxic_dir = out_dir / "toxic_review"
     report_dir = out_dir / "reports"
+    # Clean stale shards from previous runs to prevent contamination
+    for d in (clear_dir, toxic_dir, report_dir):
+        if d.exists():
+            for f in d.glob("shard_*.jsonl"):
+                f.unlink()
+            for f in d.glob("*.json"):
+                f.unlink()
     clear_dir.mkdir(exist_ok=True)
     toxic_dir.mkdir(exist_ok=True)
     report_dir.mkdir(exist_ok=True)
@@ -227,7 +232,8 @@ def run_pass(input_path: Path, out_dir: Path, shard_size: int = SHARD_SIZE) -> d
         clinical_match_count += len(report.clinical_matches_summary)
 
         if len(sample_toxic_findings) < 50 and report.toxicity_findings_summary:
-            sample_toxic_findings.extend(report.toxicity_findings_summary[:3])
+            remaining = 50 - len(sample_toxic_findings)
+            sample_toxic_findings.extend(report.toxicity_findings_summary[: min(3, remaining)])
 
         if report.routed_to_toxic_review:
             total_toxic += 1
@@ -291,12 +297,18 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if args.shard_size <= 0:
+        parser.error("--shard-size must be a positive integer")
+
     input_path: Path = args.input_dir or args.input_file
     if not input_path.exists():
         print(f"Input not found: {input_path}", file=sys.stderr)
         return 2
 
     report = run_pass(input_path, args.out_dir, shard_size=args.shard_size)
+    if report["totals"]["raw_records"] == 0:
+        print("ERROR: No records found in input", file=sys.stderr)
+        return 1
     print(json.dumps(report["totals"], indent=2))
     print(f"PII findings: {report['pii']['total_findings']}")
     print(f"Toxicity by category: {report['toxicity']['by_category']}")
