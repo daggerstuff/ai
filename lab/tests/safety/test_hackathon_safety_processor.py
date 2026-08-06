@@ -362,8 +362,11 @@ class TestRunSafetyPassCli:
 class TestAdvisoryToxicity:
     """Tests for advisory (non-routed) toxicity that stays in clear stream."""
 
-    def test_advisory_toxicity_stays_in_clear(self, processor: HackathonSafetyProcessor) -> None:
+    def test_advisory_toxicity_stays_in_clear(self) -> None:
         """Toxicity below threshold should be flagged but not routed to toxic_review."""
+        from dataset_pipeline.processors.safety_processors import HackathonSafetyProcessor
+
+        processor = HackathonSafetyProcessor(toxic_route_threshold=2.0)
         record = _chatml("You are crazy and imagining things.")
         result = processor.process(record)
         assert not result.report.routed_to_toxic_review
