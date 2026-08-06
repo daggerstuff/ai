@@ -183,6 +183,166 @@ class BatchController:
         return min(delay, self._backoff_max)
 
 
+@dataclass
+class GenerationState:
+    """Distributed state snapshot describing the current generation batch.
+
+    Serialized to ``state.json`` on every checkpoint flush. Fields map directly
+    to the PIX-4235 requirements: batch identity, timestamps, counts, and the
+    category currently being processed.
+    """
+
+    batch_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    started_at: float = field(default_factory=time.time)
+    updated_at: float = field(default_factory=time.time)
+    total_attempted: int = 0
+    total_validated: int = 0
+    total_rejected: int = 0
+    current_category: str = "default"
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> GenerationState:
+        known = {f.name for f in fields(cls)}
+        filtered = {k: v for k, v in data.items() if k in known}
+        return cls(**filtered)
+
+
+def fields(cls: type) -> list:
+    """Return dataclass field descriptors."""
+    return list(cls.__dataclass_fields__.values())
+
+
+class CheckpointManager:
+    """Manages JSONL record checkpoints and a JSON state snapshot.
+
+    The manager is intentionally synchronous on disk I/O. The generator's hot
+    loop is async (network-bound); checkpoint flushes are infrequent and cheap,
+    so blocking writes do not measurably affect throughput. A single ``asyncio.Lock``
+    guards flushes so concurrent completions do not interleave writes.
+
+    ``records.jsonl`` is append-only; truncating it would lose history.
+    ``state.json`` is rewritten on every flush.
+    """
+
+    def __init__(
+        self,
+        checkpoint_dir: str | os.PathLike[str],
+        *,
+        interval_records: int = DEFAULT_CHECKPOINT_INTERVAL,
+        interval_seconds: float = DEFAULT_CHECKPOINT_INTERVAL_SECONDS,
+        category: str = "default",
+    ) -> None:
+        self.checkpoint_dir = Path(checkpoint_dir)
+        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self.records_path = self.checkpoint_dir / RECORDS_FILENAME
+        self.state_path = self.checkpoint_dir / STATE_FILENAME
+        self.interval_records = max(1, interval_records)
+        self.interval_seconds = max(0.0, interval_seconds)
+        self._lock = asyncio.Lock()
+        self._pending_records: list[dict] = []
+        self._records_since_flush = 0
+        self._last_flush_time = time.monotonic()
+        self.state = self._load_state(category)
+
+    def _load_state(self, category: str) -> GenerationState:
+        if self.state_path.exists():
+            try:
+                with self.state_path.open() as f:
+                    data = json.load(f)
+                if not isinstance(data, dict):
+                    raise TypeError(f"state.json must be a JSON object, got {type(data).__name__}")
+                return GenerationState.from_dict(data)
+            except (json.JSONDecodeError, OSError, TypeError):
+                pass
+        recovered = 0
+        if self.records_path.exists():
+            for _record in self.load_existing_records():
+                recovered += 1
+        state = GenerationState(current_category=category)
+        state.total_validated = recovered
+        return state
+
+    def load_existing_records(self) -> list[dict]:
+        """Read all records from an existing checkpoint file."""
+
+        if not self.records_path.exists():
+            return []
+        records: list[dict] = []
+        with self.records_path.open() as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    records.append(json.loads(line))
+                except json.JSONDecodeError:
+                    print(f"[checkpoint] skipping malformed line in {self.records_path}")
+                    continue
+        return records
+
+    def existing_record_ids(self) -> set[str]:
+        """Return the set of record IDs already present in the checkpoint."""
+        ids: set[str] = set()
+        for record in self.load_existing_records():
+            record_id = record.get("id")
+            if isinstance(record_id, str):
+                ids.add(record_id)
+        return ids
+
+    def should_flush(self) -> bool:
+        if self._records_since_flush >= self.interval_records:
+            return True
+        return self.interval_seconds > 0 and (time.monotonic() - self._last_flush_time) >= self.interval_seconds
+
+    async def record_validated(self, record: dict) -> None:
+        """Account for one newly validated record and flush if the threshold is hit."""
+        self.state.total_validated += 1
+        self._pending_records.append(record)
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
+
+    async def record_rejected(self) -> None:
+        self.state.total_rejected += 1
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
+
+    async def record_attempted(self) -> None:
+        self.state.total_attempted += 1
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
+
+    async def flush(self, extra_records: list[dict] | None = None) -> None:
+        """Persist buffered pending records and refresh the state snapshot."""
+
+        async with self._lock:
+            if extra_records:
+                self._pending_records.extend(extra_records)
+            if self._pending_records:
+                with self.records_path.open("a") as f:
+                    for record in self._pending_records:
+                        f.write(json.dumps(record) + "\n")
+                self._pending_records = []
+                self._records_since_flush = 0
+            self.state.updated_at = time.time()
+            tmp_path = self.state_path.with_suffix(".json.tmp")
+            with tmp_path.open("w") as f:
+                json.dump(self.state.to_dict(), f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, self.state_path)
+            self._last_flush_time = time.monotonic()
+
+    async def finalize(self, extra_records: list[dict] | None = None) -> None:
+        """Final flush at end of run, writing any remaining pending records."""
+        await self.flush(extra_records=extra_records)
+
+
 async def _chat_completion(
     session: aiohttp.ClientSession,
     messages: list[dict[str, str]],
@@ -337,6 +497,8 @@ async def generate_cases_async(
     target_tokens_per_batch: int = DEFAULT_TARGET_TOKENS,
     backoff_base: float = DEFAULT_BACKOFF_BASE,
     backoff_max: float = DEFAULT_BACKOFF_MAX,
+    checkpoint: CheckpointManager | None = None,
+    skip_ids: set[str] | None = None,
 ) -> list[dict]:
     controller = BatchController(
         initial_batch_size=max(1, concurrency),
@@ -409,14 +571,28 @@ async def generate_cases_async(
             for r in results:
                 if isinstance(r, RateLimitError):
                     # Rate-limited cases are dropped; caller may retry later.
+                    if checkpoint is not None:
+                        await checkpoint.record_rejected()
                     continue
                 if isinstance(r, Exception):
                     # Re-raise unexpected errors after recording so we don't
                     # silently mask real failures.
+                    if checkpoint is not None:
+                        await checkpoint.record_rejected()
                     raise r
                 if not isinstance(r, dict):
+                    if checkpoint is not None:
+                        await checkpoint.record_rejected()
+                    continue
+                if checkpoint is not None:
+                    await checkpoint.record_attempted()
+                if r.get("id") in resolved_skip_ids:
                     continue
                 survivors.append(r)
+                if checkpoint is not None:
+                    await checkpoint.record_validated(r)
+        if checkpoint is not None:
+            await checkpoint.finalize()
         return survivors
 
 
