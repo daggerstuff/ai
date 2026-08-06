@@ -1,0 +1,31 @@
+training/tests/test_nightmare_fuel_generator.py
+  s_509b83edc2294a::t_681fe32101e557 227
+  s_509b83edc2294a::t_a0138e017a4bb2 1,6,12,123-128,130-131,135-226,228-250,252,256,259-266,268-287
+  s_509b83edc2294a::t_e182e73dc58c53 251,253-255,257-258
+  s_509b83edc2294a::t_341f7df29fa469 267
+training/nightmare_fuel_generator.py
+  s_509b83edc2294a::t_73bda8b3b0223a 382
+  s_509b83edc2294a::t_2ac7febb48b26c 1-33,37,39-40,52-117,119-144,147-157,164-167,169-170,177,179-180,182-188,191,194-196,200,202,204-209,211,343,345-352,355-364,367-381,383-384,447-455,463-482,491-536
+  s_509b83edc2294a::t_728694169ce549 446
+  s_509b83edc2294a::t_6adab2def8e9c9 158-163
+  s_509b83edc2294a::t_ca98b34ed374cb 118
+  s_509b83edc2294a::t_ce6cc19f946428 145-146
+  s_509b83edc2294a::t_d7833e57fa33cc 171-176,178,181,189-190,192-193,197-199,201,203,210,212
+  s_509b83edc2294a::t_086d078097ef40 168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "41c5a542d6ac20fce1fc88bbf3ccdacc3a6fb1b2",
+  "prompts": {},
+  "sessions": {
+    "s_509b83edc2294a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02e324174ffem88eZXltY6GH0K",
+        "model": "unknown"
+      },
+      "human_author": null
+    }
+  }
+}
