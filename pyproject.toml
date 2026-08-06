@@ -218,6 +218,13 @@ ignore = []
 "scripts/rclone_boto3_shim.py" = ["N803", "ARG001", "ARG002", "PLR2004", "E701", "SIM210", "UP028", "PLC0415", "W293"]
 # s3_streamer keeps optional chunk_bytes/chunk_size_mb kwargs for forward-compat API
 "dataset_pipeline/extractors/s3_streamer.py" = ["ARG002"]
+# GitHub repo adapter: complex multi-pattern JSON/CSV parser needs many branches;
+# magic values are format-specific thresholds; psycopg2 import is lazy for optional dep
+"sourcing/dataset_adapters/github_repo_adapter.py" = ["PLR2004", "PLR0912", "PLR0915", "PLR0913", "PLC0415"]
+# Batch extraction script prints progress to stdout (T201)
+"sourcing/scripts/extract_github_repos.py" = ["T201", "PLR2004", "PLR0912", "PLR0915", "SIM115"]
+# Adapter tests: magic values are dataset sizes/counts, long lines are test data
+"sourcing/tests/test_github_repo_adapter.py" = ["PLR2004", "E501"]
 "training_corpus/pal_framework/lint_dpo_dataset.py" = ["T201", "PLR0912"]
 "training_corpus/pal_framework/generate_selection_dataset.py" = ["T201"]
 "training_corpus/pal_framework/test_lint_dpo_dataset.py" = ["PLR2004", "PT018", "PLC0415"]
