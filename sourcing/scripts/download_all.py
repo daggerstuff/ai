@@ -54,6 +54,7 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     mental_health_multiagent_adapter,
     psy_insight_adapter,
     dsm_vector_space_adapter,
+    github_repo_adapter,
 )
 
 
