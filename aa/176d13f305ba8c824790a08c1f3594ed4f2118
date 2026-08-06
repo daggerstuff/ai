@@ -1,0 +1,40 @@
+dataset_pipeline/orchestration/extract_everything.py
+  s_30adb0eaa632fb::t_a42235a950f712 13,17,30,36-44,50-93,98-113,149-152,175-178,184-187,191,196-197,216-219,222-225,227-228,232,239,251-252,261,266-269,271,276-279,285,287,298-301,304-307,309-310,316,321-324,327,333,338,350,353,364
+  s_30adb0eaa632fb::t_ff3fd3587cef88 371,377,379,383,398-414
+  s_30adb0eaa632fb::t_8f12d73a8a53fe 439-443
+  s_30adb0eaa632fb::t_6e4af7958f87b0 357,359
+dataset_pipeline/scripts/run_safety_pass.py
+  s_30adb0eaa632fb::t_6f0c5dcf609a20 1-278
+lab/tests/safety/test_hackathon_safety_processor.py
+  s_30adb0eaa632fb::t_4d9d7ab6083b3a 1-126,128,130-219,224-290,292-298,300-359
+  s_30adb0eaa632fb::t_cccbd2a499ecea 291,299
+  s_30adb0eaa632fb::t_df208435fbb1bc 220-223
+  s_30adb0eaa632fb::t_18c82c8952d8c6 127,129
+pkg_mera/core/pipelines/processing/pii_scrubber.py
+  s_30adb0eaa632fb::t_20b01f9268a91f 141,143-144
+  s_30adb0eaa632fb::t_c489aa5b49e36a 13
+  s_30adb0eaa632fb::t_8be470bea9a882 134-140,142,145-146
+dataset_pipeline/processors/safety_processors.py
+  s_30adb0eaa632fb::t_4ec2fb4caa6c5d 1-254
+dataset_pipeline/processors/toxicity_detector.py
+  s_30adb0eaa632fb::t_4e4336bfe97171 1-220,222-291,296,300-468,476-483,486-514
+  s_30adb0eaa632fb::t_2f8e2592a49f0c 469-475,484-485
+  s_30adb0eaa632fb::t_9a99f1921c4b7a 221
+  s_30adb0eaa632fb::t_2910b541f6c896 292-295,297-299
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "aa176d13f305ba8c824790a08c1f3594ed4f2118",
+  "prompts": {},
+  "sessions": {
+    "s_30adb0eaa632fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
