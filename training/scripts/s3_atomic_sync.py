@@ -11,7 +11,7 @@ Readers of the final key see either the old or the new version, never a partial 
 
 Environment variables (all optional, CLI args take precedence):
     AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
-    AWS_S3_ENDPOINT (custom endpoint URL for Hetzner/MinIO)
+    AWS_S3_ENDPOINT, MINIO_ENDPOINT (custom endpoint URL; AWS_S3_ENDPOINT wins)
     S3_BUCKET (default bucket)
 
 Usage:
@@ -315,8 +315,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--endpoint_url",
         type=str,
-        default=os.environ.get("AWS_S3_ENDPOINT"),
-        help="Custom S3 endpoint URL (Hetzner/MinIO).",
+        default=os.environ.get("AWS_S3_ENDPOINT") or os.environ.get("MINIO_ENDPOINT"),
+        help="Custom S3 endpoint URL (AWS/MinIO).",
     )
     p.add_argument(
         "--access_key",
