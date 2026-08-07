@@ -53,6 +53,25 @@ OLLAMA_URL = os.environ.get(
     + "/ai/v1/chat/completions",
 )
 MODEL = os.environ.get("NF_MODEL", "@cf/zai-org/glm-5.2")
+
+
+def _cloudflare_api_token() -> str:
+    """Return the first available Cloudflare API token.
+
+    The codebase historically expected ``CLOUDFLARE_AUTH_TOKEN``, but the
+    exported environment token is ``CLOUDFLARE_API_TOKEN``. Accept either name
+    (and a couple of common aliases) so runs do not fail just because the env
+    variable has a different name than originally hard-coded.
+    """
+    return (
+        os.environ.get("CLOUDFLARE_AUTH_TOKEN")
+        or os.environ.get("CLOUDFLARE_API_TOKEN")
+        or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
+        or os.environ.get("CLOUDFLARE_TOKEN")
+        or "dummy"
+    )
+
+
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
 REQUEST_TIMEOUT_SECONDS = float(os.environ.get("NF_REQUEST_TIMEOUT", "120"))
@@ -354,7 +373,7 @@ async def _chat_completion(
     async with session.post(
         OLLAMA_URL,
         json=payload,
-        headers={"Authorization": f"Bearer {os.environ.get('CLOUDFLARE_AUTH_TOKEN', 'dummy')}"},
+        headers={"Authorization": f"Bearer {_cloudflare_api_token()}"},
         timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
     ) as response:
         if response.status == 429:
