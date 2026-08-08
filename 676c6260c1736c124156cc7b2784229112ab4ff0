@@ -1,0 +1,36 @@
+training/nightmare_fuel_generator.py
+  s_1cc57332acbf8d::t_1e687c59521ef0 724-729
+  s_1cc57332acbf8d::t_621fc9b6f8613c 69
+  s_1cc57332acbf8d::t_051f4544a946c5 76-136
+  s_b6df8cd174bbbd::t_ed6d62374b1ead 47
+  s_1cc57332acbf8d::t_ab907309d358b9 279-361
+  s_1cc57332acbf8d::t_3e6a62fa55075c 486
+  s_1cc57332acbf8d::t_3f4d986dce5900 565-566,568-572
+  s_1cc57332acbf8d::t_3270778f068b16 607
+  s_1cc57332acbf8d::t_d7ccdd40bb023c 698-701,710
+  s_1cc57332acbf8d::t_d96e46d4abb943 604-606,608-609,611-615,617-623,625-626,629-632,634-638,640-678
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "676c6260c1736c124156cc7b2784229112ab4ff0",
+  "prompts": {},
+  "sessions": {
+    "s_1cc57332acbf8d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02c2c347bffeel2pxoXZq6O81g",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_b6df8cd174bbbd": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_02c2c347bffeel2pxoXZq6O81g",
+        "model": "@cf/zai-org/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
