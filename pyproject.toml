@@ -225,6 +225,12 @@ ignore = []
 "sourcing/scripts/extract_github_repos.py" = ["T201", "PLR2004", "PLR0912", "PLR0915", "SIM115"]
 # Safety scan CLI script prints progress to stdout (T201)
 "sourcing/scripts/run_safety_scan.py" = ["T201"]
+# Kaggle therapy adapter: magic values for min message counts
+"sourcing/dataset_adapters/kaggle_therapy_adapter.py" = ["PLR2004"]
+# Kaggle extraction CLI: prints progress, sys.path setup before imports
+"sourcing/scripts/extract_kaggle.py" = ["T201", "E402", "PLR2004"]
+# Kaggle adapter tests: magic values for record counts
+"sourcing/tests/test_kaggle_therapy_adapter.py" = ["PLR2004"]
 # consolidate_v7: the dedup engine needs many return points for its decision tree
 "dataset_pipeline/orchestration/consolidate_v7.py" = ["PLR0911"]
 # V7 consolidation tests: magic values are dataset counts, long lines are test data

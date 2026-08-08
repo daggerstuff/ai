@@ -297,6 +297,7 @@ class V7Deduplicator:
         jaccard_threshold: float = 0.85,
         near_dedup_window: int = 5000,
         use_lsh: bool = False,
+        num_perms: int = 64,
     ) -> None:
         self.jaccard_threshold = jaccard_threshold
         self.near_dedup_window = near_dedup_window
@@ -310,6 +311,7 @@ class V7Deduplicator:
         if use_lsh:
             self._lsh_dedup = SemanticDeduplicator(
                 jaccard_threshold=jaccard_threshold,
+                num_perms=num_perms,
             )
         # Record counter for LSH record IDs
         self._record_counter = 0
@@ -320,6 +322,14 @@ class V7Deduplicator:
     def process(self, record: dict) -> bool:
         """Process a single record. Returns True if kept, False if dropped."""
         self.stats.total_read += 1
+        if self.stats.total_read % 10000 == 0:
+            logger.info(
+                "Progress: %d read, %d kept, %d exact_dups, %d near_dups",
+                self.stats.total_read,
+                self.stats.total_kept,
+                self.stats.exact_duplicates,
+                self.stats.near_duplicates,
+            )
 
         text = _extract_text(record)
         content_hash = compute_primary_hash(record)
@@ -341,6 +351,25 @@ class V7Deduplicator:
         elif drop_reason == "near":
             self.stats.near_duplicates += 1
         return kept
+
+    def _is_near_duplicate(self, tokens: frozenset[str], content_hash: str) -> bool:
+        """Check if tokens are near-duplicates of any seen record."""
+        if self.use_lsh and self._lsh_dedup is not None:
+            record_id = f"rec_{self._record_counter}"
+            self._record_counter += 1
+            result = self._lsh_dedup.add(record_id, tokens)
+            self.stats.lsh_candidates += result.candidates_checked
+            self.stats.lsh_comparisons += result.candidates_checked
+            return result.is_duplicate
+
+        window = self._token_sets[-self.near_dedup_window:] if self.near_dedup_window > 0 else self._token_sets
+
+        for seen_tokens, seen_hash in window:
+            if seen_hash == content_hash:
+                continue
+            if jaccard_similarity(tokens, seen_tokens) >= self.jaccard_threshold:
+                return True
+        return False
 
     def _evaluate(
         self,
@@ -376,29 +405,10 @@ class V7Deduplicator:
         if content_hash in self._edge_case_hashes:
             return False, "exact"
 
-        # Near-dedup: LSH (scalable) or Jaccard (windowed)
-        # Skip near-dup entirely when window is 0 and not using LSH
-        if not self.use_lsh and self.near_dedup_window == 0:
-            self._hash_map[content_hash] = (record, stage_priority)
-            return True, None
-
+        # Near-dedup check
         tokens = compute_token_set(text)
-
-        if self.use_lsh and self._lsh_dedup is not None:
-            record_id = f"rec_{self._record_counter}"
-            self._record_counter += 1
-            result = self._lsh_dedup.add(record_id, tokens)
-            self.stats.lsh_candidates += result.candidates_checked
-            self.stats.lsh_comparisons += result.candidates_checked
-            if result.is_duplicate:
-                return False, "near"
-        elif self.near_dedup_window > 0:
-            window = self._token_sets[-self.near_dedup_window:]
-            for seen_tokens, seen_hash in window:
-                if seen_hash == content_hash:
-                    continue
-                if jaccard_similarity(tokens, seen_tokens) >= self.jaccard_threshold:
-                    return False, "near"
+        if self._is_near_duplicate(tokens, content_hash):
+            return False, "near"
 
         # Passed all checks — keep this record
         self._hash_map[content_hash] = (record, stage_priority)
@@ -468,6 +478,7 @@ def run_consolidation(args: argparse.Namespace) -> None:
         jaccard_threshold=args.jaccard_threshold,
         near_dedup_window=args.near_dedup_window,
         use_lsh=args.use_lsh,
+        num_perms=args.num_perms,
     )
 
     # Process each input source
@@ -600,6 +611,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=50000,
         help="Records per output shard (0 = single file, default: 50000).",
+    )
+    parser.add_argument(
+        "--num_perms",
+        type=int,
+        default=64,
+        help="Number of MinHash permutations for LSH (default: 64).",
     )
     return parser
 
