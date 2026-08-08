@@ -293,8 +293,11 @@ def check_promotion_eligibility(package_path: Path) -> PromotionResult:
     Usage:
         result = check_promotion_eligibility(Path("datasets/stage1_foundation/"))
         if result.status == PromotionStatus.ELIGIBLE:
-            print(f"Package {result.package_id} ready for promotion")
+            logger.info(f"Package {result.package_id} ready for promotion")
     """
+    import logging
+
+    logger = logging.getLogger(__name__)
     service = PromotionService()
     return service.validate_promotion(package_path)
 

@@ -1080,7 +1080,7 @@ def main():
         return deployment_results
 
     except Exception as e:
-        print(f"❌ Error during deployment: {str(e)}")
+        logging.error(f"Error during deployment: {str(e)}")
         import traceback
 
         traceback.print_exc()

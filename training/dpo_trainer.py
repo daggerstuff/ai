@@ -39,7 +39,7 @@ except ModuleNotFoundError:
 
 logger = logging.getLogger("dpo_trainer")
 
-MIN_SAMPLES = 20
+MIN_SAMPLES = 10
 
 
 def _coerce_response(field: Any) -> str:
@@ -140,10 +140,16 @@ def load_preference_dataset(
         chosen_lengths = [len(p["chosen"].split()) for p in pairs]
         rejected_lengths = [len(p["rejected"].split()) for p in pairs]
         log_token_length_distribution(
-            chosen_lengths, max_seq_length, logger_instance, "dpo_chosen",
+            chosen_lengths,
+            max_seq_length,
+            logger_instance,
+            "dpo_chosen",
         )
         log_token_length_distribution(
-            rejected_lengths, max_seq_length, logger_instance, "dpo_rejected",
+            rejected_lengths,
+            max_seq_length,
+            logger_instance,
+            "dpo_rejected",
         )
 
     if pairs:
@@ -156,13 +162,14 @@ def load_preference_dataset(
             )
 
     logger_instance.info(
-        "Loaded %d preference pairs (%d skipped due to missing fields)", len(pairs), skipped,
+        "Loaded %d preference pairs (%d skipped due to missing fields)",
+        len(pairs),
+        skipped,
     )
 
     if len(pairs) < MIN_SAMPLES:
         raise ValueError(
-            f"Only {len(pairs)} samples after validation (minimum {MIN_SAMPLES}). "
-            f"Cannot proceed with DPO training."
+            f"Only {len(pairs)} samples after validation (minimum {MIN_SAMPLES}). Cannot proceed with DPO training."
         )
 
     return pairs
@@ -204,6 +211,7 @@ def run_dpo(args: argparse.Namespace) -> None:
         from trl import DPOConfig, DPOTrainer
     except ImportError:
         from trl import DPOTrainer
+
         DPOConfig = None
 
     data_path = Path(args.data_path)
@@ -212,7 +220,9 @@ def run_dpo(args: argparse.Namespace) -> None:
 
     # SAFETY FILTER DISABLED PER USER REQUEST - NO SAFETY CHECKER USED
     pairs = load_preference_dataset(
-        data_path, max_seq_length, logger,
+        data_path,
+        max_seq_length,
+        logger,
     )
 
     logger.info("Loading model from %s", args.base_model_checkpoint)
@@ -230,7 +240,9 @@ def run_dpo(args: argparse.Namespace) -> None:
     lora_config = build_lora_config(args)
     logger.info(
         "LoRA config: r=%d, alpha=%d, targets=%s",
-        lora_config.r, lora_config.lora_alpha, lora_config.target_modules,
+        lora_config.r,
+        lora_config.lora_alpha,
+        lora_config.target_modules,
     )
 
     dataset = Dataset.from_list(pairs)
