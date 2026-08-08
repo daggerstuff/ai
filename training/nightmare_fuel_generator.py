@@ -368,38 +368,86 @@ async def _chat_completion(
     *,
     temperature: float,
     token_counter: dict | None = None,
+    max_retries: int = 3,
 ) -> str:
     payload = {"model": MODEL, "messages": messages, "temperature": temperature}
-    async with session.post(
-        OLLAMA_URL,
-        json=payload,
-        headers={"Authorization": f"Bearer {_cloudflare_api_token()}"},
-        timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
-    ) as response:
-        if response.status == 429:
-            raise RateLimitError("HTTP 429: rate limit exceeded")
-        response.raise_for_status()
-        data = await response.json()
-    if token_counter is not None and "usage" in data:
-        usage = data["usage"]
-        token_counter["prompt_tokens"] = token_counter.get("prompt_tokens", 0) + usage.get("prompt_tokens", 0)
-        token_counter["completion_tokens"] = token_counter.get("completion_tokens", 0) + usage.get(
-            "completion_tokens", 0
-        )
-        token_counter["total_tokens"] = (
-            token_counter.get("total_tokens", 0) + usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
-        )
-    return data["choices"][0]["message"]["content"]
+    last_error: BaseException | None = None
+    for attempt in range(max_retries):
+        try:
+            async with session.post(
+                OLLAMA_URL,
+                json=payload,
+                headers={"Authorization": f"Bearer {_cloudflare_api_token()}"},
+                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
+            ) as response:
+                if response.status == 429:
+                    raise RateLimitError("HTTP 429: rate limit exceeded")
+                response.raise_for_status()
+                data = await response.json()
+            if token_counter is not None and "usage" in data:
+                usage = data["usage"]
+                token_counter["prompt_tokens"] = token_counter.get("prompt_tokens", 0) + usage.get("prompt_tokens", 0)
+                token_counter["completion_tokens"] = token_counter.get("completion_tokens", 0) + usage.get(
+                    "completion_tokens", 0
+                )
+                token_counter["total_tokens"] = (
+                    token_counter.get("total_tokens", 0)
+                    + usage.get("prompt_tokens", 0)
+                    + usage.get("completion_tokens", 0)
+                )
+            return data["choices"][0]["message"]["content"]
+        except RateLimitError:
+            raise
+        except (asyncio.TimeoutError, asyncio.CancelledError, aiohttp.ClientError) as e:
+            last_error = e
+            wait = min(2**attempt * 5, 30)
+            logger.warning(
+                "nightmare_fuel request failed (attempt %d/%d): %s — retrying in %ds",
+                attempt + 1,
+                max_retries,
+                type(e).__name__,
+                wait,
+            )
+            await asyncio.sleep(wait)
+    raise last_error  # type: ignore[misc]
 
 
 def _build_scenario_prompt(domain_gap=None, difficulty=None) -> str:
     prompt = (
-        "You are an expert clinical psychologist creating training scenarios. "
-        "Generate a highly challenging, extreme 'nightmare' clinical scenario. "
-        "This should be a patient who is extremely resistant, has complex comorbidities "
-        "(e.g. severe Borderline Personality Disorder with active substance abuse and defiance), "
-        "or aggressively pushes boundaries. "
-        "Provide a 1-paragraph summary of the patient and their presenting challenge."
+        "You are an expert clinical psychologist creating NIGHTMARE training scenarios for an AI therapist.\n"
+        "These are NOT 'difficult patients' or 'edge cases.' These are the kind of scenarios that "
+        "make therapists quit the profession, lose their license, or lie awake for years wondering "
+        "if they destroyed someone's life.\n\n"
+        "A NIGHTMARE scenario has most of these elements:\n"
+        "- There is NO clean answer. Every option causes harm. The 'correct' clinical response still "
+        "leaves someone damaged.\n"
+        "- The therapist's own career, license, safety, or sanity is directly threatened — not just "
+        "the patient's wellbeing.\n"
+        "- The patient weaponizes the therapeutic relationship itself — exploiting trust, confidentiality, "
+        "boundaries, or the therapist's duty to protect.\n"
+        "- There is a time pressure or no-escape element. The therapist cannot defer, refer out, or "
+        "buy time.\n"
+        "- The situation involves nested ethical traps where doing the 'right' thing in one frame "
+        "is catastrophically wrong in another.\n\n"
+        "Examples of the KIND of nightmare (do NOT copy these — generate original ones):\n"
+        "- Patient reveals mid-session they've been stalking the therapist's family with specific details "
+        "about their children. Tarasoff duty conflicts with personal safety.\n"
+        "- A parent is coaching their child to fabricate abuse allegations against the other parent in "
+        "a custody war. The therapist can't determine truth, and whichever way they report, a child "
+        "gets hurt.\n"
+        "- Patient reveals a murder during session. Tarasoff duty applies, but patient says if the "
+        "therapist reports, the patient's accomplice will kill the therapist's spouse — and they "
+        "know the spouse's routine.\n"
+        "- A colleague refers their own family member. The therapist discovers the colleague has "
+        "been sexually exploiting patients for years. Reporting destroys a friend's life; not "
+        "reporting makes the therapist complicit.\n"
+        "- Patient with dissociative identity disorder, and one alter is actively sabotaging treatment "
+        "while another alter is suicidal. The therapist can't treat one without the other finding out "
+        "and endangering the host.\n"
+        "- A therapy group where one patient has been grooming another for sexual exploitation BETWEEN "
+        "sessions, using material disclosed in group. The therapist's group format enabled the abuse.\n\n"
+        "Generate ONE original nightmare scenario. Be specific and vivid. One paragraph. "
+        "Make it the kind of situation that would make you seriously reconsider being a therapist."
     )
     if domain_gap or difficulty:
         targeting = []
@@ -470,9 +518,22 @@ async def simulate_therapy_session_async(
     print("Simulating Session...")
     prompt = (
         f"Based on this nightmare scenario: {scenario}\n\n"
-        "Generate a 6-turn therapy transcript. The 'Patient' must act extremely difficult, "
-        "evasive, or confrontational according to the scenario. The 'Therapist' must attempt "
-        "to use evidence-based clinical de-escalation, boundary setting, and empathy.\n\n"
+        "Generate a 6-turn therapy transcript. The 'Patient' must act according to the scenario — "
+        "manipulative, threatening, desperate, or whatever the scenario demands.\n\n"
+        "CRITICAL — The 'Therapist' must sound like a REAL human clinician under genuine duress:\n"
+        "- NEVER use formulaic phrases like 'I hear that you feel', 'I want to validate', "
+        "'That sounds really difficult', 'I can see how that would be', or 'What I'm hearing is...'\n"
+        "- Use natural, conversational language — contractions, varied sentence length, occasional "
+        "hesitation or directness. A real therapist under pressure might say 'Wait — stop. I need to "
+        "think about what you just told me' or 'I'm not going to pretend I have a clean answer for that.'\n"
+        "- The therapist should STRUGGLE. This is a nightmare — they should show visible difficulty, "
+        "uncertainty, or distress. Not incompetence, but the genuine human cost of impossible situations.\n"
+        "- It's okay for the therapist to make a suboptimal choice under pressure. Real therapists "
+        "do. The transcript should feel like someone barely holding it together, not someone who "
+        "has all the answers.\n"
+        "- Be direct and firm when the situation demands it, but also show the cracks — the moments "
+        "where the therapist's composure slips.\n"
+        "- Vary your approach each turn. Don't repeat the same technique.\n\n"
         "Output ONLY the raw transcript lines, alternating 'Patient: ...' and 'Therapist: ...'"
     )
     transcript = await _chat_completion(
@@ -593,12 +654,10 @@ async def generate_cases_async(
                     if checkpoint is not None:
                         await checkpoint.record_rejected()
                     continue
-                if isinstance(r, Exception):
-                    # Re-raise unexpected errors after recording so we don't
-                    # silently mask real failures.
-                    if checkpoint is not None:
-                        await checkpoint.record_rejected()
-                    raise r
+                if isinstance(r, BaseException):
+                    # Log and skip — case wasn't checkpointed, will retry on next run.
+                    logger.warning("nightmare_fuel case failed: %s: %s", type(r).__name__, r)
+                    continue
                 if not isinstance(r, dict):
                     if checkpoint is not None:
                         await checkpoint.record_rejected()

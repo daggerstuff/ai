@@ -23,6 +23,8 @@ from __future__ import annotations
 
 import csv
 import json
+import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -128,15 +130,20 @@ _SPEAKER_ASSISTANT_VALUES = {
 }
 
 
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
 def _gh_api(args: list[str]) -> str:
     """Run a gh api command and return stdout. Raises on failure."""
+    env = {**os.environ, "NO_COLOR": "1"}
     result = subprocess.run(
         ["gh", "api", *args],
         capture_output=True,
         text=True,
         check=True,
+        env=env,
     )
-    return result.stdout
+    return _ANSI_RE.sub("", result.stdout)
 
 
 def _gh_api_json(args: list[str]) -> Any:
@@ -511,38 +518,14 @@ class GitHubRepoAdapter(BaseDatasetAdapter):
     def _list_repo_tree(self) -> list[dict[str, Any]]:
         """List all files in the repo tree via gh api."""
         try:
-            tree = _gh_api_json(
+            data = _gh_api_json(
                 [
-                    f"repos/{self.repo_full_name}/git/trees/{self.branch}",
-                    "--jq",
-                    ".tree[]",
+                    f"repos/{self.repo_full_name}/git/trees/{self.branch}?recursive=1",
                 ]
             )
-            # If truncated, use recursive
-            if isinstance(tree, dict) and tree.get("truncated"):
-                tree = _gh_api_json(
-                    [
-                        f"repos/{self.repo_full_name}/git/trees/{self.branch}",
-                        "?recursive=1",
-                    ]
-                )
-                return tree.get("tree", [])
-            if isinstance(tree, list):
-                return tree
-            if isinstance(tree, dict):
-                return tree.get("tree", [])
-            return []
+            return data.get("tree", [])
         except Exception:
-            # Try recursive directly
-            try:
-                data = _gh_api_json(
-                    [
-                        f"repos/{self.repo_full_name}/git/trees/{self.branch}?recursive=1",
-                    ]
-                )
-                return data.get("tree", [])
-            except Exception:
-                return []
+            return []
 
     def download(self) -> None:
         """Download data files from the repo to the raw directory."""
