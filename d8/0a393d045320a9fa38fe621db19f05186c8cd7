@@ -1,0 +1,34 @@
+pkg_mera/core/pipelines/processing/normalization_pipeline.py
+  s_8966adf124d5a9::t_9866ce96511567 409,412-414
+pkg_mera/core/pipelines/packaging.py
+  s_8966adf124d5a9::t_02e5a9dd9aefc4 160,163-165
+  s_8966adf124d5a9::t_d993cb6e7a631b 304
+monitoring/interactive_dashboard_system.py
+  s_8966adf124d5a9::t_e18753eec5f696 620,625-627,631-637,672
+pkg_mera/core/pipelines/promotion.py
+  s_8966adf124d5a9::t_2e809dbc7eb016 296,298-300
+training/dpo_trainer.py
+  s_8966adf124d5a9::t_a85d0f714b2dda 42,143-146,149-152,165-167,172,214,223-225,243-245
+pkg_mera/core/pipelines/training_readiness_gates.py
+  s_8966adf124d5a9::t_13cf556ccf6aa9 203,205,208-210
+monitoring/operational_dashboard_system.py
+  s_8966adf124d5a9::t_3c2215f5281bea 1083
+monitoring/bias_audit.py
+  s_8966adf124d5a9::t_1440b3f3635aa9 351
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d80a393d045320a9fa38fe621db19f05186c8cd7",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
