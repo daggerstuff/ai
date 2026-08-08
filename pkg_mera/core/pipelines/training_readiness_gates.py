@@ -200,10 +200,14 @@ class TrainingReadinessGates:
             gate_audit={"gate0": "pass", "gate1": "pass", ...},
         )
         if result.can_promote:
-            print("Package is training-ready")
+            logger.info("Package is training-ready")
         else:
-            print(result.get_failure_summary())
+            logger.info(result.get_failure_summary())
     """
+
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     def __init__(self) -> None:
         self._gate_results: list[GateResult] = []

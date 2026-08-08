@@ -157,8 +157,12 @@ class DatasetPackager:
             metrics={...},
         )
         if bundle.is_promotable:
-            print(f"Package ready for promotion: {bundle.manifest.name}")
+            logger.info(f"Package ready for promotion: {bundle.manifest.name}")
     """
+
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     def __init__(self, output_dir: str = "datasets/") -> None:
         """Initialize packager.
@@ -297,7 +301,7 @@ def create_training_package(
             output_dir="datasets/",
         )
         if bundle.is_promotable:
-            print(f"Ready: {bundle.manifest.name}")
+            logger.info(f"Ready: {bundle.manifest.name}")
     """
     packager = DatasetPackager(output_dir=output_dir)
     return packager.create_package(
