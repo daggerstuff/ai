@@ -223,6 +223,24 @@ ignore = []
 "sourcing/dataset_adapters/github_repo_adapter.py" = ["PLR2004", "PLR0912", "PLR0915", "PLR0913", "PLC0415"]
 # Batch extraction script prints progress to stdout (T201)
 "sourcing/scripts/extract_github_repos.py" = ["T201", "PLR2004", "PLR0912", "PLR0915", "SIM115"]
+# Safety scan CLI script prints progress to stdout (T201)
+"sourcing/scripts/run_safety_scan.py" = ["T201"]
+# consolidate_v7: the dedup engine needs many return points for its decision tree
+"dataset_pipeline/orchestration/consolidate_v7.py" = ["PLR0911"]
+# V7 consolidation tests: magic values are dataset counts, long lines are test data
+"dataset_pipeline/orchestration/test_consolidate_v7.py" = ["PLR2004", "E402", "PLR0913", "PLR0917"]
+# MinHash/LSH tests: magic values in assertions, lazy imports to avoid circular deps
+"dataset_pipeline/processors/test_minhash_lsh.py" = ["PLR2004", "PLC0415", "E402"]
+# Integrity test module: many function args for check configuration, magic values for min message counts
+"dataset_pipeline/processors/integrity_test.py" = ["PLR0913", "PLR0917", "PLR2004"]
+# Integrity tests: magic values in assertions, sys.path setup before imports
+"dataset_pipeline/processors/test_integrity.py" = ["PLR2004", "E402"]
+# S3 sync tests: magic values in assertions, sys.path setup before imports
+"dataset_pipeline/scripts/test_s3_atomic_sync.py" = ["PLR2004", "ARG001", "E402", "PT012"]
+# S3 sync CLI: print statements for CLI output
+"dataset_pipeline/scripts/s3_atomic_sync.py" = ["T201", "PLR2004"]
+# Safety processor tests: magic values in assertions, lazy imports for optional deps
+"sourcing/tests/test_safety_processors.py" = ["PLR2004", "PLC0415"]
 # Adapter tests: magic values are dataset sizes/counts, long lines are test data
 "sourcing/tests/test_github_repo_adapter.py" = ["PLR2004", "E501"]
 "training_corpus/pal_framework/lint_dpo_dataset.py" = ["T201", "PLR0912"]
