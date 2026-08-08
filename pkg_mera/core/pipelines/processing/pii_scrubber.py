@@ -10,6 +10,7 @@ Detects and redacts PII types including:
 - Addresses
 - Credit card numbers
 - IP addresses
+- URLs with identifying paths (PIX-4240 extension — e.g. user-profile / photo / Drive-doc paths)
 """
 
 from __future__ import annotations
@@ -130,6 +131,19 @@ class PiiScrubber:
             "credit_card": re.compile(r"\b(?:\d[ -]*?){13,16}\b"),
             # IP addresses (IPv4)
             "ip_address": re.compile(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b"),
+            # URLs with identifying paths — PIX-4240 extension
+            # Catches URLs whose path component carries user-identifying segments
+            # (profile slugs, document IDs, photo paths, drive folder IDs, etc.).
+            # Bare hostname URLs (e.g., "https://example.com") are NOT flagged —
+            # they carry no identifying path.
+            "url_with_identifying_path": re.compile(
+                r"\bhttps?://[A-Za-z0-9.\-]+\.[A-Za-z]{2,}"
+                r"(?:/[A-Za-z0-9._~!\$&'()*+,;=@\-]+)*"
+                r"(?:/(?:u|user|users|profile|profiles|p|photos|photo|drive|file|d|doc|document|docs|folder|folders|albums?|media|attachments?)/[A-Za-z0-9_\-]{4,})"
+                r"(?:/[A-Za-z0-9._~!\$&'()*+,;=\-]*)*"
+                r"(?:\?[^\s]*)?",
+                re.IGNORECASE,
+            ),
         }
 
         # Add custom patterns if provided
