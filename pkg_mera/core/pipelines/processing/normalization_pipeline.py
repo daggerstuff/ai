@@ -406,8 +406,12 @@ class NormalizationPipeline:
             input_paths=["data/raw/*.jsonl"],
             output_path="data/normalized/output.jsonl",
         )
-        print(result.summary())
+        logger.info(result.summary())
     """
+
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     def __init__(
         self,

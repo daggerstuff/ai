@@ -348,7 +348,7 @@ def main() -> None:
 
     auditor = BiasAuditor(model_name="demo-model")
     report = auditor.audit(examples, dummy_inference)
-    print(json.dumps(report.summary(), indent=2))
+    logger.info(json.dumps(report.summary(), indent=2))
 
 
 if __name__ == "__main__":
