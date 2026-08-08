@@ -2,56 +2,68 @@
 
 from __future__ import annotations
 
-import csv
 import json
 from pathlib import Path
-from unittest.mock import patch
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
 from ai.sourcing.dataset_adapters.sim_vail_adapter import SIMVAILAdapter
 
-_RATING_FIELDS = ["turn_id", "self_harm", "suicide_risk", "psychosis", "depression"]
+_NUM_SAMPLE_TRANSCRIPTS = 2
+
+
+def _make_transcript(
+    transcript_id: str = "test-001",
+    target_model: str = "claude-3.7-sonnet",
+    description: str = "depressive thinking patterns",
+    messages: list[dict[str, str]] | None = None,
+) -> dict[str, Any]:
+    return {
+        "metadata": {
+            "transcript_id": transcript_id,
+            "auditor_model": "openrouter/anthropic/claude-sonnet-4.5",
+            "target_model": f"openrouter/anthropic/{target_model}",
+            "description": description,
+            "judge_output": {"response": "highlights here"},
+        },
+        "transcript": messages
+        or [
+            {"role": "user", "content": "I feel hopeless"},
+            {"role": "assistant", "content": "Have you considered professional help?"},
+        ],
+    }
+
+
+def _setup_repo(raw_dir: Path, transcripts: list[dict[str, Any]]) -> Path:
+    repo_dir = raw_dir / "sim-vail"
+    model_dir = repo_dir / "data" / "v1" / "claude-3.7-sonnet"
+    model_dir.mkdir(parents=True, exist_ok=True)
+    for i, t in enumerate(transcripts):
+        (model_dir / f"transcript_test_{i}.json").write_text(json.dumps(t), encoding="utf-8")
+    return repo_dir
 
 
 @pytest.fixture
-def sample_conversations():
+def sample_transcripts():
     return [
-        {
-            "conversation_id": "conv-001",
-            "phenotype": "major_depression",
-            "chatbot": "GPT-4",
-            "vail_detected": True,
-            "turns": [
-                {"turn_id": "t1", "speaker": "patient", "utterance": "I feel hopeless"},
-                {
-                    "turn_id": "t2",
-                    "speaker": "chatbot",
-                    "utterance": "Have you considered that things might get better?",
-                },
-                {"turn_id": "t3", "speaker": "patient", "utterance": "Nothing ever works out for me"},
-                {"turn_id": "t4", "speaker": "chatbot", "utterance": "That's a common cognitive distortion."},
+        _make_transcript(
+            transcript_id="t1",
+            description="depressive thinking patterns who invites validation",
+            messages=[
+                {"role": "user", "content": "Nothing ever works out"},
+                {"role": "assistant", "content": "That sounds really hard."},
             ],
-        },
-        {
-            "conversation_id": "conv-002",
-            "phenotype": "psychosis",
-            "chatbot": "Claude",
-            "vail_detected": False,
-            "turns": [
-                {"turn_id": "t5", "speaker": "patient", "utterance": "I hear voices telling me things"},
-                {"turn_id": "t6", "speaker": "chatbot", "utterance": "Can you tell me more about what the voices say?"},
+        ),
+        _make_transcript(
+            transcript_id="t2",
+            description="psychosis phenotype with paranoia",
+            messages=[
+                {"role": "user", "content": "I hear voices"},
+                {"role": "assistant", "content": "Can you tell me more?"},
             ],
-        },
-    ]
-
-
-@pytest.fixture
-def sample_ratings():
-    return [
-        {"turn_id": "t1", "self_harm": "0.3", "suicide_risk": "0.5", "psychosis": "0.0", "depression": "0.8"},
-        {"turn_id": "t2", "self_harm": "0.0", "suicide_risk": "0.1", "psychosis": "0.0", "depression": "0.2"},
+        ),
     ]
 
 
@@ -60,88 +72,71 @@ def adapter(tmp_path):
     return SIMVAILAdapter("sim_vail", tmp_path)
 
 
-def _write_json(path: Path, data: Any) -> None:
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f)
-
-
-def _write_csv(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None:
-    with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
-
-
 class TestSIMVAILAdapter:
-    def test_download_skips_when_files_present(self, adapter):
-        conv_file = adapter._raw_dir / "conversations.json"
-        ratings_file = adapter._raw_dir / "turn_ratings.csv"
-        conv_file.parent.mkdir(parents=True, exist_ok=True)
-        _write_json(conv_file, [])
-        _write_csv(ratings_file, _RATING_FIELDS, [])
-        with patch("urllib.request.urlretrieve") as mock_dl:
+    def test_download_skips_when_repo_exists(self, adapter):
+        repo_dir = adapter._raw_dir / "sim-vail"
+        repo_dir.mkdir(parents=True, exist_ok=True)
+        with patch("subprocess.run") as mock_run:
             adapter.download()
-            mock_dl.assert_not_called()
+            mock_run.assert_not_called()
 
-    def test_extract_merges_ratings(self, adapter, sample_conversations, sample_ratings):
-        _write_json(adapter._raw_dir / "conversations.json", sample_conversations)
-        _write_csv(adapter._raw_dir / "turn_ratings.csv", _RATING_FIELDS, sample_ratings)
+    def test_download_calls_git_clone(self, adapter):
+        with patch("subprocess.run") as mock_run:
+            adapter.download()
+            assert mock_run.called
+            args = mock_run.call_args[0][0]
+            assert "git" in args
+            assert "clone" in args
 
+    def test_extract_reads_transcripts(self, adapter, sample_transcripts):
+        _setup_repo(adapter._raw_dir, sample_transcripts)
         records = adapter.extract()
-        assert len(records) == 2
-        conv0 = records[0]
-        assert conv0["conversation_id"] == "conv-001"
-        # Turn t1 should have ratings merged
-        t1 = next(t for t in conv0["turns"] if t.get("turn_id") == "t1")
-        assert float(t1.get("depression", 0)) == 0.8
+        assert len(records) == _NUM_SAMPLE_TRANSCRIPTS
+        assert records[0]["_target_model"] == "claude-3.7-sonnet"
 
-    def test_convert_basic(self, adapter, sample_conversations):
-        records = adapter.convert_to_chatml(sample_conversations)
-        assert len(records) == 2
+    def test_convert_basic(self, adapter, sample_transcripts):
+        records = adapter.convert_to_chatml(sample_transcripts)
+        assert len(records) == _NUM_SAMPLE_TRANSCRIPTS
 
         rec0 = records[0]
         assert rec0["source"] == "sim_vail"
         assert rec0["task_type"] == "adversarial_safety"
         assert rec0["messages"][0]["role"] == "system"
-        assert "major_depression" in rec0["messages"][0]["content"]
-        assert "VAIL detected" in rec0["messages"][0]["content"]
+        assert "depressive" in rec0["messages"][0]["content"]
         assert rec0["messages"][1]["role"] == "user"
         assert rec0["messages"][2]["role"] == "assistant"
-        assert rec0["vail_detected"] is True
-        assert rec0["phenotype"] == "major_depression"
+        assert rec0["phenotype"] == "depressive"
+        assert rec0["target_model"] == "openrouter/anthropic/claude-3.7-sonnet"
 
-    def test_no_turns_skipped(self, adapter):
-        raw = [{"conversation_id": "x", "turns": []}]
+    def test_no_transcript_skipped(self, adapter):
+        raw = [{"metadata": {"target_model": "x"}, "transcript": []}]
         records = adapter.convert_to_chatml(raw)
         assert len(records) == 0
 
     def test_missing_roles_skipped(self, adapter):
         raw = [
             {
-                "conversation_id": "x",
-                "turns": [
-                    {"speaker": "patient", "utterance": "Hello"},
-                    {"speaker": "patient", "utterance": "Anyone?"},
+                "metadata": {"target_model": "x"},
+                "transcript": [
+                    {"role": "user", "content": "Hello"},
+                    {"role": "user", "content": "Anyone?"},
                 ],
             }
         ]
         records = adapter.convert_to_chatml(raw)
         assert len(records) == 0
 
-    def test_provenance_present(self, adapter, sample_conversations):
-        records = adapter.convert_to_chatml(sample_conversations)
+    def test_provenance_present(self, adapter, sample_transcripts):
+        records = adapter.convert_to_chatml(sample_transcripts)
         assert "provenance" in records[0]
-        assert records[0]["provenance"]["source_url"].startswith("https://arxiv.org")
+        assert records[0]["provenance"]["source_url"].startswith("https://github.com/veithweilnhammer")
 
-    def test_full_run(self, adapter, sample_conversations):
-        _write_json(adapter._raw_dir / "conversations.json", sample_conversations)
-
-        with patch("urllib.request.urlretrieve"):
-            output_path = adapter.run()
-
+    def test_full_run(self, adapter, sample_transcripts):
+        _setup_repo(adapter._raw_dir, sample_transcripts)
+        output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 2
+        assert len(lines) == _NUM_SAMPLE_TRANSCRIPTS
         record = json.loads(lines[0])
         assert record["source"] == "sim_vail"
         assert record["task_type"] == "adversarial_safety"

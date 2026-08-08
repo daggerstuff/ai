@@ -55,6 +55,8 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     psy_insight_adapter,
     dsm_vector_space_adapter,
     github_repo_adapter,
+    vera_mh_adapter,
+    mhsafeeval_adapter,
 )
 
 
