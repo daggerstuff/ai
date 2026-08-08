@@ -1,0 +1,48 @@
+dataset_pipeline/scripts/run_safety_pass.py
+  s_30adb0eaa632fb::t_6f0c5dcf609a20 1-29,32,34,36-45,52-157,162-192,202-205,215-252,255-308
+  s_19ba0b70a626a4::t_2ca14908896cf2 30-31,46-50
+  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 33,35
+  s_19ba0b70a626a4::t_eb44ab201a4070 158-161
+  s_19ba0b70a626a4::t_941b8617fdbaae 193-201,206-214
+  s_19ba0b70a626a4::t_c1d591e8fb88df 253-254
+dataset_pipeline/processors/safety_processors.py
+  s_30adb0eaa632fb::t_4ec2fb4caa6c5d 1-225,227-249,251-252,254
+  s_19ba0b70a626a4::t_68def76c6d1ccc 226
+  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 250,253
+pkg_mera/core/pipelines/crisis_intervention_detector.py
+  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-117,119-133,135-180,185-187,213-261
+  s_19ba0b70a626a4::t_faec47bd5206e2 118
+  s_19ba0b70a626a4::t_2cd5903faa408f 134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "23025c312ee35e503cd99bb37e8f612df84a1690",
+  "prompts": {},
+  "sessions": {
+    "s_19ba0b70a626a4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_029dce4bcffeClzZ4efdxplMKl",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_30adb0eaa632fb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_88d27a7764a71b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
