@@ -1,0 +1,45 @@
+dataset_pipeline/scripts/fix_integrity.py
+  ai_agent 1-109
+dataset_pipeline/processors/test_integrity.py
+  ai_agent 1-354
+dataset_pipeline/orchestration/test_consolidate_v7.py
+  ai_agent 1-558
+dataset_pipeline/scripts/s3_atomic_sync.py
+  ai_agent 1-445
+dataset_pipeline/processors/integrity_test.py
+  ai_agent 1-390
+dataset_pipeline/scripts/run_integrity_test.py
+  ai_agent 1-126
+dataset_pipeline/processors/minhash_lsh.py
+  ai_agent 1-296
+dataset_pipeline/processors/test_minhash_lsh.py
+  ai_agent 1-331
+dataset_pipeline/orchestration/consolidate_v7.py
+  ai_agent 1-618
+pyproject.toml
+  s_61a095cc229308::t_bac6e931a051ff 226-243
+training/nightmare_fuel_generator.py
+  s_61a095cc229308::t_bac6e931a051ff 371,374-379,381-393,397-402,411-412,417-450,521-536,657-660
+  s_61a095cc229308::t_1a8c8fec9df151 380
+  s_61a095cc229308::t_7c583d17596923 394-396,403-410
+dataset_pipeline/scripts/test_s3_atomic_sync.py
+  ai_agent 1-541
+sourcing/dataset_adapters/github_repo_adapter.py
+  s_61a095cc229308::t_bac6e931a051ff 26-27,133-135,138,144,146,521,523,526,528
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "314669f1889eb89dfb78eadd4cd4ca04ad805940",
+  "prompts": {},
+  "sessions": {
+    "s_61a095cc229308": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_01e316bb8ffe5iGIDsz6IEd2GA",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
