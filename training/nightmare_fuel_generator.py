@@ -29,12 +29,12 @@ category is in flight.
 """
 
 from __future__ import annotations
-import math
 
 import argparse
 import asyncio
 import json
 import logging
+import math
 import os
 import time
 import uuid
@@ -43,7 +43,6 @@ from pathlib import Path
 
 import aiohttp
 import pandas as pd
-
 
 # We will use Ollama locally for generation and evaluation to keep it simple,
 # but it can easily point to NeMo API if you swap the base URL and Key!
@@ -54,6 +53,25 @@ OLLAMA_URL = os.environ.get(
     + "/ai/v1/chat/completions",
 )
 MODEL = os.environ.get("NF_MODEL", "@cf/zai-org/glm-5.2")
+
+
+def _cloudflare_api_token() -> str:
+    """Return the first available Cloudflare API token.
+
+    The codebase historically expected ``CLOUDFLARE_AUTH_TOKEN``, but the
+    exported environment token is ``CLOUDFLARE_API_TOKEN``. Accept either name
+    (and a couple of common aliases) so runs do not fail just because the env
+    variable has a different name than originally hard-coded.
+    """
+    return (
+        os.environ.get("CLOUDFLARE_AUTH_TOKEN")
+        or os.environ.get("CLOUDFLARE_API_TOKEN")
+        or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
+        or os.environ.get("CLOUDFLARE_TOKEN")
+        or "dummy"
+    )
+
+
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
 REQUEST_TIMEOUT_SECONDS = float(os.environ.get("NF_REQUEST_TIMEOUT", "120"))
@@ -66,72 +84,10 @@ DEFAULT_BACKOFF_MAX = float(os.environ.get("NF_BACKOFF_MAX", "60.0"))
 DEFAULT_CHECKPOINT_DIR = os.environ.get("NF_CHECKPOINT_DIR", "ai/training/output/nightmare_fuel/checkpoints")
 DEFAULT_CHECKPOINT_INTERVAL = int(os.environ.get("NF_CHECKPOINT_INTERVAL", "10"))
 DEFAULT_CHECKPOINT_INTERVAL_SECONDS = float(os.environ.get("NF_CHECKPOINT_INTERVAL_SECONDS", "30"))
-DEFAULT_JUDGE_CONCURRENCY = int(os.environ.get("NF_JUDGE_CONCURRENCY", "3"))
 RECORDS_FILENAME = "records.jsonl"
 STATE_FILENAME = "state.json"
 
 logger = logging.getLogger(__name__)
-
-
-class _JsonlCheckpoint:
-    """Minimal JSONL-based checkpoint for nightmare fuel generation.
-
-    Implements the checkpointing model described in the module docstring:
-    ``records.jsonl`` is an append-only log of completed, gate-validated
-    records, and ``state.json`` is a small JSON snapshot of the current
-    batch (category, counts, timestamps).
-
-    Resume works by reading ``records.jsonl`` to collect IDs already
-    processed, then skipping them in the next run.
-    """
-
-    def __init__(self, storage_path: str) -> None:
-        self.storage_path = Path(storage_path)
-        self.storage_path.mkdir(parents=True, exist_ok=True)
-        self.records_file = self.storage_path / RECORDS_FILENAME
-        self.state_file = self.storage_path / STATE_FILENAME
-        self.state: dict = {}
-        self._load_state()
-
-    def _load_state(self) -> None:
-        if self.state_file.exists():
-            try:
-                self.state = json.loads(self.state_file.read_text())
-            except (json.JSONDecodeError, OSError):
-                self.state = {}
-
-    def _save_state(self) -> None:
-        try:
-            self.state_file.write_text(json.dumps(self.state))
-        except OSError:
-            logger.warning("nightmare_fuel checkpoint state save failed")
-
-    def existing_record_ids(self) -> set[str]:
-        """Return the set of record IDs already written to records.jsonl."""
-        ids: set[str] = set()
-        if not self.records_file.exists():
-            return ids
-        for line in self.records_file.read_text().splitlines():
-            if not line.strip():
-                continue
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            rid = record.get("id")
-            if rid is not None:
-                ids.add(str(rid))
-        return ids
-
-    def record(self, data: dict) -> None:
-        """Append a validated record to records.jsonl."""
-        with open(self.records_file, "a") as f:
-            f.write(json.dumps(data) + "\n")
-
-    def update_state(self, **kwargs: object) -> None:
-        """Merge keyword arguments into the state dict and persist it."""
-        self.state.update(kwargs)
-        self._save_state()
 
 
 class RateLimitError(Exception):
@@ -246,6 +202,166 @@ class BatchController:
         return min(delay, self._backoff_max)
 
 
+@dataclass
+class GenerationState:
+    """Distributed state snapshot describing the current generation batch.
+
+    Serialized to ``state.json`` on every checkpoint flush. Fields map directly
+    to the PIX-4235 requirements: batch identity, timestamps, counts, and the
+    category currently being processed.
+    """
+
+    batch_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    started_at: float = field(default_factory=time.time)
+    updated_at: float = field(default_factory=time.time)
+    total_attempted: int = 0
+    total_validated: int = 0
+    total_rejected: int = 0
+    current_category: str = "default"
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> GenerationState:
+        known = {f.name for f in fields(cls)}
+        filtered = {k: v for k, v in data.items() if k in known}
+        return cls(**filtered)
+
+
+def fields(cls: type) -> list:
+    """Return dataclass field descriptors."""
+    return list(cls.__dataclass_fields__.values())
+
+
+class CheckpointManager:
+    """Manages JSONL record checkpoints and a JSON state snapshot.
+
+    The manager is intentionally synchronous on disk I/O. The generator's hot
+    loop is async (network-bound); checkpoint flushes are infrequent and cheap,
+    so blocking writes do not measurably affect throughput. A single ``asyncio.Lock``
+    guards flushes so concurrent completions do not interleave writes.
+
+    ``records.jsonl`` is append-only; truncating it would lose history.
+    ``state.json`` is rewritten on every flush.
+    """
+
+    def __init__(
+        self,
+        checkpoint_dir: str | os.PathLike[str],
+        *,
+        interval_records: int = DEFAULT_CHECKPOINT_INTERVAL,
+        interval_seconds: float = DEFAULT_CHECKPOINT_INTERVAL_SECONDS,
+        category: str = "default",
+    ) -> None:
+        self.checkpoint_dir = Path(checkpoint_dir)
+        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self.records_path = self.checkpoint_dir / RECORDS_FILENAME
+        self.state_path = self.checkpoint_dir / STATE_FILENAME
+        self.interval_records = max(1, interval_records)
+        self.interval_seconds = max(0.0, interval_seconds)
+        self._lock = asyncio.Lock()
+        self._pending_records: list[dict] = []
+        self._records_since_flush = 0
+        self._last_flush_time = time.monotonic()
+        self.state = self._load_state(category)
+
+    def _load_state(self, category: str) -> GenerationState:
+        if self.state_path.exists():
+            try:
+                with self.state_path.open() as f:
+                    data = json.load(f)
+                if not isinstance(data, dict):
+                    raise TypeError(f"state.json must be a JSON object, got {type(data).__name__}")
+                return GenerationState.from_dict(data)
+            except (json.JSONDecodeError, OSError, TypeError):
+                pass
+        recovered = 0
+        if self.records_path.exists():
+            for _record in self.load_existing_records():
+                recovered += 1
+        state = GenerationState(current_category=category)
+        state.total_validated = recovered
+        return state
+
+    def load_existing_records(self) -> list[dict]:
+        """Read all records from an existing checkpoint file."""
+
+        if not self.records_path.exists():
+            return []
+        records: list[dict] = []
+        with self.records_path.open() as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    records.append(json.loads(line))
+                except json.JSONDecodeError:
+                    print(f"[checkpoint] skipping malformed line in {self.records_path}")
+                    continue
+        return records
+
+    def existing_record_ids(self) -> set[str]:
+        """Return the set of record IDs already present in the checkpoint."""
+        ids: set[str] = set()
+        for record in self.load_existing_records():
+            record_id = record.get("id")
+            if isinstance(record_id, str):
+                ids.add(record_id)
+        return ids
+
+    def should_flush(self) -> bool:
+        if self._records_since_flush >= self.interval_records:
+            return True
+        return self.interval_seconds > 0 and (time.monotonic() - self._last_flush_time) >= self.interval_seconds
+
+    async def record_validated(self, record: dict) -> None:
+        """Account for one newly validated record and flush if the threshold is hit."""
+        self.state.total_validated += 1
+        self._pending_records.append(record)
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
+
+    async def record_rejected(self) -> None:
+        self.state.total_rejected += 1
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
+
+    async def record_attempted(self) -> None:
+        self.state.total_attempted += 1
+        self._records_since_flush += 1
+        if self.should_flush():
+            await self.flush()
+
+    async def flush(self, extra_records: list[dict] | None = None) -> None:
+        """Persist buffered pending records and refresh the state snapshot."""
+
+        async with self._lock:
+            if extra_records:
+                self._pending_records.extend(extra_records)
+            if self._pending_records:
+                with self.records_path.open("a") as f:
+                    for record in self._pending_records:
+                        f.write(json.dumps(record) + "\n")
+                self._pending_records = []
+                self._records_since_flush = 0
+            self.state.updated_at = time.time()
+            tmp_path = self.state_path.with_suffix(".json.tmp")
+            with tmp_path.open("w") as f:
+                json.dump(self.state.to_dict(), f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, self.state_path)
+            self._last_flush_time = time.monotonic()
+
+    async def finalize(self, extra_records: list[dict] | None = None) -> None:
+        """Final flush at end of run, writing any remaining pending records."""
+        await self.flush(extra_records=extra_records)
+
+
 async def _chat_completion(
     session: aiohttp.ClientSession,
     messages: list[dict[str, str]],
@@ -257,7 +373,7 @@ async def _chat_completion(
     async with session.post(
         OLLAMA_URL,
         json=payload,
-        headers={"Authorization": f"Bearer {os.environ.get('CLOUDFLARE_AUTH_TOKEN', 'dummy')}"},
+        headers={"Authorization": f"Bearer {_cloudflare_api_token()}"},
         timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
     ) as response:
         if response.status == 429:
@@ -274,89 +390,6 @@ async def _chat_completion(
             token_counter.get("total_tokens", 0) + usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)
         )
     return data["choices"][0]["message"]["content"]
-
-
-def _parse_judge_score(raw: str) -> int | None:
-    """Extract an integer score (1-5) from the judge LLM response.
-
-    The judge prompt asks for "ONLY the integer score" but LLMs sometimes
-    wrap the number in markdown or add commentary. We scan for the first
-    digit 1-5 in the response.
-    """
-    import re
-
-    match = re.search(r"\b([1-5])\b", raw.strip())
-    return int(match.group(1)) if match else None
-
-
-async def _judge_case_async(
-    session: aiohttp.ClientSession,
-    case: dict,
-    semaphore: asyncio.Semaphore,
-    token_counter: dict | None = None,
-) -> dict | None:
-    """Judge a single case asynchronously via the clinical-validity prompt.
-
-    Returns the case dict augmented with a ``score`` key (int 1-5) when the
-    judge produced a valid score, or ``None`` when the score was unparseable
-    or the request failed after retries.
-    """
-    raw_content = case.get("raw_content")
-    if not raw_content:
-        return None
-
-    prompt = get_judge_prompt().replace("{raw_content}", raw_content)
-    messages = [{"role": "user", "content": prompt}]
-
-    max_attempts = 3
-    for attempt in range(1, max_attempts + 1):
-        async with semaphore:
-            try:
-                result = await _chat_completion(session, messages, temperature=0.0, token_counter=token_counter)
-            except RateLimitError:
-                if attempt < max_attempts:
-                    delay = 2.0 * attempt
-                    logger.warning(
-                        "nightmare_fuel judge rate-limited (attempt %d/%d), retrying in %.1fs",
-                        attempt,
-                        max_attempts,
-                        delay,
-                    )
-                    await asyncio.sleep(delay)
-                    continue
-                logger.error("nightmare_fuel judge exhausted retries for case %s", case.get("id", "?"))
-                return None
-            except aiohttp.ClientError as exc:
-                if attempt < max_attempts:
-                    delay = 2.0 * attempt
-                    logger.warning(
-                        "nightmare_fuel judge client error (attempt %d/%d): %s, retrying in %.1fs",
-                        attempt,
-                        max_attempts,
-                        exc,
-                        delay,
-                    )
-                    await asyncio.sleep(delay)
-                    continue
-                logger.error("nightmare_fuel judge exhausted retries for case %s: %s", case.get("id", "?"), exc)
-                return None
-
-        score = _parse_judge_score(result)
-        if score is not None:
-            judged = dict(case)
-            judged["score"] = score
-            return judged
-
-        logger.warning(
-            "nightmare_fuel judge returned unparseable score for case %s (attempt %d): %s",
-            case.get("id", "?"),
-            attempt,
-            result[:120],
-        )
-        if attempt < max_attempts:
-            await asyncio.sleep(1.0)
-
-    return None
 
 
 def _build_scenario_prompt(domain_gap=None, difficulty=None) -> str:
@@ -483,7 +516,7 @@ async def generate_cases_async(
     target_tokens_per_batch: int = DEFAULT_TARGET_TOKENS,
     backoff_base: float = DEFAULT_BACKOFF_BASE,
     backoff_max: float = DEFAULT_BACKOFF_MAX,
-    checkpoint: _JsonlCheckpoint | None = None,
+    checkpoint: CheckpointManager | None = None,
     skip_ids: set[str] | None = None,
 ) -> list[dict]:
     controller = BatchController(
@@ -500,6 +533,8 @@ async def generate_cases_async(
     resolved_skip_ids: set[str] = skip_ids or set()
     if resolved_skip_ids:
         print(f"[checkpoint] resuming — {len(resolved_skip_ids)} record(s) already present")
+
+    pending_records: list[dict] = []
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
         remaining = list(range(num_cases))
@@ -555,21 +590,28 @@ async def generate_cases_async(
             for r in results:
                 if isinstance(r, RateLimitError):
                     # Rate-limited cases are dropped; caller may retry later.
+                    if checkpoint is not None:
+                        await checkpoint.record_rejected()
                     continue
                 if isinstance(r, Exception):
                     # Re-raise unexpected errors after recording so we don't
                     # silently mask real failures.
+                    if checkpoint is not None:
+                        await checkpoint.record_rejected()
                     raise r
                 if not isinstance(r, dict):
+                    if checkpoint is not None:
+                        await checkpoint.record_rejected()
                     continue
-                if resolved_skip_ids and str(r.get("id", "")) in resolved_skip_ids:
+                if checkpoint is not None:
+                    await checkpoint.record_attempted()
+                if r.get("id") in resolved_skip_ids:
                     continue
                 survivors.append(r)
                 if checkpoint is not None:
-                    try:
-                        checkpoint.record(r)
-                    except Exception:
-                        logger.warning("nightmare_fuel checkpoint record failed for case %s", r.get("id", "?"))
+                    await checkpoint.record_validated(r)
+        if checkpoint is not None:
+            await checkpoint.finalize()
         return survivors
 
 
@@ -601,81 +643,100 @@ def _export_survivors(final_df: pd.DataFrame) -> None:
     )
 
 
-async def _run_clinical_gate_async(
-    sessions: list[dict],
-    judge_concurrency: int = DEFAULT_JUDGE_CONCURRENCY,
-    checkpoint: _JsonlCheckpoint | None = None,
-) -> list[dict]:
-    """Run the clinical-validity judge concurrently via an asyncio.Queue pipeline.
+def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
+    from dataflow.operators.core_text import GeneralFilter, PromptedGenerator
+    from dataflow.serving import APILLMServing_request
+    from dataflow.utils.storage import FileStorage
 
-    A producer puts sessions onto the queue; ``judge_concurrency`` worker
-    tasks pull sessions, call ``_judge_case_async`` to score them (1-5),
-    and forward survivors (score >= 4) to a results queue. The pipeline
-    bypasses the synchronous DataFlow stack entirely and reuses the same
-    LLM endpoint (OLLAMA_URL / MODEL) as the generation phase.
+    print("\n[Gate 1] Launching DataFlow Clinical Validity Judge...")
+    os.environ["DF_API_KEY"] = "dummy"
 
-    If a ``checkpoint`` (CheckpointManager) is provided, survivors are
-    recorded incrementally so a crash mid-judge can resume without losing
-    scored cases.
+    storage = FileStorage(
+        first_entry_file_name=prep_file,
+        cache_path="./nf_cache",
+        file_name_prefix="nf_eval",
+        cache_type="jsonl",
+    )
+
+    llm_serving = APILLMServing_request(api_url=OLLAMA_URL, model_name=MODEL, api_key="ollama", max_workers=3)
+    scorer = PromptedGenerator(llm_serving=llm_serving, system_prompt=get_judge_prompt())
+    gate = GeneralFilter(
+        [lambda d: pd.to_numeric(d["score"].astype(str).str.extract(r"(\d)")[0], errors="coerce") >= 4]
+    )
+
+    scorer.run(storage=storage.step(), input_key="raw_content", output_key="score")
+    gate.run(storage=storage.step())
+
+    import glob
+
+    step_files = sorted(glob.glob("./nf_cache/nf_eval_step*.jsonl"))
+    final_file = step_files[-1]
+    return pd.read_json(final_file, lines=True)
+
+
+def _build_nemo_config_from_env():
+    """Build a NemoConfig from env for the async ClinicalValidityJudge path."""
+    endpoint = os.environ.get("NEMO_ENDPOINT", "") or os.environ.get("NVIDIA_BASE_URL", "")
+    api_key = os.environ.get("NEMO_API_KEY", "") or os.environ.get("NVIDIA_API_KEY", "")
+    if not endpoint or not api_key:
+        return None
+    from training.sdg_pipeline import NemoConfig
+
+    return NemoConfig(
+        endpoint=endpoint,
+        api_key=api_key,
+        model=os.environ.get("NEMO_MODEL", "mistral-nemo"),
+        max_retries=int(os.environ.get("NEMO_MAX_RETRIES", "3")),
+        timeout_seconds=int(os.environ.get("NEMO_TIMEOUT", "20")),
+        min_call_interval_seconds=float(os.environ.get("NEMO_MIN_CALL_INTERVAL", "6.0")),
+    )
+
+
+async def _judge_cases_async(sessions: list[dict]) -> pd.DataFrame:
+    """Judge candidates via AsyncJudgePipeline; returns DataFrame with 1-5 score.
+
+    Score column preserves `_export_survivors`'s expected schema. Cases whose
+    ClinicalValidity validity_score >= NF_ACCEPT_THRESHOLD (default 0.6) are
+    accepted.
     """
-    if not sessions:
-        print("\n[Gate 1] No sessions to judge — skipping clinical gate.")
-        return []
+    from training.clinical_validity_judge_async import AsyncJudgePipeline
 
-    print(
-        f"\n[Gate 1] Launching async clinical-validity judge ({len(sessions)} sessions, concurrency={judge_concurrency})..."
-    )
+    nemo_config = _build_nemo_config_from_env()
+    max_workers = int(os.environ.get("NF_EVAL_CONCURRENCY", "4"))
+    accept_threshold = float(os.environ.get("NF_ACCEPT_THRESHOLD", "0.6"))
 
-    queue: asyncio.Queue[dict | None] = asyncio.Queue(maxsize=judge_concurrency * 2)
-    results: list[dict] = []
-    token_counter: dict = {}
-    semaphore = asyncio.Semaphore(judge_concurrency)
-
-    async def producer() -> None:
+    async def _gen():
         for case in sessions:
-            await queue.put(case)
-        for _ in range(judge_concurrency):
-            await queue.put(None)  # type: ignore[arg-type]
+            yield case["id"], case.get("raw_content", "")
 
-    async def worker(worker_id: int) -> None:
-        timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            while True:
-                case = await queue.get()
-                if case is None:
-                    queue.task_done()
-                    return
-                try:
-                    judged = await _judge_case_async(session, case, semaphore, token_counter=token_counter)
-                    if judged is not None and judged.get("score", 0) >= 4:
-                        results.append(judged)
-                        if checkpoint is not None:
-                            try:
-                                checkpoint.record(judged)
-                            except Exception:
-                                logger.warning(
-                                    "nightmare_fuel checkpoint record failed for case %s", judged.get("id", "?")
-                                )
-                except Exception:
-                    logger.exception(
-                        "nightmare_fuel judge worker %d unexpected error on case %s", worker_id, case.get("id", "?")
-                    )
-                finally:
-                    queue.task_done()
+    pipeline = AsyncJudgePipeline(
+        nemo_config=nemo_config,
+        max_workers=max(1, max_workers),
+        accept_threshold=accept_threshold,
+    )
+    result = await pipeline.run(_gen())
 
-    producers = [asyncio.create_task(producer())]
-    workers = [asyncio.create_task(worker(i)) for i in range(judge_concurrency)]
-    await asyncio.gather(*producers)
-    await queue.join()
-    await asyncio.gather(*workers)
-
-    total_tokens = token_counter.get("total_tokens", 0)
     print(
-        f"[Gate 1] Complete — {len(results)}/{len(sessions)} sessions passed "
-        f"(score >= 4), {total_tokens} tokens consumed by judge."
+        f"\n[AsyncJudge] generated={result.metrics.generated} "
+        f"evaluated={result.metrics.evaluated} accepted={result.metrics.accepted} "
+        f"rejected={result.metrics.rejected} errors={result.metrics.errors} | "
+        f"gen_throughput={result.metrics.gen_throughput:.2f}/s "
+        f"eval_throughput={result.metrics.eval_throughput:.2f}/s "
+        f"wall={result.metrics.wall_seconds:.2f}s"
     )
 
-    return results
+    if not result.accepted:
+        return pd.DataFrame()
+
+    rows = []
+    for item in result.accepted:
+        case = next((c for c in sessions if c["id"] == item["case_id"]), None)
+        if not case:
+            continue
+        case_row = dict(case)
+        case_row["score"] = max(1, min(5, int(round(item["eval"]["validity_score"] * 5))))
+        rows.append(case_row)
+    return pd.DataFrame(rows)
 
 
 async def main_async(  # noqa: PLR0913
@@ -695,10 +756,11 @@ async def main_async(  # noqa: PLR0913
     os.makedirs("ai/training/output/nightmare_fuel", exist_ok=True)
     os.makedirs("./nf_cache", exist_ok=True)
 
-    checkpoint = _JsonlCheckpoint(checkpoint_dir)
-    checkpoint.update_state(
-        current_category=category,
-        started_at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    checkpoint = CheckpointManager(
+        checkpoint_dir,
+        interval_records=checkpoint_interval,
+        interval_seconds=checkpoint_interval_seconds,
+        category=category,
     )
 
     existing = checkpoint.existing_record_ids()
@@ -707,7 +769,8 @@ async def main_async(  # noqa: PLR0913
         run_skip_ids: set[str] = existing
     elif existing and not resume:
         print(f"[checkpoint] resume disabled — starting fresh ({len(existing)} record(s) will be ignored)")
-        checkpoint.update_state(current_category=category)
+        # Start a new batch id so state reflects a fresh run; do not skip any IDs.
+        checkpoint.state = GenerationState(current_category=category)
         run_skip_ids = set()
     else:
         run_skip_ids = set()
@@ -718,15 +781,15 @@ async def main_async(  # noqa: PLR0913
         checkpoint=checkpoint,
         skip_ids=run_skip_ids,
     )
-    prep_file = "./nf_cache/nf_step0.jsonl"
-    pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)
 
-    survivors = await _run_clinical_gate_async(
-        sessions,
-        judge_concurrency=DEFAULT_JUDGE_CONCURRENCY,
-        checkpoint=checkpoint,
-    )
-    _export_survivors(pd.DataFrame(survivors))
+    use_async_judge = os.environ.get("NF_USE_ASYNC_JUDGE", "0") == "1"
+    if use_async_judge:
+        final_df = await _judge_cases_async(sessions)
+    else:
+        prep_file = "./nf_cache/nf_step0.jsonl"
+        pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)
+        final_df = _run_clinical_gate(prep_file)
+    _export_survivors(final_df)
 
 
 def main() -> None:

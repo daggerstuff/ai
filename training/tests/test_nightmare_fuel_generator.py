@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from training import nightmare_fuel_generator as nfg
-from training.nightmare_fuel_generator import CheckpointManager, GenerationState
 
 
 def _mock_response(payload: dict) -> MagicMock:
@@ -132,7 +131,7 @@ class TestSyncWrappers:
         ):
             nfg.main()
 
-        export_mock.assert_called_once()
+        main_async_mock.assert_awaited_once()
 
 
 class TestBatchController:
