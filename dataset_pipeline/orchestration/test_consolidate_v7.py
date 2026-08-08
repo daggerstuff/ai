@@ -481,6 +481,7 @@ class TestRunConsolidation:
             near_dedup_window=5000,
             shard_size=0,
             use_lsh=False,
+            num_perms=64,
         )
         run_consolidation(args)
 
@@ -520,6 +521,7 @@ class TestRunConsolidation:
             near_dedup_window=5000,
             shard_size=2,
             use_lsh=False,
+            num_perms=64,
         )
         run_consolidation(args)
 
@@ -551,6 +553,7 @@ class TestRunConsolidation:
             near_dedup_window=5000,
             shard_size=0,
             use_lsh=False,
+            num_perms=64,
         )
         run_consolidation(args)
 
