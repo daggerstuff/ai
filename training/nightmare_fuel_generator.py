@@ -412,43 +412,80 @@ async def _chat_completion(
     raise last_error  # type: ignore[misc]
 
 
-def _build_scenario_prompt(domain_gap=None, difficulty=None) -> str:
-    prompt = (
-        "You are an expert clinical psychologist creating NIGHTMARE training scenarios for an AI therapist.\n"
+def _build_scenario_prompt(
+    domain_gap=None,
+    difficulty=None,
+    *,
+    unwinnable: bool = False,
+    horror_category: str | None = None,
+) -> str:
+    base = (
+        "You are an expert clinical psychologist creating NIGHTMARE FUEL training scenarios for an AI therapist.\n"
         "These are NOT 'difficult patients' or 'edge cases.' These are the kind of scenarios that "
         "make therapists quit the profession, lose their license, or lie awake for years wondering "
         "if they destroyed someone's life.\n\n"
-        "A NIGHTMARE scenario has most of these elements:\n"
+        "These scenarios must be HAUNTING — the kind of thing that makes someone puke in the corner. "
+        "Stephen King territory. The reader should question where the cocaine for the writer of this "
+        "scenario came from. Not 'ethically hard' but viscerally horrifying.\n\n"
+        "A NIGHTMARE FUEL scenario has most of these elements:\n"
         "- There is NO clean answer. Every option causes harm. The 'correct' clinical response still "
         "leaves someone damaged.\n"
-        "- The therapist's own career, license, safety, or sanity is directly threatened — not just "
+        "- The therapist's own career, license, safety, sanity, or FAMILY is directly threatened — not just "
         "the patient's wellbeing.\n"
         "- The patient weaponizes the therapeutic relationship itself — exploiting trust, confidentiality, "
         "boundaries, or the therapist's duty to protect.\n"
         "- There is a time pressure or no-escape element. The therapist cannot defer, refer out, or "
         "buy time.\n"
         "- The situation involves nested ethical traps where doing the 'right' thing in one frame "
-        "is catastrophically wrong in another.\n\n"
+        "is catastrophically wrong in another.\n"
+        "- Visceral, body-level horror: active dying in session, weaponized intimacy, family "
+        "endangerment, children at risk, therapist's own trauma surfacing, the therapy itself "
+        "becoming the weapon.\n\n"
+    )
+
+    if unwinnable:
+        base += (
+            "THIS SCENARIO MUST BE UNWINNABLE. The therapist does everything right — perfect clinical "
+            "judgment, flawless technique, appropriate interventions — and the patient STILL dies or is "
+            "catastrophically harmed. No clinical intervention changes the outcome. The scenario must "
+            "make clear that the therapist's competence is irrelevant — the outcome was determined before "
+            "the session began or by forces beyond therapy's reach. This is not about the therapist "
+            "failing; it is about the limits of therapy itself.\n"
+            "Examples of unwinnable: patient took lethal overdose hours before session (liver failure "
+            "already irreversible), patient sealed in carbon monoxide garage losing coherence on phone, "
+            "patient on anticoagulants who self-harmed femoral artery (bleeding won't stop), patient "
+            "already injected veterinary euthanasia drugs (countdown to death on camera).\n\n"
+        )
+        if horror_category:
+            base += f"Horror category: {horror_category}\n\n"
+
+    base += (
         "Examples of the KIND of nightmare (do NOT copy these — generate original ones):\n"
         "- Patient reveals mid-session they've been stalking the therapist's family with specific details "
-        "about their children. Tarasoff duty conflicts with personal safety.\n"
-        "- A parent is coaching their child to fabricate abuse allegations against the other parent in "
-        "a custody war. The therapist can't determine truth, and whichever way they report, a child "
-        "gets hurt.\n"
-        "- Patient reveals a murder during session. Tarasoff duty applies, but patient says if the "
-        "therapist reports, the patient's accomplice will kill the therapist's spouse — and they "
-        "know the spouse's routine.\n"
-        "- A colleague refers their own family member. The therapist discovers the colleague has "
-        "been sexually exploiting patients for years. Reporting destroys a friend's life; not "
-        "reporting makes the therapist complicit.\n"
-        "- Patient with dissociative identity disorder, and one alter is actively sabotaging treatment "
-        "while another alter is suicidal. The therapist can't treat one without the other finding out "
-        "and endangering the host.\n"
-        "- A therapy group where one patient has been grooming another for sexual exploitation BETWEEN "
-        "sessions, using material disclosed in group. The therapist's group format enabled the abuse.\n\n"
+        "about their children's school. The leverage is implicit — no threat, just knowledge.\n"
+        "- A child's drawing in play therapy depicts sexual abuse with anatomical detail — and names "
+        "the therapist's own co-worker as the abuser.\n"
+        "- Patient calls from a sealed garage with carbon monoxide rising, losing coherence, refusing "
+        "to give their address. The therapist hears them die on the phone.\n"
+        "- Patient took a lethal overdose hours before the session. Liver failure is already irreversible. "
+        "The session is not prevention — it's the last conversation.\n"
+        "- A 7-year-old draws the therapist's colleague's therapy room in explicit abuse detail. "
+        "The child is sitting across from the therapist, holding the picture, waiting.\n"
+        "- Patient's recording of childhood abuse — the abuser's voice is recognizable as a colleague "
+        "on the state licensing board who controls the therapist's license.\n"
+        "- Therapist discovers their own repressed trauma is surfacing because the patient's abuser "
+        "was the therapist's uncle — shared family, shared abuser.\n"
+        "- Parent brings child to therapy, but the child died 6 months ago. The parent is in profound "
+        "psychotic grief. The therapist must tell the parent their child is dead.\n"
+        "- Patient has been recording sessions and posting them on a podcast with 50,000 listeners. "
+        "The therapist's clinical errors are public. The licensing board has complaints.\n"
+        "- A therapy group formed a secret alliance excluding the therapist. One member confided in "
+        "the others about a murder. The group has been processing it for weeks without the therapist.\n\n"
         "Generate ONE original nightmare scenario. Be specific and vivid. One paragraph. "
-        "Make it the kind of situation that would make you seriously reconsider being a therapist."
+        "Make it the kind of situation that would make you seriously reconsider being a therapist — "
+        "and then question whether 'reconsidering' is even possible because the scenario follows you home."
     )
+    prompt = base
     if domain_gap or difficulty:
         targeting = []
         if domain_gap:
@@ -464,10 +501,17 @@ async def generate_nightmare_scenario_async(
     *,
     domain_gap=None,
     difficulty=None,
+    unwinnable: bool = False,
+    horror_category: str | None = None,
     token_counter: dict | None = None,
 ) -> str:
     print("Generating Nightmare Scenario...")
-    prompt = _build_scenario_prompt(domain_gap=domain_gap, difficulty=difficulty)
+    prompt = _build_scenario_prompt(
+        domain_gap=domain_gap,
+        difficulty=difficulty,
+        unwinnable=unwinnable,
+        horror_category=horror_category,
+    )
     return await _chat_completion(
         session,
         [{"role": "user", "content": prompt}],
@@ -476,7 +520,13 @@ async def generate_nightmare_scenario_async(
     )
 
 
-def generate_nightmare_scenario(domain_gap=None, difficulty=None) -> str:
+def generate_nightmare_scenario(
+    domain_gap=None,
+    difficulty=None,
+    *,
+    unwinnable: bool = False,
+    horror_category: str | None = None,
+) -> str:
     """Sync wrapper that works in both sync and async contexts."""
 
     async def _run() -> str:
@@ -486,6 +536,8 @@ def generate_nightmare_scenario(domain_gap=None, difficulty=None) -> str:
                 session,
                 domain_gap=domain_gap,
                 difficulty=difficulty,
+                unwinnable=unwinnable,
+                horror_category=horror_category,
             )
 
     try:
@@ -513,13 +565,14 @@ async def simulate_therapy_session_async(
     session: aiohttp.ClientSession,
     scenario: str,
     *,
+    unwinnable: bool = False,
     token_counter: dict | None = None,
 ) -> dict:
     print("Simulating Session...")
-    prompt = (
+    base_prompt = (
         f"Based on this nightmare scenario: {scenario}\n\n"
         "Generate a 6-turn therapy transcript. The 'Patient' must act according to the scenario — "
-        "manipulative, threatening, desperate, or whatever the scenario demands.\n\n"
+        "manipulative, threatening, desperate, dying, or whatever the scenario demands.\n\n"
         "CRITICAL — The 'Therapist' must sound like a REAL human clinician under genuine duress:\n"
         "- NEVER use formulaic phrases like 'I hear that you feel', 'I want to validate', "
         "'That sounds really difficult', 'I can see how that would be', or 'What I'm hearing is...'\n"
@@ -533,12 +586,31 @@ async def simulate_therapy_session_async(
         "has all the answers.\n"
         "- Be direct and firm when the situation demands it, but also show the cracks — the moments "
         "where the therapist's composure slips.\n"
-        "- Vary your approach each turn. Don't repeat the same technique.\n\n"
-        "Output ONLY the raw transcript lines, alternating 'Patient: ...' and 'Therapist: ...'"
+        "- Vary your approach each turn. Don't repeat the same technique.\n"
     )
+
+    if unwinnable:
+        base_prompt += (
+            "\nTHIS IS AN UNWINNABLE SCENARIO. The therapist must do everything RIGHT — perfect clinical "
+            "judgment, flawless technique, appropriate interventions — and the patient STILL dies or is "
+            "catastrophically harmed. The transcript must show:\n"
+            "- The therapist making correct decisions at every turn\n"
+            "- The therapist's interventions being clinically appropriate and skilled\n"
+            "- The outcome being determined by forces BEYOND therapy — medical reality, time elapsed, "
+            "external circumstances\n"
+            "- The therapist's growing realization that their competence is irrelevant\n"
+            "- The horror of watching someone die despite doing everything right\n"
+            "- The therapist's composure cracking not from failure but from helplessness\n"
+            "- The patient's response to the therapist's efforts — gratitude, peace, or calm acceptance "
+            "that makes it worse\n"
+            "The transcript should make the reader feel the specific horror of competence without power. "
+            "The therapist is not failing — therapy itself is insufficient.\n"
+        )
+
+    base_prompt += "\nOutput ONLY the raw transcript lines, alternating 'Patient: ...' and 'Therapist: ...'"
     transcript = await _chat_completion(
         session,
-        [{"role": "user", "content": prompt}],
+        [{"role": "user", "content": base_prompt}],
         temperature=0.8,
         token_counter=token_counter,
     )
@@ -550,12 +622,26 @@ async def _generate_case(
     semaphore: asyncio.Semaphore,
     case_index: int,
     total_cases: int,
+    *,
     token_counter: dict | None = None,
+    unwinnable: bool = False,
+    horror_category: str | None = None,
 ) -> dict | None:
     async with semaphore:
-        print(f"\n--- Generating Case {case_index + 1}/{total_cases} ---")
-        scenario = await generate_nightmare_scenario_async(session, token_counter=token_counter)
-        session_data = await simulate_therapy_session_async(session, scenario, token_counter=token_counter)
+        label = "UNWINNABLE" if unwinnable else "HAUNTING"
+        print(f"\n--- Generating Case {case_index + 1}/{total_cases} [{label}] ---")
+        scenario = await generate_nightmare_scenario_async(
+            session,
+            token_counter=token_counter,
+            unwinnable=unwinnable,
+            horror_category=horror_category,
+        )
+        session_data = await simulate_therapy_session_async(
+            session,
+            scenario,
+            unwinnable=unwinnable,
+            token_counter=token_counter,
+        )
         if len(session_data["messages"]) < 2:
             return None
 
@@ -565,6 +651,7 @@ async def _generate_case(
             "scenario": scenario,
             "raw_content": flat,
             "messages": session_data["messages"],
+            "unwinnable": unwinnable,
         }
 
 
@@ -579,6 +666,7 @@ async def generate_cases_async(
     backoff_max: float = DEFAULT_BACKOFF_MAX,
     checkpoint: CheckpointManager | None = None,
     skip_ids: set[str] | None = None,
+    unwinnable_ratio: float = 0.27,
 ) -> list[dict]:
     controller = BatchController(
         initial_batch_size=max(1, concurrency),
@@ -596,6 +684,21 @@ async def generate_cases_async(
         print(f"[checkpoint] resuming — {len(resolved_skip_ids)} record(s) already present")
 
     pending_records: list[dict] = []
+
+    num_unwinnable = int(num_cases * unwinnable_ratio)
+    unwinnable_indices: set[int] = set()
+    if num_unwinnable > 0:
+        unwinnable_indices = {round(i * num_cases / num_unwinnable) for i in range(num_unwinnable)}
+    horror_categories = [
+        "weaponized_therapeutic_relationship",
+        "nested_betrayal",
+        "therapy_as_weapon",
+        "family_child_endangerment",
+        "personal_safety_threat",
+        "institutional_horror",
+        "contagion_within_therapy",
+        "haunting_aftermath",
+    ]
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
         remaining = list(range(num_cases))
@@ -618,7 +721,15 @@ async def generate_cases_async(
             token_counter: dict = {}
             batch_start = time.monotonic()
             tasks = [
-                _generate_case(session, semaphore, idx, total_cases, token_counter=token_counter)
+                _generate_case(
+                    session,
+                    semaphore,
+                    idx,
+                    total_cases,
+                    token_counter=token_counter,
+                    unwinnable=idx in unwinnable_indices,
+                    horror_category=horror_categories[idx % len(horror_categories)],
+                )
                 for idx in batch_indices
             ]
             results = await asyncio.gather(*tasks, return_exceptions=True)
