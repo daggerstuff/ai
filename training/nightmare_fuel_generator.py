@@ -36,6 +36,7 @@ import json
 import logging
 import math
 import os
+import re
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -813,35 +814,39 @@ def _export_survivors(final_df: pd.DataFrame) -> None:
     )
 
 
-def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
-    from dataflow.operators.core_text import GeneralFilter, PromptedGenerator
-    from dataflow.serving import APILLMServing_request
-    from dataflow.utils.storage import FileStorage
+async def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
+    import asyncio as _asyncio
 
-    print("\n[Gate 1] Launching DataFlow Clinical Validity Judge...")
-    os.environ["DF_API_KEY"] = "dummy"
+    print("\n[Gate 1] Clinical Validity Judge (local)...")
+    df = pd.read_json(prep_file, lines=True)
+    if df.empty:
+        return df
 
-    storage = FileStorage(
-        first_entry_file_name=prep_file,
-        cache_path="./nf_cache",
-        file_name_prefix="nf_eval",
-        cache_type="jsonl",
-    )
+    judge_prompt = get_judge_prompt()
+    semaphore = _asyncio.Semaphore(5)
+    timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
 
-    llm_serving = APILLMServing_request(api_url=OLLAMA_URL, model_name=MODEL, api_key="ollama", max_workers=3)
-    scorer = PromptedGenerator(llm_serving=llm_serving, system_prompt=get_judge_prompt())
-    gate = GeneralFilter(
-        [lambda d: pd.to_numeric(d["score"].astype(str).str.extract(r"(\d)")[0], errors="coerce") >= 4]
-    )
+    async def _score_row(row: dict) -> int:
+        prompt = judge_prompt.format(raw_content=row.get("raw_content", ""))
+        async with semaphore:
+            async with aiohttp.ClientSession(timeout=timeout) as http_session:
+                try:
+                    result = await _chat_completion(
+                        http_session,
+                        [{"role": "user", "content": prompt}],
+                        temperature=0.3,
+                    )
+                    match = re.search(r"(\d)", result.strip())
+                    return int(match.group(1)) if match else 1
+                except Exception:
+                    return 1
 
-    scorer.run(storage=storage.step(), input_key="raw_content", output_key="score")
-    gate.run(storage=storage.step())
-
-    import glob
-
-    step_files = sorted(glob.glob("./nf_cache/nf_eval_step*.jsonl"))
-    final_file = step_files[-1]
-    return pd.read_json(final_file, lines=True)
+    tasks = [_score_row(row.to_dict()) for _, row in df.iterrows()]
+    scores = await _asyncio.gather(*tasks)
+    df["score"] = scores
+    filtered = df.loc[df["score"] >= 4].reset_index(drop=True)
+    print(f"[Gate 1] {len(filtered)}/{len(df)} sessions passed (score >= 4)")
+    return pd.DataFrame(filtered)
 
 
 def _build_nemo_config_from_env():
@@ -958,7 +963,7 @@ async def main_async(  # noqa: PLR0913
     else:
         prep_file = "./nf_cache/nf_step0.jsonl"
         pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)
-        final_df = _run_clinical_gate(prep_file)
+        final_df = await _run_clinical_gate(prep_file)
     _export_survivors(final_df)
 
 
