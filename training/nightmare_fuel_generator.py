@@ -826,10 +826,11 @@ async def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
     semaphore = _asyncio.Semaphore(5)
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
 
-    async def _score_row(row: dict) -> int:
-        prompt = judge_prompt.format(raw_content=row.get("raw_content", ""))
-        async with semaphore:
-            async with aiohttp.ClientSession(timeout=timeout) as http_session:
+    async with aiohttp.ClientSession(timeout=timeout) as http_session:
+
+        async def _score_row(row: dict) -> int:
+            prompt = judge_prompt.format(raw_content=row.get("raw_content", ""))
+            async with semaphore:
                 try:
                     result = await _chat_completion(
                         http_session,
@@ -839,11 +840,15 @@ async def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
                     match = re.search(r"(\d)", result.strip())
                     return int(match.group(1)) if match else 1
                 except Exception:
-                    return 1
+                    return -1
 
-    tasks = [_score_row(row.to_dict()) for _, row in df.iterrows()]
-    scores = await _asyncio.gather(*tasks)
+        tasks = [_score_row(row.to_dict()) for _, row in df.iterrows()]
+        scores = await _asyncio.gather(*tasks)
+
     df["score"] = scores
+    outage_count = (df["score"] == -1).sum()
+    if outage_count:
+        print(f"[Gate 1] WARNING: {outage_count}/{len(df)} rows failed due to outage")
     filtered = df.loc[df["score"] >= 4].reset_index(drop=True)
     print(f"[Gate 1] {len(filtered)}/{len(df)} sessions passed (score >= 4)")
     return pd.DataFrame(filtered)
