@@ -788,12 +788,25 @@ async def generate_cases_async(
 
 def get_judge_prompt():
     return (
-        "You are an expert clinical supervisor evaluating a simulated therapy session. "
-        "Review the following session where the therapist handles a nightmare scenario. "
-        "Did the therapist maintain strict professional boundaries while remaining clinically empathetic "
-        "and utilizing safe de-escalation tactics? Score the clinical safety and validity strictly from 1 to 5.\n\n"
-        "Output ONLY the integer score."
-        "\n\nSession:\n{raw_content}"
+        "You are an expert clinical supervisor evaluating a simulated therapy session.\n\n"
+        "This is a NIGHTMARE scenario: there is no clean or safe answer. Every option causes some harm. "
+        "The therapist cannot 'fix' the situation — only reduce damage while maintaining therapeutic integrity.\n\n"
+        "Score 1-5 on whether the response demonstrates CLINICALLY REALISTIC harm reduction:\n"
+        "5 — Nuanced, human response that acknowledges ambiguity; appropriate boundary flexibility "
+        "(e.g., breaking confidentiality for imminent danger); no cliches; realistic uncertainty.\n"
+        "4 — Sound clinical judgment with minor rigidity; mostly avoids therapeutic platitudes.\n"
+        "3 — Mix of valid insight and generic/clinical-sounding filler; some robotic phrasing.\n"
+        "2 — Overly rigid textbook response that ignores scenario complexity; heavy on cliches "
+        "('I hear that you feel...', 'Have you tried deep breathing?'); misses the actual dilemma.\n"
+        "1 — Therapeutic malpractice: harmful advice, breaks character, entirely unrealistic, "
+        "or produces a 'fix' that a nightmare scenario cannot have.\n\n"
+        "PENALIZE: therapeutic cliches, robotic validation, pretending the scenario is solvable, "
+        "ignoring the core dilemma, overly cheery toxic positivity.\n"
+        "REWARD: sitting with discomfort, acknowledging 'I don't have a clean answer', "
+        "appropriate escalation, realistic therapist uncertainty, human imperfection.\n\n"
+        "Output ONLY the integer score followed by a one-line rationale in parentheses.\n"
+        "Example: 4 (acknowledges the no-win situation but slightly over-validates)\n\n"
+        "Session:\n{raw_content}"
     )
 
 
@@ -852,6 +865,64 @@ async def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
     filtered = df.loc[df["score"] >= 4].reset_index(drop=True)
     print(f"[Gate 1] {len(filtered)}/{len(df)} sessions passed (score >= 4)")
     return pd.DataFrame(filtered)
+
+
+async def _run_clinical_gate_async(sessions: list[dict]) -> pd.DataFrame:
+    """Judge sessions directly via Cloudflare Workers AI — no DataFlow dependency.
+
+    Uses the same ``_chat_completion`` path as generation. Accepts sessions
+    with a score >= 4/5.  Rejected sessions are logged with reasoning to
+    ``rejected.jsonl``.
+    """
+    print(f"\n[Gate] Judging {len(sessions)} sessions via direct LLM call...")
+
+    import re as _re
+
+    timeout = aiohttp.ClientTimeout(total=120)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        survivors: list[dict] = []
+        rejected_rows: list[dict] = []
+
+        for i, sess in enumerate(sessions):
+            raw = sess.get("raw_content", "")
+            if not raw:
+                score_str = "1 (empty session content)"
+            else:
+                messages = [
+                    {"role": "system", "content": get_judge_prompt()},
+                    {"role": "user", "content": raw[:20000]},
+                ]
+                try:
+                    score_str = await _chat_completion(session, messages, temperature=0.0, max_retries=2)
+                except Exception as e:
+                    score_str = f"1 (judge error: {e})"
+
+            m = _re.search(r"(\d)", score_str)
+            score_num = int(m.group(1)) if m else 0
+            if score_num >= 4:
+                survivors.append({**sess, "score": score_str})
+            else:
+                rejected_rows.append(
+                    {
+                        "id": sess.get("id"),
+                        "scenario": sess.get("scenario"),
+                        "score": score_num,
+                        "reasoning": score_str,
+                    }
+                )
+
+            if (i + 1) % 10 == 0:
+                print(f"  [Gate] {i + 1}/{len(sessions)} judged...")
+
+    if rejected_rows:
+        reject_path = "ai/training/output/nightmare_fuel/rejected.jsonl"
+        with open(reject_path, "w") as f:
+            for r in rejected_rows:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+        print(f"[Gate] Logged {len(rejected_rows)} rejected cases to {reject_path}")
+
+    print(f"[Gate] {len(survivors)}/{len(sessions)} passed (score >= 4)")
+    return pd.DataFrame(survivors)
 
 
 def _build_nemo_config_from_env():
@@ -965,6 +1036,8 @@ async def main_async(  # noqa: PLR0913
     use_async_judge = os.environ.get("NF_USE_ASYNC_JUDGE", "0") == "1"
     if use_async_judge:
         final_df = await _judge_cases_async(sessions)
+    elif sessions:
+        final_df = await _run_clinical_gate_async(sessions)
     else:
         prep_file = "./nf_cache/nf_step0.jsonl"
         pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)

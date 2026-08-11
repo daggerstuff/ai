@@ -33,7 +33,7 @@ logger = logging.getLogger("s3_atomic_sync")
 
 STAGING_DIR = "_staging"
 SYNC_MANIFEST = "_sync_manifest.json"
-MIN_REMOTE_PARTS = 2
+
 
 
 @dataclass
@@ -124,25 +124,15 @@ class S3AtomicSync:
 
     def _list_remote(self, prefix: str) -> dict[str, int]:
         """List files under a remote prefix, returning {name: size}."""
-        cmd = ["rclone", "lsf", "--format", "p", "-s", self._remote_path(prefix)]
+        cmd = ["rclone", "lsf", self._remote_path(prefix)]
         result = self._run(cmd)
         files: dict[str, int] = {}
         for raw_line in result.stdout.strip().splitlines():
             line = raw_line.strip()
             if not line:
                 continue
-            # lsf -s format: "size path" or "path size" depending on flags
-            # Using --format "p" gives path, -s gives size as separate field
-            # Actually rclone lsf -s gives: "size path"
-            parts = line.split(None, 1)
-            if len(parts) == MIN_REMOTE_PARTS:
-                try:
-                    size = int(parts[0])
-                    files[parts[1].strip()] = size
-                except ValueError:
-                    files[parts[0].strip()] = -1
-            else:
-                files[line] = -1
+            # lsf output: just paths (one per line)
+            files[line] = -1
         return files
 
     # ------------------------------------------------------------------

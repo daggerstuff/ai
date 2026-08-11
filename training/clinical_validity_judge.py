@@ -120,11 +120,14 @@ class ClinicalValidityJudge:
 
         Args:
             text: Therapist response text to evaluate.
-            nemo_config: NeMo API config. If None, always uses regex fallback.
+            nemo_config: NeMo API config. Required — no fallback is provided.
 
         Returns:
             dict with keys: validity_score, flags (list), category (str),
             detail (dict of dimension scores).
+
+        Raises:
+            RuntimeError: If nemo_config is None or the LLM judge call fails.
         """
         # --- Empty/None guard ---
         if not text or not isinstance(text, str) or not text.strip():
@@ -144,24 +147,21 @@ class ClinicalValidityJudge:
                 "detail": dict.fromkeys(ClinicalValidityScorer.WEIGHTS, 0.0),
             }
 
-        # --- Try LLM judge ---
-        if nemo_config is not None:
-            try:
-                judge_result = cls._call_judge(text, nemo_config)
-                if judge_result is not None:
-                    return judge_result
-            except Exception:
-                logger.warning("ClinicalValidityJudge: NeMo call failed, falling back to regex scorer", exc_info=True)
+        # --- LLM judge (required, no fallback) ---
+        if nemo_config is None:
+            raise RuntimeError(
+                "ClinicalValidityJudge requires nemo_config — keyword-density fallback is disabled"
+            )
 
-        # --- Fallback to regex scorer ---
-        logger.info("ClinicalValidityJudge: falling back to ClinicalValidityScorer (regex)")
-        fallback = ClinicalValidityScorer.score_with_flags(text)
-        fallback.setdefault("flags", [])
-        fallback["flags"].insert(0, "fallback_regex")
-        # Ensure detail is present
-        if "detail" not in fallback:
-            fallback["detail"] = ClinicalValidityScorer.score_detail(text)
-        return fallback
+        try:
+            judge_result = cls._call_judge(text, nemo_config)
+        except Exception as e:
+            raise RuntimeError(f"ClinicalValidityJudge: LLM judge call failed: {e}") from e
+
+        if judge_result is None:
+            raise RuntimeError("ClinicalValidityJudge: LLM judge returned no result")
+
+        return judge_result
 
     @classmethod
     def score_with_flags(
@@ -328,6 +328,10 @@ def main() -> None:
         text = sys.stdin.read().strip()
 
     nemo_config = _build_nemo_config_from_env()
+
+    if nemo_config is None:
+        print("Error: NEMO_API_KEY (or NVIDIA_API_KEY) and NEMO_ENDPOINT (or NVIDIA_BASE_URL) must be set.", file=sys.stderr)
+        sys.exit(1)
 
     if args.detail:
         result = ClinicalValidityJudge.evaluate(text, nemo_config)

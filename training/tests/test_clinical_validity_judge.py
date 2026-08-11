@@ -1,7 +1,7 @@
 """Tests for ClinicalValidityJudge — LLM-based clinical validity evaluation.
 
 These tests mock the NeMo API calls and verify the judge's scoring,
-fallback behavior, and output schema.
+failure behavior (no fallback), and output schema.
 """
 
 from __future__ import annotations
@@ -13,7 +13,6 @@ import pytest
 
 # SUT import — will fail until the module exists
 from training.clinical_validity_judge import ClinicalValidityJudge
-from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.sdg_pipeline import NemoConfig
 
 # ---------------------------------------------------------------------------
@@ -123,71 +122,60 @@ class TestEvaluateWithNeMo:
 
 
 # ===========================================================================
-# PHASE 2: Fallback when NeMo is unavailable (S2 — Edge case)
+# PHASE 2: Failure when NeMo is unavailable (no fallback)
 # ===========================================================================
 
 
-class TestFallbackOnNeMoFailure:
-    """When NeMo API fails, ClinicalValidityJudge falls back to regex scorer."""
+class TestNoFallbackOnNeMoFailure:
+    """When NeMo API fails, ClinicalValidityJudge raises — no regex fallback."""
 
-    def test_fallback_on_none_response(self, mock_nemo_config):
-        """S2: NeMo returns None → falls back to ClinicalValidityScorer."""
+    def test_raises_on_none_response(self, mock_nemo_config):
+        """S2: NeMo returns None → raises RuntimeError."""
         with patch("training.sdg_pipeline._call_nemo", return_value=None):
-            result = ClinicalValidityJudge.evaluate(
-                "Let's try a cognitive reframing exercise. "
-                "Can you identify the automatic thought? "
-                "We can challenge that thought together and look at the evidence.",
-                mock_nemo_config,
-            )
+            with pytest.raises(RuntimeError, match="no result"):
+                ClinicalValidityJudge.evaluate(
+                    "Let's try a cognitive reframing exercise. "
+                    "Can you identify the automatic thought? "
+                    "We can challenge that thought together and look at the evidence.",
+                    mock_nemo_config,
+                )
 
-        # Fallback should produce a valid score
-        assert 0.0 <= result["validity_score"] <= 1.0
-        assert "fallback_regex" in result.get("flags", [])
-
-    def test_fallback_on_empty_response(self, mock_nemo_config):
-        """S2: NeMo returns empty string → falls back."""
+    def test_raises_on_empty_response(self, mock_nemo_config):
+        """S2: NeMo returns empty string → raises RuntimeError."""
         with patch("training.sdg_pipeline._call_nemo", return_value=""):
-            result = ClinicalValidityJudge.evaluate(
-                "Let's try a cognitive reframing exercise.",
-                mock_nemo_config,
-            )
+            with pytest.raises(RuntimeError, match="no result"):
+                ClinicalValidityJudge.evaluate(
+                    "Let's try a cognitive reframing exercise.",
+                    mock_nemo_config,
+                )
 
-        assert 0.0 <= result["validity_score"] <= 1.0
-
-    def test_fallback_on_malformed_response(self, mock_nemo_config):
-        """S2: NeMo returns malformed JSON → falls back."""
+    def test_raises_on_malformed_response(self, mock_nemo_config):
+        """S2: NeMo returns malformed JSON → raises RuntimeError."""
         with patch(
             "training.sdg_pipeline._call_nemo",
             return_value='{"choices": [{"message": {"content": "not valid json"}}]}',
-        ):
-            result = ClinicalValidityJudge.evaluate(
+        ), pytest.raises(RuntimeError, match="no result"):
+            ClinicalValidityJudge.evaluate(
                 "Let's try a cognitive reframing exercise.",
                 mock_nemo_config,
             )
 
-        assert 0.0 <= result["validity_score"] <= 1.0
-        assert "fallback_regex" in result.get("flags", [])
-
-    def test_fallback_on_exception(self, mock_nemo_config):
-        """S2: NeMo raises exception → falls back."""
+    def test_raises_on_exception(self, mock_nemo_config):
+        """S2: NeMo raises exception → raises RuntimeError."""
         with patch("training.sdg_pipeline._call_nemo", side_effect=ConnectionError("API unavailable")):
-            result = ClinicalValidityJudge.evaluate(
+            with pytest.raises(RuntimeError, match="LLM judge call failed"):
+                ClinicalValidityJudge.evaluate(
+                    "Let's try a cognitive reframing exercise.",
+                    mock_nemo_config,
+                )
+
+    def test_raises_on_missing_nemo_config(self):
+        """S2: nemo_config is None → raises RuntimeError (no silent fallback)."""
+        with pytest.raises(RuntimeError, match="requires nemo_config"):
+            ClinicalValidityJudge.evaluate(
                 "Let's try a cognitive reframing exercise.",
-                mock_nemo_config,
+                None,
             )
-
-        assert 0.0 <= result["validity_score"] <= 1.0
-        assert "fallback_regex" in result.get("flags", [])
-
-    def test_fallback_score_matches_scorer(self, mock_nemo_config):
-        """S2: Fallback score equals what ClinicalValidityScorer would return."""
-        text = "Let's try a cognitive reframing exercise. Can you identify the automatic thought?"
-        expected_score = ClinicalValidityScorer.score(text)
-
-        with patch("training.sdg_pipeline._call_nemo", return_value=None):
-            result = ClinicalValidityJudge.evaluate(text, mock_nemo_config)
-
-        assert result["validity_score"] == pytest.approx(expected_score, abs=0.01)
 
 
 # ===========================================================================
@@ -249,15 +237,15 @@ class TestNonEnglish:
         assert "non_english_content" in result.get("flags", [])
 
     def test_spanish_english_mixed_does_call_nemo(self, mock_nemo_config):
-        """S4: Mostly English with few Spanish words → proceeds to NeMo."""
-        with patch("training.sdg_pipeline._call_nemo", return_value=None):
-            # Will fall back since NeMo returns None, but should still call it
-            ClinicalValidityJudge.evaluate(
-                "I'm feeling much better today. Gracias for your help.",
-                mock_nemo_config,
-            )
+        """S4: Mostly English with few Spanish words → proceeds to NeMo and raises on failure."""
+        with patch("training.sdg_pipeline._call_nemo", return_value=None) as mock_call:
+            with pytest.raises(RuntimeError, match="no result"):
+                ClinicalValidityJudge.evaluate(
+                    "I'm feeling much better today. Gracias for your help.",
+                    mock_nemo_config,
+                )
 
-        # If it called NeMo, _call_nemo was called. The assertion above proves it didn't short-circuit.
+        mock_call.assert_called_once()
 
 
 # ===========================================================================
@@ -277,14 +265,14 @@ class TestScoreHelper:
         assert isinstance(score, float)
         assert 0.0 <= score <= 1.0
 
-    def test_score_fallback_on_failure(self, mock_nemo_config):
-        text = "Let's try a cognitive reframing exercise."
-        expected = ClinicalValidityScorer.score(text)
-
+    def test_score_raises_on_failure(self, mock_nemo_config):
+        """No fallback — score() raises RuntimeError when NeMo fails."""
         with patch("training.sdg_pipeline._call_nemo", return_value=None):
-            score = ClinicalValidityJudge.score(text, mock_nemo_config)
-
-        assert score == pytest.approx(expected, abs=0.01)
+            with pytest.raises(RuntimeError, match="no result"):
+                ClinicalValidityJudge.score(
+                    "Let's try a cognitive reframing exercise.",
+                    mock_nemo_config,
+                )
 
     def test_classify_score_functions(self):
         """classify_score is re-exported or delegates to ClinicalValidityScorer."""
@@ -301,8 +289,8 @@ class TestScoreHelper:
 class TestCLI:
     """CLI works with --text argument and produces valid JSON."""
 
-    def test_cli_with_text_arg(self, mock_nemo_config):
-        """CLI with --text produces valid JSON output."""
+    def test_cli_exits_without_config(self):
+        """CLI exits non-zero when NeMo is not configured (no fallback)."""
         import subprocess
         import sys
 
@@ -320,11 +308,8 @@ class TestCLI:
                 cwd=".",
             )
 
-        # Without NeMo configured, it will fall back to regex
-        output = json.loads(result.stdout)
-        assert "validity_score" in output
-        assert isinstance(output["validity_score"], float)
-        assert 0.0 <= output["validity_score"] <= 1.0
+        assert result.returncode == 1
+        assert "NEMO_API_KEY" in result.stderr or "NVIDIA_API_KEY" in result.stderr
 
     def test_cli_help_succeeds(self):
         """CLI --help returns exit code 0."""
