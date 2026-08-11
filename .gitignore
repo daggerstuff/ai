@@ -196,3 +196,5 @@ docs/Books/
 simulated_client/
 data/annotation_queue.db
 .omo/
+ai/
+whitebat/
