@@ -23,5 +23,12 @@ typer>=0.9.0
 pydantic>=2.4.0
 omegaconf>=2.3.0
 
+# Dataset filter pipeline (PIX-4341 / Appendix B.2, B.7.1)
+fasttext-langdetect>=1.1.1
+presidio-analyzer>=2.2.362
+presidio-anonymizer>=2.2.362
+detoxify>=0.5.2
+iterative-stratification>=0.1.9
+
 # Security: Pin transitive dependencies to secure versions
 urllib3>=2.7.0  # Fixes GHSA-gm62-xv2j-4w53, GHSA-2xpw-w6gg-jr37 (CVE-2025-66418, CVE-2025-66471) — 2.6.2 is the minimum that enforces the decompression bomb limit
