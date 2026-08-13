@@ -1,0 +1,726 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1786615018396,
+  "projectRoot": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZX8V8W74DWWENSRZCSWDWG4",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "pyproject.toml"
+        ]
+      },
+      {
+        "name": "C/C++",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "Makefile"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "fastapi",
+        "version": null,
+        "category": "backend"
+      },
+      {
+        "name": "flask",
+        "version": null,
+        "category": "backend"
+      },
+      {
+        "name": "pytest",
+        "version": null,
+        "category": "testing"
+      }
+    ],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": "make test",
+    "lintCommand": "ruff check",
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "bin",
+      "docs",
+      "scripts",
+      "tests"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "annotation": {
+      "path": "annotation",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786615018348,
+      "keyFiles": [
+        "guidelines.md",
+        "simplified_taxonomy.md"
+      ]
+    },
+    "annotation_api": {
+      "path": "annotation_api",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1786615018351,
+      "keyFiles": [
+        "__init__.py",
+        "database.py",
+        "main.py",
+        "models.py",
+        "schemas.py"
+      ]
+    },
+    "api": {
+      "path": "api",
+      "purpose": "API routes",
+      "fileCount": 17,
+      "lastAccessed": 1786615018355,
+      "keyFiles": [
+        "Dockerfile",
+        "PIXEL_API_README.md",
+        "__init__.py",
+        "complete_api_system.py",
+        "dataset_api.py"
+      ]
+    },
+    "archive": {
+      "path": "archive",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786615018356,
+      "keyFiles": [
+        "independent_phase6_audit_results.json",
+        "pr_feedback.json"
+      ]
+    },
+    "bin": {
+      "path": "bin",
+      "purpose": "Executable scripts",
+      "fileCount": 3,
+      "lastAccessed": 1786615018356,
+      "keyFiles": [
+        "GPLv3.txt",
+        "qt-faststart",
+        "readme.txt"
+      ]
+    },
+    "cli": {
+      "path": "cli",
+      "purpose": null,
+      "fileCount": 8,
+      "lastAccessed": 1786615018357,
+      "keyFiles": [
+        "__init__.py",
+        "auth.py",
+        "config.py",
+        "exceptions.py",
+        "main.py"
+      ]
+    },
+    "compliance": {
+      "path": "compliance",
+      "purpose": null,
+      "fileCount": 9,
+      "lastAccessed": 1786615018357,
+      "keyFiles": [
+        "compliance_validation_report_20250821_230539.json",
+        "compliance_validation_system.py",
+        "gdpr_validator.py",
+        "hipaa_validator.py",
+        "phase2_validation_report.txt"
+      ]
+    },
+    "config": {
+      "path": "config",
+      "purpose": "Configuration files",
+      "fileCount": 23,
+      "lastAccessed": 1786615018359,
+      "keyFiles": [
+        "ai_inference_performance_baseline.json",
+        "complete_crisis_conversations_20250807_225021.json",
+        "comprehensive_crisis_dataset_20250807_215307.json",
+        "cpu_performance_baseline.json",
+        "crisis_data_20250807_214818.json"
+      ]
+    },
+    "coverage_reports": {
+      "path": "coverage_reports",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786615018365,
+      "keyFiles": [
+        "coverage_annotation_api.xml",
+        "coverage_clinical_validity_scorer.xml"
+      ]
+    },
+    "data": {
+      "path": "data",
+      "purpose": "Data files",
+      "fileCount": 0,
+      "lastAccessed": 1786615018366,
+      "keyFiles": []
+    },
+    "dataset_pipeline": {
+      "path": "dataset_pipeline",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786615018366,
+      "keyFiles": []
+    },
+    "demos": {
+      "path": "demos",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1786615018366,
+      "keyFiles": [
+        "demo_balance_report.json",
+        "demo_client_scenarios.json",
+        "demo_conversations.json",
+        "demo_therapeutic_responses.json",
+        "demo_validation_results.json"
+      ]
+    },
+    "deployment": {
+      "path": "deployment",
+      "purpose": null,
+      "fileCount": 7,
+      "lastAccessed": 1786615018367,
+      "keyFiles": [
+        "deployment_manager.py",
+        "kubernetes_deployment.yaml",
+        "modal_app.py",
+        "nemo-data-designer-k8s.yaml",
+        "pre_launch_validator.py"
+      ]
+    },
+    "docker": {
+      "path": "docker",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786615018367,
+      "keyFiles": [
+        "phase1-services.docker-compose.yaml"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 46,
+      "lastAccessed": 1786615018367,
+      "keyFiles": [
+        "CLEANUP_REORGANIZATION_REPORT.md",
+        "DATASET_REGISTRY_ENHANCEMENT.md",
+        "README-dialogue-generation.md",
+        "REGISTRY_REBUILD_COMPLETE.md",
+        "UPGRADE_OPPORTUNITIES.md"
+      ]
+    },
+    "evals": {
+      "path": "evals",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1786615018370,
+      "keyFiles": [
+        "__init__.py",
+        "conversation_eval_metrics.py",
+        "cross_condition_transfer.py",
+        "ift_comparison.py",
+        "test_diagnosis_arena.py"
+      ]
+    },
+    "helm": {
+      "path": "helm",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786615018370,
+      "keyFiles": []
+    },
+    "infrastructure": {
+      "path": "infrastructure",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1786615018371,
+      "keyFiles": [
+        "__init__.py",
+        "infrastructure_validation_report_20250822_014515.json",
+        "infrastructure_validation_system.py",
+        "persistence.py"
+      ]
+    },
+    "lab": {
+      "path": "lab",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1786615018371,
+      "keyFiles": [
+        "Stage1_Training_Notebook.ipynb",
+        "__init__.py",
+        "measure.py",
+        "test_defense_endpoint.py",
+        "test_local_inference.py"
+      ]
+    },
+    "memory": {
+      "path": "memory",
+      "purpose": null,
+      "fileCount": 71,
+      "lastAccessed": 1786615018371,
+      "keyFiles": [
+        "DREAM_REFLECTION_GUIDE.md",
+        "__init__.py",
+        "api.py",
+        "base.py",
+        "consolidation_rules.py"
+      ]
+    },
+    "monitoring": {
+      "path": "monitoring",
+      "purpose": null,
+      "fileCount": 115,
+      "lastAccessed": 1786615018371,
+      "keyFiles": [
+        "ALERT_FATIGUE_SYSTEM_README.md",
+        "NOTIFICATION_SYSTEM_README.md",
+        "OPERATIONAL_DASHBOARD_DEPLOYMENT_GUIDE.md",
+        "alert_escalation.py",
+        "alert_fatigue_prevention.py"
+      ]
+    },
+    "multimodal": {
+      "path": "multimodal",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1786615018372,
+      "keyFiles": [
+        "__init__.py",
+        "audio_emotion_recognition.py",
+        "multimodal_fusion.py",
+        "speech_recognition.py"
+      ]
+    },
+    "nemo": {
+      "path": "nemo",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786615018372,
+      "keyFiles": [
+        "docker-compose.yaml"
+      ]
+    },
+    "nf_cache": {
+      "path": "nf_cache",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786615018372,
+      "keyFiles": []
+    },
+    "orchestration": {
+      "path": "orchestration",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786615018372,
+      "keyFiles": [
+        "__init__.py",
+        "celery_app.py"
+      ]
+    },
+    "pipelines": {
+      "path": "pipelines",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786615018372,
+      "keyFiles": [
+        "dpo_ingestion.py",
+        "ingestion_deduplication.py"
+      ]
+    },
+    "pixelated_v2": {
+      "path": "pixelated_v2",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786615018372,
+      "keyFiles": []
+    },
+    "pkg_mera": {
+      "path": "pkg_mera",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786615018372,
+      "keyFiles": [
+        "__init__.py"
+      ]
+    },
+    "rag": {
+      "path": "rag",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1786615018373,
+      "keyFiles": [
+        "__init__.py",
+        "nemotron_benchmark.py",
+        "nemotron_rag.py"
+      ]
+    },
+    "receipts": {
+      "path": "receipts",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786615018374,
+      "keyFiles": [
+        "persistence.py",
+        "receipt.py"
+      ]
+    },
+    "safety": {
+      "path": "safety",
+      "purpose": null,
+      "fileCount": 6,
+      "lastAccessed": 1786615018374,
+      "keyFiles": [
+        "bias_privacy_hooks.py",
+        "content_filter.py",
+        "dataset_validation.py",
+        "enhanced_safety_filter.py",
+        "inference_safety_filter.py"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 102,
+      "lastAccessed": 1786615018376,
+      "keyFiles": [
+        "__init__.py",
+        "acquire_research_instruments.py",
+        "acquire_therapeutic_datasets.py",
+        "ai_content_router.py",
+        "ai_qa_agent.py"
+      ]
+    },
+    "security": {
+      "path": "security",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1786615018376,
+      "keyFiles": [
+        "README.md",
+        "__init__.py",
+        "api_authentication.py",
+        "fastapi_auth_middleware.py"
+      ]
+    },
+    "services": {
+      "path": "services",
+      "purpose": "Business logic services",
+      "fileCount": 10,
+      "lastAccessed": 1786615018378,
+      "keyFiles": [
+        "API_DASHBOARD.md",
+        "Dockerfile",
+        "api.py",
+        "database.py",
+        "memory_adapter.py"
+      ]
+    },
+    "sourcing": {
+      "path": "sourcing",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1786615018378,
+      "keyFiles": [
+        "__init__.py",
+        "convert_reddit_to_training.py",
+        "run_public_web_pilot.py"
+      ]
+    },
+    "tests": {
+      "path": "tests",
+      "purpose": "Test files",
+      "fileCount": 80,
+      "lastAccessed": 1786615018380,
+      "keyFiles": [
+        "__init__.py",
+        "comprehensive_test_suite.py",
+        "manual_test_middleware.py",
+        "test_analytics_dashboard.py",
+        "test_analytics_dashboard_working.py"
+      ]
+    },
+    "tools": {
+      "path": "tools",
+      "purpose": null,
+      "fileCount": 7,
+      "lastAccessed": 1786615018380,
+      "keyFiles": [
+        "README.md",
+        "clinical_stress_test.py",
+        "generate_dialogues.js",
+        "generate_dialogues.sh",
+        "hf_client.py"
+      ]
+    },
+    "training": {
+      "path": "training",
+      "purpose": null,
+      "fileCount": 65,
+      "lastAccessed": 1786615018380,
+      "keyFiles": [
+        "FEEDBACK_LOOP_GUIDE.md",
+        "FINETUNING_GUIDE.md",
+        "README.md",
+        "__init__.py",
+        "ab_test_validity_gating.py"
+      ]
+    },
+    "training_corpus": {
+      "path": "training_corpus",
+      "purpose": null,
+      "fileCount": 25,
+      "lastAccessed": 1786615018381,
+      "keyFiles": [
+        "__init__.py",
+        "benchmarks.py",
+        "builder.py",
+        "compare.py",
+        "compose.py"
+      ]
+    },
+    "training_data_unified": {
+      "path": "training_data_unified",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1786615018381,
+      "keyFiles": []
+    },
+    "triggers": {
+      "path": "triggers",
+      "purpose": null,
+      "fileCount": 5,
+      "lastAccessed": 1786615018381,
+      "keyFiles": [
+        "__init__.py",
+        "case_flag.py",
+        "flag_store.py",
+        "jit_scenario_injector.py",
+        "jit_trigger_engine.py"
+      ]
+    },
+    "triton": {
+      "path": "triton",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786615018381,
+      "keyFiles": [
+        "prometheus_config.yaml"
+      ]
+    },
+    "utils": {
+      "path": "utils",
+      "purpose": "Utility functions",
+      "fileCount": 9,
+      "lastAccessed": 1786615018381,
+      "keyFiles": [
+        "__init__.py",
+        "ngc_cli.py",
+        "ngc_resources.py",
+        "s3_dataset_loader.py",
+        "subtitle_processor.py"
+      ]
+    },
+    "annotation/scripts": {
+      "path": "annotation/scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 21,
+      "lastAccessed": 1786615018384,
+      "keyFiles": [
+        "agent_personas.py",
+        "calculate_kappa.py",
+        "calculate_multi_agent_kappa.py"
+      ]
+    },
+    "cli/tests": {
+      "path": "cli/tests",
+      "purpose": "Test files",
+      "fileCount": 5,
+      "lastAccessed": 1786615018385,
+      "keyFiles": [
+        "__init__.py",
+        "test_auth.py",
+        "test_config.py"
+      ]
+    },
+    "dataset_pipeline/scripts": {
+      "path": "dataset_pipeline/scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 6,
+      "lastAccessed": 1786615018385,
+      "keyFiles": [
+        "__init__.py",
+        "fix_integrity.py",
+        "run_integrity_test.py"
+      ]
+    },
+    "docs/api": {
+      "path": "docs/api",
+      "purpose": "API routes",
+      "fileCount": 3,
+      "lastAccessed": 1786615018386,
+      "keyFiles": [
+        "complete_api_documentation.md",
+        "openapi-enhanced.yaml",
+        "openapi.yaml"
+      ]
+    },
+    "evals/tests": {
+      "path": "evals/tests",
+      "purpose": "Test files",
+      "fileCount": 1,
+      "lastAccessed": 1786615018386,
+      "keyFiles": [
+        "test_ift_comparison.py"
+      ]
+    },
+    "infrastructure/config": {
+      "path": "infrastructure/config",
+      "purpose": "Configuration files",
+      "fileCount": 5,
+      "lastAccessed": 1786615018388,
+      "keyFiles": [
+        "config_tracker.py",
+        "config_validator.py",
+        "error_handler.py"
+      ]
+    },
+    "lab/examples": {
+      "path": "lab/examples",
+      "purpose": "Example code",
+      "fileCount": 4,
+      "lastAccessed": 1786615018389,
+      "keyFiles": [
+        "download_model.py",
+        "health_check_demo.py",
+        "voice_pipeline_usage.py"
+      ]
+    },
+    "nemo/services": {
+      "path": "nemo/services",
+      "purpose": "Business logic services",
+      "fileCount": 9,
+      "lastAccessed": 1786615018389,
+      "keyFiles": [
+        "auditor.yaml",
+        "customizer.yaml",
+        "data_designer.yaml"
+      ]
+    },
+    "security/migrations": {
+      "path": "security/migrations",
+      "purpose": "Database migrations",
+      "fileCount": 1,
+      "lastAccessed": 1786615018391,
+      "keyFiles": [
+        "001_create_api_keys.sql"
+      ]
+    },
+    "sourcing/docs": {
+      "path": "sourcing/docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1786615018391,
+      "keyFiles": [
+        "HETZNER_S3_INVENTORY.md"
+      ]
+    },
+    "sourcing/scripts": {
+      "path": "sourcing/scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 8,
+      "lastAccessed": 1786615018392,
+      "keyFiles": [
+        "__init__.py",
+        "crossref_hetzner.py",
+        "dedup_datasets.py"
+      ]
+    },
+    "tests/api": {
+      "path": "tests/api",
+      "purpose": "API routes",
+      "fileCount": 2,
+      "lastAccessed": 1786615018392,
+      "keyFiles": [
+        "test_api_comprehensive.py",
+        "test_wait_for_job_failure.py"
+      ]
+    },
+    "tests/fixtures": {
+      "path": "tests/fixtures",
+      "purpose": "Test fixtures",
+      "fileCount": 0,
+      "lastAccessed": 1786615018393,
+      "keyFiles": []
+    },
+    "tools/scripts": {
+      "path": "tools/scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 4,
+      "lastAccessed": 1786615018394,
+      "keyFiles": [
+        "final_crisis_generator.sh",
+        "generate_complete_conversations.sh",
+        "generate_comprehensive_crisis_data.sh"
+      ]
+    },
+    "training_corpus/assets": {
+      "path": "training_corpus/assets",
+      "purpose": "Static assets",
+      "fileCount": 19,
+      "lastAccessed": 1786615018395,
+      "keyFiles": [
+        "wave1_seed_manifest.json",
+        "wave1_seed_pack.json",
+        "wave1_seed_registry.json"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "training/ingest_router.py",
+      "accessCount": 25,
+      "lastAccessed": 1786618085163,
+      "type": "file"
+    },
+    {
+      "path": "training/provenance.py",
+      "accessCount": 1,
+      "lastAccessed": 1786616009433,
+      "type": "file"
+    },
+    {
+      "path": "training/sdg_pipeline.py",
+      "accessCount": 1,
+      "lastAccessed": 1786616020942,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
