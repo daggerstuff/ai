@@ -12,6 +12,10 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
+class HIPAAComplianceError(Exception):
+    """Raised when a PHI dataset fails HIPAA compliance validation in fail-closed mode."""
+
+
 class HIPAAComplianceStatus(Enum):
     """HIPAA compliance status."""
 
@@ -92,6 +96,7 @@ class HIPAAValidator:
         encryption_status: dict | None = None,
         access_control_status: dict | None = None,
         audit_logging_status: bool | None = None,
+        fail_closed: bool = False,
     ) -> HIPAAComplianceResult:
         """
         Validate HIPAA compliance for a dataset.
@@ -103,9 +108,15 @@ class HIPAAValidator:
             encryption_status: Dict with encryption status (at_rest, in_transit)
             access_control_status: Dict with access control status
             audit_logging_status: Whether audit logging is implemented
+            fail_closed: If True, raise HIPAAComplianceError when PHI dataset
+                is non-compliant (fails closed — rejects data)
 
         Returns:
             HIPAAComplianceResult with compliance validation results
+
+        Raises:
+            HIPAAComplianceError: When fail_closed=True and dataset contains PHI
+                but is not compliant
         """
         logger.info(f"Validating HIPAA compliance for dataset: {source_id}")
 
@@ -163,6 +174,14 @@ class HIPAAValidator:
             f"Status: {result.compliance_status.value}, "
             f"Score: {result.compliance_score:.2f}"
         )
+
+        if fail_closed and result.compliance_status != HIPAAComplianceStatus.COMPLIANT:
+            raise HIPAAComplianceError(
+                f"Dataset {source_id} failed HIPAA compliance validation "
+                f"(status: {result.compliance_status.value}, "
+                f"score: {result.compliance_score:.2f}). "
+                f"Issues: {'; '.join(result.issues)}"
+            )
 
         return result
 
