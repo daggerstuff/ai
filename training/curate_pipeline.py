@@ -47,6 +47,23 @@ from typing import Any
 DEFAULT_INPUT = "ai/data/raw/deduped/all_desloped.jsonl"
 DEFAULT_OUTPUT = "ai/data/curated"
 
+from training.synth_qc_gate import gate_synthetic_record, SYNTH_QC_THRESH  # PIX-4345 synth QC
+
+from training.stage1_filters import (
+    FilterVerdict,
+    NearDuplicateIndex,
+    run_stage1_on_record,
+)
+
+from training.annotation.iaa import (
+    AnnotationStage,
+    IaaResult,
+    bucket_quality,
+    fleiss_kappa,
+    label_studio_export_to_iaa,
+)
+
+
 # System prompts per task type — preserves source/clinical context
 SYSTEM_PROMPTS: dict[str, str] = {
     "therapy_response_generation": (
@@ -162,7 +179,12 @@ class PipelineStats:
 
 
 def classify_tier(record: dict[str, Any]) -> str:
-    """Classify a record into a quality tier."""
+    """Classify a record into a quality tier with IAA integration.
+
+    Extends base tier logic with annotation stage quality metrics from
+    the IAA module (PIX-4344): Fleiss kappa scores and annotation stages
+    can upgrade records to T1_GOLD when inter-annotator agreement is strong.
+    """
     task_type = record.get("task_type", "")
     clinical_reviewed = record.get("clinical_reviewed", False)
     mi_quality = record.get("mi_quality", "")
@@ -175,6 +197,17 @@ def classify_tier(record: dict[str, Any]) -> str:
 
     # T1_GOLD: clinically reviewed or high MI quality
     if clinical_reviewed or mi_quality == "high":
+        return "T1_GOLD"
+
+    # T1_GOLD override: adjudicated with strong inter-annotator agreement
+    # (PIX-4345): Fleiss kappa >= 0.85 from IAA module upgrades to T1_GOLD
+    annotation_stage = record.get("annotation_stage")
+    fleiss_kappa = record.get("fleiss_kappa")
+    if (
+        annotation_stage == AnnotationStage.ADJUDICATED.value
+        and fleiss_kappa is not None
+        and fleiss_kappa >= 0.85
+    ):
         return "T1_GOLD"
 
     # T2_SILVER: multi-turn therapy dialogues (5+ messages, non-adversarial)
@@ -362,6 +395,7 @@ def run_pipeline(
     """Run the full curation pipeline."""
     stats = PipelineStats()
     seen_hashes: set[str] = set()
+    stage1_index = NearDuplicateIndex()
 
     # Prepare output directories
     if not dry_run:
@@ -413,6 +447,19 @@ def run_pipeline(
                 continue
             seen_hashes.add(chash)
 
+            # Synthetic QC gate (§B.5.5) — stricter than natural data
+            # Apply to synthetic records from SDG pipeline (PIX-4345)
+            source_type = record.get("source", "")
+            if source_type == "synthetic_sdg" and gate_synthetic_record is not None:
+                passed, reason = gate_synthetic_record(record)
+                if not passed:
+                    tier_stats.excluded += 1
+                    stats.total_excluded += 1
+                    continue
+                # If passed with flag (needs human review), attach note
+                if "needs_human_review" in reason:
+                    record["synthetic_qc_note"] = reason
+
             # Downsampling for T3_BRONZE
             if tier == "T3_BRONZE":
                 source = record.get("source", "")
@@ -420,6 +467,23 @@ def run_pipeline(
                     tier_stats.excluded += 1
                     stats.total_excluded += 1
                     continue
+
+            # Stage 1 QA filters (language → PII → toxicity → near-dup)
+            stage1_result = run_stage1_on_record(record, dedup_index=stage1_index)
+            if stage1_result.verdict == FilterVerdict.DROP:
+                tier_stats.excluded += 1
+                stats.total_excluded += 1
+                continue
+            if stage1_result.transformed_text is not None:
+                record["text"] = stage1_result.transformed_text
+                for msg in record.get("messages", []):
+                    if isinstance(msg, dict) and msg.get("content"):
+                        msg["content"] = stage1_result.transformed_text
+                record["stage1"] = {
+                    "verdict": stage1_result.verdict,
+                    "reasons": stage1_result.reasons,
+                    "stats": stage1_result.stats,
+                }
 
             # Determine split
             split = assign_split(chash)
