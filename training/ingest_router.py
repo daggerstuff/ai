@@ -50,6 +50,7 @@ from urllib.robotparser import RobotFileParser
 
 import httpx
 import yaml
+import yt_dlp
 from selectolax.parser import HTMLParser
 
 from training.provenance import (
@@ -849,8 +850,6 @@ class YouTubeExtractor:
             }
 
             try:
-                import yt_dlp
-
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url, download=True)
             except Exception as exc:
