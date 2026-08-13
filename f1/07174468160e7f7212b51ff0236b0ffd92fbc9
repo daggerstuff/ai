@@ -1,0 +1,20 @@
+training/tests/test_llm_quality_judge.py
+  s_59badd58dedbb9::t_2aa2c46d4fad8d 624
+  s_59badd58dedbb9::t_50ac80763b4b18 613
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f107174468160e7f7212b51ff0236b0ffd92fbc9",
+  "prompts": {},
+  "sessions": {
+    "s_59badd58dedbb9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_005c0d53effeXpCDbtK6qzQhaC",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
