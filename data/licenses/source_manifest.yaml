@@ -5,6 +5,7 @@
 # are dropped with a logged reason.
 #
 # Allowed licenses: Apache-2.0, CC-BY-4.0, CC-BY-SA-4.0, CC0-1.0, MIT, NOASSERTION
+# This manifest contains 7 source entries.
 
 sources:
   # --- Web sources ---
@@ -24,11 +25,11 @@ sources:
 
   # --- Document sources ---
   - url: "https://arxiv.org"
-    license: "CC0-1.0"
+    license: "NOASSERTION"
     source_type: "document"
     provenance:
       publisher: "arXiv (Cornell University)"
-      notes: "Preprint papers — most arXiv content is CC0 or CC-BY"
+      notes: "Preprint papers — arXiv non-exclusive distribution license; per-paper licensing varies"
 
   - url: "file:///data/books/"
     license: "NOASSERTION"

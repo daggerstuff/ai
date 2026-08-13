@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
+from urllib.robotparser import RobotFileParser
 
 import httpx
 import pytest
@@ -42,6 +43,12 @@ from training.ingest_router import (
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
+def _allow_all_robots() -> RobotFileParser:
+    rp = RobotFileParser()
+    rp.parse(["User-agent: *", "Allow: /"])
+    return rp
+
+
 @pytest.fixture
 def manifest_path(tmp_path: Path) -> Path:
     """Create a temporary source manifest with known entries."""
@@ -55,7 +62,7 @@ sources:
     provenance:
       publisher: "Wikimedia Foundation"
   - url: "https://arxiv.org"
-    license: "CC0-1.0"
+    license: "NOASSERTION"
     source_type: "document"
     provenance:
       publisher: "arXiv"
@@ -107,7 +114,7 @@ class TestSourceManifest:
 
     def test_lookup_license_matches_domain(self, manifest: dict[str, ManifestEntry]) -> None:
         assert lookup_license("https://en.wikipedia.org/wiki/Therapy", manifest) == "CC-BY-SA-4.0"
-        assert lookup_license("https://arxiv.org/abs/2401.00001", manifest) == "CC0-1.0"
+        assert lookup_license("https://arxiv.org/abs/2401.00001", manifest) == "NOASSERTION"
         assert lookup_license("https://api.openalex.org/works", manifest) == "CC0-1.0"
 
     def test_lookup_license_falls_back_to_noassertion(self, manifest: dict[str, ManifestEntry]) -> None:
@@ -118,6 +125,15 @@ class TestSourceManifest:
         assert entry.matches("https://example.com/page")
         assert entry.matches("https://sub.example.com/page")
         assert not entry.matches("https://other.com/page")
+
+    def test_file_url_matches_by_path_prefix(self) -> None:
+        entry = ManifestEntry(url_or_domain="file:///data/books/", license_id="NOASSERTION")
+        assert entry.matches("file:///data/books/clinical_textbook.pdf")
+        assert not entry.matches("file:///other/books/book.pdf")
+
+    def test_host_match_rejects_similar_domain(self) -> None:
+        entry = ManifestEntry(url_or_domain="example.com", license_id="MIT")
+        assert not entry.matches("https://example.com.evil.com/page")
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +150,7 @@ class TestLicenseGate:
 
     def test_invalid_license_drops(self, manifest: dict[str, ManifestEntry]) -> None:
         gate = LicenseGate(manifest)
-        ok, license_id = gate.check("https://unlicensed.example.com/page")
+        ok, _license_id = gate.check("https://unlicensed.example.com/page")
         assert ok is False
         assert gate.dropped_count == 1
 
@@ -427,8 +443,7 @@ class TestWebExtractorRateLimit:
         mock_client.aclose = AsyncMock()
 
         extractor._client = mock_client
-        # Bypass robots.txt by pre-caching as allowed
-        extractor._robots_cache["example.com"] = (time.monotonic(), True)
+        extractor._robots_cache["example.com"] = (time.monotonic(), _allow_all_robots())
 
         start = time.monotonic()
         await extractor.extract("https://example.com/page1")
@@ -455,8 +470,8 @@ class TestWebExtractorRateLimit:
         mock_client.aclose = AsyncMock()
 
         extractor._client = mock_client
-        extractor._robots_cache["a.com"] = (time.monotonic(), True)
-        extractor._robots_cache["b.com"] = (time.monotonic(), True)
+        extractor._robots_cache["a.com"] = (time.monotonic(), _allow_all_robots())
+        extractor._robots_cache["b.com"] = (time.monotonic(), _allow_all_robots())
 
         start = time.monotonic()
         # Concurrent requests to different domains
@@ -473,6 +488,44 @@ class TestWebExtractorRateLimit:
 # ---------------------------------------------------------------------------
 # Document extractor tests
 # ---------------------------------------------------------------------------
+
+
+class TestWebExtractorRobotsPathLevel:
+    @pytest.mark.asyncio
+    async def test_path_specific_disallow_blocks_private(self) -> None:
+        extractor = WebExtractor()
+
+        robots_text = """User-agent: *
+Disallow: /private/
+Allow: /
+"""
+        page_resp = MagicMock()
+        page_resp.status_code = 200
+        page_resp.text = "<html><body>Public content</body></html>"
+
+        async def fake_get(url: str, **_kwargs: Any) -> MagicMock:
+            if url.endswith("/robots.txt"):
+                r = MagicMock()
+                r.status_code = 200
+                r.text = robots_text
+                return r
+            return page_resp
+
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_client.is_closed = False
+        mock_client.get = AsyncMock(side_effect=fake_get)
+        mock_client.aclose = AsyncMock()
+        extractor._client = mock_client
+
+        with patch.object(WebExtractor, "_trafilatura_extract", return_value="Public content"):
+            result = await extractor.extract("https://example.com/private/secret")
+        assert result["raw_text"] == ""
+        assert result["metadata"]["fetch_status"] == 403
+
+        with patch.object(WebExtractor, "_trafilatura_extract", return_value="Public content"):
+            result = await extractor.extract("https://example.com/public/page")
+        assert result["raw_text"] == "Public content"
+        assert result["metadata"]["fetch_status"] == 200
 
 
 class TestDocumentExtractor:
@@ -555,7 +608,10 @@ class TestAPIExtractor:
             httpx.Response(
                 200,
                 json={
-                    "results": [{"id": "1", "content": "item one"}, {"id": "2", "content": "item two"}],
+                    "results": [
+                        {"id": "1", "content": "item one"},
+                        {"id": "2", "content": "item two"},
+                    ],
                     "next_cursor": "page2",
                 },
                 request=req,
@@ -563,7 +619,10 @@ class TestAPIExtractor:
             httpx.Response(
                 200,
                 json={
-                    "results": [{"id": "3", "content": "item three"}, {"id": "4", "content": "item four"}],
+                    "results": [
+                        {"id": "3", "content": "item three"},
+                        {"id": "4", "content": "item four"},
+                    ],
                     "next_cursor": "page3",
                 },
                 request=req,
@@ -636,10 +695,14 @@ class TestAPIExtractor:
         req = httpx.Request("GET", "https://api.example.com/data")
         responses = [
             httpx.Response(
-                200, json={"results": [{"id": "1", "content": "a"}, {"id": "2", "content": "b"}]}, request=req
+                200,
+                json={"results": [{"id": "1", "content": "a"}, {"id": "2", "content": "b"}]},
+                request=req,
             ),
             httpx.Response(
-                200, json={"results": [{"id": "3", "content": "c"}, {"id": "4", "content": "d"}]}, request=req
+                200,
+                json={"results": [{"id": "3", "content": "c"}, {"id": "4", "content": "d"}]},
+                request=req,
             ),
             httpx.Response(200, json={"results": [{"id": "5", "content": "e"}]}, request=req),
         ]
@@ -674,7 +737,9 @@ class TestAPIExtractor:
         req = httpx.Request("GET", "https://api.example.com/data")
         responses = [
             httpx.Response(
-                200, json={"results": [{"id": "1", "content": "a"}, {"id": "2", "content": "b"}]}, request=req
+                200,
+                json={"results": [{"id": "1", "content": "a"}, {"id": "2", "content": "b"}]},
+                request=req,
             ),
             httpx.Response(200, json={"results": [{"id": "3", "content": "c"}]}, request=req),
         ]
@@ -708,6 +773,28 @@ class TestYouTubeExtractor:
 
     def test_extract_video_id_embed(self) -> None:
         assert YouTubeExtractor._extract_video_id("https://www.youtube.com/embed/abc123") == "abc123"
+
+    def test_fetch_uses_unique_temp_directory(self) -> None:
+        def fake_run(cmd, **_kwargs):
+            assert "--output" in cmd
+            output_index = cmd.index("--output")
+            output_path = cmd[output_index + 1]
+            assert output_path.startswith("/tmp/yt-transcript-")
+            assert not output_path.startswith("/tmp/yt-transcript-VIDEOID")
+            return MagicMock(returncode=0, stdout="", stderr="")
+
+        with (
+            patch("training.ingest_router.subprocess.run", side_effect=fake_run),
+            patch("glob.glob", return_value=[]),
+            patch("training.ingest_router.tempfile.mkdtemp", return_value="/tmp/yt-transcript-abc123"),
+        ):
+            extractor = YouTubeExtractor()
+            extractor._fetch_transcript_sync("VIDEOID", "https://www.youtube.com/watch?v=VIDEOID")
+
+    def test_invalid_video_id_returns_error(self) -> None:
+        extractor = YouTubeExtractor()
+        result = extractor._fetch_transcript_sync("bad<id", "https://www.youtube.com/watch?v=bad<id")
+        assert result["metadata"]["error"] == "invalid video id"
 
     def test_clean_subtitle_strips_formatting(self) -> None:
         vtt_text = """WEBVTT
