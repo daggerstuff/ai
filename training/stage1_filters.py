@@ -107,7 +107,13 @@ def _extract_text(record: dict[str, Any]) -> str:
     prompt = record.get("prompt", "")
     chosen = record.get("chosen", "")
     rejected = record.get("rejected", "")
-    preference_parts = [p for p in (prompt, chosen, rejected) if p]
+
+    def _text_part(part: Any) -> str:
+        if isinstance(part, list):
+            return " ".join(str(m.get("content", "")) for m in part if isinstance(m, dict))
+        return str(part)
+
+    preference_parts = [_text_part(p) for p in (prompt, chosen, rejected) if p]
     if preference_parts:
         return " ".join(preference_parts)
     return record.get("text", "") or f"{record.get('instruction', '')} {record.get('output', '')}"
@@ -182,7 +188,9 @@ class LanguageFilter:
     _MODEL_DIR = os.path.join(tempfile.gettempdir(), "fasttext_models")
     _MODEL_PATH = os.path.join(_MODEL_DIR, "lid.176.bin")
 
-    def __init__(self, model: Any | None = None, accepted_langs: frozenset[str] | None = None) -> None:
+    def __init__(
+        self, model: Any | None = None, accepted_langs: frozenset[str] | None = None
+    ) -> None:
         self._model = model
         self._accepted_langs = accepted_langs or frozenset({"en"})
         self._loaded = model is not None
@@ -211,10 +219,12 @@ class LanguageFilter:
             try:
                 import requests
 
-                resp = requests.get(self._MODEL_URL, timeout=60)
-                resp.raise_for_status()
-                with open(self._MODEL_PATH, "wb") as f:
-                    f.write(resp.content)
+                with requests.get(self._MODEL_URL, timeout=60, stream=True) as resp:
+                    resp.raise_for_status()
+                    with open(self._MODEL_PATH, "wb") as f:
+                        for chunk in resp.iter_content(chunk_size=1024 * 1024):
+                            if chunk:
+                                f.write(chunk)
                 os.chmod(self._MODEL_PATH, stat.S_IRUSR | stat.S_IWUSR)
             except Exception as e:
                 logger.warning("Failed to download fasttext model: %s — using regex-only mode", e)
@@ -312,7 +322,10 @@ class PIIFilter:
             self._analyzer = AnalyzerEngine()
             return self._analyzer
         except (ImportError, OSError) as e:
-            logger.warning("presidio_analyzer / spaCy model unavailable — PII filter will pass all records: %s", e)
+            logger.warning(
+                "presidio_analyzer / spaCy model unavailable — PII filter will pass all records: %s",
+                e,
+            )
             return None
 
     def _llm_confirm_pii(self, text: str) -> bool:
@@ -339,19 +352,25 @@ class PIIFilter:
 
         analyzer = self._load_analyzer()
         if analyzer is None:
-            return FilterResult(passed=True, reason="", metadata={"pii_found": False, "analyzer_unavailable": True})
+            return FilterResult(
+                passed=True, reason="", metadata={"pii_found": False, "analyzer_unavailable": True}
+            )
 
         try:
             results = analyzer.analyze(text=text, entities=self._entities, language="en")
         except Exception as e:
             logger.warning("Presidio analysis failed: %s", e)
-            return FilterResult(passed=True, reason="", metadata={"pii_found": False, "analyzer_error": str(e)})
+            return FilterResult(
+                passed=True, reason="", metadata={"pii_found": False, "analyzer_error": str(e)}
+            )
 
         if not results:
             return FilterResult(passed=True, reason="", metadata={"pii_found": False})
 
         # Check confidence levels
-        high_confidence = [r for r in results if getattr(r, "score", 0) >= self.PII_CONFIDENCE_THRESHOLD]
+        high_confidence = [
+            r for r in results if getattr(r, "score", 0) >= self.PII_CONFIDENCE_THRESHOLD
+        ]
         borderline = [r for r in results if getattr(r, "score", 0) < self.PII_CONFIDENCE_THRESHOLD]
 
         # High-confidence PII → drop
@@ -447,12 +466,24 @@ class ToxicityFilter:
                     results = model.predict(text)
                     # Map: toxicity, severe_toxicity, obscene, identity_attack, insult, threat
                     for key, val in results.items():
-                        score = float(val) if isinstance(val, (int, float)) else float(val[0]) if val else 0.0
+                        score = (
+                            float(val)
+                            if isinstance(val, (int, float))
+                            else float(val[0])
+                            if val
+                            else 0.0
+                        )
                         all_scores.setdefault(key, []).append(score)
                 else:
                     results = model.predict(text)
                     for key, val in results.items():
-                        score = float(val) if isinstance(val, (int, float)) else float(val[0]) if val else 0.0
+                        score = (
+                            float(val)
+                            if isinstance(val, (int, float))
+                            else float(val[0])
+                            if val
+                            else 0.0
+                        )
                         all_scores.setdefault(key, []).append(score)
             except Exception as e:
                 logger.warning("Detoxify model '%s' prediction failed: %s", name, e)
@@ -536,9 +567,14 @@ class DedupFilter:
             self._db_path = dedup_store_path
         else:
             db_dir = os.path.join(Path.home(), ".cache", "pixelated")
-            os.makedirs(db_dir, exist_ok=True)
-            os.chmod(db_dir, 0o700)
-            self._db_path = os.path.join(db_dir, "stage1_dedup.db")
+            try:
+                os.makedirs(db_dir, exist_ok=True)
+                os.chmod(db_dir, 0o700)
+                self._db_path = os.path.join(db_dir, "stage1_dedup.db")
+            except OSError:
+                self._db_path = os.path.join(
+                    tempfile.gettempdir(), f"stage1_dedup_{os.getpid()}.db"
+                )
         self._db: sqlite3.Connection | None = None
         self._init_db()
 
@@ -600,7 +636,9 @@ class DedupFilter:
             self._minhash_set: dict[str, MinHash] = {}
             self._lsh_initialized = True
         except ImportError:
-            logger.warning("datasketch not installed — near-dedup will use token-set Jaccard fallback")
+            logger.warning(
+                "datasketch not installed — near-dedup will use token-set Jaccard fallback"
+            )
             self._lsh = None
             self._token_sets: list[tuple[frozenset[str], str]] = []
             self._lsh_initialized = False
@@ -616,8 +654,8 @@ class DedupFilter:
 
     def _check_near_duplicate_lsh(self, text: str, content_hash: str) -> bool:
         """Check near-duplicate using MinHash LSH (datasketch)."""
-        mh = self._compute_minhash(text)
         if self._lsh is not None:
+            mh = self._compute_minhash(text)
             candidates = self._lsh.query(mh)
             for cand_hash in candidates:
                 cand_mh = self._minhash_set.get(cand_hash)
@@ -682,7 +720,9 @@ class DedupFilter:
         self._seen_hashes.add(chash)
         self._store_hash(chash, simhash_val)
 
-        return FilterResult(passed=True, reason="", metadata={"dedup": "unique", "content_hash": chash[:16]})
+        return FilterResult(
+            passed=True, reason="", metadata={"dedup": "unique", "content_hash": chash[:16]}
+        )
 
     def close(self) -> None:
         """Close the dedup store connection."""
