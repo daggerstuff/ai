@@ -103,6 +103,11 @@ dependencies = [
   "datasketch>=1.6.0",
 ]
 
+[project.optional-dependencies]
+ebook = [
+  "mobi>=0.1,<1.0",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",

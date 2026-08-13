@@ -108,7 +108,9 @@ class ManifestEntry:
             if source.scheme == "file" or target.scheme == "file":
                 if source.scheme != "file" or target.scheme != "file":
                     return False
-                return target.path.startswith(source.path)
+                sp = source.path.rstrip("/")
+                if target.path == sp or target.path.startswith(sp + "/"):
+                    return True
 
             source_host = (source.netloc or source.path).lower()
             target_host = target.netloc.lower()
@@ -177,7 +179,13 @@ class ShardWriter:
         self._output_dir = output_dir
         self._source_type = source_type
         self._shard_size = shard_size
-        self._shard_index = 0
+        existing = list(output_dir.glob("shard-*.jsonl")) if output_dir.exists() else []
+        max_index = 0
+        for p in existing:
+            match = re.search(r"shard-(\d{5})\.jsonl$", p.name)
+            if match:
+                max_index = max(max_index, int(match.group(1)))
+        self._shard_index = max_index
         self._records_in_shard = 0
         self._fh: IO[str] | None = None
         self._total_written = 0
@@ -498,14 +506,14 @@ class DocumentExtractor:
         except ImportError:
             logger.error("book_pdf_converter not available — cannot extract PDF")
             return {
-                "source_url": str(path),
+                "source_url": path.resolve().as_uri(),
                 "raw_text": "",
                 "metadata": {"format": "pdf", "error": "book_pdf_converter unavailable"},
             }
 
         raw_text = converter_extract(path)
         return {
-            "source_url": str(path),
+            "source_url": path.resolve().as_uri(),
             "raw_text": raw_text,
             "metadata": {"format": "pdf"},
         }
@@ -517,7 +525,7 @@ class DocumentExtractor:
         except ImportError:
             logger.error("python-docx not installed — cannot extract DOCX")
             return {
-                "source_url": str(path),
+                "source_url": path.resolve().as_uri(),
                 "raw_text": "",
                 "metadata": {"format": "docx", "error": "python-docx unavailable"},
             }
@@ -552,7 +560,7 @@ class DocumentExtractor:
 
         raw_text = "\n\n".join(lines)
         return {
-            "source_url": str(path),
+            "source_url": path.resolve().as_uri(),
             "raw_text": raw_text,
             "metadata": {
                 "format": "docx",
@@ -566,7 +574,7 @@ class DocumentExtractor:
         html = path.read_text(encoding="utf-8", errors="replace")
         raw_text = WebExtractor._trafilatura_extract(html)
         return {
-            "source_url": str(path),
+            "source_url": path.resolve().as_uri(),
             "raw_text": raw_text,
             "metadata": {"format": "html"},
         }
@@ -630,13 +638,16 @@ class APIExtractor:
     async def _fetch_with_retry(self, url: str, params: dict[str, Any]) -> httpx.Response | None:
         client = await self._get_client()
         last_exc: Exception | None = None
-        for attempt, delay in enumerate(self._retry_delays):
+        last_retryable_status: int | None = None
+        delays = list(self._retry_delays)
+        for attempt, delay in enumerate(delays):
             try:
                 resp = await client.get(url, params=params, headers=self._config.headers)
                 if (
                     resp.status_code == HTTPStatus.TOO_MANY_REQUESTS
                     or resp.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR
                 ):
+                    last_retryable_status = resp.status_code
                     logger.warning(
                         "API returned %d for %s (attempt %d) — retrying in %.1fs",
                         resp.status_code,
@@ -644,7 +655,8 @@ class APIExtractor:
                         attempt + 1,
                         delay,
                     )
-                    await asyncio.sleep(delay)
+                    if attempt < len(delays) - 1:
+                        await asyncio.sleep(delay)
                     continue
                 resp.raise_for_status()
                 return resp
@@ -659,8 +671,11 @@ class APIExtractor:
                     exc,
                     delay,
                 )
-                await asyncio.sleep(delay)
-        if last_exc is not None:
+                if attempt < len(delays) - 1:
+                    await asyncio.sleep(delay)
+        if last_retryable_status is not None:
+            logger.error("API request exhausted retries for %s (last retryable status %d)", url, last_retryable_status)
+        elif last_exc is not None:
             logger.error("API request exhausted retries for %s: %s", url, last_exc)
         return None
 
@@ -758,7 +773,7 @@ class YouTubeExtractor:
         video_id = self._extract_video_id(source_url)
 
         # Run yt-dlp in a thread to avoid blocking the event loop
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             None,
             self._fetch_transcript_sync,
@@ -778,59 +793,59 @@ class YouTubeExtractor:
 
         # Use a unique temp directory to avoid collisions across concurrent runs
         tmpdir = tempfile.mkdtemp(prefix="yt-transcript-")
-        output_prefix = Path(tmpdir) / video_id
-
-        cmd = [
-            "yt-dlp",
-            "--write-auto-sub",
-            "--sub-lang",
-            "en,en-US,en-GB,de,de-DE",
-            "--skip-download",
-            "--output",
-            str(output_prefix),
-            "--user-agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "--sleep-interval",
-            "1",
-            "--max-sleep-interval",
-            "5",
-            f"https://www.youtube.com/watch?v={video_id}",
-        ]
-
         try:
-            subprocess.run(cmd, capture_output=True, text=True, timeout=self._timeout, check=False)
-        except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
-            logger.warning("yt-dlp failed for %s: %s", video_id, exc)
-            return {
-                "source_url": source_url,
-                "raw_text": "",
-                "metadata": {"video_id": video_id, "duration": 0, "error": str(exc)},
-            }
+            output_prefix = Path(tmpdir) / video_id
 
-        # Find the generated subtitle file
-        patterns = [
-            f"{output_prefix}*.vtt",
-            f"{output_prefix}*.srt",
-            f"{output_prefix}*.srv3",
-            f"{output_prefix}*.srv2",
-            f"{output_prefix}*.srv1",
-        ]
-        subtitle_path: str | None = None
-        for pat in patterns:
-            files = glob.glob(pat)
-            if files:
-                subtitle_path = files[0]
-                break
+            cmd = [
+                "yt-dlp",
+                "--write-auto-sub",
+                "--sub-lang",
+                "en,en-US,en-GB,de,de-DE",
+                "--skip-download",
+                "--output",
+                str(output_prefix),
+                "--user-agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "--sleep-interval",
+                "1",
+                "--max-sleep-interval",
+                "5",
+                f"https://www.youtube.com/watch?v={video_id}",
+            ]
 
-        if subtitle_path is None:
-            logger.warning("No transcript found for video %s", video_id)
-            return {
-                "source_url": source_url,
-                "raw_text": "",
-                "metadata": {"video_id": video_id, "duration": 0, "error": "no transcript found"},
-            }
+            try:
+                subprocess.run(cmd, capture_output=True, text=True, timeout=self._timeout, check=False)
+            except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+                logger.warning("yt-dlp failed for %s: %s", video_id, exc)
+                return {
+                    "source_url": source_url,
+                    "raw_text": "",
+                    "metadata": {"video_id": video_id, "duration": 0, "error": str(exc)},
+                }
 
-        try:
+            # Find the generated subtitle file
+            patterns = [
+                f"{output_prefix}*.vtt",
+                f"{output_prefix}*.srt",
+                f"{output_prefix}*.srv3",
+                f"{output_prefix}*.srv2",
+                f"{output_prefix}*.srv1",
+            ]
+            subtitle_path: str | None = None
+            for pat in patterns:
+                files = glob.glob(pat)
+                if files:
+                    subtitle_path = files[0]
+                    break
+
+            if subtitle_path is None:
+                logger.warning("No transcript found for video %s", video_id)
+                return {
+                    "source_url": source_url,
+                    "raw_text": "",
+                    "metadata": {"video_id": video_id, "duration": 0, "error": "no transcript found"},
+                }
+
             raw_text = self._clean_subtitle(Path(subtitle_path).read_text(encoding="utf-8", errors="replace"))
 
             duration = 0
@@ -849,7 +864,10 @@ class YouTubeExtractor:
                 )
                 if result.returncode == 0 and result.stdout.strip():
                     info = json.loads(result.stdout.strip().splitlines()[0])
-                    duration = int(info.get("duration", 0))
+                    try:
+                        duration = int(info.get("duration", 0))
+                    except (TypeError, ValueError):
+                        duration = 0
             except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
                 pass
 
@@ -860,6 +878,7 @@ class YouTubeExtractor:
             }
         finally:
             try:
+                output_prefix = Path(tmpdir) / video_id
                 for _f in glob.glob(f"{output_prefix}*"):
                     try:
                         Path(_f).unlink(missing_ok=True)

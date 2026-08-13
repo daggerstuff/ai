@@ -222,14 +222,17 @@ def _extract_azw(path: Path) -> str | None:
     """Extract text from AZW3/MOBI via temporary conversion to EPUB."""
     if mobi is None:
         raise ImportError("mobi is required for AZW3/MOBI extraction but is not installed")
+    tmpdir = None
     try:
         tmpdir, epub_path = mobi.extract(str(path))  # type: ignore[union-attr]
         result = _extract_epub(Path(epub_path))
-        shutil.rmtree(tmpdir, ignore_errors=True)
         return result
     except Exception as exc:
         logger.warning("Failed to extract AZW %s: %s", path, exc)
         return None
+    finally:
+        if tmpdir is not None:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 def _extract_text(path: Path) -> str | None:

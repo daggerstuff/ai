@@ -542,7 +542,7 @@ class TestDocumentExtractor:
             result = await extractor.extract(str(html_file))
         await extractor.close()
 
-        assert result["source_url"] == str(html_file)
+        assert result["source_url"] == html_file.resolve().as_uri()
         assert result["metadata"]["format"] == "html"
         assert "content" in result["raw_text"].lower()
 
@@ -566,7 +566,7 @@ class TestDocumentExtractor:
         result = await extractor.extract(str(docx_path))
         await extractor.close()
 
-        assert result["source_url"] == str(docx_path)
+        assert result["source_url"] == docx_path.resolve().as_uri()
         assert result["metadata"]["format"] == "docx"
         assert "Test Heading" in result["raw_text"]
         assert "# Test Heading" in result["raw_text"]
