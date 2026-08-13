@@ -705,8 +705,32 @@
   "hotPaths": [
     {
       "path": "training/ingest_router.py",
-      "accessCount": 25,
-      "lastAccessed": 1786618085163,
+      "accessCount": 51,
+      "lastAccessed": 1786649960937,
+      "type": "file"
+    },
+    {
+      "path": "training/book_pdf_converter.py",
+      "accessCount": 3,
+      "lastAccessed": 1786646489311,
+      "type": "file"
+    },
+    {
+      "path": "training/tests/test_ingest_router.py",
+      "accessCount": 3,
+      "lastAccessed": 1786646529342,
+      "type": "file"
+    },
+    {
+      "path": "pyproject.toml",
+      "accessCount": 3,
+      "lastAccessed": 1786646529397,
+      "type": "file"
+    },
+    {
+      "path": "data/licenses/source_manifest.yaml",
+      "accessCount": 2,
+      "lastAccessed": 1786646489446,
       "type": "file"
     },
     {

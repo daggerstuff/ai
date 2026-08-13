@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "entries": {
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1786648468517,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "164cf8114093ef27aebfbfb75ececcbfa5c6965ee73dbdbff3c6325ab4c72e9f": {
+      "last_emitted_at_ms": 1786648459981,
+      "message": "Spawning agent: caveman:cavecrew-investigator (haiku) | Task: Locate finding lines in file"
+    }
+  },
+  "updated_at": "2026-08-13T19:14:28.517Z"
+}
