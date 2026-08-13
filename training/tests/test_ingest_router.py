@@ -485,12 +485,13 @@ class TestDocumentExtractor:
         )
 
         extractor = DocumentExtractor()
-        result = await extractor.extract(str(html_file))
+        with patch.object(WebExtractor, "_trafilatura_extract", return_value="Main content here"):
+            result = await extractor.extract(str(html_file))
         await extractor.close()
 
         assert result["source_url"] == str(html_file)
         assert result["metadata"]["format"] == "html"
-        assert "content" in result["raw_text"].lower() or len(result["raw_text"]) > 0
+        assert "content" in result["raw_text"].lower()
 
     @pytest.mark.asyncio
     async def test_extract_docx(self, tmp_path: Path) -> None:
@@ -619,6 +620,78 @@ class TestAPIExtractor:
             items.append(item)
 
         assert len(items) == 0
+
+    @pytest.mark.asyncio
+    async def test_offset_pagination_yields_all_items(self) -> None:
+        """Verify offset-based pagination increments offset and yields all items."""
+        config = APIExtractorConfig(
+            endpoint="https://api.example.com/data",
+            text_field="content",
+            items_field="results",
+            page_size=2,
+            max_pages=5,
+            offset_mode=True,
+        )
+
+        req = httpx.Request("GET", "https://api.example.com/data")
+        responses = [
+            httpx.Response(
+                200, json={"results": [{"id": "1", "content": "a"}, {"id": "2", "content": "b"}]}, request=req
+            ),
+            httpx.Response(
+                200, json={"results": [{"id": "3", "content": "c"}, {"id": "4", "content": "d"}]}, request=req
+            ),
+            httpx.Response(200, json={"results": [{"id": "5", "content": "e"}]}, request=req),
+        ]
+
+        extractor = APIExtractor(config)
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_client.is_closed = False
+        mock_client.get = AsyncMock(side_effect=responses)
+        mock_client.aclose = AsyncMock()
+        extractor._client = mock_client
+
+        items = []
+        async for item in extractor.extract("https://api.example.com"):
+            items.append(item)
+
+        assert len(items) == 5
+        offsets_used = [call.kwargs.get("params", {}).get("offset") for call in mock_client.get.call_args_list]
+        assert offsets_used == ["0", "2", "4"]
+
+    @pytest.mark.asyncio
+    async def test_offset_pagination_stops_on_short_page(self) -> None:
+        """Verify offset pagination stops when a page returns fewer items than page_size."""
+        config = APIExtractorConfig(
+            endpoint="https://api.example.com/data",
+            text_field="content",
+            items_field="results",
+            page_size=2,
+            max_pages=5,
+            offset_mode=True,
+        )
+
+        req = httpx.Request("GET", "https://api.example.com/data")
+        responses = [
+            httpx.Response(
+                200, json={"results": [{"id": "1", "content": "a"}, {"id": "2", "content": "b"}]}, request=req
+            ),
+            httpx.Response(200, json={"results": [{"id": "3", "content": "c"}]}, request=req),
+        ]
+
+        extractor = APIExtractor(config)
+        mock_client = AsyncMock(spec=httpx.AsyncClient)
+        mock_client.is_closed = False
+        mock_client.get = AsyncMock(side_effect=responses)
+        mock_client.aclose = AsyncMock()
+        extractor._client = mock_client
+
+        items = []
+        async for item in extractor.extract("https://api.example.com"):
+            items.append(item)
+
+        assert len(items) == 3
+        assert mock_client.get.await_count == 2
 
 
 # ---------------------------------------------------------------------------
