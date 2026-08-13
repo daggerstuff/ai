@@ -28,9 +28,10 @@ import re
 import sqlite3
 import tempfile
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Iterable, NamedTuple, Protocol
+from typing import Any, NamedTuple, Protocol
 
 logger = logging.getLogger("stage1_filters")
 
@@ -103,8 +104,12 @@ def _extract_text(record: dict[str, Any]) -> str:
     messages = record.get("messages", [])
     if messages:
         return " ".join(m.get("content", "") for m in messages if isinstance(m, dict))
-    if record.get("prompt") and record.get("chosen") and record.get("rejected"):
-        return f"{record['prompt']} {record['chosen']} {record['rejected']}"
+    prompt = record.get("prompt", "")
+    chosen = record.get("chosen", "")
+    rejected = record.get("rejected", "")
+    preference_parts = [p for p in (prompt, chosen, rejected) if p]
+    if preference_parts:
+        return " ".join(preference_parts)
     return record.get("text", "") or f"{record.get('instruction', '')} {record.get('output', '')}"
 
 
@@ -198,12 +203,19 @@ class LanguageFilter:
             return None
 
         if not os.path.exists(self._MODEL_PATH):
+            import stat
+
             os.makedirs(self._MODEL_DIR, exist_ok=True)
+            os.chmod(self._MODEL_DIR, stat.S_IRWXU)
             logger.info("Downloading fasttext lid.176.bin model...")
             try:
-                import urllib.request
+                import requests
 
-                urllib.request.urlretrieve(self._MODEL_URL, self._MODEL_PATH)
+                resp = requests.get(self._MODEL_URL, timeout=60)
+                resp.raise_for_status()
+                with open(self._MODEL_PATH, "wb") as f:
+                    f.write(resp.content)
+                os.chmod(self._MODEL_PATH, stat.S_IRUSR | stat.S_IWUSR)
             except Exception as e:
                 logger.warning("Failed to download fasttext model: %s — using regex-only mode", e)
                 return None
@@ -299,8 +311,8 @@ class PIIFilter:
 
             self._analyzer = AnalyzerEngine()
             return self._analyzer
-        except ImportError:
-            logger.warning("presidio_analyzer not installed — PII filter will pass all records")
+        except (ImportError, OSError) as e:
+            logger.warning("presidio_analyzer / spaCy model unavailable — PII filter will pass all records: %s", e)
             return None
 
     def _llm_confirm_pii(self, text: str) -> bool:
@@ -514,9 +526,19 @@ class DedupFilter:
         self._seen_sighashes: set[int] = set()
         self._lsh_index = lsh_index
         self._lsh_initialized = False
+        if self._lsh_index is not None:
+            self._lsh = self._lsh_index
+            self._minhash_set: dict[str, Any] = {}
+            self._lsh_initialized = True
 
-        # Persistent dedup store
-        self._db_path = dedup_store_path or os.path.join(tempfile.gettempdir(), "stage1_dedup.db")
+        # Persistent dedup store — default to a private user cache directory
+        if dedup_store_path:
+            self._db_path = dedup_store_path
+        else:
+            db_dir = os.path.join(Path.home(), ".cache", "pixelated")
+            os.makedirs(db_dir, exist_ok=True)
+            os.chmod(db_dir, 0o700)
+            self._db_path = os.path.join(db_dir, "stage1_dedup.db")
         self._db: sqlite3.Connection | None = None
         self._init_db()
 
@@ -649,13 +671,12 @@ class DedupFilter:
                     reason="near_duplicate_simhash",
                     metadata={"dedup": "near_simhash", "content_hash": chash[:16]},
                 )
-        else:
-            if self._check_near_duplicate_lsh(text, chash):
-                return FilterResult(
-                    passed=False,
-                    reason="near_duplicate_minhash",
-                    metadata={"dedup": "near_minhash", "content_hash": chash[:16]},
-                )
+        elif self._check_near_duplicate_lsh(text, chash):
+            return FilterResult(
+                passed=False,
+                reason="near_duplicate_minhash",
+                metadata={"dedup": "near_minhash", "content_hash": chash[:16]},
+            )
 
         # Record the hash
         self._seen_hashes.add(chash)
@@ -727,7 +748,7 @@ class ChainStats:
     def summary(self) -> str:
         """Human-readable summary string."""
         lines = [
-            f"Stage1 Filter Chain Summary",
+            "Stage1 Filter Chain Summary",
             f"  Input:  {self.total_input:,}",
             f"  Output: {self.total_output:,}",
             f"  Pass-through: {self.pass_through_rate:.1f}%",
@@ -836,9 +857,7 @@ class Stage1FilterChain:
                 self.stats.total_output += 1
                 yield record
 
-        # Log summary at end of run
-        summary = self.stats.summary()
-        logger.info("\n%s", summary)
+        # Summary is available via summary() / stats_dict() for the caller to log.
 
     def summary(self) -> str:
         """Return human-readable summary of the filter run."""
@@ -856,17 +875,17 @@ class Stage1FilterChain:
 
 
 __all__ = [
+    "PII_ENTITIES",
+    "SEVERE_TOXICITY_THRESHOLD",
+    "SIMHASH_SCALE_THRESHOLD",
+    "THREAT_THRESHOLD",
     "ChainStats",
     "DedupFilter",
     "FilterResult",
     "FilterStats",
     "LanguageFilter",
     "PIIFilter",
-    "PII_ENTITIES",
     "RecordFilter",
-    "SEVERE_TOXICITY_THRESHOLD",
-    "SIMHASH_SCALE_THRESHOLD",
     "Stage1FilterChain",
-    "THREAT_THRESHOLD",
     "ToxicityFilter",
 ]

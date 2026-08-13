@@ -34,12 +34,12 @@ import argparse
 import hashlib
 import json
 import logging
-import os
 import sys
 from collections import Counter
-from dataclasses import asdict, dataclass, field
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -53,8 +53,9 @@ logger = logging.getLogger("curate_pipeline")
 # Stage 1 QA filters (PIX-4342) — optional import; chain degrades to no-op if unavailable
 try:
     from training.stage1_filters import Stage1FilterChain
-except ImportError:
+except ImportError as e:
     Stage1FilterChain = None  # type: ignore[assignment, misc]
+    logger.warning("training.stage1_filters unavailable — Stage 1 QA filters disabled: %s", e)
 
 # System prompts per task type — preserves source/clinical context
 SYSTEM_PROMPTS: dict[str, str] = {
@@ -216,10 +217,9 @@ def assign_split(hash_val: str) -> str:
     bucket = int(hash_val[:8], 16) % 100
     if bucket < 70:
         return "train"
-    elif bucket < 85:
+    if bucket < 85:
         return "val"
-    else:
-        return "test"
+    return "test"
 
 
 # ---------------------------------------------------------------------------
@@ -404,11 +404,15 @@ def run_pipeline(
     if dry_run:
         print("DRY RUN — no files will be written", file=sys.stderr)
 
+    raw_count = 0
+
     def _read_records() -> Iterable[dict[str, Any]]:
-        with open(input_path, "r", encoding="utf-8") as f:
+        nonlocal raw_count
+        with open(input_path, encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
                     continue
+                raw_count += 1
                 try:
                     yield json.loads(line)
                 except json.JSONDecodeError:
@@ -421,7 +425,7 @@ def run_pipeline(
         record_iter = _read_records()
 
     for record in record_iter:
-        stats.total_read += 1
+        # stats.total_read is assigned from raw_count once iteration finishes
 
         # Classify tier
         tier = classify_tier(record)
@@ -496,15 +500,18 @@ def run_pipeline(
         tier_stats.included += 1
         stats.total_included += 1
 
-        # Progress
-        if stats.total_read % 100000 == 0:
+        # Progress (use raw_count because stats.total_read is assigned after the loop)
+        if raw_count % 100000 == 0:
             print(
-                f"  Processed {stats.total_read:,} records | "
+                f"  Processed {raw_count:,} records | "
                 f"included={stats.total_included:,} | "
                 f"excluded={stats.total_excluded:,} | "
                 f"deduped={stats.total_deduped:,}",
                 file=sys.stderr,
             )
+
+    # Capture total raw records read (before any Stage 1 filtering)
+    stats.total_read = raw_count
 
     # Close file handles
     if not dry_run:

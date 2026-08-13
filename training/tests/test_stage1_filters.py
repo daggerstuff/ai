@@ -6,9 +6,7 @@ so tests run without GPU, model downloads, or optional dependencies.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from training.stage1_filters import (
     ChainStats,
@@ -19,7 +17,6 @@ from training.stage1_filters import (
     Stage1FilterChain,
     ToxicityFilter,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -55,7 +52,7 @@ def make_toxicity_filter(scores: dict[str, float] | None = None) -> ToxicityFilt
     scores = scores or {"severe_toxicity": 0.01, "threat": 0.01}
     mock_model = MagicMock()
     mock_model.predict.return_value = scores
-    models = {name: mock_model for name in ToxicityFilter.MODEL_NAMES}
+    models = dict.fromkeys(ToxicityFilter.MODEL_NAMES, mock_model)
     return ToxicityFilter(models=models)
 
 
@@ -159,7 +156,7 @@ class TestToxicityFilter:
     def test_models_unavailable_passes(self):
         mock_model = MagicMock()
         mock_model.predict.side_effect = Exception("model error")
-        models = {name: mock_model for name in ToxicityFilter.MODEL_NAMES}
+        models = dict.fromkeys(ToxicityFilter.MODEL_NAMES, mock_model)
         f = ToxicityFilter(models=models)
         result = f(make_record("Some text."))
         assert result.passed is True
