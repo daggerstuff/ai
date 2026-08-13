@@ -1,0 +1,43 @@
+training/tests/test_llm_quality_judge.py
+  s_59badd58dedbb9::t_64d4f502222b7a 183-184,186,191-192,194
+  s_59badd58dedbb9::t_3a8fb70a79a313 511-513
+  s_59badd58dedbb9::t_643b88394f4d93 13
+  s_59badd58dedbb9::t_967ea519f75a9e 252-254
+  s_59badd58dedbb9::t_7a6b7bb13ff919 368-369
+  s_59badd58dedbb9::t_a77d0100872bd0 394-395
+  s_59badd58dedbb9::t_d7031cc333919f 238-240
+  s_59badd58dedbb9::t_11a888544d444d 1-12,14-182,185,187-190,193,195-217,221-237,241-251,255-367,370-380,383-393,396-510,514-598
+  s_59badd58dedbb9::t_b39dbcdc9ed116 218-220
+  s_59badd58dedbb9::t_1694425e179ed2 381-382
+training/data/golden_judge_calib.jsonl
+  ai_agent 1-200
+training/llm_quality_judge.py
+  s_59badd58dedbb9::t_3ce0e25f94ed43 1-45,47-49,53-94,96-207,210-228,236-468,470-510,512-663
+  s_59badd58dedbb9::t_4e5fa6af6559b7 229-235
+  s_59badd58dedbb9::t_64a3c1f05995cb 511
+  s_59badd58dedbb9::t_eb4157aac0f7b5 95
+  s_59badd58dedbb9::t_303e8b243885ef 469
+  s_59badd58dedbb9::t_6e19459be17cea 46,50-52
+  s_59badd58dedbb9::t_cfb77f9b86d6e0 208-209
+.gitignore
+  s_59badd58dedbb9::t_78f08affafa778 198
+  s_59badd58dedbb9::t_3de399627b8135 184-185,188
+  s_59badd58dedbb9::t_09558a71b1720d 186-187
+  s_59badd58dedbb9::t_369b7a583cef2d 189
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "057fea9c8c97fd830ca6f5325735a05cdfcbcd6a",
+  "prompts": {},
+  "sessions": {
+    "s_59badd58dedbb9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_005c0d53effeXpCDbtK6qzQhaC",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
