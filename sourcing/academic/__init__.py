@@ -45,7 +45,11 @@ from .therapy_dataset_sourcing import (
 # from .metadata_extraction.metadata_extractor import MetadataExtractor
 # from .anonymization.anonymizer import ContentAnonymizer
 
+from .anonymization.anonymizer import AnonymizationResult, ContentAnonymizer
+from .metadata_extraction.metadata_extractor import ExtractedMetadata, MetadataExtractor
+
 __all__ = [
+    "AnonymizationResult",
     "APAPublisher",
     # API
     "AcademicSourcingAPI",
@@ -57,6 +61,7 @@ __all__ = [
     "BookFormat",
     "BookMetadata",
     "CambridgePublisher",
+    "ContentAnonymizer",
     "ConversationFormat",
     "DOIResolver",
     # DOI Resolution
@@ -64,6 +69,8 @@ __all__ = [
     "DatasetMetadata",
     "DatasetSource",
     "ElsevierPublisher",
+    "ExtractedMetadata",
+    "MetadataExtractor",
     "OxfordPublisher",
     "SourceType",
     "SourcingStrategy",
