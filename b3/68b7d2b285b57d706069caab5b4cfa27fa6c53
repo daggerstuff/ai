@@ -1,0 +1,31 @@
+training/llm_quality_judge.py
+  s_973681b19fb3ca::t_0348769a652df4 555-557,564,569,572-574
+  s_973681b19fb3ca::t_f1146153308add 234-241,244-246
+  s_973681b19fb3ca::t_c538144f5fd513 210-211,576
+utils/common/llm_client.py
+  s_973681b19fb3ca::t_e07e613b40a460 101,107-110,115,124-129,145-147
+  s_973681b19fb3ca::t_ebc0e2626ec8f8 170,175-176
+  s_973681b19fb3ca::t_476ccc62af8daf 43,48-53
+  s_973681b19fb3ca::t_43cfd6920cb6c4 207,211-212,220,224,226
+  s_973681b19fb3ca::t_7a20e85b1e6382 89,94
+  s_973681b19fb3ca::t_1ca9335622f1a6 180-182
+  s_973681b19fb3ca::t_f64f77b16aeb1a 261-266,286-289
+  s_973681b19fb3ca::t_533d1e42df923f 64,69-74
+  s_973681b19fb3ca::t_3ad79d9a8d7086 144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "b368b7d2b285b57d706069caab5b4cfa27fa6c53",
+  "prompts": {},
+  "sessions": {
+    "s_973681b19fb3ca": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0044a9ed2ffe937r6MHkIqu6se",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
