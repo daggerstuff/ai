@@ -1,0 +1,68 @@
+training/ingest_router.py
+  s_fcc5d887d26157::t_73d53d654f6fd6 1-34,36-39,41,43-46,48,50,52-76,78-98,103,126-181,183-200,202-264,266-343,345-370,372,374-375,377-378,381-383,386-423,431-494,496,498,500-502,504-505,507-509,511-556,562-595,600-635,640-650,653-655,661-674,676-680,685-704,706-709,722-747,749,751,753-761,763-770,783-789,791-810,818-833,835,871-1020,1022-1052,1054-1107,1114-1119,427,430,100,102,106,112,115,118,121,557,561,775,778,782
+  s_fcc5d887d26157::t_3774a5a504dc8f 49
+  s_fcc5d887d26157::t_528ce2c09b0a1e 182
+  s_fcc5d887d26157::t_dee6df7f412d62 201
+  s_716c494122f8ae::t_e86b32c7731d2c 495,497,499,503,506,510
+  s_716c494122f8ae::t_f8cc1cd1a2f061 596-598
+  s_716c494122f8ae::t_f61ec0c0285944 675,681-684,710,714-721
+  s_35e45b977c3503::t_617cf5f9f36757 811,817
+  s_716c494122f8ae::t_a78833505cf9a1 834,836-838,845-862,869,425-426,429,773-774,777
+  s_35e45b977c3503::t_4bd6616280f1c5 1108-1113
+  s_c6b71477c08a56::t_a09e9c761ede12 428
+  s_c6b71477c08a56::t_fe020ce5bf481e 599
+  s_c6b71477c08a56::t_c438c19546ccf3 651-652
+  s_c6b71477c08a56::t_05c199efd53368 711-713
+  s_c6b71477c08a56::t_972c0056f05569 864-867,870
+data/licenses/source_manifest.yaml
+  s_fcc5d887d26157::t_e6431f1fe64731 1-7,9-27,29-31,33-62
+pyproject.toml
+  s_fcc5d887d26157::t_b4ff8c58829ff6 88-90
+training/tests/test_ingest_router.py
+  s_fcc5d887d26157::t_edc179882c3dbc 1-18,20-45,52-64,66-116,118-128,138-152,154-445,447-472,475-492,531-540,543-546,548-605,607-610,615-616,618-621,626-627,629-635,637-666,674-682,761-776,799-812,497,501,505,513,519,524,529-530,785,793,798
+  s_716c494122f8ae::t_80e08f60308ece 541
+  s_716c494122f8ae::t_a9c1cb20f9034a 542,547
+  s_fcc5d887d26157::t_9f24a71ae4d391 606,617,628,636,700,705,742
+  s_fcc5d887d26157::t_3aed41a9ee119d 667-673,698,703,740
+  s_716c494122f8ae::t_609d790984ce69 683-697,701-702,706-739,743-760,494,514-515,517-518
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a23bff56da45b3214beb22faad5d80e316afb281",
+  "prompts": {},
+  "sessions": {
+    "s_35e45b977c3503": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_716c494122f8ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_c6b71477c08a56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_fcc5d887d26157": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
