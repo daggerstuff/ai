@@ -471,9 +471,49 @@ class CommandHandler:
                 with open(output_path, "w") as f:
                     json.dump(report_data, f, indent=2)
                 console.print(f"[green]Report saved to {output_path}[/green]")
+            elif format == "csv":
+                import csv
+
+                with open(output_path, "w", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(["section", "key", "value"])
+                    for section, content in report_data.items():
+                        if isinstance(content, list):
+                            for item in content:
+                                if isinstance(item, dict):
+                                    for k, v in item.items():
+                                        writer.writerow([section, k, str(v)])
+                        elif isinstance(content, dict):
+                            for k, v in content.items():
+                                writer.writerow([section, k, str(v)])
+                        else:
+                            writer.writerow([section, "", str(content)])
+                console.print(f"[green]Report saved to {output_path}[/green]")
+            elif format == "markdown":
+                with open(output_path, "w") as f:
+                    f.write(f"# Research Report — {session_id}\n\n")
+                    f.write(f"**Start date:** {report_data.get('start_date', '')}  \n")
+                    f.write(f"**Current phase:** {report_data.get('current_phase', '')}  \n\n")
+                    metrics = report_data.get("progress_metrics", {})
+                    if isinstance(metrics, dict):
+                        f.write("## Progress Metrics\n\n")
+                        for k, v in metrics.items():
+                            f.write(f"- **{k}**: {v}\n")
+                        f.write("\n")
+                    for section in ("sources", "evaluations", "acquired_datasets", "integration_plans"):
+                        items = report_data.get(section, [])
+                        if items:
+                            f.write(f"## {section.replace('_', ' ').title()}\n\n")
+                            for item in items:
+                                if isinstance(item, dict):
+                                    title = item.get("title") or item.get("source_id") or ""
+                                    f.write(f"### {title}\n\n")
+                                    for k, v in item.items():
+                                        f.write(f"- **{k}**: {v}\n")
+                                    f.write("\n")
+                console.print(f"[green]Report saved to {output_path}[/green]")
             else:
-                # For other formats, you could use the report generator
-                console.print(f"[yellow]Format {format} not yet implemented[/yellow]")
+                console.print(f"[yellow]Format {format} not supported. Use json, csv, or markdown.[/yellow]")
 
         return report_data
 

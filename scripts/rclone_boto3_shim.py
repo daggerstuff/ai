@@ -47,7 +47,7 @@ class RcloneS3Client:
         self.remote = remote
 
     def get_paginator(self, action):
-        if action == "list_objects_v2":
+        if action in ("list_objects_v2", "list_object_versions", "list_multipart_uploads"):
             return RcloneS3Paginator(self.remote)
         raise NotImplementedError(f"Paginator for {action} not implemented in rclone shim")
 

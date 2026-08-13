@@ -411,11 +411,50 @@ class PrivacyVerifier:
         return max(0.0, min(1.0, score))
 
     def _sample_from_file(self, file_path: str) -> str:
-        """Sample text from a dataset file (placeholder implementation)."""
-        # In a real implementation, would:
-        # 1. Detect file format (CSV, JSON, XML, etc.)
-        # 2. Read and sample random rows/entries
-        # 3. Extract text fields
-        # 4. Return combined sample text
-        logger.warning(f"File sampling not yet implemented for {file_path}")
-        return ""
+        """Sample text from a dataset file.
+
+        Detects file format (JSON, CSV, JSONL, or plain text) and extracts
+        text fields from a random subset of entries.
+        """
+        import csv
+        import json
+        import os
+        import random
+
+        max_rows = 100
+        ext = os.path.splitext(file_path)[1].lower()
+
+        try:
+            if ext == ".json":
+                with open(file_path, encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, list):
+                    rows = random.sample(data, min(max_rows, len(data))) if data else []
+                elif isinstance(data, dict):
+                    rows = [data]
+                else:
+                    rows = []
+                return "\n".join(json.dumps(r) for r in rows)
+
+            if ext == ".jsonl":
+                with open(file_path, encoding="utf-8") as f:
+                    lines = f.readlines()
+                sampled = random.sample(lines, min(max_rows, len(lines))) if lines else []
+                return "\n".join(line.strip() for line in sampled)
+
+            if ext == ".csv":
+                with open(file_path, encoding="utf-8", newline="") as f:
+                    reader = csv.DictReader(f)
+                    rows = list(reader)
+                sampled = random.sample(rows, min(max_rows, len(rows))) if rows else []
+                return "\n".join(json.dumps(row) for row in sampled)
+
+            # Fallback: treat as plain text
+            with open(file_path, encoding="utf-8", errors="replace") as f:
+                content = f.read()
+            lines = content.splitlines()
+            sampled = random.sample(lines, min(max_rows, len(lines))) if lines else []
+            return "\n".join(sampled)
+        except (OSError, json.JSONDecodeError, csv.Error) as exc:
+            logger.warning(f"Failed to sample file {file_path}: {exc}")
+            return ""
