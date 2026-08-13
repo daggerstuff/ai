@@ -1,0 +1,351 @@
+{
+  "version": 1,
+  "jobId": "0f1849a8-7aed-4593-b24a-268b72340d94",
+  "sessionId": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+  "scopeKey": "819a091e679e1f99d52eeb892f307f7a52a6da1cc45da4d87f09f8a1d3f3a419",
+  "revision": 41,
+  "createdAt": "2026-08-13T20:11:18.314Z",
+  "updatedAt": "2026-08-13T20:11:19.327Z",
+  "producerGraceExpiresAt": "2026-08-13T20:11:48.315Z",
+  "bestEffortDeadlineAt": "2026-08-13T20:12:39.315Z",
+  "producers": {
+    "core": {
+      "state": "sealed",
+      "intentKey": "82d483b0f18947f2275213e2f7765c68d301ea0f91a0f96b44558c79634354ee",
+      "payloadDigest": "82d483b0f18947f2275213e2f7765c68d301ea0f91a0f96b44558c79634354ee",
+      "sealedAt": "2026-08-13T20:11:18.328Z",
+      "sealedBy": "foreground"
+    },
+    "wiki": {
+      "state": "no-op",
+      "sealedAt": "2026-08-13T20:11:18.320Z",
+      "sealedBy": "wiki-producer"
+    }
+  },
+  "actions": {
+    "foreground-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 0,
+      "idempotencyKey": "f4db4d338aa0b8742dfd506be78f369d4c947445172cb39c9becdaaa6feda769",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {},
+        "foregroundResult": {
+          "removedTransientFiles": 2,
+          "completedAt": "2026-08-13T20:11:18.327Z"
+        }
+      },
+      "budgetMs": 9000,
+      "completedAt": "2026-08-13T20:11:18.328Z",
+      "lastOutcomeCode": "completed"
+    },
+    "wiki-capture": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 0,
+      "idempotencyKey": "1ec6c9aa213520a6a1e2c35e9637ea67dd32303291538ebeb31489a3127149ef",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "completedAt": "2026-08-13T20:11:18.320Z"
+    },
+    "team-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "508b0a0246ef79aee9b045c458b132e9fb5d4a9d4fa009c086f69683a9cc92ae",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-13T20:11:18.426Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "156601f8-caed-4acc-a164-5a99e56582ed",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:11:28.410Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:11:18.582Z"
+    },
+    "python-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "eaddd423ebb63e0fd0eec643e0ee9c7481b9c3c76134f331f4ee419f12178625",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-13T20:11:18.586Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "35cd1e12-744d-4a9d-9ecb-24e601446240",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:11:28.410Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:11:18.727Z"
+    },
+    "reply-cleanup": {
+      "class": "required",
+      "phase": "deferred-required",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "1c9c5f45c750c18db3ee11e6cdee10ed876f559fb303be4b0893b05137eb3b71",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-13T20:11:18.730Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "d892bdbb-66e8-47b2-932f-8f71d4729af5",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:11:28.410Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:11:18.885Z"
+    },
+    "callback": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "9d983834dcce248b8c14fda38b730770c940d6e57d7496d39fdea13c522cc5cc",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-13T20:11:18.895Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "40a1621f-5093-4cc0-86d7-dc17131b025a",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:11:28.410Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:11:19.032Z"
+    },
+    "notification": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "a482436aba8061f2044ff125c22825d9494909dfd76650a6268528f31a7ca68b",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-13T20:11:19.035Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "24110a91-52ba-4d9b-9309-c9e8cdb5490f",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:11:28.410Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:11:19.171Z"
+    },
+    "openclaw": {
+      "class": "best-effort",
+      "phase": "deferred-best-effort",
+      "status": "completed",
+      "attempts": 1,
+      "idempotencyKey": "e994f18a59b7509cce65048f19c9ffad6d4838669ac48660759cd58bf092163d",
+      "payload": {
+        "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+        "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+        "reason": "other",
+        "input": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "transcript_path": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/6a77097e-b709-4ab0-b834-e4c04512e7a4.jsonl",
+          "cwd": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01KZY6HXR8X1SJW1BF473PT790",
+          "prompt_id": "83cf56ad-ecf8-4b51-b60c-654c1ddefd6f",
+          "hook_event_name": "SessionEnd",
+          "reason": "other"
+        },
+        "metrics": {
+          "session_id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+          "ended_at": "2026-08-13T20:11:18.311Z",
+          "reason": "other",
+          "agents_spawned": 0,
+          "agents_completed": 0,
+          "modes_used": []
+        },
+        "initialTeamNames": [],
+        "openClawEnabled": false,
+        "openClawRouting": {}
+      },
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-13T20:11:19.174Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "e8c0caeb-e0a6-45fb-aaa9-9e6e3b3638ab",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:11:28.410Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:11:19.314Z"
+    }
+  },
+  "owner": null,
+  "phase": "complete",
+  "completion": {
+    "completedAt": "2026-08-13T20:11:19.322Z",
+    "terminalDigest": "a6ffc1dfe7c58d8145874d40615f0f108c4dee598db221d698bf178b1a946e69",
+    "terminalRevision": 40
+  }
+}

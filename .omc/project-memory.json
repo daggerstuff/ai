@@ -705,26 +705,26 @@
   "hotPaths": [
     {
       "path": "training/ingest_router.py",
-      "accessCount": 60,
-      "lastAccessed": 1786651378663,
+      "accessCount": 63,
+      "lastAccessed": 1786651828188,
       "type": "file"
     },
     {
       "path": "training/tests/test_ingest_router.py",
-      "accessCount": 9,
-      "lastAccessed": 1786651214897,
+      "accessCount": 11,
+      "lastAccessed": 1786651828228,
       "type": "file"
     },
     {
       "path": "training/book_pdf_converter.py",
-      "accessCount": 4,
-      "lastAccessed": 1786650725924,
+      "accessCount": 5,
+      "lastAccessed": 1786651815677,
       "type": "file"
     },
     {
       "path": "pyproject.toml",
-      "accessCount": 3,
-      "lastAccessed": 1786646529397,
+      "accessCount": 5,
+      "lastAccessed": 1786652140797,
       "type": "file"
     },
     {
@@ -743,6 +743,24 @@
       "path": "training/sdg_pipeline.py",
       "accessCount": 1,
       "lastAccessed": 1786616020942,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1786652103507,
+      "type": "file"
+    },
+    {
+      "path": "Makefile",
+      "accessCount": 1,
+      "lastAccessed": 1786652103523,
+      "type": "file"
+    },
+    {
+      "path": "docs/training/PRD_PIX-499.md",
+      "accessCount": 1,
+      "lastAccessed": 1786652140827,
       "type": "file"
     }
   ],
