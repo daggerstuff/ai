@@ -1,0 +1,39 @@
+training/tests/test_ingest_router.py
+  s_5b4c4acee80a2e::t_c105bad79f14f4 569
+  s_5b4c4acee80a2e::t_33bfaacfa692b9 545
+pyproject.toml
+  s_5b4c4acee80a2e::t_7a0e2b5f22a9f7 106-110
+training/ingest_router.py
+  s_5b4c4acee80a2e::t_fcdf3fa0817c2e 509
+  s_5b4c4acee80a2e::t_b465492c72b91e 776
+  s_5b4c4acee80a2e::t_989e38fff77974 867
+  s_5b4c4acee80a2e::t_dc17b156834596 516
+  s_5b4c4acee80a2e::t_e40709689938b8 868-870
+  s_5b4c4acee80a2e::t_1cee512996f4f9 577
+  s_5b4c4acee80a2e::t_7db4d364462fc2 182-188
+  s_5b4c4acee80a2e::t_4ae33ccf1bd43a 563
+  s_5b4c4acee80a2e::t_ba3f3b545c0a84 111-113
+  s_5b4c4acee80a2e::t_44c48a06c67f1a 797
+  s_5b4c4acee80a2e::t_6bf9b00d5ba21b 641-643,650,658-659,674-678
+  s_5b4c4acee80a2e::t_d3956fa0dc139e 528
+  s_5b4c4acee80a2e::t_ae20b2493df8eb 799-814,816-824,826-847,881
+training/book_pdf_converter.py
+  s_5b4c4acee80a2e::t_316b4c8572ba88 225
+  s_5b4c4acee80a2e::t_07af393219a717 233-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "912333a17de5d5f4ba330afb045691ca457da1d7",
+  "prompts": {},
+  "sessions": {
+    "s_5b4c4acee80a2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "05678fc2-cba5-43f9-bd3d-a84765da9640",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
