@@ -1,0 +1,17 @@
+training_corpus/wrapper/pal_framework/run_phase6_smoke.py
+  ai_agent 208,212,314,321,441,446
+pkg_mera/core/pipelines/processing/slicer_s3_streaming.py
+  ai_agent 78
+infrastructure/database/conversation_database.py
+  ai_agent 119
+pkg_mera/core/pipelines/processing/slicer_fast.py
+  ai_agent 47
+scripts/dataset_research/trigger.py
+  ai_agent 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a98871e4e7677cf03f56dbbb7979f17e5869255d",
+  "prompts": {}
+}
