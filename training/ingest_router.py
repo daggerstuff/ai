@@ -92,9 +92,7 @@ class ManifestEntry:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def matches(self, url: str) -> bool:
-        """Return True if *url* falls under this entry (domain or prefix match)."""
-        if self.url_or_domain in url:
-            return True
+        """Return True if *url* falls under this entry (domain or netloc match)."""
         try:
             parsed = urlparse(url)
             netloc = parsed.netloc.lower()
@@ -406,6 +404,13 @@ class WebExtractor:
                 "metadata": {"fetch_status": 0, "html_title": ""},
             }
 
+        if status >= 400:
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"fetch_status": status, "error": "http_error"},
+            }
+
         # Extract title with selectolax
         tree = HTMLParser(html)
         title_node = tree.css_first("title")
@@ -570,6 +575,7 @@ class APIExtractorConfig:
     offset_mode: bool = False
     offset_param: str = "offset"
     offset_field: str = "offset"
+    strict_offset_stop: bool = False
 
 
 class APIExtractor:
@@ -618,6 +624,8 @@ class APIExtractor:
                     continue
                 resp.raise_for_status()
                 return resp
+            except httpx.HTTPStatusError:
+                raise
             except httpx.HTTPError as exc:
                 last_exc = exc
                 logger.warning(
@@ -672,7 +680,9 @@ class APIExtractor:
                 }
 
             if self._config.offset_mode:
-                if len(items) < self._config.page_size:
+                # Short-page stop is offset pagination's tail marker;
+                # strict_offset_stop defers to the empty-page stop above.
+                if not self._config.strict_offset_stop and len(items) < self._config.page_size:
                     break
                 offset += len(items)
             else:
@@ -808,9 +818,13 @@ class YouTubeExtractor:
             }
         finally:
             try:
-                Path(subtitle_path).unlink(missing_ok=True)
+                for _f in glob.glob(f"/tmp/yt-transcript-{video_id}*"):
+                    try:
+                        Path(_f).unlink(missing_ok=True)
+                    except OSError:
+                        logger.warning("Failed to clean up subtitle file %s", _f)
             except OSError:
-                logger.warning("Failed to clean up subtitle file %s", subtitle_path)
+                logger.warning("Failed to clean up transcript files for %s", video_id)
 
     @staticmethod
     def _clean_subtitle(text: str) -> str:
