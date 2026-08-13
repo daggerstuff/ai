@@ -94,9 +94,10 @@ class ManifestEntry:
     def matches(self, url: str) -> bool:
         """Return True if *url* falls under this entry (domain or netloc match)."""
         try:
-            parsed = urlparse(url)
-            netloc = parsed.netloc.lower()
-            return self.url_or_domain.lower() in netloc
+            target = urlparse(url).netloc.lower()
+            source = self.url_or_domain.lower()
+            source_host = urlparse(source).netloc.lower() or source
+            return source_host in target
         except Exception:  # noqa: BLE001
             return False
 
