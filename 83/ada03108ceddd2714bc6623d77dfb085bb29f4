@@ -1,0 +1,29 @@
+training/book_pdf_converter.py
+  s_716c494122f8ae::t_5648d11935d271 226
+  s_716c494122f8ae::t_f6b1b18ee544d6 223-224
+training/ingest_router.py
+  s_716c494122f8ae::t_f61ec0c0285944 639,645-648,674-683
+  s_716c494122f8ae::t_e86b32c7731d2c 473,475,477,481,484,488
+  s_716c494122f8ae::t_f8cc1cd1a2f061 570-572
+  s_716c494122f8ae::t_a78833505cf9a1 787,789-813
+training/tests/test_ingest_router.py
+  s_716c494122f8ae::t_a9c1cb20f9034a 489,494
+  s_716c494122f8ae::t_80e08f60308ece 488
+  s_716c494122f8ae::t_609d790984ce69 624-695
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "83ada03108ceddd2714bc6623d77dfb085bb29f4",
+  "prompts": {},
+  "sessions": {
+    "s_716c494122f8ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

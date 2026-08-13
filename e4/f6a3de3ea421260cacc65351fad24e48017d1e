@@ -1,0 +1,89 @@
+.omc/state/sessions/b7c9b71d-e084-4f61-80bf-3abd4e6024a3/pre-tool-advisory-throttle.json
+  s_28ef0663cee720::t_60a3cb2af68f4e 11-15
+  s_28ef0663cee720::t_7377f6975a9d20 8,10
+  s_28ef0663cee720::t_83c6e8fb1d29fa 9
+  s_28ef0663cee720::t_a06579fb27db5f 19
+training/curate_pipeline.py
+  s_302123f411cad6::t_3ae42dc151d894 39-40,42,219,221,407
+  s_7135a3ffccf619::t_aeb8c3dcc78aee 28
+training/stage1_filters.py
+  s_302123f411cad6::t_3ae42dc151d894 31,33,655-660,732,861-864
+.omc/state/sessions/5209b22a-3220-492d-926c-ab2741ea794d/mission-state.json
+  s_e8d26a0be7aca4::t_a274ee1770a851 46-50,99-100
+  s_e8d26a0be7aca4::t_98d4289492ecfd 26-30,91-92,95,97
+.omc/state/sessions/5209b22a-3220-492d-926c-ab2741ea794d/subagent-tracking-state.json
+  s_e8d26a0be7aca4::t_a274ee1770a851 26-28
+  s_e8d26a0be7aca4::t_98d4289492ecfd 8-10
+training/tests/test_stage1_filters.py
+  s_302123f411cad6::t_3ae42dc151d894 9,55,159
+.omc/project-memory.json
+  s_28ef0663cee720::t_13e6da38cb44fa 721-722
+  s_302123f411cad6::t_27fd7d1890d2eb 718
+  s_302123f411cad6::t_88b9f3e4f3cbc9 734-735,739-741,745-746,749,751-766,768
+.omc/state/sessions/5209b22a-3220-492d-926c-ab2741ea794d/pre-tool-advisory-throttle.json
+  s_e8d26a0be7aca4::t_83c494fd247acd 8-11
+  s_e8d26a0be7aca4::t_8f6c4d67261919 27
+.omc/state/sessions/2836fc49-3261-4a00-9992-e4ea55bfb4a6/last-tool-error-state.json
+  s_7135a3ffccf619::t_efcfaba65c9274 1-2,7
+.omc/state/sessions/2836fc49-3261-4a00-9992-e4ea55bfb4a6/pre-tool-advisory-throttle.json
+  s_7135a3ffccf619::t_41c136dff072e3 9,12-23
+  s_7135a3ffccf619::t_40b12b8f304cdb 31
+  s_7135a3ffccf619::t_f3a4844e45c4a1 8,10-11,24-30
+  s_7135a3ffccf619::t_edce3e4dbe4654 47
+.omc/state/sessions/e9a95f87-aba6-469d-ba61-2ddcef22e59e/pre-tool-advisory-throttle.json
+  s_a1774d61e12b3e::t_d2888bbe05db0d 13
+.omc/state/sessions/f8d9c6d4-2a01-4fb9-9c13-c739e5bf5b95/pre-tool-advisory-throttle.json
+  s_302123f411cad6::t_0f5add9e921750 9
+  s_302123f411cad6::t_20c46ac2531351 27
+  s_302123f411cad6::t_6787cff6979fe2 8,10-11
+  s_302123f411cad6::t_6bcd9bd69a62c3 15
+  s_302123f411cad6::t_7ef6945b2122a9 35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e4f6a3de3ea421260cacc65351fad24e48017d1e",
+  "prompts": {},
+  "sessions": {
+    "s_28ef0663cee720": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b7c9b71d-e084-4f61-80bf-3abd4e6024a3",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_302123f411cad6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f8d9c6d4-2a01-4fb9-9c13-c739e5bf5b95",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_7135a3ffccf619": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2836fc49-3261-4a00-9992-e4ea55bfb4a6",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_a1774d61e12b3e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e9a95f87-aba6-469d-ba61-2ddcef22e59e",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_e8d26a0be7aca4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5209b22a-3220-492d-926c-ab2741ea794d",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

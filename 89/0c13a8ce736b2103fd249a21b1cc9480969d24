@@ -1,0 +1,44 @@
+.omc/state/sessions/29984f94-d58f-4522-bd48-31876a3b9e69/pre-tool-advisory-throttle.json
+  s_e1e8a936fecc89::t_69293e166599f5 19
+  s_e1e8a936fecc89::t_87d2f80e10d37b 5,41
+  s_e1e8a936fecc89::t_2fd5d7b4397788 35
+  s_e1e8a936fecc89::t_04d6714753ae63 4,6-7
+  s_e1e8a936fecc89::t_d7ed4b75bb5c5b 8,10-15
+  s_e1e8a936fecc89::t_2cb21e5ce63ddc 9
+training/llm_quality_judge.py
+  s_e1e8a936fecc89::t_2ed165d66f90dd 533
+  s_e1e8a936fecc89::t_7ea3824a762428 217-218
+  s_e1e8a936fecc89::t_29257f41346fb4 150
+  s_e1e8a936fecc89::t_e600218c1ec3ea 545-577
+  s_e1e8a936fecc89::t_c9721b93a1b20d 494-496,516
+  s_e1e8a936fecc89::t_4a1e81c473be8b 442-445,456
+  s_e1e8a936fecc89::t_cc4b2db40dadcd 40
+.omc/state/sessions/4e34dc15-3295-44de-a6d4-316f9346a015/pre-tool-advisory-throttle.json
+  s_07f0a5eb20d7a3::t_9828eab0f9e99b 9
+training/tests/test_llm_quality_judge.py
+  s_e1e8a936fecc89::t_815c8edc7c3a4e 599-627
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "890c13a8ce736b2103fd249a21b1cc9480969d24",
+  "prompts": {},
+  "sessions": {
+    "s_07f0a5eb20d7a3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4e34dc15-3295-44de-a6d4-316f9346a015",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_e1e8a936fecc89": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "29984f94-d58f-4522-bd48-31876a3b9e69",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
