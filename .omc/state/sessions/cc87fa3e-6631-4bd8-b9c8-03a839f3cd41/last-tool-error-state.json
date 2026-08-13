@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"grep -n \\\"manifest_path\\\\|source_manifest\\\" training/tests/test_ingest_router.py | head -30; echo \\\"---ALLOWED---\\\"; rtk grep -rn \\\"ALLOWED_LICENSES\\\\|def validate_license\\\" training/; ech...",
-  "error": "Exit code 1\n34:    load_source_manifest,\n46:def manifest_path(tmp_path: Path) -> Path:\n48:    manifest = tmp_path / \"source_manifest.yaml\"\n89:def manifest(manifest_path: Path) -> dict[str, ManifestEntry]:\n90:    return load_source_manifest(manifest_path)\n105:        result = load_source_manifest(tmp_path / \"nonexistent.yaml\")\n260:    async def test_web_source_dispatched_to_web_extractor(self, manifest_path: Path, output_dir: Path) -> None:\n272:            manifest_path=manifest_path,\n283:    asy...",
-  "timestamp": "2026-08-13T19:59:55.710Z",
-  "retry_count": 1
-}

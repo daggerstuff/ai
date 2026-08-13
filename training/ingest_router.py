@@ -32,18 +32,23 @@ logged reason.
 from __future__ import annotations
 
 import asyncio
+import glob
 import hashlib
 import json
 import logging
 import re
+import shutil
 import subprocess
+import tempfile
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from http import HTTPStatus
 from pathlib import Path
 from typing import IO, Any
 from urllib.parse import urlparse
+from urllib.robotparser import RobotFileParser
 
 import httpx
 import yaml
@@ -91,12 +96,32 @@ class ManifestEntry:
     provenance: dict[str, Any] = field(default_factory=dict)
 
     def matches(self, url: str) -> bool:
-        """Return True if *url* falls under this entry (domain or netloc match)."""
+        """Return True if *url* falls under this entry (exact host or subdomain match).
+
+        Also supports ``file://`` entries via path-prefix matching.
+        """
         try:
-            target = urlparse(url).netloc.lower()
-            source = self.url_or_domain.lower()
-            source_host = urlparse(source).netloc.lower() or source
-            return source_host in target
+            target = urlparse(url)
+            source = urlparse(self.url_or_domain)
+
+            # file:// entries match by path prefix
+            if source.scheme == "file" or target.scheme == "file":
+                if source.scheme != "file" or target.scheme != "file":
+                    return False
+                return target.path.startswith(source.path)
+
+            source_host = (source.netloc or source.path).lower()
+            target_host = target.netloc.lower()
+
+            if not source_host or not target_host:
+                return source_host == target_host
+
+            if target_host == source_host:
+                return True
+
+            src_labels = source_host.split(".")
+            tgt_labels = target_host.split(".")
+            return len(tgt_labels) > len(src_labels) and tgt_labels[-len(src_labels) :] == src_labels
         except Exception:
             return False
 
@@ -316,7 +341,7 @@ class WebExtractor:
         self._rate_limit = rate_limit_seconds
         self._robots_ttl = robots_ttl
         self._client = client
-        self._robots_cache: dict[str, tuple[float, bool]] = {}
+        self._robots_cache: dict[str, tuple[float, RobotFileParser]] = {}
         self._domain_last_request: dict[str, float] = {}
         self._domain_locks: dict[str, asyncio.Lock] = {}
 
@@ -343,29 +368,21 @@ class WebExtractor:
         now = time.monotonic()
         cached = self._robots_cache.get(domain)
         if cached is not None:
-            ts, allowed = cached
+            ts, rp = cached
             if now - ts < self._robots_ttl:
-                return allowed
+                return rp.can_fetch("*", url)
 
         robots_url = f"https://{domain}/robots.txt"
-        allowed = True  # permissive default
+        rp = RobotFileParser()
         try:
             resp = await client.get(robots_url)
-            if resp.status_code == 200:
-                # Simple check: if Disallow: / is present, block all.
-                # This is a simplified robots.txt parser.
-                text = resp.text
-                pattern = r"User-agent:\s*\*.*?(?:(?:User-agent:)|\Z)"
-                for block in re.finditer(pattern, text, re.IGNORECASE | re.DOTALL):
-                    block_text = block.group()
-                    if re.search(r"Disallow:\s*/\s*$", block_text, re.IGNORECASE | re.MULTILINE):
-                        allowed = False
-                        break
+            if resp.status_code == HTTPStatus.OK:
+                rp.parse(resp.text.splitlines())
         except httpx.HTTPError:
             pass  # be permissive on error
 
-        self._robots_cache[domain] = (now, allowed)
-        return allowed
+        self._robots_cache[domain] = (now, rp)
+        return rp.can_fetch("*", url)
 
     async def _enforce_rate_limit(self, domain: str) -> None:
         lock = self._get_domain_lock(domain)
@@ -404,7 +421,7 @@ class WebExtractor:
                 "metadata": {"fetch_status": 0, "html_title": ""},
             }
 
-        if status >= 400:
+        if status >= HTTPStatus.BAD_REQUEST:
             return {
                 "source_url": source_url,
                 "raw_text": "",
@@ -537,7 +554,11 @@ class DocumentExtractor:
         return {
             "source_url": str(path),
             "raw_text": raw_text,
-            "metadata": {"format": "docx", "paragraph_count": len(doc.paragraphs), "table_count": len(doc.tables)},
+            "metadata": {
+                "format": "docx",
+                "paragraph_count": len(doc.paragraphs),
+                "table_count": len(doc.tables),
+            },
         }
 
     async def _extract_html(self, path: Path) -> dict[str, Any]:
@@ -612,7 +633,10 @@ class APIExtractor:
         for attempt, delay in enumerate(self._retry_delays):
             try:
                 resp = await client.get(url, params=params, headers=self._config.headers)
-                if resp.status_code == 429 or resp.status_code >= 500:
+                if (
+                    resp.status_code == HTTPStatus.TOO_MANY_REQUESTS
+                    or resp.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR
+                ):
                     logger.warning(
                         "API returned %d for %s (attempt %d) — retrying in %.1fs",
                         resp.status_code,
@@ -629,7 +653,11 @@ class APIExtractor:
             except httpx.HTTPError as exc:
                 last_exc = exc
                 logger.warning(
-                    "API request failed for %s (attempt %d): %s — retrying in %.1fs", url, attempt + 1, exc, delay
+                    "API request failed for %s (attempt %d): %s — retrying in %.1fs",
+                    url,
+                    attempt + 1,
+                    exc,
+                    delay,
                 )
                 await asyncio.sleep(delay)
         if last_exc is not None:
@@ -674,7 +702,7 @@ class APIExtractor:
                     "metadata": {
                         "api_item_id": str(item_id),
                         "api_page": page,
-                        **{k: v for k, v in item.items() if k != self._config.text_field and k != "id"},
+                        **{k: v for k, v in item.items() if k not in (self._config.text_field, "id")},
                     },
                     "id_override": str(item_id),
                 }
@@ -731,16 +759,27 @@ class YouTubeExtractor:
 
         # Run yt-dlp in a thread to avoid blocking the event loop
         loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
+        return await loop.run_in_executor(
             None,
             self._fetch_transcript_sync,
             video_id,
             source_url,
         )
-        return result
 
     def _fetch_transcript_sync(self, video_id: str, source_url: str) -> dict[str, Any]:
         """Fetch transcript using yt-dlp subprocess (blocking)."""
+        if not re.fullmatch(r"[A-Za-z0-9_-]{10,12}", video_id):
+            logger.warning("Refusing to fetch transcript for invalid video id %r", video_id)
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"video_id": video_id, "duration": 0, "error": "invalid video id"},
+            }
+
+        # Use a unique temp directory to avoid collisions across concurrent runs
+        tmpdir = tempfile.mkdtemp(prefix="yt-transcript-")
+        output_prefix = Path(tmpdir) / video_id
+
         cmd = [
             "yt-dlp",
             "--write-auto-sub",
@@ -748,7 +787,7 @@ class YouTubeExtractor:
             "en,en-US,en-GB,de,de-DE",
             "--skip-download",
             "--output",
-            "/tmp/yt-transcript-%(id)s",
+            str(output_prefix),
             "--user-agent",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "--sleep-interval",
@@ -769,14 +808,12 @@ class YouTubeExtractor:
             }
 
         # Find the generated subtitle file
-        import glob
-
         patterns = [
-            f"/tmp/yt-transcript-{video_id}*.vtt",
-            f"/tmp/yt-transcript-{video_id}*.srt",
-            f"/tmp/yt-transcript-{video_id}*.srv3",
-            f"/tmp/yt-transcript-{video_id}*.srv2",
-            f"/tmp/yt-transcript-{video_id}*.srv1",
+            f"{output_prefix}*.vtt",
+            f"{output_prefix}*.srt",
+            f"{output_prefix}*.srv3",
+            f"{output_prefix}*.srv2",
+            f"{output_prefix}*.srv1",
         ]
         subtitle_path: str | None = None
         for pat in patterns:
@@ -799,7 +836,12 @@ class YouTubeExtractor:
             duration = 0
             try:
                 result = subprocess.run(
-                    ["yt-dlp", "--dump-json", "--skip-download", f"https://www.youtube.com/watch?v={video_id}"],
+                    [
+                        "yt-dlp",
+                        "--dump-json",
+                        "--skip-download",
+                        f"https://www.youtube.com/watch?v={video_id}",
+                    ],
                     capture_output=True,
                     text=True,
                     timeout=self._timeout,
@@ -818,11 +860,12 @@ class YouTubeExtractor:
             }
         finally:
             try:
-                for _f in glob.glob(f"/tmp/yt-transcript-{video_id}*"):
+                for _f in glob.glob(f"{output_prefix}*"):
                     try:
                         Path(_f).unlink(missing_ok=True)
                     except OSError:
                         logger.warning("Failed to clean up subtitle file %s", _f)
+                shutil.rmtree(tmpdir, ignore_errors=True)
             except OSError:
                 logger.warning("Failed to clean up transcript files for %s", video_id)
 

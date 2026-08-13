@@ -258,6 +258,10 @@ ignore = []
 "sourcing/tests/test_safety_processors.py" = ["PLR2004", "PLC0415"]
 # Adapter tests: magic values are dataset sizes/counts, long lines are test data
 "sourcing/tests/test_github_repo_adapter.py" = ["PLR2004", "E501"]
+# Extractor methods load optional deps lazily; shard writer keeps a persistent file handle
+"training/ingest_router.py" = ["PLC0415", "SIM115", "PLR0913"]
+# Tests use bare numeric literals and lazy docx import for optional dependency
+"training/tests/test_ingest_router.py" = ["PLR2004", "PLC0415"]
 "training_corpus/pal_framework/lint_dpo_dataset.py" = ["T201", "PLR0912"]
 "training_corpus/pal_framework/generate_selection_dataset.py" = ["T201"]
 "training_corpus/pal_framework/test_lint_dpo_dataset.py" = ["PLR2004", "PT018", "PLC0415"]
