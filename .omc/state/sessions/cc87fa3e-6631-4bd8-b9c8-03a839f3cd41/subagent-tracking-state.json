@@ -1,0 +1,71 @@
+{
+  "agents": [
+    {
+      "agent_id": "a92cc7b63241c2004",
+      "agent_type": "worker",
+      "started_at": "2026-08-13T19:49:27.603Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-13T19:51:41.706Z",
+      "duration_ms": 134103
+    },
+    {
+      "agent_id": "a52bae5314ff84b59",
+      "agent_type": "caveman:cavecrew-investigator",
+      "started_at": "2026-08-13T19:49:27.666Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-13T19:53:36.560Z",
+      "duration_ms": 248894
+    },
+    {
+      "agent_id": "a2496b9a99cc7fa9b",
+      "agent_type": "worker",
+      "started_at": "2026-08-13T19:52:09.226Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-13T19:56:09.645Z",
+      "duration_ms": 240419
+    },
+    {
+      "agent_id": "af1b7a250e888af72",
+      "agent_type": "worker",
+      "started_at": "2026-08-13T19:54:25.129Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-13T19:57:33.424Z",
+      "duration_ms": 188295
+    },
+    {
+      "agent_id": "a41a68b1fb8b5fc3f",
+      "agent_type": "worker",
+      "started_at": "2026-08-13T19:56:49.971Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-13T19:59:07.840Z",
+      "duration_ms": 137869
+    },
+    {
+      "agent_id": "a1fbf924d892fe17d",
+      "agent_type": "worker",
+      "started_at": "2026-08-13T19:59:35.713Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-13T20:02:16.925Z",
+      "duration_ms": 161212
+    },
+    {
+      "agent_id": "a4f7837e2314d2986",
+      "agent_type": "worker",
+      "started_at": "2026-08-13T20:02:29.488Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-13T20:03:55.300Z",
+      "duration_ms": 85812
+    }
+  ],
+  "total_spawned": 6,
+  "total_completed": 7,
+  "total_failed": 0,
+  "last_updated": "2026-08-13T20:03:55.402Z"
+}

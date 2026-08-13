@@ -705,20 +705,20 @@
   "hotPaths": [
     {
       "path": "training/ingest_router.py",
-      "accessCount": 51,
-      "lastAccessed": 1786649960937,
-      "type": "file"
-    },
-    {
-      "path": "training/book_pdf_converter.py",
-      "accessCount": 3,
-      "lastAccessed": 1786646489311,
+      "accessCount": 60,
+      "lastAccessed": 1786651378663,
       "type": "file"
     },
     {
       "path": "training/tests/test_ingest_router.py",
-      "accessCount": 3,
-      "lastAccessed": 1786646529342,
+      "accessCount": 9,
+      "lastAccessed": 1786651214897,
+      "type": "file"
+    },
+    {
+      "path": "training/book_pdf_converter.py",
+      "accessCount": 4,
+      "lastAccessed": 1786650725924,
       "type": "file"
     },
     {
@@ -735,8 +735,8 @@
     },
     {
       "path": "training/provenance.py",
-      "accessCount": 1,
-      "lastAccessed": 1786616009433,
+      "accessCount": 2,
+      "lastAccessed": 1786651214795,
       "type": "file"
     },
     {
