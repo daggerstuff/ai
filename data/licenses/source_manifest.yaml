@@ -1,0 +1,61 @@
+# Source manifest — maps source URLs/domains to license types and provenance metadata.
+#
+# The IngestRouter reads this file at startup to populate its license gate.
+# Records whose license does not validate against training.provenance.ALLOWED_LICENSES
+# are dropped with a logged reason.
+#
+# Allowed licenses: Apache-2.0, CC-BY-4.0, CC-BY-SA-4.0, CC0-1.0, MIT, NOASSERTION
+
+sources:
+  # --- Web sources ---
+  - url: "https://en.wikipedia.org"
+    license: "CC-BY-SA-4.0"
+    source_type: "web"
+    provenance:
+      publisher: "Wikimedia Foundation"
+      notes: "Wikipedia articles — CC BY-SA 4.0 licensed"
+
+  - url: "https://www.gutenberg.org"
+    license: "CC0-1.0"
+    source_type: "web"
+    provenance:
+      publisher: "Project Gutenberg"
+      notes: "Public domain literary texts"
+
+  # --- Document sources ---
+  - url: "https://arxiv.org"
+    license: "CC0-1.0"
+    source_type: "document"
+    provenance:
+      publisher: "arXiv (Cornell University)"
+      notes: "Preprint papers — most arXiv content is CC0 or CC-BY"
+
+  - url: "file:///data/books/"
+    license: "NOASSERTION"
+    source_type: "document"
+    provenance:
+      publisher: "Local book repository"
+      notes: "Mixed-license local PDF/DOCX files"
+
+  # --- API sources ---
+  - url: "https://api.reddit.com"
+    license: "NOASSERTION"
+    source_type: "api"
+    provenance:
+      publisher: "Reddit Inc."
+      notes: "Reddit API — user-generated content, license varies per post"
+
+  - url: "https://api.openalex.org"
+    license: "CC0-1.0"
+    source_type: "api"
+    provenance:
+      publisher: "OpenAlex"
+      notes: "Open scholarly metadata — CC0 licensed"
+
+  # --- YouTube sources ---
+  - url: "https://www.youtube.com"
+    license: "NOASSERTION"
+    source_type: "youtube"
+    provenance:
+      publisher: "Google LLC"
+      notes: "YouTube transcripts — license varies per video"
