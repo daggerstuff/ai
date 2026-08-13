@@ -125,9 +125,6 @@ class ClinicalValidityJudge:
         Returns:
             dict with keys: validity_score, flags (list), category (str),
             detail (dict of dimension scores).
-
-        Raises:
-            RuntimeError: If nemo_config is None or the LLM judge call fails.
         """
         # --- Empty/None guard ---
         if not text or not isinstance(text, str) or not text.strip():
@@ -147,19 +144,27 @@ class ClinicalValidityJudge:
                 "detail": dict.fromkeys(ClinicalValidityScorer.WEIGHTS, 0.0),
             }
 
-        # --- LLM judge (required, no fallback) ---
+        fallback = False
+        judge_result: dict[str, Any] | None = None
         if nemo_config is None:
-            raise RuntimeError(
-                "ClinicalValidityJudge requires nemo_config — keyword-density fallback is disabled"
-            )
+            fallback = True
+        else:
+            try:
+                judge_result = cls._call_judge(text, nemo_config)
+            except Exception as e:
+                logger.warning(
+                    "ClinicalValidityJudge: LLM judge call failed (%s); falling back to ClinicalValidityScorer",
+                    e,
+                )
+                fallback = True
+            if judge_result is None:
+                fallback = True
 
-        try:
-            judge_result = cls._call_judge(text, nemo_config)
-        except Exception as e:
-            raise RuntimeError(f"ClinicalValidityJudge: LLM judge call failed: {e}") from e
-
-        if judge_result is None:
-            raise RuntimeError("ClinicalValidityJudge: LLM judge returned no result")
+        if fallback:
+            result = ClinicalValidityScorer.score_with_flags(text)
+            if "fallback_regex" not in result["flags"]:
+                result["flags"].append("fallback_regex")
+            return result
 
         return judge_result
 
@@ -228,13 +233,18 @@ class ClinicalValidityJudge:
         try:
             parsed = json.loads(text)
         except json.JSONDecodeError:
-            logger.warning("ClinicalValidityJudge: failed to parse NeMo response as JSON: %s", raw_response[:200])
+            logger.warning(
+                "ClinicalValidityJudge: failed to parse NeMo response as JSON: %s",
+                raw_response[:200],
+            )
             return None
 
         # Extract overall score
         overall = parsed.get("clinical_validity_score")
         if overall is None or not isinstance(overall, (int, float)):
-            logger.warning("ClinicalValidityJudge: missing or invalid clinical_validity_score in response")
+            logger.warning(
+                "ClinicalValidityJudge: missing or invalid clinical_validity_score in response"
+            )
             return None
 
         overall = max(0.0, min(1.0, float(overall)))
@@ -318,9 +328,13 @@ def main() -> None:
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="Evaluate clinical validity of therapeutic text using LLM judge")
+    parser = argparse.ArgumentParser(
+        description="Evaluate clinical validity of therapeutic text using LLM judge"
+    )
     parser.add_argument("--text", type=str, default=None, help="Text to evaluate")
-    parser.add_argument("--detail", action="store_true", help="Include per-dimension scores in output")
+    parser.add_argument(
+        "--detail", action="store_true", help="Include per-dimension scores in output"
+    )
     args = parser.parse_args()
 
     text = args.text
@@ -330,7 +344,10 @@ def main() -> None:
     nemo_config = _build_nemo_config_from_env()
 
     if nemo_config is None:
-        print("Error: NEMO_API_KEY (or NVIDIA_API_KEY) and NEMO_ENDPOINT (or NVIDIA_BASE_URL) must be set.", file=sys.stderr)
+        print(
+            "Error: NEMO_API_KEY (or NVIDIA_API_KEY) and NEMO_ENDPOINT (or NVIDIA_BASE_URL) must be set.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     if args.detail:

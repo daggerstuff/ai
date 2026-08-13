@@ -33,10 +33,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
+import logging
 import sys
 from collections import Counter
-from dataclasses import asdict, dataclass, field
+from collections.abc import Iterable
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -46,6 +47,15 @@ from typing import Any
 
 DEFAULT_INPUT = "ai/data/raw/deduped/all_desloped.jsonl"
 DEFAULT_OUTPUT = "ai/data/curated"
+
+logger = logging.getLogger("curate_pipeline")
+
+# Stage 1 QA filters (PIX-4342) — optional import; chain degrades to no-op if unavailable
+try:
+    from training.stage1_filters import Stage1FilterChain
+except ImportError as e:
+    Stage1FilterChain = None  # type: ignore[assignment, misc]
+    logger.warning("training.stage1_filters unavailable — Stage 1 QA filters disabled: %s", e)
 
 # System prompts per task type — preserves source/clinical context
 SYSTEM_PROMPTS: dict[str, str] = {
@@ -207,10 +217,9 @@ def assign_split(hash_val: str) -> str:
     bucket = int(hash_val[:8], 16) % 100
     if bucket < 70:
         return "train"
-    elif bucket < 85:
+    if bucket < 85:
         return "val"
-    else:
-        return "test"
+    return "test"
 
 
 # ---------------------------------------------------------------------------
@@ -358,10 +367,19 @@ def run_pipeline(
     input_path: str,
     output_dir: str,
     dry_run: bool = False,
+    stage1_filters: bool = True,
 ) -> PipelineStats:
     """Run the full curation pipeline."""
     stats = PipelineStats()
     seen_hashes: set[str] = set()
+
+    # Initialize Stage 1 filter chain (PIX-4342)
+    stage1_chain: Any = None
+    if stage1_filters and Stage1FilterChain is not None:
+        stage1_chain = Stage1FilterChain()
+        print("Stage 1 QA filters: ENABLED", file=sys.stderr)
+    else:
+        print("Stage 1 QA filters: DISABLED", file=sys.stderr)
 
     # Prepare output directories
     if not dry_run:
@@ -386,100 +404,114 @@ def run_pipeline(
     if dry_run:
         print("DRY RUN — no files will be written", file=sys.stderr)
 
-    with open(input_path, "r", encoding="utf-8") as f:
-        for line_num, line in enumerate(f):
-            if not line.strip():
-                continue
+    raw_count = 0
 
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+    def _read_records() -> Iterable[dict[str, Any]]:
+        nonlocal raw_count
+        with open(input_path, encoding="utf-8") as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                raw_count += 1
+                try:
+                    yield json.loads(line)
+                except json.JSONDecodeError:
+                    continue
 
-            stats.total_read += 1
+    # Build the processing iterator — optionally through the Stage 1 filter chain
+    if stage1_chain is not None:
+        record_iter = stage1_chain.filter(_read_records())
+    else:
+        record_iter = _read_records()
 
-            # Classify tier
-            tier = classify_tier(record)
-            tier_stats = stats.get_or_create_tier(tier)
-            tier_stats.total += 1
-            tier_stats.source_counts[record.get("source", "unknown")] += 1
-            tier_stats.task_type_counts[record.get("task_type", "unknown")] += 1
+    for record in record_iter:
+        # stats.total_read is assigned from raw_count once iteration finishes
 
-            # Dedup check
-            chash = content_hash(record)
-            if chash in seen_hashes:
-                stats.total_deduped += 1
+        # Classify tier
+        tier = classify_tier(record)
+        tier_stats = stats.get_or_create_tier(tier)
+        tier_stats.total += 1
+        tier_stats.source_counts[record.get("source", "unknown")] += 1
+        tier_stats.task_type_counts[record.get("task_type", "unknown")] += 1
+
+        # Dedup check
+        chash = content_hash(record)
+        if chash in seen_hashes:
+            stats.total_deduped += 1
+            tier_stats.excluded += 1
+            continue
+        seen_hashes.add(chash)
+
+        # Downsampling for T3_BRONZE
+        if tier == "T3_BRONZE":
+            source = record.get("source", "")
+            if not should_keep(source, chash):
                 tier_stats.excluded += 1
-                continue
-            seen_hashes.add(chash)
-
-            # Downsampling for T3_BRONZE
-            if tier == "T3_BRONZE":
-                source = record.get("source", "")
-                if not should_keep(source, chash):
-                    tier_stats.excluded += 1
-                    stats.total_excluded += 1
-                    continue
-
-            # Determine split
-            split = assign_split(chash)
-
-            # Write to appropriate format(s)
-            if dry_run:
-                tier_stats.included += 1
-                stats.total_included += 1
+                stats.total_excluded += 1
                 continue
 
-            # T4_SAFETY → safety format
-            if tier == "T4_SAFETY":
-                safety_record = to_safety(record, tier)
-                handles["safety"][split].write(json.dumps(safety_record, ensure_ascii=False) + "\n")
-                stats.split_counts["safety"][split] += 1
+        # Determine split
+        split = assign_split(chash)
 
-            # All non-safety tiers → ChatML SFT format (T4_SAFETY goes only to safety/)
-            if tier != "T4_SAFETY":
-                task_type = record.get("task_type", "")
-                sys_prompt = SYSTEM_PROMPTS.get(task_type, DEFAULT_SYSTEM_PROMPT)
-                chatml_record = to_chatml(record, tier, sys_prompt)
-                if not chatml_record:
-                    continue
-                handles["sft_chatml"][split].write(json.dumps(chatml_record, ensure_ascii=False) + "\n")
-                stats.split_counts["sft_chatml"][split] += 1
-
-            # T3_BRONZE 3-msg records → Alpaca instruction + ChatML format
-            if tier == "T3_BRONZE":
-                alpaca_record = to_alpaca(record, tier)
-                if alpaca_record:
-                    handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
-                    stats.split_counts["sft_alpaca"][split] += 1
-                    # Also write ChatML version of the same record
-                    alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
-                    handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
-                    stats.split_counts["sft_alpaca_chatml"][split] += 1
-
-            # T1_GOLD and T2_SILVER 3-msg records → Alpaca + ChatML
-            if tier in ("T1_GOLD", "T2_SILVER"):
-                alpaca_record = to_alpaca(record, tier)
-                if alpaca_record:
-                    handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
-                    stats.split_counts["sft_alpaca"][split] += 1
-                    # Also write ChatML version of the same record
-                    alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
-                    handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
-                    stats.split_counts["sft_alpaca_chatml"][split] += 1
-
+        # Write to appropriate format(s)
+        if dry_run:
             tier_stats.included += 1
             stats.total_included += 1
+            continue
 
-            # Progress
-            if (line_num + 1) % 100000 == 0:
-                print(
-                    f"  Processed {line_num + 1:,} records | "
-                    f"included={stats.total_included:,} | "
-                    f"excluded={stats.total_excluded:,} | "
-                    f"deduped={stats.total_deduped:,}",
-                    file=sys.stderr,
-                )
+        # T4_SAFETY → safety format
+        if tier == "T4_SAFETY":
+            safety_record = to_safety(record, tier)
+            handles["safety"][split].write(json.dumps(safety_record, ensure_ascii=False) + "\n")
+            stats.split_counts["safety"][split] += 1
+
+        # All non-safety tiers → ChatML SFT format (T4_SAFETY goes only to safety/)
+        if tier != "T4_SAFETY":
+            task_type = record.get("task_type", "")
+            sys_prompt = SYSTEM_PROMPTS.get(task_type, DEFAULT_SYSTEM_PROMPT)
+            chatml_record = to_chatml(record, tier, sys_prompt)
+            if not chatml_record:
+                continue
+            handles["sft_chatml"][split].write(json.dumps(chatml_record, ensure_ascii=False) + "\n")
+            stats.split_counts["sft_chatml"][split] += 1
+
+        # T3_BRONZE 3-msg records → Alpaca instruction + ChatML format
+        if tier == "T3_BRONZE":
+            alpaca_record = to_alpaca(record, tier)
+            if alpaca_record:
+                handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
+                stats.split_counts["sft_alpaca"][split] += 1
+                # Also write ChatML version of the same record
+                alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
+                handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
+                stats.split_counts["sft_alpaca_chatml"][split] += 1
+
+        # T1_GOLD and T2_SILVER 3-msg records → Alpaca + ChatML
+        if tier in ("T1_GOLD", "T2_SILVER"):
+            alpaca_record = to_alpaca(record, tier)
+            if alpaca_record:
+                handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
+                stats.split_counts["sft_alpaca"][split] += 1
+                # Also write ChatML version of the same record
+                alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
+                handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
+                stats.split_counts["sft_alpaca_chatml"][split] += 1
+
+        tier_stats.included += 1
+        stats.total_included += 1
+
+        # Progress (use raw_count because stats.total_read is assigned after the loop)
+        if raw_count % 100000 == 0:
+            print(
+                f"  Processed {raw_count:,} records | "
+                f"included={stats.total_included:,} | "
+                f"excluded={stats.total_excluded:,} | "
+                f"deduped={stats.total_deduped:,}",
+                file=sys.stderr,
+            )
+
+    # Capture total raw records read (before any Stage 1 filtering)
+    stats.total_read = raw_count
 
     # Close file handles
     if not dry_run:
@@ -487,11 +519,18 @@ def run_pipeline(
             for split in handles[subdir]:
                 handles[subdir][split].close()
 
-    # Write stats
+    if stage1_chain is not None:
+        stage1_summary = stage1_chain.summary()
+        print("\n" + stage1_summary, file=sys.stderr)
+        stage1_chain.close()
+
     if not dry_run:
         stats_path = Path(output_dir) / "stats.json"
         with open(stats_path, "w", encoding="utf-8") as f:
-            json.dump(stats.to_dict(), f, indent=2, ensure_ascii=False)
+            stats_data = stats.to_dict()
+            if stage1_chain is not None:
+                stats_data["stage1_filters"] = stage1_chain.stats_dict()
+            json.dump(stats_data, f, indent=2, ensure_ascii=False)
 
     return stats
 
@@ -506,14 +545,21 @@ def main():
     parser.add_argument("--input", default=DEFAULT_INPUT, help="Input JSONL path")
     parser.add_argument("--output", default=DEFAULT_OUTPUT, help="Output directory")
     parser.add_argument("--dry-run", action="store_true", help="Don't write files, just report stats")
+    parser.add_argument(
+        "--stage1-filters",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable/disable Stage 1 QA filters (language, PII, toxicity, dedup). Default: enabled.",
+    )
     args = parser.parse_args()
 
     print(f"Input:  {args.input}", file=sys.stderr)
     print(f"Output: {args.output}", file=sys.stderr)
     print(f"Dry run: {args.dry_run}", file=sys.stderr)
+    print(f"Stage 1 filters: {args.stage1_filters}", file=sys.stderr)
     print(file=sys.stderr)
 
-    stats = run_pipeline(args.input, args.output, args.dry_run)
+    stats = run_pipeline(args.input, args.output, args.dry_run, args.stage1_filters)
 
     # Summary
     print("\n" + "=" * 60, file=sys.stderr)
