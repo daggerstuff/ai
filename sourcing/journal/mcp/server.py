@@ -937,15 +937,14 @@ class MCPServer:
         """
         self.resources.register(resource)
 
-    def register_prompt(self, _prompt: Any) -> None:
+    def register_prompt(self, prompt: Any) -> None:
         """
         Register an MCP prompt.
 
         Args:
             prompt: Prompt to register
         """
-        # Will be implemented in Phase 10
-        logger.warning("Prompt registration not yet implemented")
+        self.prompts.register(prompt)
 
     def _register_session_tools(self) -> None:
         """Register session management tools."""

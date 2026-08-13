@@ -57,6 +57,19 @@ except ImportError as e:
     Stage1FilterChain = None  # type: ignore[assignment, misc]
     logger.warning("training.stage1_filters unavailable — Stage 1 QA filters disabled: %s", e)
 
+# Synthetic QC gate (PIX-4345 §B.5.5) — gates synthetic SDG records.
+from training.synth_qc_gate import gate_synthetic_record, SYNTH_QC_THRESH  # noqa: E402
+
+# Inter-annotator agreement (PIX-4344/4345) — used by classify_tier to
+# upgrade adjudicated records to T1_GOLD on strong Fleiss kappa.
+from training.annotation.iaa import (  # noqa: E402
+    AnnotationStage,
+    IaaResult,
+    bucket_quality,
+    fleiss_kappa,
+    label_studio_export_to_iaa,
+)
+
 # System prompts per task type — preserves source/clinical context
 SYSTEM_PROMPTS: dict[str, str] = {
     "therapy_response_generation": (
@@ -172,7 +185,12 @@ class PipelineStats:
 
 
 def classify_tier(record: dict[str, Any]) -> str:
-    """Classify a record into a quality tier."""
+    """Classify a record into a quality tier with IAA integration.
+
+    Extends base tier logic with annotation stage quality metrics from
+    the IAA module (PIX-4344): Fleiss kappa scores and annotation stages
+    can upgrade records to T1_GOLD when inter-annotator agreement is strong.
+    """
     task_type = record.get("task_type", "")
     clinical_reviewed = record.get("clinical_reviewed", False)
     mi_quality = record.get("mi_quality", "")
@@ -185,6 +203,17 @@ def classify_tier(record: dict[str, Any]) -> str:
 
     # T1_GOLD: clinically reviewed or high MI quality
     if clinical_reviewed or mi_quality == "high":
+        return "T1_GOLD"
+
+    # T1_GOLD override: adjudicated with strong inter-annotator agreement
+    # (PIX-4345): Fleiss kappa >= 0.85 from IAA module upgrades to T1_GOLD
+    annotation_stage = record.get("annotation_stage")
+    fleiss_kappa = record.get("fleiss_kappa")
+    if (
+        annotation_stage == AnnotationStage.ADJUDICATED.value
+        and fleiss_kappa is not None
+        and fleiss_kappa >= 0.85
+    ):
         return "T1_GOLD"
 
     # T2_SILVER: multi-turn therapy dialogues (5+ messages, non-adversarial)
@@ -449,6 +478,21 @@ def run_pipeline(
                 tier_stats.excluded += 1
                 stats.total_excluded += 1
                 continue
+
+        # Synthetic QC gate (§B.5.5) — stricter than natural data.
+        # Applied to synthetic records from the SDG pipeline (PIX-4345).
+        # Sits after tier classification + dedup + downsample so it only
+        # inspects records that would otherwise be included.
+        source_type = record.get("source", "")
+        if source_type == "synthetic_sdg" and gate_synthetic_record is not None:
+            passed, reason = gate_synthetic_record(record)
+            if not passed:
+                tier_stats.excluded += 1
+                stats.total_excluded += 1
+                continue
+            # If passed with flag (needs human review), attach note
+            if "needs_human_review" in reason:
+                record["synthetic_qc_note"] = reason
 
         # Determine split
         split = assign_split(chash)

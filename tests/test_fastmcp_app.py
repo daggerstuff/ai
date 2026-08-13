@@ -25,8 +25,8 @@ def _load_fastmcp_app_module():
     module_name = "test_fastmcp_app_module"
     module_path = Path(__file__).resolve().parents[1] / "api" / "mcp_server" / "fastmcp_app.py"
     spec = importlib.util.spec_from_file_location(module_name, module_path)
-    assert spec is not None  # nosec B101
-    assert spec.loader is not None  # nosec B101
+    assert spec is not None
+    assert spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
@@ -99,7 +99,7 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         )
     )
     store_text = _extract_text(store_result)
-    assert "Memory Secured" in store_text  # nosec B101
+    assert "Memory Secured" in store_text
 
     status_result = asyncio.run(
         fastmcp_app.mcp.call_tool(
@@ -111,8 +111,8 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         )
     )
     status_text = _extract_text(status_result)
-    assert "Total Memories:** 1" in status_text  # nosec B101
-    assert "**Health:** Healthy" in status_text  # nosec B101
+    assert "Total Memories:** 1" in status_text
+    assert "**Health:** Healthy" in status_text
 
 
 def test_memory_query_applies_limit_without_manager_limit_keyword(

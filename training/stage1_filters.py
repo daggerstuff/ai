@@ -11,6 +11,19 @@ Heavy ML models (fasttext, presidio, detoxify) are loaded lazily and cached
 so the chain can be constructed without the models present — tests inject
 mocks via constructor parameters.
 
+This module unifies two predecessor implementations:
+
+* ``Stage1FilterChain`` + per-filter classes (PIX-4342, Steiner) — the
+  canonical streaming API used by ``curate_pipeline.py``. Persistent SQLite
+  dedup store, optional SimHash for 10M+ scale, Protocol-based filters,
+  chain-level statistics.
+* Functional helpers (PIX-4345, SDG pipeline) — ``detect_language``,
+  ``language_filter``, ``strip_pii_regex``/``strip_pii_presidio``,
+  ``pii_filter``. These add capabilities the streaming classes do not:
+  the ``fasttext-langdetect`` package path, confidence-returning language
+  detection, and **transforming** PII redaction (vs. the chain's drop-only
+  PII filter). They are kept as module-level primitives.
+
 Usage::
 
     chain = Stage1FilterChain()
@@ -28,7 +41,7 @@ import re
 import sqlite3
 import tempfile
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, NamedTuple, Protocol
@@ -42,14 +55,14 @@ logger = logging.getLogger("stage1_filters")
 # Non-English script detection — matches the pattern in clinical_validity_judge.py
 _NON_ENGLISH_RE = re.compile(
     "["
-    "\u4e00-\u9fff"  # CJK Unified Ideographs
-    "\u3040-\u309f"  # Hiragana
-    "\u30a0-\u30ff"  # Katakana
-    "\uac00-\ud7af"  # Hangul Syllables
-    "\u0400-\u04ff"  # Cyrillic
-    "\u0600-\u06ff"  # Arabic
-    "\u0e00-\u0e7f"  # Thai
-    "\u0f00-\u0fff"  # Tibetan
+    "一-鿿"  # CJK Unified Ideographs
+    "぀-ゟ"  # Hiragana
+    "゠-ヿ"  # Katakana
+    "가-힯"  # Hangul Syllables
+    "Ѐ-ӿ"  # Cyrillic
+    "؀-ۿ"  # Arabic
+    "฀-๿"  # Thai
+    "ༀ-࿿"  # Tibetan
     "]",
 )
 _NON_ENGLISH_RATIO = 0.30
@@ -66,6 +79,21 @@ PII_ENTITIES = [
     "US_PASSPORT",
 ]
 
+# Presidio entity set for the transforming redaction path (PIX-4345).
+# Broader than ``PII_ENTITIES`` — includes PERSON/LOCATION/DATE_TIME so the
+# redactor can scrub contextual identifiers the drop-only filter ignores.
+PRESIDIO_ENTITIES: tuple[str, ...] = (
+    "EMAIL_ADDRESS",
+    "PHONE_NUMBER",
+    "US_SSN",
+    "CREDIT_CARD",
+    "MEDICAL_LICENSE",
+    "IP_ADDRESS",
+    "PERSON",
+    "LOCATION",
+    "DATE_TIME",
+)
+
 # Toxicity thresholds
 SEVERE_TOXICITY_THRESHOLD = 0.30
 THREAT_THRESHOLD = 0.15
@@ -73,6 +101,16 @@ THREAT_THRESHOLD = 0.15
 # Dedup thresholds
 JACCARD_THRESHOLD = 0.85
 SIMHASH_SCALE_THRESHOLD = 10_000_000  # 10M records → switch to SimHash
+
+# PII regex Layer 1 — fast strip of obvious high-sensitivity entities.
+_PII_REGEXES: dict[str, re.Pattern[str]] = {
+    "EMAIL_ADDRESS": re.compile(r"\b[\w.+-]+@[\w-]+\.[\w.-]+\b"),
+    "PHONE_NUMBER": re.compile(r"\b(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)\d{3}[-.\s]?\d{4}\b"),
+    "US_SSN": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
+    "CREDIT_CARD": re.compile(r"\b(?:\d[ -]*?){13,16}\b"),
+    "IP_ADDRESS": re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b"),
+}
+_PII_REDACTION = "[REDACTED]"
 
 
 # ---------------------------------------------------------------------------
@@ -94,8 +132,9 @@ class RecordFilter(Protocol):
     def __call__(self, record: dict[str, Any]) -> FilterResult: ...
 
 
+
 # ---------------------------------------------------------------------------
-# Helpers — reuse from dedup_normalize.py
+# Helpers — reused by both the streaming chain and the functional primitives.
 # ---------------------------------------------------------------------------
 
 
@@ -140,7 +179,7 @@ def _jaccard_similarity(a: frozenset[str], b: frozenset[str]) -> float:
 
 
 # ---------------------------------------------------------------------------
-# SimHash implementation for 10M+ scale
+# SimHash implementation for 10M+ scale near-duplicate detection.
 # ---------------------------------------------------------------------------
 
 
@@ -167,7 +206,118 @@ def _hamming_distance(a: int, b: int) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Language Filter
+# Functional language primitives (PIX-4345).
+#
+# Distinct from ``LanguageFilter``: these use the ``fasttext-langdetect``
+# package, return ``(language, confidence)`` tuples, and never mutate state.
+# Used by the SDG pipeline for per-record inspection where streaming isn't
+# needed.
+# ---------------------------------------------------------------------------
+
+
+def detect_language(text: str) -> tuple[str, float]:
+    """Return ``(language_code, confidence)``.
+
+    Uses ``fasttext-langdetect`` when available (lid.176.bin); falls back to
+    the ``_NON_ENGLISH_RE`` script-ratio gate. The fallback never claims a
+    specific language — it only flags non-English.
+    """
+
+    if not text or not text.strip():
+        return ("und", 0.0)
+    try:
+        import fasttext_langdetect  # lazy — optional dep
+    except ImportError:
+        fasttext_langdetect = None  # type: ignore[assignment]
+    if fasttext_langdetect is not None:
+        try:
+            detector = fasttext_langdetect.FastTextLanguageDetector()
+            lang, confidence = detector.detect(text)
+            return (lang, float(confidence))
+        except Exception as exc:  # pragma: no cover — fasttext runtime failures
+            logger.debug("fasttext detect failed: %s", exc)
+    non_en_ratio = len(_NON_ENGLISH_RE.findall(text)) / max(1, len(text.strip()))
+    if non_en_ratio > _NON_ENGLISH_RATIO:
+        return ("non_en_script", non_en_ratio)
+    return ("en", 1.0 - non_en_ratio)
+
+
+def language_filter(text: str, *, target_lang: str = "en") -> tuple[bool, str, float]:
+    """Return ``(keep, language_code, confidence)``."""
+
+    lang, conf = detect_language(text)
+    keep = lang == target_lang or lang == "und"
+    return (keep, lang, conf)
+
+
+# ---------------------------------------------------------------------------
+# Functional PII primitives (PIX-4345).
+#
+# Distinct from ``PIIFilter``: these **redact** PII in-place and return the
+# scrubbed text + a hit count, rather than dropping the record. Used by SDG
+# when synthetic text should be cleaned, not discarded.
+# ---------------------------------------------------------------------------
+
+
+def strip_pii_regex(text: str) -> tuple[str, int]:
+    """Layer 1 fast regex strip.  Returns ``(redacted_text, hit_count)``."""
+
+    if not text:
+        return (text, 0)
+    redacted = text
+    hits = 0
+    for pattern in _PII_REGEXES.values():
+        redacted, count = pattern.subn(_PII_REDACTION, redacted)
+        hits += count
+    return (redacted, hits)
+
+
+def strip_pii_presidio(text: str) -> tuple[str, int]:
+    """Layer 2 Presidio anonymization.  Returns ``(redacted_text, hit_count)``.
+
+    Falls back to Layer 1 regex when Presidio is unavailable.
+    """
+
+    if not text:
+        return (text, 0)
+    try:
+        from presidio_analyzer import AnalyzerEngine
+        from presidio_anonymizer import AnonymizerEngine
+    except ImportError:
+        return strip_pii_regex(text)
+    try:
+        analyzer = AnalyzerEngine()
+        anonymizer = AnonymizerEngine()
+        results = analyzer.analyze(
+            text=text,
+            entities=list(PRESIDIO_ENTITIES),
+            language="en",
+        )
+        if not results:
+            return (text, 0)
+        out = anonymizer.anonymize(text=text, analyzer_results=results)
+        return (out.text, len(results))
+    except Exception as exc:  # pragma: no cover — presidio runtime failures
+        logger.warning("Presidio failed, falling back to regex: %s", exc)
+        return strip_pii_regex(text)
+
+
+def pii_filter(text: str, *, use_presidio: bool = True) -> tuple[str, int]:
+    """Two-layer PII strip.  Returns ``(redacted_text, total_hits)``."""
+
+    if not text:
+        return (text, 0)
+    if use_presidio:
+        redacted, hits = strip_pii_presidio(text)
+        # Presidio may miss regex-obvious patterns; run Layer 1 as a complement.
+        if hits == 0:
+            redacted, hits = strip_pii_regex(text)
+        return (redacted, hits)
+    return strip_pii_regex(text)
+
+
+# ---------------------------------------------------------------------------
+# Language Filter (streaming chain element, PIX-4342)
 # ---------------------------------------------------------------------------
 
 
@@ -284,7 +434,7 @@ class LanguageFilter:
 
 
 # ---------------------------------------------------------------------------
-# PII Filter
+# PII Filter (streaming chain element, PIX-4342)
 # ---------------------------------------------------------------------------
 
 
@@ -407,7 +557,7 @@ class PIIFilter:
 
 
 # ---------------------------------------------------------------------------
-# Toxicity Filter (detoxify 4-model ensemble)
+# Toxicity Filter (detoxify 4-model ensemble, streaming chain element)
 # ---------------------------------------------------------------------------
 
 
@@ -916,6 +1066,7 @@ class Stage1FilterChain:
 
 __all__ = [
     "PII_ENTITIES",
+    "PRESIDIO_ENTITIES",
     "SEVERE_TOXICITY_THRESHOLD",
     "SIMHASH_SCALE_THRESHOLD",
     "THREAT_THRESHOLD",
@@ -928,4 +1079,9 @@ __all__ = [
     "RecordFilter",
     "Stage1FilterChain",
     "ToxicityFilter",
+    "detect_language",
+    "language_filter",
+    "pii_filter",
+    "strip_pii_presidio",
+    "strip_pii_regex",
 ]

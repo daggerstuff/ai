@@ -116,7 +116,7 @@ class ConversationDatabase:
             if self.db_config.enable_foreign_keys:
                 conn.execute("PRAGMA foreign_keys=ON")
 
-            conn.execute(f"PRAGMA cache_size={-int(self.db_config.cache_size_mb * 1024)}")  # nosec B608
+            conn.execute(f"PRAGMA cache_size={-int(self.db_config.cache_size_mb * 1024)}")
             conn.execute("PRAGMA synchronous=NORMAL")
             conn.execute("PRAGMA temp_store=MEMORY")
 

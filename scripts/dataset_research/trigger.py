@@ -16,7 +16,7 @@ def run_academic_sourcing():
     """Triggers the backend academic sourcing engine via the AI submodule."""
     logger.info("Triggering Academic Sourcing pipeline...")
     # This invokes ai/sourcing/academic/academic_sourcing.py integration
-    subprocess.run([sys.executable, "-m", "ai.sourcing.academic.academic_sourcing"], check=True)  # nosec B603
+    subprocess.run([sys.executable, "-m", "ai.sourcing.academic.academic_sourcing"], check=True)
     logger.info("Academic sourcing run completed.")
 
 
