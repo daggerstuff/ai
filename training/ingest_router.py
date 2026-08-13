@@ -357,14 +357,12 @@ class WebExtractor:
                 # Simple check: if Disallow: / is present, block all.
                 # This is a simplified robots.txt parser.
                 text = resp.text
-                if re.search(r"User-agent:\s*\*\s*", text, re.IGNORECASE):
-                    # Check for Disallow: / after the User-agent: * line
-                    pattern = r"User-agent:\s*\*.*?(?:(?:User-agent:)|\Z)"
-                    for block in re.finditer(pattern, text, re.IGNORECASE | re.DOTALL):
-                        block_text = block.group()
-                        if re.search(r"Disallow:\s*/\s*$", block_text, re.IGNORECASE | re.MULTILINE):
-                            allowed = False
-                            break
+                pattern = r"User-agent:\s*\*.*?(?:(?:User-agent:)|\Z)"
+                for block in re.finditer(pattern, text, re.IGNORECASE | re.DOTALL):
+                    block_text = block.group()
+                    if re.search(r"Disallow:\s*/\s*$", block_text, re.IGNORECASE | re.MULTILINE):
+                        allowed = False
+                        break
         except httpx.HTTPError:
             pass  # be permissive on error
 
@@ -757,7 +755,13 @@ class YouTubeExtractor:
         # Find the generated subtitle file
         import glob
 
-        patterns = [f"/tmp/yt-transcript-{video_id}*.vtt", f"/tmp/yt-transcript-{video_id}*.srt"]
+        patterns = [
+            f"/tmp/yt-transcript-{video_id}*.vtt",
+            f"/tmp/yt-transcript-{video_id}*.srt",
+            f"/tmp/yt-transcript-{video_id}*.srv3",
+            f"/tmp/yt-transcript-{video_id}*.srv2",
+            f"/tmp/yt-transcript-{video_id}*.srv1",
+        ]
         subtitle_path: str | None = None
         for pat in patterns:
             files = glob.glob(pat)
@@ -1034,8 +1038,12 @@ def main() -> None:  # pragma: no cover
         shard_size=args.shard_size,
     )
 
-    counts = asyncio.run(router.ingest(sources))
-    asyncio.run(router.close())
+    async def _run():
+        counts = await router.ingest(sources)
+        await router.close()
+        return counts
+
+    counts = asyncio.run(_run())
 
     logger.info("Ingest complete: %s", json.dumps(counts))
 
