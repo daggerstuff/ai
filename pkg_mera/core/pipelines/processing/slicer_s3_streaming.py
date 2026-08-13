@@ -75,7 +75,7 @@ def run_slicer():
     for stage in stage_counts:
         out_files[stage] = open(out_dir / f"{stage}.jsonl", "w", encoding="utf-8")
 
-    cmd = ["bash", "-c", "rclone cat HetznerS3:pixeldata/final_dataset/MASTER_TRAINING_SET.jsonl"]
+    cmd = ["rclone", "cat", "HetznerS3:pixeldata/final_dataset/MASTER_TRAINING_SET.jsonl"]
 
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True, encoding="utf-8")
 
