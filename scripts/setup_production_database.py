@@ -76,7 +76,7 @@ class ProductionDatabaseSetup:
 
             if not exists:
                 logger.info(f"Creating database: {self.db_config['database']}")
-                cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_config["database"])))  # nosec B608
+                cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.db_config["database"])))
                 logger.info("✅ Database created successfully")
             else:
                 logger.info("✅ Database already exists")
@@ -145,7 +145,7 @@ class ProductionDatabaseSetup:
 
             result = subprocess.run(
                 [sys.executable, str(migration_script)], capture_output=True, text=True, check=False
-            )  # nosec B603
+            )
 
             if result.returncode == 0:
                 logger.info("✅ Data migration completed successfully")

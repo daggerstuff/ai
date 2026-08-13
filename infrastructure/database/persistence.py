@@ -160,6 +160,11 @@ class QueryFilter:
         placeholders: list[str] = []
         params: list[Any] = []
 
+        # Column names are identifiers and cannot be parameterized; validate
+        # them against a strict allowlist before interpolating into SQL.
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", self.field):
+            raise ValueError(f"Invalid SQL field name: {self.field!r}")
+
         if self.operator in (QueryOperator.IS_NULL, QueryOperator.IS_NOT_NULL):
             return f"{self.field} {self.operator.value}", []
         if self.operator in (QueryOperator.IN, QueryOperator.NOT_IN):
@@ -210,14 +215,22 @@ class QueryOptions:
         # Build ORDER BY clause
         order_sql = ""
         if self.order_by:
+            # ORDER BY takes an identifier, which cannot be parameterized;
+            # reject anything that is not a plain column name.
+            if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", self.order_by):
+                raise ValueError(f"Invalid ORDER BY column: {self.order_by!r}")
             direction = "DESC" if self.order_desc else "ASC"
             order_sql = f"ORDER BY {self.order_by} {direction}"
 
         # Build LIMIT and OFFSET
         limit_sql = ""
         if self.limit is not None:
+            if not isinstance(self.limit, int) or self.limit < 0:
+                raise ValueError(f"Invalid LIMIT value: {self.limit!r}")
             limit_sql = f"LIMIT {self.limit}"
             if self.offset is not None:
+                if not isinstance(self.offset, int) or self.offset < 0:
+                    raise ValueError(f"Invalid OFFSET value: {self.offset!r}")
                 limit_sql += f" OFFSET {self.offset}"
 
         return where_sql, [order_sql, limit_sql], params
@@ -680,7 +693,13 @@ class ConversationRepository(BaseModelRepository[dict]):
         # For SQLite, use LIKE searches
         search_fields = fields or ["messages", "metadata"]
 
-        like_clauses = [f"{field} LIKE ?" for field in search_fields]
+        # Column names are identifiers and cannot be parameterized; validate
+        # them against a strict allowlist before interpolating into SQL.
+        for search_field in search_fields:
+            if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", search_field):
+                raise ValueError(f"Invalid search field: {search_field!r}")
+
+        like_clauses = [f"{search_field} LIKE ?" for search_field in search_fields]
         search_term = f"%{query}%"
         params: list[Any] = [search_term] * len(like_clauses)
 
@@ -965,10 +984,10 @@ class DatabaseManager:
         if self.config.enable_foreign_keys:
             conn.execute("PRAGMA foreign_keys=ON")
 
-        conn.execute(f"PRAGMA cache_size=-{int(self.config.cache_size_mb) * 1024}")  # nosec B608
+        conn.execute(f"PRAGMA cache_size=-{int(self.config.cache_size_mb) * 1024}")
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA temp_store=MEMORY")
-        conn.execute(f"PRAGMA page_size={int(self.config.page_size)}")  # nosec B608
+        conn.execute(f"PRAGMA page_size={int(self.config.page_size)}")
 
         return conn
 
