@@ -470,28 +470,22 @@ class DocumentExtractor:
         raise ValueError(f"Unsupported document type: {suffix}")
 
     def _extract_pdf(self, path: Path) -> dict[str, Any]:
-        """Extract text from PDF using pypdf (same as book_pdf_converter.py)."""
+        """Extract text from PDF via ``book_pdf_converter._extract_pdf``."""
         try:
-            from pypdf import PdfReader
+            from training.book_pdf_converter import _extract_pdf as converter_extract
         except ImportError:
-            logger.error("pypdf not installed — cannot extract PDF")
+            logger.error("book_pdf_converter not available — cannot extract PDF")
             return {
                 "source_url": str(path),
                 "raw_text": "",
-                "metadata": {"format": "pdf", "error": "pypdf unavailable"},
+                "metadata": {"format": "pdf", "error": "book_pdf_converter unavailable"},
             }
 
-        reader = PdfReader(str(path))
-        pages: list[str] = []
-        for page in reader.pages:
-            text = page.extract_text() or ""
-            if text.strip():
-                pages.append(text.strip())
-        raw_text = "\n\n".join(pages)
+        raw_text = converter_extract(path)
         return {
             "source_url": str(path),
             "raw_text": raw_text,
-            "metadata": {"format": "pdf", "page_count": len(reader.pages)},
+            "metadata": {"format": "pdf"},
         }
 
     def _extract_docx(self, path: Path) -> dict[str, Any]:
@@ -573,6 +567,9 @@ class APIExtractorConfig:
     items_field: str = "items"
     page_size: int = 100
     max_pages: int = 1000
+    offset_mode: bool = False
+    offset_param: str = "offset"
+    offset_field: str = "offset"
 
 
 class APIExtractor:
@@ -639,12 +636,16 @@ class APIExtractor:
         """
         endpoint = self._config.endpoint
         cursor: str | None = None
+        offset = 0
         page = 0
 
         while page < self._config.max_pages:
             params = dict(self._config.params)
             params["limit"] = str(self._config.page_size)
-            if cursor is not None:
+
+            if self._config.offset_mode:
+                params[self._config.offset_param] = str(offset)
+            elif cursor is not None:
                 params[self._config.cursor_field] = cursor
 
             resp = await self._fetch_with_retry(endpoint, params)
@@ -670,11 +671,16 @@ class APIExtractor:
                     "id_override": str(item_id),
                 }
 
-            # Check for next cursor
-            next_cursor = data.get(self._config.next_cursor_field)
-            if next_cursor is None or next_cursor == cursor:
-                break
-            cursor = next_cursor
+            if self._config.offset_mode:
+                if len(items) < self._config.page_size:
+                    break
+                offset += len(items)
+            else:
+                next_cursor = data.get(self._config.next_cursor_field)
+                if next_cursor is None or next_cursor == cursor:
+                    break
+                cursor = next_cursor
+
             page += 1
 
     async def close(self) -> None:
@@ -777,30 +783,34 @@ class YouTubeExtractor:
                 "metadata": {"video_id": video_id, "duration": 0, "error": "no transcript found"},
             }
 
-        # Read and clean subtitle text
-        raw_text = self._clean_subtitle(Path(subtitle_path).read_text(encoding="utf-8", errors="replace"))
-
-        # Get duration via yt-dlp --dump-json
-        duration = 0
         try:
-            result = subprocess.run(
-                ["yt-dlp", "--dump-json", "--skip-download", f"https://www.youtube.com/watch?v={video_id}"],
-                capture_output=True,
-                text=True,
-                timeout=self._timeout,
-                check=False,
-            )
-            if result.returncode == 0 and result.stdout.strip():
-                info = json.loads(result.stdout.strip().splitlines()[0])
-                duration = int(info.get("duration", 0))
-        except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
-            pass
+            raw_text = self._clean_subtitle(Path(subtitle_path).read_text(encoding="utf-8", errors="replace"))
 
-        return {
-            "source_url": source_url,
-            "raw_text": raw_text,
-            "metadata": {"video_id": video_id, "duration": duration},
-        }
+            duration = 0
+            try:
+                result = subprocess.run(
+                    ["yt-dlp", "--dump-json", "--skip-download", f"https://www.youtube.com/watch?v={video_id}"],
+                    capture_output=True,
+                    text=True,
+                    timeout=self._timeout,
+                    check=False,
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    info = json.loads(result.stdout.strip().splitlines()[0])
+                    duration = int(info.get("duration", 0))
+            except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
+                pass
+
+            return {
+                "source_url": source_url,
+                "raw_text": raw_text,
+                "metadata": {"video_id": video_id, "duration": duration},
+            }
+        finally:
+            try:
+                Path(subtitle_path).unlink(missing_ok=True)
+            except OSError:
+                logger.warning("Failed to clean up subtitle file %s", subtitle_path)
 
     @staticmethod
     def _clean_subtitle(text: str) -> str:
