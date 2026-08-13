@@ -1,0 +1,79 @@
+{
+  "updatedAt": "2026-08-13T20:11:00.655Z",
+  "missions": [
+    {
+      "id": "session:6a77097e-b709-4ab0-b834-e4c04512e7a4:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-08-13T20:07:38.018Z",
+      "updatedAt": "2026-08-13T20:11:00.655Z",
+      "status": "done",
+      "workerCount": 2,
+      "taskCounts": {
+        "total": 2,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 0,
+        "completed": 2,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "caveman:cavecrew-investigator:a1293f7",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "a1293f7b0d4e24a00",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-13T20:08:40.469Z"
+        },
+        {
+          "name": "worker:acb95bd",
+          "role": "worker",
+          "ownership": "acb95bd136117636a",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-13T20:11:00.655Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-start:a1293f7b0d4e24a00:2026-08-13T20:07:38.018Z",
+          "at": "2026-08-13T20:07:38.018Z",
+          "kind": "update",
+          "agent": "caveman:cavecrew-investigator:a1293f7",
+          "detail": "started caveman:cavecrew-investigator:a1293f7",
+          "sourceKey": "session-start:a1293f7b0d4e24a00"
+        },
+        {
+          "id": "session-stop:a1293f7b0d4e24a00:2026-08-13T20:08:40.469Z",
+          "at": "2026-08-13T20:08:40.469Z",
+          "kind": "completion",
+          "agent": "caveman:cavecrew-investigator:a1293f7",
+          "detail": "completed",
+          "sourceKey": "session-stop:a1293f7b0d4e24a00"
+        },
+        {
+          "id": "session-start:acb95bd136117636a:2026-08-13T20:09:11.773Z",
+          "at": "2026-08-13T20:09:11.773Z",
+          "kind": "update",
+          "agent": "worker:acb95bd",
+          "detail": "started worker:acb95bd",
+          "sourceKey": "session-start:acb95bd136117636a"
+        },
+        {
+          "id": "session-stop:acb95bd136117636a:2026-08-13T20:11:00.655Z",
+          "at": "2026-08-13T20:11:00.655Z",
+          "kind": "completion",
+          "agent": "worker:acb95bd",
+          "detail": "completed",
+          "sourceKey": "session-stop:acb95bd136117636a"
+        }
+      ]
+    }
+  ]
+}

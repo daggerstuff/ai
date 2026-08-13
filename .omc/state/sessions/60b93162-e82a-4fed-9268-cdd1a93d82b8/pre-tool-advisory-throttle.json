@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "entries": {
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1786652838697,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "75f5dee33114b7cf87d85fa87ee0046f05fdcb2a551c58e2c536475d36537dfd": {
+      "last_emitted_at_ms": 1786652495266,
+      "message": "Spawning agent: worker (sonnet) | Task: Verify ruff state changed files"
+    },
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1786652325162,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "9f0ba2009c9677eac2423a3da4073fa5a8d900be7f9b603a95261f891eca147b": {
+      "last_emitted_at_ms": 1786652180022,
+      "message": "Spawning agent: worker (sonnet) [BACKGROUND] | Task: Apply ruff auto-fix to source"
+    },
+    "f5281ceeb2630351f34224145086fc0c397f0fa87296e1737f33916fe1f34677": {
+      "last_emitted_at_ms": 1786652014610,
+      "message": "Spawning agent: worker (sonnet) | Task: Map diff and docs"
+    },
+    "f63c34203d4ea2c902259eeaffda14f119717ba87162144628ad5efbbeea240e": {
+      "last_emitted_at_ms": 1786651991077,
+      "message": "Spawning agent: caveman:cavecrew-investigator (inherit) [BACKGROUND] | Task: Run ruff on changed files"
+    },
+    "f8094d465d7910b4fc5a78af6a8d390717bdac52e8bf56d0ebc7f3760be2f2aa": {
+      "last_emitted_at_ms": 1786651937731,
+      "message": "Spawning agent: caveman:cavecrew-investigator (inherit) [BACKGROUND] | Task: Read docs for router facts"
+    },
+    "508d29b78c2fcec84a17a344b4397d160707a53a129639e106135d24a442e70b": {
+      "last_emitted_at_ms": 1786651920652,
+      "message": "Spawning agent: caveman:cavecrew-investigator (inherit) [BACKGROUND] | Task: Map change diff and docs"
+    }
+  },
+  "updated_at": "2026-08-13T20:27:18.697Z"
+}

@@ -3,9 +3,9 @@
   "jobId": "cc1b733b-edf6-46c7-b18b-02473ddc3b75",
   "sessionId": "e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f",
   "scopeKey": "819a091e679e1f99d52eeb892f307f7a52a6da1cc45da4d87f09f8a1d3f3a419",
-  "revision": 2,
+  "revision": 41,
   "createdAt": "2026-08-13T20:07:04.845Z",
-  "updatedAt": "2026-08-13T20:07:04.856Z",
+  "updatedAt": "2026-08-13T20:07:05.846Z",
   "producerGraceExpiresAt": "2026-08-13T20:07:34.846Z",
   "bestEffortDeadlineAt": "2026-08-13T20:08:25.846Z",
   "producers": {
@@ -97,8 +97,8 @@
     "team-cleanup": {
       "class": "required",
       "phase": "deferred-required",
-      "status": "pending",
-      "attempts": 0,
+      "status": "completed",
+      "attempts": 1,
       "idempotencyKey": "e9b404b7b3b15f4ed2d23228a872e347df76f6846dfe245a5dda716b7ba887bd",
       "payload": {
         "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.jsonl",
@@ -124,13 +124,22 @@
         "openClawEnabled": false,
         "openClawRouting": {}
       },
-      "budgetMs": 9000
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-13T20:07:04.966Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "d970215b-482d-49f9-9567-33ed7f7c13c5",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:07:14.946Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:07:05.122Z"
     },
     "python-cleanup": {
       "class": "required",
       "phase": "deferred-required",
-      "status": "pending",
-      "attempts": 0,
+      "status": "completed",
+      "attempts": 1,
       "idempotencyKey": "985cd3695d4e4257630fe7b256f8f31cd1df2789a317e3310a0fd656c0770bcb",
       "payload": {
         "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.jsonl",
@@ -156,13 +165,22 @@
         "openClawEnabled": false,
         "openClawRouting": {}
       },
-      "budgetMs": 9000
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-13T20:07:05.126Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "86ceeb4a-9732-4430-8e56-57f5db9b0a31",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:07:14.946Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:07:05.287Z"
     },
     "reply-cleanup": {
       "class": "required",
       "phase": "deferred-required",
-      "status": "pending",
-      "attempts": 0,
+      "status": "completed",
+      "attempts": 1,
       "idempotencyKey": "957bcbcafab5fcdf784cab8c70a50918ad3455aee9ddf0d3a5e284ec8c9fb65e",
       "payload": {
         "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.jsonl",
@@ -188,13 +206,22 @@
         "openClawEnabled": false,
         "openClawRouting": {}
       },
-      "budgetMs": 9000
+      "budgetMs": 9000,
+      "claimedAt": "2026-08-13T20:07:05.290Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "c6fb5d32-9100-4f84-a642-381aec253679",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:07:14.946Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:07:05.435Z"
     },
     "callback": {
       "class": "best-effort",
       "phase": "deferred-best-effort",
-      "status": "pending",
-      "attempts": 0,
+      "status": "completed",
+      "attempts": 1,
       "idempotencyKey": "cfc41d80d8acf238b23b51ccd2074c4e4129bf12043038ff42a17c1e9bc7b69e",
       "payload": {
         "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.jsonl",
@@ -220,13 +247,22 @@
         "openClawEnabled": false,
         "openClawRouting": {}
       },
-      "budgetMs": 2000
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-13T20:07:05.439Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "6129aace-5141-4b98-8a94-33541f233bb4",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:07:14.946Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:07:05.567Z"
     },
     "notification": {
       "class": "best-effort",
       "phase": "deferred-best-effort",
-      "status": "pending",
-      "attempts": 0,
+      "status": "completed",
+      "attempts": 1,
       "idempotencyKey": "5f1aafc3acce09fa1d523a3246ffb154f2d2420f46fce3b93036a4636ac7071d",
       "payload": {
         "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.jsonl",
@@ -252,13 +288,22 @@
         "openClawEnabled": false,
         "openClawRouting": {}
       },
-      "budgetMs": 2000
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-13T20:07:05.571Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "39d9c25d-1f8e-494e-8adb-615809f3f729",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:07:14.946Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:07:05.702Z"
     },
     "openclaw": {
       "class": "best-effort",
       "phase": "deferred-best-effort",
-      "status": "pending",
-      "attempts": 0,
+      "status": "completed",
+      "attempts": 1,
       "idempotencyKey": "859eb96979db8f6f78439e7c57701303ebb2df9dc104c1bc2fb56a7669ffece6",
       "payload": {
         "transcriptPath": "/home/vivi/.claude/projects/-home-vivi--no-mistakes-worktrees-e705c89f2e08-01KZY6HXR8X1SJW1BF473PT790/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.jsonl",
@@ -284,9 +329,23 @@
         "openClawEnabled": false,
         "openClawRouting": {}
       },
-      "budgetMs": 2000
+      "budgetMs": 2000,
+      "claimedAt": "2026-08-13T20:07:05.705Z",
+      "runner": {
+        "attempt": 1,
+        "runnerNonce": "49a58875-e62a-4ea3-b7a4-f391340cf210",
+        "phase": "terminal",
+        "deadlineAt": "2026-08-13T20:07:14.946Z"
+      },
+      "lastOutcomeCode": "completed",
+      "completedAt": "2026-08-13T20:07:05.833Z"
     }
   },
   "owner": null,
-  "phase": "ready"
+  "phase": "complete",
+  "completion": {
+    "completedAt": "2026-08-13T20:07:05.840Z",
+    "terminalDigest": "c655c186ff1e54313960856856da390db72e8f8b2bfde9e02a684dfd0d41cd42",
+    "terminalRevision": 40
+  }
 }

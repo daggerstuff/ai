@@ -441,7 +441,7 @@ def _text_to_qa_pairs(
 def convert_book(
     book_path: Path,
     output_dir: Path,
-    max_chunks: int | None | bool = None,
+    max_chunks: int | bool | None = None,
     is_dsm: bool = False,
     use_llm: bool = False,
 ) -> dict:

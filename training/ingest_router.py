@@ -35,7 +35,6 @@ import asyncio
 import hashlib
 import json
 import logging
-import os
 import re
 import subprocess
 import time
@@ -70,7 +69,7 @@ WEB_RATE_LIMIT_SECONDS = 2.0  # 1 request per 2 seconds per domain
 # specified in the task brief.
 try:
     from training.sdg_pipeline import NEMO_RETRY_DELAYS  # type: ignore[import-not-found]
-except Exception:  # noqa: BLE001  (import fallback is best-effort)
+except Exception:
     NEMO_RETRY_DELAYS: tuple[float, ...] = (0.5, 1.0, 2.0, 4.0)
 
 DEFAULT_MANIFEST_PATH = "data/licenses/source_manifest.yaml"
@@ -98,7 +97,7 @@ class ManifestEntry:
             source = self.url_or_domain.lower()
             source_host = urlparse(source).netloc.lower() or source
             return source_host in target
-        except Exception:  # noqa: BLE001
+        except Exception:
             return False
 
 
@@ -238,7 +237,7 @@ def _utc_now_iso() -> str:
 
 def _record_id(source_url: str, raw_text: str) -> str:
     """Deterministic record ID from source URL + content hash."""
-    digest = hashlib.sha256(f"{source_url}:{raw_text[:512]}".encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(f"{source_url}:{raw_text[:512]}".encode()).hexdigest()
     return digest[:16]
 
 
@@ -718,11 +717,11 @@ class YouTubeExtractor:
     def _extract_video_id(url: str) -> str:
         """Extract YouTube video ID from various URL formats."""
         if "youtu.be/" in url:
-            return url.split("youtu.be/")[1].split("?")[0]
+            return url.split("youtu.be/")[1].split("?", maxsplit=1)[0]
         if "watch?v=" in url:
-            return url.split("watch?v=")[1].split("&")[0]
+            return url.split("watch?v=")[1].split("&", maxsplit=1)[0]
         if "/embed/" in url:
-            return url.split("/embed/")[1].split("?")[0]
+            return url.split("/embed/")[1].split("?", maxsplit=1)[0]
         # Fallback — return as-is
         return url
 
@@ -976,7 +975,7 @@ class IngestRouter:
         Each source dict must have ``source_type`` and ``source_url`` keys.
         Additional keys are passed as parameters to the extractor.
         """
-        counts: dict[str, int] = {st: 0 for st in self.SOURCE_TYPES}
+        counts: dict[str, int] = dict.fromkeys(self.SOURCE_TYPES, 0)
         counts["dropped"] = 0
 
         for source in sources:
@@ -1008,7 +1007,7 @@ class IngestRouter:
                 counts[source_type] += emitted
                 if emitted == 0:
                     counts["dropped"] += 1
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error("Error processing %s source %s: %s", source_type, source_url, exc)
                 counts["dropped"] += 1
 
