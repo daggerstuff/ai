@@ -41,16 +41,16 @@ import contextlib
 import json
 import logging
 import math
-import os
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from scipy import stats as scipy_stats
 from sklearn.metrics import cohen_kappa_score
 
-from utils.common.llm_client import LLMClient
+if TYPE_CHECKING:
+    from utils.common.llm_client import LLMClient
 
 logger = logging.getLogger("llm_quality_judge")
 
@@ -234,11 +234,16 @@ class DualModelQualityJudge:
         is set; otherwise the constructor raises so callers must supply clients
         explicitly. Production usage should always pass configured clients.
         """
+        import os
+
+        from utils.common.llm_client import LLMClient
+
         if not model:
             raise ValueError("A model name is required to build a default LLM client.")
         if not (os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")):
             raise ValueError(
-                "No LLM_API_KEY or OPENAI_API_KEY found; provide primary_client and secondary_client explicitly."
+                "No LLM_API_KEY or OPENAI_API_KEY found; "
+                "provide primary_client and secondary_client explicitly."
             )
         return LLMClient(driver="openai", model=model)
 
@@ -420,8 +425,12 @@ class DualModelQualityJudge:
 
     def _judge_turn_sync(self, turn_index: int, context: dict[str, str]) -> TurnScore:
         """Score a single turn synchronously with k=3 self-consistency samples."""
-        primary_results = [self._call_model_sync(self.primary_client, context) for _ in range(self.k_samples)]
-        secondary_results = [self._call_model_sync(self.secondary_client, context) for _ in range(self.k_samples)]
+        primary_results = [
+            self._call_model_sync(self.primary_client, context) for _ in range(self.k_samples)
+        ]
+        secondary_results = [
+            self._call_model_sync(self.secondary_client, context) for _ in range(self.k_samples)
+        ]
         return self._build_turn_score(turn_index, primary_results, secondary_results)
 
     def _build_turn_score(
@@ -457,8 +466,12 @@ class DualModelQualityJudge:
         primary_all_failed = len(primary_results) > 0 and not primary_scores_list
         secondary_all_failed = len(secondary_results) > 0 and not secondary_scores_list
         all_failed = primary_all_failed or secondary_all_failed
-        primary_partial = len(primary_results) > 0 and 0 < len(primary_scores_list) < len(primary_results)
-        secondary_partial = len(secondary_results) > 0 and 0 < len(secondary_scores_list) < len(secondary_results)
+        primary_partial = len(primary_results) > 0 and 0 < len(primary_scores_list) < len(
+            primary_results
+        )
+        secondary_partial = len(secondary_results) > 0 and 0 < len(secondary_scores_list) < len(
+            secondary_results
+        )
         partial_failure = primary_partial or secondary_partial
 
         return TurnScore(
@@ -485,9 +498,13 @@ class DualModelQualityJudge:
         weights = [self.decay ** (n - 1 - i) for i in range(n)]
         weight_sum = sum(weights)
 
-        primary_weighted = sum(w * ts.primary_overall for w, ts in zip(weights, turn_scores, strict=False)) / weight_sum
+        primary_weighted = (
+            sum(w * ts.primary_overall for w, ts in zip(weights, turn_scores, strict=False))
+            / weight_sum
+        )
         secondary_weighted = (
-            sum(w * ts.secondary_overall for w, ts in zip(weights, turn_scores, strict=False)) / weight_sum
+            sum(w * ts.secondary_overall for w, ts in zip(weights, turn_scores, strict=False))
+            / weight_sum
         )
 
         # If one model completely failed for every turn, fall back to the other.
@@ -569,7 +586,9 @@ class DualModelQualityJudge:
             "dimension_scores": dict.fromkeys(self.DIMENSIONS, 0.0),
         }
         try:
-            result = client.generate_structured(user_prompt, schema, JUDGE_SYSTEM_PROMPT, temperature=self.temperature)
+            result = client.generate_structured(
+                user_prompt, schema, JUDGE_SYSTEM_PROMPT, temperature=self.temperature
+            )
             if not isinstance(result, dict):
                 logger.warning("LLM client returned non-dict result: %s", type(result))
                 return None
@@ -580,9 +599,13 @@ class DualModelQualityJudge:
             logger.warning("LLM call failed: %s", e)
             return None
 
-    def _generate_structured(self, client: Any, prompt: str, schema: dict[str, Any], system_prompt: str) -> Any:
+    def _generate_structured(
+        self, client: Any, prompt: str, schema: dict[str, Any], system_prompt: str
+    ) -> Any:
         """Backward-compatible wrapper (kept for callers that override it)."""
-        return client.generate_structured(prompt, schema, system_prompt, temperature=self.temperature)
+        return client.generate_structured(
+            prompt, schema, system_prompt, temperature=self.temperature
+        )
 
     def _build_user_prompt(self, context: dict[str, str]) -> str:
         """Build the user prompt for the LLM judge.

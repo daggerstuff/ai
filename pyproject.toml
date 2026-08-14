@@ -273,7 +273,7 @@ ignore = []
 "training_corpus/pal_framework/test_generate_selection_dataset.py" = ["PLR2004", "PT018"]
 # DualModelQualityJudge: mirror API surfaces and numeric thresholds
 "utils/common/llm_client.py" = ["ARG002"]
-"training/llm_quality_judge.py" = ["PLR0913"]
+"training/llm_quality_judge.py" = ["PLR0913", "PLC0415"]
 "training/tests/test_llm_quality_judge.py" = ["PLR2004", "PT018", "RUF003", "RUF043", "ARG001", "ARG002", "PLC0415"]
 [tool.ruff.lint.isort]
 known-first-party = ["ai", "src"]
