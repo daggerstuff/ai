@@ -183,7 +183,6 @@ training/tests/*
 !training/tests/test_clinical_validity_judge_async.py
 !training/tests/test_llm_quality_judge.py
 # Track golden calibration data for LLM quality judge
-!training/data/
 training/data/*
 !training/data/golden_judge_calib.jsonl
 # Override global *.jsonl ignore for golden calibration data
@@ -195,7 +194,6 @@ docs/training/ENV_QUICKSTART.md
 # === SECURITY: never commit generated security configs with real keys ===
 config/emergency_security_config.json
 *.jsonl
-!training/data/golden_judge_calib.jsonl
 **/AGENTS.md
 
 # === GENERATED / ARTIFACTS ===

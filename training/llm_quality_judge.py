@@ -8,7 +8,7 @@ Design overview
 ---------------
 
 * **Rubric**: 5 dimensions (relevance, accuracy, helpfulness, style, safety),
-  each scored 0.0–1.0. Overall = configurable weighted mean.
+  each scored 0.0-1.0. Overall = configurable weighted mean.
 * **4-bin calibration**: poor / fair / good / excellent.
 * **Dual-model**: primary (Qwen-72B) + secondary (LLaMA-70B) via vLLM.
   ``|primary - secondary| <= 0.15`` → accept; otherwise flag for human review.
@@ -18,7 +18,7 @@ Design overview
   If variance > 0.05 → flag for human review (do not auto-accept).
 * **Calibration**: golden 200-sample set; Pearson r >= 0.80, Cohen's kappa >= 0.65.
 * **Async**: ``ajudge()`` batches k=3 self-consistency samples + both models
-  concurrently via ``asyncio.gather``.
+  concurrently across all turns via ``asyncio.gather``.
 
 Uses the existing ``utils.common.llm_client.LLMClient`` for LLM calls.
 
@@ -26,7 +26,7 @@ Usage::
 
     from training.llm_quality_judge import DualModelQualityJudge
 
-    judge = DualModelQualityJudge()  # uses MockDriver by default
+    judge = DualModelQualityJudge(primary_client=..., secondary_client=...)
     result = judge.judge(conversation)
     # result["overall_score"], result["bin"], result["flags"], ...
 
@@ -37,20 +37,20 @@ Usage::
 from __future__ import annotations
 
 import asyncio
-import inspect
+import contextlib
 import json
 import logging
 import math
+import os
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any, ClassVar
 
 from scipy import stats as scipy_stats
 from sklearn.metrics import cohen_kappa_score
 
-if TYPE_CHECKING:
-    from utils.common.llm_client import LLMClient
+from utils.common.llm_client import LLMClient
 
 logger = logging.getLogger("llm_quality_judge")
 
@@ -85,6 +85,9 @@ DEFAULT_RUBRIC_WEIGHTS: dict[str, float] = {
 BINS = ["poor", "fair", "good", "excellent"]
 BIN_BOUNDARIES = [(0.0, 0.25), (0.25, 0.50), (0.50, 0.75), (0.75, 1.01)]
 
+# Ordered numeric levels used for weighted Cohen's kappa.
+BIN_TO_LEVEL = {"poor": 0, "fair": 1, "good": 2, "excellent": 3}
+
 # Calibration thresholds
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
@@ -92,12 +95,20 @@ CALIB_KAPPA_MIN = 0.65
 # Default LLM temperature for self-consistency sampling
 DEFAULT_TEMPERATURE = 0.1
 
-# Golden calibration file path
-GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"  # WARNING: the referenced file is synthetic/placeholder data; replace with real human labels before release.
+# Minimum number of observations needed for variance/correlation statistics.
+_MIN_SAMPLES_FOR_STATS = 2
+
+# Golden calibration file path.
+# WARNING: the referenced file is synthetic/placeholder data; replace with
+# real human labels before release (see docs/plans/PIX-4343).
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
 
 # System prompt for the LLM judge
 JUDGE_SYSTEM_PROMPT = """You are a quality evaluator for AI training conversations.
 Your task is to rate the quality of an AI assistant's response across five dimensions.
+
+You will be shown the user's question followed by the assistant's response.
+Rate how well the assistant's response addresses the user's question.
 
 Evaluate the response on these five dimensions, each scored 0.0 to 1.0:
 - relevance: How relevant the response is to the user's question or request.
@@ -151,20 +162,6 @@ class TurnScore:
     partial_failure: bool = False
 
 
-@dataclass
-class JudgeResult:
-    """Full result of judging a conversation."""
-
-    overall_score: float
-    bin: str
-    flags: list[str]
-    turn_scores: list[TurnScore]
-    primary_overall: float
-    secondary_overall: float
-    consistency_diff: float
-    metadata: dict[str, Any]
-
-
 # ---------------------------------------------------------------------------
 # DualModelQualityJudge
 # ---------------------------------------------------------------------------
@@ -191,8 +188,8 @@ class DualModelQualityJudge:
 
     VERSION: str = "1.0.0"
 
-    DIMENSIONS: list[str] = ["relevance", "accuracy", "helpfulness", "style", "safety"]
-    BINS: list[str] = BINS
+    DIMENSIONS: ClassVar[list[str]] = ["relevance", "accuracy", "helpfulness", "style", "safety"]
+    BINS: ClassVar[list[str]] = BINS
 
     def __init__(
         self,
@@ -215,8 +212,6 @@ class DualModelQualityJudge:
         self.k_samples = k_samples
         self.decay = decay
         self.temperature = temperature
-        self._temperature_support: dict[int, bool] = {}
-        self._temperature_warned: set[int] = set()
 
     # ------------------------------------------------------------------
     # Validation
@@ -235,17 +230,17 @@ class DualModelQualityJudge:
     def _default_client(model: str | None = None) -> Any:
         """Create a default LLM client (lazy import to avoid circular deps).
 
-        Uses a real vLLM endpoint when ``LLM_API_KEY`` (or ``OPENAI_API_KEY``)
-        is set; otherwise falls back to a mock driver for testing.
+        A real vLLM endpoint is used when ``LLM_API_KEY`` (or ``OPENAI_API_KEY``)
+        is set; otherwise the constructor raises so callers must supply clients
+        explicitly. Production usage should always pass configured clients.
         """
-        import os
-
-        from utils.common.llm_client import LLMClient  # noqa: PLC0415
-
-        has_key = bool(os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY"))
-        if has_key and model:
-            return LLMClient(driver="openai", model=model)
-        return LLMClient(driver="mock")
+        if not model:
+            raise ValueError("A model name is required to build a default LLM client.")
+        if not (os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")):
+            raise ValueError(
+                "No LLM_API_KEY or OPENAI_API_KEY found; provide primary_client and secondary_client explicitly."
+            )
+        return LLMClient(driver="openai", model=model)
 
     # ------------------------------------------------------------------
     # Public sync API
@@ -264,14 +259,13 @@ class DualModelQualityJudge:
         if not conversation:
             return self._empty_result()
 
-        # Extract assistant turns (the responses we judge)
-        assistant_turns = self._extract_assistant_turns(conversation)
-        if not assistant_turns:
+        contexts = self._extract_turn_contexts(conversation)
+        if not contexts:
             return self._empty_result()
 
         turn_scores: list[TurnScore] = []
-        for i, turn_text in enumerate(assistant_turns):
-            ts = self._judge_turn_sync(i, turn_text)
+        for i, ctx in enumerate(contexts):
+            ts = self._judge_turn_sync(i, ctx)
             turn_scores.append(ts)
 
         return self._aggregate(turn_scores)
@@ -285,48 +279,54 @@ class DualModelQualityJudge:
     # ------------------------------------------------------------------
 
     async def ajudge(self, conversation: list[dict[str, str]]) -> dict[str, Any]:
-        """Async judge — batches k=3 samples + both models concurrently.
+        """Async judge — batches k=3 samples + both models across all turns concurrently.
 
-        Uses ``asyncio.gather`` to run all (model × turn × sample) calls
-        concurrently via thread executor.
+        Uses ``asyncio.gather`` to run all (model x turn x sample) calls
+        concurrently via a thread executor.
         """
         if not conversation:
             return self._empty_result()
 
-        assistant_turns = self._extract_assistant_turns(conversation)
-        if not assistant_turns:
+        contexts = self._extract_turn_contexts(conversation)
+        if not contexts:
             return self._empty_result()
 
-        # Build all tasks: for each turn, k samples × 2 models
         loop = asyncio.get_running_loop()
-        turn_scores: list[TurnScore] = []
 
-        # Score each turn independently
-        for i, turn_text in enumerate(assistant_turns):
-            # Launch all samples for this turn concurrently
-            primary_tasks = [
+        # Build every task up front so all turns execute concurrently.
+        primary_tasks_by_turn: list[list[asyncio.Future[Any]]] = []
+        secondary_tasks_by_turn: list[list[asyncio.Future[Any]]] = []
+        all_tasks: list[asyncio.Future[Any]] = []
+        for ctx in contexts:
+            pt = [
                 loop.run_in_executor(
                     None,
                     self._call_model_sync,
                     self.primary_client,
-                    turn_text,
+                    ctx,
                 )
                 for _ in range(self.k_samples)
             ]
-            secondary_tasks = [
+            st = [
                 loop.run_in_executor(
                     None,
                     self._call_model_sync,
                     self.secondary_client,
-                    turn_text,
+                    ctx,
                 )
                 for _ in range(self.k_samples)
             ]
+            primary_tasks_by_turn.append(pt)
+            secondary_tasks_by_turn.append(st)
+            all_tasks.extend(pt)
+            all_tasks.extend(st)
 
-            all_results = await asyncio.gather(*primary_tasks, *secondary_tasks)
-            primary_results = all_results[: self.k_samples]
-            secondary_results = all_results[self.k_samples :]
+        await asyncio.gather(*all_tasks)
 
+        turn_scores: list[TurnScore] = []
+        for i, _ctx in enumerate(contexts):
+            primary_results = [t.result() for t in primary_tasks_by_turn[i]]
+            secondary_results = [t.result() for t in secondary_tasks_by_turn[i]]
             ts = self._build_turn_score(i, primary_results, secondary_results)
             turn_scores.append(ts)
 
@@ -339,16 +339,15 @@ class DualModelQualityJudge:
     def calibrate(
         self,
         golden_path: Path | str | None = None,
-
     ) -> dict[str, Any]:
         """Run calibration against the golden 200-sample set.
 
-        Computes Pearson correlation and Cohen's kappa between the judge's
-        scores and human scores.
+        Computes Pearson correlation and quadratic-weighted Cohen's kappa
+        between the judge's scores and human scores.
 
         Args:
             golden_path: Path to golden JSONL file. Defaults to
-                ``ai/data/golden_judge_calib.jsonl``.
+                ``training/data/golden_judge_calib.jsonl``.
 
         Returns:
             dict with keys: pearson_r, cohens_kappa, per_dimension_correlations,
@@ -382,7 +381,6 @@ class DualModelQualityJudge:
             judge_overall = result["overall_score"]
             judge_bin = result["bin"]
 
-            # Human overall = weighted mean of human dimension scores
             human_overall = self._weighted_mean(human_scores)
 
             human_overalls.append(human_overall)
@@ -392,23 +390,16 @@ class DualModelQualityJudge:
 
             for dim in self.DIMENSIONS:
                 per_dim_human[dim].append(float(human_scores.get(dim, 0.0)))
-                # Extract judge dimension score from first turn (single-turn calib samples)
                 if result["turn_scores"]:
                     ts = result["turn_scores"][0]
                     per_dim_judge[dim].append(ts.primary_scores.get(dim, 0.0))
                 else:
                     per_dim_judge[dim].append(0.0)
 
-        # Pearson correlation on overall scores
         pearson_r = self._safe_pearson(human_overalls, judge_overalls)
 
-        # Cohen's kappa on 4-bin labels
-        try:
-            kappa = float(cohen_kappa_score(human_bins, judge_bins))
-        except Exception:
-            kappa = 0.0
+        kappa = self._safe_weighted_kappa(human_bins, judge_bins)
 
-        # Per-dimension Pearson correlations
         per_dim_corr: dict[str, float] = {}
         for dim in self.DIMENSIONS:
             per_dim_corr[dim] = self._safe_pearson(per_dim_human[dim], per_dim_judge[dim])
@@ -427,10 +418,10 @@ class DualModelQualityJudge:
     # Internal: scoring
     # ------------------------------------------------------------------
 
-    def _judge_turn_sync(self, turn_index: int, turn_text: str) -> TurnScore:
+    def _judge_turn_sync(self, turn_index: int, context: dict[str, str]) -> TurnScore:
         """Score a single turn synchronously with k=3 self-consistency samples."""
-        primary_results = [self._call_model_sync(self.primary_client, turn_text) for _ in range(self.k_samples)]
-        secondary_results = [self._call_model_sync(self.secondary_client, turn_text) for _ in range(self.k_samples)]
+        primary_results = [self._call_model_sync(self.primary_client, context) for _ in range(self.k_samples)]
+        secondary_results = [self._call_model_sync(self.secondary_client, context) for _ in range(self.k_samples)]
         return self._build_turn_score(turn_index, primary_results, secondary_results)
 
     def _build_turn_score(
@@ -439,29 +430,35 @@ class DualModelQualityJudge:
         primary_results: list[dict[str, Any] | None],
         secondary_results: list[dict[str, Any] | None],
     ) -> TurnScore:
-        """Build a TurnScore from raw LLM sample results."""
-        primary_ok = [r for r in primary_results if r is not None]
-        secondary_ok = [r for r in secondary_results if r is not None]
+        """Build a TurnScore from raw LLM sample results.
 
-        primary_scores_list = [self._extract_scores(r) for r in primary_ok]
-        secondary_scores_list = [self._extract_scores(r) for r in secondary_ok]
+        Any sample that cannot be parsed or is missing ``dimension_scores`` is
+        treated as a failed call rather than silently defaulted to zeros.
+        """
+        primary_scores_list: list[dict[str, float]] = []
+        secondary_scores_list: list[dict[str, float]] = []
+
+        for r in primary_results:
+            with contextlib.suppress(TypeError, ValueError):
+                primary_scores_list.append(self._extract_scores(r))
+        for r in secondary_results:
+            with contextlib.suppress(TypeError, ValueError):
+                secondary_scores_list.append(self._extract_scores(r))
 
         primary_overalls = [self._weighted_mean(s) for s in primary_scores_list]
         secondary_overalls = [self._weighted_mean(s) for s in secondary_scores_list]
 
-        # Average dimension scores across successful samples only
         primary_avg_dims = self._average_dim_scores(primary_scores_list)
         secondary_avg_dims = self._average_dim_scores(secondary_scores_list)
 
-        # Variance across successful samples only
         primary_variance = self._variance(primary_overalls)
         secondary_variance = self._variance(secondary_overalls)
 
-        primary_all_failed = len(primary_results) > 0 and not primary_ok
-        secondary_all_failed = len(secondary_results) > 0 and not secondary_ok
+        primary_all_failed = len(primary_results) > 0 and not primary_scores_list
+        secondary_all_failed = len(secondary_results) > 0 and not secondary_scores_list
         all_failed = primary_all_failed or secondary_all_failed
-        primary_partial = len(primary_results) > 0 and 0 < len(primary_ok) < len(primary_results)
-        secondary_partial = len(secondary_results) > 0 and 0 < len(secondary_ok) < len(secondary_results)
+        primary_partial = len(primary_results) > 0 and 0 < len(primary_scores_list) < len(primary_results)
+        secondary_partial = len(secondary_results) > 0 and 0 < len(secondary_scores_list) < len(secondary_results)
         partial_failure = primary_partial or secondary_partial
 
         return TurnScore(
@@ -485,7 +482,6 @@ class DualModelQualityJudge:
             return self._empty_result()
 
         # Recency-decay weights: weight_i = decay^(n-1-i) (most recent = highest)
-        # i is 0-based, so turn 0 is oldest, turn n-1 is newest
         weights = [self.decay ** (n - 1 - i) for i in range(n)]
         weight_sum = sum(weights)
 
@@ -494,19 +490,31 @@ class DualModelQualityJudge:
             sum(w * ts.secondary_overall for w, ts in zip(weights, turn_scores, strict=False)) / weight_sum
         )
 
-        overall = (primary_weighted + secondary_weighted) / 2.0
-        overall = max(0.0, min(1.0, overall))
+        # If one model completely failed for every turn, fall back to the other.
+        primary_failed_all = all(ts.primary_samples == [] for ts in turn_scores)
+        secondary_failed_all = all(ts.secondary_samples == [] for ts in turn_scores)
+        if primary_failed_all and not secondary_failed_all:
+            overall = secondary_weighted
+        elif secondary_failed_all and not primary_failed_all:
+            overall = primary_weighted
+        else:
+            # When both models produced scores, trust the primary unless they
+            # are reasonably consistent. Averaging across disagreeing models
+            # hides model-specific drift.
+            consistency_diff = abs(primary_weighted - secondary_weighted)
+            if consistency_diff <= self.consistency_threshold:
+                overall = (primary_weighted + secondary_weighted) / 2.0
+            else:
+                overall = primary_weighted
 
+        overall = max(0.0, min(1.0, overall))
         consistency_diff = round(abs(primary_weighted - secondary_weighted), 6)
 
-        # Build flags
         flags: list[str] = []
 
-        # Cross-model consistency
         if consistency_diff > self.consistency_threshold:
             flags.append("cross_model_inconsistent")
 
-        # Self-consistency variance
         for ts in turn_scores:
             if ts.primary_variance > self.self_consistency_variance_threshold:
                 flags.append(f"turn_{ts.turn_index}_primary_high_variance")
@@ -519,8 +527,10 @@ class DualModelQualityJudge:
         if any(ts.partial_failure for ts in turn_scores):
             flags.append("partial_failure")
 
-        needs_human_review = bool(flags)
+        # Deduplicate while preserving order.
+        flags = list(dict.fromkeys(flags))
 
+        needs_human_review = bool(flags)
         bin_label = self.classify_score(overall)
 
         return {
@@ -547,68 +557,45 @@ class DualModelQualityJudge:
     # Internal: LLM calls
     # ------------------------------------------------------------------
 
-    def _call_model_sync(self, client: Any, turn_text: str) -> dict[str, Any] | None:
-        """Call an LLM client and parse the JSON response."""
-        user_prompt = self._build_user_prompt(turn_text)
+    def _call_model_sync(self, client: Any, context: dict[str, str]) -> dict[str, Any] | None:
+        """Call an LLM client and parse the JSON response.
+
+        Returns ``None`` when the call or schema validation fails.
+        """
+        user_prompt = self._build_user_prompt(context)
         schema = {
             "overall_score": 0.0,
             "reasoning": "",
             "dimension_scores": dict.fromkeys(self.DIMENSIONS, 0.0),
         }
         try:
-            result = self._generate_structured(client, user_prompt, schema, JUDGE_SYSTEM_PROMPT)
-            if isinstance(result, dict) and "dimension_scores" in result:
-                return result
-            # Try parsing as JSON string
-            if isinstance(result, dict) and "error" in result:
-                logger.warning("LLM client returned error: %s", result.get("error"))
+            result = client.generate_structured(user_prompt, schema, JUDGE_SYSTEM_PROMPT, temperature=self.temperature)
+            if not isinstance(result, dict):
+                logger.warning("LLM client returned non-dict result: %s", type(result))
                 return None
-            return result if isinstance(result, dict) else None
+            # Validate that every required dimension is present and numeric.
+            self._extract_scores(result)
+            return result
         except Exception as e:
             logger.warning("LLM call failed: %s", e)
             return None
 
-    def _supports_temperature(self, client: Any) -> bool:
-        client_id = id(client)
-        if client_id in self._temperature_support:
-            return self._temperature_support[client_id]
-        method = getattr(client, "generate_structured", None)
-        try:
-            from unittest.mock import MagicMock
-        except ImportError:
-            MagicMock = None
-        if MagicMock is not None and isinstance(method, MagicMock):
-            self._temperature_support[client_id] = False
-            return False
-        try:
-            sig = inspect.signature(method)
-        except (ValueError, TypeError):
-            self._temperature_support[client_id] = False
-            return False
-        params = sig.parameters
-        result = "temperature" in params or any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values())
-        self._temperature_support[client_id] = result
-        return result
-
     def _generate_structured(self, client: Any, prompt: str, schema: dict[str, Any], system_prompt: str) -> Any:
-        if self._supports_temperature(client):
-            return client.generate_structured(prompt, schema, system_prompt, temperature=self.temperature)
-        client_id = id(client)
-        if client_id not in self._temperature_warned:
-            logger.warning(
-                "LLM client %s.generate_structured does not accept a temperature argument; "
-                "self-consistency sampling temperature %s is not honored for this client.",
-                type(client).__name__,
-                self.temperature,
-            )
-            self._temperature_warned.add(client_id)
-        return client.generate_structured(prompt, schema, system_prompt)
+        """Backward-compatible wrapper (kept for callers that override it)."""
+        return client.generate_structured(prompt, schema, system_prompt, temperature=self.temperature)
 
-    def _build_user_prompt(self, turn_text: str) -> str:
-        """Build the user prompt for the LLM judge."""
+    def _build_user_prompt(self, context: dict[str, str]) -> str:
+        """Build the user prompt for the LLM judge.
+
+        Includes the preceding user question so the judge can evaluate the
+        assistant's response in context, not in isolation.
+        """
+        user_turn = context.get("user", "")
+        assistant_turn = context.get("assistant", "")
+        user_section = f"USER QUESTION:\n{user_turn}\n\n" if user_turn else ""
         return (
-            f"Evaluate the quality of this AI assistant response:\n\n"
-            f"ASSISTANT RESPONSE:\n{turn_text}\n\n"
+            f"{user_section}"
+            f"ASSISTANT RESPONSE:\n{assistant_turn}\n\n"
             f"Rate each dimension 0.0-1.0 and provide an overall quality score. "
             f"Output ONLY valid JSON."
         )
@@ -619,17 +606,28 @@ class DualModelQualityJudge:
 
     @staticmethod
     def _extract_scores(result: dict[str, Any] | None) -> dict[str, float]:
-        """Extract dimension scores from an LLM result."""
-        if result is None:
-            return dict.fromkeys(DualModelQualityJudge.DIMENSIONS, 0.0)
-        dims = result.get("dimension_scores", {})
+        """Extract dimension scores from an LLM result.
+
+        Raises:
+            TypeError: if ``result`` is not a dict.
+            ValueError: if ``dimension_scores`` is missing, None, or incomplete.
+        """
+        if not isinstance(result, dict):
+            raise TypeError(f"LLM result must be a dict, got {type(result)}")
+        dims = result.get("dimension_scores")
+        if not isinstance(dims, dict):
+            raise ValueError(
+                f"LLM result missing 'dimension_scores' dict: {result.keys() if isinstance(result, dict) else result}"
+            )
         scores: dict[str, float] = {}
         for d in DualModelQualityJudge.DIMENSIONS:
-            raw = dims.get(d, 0.0)
+            raw = dims.get(d)
+            if raw is None:
+                raise ValueError(f"LLM result missing dimension score for '{d}'")
             try:
                 val = float(raw)
-            except (TypeError, ValueError):
-                val = 0.0
+            except (TypeError, ValueError) as exc:
+                raise ValueError(f"Non-numeric score for '{d}': {raw!r}") from exc
             scores[d] = max(0.0, min(1.0, val))
         return scores
 
@@ -654,14 +652,14 @@ class DualModelQualityJudge:
     @staticmethod
     def _variance(values: list[float]) -> float:
         """Compute population variance of a list of floats."""
-        if len(values) < 2:
+        if len(values) < _MIN_SAMPLES_FOR_STATS:
             return 0.0
         return statistics.pvariance(values)
 
     @staticmethod
     def _safe_pearson(a: list[float], b: list[float]) -> float:
         """Pearson correlation with safe handling of edge cases."""
-        if len(a) < 2 or len(set(a)) <= 1 or len(set(b)) <= 1:
+        if len(a) < _MIN_SAMPLES_FOR_STATS or len(set(a)) <= 1 or len(set(b)) <= 1:
             return 0.0
         try:
             result = scipy_stats.pearsonr(a, b)
@@ -670,15 +668,35 @@ class DualModelQualityJudge:
             return 0.0
 
     @staticmethod
-    def _extract_assistant_turns(conversation: list[dict[str, str]]) -> list[str]:
-        """Extract assistant response texts from a conversation."""
-        turns: list[str] = []
-        for msg in conversation:
+    def _safe_weighted_kappa(human_bins: list[str], judge_bins: list[str]) -> float:
+        """Quadratic-weighted Cohen's kappa on ordered 4-bin labels."""
+        if len(human_bins) < _MIN_SAMPLES_FOR_STATS or len(human_bins) != len(judge_bins):
+            return 0.0
+        try:
+            human_levels = [BIN_TO_LEVEL[b] for b in human_bins]
+            judge_levels = [BIN_TO_LEVEL[b] for b in judge_bins]
+        except KeyError:
+            return 0.0
+        try:
+            return float(cohen_kappa_score(human_levels, judge_levels, weights="quadratic"))
+        except Exception:
+            return 0.0
+
+    @staticmethod
+    def _extract_turn_contexts(conversation: list[dict[str, str]]) -> list[dict[str, str]]:
+        """Extract assistant turns together with their preceding user question."""
+        contexts: list[dict[str, str]] = []
+        for i, msg in enumerate(conversation):
             if isinstance(msg, dict) and msg.get("role") == "assistant":
                 content = msg.get("content", "")
                 if content and content.strip():
-                    turns.append(content)
-        return turns
+                    user_text = ""
+                    if i > 0:
+                        prev = conversation[i - 1]
+                        if isinstance(prev, dict) and prev.get("role") == "user":
+                            user_text = prev.get("content", "")
+                    contexts.append({"assistant": content, "user": user_text})
+        return contexts
 
     @staticmethod
     def classify_score(score: float) -> str:
@@ -689,7 +707,7 @@ class DualModelQualityJudge:
         - [0.50, 0.75) → good
         - [0.75, 1.0] → excellent
         """
-        for (lo, hi), name in zip(BIN_BOUNDARIES, BINS):
+        for (_lo, hi), name in zip(BIN_BOUNDARIES, BINS, strict=False):
             if score < hi:
                 return name
         return BINS[-1]
@@ -705,7 +723,7 @@ class DualModelQualityJudge:
             "primary_overall": 0.0,
             "secondary_overall": 0.0,
             "consistency_diff": 0.0,
-            "needs_human_review": False,
+            "needs_human_review": True,
             "metadata": {"n_turns": 0},
         }
 
@@ -714,8 +732,8 @@ class DualModelQualityJudge:
         """Load golden calibration samples from a JSONL file."""
         samples: list[dict[str, Any]] = []
         with path.open(encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
+            for raw_line in f:
+                line = raw_line.strip()
                 if not line:
                     continue
                 try:
@@ -730,6 +748,5 @@ __all__ = [
     "DEFAULT_RUBRIC_WEIGHTS",
     "JUDGE_SYSTEM_PROMPT",
     "DualModelQualityJudge",
-    "JudgeResult",
     "TurnScore",
 ]

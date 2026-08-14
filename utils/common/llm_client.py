@@ -49,8 +49,7 @@ class LLMDriver(abc.ABC):
         prompt: str,
         schema: dict[str, Any],
         system_prompt: str | None = None,
-        *,
-        temperature: float | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         pass
 
@@ -70,8 +69,7 @@ class MockDriver(LLMDriver):
         prompt: str,
         schema: dict[str, Any],
         system_prompt: str | None = None,
-        *,
-        temperature: float | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         logger.info(
             f"MOCK GENERATE STRUCTURED: {prompt[:50]}... "
@@ -125,8 +123,7 @@ class OpenAIDriver(LLMDriver):
         prompt: str,
         schema: dict[str, Any],
         system_prompt: str | None = None,
-        *,
-        temperature: float | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         """
         Generate structured JSON output.
@@ -138,12 +135,7 @@ class OpenAIDriver(LLMDriver):
         full_prompt = prompt + schema_prompt
 
         try:
-            # Force JSON format if supported (Nvidia/OpenAI usually support
-            #   response_format={"type": "json_object"})
-            # But for broad compatibility, we just ask for it in the prompt.
-            kwargs: dict[str, Any] = {"max_tokens": 8192}
-            if temperature is not None:
-                kwargs["temperature"] = temperature
+            kwargs.setdefault("max_tokens", 8192)
             content = self.generate(full_prompt, system_prompt, **kwargs)
 
             # Simple cleanup for markdown code blocks
@@ -208,7 +200,7 @@ class LLMClient:
     ):
         self.config = config or {}
         self.driver_name = driver.lower()
-        self.model_override = model
+        self.model = model
         self.driver = self._build_driver(self.driver_name, model)
         self.rate_limiter = rate_limiter or default_rate_limiter()
         # Derive provider from the ACTUAL driver class so an unknown name
@@ -262,8 +254,7 @@ class LLMClient:
         prompt: str,
         schema: dict[str, Any],
         system_prompt: str | None = None,
-        *,
-        temperature: float | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         if self.provider not in ("mock",):
             base_estimate = self._estimated_tokens(prompt, system_prompt, {})
@@ -283,7 +274,4 @@ class LLMClient:
                     self._resolved_model,
                 )
                 return {}
-        call_kwargs: dict[str, Any] = {}
-        if temperature is not None:
-            call_kwargs["temperature"] = temperature
-        return self.driver.generate_structured(prompt, schema, system_prompt, **call_kwargs)
+        return self.driver.generate_structured(prompt, schema, system_prompt, **kwargs)
