@@ -1,556 +1,1201 @@
-"""Stage 0 ingest router — normalizes multi-source raw data into JSONL shards.
+#!/usr/bin/env python3
+"""Ingest router — Stage 0 of the curation pipeline.
 
-Routes by ``source_type`` to an extractor, attaches provenance via
-``provenance.build_provenance``, enforces the SPDX license gate, and emits
-raw shards to ``ai/data/raw/<source_type>/`` at 50K records per shard.
+Dispatches incoming source records to type-specific extractors (web, document,
+api, youtube) and streams raw JSONL shards to ``data/raw/<source_type>/``.
 
-Heavy extractors (trafilatura, python-docx) are imported lazily at call
-sites so this module imports cleanly even when those deps are absent.
+Each emitted record carries::
 
-See ``docs/training-pipeline-blueprint-2026-08-10.md`` Appendix B.1.
+    {
+      "id": "<unique-id>",
+      "source_type": "web|document|api|youtube",
+      "source_url": "<url or file path>",
+      "raw_text": "<extracted text content>",
+      "metadata": {
+        "license": "<SPDX id>",
+        "fetch_ts": "<ISO-8601 UTC>",
+        "lang": "<language hint>",
+        ...
+      },
+      "provenance": { ... }   # validated via training.provenance
+    }
+
+Shards are capped at ``SHARD_SIZE`` records (50 000 by default) and named
+``shard-NNNNN.jsonl``.
+
+The router reads a source manifest (``data/licenses/source_manifest.yaml``)
+at startup to populate its license gate.  Records whose license does not
+validate against ``training.provenance.ALLOWED_LICENSES`` are dropped with a
+logged reason.
 """
 
 from __future__ import annotations
 
+import asyncio
+import glob
 import hashlib
 import json
 import logging
 import re
-from collections.abc import Callable, Iterable, Mapping
+import tempfile
+import time
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from http import HTTPStatus
 from pathlib import Path
-from typing import Any
+from typing import IO, Any
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 
 import httpx
+import yaml
+import yt_dlp
+from selectolax.parser import HTMLParser
 
-from training.book_pdf_converter import _chunk_text, _extract_epub, _extract_pdf
-from training.provenance import ProvenanceOptions, build_provenance, validate_license
+from training.provenance import (
+    ProvenanceOptions,
+    build_provenance,
+    validate_license,
+)
 
 logger = logging.getLogger("ingest_router")
 
-RETRYABLE_HTTP_STATUS_CODES: frozenset[int] = frozenset({429, 500, 502, 503, 504})
-NEMO_RETRY_DELAYS: tuple[int, ...] = (1, 2, 4)
-RECORDS_PER_SHARD = 50_000
-DEFAULT_USER_AGENT = "pixelated-ingest/1.0 (+https://pixelated-empathy.org/bot)"
-WEB_REQUEST_INTERVAL_SECONDS = 2.0
-WEB_TIMEOUT_SECONDS = 30.0
-API_TIMEOUT_SECONDS = 60.0
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
 
-THERAPIST_TURN = "Therapist"
-PATIENT_TURN = "Patient"
-SPEAKER_TURN_RE = re.compile(
-    r"^\s*(Therapist|Patient|Counselor|Client|Doctor|Dr\.?)\s*[:\-]\s*(.*)$",
-    re.IGNORECASE | re.MULTILINE,
-)
+SHARD_SIZE = 50_000
+ROBOTS_CACHE_TTL_SECONDS = 24 * 3600  # 24 hours
+WEB_RATE_LIMIT_SECONDS = 2.0  # 1 request per 2 seconds per domain
+
+# Reuse NEMO_RETRY_DELAYS from the repo if available; otherwise use the default
+# specified in the task brief.
+try:
+    from training.sdg_pipeline import NEMO_RETRY_DELAYS  # type: ignore[import-not-found]
+except Exception:
+    NEMO_RETRY_DELAYS: tuple[float, ...] = (0.5, 1.0, 2.0, 4.0)
+
+DEFAULT_MANIFEST_PATH = "data/licenses/source_manifest.yaml"
+DEFAULT_RAW_OUTPUT_DIR = Path("data/raw")
 
 
-class SourceType(str, Enum):
-    WEB = "web"
-    DOCX = "docx"
-    PDF = "pdf"
-    EPUB = "epub"
-    API = "api"
-
-    @classmethod
-    def from_value(cls, value: str) -> SourceType:
-        normalized = value.strip().lower()
-        try:
-            return cls(normalized)
-        except ValueError as exc:
-            allowed = ", ".join(s.value for s in cls)
-            raise ValueError(f"Unsupported source_type '{value}'. Expected one of: {allowed}") from exc
+# ---------------------------------------------------------------------------
+# Source manifest
+# ---------------------------------------------------------------------------
 
 
 @dataclass
-class IngestRecord:
-    """One normalized raw record emitted by an extractor.
+class ManifestEntry:
+    """A single source-to-license mapping from the source manifest."""
 
-    ``payload`` is the raw content + any source-specific fields.  Provenance
-    is attached at emit time so callers can override license/metadata before
-    the shard writer stamps the record.
+    url_or_domain: str
+    license_id: str
+    source_type: str = "web"
+    provenance: dict[str, Any] = field(default_factory=dict)
+
+    def matches(self, url: str) -> bool:
+        """Return True if *url* falls under this entry (exact host or subdomain match).
+
+        Also supports ``file://`` entries against plain local paths via path-prefix
+        matching, so ``file:///data/books/`` matches ``/data/books/foo.pdf``.
+        """
+        try:
+            target = urlparse(url)
+            source = urlparse(self.url_or_domain)
+
+            # file:// manifest entries match both file: URLs and plain local paths.
+            if source.scheme == "file":
+                return target.scheme in ("", "file") and target.path.startswith(source.path)
+
+            # Non-file entries only match URLs with a real host.
+            if target.scheme == "file" or not target.netloc:
+                return False
+
+            source_host = (source.netloc or source.path).lower()
+            target_host = target.netloc.lower()
+
+            if not source_host or not target_host:
+                return source_host == target_host
+
+            return target_host == source_host or target_host.endswith("." + source_host)
+        except Exception:
+            return False
+
+
+def load_source_manifest(manifest_path: Path | str) -> dict[str, ManifestEntry]:
+    """Load the YAML source manifest into a dict keyed by url_or_domain.
+
+    Returns an empty dict if the file is missing (the license gate will then
+    default to ``NOASSERTION`` with a warning).
     """
 
-    source_url: str
-    source_type: SourceType
-    text: str
-    payload: Mapping[str, Any] = field(default_factory=dict)
-    license_id: str = "NOASSERTION"
-    metadata: Mapping[str, Any] | None = None
-    transformations: tuple[str, ...] = ()
-
-    def with_provenance(self) -> dict[str, Any]:
-        provenance = build_provenance(
-            self.source_url,
-            self.source_type.value,
-            options=ProvenanceOptions(
-                license_id=self.license_id,
-                transformations=self.transformations,
-            ),
-            metadata=dict(self.metadata) if self.metadata else None,
+    path = Path(manifest_path)
+    if not path.exists():
+        logger.warning("Source manifest not found at %s — license gate defaults to NOASSERTION", path)
+        return {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    entries: dict[str, ManifestEntry] = {}
+    for item in data.get("sources", []):
+        key = item["url"]
+        entries[key] = ManifestEntry(
+            url_or_domain=key,
+            license_id=item.get("license", "NOASSERTION"),
+            source_type=item.get("source_type", "web"),
+            provenance=item.get("provenance", {}),
         )
-        return {
-            "text": self.text,
-            "payload": dict(self.payload),
-            "source_url": self.source_url,
-            "source_type": self.source_type.value,
-            "provenance": provenance,
-        }
+    return entries
 
 
-# ---------------------------------------------------------------------------
-# Speaker-turn chunking for therapy transcripts in DOCX/structured docs.
-# ---------------------------------------------------------------------------
+def lookup_license(
+    source_url: str,
+    manifest: Mapping[str, ManifestEntry],
+) -> str:
+    """Look up the license for *source_url* in the manifest.
 
-
-def chunk_by_speaker_turn(text: str, *, min_chunk_chars: int = 120) -> list[str]:
-    """Chunk text on Therapist/Patient turn boundaries.
-
-    Groups consecutive turns under the same speaker (normalizing counselor/
-    doctor/dr aliases to Therapist, everything else to Patient) into one
-    chunk.  Falls back to a single chunk when no turn markers are present
-    (e.g. a narrative DOCX with no speaker prefixes).
+    Falls back to ``NOASSERTION`` if no entry matches.
     """
 
-    if not text or not text.strip():
-        return []
-
-    def _normalize(label: str) -> str:
-        if label in {THERAPIST_TURN, "Counselor", "Doctor", "Dr"}:
-            return THERAPIST_TURN
-        return PATIENT_TURN
-
-    matches = list(SPEAKER_TURN_RE.finditer(text))
-    if not matches:
-        return [text.strip()]
-
-    chunks: list[str] = []
-    current_label: str | None = None
-    current_parts: list[str] = []
-
-    def flush() -> None:
-        if current_label is None or not current_parts:
-            return
-        joined = "\n".join(p for p in current_parts if p).strip()
-        if joined:
-            chunks.append(f"{current_label}: {joined}")
-
-    for match in matches:
-        label = _normalize(match.group(1))
-        content = match.group(2).strip()
-        if label != current_label:
-            flush()
-            current_parts = []
-            current_label = label
-        if content:
-            current_parts.append(content)
-    flush()
-    return [c for c in chunks if len(c) >= min_chunk_chars] or chunks
+    for entry in manifest.values():
+        if entry.matches(source_url):
+            return entry.license_id
+    return "NOASSERTION"
 
 
 # ---------------------------------------------------------------------------
-# Domain rate-limiting for web fetches (1 req per 2s default, obey Crawl-Delay).
+# Shard writer
 # ---------------------------------------------------------------------------
 
 
-class _DomainGate:
-    """Per-domain last-request timestamp + interval, honoring robots.txt Crawl-Delay."""
+class ShardWriter:
+    """Stream JSONL records into shard files capped at ``SHARD_SIZE`` records."""
 
-    def __init__(self) -> None:
-        self._last_seen: dict[str, datetime] = {}
-        self._interval: dict[str, float] = {}
-        self._robots_cache: dict[str, RobotFileParser] = {}
+    def __init__(
+        self,
+        output_dir: Path,
+        source_type: str,
+        shard_size: int = SHARD_SIZE,
+        run_id: str = "",
+    ) -> None:
+        self._output_dir = output_dir
+        self._source_type = source_type
+        self._shard_size = shard_size
+        self._run_id = run_id
+        self._shard_index = 0
+        self._records_in_shard = 0
+        self._fh: IO[str] | None = None
+        self._total_written = 0
 
-    def _robots(self, url: str, client: httpx.AsyncClient) -> RobotFileParser:
-        parsed = urlparse(url)
-        host = f"{parsed.scheme}://{parsed.netloc}"
-        cached = self._robots_cache.get(host)
-        if cached is not None:
-            return cached
-        parser = RobotFileParser()
-        parser.set_url(f"{host}/robots.txt")
-        # Fetch live so async context can populate rules.  Best-effort: a
-        # failure leaves the parser with no rules, which our caller treats
-        # as disallow-by-default for safety.
+    def _shard_path(self) -> Path:
+        if self._run_id:
+            return self._output_dir / self._run_id / f"shard-{self._shard_index:05d}.jsonl"
+        return self._output_dir / f"shard-{self._shard_index:05d}.jsonl"
+
+    def _open_new_shard(self) -> None:
+        self._output_dir.mkdir(parents=True, exist_ok=True)
+        if self._fh is not None:
+            self._fh.close()
+        path = self._shard_path()
+        self._fh = open(path, "w", encoding="utf-8")
+        self._records_in_shard = 0
+        logger.info("Opened shard %s for source_type=%s", path, self._source_type)
+
+    def write(self, record: Mapping[str, Any]) -> None:
+        if self._fh is None or self._records_in_shard >= self._shard_size:
+            self._shard_index += 1
+            self._open_new_shard()
+        assert self._fh is not None  # _open_new_shard guarantees non-None
+        self._fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+        self._records_in_shard += 1
+        self._total_written += 1
+
+    def close(self) -> None:
+        if self._fh is not None:
+            self._fh.close()
+            self._fh = None
+        logger.info(
+            "Shard writer closed: %d records written across %d shards for source_type=%s",
+            self._total_written,
+            self._shard_index,
+            self._source_type,
+        )
+
+    @property
+    def total_written(self) -> int:
+        return self._total_written
+
+    @property
+    def shard_count(self) -> int:
+        return self._shard_index
+
+
+# ---------------------------------------------------------------------------
+# License gate
+# ---------------------------------------------------------------------------
+
+
+class LicenseGate:
+    """Validates record licenses before emission.  Drops invalid records."""
+
+    def __init__(self, manifest: Mapping[str, ManifestEntry]) -> None:
+        self._manifest = manifest
+        self._dropped = 0
+
+    def check(self, source_url: str) -> tuple[bool, str]:
+        """Return ``(ok, license_id)``.  When *ok* is False the record is dropped."""
+        license_id = lookup_license(source_url, self._manifest)
         try:
-            resp = httpx.get(f"{host}/robots.txt", timeout=WEB_TIMEOUT_SECONDS, headers={"User-Agent": DEFAULT_USER_AGENT})
-            if resp.status_code == 200:
-                parser.parse(resp.text.splitlines())
-            crawl_delay = parser.crawl_delay(DEFAULT_USER_AGENT)
-            if crawl_delay:
-                self._interval[host] = max(float(crawl_delay), WEB_REQUEST_INTERVAL_SECONDS)
-            else:
-                self._interval[host] = WEB_REQUEST_INTERVAL_SECONDS
-        except httpx.HTTPError:
-            self._interval[host] = WEB_REQUEST_INTERVAL_SECONDS
-        self._robots_cache[host] = parser
-        return parser
+            validated = validate_license(license_id)
+            return True, validated
+        except ValueError as exc:
+            self._dropped += 1
+            logger.warning("License gate dropped record from %s: %s", source_url, exc)
+            return False, license_id
 
-    def can_fetch(self, url: str, client: httpx.AsyncClient) -> bool:
-        parser = self._robots(url, client)
-        return parser.can_fetch(DEFAULT_USER_AGENT, url)
-
-    def interval(self, url: str) -> float:
-        parsed = urlparse(url)
-        host = f"{parsed.scheme}://{parsed.netloc}"
-        return self._interval.get(host, WEB_REQUEST_INTERVAL_SECONDS)
-
-    def mark(self, url: str) -> None:
-        parsed = urlparse(url)
-        host = f"{parsed.scheme}://{parsed.netloc}"
-        self._last_seen[host] = datetime.now(UTC)
-
-    def wait_seconds(self, url: str, now: datetime) -> float:
-        parsed = urlparse(url)
-        host = f"{parsed.scheme}://{parsed.netloc}"
-        last = self._last_seen.get(host)
-        if last is None:
-            return 0.0
-        elapsed = (now - last).total_seconds()
-        interval = self.interval(url)
-        return max(0.0, interval - elapsed)
+    @property
+    def dropped_count(self) -> int:
+        return self._dropped
 
 
 # ---------------------------------------------------------------------------
-# Extractors — each returns IngestRecord(s) for a single source.
+# Record builders
 # ---------------------------------------------------------------------------
 
 
-_extractor_registry: dict[SourceType, Any] = {}
+def _utc_now_iso() -> str:
+    return datetime.now(UTC).isoformat()
 
 
-def register(source_type: SourceType) -> Any:
-    def decorator(fn: Any) -> Any:
-        _extractor_registry[source_type] = fn
-        return fn
-
-    return decorator
+def _record_id(source_url: str, raw_text: str) -> str:
+    """Deterministic record ID from source URL + content hash."""
+    digest = hashlib.sha256(f"{source_url}:{raw_text}".encode()).hexdigest()
+    return digest[:16]
 
 
-async def _web_fetch(url: str, gate: _DomainGate, client: httpx.AsyncClient) -> str:
-    wait = gate.wait_seconds(url, datetime.now(UTC))
-    if wait > 0:
-        await _async_sleep(wait)
-    gate.mark(url)
-    headers = {"User-Agent": DEFAULT_USER_AGENT}
-    resp = await client.get(url, headers=headers, follow_redirects=True)
-    if resp.status_code in RETRYABLE_HTTP_STATUS_CODES:
-        raise RetryableHTTPError(url, resp.status_code)
-    resp.raise_for_status()
-    return resp.text
-
-
-async def _async_sleep(seconds: float) -> None:
-    import anyio  # lazy — httpx pulls anyio transitively
-
-    await anyio.sleep(seconds)
-
-
-class RetryableHTTPError(Exception):
-    def __init__(self, url: str, status_code: int) -> None:
-        super().__init__(f"Retryable HTTP {status_code} for {url}")
-        self.url = url
-        self.status_code = status_code
-
-
-@register(SourceType.WEB)
-async def _extract_web(
+def build_record(
     *,
-    source_url: str,
-    gate: _DomainGate,
-    client: httpx.AsyncClient,
-    license_id: str = "NOASSERTION",
-    metadata: Mapping[str, Any] | None = None,
-    **_opts: Any,
-) -> list[IngestRecord]:
-    if not gate.can_fetch(source_url, client):
-        logger.warning("robots.txt disallows fetch: %s", source_url)
-        return []
-    try:
-        from trafilatura import extract as trafilatura_extract
-    except ImportError as exc:  # pragma: no cover — dep must be installed for web ingest
-        raise ImportError(
-            "trafilatura is required for web ingestion. Install with: uv sync --extra ingest-web"
-        ) from exc
-    html = await _web_fetch(source_url, gate, client)
-    text = trafilatura_extract(html, include_comments=False, include_tables=True) or ""
-    if not text.strip():
-        logger.info("No extractable text from %s", source_url)
-        return []
-    fetch_meta = {
-        "fetch_user_agent": DEFAULT_USER_AGENT,
-        "crawl_delay_seconds": gate.interval(source_url),
-        **(dict(metadata) if metadata else {}),
-    }
-    return [
-        IngestRecord(
-            source_url=source_url,
-            source_type=SourceType.WEB,
-            text=text,
-            payload={"html_sha256": hashlib.sha256(html.encode("utf-8")).hexdigest()},
-            license_id=license_id,
-            metadata=fetch_meta,
-            transformations=("trafilatura_extract",),
-        )
-    ]
-
-
-@register(SourceType.DOCX)
-async def _extract_docx(
-    *,
-    source_url: str,
-    path: Path | None = None,
-    license_id: str = "NOASSERTION",
-    metadata: Mapping[str, Any] | None = None,
-    chunk_size: int = 4000,
-    chunk_by_turns: bool = True,
-    **_opts: Any,
-) -> list[IngestRecord]:
-    if path is None:
-        raise ValueError("DOCX ingestion requires a local `path` (download first)")
-    try:
-        from docx import Document
-    except ImportError as exc:  # pragma: no cover — dep optional
-        raise ImportError(
-            "python-docx is required for DOCX ingestion. Install with: uv sync --extra ingest-docx"
-        ) from exc
-    document = Document(str(path))
-    paragraphs = [p.text for p in document.paragraphs if p.text and p.text.strip()]
-    full_text = "\n".join(paragraphs)
-    if chunk_by_turns:
-        chunks = chunk_by_speaker_turn(full_text)
-        if not chunks:
-            chunks = _chunk_text(full_text, chunk_size=chunk_size)
-    else:
-        chunks = _chunk_text(full_text, chunk_size=chunk_size)
-    records: list[IngestRecord] = []
-    for index, chunk in enumerate(chunks):
-        records.append(
-            IngestRecord(
-                source_url=source_url,
-                source_type=SourceType.DOCX,
-                text=chunk,
-                payload={"part_index": index, "part_count": len(chunks), "docx_path": str(path)},
-                license_id=license_id,
-                metadata=dict(metadata) if metadata else None,
-                transformations=("python-docx", "speaker_turn_chunk" if chunk_by_turns else "fixed_chunk"),
-            )
-        )
-    return records
-
-
-@register(SourceType.PDF)
-async def _extract_pdf(
-    *,
-    source_url: str,
-    path: Path | None = None,
-    license_id: str = "NOASSERTION",
-    metadata: Mapping[str, Any] | None = None,
-    chunk_size: int = 4000,
-    **_opts: Any,
-) -> list[IngestRecord]:
-    if path is None:
-        raise ValueError("PDF ingestion requires a local `path`")
-    full_text = _extract_pdf(path)
-    chunks = _chunk_text(full_text, chunk_size=chunk_size)
-    records: list[IngestRecord] = []
-    for index, chunk in enumerate(chunks):
-        records.append(
-            IngestRecord(
-                source_url=source_url,
-                source_type=SourceType.PDF,
-                text=chunk,
-                payload={"part_index": index, "part_count": len(chunks), "pdf_path": str(path)},
-                license_id=license_id,
-                metadata=dict(metadata) if metadata else None,
-                transformations=("book_pdf_converter._extract_pdf", "fixed_chunk"),
-            )
-        )
-    return records
-
-
-@register(SourceType.EPUB)
-async def _extract_epub_(
-    *,
-    source_url: str,
-    path: Path | None = None,
-    license_id: str = "NOASSERTION",
-    metadata: Mapping[str, Any] | None = None,
-    chunk_size: int = 4000,
-    **_opts: Any,
-) -> list[IngestRecord]:
-    if path is None:
-        raise ValueError("EPUB ingestion requires a local `path`")
-    full_text = _extract_epub(path)
-    chunks = _chunk_text(full_text, chunk_size=chunk_size)
-    records: list[IngestRecord] = []
-    for index, chunk in enumerate(chunks):
-        records.append(
-            IngestRecord(
-                source_url=source_url,
-                source_type=SourceType.EPUB,
-                text=chunk,
-                payload={"part_index": index, "part_count": len(chunks), "epub_path": str(path)},
-                license_id=license_id,
-                metadata=dict(metadata) if metadata else None,
-                transformations=("book_pdf_converter._extract_epub", "fixed_chunk"),
-            )
-        )
-    return records
-
-
-@register(SourceType.API)
-async def _extract_api(
-    *,
-    source_url: str,
-    gate: _DomainGate,
-    client: httpx.AsyncClient,
-    headers: Mapping[str, str] | None = None,
-    params: Mapping[str, str] | None = None,
-    json_body: Mapping[str, Any] | None = None,
-    method: str = "GET",
-    license_id: str = "NOASSERTION",
-    metadata: Mapping[str, Any] | None = None,
-    **_opts: Any,
-) -> list[IngestRecord]:
-    wait = gate.wait_seconds(source_url, datetime.now(UTC))
-    if wait > 0:
-        await _async_sleep(wait)
-    gate.mark(source_url)
-    request_headers = {"User-Agent": DEFAULT_USER_AGENT}
-    if headers:
-        request_headers.update(headers)
-    last_exc: Exception | None = None
-    for attempt, delay in enumerate(NEMO_RETRY_DELAYS):
-        try:
-            resp = await client.request(
-                method,
-                source_url,
-                headers=request_headers,
-                params=dict(params) if params else None,
-                json=dict(json_body) if json_body else None,
-                timeout=API_TIMEOUT_SECONDS,
-                follow_redirects=True,
-            )
-            if resp.status_code in RETRYABLE_HTTP_STATUS_CODES:
-                last_exc = RetryableHTTPError(source_url, resp.status_code)
-                logger.warning("API %s retryable %d (attempt %d)", source_url, resp.status_code, attempt + 1)
-                await _async_sleep(float(delay))
-                continue
-            resp.raise_for_status()
-            api_meta = {
-                "request_method": method,
-                "request_params": dict(params) if params else {},
-                **(dict(metadata) if metadata else {}),
-            }
-            payload: dict[str, Any] = {"status_code": resp.status_code}
-            try:
-                payload["json"] = resp.json()
-                text = json.dumps(payload["json"], ensure_ascii=False, sort_keys=True)
-            except json.JSONDecodeError:
-                payload["text"] = resp.text
-                text = resp.text
-            return [
-                IngestRecord(
-                    source_url=source_url,
-                    source_type=SourceType.API,
-                    text=text,
-                    payload=payload,
-                    license_id=license_id,
-                    metadata=api_meta,
-                    transformations=("httpx_api", "json_or_text"),
-                )
-            ]
-        except httpx.HTTPError as exc:
-            last_exc = exc
-            logger.warning("API %s HTTP error (attempt %d): %s", source_url, attempt + 1, exc)
-            await _async_sleep(float(delay))
-    raise last_exc if last_exc else RuntimeError(f"API ingestion failed for {source_url}")
-
-
-# ---------------------------------------------------------------------------
-# Public entry: route + emit shards.
-# ---------------------------------------------------------------------------
-
-
-async def route_ingest(
     source_type: str,
     source_url: str,
-    *,
-    raw_dir: Path | str = "ai/data/raw",
-    license_id: str = "NOASSERTION",
+    raw_text: str,
     metadata: Mapping[str, Any] | None = None,
-    client: httpx.AsyncClient | None = None,
-    **opts: Any,
-) -> list[Path]:
-    """Route one source to its extractor, emit raw JSONL shards.
+    license_id: str = "NOASSERTION",
+) -> dict[str, Any]:
+    """Build a fully-formed record with provenance for shard emission."""
 
-    Raises ValueError on unsupported source_type, unlicensed content, or
-    missing required path for document sources.
+    record_id = _record_id(source_url, raw_text)
+    meta: dict[str, Any] = {
+        "license": license_id,
+        "fetch_ts": _utc_now_iso(),
+        "lang": _detect_lang_hint(raw_text),
+    }
+    if metadata:
+        meta.update(metadata)
+
+    provenance = build_provenance(
+        source_url,
+        source_type,
+        options=ProvenanceOptions(license_id=license_id),
+        metadata=meta,
+    )
+
+    return {
+        "id": record_id,
+        "source_type": source_type,
+        "source_url": source_url,
+        "raw_text": raw_text,
+        "metadata": meta,
+        "provenance": provenance,
+    }
+
+
+def _detect_lang_hint(text: str) -> str:
+    """Cheap heuristic: detect German vs English based on common words."""
+    if not text:
+        return "unknown"
+    sample = text[:2000].lower()
+    german_markers = (" der ", " die ", " das ", " und ", " nicht ", " ist ", " ein ", " eine ")
+    english_markers = (" the ", " and ", " is ", " not ", " a ", " to ", " of ")
+    german_count = sum(sample.count(m) for m in german_markers)
+    english_count = sum(sample.count(m) for m in english_markers)
+    if german_count > english_count:
+        return "de"
+    return "en"
+
+
+def _chunk_text(text: str, max_size: int = 100_000) -> list[str]:
+    """Split long text into chunks, preferring paragraph boundaries."""
+    if len(text) <= max_size:
+        return [text]
+    chunks: list[str] = []
+    start = 0
+    while start < len(text):
+        end = min(start + max_size, len(text))
+        if end < len(text):
+            para_break = text.rfind("\n\n", start, end)
+            if para_break <= start:
+                para_break = text.rfind(" ", start, end)
+            if para_break > start:
+                end = para_break
+        chunks.append(text[start:end].strip())
+        start = end
+    return chunks or [text]
+
+
+# ---------------------------------------------------------------------------
+# Web extractor
+# ---------------------------------------------------------------------------
+
+
+class WebExtractor:
+    """Fetches web pages, extracts main content via trafilatura.
+
+    Features:
+    - ``httpx.AsyncClient`` with connection pooling.
+    - robots.txt caching per domain (24h TTL).
+    - Per-domain rate limiting (1 request per 2 seconds).
+    - ``selectolax`` for HTML parsing, ``trafilatura`` for main-content extraction.
     """
 
-    validate_license(license_id)
-    stype = SourceType.from_value(source_type)
-    extractor = _extractor_registry.get(stype)
-    if extractor is None:
-        raise ValueError(f"No extractor registered for {stype.value}")
-    owns_client = client is None
-    client = client or httpx.AsyncClient(timeout=httpx.Timeout(WEB_TIMEOUT_SECONDS))
-    gate = _DomainGate()
-    try:
-        records = await extractor(
-            source_url=source_url,
-            gate=gate,
-            client=client,
-            license_id=license_id,
-            metadata=metadata,
-            **opts,
+    def __init__(
+        self,
+        *,
+        rate_limit_seconds: float = WEB_RATE_LIMIT_SECONDS,
+        robots_ttl: int = ROBOTS_CACHE_TTL_SECONDS,
+        client: httpx.AsyncClient | None = None,
+    ) -> None:
+        self._rate_limit = rate_limit_seconds
+        self._robots_ttl = robots_ttl
+        self._client = client
+        self._robots_cache: dict[str, tuple[float, RobotFileParser]] = {}
+        self._domain_last_request: dict[str, float] = {}
+        self._domain_locks: dict[str, asyncio.Lock] = {}
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(
+                timeout=httpx.Timeout(30.0, connect=10.0),
+                limits=httpx.Limits(max_connections=20, max_keepalive_connections=10),
+                follow_redirects=True,
+            )
+        return self._client
+
+    def _domain(self, url: str) -> str:
+        return urlparse(url).netloc.lower()
+
+    def _get_domain_lock(self, domain: str) -> asyncio.Lock:
+        if domain not in self._domain_locks:
+            self._domain_locks[domain] = asyncio.Lock()
+        return self._domain_locks[domain]
+
+    async def _check_robots(self, url: str, client: httpx.AsyncClient) -> bool:
+        """Return True if *url* is allowed by robots.txt (cached, 24h TTL).
+
+        Missing or unreachable robots.txt is treated as allow-all so that a 404,
+        403, 5xx, or network error never blocks extraction.
+        """
+        domain = self._domain(url)
+        now = time.monotonic()
+        cached = self._robots_cache.get(domain)
+        if cached is not None:
+            ts, rp = cached
+            if now - ts < self._robots_ttl:
+                return rp.can_fetch("*", url)
+
+        robots_url = f"https://{domain}/robots.txt"
+        rp = RobotFileParser()
+        try:
+            resp = await client.get(robots_url)
+            if resp.status_code == HTTPStatus.OK:
+                rp.parse(resp.text.splitlines())
+            else:
+                rp.parse(["User-agent: *", "Allow: /"])
+        except httpx.HTTPError:
+            rp.parse(["User-agent: *", "Allow: /"])
+
+        self._robots_cache[domain] = (now, rp)
+        return rp.can_fetch("*", url)
+
+    async def _enforce_rate_limit(self, domain: str) -> None:
+        lock = self._get_domain_lock(domain)
+        async with lock:
+            last = self._domain_last_request.get(domain, 0.0)
+            elapsed = time.monotonic() - last
+            if elapsed < self._rate_limit:
+                await asyncio.sleep(self._rate_limit - elapsed)
+            self._domain_last_request[domain] = time.monotonic()
+
+    async def extract(self, source_url: str) -> dict[str, Any]:
+        """Fetch *source_url*, extract main content. Returns record fields."""
+        client = await self._get_client()
+        domain = self._domain(source_url)
+
+        # robots.txt check
+        if not await self._check_robots(source_url, client):
+            logger.info("robots.txt disallows %s — skipping", source_url)
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"fetch_status": 403, "html_title": ""},
+            }
+
+        await self._enforce_rate_limit(domain)
+
+        try:
+            resp = await client.get(source_url, headers={"User-Agent": "PixelatedAI-IngestRouter/1.0"})
+            status = resp.status_code
+            html = resp.text
+        except httpx.HTTPError as exc:
+            logger.warning("HTTP error fetching %s: %s", source_url, exc)
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"fetch_status": 0, "html_title": ""},
+            }
+
+        if status >= HTTPStatus.BAD_REQUEST:
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"fetch_status": status, "error": "http_error"},
+            }
+
+        # Extract title with selectolax
+        tree = HTMLParser(html)
+        title_node = tree.css_first("title")
+        html_title = title_node.text(strip=True) if title_node else ""
+
+        # Extract main content with trafilatura
+        raw_text = self._trafilatura_extract(html)
+
+        return {
+            "source_url": source_url,
+            "raw_text": raw_text,
+            "metadata": {
+                "fetch_status": status,
+                "html_title": html_title,
+            },
+        }
+
+    @staticmethod
+    def _trafilatura_extract(html: str) -> str:
+        """Extract main content from HTML using trafilatura."""
+        try:
+            import trafilatura
+
+            return trafilatura.extract(html) or ""
+        except ImportError:
+            logger.warning("trafilatura not installed — falling back to selectolax text extraction")
+            tree = HTMLParser(html)
+            return tree.body.text(separator="\n", strip=True) if tree.body else ""
+
+    async def close(self) -> None:
+        if self._client is not None and not self._client.is_closed:
+            await self._client.aclose()
+
+
+# ---------------------------------------------------------------------------
+# Document extractor
+# ---------------------------------------------------------------------------
+
+
+class DocumentExtractor:
+    """Extracts text from PDF, DOCX, and HTML files.
+
+    - PDF: delegates to the existing ``book_pdf_converter.py`` pattern.
+    - DOCX: uses ``python-docx`` to extract paragraphs + tables as markdown.
+    - HTML: reuses the web extractor's trafilatura path.
+    """
+
+    def __init__(self, web_extractor: WebExtractor | None = None) -> None:
+        self._web_extractor = web_extractor or WebExtractor()
+
+    async def extract(self, source_ref: str) -> dict[str, Any]:
+        """Extract text from a local file path (*source_ref*)."""
+        path = Path(source_ref)
+        suffix = path.suffix.lower()
+
+        if suffix in {".pdf"}:
+            return self._extract_pdf(path)
+        if suffix in {".epub"}:
+            return self._extract_epub(path)
+        if suffix in {".docx"}:
+            return self._extract_docx(path)
+        if suffix in {".html", ".htm"}:
+            return await self._extract_html(path)
+        raise ValueError(f"Unsupported document type: {suffix}")
+
+    def _extract_pdf(self, path: Path) -> dict[str, Any]:
+        """Extract text from PDF via ``book_pdf_converter._extract_pdf``."""
+        try:
+            from training.book_pdf_converter import _extract_pdf as converter_extract
+        except ImportError:
+            logger.error("book_pdf_converter not available — cannot extract PDF")
+            return {
+                "source_url": str(path),
+                "raw_text": "",
+                "metadata": {"format": "pdf", "error": "book_pdf_converter unavailable"},
+            }
+
+        raw_text = converter_extract(path)
+        return {
+            "source_url": str(path),
+            "raw_text": raw_text,
+            "metadata": {"format": "pdf"},
+        }
+
+    def _extract_epub(self, path: Path) -> dict[str, Any]:
+        """Extract text from EPUB via the existing ``book_pdf_converter`` EPUB handler."""
+        try:
+            from training.book_pdf_converter import _extract_epub as converter_extract_epub
+        except ImportError:
+            logger.error("book_pdf_converter not available — cannot extract EPUB")
+            return {
+                "source_url": str(path),
+                "raw_text": "",
+                "metadata": {"format": "epub", "error": "book_pdf_converter unavailable"},
+            }
+
+        raw_text = converter_extract_epub(path)
+        return {
+            "source_url": str(path),
+            "raw_text": raw_text,
+            "metadata": {"format": "epub"},
+        }
+
+    def _extract_docx(self, path: Path) -> dict[str, Any]:
+        """Extract text from DOCX preserving heading structure as markdown."""
+        try:
+            from docx import Document
+        except ImportError:
+            logger.error("python-docx not installed — cannot extract DOCX")
+            return {
+                "source_url": str(path),
+                "raw_text": "",
+                "metadata": {"format": "docx", "error": "python-docx unavailable"},
+            }
+
+        doc = Document(str(path))
+        lines: list[str] = []
+
+        for para in doc.paragraphs:
+            text = para.text.strip()
+            if not text:
+                continue
+            style_name = (para.style.name or "").lower() if para.style else ""
+            if "heading 1" in style_name:
+                lines.append(f"# {text}")
+            elif "heading 2" in style_name:
+                lines.append(f"## {text}")
+            elif "heading 3" in style_name:
+                lines.append(f"### {text}")
+            elif "heading" in style_name:
+                # Generic heading — extract level if possible
+                level_match = re.search(r"heading\s*(\d+)", style_name)
+                level = int(level_match.group(1)) if level_match else 4
+                lines.append(f"{'#' * min(level, 6)} {text}")
+            else:
+                lines.append(text)
+
+        # Extract tables as markdown
+        for table in doc.tables:
+            for row in table.rows:
+                cells = [cell.text.strip() for cell in row.cells]
+                lines.append("| " + " | ".join(cells) + " |")
+
+        raw_text = "\n\n".join(lines)
+        return {
+            "source_url": str(path),
+            "raw_text": raw_text,
+            "metadata": {
+                "format": "docx",
+                "paragraph_count": len(doc.paragraphs),
+                "table_count": len(doc.tables),
+            },
+        }
+
+    async def _extract_html(self, path: Path) -> dict[str, Any]:
+        """Extract text from a local HTML file using trafilatura."""
+        html = path.read_text(encoding="utf-8", errors="replace")
+        raw_text = WebExtractor._trafilatura_extract(html)
+        return {
+            "source_url": str(path),
+            "raw_text": raw_text,
+            "metadata": {"format": "html"},
+        }
+
+    async def close(self) -> None:
+        await self._web_extractor.close()
+
+
+# ---------------------------------------------------------------------------
+# API extractor
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class APIExtractorConfig:
+    """Configuration for the API extractor."""
+
+    endpoint: str
+    headers: dict[str, str] = field(default_factory=dict)
+    params: dict[str, str] = field(default_factory=dict)
+    text_field: str = "text"
+    cursor_field: str = "cursor"
+    next_cursor_field: str = "next_cursor"
+    items_field: str = "items"
+    page_size: int = 100
+    max_pages: int = 1000
+    offset_mode: bool = False
+    offset_param: str = "offset"
+    offset_field: str = "offset"
+    strict_offset_stop: bool = False
+
+
+class APIExtractor:
+    """Fetches records from an API with exponential backoff and pagination.
+
+    - ``httpx.AsyncClient`` with ``NEMO_RETRY_DELAYS``-style backoff.
+    - Configurable endpoint, headers, pagination (cursor + offset).
+    - Emits one record per API item.
+    """
+
+    def __init__(
+        self,
+        config: APIExtractorConfig,
+        *,
+        retry_delays: Sequence[float] = NEMO_RETRY_DELAYS,
+        client: httpx.AsyncClient | None = None,
+    ) -> None:
+        self._config = config
+        self._retry_delays = retry_delays
+        self._client = client
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(
+                timeout=httpx.Timeout(60.0, connect=15.0),
+                limits=httpx.Limits(max_connections=10, max_keepalive_connections=5),
+                follow_redirects=True,
+            )
+        return self._client
+
+    async def _fetch_with_retry(self, url: str, params: dict[str, Any]) -> httpx.Response | None:
+        client = await self._get_client()
+        last_exc: Exception | None = None
+        last_status: int | None = None
+        for attempt, delay in enumerate(self._retry_delays):
+            try:
+                resp = await client.get(url, params=params, headers=self._config.headers)
+                last_status = resp.status_code
+                if (
+                    resp.status_code == HTTPStatus.TOO_MANY_REQUESTS
+                    or resp.status_code >= HTTPStatus.INTERNAL_SERVER_ERROR
+                ):
+                    logger.warning(
+                        "API returned %d for %s (attempt %d) — retrying in %.1fs",
+                        resp.status_code,
+                        url,
+                        attempt + 1,
+                        delay,
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+                resp.raise_for_status()
+                return resp
+            except httpx.HTTPStatusError as exc:
+                last_exc = exc
+                last_status = exc.response.status_code
+                raise
+            except httpx.HTTPError as exc:
+                last_exc = exc
+                logger.warning(
+                    "API request failed for %s (attempt %d): %s — retrying in %.1fs",
+                    url,
+                    attempt + 1,
+                    exc,
+                    delay,
+                )
+                await asyncio.sleep(delay)
+        logger.error(
+            "API request exhausted retries for %s (last status %s): %s",
+            url,
+            last_status if last_status is not None else "unknown",
+            last_exc or "unknown",
         )
-    finally:
-        if owns_client:
-            await client.aclose()
-    if not records:
-        logger.info("No records extracted for %s %s", stype.value, source_url)
-        return []
-    return _emit_shards(records, stype, Path(raw_dir))
+        return None
+
+    async def extract(self, source_url: str) -> AsyncIterator[dict[str, Any]]:
+        """Yield one record dict per API item.
+
+        *source_url* is used as the base URL for provenance; the actual API
+        endpoint comes from the config.
+        """
+        endpoint = self._config.endpoint
+        cursor: str | None = None
+        offset = 0
+        page = 0
+
+        while page < self._config.max_pages:
+            params = dict(self._config.params)
+            params["limit"] = str(self._config.page_size)
+
+            if self._config.offset_mode:
+                params[self._config.offset_param] = str(offset)
+            elif cursor is not None:
+                params[self._config.cursor_field] = cursor
+
+            resp = await self._fetch_with_retry(endpoint, params)
+            if resp is None:
+                break
+
+            data = resp.json()
+            items = data.get(self._config.items_field, [])
+            if not items:
+                break
+
+            for item in items:
+                raw_text = str(item.get(self._config.text_field, ""))
+                item_id = item.get("id", _record_id(source_url, raw_text))
+                yield {
+                    "source_url": source_url,
+                    "raw_text": raw_text,
+                    "metadata": {
+                        "api_item_id": str(item_id),
+                        "api_page": page,
+                        **{k: v for k, v in item.items() if k not in (self._config.text_field, "id")},
+                    },
+                    "id_override": str(item_id),
+                }
+
+            if self._config.offset_mode:
+                # Short-page stop is offset pagination's tail marker;
+                # strict_offset_stop defers to the empty-page stop above.
+                if not self._config.strict_offset_stop and len(items) < self._config.page_size:
+                    break
+                offset += len(items)
+            else:
+                next_cursor = data.get(self._config.next_cursor_field)
+                if next_cursor is None or next_cursor == cursor:
+                    break
+                cursor = next_cursor
+
+            page += 1
+
+    async def close(self) -> None:
+        if self._client is not None and not self._client.is_closed:
+            await self._client.aclose()
 
 
-def _emit_shards(records: Iterable[IngestRecord], stype: SourceType, raw_dir: Path) -> list[Path]:
-    shard_dir = raw_dir / stype.value
-    shard_dir.mkdir(parents=True, exist_ok=True)
-    shard_paths: list[Path] = []
-    current: list[dict[str, Any]] = []
-    shard_index = 0
-
-    def flush_current() -> None:
-        nonlocal shard_index
-        if not current:
-            return
-        shard_path = shard_dir / f"shard-{shard_index:05d}.jsonl"
-        with open(shard_path, "w", encoding="utf-8") as f:
-            for record in current:
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
-        shard_paths.append(shard_path)
-        logger.info("Wrote %d records to %s", len(current), shard_path)
-        current.clear()
-        shard_index += 1
-
-    for record in records:
-        current.append(record.with_provenance())
-        if len(current) >= RECORDS_PER_SHARD:
-            flush_current()
-    flush_current()
-    return shard_paths
+# ---------------------------------------------------------------------------
+# YouTube extractor
+# ---------------------------------------------------------------------------
 
 
-def iter_shard_records(shard_path: Path | str) -> Iterable[Mapping[str, Any]]:
-    """Read a shard back as a stream of provenance-bearing records."""
+class YouTubeExtractor:
+    """Fetches YouTube video transcripts via the ``yt-dlp`` Python API.
 
-    with open(shard_path, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                yield json.loads(line)
+    Avoids subprocess shells and cleans up temporary subtitle files automatically
+    using ``tempfile.TemporaryDirectory``.
+    """
+
+    def __init__(self, *, yt_dlp_timeout: int = 60) -> None:
+        self._timeout = yt_dlp_timeout
+
+    @staticmethod
+    def _extract_video_id(url: str) -> str:
+        """Extract YouTube video ID from various URL formats."""
+        if "youtu.be/" in url:
+            return url.split("youtu.be/")[1].split("?", maxsplit=1)[0]
+        if "watch?v=" in url:
+            return url.split("watch?v=")[1].split("&", maxsplit=1)[0]
+        if "/embed/" in url:
+            return url.split("/embed/")[1].split("?", maxsplit=1)[0]
+        # Fallback — return as-is
+        return url
+
+    async def extract(self, source_url: str) -> dict[str, Any]:
+        """Fetch transcript for a single YouTube video URL."""
+        video_id = self._extract_video_id(source_url)
+
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            None,
+            self._fetch_transcript_sync,
+            video_id,
+            source_url,
+        )
+
+    def _fetch_transcript_sync(self, video_id: str, source_url: str) -> dict[str, Any]:
+        """Fetch transcript using the ``yt-dlp`` Python API (blocking)."""
+        if not re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id):
+            logger.warning("Refusing to fetch transcript for invalid video id %r", video_id)
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"video_id": video_id, "duration": 0, "error": "invalid video id"},
+            }
+
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        with tempfile.TemporaryDirectory(prefix="yt-transcript-") as tmpdir:
+            output_prefix = Path(tmpdir) / video_id
+            ydl_opts = {
+                "writeautomaticsub": True,
+                "subtitleslangs": ["en", "en-US", "en-GB", "de", "de-DE"],
+                "skip_download": True,
+                "outtmpl": str(output_prefix),
+                "quiet": True,
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "sleep_interval": 1,
+                "max_sleep_interval": 5,
+            }
+
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+            except Exception as exc:
+                logger.warning("yt-dlp failed for %s: %s", video_id, exc)
+                return {
+                    "source_url": source_url,
+                    "raw_text": "",
+                    "metadata": {"video_id": video_id, "duration": 0, "error": str(exc)},
+                }
+
+            patterns = [
+                f"{output_prefix}*.vtt",
+                f"{output_prefix}*.srt",
+                f"{output_prefix}*.srv3",
+                f"{output_prefix}*.srv2",
+                f"{output_prefix}*.srv1",
+            ]
+            subtitle_path: str | None = None
+            for pat in patterns:
+                files = glob.glob(pat)
+                if files:
+                    subtitle_path = files[0]
+                    break
+
+            if subtitle_path is None:
+                logger.warning("No transcript found for video %s", video_id)
+                return {
+                    "source_url": source_url,
+                    "raw_text": "",
+                    "metadata": {"video_id": video_id, "duration": 0, "error": "no transcript found"},
+                }
+
+            raw_text = self._clean_subtitle(Path(subtitle_path).read_text(encoding="utf-8", errors="replace"))
+            duration = int(info.get("duration", 0)) if info else 0
+
+            return {
+                "source_url": source_url,
+                "raw_text": raw_text,
+                "metadata": {"video_id": video_id, "duration": duration},
+            }
+
+    @staticmethod
+    def _clean_subtitle(text: str) -> str:
+        """Strip subtitle formatting (timestamps, HTML tags) and return plain text."""
+        # Remove VTT/SRT headers and timestamps
+        text = re.sub(r"WEBVTT.*?\n\n", "", text, flags=re.DOTALL)
+        text = re.sub(r"\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[.,]\d{3}", "", text)
+        text = re.sub(r"<[^>]+>", "", text)  # HTML tags
+        text = re.sub(r"^\d+\s*$", "", text, flags=re.MULTILINE)  # subtitle indices
+        # Collapse whitespace
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        return " ".join(lines)
+
+    async def close(self) -> None:
+        pass  # no persistent resources
+
+
+# ---------------------------------------------------------------------------
+# Ingest router
+# ---------------------------------------------------------------------------
+
+
+# Type alias for async extractor functions that return a single record dict
+SingleRecordExtractor = Callable[[str], Awaitable[dict[str, Any]]]
+# Type alias for async extractor functions that yield multiple record dicts
+MultiRecordExtractor = Callable[[str], AsyncIterator[dict[str, Any]]]
+
+
+class IngestRouter:
+    """Dispatches incoming source records to type-specific extractors.
+
+    Usage::
+
+        router = IngestRouter(manifest_path="data/licenses/source_manifest.yaml")
+        await router.ingest([
+            {"source_type": "web", "source_url": "https://example.com/page"},
+            {"source_type": "document", "source_url": "/path/to/file.pdf"},
+            {"source_type": "api", "source_url": "https://api.example.com/data"},
+            {"source_type": "youtube", "source_url": "https://youtube.com/watch?v=..."},
+        ])
+
+    Records are streamed to ``data/raw/<source_type>/shard-NNNNN.jsonl`` (50K per shard).
+    """
+
+    SOURCE_TYPES: frozenset[str] = frozenset({"web", "document", "api", "youtube"})
+
+    def __init__(
+        self,
+        *,
+        manifest_path: Path | str = DEFAULT_MANIFEST_PATH,
+        raw_output_dir: Path = DEFAULT_RAW_OUTPUT_DIR,
+        shard_size: int = SHARD_SIZE,
+        run_id: str = "",
+        web_extractor: WebExtractor | None = None,
+        document_extractor: DocumentExtractor | None = None,
+        api_extractor: APIExtractor | None = None,
+        youtube_extractor: YouTubeExtractor | None = None,
+    ) -> None:
+        self._manifest = load_source_manifest(manifest_path)
+        self._license_gate = LicenseGate(self._manifest)
+        self._raw_output_dir = raw_output_dir
+        self._shard_size = shard_size
+        self._run_id = run_id
+
+        self._web_extractor = web_extractor or WebExtractor()
+        self._document_extractor = document_extractor or DocumentExtractor(self._web_extractor)
+        self._api_extractor = api_extractor
+        self._youtube_extractor = youtube_extractor or YouTubeExtractor()
+
+        self._shard_writers: dict[str, ShardWriter] = {}
+
+    def _get_shard_writer(self, source_type: str) -> ShardWriter:
+        if source_type not in self._shard_writers:
+            output_dir = self._raw_output_dir / source_type
+            self._shard_writers[source_type] = ShardWriter(
+                output_dir, source_type, self._shard_size, run_id=self._run_id
+            )
+        return self._shard_writers[source_type]
+
+    async def _emit(
+        self,
+        source_type: str,
+        source_url: str,
+        raw_text: str,
+        *,
+        metadata: Mapping[str, Any] | None = None,
+        record_id_override: str | None = None,
+        license_id: str | None = None,
+    ) -> bool:
+        """Run the license gate and write a record. Returns True if emitted."""
+        if license_id is None:
+            ok, license_id = self._license_gate.check(source_url)
+            if not ok:
+                return False
+
+        record = build_record(
+            source_type=source_type,
+            source_url=source_url,
+            raw_text=raw_text,
+            metadata=metadata,
+            license_id=license_id,
+        )
+        if record_id_override is not None:
+            record["id"] = record_id_override
+
+        writer = self._get_shard_writer(source_type)
+        writer.write(record)
+        return True
+
+    async def _process_web(self, source_url: str) -> int:
+        """Process a single web URL. Returns count of emitted records."""
+        ok, license_id = self._license_gate.check(source_url)
+        if not ok:
+            return 0
+
+        result = await self._web_extractor.extract(source_url)
+        if not result.get("raw_text"):
+            logger.info("No text extracted from web URL %s — skipping", source_url)
+            return 0
+
+        emitted_count = 0
+        for chunk in _chunk_text(result["raw_text"]):
+            if await self._emit(
+                "web",
+                result["source_url"],
+                chunk,
+                metadata=result.get("metadata"),
+                license_id=license_id,
+            ):
+                emitted_count += 1
+        return emitted_count
+
+    async def _process_document(self, source_ref: str) -> int:
+        """Process a single document path. Returns count of emitted records."""
+        ok, license_id = self._license_gate.check(source_ref)
+        if not ok:
+            return 0
+
+        result = await self._document_extractor.extract(source_ref)
+        if not result.get("raw_text"):
+            logger.info("No text extracted from document %s — skipping", source_ref)
+            return 0
+
+        emitted_count = 0
+        for chunk in _chunk_text(result["raw_text"]):
+            if await self._emit(
+                "document",
+                result["source_url"],
+                chunk,
+                metadata=result.get("metadata"),
+                license_id=license_id,
+            ):
+                emitted_count += 1
+        return emitted_count
+
+    async def _process_api(self, source_url: str) -> int:
+        """Process an API source. Returns count of emitted records."""
+        ok, license_id = self._license_gate.check(source_url)
+        if not ok:
+            return 0
+
+        api_extractor = self._api_extractor
+        if api_extractor is None:
+            api_extractor = APIExtractor(APIExtractorConfig(endpoint=source_url, max_pages=1))
+
+        count = 0
+        async for item in api_extractor.extract(source_url):
+            if not item.get("raw_text"):
+                continue
+            record_id = item.pop("id_override", None)
+            for chunk in _chunk_text(item["raw_text"]):
+                emitted = await self._emit(
+                    "api",
+                    item["source_url"],
+                    chunk,
+                    metadata=item.get("metadata"),
+                    record_id_override=record_id,
+                    license_id=license_id,
+                )
+                if emitted:
+                    count += 1
+        return count
+
+    async def _process_youtube(self, source_url: str) -> int:
+        """Process a single YouTube URL. Returns 1 if emitted, 0 if dropped."""
+        ok, license_id = self._license_gate.check(source_url)
+        if not ok:
+            return 0
+
+        result = await self._youtube_extractor.extract(source_url)
+        if not result.get("raw_text"):
+            logger.info("No transcript for YouTube video %s — skipping", source_url)
+            return 0
+        emitted = await self._emit(
+            "youtube",
+            result["source_url"],
+            result["raw_text"],
+            metadata=result.get("metadata"),
+            license_id=license_id,
+        )
+        return 1 if emitted else 0
+
+    async def ingest(self, sources: Sequence[Mapping[str, str]]) -> dict[str, int]:
+        """Process a batch of sources and return per-type counts.
+
+        Each source dict must have ``source_type`` and ``source_url`` keys.
+        Additional keys are passed as parameters to the extractor.
+        """
+        counts: dict[str, int] = dict.fromkeys(self.SOURCE_TYPES, 0)
+        counts["dropped"] = 0
+
+        for source in sources:
+            source_type = source.get("source_type", "")
+            source_url = source.get("source_url") or source.get("source_ref") or ""
+
+            if source_type not in self.SOURCE_TYPES:
+                logger.warning("Unknown source_type '%s' — skipping %s", source_type, source_url)
+                counts["dropped"] += 1
+                continue
+
+            if not source_url:
+                logger.warning("Empty source_url for source_type=%s — skipping", source_type)
+                counts["dropped"] += 1
+                continue
+
+            try:
+                if source_type == "web":
+                    emitted = await self._process_web(source_url)
+                elif source_type == "document":
+                    emitted = await self._process_document(source_url)
+                elif source_type == "api":
+                    emitted = await self._process_api(source_url)
+                elif source_type == "youtube":
+                    emitted = await self._process_youtube(source_url)
+                else:
+                    emitted = 0
+
+                counts[source_type] += emitted
+                if emitted == 0:
+                    counts["dropped"] += 1
+            except Exception as exc:
+                logger.error("Error processing %s source %s: %s", source_type, source_url, exc)
+                counts["dropped"] += 1
+
+        return counts
+
+    async def close(self) -> None:
+        """Close all extractors and shard writers."""
+        await self._web_extractor.close()
+        await self._document_extractor.close()
+        if self._api_extractor is not None:
+            await self._api_extractor.close()
+        await self._youtube_extractor.close()
+
+        for writer in self._shard_writers.values():
+            writer.close()
+
+    @property
+    def dropped_count(self) -> int:
+        return self._license_gate.dropped_count
+
+    @property
+    def total_written(self) -> int:
+        return sum(w.total_written for w in self._shard_writers.values())
+
+
+# ---------------------------------------------------------------------------
+# CLI entry point
+# ---------------------------------------------------------------------------
+
+
+def main() -> None:  # pragma: no cover
+    """Run the ingest router from the command line."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Ingest router — Stage 0 of the curation pipeline")
+    parser.add_argument("--manifest", default=DEFAULT_MANIFEST_PATH, help="Path to source manifest YAML")
+    parser.add_argument("--output-dir", default=str(DEFAULT_RAW_OUTPUT_DIR), help="Raw output directory")
+    parser.add_argument("--shard-size", type=int, default=SHARD_SIZE, help="Records per shard")
+    parser.add_argument("--sources-file", help="JSON file with list of source dicts")
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+
+    if args.sources_file:
+        sources = json.loads(Path(args.sources_file).read_text(encoding="utf-8"))
+    else:
+        parser.error("--sources-file is required")
+
+    run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
+    router = IngestRouter(
+        manifest_path=args.manifest,
+        raw_output_dir=Path(args.output_dir),
+        shard_size=args.shard_size,
+        run_id=run_id,
+    )
+
+    async def _run():
+        counts = await router.ingest(sources)
+        await router.close()
+        return counts
+
+    counts = asyncio.run(_run())
+
+    logger.info("Ingest complete: %s", json.dumps(counts))
+
+
+if __name__ == "__main__":
+    main()
