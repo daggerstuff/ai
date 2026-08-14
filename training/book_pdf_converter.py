@@ -225,8 +225,7 @@ def _extract_azw(path: Path) -> str | None:
     tmpdir = None
     try:
         tmpdir, epub_path = mobi.extract(str(path))  # type: ignore[union-attr]
-        result = _extract_epub(Path(epub_path))
-        return result
+        return _extract_epub(Path(epub_path))
     except Exception as exc:
         logger.warning("Failed to extract AZW %s: %s", path, exc)
         return None
