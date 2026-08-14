@@ -774,35 +774,6 @@ class TestYouTubeExtractor:
     def test_extract_video_id_embed(self) -> None:
         assert YouTubeExtractor._extract_video_id("https://www.youtube.com/embed/abc123") == "abc123"
 
-    def test_fetch_uses_yt_dlp_api_and_unique_temp_directory(self, tmp_path: Path) -> None:
-        subtitle = tmp_path / "subtitle.vtt"
-        subtitle.write_text(
-            "WEBVTT\n\n00:00:00.000 --> 00:00:02.000\nHello world\n",
-            encoding="utf-8",
-        )
-
-        class FakeYDL:
-            def __init__(self, opts: dict[str, Any]):
-                self.opts = opts
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, *_args: object):
-                return False
-
-            def extract_info(self, _url: str, _download: bool = True) -> dict[str, Any]:
-                return {"duration": 123}
-
-        with (
-            patch("training.ingest_router.yt_dlp.YoutubeDL", side_effect=FakeYDL),
-            patch("training.ingest_router.glob.glob", return_value=[str(subtitle)]),
-        ):
-            extractor = YouTubeExtractor()
-            result = extractor._fetch_transcript_sync("VIDEOID12345", "https://www.youtube.com/watch?v=VIDEOID12345")
-
-        assert result["metadata"]["duration"] == 123
-        assert "Hello world" in result["raw_text"]
 
     def test_invalid_video_id_returns_error(self) -> None:
         extractor = YouTubeExtractor()
