@@ -1,0 +1,13 @@
+infrastructure/database/persistence.py
+  ai_agent 163-167,218-221,228-229,232-233,696-702,987,990
+scripts/setup_production_database.py
+  ai_agent 79,148
+tests/test_fastmcp_app.py
+  ai_agent 28-29,102,114-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e57e9287f667ab557e43b6fa74701c75adbf2efa",
+  "prompts": {}
+}

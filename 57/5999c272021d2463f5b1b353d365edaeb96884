@@ -1,0 +1,19 @@
+sourcing/academic/anonymization/__init__.py
+  s_e48b09ab646938::t_a86de6fa48b5d9 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "575999c272021d2463f5b1b353d365edaeb96884",
+  "prompts": {},
+  "sessions": {
+    "s_e48b09ab646938": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5437650-db0e-4416-8ce7-1d3b1759f768",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
