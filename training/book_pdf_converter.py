@@ -25,7 +25,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import ebooklib
-import mobi
+
+try:
+    import mobi
+except ModuleNotFoundError:
+    mobi = None  # type: ignore[assignment]
 import requests
 import yaml
 from bs4 import BeautifulSoup
@@ -216,8 +220,10 @@ def _extract_epub(path: Path) -> str:
 
 def _extract_azw(path: Path) -> str | None:
     """Extract text from AZW3/MOBI via temporary conversion to EPUB."""
+    if mobi is None:
+        raise ImportError("mobi is required for AZW3/MOBI extraction but is not installed")
     try:
-        tmpdir, epub_path = mobi.extract(str(path))
+        tmpdir, epub_path = mobi.extract(str(path))  # type: ignore[union-attr]
         result = _extract_epub(Path(epub_path))
         shutil.rmtree(tmpdir, ignore_errors=True)
         return result
@@ -435,7 +441,7 @@ def _text_to_qa_pairs(
 def convert_book(
     book_path: Path,
     output_dir: Path,
-    max_chunks: int | None | bool = None,
+    max_chunks: int | bool | None = None,
     is_dsm: bool = False,
     use_llm: bool = False,
 ) -> dict:
