@@ -21,6 +21,7 @@ from urllib.robotparser import RobotFileParser
 import httpx
 import pytest
 
+from training import transcript_fetcher
 from training.ingest_router import (
     APIExtractor,
     APIExtractorConfig,
@@ -117,7 +118,9 @@ class TestSourceManifest:
         assert lookup_license("https://arxiv.org/abs/2401.00001", manifest) == "NOASSERTION"
         assert lookup_license("https://api.openalex.org/works", manifest) == "CC0-1.0"
 
-    def test_lookup_license_falls_back_to_noassertion(self, manifest: dict[str, ManifestEntry]) -> None:
+    def test_lookup_license_falls_back_to_noassertion(
+        self, manifest: dict[str, ManifestEntry]
+    ) -> None:
         assert lookup_license("https://unknown.example.com/page", manifest) == "NOASSERTION"
 
     def test_manifest_entry_matches(self) -> None:
@@ -144,19 +147,21 @@ class TestSourceManifest:
 class TestLicenseGate:
     def test_valid_license_passes(self, manifest: dict[str, ManifestEntry]) -> None:
         gate = LicenseGate(manifest)
-        ok, license_id = gate.check("https://en.wikipedia.org/wiki/Test")
+        ok, license_id, _provenance = gate.check("https://en.wikipedia.org/wiki/Test")
         assert ok is True
         assert license_id == "CC-BY-SA-4.0"
 
     def test_invalid_license_drops(self, manifest: dict[str, ManifestEntry]) -> None:
         gate = LicenseGate(manifest)
-        ok, _license_id = gate.check("https://unlicensed.example.com/page")
+        ok, _license_id, _provenance = gate.check("https://unlicensed.example.com/page")
         assert ok is False
         assert gate.dropped_count == 1
 
-    def test_unknown_domain_defaults_to_noassertion(self, manifest: dict[str, ManifestEntry]) -> None:
+    def test_unknown_domain_defaults_to_noassertion(
+        self, manifest: dict[str, ManifestEntry]
+    ) -> None:
         gate = LicenseGate(manifest)
-        ok, license_id = gate.check("https://random.example.com/page")
+        ok, license_id, _provenance = gate.check("https://random.example.com/page")
         assert ok is True
         assert license_id == "NOASSERTION"
 
@@ -273,7 +278,9 @@ class TestBuildRecord:
 
 class TestRouterDispatch:
     @pytest.mark.asyncio
-    async def test_web_source_dispatched_to_web_extractor(self, manifest_path: Path, output_dir: Path) -> None:
+    async def test_web_source_dispatched_to_web_extractor(
+        self, manifest_path: Path, output_dir: Path
+    ) -> None:
         mock_web = MagicMock(spec=WebExtractor)
         mock_web.extract = AsyncMock(
             return_value={
@@ -289,14 +296,18 @@ class TestRouterDispatch:
             raw_output_dir=output_dir,
             web_extractor=mock_web,
         )
-        counts = await router.ingest([{"source_type": "web", "source_url": "https://en.wikipedia.org/wiki/Test"}])
+        counts = await router.ingest(
+            [{"source_type": "web", "source_url": "https://en.wikipedia.org/wiki/Test"}]
+        )
         await router.close()
 
         mock_web.extract.assert_called_once_with("https://en.wikipedia.org/wiki/Test")
         assert counts["web"] == 1
 
     @pytest.mark.asyncio
-    async def test_youtube_source_dispatched_to_youtube_extractor(self, manifest_path: Path, output_dir: Path) -> None:
+    async def test_youtube_source_dispatched_to_youtube_extractor(
+        self, manifest_path: Path, output_dir: Path
+    ) -> None:
         mock_yt = MagicMock(spec=YouTubeExtractor)
         mock_yt.extract = AsyncMock(
             return_value={
@@ -326,7 +337,9 @@ class TestRouterDispatch:
             manifest_path=manifest_path,
             raw_output_dir=output_dir,
         )
-        counts = await router.ingest([{"source_type": "unknown", "source_url": "https://example.com"}])
+        counts = await router.ingest(
+            [{"source_type": "unknown", "source_url": "https://example.com"}]
+        )
         await router.close()
 
         assert counts["dropped"] == 1
@@ -349,7 +362,9 @@ class TestRouterDispatch:
             raw_output_dir=output_dir,
             web_extractor=mock_web,
         )
-        counts = await router.ingest([{"source_type": "web", "source_url": "https://en.wikipedia.org/wiki/Empty"}])
+        counts = await router.ingest(
+            [{"source_type": "web", "source_url": "https://en.wikipedia.org/wiki/Empty"}]
+        )
         await router.close()
 
         assert counts["web"] == 0
@@ -372,7 +387,9 @@ class TestRouterDispatch:
             raw_output_dir=output_dir,
             web_extractor=mock_web,
         )
-        counts = await router.ingest([{"source_type": "web", "source_url": "https://unlicensed.example.com/page"}])
+        counts = await router.ingest(
+            [{"source_type": "web", "source_url": "https://unlicensed.example.com/page"}]
+        )
         await router.close()
 
         assert counts["web"] == 0
@@ -386,7 +403,9 @@ class TestRouterDispatch:
 
 class TestShardWritingIntegration:
     @pytest.mark.asyncio
-    async def test_shards_written_to_correct_directory(self, manifest_path: Path, output_dir: Path) -> None:
+    async def test_shards_written_to_correct_directory(
+        self, manifest_path: Path, output_dir: Path
+    ) -> None:
         mock_web = MagicMock(spec=WebExtractor)
         mock_web.extract = AsyncMock(
             return_value={
@@ -402,7 +421,9 @@ class TestShardWritingIntegration:
             raw_output_dir=output_dir,
             web_extractor=mock_web,
         )
-        await router.ingest([{"source_type": "web", "source_url": "https://en.wikipedia.org/wiki/Test"}])
+        await router.ingest(
+            [{"source_type": "web", "source_url": "https://en.wikipedia.org/wiki/Test"}]
+        )
         await router.close()
 
         web_dir = output_dir / "web"
@@ -443,7 +464,7 @@ class TestWebExtractorRateLimit:
         mock_client.aclose = AsyncMock()
 
         extractor._client = mock_client
-        extractor._robots_cache["example.com"] = (time.monotonic(), _allow_all_robots())
+        extractor._robots_cache["https://example.com"] = (time.monotonic(), _allow_all_robots())
 
         start = time.monotonic()
         await extractor.extract("https://example.com/page1")
@@ -470,8 +491,8 @@ class TestWebExtractorRateLimit:
         mock_client.aclose = AsyncMock()
 
         extractor._client = mock_client
-        extractor._robots_cache["a.com"] = (time.monotonic(), _allow_all_robots())
-        extractor._robots_cache["b.com"] = (time.monotonic(), _allow_all_robots())
+        extractor._robots_cache["https://a.com"] = (time.monotonic(), _allow_all_robots())
+        extractor._robots_cache["https://b.com"] = (time.monotonic(), _allow_all_robots())
 
         start = time.monotonic()
         # Concurrent requests to different domains
@@ -719,7 +740,9 @@ class TestAPIExtractor:
             items.append(item)
 
         assert len(items) == 5
-        offsets_used = [call.kwargs.get("params", {}).get("offset") for call in mock_client.get.call_args_list]
+        offsets_used = [
+            call.kwargs.get("params", {}).get("offset") for call in mock_client.get.call_args_list
+        ]
         assert offsets_used == ["0", "2", "4"]
 
     @pytest.mark.asyncio
@@ -766,34 +789,49 @@ class TestAPIExtractor:
 
 class TestYouTubeExtractor:
     def test_extract_video_id_standard(self) -> None:
-        assert YouTubeExtractor._extract_video_id("https://www.youtube.com/watch?v=abc123") == "abc123"
+        assert (
+            YouTubeExtractor._extract_video_id("https://www.youtube.com/watch?v=abc123") == "abc123"
+        )
 
     def test_extract_video_id_short(self) -> None:
         assert YouTubeExtractor._extract_video_id("https://youtu.be/abc123") == "abc123"
 
     def test_extract_video_id_embed(self) -> None:
-        assert YouTubeExtractor._extract_video_id("https://www.youtube.com/embed/abc123") == "abc123"
+        assert (
+            YouTubeExtractor._extract_video_id("https://www.youtube.com/embed/abc123") == "abc123"
+        )
 
-    def test_fetch_uses_unique_temp_directory(self) -> None:
-        def fake_run(cmd, **_kwargs):
-            assert "--output" in cmd
-            output_index = cmd.index("--output")
-            output_path = cmd[output_index + 1]
-            assert output_path.startswith("/tmp/yt-transcript-")
-            assert not output_path.startswith("/tmp/yt-transcript-VIDEOID")
-            return MagicMock(returncode=0, stdout="", stderr="")
+    def test_fetch_delegates_to_transcript_fetcher(self) -> None:
+        def _write_output(_video_id: str, output_path: Path, **_kwargs: Any) -> bool:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text("raw subtitle text", encoding="utf-8")
+            return True
 
-        with (
-            patch("training.ingest_router.subprocess.run", side_effect=fake_run),
-            patch("glob.glob", return_value=[]),
-            patch("training.ingest_router.tempfile.mkdtemp", return_value="/tmp/yt-transcript-abc123"),
-        ):
-            extractor = YouTubeExtractor()
-            extractor._fetch_transcript_sync("VIDEOID", "https://www.youtube.com/watch?v=VIDEOID")
+        with patch("training.ingest_router.transcript_fetcher") as mock_tf:
+            mock_tf.fetch_transcript.side_effect = _write_output
+            mock_tf._clean_subtitle.return_value = "cleaned transcript"
+            mock_tf._fetch_video_metadata.return_value = {"duration": 123}
+            with patch(
+                "training.ingest_router.tempfile.mkdtemp", return_value="/tmp/yt-transcript-abc123"
+            ):
+                extractor = YouTubeExtractor()
+                result = extractor._fetch_transcript_sync(
+                    "dQw4w9WgXcQ", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                )
+
+        assert result["raw_text"] == "cleaned transcript"
+        assert result["metadata"]["video_id"] == "dQw4w9WgXcQ"
+        assert result["metadata"]["duration"] == 123
+        args = mock_tf.fetch_transcript.call_args[0]
+        assert args[0] == "dQw4w9WgXcQ"
+        assert str(args[1]).startswith("/tmp/yt-transcript-")
+        assert not str(args[1]).startswith("/tmp/yt-transcript-VIDEOID")
 
     def test_invalid_video_id_returns_error(self) -> None:
         extractor = YouTubeExtractor()
-        result = extractor._fetch_transcript_sync("bad<id", "https://www.youtube.com/watch?v=bad<id")
+        result = extractor._fetch_transcript_sync(
+            "bad<id", "https://www.youtube.com/watch?v=bad<id"
+        )
         assert result["metadata"]["error"] == "invalid video id"
 
     def test_clean_subtitle_strips_formatting(self) -> None:
@@ -805,7 +843,7 @@ Hello world
 00:00:02.000 --> 00:00:04.000
 This is a test
 """
-        result = YouTubeExtractor._clean_subtitle(vtt_text)
+        result = transcript_fetcher._clean_subtitle(vtt_text)
         assert "WEBVTT" not in result
         assert "00:00:00.000" not in result
         assert "Hello world" in result

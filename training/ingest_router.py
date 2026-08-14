@@ -32,13 +32,11 @@ logged reason.
 from __future__ import annotations
 
 import asyncio
-import glob
 import hashlib
 import json
 import logging
 import re
 import shutil
-import subprocess
 import tempfile
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping, Sequence
@@ -59,6 +57,11 @@ from training.provenance import (
     build_provenance,
     validate_license,
 )
+
+try:
+    from training import transcript_fetcher
+except Exception:  # pragma: no cover - transcript_fetcher may be unavailable in minimal test env
+    transcript_fetcher = None  # type: ignore[assignment]
 
 logger = logging.getLogger("ingest_router")
 
@@ -110,9 +113,7 @@ class ManifestEntry:
                 if source.scheme != "file" or target.scheme != "file":
                     return False
                 sp = source.path.rstrip("/")
-                if target.path == sp or target.path.startswith(sp + "/"):
-                    return True
-                return False
+                return target.path == sp or target.path.startswith(sp + "/")
 
             source_host = (source.netloc or source.path).lower()
             target_host = target.netloc.lower()
@@ -125,7 +126,9 @@ class ManifestEntry:
 
             src_labels = source_host.split(".")
             tgt_labels = target_host.split(".")
-            return len(tgt_labels) > len(src_labels) and tgt_labels[-len(src_labels) :] == src_labels
+            return (
+                len(tgt_labels) > len(src_labels) and tgt_labels[-len(src_labels) :] == src_labels
+            )
         except Exception:
             return False
 
@@ -139,7 +142,9 @@ def load_source_manifest(manifest_path: Path | str) -> dict[str, ManifestEntry]:
 
     path = Path(manifest_path)
     if not path.exists():
-        logger.warning("Source manifest not found at %s — license gate defaults to NOASSERTION", path)
+        logger.warning(
+            "Source manifest not found at %s — license gate defaults to NOASSERTION", path
+        )
         return {}
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     entries: dict[str, ManifestEntry] = {}
@@ -163,10 +168,20 @@ def lookup_license(
     Falls back to ``NOASSERTION`` if no entry matches.
     """
 
+    entry = lookup_entry(source_url, manifest)
+    return entry.license_id if entry is not None else "NOASSERTION"
+
+
+def lookup_entry(
+    source_url: str,
+    manifest: Mapping[str, ManifestEntry],
+) -> ManifestEntry | None:
+    """Return the first manifest entry matching *source_url*, or None."""
+
     for entry in manifest.values():
         if entry.matches(source_url):
-            return entry.license_id
-    return "NOASSERTION"
+            return entry
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -245,16 +260,18 @@ class LicenseGate:
         self._manifest = manifest
         self._dropped = 0
 
-    def check(self, source_url: str) -> tuple[bool, str]:
-        """Return ``(ok, license_id)``.  When *ok* is False the record is dropped."""
-        license_id = lookup_license(source_url, self._manifest)
+    def check(self, source_url: str) -> tuple[bool, str, dict[str, Any]]:
+        """Return ``(ok, license_id, source_provenance)``.  When *ok* is False the record is dropped."""
+        entry = lookup_entry(source_url, self._manifest)
+        license_id = entry.license_id if entry is not None else "NOASSERTION"
+        provenance = dict(entry.provenance) if entry is not None else {}
         try:
             validated = validate_license(license_id)
-            return True, validated
+            return True, validated, provenance
         except ValueError as exc:
             self._dropped += 1
             logger.warning("License gate dropped record from %s: %s", source_url, exc)
-            return False, license_id
+            return False, license_id, provenance
 
     @property
     def dropped_count(self) -> int:
@@ -283,6 +300,7 @@ def build_record(
     raw_text: str,
     metadata: Mapping[str, Any] | None = None,
     license_id: str = "NOASSERTION",
+    source_provenance: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a fully-formed record with provenance for shard emission."""
 
@@ -292,6 +310,9 @@ def build_record(
         "fetch_ts": _utc_now_iso(),
         "lang": _detect_lang_hint(raw_text),
     }
+    if source_provenance:
+        meta["source_publisher"] = source_provenance.get("publisher")
+        meta["source_notes"] = source_provenance.get("notes")
     if metadata:
         caller_meta = dict(metadata)
         caller_meta.pop("license", None)
@@ -377,16 +398,18 @@ class WebExtractor:
 
     async def _check_robots(self, url: str, client: httpx.AsyncClient) -> bool:
         """Return True if *url* is allowed by robots.txt (cached, 24h TTL)."""
-        domain = self._domain(url)
+        parsed = urlparse(url)
+        domain = parsed.netloc.lower()
+        scheme = parsed.scheme.lower()
+        robots_key = f"{scheme}://{domain}"
         now = time.monotonic()
-        cached = self._robots_cache.get(domain)
+        cached = self._robots_cache.get(robots_key)
         if cached is not None:
             ts, rp = cached
             if now - ts < self._robots_ttl:
                 return rp.can_fetch(CRAWLER_USER_AGENT, url)
 
-        parsed = urlparse(url)
-        robots_url = f"{parsed.scheme}://{domain}/robots.txt"
+        robots_url = f"{robots_key}/robots.txt"
         rp = RobotFileParser()
         try:
             resp = await client.get(robots_url)
@@ -395,7 +418,7 @@ class WebExtractor:
         except httpx.HTTPError:
             pass  # be permissive on error
 
-        self._robots_cache[domain] = (now, rp)
+        self._robots_cache[robots_key] = (now, rp)
         return rp.can_fetch(CRAWLER_USER_AGENT, url)
 
     async def _enforce_rate_limit(self, domain: str) -> None:
@@ -684,10 +707,14 @@ class APIExtractor:
                     if attempt < len(delays) - 1:
                         await asyncio.sleep(delay)
                     continue
-                resp.raise_for_status()
+                if resp.status_code >= HTTPStatus.BAD_REQUEST:
+                    logger.warning(
+                        "API returned non-retryable %d for %s — skipping",
+                        resp.status_code,
+                        url,
+                    )
+                    return None
                 return resp
-            except httpx.HTTPStatusError:
-                raise
             except httpx.HTTPError as exc:
                 last_exc = exc
                 logger.warning(
@@ -700,7 +727,11 @@ class APIExtractor:
                 if attempt < len(delays) - 1:
                     await asyncio.sleep(delay)
         if last_retryable_status is not None:
-            logger.error("API request exhausted retries for %s (last retryable status %d)", url, last_retryable_status)
+            logger.error(
+                "API request exhausted retries for %s (last retryable status %d)",
+                url,
+                last_retryable_status,
+            )
         elif last_exc is not None:
             logger.error("API request exhausted retries for %s: %s", url, last_exc)
         return None
@@ -746,7 +777,11 @@ class APIExtractor:
                     "metadata": {
                         "api_item_id": str(item_id),
                         "api_page": page,
-                        **{k: v for k, v in item.items() if k not in (self._config.text_field, "id")},
+                        **{
+                            k: v
+                            for k, v in item.items()
+                            if k not in (self._config.text_field, "id")
+                        },
                     },
                     "id_override": str(item_id),
                 }
@@ -776,11 +811,11 @@ class APIExtractor:
 
 
 class YouTubeExtractor:
-    """Fetches YouTube video transcripts via ``yt-dlp`` subprocess.
+    """Fetches YouTube video transcripts via ``training.transcript_fetcher``.
 
-    Extracts transcript text from auto-generated or manual subtitles,
-    cleans subtitle formatting, and fetches video duration metadata.
-    Temp directories and subtitle files are cleaned up after each fetch.
+    Delegates subtitle download and cleaning to the shared transcript fetcher
+    so ingest logic does not duplicate yt-dlp handling.  Video duration is fetched
+    via the same shared fetcher for consistency.
     """
 
     def __init__(self, *, yt_dlp_timeout: int = 60) -> None:
@@ -802,7 +837,6 @@ class YouTubeExtractor:
         """Fetch transcript for a single YouTube video URL."""
         video_id = self._extract_video_id(source_url)
 
-        # Run yt-dlp in a thread to avoid blocking the event loop
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(
             None,
@@ -811,8 +845,33 @@ class YouTubeExtractor:
             source_url,
         )
 
+    def _fetch_duration(self, video_id: str) -> int:
+        """Return video duration in seconds, or 0 on failure."""
+
+        if transcript_fetcher is None:
+            return 0
+        try:
+            metadata = transcript_fetcher._fetch_video_metadata(
+                f"https://www.youtube.com/watch?v={video_id}"
+            )
+            return int(metadata.get("duration", 0))
+        except Exception:  # pragma: no cover - yt-dlp availability varies in tests
+            return 0
+
     def _fetch_transcript_sync(self, video_id: str, source_url: str) -> dict[str, Any]:
-        """Fetch transcript using yt-dlp subprocess (blocking)."""
+        """Fetch transcript using ``training.transcript_fetcher.fetch_transcript``."""
+
+        if transcript_fetcher is None:
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {
+                    "video_id": video_id,
+                    "duration": 0,
+                    "error": "transcript_fetcher unavailable",
+                },
+            }
+
         if not re.fullmatch(r"[A-Za-z0-9_-]{10,12}", video_id):
             logger.warning("Refusing to fetch transcript for invalid video id %r", video_id)
             return {
@@ -821,114 +880,44 @@ class YouTubeExtractor:
                 "metadata": {"video_id": video_id, "duration": 0, "error": "invalid video id"},
             }
 
-        # Use a unique temp directory to avoid collisions across concurrent runs
         tmpdir = tempfile.mkdtemp(prefix="yt-transcript-")
         try:
-            output_prefix = Path(tmpdir) / video_id
-
-            cmd = [
-                "yt-dlp",
-                "--write-auto-sub",
-                "--sub-lang",
-                "en,en-US,en-GB,de,de-DE",
-                "--skip-download",
-                "--output",
-                str(output_prefix),
-                "--user-agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "--sleep-interval",
-                "1",
-                "--max-sleep-interval",
-                "5",
-                f"https://www.youtube.com/watch?v={video_id}",
-            ]
-
-            try:
-                subprocess.run(cmd, capture_output=True, text=True, timeout=self._timeout, check=False)
-            except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
-                logger.warning("yt-dlp failed for %s: %s", video_id, exc)
-                return {
-                    "source_url": source_url,
-                    "raw_text": "",
-                    "metadata": {"video_id": video_id, "duration": 0, "error": str(exc)},
-                }
-
-            # Find the generated subtitle file
-            patterns = [
-                f"{output_prefix}*.vtt",
-                f"{output_prefix}*.srt",
-                f"{output_prefix}*.srv3",
-                f"{output_prefix}*.srv2",
-                f"{output_prefix}*.srv1",
-            ]
-            subtitle_path: str | None = None
-            for pat in patterns:
-                files = glob.glob(pat)
-                if files:
-                    subtitle_path = files[0]
-                    break
-
-            if subtitle_path is None:
+            output_path = Path(tmpdir) / f"{video_id}.txt"
+            ok = transcript_fetcher.fetch_transcript(
+                video_id,
+                output_path,
+                language_priority=["en", "en-US", "en-GB", "de", "de-DE"],
+            )
+            if not ok:
                 logger.warning("No transcript found for video %s", video_id)
                 return {
                     "source_url": source_url,
                     "raw_text": "",
-                    "metadata": {"video_id": video_id, "duration": 0, "error": "no transcript found"},
+                    "metadata": {
+                        "video_id": video_id,
+                        "duration": 0,
+                        "error": "no transcript found",
+                    },
                 }
 
-            raw_text = self._clean_subtitle(Path(subtitle_path).read_text(encoding="utf-8", errors="replace"))
-
-            duration = 0
-            try:
-                result = subprocess.run(
-                    [
-                        "yt-dlp",
-                        "--dump-json",
-                        "--skip-download",
-                        f"https://www.youtube.com/watch?v={video_id}",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=self._timeout,
-                    check=False,
-                )
-                if result.returncode == 0 and result.stdout.strip():
-                    info = json.loads(result.stdout.strip().splitlines()[0])
-                    try:
-                        duration = int(info.get("duration", 0))
-                    except (TypeError, ValueError):
-                        duration = 0
-            except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
-                pass
-
+            raw_text = transcript_fetcher._clean_subtitle(
+                output_path.read_text(encoding="utf-8", errors="replace")
+            )
+            duration = self._fetch_duration(video_id)
             return {
                 "source_url": source_url,
                 "raw_text": raw_text,
                 "metadata": {"video_id": video_id, "duration": duration},
             }
+        except Exception as exc:
+            logger.warning("YouTube transcript extraction failed for %s: %s", video_id, exc)
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"video_id": video_id, "duration": 0, "error": str(exc)},
+            }
         finally:
-            try:
-                output_prefix = Path(tmpdir) / video_id
-                for _f in glob.glob(f"{output_prefix}*"):
-                    try:
-                        Path(_f).unlink(missing_ok=True)
-                    except OSError:
-                        logger.warning("Failed to clean up subtitle file %s", _f)
-                shutil.rmtree(tmpdir, ignore_errors=True)
-            except OSError:
-                logger.warning("Failed to clean up transcript files for %s", video_id)
-
-    @staticmethod
-    def _clean_subtitle(text: str) -> str:
-        """Strip subtitle formatting (timestamps, HTML tags) and return plain text."""
-        # Remove VTT/SRT headers and timestamps
-        text = re.sub(r"WEBVTT.*?\n\n", "", text, flags=re.DOTALL)
-        text = re.sub(r"\d{2}:\d{2}:\d{2}[.,]\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}[.,]\d{3}", "", text)
-        text = re.sub(r"<[^>]+>", "", text)  # HTML tags
-        text = re.sub(r"^\d+\s*$", "", text, flags=re.MULTILINE)  # subtitle indices
-        # Collapse whitespace
-        lines = [line.strip() for line in text.splitlines() if line.strip()]
-        return " ".join(lines)
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
     async def close(self) -> None:
         pass  # no persistent resources
@@ -989,7 +978,9 @@ class IngestRouter:
     def _get_shard_writer(self, source_type: str) -> ShardWriter:
         if source_type not in self._shard_writers:
             output_dir = self._raw_output_dir / source_type
-            self._shard_writers[source_type] = ShardWriter(output_dir, source_type, self._shard_size)
+            self._shard_writers[source_type] = ShardWriter(
+                output_dir, source_type, self._shard_size
+            )
         return self._shard_writers[source_type]
 
     async def _emit(
@@ -1001,7 +992,7 @@ class IngestRouter:
         record_id_override: str | None = None,
     ) -> bool:
         """Run the license gate and write a record. Returns True if emitted."""
-        ok, license_id = self._license_gate.check(source_url)
+        ok, license_id, source_provenance = self._license_gate.check(source_url)
         if not ok:
             return False
 
@@ -1011,6 +1002,7 @@ class IngestRouter:
             raw_text=raw_text,
             metadata=metadata,
             license_id=license_id,
+            source_provenance=source_provenance,
         )
         if record_id_override is not None:
             record["id"] = record_id_override
@@ -1021,26 +1013,24 @@ class IngestRouter:
 
     async def _process_web(self, source_url: str) -> int:
         """Process a single web URL. Returns 1 if emitted, 0 if dropped."""
-        ok, license_id = self._license_gate.check(source_url)
-        if not ok:
-            return 0
         result = await self._web_extractor.extract(source_url)
         if not result.get("raw_text"):
             logger.info("No text extracted from web URL %s — skipping", source_url)
             return 0
-        emitted = await self._emit("web", result["source_url"], result["raw_text"], result.get("metadata"))
+        emitted = await self._emit(
+            "web", result["source_url"], result["raw_text"], result.get("metadata")
+        )
         return 1 if emitted else 0
 
     async def _process_document(self, source_ref: str) -> int:
         """Process a single document path. Returns 1 if emitted, 0 if dropped."""
-        ok, _ = self._license_gate.check(source_ref)
-        if not ok:
-            return 0
         result = await self._document_extractor.extract(source_ref)
         if not result.get("raw_text"):
             logger.info("No text extracted from document %s — skipping", source_ref)
             return 0
-        emitted = await self._emit("document", result["source_url"], result["raw_text"], result.get("metadata"))
+        emitted = await self._emit(
+            "document", result["source_url"], result["raw_text"], result.get("metadata")
+        )
         return 1 if emitted else 0
 
     async def _process_api(self, source_url: str) -> int:
@@ -1053,21 +1043,22 @@ class IngestRouter:
             if not item.get("raw_text"):
                 continue
             record_id = item.pop("id_override", None)
-            emitted = await self._emit("api", item["source_url"], item["raw_text"], item.get("metadata"), record_id)
+            emitted = await self._emit(
+                "api", item["source_url"], item["raw_text"], item.get("metadata"), record_id
+            )
             if emitted:
                 count += 1
         return count
 
     async def _process_youtube(self, source_url: str) -> int:
         """Process a single YouTube URL. Returns 1 if emitted, 0 if dropped."""
-        ok, _ = self._license_gate.check(source_url)
-        if not ok:
-            return 0
         result = await self._youtube_extractor.extract(source_url)
         if not result.get("raw_text"):
             logger.info("No transcript for YouTube video %s — skipping", source_url)
             return 0
-        emitted = await self._emit("youtube", result["source_url"], result["raw_text"], result.get("metadata"))
+        emitted = await self._emit(
+            "youtube", result["source_url"], result["raw_text"], result.get("metadata")
+        )
         return 1 if emitted else 0
 
     async def ingest(self, sources: Sequence[Mapping[str, str]]) -> dict[str, int]:
@@ -1144,8 +1135,12 @@ def main() -> None:  # pragma: no cover
     import argparse
 
     parser = argparse.ArgumentParser(description="Ingest router — Stage 0 of the curation pipeline")
-    parser.add_argument("--manifest", default=DEFAULT_MANIFEST_PATH, help="Path to source manifest YAML")
-    parser.add_argument("--output-dir", default=str(DEFAULT_RAW_OUTPUT_DIR), help="Raw output directory")
+    parser.add_argument(
+        "--manifest", default=DEFAULT_MANIFEST_PATH, help="Path to source manifest YAML"
+    )
+    parser.add_argument(
+        "--output-dir", default=str(DEFAULT_RAW_OUTPUT_DIR), help="Raw output directory"
+    )
     parser.add_argument("--shard-size", type=int, default=SHARD_SIZE, help="Records per shard")
     parser.add_argument("--sources-file", help="JSON file with list of source dicts")
     parser.add_argument(
@@ -1156,7 +1151,9 @@ def main() -> None:  # pragma: no cover
     parser.add_argument("--source-url", help="Source URL (used with --source-type)")
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+    )
 
     if args.sources_file:
         sources = json.loads(Path(args.sources_file).read_text(encoding="utf-8"))
