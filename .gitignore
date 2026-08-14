@@ -181,7 +181,11 @@ training/*
 training/tests/*
 !training/tests/test_pal_persona_consistency_eval.py
 !training/tests/test_clinical_validity_judge_async.py
-!training/tests/test_stage1_filters.py
+!training/tests/test_llm_quality_judge.py
+# Track golden calibration data for LLM quality judge
+training/data/*
+!training/data/golden_judge_calib.jsonl
+# Override global *.jsonl ignore for golden calibration data
 # But ignore built corpus data and assets
 docs/training/ENV_QUICKSTART.md
 docs/training/HERMES_RL_SETUP.md
@@ -200,4 +204,5 @@ data/annotation_queue.db
 ai/
 whitebat/
 
+# === OMC harness session-state ===
 .omc/
