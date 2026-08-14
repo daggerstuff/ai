@@ -17,11 +17,11 @@ sources:
       notes: "Wikipedia articles — CC BY-SA 4.0 licensed"
 
   - url: "https://www.gutenberg.org"
-    license: "CC0-1.0"
+    license: "NOASSERTION"
     source_type: "web"
     provenance:
       publisher: "Project Gutenberg"
-      notes: "Public domain literary texts"
+      notes: "Public domain literary texts (US) — license varies per text"
 
   # --- Document sources ---
   - url: "https://arxiv.org"

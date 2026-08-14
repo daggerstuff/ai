@@ -69,6 +69,7 @@ logger = logging.getLogger("ingest_router")
 SHARD_SIZE = 50_000
 ROBOTS_CACHE_TTL_SECONDS = 24 * 3600  # 24 hours
 WEB_RATE_LIMIT_SECONDS = 2.0  # 1 request per 2 seconds per domain
+CRAWLER_USER_AGENT = "PixelatedAI-IngestRouter/1.0"
 
 # Reuse NEMO_RETRY_DELAYS from the repo if available; otherwise use the default
 # specified in the task brief.
@@ -111,6 +112,7 @@ class ManifestEntry:
                 sp = source.path.rstrip("/")
                 if target.path == sp or target.path.startswith(sp + "/"):
                     return True
+                return False
 
             source_host = (source.netloc or source.path).lower()
             target_host = target.netloc.lower()
@@ -145,7 +147,7 @@ def load_source_manifest(manifest_path: Path | str) -> dict[str, ManifestEntry]:
         key = item["url"]
         entries[key] = ManifestEntry(
             url_or_domain=key,
-            license_id=item.get("license", "NOASSERTION"),
+            license_id=item.get("license_id", item.get("license", "NOASSERTION")),
             source_type=item.get("source_type", "web"),
             provenance=item.get("provenance", {}),
         )
@@ -270,7 +272,7 @@ def _utc_now_iso() -> str:
 
 def _record_id(source_url: str, raw_text: str) -> str:
     """Deterministic record ID from source URL + content hash."""
-    digest = hashlib.sha256(f"{source_url}:{raw_text[:512]}".encode()).hexdigest()
+    digest = hashlib.sha256(f"{source_url}:{raw_text}".encode()).hexdigest()
     return digest[:16]
 
 
@@ -291,7 +293,10 @@ def build_record(
         "lang": _detect_lang_hint(raw_text),
     }
     if metadata:
-        meta.update(metadata)
+        caller_meta = dict(metadata)
+        caller_meta.pop("license", None)
+        caller_meta.pop("fetch_ts", None)
+        meta.update(caller_meta)
 
     provenance = build_provenance(
         source_url,
@@ -378,9 +383,10 @@ class WebExtractor:
         if cached is not None:
             ts, rp = cached
             if now - ts < self._robots_ttl:
-                return rp.can_fetch("*", url)
+                return rp.can_fetch(CRAWLER_USER_AGENT, url)
 
-        robots_url = f"https://{domain}/robots.txt"
+        parsed = urlparse(url)
+        robots_url = f"{parsed.scheme}://{domain}/robots.txt"
         rp = RobotFileParser()
         try:
             resp = await client.get(robots_url)
@@ -390,7 +396,7 @@ class WebExtractor:
             pass  # be permissive on error
 
         self._robots_cache[domain] = (now, rp)
-        return rp.can_fetch("*", url)
+        return rp.can_fetch(CRAWLER_USER_AGENT, url)
 
     async def _enforce_rate_limit(self, domain: str) -> None:
         lock = self._get_domain_lock(domain)
@@ -418,7 +424,7 @@ class WebExtractor:
         await self._enforce_rate_limit(domain)
 
         try:
-            resp = await client.get(source_url, headers={"User-Agent": "PixelatedAI-IngestRouter/1.0"})
+            resp = await client.get(source_url, headers={"User-Agent": CRAWLER_USER_AGENT})
             status = resp.status_code
             html = resp.text
         except httpx.HTTPError as exc:
@@ -436,12 +442,10 @@ class WebExtractor:
                 "metadata": {"fetch_status": status, "error": "http_error"},
             }
 
-        # Extract title with selectolax
         tree = HTMLParser(html)
         title_node = tree.css_first("title")
         html_title = title_node.text(strip=True) if title_node else ""
 
-        # Extract main content with trafilatura
         raw_text = self._trafilatura_extract(html)
 
         return {
@@ -479,6 +483,7 @@ class DocumentExtractor:
     """Extracts text from PDF, DOCX, and HTML files.
 
     - PDF: delegates to the existing ``book_pdf_converter.py`` pattern.
+    - EPUB: delegates to the existing ``book_pdf_converter._extract_epub``.
     - DOCX: uses ``python-docx`` to extract paragraphs + tables as markdown.
     - HTML: reuses the web extractor's trafilatura path.
     """
@@ -493,6 +498,8 @@ class DocumentExtractor:
 
         if suffix in {".pdf"}:
             return self._extract_pdf(path)
+        if suffix in {".epub"}:
+            return self._extract_epub(path)
         if suffix in {".docx"}:
             return self._extract_docx(path)
         if suffix in {".html", ".htm"}:
@@ -516,6 +523,25 @@ class DocumentExtractor:
             "source_url": path.resolve().as_uri(),
             "raw_text": raw_text,
             "metadata": {"format": "pdf"},
+        }
+
+    def _extract_epub(self, path: Path) -> dict[str, Any]:
+        """Extract text from EPUB via ``book_pdf_converter._extract_epub``."""
+        try:
+            from training.book_pdf_converter import _extract_epub as converter_extract
+        except ImportError:
+            logger.error("book_pdf_converter not available — cannot extract EPUB")
+            return {
+                "source_url": path.resolve().as_uri(),
+                "raw_text": "",
+                "metadata": {"format": "epub", "error": "book_pdf_converter unavailable"},
+            }
+
+        raw_text = converter_extract(path) or ""
+        return {
+            "source_url": path.resolve().as_uri(),
+            "raw_text": raw_text,
+            "metadata": {"format": "epub"},
         }
 
     def _extract_docx(self, path: Path) -> dict[str, Any]:
@@ -709,7 +735,10 @@ class APIExtractor:
                 break
 
             for item in items:
-                raw_text = str(item.get(self._config.text_field, ""))
+                raw_text = item.get(self._config.text_field)
+                if raw_text is None:
+                    continue
+                raw_text = str(raw_text)
                 item_id = item.get("id", _record_id(source_url, raw_text))
                 yield {
                     "source_url": source_url,
@@ -747,10 +776,11 @@ class APIExtractor:
 
 
 class YouTubeExtractor:
-    """Fetches YouTube video transcripts via ``yt-dlp``.
+    """Fetches YouTube video transcripts via ``yt-dlp`` subprocess.
 
-    Delegates to the existing ``transcript_fetcher.py`` pattern where possible;
-    otherwise implements a thin ``yt-dlp`` wrapper that fetches transcript text.
+    Extracts transcript text from auto-generated or manual subtitles,
+    cleans subtitle formatting, and fetches video duration metadata.
+    Temp directories and subtitle files are cleaned up after each fetch.
     """
 
     def __init__(self, *, yt_dlp_timeout: int = 60) -> None:
@@ -991,6 +1021,9 @@ class IngestRouter:
 
     async def _process_web(self, source_url: str) -> int:
         """Process a single web URL. Returns 1 if emitted, 0 if dropped."""
+        ok, license_id = self._license_gate.check(source_url)
+        if not ok:
+            return 0
         result = await self._web_extractor.extract(source_url)
         if not result.get("raw_text"):
             logger.info("No text extracted from web URL %s — skipping", source_url)
@@ -1000,6 +1033,9 @@ class IngestRouter:
 
     async def _process_document(self, source_ref: str) -> int:
         """Process a single document path. Returns 1 if emitted, 0 if dropped."""
+        ok, _ = self._license_gate.check(source_ref)
+        if not ok:
+            return 0
         result = await self._document_extractor.extract(source_ref)
         if not result.get("raw_text"):
             logger.info("No text extracted from document %s — skipping", source_ref)
@@ -1024,6 +1060,9 @@ class IngestRouter:
 
     async def _process_youtube(self, source_url: str) -> int:
         """Process a single YouTube URL. Returns 1 if emitted, 0 if dropped."""
+        ok, _ = self._license_gate.check(source_url)
+        if not ok:
+            return 0
         result = await self._youtube_extractor.extract(source_url)
         if not result.get("raw_text"):
             logger.info("No transcript for YouTube video %s — skipping", source_url)
@@ -1109,14 +1148,22 @@ def main() -> None:  # pragma: no cover
     parser.add_argument("--output-dir", default=str(DEFAULT_RAW_OUTPUT_DIR), help="Raw output directory")
     parser.add_argument("--shard-size", type=int, default=SHARD_SIZE, help="Records per shard")
     parser.add_argument("--sources-file", help="JSON file with list of source dicts")
+    parser.add_argument(
+        "--source-type",
+        choices=["web", "document", "api", "youtube"],
+        help="Process a single source URL of the given type",
+    )
+    parser.add_argument("--source-url", help="Source URL (used with --source-type)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
     if args.sources_file:
         sources = json.loads(Path(args.sources_file).read_text(encoding="utf-8"))
+    elif args.source_type and args.source_url:
+        sources = [{"source_type": args.source_type, "source_url": args.source_url}]
     else:
-        parser.error("--sources-file is required")
+        parser.error("either --sources-file or both --source-type and --source-url are required")
 
     router = IngestRouter(
         manifest_path=args.manifest,
