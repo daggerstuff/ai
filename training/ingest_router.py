@@ -196,16 +196,28 @@ class ShardWriter:
         self._output_dir = output_dir
         self._source_type = source_type
         self._shard_size = shard_size
+        self._records_in_shard = 0
+        self._fh: IO[str] | None = None
+        self._total_written = 0
+
         existing = list(output_dir.glob("shard-*.jsonl")) if output_dir.exists() else []
         max_index = 0
         for p in existing:
             match = re.search(r"shard-(\d{5})\.jsonl$", p.name)
             if match:
                 max_index = max(max_index, int(match.group(1)))
+
         self._shard_index = max_index
-        self._records_in_shard = 0
-        self._fh: IO[str] | None = None
-        self._total_written = 0
+        last_shard = output_dir / f"shard-{max_index:05d}.jsonl" if max_index else None
+        if last_shard is not None and last_shard.exists():
+            with last_shard.open("r", encoding="utf-8") as fh:
+                count = sum(1 for _ in fh)
+            if count < shard_size:
+                self._records_in_shard = count
+                self._total_written = count
+                self._fh = open(last_shard, "a", encoding="utf-8")
+            else:
+                self._records_in_shard = shard_size
 
     def _shard_path(self) -> Path:
         return self._output_dir / f"shard-{self._shard_index:05d}.jsonl"
@@ -310,14 +322,14 @@ def build_record(
         "fetch_ts": _utc_now_iso(),
         "lang": _detect_lang_hint(raw_text),
     }
-    if source_provenance:
-        meta["source_publisher"] = source_provenance.get("publisher")
-        meta["source_notes"] = source_provenance.get("notes")
     if metadata:
         caller_meta = dict(metadata)
         caller_meta.pop("license", None)
         caller_meta.pop("fetch_ts", None)
         meta.update(caller_meta)
+    if source_provenance:
+        meta["source_publisher"] = source_provenance.get("publisher")
+        meta["source_notes"] = source_provenance.get("notes")
 
     provenance = build_provenance(
         source_url,
@@ -838,12 +850,21 @@ class YouTubeExtractor:
         video_id = self._extract_video_id(source_url)
 
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
+        fut = loop.run_in_executor(
             None,
             self._fetch_transcript_sync,
             video_id,
             source_url,
         )
+        try:
+            return await asyncio.wait_for(fut, timeout=self._timeout)
+        except TimeoutError:
+            logger.warning("YouTube transcript extraction timed out for %s", video_id)
+            return {
+                "source_url": source_url,
+                "raw_text": "",
+                "metadata": {"video_id": video_id, "duration": 0, "error": "timeout"},
+            }
 
     def _fetch_duration(self, video_id: str) -> int:
         """Return video duration in seconds, or 0 on failure."""
@@ -887,6 +908,7 @@ class YouTubeExtractor:
                 video_id,
                 output_path,
                 language_priority=["en", "en-US", "en-GB", "de", "de-DE"],
+                timeout=self._timeout,
             )
             if not ok:
                 logger.warning("No transcript found for video %s", video_id)
