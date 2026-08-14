@@ -40,12 +40,16 @@ def _provider_for_driver(driver: str) -> str:
 
 class LLMDriver(abc.ABC):
     @abc.abstractmethod
-    def generate(self, prompt: str, system_prompt: str | None = None) -> str:
+    def generate(self, prompt: str, system_prompt: str | None = None, **kwargs) -> str:
         pass
 
     @abc.abstractmethod
     def generate_structured(
-        self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        system_prompt: str | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         pass
 
@@ -56,12 +60,16 @@ class MockDriver(LLMDriver):
     Returns deterministic or random responses.
     """
 
-    def generate(self, prompt: str, system_prompt: str | None = None) -> str:
+    def generate(self, prompt: str, system_prompt: str | None = None, **kwargs) -> str:
         logger.info(f"MOCK GENERATE: {prompt[:50]}... (System: {bool(system_prompt)})")
         return "This is a simulated LLM response for testing purposes."
 
     def generate_structured(
-        self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        system_prompt: str | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         logger.info(
             f"MOCK GENERATE STRUCTURED: {prompt[:50]}... "
@@ -76,29 +84,33 @@ class OpenAIDriver(LLMDriver):
     OpenAI-compatible Driver (works with Nvidia NIM, Gemini, vLLM).
     """
 
-    def __init__(self):
+    def __init__(self, model: str | None = None):
 
         # Load config from env or defaults
         self.api_key = os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
         self.base_url = os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
-        self.model = os.environ.get("LLM_MODEL", "meta/llama-3.1-405b-instruct")
+        self.model = model or os.environ.get("LLM_MODEL", "meta/llama-3.1-405b-instruct")
 
         if not self.api_key:
             logger.warning("No LLM_API_KEY found. OpenAIDriver may fail.")
 
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
-    def generate(self, prompt: str, system_prompt: str | None = None, max_tokens: int = 8192) -> str:
+    def generate(self, prompt: str, system_prompt: str | None = None, max_tokens: int = 8192, **kwargs) -> str:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
 
+        temp = kwargs.pop("temperature", None)
+        if temp is None:
+            temp = 0.7
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                temperature=0.7,
+                temperature=temp,
                 max_tokens=max_tokens,
             )
             return response.choices[0].message.content or ""
@@ -107,7 +119,11 @@ class OpenAIDriver(LLMDriver):
             return f"[ERROR: {e!s}]"
 
     def generate_structured(
-        self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        system_prompt: str | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         """
         Generate structured JSON output.
@@ -119,10 +135,8 @@ class OpenAIDriver(LLMDriver):
         full_prompt = prompt + schema_prompt
 
         try:
-            # Force JSON format if supported (Nvidia/OpenAI usually support
-            #   response_format={"type": "json_object"})
-            # But for broad compatibility, we just ask for it in the prompt.
-            content = self.generate(full_prompt, system_prompt)
+            kwargs.setdefault("max_tokens", 8192)
+            content = self.generate(full_prompt, system_prompt, **kwargs)
 
             # Simple cleanup for markdown code blocks
             content = content.replace("```json", "").replace("```", "").strip()
@@ -145,18 +159,19 @@ class FireworksDriver(OpenAIDriver):
     _DEFAULT_BASE_URL = "https://api.fireworks.ai/inference/v1"
     _DEFAULT_MODEL = "accounts/fireworks/models/llama-v3p1-8b-instruct"
 
-    def __init__(self):
+    def __init__(self, model: str | None = None):
         self.api_key = os.environ.get(
             "FIREWORKS_API_KEY", os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
         )
         self.base_url = os.environ.get("FIREWORKS_BASE_URL", self._DEFAULT_BASE_URL)
-        model = os.environ.get("FIREWORKS_MODEL") or os.environ.get("LLM_MODEL", self._DEFAULT_MODEL)
+        env_model = os.environ.get("FIREWORKS_MODEL") or os.environ.get("LLM_MODEL", self._DEFAULT_MODEL)
+        resolved = model or env_model
         # Strip the accounts/fireworks/models/ prefix when callers pass
         # a fully-qualified Fireworks name (cubic #1).
         prefix = "accounts/fireworks/models/"
-        if model.startswith(prefix):
-            model = model[len(prefix) :]
-        self.model = model
+        if resolved.startswith(prefix):
+            resolved = resolved[len(prefix) :]
+        self.model = resolved
         if not self.api_key:
             logger.warning("No FIREWORKS_API_KEY found. FireworksDriver may fail.")
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
@@ -181,10 +196,12 @@ class LLMClient:
         driver: str = "mock",
         config: dict | None = None,
         rate_limiter: TierAwareRateLimiter | None = None,
+        model: str | None = None,
     ):
         self.config = config or {}
         self.driver_name = driver.lower()
-        self.driver = self._build_driver(self.driver_name)
+        self.model = model
+        self.driver = self._build_driver(self.driver_name, model)
         self.rate_limiter = rate_limiter or default_rate_limiter()
         # Derive provider from the ACTUAL driver class so an unknown name
         # that fell back to MockDriver is never counted as a real provider
@@ -192,13 +209,13 @@ class LLMClient:
         self.provider = _provider_for_driver(type(self.driver).__name__.lower())
         self._resolved_model = getattr(self.driver, "model", "default")
 
-    def _build_driver(self, name: str) -> LLMDriver:
+    def _build_driver(self, name: str, model: str | None = None) -> LLMDriver:
         if name == "mock":
             return MockDriver()
         if name == PROVIDER_FIREWORKS:
-            return FireworksDriver()
+            return FireworksDriver(model=model)
         if name in ("openai", "nvidia", "nim"):
-            return OpenAIDriver()
+            return OpenAIDriver(model=model)
         return MockDriver()
 
     def _estimated_tokens(self, prompt: str, system_prompt: str | None, kwargs: dict) -> int:
@@ -233,7 +250,11 @@ class LLMClient:
         return self.driver.generate(prompt, system_prompt, **kwargs)
 
     def generate_structured(
-        self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        system_prompt: str | None = None,
+        **kwargs,
     ) -> dict[str, Any]:
         if self.provider not in ("mock",):
             base_estimate = self._estimated_tokens(prompt, system_prompt, {})
@@ -253,4 +274,4 @@ class LLMClient:
                     self._resolved_model,
                 )
                 return {}
-        return self.driver.generate_structured(prompt, schema, system_prompt)
+        return self.driver.generate_structured(prompt, schema, system_prompt, **kwargs)
