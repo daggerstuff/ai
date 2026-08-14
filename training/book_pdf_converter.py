@@ -89,7 +89,9 @@ def _retry_request(
             if attempt == max_retries:
                 raise
             delay = base_delay * 2 ** (attempt - 1)
-            logger.warning(f"  {C_YELLOW}Attempt {attempt}/{max_retries} failed: {e}. Retrying in {delay}s...{C_RESET}")
+            logger.warning(
+                f"  {C_YELLOW}Attempt {attempt}/{max_retries} failed: {e}. Retrying in {delay}s...{C_RESET}"
+            )
             time.sleep(delay)
         except RuntimeError as e:
             if "429" in str(e):
@@ -175,7 +177,9 @@ def query_llm(system_prompt: str, user_content: str) -> str:
 
     if NVIDIA_API_KEY:
         model_id = os.environ.get("NVIDIA_MODEL_ID", "mistralai/mistral-small-4-119b-2603")
-        nim_response = _try_provider("NIM", lambda: _call_nim(system_prompt, user_content, model_id), use_retry=True)
+        nim_response = _try_provider(
+            "NIM", lambda: _call_nim(system_prompt, user_content, model_id), use_retry=True
+        )
         if nim_response:
             return nim_response
 
@@ -222,14 +226,16 @@ def _extract_azw(path: Path) -> str | None:
     """Extract text from AZW3/MOBI via temporary conversion to EPUB."""
     if mobi is None:
         raise ImportError("mobi is required for AZW3/MOBI extraction but is not installed")
+    tmpdir = None
     try:
         tmpdir, epub_path = mobi.extract(str(path))  # type: ignore[union-attr]
-        result = _extract_epub(Path(epub_path))
-        shutil.rmtree(tmpdir, ignore_errors=True)
-        return result
+        return _extract_epub(Path(epub_path))
     except Exception as exc:
         logger.warning("Failed to extract AZW %s: %s", path, exc)
         return None
+    finally:
+        if tmpdir is not None:
+            shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 def _extract_text(path: Path) -> str | None:
@@ -247,6 +253,9 @@ def _extract_text(path: Path) -> str | None:
         if extractor is not None:
             return extractor(path)
         logger.warning("Unsupported format: %s", path)
+    except ImportError as exc:
+        logger.warning("AZW/MOBI extraction unavailable for %s: %s", path, exc)
+        return None
     except Exception:
         # Fallback: try reading as plain text (some "PDFs" are actually text files)
         try:
@@ -285,11 +294,15 @@ def _append_yaml_pairs(raw_line: str, pairs: list[dict[str, str]]) -> None:
     elif isinstance(data, list):
         for item in data:
             if isinstance(item, dict) and "instruction" in item and "output" in item:
-                pairs.append({"instruction": str(item["instruction"]), "output": str(item["output"])})
+                pairs.append(
+                    {"instruction": str(item["instruction"]), "output": str(item["output"])}
+                )
 
 
 def _parse_inline_instruction_output(raw_line: str) -> dict[str, str] | None:
-    inst_match = re.search(r"instruction:\s*([^,]+?)(?:\s*,\s*\"?output\"?\s*:|$)", raw_line, re.IGNORECASE)
+    inst_match = re.search(
+        r"instruction:\s*([^,]+?)(?:\s*,\s*\"?output\"?\s*:|$)", raw_line, re.IGNORECASE
+    )
     out_match = re.search(r"output:\s*(.+)$", raw_line, re.IGNORECASE)
     if inst_match and out_match:
         instruction = inst_match.group(1).strip().strip("\"'")
@@ -300,7 +313,9 @@ def _parse_inline_instruction_output(raw_line: str) -> dict[str, str] | None:
 
 
 def _parse_numbered_instruction_output(raw_line: str) -> dict[str, str] | None:
-    inst_match = re.search(r"instruction:\s*(.+?)(?:output:|$)", raw_line, re.DOTALL | re.IGNORECASE)
+    inst_match = re.search(
+        r"instruction:\s*(.+?)(?:output:|$)", raw_line, re.DOTALL | re.IGNORECASE
+    )
     out_match = re.search(r"output:\s*(.+)$", raw_line, re.DOTALL | re.IGNORECASE)
     if inst_match and out_match:
         instruction = inst_match.group(1).strip()
@@ -630,14 +645,18 @@ def run_conversion(args: argparse.Namespace) -> None:
             )
             continue
 
-        result = convert_book(book_file, output_dir, max_chunks=args.max_chunks, use_llm=args.use_llm)
+        result = convert_book(
+            book_file, output_dir, max_chunks=args.max_chunks, use_llm=args.use_llm
+        )
         results.append(result)
 
         if result["status"] == "converted":
             total_pairs += result["pairs"]
             logger.info(f"{C_GREEN}Converted {result['title']}: {result['pairs']} pairs.{C_RESET}")
         else:
-            logger.warning(f"{C_RED}Failed/Skipped {book_file.name}: {result.get('reason', 'unknown')}{C_RESET}")
+            logger.warning(
+                f"{C_RED}Failed/Skipped {book_file.name}: {result.get('reason', 'unknown')}{C_RESET}"
+            )
 
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
