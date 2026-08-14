@@ -1,0 +1,34 @@
+training/tests/test_stage1_filters.py
+  s_e48b09ab646938::t_e99a2602e3fa3b 5-7,10-11,19-20,86-88,136-138
+  s_992233a7668668::t_56db158b6df17d 1-4,8-9,12-18,21-85,89-135,139-335
+.gitignore
+  s_992233a7668668::t_56db158b6df17d 184
+training/clinical_validity_judge.py
+  s_992233a7668668::t_56db158b6df17d 147-148,150-167,236-239,245-247,331-333,335-337,347-350
+pyproject.toml
+  s_992233a7668668::t_56db158b6df17d 95-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "31eae3be9c672d1592ef2baa49fe6699a6a1a531",
+  "prompts": {},
+  "sessions": {
+    "s_992233a7668668": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6da6755e-7c7e-4795-b313-ac28273fda83",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_e48b09ab646938": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a5437650-db0e-4416-8ce7-1d3b1759f768",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
