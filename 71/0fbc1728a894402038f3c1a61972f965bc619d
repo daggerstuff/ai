@@ -1,0 +1,23 @@
+training/curate_pipeline.py
+  s_369b2cca196af2::t_781dc86d5e202f 218-229
+  s_369b2cca196af2::t_03e1bdafc3eeeb 65-80
+training/tests/test_curate_pipeline_import_gate.py
+  s_369b2cca196af2::t_e80585e8c1c437 1-32,35-90
+  s_369b2cca196af2::t_c0cfe9783977d4 33-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "710fbc1728a894402038f3c1a61972f965bc619d",
+  "prompts": {},
+  "sessions": {
+    "s_369b2cca196af2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cdad3ebe-b936-4879-b07a-780c1592997f",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}
