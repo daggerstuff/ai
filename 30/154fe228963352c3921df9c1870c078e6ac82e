@@ -1,0 +1,19 @@
+_review_diff.txt
+  s_9657f92e0b827a::t_f429d34fbd975a 1-4461
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "30154fe228963352c3921df9c1870c078e6ac82e",
+  "prompts": {},
+  "sessions": {
+    "s_9657f92e0b827a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f3d670b4-cd0d-4ff9-9bd2-9889c5628ab9",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}
