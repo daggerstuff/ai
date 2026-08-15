@@ -4,6 +4,7 @@
 .vscode/
 docs/
 sourcing/docs/
+PAL_MEDDIES_IMPLEMENTATION_PLAN.md
 
 # === VIRTUAL ENVIRONMENTS ===
 **/.venv/
