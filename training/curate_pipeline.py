@@ -62,13 +62,22 @@ from training.synth_qc_gate import gate_synthetic_record, SYNTH_QC_THRESH  # noq
 
 # Inter-annotator agreement (PIX-4344/4345) — used by classify_tier to
 # upgrade adjudicated records to T1_GOLD on strong Fleiss kappa.
-from training.annotation.iaa import (  # noqa: E402
-    AnnotationStage,
-    IaaResult,
-    bucket_quality,
-    fleiss_kappa,
-    label_studio_export_to_iaa,
-)
+# Optional import; IAA tier upgrade degrades to a no-op if unavailable.
+try:
+    from training.annotation.iaa import (  # noqa: E402
+        AnnotationStage,
+        IaaResult,
+        bucket_quality,
+        fleiss_kappa,
+        label_studio_export_to_iaa,
+    )
+except ImportError as e:
+    AnnotationStage = None  # type: ignore[assignment, misc]
+    IaaResult = None  # type: ignore[assignment, misc]
+    bucket_quality = None  # type: ignore[assignment]
+    fleiss_kappa = None  # type: ignore[assignment]
+    label_studio_export_to_iaa = None  # type: ignore[assignment]
+    logger.warning("training.annotation.iaa unavailable — IAA tier upgrade disabled: %s", e)
 
 # System prompts per task type — preserves source/clinical context
 SYSTEM_PROMPTS: dict[str, str] = {
@@ -206,15 +215,18 @@ def classify_tier(record: dict[str, Any]) -> str:
         return "T1_GOLD"
 
     # T1_GOLD override: adjudicated with strong inter-annotator agreement
-    # (PIX-4345): Fleiss kappa >= 0.85 from IAA module upgrades to T1_GOLD
-    annotation_stage = record.get("annotation_stage")
-    fleiss_kappa = record.get("fleiss_kappa")
-    if (
-        annotation_stage == AnnotationStage.ADJUDICATED.value
-        and fleiss_kappa is not None
-        and fleiss_kappa >= 0.85
-    ):
-        return "T1_GOLD"
+    # (PIX-4345): Fleiss kappa >= 0.85 from IAA module upgrades to T1_GOLD.
+    # Only runs when the IAA module is available; otherwise fall through to
+    # the base tier logic below (multi-turn -> T2_SILVER, else T3_BRONZE).
+    if AnnotationStage is not None:
+        annotation_stage = record.get("annotation_stage")
+        record_fleiss_kappa = record.get("fleiss_kappa")
+        if (
+            annotation_stage == AnnotationStage.ADJUDICATED.value
+            and record_fleiss_kappa is not None
+            and record_fleiss_kappa >= 0.85
+        ):
+            return "T1_GOLD"
 
     # T2_SILVER: multi-turn therapy dialogues (5+ messages, non-adversarial)
     if len(messages) >= 5 and source in MULTI_TURN_SOURCES:
