@@ -58,13 +58,13 @@ except ImportError as e:
     logger.warning("training.stage1_filters unavailable — Stage 1 QA filters disabled: %s", e)
 
 # Synthetic QC gate (PIX-4345 §B.5.5) — gates synthetic SDG records.
-from training.synth_qc_gate import gate_synthetic_record, SYNTH_QC_THRESH  # noqa: E402
+from training.synth_qc_gate import gate_synthetic_record, SYNTH_QC_THRESH
 
 # Inter-annotator agreement (PIX-4344/4345) — used by classify_tier to
 # upgrade adjudicated records to T1_GOLD on strong Fleiss kappa.
 # Optional import; IAA tier upgrade degrades to a no-op if unavailable.
 try:
-    from training.annotation.iaa import (  # noqa: E402
+    from training.annotation.iaa import (
         AnnotationStage,
         IaaResult,
         bucket_quality,
