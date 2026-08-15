@@ -86,6 +86,7 @@ class BookMetadata:
     source: str = "unknown"
     abstract: str | None = None
     subject_areas: list[str] | None = None
+    keywords: list[str] | None = None
     confidence_score: float = 0.0
     therapeutic_relevance_score: float | None = None
     stage_assignment: str | None = None
@@ -192,6 +193,10 @@ class AcademicSourcingEngine:
     def _ensure_directories(self):
         """Ensure output directories exist"""
         self.academic_literature_path.mkdir(parents=True, exist_ok=True)
+
+    @property
+    def output_path(self) -> Path:
+        return self.output_base_path
 
     def _init_publishers(self):
         """Initialize publisher integrations"""
@@ -1026,10 +1031,13 @@ class AcademicSourcingEngine:
             if abstract_matches > 0:
                 score += min(0.4, abstract_matches * 0.05)
 
-        # Check subject areas
-        if metadata.subject_areas:
+        # Check subject areas and keywords
+        subject_keywords = metadata.subject_areas or []
+        if metadata.keywords:
+            subject_keywords = list(subject_keywords) + list(metadata.keywords)
+        if subject_keywords:
             subject_matches = sum(
-                1 for subject in metadata.subject_areas for kw in self.therapeutic_keywords if kw in subject.lower()
+                1 for subject in subject_keywords for kw in self.therapeutic_keywords if kw in subject.lower()
             )
             if subject_matches > 0:
                 score += min(0.2, subject_matches * 0.1)
@@ -1087,6 +1095,9 @@ class AcademicSourcingEngine:
         except Exception as e:
             logger.error(f"Failed to export data: {e}")
             raise
+
+    def export_results(self, data: list[BookMetadata], filename: str = "academic_batch_001.json") -> Path:
+        return self.export_data(data, filename)
 
     def run_sourcing_pipeline(self, queries: list[str] | None = None, limit_per_query: int = 10) -> Path:
         """

@@ -51,24 +51,18 @@ class BurnoutNarrative(BaseModel):
 
     narrative_id: str
     source_url: str
-    source_type: str = Field(..., description="substack, blog, medium, reddit, etc.")
-    author_role: str = Field(..., description="counselor, therapist, nurse, etc.")
+    source_type: Optional[str] = Field(None, description="substack, blog, medium, reddit, etc.")
+    author_role: Optional[str] = Field(None, description="counselor, therapist, nurse, etc.")
     years_experience: Optional[int] = None
-    clinical_setting: Optional[str] = Field(
-        None, description="FQHC, VA, private practice, etc."
-    )
+    clinical_setting: Optional[str] = Field(None, description="FQHC, VA, private practice, etc.")
     failure_modes: list[FailureModeCategory] = Field(default_factory=list)
     key_dynamics: list[str] = Field(
         default_factory=list,
         description="Extracted relational/systemic dynamics",
     )
-    trauma_exposure: Optional[str] = Field(
-        None, description="Type of trauma the clinician was exposed to"
-    )
-    outcome: str = Field(
-        ..., description="quit, fired, disabled, career_change, suicidal_crisis"
-    )
-    outcome_severity: SeverityLevel
+    trauma_exposure: Optional[str] = Field(None, description="Type of trauma the clinician was exposed to")
+    outcome: Optional[str] = Field(None, description="quit, fired, disabled, career_change, suicidal_crisis")
+    outcome_severity: Optional[SeverityLevel] = None
     extractable_patterns: list[str] = Field(
         default_factory=list,
         description="Recurring patterns extractable for simulation seeds",
@@ -81,9 +75,7 @@ class AdversarialScenario(BaseModel):
 
     scenario_id: str
     title: str
-    description: str = Field(
-        ..., description="Detailed scenario description for simulation"
-    )
+    description: str = Field(..., description="Detailed scenario description for simulation")
     failure_mode: FailureModeCategory
     triggers: list[AdversarialTrigger]
     severity: SeverityLevel

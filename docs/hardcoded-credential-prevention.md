@@ -1,1 +1,0 @@
-## 2026-07-10 - Hardcoded Credentials | Vulnerability: Hardcoded API Key | Learning: Storing raw secrets like API keys in source code leads to credential leaks and potential unauthorized access. | Prevention: Always use environment variables or a secure secret management service to inject credentials at runtime.

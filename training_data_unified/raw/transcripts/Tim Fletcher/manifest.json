@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-08-15T03:19:50Z",
+  "channel": "Tim Fletcher",
+  "total_urls_processed": 50,
+  "successful": 0,
+  "failed": 50,
+  "skipped_existing": 0,
+  "output_directory": "ai/training_data_unified/raw/transcripts/Tim Fletcher",
+  "languages_attempted": [
+    "en"
+  ]
+}

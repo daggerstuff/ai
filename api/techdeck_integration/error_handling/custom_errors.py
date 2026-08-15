@@ -7,7 +7,7 @@ with HIPAA++ compliant error handling and audit logging capabilities.
 
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -46,7 +46,7 @@ class TechDeckBaseError(Exception):
         self.details = details or {}
         self.request_id = request_id
         self.user_id = user_id
-        self.timestamp = datetime.now(UTC)
+        self.timestamp = datetime.now(timezone.utc)
         self.error_id = self._generate_error_id()
 
     def _generate_error_id(self) -> str:
@@ -106,7 +106,8 @@ class TechDeckBaseError(Exception):
         sanitized = {}
 
         for key, value in details.items():
-            if any(sensitive in key.lower() for sensitive in sensitive_keys):
+            key_lower = key.lower()
+            if key_lower in {"password", "token", "secret", "key", "ssn", "email"}:
                 sanitized[key] = "[REDACTED]"
             else:
                 sanitized[key] = value
@@ -515,8 +516,13 @@ class SystemError(TechDeckBaseError):
 class PipelineNotFoundError(ResourceNotFoundError):
     """Raised when a requested pipeline configuration or execution is not found."""
 
-    def __init__(self, message: str, details: dict[str, Any] | None = None, **kwargs):
-        super().__init__(message, details, **kwargs)
+    def __init__(self, message: str, resource_type: str | None = "pipeline", resource_id: str | None = None, details: dict[str, Any] | None = None, **kwargs):
+        merged_details = dict(details or {})
+        if resource_type:
+            merged_details.setdefault("resource_type", resource_type)
+        if resource_id:
+            merged_details.setdefault("resource_id", resource_id)
+        super().__init__(message=message, resource_type=resource_type, resource_id=resource_id, details=merged_details, **kwargs)
         self.error_code = "PIPELINE_NOT_FOUND"
 
 
