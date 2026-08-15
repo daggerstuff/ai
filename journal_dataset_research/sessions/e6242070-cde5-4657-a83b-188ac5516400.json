@@ -1,0 +1,51 @@
+{
+  "session": {
+    "session_id": "e6242070-cde5-4657-a83b-188ac5516400",
+    "current_phase": "discovery",
+    "start_time": "2026-08-15T04:48:29.253746",
+    "last_updated": "2026-08-15T04:48:29.253747",
+    "progress_metrics": {},
+    "weekly_targets": {
+      "sources_identified": 10,
+      "datasets_evaluated": 5,
+      "datasets_acquired": 2
+    },
+    "logs": [],
+    "start_date": "2026-08-15T04:48:29.253741+00:00",
+    "target_sources": [
+      "pubmed",
+      "zenodo",
+      "dryad"
+    ],
+    "search_keywords": {
+      "therapy": [
+        "cbt",
+        "dbt",
+        "act"
+      ],
+      "mental_health": [
+        "depression",
+        "anxiety"
+      ]
+    }
+  },
+  "state": {
+    "sources": [],
+    "evaluations": [],
+    "access_requests": [],
+    "acquired_datasets": [],
+    "integration_plans": [],
+    "integration_feasibility": {}
+  },
+  "progress": {
+    "sources_identified": 0,
+    "datasets_evaluated": 0,
+    "datasets_acquired": 0,
+    "access_established": 0,
+    "integration_plans_created": 0,
+    "last_updated": null
+  },
+  "progress_history": [],
+  "activity_logs": [],
+  "error_log": []
+}

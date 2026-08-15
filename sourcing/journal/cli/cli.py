@@ -194,7 +194,7 @@ def status(ctx: click.Context, session_id: str | None) -> None:
 @cli.command()
 @click.option("--session-id", required=True, help="Session ID")
 @click.option("--output", "-o", type=click.Path(path_type=Path), help="Output file path")
-@click.option("--format", "report_format", default="json", help="Report format (json, markdown)")
+@click.option("--format", "report_format", default="json", help="Report format (json, csv, markdown)")
 @click.pass_context
 def report(
     ctx: click.Context,

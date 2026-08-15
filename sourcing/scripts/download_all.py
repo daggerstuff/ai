@@ -57,6 +57,9 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     github_repo_adapter,
     vera_mh_adapter,
     mhsafeeval_adapter,
+    ace_nlp_adapter,
+    addiction_stories_adapter,
+    ucl_psych_abuse_adapter,
 )
 
 
