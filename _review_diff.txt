@@ -1,0 +1,4461 @@
+diff --git a/01/3d288e087ab671fb6368d7eb5b4acd0d583d44 b/01/3d288e087ab671fb6368d7eb5b4acd0d583d44
+new file mode 100644
+index 00000000..b49e2761
+--- /dev/null
++++ b/01/3d288e087ab671fb6368d7eb5b4acd0d583d44
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-172,178-180,213-254
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "013d288e087ab671fb6368d7eb5b4acd0d583d44",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/01/5362049099903d8bc8f70d418fc4b101e48b0b b/01/5362049099903d8bc8f70d418fc4b101e48b0b
+new file mode 100644
+index 00000000..e268292c
+--- /dev/null
++++ b/01/5362049099903d8bc8f70d418fc4b101e48b0b
+@@ -0,0 +1,19 @@
++.gitignore
++  s_c0e1f8f945eb1d::t_9eea36cd38087d 178-179
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "015362049099903d8bc8f70d418fc4b101e48b0b",
++  "prompts": {},
++  "sessions": {
++    "s_c0e1f8f945eb1d": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e32481effe2cQLDrZBMynuKr",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/05/7fea9c8c97fd830ca6f5325735a05cdfcbcd6a b/05/7fea9c8c97fd830ca6f5325735a05cdfcbcd6a
+new file mode 100644
+index 00000000..932f2cfb
+--- /dev/null
++++ b/05/7fea9c8c97fd830ca6f5325735a05cdfcbcd6a
+@@ -0,0 +1,43 @@
++training/tests/test_llm_quality_judge.py
++  s_59badd58dedbb9::t_64d4f502222b7a 183-184,186,191-192,194
++  s_59badd58dedbb9::t_3a8fb70a79a313 511-513
++  s_59badd58dedbb9::t_643b88394f4d93 13
++  s_59badd58dedbb9::t_967ea519f75a9e 252-254
++  s_59badd58dedbb9::t_7a6b7bb13ff919 368-369
++  s_59badd58dedbb9::t_a77d0100872bd0 394-395
++  s_59badd58dedbb9::t_d7031cc333919f 238-240
++  s_59badd58dedbb9::t_11a888544d444d 1-12,14-182,185,187-190,193,195-217,221-237,241-251,255-367,370-380,383-393,396-510,514-598
++  s_59badd58dedbb9::t_b39dbcdc9ed116 218-220
++  s_59badd58dedbb9::t_1694425e179ed2 381-382
++training/data/golden_judge_calib.jsonl
++  ai_agent 1-200
++training/llm_quality_judge.py
++  s_59badd58dedbb9::t_3ce0e25f94ed43 1-45,47-49,53-94,96-207,210-228,236-468,470-510,512-663
++  s_59badd58dedbb9::t_4e5fa6af6559b7 229-235
++  s_59badd58dedbb9::t_64a3c1f05995cb 511
++  s_59badd58dedbb9::t_eb4157aac0f7b5 95
++  s_59badd58dedbb9::t_303e8b243885ef 469
++  s_59badd58dedbb9::t_6e19459be17cea 46,50-52
++  s_59badd58dedbb9::t_cfb77f9b86d6e0 208-209
++.gitignore
++  s_59badd58dedbb9::t_78f08affafa778 198
++  s_59badd58dedbb9::t_3de399627b8135 184-185,188
++  s_59badd58dedbb9::t_09558a71b1720d 186-187
++  s_59badd58dedbb9::t_369b7a583cef2d 189
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "057fea9c8c97fd830ca6f5325735a05cdfcbcd6a",
++  "prompts": {},
++  "sessions": {
++    "s_59badd58dedbb9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c0d53effeXpCDbtK6qzQhaC",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/08/a85ee9aabb0a58ff8604a9db22626e34ed5d83 b/08/a85ee9aabb0a58ff8604a9db22626e34ed5d83
+new file mode 100644
+index 00000000..6aee4bbe
+--- /dev/null
++++ b/08/a85ee9aabb0a58ff8604a9db22626e34ed5d83
+@@ -0,0 +1,27 @@
++dataset_pipeline/scripts/run_safety_pass.py
++  s_19ba0b70a626a4::t_2ca14908896cf2 30-31,46-50
++  s_19ba0b70a626a4::t_eb44ab201a4070 158-161
++  s_19ba0b70a626a4::t_c1d591e8fb88df 253-254
++  s_19ba0b70a626a4::t_941b8617fdbaae 193-201,206-214
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_19ba0b70a626a4::t_2cd5903faa408f 134
++  s_19ba0b70a626a4::t_faec47bd5206e2 118
++dataset_pipeline/processors/safety_processors.py
++  s_19ba0b70a626a4::t_68def76c6d1ccc 226
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "08a85ee9aabb0a58ff8604a9db22626e34ed5d83",
++  "prompts": {},
++  "sessions": {
++    "s_19ba0b70a626a4": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_029dce4bcffeClzZ4efdxplMKl",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/0a/a80f919a9bcd4bb1c84667c2fd9b4211f1fbdf b/0a/a80f919a9bcd4bb1c84667c2fd9b4211f1fbdf
+new file mode 100644
+index 00000000..2aac0ca3
+--- /dev/null
++++ b/0a/a80f919a9bcd4bb1c84667c2fd9b4211f1fbdf
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "0aa80f919a9bcd4bb1c84667c2fd9b4211f1fbdf",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/0b/99ff984330441bad1cb2ddb032a9898c2c7485 b/0b/99ff984330441bad1cb2ddb032a9898c2c7485
+new file mode 100644
+index 00000000..963d5443
+--- /dev/null
++++ b/0b/99ff984330441bad1cb2ddb032a9898c2c7485
+@@ -0,0 +1,28 @@
++.omc/state/sessions/4e34dc15-3295-44de-a6d4-316f9346a015/pre-tool-advisory-throttle.json
++  s_07f0a5eb20d7a3::t_7c5e402d0d2008 35
++  s_07f0a5eb20d7a3::t_548ab4d2a1eaab 8-11
++  s_07f0a5eb20d7a3::t_3dcf679d15649b 23
++  s_07f0a5eb20d7a3::t_e886be1dd1b0b5 47
++  s_07f0a5eb20d7a3::t_827311a33e9a92 39
++.omc/project-memory.json
++  s_07f0a5eb20d7a3::t_7c5e402d0d2008 700-705,718
++  s_07f0a5eb20d7a3::t_827311a33e9a92 698-699,709-711,715-717,721-723
++.omc/state/sessions/4e34dc15-3295-44de-a6d4-316f9346a015/mission-state.json
++  s_07f0a5eb20d7a3::t_e7de83a894450c 26-30
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "0b99ff984330441bad1cb2ddb032a9898c2c7485",
++  "prompts": {},
++  "sessions": {
++    "s_07f0a5eb20d7a3": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "4e34dc15-3295-44de-a6d4-316f9346a015",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/0d/f2282c0b6fb17f145381553311bc9c1301aaa6 b/0d/f2282c0b6fb17f145381553311bc9c1301aaa6
+new file mode 100644
+index 00000000..3a1cfe51
+--- /dev/null
++++ b/0d/f2282c0b6fb17f145381553311bc9c1301aaa6
+@@ -0,0 +1,19 @@
++dataset_pipeline/processors/toxicity_detector.py
++  s_30adb0eaa632fb::t_217d256cfc8188 493-497
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "0df2282c0b6fb17f145381553311bc9c1301aaa6",
++  "prompts": {},
++  "sessions": {
++    "s_30adb0eaa632fb": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/0f/ee923c9be48f7bfdb77369b0d1080db3160740 b/0f/ee923c9be48f7bfdb77369b0d1080db3160740
+new file mode 100644
+index 00000000..266602ab
+--- /dev/null
++++ b/0f/ee923c9be48f7bfdb77369b0d1080db3160740
+@@ -0,0 +1,21 @@
++training/ingest_router.py
++  s_35e45b977c3503::t_617cf5f9f36757 758-764
++  s_35e45b977c3503::t_4bd6616280f1c5 1041-1046
++  s_35e45b977c3503::t_4bf3703710f5e9 360-365
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "0fee923c9be48f7bfdb77369b0d1080db3160740",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/18/e319f690c20c64d9efdb6fd9ea5f76a18a7348 b/18/e319f690c20c64d9efdb6fd9ea5f76a18a7348
+new file mode 100644
+index 00000000..964c5037
+--- /dev/null
++++ b/18/e319f690c20c64d9efdb6fd9ea5f76a18a7348
+@@ -0,0 +1,21 @@
++api/test_pixel_inference.py
++  s_b6215a7af8168d::t_bfe0a198c1c59a 25
++api/pixel_inference_service.py
++  s_b6215a7af8168d::t_cbb82fcb314595 46,768,1176-1177
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "18e319f690c20c64d9efdb6fd9ea5f76a18a7348",
++  "prompts": {},
++  "sessions": {
++    "s_b6215a7af8168d": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0315d1279ffe1BaV8K6AmvF040",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/1e/0fc58341d52c3718fb21d25f00a46c32e92f81 b/1e/0fc58341d52c3718fb21d25f00a46c32e92f81
+new file mode 100644
+index 00000000..a55dc578
+--- /dev/null
++++ b/1e/0fc58341d52c3718fb21d25f00a46c32e92f81
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-92,94-104,108-111,113-120,122-133,135-172,178-180,213-254,316
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "1e0fc58341d52c3718fb21d25f00a46c32e92f81",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/23/025c312ee35e503cd99bb37e8f612df84a1690 b/23/025c312ee35e503cd99bb37e8f612df84a1690
+new file mode 100644
+index 00000000..57c6112d
+--- /dev/null
++++ b/23/025c312ee35e503cd99bb37e8f612df84a1690
+@@ -0,0 +1,48 @@
++dataset_pipeline/scripts/run_safety_pass.py
++  s_30adb0eaa632fb::t_6f0c5dcf609a20 1-29,32,34,36-45,52-157,162-192,202-205,215-252,255-308
++  s_19ba0b70a626a4::t_2ca14908896cf2 30-31,46-50
++  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 33,35
++  s_19ba0b70a626a4::t_eb44ab201a4070 158-161
++  s_19ba0b70a626a4::t_941b8617fdbaae 193-201,206-214
++  s_19ba0b70a626a4::t_c1d591e8fb88df 253-254
++dataset_pipeline/processors/safety_processors.py
++  s_30adb0eaa632fb::t_4ec2fb4caa6c5d 1-225,227-249,251-252,254
++  s_19ba0b70a626a4::t_68def76c6d1ccc 226
++  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 250,253
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-117,119-133,135-180,185-187,213-261
++  s_19ba0b70a626a4::t_faec47bd5206e2 118
++  s_19ba0b70a626a4::t_2cd5903faa408f 134
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "23025c312ee35e503cd99bb37e8f612df84a1690",
++  "prompts": {},
++  "sessions": {
++    "s_19ba0b70a626a4": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_029dce4bcffeClzZ4efdxplMKl",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_30adb0eaa632fb": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/26/e81e122bfbc1174ab3c72a0888d06023ec59ca b/26/e81e122bfbc1174ab3c72a0888d06023ec59ca
+new file mode 100644
+index 00000000..f75b050a
+--- /dev/null
++++ b/26/e81e122bfbc1174ab3c72a0888d06023ec59ca
+@@ -0,0 +1,42 @@
++sourcing/scripts/download_all.py
++  s_8966adf124d5a9::t_3268127899c847 58-59
++sourcing/tests/test_sim_vail_adapter.py
++  s_8966adf124d5a9::t_aa4b193553e714 14-15
++  s_8966adf124d5a9::t_74fa55bc894918 94
++  s_8966adf124d5a9::t_34e7098a7b59c6 99
++  s_8966adf124d5a9::t_1ca34e36f0b999 8,17-36,39-45,49,51-66,76-79,81,83-89,91-92,95,97-98,105,108,111-112,119-122,129-130,132,134-136
++  s_8966adf124d5a9::t_ee07e90f21c580 109
++  s_8966adf124d5a9::t_b3ede3f1623d09 139
++sourcing/dataset_adapters/sim_vail_adapter.py
++  s_8966adf124d5a9::t_5e2ff2afd176fb 48-68
++  s_8966adf124d5a9::t_9974f4afadbe5c 155
++  s_8966adf124d5a9::t_f1abd97aeef186 70-80
++  s_8966adf124d5a9::t_ac5910680bfc71 3-6,10-15,22,28-29,86-90,92,97-114,117-121,123-136
++  s_8966adf124d5a9::t_f9fbe1b84443f9 141-146,150-154,156-158,161,164-165,171-176,181-183,186-190,199,201-203
++  s_8966adf124d5a9::t_3ea6709b2c1058 178-180
++sourcing/dataset_adapters/mhsafeeval_adapter.py
++  s_8966adf124d5a9::t_bc4a0f8e5d8027 94-98
++  s_8966adf124d5a9::t_871ba69935c628 29-34
++  s_8966adf124d5a9::t_9169e050b65256 1-28,35-93,99-165
++sourcing/dataset_adapters/vera_mh_adapter.py
++  s_8966adf124d5a9::t_b11d4e0779a466 27
++  s_8966adf124d5a9::t_a472a816f12059 146
++  s_8966adf124d5a9::t_9e83278e5a89cf 1-26,28-85,87-145,147-164
++  s_8966adf124d5a9::t_fa5902679a5a63 86
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "26e81e122bfbc1174ab3c72a0888d06023ec59ca",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/28/162f31d6166cb8d03277fe179ed31714f4fdbb b/28/162f31d6166cb8d03277fe179ed31714f4fdbb
+new file mode 100644
+index 00000000..448bf65a
+--- /dev/null
++++ b/28/162f31d6166cb8d03277fe179ed31714f4fdbb
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "28162f31d6166cb8d03277fe179ed31714f4fdbb",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/29/f199d4684311557927c4efa3e3b7c8082e2e87 b/29/f199d4684311557927c4efa3e3b7c8082e2e87
+new file mode 100644
+index 00000000..63c6fcd5
+--- /dev/null
++++ b/29/f199d4684311557927c4efa3e3b7c8082e2e87
+@@ -0,0 +1,19 @@
++sourcing/scripts/run_deslop.py
++  s_8966adf124d5a9::t_f4fef72507141b 53,58-62
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "29f199d4684311557927c4efa3e3b7c8082e2e87",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/2a/96e9ae037db128079d144b4400bc4e296bfaeb b/2a/96e9ae037db128079d144b4400bc4e296bfaeb
+new file mode 100644
+index 00000000..486dbf42
+--- /dev/null
++++ b/2a/96e9ae037db128079d144b4400bc4e296bfaeb
+@@ -0,0 +1,119 @@
++.omc/project-memory.json
++  s_529b878f190499::t_9c1a2a874a7561 705-706,737,740,765-766
++  ai_agent 707,731,733
++  s_529b878f190499::t_6449d6245da0eb 741-745,710-712,716-718,722-724,728-730,747-748,750,752-754,756,758-760,762,764
++  s_514a08504643ea::t_0a327dc9b304bd 732,738
++  s_7ddb1c7de26f4a::t_d79e763ea61133 713,719
++training/book_pdf_converter.py
++  s_716c494122f8ae::t_f6b1b18ee544d6 223-224
++  s_716c494122f8ae::t_5648d11935d271 226
++.omc/state/session-end-jobs/discovery.json
++  ai_agent 14-20,22-37,40-41,43,46-49,52-53,55
++training/ingest_router.py
++  s_fcc5d887d26157::t_73d53d654f6fd6 1-44,46-71,73-93,95,101-156,158-175,177-239,241-357,364-406,414-477,479,481,483-485,487-488,490-492,494-574,579-626,629-646,648-652,657-681,694-719,721,723,725-773,781-796,798,828-977,979-1009,1011-1064,1071-1076,410,413
++  s_fcc5d887d26157::t_3774a5a504dc8f 45
++  s_fcc5d887d26157::t_528ce2c09b0a1e 157
++  s_fcc5d887d26157::t_dee6df7f412d62 176
++  s_35e45b977c3503::t_4bf3703710f5e9 358-363
++  s_716c494122f8ae::t_e86b32c7731d2c 478,480,482,486,489,493
++  s_716c494122f8ae::t_f8cc1cd1a2f061 575-577
++  s_716c494122f8ae::t_f61ec0c0285944 647,653-656,682,686-693
++  s_35e45b977c3503::t_617cf5f9f36757 774-780
++  s_716c494122f8ae::t_a78833505cf9a1 797,799-820,826,408-409,412
++  s_35e45b977c3503::t_4bd6616280f1c5 1065-1070
++  s_c6b71477c08a56::t_19696b36da6434 94
++  s_c6b71477c08a56::t_a09e9c761ede12 407,411
++  s_c6b71477c08a56::t_fe020ce5bf481e 578
++  s_c6b71477c08a56::t_c438c19546ccf3 627-628
++  s_c6b71477c08a56::t_05c199efd53368 683-685
++  s_c6b71477c08a56::t_972c0056f05569 821-825,827
++  s_7ddb1c7de26f4a::t_b9597825233dd6 96-99
++.omc/state/sessions/60b93162-e82a-4fed-9268-cdd1a93d82b8/pre-tool-advisory-throttle.json
++  s_a95004cc6d2056::t_97fb20c173c69c 4-7,37
++  s_a95004cc6d2056::t_35189315847f0c 15
++  s_a95004cc6d2056::t_93722b5dae48ce 31
++.omc/state/sessions/6a77097e-b709-4ab0-b834-e4c04512e7a4/pre-tool-advisory-throttle.json
++  s_9327dd8d1c946b::t_e75866c16f9057 12-15
++.omc/state/session-end-jobs/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.json
++  ai_agent 1-5,7,9-99,102-126,137-140,143-166,178-181,184-208,219-222,225-248,260-263,266-289,301-304,307-330,342-344,351
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "2a96e9ae037db128079d144b4400bc4e296bfaeb",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_514a08504643ea": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5bc127a1-4a24-411a-9346-d03c94dfad68",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_529b878f190499": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "3caa895e-5b92-4977-afe7-759d0db0f888",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_716c494122f8ae": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_7ddb1c7de26f4a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_9327dd8d1c946b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_a95004cc6d2056": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "60b93162-e82a-4fed-9268-cdd1a93d82b8",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_c6b71477c08a56": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_fcc5d887d26157": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/2c/5a094bc12fdbff5738b4615839262d091cd536 b/2c/5a094bc12fdbff5738b4615839262d091cd536
+new file mode 100644
+index 00000000..fa0a69c4
+--- /dev/null
++++ b/2c/5a094bc12fdbff5738b4615839262d091cd536
+@@ -0,0 +1,21 @@
++training/research/kaggle_research_summary.md
++  ai_agent 1-151
++.gitignore
++  ai_agent 178-179
++training/research/kaggle_dataset_map.json
++  ai_agent 1-496
++training/research/github_hackathon_map.json
++  ai_agent 1-7205
++training/tests/test_nightmare_fuel_generator.py
++  ai_agent 1,6,12,123-128,130-131,135-348
++training/nightmare_fuel_generator.py
++  ai_agent 1-33,37,39-40,52-237,368-369,371-380,383-389,392-415,477-486,494-518,527-572
++training/research/github_research_summary.md
++  ai_agent 1-348
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "2c5a094bc12fdbff5738b4615839262d091cd536",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/2d/d978bad97b2081ffeb58ba007e1425d17a07b6 b/2d/d978bad97b2081ffeb58ba007e1425d17a07b6
+new file mode 100644
+index 00000000..cb822db2
+--- /dev/null
++++ b/2d/d978bad97b2081ffeb58ba007e1425d17a07b6
+@@ -0,0 +1,71 @@
++training/sdg_self_instruct.py
++  s_e48b09ab646938::t_2ac0ee56e14984 190-191
++  s_e48b09ab646938::t_82562e4eddf875 16
++  s_e48b09ab646938::t_866386dd21ca76 23
++  s_e48b09ab646938::t_f77f77cccf28e9 51,55-57,59-62,66,70-71,73-74,76-84,88,92-93,95,97-101,103-104,150,156-157,159-189,192-223
++  s_e48b09ab646938::t_83ebb927a5f59c 134
++  s_e48b09ab646938::t_54dc087fdfe0be 1-15,17-22,24-50,52-54,58,63-65,67-69,72,75,85-87,89-91,94,96,102,105-133,135-149,151-155,158,224-294
++training/dual_judge.py
++  s_e48b09ab646938::t_121280e6b9e2d9 1-231,233-266,268-481
++  s_e48b09ab646938::t_ec43633f7dad64 232
++  s_e48b09ab646938::t_21da3212bbb219 267
++training/synth_qc_gate.py
++  s_e48b09ab646938::t_c4c9c96aa00c38 1-86
++training/curate_pipeline.py
++  s_e48b09ab646938::t_e7b2ddc3f12e05 50-51
++  s_e48b09ab646938::t_23f6487763e323 52-57,66
++  s_e48b09ab646938::t_1c97fff12aced1 182-187,202-210
++  s_e48b09ab646938::t_e4f0d67cbb73f6 58-65
++  s_e48b09ab646938::t_03e5368642f487 398
++  s_e48b09ab646938::t_f13aaee4a0dd02 450-462
++  s_e48b09ab646938::t_47d5acd13d620c 471-487
++training/ingest_router.py
++  s_e48b09ab646938::t_c75a53e306b4d0 1-18,20-81,83-92,94-111,114-119,126-127,129-133,140-141,143,146,148-149,152-221,223-224,227-556
++  s_e48b09ab646938::t_f79117d653414e 222,225-226
++  s_e48b09ab646938::t_91d45d3afdf5af 112-113,120-125,128,134-139,142,144-145,147,150-151
++  s_e48b09ab646938::t_b5d1d968c9a40e 82,93
++  s_e48b09ab646938::t_4a770454b0bbf1 19
++training/sdg_back_translation.py
++  s_e48b09ab646938::t_6f4afdcdc8fe50 316-325
++  s_e48b09ab646938::t_78c6e9777611e7 326
++  s_e48b09ab646938::t_7596b14e399769 273
++  s_e48b09ab646938::t_2c00481081b8ea 347-348
++  s_e48b09ab646938::t_d1291a6e94df0f 271
++  s_e48b09ab646938::t_93d1a4a8d452e1 95-130
++  s_e48b09ab646938::t_49e75bf2e85916 139-145,147-223,225-239
++  s_e48b09ab646938::t_8819d75b9c8561 21
++  s_e48b09ab646938::t_5460ab60bfcc0e 15
++  s_e48b09ab646938::t_eed67c5bc3688e 263
++  s_e48b09ab646938::t_3ac04e70d6b822 288-290,292-293,296-297,305,312,327-331,336-337
++  s_e48b09ab646938::t_db11d97141d1bf 138
++  s_e48b09ab646938::t_ef46be7d6f4a93 1-14,16-20,22-94,131-137,146,224,240-262,264-270,272,274-287,291,294-295,298-304,306-311,313-315,332-335,338-346,349-450
++training/domain_augmentation.py
++  s_e48b09ab646938::t_92dbe9be21e743 105-107,112-135
++  s_e48b09ab646938::t_2a651a5f3153a4 166-337
++  s_e48b09ab646938::t_461cdc110142e2 1-104,108-111,136-165
++training/stage1_filters.py
++  s_e48b09ab646938::t_d6bad51e55e5fa 1-143,145-275,278-392
++  s_e48b09ab646938::t_03b3d00ed4987b 144
++  s_e48b09ab646938::t_9fdb6ca3899b4e 276-277
++training/sdg_paraphrase.py
++  s_e48b09ab646938::t_994e35c7b3baea 50-62
++  s_e48b09ab646938::t_8c034f8d3e330c 1-49,63-73,77-81,85-86,88-95,105-108,111-117,120-173
++  s_e48b09ab646938::t_bbc97ed283e2d5 96-104,109-110,118-119
++  s_e48b09ab646938::t_bc21cf7b1ed64c 74-76,82-84,87
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "2dd978bad97b2081ffeb58ba007e1425d17a07b6",
++  "prompts": {},
++  "sessions": {
++    "s_e48b09ab646938": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "a5437650-db0e-4416-8ce7-1d3b1759f768",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/30/dded96c84d2796f21f11fad550fcab894b1ff6 b/30/dded96c84d2796f21f11fad550fcab894b1ff6
+new file mode 100644
+index 00000000..3e99d045
+--- /dev/null
++++ b/30/dded96c84d2796f21f11fad550fcab894b1ff6
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "30dded96c84d2796f21f11fad550fcab894b1ff6",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/31/4669f1889eb89dfb78eadd4cd4ca04ad805940 b/31/4669f1889eb89dfb78eadd4cd4ca04ad805940
+new file mode 100644
+index 00000000..3c79ea34
+--- /dev/null
++++ b/31/4669f1889eb89dfb78eadd4cd4ca04ad805940
+@@ -0,0 +1,45 @@
++dataset_pipeline/scripts/fix_integrity.py
++  ai_agent 1-109
++dataset_pipeline/processors/test_integrity.py
++  ai_agent 1-354
++dataset_pipeline/orchestration/test_consolidate_v7.py
++  ai_agent 1-558
++dataset_pipeline/scripts/s3_atomic_sync.py
++  ai_agent 1-445
++dataset_pipeline/processors/integrity_test.py
++  ai_agent 1-390
++dataset_pipeline/scripts/run_integrity_test.py
++  ai_agent 1-126
++dataset_pipeline/processors/minhash_lsh.py
++  ai_agent 1-296
++dataset_pipeline/processors/test_minhash_lsh.py
++  ai_agent 1-331
++dataset_pipeline/orchestration/consolidate_v7.py
++  ai_agent 1-618
++pyproject.toml
++  s_61a095cc229308::t_bac6e931a051ff 226-243
++training/nightmare_fuel_generator.py
++  s_61a095cc229308::t_bac6e931a051ff 371,374-379,381-393,397-402,411-412,417-450,521-536,657-660
++  s_61a095cc229308::t_1a8c8fec9df151 380
++  s_61a095cc229308::t_7c583d17596923 394-396,403-410
++dataset_pipeline/scripts/test_s3_atomic_sync.py
++  ai_agent 1-541
++sourcing/dataset_adapters/github_repo_adapter.py
++  s_61a095cc229308::t_bac6e931a051ff 26-27,133-135,138,144,146,521,523,526,528
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "314669f1889eb89dfb78eadd4cd4ca04ad805940",
++  "prompts": {},
++  "sessions": {
++    "s_61a095cc229308": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_01e316bb8ffe5iGIDsz6IEd2GA",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/31/a32a087b685dc0a310044a689771fe8d72909c b/31/a32a087b685dc0a310044a689771fe8d72909c
+new file mode 100644
+index 00000000..3514ddee
+--- /dev/null
++++ b/31/a32a087b685dc0a310044a689771fe8d72909c
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "31a32a087b685dc0a310044a689771fe8d72909c",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/31/eae3be9c672d1592ef2baa49fe6699a6a1a531 b/31/eae3be9c672d1592ef2baa49fe6699a6a1a531
+new file mode 100644
+index 00000000..c2ac5871
+--- /dev/null
++++ b/31/eae3be9c672d1592ef2baa49fe6699a6a1a531
+@@ -0,0 +1,34 @@
++training/tests/test_stage1_filters.py
++  s_e48b09ab646938::t_e99a2602e3fa3b 5-7,10-11,19-20,86-88,136-138
++  s_992233a7668668::t_56db158b6df17d 1-4,8-9,12-18,21-85,89-135,139-335
++.gitignore
++  s_992233a7668668::t_56db158b6df17d 184
++training/clinical_validity_judge.py
++  s_992233a7668668::t_56db158b6df17d 147-148,150-167,236-239,245-247,331-333,335-337,347-350
++pyproject.toml
++  s_992233a7668668::t_56db158b6df17d 95-100
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "31eae3be9c672d1592ef2baa49fe6699a6a1a531",
++  "prompts": {},
++  "sessions": {
++    "s_992233a7668668": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6da6755e-7c7e-4795-b313-ac28273fda83",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_e48b09ab646938": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "a5437650-db0e-4416-8ce7-1d3b1759f768",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/33/bcd31bfe37fa3e87773a00f45b051c25372e70 b/33/bcd31bfe37fa3e87773a00f45b051c25372e70
+new file mode 100644
+index 00000000..8963e3ca
+--- /dev/null
++++ b/33/bcd31bfe37fa3e87773a00f45b051c25372e70
+@@ -0,0 +1,32 @@
++data/licenses/source_manifest.yaml
++  s_fcc5d887d26157::t_e6431f1fe64731 1-61
++training/ingest_router.py
++  s_fcc5d887d26157::t_73d53d654f6fd6 1-45,47-158,160-177,179-1044
++  s_fcc5d887d26157::t_3774a5a504dc8f 46
++  s_fcc5d887d26157::t_528ce2c09b0a1e 159
++  s_fcc5d887d26157::t_dee6df7f412d62 178
++pyproject.toml
++  s_fcc5d887d26157::t_b4ff8c58829ff6 88-90
++uv.lock
++  ai_agent 321-328,943-956,1219-1233,1839-1854,2287-2298,2480-2496,3525,3536,3547,3621,3632,3641,4383-4395,4992-5026,5311-5319,5542-5557
++training/tests/test_ingest_router.py
++  s_fcc5d887d26157::t_edc179882c3dbc 1-551,553-559,561-567,569-575,577-606,614-652
++  s_fcc5d887d26157::t_3aed41a9ee119d 607-613
++  s_fcc5d887d26157::t_9f24a71ae4d391 552,560,568,576
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "33bcd31bfe37fa3e87773a00f45b051c25372e70",
++  "prompts": {},
++  "sessions": {
++    "s_fcc5d887d26157": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/34/83e4932d20b7cc07a56484c85b228e6e5c60b2 b/34/83e4932d20b7cc07a56484c85b228e6e5c60b2
+new file mode 100644
+index 00000000..05835d32
+--- /dev/null
++++ b/34/83e4932d20b7cc07a56484c85b228e6e5c60b2
+@@ -0,0 +1,22 @@
++training/curate_pipeline.py
++  s_8966adf124d5a9::t_39fd76d7e0203d 50-79,85
++  s_8966adf124d5a9::t_aebd12b5190039 262,264-267,270-274
++  s_8966adf124d5a9::t_d3b9194c3e4e07 419-421
++  s_8966adf124d5a9::t_49c32f5a36f199 30,92,98-106,114,155,163,192,196,204,220,334,414,417-418,422-423,429,433,440,444
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "3483e4932d20b7cc07a56484c85b228e6e5c60b2",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/36/5765f9c68a03a40342c5bdfba7920bc18163ec b/36/5765f9c68a03a40342c5bdfba7920bc18163ec
+new file mode 100644
+index 00000000..6bc26f27
+--- /dev/null
++++ b/36/5765f9c68a03a40342c5bdfba7920bc18163ec
+@@ -0,0 +1,24 @@
++training/nightmare_fuel_generator.py
++  s_f585dfbec3c7fa::t_19e8db49a4ef38 791-809,870-895,897-904,913-927,1039-1040
++  s_f585dfbec3c7fa::t_b36e04f463bea7 896,905-912
++training/clinical_validity_judge.py
++  s_f585dfbec3c7fa::t_19e8db49a4ef38 123,128-130,150-164,332-334
++dataset_pipeline/scripts/s3_atomic_sync.py
++  s_f585dfbec3c7fa::t_19e8db49a4ef38 127,134-135
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "365765f9c68a03a40342c5bdfba7920bc18163ec",
++  "prompts": {},
++  "sessions": {
++    "s_f585dfbec3c7fa": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_016083955ffe6jZeI3SW8ViAgI",
++        "model": "unknown"
++      },
++      "human_author": null
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/37/9745fc1ed75c45e8ed8477265f77da60e4c7ac b/37/9745fc1ed75c45e8ed8477265f77da60e4c7ac
+new file mode 100644
+index 00000000..768d8429
+--- /dev/null
++++ b/37/9745fc1ed75c45e8ed8477265f77da60e4c7ac
+@@ -0,0 +1,232 @@
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/be1af6ac-d978-446e-a33f-7cb7af5b0132.json
++  ai_agent 1-328
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/result.json
++  ai_agent 1-4
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/mission-state.json
++  ai_agent 3-9,11,13,15-17,19-144,147,151-152,155,157,167-168,171,173
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/pre-tool-advisory-throttle.json
++  s_514a08504643ea::t_99d049d1666f6b 4,6
++  s_514a08504643ea::t_dc23e961fd21ca 11
++  s_514a08504643ea::t_d946a266977fa9 23
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/5cfddcbc-ef6a-4e89-87f8-f844aabc648f.json
++  ai_agent 6,8,77,104-105,110,137-138,143,170-171,176,203-204,209,236-237,242,269-270,274-279
++.omc/sessions/be1af6ac-d978-446e-a33f-7cb7af5b0132.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/arm.json
++  ai_agent 1-5
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/subagent-tracking-state.json
++  ai_agent 24-32,42-44,48-50
++.omc/state/session-end-jobs/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 1-5,7,9-328
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/control.json
++  ai_agent 1-13
++.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/subagent-tracking-state.json
++  ai_agent 1-17
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/control.json
++  ai_agent 1-13
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/pre-tool-advisory-throttle.json
++  ai_agent 4-7,41
++  s_c6b71477c08a56::t_18da4e7cc5178a 8-11
++  s_c6b71477c08a56::t_fd218cb25096f8 15
++  s_c6b71477c08a56::t_01c5c112d199fa 16-23
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/46cb9167-c91d-4f11-8356-1b1e3092c604.json
++  ai_agent 1-351
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/control.json
++  ai_agent 1-13
++.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/mission-state.json
++  ai_agent 1-53
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/arm.json
++  ai_agent 1-5
++.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/pre-tool-advisory-throttle.json
++  ai_agent 1-14
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/discovery.json
++  ai_agent 14-20,22-37
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/control.json
++  ai_agent 1-13
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/last-tool-error-state.json
++  ai_agent 3-6
++.omc/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 1-2,4-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/watchdog.json
++  ai_agent 1-8
++.omc/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/result.json
++  ai_agent 1-4
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/subagent-tracking-state.json
++  ai_agent 105-109,112
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/control.json
++  ai_agent 1-13
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/mission-state.json
++  ai_agent 2-10,17-55,66-82,85,87,89-90,93,97-104
++.omc/project-memory.json
++  s_529b878f190499::t_9c1a2a874a7561 705-706,737,740,747-748
++  ai_agent 707,731,733
++  s_529b878f190499::t_6449d6245da0eb 741-745,710-712,716-718,722-724,728-730
++  s_7ddb1c7de26f4a::t_d79e763ea61133 713,719
++  s_514a08504643ea::t_0a327dc9b304bd 732
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/watchdog.json
++  ai_agent 1-8
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "379745fc1ed75c45e8ed8477265f77da60e4c7ac",
++  "prompts": {},
++  "sessions": {
++    "s_514a08504643ea": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5bc127a1-4a24-411a-9346-d03c94dfad68",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_529b878f190499": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "3caa895e-5b92-4977-afe7-759d0db0f888",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_7ddb1c7de26f4a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_c6b71477c08a56": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/39/3b34798a8616b303e84299abcfee8d78d7287f b/39/3b34798a8616b303e84299abcfee8d78d7287f
+new file mode 100644
+index 00000000..c1e28b46
+--- /dev/null
++++ b/39/3b34798a8616b303e84299abcfee8d78d7287f
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "393b34798a8616b303e84299abcfee8d78d7287f",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/39/ec932f84e8dc6c7dee864305b15a6d49a2ba3c b/39/ec932f84e8dc6c7dee864305b15a6d49a2ba3c
+new file mode 100644
+index 00000000..7cce1b4e
+--- /dev/null
++++ b/39/ec932f84e8dc6c7dee864305b15a6d49a2ba3c
+@@ -0,0 +1,21 @@
++api/test_pixel_inference.py
++  s_b6215a7af8168d::t_bfe0a198c1c59a 25
++api/pixel_inference_service.py
++  s_b6215a7af8168d::t_cbb82fcb314595 46,768,1176-1177
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "39ec932f84e8dc6c7dee864305b15a6d49a2ba3c",
++  "prompts": {},
++  "sessions": {
++    "s_b6215a7af8168d": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0315d1279ffe1BaV8K6AmvF040",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/41/c5a542d6ac20fce1fc88bbf3ccdacc3a6fb1b2 b/41/c5a542d6ac20fce1fc88bbf3ccdacc3a6fb1b2
+new file mode 100644
+index 00000000..dd7bdcec
+--- /dev/null
++++ b/41/c5a542d6ac20fce1fc88bbf3ccdacc3a6fb1b2
+@@ -0,0 +1,31 @@
++training/tests/test_nightmare_fuel_generator.py
++  s_509b83edc2294a::t_681fe32101e557 227
++  s_509b83edc2294a::t_a0138e017a4bb2 1,6,12,123-128,130-131,135-226,228-250,252,256,259-266,268-287
++  s_509b83edc2294a::t_e182e73dc58c53 251,253-255,257-258
++  s_509b83edc2294a::t_341f7df29fa469 267
++training/nightmare_fuel_generator.py
++  s_509b83edc2294a::t_73bda8b3b0223a 382
++  s_509b83edc2294a::t_2ac7febb48b26c 1-33,37,39-40,52-117,119-144,147-157,164-167,169-170,177,179-180,182-188,191,194-196,200,202,204-209,211,343,345-352,355-364,367-381,383-384,447-455,463-482,491-536
++  s_509b83edc2294a::t_728694169ce549 446
++  s_509b83edc2294a::t_6adab2def8e9c9 158-163
++  s_509b83edc2294a::t_ca98b34ed374cb 118
++  s_509b83edc2294a::t_ce6cc19f946428 145-146
++  s_509b83edc2294a::t_d7833e57fa33cc 171-176,178,181,189-190,192-193,197-199,201,203,210,212
++  s_509b83edc2294a::t_086d078097ef40 168
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "41c5a542d6ac20fce1fc88bbf3ccdacc3a6fb1b2",
++  "prompts": {},
++  "sessions": {
++    "s_509b83edc2294a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e324174ffem88eZXltY6GH0K",
++        "model": "unknown"
++      },
++      "human_author": null
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/4b/9d6cad2f139e29485e227816361d3afe303c3c b/4b/9d6cad2f139e29485e227816361d3afe303c3c
+new file mode 100644
+index 00000000..6820cf85
+--- /dev/null
++++ b/4b/9d6cad2f139e29485e227816361d3afe303c3c
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-172,178-180,213-254
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "4b9d6cad2f139e29485e227816361d3afe303c3c",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/4d/5e59be2840f305800962fd32287974a32a9f3d b/4d/5e59be2840f305800962fd32287974a32a9f3d
+new file mode 100644
+index 00000000..6ab28a84
+--- /dev/null
++++ b/4d/5e59be2840f305800962fd32287974a32a9f3d
+@@ -0,0 +1,24 @@
++training/tests/test_nightmare_fuel_generator.py
++  s_509b83edc2294a::t_051bcaa6398dd6 211,230
++  s_509b83edc2294a::t_0628d19c6c8c85 289-348
++training/nightmare_fuel_generator.py
++  s_509b83edc2294a::t_d76815711bc43d 479,482,484-486,492
++  s_509b83edc2294a::t_0afd6a26672fdd 344,350-353,359-361,368-369,371-374,381
++  s_509b83edc2294a::t_f4ac7709b8e736 370
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "4d5e59be2840f305800962fd32287974a32a9f3d",
++  "prompts": {},
++  "sessions": {
++    "s_509b83edc2294a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e324174ffem88eZXltY6GH0K",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/52/0d4d60aa0e52f53ee478528291412ce6a53052 b/52/0d4d60aa0e52f53ee478528291412ce6a53052
+new file mode 100644
+index 00000000..9a651ee2
+--- /dev/null
++++ b/52/0d4d60aa0e52f53ee478528291412ce6a53052
+@@ -0,0 +1,27 @@
++pyproject.toml
++  s_ce8b3c0a296613::t_7e03a9498348e7 221-227
++sourcing/tests/test_safety_processors.py
++  s_ce8b3c0a296613::t_7e03a9498348e7 1-451
++sourcing/scripts/download_all.py
++  s_ce8b3c0a296613::t_7e03a9498348e7 57
++sourcing/dataset_adapters/adapter_factory.py
++  s_ce8b3c0a296613::t_7e03a9498348e7 13,17-18,33
++sourcing/dataset_adapters/__init__.py
++  s_ce8b3c0a296613::t_7e03a9498348e7 1-5
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "520d4d60aa0e52f53ee478528291412ce6a53052",
++  "prompts": {},
++  "sessions": {
++    "s_ce8b3c0a296613": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02c9f2812ffeSODtiG0fbTpJ1D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/54/056905fdbaa2074dc479f7bb1577216b4bc381 b/54/056905fdbaa2074dc479f7bb1577216b4bc381
+new file mode 100644
+index 00000000..903cb85a
+--- /dev/null
++++ b/54/056905fdbaa2074dc479f7bb1577216b4bc381
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-172,178-180,213-254,316
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "54056905fdbaa2074dc479f7bb1577216b4bc381",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/57/10eaf84df2e4d7922e783ebf6e0b04138da046 b/57/10eaf84df2e4d7922e783ebf6e0b04138da046
+new file mode 100644
+index 00000000..997ebabc
+--- /dev/null
++++ b/57/10eaf84df2e4d7922e783ebf6e0b04138da046
+@@ -0,0 +1,109 @@
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/notification/1/7ad5cb39-94c9-4bdd-bd4b-09fd47883a0b/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/callback/1/d9194075-6db7-4b66-a9dd-53b6f21433a1/result.json
++  ai_agent 1-4
++.omc/project-memory.json
++  s_1d9a62d24996cc::t_8cd1bf9482d4c0 698-700,703-706,709-712,715-723
++  ai_agent 701-702,707-708,713-714
++.omc/state/session-end-jobs/discovery.json
++  ai_agent 1-17
++.omc/sessions/515a406a-deb7-4d1a-8651-762c99b71417.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/notification/1/7ad5cb39-94c9-4bdd-bd4b-09fd47883a0b/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/python-cleanup/1/200a00bd-53b3-4f06-9e53-044c271c2977/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/97fe8058-1511-42d9-8551-abd64320b96f/team-cleanup/1/613def20-05bc-4ceb-8fb5-f63a1d43322e/arm.json
++  ai_agent 1-5
++.omc/state/sessions/515a406a-deb7-4d1a-8651-762c99b71417/pre-tool-advisory-throttle.json
++  s_1d9a62d24996cc::t_8cd1bf9482d4c0 1-3,23-28,30
++  s_1d9a62d24996cc::t_e863b1570c7b95 4-11,29
++training/stage1_filters.py
++  s_1d9a62d24996cc::t_24e45ce380a374 433-436
++  s_1d9a62d24996cc::t_9e50bd929ea7fb 510-511,513-524
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/reply-cleanup/1/ceccb064-87d1-46e1-8f56-35c3f2700ad2/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/python-cleanup/1/200a00bd-53b3-4f06-9e53-044c271c2977/arm.json
++  ai_agent 1-5
++.omc/sessions/e9a95f87-aba6-469d-ba61-2ddcef22e59e.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/notification/1/7ad5cb39-94c9-4bdd-bd4b-09fd47883a0b/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/notification/1/7ad5cb39-94c9-4bdd-bd4b-09fd47883a0b/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/team-cleanup/1/fd3f6774-5b95-4c8b-bbee-06bdf4f448fd/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/callback/1/d9194075-6db7-4b66-a9dd-53b6f21433a1/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/team-cleanup/1/fd3f6774-5b95-4c8b-bbee-06bdf4f448fd/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/callback/1/d9194075-6db7-4b66-a9dd-53b6f21433a1/control.json
++  ai_agent 1-13
++.omc/state/sessions/515a406a-deb7-4d1a-8651-762c99b71417/subagent-tracking-state.json
++  ai_agent 26-34
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/openclaw/1/6b9786c6-de53-45c3-88f8-43290a3d410a/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/515a406a-deb7-4d1a-8651-762c99b71417/mission-state.json
++  ai_agent 2-84
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/reply-cleanup/1/ceccb064-87d1-46e1-8f56-35c3f2700ad2/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/callback/1/d9194075-6db7-4b66-a9dd-53b6f21433a1/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/openclaw/1/6b9786c6-de53-45c3-88f8-43290a3d410a/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/97fe8058-1511-42d9-8551-abd64320b96f/team-cleanup/1/613def20-05bc-4ceb-8fb5-f63a1d43322e/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/python-cleanup/1/200a00bd-53b3-4f06-9e53-044c271c2977/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/515a406a-deb7-4d1a-8651-762c99b71417.json
++  ai_agent 1-305
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/reply-cleanup/1/ceccb064-87d1-46e1-8f56-35c3f2700ad2/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/e9a95f87-aba6-469d-ba61-2ddcef22e59e/mission-state.json
++  ai_agent 2-170
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/reply-cleanup/1/ceccb064-87d1-46e1-8f56-35c3f2700ad2/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/e9a95f87-aba6-469d-ba61-2ddcef22e59e.json
++  ai_agent 1-351
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/python-cleanup/1/200a00bd-53b3-4f06-9e53-044c271c2977/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/openclaw/1/6b9786c6-de53-45c3-88f8-43290a3d410a/arm.json
++  ai_agent 1-5
++.omc/state/sessions/e9a95f87-aba6-469d-ba61-2ddcef22e59e/pre-tool-advisory-throttle.json
++  s_a1774d61e12b3e::t_bcfa140589c7b9 4-7,53
++  s_a1774d61e12b3e::t_2adfcd2f9b7811 43-47
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/team-cleanup/1/fd3f6774-5b95-4c8b-bbee-06bdf4f448fd/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/team-cleanup/1/fd3f6774-5b95-4c8b-bbee-06bdf4f448fd/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/97fe8058-1511-42d9-8551-abd64320b96f/team-cleanup/1/613def20-05bc-4ceb-8fb5-f63a1d43322e/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/e9a95f87-aba6-469d-ba61-2ddcef22e59e/subagent-tracking-state.json
++  ai_agent 89-97
++.omc/state/session-end-jobs/runs/5695513f-14d4-491f-85ca-ad0d41c30aa9/openclaw/1/6b9786c6-de53-45c3-88f8-43290a3d410a/result.json
++  ai_agent 1-4
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "5710eaf84df2e4d7922e783ebf6e0b04138da046",
++  "prompts": {},
++  "sessions": {
++    "s_1d9a62d24996cc": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "515a406a-deb7-4d1a-8651-762c99b71417",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_a1774d61e12b3e": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "e9a95f87-aba6-469d-ba61-2ddcef22e59e",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/57/1b02fe4c62259acd0ca990baa7940f4809df9f b/57/1b02fe4c62259acd0ca990baa7940f4809df9f
+new file mode 100644
+index 00000000..f317084e
+--- /dev/null
++++ b/57/1b02fe4c62259acd0ca990baa7940f4809df9f
+@@ -0,0 +1,45 @@
++training/curate_pipeline.py
++  s_8fca87a706a722::t_ea5ed074883d85 51-52
++  s_8fca87a706a722::t_013172115cba7a 370,376,378-382
++  s_8fca87a706a722::t_0188b58dbbf6fd 36,42
++  s_8fca87a706a722::t_8446ed500dfcf2 53-58
++  s_8fca87a706a722::t_3a91b8d11450c7 515-519,523-526
++  s_8fca87a706a722::t_a3f8560a49e8b2 500,502
++  s_8fca87a706a722::t_ea9fbaf15ef057 407-414,417-446,449-450,452-453,456-499,501,503-507
++  s_8fca87a706a722::t_a4edcde65b3c4a 377
++  s_8fca87a706a722::t_994d02032521f5 541-546,552,555
++training/tests/test_stage1_filters.py
++  s_8fca87a706a722::t_7afb10d43891f6 86
++  s_8fca87a706a722::t_effb0cec92fd11 1-85,87-188,191-246,248-251,253-260,262-265,267-276,278-287,289-299,301-304,306-338
++  s_8fca87a706a722::t_00bb4e705387bb 261,266
++  s_8fca87a706a722::t_267d26fa4a6df5 189-190
++  s_8fca87a706a722::t_ec5f8d859870ae 247,252
++  s_8fca87a706a722::t_eb6005294fc733 300,305
++  s_8fca87a706a722::t_7475446c53afac 277,288
++pyproject.toml
++  s_8fca87a706a722::t_a4d20d862cbee3 95-100
++training/stage1_filters.py
++  s_8fca87a706a722::t_e3f7b2919d101d 600-603
++  s_8fca87a706a722::t_9f856fb00bac46 1-599,604-852,856-872
++  s_8fca87a706a722::t_6b7fb1e2af05ce 853-855
++.gitignore
++  s_8fca87a706a722::t_e205d75f0f4d58 184
++uv.lock
++  ai_agent 554-577,681-689,946-954,964-972,1223-1262,1288-1300,1310-1323,1574-1618,2912-2951,3472-3480,3617-3618,3626,3648-3649,3715-3716,3724,3746-3747,3868-3930,4900-4911,5296-5307,5335-5388,5423-5457,5539-5576,5611-5625,6072-6083,6177-6196,6290-6340
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "571b02fe4c62259acd0ca990baa7940f4809df9f",
++  "prompts": {},
++  "sessions": {
++    "s_8fca87a706a722": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c13556ffeyep4lgzemcFVaw",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/57/5999c272021d2463f5b1b353d365edaeb96884 b/57/5999c272021d2463f5b1b353d365edaeb96884
+new file mode 100644
+index 00000000..0d1521c7
+--- /dev/null
++++ b/57/5999c272021d2463f5b1b353d365edaeb96884
+@@ -0,0 +1,19 @@
++sourcing/academic/anonymization/__init__.py
++  s_e48b09ab646938::t_a86de6fa48b5d9 1-3
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "575999c272021d2463f5b1b353d365edaeb96884",
++  "prompts": {},
++  "sessions": {
++    "s_e48b09ab646938": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "a5437650-db0e-4416-8ce7-1d3b1759f768",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/5d/3a0f7b19bf5141a533164264c62a9df23a081f b/5d/3a0f7b19bf5141a533164264c62a9df23a081f
+new file mode 100644
+index 00000000..5019d9c2
+--- /dev/null
++++ b/5d/3a0f7b19bf5141a533164264c62a9df23a081f
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "5d3a0f7b19bf5141a533164264c62a9df23a081f",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/5e/c3dea97af0f96416ae1f77b740a6334af53a1e b/5e/c3dea97af0f96416ae1f77b740a6334af53a1e
+new file mode 100644
+index 00000000..745a8f73
+--- /dev/null
++++ b/5e/c3dea97af0f96416ae1f77b740a6334af53a1e
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "5ec3dea97af0f96416ae1f77b740a6334af53a1e",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/60/86c731a4c1e429d33993165459ca7d82e242cf b/60/86c731a4c1e429d33993165459ca7d82e242cf
+new file mode 100644
+index 00000000..342d1a0c
+--- /dev/null
++++ b/60/86c731a4c1e429d33993165459ca7d82e242cf
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-92,94-104,108-111,113-120,122-133,135-179,185-187,220-261
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "6086c731a4c1e429d33993165459ca7d82e242cf",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/60/fdcd1b1d1c98ee885f34b2570ec23f34e5e7e0 b/60/fdcd1b1d1c98ee885f34b2570ec23f34e5e7e0
+new file mode 100644
+index 00000000..63cd6f67
+--- /dev/null
++++ b/60/fdcd1b1d1c98ee885f34b2570ec23f34e5e7e0
+@@ -0,0 +1,27 @@
++training/scripts/train_sft_serverless.py
++  s_8966adf124d5a9::t_e55f4f937fff7d 127-133
++  s_8966adf124d5a9::t_ec9715b8a2ae4f 143
++  s_8966adf124d5a9::t_8e902ee891bb57 189-204,207-210,218-219
++  s_8966adf124d5a9::t_e29c79af131e0e 101-102
++  s_8966adf124d5a9::t_1a67ed6af040fa 139
++  s_8966adf124d5a9::t_61ab75deeea54e 1-100,103-124,126,134-138,140-142,144-188,205-206,211-217,220-225
++  s_8966adf124d5a9::t_65787399baa3e5 125
++training/scripts/train_rl_serverless.py
++  s_8966adf124d5a9::t_6a112f2c83d3b3 1-314
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "60fdcd1b1d1c98ee885f34b2570ec23f34e5e7e0",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/61/15081c8bfc4c458e30df559d336a38d3c0cec8 b/61/15081c8bfc4c458e30df559d336a38d3c0cec8
+new file mode 100644
+index 00000000..1e31990c
+--- /dev/null
++++ b/61/15081c8bfc4c458e30df559d336a38d3c0cec8
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "6115081c8bfc4c458e30df559d336a38d3c0cec8",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/63/a20d6f69292d97798dcb80a76030df53ea1f02 b/63/a20d6f69292d97798dcb80a76030df53ea1f02
+new file mode 100644
+index 00000000..c5a9f0fb
+--- /dev/null
++++ b/63/a20d6f69292d97798dcb80a76030df53ea1f02
+@@ -0,0 +1,121 @@
++.omc/state/session-end-jobs/discovery.json
++  ai_agent 46-50
++.omc/state/session-end-jobs/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 6,8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.json
++  ai_agent 1-292
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/arm.json
++  ai_agent 1-5
++.omc/state/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f/subagent-tracking-state.json
++  ai_agent 8-16
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/control.json
++  ai_agent 1-13
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/subagent-tracking-state.json
++  ai_agent 108-134,137-138,140
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/control.json
++  ai_agent 1-13
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/pre-tool-advisory-throttle.json
++  s_7ddb1c7de26f4a::t_3c54ea954a0162 4-7,45
++  s_7ddb1c7de26f4a::t_e367e452718d03 12-19
++  s_7ddb1c7de26f4a::t_975ff48595b01b 32-34
++  s_7ddb1c7de26f4a::t_d74f70076eaee4 35
++  s_7ddb1c7de26f4a::t_a507ccf102b395 27-31
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/result.json
++  ai_agent 2-3
++.omc/state/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f/pre-tool-advisory-throttle.json
++  s_fb924e55fd74e9::t_ab5db77ce7075a 4-13
++.omc/state/session-end-jobs/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b.json
++  ai_agent 1-328
++.omc/state/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f/mission-state.json
++  ai_agent 2-48
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/result.json
++  ai_agent 1-4
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/pre-tool-advisory-throttle.json
++  s_514a08504643ea::t_25b51f8ff7dc6c 17
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/last-tool-error-state.json
++  ai_agent 3-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/control.json
++  ai_agent 1-13
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/mission-state.json
++  ai_agent 2,10,12,14,18,141-170,175-176,178,180,183-184,186-204,207-208,210,212
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/control.json
++  ai_agent 1-13
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/mission-state.json
++  s_7ddb1c7de26f4a::t_975ff48595b01b 41-59
++.omc/project-memory.json
++  s_7ddb1c7de26f4a::t_d79e763ea61133 713-715,719-721
++.omc/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b.json
++  ai_agent 3-7
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/watchdog.json
++  ai_agent 1-8
++.omc/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/control.json
++  ai_agent 1-13
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/subagent-tracking-state.json
++  s_7ddb1c7de26f4a::t_975ff48595b01b 20-25
++.omc/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 3
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "63a20d6f69292d97798dcb80a76030df53ea1f02",
++  "prompts": {},
++  "sessions": {
++    "s_514a08504643ea": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5bc127a1-4a24-411a-9346-d03c94dfad68",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_7ddb1c7de26f4a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_fb924e55fd74e9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/67/6c6260c1736c124156cc7b2784229112ab4ff0 b/67/6c6260c1736c124156cc7b2784229112ab4ff0
+new file mode 100644
+index 00000000..aead977a
+--- /dev/null
++++ b/67/6c6260c1736c124156cc7b2784229112ab4ff0
+@@ -0,0 +1,36 @@
++training/nightmare_fuel_generator.py
++  s_1cc57332acbf8d::t_1e687c59521ef0 724-729
++  s_1cc57332acbf8d::t_621fc9b6f8613c 69
++  s_1cc57332acbf8d::t_051f4544a946c5 76-136
++  s_b6df8cd174bbbd::t_ed6d62374b1ead 47
++  s_1cc57332acbf8d::t_ab907309d358b9 279-361
++  s_1cc57332acbf8d::t_3e6a62fa55075c 486
++  s_1cc57332acbf8d::t_3f4d986dce5900 565-566,568-572
++  s_1cc57332acbf8d::t_3270778f068b16 607
++  s_1cc57332acbf8d::t_d7ccdd40bb023c 698-701,710
++  s_1cc57332acbf8d::t_d96e46d4abb943 604-606,608-609,611-615,617-623,625-626,629-632,634-638,640-678
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "676c6260c1736c124156cc7b2784229112ab4ff0",
++  "prompts": {},
++  "sessions": {
++    "s_1cc57332acbf8d": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02c2c347bffeel2pxoXZq6O81g",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_b6df8cd174bbbd": {
++      "agent_id": {
++        "tool": "opencode",
++        "id": "ses_02c2c347bffeel2pxoXZq6O81g",
++        "model": "@cf/zai-org/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/67/dc47c26fa22b0acdd6ca3d117cce257b6833f2 b/67/dc47c26fa22b0acdd6ca3d117cce257b6833f2
+new file mode 100644
+index 00000000..ad8340b2
+--- /dev/null
++++ b/67/dc47c26fa22b0acdd6ca3d117cce257b6833f2
+@@ -0,0 +1,59 @@
++training/ingest_router.py
++  s_fcc5d887d26157::t_73d53d654f6fd6 1-37,39-45,47-72,74-94,96,101-156,158-175,177-239,241-357,364-406,414-477,479,481,483-485,487-488,490-492,494-574,579-626,629-646,648-652,657-681,694-719,721,723,725-773,781-796,798,828-977,979-1009,1011-1064,1071-1076,410,413
++  s_fcc5d887d26157::t_3774a5a504dc8f 46
++  s_fcc5d887d26157::t_528ce2c09b0a1e 157
++  s_fcc5d887d26157::t_dee6df7f412d62 176
++  s_35e45b977c3503::t_4bf3703710f5e9 358-363
++  s_716c494122f8ae::t_e86b32c7731d2c 478,480,482,486,489,493
++  s_716c494122f8ae::t_f8cc1cd1a2f061 575-577
++  s_716c494122f8ae::t_f61ec0c0285944 647,653-656,682,686-693
++  s_35e45b977c3503::t_617cf5f9f36757 774-780
++  s_716c494122f8ae::t_a78833505cf9a1 797,799-820,826,408-409,412
++  s_35e45b977c3503::t_4bd6616280f1c5 1065-1070
++  s_c6b71477c08a56::t_19696b36da6434 95
++  s_c6b71477c08a56::t_a09e9c761ede12 407,411
++  s_c6b71477c08a56::t_fe020ce5bf481e 578
++  s_c6b71477c08a56::t_c438c19546ccf3 627-628
++  s_c6b71477c08a56::t_05c199efd53368 683-685
++  s_c6b71477c08a56::t_972c0056f05569 821-825,827
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "67dc47c26fa22b0acdd6ca3d117cce257b6833f2",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_716c494122f8ae": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_c6b71477c08a56": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_fcc5d887d26157": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/6b/6b705339720d4ab98b452c527fc9f2f432443c b/6b/6b705339720d4ab98b452c527fc9f2f432443c
+new file mode 100644
+index 00000000..833c1a3d
+--- /dev/null
++++ b/6b/6b705339720d4ab98b452c527fc9f2f432443c
+@@ -0,0 +1,25 @@
++dataset_pipeline/processors/safety_processors.py
++  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 250,253
++dataset_pipeline/scripts/run_safety_pass.py
++  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 31,33
++dataset_pipeline/processors/toxicity_detector.py
++  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 511-512,514,516
++lab/tests/safety/test_hackathon_safety_processor.py
++  s_30adb0eaa632fb::t_0adc9e0a4cc6a3 23,298
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "6b6b705339720d4ab98b452c527fc9f2f432443c",
++  "prompts": {},
++  "sessions": {
++    "s_30adb0eaa632fb": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/6b/f404142ffb57960311e5aee455a3bb6904f790 b/6b/f404142ffb57960311e5aee455a3bb6904f790
+new file mode 100644
+index 00000000..d2e8045b
+--- /dev/null
++++ b/6b/f404142ffb57960311e5aee455a3bb6904f790
+@@ -0,0 +1,40 @@
++.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/mission-state.json
++  ai_agent 2-104
++.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/pre-tool-advisory-throttle.json
++  s_529b878f190499::t_14223035eac531 4-7,33
++  s_529b878f190499::t_9c1a2a874a7561 16-18
++  s_529b878f190499::t_8c0850315e39b0 19
++  s_529b878f190499::t_9432d1db6fa468 27
++.omc/state/sessions/5cfddcbc-ef6a-4e89-87f8-f844aabc648f/pre-tool-advisory-throttle.json
++  s_35e45b977c3503::t_7b62ebf332f6cd 1-28,30
++.omc/project-memory.json
++  s_529b878f190499::t_9c1a2a874a7561 705-706,713,716,723-724
++  ai_agent 707
++  s_529b878f190499::t_6449d6245da0eb 717-721
++.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/subagent-tracking-state.json
++  ai_agent 44-52
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "6bf404142ffb57960311e5aee455a3bb6904f790",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_529b878f190499": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "3caa895e-5b92-4977-afe7-759d0db0f888",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/6d/136cb7c57b0cca419bbbdef6275a07e1dcfcb8 b/6d/136cb7c57b0cca419bbbdef6275a07e1dcfcb8
+new file mode 100644
+index 00000000..5da23050
+--- /dev/null
++++ b/6d/136cb7c57b0cca419bbbdef6275a07e1dcfcb8
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "6d136cb7c57b0cca419bbbdef6275a07e1dcfcb8",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/71/0fbc1728a894402038f3c1a61972f965bc619d b/71/0fbc1728a894402038f3c1a61972f965bc619d
+new file mode 100644
+index 00000000..79aa81b6
+--- /dev/null
++++ b/71/0fbc1728a894402038f3c1a61972f965bc619d
+@@ -0,0 +1,23 @@
++training/curate_pipeline.py
++  s_369b2cca196af2::t_781dc86d5e202f 218-229
++  s_369b2cca196af2::t_03e1bdafc3eeeb 65-80
++training/tests/test_curate_pipeline_import_gate.py
++  s_369b2cca196af2::t_e80585e8c1c437 1-32,35-90
++  s_369b2cca196af2::t_c0cfe9783977d4 33-34
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "710fbc1728a894402038f3c1a61972f965bc619d",
++  "prompts": {},
++  "sessions": {
++    "s_369b2cca196af2": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "cdad3ebe-b936-4879-b07a-780c1592997f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "PR Churn Bot <bot@composio.dev>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/72/8f2304fa9a192169002d607ceee26d1ca19f50 b/72/8f2304fa9a192169002d607ceee26d1ca19f50
+new file mode 100644
+index 00000000..f9c3d8cd
+--- /dev/null
++++ b/72/8f2304fa9a192169002d607ceee26d1ca19f50
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "728f2304fa9a192169002d607ceee26d1ca19f50",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/73/2f7a317a107e89508e138a7612d196e91a6e25 b/73/2f7a317a107e89508e138a7612d196e91a6e25
+new file mode 100644
+index 00000000..0506940e
+--- /dev/null
++++ b/73/2f7a317a107e89508e138a7612d196e91a6e25
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-172,178-180,213-254
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "732f7a317a107e89508e138a7612d196e91a6e25",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/75/1e5de15ef05012f5ed715dc8565b3f88dbc9de b/75/1e5de15ef05012f5ed715dc8565b3f88dbc9de
+new file mode 100644
+index 00000000..2d24c955
+--- /dev/null
++++ b/75/1e5de15ef05012f5ed715dc8565b3f88dbc9de
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-165,171-173,206-247,309
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "751e5de15ef05012f5ed715dc8565b3f88dbc9de",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/75/6d7602f4ee4c4d3a39b6c1f0ed2889bb908769 b/75/6d7602f4ee4c4d3a39b6c1f0ed2889bb908769
+new file mode 100644
+index 00000000..18f87211
+--- /dev/null
++++ b/75/6d7602f4ee4c4d3a39b6c1f0ed2889bb908769
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-172,178-180,213-254,316
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "756d7602f4ee4c4d3a39b6c1f0ed2889bb908769",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/75/9aa212c48ba55855c169e19c4d546348cecff5 b/75/9aa212c48ba55855c169e19c4d546348cecff5
+new file mode 100644
+index 00000000..1bb56090
+--- /dev/null
++++ b/75/9aa212c48ba55855c169e19c4d546348cecff5
+@@ -0,0 +1,19 @@
++training/nightmare_fuel_generator.py
++  s_9ed4f05cc638b8::t_6b90e3dc1696ae 829-833,843-846,849-851
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "759aa212c48ba55855c169e19c4d546348cecff5",
++  "prompts": {},
++  "sessions": {
++    "s_9ed4f05cc638b8": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_01658a28affemYXGR5SHfsoP7F",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/78/9afe147f70e4e730e84bf1d0fc3fd433682b43 b/78/9afe147f70e4e730e84bf1d0fc3fd433682b43
+new file mode 100644
+index 00000000..2f35f777
+--- /dev/null
++++ b/78/9afe147f70e4e730e84bf1d0fc3fd433682b43
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "789afe147f70e4e730e84bf1d0fc3fd433682b43",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/7b/b8fd6386f72b136994d382ce46ad0ccb1e0627 b/7b/b8fd6386f72b136994d382ce46ad0ccb1e0627
+new file mode 100644
+index 00000000..0118f880
+--- /dev/null
++++ b/7b/b8fd6386f72b136994d382ce46ad0ccb1e0627
+@@ -0,0 +1,23 @@
++training/curate_pipeline.py
++  s_8966adf124d5a9::t_1ff341217b679f 284-285
++  s_8966adf124d5a9::t_9bb43cbf3ed123 334-335
++  s_8966adf124d5a9::t_03cd0b36767b23 236-249,252-253,256-257
++  s_8966adf124d5a9::t_71bc1d0013496d 444-445
++  s_8966adf124d5a9::t_95283660a790f9 250-251,258-260
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "7bb8fd6386f72b136994d382ce46ad0ccb1e0627",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/7c/ba8b06d240ce84d4ebf08b202c633edc31b2bc b/7c/ba8b06d240ce84d4ebf08b202c633edc31b2bc
+new file mode 100644
+index 00000000..c300c929
+--- /dev/null
++++ b/7c/ba8b06d240ce84d4ebf08b202c633edc31b2bc
+@@ -0,0 +1,19 @@
++training/book_pdf_converter.py
++  s_983f40978c6000::t_4887565a6011dd 228
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "7cba8b06d240ce84d4ebf08b202c633edc31b2bc",
++  "prompts": {},
++  "sessions": {
++    "s_983f40978c6000": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "a6d61547-325a-4e1f-825b-4746743b7b37",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/7d/1b3fc89e5faaa8d3cb173ff064f107fd28bb60 b/7d/1b3fc89e5faaa8d3cb173ff064f107fd28bb60
+new file mode 100644
+index 00000000..7385eebb
+--- /dev/null
++++ b/7d/1b3fc89e5faaa8d3cb173ff064f107fd28bb60
+@@ -0,0 +1,19 @@
++training/curate_pipeline.py
++  s_8966adf124d5a9::t_9810f11f4a06b2 1-500
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "7d1b3fc89e5faaa8d3cb173ff064f107fd28bb60",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/83/ada03108ceddd2714bc6623d77dfb085bb29f4 b/83/ada03108ceddd2714bc6623d77dfb085bb29f4
+new file mode 100644
+index 00000000..ac58b81c
+--- /dev/null
++++ b/83/ada03108ceddd2714bc6623d77dfb085bb29f4
+@@ -0,0 +1,29 @@
++training/book_pdf_converter.py
++  s_716c494122f8ae::t_5648d11935d271 226
++  s_716c494122f8ae::t_f6b1b18ee544d6 223-224
++training/ingest_router.py
++  s_716c494122f8ae::t_f61ec0c0285944 639,645-648,674-683
++  s_716c494122f8ae::t_e86b32c7731d2c 473,475,477,481,484,488
++  s_716c494122f8ae::t_f8cc1cd1a2f061 570-572
++  s_716c494122f8ae::t_a78833505cf9a1 787,789-813
++training/tests/test_ingest_router.py
++  s_716c494122f8ae::t_a9c1cb20f9034a 489,494
++  s_716c494122f8ae::t_80e08f60308ece 488
++  s_716c494122f8ae::t_609d790984ce69 624-695
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "83ada03108ceddd2714bc6623d77dfb085bb29f4",
++  "prompts": {},
++  "sessions": {
++    "s_716c494122f8ae": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/89/0c13a8ce736b2103fd249a21b1cc9480969d24 b/89/0c13a8ce736b2103fd249a21b1cc9480969d24
+new file mode 100644
+index 00000000..115a6d01
+--- /dev/null
++++ b/89/0c13a8ce736b2103fd249a21b1cc9480969d24
+@@ -0,0 +1,44 @@
++.omc/state/sessions/29984f94-d58f-4522-bd48-31876a3b9e69/pre-tool-advisory-throttle.json
++  s_e1e8a936fecc89::t_69293e166599f5 19
++  s_e1e8a936fecc89::t_87d2f80e10d37b 5,41
++  s_e1e8a936fecc89::t_2fd5d7b4397788 35
++  s_e1e8a936fecc89::t_04d6714753ae63 4,6-7
++  s_e1e8a936fecc89::t_d7ed4b75bb5c5b 8,10-15
++  s_e1e8a936fecc89::t_2cb21e5ce63ddc 9
++training/llm_quality_judge.py
++  s_e1e8a936fecc89::t_2ed165d66f90dd 533
++  s_e1e8a936fecc89::t_7ea3824a762428 217-218
++  s_e1e8a936fecc89::t_29257f41346fb4 150
++  s_e1e8a936fecc89::t_e600218c1ec3ea 545-577
++  s_e1e8a936fecc89::t_c9721b93a1b20d 494-496,516
++  s_e1e8a936fecc89::t_4a1e81c473be8b 442-445,456
++  s_e1e8a936fecc89::t_cc4b2db40dadcd 40
++.omc/state/sessions/4e34dc15-3295-44de-a6d4-316f9346a015/pre-tool-advisory-throttle.json
++  s_07f0a5eb20d7a3::t_9828eab0f9e99b 9
++training/tests/test_llm_quality_judge.py
++  s_e1e8a936fecc89::t_815c8edc7c3a4e 599-627
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "890c13a8ce736b2103fd249a21b1cc9480969d24",
++  "prompts": {},
++  "sessions": {
++    "s_07f0a5eb20d7a3": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "4e34dc15-3295-44de-a6d4-316f9346a015",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_e1e8a936fecc89": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "29984f94-d58f-4522-bd48-31876a3b9e69",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/8d/bda77f7053614787109322fc3079f87f4356a8 b/8d/bda77f7053614787109322fc3079f87f4356a8
+new file mode 100644
+index 00000000..580c2652
+--- /dev/null
++++ b/8d/bda77f7053614787109322fc3079f87f4356a8
+@@ -0,0 +1,27 @@
++training/tests/test_nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_d85bb78817f47e 91
++  s_e7ab654cff2567::t_666cb1774c4d30 328,361,394
++  s_e7ab654cff2567::t_a01c4016d86d24 305-327,329-360,362-393,395-419
++training/nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_01909ad14f3b97 259,263-264,281-285,287-295,298-355,359
++  s_e7ab654cff2567::t_e418ae659236f2 186,194
++  s_e7ab654cff2567::t_13a8d2788ab416 231-236,249
++  s_e7ab654cff2567::t_5b069ec7591ba8 356
++  s_e7ab654cff2567::t_6b9ef307cdd4fb 357-358
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "8dbda77f7053614787109322fc3079f87f4356a8",
++  "prompts": {},
++  "sessions": {
++    "s_e7ab654cff2567": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e32519affeVY6DG1QdGq4riR",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/8e/4b812a4df70461f4fb4665544fe84266f43e58 b/8e/4b812a4df70461f4fb4665544fe84266f43e58
+new file mode 100644
+index 00000000..58e6dd93
+--- /dev/null
++++ b/8e/4b812a4df70461f4fb4665544fe84266f43e58
+@@ -0,0 +1,25 @@
++training/ingest_router.py
++  s_761e1b75e3b91f::t_59459a9dcd10b6 780,782-784,797,808,822-824,832,834,864
++  s_761e1b75e3b91f::t_faba780480d28f 790-793
++  s_761e1b75e3b91f::t_4160c856a9cede 62
++  s_761e1b75e3b91f::t_060318147034cd 981-984
++  s_761e1b75e3b91f::t_33054e4810cd56 809-811
++training/book_pdf_converter.py
++  s_761e1b75e3b91f::t_794bef135ed7e7 252-255
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "8e4b812a4df70461f4fb4665544fe84266f43e58",
++  "prompts": {},
++  "sessions": {
++    "s_761e1b75e3b91f": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0067ab0b8ffeFHuOIACc0o74y9",
++        "model": "unknown"
++      },
++      "human_author": "PR Churn Bot <bot@composio.dev>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/8e/ef20fdc51d1196b040d6f3ac12089f5b4210f1 b/8e/ef20fdc51d1196b040d6f3ac12089f5b4210f1
+new file mode 100644
+index 00000000..db12c082
+--- /dev/null
++++ b/8e/ef20fdc51d1196b040d6f3ac12089f5b4210f1
+@@ -0,0 +1,24 @@
++training/llm_quality_judge.py
++  s_8908f5d19e9464::t_4f6e6ae098cf4c 514-516
++  s_8908f5d19e9464::t_65410532af0ec6 687-690
++  s_8908f5d19e9464::t_cadce38fa805dc 438-442,447,451,455-456,458-460
++  s_8908f5d19e9464::t_78e15751ab4adc 537
++  s_8908f5d19e9464::t_59f6cb281ff67d 151
++  s_8908f5d19e9464::t_244e3d63016896 473
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "8eef20fdc51d1196b040d6f3ac12089f5b4210f1",
++  "prompts": {},
++  "sessions": {
++    "s_8908f5d19e9464": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "bb9e5100-dea9-4a03-b078-7bf20a31fa3d",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/91/2333a17de5d5f4ba330afb045691ca457da1d7 b/91/2333a17de5d5f4ba330afb045691ca457da1d7
+new file mode 100644
+index 00000000..c620d72b
+--- /dev/null
++++ b/91/2333a17de5d5f4ba330afb045691ca457da1d7
+@@ -0,0 +1,39 @@
++training/tests/test_ingest_router.py
++  s_5b4c4acee80a2e::t_c105bad79f14f4 569
++  s_5b4c4acee80a2e::t_33bfaacfa692b9 545
++pyproject.toml
++  s_5b4c4acee80a2e::t_7a0e2b5f22a9f7 106-110
++training/ingest_router.py
++  s_5b4c4acee80a2e::t_fcdf3fa0817c2e 509
++  s_5b4c4acee80a2e::t_b465492c72b91e 776
++  s_5b4c4acee80a2e::t_989e38fff77974 867
++  s_5b4c4acee80a2e::t_dc17b156834596 516
++  s_5b4c4acee80a2e::t_e40709689938b8 868-870
++  s_5b4c4acee80a2e::t_1cee512996f4f9 577
++  s_5b4c4acee80a2e::t_7db4d364462fc2 182-188
++  s_5b4c4acee80a2e::t_4ae33ccf1bd43a 563
++  s_5b4c4acee80a2e::t_ba3f3b545c0a84 111-113
++  s_5b4c4acee80a2e::t_44c48a06c67f1a 797
++  s_5b4c4acee80a2e::t_6bf9b00d5ba21b 641-643,650,658-659,674-678
++  s_5b4c4acee80a2e::t_d3956fa0dc139e 528
++  s_5b4c4acee80a2e::t_ae20b2493df8eb 799-814,816-824,826-847,881
++training/book_pdf_converter.py
++  s_5b4c4acee80a2e::t_316b4c8572ba88 225
++  s_5b4c4acee80a2e::t_07af393219a717 233-235
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "912333a17de5d5f4ba330afb045691ca457da1d7",
++  "prompts": {},
++  "sessions": {
++    "s_5b4c4acee80a2e": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "05678fc2-cba5-43f9-bd3d-a84765da9640",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/97/063d63ba608dee00958ee408ce305bf08a018a b/97/063d63ba608dee00958ee408ce305bf08a018a
+new file mode 100644
+index 00000000..5b3d8f31
+--- /dev/null
++++ b/97/063d63ba608dee00958ee408ce305bf08a018a
+@@ -0,0 +1,35 @@
++training/ingest_router.py
++  s_9198d01c470fc1::t_792e2fb200bf63 486
++  s_9198d01c470fc1::t_5d251440c862d8 1063-1065
++  s_9198d01c470fc1::t_7aca9d00a92126 296-299
++  s_9198d01c470fc1::t_fb612a7e706c70 1024-1026,1036-1038
++  s_9198d01c470fc1::t_2eb3197bff3edf 501-502
++  s_9198d01c470fc1::t_540d589d30fcdf 72
++  s_9198d01c470fc1::t_d91e3ce39eb005 275
++  s_9198d01c470fc1::t_e09b5dd84587cc 779,781-783
++  s_9198d01c470fc1::t_95fc497b27e715 738-741
++  s_9198d01c470fc1::t_c1aa3ef19ec289 427
++  s_9198d01c470fc1::t_836cbd6e7e1ccf 386,388-389,399
++  s_9198d01c470fc1::t_8e1f612594acee 150
++  s_9198d01c470fc1::t_7613c112db1d5f 528-546
++  s_9198d01c470fc1::t_cb3f48b005a2eb 1151-1156,1163-1164,1166
++  s_9198d01c470fc1::t_091c36f28aadf7 115
++data/licenses/source_manifest.yaml
++  s_9198d01c470fc1::t_981cd28a0ce9d4 20,24
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "97063d63ba608dee00958ee408ce305bf08a018a",
++  "prompts": {},
++  "sessions": {
++    "s_9198d01c470fc1": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_002db05edffeUbQKxvF0BJslCK",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/9c/7812a7baf285339b1ca368376ec9bcf09cb8dc b/9c/7812a7baf285339b1ca368376ec9bcf09cb8dc
+new file mode 100644
+index 00000000..0d943232
+--- /dev/null
++++ b/9c/7812a7baf285339b1ca368376ec9bcf09cb8dc
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-92,94-104,108-111,113-120,122-133,135-179,185-187,220-261
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "9c7812a7baf285339b1ca368376ec9bcf09cb8dc",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/9d/01310b9ba5365b531929f9dc448c537da6c6c4 b/9d/01310b9ba5365b531929f9dc448c537da6c6c4
+new file mode 100644
+index 00000000..55a25520
+--- /dev/null
++++ b/9d/01310b9ba5365b531929f9dc448c537da6c6c4
+@@ -0,0 +1,31 @@
++.omc/state/sessions/6a77097e-b709-4ab0-b834-e4c04512e7a4/pre-tool-advisory-throttle.json
++  s_9327dd8d1c946b::t_e75866c16f9057 12-15
++.omc/state/sessions/60b93162-e82a-4fed-9268-cdd1a93d82b8/pre-tool-advisory-throttle.json
++  s_a95004cc6d2056::t_93722b5dae48ce 31
++  s_a95004cc6d2056::t_97fb20c173c69c 4-7,37
++  s_a95004cc6d2056::t_35189315847f0c 15
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "9d01310b9ba5365b531929f9dc448c537da6c6c4",
++  "prompts": {},
++  "sessions": {
++    "s_9327dd8d1c946b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_a95004cc6d2056": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "60b93162-e82a-4fed-9268-cdd1a93d82b8",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/9d/94bd7b43544907a143f6f219eff808eab44391 b/9d/94bd7b43544907a143f6f219eff808eab44391
+new file mode 100644
+index 00000000..c3b78aba
+--- /dev/null
++++ b/9d/94bd7b43544907a143f6f219eff808eab44391
+@@ -0,0 +1,55 @@
++training/tests/test_ingest_router.py
++  s_fcc5d887d26157::t_edc179882c3dbc 1-487,490-493,495-552,554-560,562-568,570-576,578-607,615-623,696-725
++  s_716c494122f8ae::t_80e08f60308ece 488
++  s_716c494122f8ae::t_a9c1cb20f9034a 489,494
++  s_fcc5d887d26157::t_9f24a71ae4d391 553,561,569,577
++  s_fcc5d887d26157::t_3aed41a9ee119d 608-614
++  s_716c494122f8ae::t_609d790984ce69 624-695
++training/ingest_router.py
++  s_fcc5d887d26157::t_73d53d654f6fd6 1-37,39-45,47-72,74-94,98,103-158,160-177,179-241,243-359,366-472,474,476,478-480,482-483,485-487,489-569,573-638,640-644,649-673,684-709,711,713,715-763,771-786,788,814-963,965-995,997-1050,1057-1062
++  s_fcc5d887d26157::t_3774a5a504dc8f 46
++  s_fcc5d887d26157::t_528ce2c09b0a1e 159
++  s_fcc5d887d26157::t_dee6df7f412d62 178
++  s_35e45b977c3503::t_4bf3703710f5e9 360-365
++  s_716c494122f8ae::t_e86b32c7731d2c 473,475,477,481,484,488
++  s_716c494122f8ae::t_f8cc1cd1a2f061 570-572
++  s_716c494122f8ae::t_f61ec0c0285944 639,645-648,674,676-683
++  s_35e45b977c3503::t_617cf5f9f36757 764-770
++  s_716c494122f8ae::t_a78833505cf9a1 787,789-810,812
++  s_35e45b977c3503::t_4bd6616280f1c5 1051-1056
++training/book_pdf_converter.py
++  s_716c494122f8ae::t_f6b1b18ee544d6 223-224
++  s_716c494122f8ae::t_5648d11935d271 226
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "9d94bd7b43544907a143f6f219eff808eab44391",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_716c494122f8ae": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_fcc5d887d26157": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/9f/882863871981b00e4bc8874bc8e97f7907447d b/9f/882863871981b00e4bc8874bc8e97f7907447d
+new file mode 100644
+index 00000000..845b15c8
+--- /dev/null
++++ b/9f/882863871981b00e4bc8874bc8e97f7907447d
+@@ -0,0 +1,21 @@
++training/nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_b5436dff140c08 141,150-151,154-158
++training/tests/test_nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_1f22548d00b0c5 234-304
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "9f882863871981b00e4bc8874bc8e97f7907447d",
++  "prompts": {},
++  "sessions": {
++    "s_e7ab654cff2567": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e32519affeVY6DG1QdGq4riR",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/9f/b51f585a532dfc6ea8b0fad69ec0f0043a99f3 b/9f/b51f585a532dfc6ea8b0fad69ec0f0043a99f3
+new file mode 100644
+index 00000000..71cbe30f
+--- /dev/null
++++ b/9f/b51f585a532dfc6ea8b0fad69ec0f0043a99f3
+@@ -0,0 +1,40 @@
++.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/subagent-tracking-state.json
++  ai_agent 44-52
++.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/mission-state.json
++  ai_agent 2-104
++.omc/state/sessions/5cfddcbc-ef6a-4e89-87f8-f844aabc648f/pre-tool-advisory-throttle.json
++  s_35e45b977c3503::t_7b62ebf332f6cd 1-28,30
++.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/pre-tool-advisory-throttle.json
++  s_529b878f190499::t_9c1a2a874a7561 16-18
++  s_529b878f190499::t_14223035eac531 4-7,33
++  s_529b878f190499::t_8c0850315e39b0 19
++  s_529b878f190499::t_9432d1db6fa468 27
++.omc/project-memory.json
++  ai_agent 707,710-712
++  s_529b878f190499::t_6449d6245da0eb 717-722
++  s_529b878f190499::t_9c1a2a874a7561 705-706,713-716,723-724
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "9fb51f585a532dfc6ea8b0fad69ec0f0043a99f3",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_529b878f190499": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "3caa895e-5b92-4977-afe7-759d0db0f888",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/a1/8df5193e251c4fc6a53aedc1be2d8e060dbd62 b/a1/8df5193e251c4fc6a53aedc1be2d8e060dbd62
+new file mode 100644
+index 00000000..b55258e2
+--- /dev/null
++++ b/a1/8df5193e251c4fc6a53aedc1be2d8e060dbd62
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "a18df5193e251c4fc6a53aedc1be2d8e060dbd62",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/a2/2c62955d9201e559ef58514b2a9857394e303e b/a2/2c62955d9201e559ef58514b2a9857394e303e
+new file mode 100644
+index 00000000..2f7bb4c9
+--- /dev/null
++++ b/a2/2c62955d9201e559ef58514b2a9857394e303e
+@@ -0,0 +1,24 @@
++training/ingest_router.py
++  s_c6b71477c08a56::t_19696b36da6434 95
++  s_c6b71477c08a56::t_972c0056f05569 821-825,827
++  s_c6b71477c08a56::t_05c199efd53368 683-685
++  s_c6b71477c08a56::t_a09e9c761ede12 407-413
++  s_c6b71477c08a56::t_c438c19546ccf3 627-628
++  s_c6b71477c08a56::t_fe020ce5bf481e 578
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "a22c62955d9201e559ef58514b2a9857394e303e",
++  "prompts": {},
++  "sessions": {
++    "s_c6b71477c08a56": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/a2/3bff56da45b3214beb22faad5d80e316afb281 b/a2/3bff56da45b3214beb22faad5d80e316afb281
+new file mode 100644
+index 00000000..6a738e83
+--- /dev/null
++++ b/a2/3bff56da45b3214beb22faad5d80e316afb281
+@@ -0,0 +1,68 @@
++training/ingest_router.py
++  s_fcc5d887d26157::t_73d53d654f6fd6 1-34,36-39,41,43-46,48,50,52-76,78-98,103,126-181,183-200,202-264,266-343,345-370,372,374-375,377-378,381-383,386-423,431-494,496,498,500-502,504-505,507-509,511-556,562-595,600-635,640-650,653-655,661-674,676-680,685-704,706-709,722-747,749,751,753-761,763-770,783-789,791-810,818-833,835,871-1020,1022-1052,1054-1107,1114-1119,427,430,100,102,106,112,115,118,121,557,561,775,778,782
++  s_fcc5d887d26157::t_3774a5a504dc8f 49
++  s_fcc5d887d26157::t_528ce2c09b0a1e 182
++  s_fcc5d887d26157::t_dee6df7f412d62 201
++  s_716c494122f8ae::t_e86b32c7731d2c 495,497,499,503,506,510
++  s_716c494122f8ae::t_f8cc1cd1a2f061 596-598
++  s_716c494122f8ae::t_f61ec0c0285944 675,681-684,710,714-721
++  s_35e45b977c3503::t_617cf5f9f36757 811,817
++  s_716c494122f8ae::t_a78833505cf9a1 834,836-838,845-862,869,425-426,429,773-774,777
++  s_35e45b977c3503::t_4bd6616280f1c5 1108-1113
++  s_c6b71477c08a56::t_a09e9c761ede12 428
++  s_c6b71477c08a56::t_fe020ce5bf481e 599
++  s_c6b71477c08a56::t_c438c19546ccf3 651-652
++  s_c6b71477c08a56::t_05c199efd53368 711-713
++  s_c6b71477c08a56::t_972c0056f05569 864-867,870
++data/licenses/source_manifest.yaml
++  s_fcc5d887d26157::t_e6431f1fe64731 1-7,9-27,29-31,33-62
++pyproject.toml
++  s_fcc5d887d26157::t_b4ff8c58829ff6 88-90
++training/tests/test_ingest_router.py
++  s_fcc5d887d26157::t_edc179882c3dbc 1-18,20-45,52-64,66-116,118-128,138-152,154-445,447-472,475-492,531-540,543-546,548-605,607-610,615-616,618-621,626-627,629-635,637-666,674-682,761-776,799-812,497,501,505,513,519,524,529-530,785,793,798
++  s_716c494122f8ae::t_80e08f60308ece 541
++  s_716c494122f8ae::t_a9c1cb20f9034a 542,547
++  s_fcc5d887d26157::t_9f24a71ae4d391 606,617,628,636,700,705,742
++  s_fcc5d887d26157::t_3aed41a9ee119d 667-673,698,703,740
++  s_716c494122f8ae::t_609d790984ce69 683-697,701-702,706-739,743-760,494,514-515,517-518
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "a23bff56da45b3214beb22faad5d80e316afb281",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_716c494122f8ae": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_c6b71477c08a56": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_fcc5d887d26157": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/a4/b973427fa172c4088984ccf89182bde6b54463 b/a4/b973427fa172c4088984ccf89182bde6b54463
+new file mode 100644
+index 00000000..2d114353
+--- /dev/null
++++ b/a4/b973427fa172c4088984ccf89182bde6b54463
+@@ -0,0 +1,9 @@
++training/research/github_research_summary.md
++  ai_agent 208,220-225,230,235-245,250,255,260,265,267-268,270,275,280,285,290,292-293,295,297,341,354
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "a4b973427fa172c4088984ccf89182bde6b54463",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/a5/5247c45d51f023f2eba12509d4d41bd738953a b/a5/5247c45d51f023f2eba12509d4d41bd738953a
+new file mode 100644
+index 00000000..5f1090ca
+--- /dev/null
++++ b/a5/5247c45d51f023f2eba12509d4d41bd738953a
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "a55247c45d51f023f2eba12509d4d41bd738953a",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/a8/c9aaae4011637ed91a6d9a4e25423a6a0f821d b/a8/c9aaae4011637ed91a6d9a4e25423a6a0f821d
+new file mode 100644
+index 00000000..76a146ff
+--- /dev/null
++++ b/a8/c9aaae4011637ed91a6d9a4e25423a6a0f821d
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-165,171-173,206-247,309
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "a8c9aaae4011637ed91a6d9a4e25423a6a0f821d",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/a9/8871e4e7677cf03f56dbbb7979f17e5869255d b/a9/8871e4e7677cf03f56dbbb7979f17e5869255d
+new file mode 100644
+index 00000000..5e260213
+--- /dev/null
++++ b/a9/8871e4e7677cf03f56dbbb7979f17e5869255d
+@@ -0,0 +1,17 @@
++training_corpus/wrapper/pal_framework/run_phase6_smoke.py
++  ai_agent 208,212,314,321,441,446
++pkg_mera/core/pipelines/processing/slicer_s3_streaming.py
++  ai_agent 78
++infrastructure/database/conversation_database.py
++  ai_agent 119
++pkg_mera/core/pipelines/processing/slicer_fast.py
++  ai_agent 47
++scripts/dataset_research/trigger.py
++  ai_agent 19
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "a98871e4e7677cf03f56dbbb7979f17e5869255d",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/aa/176d13f305ba8c824790a08c1f3594ed4f2118 b/aa/176d13f305ba8c824790a08c1f3594ed4f2118
+new file mode 100644
+index 00000000..cb6f2b2c
+--- /dev/null
++++ b/aa/176d13f305ba8c824790a08c1f3594ed4f2118
+@@ -0,0 +1,40 @@
++dataset_pipeline/orchestration/extract_everything.py
++  s_30adb0eaa632fb::t_a42235a950f712 13,17,30,36-44,50-93,98-113,149-152,175-178,184-187,191,196-197,216-219,222-225,227-228,232,239,251-252,261,266-269,271,276-279,285,287,298-301,304-307,309-310,316,321-324,327,333,338,350,353,364
++  s_30adb0eaa632fb::t_ff3fd3587cef88 371,377,379,383,398-414
++  s_30adb0eaa632fb::t_8f12d73a8a53fe 439-443
++  s_30adb0eaa632fb::t_6e4af7958f87b0 357,359
++dataset_pipeline/scripts/run_safety_pass.py
++  s_30adb0eaa632fb::t_6f0c5dcf609a20 1-278
++lab/tests/safety/test_hackathon_safety_processor.py
++  s_30adb0eaa632fb::t_4d9d7ab6083b3a 1-126,128,130-219,224-290,292-298,300-359
++  s_30adb0eaa632fb::t_cccbd2a499ecea 291,299
++  s_30adb0eaa632fb::t_df208435fbb1bc 220-223
++  s_30adb0eaa632fb::t_18c82c8952d8c6 127,129
++pkg_mera/core/pipelines/processing/pii_scrubber.py
++  s_30adb0eaa632fb::t_20b01f9268a91f 141,143-144
++  s_30adb0eaa632fb::t_c489aa5b49e36a 13
++  s_30adb0eaa632fb::t_8be470bea9a882 134-140,142,145-146
++dataset_pipeline/processors/safety_processors.py
++  s_30adb0eaa632fb::t_4ec2fb4caa6c5d 1-254
++dataset_pipeline/processors/toxicity_detector.py
++  s_30adb0eaa632fb::t_4e4336bfe97171 1-220,222-291,296,300-468,476-483,486-514
++  s_30adb0eaa632fb::t_2f8e2592a49f0c 469-475,484-485
++  s_30adb0eaa632fb::t_9a99f1921c4b7a 221
++  s_30adb0eaa632fb::t_2910b541f6c896 292-295,297-299
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "aa176d13f305ba8c824790a08c1f3594ed4f2118",
++  "prompts": {},
++  "sessions": {
++    "s_30adb0eaa632fb": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/ac/49314fb2713ae75ad7dd75e37034fc64f76034 b/ac/49314fb2713ae75ad7dd75e37034fc64f76034
+new file mode 100644
+index 00000000..c4593174
+--- /dev/null
++++ b/ac/49314fb2713ae75ad7dd75e37034fc64f76034
+@@ -0,0 +1,25 @@
++training/nightmare_fuel_generator.py
++  s_8966adf124d5a9::t_5204a7ac80b0b8 688-690,692-702,724-732
++  s_8966adf124d5a9::t_e31b7649f3b092 504-505,509-514,523-529,539-540
++  s_8966adf124d5a9::t_3d0f1ba55100b6 568,572,575,589,591-610,613
++  s_8966adf124d5a9::t_869908fab5522c 415-423,427-430,433,440-462,465-483,485-486,488
++  s_8966adf124d5a9::t_995c8fc24930fb 625,627-628,631-644,654
++  s_8966adf124d5a9::t_fcc54e665b3ee6 669
++  s_8966adf124d5a9::t_4b55ec21529c17 691
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "ac49314fb2713ae75ad7dd75e37034fc64f76034",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/ad/a711506a0a436b9d12ca0a068b0318e1d9fe11 b/ad/a711506a0a436b9d12ca0a068b0318e1d9fe11
+new file mode 100644
+index 00000000..21fb510d
+--- /dev/null
++++ b/ad/a711506a0a436b9d12ca0a068b0318e1d9fe11
+@@ -0,0 +1,19 @@
++sourcing/scripts/run_deslop.py
++  s_8966adf124d5a9::t_5ac2b82c63850d 1-111
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "ada711506a0a436b9d12ca0a068b0318e1d9fe11",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/ae/62efa1503ae280bdfe522b7a505aff58de867f b/ae/62efa1503ae280bdfe522b7a505aff58de867f
+new file mode 100644
+index 00000000..c2ebd6e9
+--- /dev/null
++++ b/ae/62efa1503ae280bdfe522b7a505aff58de867f
+@@ -0,0 +1,136 @@
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/control.json
++  ai_agent 1-13
++.omc/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b.json
++  ai_agent 3-7
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/result.json
++  ai_agent 1-4
++.omc/project-memory.json
++  s_529b878f190499::t_9c1a2a874a7561 705-706,737,740,747-748
++  ai_agent 707,731,733
++  s_529b878f190499::t_6449d6245da0eb 741-745,710-712,716-718,722-724,728-730
++  s_514a08504643ea::t_0a327dc9b304bd 732,738
++  s_7ddb1c7de26f4a::t_d79e763ea61133 713,719
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/result.json
++  ai_agent 1-4
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/pre-tool-advisory-throttle.json
++  s_514a08504643ea::t_99d049d1666f6b 16,18
++  s_514a08504643ea::t_dc23e961fd21ca 27
++  s_514a08504643ea::t_d946a266977fa9 39,23
++  s_514a08504643ea::t_25b51f8ff7dc6c 17
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/mission-state.json
++  s_7ddb1c7de26f4a::t_975ff48595b01b 41-59
++.omc/state/session-end-jobs/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 1-5,7,9-328
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/result.json
++  ai_agent 1-4
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/pre-tool-advisory-throttle.json
++  s_7ddb1c7de26f4a::t_3c54ea954a0162 4-7,45
++  s_7ddb1c7de26f4a::t_e367e452718d03 12-19
++  s_7ddb1c7de26f4a::t_a507ccf102b395 27-31
++  s_7ddb1c7de26f4a::t_975ff48595b01b 32-34
++  s_7ddb1c7de26f4a::t_d74f70076eaee4 35
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f/mission-state.json
++  ai_agent 2-48
++.omc/state/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f/subagent-tracking-state.json
++  ai_agent 8-16
++.omc/state/session-end-jobs/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.json
++  ai_agent 1-5,7,9-99,102-126,128-131,134-157,160-163,166-190,192-195,198-221,224-227,230-253,256-259,262-285,288-290,292
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/reply-cleanup/1/7e1659af-d660-452f-8376-dd0ec88c0b6f/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/control.json
++  ai_agent 1-13
++.omc/state/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f/pre-tool-advisory-throttle.json
++  s_fb924e55fd74e9::t_ab5db77ce7075a 4-13
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/mission-state.json
++  ai_agent 3-9,11,13,15-17,19-140,171-174,177,179,205-206,209,211-212
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/openclaw/1/39ed1cb7-c461-4e10-aecb-6238eca884eb/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/discovery.json
++  ai_agent 14-20,22-37,40-41,43,46-49
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/result.json
++  ai_agent 1-4
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/subagent-tracking-state.json
++  s_7ddb1c7de26f4a::t_975ff48595b01b 20-25
++.omc/state/session-end-jobs/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b.json
++  ai_agent 1-328
++.omc/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 1-2,4-8
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/callback/1/7c98b9b8-281d-4760-b632-c5bb9535d327/result.json
++  ai_agent 2-3
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/subagent-tracking-state.json
++  ai_agent 105-107,135-136,139-140
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/team-cleanup/1/72b63e30-7f09-4bfe-b271-af3b2f70bc29/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/python-cleanup/1/166dd4d7-2048-4145-9785-1d4e1fa19d2a/watchdog.json
++  ai_agent 1-8
++.omc/sessions/e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f.json
++  ai_agent 1-8
++.omc/state/sessions/cc87fa3e-6631-4bd8-b9c8-03a839f3cd41/last-tool-error-state.json
++  ai_agent 3-5
++.omc/state/session-end-jobs/runs/307e0894-7d1a-4214-a7eb-24fccfadc79f/notification/1/e64ef450-a85d-4ffb-9c21-ced1e010374e/arm.json
++  ai_agent 1-5
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "ae62efa1503ae280bdfe522b7a505aff58de867f",
++  "prompts": {},
++  "sessions": {
++    "s_514a08504643ea": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5bc127a1-4a24-411a-9346-d03c94dfad68",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_529b878f190499": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "3caa895e-5b92-4977-afe7-759d0db0f888",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_7ddb1c7de26f4a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_fb924e55fd74e9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "e5d534bf-f9d7-4041-a2bc-e954f7a2dc9f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/ae/73650d43dc3fc4fbd58efcf6f92e1b0e0b9411 b/ae/73650d43dc3fc4fbd58efcf6f92e1b0e0b9411
+new file mode 100644
+index 00000000..5a373334
+--- /dev/null
++++ b/ae/73650d43dc3fc4fbd58efcf6f92e1b0e0b9411
+@@ -0,0 +1,50 @@
++training/tests/test_assemble_v7_master.py
++  s_0ac1d20e89267a::t_7cec79dd30d6c4 172,181-185
++  s_0ac1d20e89267a::t_ddd8d65e8dd5ec 230,242
++  s_0ac1d20e89267a::t_3c7deb52407e95 1-171,173-180,186-229,231-241,243-259
++training/v7_integrity.py
++  s_0ac1d20e89267a::t_aad98fb41da11f 1-216
++training/scripts/assemble_v7_master.py
++  s_0ac1d20e89267a::t_22e88f6bed0b2f 33,121-130,151-160,180-183,195-202,323-328
++  s_0ac1d20e89267a::t_d8f0f16f18d614 1-32,34-120,131-150,161-179,184-194,203-322,329-363
++training/dedup_normalize.py
++  s_0ac1d20e89267a::t_f6ce4bbd0c971d 356-372,377
++  s_0ac1d20e89267a::t_804d1aa5f2ed37 449-457
++  s_0ac1d20e89267a::t_bb4d6923d3b3f8 298-310
++  s_0ac1d20e89267a::t_ce5f34a4bf238e 4-5,17,20,26-33,71-186,188-195,281-287,323-329,397-404,466-471
++  s_0ac1d20e89267a::t_a7a88a1f2d8204 415-424,426,428
++  s_0ac1d20e89267a::t_6474c6e13cc613 187
++  s_0ac1d20e89267a::t_3e558680073d61 521-549
++  s_0ac1d20e89267a::t_a4cdf52571509e 40
++training/scripts/s3_atomic_sync.py
++  s_0ac1d20e89267a::t_6b66680bdf6063 1-417
++training/tests/test_s3_atomic_sync.py
++  s_0ac1d20e89267a::t_f9208890ace231 110
++  s_0ac1d20e89267a::t_522b37816193a4 1-9,11-109,111-252,256-349
++  s_0ac1d20e89267a::t_4312a9335ad2e0 253-254
++  s_0ac1d20e89267a::t_c75be511377c7d 255
++  s_0ac1d20e89267a::t_a088d0437b1024 10
++training/tests/test_v7_integrity.py
++  s_0ac1d20e89267a::t_adb5f3ac039829 1-340
++training/scripts/consolidate_assets.py
++  s_0ac1d20e89267a::t_1af6c332cdcc0b 1,21-22,24,26,28-29,53-55,62-66,68-88,90-107,109-122,124-151,153-169,171-188,190-225,227-262,265-277,283-284,286,549-553
++  s_0ac1d20e89267a::t_646e67ae7c4f22 35
++  s_0ac1d20e89267a::t_2321542df68ef9 36
++  s_0ac1d20e89267a::t_fdf3d190f770d3 2-20,23,25,27,30-34,37-52,56-61,67,89,108,123,152,170,189,226,263-264,278-282,285,287-548
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "ae73650d43dc3fc4fbd58efcf6f92e1b0e0b9411",
++  "prompts": {},
++  "sessions": {
++    "s_0ac1d20e89267a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02c36b67effe92NHO1Nn4SQCxz",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/b2/167599c877e96388ee0d3f4e6677446f738865 b/b2/167599c877e96388ee0d3f4e6677446f738865
+new file mode 100644
+index 00000000..a69f021b
+--- /dev/null
++++ b/b2/167599c877e96388ee0d3f4e6677446f738865
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-92,94-104,108-111,113-120,122-133,135-172,178-180,213-254,316
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "b2167599c877e96388ee0d3f4e6677446f738865",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/b3/68b7d2b285b57d706069caab5b4cfa27fa6c53 b/b3/68b7d2b285b57d706069caab5b4cfa27fa6c53
+new file mode 100644
+index 00000000..962c4486
+--- /dev/null
++++ b/b3/68b7d2b285b57d706069caab5b4cfa27fa6c53
+@@ -0,0 +1,31 @@
++training/llm_quality_judge.py
++  s_973681b19fb3ca::t_0348769a652df4 555-557,564,569,572-574
++  s_973681b19fb3ca::t_f1146153308add 234-241,244-246
++  s_973681b19fb3ca::t_c538144f5fd513 210-211,576
++utils/common/llm_client.py
++  s_973681b19fb3ca::t_e07e613b40a460 101,107-110,115,124-129,145-147
++  s_973681b19fb3ca::t_ebc0e2626ec8f8 170,175-176
++  s_973681b19fb3ca::t_476ccc62af8daf 43,48-53
++  s_973681b19fb3ca::t_43cfd6920cb6c4 207,211-212,220,224,226
++  s_973681b19fb3ca::t_7a20e85b1e6382 89,94
++  s_973681b19fb3ca::t_1ca9335622f1a6 180-182
++  s_973681b19fb3ca::t_f64f77b16aeb1a 261-266,286-289
++  s_973681b19fb3ca::t_533d1e42df923f 64,69-74
++  s_973681b19fb3ca::t_3ad79d9a8d7086 144
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "b368b7d2b285b57d706069caab5b4cfa27fa6c53",
++  "prompts": {},
++  "sessions": {
++    "s_973681b19fb3ca": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0044a9ed2ffe937r6MHkIqu6se",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/b4/45b55f3495fd349e9e0908209c25915cfc92d5 b/b4/45b55f3495fd349e9e0908209c25915cfc92d5
+new file mode 100644
+index 00000000..9fb10a6d
+--- /dev/null
++++ b/b4/45b55f3495fd349e9e0908209c25915cfc92d5
+@@ -0,0 +1,34 @@
++sourcing/dataset_adapters/mental_health_multiagent_adapter.py
++  s_8966adf124d5a9::t_55f4fa9ceb0fff 1-122
++sourcing/tests/test_psy_insight_adapter.py
++  s_8966adf124d5a9::t_27833035612627 1-136
++sourcing/tests/test_mental_health_multiagent_adapter.py
++  s_8966adf124d5a9::t_3b25eb3a89f97a 1-93
++sourcing/scripts/download_all.py
++  s_8966adf124d5a9::t_1bcf12e74e2fb7 54-56
++sourcing/tests/test_dsm_vector_space_adapter.py
++  s_8966adf124d5a9::t_d27c502881fa86 13,19-25,28-34,43-45,47,58-59,61-62,71-72,76-77,82,86-88,93
++  s_8966adf124d5a9::t_99fdb8dcf49190 1-12,14-18,26-27,35-42,46,48-57,60,63-70,73-75,78-81,83-85,89-92,94-113
++sourcing/dataset_adapters/psy_insight_adapter.py
++  s_8966adf124d5a9::t_0d55866c72516e 1-139
++sourcing/dataset_adapters/dsm_vector_space_adapter.py
++  s_8966adf124d5a9::t_5b95e9cc52d66d 4-7,11,56,66-70,77,81-89,92-108,111-112,116,125
++  s_8966adf124d5a9::t_249b82955d3326 1-3,8-10,12-55,57-65,72-76,78-80,90-91,109-110,113-115,117-119,136-137
++  s_8966adf124d5a9::t_017ca24a560011 71,120-124,126-135
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "b445b55f3495fd349e9e0908209c25915cfc92d5",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/bf/70c145b9e3bf6007cf7cd76de105abac65ffa6 b/bf/70c145b9e3bf6007cf7cd76de105abac65ffa6
+new file mode 100644
+index 00000000..3149c13c
+--- /dev/null
++++ b/bf/70c145b9e3bf6007cf7cd76de105abac65ffa6
+@@ -0,0 +1,26 @@
++lab/evals/therapy_bench/therapy_bench.py
++  s_074527b93405dd::t_7c2ba6916da7f1 1-14,19-22,24-25,27-196,198-280,285-291,302-303,306-313,315-318,320-334,336-338,340-343,345-352,354,356-359,365,368-375,377-380,382-387,389
++  s_074527b93405dd::t_e404d16d01399d 197
++  s_074527b93405dd::t_c6742497b61b26 15-18
++  s_074527b93405dd::t_0c6605bdb5739b 294
++  s_074527b93405dd::t_f2b87a9931a386 335
++  s_074527b93405dd::t_eb6b1280607795 361-364,366
++evals/therapy_bench/therapy_bench.py
++  s_074527b93405dd::t_21a78843ed0084 1-22,24-25,27-280,285-291,294-295,302-303,306-313,315-318,320-338,340-343,345-352,354,356-359,361-366,368-375,377-380,382-387,389
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "bf70c145b9e3bf6007cf7cd76de105abac65ffa6",
++  "prompts": {},
++  "sessions": {
++    "s_074527b93405dd": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "e908ccef-534a-4b04-83e5-b6fdd20a6b3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/c3/1aef11ec4b0ec51966073f3386672175be13d3 b/c3/1aef11ec4b0ec51966073f3386672175be13d3
+new file mode 100644
+index 00000000..edd41f7f
+--- /dev/null
++++ b/c3/1aef11ec4b0ec51966073f3386672175be13d3
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "c31aef11ec4b0ec51966073f3386672175be13d3",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/cc/28e2676a6473a5ff0c7f39973b87fb9ea2805a b/cc/28e2676a6473a5ff0c7f39973b87fb9ea2805a
+new file mode 100644
+index 00000000..4b565e57
+--- /dev/null
++++ b/cc/28e2676a6473a5ff0c7f39973b87fb9ea2805a
+@@ -0,0 +1,68 @@
++training/ingest_router.py
++  s_fcc5d887d26157::t_73d53d654f6fd6 1-37,39-45,47-72,74-94,96,102-157,159-176,178-240,242-358,365-407,415-478,480,482,484-486,488-489,491-493,495-575,580-627,630-647,649-653,658-682,695-720,722,724,726-774,782-797,799,829-978,980-1010,1012-1065,1072-1077,411,414
++  s_fcc5d887d26157::t_3774a5a504dc8f 46
++  s_fcc5d887d26157::t_528ce2c09b0a1e 158
++  s_fcc5d887d26157::t_dee6df7f412d62 177
++  s_35e45b977c3503::t_4bf3703710f5e9 359-364
++  s_716c494122f8ae::t_e86b32c7731d2c 479,481,483,487,490,494
++  s_716c494122f8ae::t_f8cc1cd1a2f061 576-578
++  s_716c494122f8ae::t_f61ec0c0285944 648,654-657,683,687-694
++  s_35e45b977c3503::t_617cf5f9f36757 775-781
++  s_716c494122f8ae::t_a78833505cf9a1 798,800-821,827,409-410,413
++  s_35e45b977c3503::t_4bd6616280f1c5 1066-1071
++  s_c6b71477c08a56::t_19696b36da6434 95
++  s_c6b71477c08a56::t_a09e9c761ede12 408,412
++  s_c6b71477c08a56::t_fe020ce5bf481e 579
++  s_c6b71477c08a56::t_c438c19546ccf3 628-629
++  s_c6b71477c08a56::t_05c199efd53368 684-686
++  s_c6b71477c08a56::t_972c0056f05569 822-826,828
++  s_7ddb1c7de26f4a::t_b9597825233dd6 97-100
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "cc28e2676a6473a5ff0c7f39973b87fb9ea2805a",
++  "prompts": {},
++  "sessions": {
++    "s_35e45b977c3503": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_716c494122f8ae": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_7ddb1c7de26f4a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_c6b71477c08a56": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_fcc5d887d26157": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/cd/567bda7f0f6cc9a1f1ea8c8eafbb35294c0eae b/cd/567bda7f0f6cc9a1f1ea8c8eafbb35294c0eae
+new file mode 100644
+index 00000000..b7ea4f08
+--- /dev/null
++++ b/cd/567bda7f0f6cc9a1f1ea8c8eafbb35294c0eae
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-172,178-180,213-254
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "cd567bda7f0f6cc9a1f1ea8c8eafbb35294c0eae",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/cd/b682271292dd0d02cda3118862cc0d6cb90784 b/cd/b682271292dd0d02cda3118862cc0d6cb90784
+new file mode 100644
+index 00000000..3ef86a87
+--- /dev/null
++++ b/cd/b682271292dd0d02cda3118862cc0d6cb90784
+@@ -0,0 +1,19 @@
++training/ingest_router.py
++  s_7ddb1c7de26f4a::t_b9597825233dd6 97-100
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "cdb682271292dd0d02cda3118862cc0d6cb90784",
++  "prompts": {},
++  "sessions": {
++    "s_7ddb1c7de26f4a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/d3/c781ac9dae2bbb13356474349fc2f2a48db1a5 b/d3/c781ac9dae2bbb13356474349fc2f2a48db1a5
+new file mode 100644
+index 00000000..9b6d85d4
+--- /dev/null
++++ b/d3/c781ac9dae2bbb13356474349fc2f2a48db1a5
+@@ -0,0 +1,23 @@
++sourcing/dataset_adapters/reddit_mental_nlp_adapter.py
++  s_8966adf124d5a9::t_c79ea4baa6f085 85,109-112
++sourcing/dataset_adapters/reddit_mental_health_posts_adapter.py
++  s_8966adf124d5a9::t_c4334016ea20af 98,108-113
++sourcing/scripts/crossref_hetzner.py
++  s_8966adf124d5a9::t_f64407d23238d5 1-187
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "d3c781ac9dae2bbb13356474349fc2f2a48db1a5",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/d3/d98a7b0e9006cc07d873516ffd44d0d40be112 b/d3/d98a7b0e9006cc07d873516ffd44d0d40be112
+new file mode 100644
+index 00000000..d84ad5a3
+--- /dev/null
++++ b/d3/d98a7b0e9006cc07d873516ffd44d0d40be112
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-92,94-104,108-111,113-120,122-133,135-179,185-187,220-261
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "d3d98a7b0e9006cc07d873516ffd44d0d40be112",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/d6/0c2d03a5f0b50a0c1d1c4068665796c722e9c9 b/d6/0c2d03a5f0b50a0c1d1c4068665796c722e9c9
+new file mode 100644
+index 00000000..0e7634be
+--- /dev/null
++++ b/d6/0c2d03a5f0b50a0c1d1c4068665796c722e9c9
+@@ -0,0 +1,21 @@
++training/tests/test_nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_9249e91331effe 234
++training/nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_3a9d9b6e18bbb9 13-19,152,161-167
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "d60c2d03a5f0b50a0c1d1c4068665796c722e9c9",
++  "prompts": {},
++  "sessions": {
++    "s_e7ab654cff2567": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e32519affeVY6DG1QdGq4riR",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/d6/36261e3a06a6d8516cad58decd7d9861c455ce b/d6/36261e3a06a6d8516cad58decd7d9861c455ce
+new file mode 100644
+index 00000000..ae1039a0
+--- /dev/null
++++ b/d6/36261e3a06a6d8516cad58decd7d9861c455ce
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "d636261e3a06a6d8516cad58decd7d9861c455ce",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/d7/f85e77ab924fe41e8f9bbc08e3f1a90a6ca59c b/d7/f85e77ab924fe41e8f9bbc08e3f1a90a6ca59c
+new file mode 100644
+index 00000000..d198c63d
+--- /dev/null
++++ b/d7/f85e77ab924fe41e8f9bbc08e3f1a90a6ca59c
+@@ -0,0 +1,40 @@
++dataset_pipeline/orchestration/extract_everything.py
++  s_30adb0eaa632fb::t_a42235a950f712 13,17,30,36-44,50-93,98-113,149-152,175-178,184-187,191,196-197,216-219,222-225,227-228,232,239,251-252,261,266-269,271,276-279,285,287,298-301,304-307,309-310,316,321-324,327,333,338,350,353,364
++  s_30adb0eaa632fb::t_ff3fd3587cef88 371,377,379,383,398-414
++  s_30adb0eaa632fb::t_8f12d73a8a53fe 439-443
++  s_30adb0eaa632fb::t_6e4af7958f87b0 357,359
++dataset_pipeline/scripts/run_safety_pass.py
++  s_30adb0eaa632fb::t_6f0c5dcf609a20 1-278
++lab/tests/safety/test_hackathon_safety_processor.py
++  s_30adb0eaa632fb::t_4d9d7ab6083b3a 1-126,128,130-219,224-290,292-298,300-359
++  s_30adb0eaa632fb::t_cccbd2a499ecea 291,299
++  s_30adb0eaa632fb::t_df208435fbb1bc 220-223
++  s_30adb0eaa632fb::t_18c82c8952d8c6 127,129
++pkg_mera/core/pipelines/processing/pii_scrubber.py
++  s_30adb0eaa632fb::t_20b01f9268a91f 141,143-144
++  s_30adb0eaa632fb::t_c489aa5b49e36a 13
++  s_30adb0eaa632fb::t_8be470bea9a882 134-140,142,145-146
++dataset_pipeline/processors/safety_processors.py
++  s_30adb0eaa632fb::t_4ec2fb4caa6c5d 1-254
++dataset_pipeline/processors/toxicity_detector.py
++  s_30adb0eaa632fb::t_4e4336bfe97171 1-220,222-291,296,300-468,476-483,486-514
++  s_30adb0eaa632fb::t_2f8e2592a49f0c 469-475,484-485
++  s_30adb0eaa632fb::t_9a99f1921c4b7a 221
++  s_30adb0eaa632fb::t_2910b541f6c896 292-295,297-299
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "d7f85e77ab924fe41e8f9bbc08e3f1a90a6ca59c",
++  "prompts": {},
++  "sessions": {
++    "s_30adb0eaa632fb": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/d8/0a393d045320a9fa38fe621db19f05186c8cd7 b/d8/0a393d045320a9fa38fe621db19f05186c8cd7
+new file mode 100644
+index 00000000..66c97a21
+--- /dev/null
++++ b/d8/0a393d045320a9fa38fe621db19f05186c8cd7
+@@ -0,0 +1,34 @@
++pkg_mera/core/pipelines/processing/normalization_pipeline.py
++  s_8966adf124d5a9::t_9866ce96511567 409,412-414
++pkg_mera/core/pipelines/packaging.py
++  s_8966adf124d5a9::t_02e5a9dd9aefc4 160,163-165
++  s_8966adf124d5a9::t_d993cb6e7a631b 304
++monitoring/interactive_dashboard_system.py
++  s_8966adf124d5a9::t_e18753eec5f696 620,625-627,631-637,672
++pkg_mera/core/pipelines/promotion.py
++  s_8966adf124d5a9::t_2e809dbc7eb016 296,298-300
++training/dpo_trainer.py
++  s_8966adf124d5a9::t_a85d0f714b2dda 42,143-146,149-152,165-167,172,214,223-225,243-245
++pkg_mera/core/pipelines/training_readiness_gates.py
++  s_8966adf124d5a9::t_13cf556ccf6aa9 203,205,208-210
++monitoring/operational_dashboard_system.py
++  s_8966adf124d5a9::t_3c2215f5281bea 1083
++monitoring/bias_audit.py
++  s_8966adf124d5a9::t_1440b3f3635aa9 351
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "d80a393d045320a9fa38fe621db19f05186c8cd7",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/da/754e4583f04171336cf1da8fb887bfa011c279 b/da/754e4583f04171336cf1da8fb887bfa011c279
+new file mode 100644
+index 00000000..8e8cce8a
+--- /dev/null
++++ b/da/754e4583f04171336cf1da8fb887bfa011c279
+@@ -0,0 +1,19 @@
++dataset_pipeline/processors/toxicity_detector.py
++  s_30adb0eaa632fb::t_217d256cfc8188 493-497
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "da754e4583f04171336cf1da8fb887bfa011c279",
++  "prompts": {},
++  "sessions": {
++    "s_30adb0eaa632fb": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b6c970fffeJcwMkQnINHgJMG",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/dc/7d59d84517d875b945b80e0fa6e75a4aed011b b/dc/7d59d84517d875b945b80e0fa6e75a4aed011b
+new file mode 100644
+index 00000000..37b151b9
+--- /dev/null
++++ b/dc/7d59d84517d875b945b80e0fa6e75a4aed011b
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-165,171-173,206-247,309
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "dc7d59d84517d875b945b80e0fa6e75a4aed011b",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/de/8ea0e76f9d09f1e5f847ece501a9edf3cc9141 b/de/8ea0e76f9d09f1e5f847ece501a9edf3cc9141
+new file mode 100644
+index 00000000..3e0a2435
+--- /dev/null
++++ b/de/8ea0e76f9d09f1e5f847ece501a9edf3cc9141
+@@ -0,0 +1,22 @@
++training/tests/test_nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_d119d6981f7052 131-179,182-234
++  s_e7ab654cff2567::t_38f4626c5bc1be 180-181
++training/nightmare_fuel_generator.py
++  s_e7ab654cff2567::t_849a63a3f6df59 3,5,18-133
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "de8ea0e76f9d09f1e5f847ece501a9edf3cc9141",
++  "prompts": {},
++  "sessions": {
++    "s_e7ab654cff2567": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e32519affeVY6DG1QdGq4riR",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/df/6df0b4d03b9a8fdb60e5ca3ab5adabd0db7fb2 b/df/6df0b4d03b9a8fdb60e5ca3ab5adabd0db7fb2
+new file mode 100644
+index 00000000..9fc296c9
+--- /dev/null
++++ b/df/6df0b4d03b9a8fdb60e5ca3ab5adabd0db7fb2
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-92,94-104,108-111,113-120,122-133,135-179,185-187,220-261
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "df6df0b4d03b9a8fdb60e5ca3ab5adabd0db7fb2",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/e1/4893165e052acbb7ca0b6a44143304cdc3d3c1 b/e1/4893165e052acbb7ca0b6a44143304cdc3d3c1
+new file mode 100644
+index 00000000..4f8216a0
+--- /dev/null
++++ b/e1/4893165e052acbb7ca0b6a44143304cdc3d3c1
+@@ -0,0 +1,22 @@
++sourcing/scripts/dedup_datasets.py
++  s_8966adf124d5a9::t_4fd6ac1ad4bd8f 1-68,71-88,94-129,140-165
++  s_8966adf124d5a9::t_363a679ec3f789 130-139
++  s_8966adf124d5a9::t_1ece313e718efc 69-70
++  s_8966adf124d5a9::t_dfbcc3f2fc2396 89-93
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e14893165e052acbb7ca0b6a44143304cdc3d3c1",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/e1/e0e7af5c67b886db67323f083b36e8c9757feb b/e1/e0e7af5c67b886db67323f083b36e8c9757feb
+new file mode 100644
+index 00000000..b41122b8
+--- /dev/null
++++ b/e1/e0e7af5c67b886db67323f083b36e8c9757feb
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e1e0e7af5c67b886db67323f083b36e8c9757feb",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/e2/4942803b2edcaa37a620234a1e9d56d3745346 b/e2/4942803b2edcaa37a620234a1e9d56d3745346
+new file mode 100644
+index 00000000..b3a27c62
+--- /dev/null
++++ b/e2/4942803b2edcaa37a620234a1e9d56d3745346
+@@ -0,0 +1,31 @@
++training/nightmare_fuel_generator.py
++  s_509b83edc2294a::t_086d078097ef40 168
++  s_509b83edc2294a::t_6adab2def8e9c9 158-163
++  s_509b83edc2294a::t_2ac7febb48b26c 1-33,37,39-40,52-117,119-144,147-157,164-167,169-170,177,179-180,182-188,191,194-196,200,202,204-209,211,343,345-352,355-364,367-381,383-384,447-455,463-482,491-536
++  s_509b83edc2294a::t_728694169ce549 446
++  s_509b83edc2294a::t_ce6cc19f946428 145-146
++  s_509b83edc2294a::t_ca98b34ed374cb 118
++  s_509b83edc2294a::t_26150c14b7b10e 382
++  s_509b83edc2294a::t_d7833e57fa33cc 171-176,178,181,189-190,192-193,197-199,201,203,210,212
++training/tests/test_nightmare_fuel_generator.py
++  s_509b83edc2294a::t_341f7df29fa469 267
++  s_509b83edc2294a::t_e182e73dc58c53 251,253-255,257-258
++  s_509b83edc2294a::t_681fe32101e557 227
++  s_509b83edc2294a::t_a0138e017a4bb2 1,6,12,123-128,130-131,135-226,228-250,252,256,259-266,268-287
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e24942803b2edcaa37a620234a1e9d56d3745346",
++  "prompts": {},
++  "sessions": {
++    "s_509b83edc2294a": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e324174ffem88eZXltY6GH0K",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/e3/440946884c287e57e65cab4aa116be21b8c689 b/e3/440946884c287e57e65cab4aa116be21b8c689
+new file mode 100644
+index 00000000..5c319883
+--- /dev/null
++++ b/e3/440946884c287e57e65cab4aa116be21b8c689
+@@ -0,0 +1,7 @@
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e3440946884c287e57e65cab4aa116be21b8c689",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/e3/cc5bfbf1a2de5c9900902d60cbf356afeea8b8 b/e3/cc5bfbf1a2de5c9900902d60cbf356afeea8b8
+new file mode 100644
+index 00000000..d90f03f0
+--- /dev/null
++++ b/e3/cc5bfbf1a2de5c9900902d60cbf356afeea8b8
+@@ -0,0 +1,29 @@
++training/nightmare_fuel_generator.py
++  s_83405de49d06cc::t_e0b55f8cdb49c0 214,216-232,238-278,289-295
++  s_83405de49d06cc::t_1c3460c7a142c7 215,233-237
++.gitignore
++  s_83405de49d06cc::t_e14e678d5bda27 181
++training/clinical_validity_judge_async.py
++  s_83405de49d06cc::t_3ba4255c92d065 104-109,111,114
++  s_83405de49d06cc::t_5ee53a98273c61 1-103,110,112-113,115-282
++training/tests/test_clinical_validity_judge_async.py
++  s_83405de49d06cc::t_557ebaf671f995 196-197
++  s_83405de49d06cc::t_9c4cfff022958d 240-241
++  s_83405de49d06cc::t_85ac2bcc9a8e63 1-195,198-239,242-307
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e3cc5bfbf1a2de5c9900902d60cbf356afeea8b8",
++  "prompts": {},
++  "sessions": {
++    "s_83405de49d06cc": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02e32482bffe4FfKXRMIKqUmAM",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/e4/f6a3de3ea421260cacc65351fad24e48017d1e b/e4/f6a3de3ea421260cacc65351fad24e48017d1e
+new file mode 100644
+index 00000000..15eaca9a
+--- /dev/null
++++ b/e4/f6a3de3ea421260cacc65351fad24e48017d1e
+@@ -0,0 +1,89 @@
++.omc/state/sessions/b7c9b71d-e084-4f61-80bf-3abd4e6024a3/pre-tool-advisory-throttle.json
++  s_28ef0663cee720::t_60a3cb2af68f4e 11-15
++  s_28ef0663cee720::t_7377f6975a9d20 8,10
++  s_28ef0663cee720::t_83c6e8fb1d29fa 9
++  s_28ef0663cee720::t_a06579fb27db5f 19
++training/curate_pipeline.py
++  s_302123f411cad6::t_3ae42dc151d894 39-40,42,219,221,407
++  s_7135a3ffccf619::t_aeb8c3dcc78aee 28
++training/stage1_filters.py
++  s_302123f411cad6::t_3ae42dc151d894 31,33,655-660,732,861-864
++.omc/state/sessions/5209b22a-3220-492d-926c-ab2741ea794d/mission-state.json
++  s_e8d26a0be7aca4::t_a274ee1770a851 46-50,99-100
++  s_e8d26a0be7aca4::t_98d4289492ecfd 26-30,91-92,95,97
++.omc/state/sessions/5209b22a-3220-492d-926c-ab2741ea794d/subagent-tracking-state.json
++  s_e8d26a0be7aca4::t_a274ee1770a851 26-28
++  s_e8d26a0be7aca4::t_98d4289492ecfd 8-10
++training/tests/test_stage1_filters.py
++  s_302123f411cad6::t_3ae42dc151d894 9,55,159
++.omc/project-memory.json
++  s_28ef0663cee720::t_13e6da38cb44fa 721-722
++  s_302123f411cad6::t_27fd7d1890d2eb 718
++  s_302123f411cad6::t_88b9f3e4f3cbc9 734-735,739-741,745-746,749,751-766,768
++.omc/state/sessions/5209b22a-3220-492d-926c-ab2741ea794d/pre-tool-advisory-throttle.json
++  s_e8d26a0be7aca4::t_83c494fd247acd 8-11
++  s_e8d26a0be7aca4::t_8f6c4d67261919 27
++.omc/state/sessions/2836fc49-3261-4a00-9992-e4ea55bfb4a6/last-tool-error-state.json
++  s_7135a3ffccf619::t_efcfaba65c9274 1-2,7
++.omc/state/sessions/2836fc49-3261-4a00-9992-e4ea55bfb4a6/pre-tool-advisory-throttle.json
++  s_7135a3ffccf619::t_41c136dff072e3 9,12-23
++  s_7135a3ffccf619::t_40b12b8f304cdb 31
++  s_7135a3ffccf619::t_f3a4844e45c4a1 8,10-11,24-30
++  s_7135a3ffccf619::t_edce3e4dbe4654 47
++.omc/state/sessions/e9a95f87-aba6-469d-ba61-2ddcef22e59e/pre-tool-advisory-throttle.json
++  s_a1774d61e12b3e::t_d2888bbe05db0d 13
++.omc/state/sessions/f8d9c6d4-2a01-4fb9-9c13-c739e5bf5b95/pre-tool-advisory-throttle.json
++  s_302123f411cad6::t_0f5add9e921750 9
++  s_302123f411cad6::t_20c46ac2531351 27
++  s_302123f411cad6::t_6787cff6979fe2 8,10-11
++  s_302123f411cad6::t_6bcd9bd69a62c3 15
++  s_302123f411cad6::t_7ef6945b2122a9 35
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e4f6a3de3ea421260cacc65351fad24e48017d1e",
++  "prompts": {},
++  "sessions": {
++    "s_28ef0663cee720": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "b7c9b71d-e084-4f61-80bf-3abd4e6024a3",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_302123f411cad6": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "f8d9c6d4-2a01-4fb9-9c13-c739e5bf5b95",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_7135a3ffccf619": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "2836fc49-3261-4a00-9992-e4ea55bfb4a6",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_a1774d61e12b3e": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "e9a95f87-aba6-469d-ba61-2ddcef22e59e",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_e8d26a0be7aca4": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5209b22a-3220-492d-926c-ab2741ea794d",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/e5/7e9287f667ab557e43b6fa74701c75adbf2efa b/e5/7e9287f667ab557e43b6fa74701c75adbf2efa
+new file mode 100644
+index 00000000..aaa05f82
+--- /dev/null
++++ b/e5/7e9287f667ab557e43b6fa74701c75adbf2efa
+@@ -0,0 +1,13 @@
++infrastructure/database/persistence.py
++  ai_agent 163-167,218-221,228-229,232-233,696-702,987,990
++scripts/setup_production_database.py
++  ai_agent 79,148
++tests/test_fastmcp_app.py
++  ai_agent 28-29,102,114-115
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e57e9287f667ab557e43b6fa74701c75adbf2efa",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/e6/9f13dc807116f9b60db42e2a56eccc84cba5fa b/e6/9f13dc807116f9b60db42e2a56eccc84cba5fa
+new file mode 100644
+index 00000000..e12551eb
+--- /dev/null
++++ b/e6/9f13dc807116f9b60db42e2a56eccc84cba5fa
+@@ -0,0 +1,9 @@
++.omc/state/session-end-jobs/discovery.json
++  ai_agent 14-20,22-37,40-41,43,46-49,52-53,55,58-59,61
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e69f13dc807116f9b60db42e2a56eccc84cba5fa",
++  "prompts": {}
++}
+\ No newline at end of file
+diff --git a/e7/adbae339a021777e8d63cfe0cfe712f1ff436f b/e7/adbae339a021777e8d63cfe0cfe712f1ff436f
+new file mode 100644
+index 00000000..c1b456d7
+--- /dev/null
++++ b/e7/adbae339a021777e8d63cfe0cfe712f1ff436f
+@@ -0,0 +1,218 @@
++.omc/project-memory.json
++  s_514a08504643ea::t_cb55651307c8f9 714-719
++  s_514a08504643ea::t_18153449395515 713,722-724
++  s_514a08504643ea::t_0a327dc9b304bd 732
++  ai_agent 708-709,727-731,733
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/subagent-tracking-state.json
++  ai_agent 24-32,42-44,48-50
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/pre-tool-advisory-throttle.json
++  ai_agent 1-14
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/pre-tool-advisory-throttle.json
++  s_514a08504643ea::t_d946a266977fa9 23
++  s_514a08504643ea::t_99d049d1666f6b 4-7,61
++  s_514a08504643ea::t_156630eafc9cc6 51
++  s_514a08504643ea::t_dc23e961fd21ca 11
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/be1af6ac-d978-446e-a33f-7cb7af5b0132.json
++  ai_agent 1-328
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/control.json
++  ai_agent 1-13
++.omc/sessions/be1af6ac-d978-446e-a33f-7cb7af5b0132.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/5cfddcbc-ef6a-4e89-87f8-f844aabc648f.json
++  ai_agent 6,8,77,104-105,110,137-138,143,170-171,176,203-204,209,236-237,242,269-270,274-279
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/control.json
++  ai_agent 1-13
++.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/subagent-tracking-state.json
++  ai_agent 1-17
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/control.json
++  ai_agent 1-13
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/last-tool-error-state.json
++  ai_agent 3-6
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/arm.json
++  ai_agent 1-5
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/session-started.json
++  ai_agent 1-7
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 1-328
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/result.json
++  ai_agent 1-4
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/subagent-tracking-state.json
++  ai_agent 105-113
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/watchdog.json
++  ai_agent 1-8
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/pre-tool-advisory-throttle.json
++  s_c6b71477c08a56::t_fd218cb25096f8 15
++  s_c6b71477c08a56::t_01c5c112d199fa 16-23
++  ai_agent 4-7,41
++  s_c6b71477c08a56::t_18da4e7cc5178a 8-11
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/control.json
++  ai_agent 1-13
++.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/mission-state.json
++  ai_agent 1-53
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/46cb9167-c91d-4f11-8356-1b1e3092c604.json
++  ai_agent 1-351
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/result.json
++  ai_agent 1-4
++.omc/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/discovery.json
++  ai_agent 3,14-38
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/control.json
++  ai_agent 1-13
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/result.json
++  ai_agent 1-4
++.omc/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68.json
++  ai_agent 1-8
++.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/mission-state.json
++  ai_agent 2-10,17-55,66-82,85,87,89-90,93,97-104
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/arm.json
++  ai_agent 1-5
++.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/mission-state.json
++  ai_agent 2-174
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/result.json
++  ai_agent 1-4
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/watchdog.json
++  ai_agent 1-8
++.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/arm.json
++  ai_agent 1-5
++.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/arm.json
++  ai_agent 1-5
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "e7adbae339a021777e8d63cfe0cfe712f1ff436f",
++  "prompts": {},
++  "sessions": {
++    "s_514a08504643ea": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "5bc127a1-4a24-411a-9346-d03c94dfad68",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    },
++    "s_c6b71477c08a56": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/eb/ce1528653ac63cdabf0129b2fc8283dc240798 b/eb/ce1528653ac63cdabf0129b2fc8283dc240798
+new file mode 100644
+index 00000000..c77e0d2f
+--- /dev/null
++++ b/eb/ce1528653ac63cdabf0129b2fc8283dc240798
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-92,94-104,108-111,113-120,122-133,135-172,178-180,213-254,316
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "ebce1528653ac63cdabf0129b2fc8283dc240798",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/f1/07174468160e7f7212b51ff0236b0ffd92fbc9 b/f1/07174468160e7f7212b51ff0236b0ffd92fbc9
+new file mode 100644
+index 00000000..2dec7103
+--- /dev/null
++++ b/f1/07174468160e7f7212b51ff0236b0ffd92fbc9
+@@ -0,0 +1,20 @@
++training/tests/test_llm_quality_judge.py
++  s_59badd58dedbb9::t_2aa2c46d4fad8d 624
++  s_59badd58dedbb9::t_50ac80763b4b18 613
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "f107174468160e7f7212b51ff0236b0ffd92fbc9",
++  "prompts": {},
++  "sessions": {
++    "s_59badd58dedbb9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_005c0d53effeXpCDbtK6qzQhaC",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/f2/64088815789ba1c96481e10807998df5da457b b/f2/64088815789ba1c96481e10807998df5da457b
+new file mode 100644
+index 00000000..143a1a71
+--- /dev/null
++++ b/f2/64088815789ba1c96481e10807998df5da457b
+@@ -0,0 +1,23 @@
++training/scripts/train_rl_serverless.py
++  s_8966adf124d5a9::t_afdc4dfc8aca61 207
++  s_8966adf124d5a9::t_6b94223fc20f5a 201
++  s_8966adf124d5a9::t_8918516a7cbae0 269
++training/scripts/train_sft_serverless.py
++  s_8966adf124d5a9::t_cc986bc7061753 125
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "f264088815789ba1c96481e10807998df5da457b",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/f3/19aca9c4aacb313ebf62758713202085677525 b/f3/19aca9c4aacb313ebf62758713202085677525
+new file mode 100644
+index 00000000..3ce44b06
+--- /dev/null
++++ b/f3/19aca9c4aacb313ebf62758713202085677525
+@@ -0,0 +1,22 @@
++training/nightmare_fuel_generator.py
++  s_8966adf124d5a9::t_7b20448cce629c 39
++  s_8966adf124d5a9::t_6f3fe3c01ee831 847,849
++  s_8966adf124d5a9::t_59195a4fb674d1 817-818,820-823,825-827,829-846,848
++  s_8966adf124d5a9::t_9e1388418e1ab9 966
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "f319aca9c4aacb313ebf62758713202085677525",
++  "prompts": {},
++  "sessions": {
++    "s_8966adf124d5a9": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_035434806ffetTxCxcj37tW03D",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/f4/bc98449f867fd3a9c6209b88d5f133f5a28289 b/f4/bc98449f867fd3a9c6209b88d5f133f5a28289
+new file mode 100644
+index 00000000..302f4a51
+--- /dev/null
++++ b/f4/bc98449f867fd3a9c6209b88d5f133f5a28289
+@@ -0,0 +1,57 @@
++training/scripts/s3_atomic_sync.py
++  ai_agent 1-417
++training/tests/test_v7_integrity.py
++  ai_agent 1-340
++dataset_pipeline/scripts/run_safety_pass.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-320
++training/dedup_normalize.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 4-5,17,20,26-33,40,71-195,281-287,298-310,323-329,356-372,377,397-404,415-424,426,428,449-457,466-471,521-548
++training/v7_integrity.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-216
++.gitignore
++  s_61a095cc229308::t_3553ce8ea8cc6e 183
++training/tests/test_nightmare_fuel_generator.py
++  ai_agent 134
++training/scripts/assemble_v7_master.py
++  ai_agent 1-363
++training/scripts/consolidate_assets.py
++  ai_agent 1-553
++training/nightmare_fuel_generator.py
++  s_61a095cc229308::t_38af3ae39ba625 37,56-74,205-364,376,519,537-538,593-594,599-600,603-604,606-608,612-614,646-649,651-652,654-659,661-664,667-696,698-708,710-717,720-725,728-739,759-763,772-773,785-792
++training/tests/test_clinical_validity_judge_async.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-305
++dataset_pipeline/processors/toxicity_detector.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-518
++lab/tests/safety/test_hackathon_safety_processor.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-420
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-8,30-44,75-158,164-166,199-244,306
++pkg_mera/core/pipelines/processing/pii_scrubber.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 13,134-146
++training/clinical_validity_judge_async.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-283
++training/tests/test_s3_atomic_sync.py
++  ai_agent 1-349
++training/tests/test_assemble_v7_master.py
++  ai_agent 1-259
++dataset_pipeline/orchestration/extract_everything.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 5,7-8,16,20,33,39-47,53-96,101-116,152-155,178-181,187-190,194,199-200,219-222,225-228,230-231,235,242,254-255,264,269-272,274,279-282,288,290,301-304,307-310,312-313,319,324-327,330,336,341,353,356,359-360,362,367,374,380,382,386,401-417,429-430,442-446,450
++dataset_pipeline/processors/safety_processors.py
++  s_61a095cc229308::t_3553ce8ea8cc6e 1-252
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "f4bc98449f867fd3a9c6209b88d5f133f5a28289",
++  "prompts": {},
++  "sessions": {
++    "s_61a095cc229308": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_01e316bb8ffe5iGIDsz6IEd2GA",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/fa/08101426c40aa2c3950984e427fe113080bd09 b/fa/08101426c40aa2c3950984e427fe113080bd09
+new file mode 100644
+index 00000000..a20ec8be
+--- /dev/null
++++ b/fa/08101426c40aa2c3950984e427fe113080bd09
+@@ -0,0 +1,19 @@
++pkg_mera/core/pipelines/crisis_intervention_detector.py
++  s_88d27a7764a71b::t_43a34f8b8cc49f 1-8,30-44,75-172,178-180,213-254,316
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "fa08101426c40aa2c3950984e427fe113080bd09",
++  "prompts": {},
++  "sessions": {
++    "s_88d27a7764a71b": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "ses_02b8cb1dbffeB2JNDnSmrI3yN3",
++        "model": "unknown"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
+diff --git a/fa/8dc904cb0dc54eae69dceb36f447abaf4729ee b/fa/8dc904cb0dc54eae69dceb36f447abaf4729ee
+new file mode 100644
+index 00000000..5366859f
+--- /dev/null
++++ b/fa/8dc904cb0dc54eae69dceb36f447abaf4729ee
+@@ -0,0 +1,19 @@
++.gitignore
++  s_20163925c9115f::t_e86964b0033bff 208-210
++---
++{
++  "schema_version": "authorship/3.0.0",
++  "git_ai_version": "1.5.2",
++  "base_commit_sha": "fa8dc904cb0dc54eae69dceb36f447abaf4729ee",
++  "prompts": {},
++  "sessions": {
++    "s_20163925c9115f": {
++      "agent_id": {
++        "tool": "claude",
++        "id": "9665dd08-0287-4bbe-96ae-d21abb221124",
++        "model": "z-ai/glm-5.2"
++      },
++      "human_author": "Dagger <dagger@pixelated.love>"
++    }
++  }
++}
+\ No newline at end of file
