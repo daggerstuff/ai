@@ -1,0 +1,21 @@
+pyproject.toml
+  s_5637bc318a2402::t_6adb436ce56b59 221
+training/curate_pipeline.py
+  s_5637bc318a2402::t_41d5329dc95996 61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2f8d62cfef4da80bf4c1ca2ca1420cd5ea814149",
+  "prompts": {},
+  "sessions": {
+    "s_5637bc318a2402": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4872048a-bc1c-4e0c-bbe4-a13d42b3754e",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}
