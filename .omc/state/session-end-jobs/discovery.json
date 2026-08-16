@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "cursor": 4,
+  "tickets": [
+    {
+      "sessionId": "6c1e640c-1566-4228-a3fc-abad2aad00c1",
+      "attempts": 0,
+      "retryAt": "2026-08-15T23:19:42.968Z",
+      "acknowledgedAt": "2026-08-15T23:19:43.868Z"
+    },
+    {
+      "sessionId": "29617d06-56d6-47c0-9bec-6227a63b9b75",
+      "attempts": 0,
+      "retryAt": "2026-08-15T23:35:40.419Z",
+      "acknowledgedAt": "2026-08-15T23:35:41.304Z"
+    },
+    {
+      "sessionId": "89119b95-856d-4196-9605-8879cbe742a7",
+      "attempts": 0,
+      "retryAt": "2026-08-15T23:50:56.015Z",
+      "acknowledgedAt": "2026-08-15T23:50:56.918Z"
+    },
+    {
+      "sessionId": "ec513def-5524-42c6-87a7-d669d946dbcc",
+      "attempts": 0,
+      "retryAt": "2026-08-16T00:15:45.478Z",
+      "acknowledgedAt": "2026-08-16T00:15:46.411Z"
+    },
+    {
+      "sessionId": "d9426ef8-9b9a-4f0d-8238-4ac9d1c40051",
+      "attempts": 0,
+      "retryAt": "2026-08-16T00:32:35.217Z",
+      "acknowledgedAt": "2026-08-16T00:32:36.112Z"
+    }
+  ]
+}

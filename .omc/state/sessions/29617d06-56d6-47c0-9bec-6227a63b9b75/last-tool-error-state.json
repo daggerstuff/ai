@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"git -C /home/vivi/.no-mistakes/worktrees/e705c89f2e08/01M03TP755N7N5D94K8MPVYKPR notes --ref=refs/notes/ai log 8e33f82c9bde3f8bb958b3958172a4952d611143 2>/dev/null; echo \\\"---SHOW---\\\"; gi...",
+  "error": "Exit code 1\n---SHOW---\nerror: no note found for object 8e33f82c9bde3f8bb958b3958172a4952d611143.",
+  "timestamp": "2026-08-15T23:24:35.783Z",
+  "retry_count": 1
+}

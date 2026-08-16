@@ -1,0 +1,42 @@
+{
+  "agents": [
+    {
+      "agent_id": "aca054ee9b8999715",
+      "agent_type": "caveman:cavecrew-investigator",
+      "started_at": "2026-08-16T00:17:03.614Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-16T00:20:35.034Z",
+      "duration_ms": 211420
+    },
+    {
+      "agent_id": "a14135fe7cee6df1b",
+      "agent_type": "caveman:cavecrew-investigator",
+      "started_at": "2026-08-16T00:18:04.338Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-16T00:19:12.387Z",
+      "duration_ms": 68049
+    },
+    {
+      "agent_id": "a5800f95c094f433b",
+      "agent_type": "caveman:cavecrew-investigator",
+      "started_at": "2026-08-16T00:23:41.837Z",
+      "parent_mode": "none",
+      "status": "running"
+    },
+    {
+      "agent_id": "ad42bebb1d31864e8",
+      "agent_type": "caveman:cavecrew-investigator",
+      "started_at": "2026-08-16T00:28:26.295Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-16T00:29:12.105Z",
+      "duration_ms": 45810
+    }
+  ],
+  "total_spawned": 4,
+  "total_completed": 3,
+  "total_failed": 0,
+  "last_updated": "2026-08-16T00:29:12.206Z"
+}

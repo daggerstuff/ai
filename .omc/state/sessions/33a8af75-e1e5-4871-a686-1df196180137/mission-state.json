@@ -1,0 +1,79 @@
+{
+  "updatedAt": "2026-08-16T00:36:10.998Z",
+  "missions": [
+    {
+      "id": "session:33a8af75-e1e5-4871-a686-1df196180137:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-08-16T00:33:54.150Z",
+      "updatedAt": "2026-08-16T00:36:10.998Z",
+      "status": "done",
+      "workerCount": 2,
+      "taskCounts": {
+        "total": 2,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 0,
+        "completed": 2,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "caveman:cavecrew-investigator:aa5b495",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "aa5b4953efc723228",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-16T00:34:22.602Z"
+        },
+        {
+          "name": "caveman:cavecrew-investigator:a7fb811",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "a7fb8116ef48b26ef",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-16T00:36:10.998Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-start:aa5b4953efc723228:2026-08-16T00:33:54.150Z",
+          "at": "2026-08-16T00:33:54.150Z",
+          "kind": "update",
+          "agent": "caveman:cavecrew-investigator:aa5b495",
+          "detail": "started caveman:cavecrew-investigator:aa5b495",
+          "sourceKey": "session-start:aa5b4953efc723228"
+        },
+        {
+          "id": "session-stop:aa5b4953efc723228:2026-08-16T00:34:22.602Z",
+          "at": "2026-08-16T00:34:22.602Z",
+          "kind": "completion",
+          "agent": "caveman:cavecrew-investigator:aa5b495",
+          "detail": "completed",
+          "sourceKey": "session-stop:aa5b4953efc723228"
+        },
+        {
+          "id": "session-start:a7fb8116ef48b26ef:2026-08-16T00:34:56.637Z",
+          "at": "2026-08-16T00:34:56.637Z",
+          "kind": "update",
+          "agent": "caveman:cavecrew-investigator:a7fb811",
+          "detail": "started caveman:cavecrew-investigator:a7fb811",
+          "sourceKey": "session-start:a7fb8116ef48b26ef"
+        },
+        {
+          "id": "session-stop:a7fb8116ef48b26ef:2026-08-16T00:36:10.998Z",
+          "at": "2026-08-16T00:36:10.998Z",
+          "kind": "completion",
+          "agent": "caveman:cavecrew-investigator:a7fb811",
+          "detail": "completed",
+          "sourceKey": "session-stop:a7fb8116ef48b26ef"
+        }
+      ]
+    }
+  ]
+}

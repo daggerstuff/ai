@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls -A | grep -vE '^[0-9a-f]{2}$' | rtk grep -vE '^(\\\\.git|\\\\.omc)$'\",\"description\":\"Find non-sharded top-level entries\"}",
+  "error": "Exit code 1",
+  "timestamp": "2026-08-16T00:05:51.445Z",
+  "retry_count": 1
+}

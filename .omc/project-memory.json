@@ -1,0 +1,905 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1786835058994,
+  "projectRoot": "/home/vivi/.no-mistakes/worktrees/e705c89f2e08/01M03TP755N7N5D94K8MPVYKPR",
+  "techStack": {
+    "languages": [],
+    "frameworks": [],
+    "packageManager": null,
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "14": {
+      "path": "14",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058949,
+      "keyFiles": [
+        "70aae1a49106b6166a2c5f7ff08e0212f32d61"
+      ]
+    },
+    "18": {
+      "path": "18",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058949,
+      "keyFiles": [
+        "e319f690c20c64d9efdb6fd9ea5f76a18a7348"
+      ]
+    },
+    "23": {
+      "path": "23",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058950,
+      "keyFiles": [
+        "025c312ee35e503cd99bb37e8f612df84a1690"
+      ]
+    },
+    "26": {
+      "path": "26",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058950,
+      "keyFiles": [
+        "e81e122bfbc1174ab3c72a0888d06023ec59ca"
+      ]
+    },
+    "28": {
+      "path": "28",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058950,
+      "keyFiles": [
+        "162f31d6166cb8d03277fe179ed31714f4fdbb"
+      ]
+    },
+    "29": {
+      "path": "29",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058950,
+      "keyFiles": [
+        "f199d4684311557927c4efa3e3b7c8082e2e87"
+      ]
+    },
+    "30": {
+      "path": "30",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058951,
+      "keyFiles": [
+        "154fe228963352c3921df9c1870c078e6ac82e",
+        "dded96c84d2796f21f11fad550fcab894b1ff6"
+      ]
+    },
+    "31": {
+      "path": "31",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1786835058951,
+      "keyFiles": [
+        "4669f1889eb89dfb78eadd4cd4ca04ad805940",
+        "a32a087b685dc0a310044a689771fe8d72909c",
+        "eae3be9c672d1592ef2baa49fe6699a6a1a531"
+      ]
+    },
+    "33": {
+      "path": "33",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058951,
+      "keyFiles": [
+        "bcd31bfe37fa3e87773a00f45b051c25372e70"
+      ]
+    },
+    "34": {
+      "path": "34",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058951,
+      "keyFiles": [
+        "83e4932d20b7cc07a56484c85b228e6e5c60b2"
+      ]
+    },
+    "36": {
+      "path": "36",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058951,
+      "keyFiles": [
+        "5765f9c68a03a40342c5bdfba7920bc18163ec"
+      ]
+    },
+    "37": {
+      "path": "37",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058952,
+      "keyFiles": [
+        "9745fc1ed75c45e8ed8477265f77da60e4c7ac"
+      ]
+    },
+    "39": {
+      "path": "39",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058954,
+      "keyFiles": [
+        "3b34798a8616b303e84299abcfee8d78d7287f",
+        "ec932f84e8dc6c7dee864305b15a6d49a2ba3c"
+      ]
+    },
+    "41": {
+      "path": "41",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058955,
+      "keyFiles": [
+        "c5a542d6ac20fce1fc88bbf3ccdacc3a6fb1b2"
+      ]
+    },
+    "52": {
+      "path": "52",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058957,
+      "keyFiles": [
+        "0d4d60aa0e52f53ee478528291412ce6a53052"
+      ]
+    },
+    "54": {
+      "path": "54",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058957,
+      "keyFiles": [
+        "056905fdbaa2074dc479f7bb1577216b4bc381"
+      ]
+    },
+    "56": {
+      "path": "56",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058959,
+      "keyFiles": [
+        "6e43f2c67bb3f89b444566c2d689afadca43f7"
+      ]
+    },
+    "57": {
+      "path": "57",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1786835058959,
+      "keyFiles": [
+        "10eaf84df2e4d7922e783ebf6e0b04138da046",
+        "1b02fe4c62259acd0ca990baa7940f4809df9f",
+        "5999c272021d2463f5b1b353d365edaeb96884"
+      ]
+    },
+    "60": {
+      "path": "60",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058960,
+      "keyFiles": [
+        "86c731a4c1e429d33993165459ca7d82e242cf",
+        "fdcd1b1d1c98ee885f34b2570ec23f34e5e7e0"
+      ]
+    },
+    "61": {
+      "path": "61",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058960,
+      "keyFiles": [
+        "15081c8bfc4c458e30df559d336a38d3c0cec8"
+      ]
+    },
+    "63": {
+      "path": "63",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058961,
+      "keyFiles": [
+        "a20d6f69292d97798dcb80a76030df53ea1f02"
+      ]
+    },
+    "67": {
+      "path": "67",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "6c6260c1736c124156cc7b2784229112ab4ff0",
+        "dc47c26fa22b0acdd6ca3d117cce257b6833f2"
+      ]
+    },
+    "71": {
+      "path": "71",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "0fbc1728a894402038f3c1a61972f965bc619d"
+      ]
+    },
+    "72": {
+      "path": "72",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "728604f4df64a809c168766c398af0a537e437",
+        "8f2304fa9a192169002d607ceee26d1ca19f50"
+      ]
+    },
+    "73": {
+      "path": "73",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "2f7a317a107e89508e138a7612d196e91a6e25"
+      ]
+    },
+    "75": {
+      "path": "75",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "1e5de15ef05012f5ed715dc8565b3f88dbc9de",
+        "6d7602f4ee4c4d3a39b6c1f0ed2889bb908769",
+        "9aa212c48ba55855c169e19c4d546348cecff5"
+      ]
+    },
+    "78": {
+      "path": "78",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "9afe147f70e4e730e84bf1d0fc3fd433682b43"
+      ]
+    },
+    "83": {
+      "path": "83",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058963,
+      "keyFiles": [
+        "ada03108ceddd2714bc6623d77dfb085bb29f4"
+      ]
+    },
+    "89": {
+      "path": "89",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058963,
+      "keyFiles": [
+        "0c13a8ce736b2103fd249a21b1cc9480969d24"
+      ]
+    },
+    "91": {
+      "path": "91",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058964,
+      "keyFiles": [
+        "2333a17de5d5f4ba330afb045691ca457da1d7"
+      ]
+    },
+    "97": {
+      "path": "97",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058964,
+      "keyFiles": [
+        "063d63ba608dee00958ee408ce305bf08a018a"
+      ]
+    },
+    "01": {
+      "path": "01",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058945,
+      "keyFiles": [
+        "3d288e087ab671fb6368d7eb5b4acd0d583d44",
+        "5362049099903d8bc8f70d418fc4b101e48b0b"
+      ]
+    },
+    "05": {
+      "path": "05",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058947,
+      "keyFiles": [
+        "7fea9c8c97fd830ca6f5325735a05cdfcbcd6a"
+      ]
+    },
+    "08": {
+      "path": "08",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058948,
+      "keyFiles": [
+        "a85ee9aabb0a58ff8604a9db22626e34ed5d83"
+      ]
+    },
+    "0a": {
+      "path": "0a",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058948,
+      "keyFiles": [
+        "a80f919a9bcd4bb1c84667c2fd9b4211f1fbdf"
+      ]
+    },
+    "0b": {
+      "path": "0b",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058948,
+      "keyFiles": [
+        "99ff984330441bad1cb2ddb032a9898c2c7485"
+      ]
+    },
+    "0d": {
+      "path": "0d",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058949,
+      "keyFiles": [
+        "f2282c0b6fb17f145381553311bc9c1301aaa6"
+      ]
+    },
+    "0f": {
+      "path": "0f",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058949,
+      "keyFiles": [
+        "ee923c9be48f7bfdb77369b0d1080db3160740"
+      ]
+    },
+    "1e": {
+      "path": "1e",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058949,
+      "keyFiles": [
+        "0fc58341d52c3718fb21d25f00a46c32e92f81"
+      ]
+    },
+    "2a": {
+      "path": "2a",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058950,
+      "keyFiles": [
+        "96e9ae037db128079d144b4400bc4e296bfaeb"
+      ]
+    },
+    "2c": {
+      "path": "2c",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058950,
+      "keyFiles": [
+        "5a094bc12fdbff5738b4615839262d091cd536"
+      ]
+    },
+    "2d": {
+      "path": "2d",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058951,
+      "keyFiles": [
+        "d978bad97b2081ffeb58ba007e1425d17a07b6"
+      ]
+    },
+    "4b": {
+      "path": "4b",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058956,
+      "keyFiles": [
+        "9d6cad2f139e29485e227816361d3afe303c3c"
+      ]
+    },
+    "4d": {
+      "path": "4d",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058956,
+      "keyFiles": [
+        "5e59be2840f305800962fd32287974a32a9f3d"
+      ]
+    },
+    "5d": {
+      "path": "5d",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058959,
+      "keyFiles": [
+        "3a0f7b19bf5141a533164264c62a9df23a081f"
+      ]
+    },
+    "5e": {
+      "path": "5e",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058959,
+      "keyFiles": [
+        "c3dea97af0f96416ae1f77b740a6334af53a1e"
+      ]
+    },
+    "6b": {
+      "path": "6b",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "6b705339720d4ab98b452c527fc9f2f432443c",
+        "f404142ffb57960311e5aee455a3bb6904f790"
+      ]
+    },
+    "6d": {
+      "path": "6d",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058962,
+      "keyFiles": [
+        "136cb7c57b0cca419bbbdef6275a07e1dcfcb8"
+      ]
+    },
+    "7b": {
+      "path": "7b",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058963,
+      "keyFiles": [
+        "b8fd6386f72b136994d382ce46ad0ccb1e0627"
+      ]
+    },
+    "7c": {
+      "path": "7c",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058963,
+      "keyFiles": [
+        "ba8b06d240ce84d4ebf08b202c633edc31b2bc"
+      ]
+    },
+    "7d": {
+      "path": "7d",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058963,
+      "keyFiles": [
+        "1b3fc89e5faaa8d3cb173ff064f107fd28bb60"
+      ]
+    },
+    "8d": {
+      "path": "8d",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058963,
+      "keyFiles": [
+        "bda77f7053614787109322fc3079f87f4356a8"
+      ]
+    },
+    "8e": {
+      "path": "8e",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058963,
+      "keyFiles": [
+        "4b812a4df70461f4fb4665544fe84266f43e58",
+        "ef20fdc51d1196b040d6f3ac12089f5b4210f1"
+      ]
+    },
+    "9c": {
+      "path": "9c",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058964,
+      "keyFiles": [
+        "7812a7baf285339b1ca368376ec9bcf09cb8dc"
+      ]
+    },
+    "9d": {
+      "path": "9d",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058964,
+      "keyFiles": [
+        "01310b9ba5365b531929f9dc448c537da6c6c4",
+        "94bd7b43544907a143f6f219eff808eab44391"
+      ]
+    },
+    "9f": {
+      "path": "9f",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058964,
+      "keyFiles": [
+        "882863871981b00e4bc8874bc8e97f7907447d",
+        "b51f585a532dfc6ea8b0fad69ec0f0043a99f3"
+      ]
+    },
+    "a1": {
+      "path": "a1",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058964,
+      "keyFiles": [
+        "8df5193e251c4fc6a53aedc1be2d8e060dbd62"
+      ]
+    },
+    "a2": {
+      "path": "a2",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058964,
+      "keyFiles": [
+        "2c62955d9201e559ef58514b2a9857394e303e",
+        "3bff56da45b3214beb22faad5d80e316afb281"
+      ]
+    },
+    "a4": {
+      "path": "a4",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058968,
+      "keyFiles": [
+        "b973427fa172c4088984ccf89182bde6b54463"
+      ]
+    },
+    "a5": {
+      "path": "a5",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058969,
+      "keyFiles": [
+        "5247c45d51f023f2eba12509d4d41bd738953a"
+      ]
+    },
+    "a8": {
+      "path": "a8",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058971,
+      "keyFiles": [
+        "c9aaae4011637ed91a6d9a4e25423a6a0f821d"
+      ]
+    },
+    "a9": {
+      "path": "a9",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058971,
+      "keyFiles": [
+        "8871e4e7677cf03f56dbbb7979f17e5869255d"
+      ]
+    },
+    "aa": {
+      "path": "aa",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "176d13f305ba8c824790a08c1f3594ed4f2118"
+      ]
+    },
+    "ac": {
+      "path": "ac",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "49314fb2713ae75ad7dd75e37034fc64f76034"
+      ]
+    },
+    "ad": {
+      "path": "ad",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "a711506a0a436b9d12ca0a068b0318e1d9fe11"
+      ]
+    },
+    "ae": {
+      "path": "ae",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "62efa1503ae280bdfe522b7a505aff58de867f",
+        "73650d43dc3fc4fbd58efcf6f92e1b0e0b9411"
+      ]
+    },
+    "b2": {
+      "path": "b2",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "167599c877e96388ee0d3f4e6677446f738865"
+      ]
+    },
+    "b3": {
+      "path": "b3",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "68b7d2b285b57d706069caab5b4cfa27fa6c53"
+      ]
+    },
+    "b4": {
+      "path": "b4",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "45b55f3495fd349e9e0908209c25915cfc92d5"
+      ]
+    },
+    "bf": {
+      "path": "bf",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058972,
+      "keyFiles": [
+        "70c145b9e3bf6007cf7cd76de105abac65ffa6"
+      ]
+    },
+    "c3": {
+      "path": "c3",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058974,
+      "keyFiles": [
+        "1aef11ec4b0ec51966073f3386672175be13d3"
+      ]
+    },
+    "cc": {
+      "path": "cc",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058974,
+      "keyFiles": [
+        "28e2676a6473a5ff0c7f39973b87fb9ea2805a"
+      ]
+    },
+    "cd": {
+      "path": "cd",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058974,
+      "keyFiles": [
+        "567bda7f0f6cc9a1f1ea8c8eafbb35294c0eae",
+        "b682271292dd0d02cda3118862cc0d6cb90784"
+      ]
+    },
+    "d3": {
+      "path": "d3",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058974,
+      "keyFiles": [
+        "c781ac9dae2bbb13356474349fc2f2a48db1a5",
+        "d98a7b0e9006cc07d873516ffd44d0d40be112"
+      ]
+    },
+    "d6": {
+      "path": "d6",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058974,
+      "keyFiles": [
+        "0c2d03a5f0b50a0c1d1c4068665796c722e9c9",
+        "36261e3a06a6d8516cad58decd7d9861c455ce"
+      ]
+    },
+    "d7": {
+      "path": "d7",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058975,
+      "keyFiles": [
+        "f85e77ab924fe41e8f9bbc08e3f1a90a6ca59c"
+      ]
+    },
+    "d8": {
+      "path": "d8",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058976,
+      "keyFiles": [
+        "0a393d045320a9fa38fe621db19f05186c8cd7"
+      ]
+    },
+    "da": {
+      "path": "da",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058976,
+      "keyFiles": [
+        "754e4583f04171336cf1da8fb887bfa011c279"
+      ]
+    },
+    "dc": {
+      "path": "dc",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058977,
+      "keyFiles": [
+        "7d59d84517d875b945b80e0fa6e75a4aed011b"
+      ]
+    },
+    "de": {
+      "path": "de",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058977,
+      "keyFiles": [
+        "8ea0e76f9d09f1e5f847ece501a9edf3cc9141"
+      ]
+    },
+    "df": {
+      "path": "df",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058977,
+      "keyFiles": [
+        "6df0b4d03b9a8fdb60e5ca3ab5adabd0db7fb2"
+      ]
+    },
+    "e1": {
+      "path": "e1",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058977,
+      "keyFiles": [
+        "4893165e052acbb7ca0b6a44143304cdc3d3c1",
+        "e0e7af5c67b886db67323f083b36e8c9757feb"
+      ]
+    },
+    "e2": {
+      "path": "e2",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058978,
+      "keyFiles": [
+        "4942803b2edcaa37a620234a1e9d56d3745346"
+      ]
+    },
+    "e3": {
+      "path": "e3",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058978,
+      "keyFiles": [
+        "440946884c287e57e65cab4aa116be21b8c689",
+        "cc5bfbf1a2de5c9900902d60cbf356afeea8b8"
+      ]
+    },
+    "e4": {
+      "path": "e4",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058978,
+      "keyFiles": [
+        "f6a3de3ea421260cacc65351fad24e48017d1e"
+      ]
+    },
+    "e5": {
+      "path": "e5",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "7e9287f667ab557e43b6fa74701c75adbf2efa"
+      ]
+    },
+    "e6": {
+      "path": "e6",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "9f13dc807116f9b60db42e2a56eccc84cba5fa"
+      ]
+    },
+    "e7": {
+      "path": "e7",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "adbae339a021777e8d63cfe0cfe712f1ff436f"
+      ]
+    },
+    "eb": {
+      "path": "eb",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "ce1528653ac63cdabf0129b2fc8283dc240798"
+      ]
+    },
+    "f1": {
+      "path": "f1",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "07174468160e7f7212b51ff0236b0ffd92fbc9"
+      ]
+    },
+    "f2": {
+      "path": "f2",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "64088815789ba1c96481e10807998df5da457b"
+      ]
+    },
+    "f3": {
+      "path": "f3",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "19aca9c4aacb313ebf62758713202085677525"
+      ]
+    },
+    "f4": {
+      "path": "f4",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "bc98449f867fd3a9c6209b88d5f133f5a28289"
+      ]
+    },
+    "fa": {
+      "path": "fa",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1786835058979,
+      "keyFiles": [
+        "08101426c40aa2c3950984e427fe113080bd09",
+        "8dc904cb0dc54eae69dceb36f447abaf4729ee"
+      ]
+    }
+  },
+  "hotPaths": [],
+  "userDirectives": []
+}

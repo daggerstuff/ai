@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "entries": {
+    "be0a9df79af2f1e6c27d168f85552d5ec65b30653a2bbc90b30e199ee924a681": {
+      "last_emitted_at_ms": 1786840496288,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Map repo doc structure"
+    },
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1786840440938,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "ee450dedeafa5098b21e629621bd2ef59a882a757a81109d0a386ce8f14a925f": {
+      "last_emitted_at_ms": 1786840433967,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Inspect change diff"
+    }
+  },
+  "updated_at": "2026-08-16T00:34:56.288Z"
+}

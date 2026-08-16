@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"/bin/ls -la | rtk grep -E 'eslint|prettier|stylelint|tsconfig|pyproject|setup.cfg|tox|ruff|biome|editorconfig|Makefile|package.json|Cargo.toml|go.mod|golangci|clippy'\",\"description\":\"Lint ...",
+  "error": "Exit code 1",
+  "timestamp": "2026-08-16T00:35:19.618Z",
+  "retry_count": 3
+}

@@ -1,0 +1,31 @@
+{
+  "agents": [
+    {
+      "agent_id": "a632c4e0a96978457",
+      "agent_type": "caveman:cavecrew-investigator",
+      "started_at": "2026-08-15T23:21:10.508Z",
+      "parent_mode": "none",
+      "status": "running"
+    },
+    {
+      "agent_id": "aa70bd8fa789911d3",
+      "agent_type": "worker",
+      "started_at": "2026-08-15T23:23:02.984Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-08-15T23:29:23.978Z",
+      "duration_ms": 380994
+    },
+    {
+      "agent_id": "aa54117caca3f9003",
+      "agent_type": "worker",
+      "started_at": "2026-08-15T23:30:54.119Z",
+      "parent_mode": "none",
+      "status": "running"
+    }
+  ],
+  "total_spawned": 3,
+  "total_completed": 1,
+  "total_failed": 0,
+  "last_updated": "2026-08-15T23:30:54.221Z"
+}

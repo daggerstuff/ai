@@ -1,0 +1,81 @@
+{
+  "updatedAt": "2026-08-16T00:01:36.232Z",
+  "missions": [
+    {
+      "id": "session:ec513def-5524-42c6-87a7-d669d946dbcc:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-08-15T23:51:57.978Z",
+      "updatedAt": "2026-08-16T00:01:36.232Z",
+      "status": "running",
+      "workerCount": 3,
+      "taskCounts": {
+        "total": 3,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 2,
+        "completed": 1,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "caveman:cavecrew-investigator:aedcb0d",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "aedcb0d355acfdd6b",
+          "status": "running",
+          "currentStep": null,
+          "latestUpdate": null,
+          "completedSummary": null,
+          "updatedAt": "2026-08-15T23:51:57.978Z"
+        },
+        {
+          "name": "worker:acea739",
+          "role": "worker",
+          "ownership": "acea7392bbf42962b",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-15T23:59:49.653Z"
+        },
+        {
+          "name": "worker:ade5758",
+          "role": "worker",
+          "ownership": "ade575878ba89f68a",
+          "status": "running",
+          "currentStep": null,
+          "latestUpdate": null,
+          "completedSummary": null,
+          "updatedAt": "2026-08-16T00:01:36.232Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-start:acea7392bbf42962b:2026-08-15T23:53:52.483Z",
+          "at": "2026-08-15T23:53:52.483Z",
+          "kind": "update",
+          "agent": "worker:acea739",
+          "detail": "started worker:acea739",
+          "sourceKey": "session-start:acea7392bbf42962b"
+        },
+        {
+          "id": "session-stop:acea7392bbf42962b:2026-08-15T23:59:49.653Z",
+          "at": "2026-08-15T23:59:49.653Z",
+          "kind": "completion",
+          "agent": "worker:acea739",
+          "detail": "completed",
+          "sourceKey": "session-stop:acea7392bbf42962b"
+        },
+        {
+          "id": "session-start:ade575878ba89f68a:2026-08-16T00:01:36.232Z",
+          "at": "2026-08-16T00:01:36.232Z",
+          "kind": "update",
+          "agent": "worker:ade5758",
+          "detail": "started worker:ade5758",
+          "sourceKey": "session-start:ade575878ba89f68a"
+        }
+      ]
+    }
+  ]
+}

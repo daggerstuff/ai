@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "entries": {
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1786835788504,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "beb5edca8a7d380867bf5e4d9db1cc93d7312ecc10ddc66ae0c6909915801d97": {
+      "last_emitted_at_ms": 1786835661782,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Verify note blob bodies well-formed"
+    },
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1786835432378,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "2e1b3fcef01cc001e9f0e08b07c7255ba7f00855c4c10d3598065f938e76ea73": {
+      "last_emitted_at_ms": 1786835407566,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Dump full notes diff verbatim"
+    },
+    "edcc456f3614414e44467c402926da5bc581e6cb45eb8bd204ac3133966f6e09": {
+      "last_emitted_at_ms": 1786835155771,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Inspect git diff of notes branch"
+    },
+    "c57d49e40d942e1f46758eb0e30c78cbc15ccdfe6e671835970fe92e7144ea4a": {
+      "last_emitted_at_ms": 1786835155764,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Map worktree top-level structure"
+    }
+  },
+  "updated_at": "2026-08-15T23:16:28.504Z"
+}

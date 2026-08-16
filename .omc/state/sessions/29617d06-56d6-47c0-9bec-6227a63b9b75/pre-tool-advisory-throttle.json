@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "entries": {
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1786836718583,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "f1c0da585fd31d62ff91429e2866fc5d21f7cc678740d5bee9291d049985f3b5": {
+      "last_emitted_at_ms": 1786836653961,
+      "message": "Spawning agent: worker (sonnet) | Task: Validate notes git integrity"
+    },
+    "81d8860213c392de1f99efdb4d6545ea5f758e50aee04e33263bfeeb2ca258c4": {
+      "last_emitted_at_ms": 1786836182817,
+      "message": "Spawning agent: worker (sonnet) | Task: Gather diff and intent evidence"
+    },
+    "9e6b50ba52e0286c82fecf2cd1629f043ff2662c8d5f3e464c045065a3227c1a": {
+      "last_emitted_at_ms": 1786836070298,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Inspect repo and diff"
+    }
+  },
+  "updated_at": "2026-08-15T23:31:58.583Z"
+}

@@ -1,0 +1,99 @@
+{
+  "updatedAt": "2026-08-16T00:29:12.105Z",
+  "missions": [
+    {
+      "id": "session:d9426ef8-9b9a-4f0d-8238-4ac9d1c40051:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-08-16T00:17:03.614Z",
+      "updatedAt": "2026-08-16T00:29:12.105Z",
+      "status": "running",
+      "workerCount": 4,
+      "taskCounts": {
+        "total": 4,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 1,
+        "completed": 3,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "caveman:cavecrew-investigator:aca054e",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "aca054ee9b8999715",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-16T00:20:35.034Z"
+        },
+        {
+          "name": "caveman:cavecrew-investigator:a14135f",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "a14135fe7cee6df1b",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-16T00:19:12.387Z"
+        },
+        {
+          "name": "caveman:cavecrew-investigator:a5800f9",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "a5800f95c094f433b",
+          "status": "running",
+          "currentStep": null,
+          "latestUpdate": null,
+          "completedSummary": null,
+          "updatedAt": "2026-08-16T00:23:41.837Z"
+        },
+        {
+          "name": "caveman:cavecrew-investigator:ad42beb",
+          "role": "caveman:cavecrew-investigator",
+          "ownership": "ad42bebb1d31864e8",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-08-16T00:29:12.105Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-stop:aca054ee9b8999715:2026-08-16T00:20:35.034Z",
+          "at": "2026-08-16T00:20:35.034Z",
+          "kind": "completion",
+          "agent": "caveman:cavecrew-investigator:aca054e",
+          "detail": "completed",
+          "sourceKey": "session-stop:aca054ee9b8999715"
+        },
+        {
+          "id": "session-start:a5800f95c094f433b:2026-08-16T00:23:41.837Z",
+          "at": "2026-08-16T00:23:41.837Z",
+          "kind": "update",
+          "agent": "caveman:cavecrew-investigator:a5800f9",
+          "detail": "started caveman:cavecrew-investigator:a5800f9",
+          "sourceKey": "session-start:a5800f95c094f433b"
+        },
+        {
+          "id": "session-start:ad42bebb1d31864e8:2026-08-16T00:28:26.295Z",
+          "at": "2026-08-16T00:28:26.295Z",
+          "kind": "update",
+          "agent": "caveman:cavecrew-investigator:ad42beb",
+          "detail": "started caveman:cavecrew-investigator:ad42beb",
+          "sourceKey": "session-start:ad42bebb1d31864e8"
+        },
+        {
+          "id": "session-stop:ad42bebb1d31864e8:2026-08-16T00:29:12.105Z",
+          "at": "2026-08-16T00:29:12.105Z",
+          "kind": "completion",
+          "agent": "caveman:cavecrew-investigator:ad42beb",
+          "detail": "completed",
+          "sourceKey": "session-stop:ad42bebb1d31864e8"
+        }
+      ]
+    }
+  ]
+}

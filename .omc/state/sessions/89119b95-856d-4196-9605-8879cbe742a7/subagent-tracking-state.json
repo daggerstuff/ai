@@ -1,0 +1,22 @@
+{
+  "agents": [
+    {
+      "agent_id": "aa2ebd272b65a67c7",
+      "agent_type": "caveman:cavecrew-investigator",
+      "started_at": "2026-08-15T23:37:04.487Z",
+      "parent_mode": "none",
+      "status": "running"
+    },
+    {
+      "agent_id": "a3843844113b5f780",
+      "agent_type": "worker",
+      "started_at": "2026-08-15T23:39:45.438Z",
+      "parent_mode": "none",
+      "status": "running"
+    }
+  ],
+  "total_spawned": 2,
+  "total_completed": 0,
+  "total_failed": 0,
+  "last_updated": "2026-08-15T23:39:45.539Z"
+}

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "entries": {
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1786840145779,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "e25cf2d1a54ab62f6a33fc7c4e7bc141140123daf5556d5af604f4db0618c513": {
+      "last_emitted_at_ms": 1786840106124,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Scan blobs for schema tokens"
+    },
+    "8750fe1e96f91b2c52ee1a67fb25c89f8a3639a820ec4e02c424cbee588b880c": {
+      "last_emitted_at_ms": 1786839821668,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Validate metadata blob change"
+    },
+    "d6989f99d8fcdaa76d888746af9a968fe94a8f6f9139e58860a5c163e242defd": {
+      "last_emitted_at_ms": 1786839484166,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Map repo structure and test setup"
+    },
+    "9b06bf670c0fe71d907e852aba4458b82afcb675d896ba4087e6fb74d59a9853": {
+      "last_emitted_at_ms": 1786839423375,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Diff base to target commit"
+    }
+  },
+  "updated_at": "2026-08-16T00:29:05.779Z"
+}

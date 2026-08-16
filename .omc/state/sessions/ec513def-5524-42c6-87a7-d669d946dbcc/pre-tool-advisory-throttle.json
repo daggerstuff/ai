@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "entries": {
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1786839059343,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "fd20ac2e7946bf2ef5cf9fed75e5c7f537d5729028f23fed678c7b9a58f0dd53": {
+      "last_emitted_at_ms": 1786838496075,
+      "message": "Spawning agent: worker (sonnet) | Task: Validate authorship blobs"
+    },
+    "69839691fcd53f2506e447ac07f2d72a55e1f54a08648f22ce51d3b8a4c8e6ed": {
+      "last_emitted_at_ms": 1786838032309,
+      "message": "Spawning agent: worker (sonnet) | Task: Read diff and repo shape"
+    },
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1786837967542,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "0f618afb428f7a4367dd338acf9326a79149816b5d2a3fa6299449a93446048d": {
+      "last_emitted_at_ms": 1786837917744,
+      "message": "Spawning agent: caveman:cavecrew-investigator (sonnet) | Task: Inspect diff and intent"
+    }
+  },
+  "updated_at": "2026-08-16T00:10:59.343Z"
+}

@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"git cat-file -p b49e2761b05908e777dbdd30e0a9fc8a594f4566 2>&1 | python3 -c 'import json,sys; d=json.load(sys.stdin); print(\\\"OK\\\",d[\\\"schema_version\\\"],d.get(\\\"sessions\\\",{}))' 2>&1\",\"desc...",
+  "error": "Exit code 1\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import json,sys; d=json.load(sys.stdin); print(\"OK\",d[\"schema_version\"],d.get(\"sessions\",{}))\n                       ~~~~~~~~~^^^^^^^^^^^\n  File \"/home/linuxbrew/.linuxbrew/Cellar/python@3.14/3.14.6/lib/python3.14/json/__init__.py\", line 298, in load\n    return loads(fp.read(),\n        cls=cls, object_hook=object_hook,\n        parse_float=parse_float, parse_int=parse_int,\n        parse_constant=parse_consta...",
+  "timestamp": "2026-08-15T23:50:17.884Z",
+  "retry_count": 1
+}

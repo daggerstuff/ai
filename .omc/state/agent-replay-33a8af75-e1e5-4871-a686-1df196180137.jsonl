@@ -1,0 +1,4 @@
+{"t":0,"agent":"aa5b495","agent_type":"caveman:cavecrew-investigator","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"aa5b495","agent_type":"caveman:cavecrew-investigator","event":"agent_stop","success":true,"duration_ms":28452}
+{"t":0,"agent":"a7fb811","agent_type":"caveman:cavecrew-investigator","event":"agent_start","parent_mode":"none"}
+{"t":0,"agent":"a7fb811","agent_type":"caveman:cavecrew-investigator","event":"agent_stop","success":true,"duration_ms":74361}
