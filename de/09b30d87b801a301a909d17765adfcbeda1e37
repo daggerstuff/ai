@@ -1,0 +1,19 @@
+tests/api/test_wait_for_job_failure.py
+  s_bcc81186d3cdb2::t_9b48ee89dfebf8 21,24,26,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "de09b30d87b801a301a909d17765adfcbeda1e37",
+  "prompts": {},
+  "sessions": {
+    "s_bcc81186d3cdb2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_ff963c2a5ffekuIWhwuEfWr1QP",
+        "model": "unknown"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}
