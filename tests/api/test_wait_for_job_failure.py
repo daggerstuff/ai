@@ -18,12 +18,12 @@ from unittest.mock import patch
 import pytest
 
 # tests/api/* / tests/api_tests/* are picked up by `uv run pytest tests/`.
-# python_client.py lives under docs/api/clients/ - add repo root to import path
+# python_client.py lives under api_clients/ - add repo root to import path
 # so `from api_clients.python_client import ...` works in both layouts.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_REPO_ROOT / "docs" / "api" / "clients"))
+sys.path.insert(0, str(_REPO_ROOT))
 
-from python_client import PixelatedEmpathyAPI  # noqa: E402
+from api_clients.python_client import PixelatedEmpathyAPI  # noqa: E402
 
 
 class TestWaitForJobFailureSemantics:
@@ -50,8 +50,6 @@ class TestWaitForJobFailureSemantics:
             return_value={"status": "failed", "progress": None},
         ):
             # Short timeout + short poll means a single call must short-circuit.
-            result = api.wait_for_job(
-                "job-123", poll_interval=1, timeout=5
-            )
+            result = api.wait_for_job("job-123", poll_interval=1, timeout=5)
 
         assert result == {"status": "failed", "progress": None}
