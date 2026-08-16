@@ -218,6 +218,7 @@ ignore = []
 "api/dataset_api.py" = ["B008", "ARG001"]
 # Training pipeline CLI scripts use print() for user-facing output (T201)
 "training/benchmark.py" = ["T201"]
+"training/curate_pipeline.py" = ["T201", "PLR2004", "PLR0912", "PLR0915", "SIM108", "SIM115", "RUF005", "PLC0206"]
 "training/scripts/pixel_data_s3_processor.py" = ["T201"]
 "training/ready_packages/scripts/pixel_data_s3_processor.py" = ["T201"]
 "training/scripts/hetzner_52gb_processor.py" = ["T201"]
