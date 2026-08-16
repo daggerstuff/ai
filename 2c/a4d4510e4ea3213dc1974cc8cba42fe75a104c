@@ -1,0 +1,87 @@
+.omc/state/sessions/d9426ef8-9b9a-4f0d-8238-4ac9d1c40051/pre-tool-advisory-throttle.json
+  s_5285a6794618f1::t_c17f27015ada28 4-7,25
+  s_5285a6794618f1::t_d50202d57eabf2 11
+  s_5285a6794618f1::t_45bb91d68a5f3a 19
+.omc/state/sessions/d9426ef8-9b9a-4f0d-8238-4ac9d1c40051/mission-state.json
+  s_5285a6794618f1::t_b1c9a6e68cc49c 36-64
+.omc/state/sessions/ec513def-5524-42c6-87a7-d669d946dbcc/pre-tool-advisory-throttle.json
+  s_26b62a51d3b761::t_29317b8103421c 19
+  s_26b62a51d3b761::t_7ec5a6dc493009 11
+  s_26b62a51d3b761::t_d59708883448f3 4,6-7
+  s_26b62a51d3b761::t_dad06b10e0aec5 5,25
+.omc/state/sessions/89119b95-856d-4196-9605-8879cbe742a7/pre-tool-advisory-throttle.json
+  s_6d5974073ef5b5::t_d89061e4a451df 11
+  s_6d5974073ef5b5::t_85142ffba97c02 15
+  s_6d5974073ef5b5::t_98cf9cdb8c8ae8 4-7,21
+.omc/state/sessions/6c1e640c-1566-4228-a3fc-abad2aad00c1/pre-tool-advisory-throttle.json
+  s_aeb194737ed05c::t_61c3df82240544 4-7,29
+  s_aeb194737ed05c::t_c2f7716dedd99d 19
+.omc/state/sessions/33a8af75-e1e5-4871-a686-1df196180137/mission-state.json
+  ai_agent 2-74
+.omc/state/sessions/d9426ef8-9b9a-4f0d-8238-4ac9d1c40051/subagent-tracking-state.json
+  s_5285a6794618f1::t_b1c9a6e68cc49c 17-19
+.omc/state/sessions/33a8af75-e1e5-4871-a686-1df196180137/pre-tool-advisory-throttle.json
+  s_84d2616194734e::t_a7094fbc6fbe74 8-11
+.omc/state/sessions/29617d06-56d6-47c0-9bec-6227a63b9b75/pre-tool-advisory-throttle.json
+  s_5b911b93116429::t_3d8c4b440753a9 15
+  s_5b911b93116429::t_995032782f13b0 11
+  s_5b911b93116429::t_417378ebcbdd74 4-7,21
+.omc/state/sessions/33a8af75-e1e5-4871-a686-1df196180137/subagent-tracking-state.json
+  ai_agent 17-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "2ca4d4510e4ea3213dc1974cc8cba42fe75a104c",
+  "prompts": {},
+  "sessions": {
+    "s_26b62a51d3b761": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ec513def-5524-42c6-87a7-d669d946dbcc",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    },
+    "s_5285a6794618f1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d9426ef8-9b9a-4f0d-8238-4ac9d1c40051",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    },
+    "s_5b911b93116429": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "29617d06-56d6-47c0-9bec-6227a63b9b75",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    },
+    "s_6d5974073ef5b5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "89119b95-856d-4196-9605-8879cbe742a7",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    },
+    "s_84d2616194734e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "33a8af75-e1e5-4871-a686-1df196180137",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    },
+    "s_aeb194737ed05c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6c1e640c-1566-4228-a3fc-abad2aad00c1",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}
