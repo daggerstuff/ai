@@ -70,13 +70,8 @@ def test_classify_tier_falls_through_without_iaa(monkeypatch: pytest.MonkeyPatch
     assert classify_tier({"clinical_reviewed": True, "messages": []}) == "T1_GOLD"
 
     # Multi-turn therapy dialogue -> T2_SILVER.
-    messages = [
-        {"role": "user", "content": str(i)} for i in range(5)
-    ]
-    assert (
-        classify_tier({"task_type": "", "source": "annomi", "messages": messages})
-        == "T2_SILVER"
-    )
+    messages = [{"role": "user", "content": str(i)} for i in range(5)]
+    assert classify_tier({"task_type": "", "source": "annomi", "messages": messages}) == "T2_SILVER"
 
     # Record carrying IAA upgrade signals must NOT become T1_GOLD when the
     # IAA module is absent (override is gated behind AnnotationStage).
