@@ -158,7 +158,7 @@ def main() -> None:
     only_ours = our_hashes - hetzner_hashes
     only_hetzner = hetzner_hashes - our_hashes
 
-    print(f"\nCross-reference results:")
+    print("\nCross-reference results:")
     print(f"  Our unique:     {len(our_hashes):>10,}")
     print(f"  HetznerS3 unique: {len(hetzner_hashes):>10,}")
     print(f"  Overlap:          {len(overlap):>10,} ({len(overlap) / len(our_hashes) * 100:.1f}% of ours)")

@@ -20,11 +20,10 @@ import threading
 from typing import Protocol
 
 from .schema import (
-    DiseaseProfile,
     DiagnosticCriterion,
+    DiseaseProfile,
     OrganSystem,
     RarityTier,
-    SymptomProfile,
 )
 
 

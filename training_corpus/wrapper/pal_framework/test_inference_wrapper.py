@@ -9,10 +9,8 @@ end-to-end inference, persona caching, unicode preservation.
 from __future__ import annotations
 
 import time
-from typing import Any
 
 import pytest
-
 from inference_wrapper import (
     DEFAULT_LATENCY_BUDGET_SECONDS,
     JsonLeakageError,

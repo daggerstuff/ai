@@ -26,7 +26,6 @@ from ai.pkg_mera.platform.mera import (
     MeraResult,
     PatientPresentation,
     RankStage,
-    TherapeuticConceptHierarchy,
     build_default_hierarchy,
 )
 

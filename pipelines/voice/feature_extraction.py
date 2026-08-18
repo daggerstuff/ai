@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, cast, Callable
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -29,7 +29,7 @@ def _redacted(text: str, max_chars: int = 24) -> str:
 class FeatureExtractor:
     def __init__(self, device: int = 0 if torch.cuda.is_available() else -1):
         logger.info(f"Loading emotion classification model on device {device}...")
-        pipeline_func = cast(Any, getattr(transformers, "pipeline"))
+        pipeline_func = cast(Any, transformers.pipeline)
         self.emotion_classifier = pipeline_func(
             "text-classification", model="SamLowe/roberta-base-go_emotions", device=device
         )

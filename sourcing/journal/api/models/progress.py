@@ -5,7 +5,6 @@ This module provides request and response models for progress tracking.
 """
 
 from datetime import datetime
-from typing import Dict, Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -18,10 +17,10 @@ class ProgressMetricsResponse(BaseModel):
     datasets_evaluated: int = 0
     datasets_acquired: int = 0
     integration_plans_created: int = 0
-    last_updated: Optional[datetime] = None
+    last_updated: datetime | None = None
 
     @field_serializer("last_updated")
-    def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+    def serialize_datetime(self, value: datetime | None) -> str | None:
         """Serialize datetime to ISO format string."""
         return value.isoformat() if value else None
 
@@ -44,8 +43,8 @@ class ProgressResponse(BaseModel):
 
     session_id: str
     current_phase: str
-    progress_metrics: Dict[str, int]
-    weekly_targets: Dict[str, int]
+    progress_metrics: dict[str, int]
+    weekly_targets: dict[str, int]
     progress_percentage: float = Field(
         default=0.0, ge=0, le=100, description="Overall progress percentage"
     )

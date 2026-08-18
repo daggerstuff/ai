@@ -61,17 +61,16 @@ logger = logging.getLogger("phase6_smoke")
 # Imports from pal_framework + training
 # ---------------------------------------------------------------------------
 from inference_wrapper import (  # noqa: E402
-    DEFAULT_LATENCY_BUDGET_SECONDS,
     PalInferenceWrapper,
 )
 from meddies_to_pal import format_persona  # noqa: E402
+
+# pal_dataloader lives in training/ (added to sys.path above), not pal_framework/
+from pal_dataloader import PalSftDataset  # noqa: E402
 from pal_persona_consistency_eval import (  # noqa: E402
     build_nli_backend,
     score_records,
 )
-
-# pal_dataloader lives in training/ (added to sys.path above), not pal_framework/
-from pal_dataloader import PalSftDataset  # noqa: E402
 
 # Tiny CPU-friendly model. gpt2 has q_proj/v_proj/c_proj modules which match
 # the default LoRA target list in shared_config.build_lora_config.
@@ -191,6 +190,7 @@ def _build_dpo_jsonl(path: Path, n: int) -> int:
 # ---------------------------------------------------------------------------
 def run_sft(model_id: str, sft_jsonl: Path, output_dir: Path) -> dict[str, Any]:
     """Run SFT with transformers.Trainer + LoRA on CPU. Returns metrics."""
+    import torch  # noqa: PLC0415
     from datasets import Dataset  # noqa: PLC0415
     from peft import LoraConfig, get_peft_model  # noqa: PLC0415
     from transformers import (  # noqa: PLC0415
@@ -199,7 +199,6 @@ def run_sft(model_id: str, sft_jsonl: Path, output_dir: Path) -> dict[str, Any]:
         Trainer,
         TrainingArguments,
     )
-    import torch  # noqa: PLC0415
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)

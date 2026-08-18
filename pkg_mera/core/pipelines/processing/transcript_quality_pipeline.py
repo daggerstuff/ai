@@ -30,13 +30,23 @@ class VoiceTranscriber:
 
 
 class NemoCuratorClient:
-    """Compatibility shim for crisis narrative detection client."""
+    """Compatibility shim for crisis narrative detection client.
+
+    ``detect_crisis_narratives`` must NOT silently return an empty list —
+    doing so would disable crisis detection with no signal to the caller.
+    Callers must wire a real implementation or explicitly acknowledge the
+    stub by catching the error.
+    """
 
     def __init__(self) -> None:
         pass
 
     def detect_crisis_narratives(self, _text: str):
-        return []
+        raise NotImplementedError(
+            "NemoCuratorClient.detect_crisis_narratives has no real "
+            "implementation. Wire a crisis detection service before "
+            "processing transcripts."
+        )
 
 
 class NemoEvaluatorClient:

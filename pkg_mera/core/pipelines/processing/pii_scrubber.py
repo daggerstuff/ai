@@ -53,6 +53,9 @@ class PiiScrubberConfig:
     # Whether to use spaCy for name detection (requires spaCy model)
     use_spacy_for_names: bool = True
 
+    # Salt for hash-based redaction (prevents rainbow table lookups)
+    hash_salt: str = "pixelated_empathy_v1"
+
     # Whether to log PII findings (counts only, not actual PII)
     log_findings: bool = True
 
@@ -158,9 +161,11 @@ class PiiScrubber:
         if self.config.redaction_style == "[TYPE]":
             return f"[{pii_type.upper()}]"
         if self.config.redaction_style == "hash":
-            # Return consistent hash for same input
-            hash_obj = hashlib.md5(match.encode())
-            return f"[HASH:{hash_obj.hexdigest()[:8]}]"
+            # Return consistent salted SHA-256 hash for same input
+            hash_obj = hashlib.sha256(
+                (self.config.hash_salt + match).encode()
+            )
+            return f"[HASH:{hash_obj.hexdigest()[:16]}]"
         if self.config.redaction_style == "mask":
             if self.config.preserve_length:
                 # Preserve original length with asterisks
@@ -216,7 +221,7 @@ class PiiScrubber:
 
         for ent in doc.ents:
             # Focus on person names for PII detection
-            if ent.label_ == "PERSON" and ent.confidence >= self.config.spacy_confidence_threshold:
+            if ent.label_ == "PERSON" and getattr(ent, "confidence_", 1.0) >= self.config.spacy_confidence_threshold:
                 # Skip if specific PII types are requested and this isn't one of them
                 if self.config.pii_types and "name" not in self.config.pii_types:
                     continue
@@ -281,21 +286,31 @@ class PiiScrubber:
         all_matches = regex_matches + spacy_matches
         all_matches.sort(key=lambda x: x[2])  # Sort by start position
 
-        # Filter out overlapping matches (prefer earlier/larger matches)
+        # Filter out overlapping matches (keep the longest span per overlap group)
         filtered_matches = []
         prev_end = 0
+        overlaps_discarded = 0
 
         for pii_type, matched_text, start, end in all_matches:
             if start >= prev_end:  # No overlap with previous match
                 filtered_matches.append((pii_type, matched_text, start, end))
                 prev_end = end
-            elif end > prev_end:  # Overlap - extend previous match if current is longer
-                # Replace previous match with current one if it's longer
-                if filtered_matches and (end - filtered_matches[-1][3]) > (
-                    filtered_matches[-1][3] - filtered_matches[-1][2]
-                ):
+            else:
+                prev_match = filtered_matches[-1]
+                prev_len = prev_match[3] - prev_match[2]
+                curr_len = end - start
+                if curr_len > prev_len:
+                    # Current match is longer — replace previous
                     filtered_matches[-1] = (pii_type, matched_text, start, end)
                     prev_end = end
+                else:
+                    # Current match is shorter or equal — discard and log
+                    overlaps_discarded += 1
+
+        if overlaps_discarded and self.config.log_findings:
+            logger.info(
+                "PII scrubbing: %d overlapping match(es) discarded", overlaps_discarded
+            )
 
         # Apply redactions from end to start to preserve positions
         scrubbed_text = text

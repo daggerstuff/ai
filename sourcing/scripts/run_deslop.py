@@ -65,13 +65,13 @@ def main() -> None:
     density = (rewritten / total * 100) if total > 0 else 0
 
     lines = [
-        f"Deslop Report",
-        f"=============",
+        "Deslop Report",
+        "=============",
         f"Input: {INPUT}",
         f"Output: {OUTPUT}",
         f"Packs: {', '.join(PACKS)}",
         f"Fields: {', '.join(FIELDS)}",
-        f"",
+        "",
         f"Records processed: {total}",
         f"Records rewritten: {rewritten}",
         f"Fields rewritten: {fields_changed}",

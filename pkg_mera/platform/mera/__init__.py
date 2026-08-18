@@ -8,10 +8,10 @@ from .contrastive import (
     NegativeSampler,
 )
 from .hierarchy import TherapeuticConceptHierarchy, build_default_hierarchy
+from .knowledge_base import KnowledgeBase
 from .memorize import MemorizeStage
 from .pipeline import MeraPipeline
 from .rank import RankStage
-from .knowledge_base import KnowledgeBase
 from .types import (
     Candidate,
     ClinicalFinding,

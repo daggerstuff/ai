@@ -25,7 +25,7 @@ from .enhanced_safety_filter import (
 
 # R1: Receipt emission
 try:
-    from ai.receipts.receipt import ReceiptEnvelope, Ledger
+    from ai.receipts.receipt import Ledger, ReceiptEnvelope
 except ImportError:
     ReceiptEnvelope = None  # type: ignore
     Ledger = None  # type: ignore

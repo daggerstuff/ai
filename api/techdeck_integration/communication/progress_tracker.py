@@ -7,7 +7,7 @@ real-time updates, and HIPAA++ compliant data handling for the six-stage pipelin
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from ai.api.techdeck_integration.error_handling.custom_errors import (
@@ -142,7 +142,7 @@ class ProgressTracker:
             progress_config = {
                 "execution_id": execution_id,
                 "user_id": user_id,
-                "start_time": datetime.now(timezone.utc).isoformat(),
+                "start_time": datetime.now(UTC).isoformat(),
                 "total_stages": 6,
                 "current_stage": "initialization",
                 "overall_progress": 0.0,
@@ -151,7 +151,7 @@ class ProgressTracker:
                     dataset_count, execution_mode
                 ),
                 "status": "initialized",
-                "last_updated": datetime.now(timezone.utc).isoformat(),
+                "last_updated": datetime.now(UTC).isoformat(),
             }
 
             # Initialize stage progress
@@ -180,8 +180,8 @@ class ProgressTracker:
             # Track active execution
             self.active_executions[execution_id] = {
                 "user_id": user_id,
-                "start_time": datetime.now(timezone.utc),
-                "last_update": datetime.now(timezone.utc),
+                "start_time": datetime.now(UTC),
+                "last_update": datetime.now(UTC),
                 "subscribers": set(),
             }
 
@@ -261,13 +261,13 @@ class ProgressTracker:
 
             # Update status and timing
             if status == "started" and stage_progress["status"] == "pending":
-                stage_progress["start_time"] = datetime.now(timezone.utc).isoformat()
+                stage_progress["start_time"] = datetime.now(UTC).isoformat()
             elif status in ["completed", "failed"] and not stage_progress["end_time"]:
-                stage_progress["end_time"] = datetime.now(timezone.utc).isoformat()
+                stage_progress["end_time"] = datetime.now(UTC).isoformat()
                 if stage_progress["start_time"]:
                     start_time = datetime.fromisoformat(stage_progress["start_time"])
                     stage_progress["duration_seconds"] = (
-                        datetime.now(timezone.utc) - start_time
+                        datetime.now(UTC) - start_time
                     ).total_seconds()
 
             stage_progress["status"] = status
@@ -289,7 +289,7 @@ class ProgressTracker:
                 progress_config["current_stage"] = stage_name
 
             # Update last updated timestamp
-            progress_config["last_updated"] = datetime.now(timezone.utc).isoformat()
+            progress_config["last_updated"] = datetime.now(UTC).isoformat()
 
             # Store updated progress
             key = f"{self.progress_prefix}{execution_id}"
@@ -301,7 +301,7 @@ class ProgressTracker:
 
             # Update active execution tracking
             if execution_id in self.active_executions:
-                self.active_executions[execution_id]["last_update"] = datetime.now(timezone.utc)
+                self.active_executions[execution_id]["last_update"] = datetime.now(UTC)
 
             # Publish progress event
             if self.enable_real_time_updates:
@@ -378,7 +378,7 @@ class ProgressTracker:
                 progress_config["stage_progress"]
             )
 
-            progress_config["last_updated"] = datetime.now(timezone.utc).isoformat()
+            progress_config["last_updated"] = datetime.now(UTC).isoformat()
 
             # Store updated progress
             key = f"{self.progress_prefix}{execution_id}"
@@ -574,8 +574,8 @@ class ProgressTracker:
                 user_id=user_id,
                 execution_id=execution_id,
                 subscribed_stages=set(),
-                last_heartbeat=datetime.now(timezone.utc),
-                connection_established=datetime.now(timezone.utc),
+                last_heartbeat=datetime.now(UTC),
+                connection_established=datetime.now(UTC),
             )
 
             # Store connection
@@ -759,7 +759,7 @@ class ProgressTracker:
                 )
 
             connection = self.active_connections[connection_id]
-            connection.last_heartbeat = datetime.now(timezone.utc)
+            connection.last_heartbeat = datetime.now(UTC)
 
             # Update Redis
             key = f"{self.websocket_prefix}{connection_id}"
@@ -792,7 +792,7 @@ class ProgressTracker:
         """
         try:
             stale_count = 0
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
 
             # Check active connections
             connections_to_remove = []
@@ -860,7 +860,7 @@ class ProgressTracker:
                     "progress_percent": progress_percent,
                     "message": message,
                     "overall_progress": overall_progress,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
                 source="progress_tracker",
                 target="all_services",
@@ -888,7 +888,7 @@ class ProgressTracker:
                     "operation_name": operation_name,
                     "operation_progress": operation_progress,
                     "operation_message": operation_message,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
                 source="progress_tracker",
                 target="all_services",
@@ -920,7 +920,7 @@ class ProgressTracker:
                 "stage_progress": progress_config["stage_progress"][stage_name],
                 "overall_progress": progress_config["overall_progress"],
                 "current_stage": progress_config["current_stage"],
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             # Send to all subscribers (WebSocket implementation would go here)
@@ -973,7 +973,7 @@ class ProgressTracker:
     ) -> dict[str, Any]:
         """Calculate completion time estimates."""
         try:
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
             start_time = datetime.fromisoformat(progress_config["start_time"])
             elapsed_seconds = (current_time - start_time).total_seconds()
 
@@ -1120,7 +1120,7 @@ class ProgressTracker:
                 "current_stage_duration_seconds": 0,
             }
 
-            current_time = datetime.now(timezone.utc)
+            current_time = datetime.now(UTC)
             start_time = datetime.fromisoformat(progress_config["start_time"])
 
             for stage_state in stage_states:
@@ -1180,7 +1180,7 @@ class ProgressTracker:
 
             # Test progress retrieval
             test_key = f"{self.progress_prefix}health_check"
-            test_data = {"test": "data", "timestamp": datetime.now(timezone.utc).isoformat()}
+            test_data = {"test": "data", "timestamp": datetime.now(UTC).isoformat()}
 
             await self.redis_client.setex(test_key, 60, json.dumps(test_data))
             retrieved_data = await self.redis_client.get(test_key)
@@ -1198,7 +1198,7 @@ class ProgressTracker:
                 "active_executions": active_executions,
                 "real_time_updates_enabled": self.enable_real_time_updates,
                 "websocket_heartbeat_timeout": self.websocket_heartbeat_timeout,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -1206,5 +1206,5 @@ class ProgressTracker:
             return {
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }

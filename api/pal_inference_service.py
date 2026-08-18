@@ -17,9 +17,9 @@ import json
 import logging
 import os
 import sys
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from collections.abc import AsyncGenerator
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -234,7 +234,7 @@ _wrapper: PalInferenceWrapper | None = None
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Initialize the PAL wrapper on startup, log on shutdown."""
     global _wrapper
     try:

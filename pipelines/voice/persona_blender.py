@@ -239,7 +239,7 @@ def main() -> None:
     blender = PersonaBlender(args.input_dir, args.output_dir)
     stats = blender.process_all()
 
-    print(f"\nPersona Blending Summary:")
+    print("\nPersona Blending Summary:")
     print(f"  Files processed: {stats.get('files_processed', 0)}")
     print(f"  Total pairs: {stats.get('total_pairs', 0)}")
     print(f"  Errors: {stats.get('errors', 0)}")

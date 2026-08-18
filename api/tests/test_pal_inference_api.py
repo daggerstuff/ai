@@ -11,18 +11,16 @@ import json
 import os
 from unittest.mock import patch
 
+import pal_inference_service as svc
 import pytest
 from fastapi.testclient import TestClient
-
-import pal_inference_service as svc
 from inference_wrapper import DEFAULT_LATENCY_BUDGET_SECONDS
 from pal_inference_service import (
-    _StubGenerator,
-    _StubSelector,
     _build_latency_budget,
     _load_candidate_personas,
+    _StubGenerator,
+    _StubSelector,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
