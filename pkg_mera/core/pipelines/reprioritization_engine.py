@@ -609,7 +609,7 @@ class ReprioritizationEngine:
                 new_items.append(new_item)
 
         with self._lock:
-            for item_id, item in list(self._backlog.items()):
+            for _item_id, item in list(self._backlog.items()):
                 if item not in reprioritized and item not in new_items:
                     unchanged.append(item)
             self._priority_changes = list(priority_changes)

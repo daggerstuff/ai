@@ -177,10 +177,7 @@ class DataNormalizer:
         """
         # Re-normalize to be safe
         if not isinstance(record, dict):
-            result.rejected_records += 1
-            result.rejected_reasons["record_not_object"] = result.rejected_reasons.get("record_not_object", 0) + 1
-            rejectfile.write(line)
-            continue
+            raise ValueError(f"Expected dict record, got {type(record).__name__}")
         record = self.normalize_record(record)
 
         messages = []
