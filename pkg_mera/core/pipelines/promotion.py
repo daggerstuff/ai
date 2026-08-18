@@ -140,6 +140,16 @@ class PromotionService:
                 error_message="No promotion token found",
             )
 
+        # Reject already-promoted packages
+        promoted_path = package_path / "promoted.json"
+        if promoted_path.exists():
+            return PromotionResult(
+                status=PromotionStatus.FAILED,
+                package_id="",
+                stage_id="",
+                error_message="Package already promoted — re-export is blocked",
+            )
+
         try:
             with open(token_path) as f:
                 token_data = json.load(f)
@@ -201,17 +211,25 @@ class PromotionService:
 
         # Validate data hash
         data_path = package_path / "data.jsonl"
-        if data_path.exists():
-            actual_hash = self._compute_file_hash(data_path)
-            if actual_hash != token.validation_hash:
-                return PromotionResult(
-                    status=PromotionStatus.FAILED,
-                    package_id=token.package_id,
-                    stage_id=manifest.stage,
-                    token=token,
-                    manifest=manifest,
-                    error_message="Data hash mismatch - package may be corrupted",
-                )
+        if not data_path.exists():
+            return PromotionResult(
+                status=PromotionStatus.FAILED,
+                package_id=token.package_id,
+                stage_id=manifest.stage,
+                token=token,
+                manifest=manifest,
+                error_message="data.jsonl not found in package",
+            )
+        actual_hash = self._compute_file_hash(data_path)
+        if actual_hash != token.validation_hash:
+            return PromotionResult(
+                status=PromotionStatus.FAILED,
+                package_id=token.package_id,
+                stage_id=manifest.stage,
+                token=token,
+                manifest=manifest,
+                error_message="Data hash mismatch - package may be corrupted",
+            )
 
         # Check token expiry
         try:
