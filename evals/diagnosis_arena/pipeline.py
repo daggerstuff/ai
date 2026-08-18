@@ -9,12 +9,11 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Any
 
-from .reporter import to_json, to_markdown, write_report
+from .leaderboard import Leaderboard, SystemEvaluation, write_leaderboard
+from .reporter import write_report
 from .runner import ResponseProducer, run
 from .types import BenchmarkSummary, ResponseFormat
-from .leaderboard import Leaderboard, SystemEvaluation, write_leaderboard
 
 logger = logging.getLogger(__name__)
 

@@ -5,7 +5,6 @@ This module provides request and response models for dataset acquisition.
 """
 
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -15,7 +14,7 @@ from ai.sourcing.journal.api.models.common import PaginatedResponse
 class AcquisitionInitiateRequest(BaseModel):
     """Request model for initiating acquisition."""
 
-    source_ids: Optional[List[str]] = Field(
+    source_ids: list[str] | None = Field(
         default=None,
         description="Source IDs to acquire (all sources if not provided)",
     )
@@ -35,15 +34,15 @@ class AcquisitionResponse(BaseModel):
     acquisition_id: str
     source_id: str
     status: str
-    download_progress: Optional[float] = Field(
+    download_progress: float | None = Field(
         default=None, ge=0, le=100, description="Download progress percentage"
     )
-    file_path: Optional[str] = None
-    file_size: Optional[float] = Field(default=None, description="File size in MB")
-    acquired_date: Optional[datetime] = None
+    file_path: str | None = None
+    file_size: float | None = Field(default=None, description="File size in MB")
+    acquired_date: datetime | None = None
 
     @field_serializer("acquired_date")
-    def serialize_datetime(self, value: Optional[datetime]) -> Optional[str]:
+    def serialize_datetime(self, value: datetime | None) -> str | None:
         """Serialize datetime to ISO format string."""
         return value.isoformat() if value else None
 

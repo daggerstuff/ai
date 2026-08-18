@@ -22,9 +22,7 @@ Python/TypeScript parity: src/lib/memory/reverie/reverie_engine.ts mirrors this 
 from __future__ import annotations
 
 import time
-from typing import Optional
 
-from ai.memory.schema import MemoryBlock
 from ai.memory.reverie_types import (
     DEFAULT_REVERIE_CONFIG,
     FishhookMatch,
@@ -34,6 +32,8 @@ from ai.memory.reverie_types import (
     ReverieSeedResult,
     ReverieVector,
 )
+from ai.memory.schema import MemoryBlock
+
 from .fishhook_detector import FishhookDetector
 from .latent_surfacer import LatentSurfacer
 from .soft_injector import SoftInjector
@@ -57,7 +57,7 @@ class ReverieEngine:
         self,
         current_message: str,
         current_emotions: tuple[float, float, list[str]],
-        all_memories: Optional[list[MemoryBlock]] = None,
+        all_memories: list[MemoryBlock] | None = None,
     ) -> ReverieResult:
         """
         Process a new message through the reverie pipeline.

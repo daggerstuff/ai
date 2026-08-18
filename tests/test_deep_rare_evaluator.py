@@ -8,9 +8,8 @@ from ai.pkg_mera.platform.deep_rare.evaluator import DiagnosisArenaEvaluator
 from ai.pkg_mera.platform.deep_rare.knowledge_base import RareDiseaseKnowledgeBase
 from ai.pkg_mera.platform.deep_rare.orchestrator import ControllerOrchestrator
 from ai.pkg_mera.platform.deep_rare.schema import (
-    DifferentialDiagnosis,
     DiagnosisResult,
-    EvaluationMetrics,
+    DifferentialDiagnosis,
     PatientCase,
     RankedDiagnosis,
     RareDiseaseState,

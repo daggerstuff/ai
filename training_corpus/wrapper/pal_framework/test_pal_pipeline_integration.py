@@ -367,7 +367,6 @@ class TestPhase0Synthesizer:
     def test_build_selection_input_persona_order(self, meddies_adapter, meddies_synthesizer) -> None:
         """The correct_index should point to the original record in the shuffled personas list."""
         adapted = [meddies_adapter(r) for r in _SYNTHETIC_RAW_RECORDS]
-        from meddies_to_pal import format_persona
 
         rng = random.Random(7)
         records = list(meddies_synthesizer.build_selection_input(adapted, rng, n_distractors=3))

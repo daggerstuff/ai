@@ -6,10 +6,10 @@ and adversarial evaluation seeds (CounselBench-ADV).
 
 from __future__ import annotations
 
-from enum import Enum
-from typing import Optional
-from pydantic import BaseModel, Field
 from datetime import datetime
+from enum import Enum
+
+from pydantic import BaseModel, Field
 
 
 class FailureModeCategory(str, Enum):
@@ -51,23 +51,23 @@ class BurnoutNarrative(BaseModel):
 
     narrative_id: str
     source_url: str
-    source_type: Optional[str] = Field(None, description="substack, blog, medium, reddit, etc.")
-    author_role: Optional[str] = Field(None, description="counselor, therapist, nurse, etc.")
-    years_experience: Optional[int] = None
-    clinical_setting: Optional[str] = Field(None, description="FQHC, VA, private practice, etc.")
+    source_type: str | None = Field(None, description="substack, blog, medium, reddit, etc.")
+    author_role: str | None = Field(None, description="counselor, therapist, nurse, etc.")
+    years_experience: int | None = None
+    clinical_setting: str | None = Field(None, description="FQHC, VA, private practice, etc.")
     failure_modes: list[FailureModeCategory] = Field(default_factory=list)
     key_dynamics: list[str] = Field(
         default_factory=list,
         description="Extracted relational/systemic dynamics",
     )
-    trauma_exposure: Optional[str] = Field(None, description="Type of trauma the clinician was exposed to")
-    outcome: Optional[str] = Field(None, description="quit, fired, disabled, career_change, suicidal_crisis")
-    outcome_severity: Optional[SeverityLevel] = None
+    trauma_exposure: str | None = Field(None, description="Type of trauma the clinician was exposed to")
+    outcome: str | None = Field(None, description="quit, fired, disabled, career_change, suicidal_crisis")
+    outcome_severity: SeverityLevel | None = None
     extractable_patterns: list[str] = Field(
         default_factory=list,
         description="Recurring patterns extractable for simulation seeds",
     )
-    raw_text: Optional[str] = None  # Full narrative text if available
+    raw_text: str | None = None  # Full narrative text if available
 
 
 class AdversarialScenario(BaseModel):
@@ -130,19 +130,19 @@ class AdversarialEvaluationResult(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     # Scoring
     detected_safety_risk: bool = False
-    safety_risk_details: Optional[str] = None
+    safety_risk_details: str | None = None
     failure_behaviors_exhibited: list[str] = Field(default_factory=list)
     safe_behaviors_exhibited: list[str] = Field(default_factory=list)
     # Dimension scores (from CounselBench 6 clinical dimensions)
-    empathy_score: Optional[float] = Field(None, ge=0.0, le=10.0)
-    clinical_accuracy_score: Optional[float] = Field(None, ge=0.0, le=10.0)
-    therapeutic_approach_score: Optional[float] = Field(None, ge=0.0, le=10.0)
-    safety_score: Optional[float] = Field(None, ge=0.0, le=10.0)
-    communication_score: Optional[float] = Field(None, ge=0.0, le=10.0)
-    boundary_score: Optional[float] = Field(None, ge=0.0, le=10.0)
+    empathy_score: float | None = Field(None, ge=0.0, le=10.0)
+    clinical_accuracy_score: float | None = Field(None, ge=0.0, le=10.0)
+    therapeutic_approach_score: float | None = Field(None, ge=0.0, le=10.0)
+    safety_score: float | None = Field(None, ge=0.0, le=10.0)
+    communication_score: float | None = Field(None, ge=0.0, le=10.0)
+    boundary_score: float | None = Field(None, ge=0.0, le=10.0)
     overall_pass: bool = False
-    judge_model: Optional[str] = None
-    judge_notes: Optional[str] = None
+    judge_model: str | None = None
+    judge_notes: str | None = None
 
 
 class NightmareFuelBatch(BaseModel):

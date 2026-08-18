@@ -5,7 +5,6 @@ This module provides request and response models for session management.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -15,19 +14,19 @@ from ai.sourcing.journal.api.models.common import PaginatedResponse
 class CreateSessionRequest(BaseModel):
     """Request model for creating a new session."""
 
-    target_sources: List[str] = Field(
+    target_sources: list[str] = Field(
         default=["pubmed", "doaj"],
         description="Target sources for discovery",
     )
-    search_keywords: Dict[str, List[str]] = Field(
+    search_keywords: dict[str, list[str]] = Field(
         default_factory=dict,
         description="Search keywords organized by category",
     )
-    weekly_targets: Dict[str, int] = Field(
+    weekly_targets: dict[str, int] = Field(
         default_factory=dict,
         description="Weekly targets for research metrics",
     )
-    session_id: Optional[str] = Field(
+    session_id: str | None = Field(
         default=None,
         description="Optional session ID (auto-generated if not provided)",
     )
@@ -36,10 +35,10 @@ class CreateSessionRequest(BaseModel):
 class SessionUpdateRequest(BaseModel):
     """Request model for updating a session."""
 
-    target_sources: Optional[List[str]] = None
-    search_keywords: Optional[Dict[str, List[str]]] = None
-    weekly_targets: Optional[Dict[str, int]] = None
-    current_phase: Optional[str] = Field(
+    target_sources: list[str] | None = None
+    search_keywords: dict[str, list[str]] | None = None
+    weekly_targets: dict[str, int] | None = None
+    current_phase: str | None = Field(
         default=None,
         description="Current phase: discovery, evaluation, acquisition, integration",
     )
@@ -50,11 +49,11 @@ class SessionResponse(BaseModel):
 
     session_id: str
     start_date: datetime
-    target_sources: List[str]
-    search_keywords: Dict[str, List[str]]
-    weekly_targets: Dict[str, int]
+    target_sources: list[str]
+    search_keywords: dict[str, list[str]]
+    weekly_targets: dict[str, int]
     current_phase: str
-    progress_metrics: Dict[str, int]
+    progress_metrics: dict[str, int]
 
     model_config = {
         "json_schema_extra": {

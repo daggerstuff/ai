@@ -16,16 +16,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Optional
 
 from ..reverie_types import (
     DEFAULT_REVERIE_CONFIG,
-    EmotionalTone,
     ReverieConfig,
     ReveriePhase,
     ReverieVector,
 )
-
 
 # ─── Phase-to-Influence Mapping ─────────────────────────────────────────
 # Each reverie phase has a weight that scales its influence on the system
@@ -57,7 +54,7 @@ class InjectionResult:
 class ConflictResolution:
     """Result of resolving conflicts between competing reveries."""
 
-    winner: Optional[ReverieVector] = None
+    winner: ReverieVector | None = None
     suppressed: list[ReverieVector] = field(default_factory=list)
 
 

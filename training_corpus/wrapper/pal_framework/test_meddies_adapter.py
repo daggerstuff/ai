@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from meddies_adapter import adapt_record
 
 

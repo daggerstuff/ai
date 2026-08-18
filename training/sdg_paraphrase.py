@@ -6,6 +6,7 @@ LLM paraphraser with high temperature. Filter: ROUGE-L > 0.85 vs original
 Blueprint ref: docs/training-pipeline-blueprint-2026-08-10.md §B.5.3
 """
 from __future__ import annotations
+
 import json
 from pathlib import Path
 from typing import Any
@@ -71,8 +72,8 @@ def expand_seeds(
         return []
     synthetic: list[dict[str, Any]] = []
     seen_hashes: set[str] = set()
-    from training.stage1_filters import run_stage1_on_record, NearDuplicateIndex, FilterVerdict
     from training.sdg_back_translation import _extract_user_utterance, _rebuild_prompt
+    from training.stage1_filters import FilterVerdict, NearDuplicateIndex, run_stage1_on_record
     stage1_index = NearDuplicateIndex()
     for iteration in range(200):
         if len(synthetic) >= target_count:

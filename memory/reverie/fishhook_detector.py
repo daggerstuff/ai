@@ -19,17 +19,14 @@ from __future__ import annotations
 import math
 import re
 import time
-from dataclasses import dataclass, field
-from typing import Optional
 
-from ai.memory.schema import MemoryBlock
 from ai.memory.reverie_types import (
+    DEFAULT_REVERIE_CONFIG,
     FishhookMatch,
     FishhookMatchType,
     ReverieConfig,
-    DEFAULT_REVERIE_CONFIG,
 )
-
+from ai.memory.schema import MemoryBlock
 
 # ─── TF-IDF Helpers ──────────────────────────────────────────────────────
 
@@ -176,7 +173,7 @@ class FishhookDetector:
 
     def __init__(self, config: ReverieConfig = DEFAULT_REVERIE_CONFIG) -> None:
         self.config = config
-        self._idf: Optional[dict[str, float]] = None
+        self._idf: dict[str, float] | None = None
         self._idf_corpus: list[str] = []
 
     def build_index(self, memories: list[MemoryBlock]) -> None:

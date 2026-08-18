@@ -13,7 +13,7 @@ Key Components:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -21,12 +21,9 @@ from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
     from .schema import (
-        DiagnosisResult,
-        DiseaseProfile,
         Evidence,
         Hypothesis,
         PatientCase,
-        RareDiseaseState,
     )
 
 logger = logging.getLogger(__name__)
@@ -77,7 +74,7 @@ class SafetyViolation(BaseModel):
     rule_name: str
     description: str
     context: dict[str, Any] = Field(default_factory=dict)
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     remediation: str | None = None
 
     @field_validator("timestamp")
@@ -92,7 +89,7 @@ class AuditEntry(BaseModel):
     """A single entry in the audit trail."""
 
     entry_id: str
-    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     action: str  # AuditAction value
     agent_name: str
     case_id: str

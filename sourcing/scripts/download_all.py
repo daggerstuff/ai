@@ -23,44 +23,43 @@ _HF_CACHE = str(Path(__file__).resolve().parents[2] / "data" / "raw" / ".hf_cach
 os.environ.setdefault("HF_HOME", _HF_CACHE)
 os.environ.setdefault("HF_HUB_CACHE", str(Path(_HF_CACHE) / "hub"))
 
-from ai.sourcing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
-
 # Import all adapter modules to trigger @register_adapter registration
 from ai.sourcing.dataset_adapters import (  # noqa: F401
-    esconv_adapter,
-    hope_adapter,
-    mitags_adapter,
-    mit_psychosis_adapter,
-    sim_vail_adapter,
-    clinical_redteam_adapter,
-    psydial_adapter,
-    clpsych_adapter,
-    erisk_adapter,
-    personalitydbench_adapter,
-    annomi_adapter,
-    ml_bpd_adapter,
-    dmtcorpus_adapter,
-    crisis_benchmark_adapter,
-    daic_woz_adapter,
-    bbrd_adapter,
-    reddit_mental_nlp_adapter,
-    counseling_conversations_adapter,
-    reddit_mental_health_posts_adapter,
-    empath_adapter,
-    mentalchat16k_adapter,
-    kokorochat_adapter,
-    psycheval_adapter,
-    mitch_hamidi_bpd_nlp_adapter,
-    mental_health_multiagent_adapter,
-    psy_insight_adapter,
-    dsm_vector_space_adapter,
-    github_repo_adapter,
-    vera_mh_adapter,
-    mhsafeeval_adapter,
     ace_nlp_adapter,
     addiction_stories_adapter,
+    annomi_adapter,
+    bbrd_adapter,
+    clinical_redteam_adapter,
+    clpsych_adapter,
+    counseling_conversations_adapter,
+    crisis_benchmark_adapter,
+    daic_woz_adapter,
+    dmtcorpus_adapter,
+    dsm_vector_space_adapter,
+    empath_adapter,
+    erisk_adapter,
+    esconv_adapter,
+    github_repo_adapter,
+    hope_adapter,
+    kokorochat_adapter,
+    mental_health_multiagent_adapter,
+    mentalchat16k_adapter,
+    mhsafeeval_adapter,
+    mit_psychosis_adapter,
+    mitags_adapter,
+    mitch_hamidi_bpd_nlp_adapter,
+    ml_bpd_adapter,
+    personalitydbench_adapter,
+    psy_insight_adapter,
+    psycheval_adapter,
+    psydial_adapter,
+    reddit_mental_health_posts_adapter,
+    reddit_mental_nlp_adapter,
+    sim_vail_adapter,
     ucl_psych_abuse_adapter,
+    vera_mh_adapter,
 )
+from ai.sourcing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
 
 
 def main() -> None:
@@ -106,7 +105,7 @@ def main() -> None:
                 print(f"  OK: {count} records -> {result}")
                 succeeded.append(name)
             else:
-                print(f"  SKIP: no output (may need manual data placement)")
+                print("  SKIP: no output (may need manual data placement)")
                 succeeded.append(name)
         except Exception as e:
             print(f"  FAIL: {e}")

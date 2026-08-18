@@ -83,9 +83,7 @@ class MetadataExtractor:
             metadata.doi = match.group(0)
 
         # ISBN (prefer 13-digit)
-        if match := _ISBN13_PATTERN.search(text):
-            metadata.isbn = match.group(0).replace("-", "").replace(" ", "")
-        elif match := _ISBN10_PATTERN.search(text):
+        if (match := _ISBN13_PATTERN.search(text)) or (match := _ISBN10_PATTERN.search(text)):
             metadata.isbn = match.group(0).replace("-", "").replace(" ", "")
 
         # Publication year — first occurrence in text
