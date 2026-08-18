@@ -151,6 +151,16 @@ class PromotionService:
                 error_message="No promotion token found",
             )
 
+        # Reject already-promoted packages
+        promoted_path = package_path / "promoted.json"
+        if promoted_path.exists():
+            return PromotionResult(
+                status=PromotionStatus.FAILED,
+                package_id="",
+                stage_id="",
+                error_message="Package already promoted — re-export is blocked",
+            )
+
         try:
             with open(token_path) as f:
                 token_data = json.load(f)
