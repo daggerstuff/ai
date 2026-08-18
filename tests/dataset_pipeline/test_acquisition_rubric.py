@@ -99,8 +99,12 @@ class TestGate0Intake(unittest.TestCase):
             review_date="2026-05-09",
         )
         decision = self.rubric.evaluate_intake(source)
-        assert decision.passed
-        assert any("exception" in q for q in decision.qualifying)
+        assert not decision.passed
+        assert any("exception" in b for b in decision.blocking)
+
+        granted = self.rubric.grant_intake_exception(source, "approved for research use")
+        assert granted.passed
+        assert granted.exception_granted
 
     def test_approved_licenses_contains_expected(self):
         assert "cc0-1.0" in APPROVED_LICENSES
@@ -348,6 +352,69 @@ class TestPromote(unittest.TestCase):
         gates = self.rubric.promote(intake, pilot)
         assert len(gates) == 2
         assert all(g.decision == GateDecision.PASS for g in gates)
+
+    def test_promote_blocks_pilot_source_id_mismatch(self):
+        intake = SourceIntake(
+            source_id="INTAKE-001",
+            name="Mismatch Pilot",
+            category="academic",
+            license_id="mit",
+            pii_class="none",
+            provenance="trusted",
+            reproducible=True,
+            reviewer="chad",
+            review_date="2026-05-09",
+        )
+        pilot = PilotReport(
+            source_id="WRONG-ID",
+            sample_size=100,
+            population_size=5000,
+            schema_coverage_pct=98.0,
+            dedup_rate=10.0,
+            therapeutic_relevance_score=8,
+            overall_pilot_score=7.5,
+        )
+        gates = self.rubric.promote(intake, pilot)
+        assert len(gates) == 2
+        assert gates[0].decision == GateDecision.PASS
+        assert gates[1].decision == GateDecision.BLOCK
+        assert "mismatch" in gates[1].details
+
+    def test_promote_blocks_curation_exit_source_id_mismatch(self):
+        intake = SourceIntake(
+            source_id="INTAKE-002",
+            name="Mismatch Exit",
+            category="academic",
+            license_id="mit",
+            pii_class="none",
+            provenance="trusted",
+            reproducible=True,
+            reviewer="chad",
+            review_date="2026-05-09",
+        )
+        pilot = PilotReport(
+            source_id="INTAKE-002",
+            sample_size=100,
+            population_size=5000,
+            schema_coverage_pct=98.0,
+            dedup_rate=10.0,
+            therapeutic_relevance_score=8,
+            overall_pilot_score=7.5,
+        )
+        exit_report = CurationExitReport(
+            source_id="WRONG-EXIT",
+            net_retention_pct=45.0,
+            schema_validation_pct=99.5,
+            manifest_signed=True,
+            records_passed=2250,
+            records_rejected=2750,
+        )
+        gates = self.rubric.promote(intake, pilot, exit_report)
+        assert len(gates) == 3
+        assert gates[0].decision == GateDecision.PASS
+        assert gates[1].decision == GateDecision.PASS
+        assert gates[2].decision == GateDecision.BLOCK
+        assert "mismatch" in gates[2].details
 
 
 class TestExceptionProcess(unittest.TestCase):
