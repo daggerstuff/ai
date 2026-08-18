@@ -172,7 +172,7 @@ def main():
         else:
             logger.warning(f"File not found: {input_path}")
 
-    print(f"\nConversion Summary:")
+    print("\nConversion Summary:")
     print(f"  Total transcripts created: {total}")
 
 

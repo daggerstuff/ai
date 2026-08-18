@@ -129,7 +129,12 @@ class TestDatasetPackager:
         assert bundle.data_path.exists()
         assert bundle.metrics_path.exists()
         assert bundle.readiness_path.exists()
-        assert (Path(temp_output_dir) / "stage1_foundation" / "manifest.json").exists()
+        assert (
+            Path(temp_output_dir)
+            / "stage1_foundation"
+            / bundle.manifest.package_id
+            / "manifest.json"
+        ).exists()
 
     def test_promotion_token_only_when_ready(self, temp_output_dir, sample_records, gate_audit):
         """Promotion token only created when all gates pass."""
@@ -241,6 +246,50 @@ class TestPackageIntegration:
 
 class TestEdgeCases:
     """Edge case handling."""
+
+    def test_stale_promotion_token_removed(self, temp_output_dir, gate_audit):
+        """Stale promotion token from a previous run is removed when package is not promotable."""
+        stage_dir = Path(temp_output_dir) / "stage1_foundation"
+        # Simulate a previous promotable run by pre-creating a token
+        stage_dir.mkdir(parents=True, exist_ok=True)
+        old_token_dir = stage_dir / "pkg-oldtoken"
+        old_token_dir.mkdir(parents=True, exist_ok=True)
+        stale_token = old_token_dir / "promotion_token.json"
+        stale_token.write_text('{"status": "STALE"}')
+
+        packager = DatasetPackager(output_dir=temp_output_dir)
+        # Create a package with empty records (will be BLOCKED, not promotable)
+        bundle = packager.create_package(
+            stage_id="stage1_foundation",
+            records=[],
+            gate_audit=gate_audit,
+            package_id="pkg-oldtoken",
+        )
+
+        # Stale token should be removed since this run is not promotable
+        assert not stale_token.exists()
+        assert bundle.promotion_token_path is None
+
+    def test_directory_collision_avoided(self, temp_output_dir, sample_records, gate_audit):
+        """Multiple packages for same stage get distinct directories."""
+        packager = DatasetPackager(output_dir=temp_output_dir)
+
+        bundle1 = packager.create_package(
+            stage_id="stage1_foundation",
+            records=sample_records,
+            gate_audit=gate_audit,
+        )
+        bundle2 = packager.create_package(
+            stage_id="stage1_foundation",
+            records=sample_records,
+            gate_audit=gate_audit,
+        )
+
+        # Different package IDs → different directories
+        assert bundle1.manifest.package_id != bundle2.manifest.package_id
+        assert bundle1.data_path != bundle2.data_path
+        assert bundle1.data_path.exists()
+        assert bundle2.data_path.exists()
 
     def test_empty_records(self, temp_output_dir):
         """Empty record list handled gracefully."""

@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import random
 import uuid
 from dataclasses import asdict, dataclass, replace
@@ -173,6 +172,7 @@ class MentalHealthIFTOrchestrator:
             fall back to ground-truth severity with a logged warning otherwise."""
             if self.trainer is not None and self.trainer.model is not None and self.trainer.tokenizer is not None:
                 import torch
+
                 from training.mental_health_instruction_dataset import (
                     INSTRUCTION_TEMPLATES,
                     MentalHealthTaskType,

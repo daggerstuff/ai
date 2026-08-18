@@ -18,8 +18,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 # Public defaults — callers may override per dataset.
 MAX_TOKENS_PER_MESSAGE = 8192

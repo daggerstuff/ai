@@ -14,10 +14,11 @@ import random
 import subprocess
 import sys
 from collections import defaultdict
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -380,7 +381,7 @@ class S3StageOrganizer:
 
         actual_counts: dict[Stage, dict[str, int]] = {stage: {"train": 0, "val": 0, "test": 0} for stage in Stage}
 
-        logger.info(f"Pass 2: Writing stage files to gdrive via rcat streaming")
+        logger.info("Pass 2: Writing stage files to gdrive via rcat streaming")
 
         # Create writers for each output file
         manifest_writers = {

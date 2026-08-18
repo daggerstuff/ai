@@ -14,17 +14,15 @@ TS/Python parity: src/lib/memory/reverie/latent-surfacer.ts
 
 from __future__ import annotations
 
-from typing import Optional
-
-from memory.schema import MemoryBlock
 from memory.reverie_types import (
+    DEFAULT_REVERIE_CONFIG,
+    EmotionalTone,
     FishhookMatch,
-    ReverieVector,
     ReverieConfig,
     ReveriePhase,
-    EmotionalTone,
-    DEFAULT_REVERIE_CONFIG,
+    ReverieVector,
 )
+from memory.schema import MemoryBlock
 
 # ─── Behavioral Nudge Templates ──────────────────────────────────────
 
@@ -113,7 +111,7 @@ def _derive_validation_pattern(categories: list[str]) -> str:
 def _derive_relational_pattern(
     schema_references: list[str],
     categories: list[str],
-) -> Optional[str]:
+) -> str | None:
     if not schema_references:
         return None
     theme = categories[0] if categories else "emotional"
@@ -143,7 +141,7 @@ class LatentSurfacer:
     relational pattern.
     """
 
-    def __init__(self, config: Optional[ReverieConfig] = None) -> None:
+    def __init__(self, config: ReverieConfig | None = None) -> None:
         self.config = config if config is not None else DEFAULT_REVERIE_CONFIG
 
     def surface(

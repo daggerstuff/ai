@@ -4,7 +4,7 @@ Common Pydantic models for API requests and responses.
 This module provides common request and response models used across all endpoints.
 """
 
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -23,7 +23,7 @@ class SuccessResponse(BaseModel):
 
     success: bool = True
     message: str = "Operation completed successfully"
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
 
 class ErrorResponse(BaseModel):
@@ -31,8 +31,8 @@ class ErrorResponse(BaseModel):
 
     success: bool = False
     error: str
-    error_code: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
+    error_code: str | None = None
+    details: dict[str, Any] | None = None
 
 
 class PaginationParams(BaseModel):
@@ -45,7 +45,7 @@ class PaginationParams(BaseModel):
 class PaginatedResponse(BaseModel, Generic[T]):
     """Paginated response with metadata."""
 
-    items: List[T]
+    items: list[T]
     total: int
     page: int
     page_size: int
@@ -54,7 +54,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
     @classmethod
     def create(
             cls,
-            items: List[T],
+            items: list[T],
             total: int,
             page: int,
             page_size: int,

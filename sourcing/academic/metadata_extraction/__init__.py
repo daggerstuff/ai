@@ -1,3 +1,3 @@
-from .metadata_extractor import MetadataExtractor, ExtractedMetadata
+from .metadata_extractor import ExtractedMetadata, MetadataExtractor
 
 __all__ = ["MetadataExtractor", "ExtractedMetadata"]

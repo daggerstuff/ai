@@ -6,9 +6,9 @@ FIXED: TrajectoryGroup does not have a .reward attribute.
        Rewards live on individual Trajectory objects inside group.trajectories.
 """
 
-import os
-import json
 import asyncio
+import json
+import os
 import random
 
 # Required environment variable
@@ -16,10 +16,9 @@ WANDB_API_KEY = os.environ.get("WANDB_API_KEY", "")
 if not WANDB_API_KEY:
     raise ValueError("WANDB_API_KEY is required for serverless training.")
 
-from openai import AsyncOpenAI
-
 import art
 from art.serverless.backend import ServerlessBackend
+from openai import AsyncOpenAI
 
 AZURE_API_KEY = os.environ.get("AZURE_OPENAI_API_KEY", "")
 if not AZURE_API_KEY:
@@ -111,7 +110,7 @@ async def rollout(model: art.Model, messages: list) -> art.Trajectory:
 async def main():
     print("Loading dataset...")
     examples = []
-    with open(DATASET_PATH, "r") as f:
+    with open(DATASET_PATH) as f:
         for i, line in enumerate(f):
             if i >= 5000:  # Use 5k examples for RL
                 break

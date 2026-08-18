@@ -7,7 +7,7 @@ import json
 import logging
 import os
 from base64 import b64decode, b64encode
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -58,7 +58,7 @@ class DatabaseService:
             # Fallback for dev only - DO NOT USE IN PRODUCTION
             encrypted_data = data.copy()
             encrypted_data["_insecure_mode"] = True
-            encrypted_data["_encryption_timestamp"] = datetime.now(timezone.utc)
+            encrypted_data["_encryption_timestamp"] = datetime.now(UTC)
             return encrypted_data
 
         try:
@@ -84,7 +84,7 @@ class DatabaseService:
                 "ciphertext": encrypted_payload,
                 "_encrypted": True,
                 "_encryption_algorithm": "AES-256-GCM",
-                "_encryption_timestamp": datetime.now(timezone.utc),
+                "_encryption_timestamp": datetime.now(UTC),
             }
         except Exception as e:
             logger.error(f"Encryption failed: {e}")
@@ -118,7 +118,7 @@ class DatabaseService:
             "event_type": event_type,
             "session_id": session_id,
             "user_id": user_id,
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": datetime.now(UTC),
             "source": "database_service",
         }
         try:
@@ -157,7 +157,7 @@ class DatabaseService:
             "type": analysis_type,
             "session_id": session_id,
             "user_id": user_id,
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": datetime.now(UTC),
             "data": data,
             "version": "1.0.0",
             "hipaa_compliant": True,

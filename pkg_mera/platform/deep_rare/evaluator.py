@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from .schema import DiagnosisResult, EvaluationMetrics, PatientCase
 

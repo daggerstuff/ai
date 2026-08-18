@@ -18,17 +18,10 @@ DiagnosisArena clinical diagnostic evaluation module:
 
 from __future__ import annotations
 
-import hashlib
-import json
 import logging
-import math
 import sys
-import time
-import uuid
-from dataclasses import dataclass, field, asdict
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
 
@@ -275,15 +268,11 @@ class ErrorTaxonomy(str, Enum):
 # system leaderboard, and continuous evaluation pipeline that were previously
 # implemented inline here with schema drift from ``diagnosis_arena/types.py``.
 # ---------------------------------------------------------------------------
-import json
 import logging
-import time
 from pathlib import Path
-from typing import Any, Mapping, Sequence
 
 from ai.evals.diagnosis_arena import (
     BenchmarkArtifactStore,
-    CaseScore,
     ClinicalCase,
     ClinicalDiagnosisJudge,
     DiagnosisArenaBenchmark,
@@ -319,7 +308,7 @@ __all__ = [
     "ClinicalCase",
     "ClinicalDiagnosisJudge",
     "DiagnosisArenaBenchmark",
-    
+
     "Difficulty",
     "ErrorTaxonomy",
     "EvaluationReport",

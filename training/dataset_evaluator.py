@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import json
 import os
-import requests
 from pathlib import Path
+
+import requests
 
 # Set up to use the user's Ollama instance
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "https://ollama.pixelated.love")
@@ -18,7 +19,7 @@ def evaluate_pair(instruction: str, output: str) -> int:
         "Output ONLY the integer score."
     )
     user_content = f"Instruction: {instruction}\nOutput: {output}"
-    
+
     url = f"{OLLAMA_HOST.rstrip('/')}/api/generate"
     payload = {
         "model": OLLAMA_MODEL,
@@ -26,7 +27,7 @@ def evaluate_pair(instruction: str, output: str) -> int:
         "stream": False,
         "options": {"temperature": 0.1},
     }
-    
+
     try:
         response = requests.post(url, json=payload, timeout=30)
         if response.status_code == 200:
@@ -61,37 +62,37 @@ def main():
 
     print(f"Running LLM Evaluator on a sample of 10 pairs from: {test_file.name}")
     print("=" * 60)
-    
-    with open(test_file, 'r', encoding='utf-8') as f:
+
+    with open(test_file, encoding='utf-8') as f:
         lines = [line.strip() for line in f if line.strip()][:10]
-    
+
     good_pairs = []
     bad_pairs = []
-    
+
     for i, line in enumerate(lines):
         try:
             pair = json.loads(line)
         except:
             continue
-            
+
         inst = pair.get("instruction", "")
         out = pair.get("output", "")
-        
+
         score = evaluate_pair(inst, out)
         print(f"Pair {i+1}: Score {score}/5")
         print(f"  User: {inst[:60]}...")
         print(f"  Asst: {out[:60]}...")
-        
+
         if score >= 4:
             good_pairs.append(format_chatml(inst, out))
         else:
             bad_pairs.append(pair)
-            
+
     print("=" * 60)
-    print(f"Total evaluated: 10")
+    print("Total evaluated: 10")
     print(f"Passed (Score 4+): {len(good_pairs)}")
     print(f"Failed (Score < 4): {len(bad_pairs)}")
-    
+
     if bad_pairs:
         print("\nExample of a FAILED pair:")
         print(f"Instruction: {bad_pairs[0]['instruction']}")

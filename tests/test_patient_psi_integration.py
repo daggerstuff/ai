@@ -10,14 +10,9 @@ Tests cover:
 
 from __future__ import annotations
 
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.applications import Starlette
-from starlette.responses import JSONResponse
-from starlette.routing import Route
 
 from ai.pkg_mera.platform.patient_psi.api import create_app
-
 
 # ── Helpers ───────────────────────────────────────────────────────────
 

@@ -28,7 +28,7 @@ class TestSafetyThresholds:
     def test_frozen(self):
         s = SafetyThresholds()
         with pytest.raises(AttributeError):
-            setattr(s, "min_confidence_to_confirm", 0.5)
+            s.min_confidence_to_confirm = 0.5
 
 
 class TestFeatureFlags:

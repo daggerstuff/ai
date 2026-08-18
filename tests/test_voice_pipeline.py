@@ -5,14 +5,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
-from ai.pipelines.voice.pipeline import DialogueTurn, TranscriptParser
 from ai.pipelines.voice.persona_blender import (
     DialoguePair,
     PersonaBlender,
     VoiceSignatureToken,
 )
+from ai.pipelines.voice.pipeline import DialogueTurn, TranscriptParser
 
 
 class TestTranscriptParser:

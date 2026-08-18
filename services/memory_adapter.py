@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 # Import UnifiedMemory from the foresight package.
@@ -160,7 +160,7 @@ class UnifiedMemoryAdapter:
 
         # HIPAA: mark that content may contain PHI — encryption handled at DB layer
         doc["_hipaaCompliant"] = True
-        doc["_storedAt"] = datetime.now(timezone.utc).isoformat()
+        doc["_storedAt"] = datetime.now(UTC).isoformat()
 
         # Audit log
         if session_id:
@@ -206,7 +206,7 @@ class UnifiedMemoryAdapter:
             "importance": "importance",
         }
         set_doc: dict[str, Any] = {
-            "updatedAt": datetime.now(timezone.utc).isoformat(),
+            "updatedAt": datetime.now(UTC).isoformat(),
         }
 
         for py_field, mongo_field in scalar_fields.items():
@@ -274,7 +274,7 @@ class UnifiedMemoryAdapter:
         else:
             new_trend = StrengthTrend.STABLE.value
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         try:
             result = self._collection().update_one(
                 query,
