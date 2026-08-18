@@ -61,7 +61,9 @@ def convert_to_chatml(
                     role = "user"
                 chatml_messages.append(
                     {
-                        "role": "user" if role in {"client", "user"} else "assistant",
+                        "role": "system"
+                        if role == "system"
+                        else ("user" if role in {"client", "user"} else "assistant"),
                         "content": str(item.get("content", "")),
                     }
                 )

@@ -605,9 +605,11 @@ class ReprioritizationEngine:
                 self._backlog[item_id] = new_item
                 new_items.append(new_item)
 
-        for item_id, item in self._backlog.items():
-            if item not in reprioritized and item not in new_items:
-                unchanged.append(item)
+        with self._lock:
+            for item_id, item in list(self._backlog.items()):
+                if item not in reprioritized and item not in new_items:
+                    unchanged.append(item)
+            self._priority_changes = list(priority_changes)
 
         new_items.sort(key=lambda x: x.priority_score, reverse=True)
         reprioritized.sort(key=lambda x: x.priority_score, reverse=True)
