@@ -1,0 +1,485 @@
+{
+  "analysis_timestamp": "2025-08-07T02:47:51.204419",
+  "datasets_analyzed": 137855,
+  "performance_analysis": {
+    "quality_performance": {
+      "dataset_rankings": {
+        "test_dataset": {
+          "quality_score_mean": 55.98,
+          "quality_score_median": 55.98,
+          "quality_score_std": NaN,
+          "quality_score_min": 55.98,
+          "quality_score_max": 55.98,
+          "complexity_score_mean": 49.75,
+          "engagement_score_mean": 39.67,
+          "conversation_id_count": 1,
+          "overall_performance": 50.345
+        },
+        "priority_1": {
+          "quality_score_mean": 49.9,
+          "quality_score_median": 51.16,
+          "quality_score_std": 13.53,
+          "quality_score_min": 18.06,
+          "quality_score_max": 83.75,
+          "complexity_score_mean": 45.55,
+          "engagement_score_mean": 35.92,
+          "conversation_id_count": 1225,
+          "overall_performance": 45.317499999999995
+        },
+        "additional_specialized": {
+          "quality_score_mean": 45.46,
+          "quality_score_median": 40.43,
+          "quality_score_std": 9.46,
+          "quality_score_min": 19.45,
+          "quality_score_max": 88.74,
+          "complexity_score_mean": 48.42,
+          "engagement_score_mean": 37.54,
+          "conversation_id_count": 53246,
+          "overall_performance": 44.22
+        },
+        "professional_psychology": {
+          "quality_score_mean": 43.88,
+          "quality_score_median": 45.47,
+          "quality_score_std": 16.25,
+          "quality_score_min": 14.41,
+          "quality_score_max": 80.86,
+          "complexity_score_mean": 49.28,
+          "engagement_score_mean": 18.28,
+          "conversation_id_count": 9846,
+          "overall_performance": 38.830000000000005
+        },
+        "priority_2": {
+          "quality_score_mean": 26.8,
+          "quality_score_median": 21.71,
+          "quality_score_std": 14.65,
+          "quality_score_min": 8.95,
+          "quality_score_max": 71.13,
+          "complexity_score_mean": 44.26,
+          "engagement_score_mean": 46.48,
+          "conversation_id_count": 320,
+          "overall_performance": 36.085
+        },
+        "cot_reasoning": {
+          "quality_score_mean": 35.31,
+          "quality_score_median": 31.28,
+          "quality_score_std": 12.71,
+          "quality_score_min": 12.7,
+          "quality_score_max": 86.61,
+          "complexity_score_mean": 45.28,
+          "engagement_score_mean": 20.7,
+          "conversation_id_count": 64559,
+          "overall_performance": 34.15
+        },
+        "test_search": {
+          "quality_score_mean": 32.75,
+          "quality_score_median": 32.75,
+          "quality_score_std": 8.27,
+          "quality_score_min": 26.9,
+          "quality_score_max": 38.6,
+          "complexity_score_mean": 41.66,
+          "engagement_score_mean": 10.67,
+          "conversation_id_count": 2,
+          "overall_performance": 29.4575
+        },
+        "professional_neuro": {
+          "quality_score_mean": 22.46,
+          "quality_score_median": 18.91,
+          "quality_score_std": 8.46,
+          "quality_score_min": 8.0,
+          "quality_score_max": 55.31,
+          "complexity_score_mean": 52.04,
+          "engagement_score_mean": 10.6,
+          "conversation_id_count": 3398,
+          "overall_performance": 26.89
+        },
+        "priority_3": {
+          "quality_score_mean": 21.01,
+          "quality_score_median": 20.28,
+          "quality_score_std": 6.1,
+          "quality_score_min": 9.73,
+          "quality_score_max": 55.66,
+          "complexity_score_mean": 41.41,
+          "engagement_score_mean": 14.96,
+          "conversation_id_count": 258,
+          "overall_performance": 24.597500000000004
+        },
+        "professional_soulchat": {
+          "quality_score_mean": 10.61,
+          "quality_score_median": 8.0,
+          "quality_score_std": 5.21,
+          "quality_score_min": 8.0,
+          "quality_score_max": 36.74,
+          "complexity_score_mean": 65.83,
+          "engagement_score_mean": 0.01,
+          "conversation_id_count": 5000,
+          "overall_performance": 21.765
+        }
+      },
+      "quality_distribution": {
+        "high_quality_datasets": 0,
+        "medium_quality_datasets": 1,
+        "low_quality_datasets": 9,
+        "total_datasets": 10
+      },
+      "consistency_metrics": {
+        "most_consistent": "professional_soulchat",
+        "least_consistent": "professional_psychology",
+        "avg_quality_variance": 10.515555555555556
+      }
+    },
+    "efficiency_metrics": {
+      "processing_efficiency": {
+        "additional_specialized": {
+          "processing_time_hours_mean": -0.01,
+          "processing_time_hours_median": -0.011,
+          "processing_time_hours_std": 0.004,
+          "word_count_mean": 115.74,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 53246,
+          "words_per_hour": -11574.0,
+          "conversations_per_day": -127790399.99999999
+        },
+        "cot_reasoning": {
+          "processing_time_hours_mean": -0.02,
+          "processing_time_hours_median": -0.019,
+          "processing_time_hours_std": 0.011,
+          "word_count_mean": 532.637,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 64559,
+          "words_per_hour": -26631.849999999995,
+          "conversations_per_day": -77470800.0
+        },
+        "priority_1": {
+          "processing_time_hours_mean": 0.0,
+          "processing_time_hours_median": 0.0,
+          "processing_time_hours_std": 0.0,
+          "word_count_mean": 232.476,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 1225,
+          "words_per_hour": 232.476,
+          "conversations_per_day": 1225.0
+        },
+        "priority_2": {
+          "processing_time_hours_mean": 0.0,
+          "processing_time_hours_median": 0.0,
+          "processing_time_hours_std": 0.0,
+          "word_count_mean": 898.781,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 320,
+          "words_per_hour": 898.781,
+          "conversations_per_day": 320.0
+        },
+        "priority_3": {
+          "processing_time_hours_mean": -0.0,
+          "processing_time_hours_median": -0.0,
+          "processing_time_hours_std": 0.0,
+          "word_count_mean": 576.612,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 258,
+          "words_per_hour": 576.612,
+          "conversations_per_day": 258.0
+        },
+        "professional_neuro": {
+          "processing_time_hours_mean": -0.0,
+          "processing_time_hours_median": -0.0,
+          "processing_time_hours_std": 0.0,
+          "word_count_mean": 196.391,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 3398,
+          "words_per_hour": 196.391,
+          "conversations_per_day": 3398.0
+        },
+        "professional_psychology": {
+          "processing_time_hours_mean": -0.001,
+          "processing_time_hours_median": -0.001,
+          "processing_time_hours_std": 0.0,
+          "word_count_mean": 72.438,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 9846,
+          "words_per_hour": -72438.0,
+          "conversations_per_day": -236304000.0
+        },
+        "professional_soulchat": {
+          "processing_time_hours_mean": -0.001,
+          "processing_time_hours_median": -0.001,
+          "processing_time_hours_std": 0.001,
+          "word_count_mean": 55.766,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 5000,
+          "words_per_hour": -55766.0,
+          "conversations_per_day": -120000000.0
+        },
+        "test_dataset": {
+          "processing_time_hours_mean": NaN,
+          "processing_time_hours_median": NaN,
+          "processing_time_hours_std": NaN,
+          "word_count_mean": 15.0,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 1,
+          "words_per_hour": NaN,
+          "conversations_per_day": NaN
+        },
+        "test_search": {
+          "processing_time_hours_mean": NaN,
+          "processing_time_hours_median": NaN,
+          "processing_time_hours_std": NaN,
+          "word_count_mean": 27.5,
+          "text_length_mean": 0.0,
+          "conversation_id_count": 2,
+          "words_per_hour": NaN,
+          "conversations_per_day": NaN
+        }
+      },
+      "resource_efficiency": {
+        "additional_specialized": {
+          "quality_per_word": 0.4604,
+          "engagement_per_turn": 18.7716
+        },
+        "cot_reasoning": {
+          "quality_per_word": 0.0965,
+          "engagement_per_turn": 10.3483
+        },
+        "priority_1": {
+          "quality_per_word": 0.2839,
+          "engagement_per_turn": 17.9612
+        },
+        "priority_2": {
+          "quality_per_word": 0.0313,
+          "engagement_per_turn": 23.2383
+        },
+        "priority_3": {
+          "quality_per_word": 0.0383,
+          "engagement_per_turn": 7.4819
+        },
+        "professional_neuro": {
+          "quality_per_word": 0.1334,
+          "engagement_per_turn": 5.2999
+        },
+        "professional_psychology": {
+          "quality_per_word": 0.6188,
+          "engagement_per_turn": 9.1392
+        },
+        "professional_soulchat": {
+          "quality_per_word": 0.516,
+          "engagement_per_turn": 0.0002
+        },
+        "test_dataset": {
+          "quality_per_word": 3.7318,
+          "engagement_per_turn": 19.8333
+        },
+        "test_search": {
+          "quality_per_word": 1.2203,
+          "engagement_per_turn": 5.3333
+        }
+      },
+      "efficiency_rankings": {
+        "professional_psychology": 6.25050505050505,
+        "professional_soulchat": 5.212121212121212,
+        "additional_specialized": 5.115555555555554,
+        "priority_1": 2.839,
+        "professional_neuro": 1.3339999999999999,
+        "cot_reasoning": 1.20625,
+        "priority_3": 0.383,
+        "priority_2": 0.313,
+        "test_dataset": NaN,
+        "test_search": NaN
+      }
+    },
+    "utilization_analysis": {
+      "volume_distribution": {
+        "dataset_volumes": {
+          "cot_reasoning": 64559,
+          "additional_specialized": 53246,
+          "professional_psychology": 9846,
+          "professional_soulchat": 5000,
+          "professional_neuro": 3398,
+          "priority_1": 1225,
+          "priority_2": 320,
+          "priority_3": 258,
+          "test_search": 2,
+          "test_dataset": 1
+        },
+        "volume_percentages": {
+          "cot_reasoning": 46.83,
+          "additional_specialized": 38.62,
+          "professional_psychology": 7.14,
+          "professional_soulchat": 3.63,
+          "professional_neuro": 2.46,
+          "priority_1": 0.89,
+          "priority_2": 0.23,
+          "priority_3": 0.19,
+          "test_search": 0.0,
+          "test_dataset": 0.0
+        },
+        "concentration_ratio": 92.6
+      },
+      "tier_distribution": {
+        "tier_counts": {
+          "additional_specialized": {
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 0,
+            "research": 53246
+          },
+          "cot_reasoning": {
+            "cot_reasoning": 64559,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 0,
+            "research": 0
+          },
+          "priority_1": {
+            "cot_reasoning": 0,
+            "priority_1": 1225,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 0,
+            "research": 0
+          },
+          "priority_2": {
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 320,
+            "priority_3": 0,
+            "professional": 0,
+            "research": 0
+          },
+          "priority_3": {
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 258,
+            "professional": 0,
+            "research": 0
+          },
+          "professional_neuro": {
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 3398,
+            "research": 0
+          },
+          "professional_psychology": {
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 9846,
+            "research": 0
+          },
+          "professional_soulchat": {
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 5000,
+            "research": 0
+          },
+          "test_dataset": {
+            "cot_reasoning": 0,
+            "priority_1": 1,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 0,
+            "research": 0
+          },
+          "test_search": {
+            "cot_reasoning": 0,
+            "priority_1": 1,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional": 1,
+            "research": 0
+          }
+        },
+        "tier_percentages": {
+          "additional_specialized": {
+            "cot_reasoning": 0.0,
+            "priority_1": 0.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 0.0,
+            "research": 100.0
+          },
+          "cot_reasoning": {
+            "cot_reasoning": 100.0,
+            "priority_1": 0.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 0.0,
+            "research": 0.0
+          },
+          "priority_1": {
+            "cot_reasoning": 0.0,
+            "priority_1": 100.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 0.0,
+            "research": 0.0
+          },
+          "priority_2": {
+            "cot_reasoning": 0.0,
+            "priority_1": 0.0,
+            "priority_2": 100.0,
+            "priority_3": 0.0,
+            "professional": 0.0,
+            "research": 0.0
+          },
+          "priority_3": {
+            "cot_reasoning": 0.0,
+            "priority_1": 0.0,
+            "priority_2": 0.0,
+            "priority_3": 100.0,
+            "professional": 0.0,
+            "research": 0.0
+          },
+          "professional_neuro": {
+            "cot_reasoning": 0.0,
+            "priority_1": 0.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 100.0,
+            "research": 0.0
+          },
+          "professional_psychology": {
+            "cot_reasoning": 0.0,
+            "priority_1": 0.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 100.0,
+            "research": 0.0
+          },
+          "professional_soulchat": {
+            "cot_reasoning": 0.0,
+            "priority_1": 0.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 100.0,
+            "research": 0.0
+          },
+          "test_dataset": {
+            "cot_reasoning": 0.0,
+            "priority_1": 100.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 0.0,
+            "research": 0.0
+          },
+          "test_search": {
+            "cot_reasoning": 0.0,
+            "priority_1": 50.0,
+            "priority_2": 0.0,
+            "priority_3": 0.0,
+            "professional": 50.0,
+            "research": 0.0
+          }
+        }
+      },
+      "temporal_patterns": {
+        "monthly_activity": {
+          "additional_specialized": {
+            

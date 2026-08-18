@@ -1,0 +1,336 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-06T19:40:42.617533",
+    "dashboard_version": "1.0.0",
+    "total_datasets": 10,
+    "analysis_scope": "comprehensive_statistics"
+  },
+  "executive_summary": {
+    "total_datasets": 10,
+    "total_conversations": 137855,
+    "total_words": 42929846,
+    "average_quality_score": 0.6973803178340858,
+    "processing_completion_rate": 100.0,
+    "top_datasets_by_volume": [
+      "cot_reasoning",
+      "additional_specialized",
+      "professional_psychology",
+      "professional_soulchat",
+      "professional_neuro"
+    ],
+    "common_strengths": [],
+    "common_weaknesses": [],
+    "overall_health": "fair"
+  },
+  "dataset_statistics": {
+    "additional_specialized": {
+      "total_conversations": 53246,
+      "total_words": 6162718,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 115.74048754836043,
+      "language_distribution": {
+        "en": 53246
+      },
+      "tier_distribution": {
+        "research": 53246
+      },
+      "processing_status": {
+        "processed": 53246
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 0.23148097509672086,
+        "coverage_score": 0.9306837186195513
+      },
+      "temporal_distribution": {
+        "2025-08-03": 53246
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Predominantly research tier content"
+      ]
+    },
+    "cot_reasoning": {
+      "total_conversations": 64559,
+      "total_words": 34386508,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 532.636936755526,
+      "language_distribution": {
+        "en": 64559
+      },
+      "tier_distribution": {
+        "cot_reasoning": 64559
+      },
+      "processing_status": {
+        "processed": 64559
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 1.0,
+        "coverage_score": 0.7630478440461712
+      },
+      "temporal_distribution": {
+        "2025-08-03": 64559
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Predominantly cot_reasoning tier content"
+      ]
+    },
+    "priority_1": {
+      "total_conversations": 1225,
+      "total_words": 284783,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 232.47591836734694,
+      "language_distribution": {
+        "en": 1225
+      },
+      "tier_distribution": {
+        "priority_1": 1225
+      },
+      "processing_status": {
+        "processed": 1225
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 0.46495183673469387,
+        "coverage_score": 0.8015138379994722
+      },
+      "temporal_distribution": {
+        "2025-08-03": 1225
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Predominantly priority_1 tier content"
+      ]
+    },
+    "priority_2": {
+      "total_conversations": 320,
+      "total_words": 287610,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 898.78125,
+      "language_distribution": {
+        "en": 320
+      },
+      "tier_distribution": {
+        "priority_2": 320
+      },
+      "processing_status": {
+        "processed": 320
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 1.0,
+        "coverage_score": 0.9456619582373584
+      },
+      "temporal_distribution": {
+        "2025-08-03": 320
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Predominantly priority_2 tier content"
+      ]
+    },
+    "priority_3": {
+      "total_conversations": 258,
+      "total_words": 148766,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 576.6124031007752,
+      "language_distribution": {
+        "en": 258
+      },
+      "tier_distribution": {
+        "priority_3": 258
+      },
+      "processing_status": {
+        "processed": 258
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 1.0,
+        "coverage_score": 0.8543529935524925
+      },
+      "temporal_distribution": {
+        "2025-08-03": 258
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Predominantly priority_3 tier content"
+      ]
+    },
+    "professional_neuro": {
+      "total_conversations": 3398,
+      "total_words": 667335,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 196.3905238375515,
+      "language_distribution": {
+        "en": 3398
+      },
+      "tier_distribution": {
+        "professional": 3398
+      },
+      "processing_status": {
+        "processed": 3398
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 0.392781047675103,
+        "coverage_score": 0.7925961686241826
+      },
+      "temporal_distribution": {
+        "2025-08-03": 3398
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Predominantly professional tier content"
+      ]
+    },
+    "professional_psychology": {
+      "total_conversations": 9846,
+      "total_words": 713225,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 72.43804590696729,
+      "language_distribution": {
+        "en": 9846
+      },
+      "tier_distribution": {
+        "professional": 9846
+      },
+      "processing_status": {
+        "processed": 9846
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 0.14487609181393457,
+        "coverage_score": 0.7905937661232638
+      },
+      "temporal_distribution": {
+        "2025-08-03": 9846
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Concise conversations (<100 words average)",
+        "Predominantly professional tier content",
+        "Psychology domain expertise"
+      ]
+    },
+    "professional_soulchat": {
+      "total_conversations": 5000,
+      "total_words": 278831,
+      "total_characters": 0,
+      "avg_conversation_length": 27.8696,
+      "avg_word_count": 55.7662,
+      "language_distribution": {
+        "en": 5000
+      },
+      "tier_distribution": {
+        "professional": 5000
+      },
+      "processing_status": {
+        "processed": 5000
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 0.11153239999999999,
+        "coverage_score": 0.8171651847376855
+      },
+      "temporal_distribution": {
+        "2025-08-03": 5000
+      },
+      "unique_characteristics": [
+        "Long-form conversations (>10 turns average)",
+        "Concise conversations (<100 words average)",
+        "Predominantly professional tier content"
+      ]
+    },
+    "test_dataset": {
+      "total_conversations": 1,
+      "total_words": 15,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 15.0,
+      "language_distribution": {
+        "en": 1
+      },
+      "tier_distribution": {
+        "priority_1": 1
+      },
+      "processing_status": {
+        "processed": 1
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.2,
+        "richness_score": 0.03,
+        "coverage_score": 0.7317491701618781
+      },
+      "temporal_distribution": {
+        "2025-08-03": 1
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Concise conversations (<100 words average)",
+        "Predominantly priority_1 tier content"
+      ]
+    },
+    "test_search": {
+      "total_conversations": 2,
+      "total_words": 55,
+      "total_characters": 0,
+      "avg_conversation_length": 2.0,
+      "avg_word_count": 27.5,
+      "language_distribution": {
+        "en": 2
+      },
+      "tier_distribution": {
+        "priority_1": 1,
+        "professional": 1
+      },
+      "processing_status": {
+        "processed": 2
+      },
+      "quality_metrics": {
+        "completeness_score": 1.0,
+        "consistency_score": 1.0,
+        "diversity_score": 0.4,
+        "richness_score": 0.055,
+        "coverage_score": 0.8110288982817847
+      },
+      "temporal_distribution": {
+        "2025-08-03": 2
+      },
+      "unique_characteristics": [
+        "Short-form conversations (<3 turns average)",
+        "Concise conversations (<100 words average)"
+      ]
+    }
+  },
+  "dataset_insights": {},
+  "visualizations": {
+    "main_dashboard": "monitoring/dataset_analytics/dataset_statistics_dashboard.png"
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-06T16:24:06.247564",
+    "analyzer_version": "1.0.0",
+    "metrics_analyzed": 7,
+    "analysis_period_days": 30
+  },
+  "executive_summary": {
+    "status": "analysis_complete",
+    "total_validations": 5000,
+    "overall_pass_rate": 47.42,
+    "overall_average_score": 0.6649797491122149,
+    "metrics_analyzed": 7,
+    "high_performing_metrics": 0,
+    "moderate_performing_metrics": 0,
+    "low_performing_metrics": 7,
+    "critical_safety_issues": 1,
+    "overall_health": "poor"
+  },
+  "detailed_analysis": {
+    "therapeutic_accuracy": {
+      "total_validations": 705,
+      "passed_validations": 345,
+      "failed_validations": 360,
+      "pass_rate": 48.93617021276596,
+      "average_score": 0.6621534180816602,
+      "score_distribution": {
+        "excellent": 81,
+        "good": 229,
+        "fair": 194,
+        "poor": 166
+      },
+      "failure_patterns": [
+        "Consistently low scores (avg: 0.485, threshold: 0.700)",
+        "Failures clustered in time (potential systematic issue)",
+        "Low confidence in failed validations (avg: 0.589)",
+        "Review clinical training data quality and therapeutic technique validation"
+      ],
+      "recommendations": [
+        "URGENT: Low pass rate (48.9%) requires immediate intervention",
+        "Review and strengthen quality validation criteria",
+        "Moderate average score (0.662) - targeted improvements recommended",
+        "Enhance clinical training datasets",
+        "Implement therapeutic technique validation",
+        "Review DSM-5 compliance patterns",
+        "Investigate systematic issues causing temporal failure clustering",
+        "Improve validation confidence through enhanced NLP models"
+      ]
+    },
+    "conversation_coherence": {
+      "total_validations": 736,
+      "passed_validations": 480,
+      "failed_validations": 256,
+      "pass_rate": 65.21739130434783,
+      "average_score": 0.6656226860914808,
+      "score_distribution": {
+        "excellent": 80,
+        "good": 251,
+        "fair": 210,
+        "poor": 165
+      },
+      "failure_patterns": [
+        "Failures clustered in time (potential systematic issue)",
+        "Low confidence in failed validations (avg: 0.525)"
+      ],
+      "recommendations": [
+        "URGENT: Low pass rate (65.2%) requires immediate intervention",
+        "Review and strengthen quality validation criteria",
+        "Moderate average score (0.666) - targeted improvements recommended",
+        "Improve conversation flow validation",
+        "Enhance context awareness training",
+        "Review dialogue consistency patterns",
+        "Investigate systematic issues causing temporal failure clustering",
+        "Improve validation confidence through enhanced NLP models"
+      ]
+    },
+    "emotional_authenticity": {
+      "total_validations": 718,
+      "passed_validations": 401,
+      "failed_validations": 317,
+      "pass_rate": 55.84958217270195,
+      "average_score": 0.6656874069267827,
+      "score_distribution": {
+        "excellent": 71,
+        "good": 236,
+        "fair": 201,
+        "poor": 170
+      },
+      "failure_patterns": [
+        "Failures clustered in time (potential systematic issue)",
+        "Low confidence in failed validations (avg: 0.557)"
+      ],
+      "recommendations": [
+        "URGENT: Low pass rate (55.8%) requires immediate intervention",
+        "Review and strengthen quality validation criteria",
+        "Moderate average score (0.666) - targeted improvements recommended",
+        "Strengthen emotional intelligence training",
+        "Improve sentiment analysis accuracy",
+        "Review emotional response patterns",
+        "Investigate systematic issues causing temporal failure clustering",
+        "Improve validation confidence through enhanced NLP models"
+      ]
+    },
+    "clinical_compliance": {
+      "total_validations": 710,
+      "passed_validations": 223,
+      "failed_validations": 487,
+      "pass_rate": 31.408450704225356,
+      "average_score": 0.6677114301238367,
+      "score_distribution": {
+        "excellent": 73,
+        "good": 239,
+        "fair": 196,
+        "poor": 162
+      },
+      "failure_patterns": [
+        "Consistently low scores (avg: 0.559, threshold: 0.800)",
+        "Failures clustered in time (potential systematic issue)",
+        "Review adherence to clinical guidelines and professional standards"
+      ],
+      "recommendations": [
+        "URGENT: Low pass rate (31.4%) requires immediate intervention",
+        "Review and strengthen quality validation criteria",
+        "Moderate average score (0.668) - targeted improvements recommended",
+        "Review clinical guideline adherence",
+        "Strengthen professional boundary validation",
+        "Implement ethics compliance checking",
+        "Investigate systematic issues causing temporal failure clustering"
+      ]
+    },
+    "personality_consistency": {
+      "total_validations": 735,
+      "passed_validations": 449,
+      "failed_validations": 286,
+      "pass_rate": 61.08843537414966,
+      "average_score": 0.6533775782053269,
+      "score_distribution": {
+        "excellent": 71,
+        "good": 245,
+        "fair": 199,
+        "poor": 188
+      },
+      "failure_patterns": [
+        "Failures clustered in time (potential systematic issue)",
+        "Low confidence in failed validations (avg: 0.526)"
+      ],
+      "recommendations": [
+        "URGENT: Low pass rate (61.1%) requires immediate intervention",
+        "Review and strengthen quality validation criteria",
+        "Moderate average score (0.653) - targeted improvements recommended",
+        "Investigate systematic issues causing temporal failure clustering",
+        "Improve validation confidence through enhanced NLP models"
+      ]
+    },
+    "language_quality": {
+      "total_validations": 738,
+      "passed_validations": 346,
+      "failed_validations": 392,
+      "pass_rate": 46.883468834688344,
+      "average_score": 0.6665774037107565,
+      "score_distribution": {
+        "excellent": 77,
+        "good": 230,
+        "fair": 235,
+        "poor": 157
+      },
+      "failure_patterns": [
+        "Failures clustered in time (potential systematic issue)"
+      ],
+      "recommendations": [
+        "URGENT: Low pass rate (46.9%) requires immediate intervention",
+        "Review and strengthen quality validation criteria",
+        "Moderate average score (0.667) - targeted improvements recommended",
+        "Investigate systematic issues causing temporal failure clustering"
+      ]
+    },
+    "safety_score": {
+      "total_validations": 658,
+      "passed_validations": 127,
+      "failed_validations": 531,
+      "pass_rate": 19.300911854103344,
+      "average_score": 0.6737283206456608,
+      "score_distribution": {
+        "excellent": 82,
+        "good": 209,
+        "fair": 163,
+        "poor": 159
+      },
+      "failure_patterns": [
+        "Consistently low scores (avg: 0.604, threshold: 0.900)",
+        "Failures clustered in time (potential systematic issue)",
+        "CRITICAL: Safety validation failures require immediate attention"
+      ],
+      "recommendations": [
+        "URGENT: Low pass rate (19.3%) requires immediate intervention",
+        "Review and strengthen quality validation criteria",
+        "Moderate average score (0.674) - targeted improvements recommended",
+        "PRIORITY: Strengthen crisis detection systems",
+        "Review safety protocol compliance",
+        "Implement enhanced harm prevention measures",
+        "Investigate systematic issues causing temporal failure clustering"
+      ]
+    }
+  },
+  "visualizations": {
+    "dashboard": "monitoring/quality_validation/validation_analysis_dashboard.png"
+  },
+  "quality_insights": [
+    "Best performing metric: Conversation Coherence (65.2% pass rate)",
+    "Lowest performing metric: Safety Score (19.3% pass rate)",
+    "Systematic issues detected - investigate infrastructure and processing pipeline",
+    "CRITICAL: Safety validation pass rate (19.3%) below required 95% threshold",
+    "Total validations processed: 5,000 across 7 metrics"
+  ]
+}

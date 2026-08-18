@@ -1,0 +1,402 @@
+{
+  "timestamp": "2026-06-22T14:59:57.746789+00:00Z",
+  "statistics": {
+    "total": 16,
+    "successful": 16,
+    "failed": 0,
+    "total_files": 5094,
+    "total_size_bytes": 20625741767
+  },
+  "results": [
+    {
+      "dataset": "datasets.raw_acquired.acquired_root",
+      "path": "s3://pixel-data/acquired",
+      "files_found": 5,
+      "total_size_bytes": 10558134,
+      "checksums": {
+        "TRAINING_DATASET_GUIDE.md": {
+          "sha256": "4676376a189f2400247ba244794e13030d74882820d32b537c3389ae479c552d",
+          "valid": true
+        },
+        "acquisition_summary.json": {
+          "sha256": "c9e52beef8e2c4b9cded99ab45fd1fac31072cf3001c6bb43c9184fd0419f190",
+          "valid": true
+        },
+        "cot_reasoning.json": {
+          "sha256": "c1decf8fdb25adc930fbe4545c6dd1096c83405596f7e2b426c22eca76b28eeb",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": []
+    },
+    {
+      "dataset": "datasets.training_shards.compiled_dataset_root",
+      "path": "s3://pixel-data/compiled_dataset",
+      "files_found": 154,
+      "total_size_bytes": 2414524931,
+      "checksums": {
+        "METADATA.json": {
+          "sha256": "48024824cf7263db404254b00d422256548307a3797b71fd65eeb3258c3ae255",
+          "valid": true
+        },
+        "test_shard_000.jsonl": {
+          "sha256": "25d6baf0967de1a543b6c328cfafeff3bdcd0eeaa0675a3ff8ab4f4d852962b1",
+          "valid": true
+        },
+        "test_shard_001.jsonl": {
+          "sha256": "8c2812644681b200e21ae066dc99e2def4bdda017f162b8722281880be1c7a0f",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "test_shard_000.jsonl",
+        "records_loaded": 10,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.processed.processed_ready_batches",
+      "path": "s3://pixel-data/processed_ready/batches",
+      "files_found": 30,
+      "total_size_bytes": 1245236900,
+      "checksums": {
+        "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_1": {
+          "sha256": "ff7afe9d35b2455c7f95a26fb30fd6dae42ad13e15be7c5517a72ebae993126f",
+          "valid": true
+        },
+        "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_10": {
+          "sha256": "d04ab07753f28ed06f78ee7ce2b130955b0702ea40397eb45c872d4476cff8f7",
+          "valid": true
+        },
+        "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_11": {
+          "sha256": "9b83862947c5ec349e4f575cdb4fc03822217253fedebc6c26ca2deecff7e448",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": []
+    },
+    {
+      "dataset": "datasets.final.final_dataset_regenerated_gestalt",
+      "path": "s3://pixel-data/final_dataset/regenerated_gestalt",
+      "files_found": 3,
+      "total_size_bytes": 74683974,
+      "checksums": {
+        "stage3/synthetic_persona_batch_5k.jsonl": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "valid": true
+        },
+        "stage3/synthetic_persona_batch_5k_antigravity_final_v14.jsonl": {
+          "sha256": "0514f7ece56fa7ec336d1014cfad5245eb13bcdd1913567dffdd1ba3d5b72e8d",
+          "valid": true
+        },
+        "stage3/synthetic_persona_batch_5k_antigravity_final_v8.jsonl": {
+          "sha256": "7dbd43bbc7d281e3799ce86085ece3ab9fd5709bbf47d05cfa9ee6ccaa38d8a3",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "stage3/synthetic_persona_batch_5k.jsonl",
+        "records_loaded": 0,
+        "valid_json": false
+      }
+    },
+    {
+      "dataset": "datasets.final.final_dataset_shards",
+      "path": "s3://pixel-data/final_dataset/shards",
+      "files_found": 13,
+      "total_size_bytes": 102592994,
+      "checksums": {
+        "curriculum/stage2/METADATA.json": {
+          "sha256": "cdcbd8146cfb92dd23a8eb6185547b640a0c1e15aef208da9920bdbf86d48073",
+          "valid": true
+        },
+        "curriculum/stage2/dry_run_test.jsonl": {
+          "sha256": "93e2ea40e28a2448f689d782a2be68ebb1e3e92e02d8ea1ba8119c6a21a2fbed",
+          "valid": true
+        },
+        "curriculum/stage2/edge_case_synthetic.jsonl": {
+          "sha256": "52f41a99ad09a0df9620e677f2da6e4611a13eb9aa33017dc9c1f50ae26358a7",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "curriculum/stage2/dry_run_test.jsonl",
+        "records_loaded": 2,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.organized.datasets_compiled",
+      "path": "s3://pixel-data/datasets/compiled",
+      "files_found": 3,
+      "total_size_bytes": 133254534,
+      "checksums": {
+        "test_shard_0000.jsonl": {
+          "sha256": "59bcb67807e4b84548a338aef787b4db2aa759d82a5aeec52eda6e4d2a47abaf",
+          "valid": true
+        },
+        "train_shard_0000.jsonl": {
+          "sha256": "1449624e7ffd4604ae05d20814af7b4de61aacd39c3cc7acf1a89e29fdfbcc16",
+          "valid": true
+        },
+        "validation_shard_0000.jsonl": {
+          "sha256": "76732fa01058553bc7277fec658ed683f090f03e8e6eadaf47434e4cad7d39df",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "test_shard_0000.jsonl",
+        "records_loaded": 10,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.organized.datasets_consolidated",
+      "path": "s3://pixel-data/datasets/consolidated",
+      "files_found": 95,
+      "total_size_bytes": 8633632695,
+      "checksums": {
+        "CONSOLIDATION_COMPLETE.md": {
+          "sha256": "3073a33fba335d25f265cdd2f8414074e6d93644dd89a6e9825ea924dab3aebb",
+          "valid": true
+        },
+        "README.md": {
+          "sha256": "25ddd607e6730332a43bf02c7c0d1fb631015040dcd3ca5d84d8f1f824bc9165",
+          "valid": true
+        },
+        "configs/hyperparameters.json": {
+          "sha256": "dec7f55fdf80af031528954b87d44090e2ebf399c62eeade4dcc4c8e1198d594",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "conversations/edge_case_dialogues.jsonl",
+        "records_loaded": 10,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.organized.datasets_metadata",
+      "path": "s3://pixel-data/datasets/metadata",
+      "files_found": 7,
+      "total_size_bytes": 50081,
+      "checksums": {
+        "consolidation/findings/gdrive_consolidation_audit.md": {
+          "sha256": "023a8a64381713026e6d8ad6afe66337bc6c99d340e3b37ab6f44e9df9d15c75",
+          "valid": true
+        },
+        "consolidation/findings/s3_completion_summary.md": {
+          "sha256": "1c213e872febd21461ba8fe9371cb5dfc9d1750767f5d949d90a1f8676afd5c1",
+          "valid": true
+        },
+        "consolidation/findings/s3_implementation_summary.md": {
+          "sha256": "ac0c485a7a9118677725a8df65ab59d9096c85e9402fcb0fcc40bcc19d985aa3",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": []
+    },
+    {
+      "dataset": "datasets.organized.datasets_nemo_synthetic",
+      "path": "s3://pixel-data/datasets/nemo_synthetic",
+      "files_found": 2,
+      "total_size_bytes": 413312,
+      "checksums": {
+        "dialogues.jsonl": {
+          "sha256": "84bd685d1bea8f75b9876ad73ed75604489170a4eee8a50d912acbfe7cc4fd9d",
+          "valid": true
+        },
+        "nemo_synthetic_stats.json": {
+          "sha256": "1ab8217ebbf60318cecf4d05ab195e1b25998e31c4ec55f25fef60df3e559b71",
+          "valid": true
+        }
+      },
+      "valid_files": 2,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "dialogues.jsonl",
+        "records_loaded": 10,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.organized.datasets_training_v2",
+      "path": "s3://pixel-data/datasets/training_v2",
+      "files_found": 12,
+      "total_size_bytes": 6654468,
+      "checksums": {
+        "final_instruct/final_dpo.jsonl": {
+          "sha256": "da2789ec9912cdff7814365e947485fa30cdba4afbc75bffab17b800b81baa37",
+          "valid": true
+        },
+        "final_instruct/final_test.jsonl": {
+          "sha256": "d30bb90f90b0ad397a9cce2064cf1dbd8f04663212739ffd6c4b3d81474d6eba",
+          "valid": true
+        },
+        "final_instruct/final_train.jsonl": {
+          "sha256": "13eb8400d092274ef9ceac11e81efbc5916e339ed1a03ef0df6c69c0b1ca6602",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "final_instruct/final_dpo.jsonl",
+        "records_loaded": 10,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.organized.datasets_training_v3",
+      "path": "s3://pixel-data/datasets/training_v3",
+      "files_found": 8,
+      "total_size_bytes": 6190053,
+      "checksums": {
+        "stage1_foundation/Amod_mental_health_counseling_conversations.jsonl": {
+          "sha256": "ef622418924a93cb190ed300bc2673eeeb80f371fed9d71079b5b7b12387dc5a",
+          "valid": true
+        },
+        "stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl": {
+          "sha256": "eaf7f3c053ce183a28f70a77a80735e29672516f3ed10da0c0140b55d6bf021e",
+          "valid": true
+        },
+        "stage2_specialist_addiction/fadodr_mental_health_therapy.jsonl": {
+          "sha256": "9c4930e497b701c4777b22435b069fa1cab3e07d087eff273815b090b0309c63",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+        "records_loaded": 10,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.organized.datasets_youtube_transcripts",
+      "path": "s3://pixel-data/datasets/youtube_transcripts",
+      "files_found": 1,
+      "total_size_bytes": 1469441,
+      "checksums": {
+        "tim_fletcher/transcripts.jsonl": {
+          "sha256": "26742cc080bdf019d76dd85979c2b11940dd23d5e1f23f7ced58b3afe8d8eee4",
+          "valid": true
+        }
+      },
+      "valid_files": 1,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "tim_fletcher/transcripts.jsonl",
+        "records_loaded": 10,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.archived.archive_gdrive",
+      "path": "s3://pixel-data/archive/gdrive",
+      "files_found": 4717,
+      "total_size_bytes": 7882662009,
+      "checksums": {
+        "raw/Anthropic_hh-rlhf/dataset_dict.json": {
+          "sha256": "65fae6c706b1546da1530d427b62b39df6dd156cce4b92a208091410c52a4362",
+          "valid": true
+        },
+        "raw/Anthropic_hh-rlhf/test/data-00000-of-00001.arrow": {
+          "sha256": "d221923bf008b5675a9f534c3298936f7e34ac71f3599c20d59414952686a4f4",
+          "valid": true
+        },
+        "raw/Anthropic_hh-rlhf/test/dataset_info.json": {
+          "sha256": "ebfd578e4a6175d9232a3a8d8456be752fb5dbd21dfde683ee4b628d043ed21b",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": [],
+      "sample_validation": {
+        "file": "raw/backups/coder/root/.claude/projects/-home-vivi-pixelated/7825bb84-7184-4a42-a16e-e792f29253ca.jsonl",
+        "records_loaded": 2,
+        "valid_json": true
+      }
+    },
+    {
+      "dataset": "datasets.archived.archive_huggingface",
+      "path": "s3://pixel-data/archive/huggingface",
+      "files_found": 1,
+      "total_size_bytes": 22,
+      "checksums": {
+        ".keep": {
+          "sha256": "b6c4c6666706725d697b2c528667f8b52c7442aff7104f3b4a9c233a8d1f0150",
+          "valid": true
+        }
+      },
+      "valid_files": 1,
+      "invalid_files": 0,
+      "errors": []
+    },
+    {
+      "dataset": "datasets.archived.archive_local_sync",
+      "path": "s3://pixel-data/archive/local_sync",
+      "files_found": 1,
+      "total_size_bytes": 22,
+      "checksums": {
+        ".keep": {
+          "sha256": "b6c4c6666706725d697b2c528667f8b52c7442aff7104f3b4a9c233a8d1f0150",
+          "valid": true
+        }
+      },
+      "valid_files": 1,
+      "invalid_files": 0,
+      "errors": []
+    },
+    {
+      "dataset": "datasets.archived.archive_vps_archaeology",
+      "path": "s3://pixel-data/archive/vps_archaeology",
+      "files_found": 42,
+      "total_size_bytes": 113818197,
+      "checksums": {
+        "datasets/consolidated/misc/emotions/images/4/Sad.jpg": {
+          "sha256": "bdab16081615b72516e562634c7a95f1720e63be635b6b6016e034ccaa9ef3ea",
+          "valid": true
+        },
+        "datasets/consolidated/misc/emotions/images/4/Surprised.jpg": {
+          "sha256": "e6be7381cee2aee084c25fb1be8ebcc384983f5018be6129baf597cc9cc9d041",
+          "valid": true
+        },
+        "datasets/consolidated/misc/emotions/images/5/Anger.jpg": {
+          "sha256": "7614e31981ff7bec75ade79eeba1200f09294f8b7d79831c345d9446f91b5c96",
+          "valid": true
+        }
+      },
+      "valid_files": 3,
+      "invalid_files": 0,
+      "errors": []
+    }
+  ]
+}

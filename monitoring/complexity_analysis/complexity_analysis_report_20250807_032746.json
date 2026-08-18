@@ -1,0 +1,444 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-07T03:27:46.362641",
+    "analyzer_version": "1.0.0",
+    "datasets_analyzed": 10,
+    "analysis_type": "conversation_length_and_complexity"
+  },
+  "complexity_analyses": {
+    "additional_specialized": {
+      "total_conversations": 1000,
+      "length_distribution": {
+        "very_short": 1000,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 1000,
+        "moderate": 0,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 115.443,
+        "avg_words_per_turn": 57.7215,
+        "avg_vocabulary_diversity": 0.0,
+        "avg_sentence_complexity": 0.0,
+        "avg_dialogue_depth": 0.10000000000000002,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.025000000000000005
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.0,
+        "words_complexity": 1.2547249988529214e-16,
+        "vocabulary_complexity": 0.0,
+        "length_words": 0.0
+      },
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Simple conversations with basic vocabulary and structure",
+        "Limited vocabulary diversity - repetitive language patterns",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Limited vocabulary diversity - expand language variety in conversations",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "cot_reasoning": {
+      "total_conversations": 1000,
+      "length_distribution": {
+        "very_short": 1000,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 1000,
+        "moderate": 0,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 533.391,
+        "avg_words_per_turn": 266.6955,
+        "avg_vocabulary_diversity": 0.0,
+        "avg_sentence_complexity": 0.0,
+        "avg_dialogue_depth": 0.10000000000000002,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.025000000000000005
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.0,
+        "words_complexity": -2.0832670070596482e-16,
+        "vocabulary_complexity": 0.0,
+        "length_words": 0.0
+      },
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Simple conversations with basic vocabulary and structure",
+        "Limited vocabulary diversity - repetitive language patterns",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Limited vocabulary diversity - expand language variety in conversations",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "priority_1": {
+      "total_conversations": 1000,
+      "length_distribution": {
+        "very_short": 1000,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 1000,
+        "moderate": 0,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 232.755,
+        "avg_words_per_turn": 116.3775,
+        "avg_vocabulary_diversity": 0.0,
+        "avg_sentence_complexity": 0.0,
+        "avg_dialogue_depth": 0.10000000000000002,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.025000000000000005
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.0,
+        "words_complexity": 8.299612044911681e-17,
+        "vocabulary_complexity": 0.0,
+        "length_words": 0.0
+      },
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Simple conversations with basic vocabulary and structure",
+        "Limited vocabulary diversity - repetitive language patterns",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Limited vocabulary diversity - expand language variety in conversations",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "priority_2": {
+      "total_conversations": 320,
+      "length_distribution": {
+        "very_short": 320,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 320,
+        "moderate": 0,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 898.78125,
+        "avg_words_per_turn": 449.390625,
+        "avg_vocabulary_diversity": 0.0,
+        "avg_sentence_complexity": 0.0,
+        "avg_dialogue_depth": 0.09999999999999999,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.024999999999999998
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.0,
+        "words_complexity": 0.0,
+        "vocabulary_complexity": 0.0,
+        "length_words": 0.0
+      },
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Simple conversations with basic vocabulary and structure",
+        "Limited vocabulary diversity - repetitive language patterns",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Limited vocabulary diversity - expand language variety in conversations",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "priority_3": {
+      "total_conversations": 258,
+      "length_distribution": {
+        "very_short": 258,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 258,
+        "moderate": 0,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 576.6124031007752,
+        "avg_words_per_turn": 288.3062015503876,
+        "avg_vocabulary_diversity": 0.0,
+        "avg_sentence_complexity": 0.0,
+        "avg_dialogue_depth": 0.1,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.025
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.0,
+        "words_complexity": 0.0,
+        "vocabulary_complexity": 0.0,
+        "length_words": 0.0
+      },
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Simple conversations with basic vocabulary and structure",
+        "Limited vocabulary diversity - repetitive language patterns",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Limited vocabulary diversity - expand language variety in conversations",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "professional_neuro": {
+      "total_conversations": 1000,
+      "length_distribution": {
+        "very_short": 1000,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 1000,
+        "moderate": 0,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 196.779,
+        "avg_words_per_turn": 98.3895,
+        "avg_vocabulary_diversity": 0.0,
+        "avg_sentence_complexity": 0.0,
+        "avg_dialogue_depth": 0.10000000000000002,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.025000000000000005
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.0,
+        "words_complexity": -7.335797463458471e-17,
+        "vocabulary_complexity": 0.0,
+        "length_words": 0.0
+      },
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Simple conversations with basic vocabulary and structure",
+        "Limited vocabulary diversity - repetitive language patterns",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Limited vocabulary diversity - expand language variety in conversations",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "professional_psychology": {
+      "total_conversations": 1000,
+      "length_distribution": {
+        "very_short": 1000,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 0,
+        "moderate": 1000,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 71.945,
+        "avg_words_per_turn": 35.9725,
+        "avg_vocabulary_diversity": 0.7855844692437828,
+        "avg_sentence_complexity": 0.4696204533429533,
+        "avg_dialogue_depth": 0.10000000000000002,
+        "avg_topic_coherence": 0.08262966314415204,
+        "avg_overall_complexity": 0.3946063867377036
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.0,
+        "words_complexity": -0.1872993035138474,
+        "vocabulary_complexity": 0.20368375180924958,
+        "length_words": 0.0
+      },
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Moderate complexity conversations with balanced characteristics",
+        "Rich vocabulary diversity across conversations",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "professional_soulchat": {
+      "total_conversations": 1000,
+      "length_distribution": {
+        "very_short": 0,
+        "short": 0,
+        "medium": 71,
+        "long": 143,
+        "very_long": 786
+      },
+      "complexity_distribution": {
+        "simple": 1000,
+        "moderate": 0,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 29.866,
+        "avg_word_count": 59.767,
+        "avg_words_per_turn": 2.001096933385672,
+        "avg_vocabulary_diversity": 0.0,
+        "avg_sentence_complexity": 0.0,
+        "avg_dialogue_depth": 0.9272999999999999,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.23182499999999998
+      },
+      "correlation_analysis": {
+        "length_complexity": 0.7616437022081282,
+        "words_complexity": 0.7617669208300701,
+        "vocabulary_complexity": 0.0,
+        "length_words": 0.9996285965601502
+      },
+      "patterns": [
+        "Dataset contains predominantly long conversations",
+        "Simple conversations with basic vocabulary and structure",
+        "Limited vocabulary diversity - repetitive language patterns",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "Many very long conversations - monitor for potential verbosity issues",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Limited vocabulary diversity - expand language variety in conversations",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "test_dataset": {
+      "total_conversations": 1,
+      "length_distribution": {
+        "very_short": 1,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 0,
+        "moderate": 1,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 15.0,
+        "avg_words_per_turn": 7.5,
+        "avg_vocabulary_diversity": 0.9166666666666666,
+        "avg_sentence_complexity": 0.18333333333333332,
+        "avg_dialogue_depth": 0.1,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.3458333333333333
+      },
+      "correlation_analysis": {},
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Moderate complexity conversations with balanced characteristics",
+        "Rich vocabulary diversity across conversations",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    },
+    "test_search": {
+      "total_conversations": 2,
+      "length_distribution": {
+        "very_short": 2,
+        "short": 0,
+        "medium": 0,
+        "long": 0,
+        "very_long": 0
+      },
+      "complexity_distribution": {
+        "simple": 0,
+        "moderate": 2,
+        "complex": 0,
+        "very_complex": 0
+      },
+      "average_metrics": {
+        "avg_turn_count": 2.0,
+        "avg_word_count": 27.5,
+        "avg_words_per_turn": 13.75,
+        "avg_vocabulary_diversity": 0.957427536231884,
+        "avg_sentence_complexity": 0.23888888888888893,
+        "avg_dialogue_depth": 0.1,
+        "avg_topic_coherence": 0.0,
+        "avg_overall_complexity": 0.37195048309178746
+      },
+      "correlation_analysis": {},
+      "patterns": [
+        "Dataset contains predominantly short conversations",
+        "Moderate complexity conversations with balanced characteristics",
+        "Rich vocabulary diversity across conversations",
+        "Weak topic coherence - conversations may lack focus"
+      ],
+      "recommendations": [
+        "High percentage of very short conversations - consider enhancing dialogue depth",
+        "Low overall complexity - consider enriching conversation content and structure",
+        "Improve topic coherence - ensure conversations maintain thematic consistency"
+      ]
+    }
+  },
+  "summary_statistics": {
+    "total_conversations_analyzed": 6581,
+    "datasets_analyzed": 10,
+    "average_complexity_score": 0.14942152031628245,
+    "most_complex_dataset": "professional_psychology",
+    "analysis_completion_rate": 100.0
+  }
+}

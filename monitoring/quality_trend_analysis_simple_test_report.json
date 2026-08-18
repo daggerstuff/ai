@@ -1,0 +1,19 @@
+{
+  "test_suite": "Quality Trend Analysis System (Simple)",
+  "task": "5.6.2.2",
+  "timestamp": "2025-08-07T13:37:31.350296",
+  "results": {
+    "total_tests": 5,
+    "passed_tests": 1,
+    "failed_tests": 4,
+    "test_details": [
+      "\u274c QualityTrendAnalyzer Import: FAILED - No module named 'matplotlib'",
+      "\u274c QualityTrendReporter Import: FAILED - No module named 'matplotlib'",
+      "\u2705 Launcher File: PASSED",
+      "\u274c Required Methods: FAILED - No module named 'matplotlib'",
+      "\u274c Reporter Methods: FAILED - No module named 'matplotlib'"
+    ]
+  },
+  "success_rate": 20.0,
+  "status": "FAILED"
+}

@@ -1,0 +1,122 @@
+{
+  "session": {
+    "session_id": "session_95f35995",
+    "current_phase": "discovery",
+    "start_time": "2026-08-15T04:51:10.935381",
+    "last_updated": "2026-08-15T04:51:10.935382",
+    "progress_metrics": {
+      "sources_identified": 0,
+      "datasets_evaluated": 0,
+      "access_established": 0,
+      "datasets_acquired": 1,
+      "integration_plans_created": 0
+    },
+    "weekly_targets": {},
+    "logs": [],
+    "start_date": "2026-08-15T04:51:10.935384+00:00",
+    "target_sources": [],
+    "search_keywords": {}
+  },
+  "state": {
+    "sources": [
+      {
+        "source_id": "test-001",
+        "title": "Therapeutic Conversation Dataset for Mental Health",
+        "url": "https://example.com/dataset",
+        "source_type": "journal",
+        "authors": [
+          "Smith, J.",
+          "Doe, A."
+        ],
+        "publication_date": "2024-01-01T00:00:00",
+        "data_availability": "available",
+        "metadata": {},
+        "doi": "10.1000/test",
+        "abstract": "A comprehensive dataset of therapy session transcripts for training AI models in mental health counseling.",
+        "keywords": [
+          "therapy",
+          "counseling",
+          "mental health",
+          "transcripts"
+        ],
+        "open_access": true,
+        "discovery_date": "2026-08-15T04:51:10.935064+00:00",
+        "discovery_method": "pubmed_search"
+      }
+    ],
+    "evaluations": [],
+    "access_requests": [
+      {
+        "source_id": "test",
+        "access_method": "direct",
+        "status": "pending",
+        "notes": "",
+        "request_date": "2026-08-15T04:51:10.934956",
+        "access_url": null,
+        "credentials_required": false,
+        "institutional_affiliation_required": false,
+        "estimated_access_date": null
+      }
+    ],
+    "acquired_datasets": [
+      {
+        "source_id": "test",
+        "storage_path": "/tmp/test.zip",
+        "acquisition_date": "2026-08-15T04:51:10.934994",
+        "file_metadata": {},
+        "file_format": "",
+        "file_size_mb": 0.0,
+        "license": "",
+        "usage_restrictions": [],
+        "attribution_required": false,
+        "checksum": "",
+        "encrypted": false,
+        "compliance_status": "",
+        "compliance_score": 0.0,
+        "hipaa_compliant": false,
+        "privacy_assessed": false
+      }
+    ],
+    "integration_plans": [],
+    "integration_feasibility": {}
+  },
+  "progress": {
+    "sources_identified": 0,
+    "datasets_evaluated": 0,
+    "datasets_acquired": 1,
+    "access_established": 0,
+    "integration_plans_created": 0,
+    "last_updated": "2026-08-15T04:51:10.936480+00:00"
+  },
+  "progress_history": [
+    {
+      "timestamp": "2026-08-15T04:51:10.936480+00:00",
+      "progress": {
+        "sources_identified": 0,
+        "datasets_evaluated": 0,
+        "datasets_acquired": 1,
+        "access_established": 0,
+        "integration_plans_created": 0,
+        "last_updated": "2026-08-15T04:51:10.936480+00:00"
+      },
+      "metrics": {
+        "sources_identified": 0,
+        "datasets_evaluated": 0,
+        "access_established": 0,
+        "datasets_acquired": 1,
+        "integration_plans_created": 0
+      }
+    }
+  ],
+  "activity_logs": [
+    {
+      "activity_type": "session_start",
+      "description": "Research session initialized",
+      "outcome": "started",
+      "timestamp": "2026-08-15T04:51:10.935391+00:00",
+      "source_id": null,
+      "duration_minutes": 0
+    }
+  ],
+  "error_log": []
+}

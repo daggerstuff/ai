@@ -1,0 +1,10 @@
+api_key_required: true
+audit_logging:
+  enabled: true
+  log_file: /home/vivi/pixelated/ai/security/audit.log
+encryption:
+  algorithm: AES-256
+  enabled: true
+rate_limiting:
+  enabled: true
+  requests_per_minute: 1000

@@ -1,0 +1,4 @@
+rules:
+  - id: sqlalchemy-execute-raw-query
+    description: "Detects raw cursor executions that might require parameterization."
+    pattern: "cursor.execute(...)"

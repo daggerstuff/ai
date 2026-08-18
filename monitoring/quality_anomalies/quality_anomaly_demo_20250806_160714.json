@@ -1,0 +1,394 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-06T16:07:14.604132",
+    "report_type": "demo",
+    "detector_version": "1.0.0",
+    "total_anomalies": 12,
+    "total_alerts": 10
+  },
+  "summary_statistics": {
+    "status": "anomalies_detected",
+    "severity_distribution": {
+      "critical": 5,
+      "high": 3,
+      "medium": 2,
+      "low": 2
+    },
+    "metric_distribution": {
+      "content_richness": 3,
+      "dataset_diversity": 3,
+      "conversation_length": 3,
+      "processing_efficiency": 2,
+      "tier_quality": 1
+    },
+    "type_distribution": {
+      "spike": 5,
+      "drop": 3,
+      "outlier": 2,
+      "drift": 2
+    },
+    "average_confidence": 0.7575993303526095,
+    "average_deviation": 19.859825270969772,
+    "critical_alerts": 3,
+    "high_priority_alerts": 6
+  },
+  "anomalies": [
+    {
+      "metric": "content_richness",
+      "timestamp": "2025-08-06T10:07:11.373513",
+      "value": 318.26800144526715,
+      "expected_value": 229.714,
+      "deviation": 88.55400144526715,
+      "severity": "critical",
+      "anomaly_type": "spike",
+      "confidence": 0.9637418860546935,
+      "context": {
+        "baseline_value": 229.714,
+        "z_score": 3.854967544218774,
+        "std_dev": 22.971400000000003,
+        "scenario": "critical_spike"
+      }
+    },
+    {
+      "metric": "dataset_diversity",
+      "timestamp": "2025-08-06T08:07:11.374082",
+      "value": 4.134978044621783,
+      "expected_value": 3.0,
+      "deviation": 1.134978044621783,
+      "severity": "critical",
+      "anomaly_type": "spike",
+      "confidence": 0.9458150371848189,
+      "context": {
+        "baseline_value": 3.0,
+        "z_score": 3.7832601487392754,
+        "std_dev": 0.30000000000000004,
+        "scenario": "critical_spike"
+      }
+    },
+    {
+      "metric": "dataset_diversity",
+      "timestamp": "2025-08-06T07:07:11.374096",
+      "value": 4.073345959030577,
+      "expected_value": 3.0,
+      "deviation": 1.0733459590305774,
+      "severity": "critical",
+      "anomaly_type": "spike",
+      "confidence": 0.8944549658588147,
+      "context": {
+        "baseline_value": 3.0,
+        "z_score": 3.5778198634352587,
+        "std_dev": 0.30000000000000004,
+        "scenario": "critical_spike"
+      }
+    },
+    {
+      "metric": "conversation_length",
+      "timestamp": "2025-08-06T06:07:11.373282",
+      "value": 2.7517250484592624,
+      "expected_value": 2.0,
+      "deviation": 0.7517250484592624,
+      "severity": "critical",
+      "anomaly_type": "spike",
+      "confidence": 0.9396563105740777,
+      "context": {
+        "baseline_value": 2.0,
+        "z_score": 3.758625242296311,
+        "std_dev": 0.2,
+        "scenario": "critical_spike"
+      }
+    },
+    {
+      "metric": "dataset_diversity",
+      "timestamp": "2025-08-05T16:07:11.374103",
+      "value": 4.147054677701147,
+      "expected_value": 3.0,
+      "deviation": 1.1470546777011474,
+      "severity": "critical",
+      "anomaly_type": "spike",
+      "confidence": 0.9558788980842892,
+      "context": {
+        "baseline_value": 3.0,
+        "z_score": 3.8235155923371567,
+        "std_dev": 0.30000000000000004,
+        "scenario": "critical_spike"
+      }
+    },
+    {
+      "metric": "conversation_length",
+      "timestamp": "2025-08-06T05:07:11.373247",
+      "value": 1.4517941211810514,
+      "expected_value": 2.0,
+      "deviation": -0.5482058788189486,
+      "severity": "high",
+      "anomaly_type": "drop",
+      "confidence": 0.6852573485236857,
+      "context": {
+        "baseline_value": 2.0,
+        "z_score": 2.7410293940947428,
+        "std_dev": 0.2,
+        "scenario": "high_drop"
+      }
+    },
+    {
+      "metric": "processing_efficiency",
+      "timestamp": "2025-08-06T03:07:11.373688",
+      "value": 72.75129139612685,
+      "expected_value": 100.0,
+      "deviation": -27.248708603873155,
+      "severity": "high",
+      "anomaly_type": "drop",
+      "confidence": 0.681217715096829,
+      "context": {
+        "baseline_value": 100.0,
+        "z_score": 2.724870860387316,
+        "std_dev": 10.0,
+        "scenario": "high_drop"
+      }
+    },
+    {
+      "metric": "content_richness",
+      "timestamp": "2025-08-05T21:07:11.373545",
+      "value": 170.2313111789001,
+      "expected_value": 229.714,
+      "deviation": -59.482688821099885,
+      "severity": "high",
+      "anomaly_type": "drop",
+      "confidence": 0.6473559384832864,
+      "context": {
+        "baseline_value": 229.714,
+        "z_score": 2.5894237539331457,
+        "std_dev": 22.971400000000003,
+        "scenario": "high_drop"
+      }
+    },
+    {
+      "metric": "content_richness",
+      "timestamp": "2025-08-06T14:07:11.373525",
+      "value": 287.43207777574094,
+      "expected_value": 229.714,
+      "deviation": 57.71807777574094,
+      "severity": "medium",
+      "anomaly_type": "outlier",
+      "confidence": 0.6281515033448218,
+      "context": {
+        "baseline_value": 229.714,
+        "z_score": 2.5126060133792874,
+        "std_dev": 22.971400000000003,
+        "scenario": "medium_outlier"
+      }
+    },
+    {
+      "metric": "conversation_length",
+      "timestamp": "2025-08-05T19:07:11.373292",
+      "value": 2.5591169970244256,
+      "expected_value": 2.0,
+      "deviation": 0.5591169970244256,
+      "severity": "medium",
+      "anomaly_type": "outlier",
+      "confidence": 0.6988962462805319,
+      "context": {
+        "baseline_value": 2.0,
+        "z_score": 2.7955849851221277,
+        "std_dev": 0.2,
+        "scenario": "medium_outlier"
+      }
+    },
+    {
+      "metric": "processing_efficiency",
+      "timestamp": "2025-08-06T15:07:11.373657",
+      "value": 100,
+      "expected_value": 100.0,
+      "deviation": 0.0,
+      "severity": "low",
+      "anomaly_type": "drift",
+      "confidence": 0.514568821079202,
+      "context": {
+        "baseline_value": 100.0,
+        "z_score": 2.058275284316808,
+        "std_dev": 10.0,
+        "scenario": "low_drift"
+      }
+    },
+    {
+      "metric": "tier_quality",
+      "timestamp": "2025-08-06T10:07:11.373894",
+      "value": 100,
+      "expected_value": 99.9,
+      "deviation": 0.09999999999999432,
+      "severity": "low",
+      "anomaly_type": "drift",
+      "confidence": 0.5361972936662648,
+      "context": {
+        "baseline_value": 99.9,
+        "z_score": 2.144789174665059,
+        "std_dev": 9.990000000000002,
+        "scenario": "low_drift"
+      }
+    }
+  ],
+  "alerts": [
+    {
+      "alert_id": "DEMO_20250806_160711_critical_content_richness",
+      "timestamp": "2025-08-06T16:07:11.374376",
+      "severity": "critical",
+      "title": "CRITICAL Quality Anomaly: Content Richness",
+      "message": "DEMO ALERT: Quality anomaly detected in content richness.\n- Severity: CRITICAL\n- Anomalies detected: 1\n- Average deviation: 88.55\n- Detection confidence: 0.96",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udea8 Immediate investigation required",
+        "\ud83d\udcde Notify quality assurance team",
+        "\ud83d\udcda Review content quality guidelines",
+        "\ud83d\udd27 Check word count calculations",
+        "\ud83d\udcc8 Analyze content complexity trends"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_critical_dataset_diversity",
+      "timestamp": "2025-08-06T16:07:11.374436",
+      "severity": "critical",
+      "title": "CRITICAL Quality Anomaly: Dataset Diversity",
+      "message": "DEMO ALERT: Quality anomaly detected in dataset diversity.\n- Severity: CRITICAL\n- Anomalies detected: 3\n- Average deviation: 1.12\n- Detection confidence: 0.93",
+      "anomaly_count": 3,
+      "recommended_actions": [
+        "\ud83d\udea8 Immediate investigation required",
+        "\ud83d\udcde Notify quality assurance team",
+        "\ud83d\udcc1 Check data source availability",
+        "\ud83d\udd04 Review dataset integration status",
+        "\ud83d\udcc8 Validate diversity calculations"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_critical_conversation_length",
+      "timestamp": "2025-08-06T16:07:11.374485",
+      "severity": "critical",
+      "title": "CRITICAL Quality Anomaly: Conversation Length",
+      "message": "DEMO ALERT: Quality anomaly detected in conversation length.\n- Severity: CRITICAL\n- Anomalies detected: 1\n- Average deviation: 0.75\n- Detection confidence: 0.94",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udea8 Immediate investigation required",
+        "\ud83d\udcde Notify quality assurance team",
+        "\ud83d\udd0d Review conversation generation parameters",
+        "\ud83d\udcdd Check conversation templates",
+        "\u2699\ufe0f Validate length calculation logic"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_high_conversation_length",
+      "timestamp": "2025-08-06T16:07:11.374526",
+      "severity": "high",
+      "title": "HIGH Quality Anomaly: Conversation Length",
+      "message": "DEMO ALERT: Quality anomaly detected in conversation length.\n- Severity: HIGH\n- Anomalies detected: 1\n- Average deviation: 0.55\n- Detection confidence: 0.69",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udea8 Immediate investigation required",
+        "\ud83d\udcde Notify quality assurance team",
+        "\ud83d\udd0d Review conversation generation parameters",
+        "\ud83d\udcdd Check conversation templates",
+        "\u2699\ufe0f Validate length calculation logic"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_high_processing_efficiency",
+      "timestamp": "2025-08-06T16:07:11.374569",
+      "severity": "high",
+      "title": "HIGH Quality Anomaly: Processing Efficiency",
+      "message": "DEMO ALERT: Quality anomaly detected in processing efficiency.\n- Severity: HIGH\n- Anomalies detected: 1\n- Average deviation: 27.25\n- Detection confidence: 0.68",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udea8 Immediate investigation required",
+        "\ud83d\udcde Notify quality assurance team",
+        "\ud83d\udda5\ufe0f Check processing pipeline status",
+        "\ud83d\udccb Review error logs",
+        "\u26a1 Validate system resources"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_high_content_richness",
+      "timestamp": "2025-08-06T16:07:11.374603",
+      "severity": "high",
+      "title": "HIGH Quality Anomaly: Content Richness",
+      "message": "DEMO ALERT: Quality anomaly detected in content richness.\n- Severity: HIGH\n- Anomalies detected: 1\n- Average deviation: 59.48\n- Detection confidence: 0.65",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udea8 Immediate investigation required",
+        "\ud83d\udcde Notify quality assurance team",
+        "\ud83d\udcda Review content quality guidelines",
+        "\ud83d\udd27 Check word count calculations",
+        "\ud83d\udcc8 Analyze content complexity trends"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_medium_content_richness",
+      "timestamp": "2025-08-06T16:07:11.374640",
+      "severity": "medium",
+      "title": "MEDIUM Quality Anomaly: Content Richness",
+      "message": "DEMO ALERT: Quality anomaly detected in content richness.\n- Severity: MEDIUM\n- Anomalies detected: 1\n- Average deviation: 57.72\n- Detection confidence: 0.63",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udccb Schedule quality review",
+        "\ud83d\udcca Monitor trend closely",
+        "\ud83d\udcda Review content quality guidelines",
+        "\ud83d\udd27 Check word count calculations",
+        "\ud83d\udcc8 Analyze content complexity trends"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_medium_conversation_length",
+      "timestamp": "2025-08-06T16:07:11.374703",
+      "severity": "medium",
+      "title": "MEDIUM Quality Anomaly: Conversation Length",
+      "message": "DEMO ALERT: Quality anomaly detected in conversation length.\n- Severity: MEDIUM\n- Anomalies detected: 1\n- Average deviation: 0.56\n- Detection confidence: 0.70",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udccb Schedule quality review",
+        "\ud83d\udcca Monitor trend closely",
+        "\ud83d\udd0d Review conversation generation parameters",
+        "\ud83d\udcdd Check conversation templates",
+        "\u2699\ufe0f Validate length calculation logic"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_low_processing_efficiency",
+      "timestamp": "2025-08-06T16:07:11.374748",
+      "severity": "low",
+      "title": "LOW Quality Anomaly: Processing Efficiency",
+      "message": "DEMO ALERT: Quality anomaly detected in processing efficiency.\n- Severity: LOW\n- Anomalies detected: 1\n- Average deviation: 0.00\n- Detection confidence: 0.51",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udccb Schedule quality review",
+        "\ud83d\udcca Monitor trend closely",
+        "\ud83d\udda5\ufe0f Check processing pipeline status",
+        "\ud83d\udccb Review error logs",
+        "\u26a1 Validate system resources"
+      ],
+      "auto_resolved": false
+    },
+    {
+      "alert_id": "DEMO_20250806_160711_low_tier_quality",
+      "timestamp": "2025-08-06T16:07:11.374790",
+      "severity": "low",
+      "title": "LOW Quality Anomaly: Tier Quality",
+      "message": "DEMO ALERT: Quality anomaly detected in tier quality.\n- Severity: LOW\n- Anomalies detected: 1\n- Average deviation: 0.10\n- Detection confidence: 0.54",
+      "anomaly_count": 1,
+      "recommended_actions": [
+        "\ud83d\udccb Schedule quality review",
+        "\ud83d\udcca Monitor trend closely",
+        "\ud83c\udff7\ufe0f Review tier classification logic",
+        "\ud83d\udcca Check data source quality",
+        "\u2705 Validate tier assignment criteria"
+      ],
+      "auto_resolved": false
+    }
+  ],
+  "visualizations": {
+    "dashboard": "monitoring/quality_anomalies/anomaly_detection_demo.png"
+  }
+}

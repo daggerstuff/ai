@@ -1,0 +1,945 @@
+{
+  "description": "Dataset registry (S3-first). S3 is canonical; GDrive/local paths are fallbacks only.",
+  "schema_version": "2.0.0",
+  "last_updated": "2026-04-03T00:00:00Z",
+  "registry_metadata": {
+    "enhancement_version": "v2.0",
+    "enhancements_applied": [
+      "automated_validation",
+      "usage_analytics",
+      "lineage_tracking",
+      "quality_metrics",
+      "sync_verification",
+      "version_control"
+    ]
+  },
+  "canonical_storage": {
+    "type": "s3",
+    "bucket": "pixel-data",
+    "base_uri": "s3://pixel-data",
+    "prefixes": {
+      "training_v1": "training/v1",
+      "knowledge": "knowledge",
+      "archive": "archive",
+      "voice": "training/v1/stage4_persona/voice",
+      "rl": "training/v1/stage5_rl"
+    },
+    "docs": {
+      "s3_structure": "ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md",
+      "s3_usage": "ai/training_ready/docs/S3_USAGE_GUIDE.md"
+    }
+  },
+  "source_staging": {
+    "type": "gdrive",
+    "gdrive_mount": "/mnt/gdrive/datasets",
+    "notes": "Google Drive is source/staging only. Sync to S3 via rclone; training reads from S3.",
+    "sync_configuration": {
+      "sync_method": "rclone",
+      "sync_frequency": "on_demand",
+      "last_sync_check": null,
+      "automated_verification": false
+    }
+  },
+  "total_size_gb": 15,
+  "consolidation_status": "audited_2026-02-03",
+  "registry_statistics": {
+    "total_datasets": 0,
+    "datasets_by_stage": {
+      "stage1_foundation": 0,
+      "stage2_therapeutic_expertise": 0,
+      "stage3_edge_stress_test": 0,
+      "stage4_voice_persona": 0,
+      "stage5_rl_alignment": 0
+    },
+    "datasets_by_quality": {
+      "excellent": 0,
+      "good": 0,
+      "acceptable": 0,
+      "needs_review": 0
+    },
+    "validation_summary": {
+      "validated": 0,
+      "pending_validation": 0,
+      "validation_failed": 0
+    },
+    "sync_summary": {
+      "in_sync": 0,
+      "out_of_sync": 0,
+      "sync_unknown": 0
+    }
+  },
+  "validation_defaults": {
+    "checksum_algorithm": "sha256",
+    "schema_validation_enabled": true,
+    "integrity_check_enabled": true,
+    "quality_scoring_enabled": true,
+    "auto_validation_interval_hours": 24
+  },
+  "quality_thresholds": {
+    "excellent": 90,
+    "good": 75,
+    "acceptable": 60,
+    "needs_review": 0
+  },
+  "canonical_structure": "See ai/training_ready/docs/GDRIVE_STRUCTURE.md (source) and ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md (canonical)",
+  "model_checkpoints": {
+    "wayfarer_balanced_checkpoints": {
+      "path": "s3://pixel-data/training/v1/checkpoints/wayfarer-balanced/",
+      "fallback_paths": {
+        "local": "ai/lightning/pixelated-training/wayfarer-balanced/"
+      },
+      "checkpoints": [
+        "checkpoint-50",
+        "checkpoint-100",
+        "checkpoint-150",
+        "checkpoint-200",
+        "checkpoint-250",
+        "checkpoint-300",
+        "checkpoint-350"
+      ],
+      "files_per_checkpoint": {
+        "adapter_model": "adapter_model.safetensors",
+        "optimizer": "optimizer.pt",
+        "scheduler": "scheduler.pt",
+        "trainer_state": "trainer_state.json",
+        "tokenizer": "tokenizer.json",
+        "tokenizer_config": "tokenizer_config.json",
+        "adapter_config": "adapter_config.json"
+      },
+      "size_mb": 700,
+      "type": "lora_adapter",
+      "focus": "Fine-tuned therapeutic adapter checkpoints at 50-step intervals",
+      "base_model": "meta-llama/Llama-2-7b-hf",
+      "recommended_checkpoint": "checkpoint-100"
+    },
+    "expert_persona_models": {
+      "path": "s3://pixel-data/training/v1/checkpoints/expert_personas/",
+      "fallback_paths": {
+        "local": "ai/data/lightning_h100/"
+      },
+      "variants": ["educational", "empathetic", "practical", "therapeutic"],
+      "size_mb": 650,
+      "type": "expert_data",
+      "focus": "Curated expert-level responses for multi-persona training"
+    },
+    "voice_tts_checkpoints": {
+      "path": "s3://pixel-data/training/v1/stage4_persona/voice/checkpoints/",
+      "fallback_paths": {
+        "local": "datasets/consolidated/voice_data/"
+      },
+      "checkpoints": [
+        "checkpoint_epoch_0.json",
+        "checkpoint_epoch_1.json",
+        "checkpoint_epoch_2.json",
+        "checkpoint_epoch_3.json",
+        "checkpoint_epoch_4.json"
+      ],
+      "type": "voice_checkpoint",
+      "focus": "Voice/TTS training checkpoints for persona voice synthesis"
+    }
+  },
+  "notebooks": {
+    "iemocap_emotion_notebooks": {
+      "path": "s3://pixel-data/knowledge/notebooks/iemocap/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/IEMOCAP_EMOTION_Recognition/"
+      },
+      "files": {
+        "extract_labels": "1_extract_emotion_labels.ipynb",
+        "build_vectors": "2_build_audio_vectors.ipynb",
+        "model": "iemocap_model_1.ipynb"
+      },
+      "type": "research_notebook",
+      "focus": "IEMOCAP emotion recognition pipeline - label extraction, audio vectorization, modeling"
+    },
+    "edge_case_generation": {
+      "path": "s3://pixel-data/knowledge/notebooks/edge_cases/",
+      "fallback_paths": {
+        "local": "datasets/consolidated/edge_cases/"
+      },
+      "files": {
+        "pipeline": "Edge_Case_Generation_Pipeline.ipynb"
+      },
+      "type": "pipeline_notebook",
+      "focus": "Edge case generation pipeline for crisis scenario synthesis"
+    }
+  },
+  "training_configs": {
+    "soulchat_deepspeed_configs": {
+      "path": "s3://pixel-data/knowledge/configs/soulchat_deepspeed/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/SoulChat2.0/train_model/deepspeed/"
+      },
+      "files": {
+        "z0_config": "ds_z0_config.json",
+        "z2_config": "ds_z2_config.json",
+        "z2_offload": "ds_z2_offload_config.json",
+        "z3_config": "ds_z3_config.json",
+        "z3_offload": "ds_z3_offload_config.json"
+      },
+      "type": "training_config",
+      "focus": "DeepSpeed ZeRO-1/2/3 configurations for distributed training"
+    },
+    "soulchat_model_configs": {
+      "path": "s3://pixel-data/knowledge/configs/soulchat_models/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/SoulChat2.0/train_model/"
+      },
+      "files": {
+        "llama3": "llama3_full_sft_ds3.yaml",
+        "llama31": "llama3.1_full_sft_ds3.yaml",
+        "qwen2": "qwen2_full_sft_ds3.yaml",
+        "glm4": "glm4_full_sft_ds3.yaml",
+        "internlm2": "internlm2_full_sft_ds3.yaml",
+        "baichuan2": "baichuan2_full_sft_ds3.yaml",
+        "yi15": "yi1.5_full_sft_ds3.yaml"
+      },
+      "type": "training_config",
+      "focus": "Model-specific SFT training configurations from SoulChat 2.0"
+    },
+    "fsdp_accelerate_config": {
+      "path": "s3://pixel-data/knowledge/configs/fsdp/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/SoulChat2.0/train_model/accelerate/"
+      },
+      "files": {
+        "fsdp_config": "fsdp_config.yaml"
+      },
+      "type": "training_config",
+      "focus": "FSDP configuration for HuggingFace Accelerate"
+    }
+  },
+  "evaluation_scripts": {
+    "reccon_evaluation": {
+      "path": "s3://pixel-data/knowledge/scripts/reccon/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/RECCON/"
+      },
+      "files": {
+        "eval_classification": "eval_classification.py",
+        "eval_qa": "eval_qa.py",
+        "evaluate_squad": "evaluate_squad.py",
+        "train_classification": "train_classification.py",
+        "train_qa": "train_qa.py"
+      },
+      "type": "evaluation_script",
+      "focus": "Emotion cause classification and QA evaluation from RECCON"
+    },
+    "simpletransformers_library": {
+      "path": "s3://pixel-data/knowledge/scripts/simpletransformers/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/RECCON/simpletransformers/"
+      },
+      "modules": [
+        "classification",
+        "ner",
+        "question_answering",
+        "seq2seq",
+        "t5",
+        "conv_ai",
+        "language_modeling"
+      ],
+      "type": "ml_library",
+      "focus": "SimplTransformers library for transformer fine-tuning (classification, NER, QA, seq2seq)"
+    }
+  },
+  "inference_demos": {
+    "soulchat_streamlit_demo": {
+      "path": "s3://pixel-data/knowledge/demos/soulchat/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/SoulChat2.0/infer_demo/"
+      },
+      "files": {
+        "app": "soulchat2.0_app.py",
+        "openai_api": "openai_api_llm.py",
+        "config": "user_config.yaml"
+      },
+      "type": "inference_demo",
+      "focus": "Streamlit psychological counseling demo with OpenAI API integration"
+    },
+    "simpletransformers_streamlit": {
+      "path": "s3://pixel-data/knowledge/demos/simpletransformers/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/RECCON/simpletransformers/streamlit/"
+      },
+      "files": {
+        "classification_view": "classification_view.py",
+        "ner_view": "ner_view.py",
+        "qa_view": "qa_view.py",
+        "simple_view": "simple_view.py"
+      },
+      "type": "inference_demo",
+      "focus": "Streamlit demo views for classification, NER, and QA tasks"
+    }
+  },
+  "research_figures": {
+    "soulchat_research": {
+      "path": "s3://pixel-data/knowledge/research/soulchat/figures/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/SoulChat2.0/figure/"
+      },
+      "files": {
+        "framework": "PsyDT_framework.png",
+        "poster": "PsyDT_poster.png",
+        "counseling_example": "PsyDT_counseling_example1.png",
+        "data_eval": "data_eval_dim.png",
+        "dataset_eval": "dataset_eval.png",
+        "therapy_techniques": "therapy_technique_similarity_result.png",
+        "topic_ratio": "topic_ratio.png"
+      },
+      "type": "research_artifact",
+      "focus": "Research figures from SoulChat 2.0 paper - framework diagrams and evaluation results"
+    }
+  },
+  "datasets": {
+    "cot_reasoning": {
+      "CoT_Clinical_Diagnosis_Mental_Health": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/clinical_diagnosis_mental_health.json",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json"
+        },
+        "size_mb": 20,
+        "type": "chain_of_thought",
+        "focus": "clinical diagnosis reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning",
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "last_validated": null,
+          "validation_status": "pending",
+          "schema_valid": null,
+          "integrity_check": null,
+          "validation_errors": [],
+          "requires_revalidation": true
+        },
+        "usage_analytics": {
+          "last_accessed": null,
+          "access_count": 0,
+          "last_training_job": null,
+          "training_jobs_used_in": []
+        },
+        "quality_metrics": {
+          "quality_score": null,
+          "quality_tier": null,
+          "completeness_score": null,
+          "consistency_score": null,
+          "annotation_quality": null,
+          "data_freshness_days": null,
+          "anomaly_flags": []
+        },
+        "lineage": {
+          "source_datasets": [],
+          "derived_from": null,
+          "transformation_pipeline": null,
+          "preprocessing_steps": [],
+          "version": "1.0.0",
+          "version_history": []
+        },
+        "sync_status": {
+          "gdrive_synced": null,
+          "s3_synced": null,
+          "last_sync_timestamp": null,
+          "sync_discrepancies": [],
+          "sync_verified": false
+        },
+        "task_tracking": {
+          "preparation_task_id": null,
+          "validation_task_id": null,
+          "quality_review_task_id": null,
+          "related_tasks": []
+        },
+        "version_control": {
+          "dataset_version": "1.0.0",
+          "changelog_uri": null,
+          "backward_compatible": true,
+          "deprecated": false,
+          "sunset_date": null
+        },
+        "dashboard": {
+          "display_name": "CoT Clinical Diagnosis Mental Health",
+          "tags": ["reasoning", "clinical", "diagnosis", "mental-health"],
+          "priority": "high",
+          "notes": ""
+        }
+      },
+      "CoT_Heartbreak_and_Breakups": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/heartbreak_and_breakups.json",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json"
+        },
+        "size_mb": 37,
+        "type": "chain_of_thought",
+        "focus": "emotional intelligence, relationship therapy",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning",
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "last_validated": null,
+          "validation_status": "pending",
+          "schema_valid": null,
+          "integrity_check": null,
+          "validation_errors": [],
+          "requires_revalidation": true
+        },
+        "usage_analytics": {
+          "last_accessed": null,
+          "access_count": 0,
+          "last_training_job": null,
+          "training_jobs_used_in": []
+        },
+        "quality_metrics": {
+          "quality_score": null,
+          "quality_tier": null,
+          "completeness_score": null,
+          "consistency_score": null,
+          "annotation_quality": null,
+          "data_freshness_days": null,
+          "anomaly_flags": []
+        },
+        "lineage": {
+          "source_datasets": [],
+          "derived_from": null,
+          "transformation_pipeline": null,
+          "preprocessing_steps": [],
+          "version": "1.0.0",
+          "version_history": []
+        },
+        "sync_status": {
+          "gdrive_synced": null,
+          "s3_synced": null,
+          "last_sync_timestamp": null,
+          "sync_discrepancies": [],
+          "sync_verified": false
+        },
+        "task_tracking": {
+          "preparation_task_id": null,
+          "validation_task_id": null,
+          "quality_review_task_id": null,
+          "related_tasks": []
+        },
+        "version_control": {
+          "dataset_version": "1.0.0",
+          "changelog_uri": null,
+          "backward_compatible": true,
+          "deprecated": false,
+          "sunset_date": null
+        },
+        "dashboard": {
+          "display_name": "CoT Heartbreak and Breakups",
+          "tags": ["reasoning", "emotional-intelligence", "relationships"],
+          "priority": "high",
+          "notes": ""
+        }
+      },
+      "CoT_Neurodivergent_vs_Neurotypical": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/neurodivergent_vs_neurotypical.json",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json"
+        },
+        "size_mb": 53,
+        "type": "chain_of_thought",
+        "focus": "neurodiversity-aware therapeutic approaches",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
+      },
+      "CoT_Mens_Mental_Health": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/mens_mental_health.json",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json"
+        },
+        "size_mb": 17,
+        "type": "chain_of_thought",
+        "focus": "gender-specific therapeutic reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
+      },
+      "CoT_Cultural_Nuances": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/cultural_nuances.json",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/CoT-Reasoning_Cultural_Nuances/CoT-Reasoning_Cultural_Nuances_Dataset.json"
+        },
+        "size_mb": 43,
+        "type": "chain_of_thought",
+        "focus": "culturally-sensitive therapeutic approaches",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
+      },
+      "CoT_Philosophical_Understanding": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/philosophical_understanding.json",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/CoT_Philosophical_Understanding/CoT_Philosophical_Understanding.json"
+        },
+        "size_mb": 33,
+        "type": "chain_of_thought",
+        "focus": "existential, philosophical therapy",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
+      },
+      "CoT_Temporal_Reasoning": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/temporal_reasoning.json",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/CoT_Temporal_Reasoning_Dataset/CoT_Temporal_Reasoning_Dataset.json"
+        },
+        "size_mb": 15,
+        "type": "chain_of_thought",
+        "focus": "time-based therapeutic planning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
+      },
+      "RPSD": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/rpsd.json",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/cot_reasoning/RPSD.json"
+        },
+        "size_mb": 653,
+        "type": "chain_of_thought",
+        "focus": "reasoning and problem solving dataset",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
+      },
+      "cot_reasoning_consolidated": {
+        "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/cot_reasoning_consolidated.jsonl",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/datasets/cot_reasoning_filtered.json"
+        },
+        "type": "chain_of_thought",
+        "focus": "Consolidated CoT reasoning datasets",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
+      }
+    },
+    "professional_therapeutic": {
+      "mental_health_counseling_conversations": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/professional/mental_health_counseling/",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/mental_health_counseling_conversations"
+        },
+        "size_mb": 4.8,
+        "type": "professional",
+        "focus": "licensed therapist responses",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "SoulChat2.0": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/professional/soulchat2.0/",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/SoulChat2.0"
+        },
+        "type": "professional",
+        "focus": "advanced psychological counselor digital twin",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "counsel_chat": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/professional/counsel_chat/",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/counsel-chat"
+        },
+        "type": "professional",
+        "focus": "professional counseling conversation archive",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "LLAMA3_Mental_Counseling": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/professional/llama3_mental_counseling/",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/LLAMA3_Mental_Counseling_Data"
+        },
+        "type": "professional",
+        "focus": "advanced AI counseling conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "therapist_sft": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/professional/therapist_sft/",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/therapist-sft-format"
+        },
+        "size_mb": 406,
+        "type": "professional",
+        "focus": "structured therapist training data",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "neuro_qa_sft": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/professional/neuro_qa_sft/",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/neuro_qa_SFT_Trainer"
+        },
+        "size_mb": 6.1,
+        "type": "professional",
+        "focus": "neurology/psychology Q&A",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "Psych8k": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/professional/psych8k/",
+        "fallback_paths": {
+          "gdrive": "/mnt/gdrive/datasets/Psych8k"
+        },
+        "size_mb": 6.3,
+        "type": "professional",
+        "focus": "Alexander Street professional therapy conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      }
+    },
+    "wendy_curated_sets": {
+      "wendy_set_alpha_therapeutic_core": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/curated/priority_1_FINAL.jsonl",
+        "fallback_paths": {
+          "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
+        },
+        "type": "curated_gold",
+        "tier": 1,
+        "focus": "top-tier curated therapeutic conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation",
+        "status": "active"
+      },
+      "wendy_set_beta_high_quality_core": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/curated/priority_2_FINAL.jsonl",
+        "fallback_paths": {
+          "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
+        },
+        "type": "curated_gold",
+        "tier": 1,
+        "focus": "high-quality mental health conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation",
+        "status": "active"
+      },
+      "wendy_set_gamma_specialized_therapy": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/curated/priority_3_FINAL.jsonl",
+        "fallback_paths": {
+          "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
+        },
+        "type": "curated_gold",
+        "tier": 1,
+        "focus": "specialized therapeutic content",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation",
+        "status": "active"
+      }
+    }
+  },
+  "rlhf_alignment": {
+    "anthropic_hh_rlhf": {
+      "path": "s3://pixel-data/training/v1/stage5_rl/anthropic_hh_rlhf/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/Anthropic_hh-rlhf/"
+      },
+      "size_mb": 325,
+      "type": "rlhf_preference",
+      "focus": "Human preference data for helpful and harmless AI alignment",
+      "stage": "stage5_rl_alignment",
+      "quality_profile": "rlhf",
+      "notes": "Anthropic's foundational RLHF dataset - train (308MB) and test (16MB) splits"
+    }
+  },
+  "emotion_recognition": {
+    "reccon": {
+      "path": "s3://pixel-data/training/v1/stage2_expertise/emotion/reccon/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/RECCON/"
+      },
+      "size_mb": 300,
+      "type": "emotion_cause",
+      "focus": "Emotion cause recognition in conversations with dailydialog and iemocap data",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "emotion_recognition",
+      "notes": "Contains QA and classification subtasks across 3 folds"
+    },
+    "iemocap_emotion": {
+      "path": "s3://pixel-data/training/v1/stage2_expertise/emotion/iemocap/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/IEMOCAP_EMOTION_Recognition/"
+      },
+      "size_mb": 1,
+      "type": "multimodal_emotion",
+      "focus": "Interactive Emotional Dyadic Motion Capture - multimodal emotion recognition",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "emotion_recognition"
+    },
+    "empathy_mental_health": {
+      "path": "s3://pixel-data/training/v1/stage2_expertise/emotion/empathy_mental_health/",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/Empathy-Mental-Health/"
+      },
+      "size_mb": 4.5,
+      "type": "empathy_classification",
+      "focus": "Reddit empathy annotations - emotional reactions, explorations, interpretations",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "emotion_recognition",
+      "notes": "Althoff academic dataset with empathy classification"
+    },
+    "deception_detection": {
+      "path": "s3://pixel-data/training/v1/stage2_expertise/emotion/deception_detection.zip",
+      "fallback_paths": {
+        "local": "ai/data/compress/RealLifeDeceptionDetection.2016.zip"
+      },
+      "size_mb": 249,
+      "type": "deception_detection",
+      "focus": "Real-world deception detection in human interactions",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "emotion_recognition"
+    },
+    "emotional_perspectives": {
+      "path": "s3://pixel-data/training/v1/stage2_expertise/emotion/emotional_perspectives.csv",
+      "fallback_paths": {
+        "gdrive": "datasets/consolidated/datasets/Emotional_perspectives.csv"
+      },
+      "size_mb": 15,
+      "type": "perspective_taking",
+      "focus": "Emotional perspective-taking and theory of mind",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "emotion_recognition"
+    }
+  },
+  "advanced_reasoning": {
+    "tot_rpsd_v2": {
+      "path": "s3://pixel-data/training/v1/stage2_expertise/reasoning/tot_rpsd_v2.json",
+      "fallback_paths": {
+        "gdrive": "datasets/gdrive/raw/ToT_Reasoning_Problem_Solving_Dataset_V2/ToT-RPSD-V2.json"
+      },
+      "size_mb": 240,
+      "type": "tree_of_thought",
+      "focus": "Tree-of-Thought reasoning for complex problem solving",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "advanced_reasoning"
+    }
+  },
+  "embeddings": {
+    "glove_840b_300d": {
+      "path": "s3://pixel-data/knowledge/embeddings/glove.840B.300d.zip",
+      "fallback_paths": {
+        "local": "ai/data/compress/glove.840B.300d.zip"
+      },
+      "size_mb": 2100,
+      "type": "word_embeddings",
+      "focus": "GloVe 840B word embeddings (300d) for semantic similarity",
+      "stage": "infrastructure",
+      "quality_profile": "embedding"
+    }
+  },
+  "edge_case_sources": {
+    "edge_case_generator": {
+      "path": "s3://pixel-data/training/v1/stage3_stress_test/processed/synthetic.jsonl",
+      "fallback_paths": {
+        "local": "/home/vivi/pixelated/ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl"
+      },
+      "type": "synthetic_edge",
+      "focus": "crisis-level therapeutic breakdowns",
+      "stage": "stage3_edge_stress_test",
+      "quality_profile": "edge_crisis",
+      "notes": "Retain intense content; only drop when PII detected"
+    },
+    "scenario_prompt_library": {
+      "path": "s3://pixel-data/training/v1/stage3_stress_test/raw/prompt_corpus/scenario_bank.jsonl",
+      "fallback_paths": {
+        "local": "/home/vivi/pixelated/ai/dataset_pipeline/prompt_corpus"
+      },
+      "type": "prompt_seed",
+      "focus": "edge scenario prompt bank",
+      "stage": "stage3_edge_stress_test",
+      "quality_profile": "edge_prompt"
+    },
+    "reddit_archives": {
+      "path": "s3://pixel-data/training/v1/stage3_stress_test/raw/reddit/",
+      "fallback_paths": {
+        "gdrive": "/mnt/gdrive/datasets/reddit"
+      },
+      "type": "raw_forum",
+      "focus": "Reddit anxiety/depression/suicide watch dumps",
+      "stage": "stage3_edge_stress_test",
+      "quality_profile": "edge_raw"
+    },
+    "safety_dpo_pairs": {
+      "path": "s3://pixel-data/training/v1/stage3_stress_test/processed/reddit_synthetic.json",
+      "fallback_paths": {
+        "local": "/home/vivi/pixelated/ai/dataset_pipeline/quality/output/safety_dpo_pairs.jsonl"
+      },
+      "type": "dpo_pairs",
+      "focus": "DPO pairs from unsafe conversations to teach recovery behaviors",
+      "stage": "stage3_edge_stress_test",
+      "quality_profile": "edge_dpo"
+    },
+    "reddit_mental_health": {
+      "mental_disorders_reddit": {
+        "path": "s3://pixel-data/training/v1/stage3_stress_test/raw/reddit/mental_disorders_reddit.csv",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/reddit/mental_disorders_reddit.csv"
+        },
+        "type": "raw_forum",
+        "focus": "mental disorders Reddit compilation",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
+      },
+      "suicide_detection": {
+        "path": "s3://pixel-data/training/v1/stage3_stress_test/raw/reddit/Suicide_Detection.csv",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/reddit/Suicide_Detection.csv"
+        },
+        "type": "raw_forum",
+        "focus": "suicide detection training data (raw)",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis"
+      }
+    },
+    "reddit_phase_4_corpus": {
+      "condition_specific": {
+        "path": "s3://pixel-data/training/v1/stage3_stress_test/reddit_phase_4/condition_specific.jsonl",
+        "fallback_paths": {
+          "gdrive": "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/"
+        },
+        "size_mb": 1950,
+        "type": "reddit_mental_health",
+        "focus": "Condition-labeled mental health posts",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
+      },
+      "crisis_detection": {
+        "path": "s3://pixel-data/training/v1/stage3_stress_test/reddit_phase_4/crisis_detection.jsonl",
+        "fallback_paths": {
+          "gdrive": "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/"
+        },
+        "size_mb": 668,
+        "type": "reddit_mental_health",
+        "focus": "Crisis signal detection and intervention patterns",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis"
+      },
+      "temporal_analysis": {
+        "path": "s3://pixel-data/training/v1/stage3_stress_test/reddit_phase_4/temporal_analysis.jsonl",
+        "fallback_paths": {
+          "gdrive": "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/"
+        },
+        "size_mb": 4200,
+        "type": "reddit_mental_health",
+        "focus": "Time-series mental health progression patterns",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
+      },
+      "control_groups": {
+        "path": "s3://pixel-data/training/v1/stage3_stress_test/reddit_phase_4/control_groups.jsonl",
+        "fallback_paths": {
+          "gdrive": "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_32_control_groups/"
+        },
+        "size_mb": 1260,
+        "type": "reddit_mental_health",
+        "focus": "Baseline control group conversations",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
+      }
+    }
+  },
+  "voice_persona": {
+    "tim_fletcher_transcripts": {
+      "path": "s3://pixel-data/knowledge/transcripts/Tim Fletcher/",
+      "fallback_paths": {
+        "local": "/home/vivi/pixelated/ai/training_data_consolidated/transcripts"
+      },
+      "type": "transcript_corpus",
+      "focus": "Tim Fletcher complex trauma teaching videos",
+      "stage": "stage4_voice_persona",
+      "quality_profile": "voice"
+    },
+    "tim_fletcher_voice_profile": {
+      "path": "s3://pixel-data/training/v1/stage4_persona/voice/tim_fletcher_voice_profile.json",
+      "fallback_paths": {
+        "local": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json"
+      },
+      "type": "voice_profile",
+      "focus": "Voice/style embedding metadata",
+      "stage": "stage4_voice_persona",
+      "quality_profile": "voice"
+    },
+    "pixel_voice_pipeline_exports": {
+      "path": "s3://pixel-data/training/v1/stage4_persona/voice/exports/",
+      "fallback_paths": {
+        "local": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/exports"
+      },
+      "type": "synthetic_voice_conversations",
+      "focus": "Persona-constrained dialogue pairs",
+      "stage": "stage4_voice_persona",
+      "quality_profile": "voice"
+    }
+  },
+  "supplementary": {
+    "legacy_compiled_dataset_csv": {
+      "path": "s3://pixel-data/gdrive/processed/misc/compiled_dataset.csv",
+      "fallback_paths": {
+        "local_dir": "~/datasets/consolidated/misc"
+      },
+      "type": "misc",
+      "focus": "legacy compiled dataset CSV (rename pending)",
+      "stage": "stage1_foundation",
+      "quality_profile": "foundation",
+      "status": "pending_s3_rename"
+    },
+    "academic_psychology_books": {
+      "path": "s3://pixel-data/knowledge/books/",
+      "fallback_paths": {
+        "local": "~/datasets/consolidated/academic_psychology_books/"
+      },
+      "type": "knowledge_base",
+      "focus": "academic psychology and therapy books",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "knowledge_base"
+    },
+    "research_instruments": {
+      "path": "s3://pixel-data/training/v1/stage1_foundation/research_instruments/",
+      "fallback_paths": {
+        "local": "~/datasets/consolidated/research_instruments/"
+      },
+      "type": "knowledge_base",
+      "focus": "validated psychological assessment tools (PHQ-9, GAD-7, etc.)",
+      "stage": "stage1_foundation",
+      "quality_profile": "foundation"
+    }
+  },
+  "training_strategy": {
+    "stage_1_foundation": {
+      "datasets": ["professional_therapeutic", "wendy_curated_sets", "research_instruments"],
+      "purpose": "Natural therapeutic dialogue patterns",
+      "recommended_epochs": "2-3"
+    },
+    "stage_2_therapeutic_expertise": {
+      "datasets": [
+        "cot_reasoning",
+        "advanced_reasoning",
+        "emotion_recognition",
+        "academic_psychology_books"
+      ],
+      "purpose": "Clinical reasoning patterns + emotional intelligence",
+      "recommended_epochs": "1-2",
+      "note": "Teaches HOW to think clinically and recognize emotions"
+    },
+    "stage_3_edge_stress_test": {
+      "datasets": ["edge_case_sources", "reddit_phase_4_corpus"],
+      "purpose": "Nightmare-fuel crisis rehearsal, Reddit realism, temporal patterns",
+      "recommended_epochs": "1",
+      "note": "Lenient safety; retain crisis intensity, only strip PII. Includes 12GB Reddit Phase 4 corpus"
+    },
+    "stage_4_voice_persona": {
+      "datasets": ["voice_persona"],
+      "purpose": "Tim Fletcher teaching style/personality",
+      "recommended_epochs": "1-2",
+      "status": "Transcripts available; synthetic expansion in progress"
+    },
+    "stage_5_rl_alignment": {
+      "datasets": ["rlhf_alignment"],
+      "purpose": "RLHF alignment using Anthropic hh-rlhf human preference data",
+      "recommended_epochs": "1",
+      "note": "Final stage - DPO/RLHF for helpful and harmless alignment"
+    }
+  },
+  "usage_notes": {
+    "s3_is_canonical": "S3 (s3://pixel-data/) is the training mecca - all training scripts should read from S3",
+    "gdrive_is_source": "Google Drive is source/staging area that syncs to S3 via rclone",
+    "no_local_copy_needed": "All datasets should be accessible via S3 - local copies are cache only",
+    "s3_structure": "See ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md for canonical S3 organization"
+  }
+}

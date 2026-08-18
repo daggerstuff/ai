@@ -1,0 +1,612 @@
+{
+  "agent_id": "Dr. A",
+  "model": "nvidia/nemotron-3-nano-30b-a3b",
+  "role": "primary_annotator",
+  "total_tasks": 50,
+  "avg_processing_time": 3.3029894495010375,
+  "avg_confidence": 0.996,
+  "guardrail_pass_rate": 1.0,
+  "metrics": [
+    {
+      "task_id": "real_00000",
+      "agent_id": "Dr. A",
+      "processing_time": 4.591112375259399,
+      "token_count": 1171,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses chronic distress and frustration about noisy neighbors, feeling trapped and unhea..."
+      ]
+    },
+    {
+      "task_id": "real_00001",
+      "agent_id": "Dr. A",
+      "processing_time": 2.68900465965271,
+      "token_count": 1053,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses grief and prolonged searching for a lost pet, indicating moderate-to-high sadness..."
+      ]
+    },
+    {
+      "task_id": "real_00002",
+      "agent_id": "Dr. A",
+      "processing_time": 5.4249045848846436,
+      "token_count": 1005,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Joy (intensity: 7)",
+        "Clinical notes: The conversation centers on a mother\u2019s positive relationship with her daughter, expressing love, pri..."
+      ]
+    },
+    {
+      "task_id": "real_00003",
+      "agent_id": "Dr. A",
+      "processing_time": 2.252061128616333,
+      "token_count": 859,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 5)",
+        "Clinical notes: The user expresses financial stress related to a missed student loan payment, showing mild to modera..."
+      ]
+    },
+    {
+      "task_id": "real_00004",
+      "agent_id": "Dr. A",
+      "processing_time": 2.6634891033172607,
+      "token_count": 1068,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 4)",
+        "Clinical notes: The user expresses mild upset about a pet incident, showing sadness but no crisis indicators. Assist..."
+      ]
+    },
+    {
+      "task_id": "real_00005",
+      "agent_id": "Dr. A",
+      "processing_time": 3.4211599826812744,
+      "token_count": 1053,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user discusses guilt and sadness over stealing a gift card, expressing fear of the other person'..."
+      ]
+    },
+    {
+      "task_id": "real_00006",
+      "agent_id": "Dr. A",
+      "processing_time": 2.7426939010620117,
+      "token_count": 941,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 4)",
+        "Clinical notes: The user describes a minor store incident that caused discomfort and transient feelings of unsafety,..."
+      ]
+    },
+    {
+      "task_id": "real_00007",
+      "agent_id": "Dr. A",
+      "processing_time": 3.9064857959747314,
+      "token_count": 1016,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Anger (intensity: 7)",
+        "Clinical notes: The user expresses frustration and feeling undervalued at work, with no suicidal ideation, self-harm..."
+      ]
+    },
+    {
+      "task_id": "real_00008",
+      "agent_id": "Dr. A",
+      "processing_time": 2.4213430881500244,
+      "token_count": 1023,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Fear (intensity: 5)",
+        "Clinical notes: The user expresses concern about project direction and communication challenges, indicating anxiety ..."
+      ]
+    },
+    {
+      "task_id": "real_00009",
+      "agent_id": "Dr. A",
+      "processing_time": 4.607564449310303,
+      "token_count": 1584,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Joy (intensity: 7)",
+        "Clinical notes: The user describes a mildly disappointing experience that transitions to positive self\u2011efficacy and ..."
+      ]
+    },
+    {
+      "task_id": "real_00010",
+      "agent_id": "Dr. A",
+      "processing_time": 1.8260555267333984,
+      "token_count": 896,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses mild distress about back-to-school shopping and spousal disagreement, with no sui..."
+      ]
+    },
+    {
+      "task_id": "real_00011",
+      "agent_id": "Dr. A",
+      "processing_time": 5.545512914657593,
+      "token_count": 1160,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user recounts a traumatic robbery and expresses fear, helplessness, and sadness but does not con..."
+      ]
+    },
+    {
+      "task_id": "real_00012",
+      "agent_id": "Dr. A",
+      "processing_time": 4.095632076263428,
+      "token_count": 1389,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: User expresses chronic stress, anxiety, and feelings of emptiness related to societal expectations a..."
+      ]
+    },
+    {
+      "task_id": "real_00013",
+      "agent_id": "Dr. A",
+      "processing_time": 3.2752819061279297,
+      "token_count": 845,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: User expresses guilt and mild distress about lying to work and feeling ill, with concerns about pets..."
+      ]
+    },
+    {
+      "task_id": "real_00014",
+      "agent_id": "Dr. A",
+      "processing_time": 3.5201656818389893,
+      "token_count": 906,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses mild distress about a friend's engagement and pregnancy, with underlying sadness...."
+      ]
+    },
+    {
+      "task_id": "real_00015",
+      "agent_id": "Dr. A",
+      "processing_time": 6.35507345199585,
+      "token_count": 1050,
+      "confidence_score": 0.8,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Detected crisis level 1 with confidence 4",
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: User expressed hopelessness ('cannot see any kind of light at the end of the tunnel') and marital st..."
+      ]
+    },
+    {
+      "task_id": "real_00016",
+      "agent_id": "Dr. A",
+      "processing_time": 2.1847801208496094,
+      "token_count": 1254,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 5)",
+        "Clinical notes: The user expresses frustration and sadness about home heating issues, with no suicidal ideation, sel..."
+      ]
+    },
+    {
+      "task_id": "real_00017",
+      "agent_id": "Dr. A",
+      "processing_time": 3.709285020828247,
+      "token_count": 989,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses grief over the loss of a pet dog and references a past loss of a spouse, indicati..."
+      ]
+    },
+    {
+      "task_id": "real_00018",
+      "agent_id": "Dr. A",
+      "processing_time": 2.457261323928833,
+      "token_count": 1334,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses loneliness and mild distress about lacking friends in the dorm, but there are no ..."
+      ]
+    },
+    {
+      "task_id": "real_00019",
+      "agent_id": "Dr. A",
+      "processing_time": 3.501467704772949,
+      "token_count": 811,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses disappointment and sadness about their daughter not turning in homework, showing ..."
+      ]
+    },
+    {
+      "task_id": "real_00020",
+      "agent_id": "Dr. A",
+      "processing_time": 2.437201976776123,
+      "token_count": 1167,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses worry, guilt, and sadness about parents' financial struggles and feels limited in..."
+      ]
+    },
+    {
+      "task_id": "real_00021",
+      "agent_id": "Dr. A",
+      "processing_time": 1.8423709869384766,
+      "token_count": 1239,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user exhibits mild to moderate distress, confusion, and nervousness about a recent bad blind dat..."
+      ]
+    },
+    {
+      "task_id": "real_00022",
+      "agent_id": "Dr. A",
+      "processing_time": 2.661893367767334,
+      "token_count": 924,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Anger (intensity: 7)",
+        "Clinical notes: The user expresses frustration and anger about having to repeat themselves, with moderate-to-high in..."
+      ]
+    },
+    {
+      "task_id": "real_00023",
+      "agent_id": "Dr. A",
+      "processing_time": 2.1494760513305664,
+      "token_count": 841,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Anticipation (intensity: 6)",
+        "Clinical notes: The user expresses desire for a luxury car and discusses financing plans, showing hopeful anticipati..."
+      ]
+    },
+    {
+      "task_id": "real_00024",
+      "agent_id": "Dr. A",
+      "processing_time": 2.3310606479644775,
+      "token_count": 874,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Joy (intensity: 6)",
+        "Clinical notes: The exchange revolves around routine car maintenance with no indication of suicidal ideation, self-h..."
+      ]
+    },
+    {
+      "task_id": "real_00025",
+      "agent_id": "Dr. A",
+      "processing_time": 2.703411102294922,
+      "token_count": 962,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 5)",
+        "Clinical notes: The user expresses disappointment about receiving the wrong shirt size and a sense of loss regarding..."
+      ]
+    },
+    {
+      "task_id": "real_00026",
+      "agent_id": "Dr. A",
+      "processing_time": 3.03831148147583,
+      "token_count": 1009,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses profound grief over the loss of a beloved dog, describing vivid memories and a se..."
+      ]
+    },
+    {
+      "task_id": "real_00027",
+      "agent_id": "Dr. A",
+      "processing_time": 3.2731778621673584,
+      "token_count": 1089,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: User expresses loneliness and social isolation, indicating mild depressive affect but no suicidal id..."
+      ]
+    },
+    {
+      "task_id": "real_00028",
+      "agent_id": "Dr. A",
+      "processing_time": 4.111560583114624,
+      "token_count": 1020,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Fear (intensity: 7)",
+        "Clinical notes: The user expresses significant worry about traffic safety and a vivid fear of severe injury, but the..."
+      ]
+    },
+    {
+      "task_id": "real_00029",
+      "agent_id": "Dr. A",
+      "processing_time": 3.1752429008483887,
+      "token_count": 1082,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Anger (intensity: 6)",
+        "Clinical notes: The user describes repeated frustrations with neighbors over garbage disposal, expressing annoyance ..."
+      ]
+    },
+    {
+      "task_id": "real_00030",
+      "agent_id": "Dr. A",
+      "processing_time": 4.197480201721191,
+      "token_count": 1132,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user shares a distressing narrative about feeling lost and being perceived as \"crazy\" by family,..."
+      ]
+    },
+    {
+      "task_id": "real_00031",
+      "agent_id": "Dr. A",
+      "processing_time": 2.905585289001465,
+      "token_count": 826,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Fear (intensity: 6)",
+        "Clinical notes: User expresses anxiety about an upcoming physics test, indicating mild distress but no suicidal idea..."
+      ]
+    },
+    {
+      "task_id": "real_00032",
+      "agent_id": "Dr. A",
+      "processing_time": 2.0083200931549072,
+      "token_count": 1039,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 4)",
+        "Clinical notes: The user expresses mild disappointment about not obtaining a gift for their daughter, indicating low..."
+      ]
+    },
+    {
+      "task_id": "real_00033",
+      "agent_id": "Dr. A",
+      "processing_time": 3.5411605834960938,
+      "token_count": 1086,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: User expresses anger, guilt, and frustration concerning family conflict but shows no suicidal ideati..."
+      ]
+    },
+    {
+      "task_id": "real_00034",
+      "agent_id": "Dr. A",
+      "processing_time": 2.2240545749664307,
+      "token_count": 951,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses mild distress about a friend's move, showing sadness and some anxiety about hones..."
+      ]
+    },
+    {
+      "task_id": "real_00035",
+      "agent_id": "Dr. A",
+      "processing_time": 2.9378745555877686,
+      "token_count": 900,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 5)",
+        "Clinical notes: The user expresses mild frustration and sadness about a boring landlord but shows no suicidal ideati..."
+      ]
+    },
+    {
+      "task_id": "real_00036",
+      "agent_id": "Dr. A",
+      "processing_time": 3.108508348464966,
+      "token_count": 1170,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses disappointment and sadness about a pizza order, focusing on fairness and social i..."
+      ]
+    },
+    {
+      "task_id": "real_00037",
+      "agent_id": "Dr. A",
+      "processing_time": 3.0126700401306152,
+      "token_count": 1841,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses sadness and guilt related to the anniversary of their sister's death, feeling iso..."
+      ]
+    },
+    {
+      "task_id": "real_00038",
+      "agent_id": "Dr. A",
+      "processing_time": 2.8894245624542236,
+      "token_count": 1009,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Joy (intensity: 6)",
+        "Clinical notes: The conversation contains no crisis indicators; the user expresses excitement and mild anticipation ..."
+      ]
+    },
+    {
+      "task_id": "real_00039",
+      "agent_id": "Dr. A",
+      "processing_time": 3.174065589904785,
+      "token_count": 1158,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user describes a stressful car tire situation, expresses financial strain and hopelessness about..."
+      ]
+    },
+    {
+      "task_id": "real_00040",
+      "agent_id": "Dr. A",
+      "processing_time": 4.2005720138549805,
+      "token_count": 960,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: User expresses grief and unresolved anger toward deceased grandfather, describing private resentment..."
+      ]
+    },
+    {
+      "task_id": "real_00041",
+      "agent_id": "Dr. A",
+      "processing_time": 3.2745559215545654,
+      "token_count": 1300,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses relational distress, guilt, and fear of losing their partner, but there is no ind..."
+      ]
+    },
+    {
+      "task_id": "real_00042",
+      "agent_id": "Dr. A",
+      "processing_time": 2.045262336730957,
+      "token_count": 931,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses loneliness and uncertainty about future happiness, indicating mild distress but n..."
+      ]
+    },
+    {
+      "task_id": "real_00043",
+      "agent_id": "Dr. A",
+      "processing_time": 3.5962119102478027,
+      "token_count": 1449,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Fear (intensity: 7)",
+        "Clinical notes: The user describes a frightening encounter with unknown young men but does not express suicidal idea..."
+      ]
+    },
+    {
+      "task_id": "real_00044",
+      "agent_id": "Dr. A",
+      "processing_time": 3.4062273502349854,
+      "token_count": 1098,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses frustration and a desire to go home, indicating mild sadness but no suicidal idea..."
+      ]
+    },
+    {
+      "task_id": "real_00045",
+      "agent_id": "Dr. A",
+      "processing_time": 8.468213319778442,
+      "token_count": 1620,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user recounts childhood fear, bullying, and witnessing sexual abuse of minors by a neighbor, but..."
+      ]
+    },
+    {
+      "task_id": "real_00046",
+      "agent_id": "Dr. A",
+      "processing_time": 2.859750747680664,
+      "token_count": 893,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 6)",
+        "Clinical notes: The user expresses disappointment and sadness about missing a friend's birthday and feeling like a l..."
+      ]
+    },
+    {
+      "task_id": "real_00047",
+      "agent_id": "Dr. A",
+      "processing_time": 2.135291337966919,
+      "token_count": 1129,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 4)",
+        "Clinical notes: The dialogue centers on gift-giving expectations and mild frustration; there are no indications of s..."
+      ]
+    },
+    {
+      "task_id": "real_00048",
+      "agent_id": "Dr. A",
+      "processing_time": 3.189176321029663,
+      "token_count": 1209,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses grief over the loss of a six-week-old puppy, describing shock, sadness, and reluc..."
+      ]
+    },
+    {
+      "task_id": "real_00049",
+      "agent_id": "Dr. A",
+      "processing_time": 3.061025619506836,
+      "token_count": 1420,
+      "confidence_score": 1.0,
+      "guardrail_checks": {},
+      "reasoning_steps": [
+        "Identified primary emotion: Sadness (intensity: 7)",
+        "Clinical notes: The user expresses concern and love for their dog, frustration about the escape, and worry about pot..."
+      ]
+    }
+  ]
+}

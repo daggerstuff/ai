@@ -1,0 +1,18 @@
+dependencies:
+- name: traefik
+  repository: https://traefik.github.io/charts
+  version: 39.0.6
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 12.1.9
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 17.3.7
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 15.18.0
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 6.50.7
+digest: sha256:45a2f660b2f7b89846dda4826e7c5dbed4f2f69e73f3d543850f716bab3a9d06
+generated: "2026-03-30T01:54:59.100097627Z"

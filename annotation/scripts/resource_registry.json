@@ -1,0 +1,101 @@
+{
+  "agents": {
+    "crisis_expert": {
+      "name": "Dr. A - Crisis Expert",
+      "system_prompt": "You are a conservative clinical psychologist specializing in crisis intervention.",
+      "temperature": 0.1,
+      "model": "nvidia/nemotron-3-nano-30b-a3b",
+      "capabilities": [
+        "crisis_detection",
+        "safety_assessment",
+        "risk_evaluation"
+      ]
+    },
+    "emotion_analyst": {
+      "name": "Dr. B - Emotion Analyst",
+      "system_prompt": "You are a pragmatic research psychologist specializing in emotion analysis.",
+      "temperature": 0.2,
+      "model": "nvidia/nemotron-3-nano-30b-a3b",
+      "capabilities": [
+        "emotion_analysis",
+        "empathy_measurement",
+        "mood_tracking"
+      ]
+    },
+    "quality_assurance": {
+      "name": "Dr. C - QA Specialist",
+      "system_prompt": "You are a meticulous clinical supervisor and data quality specialist.",
+      "temperature": 0.0,
+      "model": "nvidia/nemotron-3-nano-30b-a3b",
+      "capabilities": [
+        "quality_review",
+        "consistency_check",
+        "standard_enforcement"
+      ]
+    }
+  },
+  "skills": {
+    "crisis_detection": {
+      "name": "Crisis Detection",
+      "focus_areas": [
+        "self-harm",
+        "suicide",
+        "hopelessness",
+        "isolation"
+      ],
+      "risk_indicators": [
+        "direct_threats",
+        "passive_wishes",
+        "access_to_means"
+      ],
+      "confidence_threshold": 0.8
+    },
+    "emotion_analysis": {
+      "name": "Emotion Analysis",
+      "primary_emotions": [
+        "Joy",
+        "Trust",
+        "Fear",
+        "Surprise",
+        "Sadness",
+        "Disgust",
+        "Anger",
+        "Anticipation",
+        "Calm",
+        "Neutral"
+      ],
+      "measurement_scales": [
+        "intensity",
+        "valence",
+        "arousal"
+      ],
+      "confidence_threshold": 0.7
+    }
+  },
+  "rules": {
+    "safety_first": {
+      "name": "Safety First Principle",
+      "constraint": "Never compromise patient safety in annotations",
+      "priority": "highest",
+      "enforcement_level": "mandatory"
+    },
+    "privacy_protection": {
+      "name": "Privacy Protection Rule",
+      "constraint": "Never expose PII/PHI in outputs",
+      "priority": "high",
+      "enforcement_level": "mandatory"
+    }
+  },
+  "directions": {
+    "conservative_crisis": {
+      "name": "Conservative Crisis Approach",
+      "guidance": "Prioritize safety, err on the side of caution",
+      "risk_tolerance": "low"
+    },
+    "balanced_analysis": {
+      "name": "Balanced Analysis Approach",
+      "guidance": "Apply evidence-based analysis with clinical sensitivity",
+      "risk_tolerance": "medium"
+    }
+  }
+}

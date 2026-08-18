@@ -1,0 +1,100 @@
+{
+  "session": {
+    "session_id": "session_db2fde5a",
+    "current_phase": "discovery",
+    "start_time": "2026-08-15T04:48:29.251135",
+    "last_updated": "2026-08-15T04:48:29.251136",
+    "progress_metrics": {
+      "sources_identified": 0,
+      "datasets_evaluated": 0,
+      "access_established": 0,
+      "datasets_acquired": 0,
+      "integration_plans_created": 1
+    },
+    "weekly_targets": {},
+    "logs": [],
+    "start_date": "2026-08-15T04:48:29.251138+00:00",
+    "target_sources": [],
+    "search_keywords": {}
+  },
+  "state": {
+    "sources": [],
+    "evaluations": [],
+    "access_requests": [],
+    "acquired_datasets": [
+      {
+        "source_id": "test-001",
+        "storage_path": "/tmp/pytest-of-vivi/pytest-6/test_integrate_command0/test_dataset.zip",
+        "acquisition_date": "2026-08-15T04:48:29.250825+00:00",
+        "file_metadata": {},
+        "file_format": "zip",
+        "file_size_mb": 0.001,
+        "license": "CC-BY",
+        "usage_restrictions": [],
+        "attribution_required": false,
+        "checksum": "abc123def456",
+        "encrypted": false,
+        "compliance_status": "compliant",
+        "compliance_score": 0.95,
+        "hipaa_compliant": true,
+        "privacy_assessed": true
+      }
+    ],
+    "integration_plans": [
+      {
+        "source_id": "test",
+        "dataset_format": "csv",
+        "complexity": "medium",
+        "transformations": [],
+        "estimated_records": 0,
+        "schema_mapping": {},
+        "required_transformations": [],
+        "preprocessing_steps": [],
+        "estimated_effort_hours": 0.0,
+        "dependencies": [],
+        "integration_priority": 0,
+        "created_date": null
+      }
+    ],
+    "integration_feasibility": {}
+  },
+  "progress": {
+    "sources_identified": 0,
+    "datasets_evaluated": 0,
+    "datasets_acquired": 0,
+    "access_established": 0,
+    "integration_plans_created": 1,
+    "last_updated": "2026-08-15T04:48:29.252266+00:00"
+  },
+  "progress_history": [
+    {
+      "timestamp": "2026-08-15T04:48:29.252266+00:00",
+      "progress": {
+        "sources_identified": 0,
+        "datasets_evaluated": 0,
+        "datasets_acquired": 0,
+        "access_established": 0,
+        "integration_plans_created": 1,
+        "last_updated": "2026-08-15T04:48:29.252266+00:00"
+      },
+      "metrics": {
+        "sources_identified": 0,
+        "datasets_evaluated": 0,
+        "access_established": 0,
+        "datasets_acquired": 0,
+        "integration_plans_created": 1
+      }
+    }
+  ],
+  "activity_logs": [
+    {
+      "activity_type": "session_start",
+      "description": "Research session initialized",
+      "outcome": "started",
+      "timestamp": "2026-08-15T04:48:29.251148+00:00",
+      "source_id": null,
+      "duration_minutes": 0
+    }
+  ],
+  "error_log": []
+}

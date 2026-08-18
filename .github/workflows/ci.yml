@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [staging, main, develop]
+  pull_request:
+    branches: [staging, main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv sync --frozen
+
+      - name: Run unit tests
+        run: |
+          uv run pytest tests/ -v --cov=. --cov-report=lcov
+
+      - name: Prepare coverage report
+        run: |
+          mkdir -p coverage
+          mv coverage.lcov coverage/lcov.info

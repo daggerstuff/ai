@@ -1,0 +1,5 @@
+app:
+  name: Pixelated Empathy AI
+  version: 1.0.0
+database:
+  url: postgresql://localhost:5432/test

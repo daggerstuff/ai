@@ -1,0 +1,55 @@
+{
+  "model": {
+    "base_model": "OpenPipe/Qwen3-14B-Instruct",
+    "model_type": "qwen",
+    "load_in_4bit": true,
+    "load_in_8bit": false,
+    "torch_dtype": "bfloat16"
+  },
+  "training": {
+    "output_dir": "./checkpoints/pixelated-sft-warmup",
+    "num_train_epochs": 1,
+    "per_device_train_batch_size": 2,
+    "per_device_eval_batch_size": 2,
+    "gradient_accumulation_steps": 8,
+    "learning_rate": 5e-6,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "lr_scheduler_type": "cosine",
+    "logging_steps": 10,
+    "evaluation_strategy": "steps",
+    "eval_steps": 100,
+    "save_steps": 250,
+    "save_total_limit": 3,
+    "load_best_model_at_end": true,
+    "metric_for_best_model": "eval_loss",
+    "greater_is_better": false,
+    "report_to": "wandb",
+    "run_name": "pixelated_sft_warmup"
+  },
+  "lora": {
+    "r": 16,
+    "lora_alpha": 16,
+    "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    "lora_dropout": 0.1,
+    "bias": "none",
+    "task_type": "CAUSAL_LM"
+  },
+  "data": {
+    "train_file": "/home/vivi/dataset/RL_training_dataset.jsonl",
+    "validation_file": "/home/vivi/dataset/RL_training_dataset.jsonl",
+    "max_seq_length": 2048,
+    "preprocessing_num_workers": 4
+  },
+  "system": {
+    "dataloader_num_workers": 4,
+    "dataloader_pin_memory": true,
+    "fp16": false,
+    "bf16": true,
+    "gradient_checkpointing": true,
+    "remove_unused_columns": false
+  },
+  "notes": {
+    "purpose": "SFT warmup pass prior to RL training"
+  }
+}

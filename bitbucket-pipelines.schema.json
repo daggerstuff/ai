@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://pixelated.local/schemas/bitbucket-pipelines-relaxed",
+  "title": "Bitbucket Pipelines (relaxed IDE schema)",
+  "description": "Official api.bitbucket.org schema uses a root $ref that yaml-language-server often cannot resolve; this permissive schema silences that tooling bug. Bitbucket validates the real config when the pipeline runs.",
+  "type": "object",
+  "additionalProperties": true
+}
