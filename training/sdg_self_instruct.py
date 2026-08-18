@@ -9,12 +9,10 @@ Blueprint ref: docs/training-pipeline-blueprint-2026-08-10.md §B.5.1
 from __future__ import annotations
 
 import json
-import random
 from pathlib import Path
 from typing import Any
 
-from training.stage1_filters import run_stage1_on_record, NearDuplicateIndex, FilterVerdict
-from training.provenance import build_provenance, ALLOWED_LICENSES
+from training.stage1_filters import FilterVerdict, NearDuplicateIndex, run_stage1_on_record
 
 # ---------------------------------------------------------------------------
 # Expansion parameters

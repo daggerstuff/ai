@@ -11,7 +11,6 @@ from ai.pkg_mera.platform.deep_rare.clinical_safety import (
     ClinicalSafetyGate,
     RedFlagDetector,
     SafetyLevel,
-    SafetyViolation,
 )
 from ai.pkg_mera.platform.deep_rare.schema import (
     Evidence,

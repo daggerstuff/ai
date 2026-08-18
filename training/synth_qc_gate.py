@@ -13,7 +13,6 @@ Usage: import synth_qc_gate from this module; call gate_synthetic_record().
 """
 from __future__ import annotations
 
-import math
 from typing import Any
 
 SYNTH_QC_THRESH = {

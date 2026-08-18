@@ -16,7 +16,6 @@ from __future__ import annotations
 import csv
 import subprocess
 from collections import defaultdict
-from pathlib import Path
 from typing import Any
 
 from ai.sourcing.dataset_adapters.adapter_factory import register_adapter

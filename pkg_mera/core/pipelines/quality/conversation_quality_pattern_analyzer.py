@@ -248,7 +248,7 @@ class SessionClassification:
     def ratio(self) -> dict[InquiryType, float]:
         """Counts as a ratio in [0, 1]. UNKNOWN is excluded from the denominator."""
         if self.total == 0:
-            return {t: 0.0 for t in InquiryType}
+            return dict.fromkeys(InquiryType, 0.0)
         return {
             t: (self.distribution.get(t, 0) / self.total)
             for t in InquiryType
@@ -891,6 +891,15 @@ def _expand_with_synonyms(terms: set[str]) -> set[str]:
             morph_variants.add(term + "ed")
         if not term.endswith("ing"):
             morph_variants.add(term + "ing")
+        # Strip -ing to recover base form: concentrating -> concentrate
+        if term.endswith("ing") and len(term) > 5:
+            base = term[:-3]
+            morph_variants.add(base)
+            morph_variants.add(base + "e")
+        # Strip -ed to recover base form: worried -> worry
+        if term.endswith("ed") and len(term) > 4:
+            morph_variants.add(term[:-2])
+            morph_variants.add(term[:-2] + "e")
     expanded.update(morph_variants)
     return expanded
 
@@ -1405,6 +1414,56 @@ class HallucinationDetector:
                     ),
                     evidence=diag,
                     expected="Diagnoses from profile's diagnoses list",
+                ))
+
+        # ------------------------------------------------------------------
+        # Overall term-overlap and novel-entity enforcement
+        # ------------------------------------------------------------------
+        _STOP_WORDS = {
+            "i", "am", "is", "are", "was", "were", "be", "been", "being",
+            "the", "a", "an", "and", "or", "of", "to", "in", "on", "at",
+            "for", "with", "by", "this", "that", "it", "its", "as", "if",
+            "no", "not", "my", "me", "we", "they", "he", "she", "you",
+            "have", "has", "had", "do", "does", "did", "so", "but",
+        }
+        meaningful_response_words = {
+            w for w in response_words
+            if w not in _STOP_WORDS and len(w) > 2
+        }
+        if len(meaningful_response_words) >= 5:
+            overlap_words = meaningful_response_words & self._all_terms
+            overlap_ratio = len(overlap_words) / len(meaningful_response_words)
+            if overlap_ratio < self._SCOPE_MIN_OVERLAP:
+                findings.append(HallucinationFinding(
+                    detection_type="scope_compliance",
+                    severity=HallucinationSeverity.MEDIUM,
+                    description=(
+                        f"Response has low term overlap with case data "
+                        f"({overlap_ratio:.0%} < {self._SCOPE_MIN_OVERLAP:.0%} "
+                        f"threshold), suggesting potential hallucination."
+                    ),
+                    evidence=response[:100],
+                    expected=(
+                        f"At least {self._SCOPE_MIN_OVERLAP:.0%} of response "
+                        f"terms should appear in the CCD profile"
+                    ),
+                ))
+            novel_entities = meaningful_response_words - self._all_terms
+            if len(novel_entities) > self._SCOPE_MAX_NOVEL_ENTITIES:
+                findings.append(HallucinationFinding(
+                    detection_type="scope_compliance",
+                    severity=HallucinationSeverity.MEDIUM,
+                    description=(
+                        f"Response introduces {len(novel_entities)} novel "
+                        f"entities not in case data (max "
+                        f"{self._SCOPE_MAX_NOVEL_ENTITIES} allowed): "
+                        f"{', '.join(sorted(novel_entities)[:10])}."
+                    ),
+                    evidence=", ".join(sorted(novel_entities)[:10]),
+                    expected=(
+                        f"At most {self._SCOPE_MAX_NOVEL_ENTITIES} novel "
+                        f"entities outside the CCD profile"
+                    ),
                 ))
 
         return findings

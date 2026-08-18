@@ -297,10 +297,13 @@ class EvidenceAccumulator:
         path = Path(report_path)
         with open(path) as f:
             report = json.load(f)
-        return self._parse_feedback_report(report)
+        return self.ingest_feedback_dict(report)
 
     def ingest_feedback_dict(self, report: dict[str, Any]) -> list[EvidencePoint]:
-        return self._parse_feedback_report(report)
+        points = self._parse_feedback_report(report)
+        for point in points:
+            self.record_evidence(point)
+        return points
 
     def _parse_feedback_report(self, report: dict[str, Any]) -> list[EvidencePoint]:
         evidence_points: list[EvidencePoint] = []

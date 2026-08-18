@@ -17,7 +17,6 @@ import re
 from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("dedup_normalize")
 
@@ -37,7 +36,7 @@ class ProcessingContext:
     seen_hashes: set[str]
     edge_case_hashes: set[str]
     token_sets: list[tuple[frozenset[str], str]]
-    lsh_index: Optional["_MinHashIndex"] = None  # None = Jaccard window mode
+    lsh_index: _MinHashIndex | None = None  # None = Jaccard window mode
 
 
 @dataclasses.dataclass
@@ -76,7 +75,7 @@ def _hash_token_perm(token: str, perm_idx: int, seed: int = 42) -> int:
     cached = _HASH_PERM_CACHE.get(key)
     if cached is not None:
         return cached
-    h = hashlib.sha256(f"{seed + perm_idx}:{token}".encode("utf-8")).digest()
+    h = hashlib.sha256(f"{seed + perm_idx}:{token}".encode()).digest()
     val = int.from_bytes(h[:8], "little")
     _HASH_PERM_CACHE[key] = val
     return val

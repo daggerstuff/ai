@@ -5,7 +5,7 @@ This module provides request and response models for report generation.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -23,7 +23,7 @@ class ReportGenerateRequest(BaseModel):
         default="json",
         description="Report format: json, markdown, pdf",
     )
-    date_range: Optional[Dict[str, str]] = Field(
+    date_range: dict[str, str] | None = Field(
         default=None,
         description="Date range for report (start_date, end_date) as ISO strings",
     )
@@ -37,8 +37,8 @@ class ReportResponse(BaseModel):
     report_type: str
     format: str
     generated_date: datetime
-    content: Optional[Any] = None
-    file_path: Optional[str] = None
+    content: Any | None = None
+    file_path: str | None = None
 
     @field_serializer("generated_date")
     def serialize_datetime(self, value: datetime) -> str:

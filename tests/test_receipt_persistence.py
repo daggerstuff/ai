@@ -208,7 +208,6 @@ def test_postgres_store_requires_driver(monkeypatch):
 
 
 def test_get_persistent_ledger_defaults_to_sqlite(monkeypatch, tmp_path):
-    import ai.receipts.persistence as persistence
 
     monkeypatch.setenv("RECEIPT_LEDGER_DB_PATH", str(tmp_path / "ledger.db"))
     monkeypatch.delenv("RECEIPT_LEDGER_POSTGRES_URL", raising=False)

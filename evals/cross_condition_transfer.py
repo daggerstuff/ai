@@ -14,16 +14,15 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
-from typing import Any
 
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score
 
 from memory.hierarchical_contrastive_learning import (
     HCLConfig,
+    HCLTrainer,
     HierarchicalConceptDataset,
     HierarchicalContrastiveLearner,
-    HCLTrainer,
 )
 from memory.therapeutic_concept_hierarchy import TherapeuticConceptHierarchy
 

@@ -7,15 +7,14 @@ import pytest
 from pydantic import ValidationError
 
 from ai.pkg_mera.platform.deep_rare.schema import (
-    DifferentialDiagnosis,
-    DiseaseProfile,
     DiagnosisResult,
-    Evidence,
+    DifferentialDiagnosis,
     EvaluationMetrics,
+    Evidence,
     Hypothesis,
     PatientCase,
-    RareDiseaseState,
     RankedDiagnosis,
+    RareDiseaseState,
     SymptomProfile,
     TestResult,
 )

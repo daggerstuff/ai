@@ -5,7 +5,6 @@ This module provides request and response models for dataset evaluation.
 """
 
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -15,7 +14,7 @@ from ai.sourcing.journal.api.models.common import PaginatedResponse
 class EvaluationInitiateRequest(BaseModel):
     """Request model for initiating evaluation."""
 
-    source_ids: Optional[List[str]] = Field(
+    source_ids: list[str] | None = Field(
         default=None,
         description="Source IDs to evaluate (all sources if not provided)",
     )
@@ -24,19 +23,19 @@ class EvaluationInitiateRequest(BaseModel):
 class EvaluationUpdateRequest(BaseModel):
     """Request model for updating evaluation scores."""
 
-    therapeutic_relevance: Optional[int] = Field(
+    therapeutic_relevance: int | None = Field(
         default=None, ge=1, le=10, description="Therapeutic relevance score (1-10)"
     )
-    data_structure_quality: Optional[int] = Field(
+    data_structure_quality: int | None = Field(
         default=None, ge=1, le=10, description="Data structure quality score (1-10)"
     )
-    training_integration: Optional[int] = Field(
+    training_integration: int | None = Field(
         default=None, ge=1, le=10, description="Training integration score (1-10)"
     )
-    ethical_accessibility: Optional[int] = Field(
+    ethical_accessibility: int | None = Field(
         default=None, ge=1, le=10, description="Ethical accessibility score (1-10)"
     )
-    priority_tier: Optional[str] = Field(
+    priority_tier: str | None = Field(
         default=None,
         description="Priority tier: high, medium, low",
     )

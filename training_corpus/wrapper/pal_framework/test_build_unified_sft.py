@@ -9,13 +9,11 @@ and CLI ``main`` exit codes.
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
-import pytest
-
 import build_unified_sft as bus
+import pytest
 
 VALID_SYSTEM = "You are a clinical persona classifier."
 VALID_USER = "Dialogue:\nhi\n\nCandidate personas:\n1. A\n\nWhich persona (1-1) best matches this dialogue? Respond with only the number."

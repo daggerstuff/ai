@@ -11,18 +11,18 @@ Provides:
 
 from __future__ import annotations
 
-from collections import deque
-
 import hashlib
 import json
 import logging
 import os
 import random
 import time
+from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from utils.torch_proxy import torch
 

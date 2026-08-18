@@ -10,7 +10,7 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -817,7 +817,7 @@ class IntegrationPlanningEngine:
             estimated_effort_hours=estimated_hours,
             dependencies=dependencies,
             integration_priority=0,  # Can be set based on evaluation scores
-            created_date=datetime.now(timezone.utc),
+            created_date=datetime.now(UTC),
         )
 
         logger.info(f"Integration plan created: {complexity} complexity, {estimated_hours}h effort")

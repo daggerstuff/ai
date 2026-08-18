@@ -15,10 +15,10 @@ from __future__ import annotations
 
 import json
 import logging
-import math
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 from scipy import stats

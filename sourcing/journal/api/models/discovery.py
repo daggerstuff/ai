@@ -5,7 +5,6 @@ This module provides request and response models for source discovery.
 """
 
 from datetime import datetime
-from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -15,11 +14,11 @@ from ai.sourcing.journal.api.models.common import PaginatedResponse
 class DiscoveryInitiateRequest(BaseModel):
     """Request model for initiating discovery."""
 
-    keywords: List[str] = Field(
+    keywords: list[str] = Field(
         default_factory=list,
         description="Search keywords for discovery",
     )
-    sources: List[str] = Field(
+    sources: list[str] = Field(
         default=["pubmed", "doaj"],
         description="Target sources for discovery",
     )
@@ -30,13 +29,13 @@ class SourceResponse(BaseModel):
 
     source_id: str
     title: str
-    authors: List[str]
+    authors: list[str]
     publication_date: datetime
     source_type: str
     url: str
-    doi: Optional[str] = None
+    doi: str | None = None
     abstract: str = ""
-    keywords: List[str] = []
+    keywords: list[str] = []
     open_access: bool = False
     data_availability: str = "unknown"
     discovery_date: datetime
@@ -72,7 +71,7 @@ class DiscoveryResponse(BaseModel):
     """Response model for discovery operation."""
 
     session_id: str
-    sources: List[SourceResponse]
+    sources: list[SourceResponse]
     total_sources: int
     discovery_status: str = "completed"
 
