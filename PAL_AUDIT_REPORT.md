@@ -38,6 +38,11 @@
 
 Tracker: PIX-4224. ✅ Documented and confirmed intact.
 
+> **Risk acknowledgment:** With safety filtering disabled, DPO preference pairs are not
+> screened for crisis content, harmful advice, or clinical contraindications before training.
+> Mitigation relies on pre-filtering at the SFT generation stage (Phase 2) and post-training
+> evaluation via the crisis intervention detector. Do not re-enable until PIX-4224 is resolved.
+
 ### Phase 4 — Inference Wrapper ✅
 
 - **`inference_wrapper.py` (255 LOC)** — Two-stage Select-then-Generate per PIX-4077. `select_persona(dialogue)` builds selection messages via `build_selection_messages` (drops assistant turn at inference), calls `selector_client(messages)`, parses 1-indexed option via `_parse_selection_index` (accepts '3', '3.', '3. text'; raises `SelectionParseError`). `generate_response(persona_string, dialogue_history)` builds ChatML [system, user], calls `generator_client`, checks JSON leakage via `_has_json_leakage` (flags `{`, `}`, `"`, `'` — stricter than DPO gen, matches inference contract). `infer(dialogue)` runs both stages, sums latencies, raises `LatencyExceededError` if > `latency_budget_seconds` (default 2.0s per PIX-4077 A100 AC). `PalInferenceWrapper.__post_init__` validates non-empty `candidate_personas` + positive latency budget. Dataclasses: `PalSelectionResult`, `PalGenerationResult`, `PalInferenceResult` (all carry `latency_seconds`). ✅ matches plan §4 exactly.

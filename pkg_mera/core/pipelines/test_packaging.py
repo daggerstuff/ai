@@ -129,12 +129,7 @@ class TestDatasetPackager:
         assert bundle.data_path.exists()
         assert bundle.metrics_path.exists()
         assert bundle.readiness_path.exists()
-        assert (
-            Path(temp_output_dir)
-            / "stage1_foundation"
-            / bundle.manifest.package_id
-            / "manifest.json"
-        ).exists()
+        assert (Path(temp_output_dir) / "stage1_foundation" / bundle.manifest.package_id / "manifest.json").exists()
 
     def test_promotion_token_only_when_ready(self, temp_output_dir, sample_records, gate_audit):
         """Promotion token only created when all gates pass."""

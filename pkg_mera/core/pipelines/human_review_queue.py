@@ -1448,7 +1448,6 @@ def main() -> None:
         if format_type == "prometheus":
             pass
         else:
-
             exporter.export_json()
 
     elif args.command == "alerts":
@@ -1466,7 +1465,6 @@ def main() -> None:
         if not alerts:
             pass
         else:
-
             for alert in alerts:
                 alert.get("severity", "unknown").upper()
 

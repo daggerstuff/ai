@@ -546,71 +546,74 @@ class ReprioritizationEngine:
         actionable = self.accumulator.get_actionable_patterns()
         all_accumulations = self.accumulator.get_all_accumulations()
 
-        new_items: list[BacklogItem] = []
-        reprioritized: list[BacklogItem] = []
-        unchanged: list[BacklogItem] = []
-        priority_changes: list[PriorityChange] = []
+        with self._lock:
+            new_items: list[BacklogItem] = []
+            reprioritized: list[BacklogItem] = []
+            unchanged: list[BacklogItem] = []
+            priority_changes: list[PriorityChange] = []
 
-        for accumulation in actionable:
-            latest_point = accumulation.evidence_points[-1]
-            score, tier = self.calculator.calculate_priority(
-                evidence_weight=accumulation.total_weight,
-                severity=latest_point.severity,
-                frequency=latest_point.frequency,
-                domain=latest_point.domain,
-            )
-            intervention_type = self.calculator.calculate_intervention_type(
-                domain=latest_point.domain,
-                pattern_type=latest_point.pattern_type,
-                severity=latest_point.severity,
-            )
-            item_id = _generate_item_id(accumulation.pattern_id, latest_point.domain)
-            title = _generate_title(latest_point, accumulation)
-            description = _generate_description(latest_point, accumulation)
-            validation_criteria = _generate_validation_criteria(latest_point, intervention_type)
-
-            existing = self._backlog.get(item_id)
-            if existing:
-                if not self._should_reprioritize(existing, tier, score):
-                    unchanged.append(existing)
-                    continue
-
-                change = PriorityChange(
-                    item_id=item_id,
-                    domain=existing.domain,
-                    previous_tier=existing.priority_tier,
-                    new_tier=tier,
-                    previous_score=existing.priority_score,
-                    new_score=score,
-                    reason=_generate_change_reason(existing, tier, score, accumulation),
-                    evidence_pattern_ids=[accumulation.pattern_id],
-                )
-                priority_changes.append(change)
-                existing.previous_priority_tier = existing.priority_tier
-                existing.priority_tier = tier
-                existing.priority_score = score
-                existing.reason_for_change = change.reason
-                existing.evidence_pattern_ids = list({*existing.evidence_pattern_ids, accumulation.pattern_id})
-                reprioritized.append(existing)
-            else:
-                new_item = BacklogItem(
-                    item_id=item_id,
+            for accumulation in actionable:
+                latest_point = accumulation.evidence_points[-1]
+                score, tier = self.calculator.calculate_priority(
+                    evidence_weight=accumulation.total_weight,
+                    severity=latest_point.severity,
+                    frequency=latest_point.frequency,
                     domain=latest_point.domain,
-                    intervention_type=intervention_type,
-                    title=title,
-                    description=description,
-                    priority_tier=tier,
-                    priority_score=score,
-                    evidence_pattern_ids=[accumulation.pattern_id],
-                    root_cause_hypothesis=latest_point.root_cause_hypothesis,
-                    validation_criteria=validation_criteria,
                 )
-                self._backlog[item_id] = new_item
-                new_items.append(new_item)
+                intervention_type = self.calculator.calculate_intervention_type(
+                    domain=latest_point.domain,
+                    pattern_type=latest_point.pattern_type,
+                    severity=latest_point.severity,
+                )
+                item_id = _generate_item_id(accumulation.pattern_id, latest_point.domain)
+                title = _generate_title(latest_point, accumulation)
+                description = _generate_description(latest_point, accumulation)
+                validation_criteria = _generate_validation_criteria(latest_point, intervention_type)
 
-        for item_id, item in self._backlog.items():
-            if item not in reprioritized and item not in new_items:
-                unchanged.append(item)
+                existing = self._backlog.get(item_id)
+                if existing:
+                    if not self._should_reprioritize(existing, tier, score):
+                        unchanged.append(existing)
+                        continue
+
+                    change = PriorityChange(
+                        item_id=item_id,
+                        domain=existing.domain,
+                        previous_tier=existing.priority_tier,
+                        new_tier=tier,
+                        previous_score=existing.priority_score,
+                        new_score=score,
+                        reason=_generate_change_reason(existing, tier, score, accumulation),
+                        evidence_pattern_ids=[accumulation.pattern_id],
+                    )
+                    priority_changes.append(change)
+                    existing.previous_priority_tier = existing.priority_tier
+                    existing.priority_tier = tier
+                    existing.priority_score = score
+                    existing.reason_for_change = change.reason
+                    existing.evidence_pattern_ids = list({*existing.evidence_pattern_ids, accumulation.pattern_id})
+                    reprioritized.append(existing)
+                else:
+                    new_item = BacklogItem(
+                        item_id=item_id,
+                        domain=latest_point.domain,
+                        intervention_type=intervention_type,
+                        title=title,
+                        description=description,
+                        priority_tier=tier,
+                        priority_score=score,
+                        evidence_pattern_ids=[accumulation.pattern_id],
+                        root_cause_hypothesis=latest_point.root_cause_hypothesis,
+                        validation_criteria=validation_criteria,
+                    )
+                    self._backlog[item_id] = new_item
+                    new_items.append(new_item)
+
+            for item_id, item in self._backlog.items():
+                if item not in reprioritized and item not in new_items:
+                    unchanged.append(item)
+
+            self._priority_changes = list(priority_changes)
 
         new_items.sort(key=lambda x: x.priority_score, reverse=True)
         reprioritized.sort(key=lambda x: x.priority_score, reverse=True)

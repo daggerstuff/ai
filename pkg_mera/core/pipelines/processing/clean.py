@@ -171,8 +171,7 @@ def clean_and_deduplicate(
         if required_pii_cols:
             working = redact_pii_in_text_fields(working, required_pii_cols, logger=log)
             log.warning(
-                "Required columns %s match PII patterns; "
-                "applied regex redaction instead of column removal",
+                "Required columns %s match PII patterns; applied regex redaction instead of column removal",
                 sorted(required_pii_cols),
             )
         # Drop non-required PII columns.

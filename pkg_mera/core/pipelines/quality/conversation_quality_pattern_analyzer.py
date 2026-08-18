@@ -249,11 +249,7 @@ class SessionClassification:
         """Counts as a ratio in [0, 1]. UNKNOWN is excluded from the denominator."""
         if self.total == 0:
             return {t: 0.0 for t in InquiryType}
-        return {
-            t: (self.distribution.get(t, 0) / self.total)
-            for t in InquiryType
-            if t != InquiryType.UNKNOWN
-        }
+        return {t: (self.distribution.get(t, 0) / self.total) for t in InquiryType if t != InquiryType.UNKNOWN}
 
 
 # ---------------------------------------------------------------------------
@@ -282,8 +278,7 @@ class InquiryTypeClassifier:
         if not 0.0 <= win_margin <= 1.0:
             raise ValueError("win_margin must be in [0, 1]")
         self._patterns: dict[InquiryType, tuple[re.Pattern[str], ...]] = {
-            t: tuple(re.compile(p) for p in pats)
-            for t, pats in SIGNAL_PATTERNS.items()
+            t: tuple(re.compile(p) for p in pats) for t, pats in SIGNAL_PATTERNS.items()
         }
         self._llm_judge = llm_judge
         self._min_confidence = min_confidence
@@ -323,10 +318,7 @@ class InquiryTypeClassifier:
             raw_scores[itype] = count * weight
 
         # Normalize into [0, 1] via soft-cap at 4 matched signals.
-        scores: dict[InquiryType, float] = {
-            t: min(1.0, s / (4.0 * SIGNAL_WEIGHTS[t]))
-            for t, s in raw_scores.items()
-        }
+        scores: dict[InquiryType, float] = {t: min(1.0, s / (4.0 * SIGNAL_WEIGHTS[t])) for t, s in raw_scores.items()}
 
         # Pick the type with the highest score; break ties using
         # the canonical paper ordering (closed > open > guided > reflective)
@@ -414,11 +406,7 @@ class InquiryTypeClassifier:
         for uc in per_utt:
             distribution[uc.result.inquiry_type] += 1
 
-        total = sum(
-            distribution.get(t, 0)
-            for t in InquiryType
-            if t != InquiryType.UNKNOWN
-        )
+        total = sum(distribution.get(t, 0) for t in InquiryType if t != InquiryType.UNKNOWN)
 
         return SessionClassification(
             conversation_id=conversation.conversation_id,
@@ -449,10 +437,10 @@ class InquiryTypeClassifier:
 # intentionally wide — the bottleneck is computed from the actual
 # distribution, not from these targets.
 RECOMMENDED_RATIOS: Mapping[InquiryType, tuple[float, float]] = {
-    InquiryType.OPEN_ENDED: (0.20, 0.50),     # breadth
-    InquiryType.GUIDED: (0.20, 0.40),         # hypothesis
-    InquiryType.REFLECTIVE: (0.10, 0.30),     # meta-cognition
-    InquiryType.CLOSED_ENDED: (0.10, 0.30),   # verification
+    InquiryType.OPEN_ENDED: (0.20, 0.50),  # breadth
+    InquiryType.GUIDED: (0.20, 0.40),  # hypothesis
+    InquiryType.REFLECTIVE: (0.10, 0.30),  # meta-cognition
+    InquiryType.CLOSED_ENDED: (0.10, 0.30),  # verification
 }
 
 
@@ -489,9 +477,7 @@ def liebig_bottleneck(
         deficit = max(0.0, lo - actual)
         deficits.append((itype, deficit))
 
-    deficits.sort(
-        key=lambda kv: (-kv[1], -ratio.get(kv[0], 0.0))
-    )
+    deficits.sort(key=lambda kv: (-kv[1], -ratio.get(kv[0], 0.0)))
     return deficits[0][0], deficits[0][1]
 
 
@@ -512,11 +498,7 @@ def liebig_quality_score(
     """
     if classification.total == 0:
         return 0.0
-    ratios = [
-        classification.ratio.get(t, 0.0)
-        for t in InquiryType
-        if t != InquiryType.UNKNOWN
-    ]
+    ratios = [classification.ratio.get(t, 0.0) for t in InquiryType if t != InquiryType.UNKNOWN]
     if not ratios:
         return 0.0
     return max(ideal_min, min(ratios))
@@ -652,9 +634,7 @@ class HallucinationReport:
         """
         if not self.findings:
             return 0.0
-        hallucinations = sum(
-            1 for f in self.findings if f.severity.numeric >= 0.5
-        )
+        hallucinations = sum(1 for f in self.findings if f.severity.numeric >= 0.5)
         return hallucinations / len(self.findings)
 
     @property
@@ -676,11 +656,9 @@ class HallucinationReport:
                 }
                 for f in self.findings
             ],
-            "overall_severity": (
-                self.overall_severity.value if self.overall_severity else None
-            ),
+            "overall_severity": (self.overall_severity.value if self.overall_severity else None),
             "hallucination_rate": round(self.hallucination_rate, 4),
-                        "is_hallucinated": self.is_hallucinated,
+            "is_hallucinated": self.is_hallucinated,
         }
 
 
@@ -696,10 +674,27 @@ class HallucinationReport:
 # Each keyword can match the base word and common morphological variants
 # (e.g. "tired" → "fatigue", "anxious" → "anxiety").
 _SYMPTOM_KEYWORDS: tuple[str, ...] = (
-    "sad", "depressed", "anxious", "worry", "empty", "worthless",
-    "guilty", "fatigue", "sleep", "appetite", "concentrat",
-    "hopeless", "irritable", "panic", "avoid", "withdraw",
-    "ruminat", "obsess", "compuls", "flashback", "numb",
+    "sad",
+    "depressed",
+    "anxious",
+    "worry",
+    "empty",
+    "worthless",
+    "guilty",
+    "fatigue",
+    "sleep",
+    "appetite",
+    "concentrat",
+    "hopeless",
+    "irritable",
+    "panic",
+    "avoid",
+    "withdraw",
+    "ruminat",
+    "obsess",
+    "compuls",
+    "flashback",
+    "numb",
 )
 
 # Synonym groups: if the profile contains a word in this group, the
@@ -718,12 +713,10 @@ _SYMPTOM_SYNONYMS: dict[str, set[str]] = {
     "irritable": {"angry", "frustrated", "agitated", "annoyed"},
     "panic": {"panicked", "terrified", "frightened"},
     "avoid": {"avoidance", "evade", "escape"},
-    "withdraw": {"isolated", "isolating", "withdrawn", "withdrawal",
-                 "withdrawing", "withdraws"},
+    "withdraw": {"isolated", "isolating", "withdrawn", "withdrawal", "withdrawing", "withdraws"},
     "flashback": {"flashbacks", "intrusive memory", "intrusive memories"},
     "numb": {"numbness", "detached", "disconnected"},
-    "obsess": {"obsession", "obsessive", "intrusive", "obsessing",
-               "obsessed", "obsesses"},
+    "obsess": {"obsession", "obsessive", "intrusive", "obsessing", "obsessed", "obsesses"},
     "compuls": {"compulsion", "compulsive"},
 }
 
@@ -947,8 +940,16 @@ class HallucinationDetector:
 
     # Number words that the numerical checker recognises.
     _NUMBER_WORDS: dict[str, int] = {
-        "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4,
-        "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
+        "zero": 0,
+        "one": 1,
+        "two": 2,
+        "three": 3,
+        "four": 4,
+        "five": 5,
+        "six": 6,
+        "seven": 7,
+        "eight": 8,
+        "nine": 9,
         "ten": 10,
     }
 
@@ -1002,9 +1003,7 @@ class HallucinationDetector:
 
         findings.extend(self.check_factual_consistency(response))
         if session_history is not None:
-            findings.extend(
-                self.check_temporal_consistency(response, session_history)
-            )
+            findings.extend(self.check_temporal_consistency(response, session_history))
         findings.extend(self.check_numerical_accuracy(response))
         findings.extend(self.check_scope_compliance(response))
 
@@ -1013,9 +1012,7 @@ class HallucinationDetector:
         if report.is_hallucinated:
             logger.warning(
                 "Hallucination detected (severity=%s, rate=%.2f): %s",
-                report.overall_severity.value
-                if report.overall_severity
-                else "unknown",
+                report.overall_severity.value if report.overall_severity else "unknown",
                 report.hallucination_rate,
                 findings[0].description,
             )
@@ -1046,9 +1043,7 @@ class HallucinationDetector:
         session_history: list[str] = []
 
         for therapist_utt, patient_response in turns:
-            report = self.detect(
-                patient_response, session_history=session_history
-            )
+            report = self.detect(patient_response, session_history=session_history)
             reports.append(report.to_dict())
             if report.is_hallucinated:
                 hallucinated_count += 1
@@ -1061,16 +1056,14 @@ class HallucinationDetector:
             "hallucination_rate": round(rate, 4),
             "total_responses": total,
             "hallucinated_count": hallucinated_count,
-                        "reports": reports,
+            "reports": reports,
         }
 
     # ------------------------------------------------------------------
     # Detection methods
     # ------------------------------------------------------------------
 
-    def check_factual_consistency(
-        self, response: str
-    ) -> list[HallucinationFinding]:
+    def check_factual_consistency(self, response: str) -> list[HallucinationFinding]:
         """Verify that factual claims in the response match the case data.
 
         Extracts key noun phrases and symptom/emotion mentions from the
@@ -1088,9 +1081,22 @@ class HallucinationDetector:
         # For each fact, we extract key individual words from the fact
         # and check if they appear with negation in the response.
         negation_words = {
-            "not", "no", "never", "don't", "doesn't", "didn't",
-            "isn't", "wasn't", "aren't", "weren't", "cannot", "can't",
-            "won't", "wouldn't", "shouldn't", "couldn't",
+            "not",
+            "no",
+            "never",
+            "don't",
+            "doesn't",
+            "didn't",
+            "isn't",
+            "wasn't",
+            "aren't",
+            "weren't",
+            "cannot",
+            "can't",
+            "won't",
+            "wouldn't",
+            "shouldn't",
+            "couldn't",
         }
         for fact_set_name, fact_set in self._facts.items():
             if fact_set_name == "diagnoses":
@@ -1099,13 +1105,39 @@ class HallucinationDetector:
                 # Get individual content words from the fact
                 fact_words = set(re.findall(r"[a-z]+", fact.lower()))
                 # Filter out common stop words and short words
-                stop_words = {"i", "am", "is", "are", "was", "were", "be", "been",
-                              "being", "the", "a", "an", "and", "or", "of", "to",
-                              "in", "on", "at", "for", "with", "by", "this", "that",
-                              "it", "its", "as", "if", "no", "not"}
-                meaningful_words = {
-                    w for w in fact_words if w not in stop_words and len(w) > 2
+                stop_words = {
+                    "i",
+                    "am",
+                    "is",
+                    "are",
+                    "was",
+                    "were",
+                    "be",
+                    "been",
+                    "being",
+                    "the",
+                    "a",
+                    "an",
+                    "and",
+                    "or",
+                    "of",
+                    "to",
+                    "in",
+                    "on",
+                    "at",
+                    "for",
+                    "with",
+                    "by",
+                    "this",
+                    "that",
+                    "it",
+                    "its",
+                    "as",
+                    "if",
+                    "no",
+                    "not",
                 }
+                meaningful_words = {w for w in fact_words if w not in stop_words and len(w) > 2}
                 if not meaningful_words:
                     continue
                 # Check each meaningful word for negation
@@ -1117,17 +1149,19 @@ class HallucinationDetector:
                         re.IGNORECASE,
                     )
                     if negation_pattern.search(response):
-                        findings.append(HallucinationFinding(
-                            detection_type="factual_consistency",
-                            severity=HallucinationSeverity.HIGH,
-                            description=(
-                                f"Response negates a profile fact: '{word}' "
-                                f"from '{fact}' is part of the CCD profile "
-                                f"but is negated in the response."
-                            ),
-                            evidence=word,
-                            expected=f"Positive mention of '{word}'",
-                        ))
+                        findings.append(
+                            HallucinationFinding(
+                                detection_type="factual_consistency",
+                                severity=HallucinationSeverity.HIGH,
+                                description=(
+                                    f"Response negates a profile fact: '{word}' "
+                                    f"from '{fact}' is part of the CCD profile "
+                                    f"but is negated in the response."
+                                ),
+                                evidence=word,
+                                expected=f"Positive mention of '{word}'",
+                            )
+                        )
 
         # Check for claims about symptoms NOT in the profile.
         # Use the expanded symptom keywords to handle morphological variants
@@ -1136,16 +1170,18 @@ class HallucinationDetector:
         for word in response_words:
             if word in expanded_symptom_keywords and word not in self._all_terms:
                 # The response mentions a symptom that's not in the case data
-                findings.append(HallucinationFinding(
-                    detection_type="factual_consistency",
-                    severity=HallucinationSeverity.MEDIUM,
-                    description=(
-                        f"Response mentions symptom '{word}' which is not "
-                        f"part of the CCD profile's declared symptoms."
-                    ),
-                    evidence=word,
-                    expected="Symptom from profile's typical_symptoms list",
-                ))
+                findings.append(
+                    HallucinationFinding(
+                        detection_type="factual_consistency",
+                        severity=HallucinationSeverity.MEDIUM,
+                        description=(
+                            f"Response mentions symptom '{word}' which is not "
+                            f"part of the CCD profile's declared symptoms."
+                        ),
+                        evidence=word,
+                        expected="Symptom from profile's typical_symptoms list",
+                    )
+                )
 
         return findings
 
@@ -1180,16 +1216,18 @@ class HallucinationDetector:
         for pattern in retrospective_patterns:
             if re.search(pattern, lowered):
                 if not history_text.strip():
-                    findings.append(HallucinationFinding(
-                        detection_type="temporal_consistency",
-                        severity=HallucinationSeverity.MEDIUM,
-                        description=(
-                            f"Response references prior discussion ('{pattern}') "
-                            f"but session history is empty or lacks context."
-                        ),
-                        evidence=pattern,
-                        expected="Prior session context matching the reference",
-                    ))
+                    findings.append(
+                        HallucinationFinding(
+                            detection_type="temporal_consistency",
+                            severity=HallucinationSeverity.MEDIUM,
+                            description=(
+                                f"Response references prior discussion ('{pattern}') "
+                                f"but session history is empty or lacks context."
+                            ),
+                            evidence=pattern,
+                            expected="Prior session context matching the reference",
+                        )
+                    )
 
         # Check for temporal contradiction patterns
         contradiction_patterns = [
@@ -1200,23 +1238,23 @@ class HallucinationDetector:
         for neg_pattern, pos_pattern in contradiction_patterns:
             if re.search(neg_pattern, lowered):
                 if re.search(pos_pattern, history_text):
-                    findings.append(HallucinationFinding(
-                        detection_type="temporal_consistency",
-                        severity=HallucinationSeverity.HIGH,
-                        description=(
-                            f"Response contradicts session history: claims "
-                            f"'{neg_pattern}' but history contains prior "
-                            f"statement."
-                        ),
-                        evidence=neg_pattern,
-                        expected="Consistent with prior session statements",
-                    ))
+                    findings.append(
+                        HallucinationFinding(
+                            detection_type="temporal_consistency",
+                            severity=HallucinationSeverity.HIGH,
+                            description=(
+                                f"Response contradicts session history: claims "
+                                f"'{neg_pattern}' but history contains prior "
+                                f"statement."
+                            ),
+                            evidence=neg_pattern,
+                            expected="Consistent with prior session statements",
+                        )
+                    )
 
         return findings
 
-    def check_numerical_accuracy(
-        self, response: str
-    ) -> list[HallucinationFinding]:
+    def check_numerical_accuracy(self, response: str) -> list[HallucinationFinding]:
         """Verify that numeric values in the response match the case data.
 
         Checks for:
@@ -1251,17 +1289,19 @@ class HallucinationDetector:
                     if label in fact_key or label in fact_key.replace("_", " "):
                         # Allow tolerance of ±0.15 for floating point
                         if abs(value - fact_value) > 0.15:
-                            findings.append(HallucinationFinding(
-                                detection_type="numerical_accuracy",
-                                severity=HallucinationSeverity.MEDIUM,
-                                description=(
-                                    f"Response states {label}={value} but "
-                                    f"the CCD profile declares "
-                                    f"{fact_key}={fact_value}."
-                                ),
-                                evidence=f"{label}={value}",
-                                expected=f"{fact_key}={fact_value}",
-                            ))
+                            findings.append(
+                                HallucinationFinding(
+                                    detection_type="numerical_accuracy",
+                                    severity=HallucinationSeverity.MEDIUM,
+                                    description=(
+                                        f"Response states {label}={value} but "
+                                        f"the CCD profile declares "
+                                        f"{fact_key}={fact_value}."
+                                    ),
+                                    evidence=f"{label}={value}",
+                                    expected=f"{fact_key}={fact_value}",
+                                )
+                            )
 
         # Check for percentage claims that might be hallucinated
         pct_pattern = re.compile(r"(\d+)%")
@@ -1269,22 +1309,19 @@ class HallucinationDetector:
             pct = int(match.group(1))
             if pct in (50, 75, 90, 95, 100) and "percent" not in lowered:
                 if "accuracy" not in lowered and "rate" not in lowered:
-                    findings.append(HallucinationFinding(
-                        detection_type="numerical_accuracy",
-                        severity=HallucinationSeverity.LOW,
-                        description=(
-                            f"Response claims {pct}% without a corresponding "
-                            f"metric in the CCD profile."
-                        ),
-                        evidence=f"{pct}%",
-                        expected="Percentage backed by profile data",
-                    ))
+                    findings.append(
+                        HallucinationFinding(
+                            detection_type="numerical_accuracy",
+                            severity=HallucinationSeverity.LOW,
+                            description=(f"Response claims {pct}% without a corresponding metric in the CCD profile."),
+                            evidence=f"{pct}%",
+                            expected="Percentage backed by profile data",
+                        )
+                    )
 
         return findings
 
-    def check_scope_compliance(
-        self, response: str
-    ) -> list[HallucinationFinding]:
+    def check_scope_compliance(self, response: str) -> list[HallucinationFinding]:
         """Verify that the response stays within the case's defined scope.
 
         Checks for:
@@ -1295,16 +1332,17 @@ class HallucinationDetector:
         findings: list[HallucinationFinding] = []
         if not self._case_data:
             # Without case data, everything is out of scope
-            findings.append(HallucinationFinding(
-                detection_type="scope_compliance",
-                severity=HallucinationSeverity.CRITICAL,
-                description=(
-                    "No case data provided — all response content is "
-                    "unverifiable and potentially hallucinated."
-                ),
-                evidence=response[:100],
-                expected="CCD profile data for verification",
-            ))
+            findings.append(
+                HallucinationFinding(
+                    detection_type="scope_compliance",
+                    severity=HallucinationSeverity.CRITICAL,
+                    description=(
+                        "No case data provided — all response content is unverifiable and potentially hallucinated."
+                    ),
+                    evidence=response[:100],
+                    expected="CCD profile data for verification",
+                )
+            )
             return findings
 
         lowered = response.lower()
@@ -1319,16 +1357,15 @@ class HallucinationDetector:
                 novel_symptoms.append(word)
 
         if novel_symptoms:
-            findings.append(HallucinationFinding(
-                detection_type="scope_compliance",
-                severity=HallucinationSeverity.HIGH,
-                description=(
-                    f"Response introduces symptoms not in the CCD profile: "
-                    f"{', '.join(novel_symptoms)}."
-                ),
-                evidence=", ".join(novel_symptoms),
-                expected="Symptoms from profile's typical_symptoms list",
-            ))
+            findings.append(
+                HallucinationFinding(
+                    detection_type="scope_compliance",
+                    severity=HallucinationSeverity.HIGH,
+                    description=(f"Response introduces symptoms not in the CCD profile: {', '.join(novel_symptoms)}."),
+                    evidence=", ".join(novel_symptoms),
+                    expected="Symptoms from profile's typical_symptoms list",
+                )
+            )
 
         # Check for novel emotional states not in the profile.
         # The check also considers known symptoms (expanded with synonyms)
@@ -1336,17 +1373,33 @@ class HallucinationDetector:
         # states like "tired" or "exhausted".
         known_emotions = self._facts["emotions"]
         common_emotions = {
-            "sad", "happy", "angry", "anxious", "depressed", "numb",
-            "empty", "hopeful", "despair", "panic", "calm", "stressed",
-            "overwhelmed", "lonely", "isolated", "guilty", "ashamed",
-            "irritable", "agitated", "restless", "exhausted", "tired",
+            "sad",
+            "happy",
+            "angry",
+            "anxious",
+            "depressed",
+            "numb",
+            "empty",
+            "hopeful",
+            "despair",
+            "panic",
+            "calm",
+            "stressed",
+            "overwhelmed",
+            "lonely",
+            "isolated",
+            "guilty",
+            "ashamed",
+            "irritable",
+            "agitated",
+            "restless",
+            "exhausted",
+            "tired",
         }
         # Expand known emotions AND symptoms with synonyms to avoid false
         # positives where a profile symptom (e.g. "fatigue") matches a
         # response emotion (e.g. "tired", "exhausted").
-        expanded_known_emotions = _expand_with_synonyms(
-            known_emotions | self._facts["symptoms"]
-        )
+        expanded_known_emotions = _expand_with_synonyms(known_emotions | self._facts["symptoms"])
         novel_emotions = []
         for emo in common_emotions:
             if emo in response_words and emo not in expanded_known_emotions:
@@ -1355,24 +1408,33 @@ class HallucinationDetector:
                     novel_emotions.append(emo)
 
         if novel_emotions:
-            findings.append(HallucinationFinding(
-                detection_type="scope_compliance",
-                severity=HallucinationSeverity.MEDIUM,
-                description=(
-                    f"Response mentions emotional states not in the CCD "
-                    f"profile: {', '.join(novel_emotions)}."
-                ),
-                evidence=", ".join(novel_emotions),
-                expected="Emotions from profile's emotional_responses list",
-            ))
+            findings.append(
+                HallucinationFinding(
+                    detection_type="scope_compliance",
+                    severity=HallucinationSeverity.MEDIUM,
+                    description=(
+                        f"Response mentions emotional states not in the CCD profile: {', '.join(novel_emotions)}."
+                    ),
+                    evidence=", ".join(novel_emotions),
+                    expected="Emotions from profile's emotional_responses list",
+                )
+            )
 
         # Check for novel behavioral claims not in the profile
         known_behaviors = self._facts["behaviors"]
         # Expand known behaviors with synonyms to avoid false positives.
         expanded_known_behaviors = _expand_with_synonyms(known_behaviors)
         behavior_keywords = {
-            "avoid", "withdraw", "ruminate", "obsess", "overcompensate",
-            "isolate", "escape", "distract", "procrastinate", "overwork",
+            "avoid",
+            "withdraw",
+            "ruminate",
+            "obsess",
+            "overcompensate",
+            "isolate",
+            "escape",
+            "distract",
+            "procrastinate",
+            "overwork",
         }
         novel_behaviors = []
         for beh in behavior_keywords:
@@ -1382,91 +1444,137 @@ class HallucinationDetector:
                     novel_behaviors.append(beh)
 
         if novel_behaviors:
-            findings.append(HallucinationFinding(
-                detection_type="scope_compliance",
-                severity=HallucinationSeverity.MEDIUM,
-                description=(
-                    f"Response describes behaviors not in the CCD profile: "
-                    f"{', '.join(novel_behaviors)}."
-                ),
-                evidence=", ".join(novel_behaviors),
-                expected="Behaviors from profile's behavioral_responses list",
-            ))
+            findings.append(
+                HallucinationFinding(
+                    detection_type="scope_compliance",
+                    severity=HallucinationSeverity.MEDIUM,
+                    description=(f"Response describes behaviors not in the CCD profile: {', '.join(novel_behaviors)}."),
+                    evidence=", ".join(novel_behaviors),
+                    expected="Behaviors from profile's behavioral_responses list",
+                )
+            )
 
         # Check for novel diagnoses or conditions
         known_diagnoses = self._facts["diagnoses"]
         diagnosis_keywords = {
-            "depression", "anxiety", "bipolar", "ptsd", "ocd", "panic",
-            "schizophrenia", "borderline", "eating", "substance",
-            "psychosis", "psychotic", "voices", "hallucination",
-            "hallucinations", "delusion", "delusions",
+            "depression",
+            "anxiety",
+            "bipolar",
+            "ptsd",
+            "ocd",
+            "panic",
+            "schizophrenia",
+            "borderline",
+            "eating",
+            "substance",
+            "psychosis",
+            "psychotic",
+            "voices",
+            "hallucination",
+            "hallucinations",
+            "delusion",
+            "delusions",
         }
         for diag in diagnosis_keywords:
-            if diag in lowered and not any(
-                diag in known_diag for known_diag in known_diagnoses
-            ):
-                findings.append(HallucinationFinding(
-                    detection_type="scope_compliance",
-                    severity=HallucinationSeverity.HIGH,
-                    description=(
-                        f"Response references diagnosis/condition '{diag}' "
-                        f"which is not in the CCD profile's diagnoses."
-                    ),
-                    evidence=diag,
-                    expected="Diagnoses from profile's diagnoses list",
-                ))
+            if diag in lowered and not any(diag in known_diag for known_diag in known_diagnoses):
+                findings.append(
+                    HallucinationFinding(
+                        detection_type="scope_compliance",
+                        severity=HallucinationSeverity.HIGH,
+                        description=(
+                            f"Response references diagnosis/condition '{diag}' "
+                            f"which is not in the CCD profile's diagnoses."
+                        ),
+                        evidence=diag,
+                        expected="Diagnoses from profile's diagnoses list",
+                    )
+                )
 
         # ------------------------------------------------------------------
         # Overall term-overlap and novel-entity enforcement
         # ------------------------------------------------------------------
         _STOP_WORDS = {
-            "i", "am", "is", "are", "was", "were", "be", "been", "being",
-            "the", "a", "an", "and", "or", "of", "to", "in", "on", "at",
-            "for", "with", "by", "this", "that", "it", "its", "as", "if",
-            "no", "not", "my", "me", "we", "they", "he", "she", "you",
-            "have", "has", "had", "do", "does", "did", "so", "but",
+            "i",
+            "am",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "being",
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "of",
+            "to",
+            "in",
+            "on",
+            "at",
+            "for",
+            "with",
+            "by",
+            "this",
+            "that",
+            "it",
+            "its",
+            "as",
+            "if",
+            "no",
+            "not",
+            "my",
+            "me",
+            "we",
+            "they",
+            "he",
+            "she",
+            "you",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "so",
+            "but",
         }
-        meaningful_response_words = {
-            w for w in response_words
-            if w not in _STOP_WORDS and len(w) > 2
-        }
+        meaningful_response_words = {w for w in response_words if w not in _STOP_WORDS and len(w) > 2}
         if len(meaningful_response_words) >= 5:
             overlap_words = meaningful_response_words & self._all_terms
             overlap_ratio = len(overlap_words) / len(meaningful_response_words)
             if overlap_ratio < self._SCOPE_MIN_OVERLAP:
-                findings.append(HallucinationFinding(
-                    detection_type="scope_compliance",
-                    severity=HallucinationSeverity.MEDIUM,
-                    description=(
-                        f"Response has low term overlap with case data "
-                        f"({overlap_ratio:.0%} < {self._SCOPE_MIN_OVERLAP:.0%} "
-                        f"threshold), suggesting potential hallucination."
-                    ),
-                    evidence=response[:100],
-                    expected=(
-                        f"At least {self._SCOPE_MIN_OVERLAP:.0%} of response "
-                        f"terms should appear in the CCD profile"
-                    ),
-                ))
+                findings.append(
+                    HallucinationFinding(
+                        detection_type="scope_compliance",
+                        severity=HallucinationSeverity.MEDIUM,
+                        description=(
+                            f"Response has low term overlap with case data "
+                            f"({overlap_ratio:.0%} < {self._SCOPE_MIN_OVERLAP:.0%} "
+                            f"threshold), suggesting potential hallucination."
+                        ),
+                        evidence=response[:100],
+                        expected=(
+                            f"At least {self._SCOPE_MIN_OVERLAP:.0%} of response terms should appear in the CCD profile"
+                        ),
+                    )
+                )
             novel_entities = meaningful_response_words - self._all_terms
             if len(novel_entities) > self._SCOPE_MAX_NOVEL_ENTITIES:
-                findings.append(HallucinationFinding(
-                    detection_type="scope_compliance",
-                    severity=HallucinationSeverity.MEDIUM,
-                    description=(
-                        f"Response introduces {len(novel_entities)} novel "
-                        f"entities not in case data (max "
-                        f"{self._SCOPE_MAX_NOVEL_ENTITIES} allowed): "
-                        f"{', '.join(sorted(novel_entities)[:10])}."
-                    ),
-                    evidence=", ".join(sorted(novel_entities)[:10]),
-                    expected=(
-                        f"At most {self._SCOPE_MAX_NOVEL_ENTITIES} novel "
-                        f"entities outside the CCD profile"
-                    ),
-                ))
+                findings.append(
+                    HallucinationFinding(
+                        detection_type="scope_compliance",
+                        severity=HallucinationSeverity.MEDIUM,
+                        description=(
+                            f"Response introduces {len(novel_entities)} novel "
+                            f"entities not in case data (max "
+                            f"{self._SCOPE_MAX_NOVEL_ENTITIES} allowed): "
+                            f"{', '.join(sorted(novel_entities)[:10])}."
+                        ),
+                        evidence=", ".join(sorted(novel_entities)[:10]),
+                        expected=(f"At most {self._SCOPE_MAX_NOVEL_ENTITIES} novel entities outside the CCD profile"),
+                    )
+                )
 
         return findings
-
-
-

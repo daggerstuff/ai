@@ -59,9 +59,15 @@ def convert_to_chatml(
                 role = str(item.get("role", "assistant")).lower()
                 if role not in {"system", "user", "assistant", "therapist", "client"}:
                     role = "user"
+                if role == "system":
+                    mapped_role = "system"
+                elif role in {"client", "user"}:
+                    mapped_role = "user"
+                else:
+                    mapped_role = "assistant"
                 chatml_messages.append(
                     {
-                        "role": "user" if role in {"client", "user"} else "assistant",
+                        "role": mapped_role,
                         "content": str(item.get("content", "")),
                     }
                 )

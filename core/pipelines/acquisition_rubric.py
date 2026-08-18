@@ -474,7 +474,9 @@ def _run_cli() -> None:
 
     score_p = sub.add_parser("score", help="Calculate overall score for 4 dimensions")
     for _dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
-        score_p.add_argument(f"--{_dim.replace('_', '-')}", type=int, required=True, help=f"{_dim.replace('_', ' ')} (1-10)")
+        score_p.add_argument(
+            f"--{_dim.replace('_', '-')}", type=int, required=True, help=f"{_dim.replace('_', ' ')} (1-10)"
+        )
 
     intake_p = sub.add_parser("intake", help="Evaluate Gate 0 intake for a source")
     intake_p.add_argument("--source-id", required=True)

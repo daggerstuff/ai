@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.pkg_mera.core.pipelines.quality.quality_validator import QualityResult, QualityValidator as _CoreQualityValidator
+from ai.pkg_mera.core.pipelines.quality.quality_validator import (
+    QualityResult,
+    QualityValidator as _CoreQualityValidator,
+)
 
 
 class QualityValidator(_CoreQualityValidator):

@@ -280,16 +280,23 @@ class SteeringIntegration:
 
             with self._lock:
                 existing = self._actions.get(action_id)
-                if existing and existing.status in (
-                    ApplicationStatus.APPLIED,
-                    ApplicationStatus.PENDING,
-                ):
+                if existing and existing.status == ApplicationStatus.APPLIED:
                     self._audit_trail.append(
                         {
                             "event": "action_skipped_idempotent",
                             "timestamp": datetime.now(UTC).isoformat(),
                             "action_id": action_id,
                             "status": existing.status.value,
+                        }
+                    )
+                    continue
+                if existing and existing.status == ApplicationStatus.PENDING:
+                    actions.append(existing)
+                    self._audit_trail.append(
+                        {
+                            "event": "action_retry_pending",
+                            "timestamp": datetime.now(UTC).isoformat(),
+                            "action_id": action_id,
                         }
                     )
                     continue

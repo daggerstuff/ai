@@ -480,7 +480,9 @@ class CrisisExpansion:
             expansion
             for expansion in result
             if not (
-                expansion.startswith(("not ", "don't ", "do not ", "never ", "would never ", "could never ", "should never "))
+                expansion.startswith(
+                    ("not ", "don't ", "do not ", "never ", "would never ", "could never ", "should never ")
+                )
                 or " not " in expansion
             )
         ]
@@ -695,9 +697,17 @@ class CrisisExpansion:
         term_lower = term.lower()
 
         negation_prefixes = [
-            "not ", "don't ", "do not ", "never ",
-            "would never ", "could never ", "should never ",
-            "won't ", "doesn't ", "isn't ", "aren't ",
+            "not ",
+            "don't ",
+            "do not ",
+            "never ",
+            "would never ",
+            "could never ",
+            "should never ",
+            "won't ",
+            "doesn't ",
+            "isn't ",
+            "aren't ",
         ]
 
         for prefix in negation_prefixes:
@@ -714,10 +724,18 @@ class CrisisExpansion:
         for check_token in (term_tokens[0], term_tokens[-1]):
             for i, token in enumerate(tokens):
                 if token == check_token and i > 0:
-                    prev_tokens = tokens[max(0, i - 4):i]
+                    prev_tokens = tokens[max(0, i - 4) : i]
                     negation_words = {
-                        "not", "don't", "never", "no", "without",
-                        "doesn't", "isn't", "aren't", "won't", "can't",
+                        "not",
+                        "don't",
+                        "never",
+                        "no",
+                        "without",
+                        "doesn't",
+                        "isn't",
+                        "aren't",
+                        "won't",
+                        "can't",
                     }
                     if any(neg in prev_tokens for neg in negation_words):
                         return True

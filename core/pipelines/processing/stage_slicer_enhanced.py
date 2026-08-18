@@ -612,7 +612,9 @@ def generate_enhanced_metadata(report: dict[str, Any], output_dir: Path) -> None
             for stage_id, result in report.get("validation_results", {}).items()
         },
         "trainingStages": [STAGE_CONFIGS[stage_id].stage_id for stage_id in report["stages"]],
-        "downstream_ready": all(result.get("passed", False) for result in report.get("validation_results", {}).values()) if report.get("validation_results") else False,
+        "downstream_ready": all(result.get("passed", False) for result in report.get("validation_results", {}).values())
+        if report.get("validation_results")
+        else False,
     }
 
     metadata_file = output_dir / "dact06_enhanced_metadata.json"

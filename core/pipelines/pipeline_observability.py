@@ -341,13 +341,14 @@ class PipelineMetricsCollector:
             error_message: Description of the failure
             severity: FailureSeverity level
         """
-        self._record_failure(
-            stage=stage,
-            gate=gate,
-            package_id=package_id,
-            error_message=error_message,
-            severity=severity,
-        )
+        with self._lock:
+            self._record_failure(
+                stage=stage,
+                gate=gate,
+                package_id=package_id,
+                error_message=error_message,
+                severity=severity,
+            )
 
     def _record_failure(
         self,
@@ -357,9 +358,19 @@ class PipelineMetricsCollector:
         error_message: str = "",
         severity: str = FailureSeverity.MEDIUM,
     ) -> None:
-        """Internal method to record a failure with deduplication."""
+        """Internal method to record a failure with deduplication.
+
+        Caller must hold ``self._lock``.
+        """
         # Create failure pattern for deduplication
-        f"{stage or 'unknown'}:{gate or ''}:{error_message[:50]}"
+        dedup_pattern = f"{stage or 'unknown'}:{gate or ''}:{error_message[:50]}"
+
+        # Skip duplicate failures within the current history window
+        for existing in self._failure_records:
+            existing_pattern = f"{existing.stage or 'unknown'}:{existing.gate or ''}:{existing.error_message[:50]}"
+            if existing_pattern == dedup_pattern:
+                existing.count += 1
+                return
 
         failure_id = f"fail_{len(self._failure_records) + 1}"
 

@@ -130,9 +130,7 @@ class CandidateRetrievalEngine:
         overlap = len(patient_tokens & condition_tokens)
         return overlap / max(len(condition_tokens), 1)
 
-    def _hierarchy_proximity_score(
-        self, query_condition_id: str | None, candidate_id: str
-    ) -> float:
+    def _hierarchy_proximity_score(self, query_condition_id: str | None, candidate_id: str) -> float:
         """
         If we have an initial query condition, score hierarchical closeness.
         Otherwise return a neutral score.
@@ -173,8 +171,7 @@ class CandidateRetrievalEngine:
 
             # Semantic similarity (cosine)
             semantic_sim = float(
-                np.dot(patient_emb, cond_emb)
-                / (np.linalg.norm(patient_emb) * np.linalg.norm(cond_emb) + 1e-8)
+                np.dot(patient_emb, cond_emb) / (np.linalg.norm(patient_emb) * np.linalg.norm(cond_emb) + 1e-8)
             )
 
             # Hierarchy proximity
@@ -203,7 +200,11 @@ class CandidateRetrievalEngine:
                 RetrievalEvidence(
                     source="hierarchy",
                     score=hierarchy_sim,
-                    details={"lca_level": self.hierarchy.lowest_common_ancestor_level(initial_guess, cid) if initial_guess else None},
+                    details={
+                        "lca_level": self.hierarchy.lowest_common_ancestor_level(initial_guess, cid)
+                        if initial_guess
+                        else None
+                    },
                 )
             )
             evidence.append(
@@ -268,21 +269,20 @@ class CandidateRetrievalEngine:
             if case_condition != condition_id:
                 continue
             case_emb = self._embed_text(case_text)
-            sim = float(
-                np.dot(patient_emb, case_emb)
-                / (np.linalg.norm(patient_emb) * np.linalg.norm(case_emb) + 1e-8)
-            )
+            sim = float(np.dot(patient_emb, case_emb) / (np.linalg.norm(patient_emb) * np.linalg.norm(case_emb) + 1e-8))
             scores.append(sim)
 
         return max(scores) if scores else 0.0
 
     def add_memory_case(self, presentation: str, condition_id: str, outcome: dict[str, Any] | None = None) -> None:
         """Add a past case to the memory store."""
-        self.memory_cases.append({
-            "presentation": presentation,
-            "condition_id": condition_id,
-            "outcome": outcome or {},
-        })
+        self.memory_cases.append(
+            {
+                "presentation": presentation,
+                "condition_id": condition_id,
+                "outcome": outcome or {},
+            }
+        )
 
     def add_knowledge_base_entry(self, condition_id: str, description: str) -> None:
         """Add or update a knowledge base entry."""

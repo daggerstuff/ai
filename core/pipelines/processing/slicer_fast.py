@@ -7,6 +7,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 def determine_stage_fast(line: str) -> str:
     # Most records have their file_key near the end
     # We can just check for unique substrings in the line to route them
@@ -21,7 +22,15 @@ def determine_stage_fast(line: str) -> str:
         return "stage3_edge_stress_test"
 
     # Stage 4
-    if "tim_fletcher" in line or "heidi_priebe" in line or "doctorramani" in line or "therapy_in_a_nutshell" in line or "patrick_teahan" in line or "crappy_childhood_fairy" in line or "doc_snipes" in line:
+    if (
+        "tim_fletcher" in line
+        or "heidi_priebe" in line
+        or "doctorramani" in line
+        or "therapy_in_a_nutshell" in line
+        or "patrick_teahan" in line
+        or "crappy_childhood_fairy" in line
+        or "doc_snipes" in line
+    ):
         return "stage4_voice_persona"
 
     # Stage 1 / Default
@@ -34,7 +43,7 @@ def run_slicer():
         "stage1_foundation": 0,
         "stage2_therapeutic_expertise": 0,
         "stage3_edge_stress_test": 0,
-        "stage4_voice_persona": 0
+        "stage4_voice_persona": 0,
     }
 
     out_files = {}
@@ -80,10 +89,11 @@ def run_slicer():
         "stage_details": {
             k: {"stage_id": k, "records_processed": v, "records_written": v} for k, v in stage_counts.items()
         },
-        "downstream_ready": downstream_ready
+        "downstream_ready": downstream_ready,
     }
     with open(out_dir / "dact06_enhanced_metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
+
 
 if __name__ == "__main__":
     run_slicer()

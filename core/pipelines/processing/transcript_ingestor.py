@@ -173,7 +173,7 @@ class TranscriptIngestor:
     # Patterns for speaker detection
     THERAPIST_PATTERNS = [
         re.compile(r"\b(therapist|counselor|psychologist|clinician|doctor|dr\.?)\b", re.I),
-        re.compile(r"^(T|Th|Therapist|C|Counselor)[:\]]\s*", re.I),
+        re.compile(r"^(T|Th|Therapist|Co|Counselor)[:\]]\s*", re.I),
     ]
 
     CLIENT_PATTERNS = [

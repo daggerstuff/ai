@@ -162,9 +162,7 @@ class PiiScrubber:
             return f"[{pii_type.upper()}]"
         if self.config.redaction_style == "hash":
             # Return consistent salted SHA-256 hash for same input
-            hash_obj = hashlib.sha256(
-                (self.config.hash_salt + match).encode()
-            )
+            hash_obj = hashlib.sha256((self.config.hash_salt + match).encode())
             return f"[HASH:{hash_obj.hexdigest()[:16]}]"
         if self.config.redaction_style == "mask":
             if self.config.preserve_length:
@@ -308,9 +306,7 @@ class PiiScrubber:
                     overlaps_discarded += 1
 
         if overlaps_discarded and self.config.log_findings:
-            logger.info(
-                "PII scrubbing: %d overlapping match(es) discarded", overlaps_discarded
-            )
+            logger.info("PII scrubbing: %d overlapping match(es) discarded", overlaps_discarded)
 
         # Apply redactions from end to start to preserve positions
         scrubbed_text = text

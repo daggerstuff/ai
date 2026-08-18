@@ -61,12 +61,36 @@ class CrisisInterventionDetector:
         ),
         "panic": (0.45, [r"\bcan't breathe\b", r"\bpanic(?:\s+attack)?\b", r"\bheart is racing\b"]),
     }
-    NEGATION_TERMS = frozenset({
-        "not", "never", "don't", "dont", "won't", "wont", "can't", "cant",
-        "couldn't", "couldnt", "haven't", "havent", "isn't", "isnt",
-        "aren't", "arent", "wasn't", "wasnt", "weren't", "werent",
-        "didn't", "didnt", "wouldn't", "wouldnt", "shouldn't", "shouldnt",
-    })
+    NEGATION_TERMS = frozenset(
+        {
+            "not",
+            "never",
+            "don't",
+            "dont",
+            "won't",
+            "wont",
+            "can't",
+            "cant",
+            "couldn't",
+            "couldnt",
+            "haven't",
+            "havent",
+            "isn't",
+            "isnt",
+            "aren't",
+            "arent",
+            "wasn't",
+            "wasnt",
+            "weren't",
+            "werent",
+            "didn't",
+            "didnt",
+            "wouldn't",
+            "wouldnt",
+            "shouldn't",
+            "shouldnt",
+        }
+    )
     SEVERITY_BANDS = {
         "critical": 0.8,
         "high": 0.6,

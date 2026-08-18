@@ -147,6 +147,8 @@ class DataNormalizer:
         ensure canonical schema structure.
         """
         # Create deep copy for mutation and canonicalize top-level keys first.
+        if not isinstance(record, dict):
+            raise ValueError(f"Expected dict record, got {type(record).__name__}")
         normalized = {self._to_snake_case(str(key)): value for key, value in json.loads(json.dumps(record)).items()}
 
         # Convert 'text' field to 'messages' if needed
@@ -155,6 +157,8 @@ class DataNormalizer:
 
         # Standardize keys and normalize content
         if "messages" in normalized:
+            if not isinstance(normalized["messages"], list):
+                raise ValueError(f"Expected list for 'messages', got {type(normalized['messages']).__name__}")
             normalized["messages"] = [self._normalize_message(msg) for msg in normalized["messages"]]
 
         if "metadata" in normalized and isinstance(normalized["metadata"], dict):
