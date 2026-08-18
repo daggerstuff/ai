@@ -133,8 +133,8 @@ class DataAugmenter:
         if self.random() > self.config.noise_probability:
             return text
 
-        noise = random.choice(self._NOISE_PATTERNS)
-        index = random.randrange(min(len(tokens), 5))
+        noise = self._NOISE_PATTERNS[int(self.random() * len(self._NOISE_PATTERNS))]
+        index = int(self.random() * min(len(tokens), 5))
         tokens.insert(index, noise)
 
         if self.random() < 0.5:
@@ -210,7 +210,7 @@ class DataAugmenter:
 
         start = time.time()
         if self.config.random_seed is not None:
-            random.seed(self.config.random_seed + int(start))
+            random.seed(self.config.random_seed)
 
         output: list[Conversation] = []
         stats = AugmentationStats()

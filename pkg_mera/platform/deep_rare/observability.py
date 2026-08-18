@@ -18,10 +18,9 @@ import logging
 import sys
 import time
 from collections import defaultdict
-from collections.abc import Callable, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import Lock
 from typing import TYPE_CHECKING, Any
 
@@ -86,7 +85,7 @@ class StructuredFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format record as JSON string."""
         base: dict[str, Any] = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -159,7 +158,7 @@ class MetricEntry:
     value: float
     unit: str = ""
     tags: dict[str, str] = field(default_factory=dict)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -318,7 +317,7 @@ class TraceContext:
 
     def record_error(self, phase: str, error: str) -> None:
         """Record an error during a phase."""
-        self.errors.append({"phase": phase, "error": error, "timestamp": datetime.now(timezone.utc).isoformat()})
+        self.errors.append({"phase": phase, "error": error, "timestamp": datetime.now(UTC).isoformat()})
 
     def total_elapsed(self) -> float:
         """Get total elapsed time since trace started."""
@@ -367,7 +366,7 @@ class AuditExporter:
             entries = audit_trail.get_entries()
         return json.dumps(
             {
-                "export_timestamp": datetime.now(timezone.utc).isoformat(),
+                "export_timestamp": datetime.now(UTC).isoformat(),
                 "entry_count": len(entries),
                 "entries": [e.model_dump() if hasattr(e, "model_dump") else e for e in entries],
             },
@@ -469,7 +468,7 @@ class HealthSnapshot:
     for liveness/readiness checks.
     """
 
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     status: str = "healthy"
     version: str = __version__
     kb_disease_count: int = 0

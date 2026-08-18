@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional
 
 
 @dataclass
@@ -18,9 +17,9 @@ class ResearchProgress:
     datasets_acquired: int = 0
     access_established: int = 0
     integration_plans_created: int = 0
-    last_updated: Optional[datetime] = None
+    last_updated: datetime | None = None
 
-    def to_dict(self) -> Dict[str, int]:
+    def to_dict(self) -> dict[str, int]:
         return {
             "sources_identified": self.sources_identified,
             "datasets_evaluated": self.datasets_evaluated,
@@ -42,9 +41,9 @@ class WeeklyReport:
     datasets_acquired: int = 0
     access_established: int = 0
     integration_plans_created: int = 0
-    key_findings: List[str] = field(default_factory=list)
-    challenges: List[str] = field(default_factory=list)
-    next_week_priorities: List[str] = field(default_factory=list)
+    key_findings: list[str] = field(default_factory=list)
+    challenges: list[str] = field(default_factory=list)
+    next_week_priorities: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -55,16 +54,16 @@ class DatasetSource:
     title: str
     url: str
     source_type: str = "journal"
-    authors: List[str] = field(default_factory=list)
-    publication_date: Optional[datetime] = None
+    authors: list[str] = field(default_factory=list)
+    publication_date: datetime | None = None
     data_availability: str = "unknown"
-    metadata: Dict = field(default_factory=dict)
-    doi: Optional[str] = None
-    abstract: Optional[str] = None
-    keywords: List[str] = field(default_factory=list)
+    metadata: dict = field(default_factory=dict)
+    doi: str | None = None
+    abstract: str | None = None
+    keywords: list[str] = field(default_factory=list)
     open_access: bool = False
-    discovery_date: Optional[datetime] = None
-    discovery_method: Optional[str] = None
+    discovery_date: datetime | None = None
+    discovery_method: str | None = None
 
     VALID_SOURCE_TYPES = [
         "journal",
@@ -74,7 +73,7 @@ class DatasetSource:
     ]
     VALID_AVAILABILITY = ["available", "upon_request", "restricted", "unknown"]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if not self.source_id:
             errors.append("source_id is required")
@@ -108,7 +107,7 @@ class DatasetEvaluation:
     overall_score: float = 0.0
     evaluation_date: datetime = field(default_factory=datetime.now)
     evaluator: str = "system"
-    competitive_advantages: List[str] = field(default_factory=list)
+    competitive_advantages: list[str] = field(default_factory=list)
     compliance_checked: bool = False
     compliance_status: str = ""
     compliance_score: float = 0.0
@@ -118,7 +117,7 @@ class DatasetEvaluation:
 
     VALID_TIERS = ["high", "medium", "low"]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if not self.source_id:
             errors.append("source_id is required")
@@ -146,15 +145,15 @@ class AccessRequest:
     status: str = "pending"
     notes: str = ""
     request_date: datetime = field(default_factory=datetime.now)
-    access_url: Optional[str] = None
+    access_url: str | None = None
     credentials_required: bool = False
     institutional_affiliation_required: bool = False
-    estimated_access_date: Optional[datetime] = None
+    estimated_access_date: datetime | None = None
 
     VALID_METHODS = ["direct", "api", "request_form", "collaboration", "registration"]
     VALID_STATUSES = ["pending", "approved", "denied", "downloaded", "error"]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if not self.source_id:
             errors.append("source_id is required")
@@ -172,11 +171,11 @@ class AcquiredDataset:
     source_id: str
     storage_path: str
     acquisition_date: datetime = field(default_factory=datetime.now)
-    file_metadata: Dict = field(default_factory=dict)
+    file_metadata: dict = field(default_factory=dict)
     file_format: str = ""
     file_size_mb: float = 0.0
     license: str = ""
-    usage_restrictions: List[str] = field(default_factory=list)
+    usage_restrictions: list[str] = field(default_factory=list)
     attribution_required: bool = False
     checksum: str = ""
     encrypted: bool = False
@@ -185,7 +184,7 @@ class AcquiredDataset:
     hipaa_compliant: bool = False
     privacy_assessed: bool = False
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if not self.source_id:
             errors.append("source_id is required")
@@ -205,7 +204,7 @@ class TransformationSpec:
 
     VALID_TYPES = ["format_conversion", "field_mapping", "cleaning", "validation"]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if self.transformation_type not in self.VALID_TYPES:
             errors.append(f"transformation_type must be one of {self.VALID_TYPES}")
@@ -219,19 +218,19 @@ class IntegrationPlan:
     source_id: str
     dataset_format: str
     complexity: str
-    transformations: List[TransformationSpec] = field(default_factory=list)
+    transformations: list[TransformationSpec] = field(default_factory=list)
     estimated_records: int = 0
-    schema_mapping: Dict = field(default_factory=dict)
-    required_transformations: List[str] = field(default_factory=list)
-    preprocessing_steps: List[str] = field(default_factory=list)
+    schema_mapping: dict = field(default_factory=dict)
+    required_transformations: list[str] = field(default_factory=list)
+    preprocessing_steps: list[str] = field(default_factory=list)
     estimated_effort_hours: float = 0.0
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     integration_priority: int = 0
-    created_date: Optional[datetime] = None
+    created_date: datetime | None = None
 
     VALID_COMPLEXITIES = ["low", "medium", "high"]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if not self.source_id:
             errors.append("source_id is required")
@@ -248,7 +247,7 @@ class ResearchLog:
     description: str
     outcome: str
     timestamp: datetime = field(default_factory=datetime.now)
-    source_id: Optional[str] = None
+    source_id: str | None = None
     duration_minutes: int = 0
 
     ALLOWED_ACTIVITY_TYPES = [
@@ -267,7 +266,7 @@ class ResearchLog:
         "system",
     ]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if self.activity_type not in self.ALLOWED_ACTIVITY_TYPES:
             errors.append(f"activity_type must be one of {self.ALLOWED_ACTIVITY_TYPES}")
@@ -282,16 +281,16 @@ class ResearchSession:
     current_phase: str = "discovery"
     start_time: datetime = field(default_factory=datetime.now)
     last_updated: datetime = field(default_factory=datetime.now)
-    progress_metrics: Dict[str, int] = field(default_factory=dict)
-    weekly_targets: Dict[str, int] = field(default_factory=dict)
-    logs: List[ResearchLog] = field(default_factory=list)
-    start_date: Optional[datetime] = None
-    target_sources: List[str] = field(default_factory=list)
-    search_keywords: Dict = field(default_factory=dict)
+    progress_metrics: dict[str, int] = field(default_factory=dict)
+    weekly_targets: dict[str, int] = field(default_factory=dict)
+    logs: list[ResearchLog] = field(default_factory=list)
+    start_date: datetime | None = None
+    target_sources: list[str] = field(default_factory=list)
+    search_keywords: dict = field(default_factory=dict)
 
     VALID_PHASES = ["discovery", "evaluation", "acquisition", "integration"]
 
-    def validate(self) -> List[str]:
+    def validate(self) -> list[str]:
         errors = []
         if not self.session_id:
             errors.append("session_id is required")

@@ -281,7 +281,8 @@ class PipelineMetricsCollector:
 
             if status == "failed":
                 self._stage_failures[stage_name] += 1
-                self._record_failure(
+                with self._lock:
+            self._record_failure(
                     stage=stage_name,
                     error_message=error or f"Stage {stage_name} failed",
                     severity=FailureSeverity.HIGH,

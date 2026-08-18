@@ -224,11 +224,11 @@ class TherapeuticConceptHierarchy:
         if node.level < dim:
             vec[node.level] = 1.0
         # Specificity
-        if 5 < dim:
+        if dim > 5:
             vec[5] = node.specificity_weight
         # Ancestor chain density
         ancestors = self.get_ancestors(node_id)
-        if 6 < dim and ancestors:
+        if dim > 6 and ancestors:
             vec[6] = len(ancestors) / 5.0
         # Embedding placeholder (if set externally)
         if node.embedding is not None and len(node.embedding) <= dim - 7:

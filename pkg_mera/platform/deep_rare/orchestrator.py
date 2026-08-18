@@ -23,25 +23,24 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from .schema import (
-    AgentName,
-    DiagnosisResult,
-    DifferentialDiagnosis,
-    Evidence,
-    Hypothesis,
-    PatientCase,
-    RareDiseaseState,
-)
-from .differential import DifferentialDiagnosisManager
+from .agents.literature_matcher import LiteratureMatcher
 from .agents.symptom_analyzer import SymptomAnalyzer
 from .agents.test_interpreter import TestInterpreter
-from .agents.literature_matcher import LiteratureMatcher
 from .clinical_safety import (
     AuditAction,
     AuditTrail,
     ClinicalSafetyContext,
     ClinicalSafetyGate,
     RedFlagDetector,
+)
+from .differential import DifferentialDiagnosisManager
+from .schema import (
+    DiagnosisResult,
+    DifferentialDiagnosis,
+    Evidence,
+    Hypothesis,
+    PatientCase,
+    RareDiseaseState,
 )
 
 if TYPE_CHECKING:

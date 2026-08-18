@@ -26,7 +26,9 @@ class VoiceTranscriber:
         pass
 
     def transcribe_audio(self, audio_path: str):
-        return MagicTranscribeResult(success=False, error_message="No implementation loaded")
+        raise NotImplementedError(
+            "VoiceTranscriber is a compatibility shim; inject a real implementation"
+        )
 
 
 class NemoCuratorClient:

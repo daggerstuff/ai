@@ -220,12 +220,12 @@ def main() -> None:
 
     stats = process_jsonl_file(args.input, args.output, args.use_secondary_hash)
 
-    print(f"\nDeduplication Summary:")
+    print("\nDeduplication Summary:")
     print(f"  Total records: {stats.total_records}")
     print(f"  Unique records: {stats.unique_records}")
     print(f"  Duplicates removed: {stats.duplicates_removed}")
     print(f"  Stage conflicts resolved: {stats.stage_conflicts_resolved}")
-    print(f"\nRecords by stage:")
+    print("\nRecords by stage:")
     for stage, count in sorted(stats.records_by_stage.items()):
         print(f"  {stage}: {count}")
 

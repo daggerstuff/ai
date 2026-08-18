@@ -1,6 +1,7 @@
-import json
 import glob
+import json
 import os
+
 
 def generate_analytics_report():
     chatml_files = glob.glob("ai/training/output/dataset/*.jsonl")
@@ -19,7 +20,7 @@ def generate_analytics_report():
     total_conversations = 0
     total_messages = 0
     total_words = 0
-    
+
     split_stats = {}
 
     for file_path in chatml_files:
@@ -27,21 +28,21 @@ def generate_analytics_report():
         file_convos = 0
         file_messages = 0
         file_words = 0
-        
-        with open(file_path, 'r', encoding='utf-8') as f:
+
+        with open(file_path, encoding='utf-8') as f:
             for line in f:
                 if not line.strip(): continue
                 pair = json.loads(line)
                 file_convos += 1
-                
+
                 for msg in pair.get("messages", []):
                     file_messages += 1
                     file_words += len(msg.get("content", "").split())
-                    
+
         total_conversations += file_convos
         total_messages += file_messages
         total_words += file_words
-        
+
         split_stats[filename] = {
             "conversations": file_convos,
             "messages": file_messages,
@@ -57,21 +58,21 @@ def generate_analytics_report():
     report.append("## Split Breakdown")
     report.append("| Split | Conversations | Messages | Avg Words/Convo |")
     report.append("|---|---|---|---|")
-    
+
     for split_name in sorted(split_stats.keys()):
         stats = split_stats[split_name]
         report.append(f"| {split_name} | {stats['conversations']} | {stats['messages']} | {stats['avg_words_per_convo']} |")
-        
+
     report.append("")
     report.append("## Schema")
     report.append("Format: **ChatML** (`system`, `user`, `assistant`)")
     report.append("Privacy: **Fully scrubbed (Microsoft Presidio)**")
     report.append("Quality Gate: **LLM-Evaluated (Ollama Coherence Scorer >= 4)**")
-    
+
     report_path = "ai/training/output/dataset/DATASET_CARD.md"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("\n".join(report))
-        
+
     print(f"Dataset Card successfully generated at {report_path}")
 
 if __name__ == "__main__":

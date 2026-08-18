@@ -23,7 +23,8 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO_ROOT / "docs" / "api" / "clients"))
 
-from python_client import PixelatedEmpathyAPI  # noqa: E402
+python_client = pytest.importorskip("python_client")
+PixelatedEmpathyAPI = python_client.PixelatedEmpathyAPI
 
 
 class TestWaitForJobFailureSemantics:

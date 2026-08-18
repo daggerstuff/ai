@@ -13,7 +13,6 @@ existing callers keep working unchanged.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import sqlite3
@@ -170,10 +169,9 @@ class PostgresReceiptStore:
             conn.commit()
 
     def load_all(self) -> list[ReceiptEnvelope]:
-        with self._lock, self._connect() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT * FROM receipts ORDER BY rowid")
-                rows: list[tuple[object, ...]] = list(cur.fetchall())
+        with self._lock, self._connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT * FROM receipts ORDER BY rowid")
+            rows: list[tuple[object, ...]] = list(cur.fetchall())
         receipts: list[ReceiptEnvelope] = []
         for row in rows:
             receipts.append(
@@ -191,13 +189,12 @@ class PostgresReceiptStore:
         return receipts
 
     def count(self) -> int:
-        with self._lock, self._connect() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM receipts")
-                row = cur.fetchone()
-                if row is None:
-                    return 0
-                return int(row[0])
+        with self._lock, self._connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM receipts")
+            row = cur.fetchone()
+            if row is None:
+                return 0
+            return int(row[0])
 
 
 class PersistentLedger(Ledger):

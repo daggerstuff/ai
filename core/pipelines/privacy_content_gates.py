@@ -585,7 +585,7 @@ class PrivacyContentGates:
                 ],
             ), crisis_findings
 
-        if crisis.score >= CRISIS_ESCALATE_THRESHOLD:
+        if crisis.score >= CRISIS_ESCALATE_THRESHOLD and not self._detect_unsafe_patterns(text):
             return GateResult(
                 gate="gate2",
                 decision=GateDecision.ESCALATE,

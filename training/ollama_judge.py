@@ -138,7 +138,7 @@ async def main():
 
             print(f"  Running total: {total_passed} passed, {total_failed} failed")
 
-    print(f"\n=== FINAL ===")
+    print("\n=== FINAL ===")
     print(f"Passed: {total_passed}")
     print(f"Failed: {total_failed}")
     with open(output_path) as f:

@@ -155,7 +155,10 @@ class DataNormalizer:
 
         # Standardize keys and normalize content
         if "messages" in normalized:
-            normalized["messages"] = [self._normalize_message(msg) for msg in normalized["messages"]]
+            if not isinstance(normalized["messages"], list):
+                normalized["messages"] = []
+            else:
+                normalized["messages"] = [self._normalize_message(msg) for msg in normalized["messages"]]
 
         if "metadata" in normalized and isinstance(normalized["metadata"], dict):
             normalized["metadata"] = {self._to_snake_case(k): v for k, v in normalized["metadata"].items()}
@@ -173,6 +176,11 @@ class DataNormalizer:
           - metadata + provenance fields → metadata
         """
         # Re-normalize to be safe
+        if not isinstance(record, dict):
+            result.rejected_records += 1
+            result.rejected_reasons["record_not_object"] = result.rejected_reasons.get("record_not_object", 0) + 1
+            rejectfile.write(line)
+            continue
         record = self.normalize_record(record)
 
         messages = []

@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from generate_dpo_pairs import (
     CHARS_PER_TOKEN,
     DEFAULT_MAX_TOKENS,
@@ -26,7 +25,6 @@ from generate_dpo_pairs import (
     main,
     validate_token_bounds,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -124,6 +124,17 @@ class PromotionService:
     ) -> PromotionResult:
         """Validate a package for promotion.
 
+        # Reject if already promoted
+        promoted_marker = package_path / "promoted.json"
+        if promoted_marker.exists():
+            return PromotionResult(
+                status=PromotionStatus.FAILED,
+                package_id=package_path.name,
+                stage_id="",
+                token=None,
+                manifest=None,
+                error_message="Package already promoted",
+            )
         Args:
             package_path: Path to package directory
 
@@ -199,19 +210,27 @@ class PromotionService:
                 error_message=f"Package ID mismatch: token={token.package_id}, manifest={manifest.package_id}",
             )
 
-        # Validate data hash
+        # Validate data hash — missing data file is a failure
         data_path = package_path / "data.jsonl"
-        if data_path.exists():
-            actual_hash = self._compute_file_hash(data_path)
-            if actual_hash != token.validation_hash:
-                return PromotionResult(
-                    status=PromotionStatus.FAILED,
-                    package_id=token.package_id,
-                    stage_id=manifest.stage,
-                    token=token,
-                    manifest=manifest,
-                    error_message="Data hash mismatch - package may be corrupted",
-                )
+        if not data_path.exists():
+            return PromotionResult(
+                status=PromotionStatus.FAILED,
+                package_id=token.package_id,
+                stage_id=manifest.stage,
+                token=token,
+                manifest=manifest,
+                error_message="Missing data.jsonl - no training data to promote",
+            )
+        actual_hash = self._compute_file_hash(data_path)
+        if actual_hash != token.validation_hash:
+            return PromotionResult(
+                status=PromotionStatus.FAILED,
+                package_id=token.package_id,
+                stage_id=manifest.stage,
+                token=token,
+                manifest=manifest,
+                error_message="Data hash mismatch - package may be corrupted",
+            )
 
         # Check token expiry
         try:

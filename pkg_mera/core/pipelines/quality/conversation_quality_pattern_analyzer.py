@@ -248,7 +248,7 @@ class SessionClassification:
     def ratio(self) -> dict[InquiryType, float]:
         """Counts as a ratio in [0, 1]. UNKNOWN is excluded from the denominator."""
         if self.total == 0:
-            return {t: 0.0 for t in InquiryType}
+            return dict.fromkeys(InquiryType, 0.0)
         return {
             t: (self.distribution.get(t, 0) / self.total)
             for t in InquiryType

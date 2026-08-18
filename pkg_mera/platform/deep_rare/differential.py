@@ -21,8 +21,8 @@ from typing import TYPE_CHECKING
 from .schema import (
     DifferentialDiagnosis,
     Hypothesis,
-    RareDiseaseState,
     RankedDiagnosis,
+    RareDiseaseState,
 )
 
 if TYPE_CHECKING:

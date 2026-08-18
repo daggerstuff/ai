@@ -608,9 +608,10 @@ class ReprioritizationEngine:
                 self._backlog[item_id] = new_item
                 new_items.append(new_item)
 
-        for item_id, item in self._backlog.items():
-            if item not in reprioritized and item not in new_items:
-                unchanged.append(item)
+        with self._lock:
+            for item_id, item in self._backlog.items():
+                if item not in reprioritized and item not in new_items:
+                    unchanged.append(item)
 
         new_items.sort(key=lambda x: x.priority_score, reverse=True)
         reprioritized.sort(key=lambda x: x.priority_score, reverse=True)
@@ -619,6 +620,8 @@ class ReprioritizationEngine:
         by_domain = self._build_domain_summary(new_items, reprioritized, unchanged, all_accumulations)
 
         now = datetime.now(UTC).isoformat()
+        self._priority_changes = priority_changes
+
         return ReprioritizationReport(
             run_id=_generate_run_id(),
             timestamp=now,

@@ -31,7 +31,11 @@
 - **3.3 `training/dpo_trainer.py` (326 LOC)** — `_coerce_response(field)` correctly parses both std str and conversational list[message] form (last assistant turn). `load_preference_dataset()` skips records missing any of prompt/chosen/rejected, tracks and logs `Coerced %d conversational (message-list) records to string form` when >0. `MIN_SAMPLES=20` enforced. `CheckpointVerificationCallback` requires adapter_config.json + adapter_model.safetensors. `save_metrics` writes `dpo_metrics.json` w/ beta+timestamp. `run_dpo(args)` builds QLoRA via `shared_qlora_config()` (CUDA only), prepares model, builds LoRA via `build_lora_config(args)`. ✅ matches plan §3.3.
 - **3.5 `meddies_synthesizer.py` (611 LOC)** — `_persona_blind_prompt(record, dialogue)` strips persona, returns pure base-AI-assistant prompt (PAL paper 'y_l from persona-blind model' spec ✅). `_llm_rejected_persona_blind` calls `llm_client(prompt, system_prompt=None)` with rule-based fallback. `_synthesize_rejected_response_rule` returns fixed generic jargon (documented collapse, recommended to use LLM path). `_make_synthesizers(llm_client)` returns tuple `(dialogue_fn, chosen_fn, rejected_fn)` with signature dispatch by arity. `rng_seed_for(record, salt)` deterministic seed from `demographics.full_name` or `age`. LLM system prompts enforce Vietnamese-first literacy-driven code-switching. ✅ matches plan §3.5.
 
-**Safety filter status (PIX-4224, INTENTIONALLY DISABLED — DO NOT re-enable):** 3 confirmed sites in `training/dpo_trainer.py`:
+**Safety filter status (PIX-4224, DOCUMENTED — REQUIRES CLINICAL REVIEW BEFORE STAGING):**
+
+> **Disclaimer:** This report documents the current state of the safety filter (disabled per PIX-4224). This is NOT an endorsement of shipping with safety checks disabled. The clinical safety regression must be reviewed and approved by the clinical lead before this code reaches production. Disabled safety checks should not be treated as a pass criterion.
+
+3 confirmed sites in `training/dpo_trainer.py`:
 - Line 82: docstring states `SAFETY FILTERING DISABLED PER USER REQUEST - ALL CONTENT ALLOWED`
 - Lines 125–135: `safety_checker.is_unsafe()` calls for chosen and rejected are commented out
 - Line 213: comment in `main()` entry — no safety checker instantiated

@@ -21,11 +21,10 @@ for enum-like fields, and aggregate models with add_* helpers.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ---------------------------------------------------------------------------
 # Enum-like Literal types
@@ -203,7 +202,7 @@ class Evidence(BaseModel):
     test_result_id: str | None = Field(default=None, description="ID of associated test result if any")
     literature_ref: str | None = Field(default=None, description="Literature reference if applicable")
     timestamp: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat(),
+        default_factory=lambda: datetime.now(UTC).isoformat(),
         description="ISO 8601 UTC timestamp when this evidence was collected",
     )
     confidence_level: ConfidenceLevel = Field(
@@ -282,7 +281,7 @@ class Hypothesis(BaseModel):
             raise ValueError("probability values must be between 0.0 and 1.0")
         return value
 
-    def add_evidence(self, evidence: Evidence) -> "Hypothesis":
+    def add_evidence(self, evidence: Evidence) -> Hypothesis:
         """Append evidence and return self for chaining."""
         self.evidence_list.append(evidence)
         return self
@@ -320,30 +319,30 @@ class RareDiseaseState(BaseModel):
     max_iterations: int = Field(default=10, ge=1, le=50, description="Maximum allowed iterations")
     convergence_window: int = Field(default=3, ge=1, le=10, description="Iterations top-5 must remain stable")
 
-    def add_hypothesis(self, hypothesis: Hypothesis) -> "RareDiseaseState":
+    def add_hypothesis(self, hypothesis: Hypothesis) -> RareDiseaseState:
         """Add a new hypothesis to active list."""
         self.active_hypotheses.append(hypothesis)
         return self
 
-    def eliminate(self, disease_name: str) -> "RareDiseaseState":
+    def eliminate(self, disease_name: str) -> RareDiseaseState:
         """Move a hypothesis from active to eliminated."""
         self.active_hypotheses = [h for h in self.active_hypotheses if h.disease_name != disease_name]
         if disease_name not in self.eliminated_conditions:
             self.eliminated_conditions.append(disease_name)
         return self
 
-    def add_inquiry(self, inquiry: str) -> "RareDiseaseState":
+    def add_inquiry(self, inquiry: str) -> RareDiseaseState:
         """Add a pending inquiry for additional information/tests."""
         if inquiry not in self.pending_inquiries:
             self.pending_inquiries.append(inquiry)
         return self
 
-    def resolve_inquiry(self, inquiry: str) -> "RareDiseaseState":
+    def resolve_inquiry(self, inquiry: str) -> RareDiseaseState:
         """Remove a resolved inquiry."""
         self.pending_inquiries = [i for i in self.pending_inquiries if i != inquiry]
         return self
 
-    def record_top_hypotheses(self) -> "RareDiseaseState":
+    def record_top_hypotheses(self) -> RareDiseaseState:
         """Record current top-5 hypotheses for convergence tracking."""
         sorted_hyps = sorted(self.active_hypotheses, key=lambda h: h.posterior_probability, reverse=True)
         top5 = [h.disease_name for h in sorted_hyps[:5]]

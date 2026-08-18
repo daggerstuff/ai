@@ -4,9 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
-
-import pytest
 
 from ai.pipelines.ingestion_deduplication import (
     STAGE_PRIORITY,
@@ -24,7 +21,7 @@ class TestPrimaryHash:
     def test_primary_hash_basic(self):
         """Primary hash matches spec for simple message."""
         record = {"messages": [{"role": "user", "content": "Hello"}]}
-        expected = hashlib.sha256("userhello".encode("utf-8")).hexdigest()
+        expected = hashlib.sha256(b"userhello").hexdigest()
         assert compute_primary_hash(record) == expected
 
     def test_primary_hash_multiple_messages(self):
@@ -35,7 +32,7 @@ class TestPrimaryHash:
                 {"role": "assistant", "content": "Hello"},
             ]
         }
-        expected = hashlib.sha256("userhiassistanthello".encode("utf-8")).hexdigest()
+        expected = hashlib.sha256(b"userhiassistanthello").hexdigest()
         assert compute_primary_hash(record) == expected
 
     def test_primary_hash_lowercase(self):
@@ -70,19 +67,19 @@ class TestSecondaryHash:
                 "crisis_intensity": "low",
             }
         }
-        expected = hashlib.sha1("conv-123stage1_foundationtherapy_datalow".encode("utf-8")).hexdigest()
+        expected = hashlib.sha1(b"conv-123stage1_foundationtherapy_datalow").hexdigest()
         assert compute_secondary_hash(record) == expected
 
     def test_secondary_hash_missing_fields(self):
         """Secondary hash handles missing metadata fields."""
         record = {"metadata": {"conversation_id": "conv-456"}}
-        expected = hashlib.sha1("conv-456".encode("utf-8")).hexdigest()
+        expected = hashlib.sha1(b"conv-456").hexdigest()
         assert compute_secondary_hash(record) == expected
 
     def test_secondary_hash_empty_metadata(self):
         """Secondary hash handles empty metadata."""
         record = {"metadata": {}}
-        expected = hashlib.sha1("".encode("utf-8")).hexdigest()
+        expected = hashlib.sha1(b"").hexdigest()
         assert compute_secondary_hash(record) == expected
 
 
