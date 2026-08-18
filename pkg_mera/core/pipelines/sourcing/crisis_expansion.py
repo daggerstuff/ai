@@ -472,17 +472,19 @@ class CrisisExpansion:
             variants = self._generate_phrase_variants(term_lower, crisis_term.category)
             expansions.update(variants)
 
-        # Convert to list and limit size
+        # Convert to list, filter out any negated forms, and limit size.
+        # Negated phrases must never appear in crisis expansions — they
+        # represent safe language and would cause false positives.
         result = list(expansions)
-        if not self.config.handle_negation:
-            result = [
-                expansion
-                for expansion in result
-                if not (
-                    expansion.startswith(("not ", "don't ", "do not ", "never ")) or " not " in expansion
-                )
-            ]
-        result = [term_lower, *sorted(expansions for expansions in result if expansions != term_lower)]
+        result = [
+            expansion
+            for expansion in result
+            if not (
+                expansion.startswith(("not ", "don't ", "do not ", "never ", "would never ", "could never ", "should never "))
+                or " not " in expansion
+            )
+        ]
+        result = [term_lower, *sorted(e for e in result if e != term_lower)]
         if len(result) > self.config.max_expansion_terms:
             result = result[: self.config.max_expansion_terms]
 
@@ -537,18 +539,11 @@ class CrisisExpansion:
         for modifier in context_modifiers:
             variants.add(f"{modifier} {term}")
 
-        # Add negation forms (for detection of safe language)
-        if self.config.handle_negation:
-            negation_forms = [
-                f"not {term}",
-                f"don't {term}",
-                f"do not {term}",
-                f"never {term}",
-                f"would never {term}",
-                f"could never {term}",
-                f"should never {term}",
-            ]
-            variants.update(negation_forms)
+        # NOTE: Negation forms (e.g. "not kill myself", "never cut myself") are
+        # deliberately NOT generated as crisis expansions.  They represent safe
+        # language, not crisis indicators, and including them causes false
+        # positives when scanning text.  Use the is_negated() method to detect
+        # negated crisis language in real text instead.
 
         # Add past tense forms
         if term.endswith("ing"):
@@ -680,6 +675,54 @@ class CrisisExpansion:
             True if term is a crisis term, False otherwise
         """
         return term.lower() in self._terms
+
+    def is_negated(self, text: str, term: str) -> bool:
+        """
+        Check if a crisis term appears in a negated context in the given text.
+
+        This should be called when a crisis term match is found to verify it
+        is not actually a negation (e.g. "I would never kill myself" should
+        NOT be flagged as a crisis).
+
+        Args:
+            text: The full text to check
+            term: The crisis term that was matched
+
+        Returns:
+            True if the term is negated in the text, False otherwise
+        """
+        text_lower = text.lower()
+        term_lower = term.lower()
+
+        negation_prefixes = [
+            "not ", "don't ", "do not ", "never ",
+            "would never ", "could never ", "should never ",
+            "won't ", "doesn't ", "isn't ", "aren't ",
+        ]
+
+        for prefix in negation_prefixes:
+            if f"{prefix}{term_lower}" in text_lower:
+                return True
+
+        # Check for negation within a few tokens before the term
+        tokens = text_lower.split()
+        term_tokens = term_lower.split()
+        if not term_tokens:
+            return False
+
+        # Check negation before both the first and last token of the term
+        for check_token in (term_tokens[0], term_tokens[-1]):
+            for i, token in enumerate(tokens):
+                if token == check_token and i > 0:
+                    prev_tokens = tokens[max(0, i - 4):i]
+                    negation_words = {
+                        "not", "don't", "never", "no", "without",
+                        "doesn't", "isn't", "aren't", "won't", "can't",
+                    }
+                    if any(neg in prev_tokens for neg in negation_words):
+                        return True
+
+        return False
 
     def get_term_info(self, term: str) -> CrisisTerm | None:
         """

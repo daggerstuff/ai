@@ -74,6 +74,7 @@ class PipelineOrchestrator:
 
         current_payload = data
         input_size = self._safe_len(current_payload)
+        input_hash = self._hash_payload(data)
 
         for stage_name, stage_callable in self.stages.items():
             stage_start = datetime.now(tz=UTC)
@@ -120,7 +121,7 @@ class PipelineOrchestrator:
         finished = datetime.now(tz=UTC)
         return PipelineResult(
             success=not errors,
-            input_hash=self._hash_payload(data),
+            input_hash=input_hash,
             output_hash=self._hash_payload(current_payload),
             stages=stage_results,
             payload=current_payload,

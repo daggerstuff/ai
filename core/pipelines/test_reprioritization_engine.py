@@ -242,6 +242,11 @@ class TestEvidenceAccumulator(unittest.TestCase):
         assert points[0].domain == UpstreamDomain.ACQUISITION
         assert points[1].domain == UpstreamDomain.CURATION
         assert points[2].domain == UpstreamDomain.PRIVACY
+        # Verify evidence was actually recorded in the accumulator
+        accumulations = self.accumulator.get_all_accumulations()
+        assert len(accumulations) == 3
+        assert "pattern_memory_recall_low" in accumulations
+        assert len(accumulations["pattern_memory_recall_low"].evidence_points) == 1
 
     def test_ingest_feedback_report_from_file(self):
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -249,6 +254,8 @@ class TestEvidenceAccumulator(unittest.TestCase):
             f.flush()
             points = self.accumulator.ingest_feedback_report(f.name)
         assert len(points) == 3
+        # Verify evidence was recorded
+        assert len(self.accumulator.get_all_accumulations()) == 3
 
     def test_record_evidence_creates_accumulation(self):
         point = EvidencePoint(

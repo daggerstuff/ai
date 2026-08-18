@@ -53,7 +53,20 @@ class EarsComplianceGate:
         if not data:
             return EarsValidationResult(False, "unknown", 0, ["empty_payload"])
 
-        return EarsValidationResult(True, "normal", 1, [])
+        issues: list[str] = []
+        text = self._extract_text(data).lower()
+        if any(term in text for term in self.crisis_terms):
+            issues.append("crisis_keyword")
+        if any(term in text for term in self.sensitive_terms):
+            issues.append("clinical_risk")
+
+        sensitive = "high" if issues else "normal"
+        return EarsValidationResult(
+            is_compliant=not issues,
+            sensitivity=sensitive,
+            total_items=1,
+            issues=issues,
+        )
 
     def check_pipeline_sensitivity(self, pipeline_config: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(pipeline_config, dict):
