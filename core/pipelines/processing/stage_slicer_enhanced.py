@@ -20,9 +20,6 @@ Stage Quality Thresholds (from PIX-249 canonical model):
         - Empathy ≥ 70%
         - Clinical ≥ 30%
         - Safety 100%
-Stage 1 (Foundation):
-        - Empathy ≥ 70%
-        - Clinical ≥ 30%
         - Clinical validity ≥ 70%
         - Dedup retention > 50%
 
@@ -325,17 +322,10 @@ def validate_stage_slice(records: list[dict[str, Any]], stage_config: StageConfi
         result.passed = False
         return result
 
-    # Simulate metrics (in production, these would come from quality assessment)
-    # For now, use heuristics based on record content
-    empathy_scores = []
-    clinical_scores = []
-    safety_scores = []
-
-    for record in records:
-        text = record.get("text", "").lower()
-    # For now, use heuristics + lightweight clinical validator
+    # Heuristic metrics + lightweight clinical validator
     empathy_scores: list[float] = []
     clinical_scores: list[float] = []
+    safety_scores: list[float] = []
     clinical_validity_scores: list[float] = []
     validator = ClinicalAccuracyValidator()
 
@@ -375,9 +365,19 @@ def validate_stage_slice(records: list[dict[str, Any]], stage_config: StageConfi
         clinical_score = sum(1 for m in clinical_markers if m in text) / len(clinical_markers)
         clinical_scores.append(clinical_score)
 
-        # Safety heuristic: absence of harmful patterns
-        # (simplified - production would use full safety checker)
-        safety_scores.append(1.0)  # Assume safe for now
+        # Safety heuristic: flag records containing explicit harm/crisis language
+        harm_markers = [
+            "kill yourself",
+            "end your life",
+            "suicide method",
+            "how to harm",
+            "overdose on",
+            "self-harm instructions",
+        ]
+        if any(marker in text for marker in harm_markers):
+            safety_scores.append(0.0)
+        else:
+            safety_scores.append(1.0)
         # Clinical validity: lightweight semantic check for grounded clinical language
         try:
             clinical_result = validator.process(record.get("text", ""))
@@ -562,18 +562,21 @@ def slice_datasets(
             if not validation_result.passed:
                 report["errors"].append(f"Stage {stage_id} failed validation: {validation_result.violations}")
 
-        # Write staged output
+        # Write staged output only if validation passed (or validation skipped)
         output_file = output_dir / config.output_file
         if all_records and not dry_run:
-            with open(output_file, "w", encoding="utf-8") as f:
-                for record in all_records:
-                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+            if validate and stage_report.get("validation_passed") is False:
+                report["errors"].append(f"Stage {stage_id}: skipping output write due to failed validation")
+            else:
+                with open(output_file, "w", encoding="utf-8") as f:
+                    for record in all_records:
+                        f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-            stage_report["records_processed"] = len(all_records)
-            stage_report["records_written"] = len(all_records)
+                stage_report["records_processed"] = len(all_records)
+                stage_report["records_written"] = len(all_records)
 
-            if output_file.exists():
-                stage_report["size_bytes"] = output_file.stat().st_size
+                if output_file.exists():
+                    stage_report["size_bytes"] = output_file.stat().st_size
 
         report["stages"][stage_id] = stage_report
         report["total_records"] += stage_report["records_processed"]
@@ -609,7 +612,7 @@ def generate_enhanced_metadata(report: dict[str, Any], output_dir: Path) -> None
             for stage_id, result in report.get("validation_results", {}).items()
         },
         "trainingStages": [STAGE_CONFIGS[stage_id].stage_id for stage_id in report["stages"]],
-        "downstream_ready": all(result.get("passed", True) for result in report.get("validation_results", {}).values()),
+        "downstream_ready": all(result.get("passed", False) for result in report.get("validation_results", {}).values()) if report.get("validation_results") else False,
     }
 
     metadata_file = output_dir / "dact06_enhanced_metadata.json"

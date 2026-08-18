@@ -80,6 +80,7 @@ def run_slicer():
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True, encoding="utf-8")
 
     count = 0
+    malformed = 0
     start_time = time.time()
     try:
         for line in process.stdout:
@@ -89,7 +90,9 @@ def run_slicer():
 
             try:
                 record = json.loads(line)
-            except:
+            except json.JSONDecodeError:
+                malformed += 1
+                logger.warning("Malformed JSON at line %d", count)
                 continue
 
             stage_id = determine_stage(record)
@@ -100,8 +103,12 @@ def run_slicer():
         for f in out_files.values():
             f.close()
 
-    for stage, _c in stage_counts.items():
-        pass
+    process.wait()
+    exit_code = process.returncode
+    if exit_code != 0:
+        logger.error("rclone cat exited with code %d", exit_code)
+
+    downstream_ready = exit_code == 0 and malformed == 0
 
     # Generate enhanced metadata
     metadata = {
@@ -109,10 +116,12 @@ def run_slicer():
         "dact": "DACT-06",
         "description": "Stage-based dataset slices (PIX-249)",
         "total_records": count,
+        "malformed_records": malformed,
+        "rclone_exit_code": exit_code,
         "stage_details": {
             k: {"stage_id": k, "records_processed": v, "records_written": v} for k, v in stage_counts.items()
         },
-        "downstream_ready": True
+        "downstream_ready": downstream_ready
     }
     with open(out_dir / "dact06_enhanced_metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)

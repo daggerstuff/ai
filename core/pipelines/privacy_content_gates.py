@@ -188,13 +188,17 @@ class PrivacyContentReport:
     def passed(self) -> bool:
         """True when the item is cleared for promotion.
 
-        If Gate 4 (human review) has been set, it overrides any prior ESCALATE.
+        A BLOCK from any mandatory Gate 0-3 is always final — Gate 4 (human
+        review) may only resolve an ESCALATE, never override a BLOCK.
         If Gate 4 is not set, all Gates 0-3 must be PASS.
         """
-        if self.gate4_result is not None:
-            # Human review has been applied; PASS overrides prior ESCALATE
-            return self.gate4_result.decision == GateDecision.PASS
         results = [g for g in self._gate_results if g is not None]
+        # A mandatory BLOCK can never be overridden, even by human review.
+        if any(r.decision == GateDecision.BLOCK for r in results):
+            return False
+        if self.gate4_result is not None:
+            # Human review resolves ESCALATE: PASS promotes, BLOCK/ESCALATE does not.
+            return self.gate4_result.decision == GateDecision.PASS
         return all(r.decision == GateDecision.PASS for r in results)
 
     @property

@@ -65,7 +65,6 @@ def test_data_normalizer_canonicalizes_record_shape() -> None:
     assert record["metadata"] == {"topic_tags": ["synthetic"], "quality_score": 0.9}
 
 
-def test_normalization_pipeline_writes_duplicate_evidence(tmp_path) -> None:
 def test_normalization_pipeline_writes_duplicate_evidence(tmp_path: Path) -> None:
     input_record_count = 2
     input_path = tmp_path / "source.jsonl"
@@ -99,7 +98,8 @@ def test_normalization_pipeline_writes_duplicate_evidence(tmp_path: Path) -> Non
     )
 
     output_records = [json.loads(line) for line in output_path.read_text(encoding="utf-8").splitlines() if line]
-    rejection_summary = json.loads(reject_path.read_text(encoding="utf-8"))
+    rejection_lines = [line for line in reject_path.read_text(encoding="utf-8").splitlines() if line]
+    rejection_summary = json.loads(rejection_lines[-1])
 
     assert result.total_records == input_record_count
     assert result.final_records == 1
@@ -108,6 +108,7 @@ def test_normalization_pipeline_writes_duplicate_evidence(tmp_path: Path) -> Non
     assert result.duplicate_evidence[0].duplicate_id == "low-priority"
     assert output_records[0]["conversation_id"] == "high-priority"
     assert rejection_summary["duplicate_evidence"][0]["duplicate_id"] == "low-priority"
+    assert rejection_summary["_type"] == "summary"
 
 
 class TestSetDeduplicator:

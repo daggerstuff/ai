@@ -19,6 +19,8 @@ class DataSplitter:
     """Split list-like datasets into deterministic train/val/test partitions."""
 
     def __init__(self, train_ratio: float = 0.7, val_ratio: float = 0.15, test_ratio: float = 0.15):
+        if train_ratio < 0 or val_ratio < 0 or test_ratio < 0:
+            raise ValueError("Ratios must be non-negative")
         total = train_ratio + val_ratio + test_ratio
         if total <= 0:
             raise ValueError("Ratios must sum to a positive value")

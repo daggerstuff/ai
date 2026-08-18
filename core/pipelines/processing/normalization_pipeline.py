@@ -475,6 +475,7 @@ class NormalizationPipeline:
 
         # Phase 1: Validate + Normalize
         all_conversations: list[Conversation] = []
+        all_rejected_records: list[str] = []
         total = 0
         processed = 0
 
@@ -507,6 +508,16 @@ class NormalizationPipeline:
             for reason, count in file_result.rejected_reasons.items():
                 result.rejection_reasons[reason] = result.rejection_reasons.get(reason, 0) + count
 
+            # Collect rejected records for aggregation into the final reject_path
+            reject_tmp = file_path.with_suffix(".rejected.tmp.jsonl")
+            if reject_tmp.exists():
+                with reject_tmp.open("r", encoding="utf-8") as rf:
+                    for raw_line in rf:
+                        line = raw_line.strip()
+                        if line:
+                            all_rejected_records.append(line)
+                reject_tmp.unlink()
+
             if self.on_progress:
                 self.on_progress(processed, total)
 
@@ -525,11 +536,14 @@ class NormalizationPipeline:
             for conv in deduped:
                 out.write(json.dumps(conv.to_dict(), ensure_ascii=False) + "\n")
 
-        # Write rejection log
+        # Write rejection file: individual rejected records (JSONL) + summary line
         with reject_path.open("w", encoding="utf-8") as rej:
+            for record in all_rejected_records:
+                rej.write(record + "\n")
             rej.write(
                 json.dumps(
                     {
+                        "_type": "summary",
                         "pipeline": "PIX-32",
                         "total_records": result.total_records,
                         "validated": result.validated_records,
