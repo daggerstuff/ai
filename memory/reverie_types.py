@@ -14,11 +14,8 @@ Python/TypeScript parity: src/types/reverie.ts mirrors this file.
 
 from __future__ import annotations
 
-import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional
-
 
 # ─── Reverie Phase ──────────────────────────────────────────────────────
 # Tracks where a memory sits in the reverie lifecycle.
@@ -90,7 +87,7 @@ class ReverieVector:
     emotional_tone: EmotionalTone
     behavioral_nudge: str
     validation_pattern: str
-    relational_pattern: Optional[str]
+    relational_pattern: str | None
     phase: ReveriePhase
     created_at: int
     last_triggered_at: int

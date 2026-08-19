@@ -399,7 +399,7 @@ async def _chat_completion(
             return data["choices"][0]["message"]["content"]
         except RateLimitError:
             raise
-        except (asyncio.TimeoutError, asyncio.CancelledError, aiohttp.ClientError) as e:
+        except (TimeoutError, asyncio.CancelledError, aiohttp.ClientError) as e:
             last_error = e
             wait = min(2**attempt * 5, 30)
             logger.warning(

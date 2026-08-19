@@ -23,7 +23,7 @@ import json
 import logging
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -230,7 +230,7 @@ def main() -> int:
 
     # Write manifest
     manifest = {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "stats": stats,
         "output_file": str(output_file),
         "total_records": len(records),

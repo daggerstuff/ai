@@ -7,7 +7,7 @@ with HIPAA++ compliant error handling and audit logging capabilities.
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -46,7 +46,7 @@ class TechDeckBaseError(Exception):
         self.details = details or {}
         self.request_id = request_id
         self.user_id = user_id
-        self.timestamp = datetime.now(timezone.utc)
+        self.timestamp = datetime.now(UTC)
         self.error_id = self._generate_error_id()
 
     def _generate_error_id(self) -> str:

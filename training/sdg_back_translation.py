@@ -260,7 +260,7 @@ def expand_seeds(
 
     Returns list of synthetic record dicts ready for curation pipeline.
     """
-    from training.stage1_filters import run_stage1_on_record, NearDuplicateIndex, FilterVerdict
+    from training.stage1_filters import FilterVerdict, NearDuplicateIndex, run_stage1_on_record
 
     seeds = load_seeds(Path(seeds_path))
     if not seeds:

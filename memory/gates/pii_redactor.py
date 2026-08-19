@@ -11,12 +11,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from ai.memory.gates import GateDecision, GateResult
 from ai.pkg_mera.core.pipelines.processing.pii_scrubber import (
     PiiScrubber,
     PiiScrubberConfig,
     ScrubResult,
 )
-from ai.memory.gates import GateDecision, GateResult
 
 THERAPY_ALLOWLIST = [
     "therapist",

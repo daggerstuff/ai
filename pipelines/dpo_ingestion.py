@@ -14,12 +14,12 @@ import hashlib
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from datasets import load_dataset
 
 
-def normalize_schema(record: Dict[str, Any]) -> Optional[Dict[str, str]]:
+def normalize_schema(record: dict[str, Any]) -> dict[str, str] | None:
     """
     Normalize different dataset schemas to standard format:
     {prompt: str, chosen: str, rejected: str}
@@ -66,14 +66,14 @@ def normalize_schema(record: Dict[str, Any]) -> Optional[Dict[str, str]]:
     return {"prompt": prompt, "chosen": chosen, "rejected": rejected}
 
 
-def validate_record(record: Dict[str, str]) -> bool:
+def validate_record(record: dict[str, str]) -> bool:
     """Validate that all fields are non-empty strings."""
     return all(
         isinstance(record.get(key), str) and len(record[key].strip()) > 0 for key in ["prompt", "chosen", "rejected"]
     )
 
 
-def compute_hash(record: Dict[str, str]) -> str:
+def compute_hash(record: dict[str, str]) -> str:
     """Compute deterministic hash for deduplication."""
     content = f"{record['prompt']}||{record['chosen']}||{record['rejected']}"
     return hashlib.sha256(content.encode()).hexdigest()
@@ -83,7 +83,7 @@ def ingest_dataset(
     dataset_name: str,
     seen_hashes: set,
     output_file: Path,
-    stats: Dict[str, int],
+    stats: dict[str, int],
 ) -> None:
     """Ingest a single dataset and append to output file."""
     print(f"\n{'=' * 60}")

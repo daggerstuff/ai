@@ -8,13 +8,13 @@ deterministic — no LLM judge is exercised.
 import unittest
 
 from ai.pkg_mera.core.pipelines.quality.conversation_quality_pattern_analyzer import (
+    RECOMMENDED_RATIOS,
     HallucinationDetector,
     HallucinationFinding,
     HallucinationReport,
     HallucinationSeverity,
     InquiryType,
     InquiryTypeClassifier,
-    RECOMMENDED_RATIOS,
     SessionClassification,
     UtteranceClassification,
     liebig_bottleneck,

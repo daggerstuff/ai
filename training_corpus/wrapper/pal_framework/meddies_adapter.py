@@ -19,8 +19,9 @@ from __future__ import annotations
 
 import json
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 # --------------------------------------------------------------------------- #
 # Vietnamese -> English translation tables for the small closed enum of values

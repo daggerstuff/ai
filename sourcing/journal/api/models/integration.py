@@ -5,7 +5,6 @@ This module provides request and response models for integration planning.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_serializer
 
@@ -15,7 +14,7 @@ from ai.sourcing.journal.api.models.common import PaginatedResponse
 class IntegrationInitiateRequest(BaseModel):
     """Request model for initiating integration planning."""
 
-    source_ids: Optional[List[str]] = Field(
+    source_ids: list[str] | None = Field(
         default=None,
         description="Source IDs to integrate (all sources if not provided)",
     )
@@ -32,9 +31,9 @@ class IntegrationPlanResponse(BaseModel):
     source_id: str
     complexity: str
     target_format: str
-    required_transformations: List[str]
+    required_transformations: list[str]
     estimated_effort_hours: int
-    schema_mapping: Dict[str, str]
+    schema_mapping: dict[str, str]
     created_date: datetime
 
     @field_serializer("created_date")

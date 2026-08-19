@@ -6,9 +6,8 @@ function expands it into the full AdversarialScenario dict.
 """
 
 import sys
-import json
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "schemas"))
 from adversarial import AdversarialScenario
@@ -2936,15 +2935,15 @@ def main():
             tr_counts[t.value] += 1
     sev_counts = Counter(s.severity.value for s in valid)
 
-    print(f"\n=== Coverage Summary ===")
+    print("\n=== Coverage Summary ===")
     print(f"Total scenarios: {len(valid)}")
-    print(f"\nBy failure mode:")
+    print("\nBy failure mode:")
     for fm, cnt in sorted(fm_counts.items(), key=lambda x: -x[1]):
         print(f"  {fm}: {cnt}")
-    print(f"\nBy trigger (scenario may have multiple):")
+    print("\nBy trigger (scenario may have multiple):")
     for tr, cnt in sorted(tr_counts.items(), key=lambda x: -x[1]):
         print(f"  {tr}: {cnt}")
-    print(f"\nBy severity:")
+    print("\nBy severity:")
     for sv, cnt in sorted(sev_counts.items(), key=lambda x: -x[1]):
         print(f"  {sv}: {cnt}")
 

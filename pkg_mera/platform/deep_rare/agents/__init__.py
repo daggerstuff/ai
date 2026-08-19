@@ -8,8 +8,8 @@ Each sub-agent specializes in a specific diagnostic task:
 
 from __future__ import annotations
 
+from .literature_matcher import LiteratureMatcher
 from .symptom_analyzer import SymptomAnalyzer
 from .test_interpreter import TestInterpreter
-from .literature_matcher import LiteratureMatcher
 
 __all__ = ["SymptomAnalyzer", "TestInterpreter", "LiteratureMatcher"]

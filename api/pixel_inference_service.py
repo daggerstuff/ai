@@ -33,11 +33,10 @@ from ai.utils.torch_proxy import torch
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from pixel.models.pixel_base_model import PixelBaseModel
-
 from ai.api.ift_inference import ABTestConfig, ABTestRouter, build_task_prompt, detect_task_type
 from ai.api.memory import get_memory_manager
 from ai.api.sentry_logging import initialize_sentry_logging
+from pixel.models.pixel_base_model import PixelBaseModel
 
 # ---------------------------------------------------------------------------
 # PAL Inference imports
@@ -50,28 +49,22 @@ if _PAL_FRAMEWORK not in sys.path:
 
 from inference_wrapper import (  # type: ignore[import-untyped]
     DEFAULT_LATENCY_BUDGET_SECONDS,
-    JsonLeakageError,
-    LatencyExceededError,
     PalInferenceWrapper,
-    SelectionParseError,
 )
 
 # ---------------------------------------------------------------------------
 # PIX-3912: Mera Hierarchical Clinical Prediction imports
 # ---------------------------------------------------------------------------
 try:
-    from ai.pkg_mera.core.pipelines.inference.candidate_retrieval import (
-        CandidateDiagnosis,
-        CandidateRetrievalEngine,
-    )
-    from ai.pkg_mera.core.pipelines.inference.evidence_scoring import (
-        EvidenceFinding,
-        EvidenceScoringEngine,
-        ScoredDiagnosis,
-    )
     from ai.memory.therapeutic_concept_hierarchy import (
         TherapeuticConceptHierarchy,
         build_default_therapeutic_hierarchy,
+    )
+    from ai.pkg_mera.core.pipelines.inference.candidate_retrieval import (
+        CandidateRetrievalEngine,
+    )
+    from ai.pkg_mera.core.pipelines.inference.evidence_scoring import (
+        EvidenceScoringEngine,
     )
 
     _MERA_AVAILABLE = True

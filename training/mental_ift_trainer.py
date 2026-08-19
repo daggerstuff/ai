@@ -79,7 +79,7 @@ class IFTConfig:
 class TaskEvalCallback(TrainerCallback):
     """Callback to evaluate per-task performance after each epoch."""
 
-    def __init__(self, trainer: "MentalHealthIFTTrainer", eval_dataset: Dataset):
+    def __init__(self, trainer: MentalHealthIFTTrainer, eval_dataset: Dataset):
         self.trainer = trainer
         self.eval_dataset = eval_dataset
 

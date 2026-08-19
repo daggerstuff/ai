@@ -409,6 +409,7 @@ def run_pipeline(
     output_dir: str,
     dry_run: bool = False,
     stage1_filters: bool = True,
+    dedup_store_path: str | None = None,
 ) -> PipelineStats:
     """Run the full curation pipeline."""
     stats = PipelineStats()
@@ -417,7 +418,7 @@ def run_pipeline(
     # Initialize Stage 1 filter chain (PIX-4342)
     stage1_chain: Any = None
     if stage1_filters and Stage1FilterChain is not None:
-        stage1_chain = Stage1FilterChain()
+        stage1_chain = Stage1FilterChain(dedup_store_path=dedup_store_path)
         print("Stage 1 QA filters: ENABLED", file=sys.stderr)
     else:
         print("Stage 1 QA filters: DISABLED", file=sys.stderr)
@@ -578,6 +579,13 @@ def run_pipeline(
     if stage1_chain is not None:
         stage1_summary = stage1_chain.summary()
         print("\n" + stage1_summary, file=sys.stderr)
+        # Propagate Stage 1 filter drops into pipeline stats
+        for fname, fs in stage1_chain.stats.filter_stats.items():
+            dropped = fs.dropped
+            if fname == "dedup":
+                stats.total_deduped += dropped
+            else:
+                stats.total_excluded += dropped
         stage1_chain.close()
 
     if not dry_run:

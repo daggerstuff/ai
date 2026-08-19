@@ -1,0 +1,594 @@
+{
+  "voice_profiles": {
+    "tim_fletcher": {
+      "name": "Tim Fletcher",
+      "description": "Pastor and trauma recovery educator specializing in complex trauma and CPTSD",
+      "specialties": [
+        "complex trauma",
+        "CPTSD",
+        "addiction recovery",
+        "emotional regulation",
+        "spiritual healing"
+      ],
+      "voice_characteristics": {
+        "tone": "Compassionate, practical, faith-informed",
+        "style": "Educational, structured, story-driven",
+        "approach": "Grounded, step-by-step, relatable"
+      },
+      "empathy_markers": {
+        "I hear you": 15,
+        "That makes so much sense": 12,
+        "You're not alone": 10,
+        "That's so understandable": 8,
+        "I want you to know": 7
+      },
+      "teaching_patterns": [
+        "First, let's understand",
+        "Second, here's what happens",
+        "Third, here's what we can do",
+        "Let me give you an example"
+      ],
+      "transition_phrases": {
+        "So here's the thing": 10,
+        "Now, what does that mean": 8,
+        "Let me explain": 6,
+        "Here's what I want you to understand": 5
+      }
+    },
+    "heidi_priebe": {
+      "name": "Heidi Priebe",
+      "description": "Therapist and educator specializing in attachment, trauma, and family systems",
+      "specialties": [
+        "attachment theory",
+        "family systems",
+        "trauma",
+        "boundaries",
+        "healing relationships"
+      ],
+      "voice_characteristics": {
+        "tone": "Warm, insightful, systemic",
+        "style": "Attachment-focused, relatable",
+        "approach": "Systems thinking, compassion-first"
+      },
+      "empathy_markers": {
+        "That's such a painful realization": 8,
+        "What you're describing makes complete sense": 6,
+        "You're not crazy for feeling that way": 5
+      },
+      "teaching_patterns": [
+        "Here's what happens in attachment",
+        "When we look at this through a systemic lens",
+        "The pattern looks like this"
+      ],
+      "transition_phrases": {
+        "So what this means is": 7,
+        "Let's unpack that": 5,
+        "Here's the thing about that": 4
+      }
+    },
+    "patrick_teahan": {
+      "name": "Patrick Teahan",
+      "description": "Therapist and content creator specializing in narcissistic abuse and CPTSD shame cycles",
+      "specialties": [
+        "narcissistic abuse recovery",
+        "shame cycles",
+        "family of origin",
+        "boundaries",
+        "CPTSD"
+      ],
+      "voice_characteristics": {
+        "tone": "Professional, validating, direct",
+        "style": "Practical examples, role-play oriented",
+        "approach": "Therapeutic, concrete, boundary-focused"
+      },
+      "empathy_markers": {
+        "That's a really common experience": 6,
+        "You're not imagining that": 5,
+        "That shame isn't yours to carry": 4
+      },
+      "teaching_patterns": [
+        "Let me show you what this looks like",
+        "Here's an example of how that plays out",
+        "Notice what happens when"
+      ],
+      "transition_phrases": {
+        "So here's what's actually happening": 5,
+        "Let's look at this differently": 4,
+        "The key thing to understand is": 3
+      }
+    },
+    "crappy_childhood_fairy": {
+      "name": "Crappy Childhood Fairy",
+      "description": "Trauma recovery specialist focusing on childhood trauma and CPTSD healing",
+      "specialties": [
+        "childhood trauma",
+        "CPTSD",
+        "trauma recovery",
+        "inner child work",
+        "healing journey"
+      ],
+      "voice_characteristics": {
+        "tone": "Nurturing, empowering, gentle",
+        "style": "Practical, approachable, encouraging",
+        "approach": "Trauma-informed, compassionate, actionable"
+      },
+      "empathy_markers": {
+        "You're so brave for sharing that": 5,
+        "Your inner child deserves to be heard": 4,
+        "It's okay to feel that way": 6
+      },
+      "teaching_patterns": [
+        "Let's start with a simple exercise",
+        "Here's something you can try today",
+        "Your healing journey looks like"
+      ],
+      "transition_phrases": {
+        "So here's what I want you to know": 5,
+        "And the beautiful thing is": 4,
+        "Here's the truth": 3
+      }
+    },
+    "doc_snipes": {
+      "name": "Dr. Dawn-Elise Snipes",
+      "description": "Licensed counselor and educator specializing in trauma, CPTSD, and neurobiological approaches",
+      "specialties": [
+        "neurobiology of trauma",
+        "CPTSD",
+        "emotional regulation",
+        "DBT",
+        "mindfulness"
+      ],
+      "voice_characteristics": {
+        "tone": "Academic yet accessible, warm",
+        "style": "Research-informed, practical, structured",
+        "approach": "Neurobiological grounding, skill-building"
+      },
+      "empathy_markers": {
+        "What you're experiencing is very common": 5,
+        "Your brain is actually doing exactly what it was designed to do": 4
+      },
+      "teaching_patterns": [
+        "From a neurobiological perspective",
+        "Here's what the research tells us",
+        "Let's break this down step by step"
+      ],
+      "transition_phrases": {
+        "So what does this mean for you": 5,
+        "Let's look at the practical application": 4,
+        "Here's the key takeaway": 3
+      }
+    }
+  },
+  "cptsd_topic_taxonomy": {
+    "emotional_flashbacks": {
+      "label": "Emotional Flashbacks",
+      "detection_patterns": [
+        "emotional flashback",
+        "flashback",
+        "suddenly felt like",
+        "transported back",
+        "felt like a child again",
+        "overwhelmed by the past",
+        "frozen in the past",
+        "emotional memory flooded",
+        "felt small again",
+        "time slipped away",
+        "body remembered",
+        "triggered memory",
+        "body memory",
+        "somatic memory",
+        "intrusive memory",
+        "felt like i was back",
+        "reliving",
+        "re-experiencing",
+        "reexperiencing",
+        "emotional memory",
+        "trauma memory"
+      ]
+    },
+    "triggers_trauma_responses": {
+      "label": "Triggers & Trauma Responses",
+      "detection_patterns": [
+        "trigger",
+        "triggered",
+        "trauma response",
+        "reaction",
+        "set off",
+        "reminded me of",
+        "brought up",
+        "activated",
+        "stress response",
+        "fight or flight",
+        "hyperarousal",
+        "hypervigilant",
+        "startle response",
+        "trauma",
+        "complex trauma",
+        "ptsd",
+        "cptsd",
+        "complex ptsd",
+        "trauma bonding",
+        "retraumat",
+        "nervous system",
+        "dysregulat",
+        "trauma bond",
+        "trauma history",
+        "trauma survivor",
+        "trauma trigger",
+        "adverse childhood",
+        "ace score",
+        "developmental trauma",
+        "early childhood trauma",
+        "relational trauma"
+      ]
+    },
+    "survival_responses": {
+      "label": "Survival Responses (Fight, Flight, Freeze, Fawn)",
+      "detection_patterns": [
+        "fight response",
+        "flight response",
+        "freeze response",
+        "fawn response",
+        "people pleasing",
+        "appease",
+        "comply to survive",
+        "shut down",
+        "numb out",
+        "disappear",
+        "become invisible",
+        "can't move",
+        "can't speak",
+        "froze",
+        "ran away",
+        "fought back",
+        "pleased them",
+        "survival mode",
+        "people pleaser",
+        "people-pleaser",
+        "coping mechanism",
+        "defense mechanism",
+        "coping strateg",
+        "fawning",
+        "dissociation",
+        "disassociat",
+        "learned helplessness",
+        "helplessness",
+        "numb",
+        "numbing",
+        "collapse",
+        "submit",
+        "comply",
+        "freeze",
+        "flight"
+      ]
+    },
+    "shame_toxic_shame": {
+      "label": "Shame & Toxic Shame",
+      "detection_patterns": [
+        "shame",
+        "ashamed",
+        "toxic shame",
+        "inner critic",
+        "self-hatred",
+        "I'm broken",
+        "something is wrong with me",
+        "I'm defective",
+        "unworthy",
+        "not good enough",
+        "self-blame",
+        "humiliation",
+        "degradation",
+        "worthlessness",
+        "toxic family",
+        "toxic parent",
+        "toxic mother",
+        "toxic father",
+        "scapegoat",
+        "golden child",
+        "scapegoating",
+        "i'm unlovable",
+        "unlovable",
+        "bad person",
+        "i'm bad",
+        "defective",
+        "not worthy",
+        "inherently flawed",
+        "self-loathing",
+        "self disgust",
+        "i hate myself",
+        "something wrong with me",
+        "i'm damaged",
+        "damaged goods",
+        "beyond repair",
+        "i'm the problem",
+        "it's my fault",
+        "blame myself",
+        "blaming myself"
+      ]
+    },
+    "emotional_regulation": {
+      "label": "Emotional Regulation",
+      "detection_patterns": [
+        "emotional regulation",
+        "regulate emotions",
+        "manage emotions",
+        "self-soothe",
+        "calm down",
+        "grounding",
+        "window of tolerance",
+        "emotional intensity",
+        "emotional flooding",
+        "tolerate distress",
+        "distress tolerance",
+        "mindfulness",
+        "breathing techniques",
+        "dysregulat",
+        "regulate",
+        "regulating",
+        "nervous system",
+        "overwhelm",
+        "overwhelmed",
+        "flooding",
+        "co-regulation",
+        "self-regulation",
+        "regulate my",
+        "emotional dysregulation",
+        "nervous system regulation"
+      ]
+    },
+    "recovery_stages": {
+      "label": "Recovery Stages",
+      "detection_patterns": [
+        "recovery",
+        "healing journey",
+        "stages of recovery",
+        "healing process",
+        "awareness",
+        "stabilization",
+        "processing",
+        "integration",
+        "thriving",
+        "moving forward",
+        "progress",
+        "growth",
+        "transformation",
+        "reclaiming",
+        "rebuilding",
+        "healing",
+        "trauma recovery",
+        "cptsd recovery",
+        "trauma healing",
+        "healing from trauma",
+        "recovery journey",
+        "post-traumatic growth",
+        "trauma-informed",
+        "emdr",
+        "ifs therapy",
+        "internal family systems",
+        "somatic therapy",
+        "somatic experiencing"
+      ]
+    },
+    "inner_child_work": {
+      "label": "Inner Child Work",
+      "detection_patterns": [
+        "inner child",
+        "child self",
+        "younger self",
+        "child within",
+        "reparenting",
+        "inner child healing",
+        "comforting the child",
+        "protecting the child",
+        "childhood self",
+        "wounded child",
+        "little one inside",
+        "the child in me",
+        "childhood trauma",
+        "childhood abuse",
+        "childhood wounds",
+        "childhood emotional neglect",
+        "emotional neglect",
+        "abandonment",
+        "abandonment wound",
+        "abandonment issue",
+        "rejection",
+        "rejection wound",
+        "rejection sensitivity",
+        "parentification",
+        "parentified",
+        "attachment wound",
+        "insecure attachment",
+        "child part",
+        "abused as a child",
+        "grew up in",
+        "raised by",
+        "sexual abuse",
+        "child abuse",
+        "physical abuse",
+        "molested",
+        "molest",
+        "incest",
+        "abused as children",
+        "something wrong with me",
+        "raised in",
+        "wounded",
+        "childhood wound"
+      ]
+    },
+    "boundary_setting": {
+      "label": "Boundary Setting",
+      "detection_patterns": [
+        "boundary",
+        "boundaries",
+        "setting limits",
+        "saying no",
+        "assertive",
+        "standing up for myself",
+        "enmeshment",
+        "codependent",
+        "no contact",
+        "going no contact",
+        "low contact",
+        "protecting myself",
+        "my needs matter",
+        "codependency",
+        "enmeshed",
+        "narcissistic abuse",
+        "narcissist",
+        "narcissistic",
+        "gaslighting",
+        "gaslight",
+        "manipulation",
+        "manipulative",
+        "emotional abuse",
+        "psychological abuse",
+        "mental abuse",
+        "setting boundaries",
+        "boundary with",
+        "toxic relationship",
+        "abusive relationship",
+        "domestic violence",
+        "domestic abuse",
+        "verbal abuse",
+        "controlling",
+        "controlling behavior",
+        "controlling partner",
+        "walking on eggshells"
+      ]
+    },
+    "self_compassion": {
+      "label": "Self-Compassion",
+      "detection_patterns": [
+        "self-compassion",
+        "self-compassionate",
+        "be kind to yourself",
+        "treat yourself gently",
+        "forgive yourself",
+        "self-acceptance",
+        "self-worth",
+        "deserve love",
+        "worthy of care",
+        "gentle with myself",
+        "loving yourself",
+        "self-care",
+        "self-love",
+        "self love",
+        "worthiness",
+        "deserve",
+        "be gentle with yourself",
+        "self-kindness",
+        "compassion for yourself",
+        "treating yourself well"
+      ]
+    },
+    "healing_milestones": {
+      "label": "Healing Milestones",
+      "detection_patterns": [
+        "milestone",
+        "breakthrough",
+        "progress",
+        "first time",
+        "I realized",
+        "I finally understood",
+        "turning point",
+        "something shifted",
+        "things changed",
+        "I noticed improvement",
+        "I felt safe for the first time",
+        "I could finally",
+        "I started to trust",
+        "I began to hope",
+        "post-traumatic growth",
+        "thriving",
+        "flourishing",
+        "transformation",
+        "shifted",
+        "new perspective",
+        "i feel safe",
+        "i feel free",
+        "i can trust",
+        "empowerment",
+        "reclaiming my life",
+        "no longer defined"
+      ]
+    }
+  },
+  "crisis_detection_patterns": {
+    "high_severity": [
+      "hurt myself",
+      "kill myself",
+      "want to die",
+      "end it all",
+      "suicide",
+      "suicidal",
+      "not worth living",
+      "better off dead",
+      "ending it",
+      "no point being alive",
+      "self-harm",
+      "self-injure",
+      "cut myself",
+      "burn myself",
+      "don't want to be here anymore"
+    ],
+    "medium_severity": [
+      "not real",
+      "detached",
+      "floating",
+      "watching myself",
+      "numb",
+      "checked out",
+      "dissociat",
+      "happening again",
+      "back there",
+      "reliving",
+      "spiraling",
+      "losing control",
+      "can't stop",
+      "getting worse",
+      "breaking point",
+      "escalating",
+      "too much",
+      "can't cope",
+      "drowning",
+      "suffocating"
+    ],
+    "cptsd_specific": [
+      "flashback",
+      "triggered",
+      "trauma back",
+      "body remembered",
+      "emotional memory",
+      "frozen",
+      "can't move",
+      "can't speak",
+      "disappear",
+      "become invisible",
+      "shut down",
+      "numb out"
+    ]
+  },
+  "recovery_stages": {
+    "awareness": {
+      "label": "Awareness \u2014 Recognizing CPTSD Patterns",
+      "description": "Beginning to understand that symptoms stem from complex trauma, recognizing survival responses and triggers"
+    },
+    "stabilization": {
+      "label": "Stabilization \u2014 Building Safety and Regulation",
+      "description": "Developing emotional regulation skills, creating safety, grounding techniques, building support systems"
+    },
+    "processing": {
+      "label": "Processing \u2014 Working Through Trauma Memories",
+      "description": "Gradually processing traumatic memories, understanding the past, working through grief and anger"
+    },
+    "integration": {
+      "label": "Integration \u2014 Incorporating New Coping Skills",
+      "description": "Integrating new understanding into daily life, building healthier relationships, practicing boundaries"
+    },
+    "thriving": {
+      "label": "Thriving \u2014 Living Beyond Survival Mode",
+      "description": "Moving from surviving to thriving, finding purpose, helping others, building a meaningful life"
+    }
+  }
+}

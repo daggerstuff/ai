@@ -1,3 +1,3 @@
-from .anonymizer import ContentAnonymizer, AnonymizationResult
+from .anonymizer import AnonymizationResult, ContentAnonymizer
 
 __all__ = ["ContentAnonymizer", "AnonymizationResult"]

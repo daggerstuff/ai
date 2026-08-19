@@ -23,7 +23,6 @@ from difflib import SequenceMatcher
 from typing import TYPE_CHECKING
 
 from ..schema import (
-    ConfidenceLevel,
     DiseaseProfile,
     Hypothesis,
     PatientCase,

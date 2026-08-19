@@ -19,7 +19,6 @@ from collections import Counter
 from typing import TYPE_CHECKING
 
 from ..schema import (
-    DiseaseProfile,
     EvidenceGrade,
     Hypothesis,
     LiteratureMatch,

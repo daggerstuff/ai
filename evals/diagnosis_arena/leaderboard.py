@@ -14,12 +14,11 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 
-from .reporter import to_markdown
-from .types import DIAGNOSTIC_DIMENSIONS, BenchmarkSummary
+from .types import BenchmarkSummary
 
 
 class SystemEvaluation:
