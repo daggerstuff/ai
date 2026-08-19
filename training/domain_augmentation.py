@@ -229,8 +229,8 @@ def expand_seeds(
     - Output passes Stage 1 + Stage 2 QA
     - Records carry provenance stamps (source_type=synthetic_sdg, license=NOASSERTION)
     """
-    from training.stage1_filters import run_stage1_on_record, NearDuplicateIndex, FilterVerdict
     from training.sdg_back_translation import _content_hash
+    from training.stage1_filters import FilterVerdict, NearDuplicateIndex, run_stage1_on_record
 
     bank = topic_bank or DEFAULT_TOPIC_BANK
     diffs = difficulties or DEFAULT_DIFFICULTIES

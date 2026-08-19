@@ -127,12 +127,12 @@ def dedup() -> dict:
             f.write(
                 f"  {ds:40s} total={s['total']:>8d}  unique={s['unique']:>8d}  dups={s['dups']:>6d}  ({pct:.1f}%)\n"
             )
-        f.write(f"\nInternal dups (same dataset):\n")
+        f.write("\nInternal dups (same dataset):\n")
         for ds in sorted(internal_dups, key=lambda x: -internal_dups[x]):
             if internal_dups[ds] > 0:
                 f.write(f"  {ds:40s} {internal_dups[ds]:>8,}\n")
 
-        f.write(f"\nCross-dataset dups (dup_source -> first_seen):\n")
+        f.write("\nCross-dataset dups (dup_source -> first_seen):\n")
         for ds in sorted(cross_dups):
             for first_ds, count in sorted(cross_dups[ds].items(), key=lambda x: -x[1]):
                 if count > 0:
@@ -151,7 +151,7 @@ def dedup() -> dict:
 def main() -> None:
     print("Deduplicating across all datasets...", file=sys.stderr)
     stats = dedup()
-    print(f"\nDone:")
+    print("\nDone:")
     print(f"  Input:    {stats['total_input']:>10,} records")
     print(f"  Unique:   {stats['total_unique']:>10,} records")
     print(f"  Dups:     {stats['total_dups']:>10,} records")

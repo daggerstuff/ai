@@ -4,14 +4,14 @@ from typing import Any
 
 import structlog
 
+# The provider factory lives at the pixelated backend boundary.
+# At runtime the Celery worker runs with src/ on the Python path.
+from pe.core.llm_factory import LLMProviderFactory
+
 from orchestration.celery_app import celery_app
 from orchestration.core.inference import InferenceEngine
 from orchestration.core.state_machine import PersonaStateMachine
 from orchestration.safety.guards import InputGuard, OutputGuard
-
-# The provider factory lives at the pixelated backend boundary.
-# At runtime the Celery worker runs with src/ on the Python path.
-from pe.core.llm_factory import LLMProviderFactory
 
 logger = structlog.get_logger(__name__)
 

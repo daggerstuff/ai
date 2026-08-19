@@ -155,6 +155,8 @@ class DataNormalizer:
 
         # Standardize keys and normalize content
         if "messages" in normalized:
+            if not isinstance(normalized["messages"], list):
+                raise ValueError(f"Expected 'messages' to be a list, got {type(normalized['messages']).__name__}")
             normalized["messages"] = [self._normalize_message(msg) for msg in normalized["messages"]]
 
         if "metadata" in normalized and isinstance(normalized["metadata"], dict):
@@ -173,6 +175,8 @@ class DataNormalizer:
           - metadata + provenance fields → metadata
         """
         # Re-normalize to be safe
+        if not isinstance(record, dict):
+            raise ValueError(f"Expected dict record, got {type(record).__name__}")
         record = self.normalize_record(record)
 
         messages = []

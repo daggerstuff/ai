@@ -14,9 +14,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .types import (
+    DIAGNOSTIC_DIMENSIONS,
     BenchmarkSummary,
     CaseScore,
-    DIAGNOSTIC_DIMENSIONS,
     Difficulty,
     ResponseFormat,
 )

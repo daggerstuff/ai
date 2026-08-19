@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import csv
 import json
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -34,7 +33,6 @@ from ai.sourcing.utils.converters import (
     sharegpt_to_chatml,
 )
 from ai.sourcing.utils.validators import filter_valid, validate_record
-
 
 # ---------------------------------------------------------------------------
 # Concrete test adapter for testing the base class

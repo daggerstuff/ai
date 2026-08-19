@@ -19,7 +19,6 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-
 # ---------------------------------------------------------------------------
 # Mock the 'pixel' module so ``pixel_inference_service`` can be imported
 # without the pre-existing ``pixel`` package dependency.
@@ -30,14 +29,14 @@ class _MockPixelBaseModel:
     def __init__(self, *_args: object, **_kwargs: object) -> None:
         self._loaded = True
 
-    def to(self, _device: object) -> "_MockPixelBaseModel":
+    def to(self, _device: object) -> _MockPixelBaseModel:
         return self
 
     def eval(self) -> None:
         pass
 
     @classmethod
-    def load(cls, _path: str) -> "_MockPixelBaseModel":
+    def load(cls, _path: str) -> _MockPixelBaseModel:
         return cls()
 
     def __call__(self, *_args: object, **_kwargs: object) -> dict[str, object]:

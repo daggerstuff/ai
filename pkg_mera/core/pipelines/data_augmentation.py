@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import random
 import re
-import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -133,8 +132,9 @@ class DataAugmenter:
         if self.random() > self.config.noise_probability:
             return text
 
-        noise = random.choice(self._NOISE_PATTERNS)
-        index = random.randrange(min(len(tokens), 5))
+        noise_idx = int(self.random() * len(self._NOISE_PATTERNS))
+        noise = self._NOISE_PATTERNS[noise_idx]
+        index = int(self.random() * min(len(tokens), 5))
         tokens.insert(index, noise)
 
         if self.random() < 0.5:
@@ -208,9 +208,8 @@ class DataAugmenter:
     def batch_augment(self, conversations: list[Conversation]) -> tuple[list[Conversation], AugmentationStats]:
         """Augment conversation list and return stats."""
 
-        start = time.time()
         if self.config.random_seed is not None:
-            random.seed(self.config.random_seed + int(start))
+            random.seed(self.config.random_seed)
 
         output: list[Conversation] = []
         stats = AugmentationStats()

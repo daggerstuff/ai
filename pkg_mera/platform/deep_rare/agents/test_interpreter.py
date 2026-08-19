@@ -33,7 +33,6 @@ from ..schema import (
     PatientCase,
     TestInterpretationResult,
     TestResult,
-    TestType,
 )
 
 if TYPE_CHECKING:

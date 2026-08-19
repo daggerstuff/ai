@@ -16,7 +16,6 @@ Tagged privacy_preserving=True. RMRR methodology note in system prompt.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
@@ -49,7 +48,6 @@ class PsyDialAdapter(BaseDatasetAdapter):
     def download(self) -> None:
         """Download PsyDial JSON files from HuggingFace."""
         import os
-        import tempfile
 
         cache_dir = (
             os.environ.get("HF_HOME")

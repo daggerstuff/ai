@@ -41,7 +41,7 @@ import re
 import sqlite3
 import tempfile
 from collections import Counter
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, NamedTuple, Protocol
@@ -270,6 +270,29 @@ def strip_pii_regex(text: str) -> tuple[str, int]:
         redacted, count = pattern.subn(_PII_REDACTION, redacted)
         hits += count
     return (redacted, hits)
+
+
+def _redact_record_inplace(record: dict[str, Any]) -> int:
+    """Redact PII in a record's text fields using regex. Returns total hit count."""
+    hits = 0
+    for msg in record.get("messages", []):
+        if isinstance(msg, dict) and "content" in msg:
+            redacted, count = strip_pii_regex(msg["content"])
+            msg["content"] = redacted
+            hits += count
+    for key in ("prompt", "chosen", "rejected", "instruction", "output", "text"):
+        val = record.get(key)
+        if isinstance(val, str) and val:
+            redacted, count = strip_pii_regex(val)
+            record[key] = redacted
+            hits += count
+        elif isinstance(val, list):
+            for item in val:
+                if isinstance(item, dict) and "content" in item:
+                    redacted, count = strip_pii_regex(item["content"])
+                    item["content"] = redacted
+                    hits += count
+    return hits
 
 
 def strip_pii_presidio(text: str) -> tuple[str, int]:
@@ -502,6 +525,14 @@ class PIIFilter:
 
         analyzer = self._load_analyzer()
         if analyzer is None:
+            # Regex fallback: redact PII in-place using regex patterns
+            hits = _redact_record_inplace(record)
+            if hits > 0:
+                return FilterResult(
+                    passed=True,
+                    reason="pii_redacted_regex",
+                    metadata={"pii_found": True, "redaction_method": "regex", "hits": hits},
+                )
             return FilterResult(
                 passed=True, reason="", metadata={"pii_found": False, "analyzer_unavailable": True}
             )

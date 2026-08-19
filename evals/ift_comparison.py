@@ -14,11 +14,11 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
-from sklearn.metrics import f1_score, precision_score, recall_score
 
 from training.mental_health_instruction_dataset import MentalHealthTaskType
 

@@ -13,14 +13,13 @@ a stable inference API for the core/pipelines layer with:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import ValidationError
 
 from ai.pkg_mera.platform.deep_rare import DeepRareConfig, PatientCase, PipelineConfig, RareDiseasePipeline
-from ai.pkg_mera.platform.deep_rare.observability import HealthSnapshot, ObservabilityContext
-from ai.pkg_mera.platform.deep_rare.schema import DiagnosisResult, EvaluationMetrics
+from ai.pkg_mera.platform.deep_rare.observability import ObservabilityContext
 
 __all__ = ["RareDiseaseInferenceService"]
 
@@ -47,7 +46,7 @@ class RareDiseaseInferenceService:
         self._pipeline = RareDiseasePipeline(config, deep_rare_config)
         self._enable_observability = enable_observability
         self._observability = ObservabilityContext(deep_rare_config) if enable_observability else None
-        self._started_at = datetime.now(timezone.utc).isoformat()
+        self._started_at = datetime.now(UTC).isoformat()
         logger.info("RareDiseaseInferenceService initialized", extra={"version": __version__})
 
     # ------------------------------------------------------------------
@@ -76,7 +75,7 @@ class RareDiseaseInferenceService:
             return {
                 "error": "validation_error",
                 "details": exc.errors(),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         # Tracing
@@ -113,7 +112,7 @@ class RareDiseaseInferenceService:
             return {
                 "error": "invalid_input",
                 "details": "cases_data must be a list",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         results: list[dict[str, Any]] = []
@@ -142,7 +141,7 @@ class RareDiseaseInferenceService:
             return {
                 "error": "invalid_input",
                 "details": "cases_data must be a list",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         try:
@@ -151,7 +150,7 @@ class RareDiseaseInferenceService:
             return {
                 "error": "validation_error",
                 "details": exc.errors(),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         try:
@@ -164,7 +163,7 @@ class RareDiseaseInferenceService:
             return {
                 "error": "evaluation_failed",
                 "details": str(exc),
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     # ------------------------------------------------------------------
@@ -186,7 +185,7 @@ class RareDiseaseInferenceService:
             "version": __version__,
             "started_at": self._started_at,
             "pipeline": pipeline_health,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def get_info(self) -> dict[str, Any]:
@@ -223,21 +222,21 @@ class RareDiseaseInferenceService:
             return {
                 "error": "invalid_input",
                 "details": "case_data must be a dict",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         if not case_data.get("case_id"):
             return {
                 "error": "missing_case_id",
                 "details": "case_id is required",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         if not case_data.get("presenting_symptoms"):
             return {
                 "error": "missing_symptoms",
                 "details": "presenting_symptoms is required and must be non-empty",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         # PHI consent check
@@ -245,7 +244,7 @@ class RareDiseaseInferenceService:
             return {
                 "error": "consent_not_given",
                 "details": "Patient consent not given — diagnosis blocked per HIPAA",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         return None

@@ -165,7 +165,7 @@ def main() -> None:
     parser_obj = TranscriptParser(args.input_dir, args.output_dir)
     stats = parser_obj.process_all()
 
-    print(f"\nTranscript Parsing Summary:")
+    print("\nTranscript Parsing Summary:")
     print(f"  Files processed: {stats.get('files_processed', 0)}")
     print(f"  Total turns: {stats.get('total_turns', 0)}")
     print(f"  Errors: {stats.get('errors', 0)}")

@@ -277,8 +277,6 @@ class DatasetFreezer:
                 continue
 
             stats = StageStats()
-            records: list[dict[str, Any]] = []
-
             with stage_file.open("r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
@@ -286,7 +284,6 @@ class DatasetFreezer:
                         continue
                     try:
                         record = json.loads(line)
-                        records.append(record)
                         stats.update(record)
 
                         metadata = record.get("metadata", {}) or {}

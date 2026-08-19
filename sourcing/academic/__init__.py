@@ -20,11 +20,17 @@ from .academic_sourcing import (
     create_academic_sourcing_engine,
 )
 
+# Note: The following modules are planned but not yet implemented in the directory structure:
+# from .metadata_extraction.metadata_extractor import MetadataExtractor
+# from .anonymization.anonymizer import ContentAnonymizer
+from .anonymization.anonymizer import AnonymizationResult, ContentAnonymizer
+
 # API Integration
 from .api.main import app as AcademicSourcingAPI
 
 # DOI Resolution
 from .doi_resolution.doi_resolver import DOIResolver, DOISearcher
+from .metadata_extraction.metadata_extractor import ExtractedMetadata, MetadataExtractor
 from .publishers.apa_publisher import APAPublisher
 from .publishers.base_publisher import BasePublisher, BookContent, BookFormat
 from .publishers.cambridge_publisher import CambridgePublisher
@@ -40,13 +46,6 @@ from .therapy_dataset_sourcing import (
     TherapyDatasetSourcing,
     find_therapy_datasets,
 )
-
-# Note: The following modules are planned but not yet implemented in the directory structure:
-# from .metadata_extraction.metadata_extractor import MetadataExtractor
-# from .anonymization.anonymizer import ContentAnonymizer
-
-from .anonymization.anonymizer import AnonymizationResult, ContentAnonymizer
-from .metadata_extraction.metadata_extractor import ExtractedMetadata, MetadataExtractor
 
 __all__ = [
     "AnonymizationResult",

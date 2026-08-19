@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import pytest
 
+from ai.pkg_mera.platform.deep_rare.differential import DifferentialDiagnosisManager
 from ai.pkg_mera.platform.deep_rare.knowledge_base import RareDiseaseKnowledgeBase
 from ai.pkg_mera.platform.deep_rare.orchestrator import ControllerOrchestrator
-from ai.pkg_mera.platform.deep_rare.differential import DifferentialDiagnosisManager
 from ai.pkg_mera.platform.deep_rare.schema import (
     DiagnosisResult,
     Hypothesis,

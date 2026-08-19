@@ -12,7 +12,6 @@ Output task_type: severity_estimation
 from __future__ import annotations
 
 import csv
-from pathlib import Path
 from typing import Any
 
 from ai.sourcing.dataset_adapters.adapter_factory import register_adapter

@@ -58,17 +58,19 @@ def test_basic_functionality():
     all_terms = expansion.get_all_crisis_terms()
     assert len(all_terms) > 20  # Should have many terms
 
-    # Test negation handling
+    # Test negation handling — negated forms must NOT appear in expansions
+    # (they represent safe language and would cause false positives)
     neg_expansions = expansion.expand_term("kill myself", "suicidal_ideation")
     neg_terms = [
         t
         for t in neg_expansions
         if "not" in t or "don't" in t or "never" in t or "would never" in t or "could never" in t or "should never" in t
     ]
-    assert len(neg_terms) > 0
-    # Check for any negation form rather than specific ones
-    has_negation = any("not" in t or "don't" in t or "never" in t for t in neg_expansions)
-    assert has_negation
+    assert len(neg_terms) == 0  # No negated forms should be in crisis expansions
+    # Verify is_negated correctly detects negated crisis language
+    assert expansion.is_negated("I would never kill myself", "kill myself")
+    assert expansion.is_negated("I don't want to kill myself", "kill myself")
+    assert not expansion.is_negated("I want to kill myself", "kill myself")
 
     # Test phrase variants
     variant_expansions = expansion.expand_term("kill myself", "suicidal_ideation")

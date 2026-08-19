@@ -164,9 +164,20 @@ def clean_and_deduplicate(
     # Remove PII columns by name heuristics.
     if remove_pii_columns:
         pii_cols = find_pii_columns(working.columns)
-        # Keep required columns if any get accidentally matched (safety-first override).
-        pii_cols = pii_cols.difference(set(required_columns))
-        working = remove_pii(working, pii_cols, logger=log)
+        required_set = set(required_columns)
+        # Required columns that match PII patterns can't be dropped,
+        # but MUST be redacted to prevent PII leakage.
+        required_pii_cols = pii_cols & required_set
+        if required_pii_cols:
+            working = redact_pii_in_text_fields(working, required_pii_cols, logger=log)
+            log.warning(
+                "Required columns %s match PII patterns; "
+                "applied regex redaction instead of column removal",
+                sorted(required_pii_cols),
+            )
+        # Drop non-required PII columns.
+        droppable = pii_cols.difference(required_set)
+        working = remove_pii(working, droppable, logger=log)
 
     # Remove duplicate rows on dedup columns while preserving order.
     normalized_dedup = dedup_columns if dedup_columns else working.columns.tolist()

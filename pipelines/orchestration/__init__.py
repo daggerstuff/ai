@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from .stage_organizer import StageOrganizer, StageConfig, StageManifest
+from .stage_organizer import StageConfig, StageManifest, StageOrganizer
 
 __all__ = ["StageOrganizer", "StageConfig", "StageManifest"]

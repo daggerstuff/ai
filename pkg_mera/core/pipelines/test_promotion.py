@@ -98,13 +98,18 @@ class TestPromotionService:
             output_dir=temp_output_dir,
         )
 
+        # Find the actual package directory
+        stage_dir = Path(temp_output_dir) / "stage1_foundation"
+        pkg_dirs = [d for d in stage_dir.iterdir() if d.is_dir()] if stage_dir.exists() else []
+        package_path = pkg_dirs[0] if pkg_dirs else stage_dir
+
         # Remove token if it exists
-        token_path = Path(temp_output_dir) / "stage1_foundation" / "promotion_token.json"
+        token_path = package_path / "promotion_token.json"
         if token_path.exists():
             token_path.unlink()
 
         service = PromotionService()
-        result = service.validate_promotion(Path(temp_output_dir) / "stage1_foundation")
+        result = service.validate_promotion(package_path)
 
         assert result.status == PromotionStatus.FAILED
         assert "No promotion token" in result.error_message
@@ -138,7 +143,7 @@ class TestPromotionService:
     def test_hash_mismatch_detection(self, temp_output_dir, sample_records):
         """Data hash mismatch is detected."""
         # Create package with passing metrics
-        create_training_package(
+        bundle = create_training_package(
             stage_id="stage1_foundation",
             records=sample_records,
             output_dir=temp_output_dir,
@@ -146,15 +151,15 @@ class TestPromotionService:
         )
 
         # Only test hash mismatch if package has token
-        token_path = Path(temp_output_dir) / "stage1_foundation" / "promotion_token.json"
-        if token_path.exists():
+        if bundle.is_promotable:
+            package_path = bundle.promotion_token_path.parent
             # Corrupt the data file
-            data_path = Path(temp_output_dir) / "stage1_foundation" / "data.jsonl"
+            data_path = package_path / "data.jsonl"
             with open(data_path, "a") as f:
                 f.write('{"corrupted": true}\n')
 
             service = PromotionService()
-            result = service.validate_promotion(Path(temp_output_dir) / "stage1_foundation")
+            result = service.validate_promotion(package_path)
 
             # Should detect hash mismatch
             assert result.status == PromotionStatus.FAILED
@@ -163,7 +168,7 @@ class TestPromotionService:
     def test_token_expiry(self, temp_output_dir, sample_records):
         """Expired tokens are rejected."""
         # Create package with passing metrics
-        create_training_package(
+        bundle = create_training_package(
             stage_id="stage1_foundation",
             records=sample_records,
             output_dir=temp_output_dir,
@@ -171,8 +176,9 @@ class TestPromotionService:
         )
 
         # Only test expiry if token exists
-        token_path = Path(temp_output_dir) / "stage1_foundation" / "promotion_token.json"
-        if token_path.exists():
+        if bundle.is_promotable:
+            package_path = bundle.promotion_token_path.parent
+            token_path = package_path / "promotion_token.json"
             # Backdate the token
             old_time = (datetime.now(UTC) - timedelta(hours=25)).isoformat()
             with open(token_path) as f:
@@ -182,7 +188,7 @@ class TestPromotionService:
                 json.dump(token_data, f, indent=2)
 
             service = PromotionService(token_expiry_hours=24)
-            result = service.validate_promotion(Path(temp_output_dir) / "stage1_foundation")
+            result = service.validate_promotion(package_path)
 
             assert result.status == PromotionStatus.EXPIRED
             assert "expired" in result.error_message.lower()
@@ -190,7 +196,7 @@ class TestPromotionService:
     def test_mark_promoted(self, temp_output_dir, sample_records):
         """Promoted status is recorded correctly."""
         # Create package with passing metrics
-        create_training_package(
+        bundle = create_training_package(
             stage_id="stage1_foundation",
             records=sample_records,
             output_dir=temp_output_dir,
@@ -198,16 +204,16 @@ class TestPromotionService:
         )
 
         # Only test mark_promoted if token exists
-        token_path = Path(temp_output_dir) / "stage1_foundation" / "promotion_token.json"
-        if token_path.exists():
+        if bundle.is_promotable:
+            package_path = bundle.promotion_token_path.parent
             service = PromotionService()
             service.mark_promoted(
-                Path(temp_output_dir) / "stage1_foundation",
+                package_path,
                 training_run_id="run-123",
             )
 
             # Check promoted.json exists
-            promoted_path = Path(temp_output_dir) / "stage1_foundation" / "promoted.json"
+            promoted_path = package_path / "promoted.json"
             assert promoted_path.exists()
 
             with open(promoted_path) as f:
@@ -229,8 +235,9 @@ class TestPromotionService:
         # Only test if package is actually promotable
         if bundle.is_promotable:
             # Validate promotion
+            package_path = bundle.promotion_token_path.parent
             service = PromotionService()
-            result = service.validate_promotion(Path(temp_output_dir) / "stage1_foundation")
+            result = service.validate_promotion(package_path)
 
             assert result.status == PromotionStatus.ELIGIBLE
             assert result.package_id == bundle.manifest.package_id
@@ -252,7 +259,11 @@ class TestCheckPromotionEligibility:
             metrics={"empathy_score": 0.75, "clinical_score": 0.35, "safety_score": 1.0},
         )
 
-        result = check_promotion_eligibility(Path(temp_output_dir) / "stage1_foundation")
+        if bundle.is_promotable:
+            package_path = bundle.promotion_token_path.parent
+            result = check_promotion_eligibility(package_path)
+        else:
+            result = check_promotion_eligibility(Path(temp_output_dir) / "stage1_foundation")
 
         # Should return valid result structure
         assert isinstance(result, PromotionResult)
@@ -275,19 +286,20 @@ class TestPromotionIntegration:
 
         # Step 2: Check if promotable
         if bundle.is_promotable:
+            package_path = bundle.promotion_token_path.parent
             # Step 3: Validate promotion
             service = PromotionService()
-            result = service.validate_promotion(Path(temp_output_dir) / "stage1_foundation")
+            result = service.validate_promotion(package_path)
 
             # Step 4: Mark as promoted if eligible
             if result.status == PromotionStatus.ELIGIBLE:
                 service.mark_promoted(
-                    Path(temp_output_dir) / "stage1_foundation",
+                    package_path,
                     training_run_id="test-run-001",
                 )
 
                 # Verify promoted file
-                promoted_path = Path(temp_output_dir) / "stage1_foundation" / "promoted.json"
+                promoted_path = package_path / "promoted.json"
                 assert promoted_path.exists()
 
 

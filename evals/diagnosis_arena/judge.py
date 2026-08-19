@@ -20,9 +20,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 
 from .types import (
-    ClinicalCase,
     DIAGNOSTIC_DIMENSIONS,
-    DIMENSION_WEIGHTS,
+    ClinicalCase,
     DimensionScore,
     GeneratedDiagnosis,
     Judgment,

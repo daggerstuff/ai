@@ -366,7 +366,7 @@ async def _call_judge_model(
             data = await resp.json()
             content = data["choices"][0]["message"]["content"]
             return parse_judge_json(content)
-    except (aiohttp.ClientError, asyncio.TimeoutError, KeyError) as exc:
+    except (TimeoutError, aiohttp.ClientError, KeyError) as exc:
         return JudgeVerdict(0.0, f"transport_error: {exc}")
 
 

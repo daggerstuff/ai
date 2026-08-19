@@ -1,12 +1,12 @@
-import os
-import json
 import glob
+import json
+import os
 import uuid
+
 import pandas as pd
-from dataflow.utils.storage import FileStorage
-from dataflow.operators.core_text import PromptedGenerator
-from dataflow.operators.core_text import GeneralFilter
+from dataflow.operators.core_text import GeneralFilter, PromptedGenerator
 from dataflow.serving import APILLMServing_request
+from dataflow.utils.storage import FileStorage
 
 OLLAMA_URL = "https://ollama.pixelated.love/v1/chat/completions"
 MODEL = "ornith:9b"
@@ -31,7 +31,7 @@ def ingest_directory(directory_path, source_name):
 
     for filepath in glob.glob(os.path.join(directory_path, "**/*.jsonl"), recursive=True):
         print(f"  -> Loading {filepath}...")
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
                     continue
@@ -64,7 +64,7 @@ def ingest_directory(directory_path, source_name):
                                 "raw_content": raw_content,
                             }
                         )
-                except Exception as e:
+                except Exception:
                     pass
     return records
 
