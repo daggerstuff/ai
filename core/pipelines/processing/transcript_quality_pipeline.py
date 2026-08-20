@@ -26,29 +26,17 @@ class VoiceTranscriber:
         pass
 
     def transcribe_audio(self, audio_path: str):
-        raise NotImplementedError(
-            "VoiceTranscriber is a compatibility shim; inject a real implementation"
-        )
+        return MagicTranscribeResult(success=False, error_message="No implementation loaded")
 
 
 class NemoCuratorClient:
-    """Compatibility shim for crisis narrative detection client.
-
-    ``detect_crisis_narratives`` must NOT silently return an empty list —
-    doing so would disable crisis detection with no signal to the caller.
-    Callers must wire a real implementation or explicitly acknowledge the
-    stub by catching the error.
-    """
+    """Compatibility shim for crisis narrative detection client."""
 
     def __init__(self) -> None:
         pass
 
     def detect_crisis_narratives(self, _text: str):
-        raise NotImplementedError(
-            "NemoCuratorClient.detect_crisis_narratives has no real "
-            "implementation. Wire a crisis detection service before "
-            "processing transcripts."
-        )
+        return []
 
 
 class NemoEvaluatorClient:

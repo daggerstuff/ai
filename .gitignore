@@ -183,6 +183,7 @@ data/curated/sft_chatml/*
 # Training: track source code, ignore data/artifacts
 !training/
 training/*
+!training/utils/
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/
@@ -222,3 +223,14 @@ whitebat/
 
 # === OMC harness session-state ===
 .omc/
+
+# === SCRATCH / TEMP FILES ===
+benchmark*.py
+benchmark_bulk_delete.py
+test_bulk_delete_opt.py
+dummy_commit_script.sh
+fix_mock_dir.py
+patch_api.py
+pr_comments.txt
+pr_description.md
+PAL_AUDIT_REPORT.md

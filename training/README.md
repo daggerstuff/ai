@@ -1,4 +1,4 @@
-<!-- markdownlint-disable -->\n\n# Pixelated Empathy Training Pipeline
+# Pixelated Empathy Training Pipeline
 
 This directory contains the core training scripts for the Pixel model (Phase 3).
 

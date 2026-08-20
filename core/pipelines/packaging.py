@@ -216,8 +216,8 @@ class DatasetPackager:
             stage_thresholds=stage_thresholds,
         )
 
-        # Create package directory (versioned by package_id to avoid collisions)
-        stage_dir = self.output_dir / stage_id / package_id
+        # Create package directory
+        stage_dir = self.output_dir / stage_id
         stage_dir.mkdir(parents=True, exist_ok=True)
 
         # Write data.jsonl
@@ -244,11 +244,6 @@ class DatasetPackager:
         manifest_path = stage_dir / "manifest.json"
         with open(manifest_path, "w") as f:
             json.dump(manifest.to_dict(), f, indent=2)
-
-        # Remove any stale promotion token from a previous run
-        stale_token = stage_dir / "promotion_token.json"
-        if stale_token.exists():
-            stale_token.unlink()
 
         # Write promotion_token.json if promotable
         promotion_token_path = None

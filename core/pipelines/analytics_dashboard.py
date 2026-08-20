@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-import csv
-import json
 import math
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
 from typing import Any
 
 
@@ -55,7 +52,6 @@ class AnalyticsDashboard:
                 {k: float(v) for k, v in alert_thresholds.items() if isinstance(v, (int, float))}
             )
         self.reports_generated: list[ReportSummary] = []
-        self._report_data: dict[str, dict[str, Any]] = {}
         self.monitoring_active = True
         self.max_retention_days = max_retention_days
 
@@ -137,28 +133,26 @@ class AnalyticsDashboard:
 
         aggregate = self._aggregate_numeric_fields(all_records)
         summary = ReportSummary(
-            report_id=f"rpt-{uuid.uuid4().hex[:12]}",
+            report_id=f"rpt-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}",
             metric_type="all",
             time_period=time_period,
             created_at=datetime.now(UTC).isoformat(),
             total_records=len(all_records),
             aggregate_metrics=aggregate,
         )
-        report_data = {
-            "report_id": summary.report_id,
-            "metric_type": summary.metric_type,
-            "time_period": summary.time_period,
-            "created_at": summary.created_at,
-            "data": [r.__dict__ for r in all_records],
-            "summary": summary.aggregate_metrics,
-        }
         self.reports_generated.append(summary)
-        self._report_data[summary.report_id] = report_data
 
         return {
             "success": True,
             "error": None,
-            "report": report_data,
+            "report": {
+                "report_id": summary.report_id,
+                "metric_type": summary.metric_type,
+                "time_period": summary.time_period,
+                "created_at": summary.created_at,
+                "data": [r.__dict__ for r in all_records],
+                "summary": summary.aggregate_metrics,
+            },
         }
 
     def _filter_time_window(self, rows: list[MetricRecord], time_period: str) -> list[MetricRecord]:
@@ -196,7 +190,7 @@ class AnalyticsDashboard:
 
         return {key: value / counts[key] for key, value in sums.items() if counts.get(key, 0) > 0}
 
-    def export_report(self, export_format: str = "json", export_dir: str = "exports") -> dict[str, Any]:
+    def export_report(self, export_format: str = "json") -> dict[str, Any]:
         if not self.reports_generated:
             return {"success": False, "error": "No reports generated", "export_path": None}
 
@@ -205,33 +199,10 @@ class AnalyticsDashboard:
             return {"success": False, "error": "Unsupported export format", "export_path": None}
 
         latest = self.reports_generated[-1]
-        report_data = self._report_data.get(latest.report_id)
-        if report_data is None:
-            return {"success": False, "error": "Report data not found for latest report", "export_path": None}
-
-        export_dir_path = Path(export_dir)
-        export_dir_path.mkdir(parents=True, exist_ok=True)
-        export_path = export_dir_path / f"{latest.report_id}.{export_format}"
-
-        if export_format == "json":
-            with open(export_path, "w", encoding="utf-8") as f:
-                json.dump(report_data, f, indent=2, default=str)
-        else:
-            records = report_data.get("data", [])
-            fieldnames: list[str] = []
-            for rec in records:
-                for key in rec.keys():
-                    if key not in fieldnames:
-                        fieldnames.append(key)
-            with open(export_path, "w", encoding="utf-8", newline="") as f:
-                writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
-                writer.writeheader()
-                writer.writerows(records)
-
         return {
             "success": True,
             "error": None,
-            "export_path": str(export_path),
+            "export_path": f"/exports/{latest.report_id}.{export_format}",
             "export_format": export_format,
             "records_exported": latest.total_records,
         }

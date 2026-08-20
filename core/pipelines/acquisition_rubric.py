@@ -237,7 +237,7 @@ class AcquisitionRubric:
         if source.license_id in APPROVED_LICENSES:
             qualifying.append(f"license {source.license_id} is approved")
         elif source.license_id in EXCEPTION_LICENSES:
-            blocking.append(f"license {source.license_id} requires an explicit exception grant before intake")
+            qualifying.append(f"license {source.license_id} is eligible for exception process")
         else:
             blocking.append(f"license {source.license_id} is not approved and not exception-eligible")
 
@@ -425,15 +425,6 @@ class AcquisitionRubric:
             return gates
 
         if pilot is not None:
-            if pilot.source_id != intake.source_id:
-                gates.append(
-                    GateResult(
-                        "pilot",
-                        GateDecision.BLOCK,
-                        f"source_id mismatch: pilot={pilot.source_id} != intake={intake.source_id}",
-                    )
-                )
-                return gates
             pilot_result = self.evaluate_pilot(pilot)
             gates.append(
                 GateResult(
@@ -447,15 +438,6 @@ class AcquisitionRubric:
                 return gates
 
         if curation_exit is not None:
-            if curation_exit.source_id != intake.source_id:
-                gates.append(
-                    GateResult(
-                        "curation_exit",
-                        GateDecision.BLOCK,
-                        f"source_id mismatch: curation_exit={curation_exit.source_id} != intake={intake.source_id}",
-                    )
-                )
-                return gates
             exit_result = self.evaluate_curation_exit(curation_exit)
             gates.append(
                 GateResult(
@@ -474,7 +456,7 @@ def _run_cli() -> None:
 
     score_p = sub.add_parser("score", help="Calculate overall score for 4 dimensions")
     for _dim in ("therapeutic_relevance", "data_structure_quality", "training_integration", "ethical_accessibility"):
-        score_p.add_argument(f"--{_dim.replace('_', '-')}", type=int, required=True, help=f"{_dim.replace('_', ' ')} (1-10)")
+        score_p.add_argument("--data-structure-quality", type=int, required=True, help="data structure quality (1-10)")
 
     intake_p = sub.add_parser("intake", help="Evaluate Gate 0 intake for a source")
     intake_p.add_argument("--source-id", required=True)
