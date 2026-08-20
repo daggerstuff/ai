@@ -36,37 +36,12 @@ class CrisisInterventionDetector:
         ),
         "self_harm": (
             0.85,
-            [
-                r"\bcut(?:ting)?\s+myself\b",
-                r"\bhurt(?:ing)?\s+myself\b",
-                r"\bself.?harm(?:ing)?\b",
-            ],
+            [r"\bcut\b", r"\bhurt myself\b", r"\bself.?harm\b", r"\bhurt\s+myself\b"],
         ),
-        "violence": (
-            0.75,
-            [
-                r"\bhurt(?:ing)?\s+.*\bothers\b",
-                r"\bkill(?:ing)?\s+(?:someone|others|people|everybody|everyone|him|her|them|myself)\b",
-                r"\battack(?:ing)?\s+(?:someone|others|people)\b",
-            ],
-        ),
-        "substance_abuse": (
-            0.55,
-            [
-                r"\boverdose\b",
-                r"\bintoxicated\b",
-                r"\b(?:going through|experiencing|having|suffering(?:\s+from)?)\s+withdrawal\b",
-                r"\bwithdrawal\s+symptoms?\b",
-            ],
-        ),
-        "panic": (0.45, [r"\bcan't breathe\b", r"\bpanic(?:\s+attack)?\b", r"\bheart is racing\b"]),
+        "violence": (0.75, [r"\bhurt\s+.*others\b", r"\bkill\b", r"\battack\b"]),
+        "substance_abuse": (0.55, [r"\boverdose\b", r"\bintoxicated\b", r"\bwithdraw\b"]),
+        "panic": (0.45, [r"\bcan't breathe\b", r"\bpanic\b", r"\bheart is racing\b"]),
     }
-    NEGATION_TERMS = frozenset({
-        "not", "never", "don't", "dont", "won't", "wont", "can't", "cant",
-        "couldn't", "couldnt", "haven't", "havent", "isn't", "isnt",
-        "aren't", "arent", "wasn't", "wasnt", "weren't", "werent",
-        "didn't", "didnt", "wouldn't", "wouldnt", "shouldn't", "shouldnt",
-    })
     SEVERITY_BANDS = {
         "critical": 0.8,
         "high": 0.6,
@@ -135,16 +110,6 @@ class CrisisInterventionDetector:
 
         return ""
 
-    def _is_negated(self, text: str, match: re.Match[str]) -> bool:
-        """Check whether a regex match is preceded by a negation term."""
-        prefix_words = text[: match.start()].split()
-        window = prefix_words[-3:] if len(prefix_words) >= 3 else prefix_words
-        for word in window:
-            stripped = word.strip("'\".,!?;:()[]")
-            if stripped.lower() in self.NEGATION_TERMS:
-                return True
-        return False
-
     def _detect(self, text: str) -> tuple[list[str], float, str]:
         found: list[str] = []
         max_score = 0.0
@@ -152,8 +117,7 @@ class CrisisInterventionDetector:
 
         for label, (base_score, patterns) in self.CRISIS_KEYWORDS.items():
             for pattern in patterns:
-                m = re.search(pattern, text, flags=re.IGNORECASE)
-                if m and not self._is_negated(text, m):
+                if re.search(pattern, text, flags=re.IGNORECASE):
                     found.append(label)
                     max_score = max(max_score, base_score)
                     crisis_type = label

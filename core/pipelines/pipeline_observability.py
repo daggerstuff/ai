@@ -358,21 +358,23 @@ class PipelineMetricsCollector:
         severity: str = FailureSeverity.MEDIUM,
     ) -> None:
         """Internal method to record a failure with deduplication."""
-        with self._lock:
-            failure_id = f"fail_{len(self._failure_records) + 1}"
+        # Create failure pattern for deduplication
+        f"{stage or 'unknown'}:{gate or ''}:{error_message[:50]}"
 
-            record = FailureRecord(
-                failure_id=failure_id,
-                timestamp=datetime.now(UTC).isoformat(),
-                stage=stage,
-                gate=gate,
-                package_id=package_id,
-                error_message=error_message,
-                severity=severity,
-                count=1,
-            )
+        failure_id = f"fail_{len(self._failure_records) + 1}"
 
-            self._failure_records.append(record)
+        record = FailureRecord(
+            failure_id=failure_id,
+            timestamp=datetime.now(UTC).isoformat(),
+            stage=stage,
+            gate=gate,
+            package_id=package_id,
+            error_message=error_message,
+            severity=severity,
+            count=1,
+        )
+
+        self._failure_records.append(record)
 
         # Trim if needed
         if len(self._failure_records) > self._max_history:

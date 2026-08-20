@@ -297,13 +297,10 @@ class EvidenceAccumulator:
         path = Path(report_path)
         with open(path) as f:
             report = json.load(f)
-        return self.ingest_feedback_dict(report)
+        return self._parse_feedback_report(report)
 
     def ingest_feedback_dict(self, report: dict[str, Any]) -> list[EvidencePoint]:
-        points = self._parse_feedback_report(report)
-        for point in points:
-            self.record_evidence(point)
-        return points
+        return self._parse_feedback_report(report)
 
     def _parse_feedback_report(self, report: dict[str, Any]) -> list[EvidencePoint]:
         evidence_points: list[EvidencePoint] = []
@@ -608,10 +605,9 @@ class ReprioritizationEngine:
                 self._backlog[item_id] = new_item
                 new_items.append(new_item)
 
-        with self._lock:
-            for item_id, item in self._backlog.items():
-                if item not in reprioritized and item not in new_items:
-                    unchanged.append(item)
+        for item_id, item in self._backlog.items():
+            if item not in reprioritized and item not in new_items:
+                unchanged.append(item)
 
         new_items.sort(key=lambda x: x.priority_score, reverse=True)
         reprioritized.sort(key=lambda x: x.priority_score, reverse=True)
@@ -620,8 +616,6 @@ class ReprioritizationEngine:
         by_domain = self._build_domain_summary(new_items, reprioritized, unchanged, all_accumulations)
 
         now = datetime.now(UTC).isoformat()
-        self._priority_changes = priority_changes
-
         return ReprioritizationReport(
             run_id=_generate_run_id(),
             timestamp=now,
