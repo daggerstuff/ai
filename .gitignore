@@ -171,11 +171,22 @@ training_data_consolidated/
 training_ready/
 **/mcp_server/sessions/
 **/site/
+# DVC: track .dvc pointer files and DVC .gitignore for curated datasets
+!data/
+data/*
+!data/curated/
+data/curated/*
+!data/curated/sft_chatml/
+data/curated/sft_chatml/*
+!data/curated/sft_chatml/*.dvc
+!data/curated/sft_chatml/.gitignore
 # Training: track source code, ignore data/artifacts
 !training/
 training/*
 !training/**/*.py
 !training/**/*.pyi
+!training/annotation/
+!training/annotation/*.py
 !training/**/*.md
 !training/**/README*
 !training/research/
@@ -185,6 +196,8 @@ training/tests/*
 !training/tests/test_pal_persona_consistency_eval.py
 !training/tests/test_clinical_validity_judge_async.py
 !training/tests/test_llm_quality_judge.py
+!training/tests/test_iaa.py
+!training/tests/test_data_versioning.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
