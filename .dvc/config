@@ -1,0 +1,9 @@
+[core]
+    remote = pixelated_s3
+    checksum_jobs = 8
+['remote "pixelated_s3"']
+    url = s3://pixelated-datasets/dvc
+    region = us-west-2
+['remote "pixelated_minio"']
+    url = s3://pixelated-datasets/dvc
+    endpointurl = http://minio.pixelated.love:9000
