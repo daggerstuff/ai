@@ -200,6 +200,7 @@ training/tests/*
 !training/tests/test_data_versioning.py
 !training/tests/test_stratified_split.py
 !training/tests/test_run_nemo_distributed.py
+!training/tests/test_email_regen_pipeline.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
