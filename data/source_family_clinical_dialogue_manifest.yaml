@@ -1,0 +1,509 @@
+# Source dossier manifest — PIX-4586 / GitHub #5728
+#
+# Tracks the "Clinical dialogue, counseling, and lived experience" source family.
+# All entries start as 'pending' since source files must be inspected
+# before rights decisions and contribution modes can be determined.
+# Sources: 25 entries (25 found, 0 missing)
+
+manifest_version: '1.0'
+parent_issue: PIX-4586
+github_issue: 5728
+created: '2026-08-21'
+source_family: clinical_dialogue_counseling_and_lived_experience
+sources:
+- source_id: SRC-015
+  title: CBT LLM CoreIssue
+  ds_alias: DS-012
+  policy: V
+  scope: JSONL CBT core-issue analyses
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-012
+  - '`cbt_llm_coreissue`'
+  locations:
+    working: pixelated-empathy/output/cbt_llm_coreissue/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5632
+  p_list: P11, P12, P14
+- source_id: SRC-016
+  title: Ian Steenstra psychotherapy evaluation
+  ds_alias: DS-013
+  policy: E,V
+  scope: Longitudinal psychotherapy evaluation sessions
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-013
+  - '`sessions_longitudinal.jsonl`'
+  locations:
+    working: pixelated-empathy/ingestion/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5633
+  p_list: P13, P15
+- source_id: SRC-017
+  title: CBTBench
+  ds_alias: DS-014
+  policy: E,V
+  scope: Multi-subset CBT benchmark
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-014
+  - core_fine
+  - core_major
+  - distortions
+  locations:
+    working: pixelated-empathy/ingestion/clinical-datasets/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5634
+  p_list: P12, P13
+- source_id: SRC-018
+  title: MentalLLaMA
+  ds_alias: DS-015
+  policy: R,V
+  scope: Instruction/evaluation data
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-015
+  locations:
+    working: pixelated-empathy/ingestion/clinical-datasets/mentalllama/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5635
+  p_list: P12, P14
+- source_id: SRC-019
+  title: Lane C staged corpus
+  ds_alias: DS-016
+  policy: P,V
+  scope: Five-stage processing lineage
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-016
+  - '`lane_c_staged`'
+  locations:
+    working: pixelated-empathy/ingestion/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5636
+  p_list: P0, P13
+- source_id: SRC-020
+  title: ACE NLP
+  ds_alias: DS-017
+  policy: R,M
+  scope: Annotations/metadata; adverse childhood experiences
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-017
+  - the gated-source catalog also notes ACE annotations without raw text
+  locations:
+    local: ai/data/raw/clinical/ace_nlp/
+    working: output
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5637
+  p_list: P11, P12
+- source_id: SRC-021
+  title: BPD Synthetic Zenodo
+  ds_alias: DS-018
+  policy: V
+  scope: Small synthetic BPD dataset
+  knowledge_tags: []
+  modality: dataset
+  aliases:
+  - DS-018
+  locations:
+    working: pixelated-empathy/output/bpd_synthetic_zenodo/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5638
+  p_list: P11, P14
+- source_id: SRC-022
+  title: CBT audio HF
+  ds_alias: DS-019
+  policy: V,C
+  scope: Audio/transcript-derived CBT material
+  knowledge_tags: []
+  modality: transcript
+  aliases:
+  - DS-019
+  locations:
+    working: pixelated-empathy/output/cbt_audio_hf/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5639
+  p_list: P12, P14
+- source_id: SRC-023
+  title: BPD longitudinal suicide metadata
+  ds_alias: DS-020
+  policy: M,R
+  scope: Minimal longitudinal suicide-risk metadata
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-020
+  locations:
+    working: output
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5640
+  p_list: P11, P15
+- source_id: SRC-024
+  title: ADHD XAI study metadata
+  ds_alias: DS-021
+  policy: M,R
+  scope: Minimal ADHD explainability metadata
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-021
+  locations:
+    working: output
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5641
+  p_list: P12, P14
+- source_id: SRC-025
+  title: BBRD
+  ds_alias: DS-022
+  policy: R,M
+  scope: BPD Reddit corpus, claimed 992 users/68K posts
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - DS-022
+  locations:
+    working: manifests
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4237
+  github_issue: 5642
+  p_list: P11; PIX-4237
+- source_id: SRC-026
+  title: Burnout source family
+  ds_alias: DS-023
+  policy: V,R
+  scope: Surveys, detection/prediction data, organization/wellbeing data, public narratives
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-023–029
+  - DS-084
+  - seven gated datasets plus eight web narratives
+  locations:
+    local: ai/data/raw/burnout/
+    working: manifests/output
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5643
+  p_list: P14, P15
+- source_id: SRC-030
+  title: Empathetic Dialogues v2
+  ds_alias: DS-052
+  policy: R
+  scope: Dialogue corpus
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-052
+  - '`empath`'
+  locations:
+    local: ai/data/raw/empath/
+    working: HF
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5647
+  p_list: P2, P14
+- source_id: SRC-031
+  title: Mitch Hamidi BPD NLP
+  ds_alias: DS-053
+  policy: R
+  scope: Reddit-sourced BPD NLP
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - DS-053
+  locations:
+    working: output/raw
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5648
+  p_list: P11
+- source_id: SRC-032
+  title: MentalChat16K
+  ds_alias: DS-054
+  policy: V
+  scope: Mental-health dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-054
+  locations:
+    local: ai/data/raw/mentalchat16k/
+    working: HF
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5649
+  p_list: P14, P15
+- source_id: SRC-033
+  title: Mental Health MultiAgent
+  ds_alias: DS-055
+  policy: R,V
+  scope: GPT-4.1-generated multi-agent mental-health dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-055
+  locations:
+    local: ai/data/raw/mental_health_multiagent/
+    working: output
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5650
+  p_list: P2, P14
+- source_id: SRC-034
+  title: KokoroChat
+  ds_alias: DS-056
+  policy: V
+  scope: Generated counseling dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-056
+  locations:
+    local: ai/data/raw/kokorochat/
+    working: output
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5651
+  p_list: P14, P15
+- source_id: SRC-035
+  title: Mental-health counseling conversations
+  ds_alias: DS-057
+  policy: V
+  scope: Counseling Q&A/conversations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-057
+  locations:
+    local: ai/data/raw/counseling_conversations/
+    working: HF
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5652
+  p_list: P2, P14
+- source_id: SRC-038
+  title: UCL psychological abuse
+  ds_alias: DS-060
+  policy: A
+  scope: Psychological-abuse research text
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-060
+  locations:
+    working: clinical
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5655
+  p_list: P11, P12
+- source_id: SRC-039
+  title: ESConv
+  ds_alias: DS-061
+  policy: V
+  scope: Emotional-support conversations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-061
+  locations:
+    local: ai/data/raw/esconv/
+    working: cache
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5656
+  p_list: P2, P15
+- source_id: SRC-040
+  title: PsyDial
+  ds_alias: DS-062
+  policy: V
+  scope: Multi-turn psychotherapy dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-062
+  locations:
+    working: raw
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5657
+  p_list: P14, P15
+- source_id: SRC-041
+  title: PsyInsight
+  ds_alias: DS-063
+  policy: V
+  scope: Generated psychological insight records
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-063
+  locations:
+    working: output
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5658
+  p_list: P12, P14
+- source_id: SRC-042
+  title: Addiction Stories
+  ds_alias: DS-064
+  policy: A
+  scope: First-person addiction narratives
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-064
+  locations:
+    local: ai/data/raw/clinical/addiction_stories/
+    working: clinical
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5659
+  p_list: P14, P15
+- source_id: SRC-046
+  title: DAIC-WOZ
+  ds_alias: DS-068
+  policy: R,C
+  scope: Clinical interviews/audio-derived features
+  knowledge_tags: []
+  modality: media
+  aliases:
+  - DS-068
+  locations:
+    local: ai/data/raw/daic_woz/
+    working: HF
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5663
+  p_list: P12, P14
+- source_id: SRC-047
+  title: AnnoMI
+  ds_alias: DS-069
+  policy: D
+  scope: Motivational-interviewing dialogue with annotations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-069
+  locations:
+    local: ai/data/raw/annomi/
+    working: cache
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5664
+  p_list: P2, P15

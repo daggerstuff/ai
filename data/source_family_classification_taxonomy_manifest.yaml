@@ -1,0 +1,175 @@
+# Source dossier manifest — PIX-4588 / GitHub #5730
+#
+# Tracks the "Classification and taxonomy corpora" source family.
+# All entries start as 'pending' since source files must be inspected
+# before rights decisions and contribution modes can be determined.
+# Sources: 9 entries (9 found, 0 missing)
+
+manifest_version: '1.0'
+parent_issue: PIX-4588
+github_issue: 5730
+created: '2026-08-21'
+source_family: classification_and_taxonomy_corpora
+sources:
+- source_id: SRC-052
+  title: Mental Health Text Dataset (Balanced)
+  ds_alias: DS-075
+  policy: V
+  scope: Labeled mental-health text
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-075
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5669
+  p_list: P12/P13; local 113MB verified, owner permission pending
+- source_id: SRC-053
+  title: Mental Health Text Classification
+  ds_alias: DS-076
+  policy: A
+  scope: Labeled text classification
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-076
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5670
+  p_list: P12/P13; local 48MB verified
+- source_id: SRC-054
+  title: Mental Health Condition Classification
+  ds_alias: DS-077
+  policy: V
+  scope: Condition-labeled text
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-077
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5671
+  p_list: P12/P13; local 45MB verified
+- source_id: SRC-055
+  title: Jikadara Mental Health Dataset
+  ds_alias: DS-078
+  policy: V
+  scope: Mental-health tabular/text data
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-078
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5672
+  p_list: P12/P14; local 30MB verified
+- source_id: SRC-056
+  title: Sentiment Analysis for Mental Health
+  ds_alias: DS-079
+  policy: A
+  scope: Sentiment/mental-health labels
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-079
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5673
+  p_list: P12/P13; local Kaggle root verified, exact directory dossier pending
+- source_id: SRC-057
+  title: Mental Health (Kagle)
+  ds_alias: DS-080
+  policy: V
+  scope: Mental-health text/tabular data
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-080
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5674
+  p_list: P12/P14; local 31MB verified
+- source_id: SRC-058
+  title: Sentiment & Mental Health Reddit
+  ds_alias: DS-081
+  policy: R,V
+  scope: Reddit-derived sentiment text
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - DS-081
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5675
+  p_list: P12/P13; local Kaggle root verified, Reddit terms apply
+- source_id: SRC-059
+  title: Mental Health Corpus
+  ds_alias: DS-082
+  policy: V
+  scope: Mental-health text corpus
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-082
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5676
+  p_list: P12/P14; local 13MB verified
+- source_id: SRC-060
+  title: Mental Health Analysis (5-class)
+  ds_alias: DS-083
+  policy: V
+  scope: Five-class labeled text
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-083
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5677
+  p_list: P12/P13; local 5.5MB verified
