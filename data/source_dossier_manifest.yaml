@@ -1,354 +1,954 @@
-# Source dossier manifest — PIX-4589 / GitHub #5731
-#
-# Tracks the "knowledge and creator material" source family (SRC-013,
-# SRC-086–SRC-099) for inspection, rights clearance, and citation lineage.
-#
-# Each entry records:
-#   source_id        — canonical SRC-xxx identifier
-#   title            — human-readable source name
-#   ds_alias         — dataset alias (DS-xxx) if assigned
-#   policy           — contribution policy code (K=knowledge, C=consent, V=verify)
-#   scope            — one-line scope description
-#   knowledge_tags   — training/retrieval domain tags
-#   modality         — material type (book, transcript, mixed)
-#   aliases          — derived copies, persona dirs, or sub-titles
-#   locations        — where the source files live (L=local, G=gdrive, W=working)
-#   inspection_status — pending | in_progress | complete
-#   rights_decision  — pending | approved | denied | conditional
-#   contribution_mode — pending | knowledge | sft | dpo | excluded
-#   blocked_reproduction_rules — pending | rules string
-#   product_links    — list of product/feature links using this source
-#   linear_issue     — PIX-xxxx (cancelled child) if applicable
-#   github_issue     — #xxxx (closed child) if applicable
-#   p_list           — P-list mapping evidence
-#
-# All entries start as 'pending' since source files must be pulled from GDrive
-# before inspection can proceed.
-
-manifest_version: "1.0"
-parent_issue: "PIX-4589"
+manifest_version: '1.0'
+parent_issue: PIX-4589
 github_issue: 5731
-created: "2026-08-21"
-source_family: "knowledge_and_creator_material"
-
+created: '2026-08-21'
+source_family: knowledge_and_creator_material
 sources:
-  # ── Creator transcripts (SRC-013) ──────────────────────────────────
-  - source_id: "SRC-013"
-    title: "Voice persona and creator transcripts"
-    ds_alias: null
-    policy: "C,V"
-    scope: "7 MTGC personas plus 48 creator/persona directories; Tim Fletcher, Patrick Teahan, Doctor Ramani, Heidi Priebe, and others"
-    knowledge_tags: ["SFT", "LONG", "CPTSD"]
-    modality: "transcript"
-    aliases:
-      - "7 MTGC personas"
-      - "48 creator/persona directories"
-      - "Tim Fletcher"
-      - "Patrick Teahan"
-      - "Doctor Ramani"
-      - "Heidi Priebe"
-    locations:
-      gdrive: "gdrive:pixeldata/archive/local_voice_import/"
-      working: "ai-data/tim_fletcher_voice/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: null
-    github_issue: 5630
-    p_list: "P11, P15; PIX-4194"
-
-  # ── Therapeutic books (SRC-086–SRC-098) ─────────────────────────────
-  # All book sources share the same verified locations:
-  #   L: ai/data/raw/kickflip/joiner/Books/
-  #   G: gdrive:pixeldata/archive/local_books_import/
-
-  - source_id: "SRC-086"
-    title: "ADHD 2.0"
-    ds_alias: "DS-109"
-    policy: "K"
-    scope: "ADHD concepts and strategies"
-    knowledge_tags: ["KNOWLEDGE", "EDGE"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4561"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-087"
-    title: "Driven to Distraction (Revised)"
-    ds_alias: "DS-110"
-    policy: "K"
-    scope: "ADHD lived experience and strategies"
-    knowledge_tags: ["KNOWLEDGE", "EDGE"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4562"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-088"
-    title: "Drug Use and Abuse: A Comprehensive Introduction"
-    ds_alias: "DS-111"
-    policy: "K"
-    scope: "Substance-use foundations"
-    knowledge_tags: ["KNOWLEDGE", "EDGE", "CRISIS"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4563"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-089"
-    title: "Fundamentals of Addiction"
-    ds_alias: "DS-112"
-    policy: "K"
-    scope: "Counseling approaches to addiction"
-    knowledge_tags: ["KNOWLEDGE", "SFT", "EDGE"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4564"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-090"
-    title: "Hold On to Your Kids"
-    ds_alias: "DS-113"
-    policy: "K"
-    scope: "Attachment and family dynamics"
-    knowledge_tags: ["KNOWLEDGE", "SFT"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4565"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-091"
-    title: "In an Unspoken Voice"
-    ds_alias: "DS-114"
-    policy: "K"
-    scope: "Trauma and somatic regulation"
-    knowledge_tags: ["KNOWLEDGE", "CPTSD"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4566"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-092"
-    title: "In the Realm of Hungry Ghosts"
-    ds_alias: "DS-115"
-    policy: "K"
-    scope: "Addiction, trauma, compassion"
-    knowledge_tags: ["KNOWLEDGE", "CPTSD", "EDGE"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4567"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-093"
-    title: "Maybe You Should Talk to Someone"
-    ds_alias: "DS-116"
-    policy: "K"
-    scope: "Therapy process and longitudinal dynamics"
-    knowledge_tags: ["KNOWLEDGE", "LONG"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4568"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-094"
-    title: "Rewire"
-    ds_alias: "DS-117"
-    policy: "K"
-    scope: "Habit change and neurobehavioral strategies"
-    knowledge_tags: ["KNOWLEDGE", "SFT"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4569"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-095"
-    title: "Rewiring Your Self"
-    ds_alias: "DS-118"
-    policy: "K"
-    scope: "Addiction and habit change"
-    knowledge_tags: ["KNOWLEDGE", "EDGE"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4570"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-096"
-    title: "Scattered Minds"
-    ds_alias: "DS-119"
-    policy: "K"
-    scope: "ADHD, development, attachment"
-    knowledge_tags: ["KNOWLEDGE", "EDGE"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4571"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-097"
-    title: "The Myth of Normal"
-    ds_alias: "DS-120"
-    policy: "K"
-    scope: "Trauma, culture, health"
-    knowledge_tags: ["KNOWLEDGE", "CPTSD"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4572"
-    github_issue: null
-    p_list: null
-
-  - source_id: "SRC-098"
-    title: "When the Body Says No"
-    ds_alias: "DS-121"
-    policy: "K"
-    scope: "Stress, boundaries, mind-body themes"
-    knowledge_tags: ["KNOWLEDGE", "CPTSD"]
-    modality: "book"
-    aliases: []
-    locations:
-      local: "ai/data/raw/kickflip/joiner/Books/"
-      gdrive: "gdrive:pixeldata/archive/local_books_import/"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: "PIX-4573"
-    github_issue: null
-    p_list: null
-
-  # ── Additional therapeutic library (SRC-099) ────────────────────────
-  - source_id: "SRC-099"
-    title: "Additional therapeutic PDF/EPUB library"
-    ds_alias: null
-    policy: "K,V"
-    scope: "DSM, Pete Walker CPTSD, IFS, Brain Energy, PTSD/DBT/CBT guides, passive-aggression/schema-therapy collections, and other catalogued ebooks"
-    knowledge_tags: ["KNOWLEDGE", "CPTSD", "EDGE", "CRISIS"]
-    modality: "mixed"
-    aliases:
-      - "DSM"
-      - "Pete Walker CPTSD"
-      - "IFS"
-      - "Brain Energy"
-      - "PTSD/DBT/CBT guides"
-      - "passive-aggression/schema-therapy collections"
-    locations:
-      gdrive_1: "gdrive:pixeldata/archive/local_books_import/"
-      gdrive_2: "gdrive:pixeldata/archive/vivi_drive_ebooks/"
-      kickflip: "Kickflip joiner backups"
-    inspection_status: "pending"
-    rights_decision: "pending"
-    contribution_mode: "pending"
-    blocked_reproduction_rules: "pending"
-    product_links: []
-    linear_issue: null
-    github_issue: 5716
-    p_list: null
-    notes: "Inventory must expand to one dossier per title before use"
+- source_id: SRC-013
+  title: Voice persona and creator transcripts
+  ds_alias: null
+  policy: C,V
+  scope: 7 MTGC personas plus 48 creator/persona directories; Tim Fletcher, Patrick Teahan, Doctor Ramani, Heidi Priebe, and
+    others
+  knowledge_tags:
+  - SFT
+  - LONG
+  - CPTSD
+  modality: transcript
+  aliases:
+  - 7 MTGC personas
+  - 48 creator/persona directories
+  - Tim Fletcher
+  - Patrick Teahan
+  - Doctor Ramani
+  - Heidi Priebe
+  locations:
+    gdrive: gdrive:pixeldata/archive/local_voice_import/
+    working: ai-data/tim_fletcher_voice/
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Creator transcripts sourced from YouTube channels. Voice profiles are synthetic personas derived from creator
+      content. Copyright held by original creators.
+    restrictions:
+    - No direct reproduction of creator speech
+    - No voice cloning or synthesis from source audio
+    - Synthetic voice personas must be clearly marked as AI-generated
+    - Clinical scores derived from content analysis, not clinical evaluation
+    - Must respect platform ToS (YouTube, podcast platforms)
+  contribution_mode: conversational-training
+  blocked_reproduction_rules:
+  - No direct quote from creator transcripts
+  - No voice reproduction or synthesis
+  - No identifiable creator traits in output
+  - Synthetic personas must be clearly labeled as AI
+  - Clinical scores are for internal use only
+  product_links: []
+  linear_issue: null
+  github_issue: 5630
+  p_list: P11, P15; PIX-4194
+  inspection:
+    method: automated-metadata-extraction
+    coverage: directory-listing + file-structure-analysis
+    directory_count: 48
+    total_files: 199
+    total_size: 14.687 MiB
+    file_types:
+    - csv (clinical_scores)
+    - json (voice_profile)
+    - md (voice_analysis)
+    - jsonl (conversations)
+    directories:
+    - big_think_voice
+    - breakthrough_zone_voice
+    - caroline_myss_voice
+    - chris_williamson_voice
+    - christopher_germer_voice
+    - common_ego_voice
+    - couples_therapy_official_voice
+    - crappy_childhood_fairy_voice
+    - doc_snipes_voice
+    - doctor_ramani_voice
+    - doug_bopst_voice
+    - dr_daniel_fox_voice
+    - dr_kim_sage_voice
+    - dr_rangan_chatterjee_voice
+    - dr_scott_eilers_voice
+    - dr_todd_grande_voice
+    - eckhart_tolle_voice
+    - finding_mastery_voice
+    - forrest_hanson_voice
+    - heidi_priebe_voice
+    - how_to_academy_voice
+    - irene_lyon_voice
+    - jerry_wise_voice
+    - jim_hopper_voice
+    - kerry_mcavoy_voice
+    - kris_reece_voice
+    - kristin_snowden_voice
+    - medcircle_voice
+    - mel_robbins_voice
+    - michele_lee_nieves_voice
+    - navigating_narcissism_voice
+    - patrick_teahan_voice
+    - phoenix_trauma_center_voice
+    - professor_sam_vaknin_voice
+    - psych2go_voice
+    - rebecca_mandeville_voice
+    - sandstone_care_voice
+    - sounds_true_voice
+    - steph_and_craig_voice
+    - surviving_narcissism_voice
+    - tedx_talks_voice
+    - the_diary_of_a_ceo_voice
+    - theo_von_voice
+    - therapy_chat_podcast_voice
+    - therapy_decoded_voice
+    - therapy_in_a_nutshell_voice
+    - tim_fletcher_voice
+    - wu_wei_wisdom_voice
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    notes: 'Each voice directory contains 4-6 files: clinical_scores.csv, voice_profile.json, voice_analysis.md, exports/conversations.jsonl.
+      Tim Fletcher has the most files (6) and largest conversation export (3.3MB).'
+  citation_lineage: 'Voice persona transcripts (48 creator directories). Individual citations per creator. Platform: YouTube/podcasts.'
+- source_id: SRC-086
+  title: ADHD 2.0
+  ds_alias: DS-109
+  policy: K
+  scope: ADHD concepts and strategies
+  knowledge_tags:
+  - KNOWLEDGE
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: '## Edward M. Hallowell, M.D. and John J Ratey; M.D.'
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4561
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 0
+    chapters: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: '## Edward M. Hallowell, M.D. and John J Ratey; M.D. (None). ADHD 2.0. None.'
+- source_id: SRC-087
+  title: Driven to Distraction (Revised)
+  ds_alias: DS-110
+  policy: K
+  scope: ADHD lived experience and strategies
+  knowledge_tags:
+  - KNOWLEDGE
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4562
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 0
+    chapters: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (None). Driven to Distraction (Revised). None.
+- source_id: SRC-088
+  title: 'Drug Use and Abuse: A Comprehensive Introduction'
+  ds_alias: DS-111
+  policy: K
+  scope: Substance-use foundations
+  knowledge_tags:
+  - KNOWLEDGE
+  - EDGE
+  - CRISIS
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4563
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 15
+    chapters:
+    - '## Chapter 1'
+    - Chapter Summary
+    - '## Chapter 2'
+    - Chapter Summary 51
+    - '## Chapter 3'
+    - Chapter Summary 70
+    - '## Chapter 4'
+    - '## Chapter 5'
+    - '## Chapter 6'
+    - '## Chapter 7'
+    - '## Chapter 8'
+    - '| Chapter Summary                                                |       |'
+    - '## Chapter 9'
+    - '## Chapter 10'
+    - Chapter Summary 286
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: 'None (None). Drug Use and Abuse: A Comprehensive Introduction. None.'
+- source_id: SRC-089
+  title: Fundamentals of Addiction
+  ds_alias: DS-112
+  policy: K
+  scope: Counseling approaches to addiction
+  knowledge_tags:
+  - KNOWLEDGE
+  - SFT
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4564
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 1
+    chapters:
+    - '## Chapter 1'
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (None). Fundamentals of Addiction. None.
+- source_id: SRC-090
+  title: Hold On to Your Kids
+  ds_alias: DS-113
+  policy: K
+  scope: Attachment and family dynamics
+  knowledge_tags:
+  - KNOWLEDGE
+  - SFT
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4565
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 0
+    chapters: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (None). Hold On to Your Kids. None.
+- source_id: SRC-091
+  title: In an Unspoken Voice
+  ds_alias: DS-114
+  policy: K
+  scope: Trauma and somatic regulation
+  knowledge_tags:
+  - KNOWLEDGE
+  - CPTSD
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: Peter A. Levine. All rights reserved. No portion of this book, except for brief review, may be reproduced,
+      stored in a retrieval system/or transmitted in any form or by any means-electronic, mechanical, photocopying, recording,
+      or otherwise-without the written permission of the publisher. For information contact North Atlantic Books.
+    copyright_year: '2010'
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4566
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 15
+    chapters:
+    - CHAPTER L The Power of an Unspoken Voice
+    - CHAPTER 2
+    - CHAPTER 3
+    - CHAPTER 4
+    - CHAPTER 5
+    - CHAPTER 6
+    - CHAPTER 7
+    - CHAPTER 8
+    - CHAPTER 9
+    - CHAPTER 10 We're Just a Bunch of Animals
+    - 'CHAPTER 11 Bottoms-Up: Three Brains, One Mind'
+    - CHAPTER 12 The Embodied Self
+    - CHAPTER 13 Emotion, the Body and Change
+    - CHAPTER 14 Trauma and Spirituality
+    - CHAPTER 1
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (2010). In an Unspoken Voice. None.
+- source_id: SRC-092
+  title: In the Realm of Hungry Ghosts
+  ds_alias: DS-115
+  policy: K
+  scope: Addiction, trauma, compassion
+  knowledge_tags:
+  - KNOWLEDGE
+  - CPTSD
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: GABOR MATÉ, M.D.
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4567
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 2
+    chapters:
+    - '## CHAPTER1'
+    - '## CHAPTER2'
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: GABOR MATÉ, M.D. (None). In the Realm of Hungry Ghosts. None.
+- source_id: SRC-093
+  title: Maybe You Should Talk to Someone
+  ds_alias: DS-116
+  policy: K
+  scope: Therapy process and longitudinal dynamics
+  knowledge_tags:
+  - KNOWLEDGE
+  - LONG
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4568
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 0
+    chapters: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (None). Maybe You Should Talk to Someone. None.
+- source_id: SRC-094
+  title: Rewire
+  ds_alias: DS-117
+  policy: K
+  scope: Habit change and neurobehavioral strategies
+  knowledge_tags:
+  - KNOWLEDGE
+  - SFT
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: Richard O'Connor, PhD
+    copyright_year: '2014'
+    publisher: Ballantine Books (Penguin Random House)
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4569
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 15
+    chapters:
+    - Chapter 1. Two Brains, Not Working Together
+    - Chapter 2. The Autodestruct Mechanism
+    - Chapter 3. Fear Incognito
+    - Chapter 4. Rebels Without Causes
+    - Chapter 5. Because You're Special
+    - Chapter 6. Waving the Red Flag
+    - Chapter 7. The Enemy Is Us
+    - Chapter 8. Trauma and Self-Destructive Behavior
+    - Chapter 9. Watching the Parade Go By
+    - Chapter 10. Brainwashed and Burnt Out
+    - 'Chapter 11. You''re Hooked: Addictions'
+    - Chapter 12. Gloom and Dread
+    - Chapter 13. Facing the Undertow
+    - '## CHAPTER 1'
+    - '## CHAPTER 2'
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (2014). Rewire. Ballantine Books (Penguin Random House).
+- source_id: SRC-095
+  title: Rewiring Your Self
+  ds_alias: DS-118
+  policy: K
+  scope: Addiction and habit change
+  knowledge_tags:
+  - KNOWLEDGE
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4570
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 0
+    chapters: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (None). Rewiring Your Self. None.
+- source_id: SRC-096
+  title: Scattered Minds
+  ds_alias: DS-119
+  policy: K
+  scope: ADHD, development, attachment
+  knowledge_tags:
+  - KNOWLEDGE
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: Gabor Maté
+    copyright_year: '1999'
+    publisher: Ballantine Books (Penguin Random House)
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4571
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 0
+    chapters: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (1999). Scattered Minds. Ballantine Books (Penguin Random House).
+- source_id: SRC-097
+  title: The Myth of Normal
+  ds_alias: DS-120
+  policy: K
+  scope: Trauma, culture, health
+  knowledge_tags:
+  - KNOWLEDGE
+  - CPTSD
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4572
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 15
+    chapters:
+    - 'Chapter 1 The Last Place You Want to Be: Facets of Trauma'
+    - 'Chapter 2 Living in an Immaterial World: Emotions, Health, and the Body-Mind Unity'
+    - 'Chapter 3 You Rattle My Brain: Our Highly Interpersonal Biology'
+    - 'Chapter 4 Everything I''m Surrounded By: Dispatches from the New Science'
+    - 'Chapter 5 Mutiny on the Body: The Mystery of the Rebellious Immune System'
+    - 'Chapter 6 It Ain''t a Thing: Disease as Process'
+    - 'Chapter 7 A Traumatic Tension: Attachment vs. Authenticity'
+    - Chapter 8 Who Are We Really? Human Nature, Human Needs
+    - 'Chapter 9 A Sturdy or Fragile Foundation: Children''s Irreducible Needs'
+    - 'Chapter 10 Trouble at the Threshold: Before We Come into the World'
+    - Chapter 11 What Choice Do I Have? Childbirth in a Medicalized Culture
+    - 'Chapter 12 Horticulture on the Moon: Parenting, Undermined'
+    - 'Chapter 13 Forcing the Brain in the Wrong Direction: The Sabotage of Childhood'
+    - 'Chapter 14 A Template for Distress: How Culture Builds Our Character'
+    - 'Chapter 15 Just Not to Be You: Debunking the Myths About Addiction'
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (None). The Myth of Normal. None.
+- source_id: SRC-098
+  title: When the Body Says No
+  ds_alias: DS-121
+  policy: K
+  scope: Stress, boundaries, mind-body themes
+  knowledge_tags:
+  - KNOWLEDGE
+  - CPTSD
+  modality: book
+  aliases: []
+  locations:
+    local: ai/data/raw/kickflip/joiner/Books/
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+  inspection_status: inspected-metadata
+  rights_decision:
+    status: restricted-knowledge-extraction
+    copyright_owner: unknown
+    copyright_year: null
+    publisher: null
+    attribution_required: true
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4573
+  github_issue: null
+  p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: copyright-page, table-of-contents, introduction
+    chapter_count: 0
+    chapters: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage:
+    format: APA
+    citation: None (None). When the Body Says No. None.
+- source_id: SRC-099
+  title: Additional therapeutic PDF/EPUB library
+  ds_alias: null
+  policy: K,V
+  scope: DSM, Pete Walker CPTSD, IFS, Brain Energy, PTSD/DBT/CBT guides, passive-aggression/schema-therapy collections, and
+    other catalogued ebooks
+  knowledge_tags:
+  - KNOWLEDGE
+  - CPTSD
+  - EDGE
+  - CRISIS
+  modality: mixed
+  aliases:
+  - DSM
+  - Pete Walker CPTSD
+  - IFS
+  - Brain Energy
+  - PTSD/DBT/CBT guides
+  - passive-aggression/schema-therapy collections
+  locations:
+    gdrive_1: gdrive:pixeldata/archive/local_books_import/
+    gdrive_2: gdrive:pixeldata/archive/vivi_drive_ebooks/
+    kickflip: Kickflip joiner backups
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Mixed collection of therapeutic reference books. Copyright held by respective authors/publishers. DSM-5 is
+      APA copyright.
+    restrictions:
+    - No direct quote from any title
+    - No reproduction of clinical assessment instruments
+    - Paraphrased concepts must cite source
+    - DSM-5 diagnostic criteria are APA copyright - reference only
+    - Dark Psychology collection contains non-clinical material - review for exclusion
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - No direct quote from any title
+  - No reproduction of clinical assessment instruments
+  - No voice reproduction
+  - No case study reproduction
+  - Paraphrased concepts must cite
+  - Clinical claims need review
+  - 'Dark Psychology collection: review for exclusion from clinical training'
+  product_links: []
+  linear_issue: null
+  github_issue: 5716
+  p_list: null
+  notes: Inventory expanded from original. 16 individual titles or collections identified. Dark Psychology collections (74
+    books total) flagged for exclusion review.
+  inspection:
+    method: automated-metadata-extraction
+    coverage: directory-listing + file-inventory
+    title_count: 16
+    titles:
+    - title: DSM-5
+      author: American Psychiatric Association
+      format: pdf
+      size: 20004930
+      location: gdrive:pixeldata/archive/local_books_import/DSMV.pdf
+    - title: 'Complex PTSD: From Surviving to Thriving'
+      author: Pete Walker
+      format: epub
+      size: 683385
+      location: gdrive:pixeldata/archive/local_books_import/Complex PTSD_ From Surviving to Thriving by Pete Walker EPUB/
+    - title: Internal Family Systems Therapy
+      author: Richard C. Schwartz
+      format: epub
+      size: 450518
+      location: gdrive:pixeldata/archive/local_books_import/Internal Family Systems Therapy by Richard C. Schwartz EPUB/
+    - title: 'Brain Energy: A Revolutionary Breakthrough in Understanding Mental Health'
+      author: Christopher M. Palmer
+      format: epub
+      size: 461025
+      location: gdrive:pixeldata/archive/local_books_import/Brain Energy_ A Revolutionary Breakthrough in Understanding Mental
+        Health by Christopher M. Palmer EPUB/
+    - title: 'Treating PTSD in Military Personnel: A Clinical Handbook'
+      author: Unknown
+      format: pdf
+      size: 2386627
+      location: gdrive:pixeldata/archive/local_books_import/Treating PTSD in Military Personnel A Clinical Handbook/
+    - title: 'The High Conflict Couple: A Dialectical Behavior Therapy Guide'
+      author: Alan E. Fruzzetti
+      format: epub
+      size: 850185
+      location: gdrive:pixeldata/archive/local_books_import/The High Conflict Couple_ A Dialectical Behavior Therapy Guide
+        by Alan E. Fruzzetti EPUB/
+    - title: CBT and DBT For Anxiety
+      author: Unknown
+      format: pdf/epub/azw3
+      size: 625004
+      location: gdrive:pixeldata/archive/local_books_import/[NulledPremium.com] Cognitive Behavioral Therapy & Dialectical
+        Behavior Therapy/CBT and DBT For Anxiety/
+    - title: Loving Someone with PTSD
+      author: Aphrodite T. Matsakis
+      format: azw3
+      size: 405759
+      location: gdrive:pixeldata/archive/local_books_import/Loving Someone with PTSD by Aphrodite T. Matsakis AZW3/
+    - title: 8 Keys to Eliminating Passive-Aggressiveness
+      author: Andrea Brandt
+      format: epub
+      size: 598776
+      location: gdrive:pixeldata/archive/local_books_import/8 Keys to Eliminating Passive-Aggressiveness (8 Keys to Mental
+        Health) by Andrea Brandt EPUB/
+    - title: Self Help Psychology Anxiety PTSD Recovery
+      author: Unknown
+      format: epub
+      size: 184189
+      location: gdrive:pixeldata/archive/local_books_import/Self Help Psychology Anxiety PTSD Recovery[EPUB][GLODLS]/
+    - title: Is It You, Me, Or Adult A.D.D.
+      author: Unknown
+      format: epub
+      size: 2199944
+      location: gdrive:pixeldata/archive/local_books_import/
+    - title: 'Sedated: How Modern Capitalism Created our Mental Health Crisis'
+      author: Unknown
+      format: epub
+      size: 757157
+      location: gdrive:pixeldata/archive/local_books_import/Sedated How Modern Capitalism Created our Mental Health Crisis/
+    - title: 'Psycho Logical: Why Mental Health Goes Wrong And How To Make Sense Of It'
+      author: Unknown
+      format: epub
+      size: 526903
+      location: gdrive:pixeldata/archive/local_books_import/Psycho Logical Why Mental Health Goes Wrong And How To Make Sense
+        Of It/
+    - title: 'Addiction, Procrastination, and Laziness: A Proactive Guide to the Psychology of Motivation'
+      author: Unknown
+      format: epub
+      size: 454041
+      location: gdrive:pixeldata/archive/local_books_import/Addiction, Procrastination, and Laziness - A Proactive Guide to
+        the Psychology of Motivation/
+    - title: 50 Dark Psychology & Manipulation Books Collection (13 epubs)
+      author: Various
+      format: epub collection
+      size: 0
+      location: gdrive:pixeldata/archive/local_books_import/50 Dark Psychology & Manipulation Books Collection/
+    - title: 24 Dark Psychology & Manipulation Books Collection Pack-1 (3 epubs)
+      author: Various
+      format: epub collection
+      size: 0
+      location: gdrive:pixeldata/archive/local_books_import/24 Dark Psychology & Manipulation Books Collection Pack-1/
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    notes: Inventory must expand to one dossier per title before use. Dark Psychology collections (50+24 books) should be
+      reviewed for exclusion from clinical training pipeline.
+  citation_lineage: 'Additional therapeutic library (16+ titles). Individual citations per title. DSM-5: American Psychiatric
+    Association. CPTSD: Pete Walker. IFS: Richard C. Schwartz. Brain Energy: Christopher M. Palmer.'
