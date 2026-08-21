@@ -1,10 +1,3 @@
-# Source dossier manifest — PIX-4588 / GitHub #5730
-#
-# Tracks the "Classification and taxonomy corpora" source family.
-# All entries start as 'pending' since source files must be inspected
-# before rights decisions and contribution modes can be determined.
-# Sources: 9 entries (9 found, 0 missing)
-
 manifest_version: '1.0'
 parent_issue: PIX-4588
 github_issue: 5730
@@ -20,15 +13,32 @@ sources:
   modality: mixed
   aliases:
   - DS-075
-  locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  locations:
+    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/samhog/psychology-10k
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5669
   p_list: P12/P13; local 113MB verified, owner permission pending
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Mental Health Text Dataset (Balanced) (DS: DS-075). GitHub #5669.'
 - source_id: SRC-053
   title: Mental Health Text Classification
   ds_alias: DS-076
@@ -38,15 +48,32 @@ sources:
   modality: mixed
   aliases:
   - DS-076
-  locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  locations:
+    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/psychology-10k
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5670
   p_list: P12/P13; local 48MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Mental Health Text Classification (DS: DS-076). GitHub #5670.'
 - source_id: SRC-054
   title: Mental Health Condition Classification
   ds_alias: DS-077
@@ -57,14 +84,30 @@ sources:
   aliases:
   - DS-077
   locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5671
   p_list: P12/P13; local 45MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Mental Health Condition Classification (DS: DS-077). GitHub #5671.'
 - source_id: SRC-055
   title: Jikadara Mental Health Dataset
   ds_alias: DS-078
@@ -75,14 +118,30 @@ sources:
   aliases:
   - DS-078
   locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5672
   p_list: P12/P14; local 30MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Jikadara Mental Health Dataset (DS: DS-078). GitHub #5672.'
 - source_id: SRC-056
   title: Sentiment Analysis for Mental Health
   ds_alias: DS-079
@@ -92,15 +151,32 @@ sources:
   modality: mixed
   aliases:
   - DS-079
-  locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  locations:
+    gdrive: gdrive:pixeldata/archive/huggingface/DepressionDetection
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5673
   p_list: P12/P13; local Kaggle root verified, exact directory dossier pending
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Sentiment Analysis for Mental Health (DS: DS-079). GitHub #5673.'
 - source_id: SRC-057
   title: Mental Health (Kagle)
   ds_alias: DS-080
@@ -110,15 +186,32 @@ sources:
   modality: mixed
   aliases:
   - DS-080
-  locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  locations:
+    gdrive: gdrive:pixeldata/archive/huggingface/MentalHealthPreProcessed
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5674
   p_list: P12/P14; local 31MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Mental Health (Kagle) (DS: DS-080). GitHub #5674.'
 - source_id: SRC-058
   title: Sentiment & Mental Health Reddit
   ds_alias: DS-081
@@ -129,14 +222,30 @@ sources:
   aliases:
   - DS-081
   locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5675
   p_list: P12/P13; local Kaggle root verified, Reddit terms apply
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Sentiment & Mental Health Reddit (DS: DS-081). GitHub #5675.'
 - source_id: SRC-059
   title: Mental Health Corpus
   ds_alias: DS-082
@@ -147,14 +256,30 @@ sources:
   aliases:
   - DS-082
   locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5676
   p_list: P12/P14; local 13MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Mental Health Corpus (DS: DS-082). GitHub #5676.'
 - source_id: SRC-060
   title: Mental Health Analysis (5-class)
   ds_alias: DS-083
@@ -165,11 +290,27 @@ sources:
   aliases:
   - DS-083
   locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5677
   p_list: P12/P13; local 5.5MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Mental Health Analysis (5-class) (DS: DS-083). GitHub #5677.'
