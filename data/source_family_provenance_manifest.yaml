@@ -31,14 +31,31 @@ sources:
     path: ai/data/curated/sft_chatml/
   - type: G
     path: snapshot v7_master/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4476
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Foundation SFT lineage (DS: [''DS-001'', ''DS-002'', ''DS-003'', ''DS-005'', ''DS-011'', ''DS-032'',
+    ''DS-036'', ''DS-037'', ''DS-038'', ''DS-039'', ''DS-042'', ''DS-043'', ''DS-044'']).'
 - source_id: SRC-002
   title: Master-clean aggregate
   ds_alias:
@@ -54,14 +71,30 @@ sources:
   locations:
   - type: G/W
     path: pixelated-empathy/ingestion/master_work/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4477
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Master-clean aggregate (DS: [''DS-006'', ''DS-007'']).'
 - source_id: SRC-003
   title: Hugging Face cleaned aggregate
   ds_alias:
@@ -76,14 +109,30 @@ sources:
   locations:
   - type: G/W
     path: snapshot
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4478
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Hugging Face cleaned aggregate (DS: [''DS-008'']).'
 - source_id: SRC-004
   title: GitHub research cleaned aggregate
   ds_alias:
@@ -98,14 +147,30 @@ sources:
   locations:
   - type: G/W
     path: snapshot
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4479
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'GitHub research cleaned aggregate (DS: [''DS-009'']).'
 - source_id: SRC-005
   title: External-ingested cleaned aggregate
   ds_alias:
@@ -124,14 +189,30 @@ sources:
   locations:
   - type: G/W
     path: snapshot
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4480
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'External-ingested cleaned aggregate (DS: [''DS-010'']).'
 - source_id: SRC-006
   title: Safety conversations
   ds_alias:
@@ -149,14 +230,30 @@ sources:
   locations:
   - type: L
     path: ai/data/curated/safety/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4481
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'Safety conversations (DS: [''DS-004'', ''DS-040'']).'
 - source_id: SRC-007
   title: Nightmare Fuel
   ds_alias:
@@ -173,14 +270,30 @@ sources:
   locations:
   - type: G/W
     path: pixelated-empathy/nightmare_fuel/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4482
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'Nightmare Fuel (DS: [''DS-030'', ''DS-041'']).'
 - source_id: SRC-008
   title: V5 sycophancy backup
   ds_alias:
@@ -195,14 +308,30 @@ sources:
   locations:
   - type: G/W
     path: snapshot
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4483
   github_issue: null
   p_list: null
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'V5 sycophancy backup (DS: [''DS-031'']).'
 - source_id: SRC-009
   title: Hackathon generated collection
   ds_alias: DS-033
@@ -213,15 +342,32 @@ sources:
   aliases:
   - DS-033
   - '`hackathon_final_2026-07-15`'
-  locations: {}
-  inspection_status: pending
-  rights_decision: pending
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_edge_crisis/soulchat
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5626
   p_list: P0, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Hackathon generated collection (DS: DS-033). GitHub #5626.'
 - source_id: SRC-010
   title: Monthly generated work
   ds_alias: DS-034
@@ -233,15 +379,31 @@ sources:
   - DS-034
   - 12 monthly trees and 420+ LLM batches
   locations:
-    gdrive: gdrive:pixeldata/monthly_work/`
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/gdrive/monthly_work
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5627
   p_list: P0, P13, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Monthly generated work (DS: DS-034). GitHub #5627.'
 - source_id: SRC-011
   title: PAL framework
   ds_alias: DS-035
@@ -253,15 +415,31 @@ sources:
   - DS-035
   - PAL SFT/DPO/persona outputs
   locations:
-    gdrive: gdrive:backups/pal_framework/`
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/gdrive/pal_framework
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4355
   github_issue: 5628
   p_list: P2, P14; PIX-4355
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'PAL framework (DS: DS-035). GitHub #5628.'
 - source_id: SRC-012
   title: CoT reasoning families
   ds_alias: null
@@ -276,16 +454,40 @@ sources:
   - men’s mental health
   - cultural
   locations:
-    gdrive: gdrive:pixeldata/cot_reasoning/`,
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_cot_reasoning
     local: ai/data/raw/hetzner/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: restricted-use
+    rationale: 'Source policy: P,V. Copyright per original source.'
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - No direct quote from source content
+  - No reproduction of clinical assessment instruments
+  - Paraphrased concepts must cite source
+  - Clinical claims need review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5629
   p_list: P2, P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue + gdrive-inventory
+    file_count: 3
+    files:
+    - chad_datasets/datasets_1/CoT-Reasoning_Cultural_Nuances/README.md
+    - chad_datasets/datasets_1/CoT_Neurodivergent_vs_Neurotypical_Interactions/README.md
+    - chad_datasets/datasets_1/CoT_Heartbreak_and_Breakups/README.md
+    total_size_mb: 0.04
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'CoT reasoning families (DS: None). GitHub #5629.'
 - source_id: SRC-014
   title: Session generation collections
   ds_alias: null
@@ -299,14 +501,31 @@ sources:
   - Wayfarer outputs
   locations:
     working: snapshot
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_edge_crisis/soulchat
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5631
   p_list: P14, P15
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Session generation collections (DS: None). GitHub #5631.'
 - source_id: SRC-078
   title: ULTIMATE edge/scenario specification corpus
   ds_alias: DS-094
@@ -320,14 +539,31 @@ sources:
   - DS-098
   locations:
     local: ai/data/raw/kickflip/dataset/
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/huggingface/character-roleplay-DPO
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5695
   p_list: P11/P14; local 2.5GB and remote derivatives verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'ULTIMATE edge/scenario specification corpus (DS: DS-094). GitHub #5695.'
 - source_id: SRC-079
   title: Kickflip final training collection
   ds_alias: DS-095
@@ -340,14 +576,31 @@ sources:
   locations:
     local: ai/data/raw/kickflip/dataset/
     working: backup
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/gdrive/pixelated_raw
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5696
   p_list: P2/P14/P15; local 121MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Kickflip final training collection (DS: DS-095). GitHub #5696.'
 - source_id: SRC-080
   title: Kickflip RL collection
   ds_alias: DS-096
@@ -360,14 +613,31 @@ sources:
   locations:
     local: ai/data/raw/kickflip/dataset/
     working: backup
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/gdrive/pixelated_raw
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5697
   p_list: P2/P14; local 44MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Kickflip RL collection (DS: DS-096). GitHub #5697.'
 - source_id: SRC-081
   title: Processed-ready aggregate family
   ds_alias: DS-099
@@ -382,16 +652,32 @@ sources:
   - merged mental-health
   - edge dialogues
   locations:
-    gdrive: gdrive:backups/S3-pixel-data/processed_ready/`,
+    gdrive: gdrive:pixeldata/archive/gdrive/S3-pixel-data/processed_ready
     local: ai/data/raw/hetzner/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5698
   p_list: P0/P13/P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Processed-ready aggregate family (DS: DS-099). GitHub #5698.'
 - source_id: SRC-082
   title: Restored Hetzner final aggregate
   ds_alias: DS-045
@@ -403,14 +689,31 @@ sources:
   - DS-045
   locations:
     local: ai/data/raw/hetzner/final_dataset/
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/professional_datasets_final
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4244
   github_issue: 5699
   p_list: P0/P13; PIX-4244 historical
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Restored Hetzner final aggregate (DS: DS-045). GitHub #5699.'
 - source_id: SRC-083
   title: Restored Hetzner compiled splits
   ds_alias: DS-046
@@ -421,16 +724,32 @@ sources:
   aliases:
   - DS-046
   locations:
-    gdrive: gdrive:pixeldata/compiled_dataset/`
+    gdrive: gdrive:pixeldata/archive/gdrive/compiled_dataset
     local: ai/data/raw/hetzner/compiled_dataset/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5700
   p_list: P0/P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Restored Hetzner compiled splits (DS: DS-046). GitHub #5700.'
 - source_id: SRC-084
   title: Restored Hetzner staged datasets
   ds_alias: DS-047
@@ -441,16 +760,32 @@ sources:
   aliases:
   - DS-047
   locations:
-    gdrive: gdrive:pixeldata/staged_datasets/`
+    gdrive: gdrive:pixeldata/archive/gdrive/staged_datasets
     local: ai/data/raw/hetzner/staged_datasets/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5701
   p_list: P0/P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Restored Hetzner staged datasets (DS: DS-047). GitHub #5701.'
 - source_id: SRC-085
   title: Restored Hetzner consolidated collection
   ds_alias: DS-048
@@ -462,12 +797,28 @@ sources:
   - DS-048
   locations:
     local: ai/data/raw/hetzner/
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5702
   p_list: P0/P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Restored Hetzner consolidated collection (DS: DS-048). GitHub #5702.'
 total_sources: 21

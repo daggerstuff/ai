@@ -1,10 +1,3 @@
-# Source dossier manifest — PIX-4587 / GitHub #5729
-#
-# Tracks the "Safety, evaluation, and restricted research" source family.
-# All entries start as 'pending' since source files must be inspected
-# before rights decisions and contribution modes can be determined.
-# Sources: 29 entries (29 found, 0 missing)
-
 manifest_version: '1.0'
 parent_issue: PIX-4587
 github_issue: 5729
@@ -26,14 +19,31 @@ sources:
   locations:
     local: ai/data/raw/kaggle/mental-disorders-identification-reddit-nlp/
     working: raw
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/reddit/Original Reddit Data
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5644
   p_list: P11, P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Reddit mental-disorders identification (DS: DS-049). GitHub #5644.'
 - source_id: SRC-028
   title: Reddit mental-health posts
   ds_alias: DS-050
@@ -45,14 +55,31 @@ sources:
   - DS-050
   locations:
     working: raw/HF
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/reddit/Original Reddit Data
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5645
   p_list: P11, P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Reddit mental-health posts (DS: DS-050). GitHub #5645.'
 - source_id: SRC-029
   title: MIT psychosis corpus
   ds_alias: DS-051
@@ -65,14 +92,30 @@ sources:
   locations:
     local: ai/data/raw/mit_psychosis/
     working: cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5646
   p_list: P12, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MIT psychosis corpus (DS: DS-051). GitHub #5646.'
 - source_id: SRC-036
   title: PsychEval
   ds_alias: DS-058
@@ -84,14 +127,30 @@ sources:
   - DS-058
   locations:
     working: output
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5653
   p_list: P2, P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'PsychEval (DS: DS-058). GitHub #5653.'
 - source_id: SRC-037
   title: Mental-health crisis benchmark
   ds_alias: DS-059
@@ -104,14 +163,31 @@ sources:
   locations:
     local: ai/data/raw/crisis_benchmark/
     working: HF/raw
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_edge_crisis
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5654
   p_list: P13, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Mental-health crisis benchmark (DS: DS-059). GitHub #5654.'
 - source_id: SRC-043
   title: AI psychotherapy clinical red-team
   ds_alias: DS-065
@@ -124,14 +200,30 @@ sources:
   locations:
     local: ai/data/raw/clinical_redteam/
     working: cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5660
   p_list: P2, P13, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'AI psychotherapy clinical red-team (DS: DS-065). GitHub #5660.'
 - source_id: SRC-044
   title: DSM vector-space
   ds_alias: DS-066
@@ -144,14 +236,30 @@ sources:
   locations:
     local: ai/data/raw/dsm_vector_space/
     working: output
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5661
   p_list: P12, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'DSM vector-space (DS: DS-066). GitHub #5661.'
 - source_id: SRC-045
   title: ML-BPD research corpus
   ds_alias: DS-067
@@ -163,14 +271,30 @@ sources:
   - DS-067
   locations:
     working: clinical
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5662
   p_list: P11, P12
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'ML-BPD research corpus (DS: DS-067). GitHub #5662.'
 - source_id: SRC-048
   title: VERA-MH
   ds_alias: DS-070
@@ -182,14 +306,30 @@ sources:
   - DS-070
   locations:
     working: raw
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5665
   p_list: P2, P13
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'VERA-MH (DS: DS-070). GitHub #5665.'
 - source_id: SRC-049
   title: MHSafeEval
   ds_alias: DS-071
@@ -202,14 +342,30 @@ sources:
   locations:
     local: ai/data/raw/mhsafeeval/
     working: cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5666
   p_list: P13, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MHSafeEval (DS: DS-071). GitHub #5666.'
 - source_id: SRC-050
   title: MITAGS
   ds_alias: DS-072
@@ -222,14 +378,30 @@ sources:
   locations:
     local: ai/data/raw/mitags/
     working: request/cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5667
   p_list: P12
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MITAGS (DS: DS-072). GitHub #5667.'
 - source_id: SRC-051
   title: HOPE
   ds_alias: DS-073
@@ -242,14 +414,37 @@ sources:
   locations:
     local: ai/data/raw/hope/
     working: request/cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: restricted-review
+    rationale: 'Source policy: R,M. Copyright per original source.'
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - No direct quote from source content
+  - No reproduction of clinical assessment instruments
+  - Paraphrased concepts must cite source
+  - Clinical claims need review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5668
   p_list: P2, P14
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue + gdrive-inventory
+    file_count: 1
+    files:
+    - chad_datasets/datasets_3/consolidated/transcripts/PLpvbEN3KkqoLN7UfGKJJxFJhvvys8Sfv4_NA_The Characteristics of Complex
+      Trauma - Part 9 - Afraid To Hope.md
+    total_size_mb: 0.03
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'HOPE (DS: DS-073). GitHub #5668.'
 - source_id: SRC-061
   title: MentalBench-100K
   ds_alias: DS-085
@@ -261,14 +456,30 @@ sources:
   - DS-085
   locations:
     working: caches
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5678
   p_list: P2/P14; downloaded per catalog, license verification pending
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MentalBench-100K (DS: DS-085). GitHub #5678.'
 - source_id: SRC-062
   title: MentalAlign-70K
   ds_alias: DS-086
@@ -280,14 +491,30 @@ sources:
   - DS-086
   locations:
     working: caches
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5679
   p_list: P2/P13; downloaded per catalog, license verification pending
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MentalAlign-70K (DS: DS-086). GitHub #5679.'
 - source_id: SRC-063
   title: PsychosisSafetyBench
   ds_alias: DS-087
@@ -299,14 +526,30 @@ sources:
   - DS-087
   locations:
     working: caches
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5680
   p_list: P2/P13/P14; downloaded per catalog, preprint license pending
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'PsychosisSafetyBench (DS: DS-087). GitHub #5680.'
 - source_id: SRC-064
   title: Psychosis-Bench
   ds_alias: DS-088
@@ -318,14 +561,30 @@ sources:
   - DS-088
   locations:
     working: caches
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5681
   p_list: P13/P14; tiny downloaded eval, never train on test cases
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Psychosis-Bench (DS: DS-088). GitHub #5681.'
 - source_id: SRC-065
   title: MentalBench-DSM
   ds_alias: DS-089
@@ -337,14 +596,30 @@ sources:
   - DS-089
   locations:
     working: caches
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5682
   p_list: P12/P13; downloaded, research terms apply
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MentalBench-DSM (DS: DS-089). GitHub #5682.'
 - source_id: SRC-066
   title: LingxiDiag-16K
   ds_alias: DS-090
@@ -357,14 +632,30 @@ sources:
   locations:
     local: ai/data/raw/clinical/lingxi_diag/
     working: caches
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5683
   p_list: P12/P14; local 245MB verified, research terms apply
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'LingxiDiag-16K (DS: DS-090). GitHub #5683.'
 - source_id: SRC-067
   title: MENTAT
   ds_alias: DS-091
@@ -376,14 +667,36 @@ sources:
   - DS-091
   locations:
     working: caches
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: restricted-review
+    rationale: 'Source policy: R,E. Copyright per original source.'
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - No direct quote from source content
+  - No reproduction of clinical assessment instruments
+  - Paraphrased concepts must cite source
+  - Clinical claims need review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5684
   p_list: P2/P13; partial download, access/decryption terms pending
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue + gdrive-inventory
+    file_count: 1
+    files:
+    - chad_datasets/datasets_3/metadata/consolidation/findings/s3_implementation_summary.md
+    total_size_mb: 0.0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MENTAT (DS: DS-091). GitHub #5684.'
 - source_id: SRC-068
   title: AIPsy-Bench
   ds_alias: DS-092
@@ -396,14 +709,30 @@ sources:
   locations:
     local: ai/data/raw/clinical/aipsy_bench/
     working: cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5685
   p_list: P2/P13/P14; local 1.7MB verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'AIPsy-Bench (DS: DS-092). GitHub #5685.'
 - source_id: SRC-069
   title: ANGST
   ds_alias: DS-093
@@ -416,14 +745,30 @@ sources:
   locations:
     local: ai/data/raw/clinical/angst/
     working: cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5686
   p_list: P12/P13; local 3.1GB now verified, license/access dossier pending
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'ANGST (DS: DS-093). GitHub #5686.'
 - source_id: SRC-070
   title: CLPsych shared tasks
   ds_alias: null
@@ -435,14 +780,30 @@ sources:
   - no DS ID
   locations:
     working: request/cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5687
   p_list: P12/P13; registration required
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'CLPsych shared tasks (DS: None). GitHub #5687.'
 - source_id: SRC-071
   title: eRisk CLEF
   ds_alias: null
@@ -454,14 +815,30 @@ sources:
   - no DS ID
   locations:
     working: request/cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5688
   p_list: P13/P14; registration required
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'eRisk CLEF (DS: None). GitHub #5688.'
 - source_id: SRC-072
   title: DMTCorpus
   ds_alias: null
@@ -473,14 +850,30 @@ sources:
   - no DS ID
   locations:
     working: request/cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5689
   p_list: P12; access request required
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'DMTCorpus (DS: None). GitHub #5689.'
 - source_id: SRC-073
   title: PersonalityDBench
   ds_alias: null
@@ -492,14 +885,30 @@ sources:
   - no DS ID
   locations:
     working: manifest/request
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5690
   p_list: P2/P13; not downloaded
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'PersonalityDBench (DS: None). GitHub #5690.'
 - source_id: SRC-074
   title: Reddit-Impacts NER
   ds_alias: null
@@ -511,14 +920,31 @@ sources:
   - no DS ID
   locations:
     working: manifest/request
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/reddit/original_reddit_data
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5691
   p_list: P12/P13; gated
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Reddit-Impacts NER (DS: None). GitHub #5691.'
 - source_id: SRC-075
   title: TraumaNarratives
   ds_alias: null
@@ -530,14 +956,30 @@ sources:
   - no DS ID
   locations:
     working: manifest/request
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata-no-remote-files
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5692
   p_list: P11/P15; gated
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'TraumaNarratives (DS: None). GitHub #5692.'
 - source_id: SRC-076
   title: Zenodo Low et al. TF-IDF artifact
   ds_alias: null
@@ -549,14 +991,31 @@ sources:
   - no DS ID
   locations:
     working: manifest/cache
-  inspection_status: pending
-  rights_decision: pending
+    gdrive: gdrive:pixeldata/archive/gdrive/tfidf_integration
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5693
   p_list: P12/P13; no raw text by design
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'Zenodo Low et al. TF-IDF artifact (DS: None). GitHub #5693.'
 - source_id: SRC-077
   title: GitHub adapter backlog
   ds_alias: null
@@ -570,11 +1029,27 @@ sources:
   locations:
     local: ai/data/raw/clinical/github_repo/
     working: cache
-  inspection_status: pending
-  rights_decision: pending
+  inspection_status: inspected-metadata
+  rights_decision:
+    decision: pending
+    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    restrictions:
+    - Pending file access
   contribution_mode: pending
-  blocked_reproduction_rules: pending
+  blocked_reproduction_rules:
+  - pending
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5694
   p_list: P0/P12; local 4KB manifest verified
+  inspection:
+    method: automated-metadata-extraction
+    coverage: github-issue-only
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'GitHub adapter backlog (DS: None). GitHub #5694.'
