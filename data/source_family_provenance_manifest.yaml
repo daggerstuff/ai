@@ -1,0 +1,473 @@
+manifest_version: '1.0'
+parent_issue: PIX-4585
+github_issue: 5727
+created: '2026-08-21'
+source_family: provenance_aggregates_and_generated_lineages
+sources:
+- source_id: SRC-001
+  title: Foundation SFT lineage
+  ds_alias:
+  - DS-001
+  - DS-002
+  - DS-003
+  - DS-005
+  - DS-011
+  - DS-032
+  - DS-036
+  - DS-037
+  - DS-038
+  - DS-039
+  - DS-042
+  - DS-043
+  - DS-044
+  policy: P,V
+  scope: Foundation training data from curated SFT chatml
+  knowledge_tags:
+  - SFT
+  modality: dataset
+  aliases: []
+  locations:
+  - type: L
+    path: ai/data/curated/sft_chatml/
+  - type: G
+    path: snapshot v7_master/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4476
+  github_issue: null
+  p_list: null
+- source_id: SRC-002
+  title: Master-clean aggregate
+  ds_alias:
+  - DS-006
+  - DS-007
+  policy: P,V
+  scope: Master cleaned aggregate for SFT/DPO
+  knowledge_tags:
+  - SFT
+  - DPO
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: pixelated-empathy/ingestion/master_work/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4477
+  github_issue: null
+  p_list: null
+- source_id: SRC-003
+  title: Hugging Face cleaned aggregate
+  ds_alias:
+  - DS-008
+  policy: P,V
+  scope: Hugging Face cleaned aggregate for SFT/LONG
+  knowledge_tags:
+  - SFT
+  - LONG
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4478
+  github_issue: null
+  p_list: null
+- source_id: SRC-004
+  title: GitHub research cleaned aggregate
+  ds_alias:
+  - DS-009
+  policy: P,V
+  scope: GitHub research cleaned aggregate for SFT/KNOWLEDGE
+  knowledge_tags:
+  - SFT
+  - KNOWLEDGE
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4479
+  github_issue: null
+  p_list: null
+- source_id: SRC-005
+  title: External-ingested cleaned aggregate
+  ds_alias:
+  - DS-010
+  policy: P,V
+  scope: External-ingested cleaned aggregate for all products
+  knowledge_tags:
+  - SFT
+  - DPO
+  - LONG
+  - KNOWLEDGE
+  - EDGE
+  - CRISIS
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4480
+  github_issue: null
+  p_list: null
+- source_id: SRC-006
+  title: Safety conversations
+  ds_alias:
+  - DS-004
+  - DS-040
+  policy: D,V
+  scope: Safety conversations for crisis/edge training
+  knowledge_tags:
+  - CRISIS
+  - EDGE
+  - DPO
+  - SFT
+  modality: dataset
+  aliases: []
+  locations:
+  - type: L
+    path: ai/data/curated/safety/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4481
+  github_issue: null
+  p_list: null
+- source_id: SRC-007
+  title: Nightmare Fuel
+  ds_alias:
+  - DS-030
+  - DS-041
+  policy: D,V
+  scope: Nightmare Fuel edge-case crisis training data
+  knowledge_tags:
+  - CRISIS
+  - EDGE
+  - DPO
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: pixelated-empathy/nightmare_fuel/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4482
+  github_issue: null
+  p_list: null
+- source_id: SRC-008
+  title: V5 sycophancy backup
+  ds_alias:
+  - DS-031
+  policy: P
+  scope: V5 sycophancy backup for DPO/EDGE training
+  knowledge_tags:
+  - DPO
+  - EDGE
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4483
+  github_issue: null
+  p_list: null
+- source_id: SRC-009
+  title: Hackathon generated collection
+  ds_alias: DS-033
+  policy: P,V
+  scope: Nine-domain generated JSON/ChatML
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-033
+  - '`hackathon_final_2026-07-15`'
+  locations: {}
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5626
+  p_list: P0, P14
+- source_id: SRC-010
+  title: Monthly generated work
+  ds_alias: DS-034
+  policy: P,V
+  scope: Generated JSON, gate reports, month bibles, parse failures, LLM batches
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-034
+  - 12 monthly trees and 420+ LLM batches
+  locations:
+    gdrive: gdrive:pixeldata/monthly_work/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5627
+  p_list: P0, P13, P14
+- source_id: SRC-011
+  title: PAL framework
+  ds_alias: DS-035
+  policy: V
+  scope: JSONL; persona-driven Vietnamese patient records and preference seed
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-035
+  - PAL SFT/DPO/persona outputs
+  locations:
+    gdrive: gdrive:backups/pal_framework/`
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4355
+  github_issue: 5628
+  p_list: P2, P14; PIX-4355
+- source_id: SRC-012
+  title: CoT reasoning families
+  ds_alias: null
+  policy: P,V
+  scope: JSONL reasoning traces
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - clinical diagnosis
+  - heartbreak
+  - neurodivergent
+  - men’s mental health
+  - cultural
+  locations:
+    gdrive: gdrive:pixeldata/cot_reasoning/`,
+    local: ai/data/raw/hetzner/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5629
+  p_list: P2, P13
+- source_id: SRC-014
+  title: Session generation collections
+  ds_alias: null
+  policy: P,V
+  scope: Generated sessions and model checkpoints/outputs
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - '`session-gen`'
+  - '`session-generation`'
+  - Wayfarer outputs
+  locations:
+    working: snapshot
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5631
+  p_list: P14, P15
+- source_id: SRC-078
+  title: ULTIMATE edge/scenario specification corpus
+  ds_alias: DS-094
+  policy: P,V
+  scope: Prompt/specification JSONL with category, scenario type, difficulty, instructions
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-094
+  - processed derivatives DS-097
+  - DS-098
+  locations:
+    local: ai/data/raw/kickflip/dataset/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5695
+  p_list: P11/P14; local 2.5GB and remote derivatives verified
+- source_id: SRC-079
+  title: Kickflip final training collection
+  ds_alias: DS-095
+  policy: P,V
+  scope: ChatML with source-family/category/file-key metadata
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-095
+  locations:
+    local: ai/data/raw/kickflip/dataset/
+    working: backup
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5696
+  p_list: P2/P14/P15; local 121MB verified
+- source_id: SRC-080
+  title: Kickflip RL collection
+  ds_alias: DS-096
+  policy: P,V
+  scope: Three-message ChatML, mixed therapy and general topics
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-096
+  locations:
+    local: ai/data/raw/kickflip/dataset/
+    working: backup
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5697
+  p_list: P2/P14; local 44MB verified
+- source_id: SRC-081
+  title: Processed-ready aggregate family
+  ds_alias: DS-099
+  policy: P,V
+  scope: 105 JSONL derivatives totaling a documented 16.5GB
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-099–108
+  - merged raw
+  - priority tiers
+  - merged mental-health
+  - edge dialogues
+  locations:
+    gdrive: gdrive:backups/S3-pixel-data/processed_ready/`,
+    local: ai/data/raw/hetzner/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5698
+  p_list: P0/P13/P14
+- source_id: SRC-082
+  title: Restored Hetzner final aggregate
+  ds_alias: DS-045
+  policy: P
+  scope: Historical JSONL final aggregate
+  knowledge_tags: []
+  modality: dataset
+  aliases:
+  - DS-045
+  locations:
+    local: ai/data/raw/hetzner/final_dataset/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4244
+  github_issue: 5699
+  p_list: P0/P13; PIX-4244 historical
+- source_id: SRC-083
+  title: Restored Hetzner compiled splits
+  ds_alias: DS-046
+  policy: P,E
+  scope: Train/test/validation aggregate
+  knowledge_tags: []
+  modality: dataset
+  aliases:
+  - DS-046
+  locations:
+    gdrive: gdrive:pixeldata/compiled_dataset/`
+    local: ai/data/raw/hetzner/compiled_dataset/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5700
+  p_list: P0/P13
+- source_id: SRC-084
+  title: Restored Hetzner staged datasets
+  ds_alias: DS-047
+  policy: P
+  scope: Staged processing artifacts
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-047
+  locations:
+    gdrive: gdrive:pixeldata/staged_datasets/`
+    local: ai/data/raw/hetzner/staged_datasets/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5701
+  p_list: P0/P13
+- source_id: SRC-085
+  title: Restored Hetzner consolidated collection
+  ds_alias: DS-048
+  policy: P
+  scope: Consolidated JSONL collection
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-048
+  locations:
+    local: ai/data/raw/hetzner/
+  inspection_status: pending
+  rights_decision: pending
+  contribution_mode: pending
+  blocked_reproduction_rules: pending
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5702
+  p_list: P0/P13
+total_sources: 21
