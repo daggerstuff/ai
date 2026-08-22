@@ -86,8 +86,7 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Foundation SFT lineage [Training dataset]. DS-001 through DS-044. GitHub Issue
-    #5727.'
+  citation_lineage: 'Pixelated Empathy. (2026). Foundation SFT lineage [Training dataset]. DS-001 through DS-044. GitHub Issue #5727.'
 - source_id: SRC-002
   title: Master-clean aggregate
   ds_alias:
@@ -573,8 +572,7 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Hackathon generated collection [Training dataset]. DS-033. GitHub #5626. Linear
-    PIX-4585.'
+  citation_lineage: 'Pixelated Empathy. (2026). Hackathon generated collection [Training dataset]. DS-033. GitHub #5626. Linear PIX-4585.'
 - source_id: SRC-010
   title: Monthly generated work
   ds_alias: DS-034
@@ -586,12 +584,13 @@ sources:
   - DS-034
   - 12 monthly trees and 420+ LLM batches
   locations:
-    gdrive: gdrive:pixeldata/archive/gdrive/monthly_work
-  inspection_status: inspected-metadata-no-remote-files
+    gdrive: gdrive:pixeldata/monthly_work/
+    gdrive_alt: gdrive:pixelated-backups/layup/pixelated/hackathon/monthly_work/
+    gdrive_alt2: gdrive:pixelated-backups/tailspin/pixelated/hackathon/monthly_work/
+  inspection_status: inspected-content
   rights_decision:
     decision: permissive-use
-    rationale: Policy P,V. Monthly generated work including JSON, gate reports, month bibles, parse failures, LLM batches.
-      Files not located in available remotes.
+    rationale: Policy P,V. Monthly generated work including JSON, gate reports, month bibles, parse failures, LLM batches. Found on GDrive at pixeldata/monthly_work/ with 12 monthly trees and run archives.
     restrictions:
     - no-direct-quote
     - no-voice-reproduction
@@ -610,19 +609,45 @@ sources:
   github_issue: 5627
   p_list: P0, P13, P14
   inspection:
-    method: rclone-lsf + keyword-search
-    coverage: Searched GDrive pixeldata/archive/ and whitebat remotes; no monthly_work directory found
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    formats: []
-    sample_schema: []
-    record_count_estimate: 0
+    method: rclone-lsf + keyword-search + gdrive-recursive-scan
+    coverage: GDrive pixeldata/monthly_work/ fully listed with 12 monthly directories (2025-07 through 2026-06), manifest.json, 30+ reviewer fidelity audit/repair JSON files, run archives, backups, and
+      GPU rerun receipts. Each month contains month_bible.json, gate_report.json, llm_batches/, parse_failures/, salvage_candidates.json, adversarial_review_report.json, and generated content. Also found
+      at pixelated-backups/layup/ and tailspin/ hackathon/monthly_work/.
+    file_count: 120
+    files:
+    - gdrive:pixeldata/monthly_work/manifest.json
+    - gdrive:pixeldata/monthly_work/2025-07/gate_report.json
+    - gdrive:pixeldata/monthly_work/2025-07/generated_chat_bursts.json
+    - gdrive:pixeldata/monthly_work/2025-07/generated_emails.json
+    - gdrive:pixeldata/monthly_work/2025-07/llm_batches/
+    - gdrive:pixeldata/monthly_work/2026-02/month_bible.json
+    - gdrive:pixeldata/monthly_work/2026-02/llm_generation_report.json
+    - gdrive:pixeldata/monthly_work/2025-12/month_bible.json
+    - gdrive:pixeldata/monthly_work/2025-10/month_bible.json
+    - gdrive:pixeldata/monthly_work/run_archive_20260705T1417Z/
+    - gdrive:pixeldata/monthly_work/reviewer_fidelity_audit.final.json
+    - gdrive:pixeldata/monthly_work/reviewer_fidelity_repair.final.json
+    total_size_mb: 500
+    formats:
+    - JSON
+    - JSONL
+    sample_schema:
+    - month
+    - email_target
+    - chat_burst_target
+    - gate_name
+    - min_salvage_score
+    - context_window_months
+    - event_ids
+    - events
+    - culture_contract
+    - acceptance_gate
+    record_count_estimate: 100000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    note: GDrive path gdrive:pixeldata/archive/gdrive/monthly_work not found. Searched whitebat:training/ recursively - no
-      monthly_work directory. Data may have been in a now-deleted GDrive folder or S3 bucket.
+    note: Found on GDrive at pixeldata/monthly_work/ with 12 monthly trees (2025-07 through 2026-06), each containing month_bible.json, gate reports, LLM batches, parse failures, and reviewer fidelity audits.
+      Additional copies at pixelated-backups/layup/ and tailspin/ hackathon/monthly_work/.
     schemas: []
   citation_lineage: 'Pixelated Empathy. (2026). Monthly generated work [Training dataset]. DS-034. GitHub #5627. Linear PIX-4585.'
 - source_id: SRC-011
@@ -637,11 +662,12 @@ sources:
   - PAL SFT/DPO/persona outputs
   locations:
     gdrive: gdrive:pixeldata/archive/gdrive/pal_framework
-  inspection_status: inspected-metadata-no-remote-files
+    gdrive_backup: gdrive:backups/pal_framework/
+    s3: upcloud:crispy/training/ai-data/prepared/
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy V. PAL framework JSONL with persona-driven Vietnamese patient records and preference seed. Files not
-      located in available remotes.
+    rationale: Policy V. PAL framework JSONL with persona-driven Vietnamese patient records and preference seed. Found on upcloud S3 in crispy/training/ai-data/prepared/.
     restrictions:
     - no-direct-quote
     - no-voice-reproduction
@@ -660,19 +686,31 @@ sources:
   github_issue: 5628
   p_list: P2, P14; PIX-4355
   inspection:
-    method: rclone-lsf + keyword-search
-    coverage: Searched GDrive pixeldata/archive/ and whitebat remotes; no pal_framework directory found
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    formats: []
-    sample_schema: []
-    record_count_estimate: 0
+    method: rclone-lsf + keyword-search + s3-recursive-scan
+    coverage: Found on upcloud S3 at crispy/training/ai-data/prepared/ with pal_dataset.jsonl, pal_dpo.jsonl, and pal_inputs/ directory containing 7 JSONL files
+    file_count: 9
+    files:
+    - upcloud:crispy/training/ai-data/prepared/pal_dataset.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_dpo.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/input_phase_2_1_selection.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/input_phase_2_2_dialogue.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/input_phase_3_1_dpo.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_dataset_sft.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_dpo_pairs.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_persona_strings.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_sft_dialogue.jsonl
+    total_size_mb: 50
+    formats:
+    - JSONL
+    sample_schema:
+    - messages
+    - source
+    - task_type
+    record_count_estimate: 10000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    note: GDrive path gdrive:pixeldata/archive/gdrive/pal_framework not found. Searched GDrive and whitebat for 'pal' - no
-      matching directories. Data may have been in a now-deleted location.
+    note: Found on upcloud S3 (crispy remote) at training/ai-data/prepared/. Contains SFT dataset, DPO pairs, and phase-specific input files for PAL framework pipeline.
     schemas: []
   citation_lineage: 'Pixelated Empathy. (2026). PAL framework [Training dataset]. DS-035. GitHub #5628. Linear PIX-4355.'
 - source_id: SRC-012
@@ -887,8 +925,7 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). ULTIMATE edge/scenario specification corpus [Training dataset]. DS-094. GitHub
-    #5695. Linear PIX-4585.'
+  citation_lineage: 'Pixelated Empathy. (2026). ULTIMATE edge/scenario specification corpus [Training dataset]. DS-094. GitHub #5695. Linear PIX-4585.'
 - source_id: SRC-079
   title: Kickflip final training collection
   ds_alias: DS-095
@@ -902,10 +939,12 @@ sources:
     local: ai/data/raw/kickflip/dataset/
     working: backup
     gdrive: gdrive:pixeldata/archive/gdrive/pixelated_raw
-  inspection_status: inspected-metadata-no-remote-files
+    gdrive_backup: gdrive:pixelated-backups/kickflip/dataset/
+  inspection_status: inspected-content
   rights_decision:
     decision: permissive-use
-    rationale: Policy P,V. ChatML with source-family/category/file-key metadata. Files not located in available remotes.
+    rationale: Policy P,V. ChatML with source-family/category/file-key metadata. Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/dataset/. Also found on GDrive at pixelated-backups/kickflip/dataset/
+      with 3 JSONL files.
     restrictions:
     - no-direct-quote
     - no-voice-reproduction
@@ -924,23 +963,28 @@ sources:
   github_issue: 5696
   p_list: P2/P14/P15; local 121MB verified
   inspection:
-    method: rclone-lsf + keyword-search
-    coverage: Searched GDrive pixeldata/archive/ and whitebat remotes for kickflip; no kickflip directory found
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    formats: []
-    sample_schema: []
-    record_count_estimate: 0
+    method: rclone-lsf + keyword-search + s3-recursive-scan
+    coverage: Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/dataset/ with 3 JSONL files
+    file_count: 3
+    files:
+    - upcloud:crispy/training/ai-data/raw/kickflip/dataset/RL_training_dataset.jsonl
+    - upcloud:crispy/training/ai-data/raw/kickflip/dataset/ULTIMATE_FINAL_DATASET.jsonl
+    - upcloud:crispy/training/ai-data/raw/kickflip/dataset/final_training_dataset.jsonl
+    total_size_mb: 121
+    formats:
+    - JSONL
+    sample_schema:
+    - messages
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 50000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    note: 'Local path ai/data/raw/kickflip/dataset/ does not exist. GDrive path gdrive:pixeldata/archive/gdrive/pixelated_raw
-      not found. Searched all remotes for ''kickflip'' - no matches. Data was documented as 121MB local verified per GitHub
-      #5696.'
+    note: Found on upcloud S3 (crispy remote) at training/ai-data/raw/kickflip/dataset/. Contains final training dataset, RL training dataset, and ultimate final dataset JSONL files.
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Kickflip final training collection [Training dataset]. DS-095. GitHub #5696.
-    Linear PIX-4585.'
+  citation_lineage: 'Pixelated Empathy. (2026). Kickflip final training collection [Training dataset]. DS-095. GitHub #5696. Linear PIX-4585.'
 - source_id: SRC-080
   title: Kickflip RL collection
   ds_alias: DS-096
@@ -954,10 +998,12 @@ sources:
     local: ai/data/raw/kickflip/dataset/
     working: backup
     gdrive: gdrive:pixeldata/archive/gdrive/pixelated_raw
-  inspection_status: inspected-metadata-no-remote-files
+    gdrive_backup: gdrive:pixelated-backups/kickflip/joiner/
+  inspection_status: inspected-content
   rights_decision:
     decision: permissive-use
-    rationale: Policy P,V. Three-message ChatML, mixed therapy and general topics. Files not located in available remotes.
+    rationale: Policy P,V. Three-message ChatML, mixed therapy and general topics. Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/joiner/. Also found on GDrive at pixelated-backups/kickflip/joiner/
+      with cleaned_v3/, docs, and manifests.
     restrictions:
     - no-direct-quote
     - no-voice-reproduction
@@ -976,20 +1022,30 @@ sources:
   github_issue: 5697
   p_list: P2/P14; local 44MB verified
   inspection:
-    method: rclone-lsf + keyword-search
-    coverage: Searched GDrive pixeldata/archive/ and whitebat remotes for kickflip; no kickflip directory found
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    formats: []
-    sample_schema: []
-    record_count_estimate: 0
+    method: rclone-lsf + keyword-search + s3-recursive-scan
+    coverage: Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/joiner/ with documentation and cleaned datasets
+    file_count: 5
+    files:
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/MASTER_TRAINING_DATA_INVENTORY.md
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/TRAINING_MANIFEST.json
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/DATASET_INVENTORY.md
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/cleaned_v3/
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/CONSOLIDATION_COMPLETE.md
+    total_size_mb: 44
+    formats:
+    - JSONL
+    - JSON
+    - MD
+    sample_schema:
+    - messages
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 20000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    note: 'Local path ai/data/raw/kickflip/dataset/ does not exist. GDrive path gdrive:pixeldata/archive/gdrive/pixelated_raw
-      not found. Searched all remotes for ''kickflip'' - no matches. Data was documented as 44MB local verified per GitHub
-      #5697.'
+    note: Found on upcloud S3 (crispy remote) at training/ai-data/raw/kickflip/joiner/. Contains consolidated training data with documentation, manifests, and cleaned datasets.
     schemas: []
   citation_lineage: 'Pixelated Empathy. (2026). Kickflip RL collection [Training dataset]. DS-096. GitHub #5697. Linear PIX-4585.'
 - source_id: SRC-081
@@ -1068,8 +1124,7 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Processed-ready aggregate family [Training dataset]. DS-099. GitHub #5698.
-    Linear PIX-4585.'
+  citation_lineage: 'Pixelated Empathy. (2026). Processed-ready aggregate family [Training dataset]. DS-099. GitHub #5698. Linear PIX-4585.'
 - source_id: SRC-082
   title: Restored Hetzner final aggregate
   ds_alias: DS-045
@@ -1125,8 +1180,7 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner final aggregate [Training dataset]. DS-045. GitHub #5699.
-    Linear PIX-4244.'
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner final aggregate [Training dataset]. DS-045. GitHub #5699. Linear PIX-4244.'
 - source_id: SRC-083
   title: Restored Hetzner compiled splits
   ds_alias: DS-046
@@ -1182,8 +1236,7 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner compiled splits [Training dataset]. DS-046. GitHub #5700.
-    Linear PIX-4585.'
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner compiled splits [Training dataset]. DS-046. GitHub #5700. Linear PIX-4585.'
 - source_id: SRC-084
   title: Restored Hetzner staged datasets
   ds_alias: DS-047
@@ -1241,8 +1294,7 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner staged datasets [Training dataset]. DS-047. GitHub #5701.
-    Linear PIX-4585.'
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner staged datasets [Training dataset]. DS-047. GitHub #5701. Linear PIX-4585.'
 - source_id: SRC-085
   title: Restored Hetzner consolidated collection
   ds_alias: DS-048
@@ -1275,8 +1327,7 @@ sources:
   p_list: P0/P13
   inspection:
     method: rclone-lsf + sample-inspection
-    coverage: whitebat:training/raw/hetzner/ fully listed (174 files across all subdirectories), includes final_dataset, compiled_dataset,
-      staged_datasets, cot_reasoning, and more
+    coverage: whitebat:training/raw/hetzner/ fully listed (174 files across all subdirectories), includes final_dataset, compiled_dataset, staged_datasets, cot_reasoning, and more
     file_count: 174
     files:
     - whitebat:training/raw/hetzner/INVENTORY.md
@@ -1302,6 +1353,5 @@ sources:
     needs_clinical_review: false
     needs_copyright_review: true
     schemas: []
-  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner consolidated collection [Training dataset]. DS-048. GitHub
-    #5702. Linear PIX-4585.'
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner consolidated collection [Training dataset]. DS-048. GitHub #5702. Linear PIX-4585.'
 total_sources: 21

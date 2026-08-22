@@ -615,10 +615,11 @@ sources:
   - DS-085
   locations:
     working: caches
-  inspection_status: inspected-metadata-no-remote-files
+    huggingface_id: abadawi/MentalBench-Align
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: permissive-use
-    rationale: Generated/synthetic therapeutic context dataset. License verification pending per catalog. No remote files found on S3 or GDrive.
+    rationale: Generated/synthetic therapeutic context dataset. Found on HuggingFace as abadawi/MentalBench-Align (combined MentalBench-100K & MentalAlign-70K repo).
     restrictions:
     - License verification required before use
     - Paraphrased concepts must cite source
@@ -629,10 +630,10 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5678
-  p_list: P2/P14; downloaded per catalog, license verification pending
+  p_list: P2/P14; found on HuggingFace abadawi/MentalBench-Align
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as abadawi/MentalBench-Align. Combined repo hosting both MentalBench-100K and MentalAlign-70K.
     file_count: 0
     files: []
     total_size_estimate: 0
@@ -640,7 +641,7 @@ sources:
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'MentalBench-100K (DS: DS-085). GitHub #5678.'
+  citation_lineage: 'MentalBench-100K (DS: DS-085). GitHub #5678. HuggingFace: abadawi/MentalBench-Align.'
 - source_id: SRC-062
   title: MentalAlign-70K
   ds_alias: DS-086
@@ -652,10 +653,11 @@ sources:
   - DS-086
   locations:
     working: caches
-  inspection_status: inspected-metadata-no-remote-files
+    huggingface_id: abadawi/MentalBench-Align
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: permissive-use
-    rationale: Generated alignment dataset with seven-attribute ratings. License verification pending per catalog. No remote files found on S3 or GDrive.
+    rationale: Generated alignment dataset with seven-attribute ratings. Found on HuggingFace as abadawi/MentalBench-Align (combined repo with MentalBench-100K).
     restrictions:
     - License verification required before use
     - Paraphrased concepts must cite source
@@ -666,10 +668,10 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5679
-  p_list: P2/P13; downloaded per catalog, license verification pending
+  p_list: P2/P13; found on HuggingFace abadawi/MentalBench-Align
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as abadawi/MentalBench-Align. Same combined repo as MentalBench-100K.
     file_count: 0
     files: []
     total_size_estimate: 0
@@ -677,7 +679,7 @@ sources:
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'MentalAlign-70K (DS: DS-086). GitHub #5679.'
+  citation_lineage: 'MentalAlign-70K (DS: DS-086). GitHub #5679. HuggingFace: abadawi/MentalBench-Align.'
 - source_id: SRC-063
   title: PsychosisSafetyBench
   ds_alias: DS-087
@@ -689,10 +691,11 @@ sources:
   - DS-087
   locations:
     working: caches
-  inspection_status: inspected-metadata-no-remote-files
+    remote_url: https://github.com/willycarlson-code/psychosis-safety-bench
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: crisis-safety-restricted
-    rationale: Clinician-authored psychosis safety benchmark. Contains safety-critical psychosis content. Preprint license pending.
+    rationale: Clinician-authored psychosis safety benchmark. Found on GitHub as willycarlson-code/psychosis-safety-bench. 520 matched safety pairs.
     restrictions:
     - No direct reproduction of source content
     - Safety-critical content needs review
@@ -707,10 +710,10 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5680
-  p_list: P2/P13/P14; downloaded per catalog, preprint license pending
+  p_list: P2/P13/P14; found on GitHub willycarlson-code/psychosis-safety-bench
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + web-search
+    coverage: Found on GitHub as willycarlson-code/psychosis-safety-bench. 520 matched pairs of safe/unsafe responses to psychosis-related prompts.
     file_count: 0
     files: []
     total_size_estimate: 0
@@ -718,7 +721,7 @@ sources:
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: true
-  citation_lineage: 'PsychosisSafetyBench (DS: DS-087). GitHub #5680.'
+  citation_lineage: 'PsychosisSafetyBench (DS: DS-087). GitHub #5680. GitHub: willycarlson-code/psychosis-safety-bench.'
 - source_id: SRC-064
   title: Psychosis-Bench
   ds_alias: DS-088
@@ -730,10 +733,11 @@ sources:
   - DS-088
   locations:
     working: caches
-  inspection_status: inspected-metadata-no-remote-files
+    remote_url: https://github.com/w-is-h/psychosis-bench
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: permissive-use
-    rationale: Evaluation-only psychosis benchmark with three 16-turn delusion conversations. Never train on test cases.
+    rationale: Evaluation-only psychosis benchmark with three 16-turn delusion conversations. Found on GitHub as w-is-h/psychosis-bench (arXiv:2509.10970). Never train on test cases.
     restrictions:
     - Evaluation only - never train on test cases
     - Paraphrased concepts must cite source
@@ -745,10 +749,10 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5681
-  p_list: P13/P14; tiny downloaded eval, never train on test cases
+  p_list: P13/P14; found on GitHub w-is-h/psychosis-bench, never train on test cases
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + web-search
+    coverage: Found on GitHub as w-is-h/psychosis-bench. Three 16-turn delusion conversation scenarios for evaluation. arXiv:2509.10970.
     file_count: 0
     files: []
     total_size_estimate: 0
@@ -756,7 +760,7 @@ sources:
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: false
-  citation_lineage: 'Psychosis-Bench (DS: DS-088). GitHub #5681.'
+  citation_lineage: 'Psychosis-Bench (DS: DS-088). GitHub #5681. GitHub: w-is-h/psychosis-bench. arXiv:2509.10970.'
 - source_id: SRC-065
   title: MentalBench-DSM
   ds_alias: DS-089
@@ -768,10 +772,11 @@ sources:
   - DS-089
   locations:
     working: caches
-  inspection_status: inspected-metadata-no-remote-files
+    huggingface_id: hysong/MentalBench
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: restricted-knowledge-extraction
-    rationale: Synthetic DSM-grounded benchmark cases. Research terms apply. No remote files found on S3 or GDrive.
+    rationale: Synthetic DSM-grounded benchmark cases. Found on HuggingFace as hysong/MentalBench (CC-BY-4.0). Research terms apply.
     restrictions:
     - No direct reproduction of source content
     - Paraphrased concepts must cite source
@@ -785,10 +790,10 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5682
-  p_list: P12/P13; downloaded, research terms apply
+  p_list: P12/P13; found on HuggingFace hysong/MentalBench, CC-BY-4.0
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as hysong/MentalBench. DSM-grounded synthetic benchmark cases. CC-BY-4.0 license.
     file_count: 0
     files: []
     total_size_estimate: 0
@@ -796,7 +801,7 @@ sources:
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'MentalBench-DSM (DS: DS-089). GitHub #5682.'
+  citation_lineage: 'MentalBench-DSM (DS: DS-089). GitHub #5682. HuggingFace: hysong/MentalBench.'
 - source_id: SRC-066
   title: LingxiDiag-16K
   ds_alias: DS-090
@@ -809,10 +814,11 @@ sources:
   locations:
     local: ai/data/raw/clinical/lingxi_diag/
     working: caches
-  inspection_status: inspected-metadata-no-remote-files
+    huggingface_id: Lyncia/LingxiDiag-16K
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: restricted-knowledge-extraction
-    rationale: Synthetic EMRs and diagnostic dialogues. Research terms apply. Local 245MB verified but no remote files on S3 or GDrive.
+    rationale: Synthetic EMRs and diagnostic dialogues. Found on HuggingFace as Lyncia/LingxiDiag-16K (CC-BY-NC-4.0). Local 245MB verified. Research terms apply.
     restrictions:
     - No direct reproduction of source content
     - Paraphrased concepts must cite source
@@ -825,18 +831,18 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5683
-  p_list: P12/P14; local 245MB verified, research terms apply
+  p_list: P12/P14; found on HuggingFace Lyncia/LingxiDiag-16K, CC-BY-NC-4.0
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as Lyncia/LingxiDiag-16K. CC-BY-NC-4.0 license. Local 245MB verified.
     file_count: 0
     files: []
-    total_size_estimate: 0
+    total_size_estimate: 245
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'LingxiDiag-16K (DS: DS-090). GitHub #5683.'
+  citation_lineage: 'LingxiDiag-16K (DS: DS-090). GitHub #5683. HuggingFace: Lyncia/LingxiDiag-16K.'
 - source_id: SRC-067
   title: MENTAT
   ds_alias: DS-091
@@ -895,10 +901,11 @@ sources:
   locations:
     local: ai/data/raw/clinical/aipsy_bench/
     working: cache
-  inspection_status: inspected-metadata-no-remote-files
+    remote_url: https://github.com/keidolabs/aipsy-bench
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: permissive-use
-    rationale: Psychological-safety evaluation benchmark with six-metric rubric. Evaluation policy applies. Local 1.7MB verified but no remote files on S3 or GDrive.
+    rationale: Psychological-safety evaluation benchmark with six-metrics rubric. Found on GitHub as keidolabs/aipsy-bench. 20 scenarios with 6-metric rubric. CC BY 4.0. Local 1.7MB verified.
     restrictions:
     - Paraphrased concepts must cite source
     - Clinical claims need review
@@ -909,18 +916,18 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5685
-  p_list: P2/P13/P14; local 1.7MB verified
+  p_list: P2/P13/P14; found on GitHub keidolabs/aipsy-bench, CC BY 4.0
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + web-search
+    coverage: Found on GitHub as keidolabs/aipsy-bench. 20 psychological-safety scenarios with 6-metric evaluation rubric. CC BY 4.0 license. Local 1.7MB verified.
     file_count: 0
     files: []
-    total_size_estimate: 0
+    total_size_estimate: 1.7
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: false
-  citation_lineage: 'AIPsy-Bench (DS: DS-092). GitHub #5685.'
+  citation_lineage: 'AIPsy-Bench (DS: DS-092). GitHub #5685. GitHub: keidolabs/aipsy-bench.'
 - source_id: SRC-069
   title: ANGST
   ds_alias: DS-093
@@ -933,10 +940,11 @@ sources:
   locations:
     local: ai/data/raw/clinical/angst/
     working: cache
-  inspection_status: inspected-metadata-no-remote-files
+    huggingface_id: ameyhengle/ANGST
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: restricted-knowledge-extraction
-    rationale: Comorbid mental-health benchmark. Research terms apply. Local 3.1GB verified but no remote files on S3 or GDrive. License/access dossier pending.
+    rationale: Comorbid mental-health benchmark. Found on HuggingFace as ameyhengle/ANGST (EMNLP 2024). Depression-anxiety comorbidity dataset with 2,876 posts. Local 3.1GB verified. License/access dossier pending.
     restrictions:
     - No direct reproduction of source content
     - Paraphrased concepts must cite source
@@ -950,18 +958,18 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5686
-  p_list: P12/P13; local 3.1GB now verified, license/access dossier pending
+  p_list: P12/P13; found on HuggingFace ameyhengle/ANGST, EMNLP 2024
   inspection:
-    method: rclone-lsf-search-s3-gdrive
-    coverage: metadata-only-no-remote-files
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as ameyhengle/ANGST. EMNLP 2024 paper. Depression-anxiety comorbidity benchmark with 2,876 Reddit posts. Local 3.1GB verified.
     file_count: 0
     files: []
-    total_size_estimate: 0
+    total_size_estimate: 3100
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: true
-  citation_lineage: 'ANGST (DS: DS-093). GitHub #5686.'
+  citation_lineage: 'ANGST (DS: DS-093). GitHub #5686. HuggingFace: ameyhengle/ANGST.'
 - source_id: SRC-070
   title: CLPsych shared tasks
   ds_alias: null

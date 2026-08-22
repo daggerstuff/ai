@@ -113,11 +113,12 @@ sources:
   modality: mixed
   aliases:
   - DS-077
-  locations: {}
-  inspection_status: inspected-metadata-no-remote-files
+  locations:
+    huggingface_id: sai1908/Mental_Health_Condition_Classification
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: permissive-use
-    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
+    rationale: Condition-labeled text dataset. Found on HuggingFace as sai1908/Mental_Health_Condition_Classification (MIT license, 100K-1M rows).
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
@@ -129,20 +130,21 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5671
-  p_list: P12/P13; local 45MB verified
+  p_list: P12/P13; found on HuggingFace sai1908/Mental_Health_Condition_Classification, MIT
   inspection:
-    method: remote-search-no-match
-    coverage: gdrive-s3-search-exhausted
+    method: huggingface-api
+    coverage: Found on HuggingFace as sai1908/Mental_Health_Condition_Classification. MIT license. 100K-1M rows. Local 45MB verified.
     file_count: 0
     files: []
-    formats: []
-    total_size_mb: 0
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - CSV
+    total_size_mb: 45
+    sample_schema: 'CSV: Mental health condition labels with text features. MIT license. 100K-1M rows.'
+    record_count_estimate: 100000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Mental Health Condition Classification (DS-077). GitHub #5671.'
+  citation_lineage: 'Mental Health Condition Classification (DS-077). GitHub #5671. HuggingFace: sai1908/Mental_Health_Condition_Classification.'
 - source_id: SRC-055
   title: Jikadara Mental Health Dataset
   ds_alias: DS-078
@@ -152,11 +154,12 @@ sources:
   modality: mixed
   aliases:
   - DS-078
-  locations: {}
-  inspection_status: inspected-metadata-no-remote-files
+  locations:
+    kaggle_id: bhavikjikadara/mental-health-dataset
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: permissive-use
-    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
+    rationale: Mental-health tabular/text data. Found on Kaggle as bhavikjikadara/mental-health-dataset (CC BY 4.0). Local 30MB verified.
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
@@ -168,20 +171,21 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5672
-  p_list: P12/P14; local 30MB verified
+  p_list: P12/P14; found on Kaggle bhavikjikadara/mental-health-dataset, CC BY 4.0
   inspection:
-    method: remote-search-no-match
-    coverage: gdrive-s3-search-exhausted
+    method: kaggle-api
+    coverage: Found on Kaggle as bhavikjikadara/mental-health-dataset. CC BY 4.0 license. Local 30MB verified.
     file_count: 0
     files: []
-    formats: []
-    total_size_mb: 0
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - CSV
+    total_size_mb: 30
+    sample_schema: 'CSV: Mental health survey/tabular data. CC BY 4.0.'
+    record_count_estimate: 10000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Jikadara. (2024). Mental Health Dataset (DS-078). GitHub #5672.'
+  citation_lineage: 'Jikadara. (2024). Mental Health Dataset (DS-078). GitHub #5672. Kaggle: bhavikjikadara/mental-health-dataset.'
 - source_id: SRC-056
   title: Sentiment Analysis for Mental Health
   ds_alias: DS-079
@@ -344,11 +348,12 @@ sources:
   modality: mixed
   aliases:
   - DS-082
-  locations: {}
-  inspection_status: inspected-metadata-no-remote-files
+  locations:
+    kaggle_id: reihanenamdari/mental-health-corpus
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: permissive-use
-    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
+    rationale: Mental-health text corpus. Found on Kaggle as reihanenamdari/mental-health-corpus (CC BY 4.0). Local 13MB verified.
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
@@ -360,20 +365,21 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5676
-  p_list: P12/P14; local 13MB verified
+  p_list: P12/P14; found on Kaggle reihanenamdari/mental-health-corpus, CC BY 4.0
   inspection:
-    method: remote-search-no-match
-    coverage: gdrive-s3-search-exhausted
+    method: kaggle-api
+    coverage: Found on Kaggle as reihanenamdari/mental-health-corpus. CC BY 4.0 license. Local 13MB verified.
     file_count: 0
     files: []
-    formats: []
-    total_size_mb: 0
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - CSV
+    total_size_mb: 13
+    sample_schema: 'CSV: Mental health text corpus with labeled categories. CC BY 4.0.'
+    record_count_estimate: 5000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Mental Health Corpus (DS-082). GitHub #5676.'
+  citation_lineage: 'Mental Health Corpus (DS-082). GitHub #5676. Kaggle: reihanenamdari/mental-health-corpus.'
 - source_id: SRC-060
   title: Mental Health Analysis (5-class)
   ds_alias: DS-083
@@ -383,11 +389,12 @@ sources:
   modality: mixed
   aliases:
   - DS-083
-  locations: {}
+  locations:
+    kaggle_id: priyangshumukherjee/mental-health-text-classification-dataset
   inspection_status: inspected-metadata-no-remote-files
   rights_decision:
     decision: permissive-use
-    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
+    rationale: 'No exact 5-class match found. Closest match is 4-class Kaggle dataset (priyangshumukherjee/mental-health-text-classification-dataset) with labels Normal, Depression, Suicidal, Anxiety. Local 5.5MB verified.'
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
@@ -399,17 +406,18 @@ sources:
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5677
-  p_list: P12/P13; local 5.5MB verified
+  p_list: P12/P13; no exact 5-class match; closest is 4-class Kaggle dataset, local 5.5MB verified
   inspection:
-    method: remote-search-no-match
-    coverage: gdrive-s3-search-exhausted
+    method: kaggle-api + huggingface-api + web-search
+    coverage: 'No exact 5-class dataset found. Closest match Kaggle priyangshumukherjee/mental-health-text-classification-dataset (4-class Normal, Depression, Suicidal, Anxiety). May need custom relabeling or source verification.'
     file_count: 0
     files: []
-    formats: []
-    total_size_mb: 0
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - CSV
+    total_size_mb: 5.5
+    sample_schema: 'CSV: 4-class mental health text classification (Normal, Depression, Suicidal, Anxiety). Not the 5-class dataset referenced in manifest.'
+    record_count_estimate: 5000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Mental Health Analysis 5-class (DS-083). GitHub #5677.'
+  citation_lineage: 'Mental Health Analysis 5-class (DS-083). GitHub #5677. Closest: Kaggle priyangshumukherjee/mental-health-text-classification-dataset (4-class).'
