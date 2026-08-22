@@ -1295,15 +1295,21 @@ sources:
   github_issue: 5658
   p_list: P12, P14
   inspection:
-    method: rclone-lsf-plus-grep-search + huggingface-api + web-search
-    coverage: Found on HuggingFace (XuShihao6715/counseling-psy-insight) and GitHub (ckqqqq/Psy-Insight). 951 sessions of
-      multi-turn counseling dialogues (520 English, 431 Chinese) with multi-task labels and step-by-step reasoning annotations.
-    file_count: 4
+    method: rclone-lsf-plus-grep-search + huggingface-api + web-search + gdrive-recursive-scan
+    coverage: Found on HuggingFace (XuShihao6715/counseling-psy-insight) and GitHub (ckqqqq/Psy-Insight). Also found on GDrive
+      at pixelated-backups/whitebat-snapshot/ with full Psy-Insight repo (data/en_data_version7.json, data/cn_data_version7.json),
+      ingested JSONL (psy_insight_ingested.jsonl), and manifest. 951 sessions of multi-turn counseling dialogues (520 English,
+      431 Chinese) with multi-task labels and step-by-step reasoning annotations.
+    file_count: 8
     files:
     - huggingface:XuShihao6715/counseling-psy-insight/en.jsonl
     - huggingface:XuShihao6715/counseling-psy-insight/zh.jsonl
     - huggingface:XuShihao6715/counseling-psy-insight/en.turns.jsonl
     - huggingface:XuShihao6715/counseling-psy-insight/zh.turns.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/output/psy_insight_ingested.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/raw/Psy-Insight/data/en_data_version7.json
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/raw/Psy-Insight/data/cn_data_version7.json
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/output/psy_insight_manifest.json
     total_size_mb: 7
     schemas:
     - format: JSONL
@@ -1394,6 +1400,9 @@ sources:
     local: ai/data/raw/daic_woz/
     working: HF
     s3: whitebat:whitebat/training/raw/daic_woz/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/raw/daic_woz/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/hf_datasets/saeedzou___daic-woz/
+    gdrive_alt2: gdrive:pixelated-backups/layup/pixelated/.hf_cache/saeedzou___daic-woz/
     huggingface_id: saeedzou/DAIC-WOZ
     kaggle_id: alejandropatinio/daic-woz
   inspection_status: inspected-metadata-restricted-access
@@ -1421,15 +1430,19 @@ sources:
     method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api + kaggle-api
     coverage: 'Found on whitebat S3 at training/raw/daic_woz/ (with daic_woz.jsonl and raw/ subdirectory), deduped at training/raw/deduped/daic_woz.jsonl,
       HF cache at training/hf_datasets/saeedzou___daic-woz/, and access request notes at training/raw/access_requests/01_daic_woz.txt.
-      HuggingFace saeedzou/DAIC-WOZ (10K-100K records, parquet, audio+text). Kaggle alejandropatinio/daic-woz (91GB, Unknown
-      license).'
-    file_count: 5
+      Also found on GDrive at pixelated-backups/whitebat-snapshot/raw/daic_woz/ (daic_woz.jsonl, raw/test.jsonl, raw/dev.jsonl,
+      raw/train.jsonl) and pixelated-backups/whitebat-snapshot/hf_datasets/saeedzou___daic-woz/. HuggingFace saeedzou/DAIC-WOZ
+      (10K-100K records, parquet, audio+text). Kaggle alejandropatinio/daic-woz (91GB, Unknown license).'
+    file_count: 8
     files:
     - whitebat:training/raw/daic_woz/daic_woz.jsonl
     - whitebat:training/raw/daic_woz/raw/
     - whitebat:training/raw/deduped/daic_woz.jsonl
     - whitebat:training/hf_datasets/saeedzou___daic-woz/
     - whitebat:training/raw/access_requests/01_daic_woz.txt
+    - gdrive:pixelated-backups/whitebat-snapshot/raw/daic_woz/daic_woz.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/raw/daic_woz/raw/train.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/hf_datasets/saeedzou___daic-woz/
     total_size_mb: 50
     schemas: []
     needs_full_text_review: true
