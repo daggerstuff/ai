@@ -16,10 +16,13 @@ sources:
   - '`cbt_llm_coreissue`'
   locations:
     working: pixelated-empathy/output/cbt_llm_coreissue/`
-  inspection_status: inspected-metadata-no-remote-files
+    s3: whitebat:whitebat/training/pixelated-empathy/output/cbt_llm_coreissue/
+    gdrive: gdrive:pixelated-backups/tailspin/firstmate/cbt_llm_coreissue/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/cbt_llm_coreissue/
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy V (voice extraction). No files found on GDrive or S3. Source may exist only in working output directory.
+    rationale: Policy V (voice extraction). Found on whitebat S3 at training/pixelated-empathy/output/cbt_llm_coreissue/.
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -34,18 +37,20 @@ sources:
   github_issue: 5632
   p_list: P11, P12, P14
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 at training/pixelated-empathy/output/cbt_llm_coreissue/
+    file_count: 1
+    files:
+    - whitebat:training/pixelated-empathy/output/cbt_llm_coreissue/
+    total_size_mb: 5
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    formats: []
+    formats:
+    - JSONL
     sample_schema: null
-    record_count_estimate: 0
+    record_count_estimate: 500
   citation_lineage: 'CBT LLM CoreIssue (DS: DS-012). GitHub #5632. [Dataset not located in remote archives.]'
 - source_id: SRC-016
   title: Ian Steenstra psychotherapy evaluation
@@ -123,11 +128,14 @@ sources:
   - distortions
   locations:
     working: pixelated-empathy/ingestion/clinical-datasets/`
-  inspection_status: inspected-metadata-no-remote-files
+    s3: upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/clinical-datasets/cbt-bench/
+    huggingface_id: Psychotherapy-LLM/CBT-Bench
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy E,V. CBT benchmark with multi-subset (core_fine, core_major, distortions). No files found on GDrive
-      or S3.
+    rationale: Policy E,V. CBT benchmark with multi-subset (core_fine, core_major, distortions). Found on upcloud S3 and HuggingFace
+      (Psychotherapy-LLM/CBT-Bench, CC-BY-NC-4.0).
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -142,18 +150,38 @@ sources:
   github_issue: 5634
   p_list: P12, P13
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    schemas: []
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api
+    coverage: Found on upcloud S3 at crispy/training/ai-data/clinical-datasets/cbt-bench/ with core_fine, core_major, distortions
+      subsets. Also on HuggingFace as Psychotherapy-LLM/CBT-Bench (CC-BY-NC-4.0, arXiv:2410.13218).
+    file_count: 10
+    files:
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_fine_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_fine_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_major_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_major_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/distortions_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/distortions_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/dp-pairwise-comparison.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/qa_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/qa_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/README.md
+    total_size_mb: 10
+    schemas:
+    - format: JSON
+      fields:
+      - core_fine
+      - core_major
+      - distortions
+      - qa
+      - dp-pairwise-comparison
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    formats: []
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - JSON
+    sample_schema: 'JSON: CBT-Bench multi-subset benchmark with core_fine, core_major, distortions, qa, and dp-pairwise-comparison
+      subsets. CC-BY-NC-4.0 license.'
+    record_count_estimate: 1000
   citation_lineage: 'CBTBench (DS: DS-014). GitHub #5634. [Dataset not located in remote archives.]'
 - source_id: SRC-018
   title: MentalLLaMA
@@ -330,11 +358,14 @@ sources:
   - DS-018
   locations:
     working: pixelated-empathy/output/bpd_synthetic_zenodo/`
-  inspection_status: inspected-metadata-no-remote-files
+    s3: whitebat:whitebat/training/pixelated-empathy/output/bpd_synthetic_zenodo/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/zenodo/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/bpd_synthetic_zenodo/
+    gdrive_alt2: gdrive:pixelated-backups/whitebat-snapshot/raw/s3_cache/bpd_synthetic_zenodo/
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy V. Small synthetic BPD dataset. No files found on GDrive or S3. Likely generated output not persisted
-      to archive.
+    rationale: Policy V. Small synthetic BPD dataset. Found on whitebat S3 at training/pixelated-empathy/output/bpd_synthetic_zenodo/.
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -349,18 +380,20 @@ sources:
   github_issue: 5638
   p_list: P11, P14
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 at training/pixelated-empathy/output/bpd_synthetic_zenodo/
+    file_count: 1
+    files:
+    - whitebat:training/pixelated-empathy/output/bpd_synthetic_zenodo/
+    total_size_mb: 2
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    formats: []
+    formats:
+    - JSONL
     sample_schema: null
-    record_count_estimate: 0
+    record_count_estimate: 200
   citation_lineage: 'BPD Synthetic Zenodo (DS: DS-018). GitHub #5638. [Dataset not located in remote archives.]'
 - source_id: SRC-022
   title: CBT audio HF
@@ -604,11 +637,15 @@ sources:
   locations:
     local: ai/data/raw/burnout/
     working: manifests/output
-  inspection_status: inspected-metadata-no-remote-files
+    s3: whitebat:whitebat/training/pixelated-empathy/output/burnout_*
+    s3_alt: upcloud:crispy/training/ai-data/raw/burnout/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/burnout_*
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/raw/s3_cache/burnout_*
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy V,R. Burnout source family (7 gated datasets + 8 web narratives). No dedicated burnout dataset found
-      on GDrive or S3. Only a single CPTSD transcript mentioning burnout was found.
+    rationale: Policy V,R. Burnout source family (7 gated datasets + 8 web narratives). Found on whitebat S3 (8 burnout directories)
+      and upcloud S3 (crispy/training/ai-data/raw/burnout/).
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -625,18 +662,37 @@ sources:
   github_issue: 5643
   p_list: P14, P15
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 (8 burnout directories under training/pixelated-empathy/output/) and upcloud S3 (crispy/training/ai-data/raw/burnout/
+      with 8 subdirectories). Also cached at whitebat:training/raw/s3_cache/burnout_*.
+    file_count: 16
+    files:
+    - whitebat:training/pixelated-empathy/output/burnout_buried_scrubs/
+    - whitebat:training/pixelated-empathy/output/burnout_final_out/
+    - whitebat:training/pixelated-empathy/output/burnout_heading_hills/
+    - whitebat:training/pixelated-empathy/output/burnout_how_good_therapists_leave/
+    - whitebat:training/pixelated-empathy/output/burnout_i_want_to_quit/
+    - whitebat:training/pixelated-empathy/output/burnout_last_attempt/
+    - whitebat:training/pixelated-empathy/output/burnout_let_go_working/
+    - whitebat:training/pixelated-empathy/output/burnout_therapist_interrupted/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_buried_scrubs/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_final_out/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_heading_hills/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_how_good_therapists_leave/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_i_want_to_quit/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_last_attempt/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_let_go_working/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_why_counselors_quit/
+    total_size_mb: 100
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    formats: []
+    formats:
+    - JSONL
+    - JSON
     sample_schema: null
-    record_count_estimate: 0
+    record_count_estimate: 5000
   citation_lineage: 'Burnout source family (DS: DS-023). GitHub #5643. [Datasets not located in remote archives; only a single
     CPTSD transcript referencing burnout found.]'
 - source_id: SRC-030
@@ -863,11 +919,15 @@ sources:
   locations:
     local: ai/data/raw/mental_health_multiagent/
     working: output
-  inspection_status: inspected-metadata-no-remote-files
+    s3: whitebat:whitebat/training/raw/mental_health_multiagent/
+    s3_alt: whitebat:whitebat/training/pixelated-empathy/output/mental_health_multiagent/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/mental_health_multiagent/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/raw/mental_health_multiagent/
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-knowledge-extraction
-    rationale: Policy R,V. GPT-4.1-generated multi-agent mental-health dialogue. No files found on GDrive or S3. Generated
-      output may not have been persisted to archive.
+    rationale: Policy R,V. GPT-4.1-generated multi-agent mental-health dialogue. Found on whitebat S3 at training/raw/mental_health_multiagent/
+      and training/pixelated-empathy/output/mental_health_multiagent/.
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -882,18 +942,23 @@ sources:
   github_issue: 5650
   p_list: P2, P14
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 at training/raw/mental_health_multiagent/ (with raw/ and esconv.jsonl) and training/pixelated-empathy/output/mental_health_multiagent/.
+      Also deduped at training/raw/deduped/mental_health_multiagent.jsonl.
+    file_count: 3
+    files:
+    - whitebat:training/raw/mental_health_multiagent/mental_health_multiagent.jsonl
+    - whitebat:training/raw/mental_health_multiagent/raw/
+    - whitebat:training/raw/deduped/mental_health_multiagent.jsonl
+    total_size_mb: 20
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-    formats: []
+    formats:
+    - JSONL
     sample_schema: null
-    record_count_estimate: 0
+    record_count_estimate: 5000
   citation_lineage: 'Mental Health MultiAgent (DS: DS-055). GitHub #5650. [Dataset not located in remote archives.]'
 - source_id: SRC-034
   title: KokoroChat
@@ -1035,11 +1100,12 @@ sources:
   - DS-060
   locations:
     working: clinical
-  inspection_status: inspected-metadata-no-remote-files
+    remote_url: https://doi.org/10.5522/04/31587925.v1
+  inspection_status: inspected-metadata-external
   rights_decision:
     decision: restricted-knowledge-extraction
-    rationale: Policy A. Psychological-abuse research text. No files found on GDrive or S3. Academic source may require direct
-      request.
+    rationale: 'Policy A. Psychological-abuse research text. Found on UCL Research Data Repository (DOI 10.5522/04/31587925.v1).
+      CC BY 4.0 license. Expert-annotated Reddit posts on six classes of psychological abuse.'
     restrictions:
     - no-direct-quote
     - no-case-study-reproduction
@@ -1056,18 +1122,32 @@ sources:
   github_issue: 5655
   p_list: P11, P12
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
+    method: rclone-lsf-plus-grep-search + web-search
+    coverage: Found on UCL Research Data Repository. Dataset of 1,500 labeled Reddit posts across six non-mutually exclusive
+      categories of psychological abuse. Published by UCL Gender and Tech Research Lab. Also available via B2FIND.
     file_count: 0
     files: []
     total_size_mb: 0
-    schemas: []
+    schemas:
+    - format: CSV
+      fields:
+      - text
+      - rules_control_micro_regulation
+      - justifying_minimizing_denying
+      - threats_intimidation_punishment
+      - shaming_degrading_ignoring
+      - isolation
+      - surveillance_monitoring_harassment
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: true
-    formats: []
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - CSV
+    sample_schema: 'CSV: Reddit posts labeled across six psychological abuse categories (Rules/control, Justifying/denying,
+      Threats/intimidation, Shaming/degrading, Isolation, Surveillance). 1,500 posts, CC BY 4.0.'
+    record_count_estimate: 1500
+    access_requirements: Available from UCL Research Data Repository at https://doi.org/10.5522/04/31587925.v1. Also on B2FIND
+      at https://b2find.eudat.eu/dataset/03aec334-19a0-553d-800c-47d0559964d2.
   citation_lineage: 'UCL psychological abuse (DS: DS-060). GitHub #5655. [Dataset not located in remote archives.]'
 - source_id: SRC-039
   title: ESConv
@@ -1081,11 +1161,14 @@ sources:
   locations:
     local: ai/data/raw/esconv/
     working: cache
-  inspection_status: inspected-metadata-no-remote-files
+    s3: whitebat:whitebat/training/raw/esconv/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/raw/esconv/
+    huggingface_id: thu-coai/esconv
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy V. Emotional-support conversations (ESConv). No files found on GDrive or S3. May be available via HuggingFace
-      cache only.
+    rationale: Policy V. Emotional-support conversations (ESConv). Found on whitebat S3 at training/raw/esconv/ and on HuggingFace
+      as thu-coai/esconv (CC-BY-NC-4.0).
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -1100,18 +1183,23 @@ sources:
   github_issue: 5656
   p_list: P2, P15
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api
+    coverage: 'Found on whitebat S3 at training/raw/esconv/ (with esconv.jsonl and raw/ subdirectory). Also deduped at training/raw/deduped/esconv.jsonl.
+      HuggingFace thu-coai/esconv (CC-BY-NC-4.0, 1K-10K records, arXiv 2106.01144).'
+    file_count: 3
+    files:
+    - whitebat:training/raw/esconv/esconv.jsonl
+    - whitebat:training/raw/esconv/raw/
+    - whitebat:training/raw/deduped/esconv.jsonl
+    total_size_mb: 10
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: true
-    formats: []
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: Emotional support conversation data. HuggingFace: thu-coai/esconv, CC-BY-NC-4.0, ~1K-10K records.'
+    record_count_estimate: 1300
   citation_lineage: 'ESConv (DS: DS-061). GitHub #5656. [Dataset not located in remote archives.]'
 - source_id: SRC-040
   title: PsyDial
@@ -1124,10 +1212,18 @@ sources:
   - DS-062
   locations:
     working: raw
-  inspection_status: inspected-metadata-no-remote-files
+    s3: whitebat:whitebat/training/raw/psydial/
+    s3_alt: whitebat:whitebat/training/pixelated-empathy/output/psydial/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psydial/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/psydial/
+    gdrive_alt2: gdrive:pixelated-backups/whitebat-snapshot/raw/psydial/
+    gdrive_alt3: gdrive:pixelated-backups/layup/pixelated/.hf_cache/datasets--qiuhuachuan--PsyDial-D101/
+    huggingface_id: qiuhuachuan/PsyDial-D101
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy V. Multi-turn psychotherapy dialogue (PsyDial). No files found on GDrive or S3.
+    rationale: Policy V. Multi-turn psychotherapy dialogue (PsyDial). Found on whitebat S3 at training/raw/psydial/ and on
+      HuggingFace as qiuhuachuan/PsyDial-D101 and qiuhuachuan/PsyDial-D4 (Apache-2.0).
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -1142,18 +1238,26 @@ sources:
   github_issue: 5657
   p_list: P14, P15
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api
+    coverage: 'Found on whitebat S3 at training/raw/psydial/ (with psydial.jsonl and raw/ subdirectory), training/pixelated-empathy/output/psydial/,
+      and deduped at training/raw/deduped/psydial.jsonl. HuggingFace qiuhuachuan/PsyDial-D101 (101 dialogues, 1278 test
+      cases) and qiuhuachuan/PsyDial-D4 (2382 long-term dialogues). Apache-2.0.'
+    file_count: 4
+    files:
+    - whitebat:training/raw/psydial/psydial.jsonl
+    - whitebat:training/raw/psydial/raw/
+    - whitebat:training/raw/deduped/psydial.jsonl
+    - whitebat:training/pixelated-empathy/output/psydial/
+    total_size_mb: 15
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: true
-    formats: []
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: Multi-turn psychotherapy dialogues. HuggingFace: qiuhuachuan/PsyDial-D101 (101 dialogues) and PsyDial-D4
+      (2382 dialogues). Apache-2.0. Chinese-language counseling dialogues.'
+    record_count_estimate: 2483
   citation_lineage: 'PsyDial (DS: DS-062). GitHub #5657. [Dataset not located in remote archives.]'
 - source_id: SRC-041
   title: PsyInsight
@@ -1166,11 +1270,17 @@ sources:
   - DS-063
   locations:
     working: output
-  inspection_status: inspected-metadata-no-remote-files
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/raw/psy_insight/
+    gdrive_alt2: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/psy_insight/
+    huggingface_id: XuShihao6715/counseling-psy-insight
+    remote_url: https://github.com/ckqqqq/Psy-Insight
+  inspection_status: inspected-content
   rights_decision:
     decision: restricted-voice-extraction
-    rationale: Policy V. Generated psychological insight records (PsyInsight). No files found on GDrive or S3. Generated output
-      may not have been persisted.
+    rationale: Policy V. Generated psychological insight records (PsyInsight). Found on HuggingFace as XuShihao6715/counseling-psy-insight
+      and on GitHub as ckqqqq/Psy-Insight. Also found on GDrive at pixelated-backups/whitebat-snapshot/ with full repo
+      and ingested JSONL. Bilingual (Chinese/English) multi-turn counseling dialogues with strategy/emotion/stage annotations.
     restrictions:
     - no-voice-reproduction
     - no-direct-quote
@@ -1185,18 +1295,34 @@ sources:
   github_issue: 5658
   p_list: P12, P14
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    schemas: []
+    method: rclone-lsf-plus-grep-search + huggingface-api + web-search
+    coverage: Found on HuggingFace (XuShihao6715/counseling-psy-insight) and GitHub (ckqqqq/Psy-Insight). 951 sessions of
+      multi-turn counseling dialogues (520 English, 431 Chinese) with multi-task labels and step-by-step reasoning annotations.
+    file_count: 4
+    files:
+    - huggingface:XuShihao6715/counseling-psy-insight/en.jsonl
+    - huggingface:XuShihao6715/counseling-psy-insight/zh.jsonl
+    - huggingface:XuShihao6715/counseling-psy-insight/en.turns.jsonl
+    - huggingface:XuShihao6715/counseling-psy-insight/zh.turns.jsonl
+    total_size_mb: 7
+    schemas:
+    - format: JSONL
+      fields:
+      - case_id
+      - source
+      - lang
+      - messages
+      - therapy
+      - stage
+      - topic
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: true
-    formats: []
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: Bilingual counseling dialogues with strategy/emotion/stage annotations. 520 English dialogues
+      (5,892 turns) and 431 Chinese dialogues (5,708 turns). Covers 16 therapy methods and topics.'
+    record_count_estimate: 951
   citation_lineage: 'PsyInsight (DS: DS-063). GitHub #5658. [Dataset not located in remote archives.]'
 - source_id: SRC-042
   title: Addiction Stories
@@ -1267,11 +1393,15 @@ sources:
   locations:
     local: ai/data/raw/daic_woz/
     working: HF
-  inspection_status: inspected-metadata-no-remote-files
+    s3: whitebat:whitebat/training/raw/daic_woz/
+    huggingface_id: saeedzou/DAIC-WOZ
+    kaggle_id: alejandropatinio/daic-woz
+  inspection_status: inspected-metadata-restricted-access
   rights_decision:
     decision: restricted-knowledge-extraction
-    rationale: Policy R,C. Clinical interviews/audio-derived features (DAIC-WOZ). No files found on GDrive or S3. DAIC-WOZ
-      is a restricted-access clinical dataset requiring direct application.
+    rationale: Policy R,C. Clinical interviews/audio-derived features (DAIC-WOZ). Found on whitebat S3 (training/raw/daic_woz/
+      with daic_woz.jsonl and raw/), HuggingFace (saeedzou/DAIC-WOZ), and Kaggle (alejandropatinio/daic-woz, 91GB). DAIC-WOZ
+      is a restricted-access clinical dataset - original access requires application to USC Institute for Creative Technologies.
     restrictions:
     - no-direct-quote
     - no-case-study-reproduction
@@ -1288,18 +1418,32 @@ sources:
   github_issue: 5663
   p_list: P12, P14
   inspection:
-    method: rclone-lsf-plus-grep-search
-    coverage: gdrive-archive-full-scan-s3-scan
-    file_count: 0
-    files: []
-    total_size_mb: 0
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api + kaggle-api
+    coverage: 'Found on whitebat S3 at training/raw/daic_woz/ (with daic_woz.jsonl and raw/ subdirectory), deduped at training/raw/deduped/daic_woz.jsonl,
+      HF cache at training/hf_datasets/saeedzou___daic-woz/, and access request notes at training/raw/access_requests/01_daic_woz.txt.
+      HuggingFace saeedzou/DAIC-WOZ (10K-100K records, parquet, audio+text). Kaggle alejandropatinio/daic-woz (91GB, Unknown
+      license).'
+    file_count: 5
+    files:
+    - whitebat:training/raw/daic_woz/daic_woz.jsonl
+    - whitebat:training/raw/daic_woz/raw/
+    - whitebat:training/raw/deduped/daic_woz.jsonl
+    - whitebat:training/hf_datasets/saeedzou___daic-woz/
+    - whitebat:training/raw/access_requests/01_daic_woz.txt
+    total_size_mb: 50
     schemas: []
     needs_full_text_review: true
     needs_clinical_review: true
     needs_copyright_review: true
-    formats: []
-    sample_schema: null
-    record_count_estimate: 0
+    formats:
+    - JSONL
+    - Parquet
+    sample_schema: 'JSONL/Parquet: Clinical interview data with audio-derived features. HuggingFace: saeedzou/DAIC-WOZ (10K-100K
+      records). Kaggle: alejandropatinio/daic-woz (91GB). Restricted-access clinical dataset.'
+    record_count_estimate: 10000
+    access_requirements: 'DAIC-WOZ is a restricted-access clinical dataset. Original access requires application to USC
+      Institute for Creative Technologies (http://dcapswoz.ict.usc.edu/). S3 copy and HuggingFace/Kaggle mirrors may contain
+      processed derivatives. Access request notes at whitebat:training/raw/access_requests/01_daic_woz.txt.'
   citation_lineage: 'DAIC-WOZ (DS: DS-068). GitHub #5663. [Dataset not located in remote archives; restricted-access clinical
     dataset requiring direct application.]'
 - source_id: SRC-047
