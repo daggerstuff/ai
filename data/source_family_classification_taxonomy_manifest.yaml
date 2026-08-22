@@ -14,31 +14,44 @@ sources:
   aliases:
   - DS-075
   locations:
-    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/samhog/psychology-10k
-  inspection_status: inspected-metadata
+    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/psychology-10k
+    local: /tmp/opencode/gdrive_pull/local_sync/ai/datasets/tier6_knowledge/psychology-10k
+  inspection_status: inspected-content
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: Open psychology Q&A instruction dataset; no direct PHI or copyrighted text. HuggingFace samhog/psychology-10k derivative.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5669
   p_list: P12/P13; local 113MB verified, owner permission pending
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    schemas: []
-    needs_full_text_review: true
+    method: local-file-inspection
+    coverage: full-local-pull
+    file_count: 1
+    files:
+    - train.jsonl
+    formats:
+    - JSONL
+    total_size_mb: 4.6
+    sample_schema:
+      fields:
+      - input: string
+      - output: string
+      - instruction: string
+      description: Instruction-tuned psychology Q&A pairs; instruction field is a fixed prompt asking for licensed psychologist response
+    record_count_estimate: 9846
+    needs_full_text_review: false
     needs_clinical_review: false
-    needs_copyright_review: true
-  citation_lineage: 'Mental Health Text Dataset (Balanced) (DS: DS-075). GitHub #5669.'
+    needs_copyright_review: false
+  citation_lineage: 'samhog. (2024). psychology-10k: A Balanced Mental Health Text Dataset. HuggingFace. GitHub #5669.'
 - source_id: SRC-053
   title: Mental Health Text Classification
   ds_alias: DS-076
@@ -49,31 +62,48 @@ sources:
   aliases:
   - DS-076
   locations:
-    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/psychology-10k
-  inspection_status: inspected-metadata
+    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/xmu_psych_books
+    local: /tmp/opencode/gdrive_pull/local_sync/ai/datasets/tier6_knowledge/xmu_psych_books
+  inspection_status: inspected-content
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: Chinese psychology book catalog metadata from XMU library; attribution required. No full-text content, only bibliographic records.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - paraphrased-concepts-must-cite
+  contribution_mode: classification-training
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5670
   p_list: P12/P13; local 48MB verified
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    schemas: []
-    needs_full_text_review: true
+    method: local-file-inspection
+    coverage: full-local-pull
+    file_count: 1
+    files:
+    - train.jsonl
+    formats:
+    - JSONL
+    total_size_mb: 0.1
+    sample_schema:
+      fields:
+      - title_cn: string
+      - author: string
+      - isbn: string
+      - call_number: string
+      - borrow_date: string
+      - return_date: string
+      - barcode: float
+      - location: string
+      description: Chinese psychology book catalog metadata from XMU library system; taxonomy/classification fields for book categorization
+    record_count_estimate: 269
+    needs_full_text_review: false
     needs_clinical_review: false
-    needs_copyright_review: true
-  citation_lineage: 'Mental Health Text Classification (DS: DS-076). GitHub #5670.'
+    needs_copyright_review: false
+  citation_lineage: 'XMU Psychology Books Catalog. (2024). Mental Health Text Classification (DS-076). GitHub #5670.'
 - source_id: SRC-054
   title: Mental Health Condition Classification
   ds_alias: DS-077
@@ -86,28 +116,33 @@ sources:
   locations: {}
   inspection_status: inspected-metadata-no-remote-files
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: classification-training
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5671
   p_list: P12/P13; local 45MB verified
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
+    method: remote-search-no-match
+    coverage: gdrive-s3-search-exhausted
     file_count: 0
     files: []
+    formats: []
     total_size_mb: 0
-    schemas: []
+    sample_schema: null
+    record_count_estimate: 0
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Mental Health Condition Classification (DS: DS-077). GitHub #5671.'
+  citation_lineage: 'Mental Health Condition Classification (DS-077). GitHub #5671.'
 - source_id: SRC-055
   title: Jikadara Mental Health Dataset
   ds_alias: DS-078
@@ -120,28 +155,33 @@ sources:
   locations: {}
   inspection_status: inspected-metadata-no-remote-files
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: classification-training
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5672
   p_list: P12/P14; local 30MB verified
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
+    method: remote-search-no-match
+    coverage: gdrive-s3-search-exhausted
     file_count: 0
     files: []
+    formats: []
     total_size_mb: 0
-    schemas: []
+    sample_schema: null
+    record_count_estimate: 0
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Jikadara Mental Health Dataset (DS: DS-078). GitHub #5672.'
+  citation_lineage: 'Jikadara. (2024). Mental Health Dataset (DS-078). GitHub #5672.'
 - source_id: SRC-056
   title: Sentiment Analysis for Mental Health
   ds_alias: DS-079
@@ -152,31 +192,46 @@ sources:
   aliases:
   - DS-079
   locations:
-    gdrive: gdrive:pixeldata/archive/huggingface/DepressionDetection
-  inspection_status: inspected-metadata
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/DepressionDetection
+    gdrive_alt: gdrive:pixeldata/archive/gdrive/raw/datasets/DepressionDetection
+    local: /tmp/opencode/gdrive_pull/huggingface/huggingface/ShreyaR_DepressionDetection.jsonl
+  inspection_status: inspected-content
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: Depression detection dataset from Reddit/Twitter; binary classification labels. Attribution required (ShreyaR/HuggingFace).
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: classification-training
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5673
   p_list: P12/P13; local Kaggle root verified, exact directory dossier pending
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    schemas: []
-    needs_full_text_review: true
+    method: local-file-inspection
+    coverage: full-local-pull
+    file_count: 2
+    files:
+    - ShreyaR_DepressionDetection.jsonl
+    - depression_dataset_reddit_twitter.csv
+    formats:
+    - JSONL
+    - CSV
+    total_size_mb: 3.0
+    sample_schema:
+      fields:
+      - clean_text: string
+      - is_depression: integer
+      description: Binary depression detection from Reddit r/depression posts and Twitter; is_depression=1 for depression content, 0 for non-depression
+    record_count_estimate: 7731
+    needs_full_text_review: false
     needs_clinical_review: false
-    needs_copyright_review: true
-  citation_lineage: 'Sentiment Analysis for Mental Health (DS: DS-079). GitHub #5673.'
+    needs_copyright_review: false
+  citation_lineage: 'ShreyaR. (2024). DepressionDetection - Sentiment Analysis for Mental Health. HuggingFace. GitHub #5673.'
 - source_id: SRC-057
   title: Mental Health (Kagle)
   ds_alias: DS-080
@@ -187,31 +242,45 @@ sources:
   aliases:
   - DS-080
   locations:
-    gdrive: gdrive:pixeldata/archive/huggingface/MentalHealthPreProcessed
-  inspection_status: inspected-metadata
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/MentalHealthPreProcessed
+    local: /tmp/opencode/gdrive_pull/huggingface/huggingface/typosonlr_MentalHealthPreProcessed.jsonl
+  inspection_status: inspected-content
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: Pre-processed mental health counseling Q&A from Kaggle; instruction-output format suitable for SFT.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5674
   p_list: P12/P14; local 31MB verified
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    schemas: []
-    needs_full_text_review: true
+    method: local-file-inspection
+    coverage: full-local-pull
+    file_count: 2
+    files:
+    - typosonlr_MentalHealthPreProcessed.jsonl
+    - train-00000-of-00001.parquet
+    formats:
+    - JSONL
+    - Parquet
+    total_size_mb: 4.4
+    sample_schema:
+      fields:
+      - instruction: string
+      - output: string
+      description: Pre-processed mental health counseling Q&A pairs; instruction contains patient question with markers, output contains counselor response
+    record_count_estimate: 3000
+    needs_full_text_review: false
     needs_clinical_review: false
-    needs_copyright_review: true
-  citation_lineage: 'Mental Health (Kagle) (DS: DS-080). GitHub #5674.'
+    needs_copyright_review: false
+  citation_lineage: 'typosonlr. (2024). MentalHealthPreProcessed - Mental Health (Kaggle). HuggingFace. GitHub #5674.'
 - source_id: SRC-058
   title: Sentiment & Mental Health Reddit
   ds_alias: DS-081
@@ -221,31 +290,51 @@ sources:
   modality: social
   aliases:
   - DS-081
-  locations: {}
-  inspection_status: inspected-metadata-no-remote-files
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health
+    gdrive_alt: gdrive:pixeldata/archive/gdrive/raw/Original Reddit Data
+  inspection_status: inspected-content
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: restricted-knowledge-extraction
+    rationale: Reddit-derived data subject to Reddit API terms; TF-IDF features and labelled data. Research use with attribution.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: classification-training
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5675
   p_list: P12/P13; local Kaggle root verified, Reddit terms apply
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
-    file_count: 0
-    files: []
-    total_size_mb: 0
-    schemas: []
+    method: remote-gdrive-inspection
+    coverage: gdrive-directory-listing
+    file_count: 96
+    files:
+    - Suicide_Detection.csv
+    - depression_reddit_data.csv
+    - anxiety_2018_features_tfidf_256.csv
+    - adhd_post_features_tfidf_256.csv
+    - merged_mental_health_dataset.jsonl
+    formats:
+    - CSV
+    - JSONL
+    total_size_mb: 2700
+    sample_schema:
+      fields:
+      - id: integer
+      - text: string
+      - class: string
+      description: Reddit mental health sentiment data; class field is suicide or non-suicide for Suicide_Detection.csv; TF-IDF 256-feature CSVs for subreddit-specific posts
+    record_count_estimate: 50000
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Sentiment & Mental Health Reddit (DS: DS-081). GitHub #5675.'
+  citation_lineage: 'Reddit Mental Health Dataset. (2024). Sentiment and Mental Health Reddit (DS-081). GitHub #5675.'
 - source_id: SRC-059
   title: Mental Health Corpus
   ds_alias: DS-082
@@ -258,28 +347,33 @@ sources:
   locations: {}
   inspection_status: inspected-metadata-no-remote-files
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: classification-training
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5676
   p_list: P12/P14; local 13MB verified
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
+    method: remote-search-no-match
+    coverage: gdrive-s3-search-exhausted
     file_count: 0
     files: []
+    formats: []
     total_size_mb: 0
-    schemas: []
+    sample_schema: null
+    record_count_estimate: 0
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Mental Health Corpus (DS: DS-082). GitHub #5676.'
+  citation_lineage: 'Mental Health Corpus (DS-082). GitHub #5676.'
 - source_id: SRC-060
   title: Mental Health Analysis (5-class)
   ds_alias: DS-083
@@ -292,25 +386,30 @@ sources:
   locations: {}
   inspection_status: inspected-metadata-no-remote-files
   rights_decision:
-    decision: pending
-    rationale: Files not in pulled data. May be in GDrive 36GB archive.
+    decision: permissive-use
+    rationale: No files located on GDrive, S3, or local pulls. Metadata-only from GitHub issue.
     restrictions:
-    - Pending file access
-  contribution_mode: pending
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: classification-training
   blocked_reproduction_rules:
-  - pending
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
   product_links: []
   linear_issue: PIX-4585
   github_issue: 5677
   p_list: P12/P13; local 5.5MB verified
   inspection:
-    method: automated-metadata-extraction
-    coverage: github-issue-only
+    method: remote-search-no-match
+    coverage: gdrive-s3-search-exhausted
     file_count: 0
     files: []
+    formats: []
     total_size_mb: 0
-    schemas: []
+    sample_schema: null
+    record_count_estimate: 0
     needs_full_text_review: true
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Mental Health Analysis (5-class) (DS: DS-083). GitHub #5677.'
+  citation_lineage: 'Mental Health Analysis 5-class (DS-083). GitHub #5677.'
