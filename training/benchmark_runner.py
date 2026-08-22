@@ -1,0 +1,276 @@
+#!/usr/bin/env python3
+"""Pre-SFT benchmark harness (PIX-4345 Appendix E Step 1).
+
+Runs a model on standard + domain benchmarks, saves results to
+``benchmarks/pre_train_YYYY-MM-DD.json`` (or post_train). Computes the
+forgetting metric when both pre and post runs exist:
+
+    forgetting_score = (pre_score - post_score) / pre_score
+
+Target: <10% forgetting on general benchmarks; <5% preferred for production.
+
+CPU-mock: no GPU/real model available, so benchmark scores are deterministic
+mocks (each benchmark returns a fixed score). The harness exercises the run +
+report + forgetting-comparison topology; prod swaps mocks for real model
+eval (vLLM + lm-evaluation-harness).
+
+Blueprint ref: docs/training-pipeline-blueprint-2026-08-10.md @138-140, @646-667.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import dataclass, field
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+# Standard benchmarks (general capability — forgetting watch list)
+GENERAL_BENCHMARKS = ("mmlu", "hellaswag", "truthfulqa", "bbh")
+# Domain-specific benchmark (therapeutic/clinical — the target domain)
+DOMAIN_BENCHMARKS = ("domain_clinical_empathy", "domain_safety_gate")
+FORGETTING_THRESHOLD_GENERAL = 0.10  # <10% on general
+FORGETTING_THRESHOLD_PRODUCTION = 0.05  # <5% preferred
+
+
+@dataclass
+class BenchmarkResult:
+    name: str
+    score: float  # 0.0-1.0
+    n_samples: int
+    category: str  # "general" or "domain"
+    runtime_s: float = 0.0
+    notes: str = ""
+
+
+@dataclass
+class BenchmarkRun:
+    model_name: str
+    run_phase: str  # "pre_train" or "post_train"
+    results: list[BenchmarkResult] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_name": self.model_name,
+            "run_phase": self.run_phase,
+            "date": date.today().isoformat(),
+            "results": [
+                {
+                    "name": r.name,
+                    "score": r.score,
+                    "n_samples": r.n_samples,
+                    "category": r.category,
+                    "runtime_s": round(r.runtime_s, 4),
+                    "notes": r.notes,
+                }
+                for r in self.results
+            ],
+            "summary": self._summary(),
+        }
+
+    def _summary(self) -> dict[str, Any]:
+        general = [r for r in self.results if r.category == "general"]
+        domain = [r for r in self.results if r.category == "domain"]
+        return {
+            "general_avg": round(sum(r.score for r in general) / max(len(general), 1), 4),
+            "domain_avg": round(sum(r.score for r in domain) / max(len(domain), 1), 4),
+            "general_count": len(general),
+            "domain_count": len(domain),
+        }
+
+
+def _mock_score(benchmark: str) -> float:
+    """Deterministic mock score per benchmark (CPU mode, no real model).
+
+    Pre-train base scores are set to plausible base-model values; the same
+    benchmark returns the same score so forgetting math is stable. Prod swaps
+    this for real lm-eval-harness results.
+    """
+    scores = {
+        "mmlu": 0.72,
+        "hellaswag": 0.78,
+        "truthfulqa": 0.55,
+        "bbh": 0.61,
+        "domain_clinical_empathy": 0.48,
+        "domain_safety_gate": 0.91,
+    }
+    return scores.get(benchmark, 0.50)
+
+
+def run_benchmarks(
+    model_name: str,
+    run_phase: str,
+    benchmarks: tuple[str, ...],
+    domain_benchmarks: tuple[str, ...],
+    n_samples: int = 500,
+) -> BenchmarkRun:
+    """Run all benchmarks, return BenchmarkRun with results."""
+    import time
+
+    run = BenchmarkRun(model_name=model_name, run_phase=run_phase)
+
+    for name in benchmarks:
+        t0 = time.perf_counter()
+        score = _mock_score(name)
+        elapsed = time.perf_counter() - t0
+        run.results.append(
+            BenchmarkResult(
+                name=name,
+                score=score,
+                n_samples=n_samples,
+                category="general",
+                runtime_s=elapsed,
+                notes="mock (CPU)",
+            )
+        )
+
+    for name in domain_benchmarks:
+        t0 = time.perf_counter()
+        score = _mock_score(name)
+        elapsed = time.perf_counter() - t0
+        run.results.append(
+            BenchmarkResult(
+                name=name,
+                score=score,
+                n_samples=n_samples,
+                category="domain",
+                runtime_s=elapsed,
+                notes="mock (CPU)",
+            )
+        )
+
+    return run
+
+
+def compute_forgetting(pre: BenchmarkRun, post: BenchmarkRun) -> dict[str, Any]:
+    """forgetting_score = (pre - post) / pre per benchmark + aggregate.
+
+    Negative forgetting (post > pre) = improvement, clamped to 0.
+    """
+    pre_by_name = {r.name: r.score for r in pre.results}
+    post_by_name = {r.name: r.score for r in post.results}
+
+    per_benchmark: dict[str, dict[str, Any]] = {}
+    general_forgetting: list[float] = []
+    domain_forgetting: list[float] = []
+
+    for name, pre_score in pre_by_name.items():
+        post_score = post_by_name.get(name)
+        if post_score is None:
+            per_benchmark[name] = {"pre": pre_score, "post": None, "forgetting": None}
+            continue
+        forgetting = (pre_score - post_score) / pre_score if pre_score > 0 else 0.0
+        forgetting = max(forgetting, 0.0)  # improvement = 0 forgetting
+        category = "general" if name in GENERAL_BENCHMARKS else "domain"
+        per_benchmark[name] = {
+            "pre": round(pre_score, 4),
+            "post": round(post_score, 4),
+            "forgetting": round(forgetting, 4),
+            "exceeds_general_threshold": category == "general" and forgetting > FORGETTING_THRESHOLD_GENERAL,
+            "exceeds_production_threshold": category == "general" and forgetting > FORGETTING_THRESHOLD_PRODUCTION,
+        }
+        if category == "general":
+            general_forgetting.append(forgetting)
+        else:
+            domain_forgetting.append(forgetting)
+
+    avg_general = sum(general_forgetting) / max(len(general_forgetting), 1)
+    avg_domain = sum(domain_forgetting) / max(len(domain_forgetting), 1)
+
+    return {
+        "model": pre.model_name,
+        "pre_train_date": pre.to_dict()["date"],
+        "post_train_date": post.to_dict()["date"],
+        "per_benchmark": per_benchmark,
+        "avg_general_forgetting": round(avg_general, 4),
+        "avg_domain_forgetting": round(avg_domain, 4),
+        "general_threshold": FORGETTING_THRESHOLD_GENERAL,
+        "production_threshold": FORGETTING_THRESHOLD_PRODUCTION,
+        "general_gate_passed": avg_general <= FORGETTING_THRESHOLD_GENERAL,
+        "production_gate_passed": avg_general <= FORGETTING_THRESHOLD_PRODUCTION,
+        "verdict": _forgetting_verdict(avg_general),
+    }
+
+
+def _forgetting_verdict(avg_general: float) -> str:
+    if avg_general <= FORGETTING_THRESHOLD_PRODUCTION:
+        return "PASS (production-grade, <5% forgetting)"
+    if avg_general <= FORGETTING_THRESHOLD_GENERAL:
+        return "PASS (general, <10% forgetting; consider replay for production)"
+    return f"FAIL ({avg_general:.1%} forgetting exceeds {FORGETTING_THRESHOLD_GENERAL:.0%} threshold)"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Pre/post-SFT benchmark harness (PIX-4345 Appendix E)")
+    parser.add_argument("--model", type=str, default="mock_base_model", help="Model name")
+    parser.add_argument(
+        "--phase",
+        type=str,
+        choices=["pre_train", "post_train"],
+        default="pre_train",
+        help="pre_train (baseline) or post_train (after SFT)",
+    )
+    parser.add_argument(
+        "--out-dir", type=str, default="ai/training/benchmarks", help="Directory for benchmark JSON files"
+    )
+    parser.add_argument("--n-samples", type=int, default=500, help="Samples per benchmark (mock)")
+    parser.add_argument(
+        "--compare", type=str, default=None, help="Path to a pre_train report to compare against (computes forgetting)"
+    )
+    args = parser.parse_args()
+
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"[benchmark] model={args.model} phase={args.phase}")
+    run = run_benchmarks(
+        model_name=args.model,
+        run_phase=args.phase,
+        benchmarks=GENERAL_BENCHMARKS,
+        domain_benchmarks=DOMAIN_BENCHMARKS,
+        n_samples=args.n_samples,
+    )
+    report = run.to_dict()
+    fname = f"{args.phase}_{date.today().isoformat()}.json"
+    out_path = out_dir / fname
+    out_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    print(f"[benchmark] wrote {out_path}")
+    print(f"[benchmark] general_avg={report['summary']['general_avg']} domain_avg={report['summary']['domain_avg']}")
+
+    if args.compare:
+        compare_path = Path(args.compare)
+        if not compare_path.exists():
+            print(f"[benchmark] WARN: compare path {compare_path} not found, skipping forgetting")
+        else:
+            pre_data = json.loads(compare_path.read_text(encoding="utf-8"))
+            pre_run = BenchmarkRun(
+                model_name=pre_data["model_name"],
+                run_phase=pre_data["run_phase"],
+                results=[
+                    BenchmarkResult(
+                        name=r["name"],
+                        score=r["score"],
+                        n_samples=r["n_samples"],
+                        category=r["category"],
+                        runtime_s=r["runtime_s"],
+                        notes=r["notes"],
+                    )
+                    for r in pre_data["results"]
+                ],
+            )
+            forgetting = compute_forgetting(pre_run, run)
+            forget_path = out_dir / f"forgetting_{date.today().isoformat()}.json"
+            forget_path.write_text(json.dumps(forgetting, indent=2) + "\n", encoding="utf-8")
+            print(f"[benchmark] forgetting report: {forget_path}")
+            print(
+                f"[benchmark] avg_general_forgetting={forgetting['avg_general_forgetting']} "
+                f"verdict={forgetting['verdict']}"
+            )
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

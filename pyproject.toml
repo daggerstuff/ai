@@ -226,6 +226,8 @@ ignore = []
 "training/dataset_splitter_stratified.py" = ["T201", "N806", "PLR2004", "PLR0912", "PT018"]
 # LLM judge calibration runner CLI (PIX-4345 §B.4 step 2B)
 "training/calibrate_judge.py" = ["T201", "PLR2004", "PLR0912", "PLR0911", "SIM115"]
+# Pre/post-SFT benchmark harness CLI (PIX-4345 Appendix E Step 1)
+"training/benchmark_runner.py" = ["T201", "PLR2004", "PLR0911", "PLC0415", "N806", "DTZ011"]
 "training/scripts/pixel_data_s3_processor.py" = ["T201"]
 "training/ready_packages/scripts/pixel_data_s3_processor.py" = ["T201"]
 "training/scripts/hetzner_52gb_processor.py" = ["T201"]
