@@ -1,94 +1,81 @@
+created: '2026-08-21'
+github_issue: 5730
 manifest_version: '1.0'
 parent_issue: PIX-4588
-github_issue: 5730
-created: '2026-08-21'
 source_family: classification_and_taxonomy_corpora
 sources:
-- source_id: SRC-052
-  title: Mental Health Text Dataset (Balanced)
-  ds_alias: DS-075
-  policy: V
-  scope: Labeled mental-health text
-  knowledge_tags: []
-  modality: mixed
-  aliases:
+- aliases:
   - DS-075
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  citation_lineage: 'samhog. (2024). psychology-10k: A Balanced Mental Health Text Dataset. HuggingFace. GitHub #5669.'
+  contribution_mode: supervised-finetuning
+  ds_alias: DS-075
+  github_issue: 5669
+  inspection:
+    coverage: full-local-pull
+    file_count: 1
+    files:
+    - train.jsonl
+    formats:
+    - JSONL
+    method: local-file-inspection
+    needs_clinical_review: false
+    needs_copyright_review: false
+    needs_full_text_review: false
+    record_count_estimate: 9846
+    sample_schema:
+      description: Instruction-tuned psychology Q&A pairs; instruction field is a fixed prompt asking for licensed psychologist response
+      fields:
+      - input: string
+      - output: string
+      - instruction: string
+    total_size_mb: 4.6
+  inspection_status: inspected-content
+  knowledge_tags: []
+  linear_issue: PIX-4585
   locations:
     gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/psychology-10k
     local: /tmp/opencode/gdrive_pull/local_sync/ai/datasets/tier6_knowledge/psychology-10k
-  inspection_status: inspected-content
+  modality: mixed
+  p_list: P12/P13; local 113MB verified, owner permission pending
+  policy: V
+  product_links: []
   rights_decision:
     decision: permissive-use
     rationale: Open psychology Q&A instruction dataset; no direct PHI or copyrighted text. HuggingFace samhog/psychology-10k derivative.
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
-  contribution_mode: supervised-finetuning
+  scope: Labeled mental-health text
+  source_id: SRC-052
+  title: Mental Health Text Dataset (Balanced)
+- aliases:
+  - DS-076
   blocked_reproduction_rules:
   - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
-  github_issue: 5669
-  p_list: P12/P13; local 113MB verified, owner permission pending
+  citation_lineage: 'XMU Psychology Books Catalog. (2024). Mental Health Text Classification (DS-076). GitHub #5670.'
+  contribution_mode: classification-training
+  ds_alias: DS-076
+  github_issue: 5670
   inspection:
-    method: local-file-inspection
     coverage: full-local-pull
     file_count: 1
     files:
     - train.jsonl
     formats:
     - JSONL
-    total_size_mb: 4.6
-    sample_schema:
-      fields:
-      - input: string
-      - output: string
-      - instruction: string
-      description: Instruction-tuned psychology Q&A pairs; instruction field is a fixed prompt asking for licensed psychologist response
-    record_count_estimate: 9846
-    needs_full_text_review: false
+    method: local-file-inspection
     needs_clinical_review: false
     needs_copyright_review: false
-  citation_lineage: 'samhog. (2024). psychology-10k: A Balanced Mental Health Text Dataset. HuggingFace. GitHub #5669.'
-- source_id: SRC-053
-  title: Mental Health Text Classification
-  ds_alias: DS-076
-  policy: A
-  scope: Labeled text classification
-  knowledge_tags: []
-  modality: mixed
-  aliases:
-  - DS-076
-  locations:
-    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/xmu_psych_books
-    local: /tmp/opencode/gdrive_pull/local_sync/ai/datasets/tier6_knowledge/xmu_psych_books
-  inspection_status: inspected-content
-  rights_decision:
-    decision: permissive-use
-    rationale: Chinese psychology book catalog metadata from XMU library; attribution required. No full-text content, only bibliographic records.
-    restrictions:
-    - paraphrased-concepts-must-cite
-  contribution_mode: classification-training
-  blocked_reproduction_rules:
-  - no-direct-quote
-  - paraphrased-concepts-must-cite
-  - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
-  github_issue: 5670
-  p_list: P12/P13; local 48MB verified
-  inspection:
-    method: local-file-inspection
-    coverage: full-local-pull
-    file_count: 1
-    files:
-    - train.jsonl
-    formats:
-    - JSONL
-    total_size_mb: 0.1
+    needs_full_text_review: false
+    record_count_estimate: 269
     sample_schema:
+      description: Chinese psychology book catalog metadata from XMU library system; taxonomy/classification fields for book categorization
       fields:
       - title_cn: string
       - author: string
@@ -98,125 +85,118 @@ sources:
       - return_date: string
       - barcode: float
       - location: string
-      description: Chinese psychology book catalog metadata from XMU library system; taxonomy/classification fields for book categorization
-    record_count_estimate: 269
-    needs_full_text_review: false
-    needs_clinical_review: false
-    needs_copyright_review: false
-  citation_lineage: 'XMU Psychology Books Catalog. (2024). Mental Health Text Classification (DS-076). GitHub #5670.'
-- source_id: SRC-054
-  title: Mental Health Condition Classification
-  ds_alias: DS-077
-  policy: V
-  scope: Condition-labeled text
+    total_size_mb: 0.1
+  inspection_status: inspected-content
   knowledge_tags: []
+  linear_issue: PIX-4585
+  locations:
+    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier6_knowledge/xmu_psych_books
+    local: /tmp/opencode/gdrive_pull/local_sync/ai/datasets/tier6_knowledge/xmu_psych_books
   modality: mixed
-  aliases:
+  p_list: P12/P13; local 48MB verified
+  policy: A
+  product_links: []
+  rights_decision:
+    decision: permissive-use
+    rationale: Chinese psychology book catalog metadata from XMU library; attribution required. No full-text content, only bibliographic records.
+    restrictions:
+    - paraphrased-concepts-must-cite
+  scope: Labeled text classification
+  source_id: SRC-053
+  title: Mental Health Text Classification
+- aliases:
   - DS-077
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  citation_lineage: 'Mental Health Condition Classification (DS-077). GitHub #5671. HuggingFace: sai1908/Mental_Health_Condition_Classification.'
+  contribution_mode: classification-training
+  ds_alias: DS-077
+  github_issue: 5671
+  inspection:
+    coverage: Found on HuggingFace as sai1908/Mental_Health_Condition_Classification. MIT license. 100K-1M rows. Local 45MB verified.
+    file_count: 0
+    files: []
+    formats:
+    - CSV
+    method: huggingface-api
+    needs_clinical_review: false
+    needs_copyright_review: true
+    needs_full_text_review: true
+    record_count_estimate: 100000
+    sample_schema: 'CSV: Mental health condition labels with text features. MIT license. 100K-1M rows.'
+    total_size_mb: 45
+  inspection_status: inspected-metadata-external
+  knowledge_tags: []
+  linear_issue: PIX-4585
   locations:
     huggingface_id: sai1908/Mental_Health_Condition_Classification
-  inspection_status: inspected-metadata-external
+  modality: mixed
+  p_list: P12/P13; found on HuggingFace sai1908/Mental_Health_Condition_Classification, MIT
+  policy: V
+  product_links: []
   rights_decision:
     decision: permissive-use
     rationale: Condition-labeled text dataset. Found on HuggingFace as sai1908/Mental_Health_Condition_Classification (MIT license, 100K-1M rows).
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
-  contribution_mode: classification-training
+  scope: Condition-labeled text
+  source_id: SRC-054
+  title: Mental Health Condition Classification
+- aliases:
+  - DS-078
   blocked_reproduction_rules:
   - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
-  github_issue: 5671
-  p_list: P12/P13; found on HuggingFace sai1908/Mental_Health_Condition_Classification, MIT
+  citation_lineage: 'Jikadara. (2024). Mental Health Dataset (DS-078). GitHub #5672. Kaggle: bhavikjikadara/mental-health-dataset.'
+  contribution_mode: classification-training
+  ds_alias: DS-078
+  github_issue: 5672
   inspection:
-    method: huggingface-api
-    coverage: Found on HuggingFace as sai1908/Mental_Health_Condition_Classification. MIT license. 100K-1M rows. Local 45MB verified.
+    coverage: Found on Kaggle as bhavikjikadara/mental-health-dataset. CC BY 4.0 license. Local 30MB verified.
     file_count: 0
     files: []
     formats:
     - CSV
-    total_size_mb: 45
-    sample_schema: 'CSV: Mental health condition labels with text features. MIT license. 100K-1M rows.'
-    record_count_estimate: 100000
-    needs_full_text_review: true
+    method: kaggle-api
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Mental Health Condition Classification (DS-077). GitHub #5671. HuggingFace: sai1908/Mental_Health_Condition_Classification.'
-- source_id: SRC-055
-  title: Jikadara Mental Health Dataset
-  ds_alias: DS-078
-  policy: V
-  scope: Mental-health tabular/text data
+    needs_full_text_review: true
+    record_count_estimate: 10000
+    sample_schema: 'CSV: Mental health survey/tabular data. CC BY 4.0.'
+    total_size_mb: 30
+  inspection_status: inspected-metadata-external
   knowledge_tags: []
-  modality: mixed
-  aliases:
-  - DS-078
+  linear_issue: PIX-4585
   locations:
     kaggle_id: bhavikjikadara/mental-health-dataset
-  inspection_status: inspected-metadata-external
+  modality: mixed
+  p_list: P12/P14; found on Kaggle bhavikjikadara/mental-health-dataset, CC BY 4.0
+  policy: V
+  product_links: []
   rights_decision:
     decision: permissive-use
     rationale: Mental-health tabular/text data. Found on Kaggle as bhavikjikadara/mental-health-dataset (CC BY 4.0). Local 30MB verified.
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
-  contribution_mode: classification-training
-  blocked_reproduction_rules:
-  - no-direct-quote
-  - paraphrased-concepts-must-cite
-  - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
-  github_issue: 5672
-  p_list: P12/P14; found on Kaggle bhavikjikadara/mental-health-dataset, CC BY 4.0
-  inspection:
-    method: kaggle-api
-    coverage: Found on Kaggle as bhavikjikadara/mental-health-dataset. CC BY 4.0 license. Local 30MB verified.
-    file_count: 0
-    files: []
-    formats:
-    - CSV
-    total_size_mb: 30
-    sample_schema: 'CSV: Mental health survey/tabular data. CC BY 4.0.'
-    record_count_estimate: 10000
-    needs_full_text_review: true
-    needs_clinical_review: false
-    needs_copyright_review: true
-  citation_lineage: 'Jikadara. (2024). Mental Health Dataset (DS-078). GitHub #5672. Kaggle: bhavikjikadara/mental-health-dataset.'
-- source_id: SRC-056
-  title: Sentiment Analysis for Mental Health
-  ds_alias: DS-079
-  policy: A
-  scope: Sentiment/mental-health labels
-  knowledge_tags: []
-  modality: mixed
-  aliases:
+  scope: Mental-health tabular/text data
+  source_id: SRC-055
+  title: Jikadara Mental Health Dataset
+- aliases:
   - DS-079
-  locations:
-    gdrive: gdrive:pixeldata/archive/gdrive/raw/DepressionDetection
-    gdrive_alt: gdrive:pixeldata/archive/gdrive/raw/datasets/DepressionDetection
-    local: /tmp/opencode/gdrive_pull/huggingface/huggingface/ShreyaR_DepressionDetection.jsonl
-  inspection_status: inspected-content
-  rights_decision:
-    decision: permissive-use
-    rationale: Depression detection dataset from Reddit/Twitter; binary classification labels. Attribution required (ShreyaR/HuggingFace).
-    restrictions:
-    - no-direct-quote
-    - paraphrased-concepts-must-cite
-  contribution_mode: classification-training
   blocked_reproduction_rules:
   - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
+  citation_lineage: 'ShreyaR. (2024). DepressionDetection - Sentiment Analysis for Mental Health. HuggingFace. GitHub #5673.'
+  contribution_mode: classification-training
+  ds_alias: DS-079
   github_issue: 5673
-  p_list: P12/P13; local Kaggle root verified, exact directory dossier pending
   inspection:
-    method: local-file-inspection
     coverage: full-local-pull
     file_count: 2
     files:
@@ -225,47 +205,48 @@ sources:
     formats:
     - JSONL
     - CSV
-    total_size_mb: 3.0
+    method: local-file-inspection
+    needs_clinical_review: false
+    needs_copyright_review: false
+    needs_full_text_review: false
+    record_count_estimate: 7731
     sample_schema:
+      description: Binary depression detection from Reddit r/depression posts and Twitter; is_depression=1 for depression content, 0 for non-depression
       fields:
       - clean_text: string
       - is_depression: integer
-      description: Binary depression detection from Reddit r/depression posts and Twitter; is_depression=1 for depression content, 0 for non-depression
-    record_count_estimate: 7731
-    needs_full_text_review: false
-    needs_clinical_review: false
-    needs_copyright_review: false
-  citation_lineage: 'ShreyaR. (2024). DepressionDetection - Sentiment Analysis for Mental Health. HuggingFace. GitHub #5673.'
-- source_id: SRC-057
-  title: Mental Health (Kagle)
-  ds_alias: DS-080
-  policy: V
-  scope: Mental-health text/tabular data
-  knowledge_tags: []
-  modality: mixed
-  aliases:
-  - DS-080
-  locations:
-    gdrive: gdrive:pixeldata/archive/gdrive/raw/MentalHealthPreProcessed
-    local: /tmp/opencode/gdrive_pull/huggingface/huggingface/typosonlr_MentalHealthPreProcessed.jsonl
+    total_size_mb: 3.0
   inspection_status: inspected-content
+  knowledge_tags: []
+  linear_issue: PIX-4585
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/DepressionDetection
+    gdrive_alt: gdrive:pixeldata/archive/gdrive/raw/datasets/DepressionDetection
+    local: /tmp/opencode/gdrive_pull/huggingface/huggingface/ShreyaR_DepressionDetection.jsonl
+  modality: mixed
+  p_list: P12/P13; local Kaggle root verified, exact directory dossier pending
+  policy: A
+  product_links: []
   rights_decision:
     decision: permissive-use
-    rationale: Pre-processed mental health counseling Q&A from Kaggle; instruction-output format suitable for SFT.
+    rationale: Depression detection dataset from Reddit/Twitter; binary classification labels. Attribution required (ShreyaR/HuggingFace).
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
-  contribution_mode: supervised-finetuning
+  scope: Sentiment/mental-health labels
+  source_id: SRC-056
+  title: Sentiment Analysis for Mental Health
+- aliases:
+  - DS-080
   blocked_reproduction_rules:
   - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
+  citation_lineage: 'typosonlr. (2024). MentalHealthPreProcessed - Mental Health (Kaggle). HuggingFace. GitHub #5674.'
+  contribution_mode: supervised-finetuning
+  ds_alias: DS-080
   github_issue: 5674
-  p_list: P12/P14; local 31MB verified
   inspection:
-    method: local-file-inspection
     coverage: full-local-pull
     file_count: 2
     files:
@@ -274,48 +255,47 @@ sources:
     formats:
     - JSONL
     - Parquet
-    total_size_mb: 4.4
+    method: local-file-inspection
+    needs_clinical_review: false
+    needs_copyright_review: false
+    needs_full_text_review: false
+    record_count_estimate: 3000
     sample_schema:
+      description: Pre-processed mental health counseling Q&A pairs; instruction contains patient question with markers, output contains counselor response
       fields:
       - instruction: string
       - output: string
-      description: Pre-processed mental health counseling Q&A pairs; instruction contains patient question with markers, output contains counselor response
-    record_count_estimate: 3000
-    needs_full_text_review: false
-    needs_clinical_review: false
-    needs_copyright_review: false
-  citation_lineage: 'typosonlr. (2024). MentalHealthPreProcessed - Mental Health (Kaggle). HuggingFace. GitHub #5674.'
-- source_id: SRC-058
-  title: Sentiment & Mental Health Reddit
-  ds_alias: DS-081
-  policy: R,V
-  scope: Reddit-derived sentiment text
-  knowledge_tags: []
-  modality: social
-  aliases:
-  - DS-081
-  locations:
-    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health
-    gdrive_alt: gdrive:pixeldata/archive/gdrive/raw/Original Reddit Data
+    total_size_mb: 4.4
   inspection_status: inspected-content
+  knowledge_tags: []
+  linear_issue: PIX-4585
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/MentalHealthPreProcessed
+    local: /tmp/opencode/gdrive_pull/huggingface/huggingface/typosonlr_MentalHealthPreProcessed.jsonl
+  modality: mixed
+  p_list: P12/P14; local 31MB verified
+  policy: V
+  product_links: []
   rights_decision:
-    decision: restricted-knowledge-extraction
-    rationale: Reddit-derived data subject to Reddit API terms; TF-IDF features and labelled data. Research use with attribution.
+    decision: permissive-use
+    rationale: Pre-processed mental health counseling Q&A from Kaggle; instruction-output format suitable for SFT.
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
-    - clinical-claims-need-review
-  contribution_mode: classification-training
+  scope: Mental-health text/tabular data
+  source_id: SRC-057
+  title: Mental Health (Kagle)
+- aliases:
+  - DS-081
   blocked_reproduction_rules:
   - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
+  citation_lineage: 'Reddit Mental Health Dataset. (2024). Sentiment and Mental Health Reddit (DS-081). GitHub #5675.'
+  contribution_mode: classification-training
+  ds_alias: DS-081
   github_issue: 5675
-  p_list: P12/P13; local Kaggle root verified, Reddit terms apply
   inspection:
-    method: remote-gdrive-inspection
     coverage: gdrive-directory-listing
     file_count: 96
     files:
@@ -327,97 +307,122 @@ sources:
     formats:
     - CSV
     - JSONL
-    total_size_mb: 2700
+    method: remote-gdrive-inspection
+    needs_clinical_review: false
+    needs_copyright_review: true
+    needs_full_text_review: true
+    record_count_estimate: 50000
     sample_schema:
+      description: Reddit mental health sentiment data; class field is suicide or non-suicide for Suicide_Detection.csv; TF-IDF 256-feature CSVs for subreddit-specific posts
       fields:
       - id: integer
       - text: string
       - class: string
-      description: Reddit mental health sentiment data; class field is suicide or non-suicide for Suicide_Detection.csv; TF-IDF 256-feature CSVs for subreddit-specific posts
-    record_count_estimate: 50000
-    needs_full_text_review: true
+    total_size_mb: 2700
+  inspection_status: inspected-content
+  knowledge_tags: []
+  linear_issue: PIX-4585
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health
+    gdrive_alt: gdrive:pixeldata/archive/gdrive/raw/Original Reddit Data
+  modality: social
+  p_list: P12/P13; local Kaggle root verified, Reddit terms apply
+  policy: R,V
+  product_links: []
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Reddit-derived data subject to Reddit API terms; TF-IDF features and labelled data. Research use with attribution.
+    restrictions:
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  scope: Reddit-derived sentiment text
+  source_id: SRC-058
+  title: Sentiment & Mental Health Reddit
+- aliases:
+  - DS-082
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  citation_lineage: 'Mental Health Corpus (DS-082). GitHub #5676. Kaggle: reihanenamdari/mental-health-corpus.'
+  contribution_mode: classification-training
+  ds_alias: DS-082
+  github_issue: 5676
+  inspection:
+    coverage: Found on Kaggle as reihanenamdari/mental-health-corpus. CC BY 4.0 license. Local 13MB verified.
+    file_count: 0
+    files: []
+    formats:
+    - CSV
+    method: kaggle-api
     needs_clinical_review: false
     needs_copyright_review: true
-  citation_lineage: 'Reddit Mental Health Dataset. (2024). Sentiment and Mental Health Reddit (DS-081). GitHub #5675.'
-- source_id: SRC-059
-  title: Mental Health Corpus
-  ds_alias: DS-082
-  policy: V
-  scope: Mental-health text corpus
+    needs_full_text_review: true
+    record_count_estimate: 5000
+    sample_schema: 'CSV: Mental health text corpus with labeled categories. CC BY 4.0.'
+    total_size_mb: 13
+  inspection_status: inspected-metadata-external
   knowledge_tags: []
-  modality: mixed
-  aliases:
-  - DS-082
+  linear_issue: PIX-4585
   locations:
     kaggle_id: reihanenamdari/mental-health-corpus
-  inspection_status: inspected-metadata-external
+  modality: mixed
+  p_list: P12/P14; found on Kaggle reihanenamdari/mental-health-corpus, CC BY 4.0
+  policy: V
+  product_links: []
   rights_decision:
     decision: permissive-use
     rationale: Mental-health text corpus. Found on Kaggle as reihanenamdari/mental-health-corpus (CC BY 4.0). Local 13MB verified.
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
-  contribution_mode: classification-training
+  scope: Mental-health text corpus
+  source_id: SRC-059
+  title: Mental Health Corpus
+- aliases:
+  - DS-083
   blocked_reproduction_rules:
   - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
-  github_issue: 5676
-  p_list: P12/P14; found on Kaggle reihanenamdari/mental-health-corpus, CC BY 4.0
+  citation_lineage: 'Mental Health Analysis 5-class (DS-083). Kaggle: anshjaiswal101/mental-health-analysis. HF model: vedabtpatil07/Mental-Health-Analysis.'
+  contribution_mode: classification-training
+  ds_alias: DS-083
+  github_issue: 5677
   inspection:
-    method: kaggle-api
-    coverage: Found on Kaggle as reihanenamdari/mental-health-corpus. CC BY 4.0 license. Local 13MB verified.
-    file_count: 0
-    files: []
+    coverage: 'Kaggle dataset page + HF model card. 5-class balanced: Depression(0), Anxiety(1), Suicidal(2), Neutral(3), Casual(4). CSV format.'
+    file_count: 1
+    files:
+    - final_balanced_5class_dataset.csv
     formats:
     - CSV
-    total_size_mb: 13
-    sample_schema: 'CSV: Mental health text corpus with labeled categories. CC BY 4.0.'
+    method: web-search + kaggle-api + huggingface-api
+    needs_clinical_review: true
+    needs_copyright_review: false
+    needs_full_text_review: false
     record_count_estimate: 5000
-    needs_full_text_review: true
-    needs_clinical_review: false
-    needs_copyright_review: true
-  citation_lineage: 'Mental Health Corpus (DS-082). GitHub #5676. Kaggle: reihanenamdari/mental-health-corpus.'
-- source_id: SRC-060
-  title: Mental Health Analysis (5-class)
-  ds_alias: DS-083
-  policy: V
-  scope: Five-class labeled text
+    sample_schema: 'CSV: text, advanced_label (0-4), label_name (Depression/Anxiety/Suicidal/Neutral/Casual)'
+    total_size_mb: 5.5
+  inspection_status: inspected-metadata-external
   knowledge_tags: []
-  modality: mixed
-  aliases:
-  - DS-083
+  linear_issue: PIX-4585
   locations:
-    kaggle_id: priyangshumukherjee/mental-health-text-classification-dataset
-  inspection_status: inspected-metadata-no-remote-files
+    huggingface_model: vedabtpatil07/Mental-Health-Analysis
+    kaggle_id: anshjaiswal101/mental-health-analysis
+    kaggle_url: https://www.kaggle.com/datasets/anshjaiswal101/mental-health-analysis
+  modality: mixed
+  p_list: P12/P13; no exact 5-class match; closest is 4-class Kaggle dataset, local 5.5MB verified
+  policy: V
+  product_links: []
   rights_decision:
     decision: permissive-use
-    rationale: 'No exact 5-class match found. Closest match is 4-class Kaggle dataset (priyangshumukherjee/mental-health-text-classification-dataset) with labels Normal, Depression, Suicidal, Anxiety. Local 5.5MB verified.'
+    rationale: 5-class balanced mental health text classification dataset (Depression, Anxiety, Suicidal, Neutral, Casual). Found on Kaggle as anshjaiswal101/mental-health-analysis. Social media text labeled
+      into 5 categories. Also has HF model vedabtpatil07/Mental-Health-Analysis.
     restrictions:
     - no-direct-quote
     - paraphrased-concepts-must-cite
-  contribution_mode: classification-training
-  blocked_reproduction_rules:
-  - no-direct-quote
-  - paraphrased-concepts-must-cite
-  - clinical-claims-need-review
-  product_links: []
-  linear_issue: PIX-4585
-  github_issue: 5677
-  p_list: P12/P13; no exact 5-class match; closest is 4-class Kaggle dataset, local 5.5MB verified
-  inspection:
-    method: kaggle-api + huggingface-api + web-search
-    coverage: 'No exact 5-class dataset found. Closest match Kaggle priyangshumukherjee/mental-health-text-classification-dataset (4-class Normal, Depression, Suicidal, Anxiety). May need custom relabeling or source verification.'
-    file_count: 0
-    files: []
-    formats:
-    - CSV
-    total_size_mb: 5.5
-    sample_schema: 'CSV: 4-class mental health text classification (Normal, Depression, Suicidal, Anxiety). Not the 5-class dataset referenced in manifest.'
-    record_count_estimate: 5000
-    needs_full_text_review: true
-    needs_clinical_review: false
-    needs_copyright_review: true
-  citation_lineage: 'Mental Health Analysis 5-class (DS-083). GitHub #5677. Closest: Kaggle priyangshumukherjee/mental-health-text-classification-dataset (4-class).'
+    - clinical-claims-need-review
+  scope: Five-class labeled text
+  source_id: SRC-060
+  title: Mental Health Analysis (5-class)
