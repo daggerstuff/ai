@@ -221,14 +221,11 @@ def run_pp_forward(stages: list[Any], x: Any, microbatch_size: int) -> Any:
     """
     import torch
 
-    # Split batch into microbatches
+    # Split batch into microbatches. Explicit mb-sized slices keep the
+    # remainder as a smaller final microbatch (chunk() would oversize chunks
+    # and misrepresent the schedule whenever batch % mb != 0).
     mb = microbatch_size
-    if x.shape[0] % mb != 0 and x.shape[0] < mb:
-        # pad not needed; single microbatch
-        micro_batches = [x]
-    else:
-        n_mb = x.shape[0] // mb
-        micro_batches = list(x.chunk(n_mb, dim=0))
+    micro_batches = [x[i : i + mb] for i in range(0, x.shape[0], mb)]
 
     outputs = []
     for mb_x in micro_batches:

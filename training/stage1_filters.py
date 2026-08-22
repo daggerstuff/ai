@@ -468,8 +468,10 @@ class PIIFilter:
     (Presidio confidence < 0.8), routes to an LLM second-opinion via
     ``utils/common/llm_client.py`` when ``llm_borderline=True``.
 
-    Drops records with confirmed PII. For borderline-LLM-reviewed records,
-    drops only if the LLM confirms PII.
+    High-confidence PII is first redacted via deterministic regex patterns;
+    records drop only if PII survives redaction (i.e. non-regex-scrubable
+    entities remain). For borderline-LLM-reviewed records, drops only if the
+    LLM confirms PII.
     """
 
     PII_CONFIDENCE_THRESHOLD = 0.8
@@ -554,9 +556,36 @@ class PIIFilter:
         ]
         borderline = [r for r in results if getattr(r, "score", 0) < self.PII_CONFIDENCE_THRESHOLD]
 
-        # High-confidence PII → drop
+        # High-confidence PII → attempt deterministic regex redaction first,
+        # then re-verify with presidio. Drop only what regex cannot scrub.
+        # Keeps semantics identical whether or not presidio is installed (the
+        # presidio-absent path already redacts via _redact_record_inplace).
         if high_confidence:
             entity_types = [getattr(r, "entity_type", "unknown") for r in high_confidence]
+            hits = _redact_record_inplace(record)
+            if hits > 0:
+                try:
+                    re_results = analyzer.analyze(
+                        text=_extract_text(record), entities=self._entities, language="en"
+                    )
+                except Exception as e:
+                    logger.warning("Presidio re-analysis failed: %s", e)
+                    re_results = []
+                still_high = [
+                    r for r in re_results if getattr(r, "score", 0) >= self.PII_CONFIDENCE_THRESHOLD
+                ]
+                if not still_high:
+                    return FilterResult(
+                        passed=True,
+                        reason="pii_redacted_regex",
+                        metadata={
+                            "pii_found": True,
+                            "redaction_method": "regex",
+                            "hits": hits,
+                            "entity_types": entity_types,
+                            "confidence": "high",
+                        },
+                    )
             return FilterResult(
                 passed=False,
                 reason=f"pii_confirmed:{','.join(entity_types)}",

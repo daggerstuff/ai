@@ -50,12 +50,13 @@ class BenchmarkRun:
     model_name: str
     run_phase: str  # "pre_train" or "post_train"
     results: list[BenchmarkResult] = field(default_factory=list)
+    run_date: str | None = None  # ISO date of the run; None stamps serialize-time
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "model_name": self.model_name,
             "run_phase": self.run_phase,
-            "date": date.today().isoformat(),
+            "date": self.run_date or date.today().isoformat(),
             "results": [
                 {
                     "name": r.name,
@@ -248,6 +249,7 @@ def main() -> int:
             pre_run = BenchmarkRun(
                 model_name=pre_data["model_name"],
                 run_phase=pre_data["run_phase"],
+                run_date=pre_data.get("date"),
                 results=[
                     BenchmarkResult(
                         name=r["name"],

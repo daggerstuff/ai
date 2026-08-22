@@ -22,9 +22,22 @@ def check_ib():
     )
 
 
+def main() -> int:
+    if len(sys.argv) < 2:
+        print(f"Usage: {sys.argv[0]} <target_module_or_script> [torchrun_args...]")
+        return 2
+    target = sys.argv[1]
+    torchrun_args = sys.argv[2:]
+    nccl_ok = check_nccl()
+    ib_ok = check_ib()
+    print(f"[PIX-4348] NCCL: {'OK' if nccl_ok else 'MISSING'}")
+    print(f"[PIX-4348] IB: {'OK' if ib_ok else 'NOT LOADED'}")
+    if not nccl_ok or not ib_ok:
+        return 1
+    print("[PIX-4348] NCCL/IB verified — launching multi-node torchrun.")
+    result = subprocess.run(["torchrun", target, *torchrun_args], check=False)
+    return result.returncode
+
+
 if __name__ == "__main__":
-    print(f"[PIX-4348] NCCL: {'OK' if check_nccl() else 'MISSING'}")
-    print(f"[PIX-4348] IB: {'OK' if check_ib() else 'NOT LOADED'}")
-    if not check_nccl() or not check_ib():
-        sys.exit(1)
-    print("[PIX-4348] NCCL/IB verified — launcher ready for multi-node torchrun.")
+    sys.exit(main())

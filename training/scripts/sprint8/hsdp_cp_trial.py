@@ -77,7 +77,11 @@ class HSDPCPTrialConfig:
         if self.world_size < 1:
             errs.append(f"world_size={self.world_size} must be >= 1")
         # HSDP topology invariant: world = intra_node_shard * inter_node_replicate
-        # (in mock we relax since real multi-node needs NCCL)
+        if self.world_size != self.hybrid_shard_group_size * self.dp_replicate_size:
+            errs.append(
+                f"world_size={self.world_size} must equal hybrid_shard_group_size="
+                f"{self.hybrid_shard_group_size} * dp_replicate_size={self.dp_replicate_size}"
+            )
         if self.context_length <= 0:
             errs.append(f"context_length={self.context_length} must be > 0")
         if self.attention_backend not in {"sdpa", "te", "flash_attention"}:
@@ -159,11 +163,21 @@ def init_hsdp_mesh(cfg: HSDPCPTrialConfig) -> tuple[Any, str]:
     try:
         if not dist.is_initialized():
             dist.init_process_group(backend="gloo")
-        # 2D mesh: ('dp_shard' intra-node, 'dp_replicate' inter-node)
-        # Mock single-proc: shape (1, 1); prod: (8, 2) for 2 nodes x 8 GPU.
-        shard_dim = min(cfg.hybrid_shard_group_size, dist.get_world_size() if dist.is_initialized() else 1)
-        repl_dim = max(1, dist.get_world_size() // shard_dim) if dist.is_initialized() else 1
-        mesh_shape = (shard_dim, repl_dim)
+        # 2D mesh: ('dp_shard' intra-node, 'dp_replicate' inter-node).
+        # Built from validated config dims (validate() enforces the invariant);
+        # prod: (8, 2) for 2 nodes x 8 GPU. A pure single-proc mock (launched
+        # world=1) degenerates to (1, 1) so the API surface stays exercisable.
+        launched_world = dist.get_world_size() if dist.is_initialized() else 1
+        cfg_world = cfg.hybrid_shard_group_size * cfg.dp_replicate_size
+        if launched_world == cfg_world:
+            mesh_shape = (cfg.hybrid_shard_group_size, cfg.dp_replicate_size)
+        elif launched_world == 1:
+            mesh_shape = (1, 1)
+        else:
+            return None, (
+                f"HSDP mesh mismatch: launched world={launched_world} does not match "
+                f"configured topology {cfg.hybrid_shard_group_size}x{cfg.dp_replicate_size}"
+            )
         mesh = init_device_mesh("cpu", mesh_shape, mesh_dim_names=("dp_shard", "dp_replicate"))
         return mesh, f"HSDP mesh shape={mesh_shape} dims=(dp_shard, dp_replicate)"
     except Exception as e:
@@ -283,8 +297,9 @@ def run_hsdp_cp_trial(cfg: HSDPCPTrialConfig) -> int:
         print("[PIX-4350] FAIL: HSDP sharding failed")
         return 1
 
-    # Mini training step: CP shards over seq dim; mock seq = packed_sequence_size
-    # (must be divisible by cp_size, validated above).
+    # Mini training step: validates the CP trigger threshold + HSDP plumbing.
+    # The mock feeds the FULL sequence to every rank (no seq-sharded attention
+    # collectives here); cp_size only scales the reported per-rank shard size.
     import torch
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
@@ -312,7 +327,11 @@ def run_hsdp_cp_trial(cfg: HSDPCPTrialConfig) -> int:
         "world_size": cfg.world_size,
         "context_length": cfg.context_length,
     }
-    print(f"[PIX-4350] step 1 loss={step_metric['train/loss']:.4f} (cp_shard_seqs={seq_len // cfg.cp_size} per rank)")
+    print(
+        f"[PIX-4350] step 1 loss={step_metric['train/loss']:.4f} "
+        f"(cp_shard_seqs={seq_len // cfg.cp_size}/rank; trigger/config check only — "
+        "no seq-sharded collectives in this mock)"
+    )
 
     if wandb_run is not None:
         try:
