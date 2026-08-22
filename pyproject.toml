@@ -219,6 +219,15 @@ ignore = []
 # Training pipeline CLI scripts use print() for user-facing output (T201)
 "training/benchmark.py" = ["T201"]
 "training/curate_pipeline.py" = ["T201", "PLR2004", "PLR0912", "PLR0915", "SIM108", "SIM115", "RUF005", "PLC0206"]
+# Sprint 8 distributed-training CLI trial scripts: print() user output, lazy imports
+# inside factory fns (PLC0415), tensor-bool index var N806, magic topology ints (PLR2004)
+"training/scripts/sprint8/*.py" = ["T201", "PLC0415", "N806", "PLR2004", "PLR0912", "PLR0915", "PLR0913", "SIM105", "SIM108", "B007", "ARG001", "ARG002", "E501", "RUF005", "RUF059", "PLW1510", "UP028"]
+# Stratified dataset splitter CLI (PIX-4345 §B.4 step 4C)
+"training/dataset_splitter_stratified.py" = ["T201", "N806", "PLR2004", "PLR0912", "PT018"]
+# LLM judge calibration runner CLI (PIX-4345 §B.4 step 2B)
+"training/calibrate_judge.py" = ["T201", "PLR2004", "PLR0912", "PLR0911", "SIM115"]
+# Pre/post-SFT benchmark harness CLI (PIX-4345 Appendix E Step 1)
+"training/benchmark_runner.py" = ["T201", "PLR2004", "PLR0911", "PLC0415", "N806", "DTZ011"]
 "training/scripts/pixel_data_s3_processor.py" = ["T201"]
 "training/ready_packages/scripts/pixel_data_s3_processor.py" = ["T201"]
 "training/scripts/hetzner_52gb_processor.py" = ["T201"]
