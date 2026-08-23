@@ -11,7 +11,7 @@ from pathlib import Path
 from ai.memory.gates import GatingReport
 from ai.orchestration.safety.guards import InputGuard, SafetyGuardResult, _apply_phi_scrubbing
 
-_GATE_PATH = Path(__file__).resolve().parent.parent.parent / "ai-services" / "ingestion" / "gate.py"
+_GATE_PATH = Path(__file__).resolve().parent.parent / "services" / "ingestion" / "gate.py"
 
 
 def _load_gate_module():
