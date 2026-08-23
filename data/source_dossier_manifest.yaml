@@ -303,7 +303,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -362,7 +362,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -422,7 +422,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -499,7 +499,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -571,7 +571,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -630,7 +630,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -694,7 +694,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -758,7 +758,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -785,7 +785,7 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: false
     needs_full_text_review: false
-  citation_lineage: Gottschall, L. (2019). Maybe You Should Talk to Someone.  Houghton Mifflin
+  citation_lineage: Gottlieb, L. (2019). Maybe You Should Talk to Someone. Houghton Mifflin
 - source_id: SRC-094
   title: Rewire
   ds_alias: DS-117
@@ -811,7 +811,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -987,7 +987,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -1041,7 +1041,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -1097,7 +1097,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
@@ -1161,7 +1161,7 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
+    decision: restricted-knowledge-extraction
   contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
