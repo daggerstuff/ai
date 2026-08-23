@@ -1,0 +1,1357 @@
+manifest_version: '1.0'
+parent_issue: PIX-4585
+github_issue: 5727
+created: '2026-08-21'
+source_family: provenance_aggregates_and_generated_lineages
+sources:
+- source_id: SRC-001
+  title: Foundation SFT lineage
+  ds_alias:
+  - DS-001
+  - DS-002
+  - DS-003
+  - DS-005
+  - DS-011
+  - DS-032
+  - DS-036
+  - DS-037
+  - DS-038
+  - DS-039
+  - DS-042
+  - DS-043
+  - DS-044
+  policy: P,V
+  scope: Foundation training data from curated SFT chatml
+  knowledge_tags:
+  - SFT
+  modality: dataset
+  aliases: []
+  locations:
+  - type: L
+    path: ai/data/curated/sft_chatml/
+  - type: G
+    path: snapshot v7_master/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Foundation SFT data from curated sources with provenance tracking.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4476
+  github_issue: null
+  p_list: null
+  inspection:
+    method: local-walk + dvc-read + rclone-sample
+    coverage: local .dvc files + whitebat v7_master shards sampled
+    file_count: 9
+    files:
+    - ai/data/curated/sft_chatml/train.jsonl.dvc
+    - ai/data/curated/sft_chatml/val.jsonl.dvc
+    - ai/data/curated/sft_chatml/test.jsonl.dvc
+    - whitebat:training/v7_master/manifest.json
+    - whitebat:training/v7_master/shard_0000.jsonl
+    - whitebat:training/v7_master/shard_0001.jsonl
+    - whitebat:training/v7_master/shard_0002.jsonl
+    - whitebat:training/v7_master/shard_0003.jsonl
+    - whitebat:training/v7_master/stats.json
+    total_size_mb: 227
+    formats:
+    - JSONL
+    - DVC
+    - JSON
+    sample_schema:
+    - messages
+    - source
+    - task_type
+    - diagnostic_tag
+    - demographic_tags
+    - linguistic_style
+    - clinical_reviewed
+    - provenance
+    - pii_redacted
+    - toxicity_score
+    record_count_estimate: 500000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Foundation SFT lineage [Training dataset]. DS-001 through DS-044. GitHub Issue #5727.'
+- source_id: SRC-002
+  title: Master-clean aggregate
+  ds_alias:
+  - DS-006
+  - DS-007
+  policy: P,V
+  scope: Master cleaned aggregate for SFT/DPO
+  knowledge_tags:
+  - SFT
+  - DPO
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: pixelated-empathy/ingestion/master_work/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Master cleaned aggregate for SFT/DPO training.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4477
+  github_issue: null
+  p_list: null
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/pixelated-empathy/ingestion/master_work/ fully listed, JSONL sampled
+    file_count: 303
+    files:
+    - whitebat:training/pixelated-empathy/ingestion/master_work/master_dataset_zero_slop_final.jsonl
+    - whitebat:training/pixelated-empathy/ingestion/master_work/pixelated_v5_sft.jsonl
+    - whitebat:training/pixelated-empathy/ingestion/master_work/external_ingested_clean.jsonl
+    - whitebat:training/pixelated-empathy/ingestion/master_work/hf_large_corpora_clean.jsonl
+    - whitebat:training/pixelated-empathy/ingestion/master_work/github_research_clean.jsonl
+    total_size_mb: 5000
+    formats:
+    - JSONL
+    - PY
+    - JSON
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 1000000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: Pixelated Empathy. (2026). Master-clean aggregate [Training dataset]. DS-006, DS-007. Linear PIX-4477.
+- source_id: SRC-003
+  title: Hugging Face cleaned aggregate
+  ds_alias:
+  - DS-008
+  policy: P,V
+  scope: Hugging Face cleaned aggregate for SFT/LONG
+  knowledge_tags:
+  - SFT
+  - LONG
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Hugging Face cleaned aggregate for SFT/LONG training.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4478
+  github_issue: null
+  p_list: null
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: Found in whitebat:training/pixelated-empathy/ingestion/master_work/hf_large_corpora_clean.jsonl
+    file_count: 1
+    files:
+    - whitebat:training/pixelated-empathy/ingestion/master_work/hf_large_corpora_clean.jsonl
+    total_size_mb: 500
+    formats:
+    - JSONL
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 200000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: Pixelated Empathy. (2026). Hugging Face cleaned aggregate [Training dataset]. DS-008. Linear PIX-4478.
+- source_id: SRC-004
+  title: GitHub research cleaned aggregate
+  ds_alias:
+  - DS-009
+  policy: P,V
+  scope: GitHub research cleaned aggregate for SFT/KNOWLEDGE
+  knowledge_tags:
+  - SFT
+  - KNOWLEDGE
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. GitHub research cleaned aggregate for SFT/KNOWLEDGE training.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4479
+  github_issue: null
+  p_list: null
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: Found in whitebat:training/pixelated-empathy/ingestion/master_work/github_research_clean.jsonl
+    file_count: 1
+    files:
+    - whitebat:training/pixelated-empathy/ingestion/master_work/github_research_clean.jsonl
+    total_size_mb: 200
+    formats:
+    - JSONL
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 100000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: Pixelated Empathy. (2026). GitHub research cleaned aggregate [Training dataset]. DS-009. Linear PIX-4479.
+- source_id: SRC-005
+  title: External-ingested cleaned aggregate
+  ds_alias:
+  - DS-010
+  policy: P,V
+  scope: External-ingested cleaned aggregate for all products
+  knowledge_tags:
+  - SFT
+  - DPO
+  - LONG
+  - KNOWLEDGE
+  - EDGE
+  - CRISIS
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. External-ingested cleaned aggregate covering all product domains including crisis and edge.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4480
+  github_issue: null
+  p_list: null
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: Found in whitebat:training/pixelated-empathy/ingestion/master_work/external_ingested_clean.jsonl and external_ingested_more.jsonl
+    file_count: 2
+    files:
+    - whitebat:training/pixelated-empathy/ingestion/master_work/external_ingested_clean.jsonl
+    - whitebat:training/pixelated-empathy/ingestion/master_work/external_ingested_more.jsonl
+    total_size_mb: 300
+    formats:
+    - JSONL
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 150000
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: Pixelated Empathy. (2026). External-ingested cleaned aggregate [Training dataset]. DS-010. Linear PIX-4480.
+- source_id: SRC-006
+  title: Safety conversations
+  ds_alias:
+  - DS-004
+  - DS-040
+  policy: D,V
+  scope: Safety conversations for crisis/edge training
+  knowledge_tags:
+  - CRISIS
+  - EDGE
+  - DPO
+  - SFT
+  modality: dataset
+  aliases: []
+  locations:
+  - type: L
+    path: ai/data/curated/safety/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: deprecated-restricted
+    rationale: Policy D,V. Safety conversations for crisis/edge training. Deprecated source with voice restrictions.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: crisis-safety-extraction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4481
+  github_issue: null
+  p_list: null
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/ai-data/curated/ fully listed, DPO preference pairs sampled
+    file_count: 11
+    files:
+    - whitebat:training/ai-data/curated/dpo_preference_pairs.jsonl
+    - whitebat:training/ai-data/curated/cot_empathy_train.jsonl
+    - whitebat:training/ai-data/curated/expert_distill_train.jsonl
+    - whitebat:training/ai-data/curated/curated_rejects.jsonl
+    - whitebat:training/ai-data/curated/cleanlab_label_issues.jsonl
+    total_size_mb: 50
+    formats:
+    - JSONL
+    - JSON
+    sample_schema:
+    - prompt
+    - chosen
+    - rejected
+    - chosen_score
+    - rejected_score
+    - score_gap
+    - category
+    record_count_estimate: 50000
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: Pixelated Empathy. (2026). Safety conversations [Training dataset]. DS-004, DS-040. Linear PIX-4481.
+- source_id: SRC-007
+  title: Nightmare Fuel
+  ds_alias:
+  - DS-030
+  - DS-041
+  policy: D,V
+  scope: Nightmare Fuel edge-case crisis training data
+  knowledge_tags:
+  - CRISIS
+  - EDGE
+  - DPO
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: pixelated-empathy/nightmare_fuel/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: deprecated-restricted
+    rationale: Policy D,V. Nightmare Fuel edge-case crisis training data. Deprecated with voice restrictions.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4482
+  github_issue: null
+  p_list: null
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/pixelated-empathy/nightmare_fuel/ fully listed, scenarios.jsonl sampled
+    file_count: 1
+    files:
+    - whitebat:training/pixelated-empathy/nightmare_fuel/scenarios.jsonl
+    total_size_mb: 1
+    formats:
+    - JSONL
+    sample_schema:
+    - scenario_id
+    - title
+    - description
+    - failure_mode
+    - triggers
+    - severity
+    - patient_profile
+    - clinician_profile
+    - context_pressures
+    - ethical_tensions
+    - expected_failure_behaviors
+    - expected_safe_behaviors
+    - evaluation_criteria
+    - source_narratives
+    - unwinnable
+    record_count_estimate: 50
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: Pixelated Empathy. (2026). Nightmare Fuel [Training dataset]. DS-030, DS-041. Linear PIX-4482.
+- source_id: SRC-008
+  title: V5 sycophancy backup
+  ds_alias:
+  - DS-031
+  policy: P
+  scope: V5 sycophancy backup for DPO/EDGE training
+  knowledge_tags:
+  - DPO
+  - EDGE
+  modality: dataset
+  aliases: []
+  locations:
+  - type: G/W
+    path: snapshot
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P. V5 sycophancy backup for DPO/EDGE training.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: preference-optimization
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4483
+  github_issue: null
+  p_list: null
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/pixelated-empathy/ingestion/backup_v5_sycophancy/ fully listed, JSONL sampled
+    file_count: 2
+    files:
+    - whitebat:training/pixelated-empathy/ingestion/backup_v5_sycophancy/final_training_dataset.jsonl.bak
+    - whitebat:training/pixelated-empathy/ingestion/backup_v5_sycophancy/reapply_strict_quality_filter.py
+    total_size_mb: 200
+    formats:
+    - JSONL
+    - PY
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 100000
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: Pixelated Empathy. (2026). V5 sycophancy backup [Training dataset]. DS-031. Linear PIX-4483.
+- source_id: SRC-009
+  title: Hackathon generated collection
+  ds_alias: DS-033
+  policy: P,V
+  scope: Nine-domain generated JSON/ChatML
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-033
+  - '`hackathon_final_2026-07-15`'
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_edge_crisis/soulchat
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Nine-domain generated JSON/ChatML for hackathon collection.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5626
+  p_list: P0, P14
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: GDrive gdrive/processed/soulchat_complete/ and gdrive/tier3_edge_crisis/ listed and sampled
+    file_count: 3
+    files:
+    - gdrive:pixeldata/archive/gdrive/processed/soulchat_complete/soulchat_2_0_complete_no_limits.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/soulchat_complete/soulchat_complete_processing_report.json
+    - gdrive:pixeldata/archive/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl
+    total_size_mb: 500
+    formats:
+    - JSONL
+    - JSON
+    sample_schema:
+    - id
+    - conversations
+    - human
+    - assistant
+    - source
+    - metadata
+    - dataset
+    - format
+    - original_id
+    - normalized_tag
+    - no_artificial_limits
+    record_count_estimate: 100000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Hackathon generated collection [Training dataset]. DS-033. GitHub #5626. Linear PIX-4585.'
+- source_id: SRC-010
+  title: Monthly generated work
+  ds_alias: DS-034
+  policy: P,V
+  scope: Generated JSON, gate reports, month bibles, parse failures, LLM batches
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-034
+  - 12 monthly trees and 420+ LLM batches
+  locations:
+    gdrive: gdrive:pixeldata/monthly_work/
+    gdrive_alt: gdrive:pixelated-backups/layup/pixelated/hackathon/monthly_work/
+    gdrive_alt2: gdrive:pixelated-backups/tailspin/pixelated/hackathon/monthly_work/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Monthly generated work including JSON, gate reports, month bibles, parse failures, LLM batches. Found on GDrive at pixeldata/monthly_work/ with 12 monthly trees and run archives.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5627
+  p_list: P0, P13, P14
+  inspection:
+    method: rclone-lsf + keyword-search + gdrive-recursive-scan
+    coverage: GDrive pixeldata/monthly_work/ fully listed with 12 monthly directories (2025-07 through 2026-06), manifest.json, 30+ reviewer fidelity audit/repair JSON files, run archives, backups, and
+      GPU rerun receipts. Each month contains month_bible.json, gate_report.json, llm_batches/, parse_failures/, salvage_candidates.json, adversarial_review_report.json, and generated content. Also found
+      at pixelated-backups/layup/ and tailspin/ hackathon/monthly_work/.
+    file_count: 120
+    files:
+    - gdrive:pixeldata/monthly_work/manifest.json
+    - gdrive:pixeldata/monthly_work/2025-07/gate_report.json
+    - gdrive:pixeldata/monthly_work/2025-07/generated_chat_bursts.json
+    - gdrive:pixeldata/monthly_work/2025-07/generated_emails.json
+    - gdrive:pixeldata/monthly_work/2025-07/llm_batches/
+    - gdrive:pixeldata/monthly_work/2026-02/month_bible.json
+    - gdrive:pixeldata/monthly_work/2026-02/llm_generation_report.json
+    - gdrive:pixeldata/monthly_work/2025-12/month_bible.json
+    - gdrive:pixeldata/monthly_work/2025-10/month_bible.json
+    - gdrive:pixeldata/monthly_work/run_archive_20260705T1417Z/
+    - gdrive:pixeldata/monthly_work/reviewer_fidelity_audit.final.json
+    - gdrive:pixeldata/monthly_work/reviewer_fidelity_repair.final.json
+    total_size_mb: 500
+    formats:
+    - JSON
+    - JSONL
+    sample_schema:
+    - month
+    - email_target
+    - chat_burst_target
+    - gate_name
+    - min_salvage_score
+    - context_window_months
+    - event_ids
+    - events
+    - culture_contract
+    - acceptance_gate
+    record_count_estimate: 100000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    note: Found on GDrive at pixeldata/monthly_work/ with 12 monthly trees (2025-07 through 2026-06), each containing month_bible.json, gate reports, LLM batches, parse failures, and reviewer fidelity audits.
+      Additional copies at pixelated-backups/layup/ and tailspin/ hackathon/monthly_work/.
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Monthly generated work [Training dataset]. DS-034. GitHub #5627. Linear PIX-4585.'
+- source_id: SRC-011
+  title: PAL framework
+  ds_alias: DS-035
+  policy: V
+  scope: JSONL; persona-driven Vietnamese patient records and preference seed
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-035
+  - PAL SFT/DPO/persona outputs
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/pal_framework
+    gdrive_backup: gdrive:backups/pal_framework/
+    s3: upcloud:crispy/training/ai-data/prepared/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. PAL framework JSONL with persona-driven Vietnamese patient records and preference seed. Found on upcloud S3 in crispy/training/ai-data/prepared/.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4355
+  github_issue: 5628
+  p_list: P2, P14; PIX-4355
+  inspection:
+    method: rclone-lsf + keyword-search + s3-recursive-scan
+    coverage: Found on upcloud S3 at crispy/training/ai-data/prepared/ with pal_dataset.jsonl, pal_dpo.jsonl, and pal_inputs/ directory containing 7 JSONL files
+    file_count: 9
+    files:
+    - upcloud:crispy/training/ai-data/prepared/pal_dataset.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_dpo.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/input_phase_2_1_selection.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/input_phase_2_2_dialogue.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/input_phase_3_1_dpo.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_dataset_sft.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_dpo_pairs.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_persona_strings.jsonl
+    - upcloud:crispy/training/ai-data/prepared/pal_inputs/pal_sft_dialogue.jsonl
+    total_size_mb: 50
+    formats:
+    - JSONL
+    sample_schema:
+    - messages
+    - source
+    - task_type
+    record_count_estimate: 10000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    note: Found on upcloud S3 (crispy remote) at training/ai-data/prepared/. Contains SFT dataset, DPO pairs, and phase-specific input files for PAL framework pipeline.
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). PAL framework [Training dataset]. DS-035. GitHub #5628. Linear PIX-4355.'
+- source_id: SRC-012
+  title: CoT reasoning families
+  ds_alias: null
+  policy: P,V
+  scope: JSONL reasoning traces
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - clinical diagnosis
+  - heartbreak
+  - neurodivergent
+  - men’s mental health
+  - cultural
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_cot_reasoning
+    local: ai/data/raw/hetzner/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. JSONL reasoning traces for CoT reasoning families.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5629
+  p_list: P2, P13
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: GDrive gdrive/tier3_cot_reasoning/ fully listed (9 files), consolidated JSONL sampled
+    file_count: 9
+    files:
+    - gdrive:pixeldata/archive/gdrive/tier3_cot_reasoning/CoT-Reasoning_Cultural_Nuances_Dataset.json
+    - gdrive:pixeldata/archive/gdrive/tier3_cot_reasoning/CoT_Heartbreak_and_Breakups_downloaded.json
+    - gdrive:pixeldata/archive/gdrive/tier3_cot_reasoning/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json
+    - gdrive:pixeldata/archive/gdrive/tier3_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl
+    - gdrive:pixeldata/archive/gdrive/tier3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl
+    total_size_mb: 500
+    formats:
+    - JSON
+    - JSONL
+    sample_schema:
+    - conversation
+    - role
+    - content
+    - turn_id
+    - reasoning_chain
+    - metadata
+    - category
+    - tier
+    - source_dataset
+    - reasoning_type
+    - expected_quality
+    - description
+    - processing_timestamp
+    - original_item_id
+    - conversation_length
+    - total_content_length
+    - reasoning_chain_length
+    - reasoning_complexity
+    - therapeutic_reasoning_indicators
+    record_count_estimate: 50000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). CoT reasoning families [Training dataset]. GitHub #5629. Linear PIX-4585.'
+- source_id: SRC-014
+  title: Session generation collections
+  ds_alias: null
+  policy: P,V
+  scope: Generated sessions and model checkpoints/outputs
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - '`session-gen`'
+  - '`session-generation`'
+  - Wayfarer outputs
+  locations:
+    working: snapshot
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_edge_crisis/soulchat
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Generated sessions and model checkpoints/outputs.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5631
+  p_list: P14, P15
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat session-generation/, session-gen/, wayfarer-outputs/ listed; GDrive tier3_edge_crisis/ sampled
+    file_count: 39
+    files:
+    - whitebat:training/session-generation/generate_child_adolescent_sessions.py
+    - whitebat:training/session-generation/generate_couples_sessions.py
+    - whitebat:training/session-generation/generate_cultural_sessions.py
+    - whitebat:training/session-generation/session_base.py
+    - whitebat:training/session-gen/session_base.py
+    - whitebat:training/wayfarer-outputs/checkpoint-1250/adapter_model.safetensors
+    - whitebat:training/wayfarer-outputs/checkpoint-1500/adapter_model.safetensors
+    - gdrive:pixeldata/archive/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl
+    total_size_mb: 500
+    formats:
+    - PY
+    - JSONL
+    - JSON
+    - SAFETENSORS
+    - PT
+    sample_schema:
+    - conversation
+    - role
+    - content
+    - turn_id
+    - crisis_indicators
+    - intervention_type
+    - safety_protocol
+    - metadata
+    - category
+    - tier
+    - source_dataset
+    - crisis_type
+    - priority
+    - risk_level
+    record_count_estimate: 10000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Session generation collections [Training dataset]. GitHub #5631. Linear PIX-4585.'
+- source_id: SRC-078
+  title: ULTIMATE edge/scenario specification corpus
+  ds_alias: DS-094
+  policy: P,V
+  scope: Prompt/specification JSONL with category, scenario type, difficulty, instructions
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-094
+  - processed derivatives DS-097
+  - DS-098
+  locations:
+    local: ai/data/raw/kickflip/dataset/
+    gdrive: gdrive:pixeldata/archive/huggingface/character-roleplay-DPO
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Prompt/specification JSONL with category, scenario type, difficulty, instructions.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: preference-optimization
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5695
+  p_list: P11/P14; local 2.5GB and remote derivatives verified
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: GDrive huggingface/huggingface/ fully listed (6 files), character-roleplay-DPO sampled
+    file_count: 6
+    files:
+    - gdrive:pixeldata/archive/huggingface/huggingface/flammenai_character-roleplay-DPO.jsonl
+    - gdrive:pixeldata/archive/huggingface/huggingface/PJMixers_unalignment_toxic-dpo-v0.2-ShareGPT.jsonl
+    - gdrive:pixeldata/archive/huggingface/huggingface/ShreyaR_DepressionDetection.jsonl
+    - gdrive:pixeldata/archive/huggingface/huggingface/iqrakiran_customized-mental-health-snli2.jsonl
+    - gdrive:pixeldata/archive/huggingface/huggingface/mlx-community_Human-Like-DPO.jsonl
+    - gdrive:pixeldata/archive/huggingface/huggingface/typosonlr_MentalHealthPreProcessed.jsonl
+    total_size_mb: 200
+    formats:
+    - JSONL
+    sample_schema:
+    - rejected
+    - output
+    - chosen
+    - prompt
+    record_count_estimate: 50000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). ULTIMATE edge/scenario specification corpus [Training dataset]. DS-094. GitHub #5695. Linear PIX-4585.'
+- source_id: SRC-079
+  title: Kickflip final training collection
+  ds_alias: DS-095
+  policy: P,V
+  scope: ChatML with source-family/category/file-key metadata
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-095
+  locations:
+    local: ai/data/raw/kickflip/dataset/
+    working: backup
+    gdrive: gdrive:pixeldata/archive/gdrive/pixelated_raw
+    gdrive_backup: gdrive:pixelated-backups/kickflip/dataset/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. ChatML with source-family/category/file-key metadata. Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/dataset/. Also found on GDrive at pixelated-backups/kickflip/dataset/
+      with 3 JSONL files.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5696
+  p_list: P2/P14/P15; local 121MB verified
+  inspection:
+    method: rclone-lsf + keyword-search + s3-recursive-scan
+    coverage: Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/dataset/ with 3 JSONL files
+    file_count: 3
+    files:
+    - upcloud:crispy/training/ai-data/raw/kickflip/dataset/RL_training_dataset.jsonl
+    - upcloud:crispy/training/ai-data/raw/kickflip/dataset/ULTIMATE_FINAL_DATASET.jsonl
+    - upcloud:crispy/training/ai-data/raw/kickflip/dataset/final_training_dataset.jsonl
+    total_size_mb: 121
+    formats:
+    - JSONL
+    sample_schema:
+    - messages
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 50000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    note: Found on upcloud S3 (crispy remote) at training/ai-data/raw/kickflip/dataset/. Contains final training dataset, RL training dataset, and ultimate final dataset JSONL files.
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Kickflip final training collection [Training dataset]. DS-095. GitHub #5696. Linear PIX-4585.'
+- source_id: SRC-080
+  title: Kickflip RL collection
+  ds_alias: DS-096
+  policy: P,V
+  scope: Three-message ChatML, mixed therapy and general topics
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-096
+  locations:
+    local: ai/data/raw/kickflip/dataset/
+    working: backup
+    gdrive: gdrive:pixeldata/archive/gdrive/pixelated_raw
+    gdrive_backup: gdrive:pixelated-backups/kickflip/joiner/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Three-message ChatML, mixed therapy and general topics. Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/joiner/. Also found on GDrive at pixelated-backups/kickflip/joiner/
+      with cleaned_v3/, docs, and manifests.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5697
+  p_list: P2/P14; local 44MB verified
+  inspection:
+    method: rclone-lsf + keyword-search + s3-recursive-scan
+    coverage: Found on upcloud S3 at crispy/training/ai-data/raw/kickflip/joiner/ with documentation and cleaned datasets
+    file_count: 5
+    files:
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/MASTER_TRAINING_DATA_INVENTORY.md
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/TRAINING_MANIFEST.json
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/DATASET_INVENTORY.md
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/cleaned_v3/
+    - upcloud:crispy/training/ai-data/raw/kickflip/joiner/CONSOLIDATION_COMPLETE.md
+    total_size_mb: 44
+    formats:
+    - JSONL
+    - JSON
+    - MD
+    sample_schema:
+    - messages
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 20000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    note: Found on upcloud S3 (crispy remote) at training/ai-data/raw/kickflip/joiner/. Contains consolidated training data with documentation, manifests, and cleaned datasets.
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Kickflip RL collection [Training dataset]. DS-096. GitHub #5697. Linear PIX-4585.'
+- source_id: SRC-081
+  title: Processed-ready aggregate family
+  ds_alias: DS-099
+  policy: P,V
+  scope: 105 JSONL derivatives totaling a documented 16.5GB
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-099–108
+  - merged raw
+  - priority tiers
+  - merged mental-health
+  - edge dialogues
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/S3-pixel-data/processed_ready
+    local: ai/data/raw/hetzner/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. 105 JSONL derivatives totaling a documented 16.5GB.
+    restrictions:
+    - no-direct-quote
+    - no-voice-reproduction
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5698
+  p_list: P0/P13/P14
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: GDrive gdrive/processed/ fully listed (46 files), priority_datasets/alpha_therapeutic_core.jsonl sampled
+    file_count: 46
+    files:
+    - gdrive:pixeldata/archive/gdrive/processed/priority_datasets/alpha_therapeutic_core.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/priority_datasets/beta_high_quality_core.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/priority_datasets/gamma_specialized_therapy.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/professional_datasets_final/neuro_qa_sft_complete.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/professional_datasets_final/psychology_10k_complete.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/professional_datasets_final/soulchat_2_0_complete_no_limits.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/soulchat_complete/soulchat_2_0_complete_no_limits.jsonl
+    - gdrive:pixeldata/archive/gdrive/processed/conversations.db
+    total_size_mb: 16500
+    formats:
+    - JSONL
+    - JSON
+    - DB
+    sample_schema:
+    - conversation
+    - role
+    - content
+    - metadata
+    - category
+    - subcategory
+    - source
+    - dataset
+    - tier
+    - priority
+    - quality_score
+    - conversation_length
+    - original_conversation_id
+    - turn_count
+    - index
+    record_count_estimate: 500000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Processed-ready aggregate family [Training dataset]. DS-099. GitHub #5698. Linear PIX-4585.'
+- source_id: SRC-082
+  title: Restored Hetzner final aggregate
+  ds_alias: DS-045
+  policy: P
+  scope: Historical JSONL final aggregate
+  knowledge_tags: []
+  modality: dataset
+  aliases:
+  - DS-045
+  locations:
+    local: ai/data/raw/hetzner/final_dataset/
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/professional_datasets_final
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P. Historical JSONL final aggregate.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4244
+  github_issue: 5699
+  p_list: P0/P13; PIX-4244 historical
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/raw/hetzner/final_dataset/ fully listed (11 files), final_training_dataset.jsonl sampled
+    file_count: 11
+    files:
+    - whitebat:training/raw/hetzner/final_dataset/final_training_dataset.jsonl
+    - whitebat:training/raw/hetzner/final_dataset/MASTER_TRAINING_SET_PREV.jsonl
+    - whitebat:training/raw/hetzner/final_dataset/METADATA.json
+    - whitebat:training/raw/hetzner/final_dataset/CHECKPOINT.json
+    total_size_mb: 500
+    formats:
+    - JSONL
+    - JSON
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 200000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner final aggregate [Training dataset]. DS-045. GitHub #5699. Linear PIX-4244.'
+- source_id: SRC-083
+  title: Restored Hetzner compiled splits
+  ds_alias: DS-046
+  policy: P,E
+  scope: Train/test/validation aggregate
+  knowledge_tags: []
+  modality: dataset
+  aliases:
+  - DS-046
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/compiled_dataset
+    local: ai/data/raw/hetzner/compiled_dataset/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,E. Train/test/validation aggregate.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5700
+  p_list: P0/P13
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/raw/hetzner/compiled_dataset/ fully listed (154 files), train_shard_000.jsonl sampled
+    file_count: 154
+    files:
+    - whitebat:training/raw/hetzner/compiled_dataset/train_shard_000.jsonl
+    - whitebat:training/raw/hetzner/compiled_dataset/train_shard_001.jsonl
+    - whitebat:training/raw/hetzner/compiled_dataset/test_shard_000.jsonl
+    - whitebat:training/raw/hetzner/compiled_dataset/METADATA.json
+    total_size_mb: 1000
+    formats:
+    - JSONL
+    - JSON
+    sample_schema:
+    - messages
+    - metadata
+    - hash
+    - family
+    - timestamp
+    record_count_estimate: 300000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner compiled splits [Training dataset]. DS-046. GitHub #5700. Linear PIX-4585.'
+- source_id: SRC-084
+  title: Restored Hetzner staged datasets
+  ds_alias: DS-047
+  policy: P
+  scope: Staged processing artifacts
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-047
+  locations:
+    gdrive: gdrive:pixeldata/archive/gdrive/staged_datasets
+    local: ai/data/raw/hetzner/staged_datasets/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P. Staged processing artifacts.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5701
+  p_list: P0/P13
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/raw/hetzner/staged_datasets/ fully listed (6 files), stage1_foundation.jsonl sampled
+    file_count: 6
+    files:
+    - whitebat:training/raw/hetzner/staged_datasets/stage1_foundation.jsonl
+    - whitebat:training/raw/hetzner/staged_datasets/stage2_therapeutic_expertise.jsonl
+    - whitebat:training/raw/hetzner/staged_datasets/stage3_edge_stress_test.jsonl
+    - whitebat:training/raw/hetzner/staged_datasets/stage4_voice_persona.jsonl
+    - whitebat:training/raw/hetzner/staged_datasets/supplementary.jsonl
+    - whitebat:training/raw/hetzner/staged_datasets/dact06_enhanced_metadata.json
+    total_size_mb: 200
+    formats:
+    - JSONL
+    - JSON
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 100000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner staged datasets [Training dataset]. DS-047. GitHub #5701. Linear PIX-4585.'
+- source_id: SRC-085
+  title: Restored Hetzner consolidated collection
+  ds_alias: DS-048
+  policy: P
+  scope: Consolidated JSONL collection
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-048
+  locations:
+    local: ai/data/raw/hetzner/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P. Consolidated JSONL collection from Hetzner restoration.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5702
+  p_list: P0/P13
+  inspection:
+    method: rclone-lsf + sample-inspection
+    coverage: whitebat:training/raw/hetzner/ fully listed (174 files across all subdirectories), includes final_dataset, compiled_dataset, staged_datasets, cot_reasoning, and more
+    file_count: 174
+    files:
+    - whitebat:training/raw/hetzner/INVENTORY.md
+    - whitebat:training/raw/hetzner/final_dataset/final_training_dataset.jsonl
+    - whitebat:training/raw/hetzner/compiled_dataset/train_shard_000.jsonl
+    - whitebat:training/raw/hetzner/staged_datasets/stage1_foundation.jsonl
+    - whitebat:training/raw/hetzner/cot_reasoning/combined_dataset.json
+    total_size_mb: 2000
+    formats:
+    - JSONL
+    - JSON
+    - MD
+    - CSV
+    - PY
+    sample_schema:
+    - messages
+    - metadata
+    - source_family
+    - category
+    - file_key
+    record_count_estimate: 500000
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    schemas: []
+  citation_lineage: 'Pixelated Empathy. (2026). Restored Hetzner consolidated collection [Training dataset]. DS-048. GitHub #5702. Linear PIX-4585.'
+total_sources: 21
