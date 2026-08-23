@@ -22,7 +22,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from api.ift_inference import ABTestConfig, ABTestRouter
+from inference.api.ift_inference import ABTestConfig, ABTestRouter
 from evals.ift_comparison import IFTComparisonStudy
 from monitoring.bias_audit import BiasAuditor
 from training.mental_health_instruction_dataset import (

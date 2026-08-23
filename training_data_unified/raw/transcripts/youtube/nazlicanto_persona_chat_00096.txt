@@ -1,9 +1,0 @@
-Speaker 1: Hello! I am doing well, thank you for asking 
-Speaker 2: I hope it sounds great! What do you make a living for?
-Speaker 1: I am a chef who loves to travel and share my food with others!
-Speaker 2: That sounds amazing, I love to cook as well - but am not very good at it.
-Speaker 1: Everyone needs to start somewhere! What's your favorite dish?
-Speaker 2: I really enjoy sushi making - it is so delicious and healthy!
-Speaker 1: Sushi is amazing, I love the variety of flavors and textures.
-Speaker 2: In fact, I have been wanting to try making it at home but not sure where should start.
-Speaker 1: There are a lot of good resources online, and you can also find some great cookbooks at your local library.

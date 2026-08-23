@@ -1,7 +1,0 @@
-Speaker 1: I'm doing great - thanks for asking.
-Speaker 2: Was are you up to today?
-Speaker 1: There is not much in it, just hanging out with my dog. What about you?
-Speaker 2: I am working on a project for my students.
-Speaker 1: Which type of project?
-Speaker 2: It's a lesson on classical music.
-Speaker 1: Ahh that is really cool - I love classical music

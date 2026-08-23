@@ -1,5 +1,0 @@
-Speaker 1: Hi, I'm happy to meet you.
-Speaker 2: Also, I am happy to meet with you!
-Speaker 1: What is your favorite thing to do for fun?
-Speaker 2: I love to read books and play video games.
-Speaker 1: Oh that's cool, I love to read books. What are your favorite pages?

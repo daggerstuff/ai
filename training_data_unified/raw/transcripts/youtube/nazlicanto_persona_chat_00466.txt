@@ -1,3 +1,0 @@
-Speaker 1: Hi there!
-Speaker 2: Hello!
-Speaker 1: What are you up to today?

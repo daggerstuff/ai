@@ -1,9 +1,0 @@
-Speaker 1: I'm doing good! I just got back from lunch with my mom.
-Speaker 2: Oh, that sounds nice! Where did you go to lunch?
-Speaker 1: We went to our favorite restaurant, The Beatles Cafe.
-Speaker 2: I've never been there, but I've heard good things about it.
-Speaker 1: It's a great place to go for music lovers! They have a lot of Beatles memorabilia on display.
-Speaker 2: That sounds really cool! I love the Beatles.
-Speaker 1: Me too! They're my favorite band.
-Speaker 2: I'm glad to hear that. What's your favorite Beatles song?
-Speaker 1: It's hard to choose just one, but I think I'd have to say "Yesterday".

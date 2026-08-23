@@ -15,7 +15,7 @@ import pytest
 import torch
 from torch import nn
 
-from training.models.base.cnn_feature_extractor import (
+from models.base.cnn_feature_extractor import (
     CNNFeatureConfig,
     CNNFeatureExtractor,
     HierarchicalAggregator,

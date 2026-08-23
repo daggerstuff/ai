@@ -1,9 +1,0 @@
-Speaker 1: Hello!
-Speaker 2: How is your day going?
-Speaker 1: It goes well  I just got back from walking my dog!
-Speaker 2: I love taking my dog for walks!  What kind of dog do you have?
-Speaker 1: I have a golden retriever, who is the sweetest dog ever.
-Speaker 2: Golden retrievers are great dogs!
-Speaker 1: They are the perfect family dog, they're so loving and friendly.
-Speaker 2: What are some of your favorite things to do?
-Speaker 1: I love to play computer games, cook and spend time with my family.

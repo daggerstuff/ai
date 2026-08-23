@@ -1,9 +1,0 @@
-Speaker 1: Hello!
-Speaker 2: How are you today?
-Speaker 1: I'm doing fine and just got home from the gym.
-Speaker 2: Oh, that's cool. I used to be the singer in church choir but had an asthma attack and have since quit it now!
-Speaker 1: Oh, this is too bad I'm sure you were really good
-Speaker 2: Thanks, thank you. In my free time I actually write short movies 
-Speaker 1: I've always wanted to write a short film, but am not sure where.
-Speaker 2: There are a lot of great resources online and I'd be happy to help you get started at once.
-Speaker 1: That would be great, thank you!

@@ -22,7 +22,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from dataset_pipeline.extractors.s3_streamer import S3Streamer
+from pipelines.data_processing.extractors.s3_streamer import S3Streamer
 
 logger = logging.getLogger(__name__)
 

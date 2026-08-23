@@ -1,9 +1,0 @@
-Speaker 1: Hi! Not much, just got home from work.
-Speaker 2: Cool, what do you make?
-Speaker 1: I work at an animal clinic.
-Speaker 2: Oh fun! I used to work at a private animal hospital
-Speaker 1: Cool! Do you still have pets?
-Speaker 2: No, I'm not allowed to have pets in my apartment.
-Speaker 1: That's a bummer, I have two dogs and one cat.
-Speaker 2: What kind of dogs are you?
-Speaker 1: A Golden Retriever and a Bearell.
