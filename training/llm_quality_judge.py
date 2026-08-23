@@ -41,6 +41,7 @@ import contextlib
 import json
 import logging
 import math
+import os
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -58,9 +59,10 @@ logger = logging.getLogger("llm_quality_judge")
 # Constants
 # ---------------------------------------------------------------------------
 
-# Default models (vLLM-served, OpenAI-compatible endpoint)
-PRIMARY_MODEL = "Qwen/Qwen2.5-72B-Instruct"
-SECONDARY_MODEL = "meta-llama/Llama-3.3-70B-Instruct"
+# Default models (vLLM-served, OpenAI-compatible endpoint).
+# Override via LLM_PRIMARY_MODEL / LLM_SECONDARY_MODEL env vars (e.g. for Neon AI Gateway).
+PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "Qwen/Qwen2.5-72B-Instruct")
+SECONDARY_MODEL = os.environ.get("LLM_SECONDARY_MODEL", "meta-llama/Llama-3.3-70B-Instruct")
 
 # Self-consistency
 DEFAULT_K_SAMPLES = 3
@@ -363,10 +365,11 @@ class DualModelQualityJudge:
             raise FileNotFoundError(f"Golden calibration file not found: {path}")
 
         samples = self._load_golden_samples(path)
-        logger.warning(
-            "Using synthetic/placeholder golden calibration data; "
-            "release-gate metrics are not representative of real human ratings."
-        )
+        if any(s.get("_synthetic_golden_calibration") for s in samples):
+            logger.warning(
+                "Using synthetic/placeholder golden calibration data; "
+                "release-gate metrics are not representative of real human ratings."
+            )
         if not samples:
             raise ValueError(f"No samples loaded from {path}")
 
