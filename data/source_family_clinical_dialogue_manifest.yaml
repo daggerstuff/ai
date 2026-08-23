@@ -3,6 +3,7 @@ parent_issue: PIX-4586
 github_issue: 5728
 created: '2026-08-21'
 source_family: clinical_dialogue_counseling_and_lived_experience
+decision_status: proposed  # rights_decision and contribution_mode fields are PROPOSED, not ratified. See docs/dataset-source-review.md for human sign-off.
 sources:
 - source_id: SRC-015
   title: CBT LLM CoreIssue

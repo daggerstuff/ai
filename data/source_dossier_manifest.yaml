@@ -3,23 +3,50 @@ github_issue: 5731
 manifest_version: '1.0'
 parent_issue: PIX-4589
 source_family: knowledge_and_creator_material
+decision_status: proposed  # rights_decision and contribution_mode fields are PROPOSED, not ratified. See docs/dataset-source-review.md for human sign-off.
 sources:
-- aliases:
+- source_id: SRC-013
+  title: Voice persona and creator transcripts
+  ds_alias: null
+  policy: C,V
+  scope: 7 MTGC personas plus 48 creator/persona directories; Tim Fletcher, Patrick Teahan, Doctor Ramani, Heidi Priebe, and
+    others
+  knowledge_tags:
+  - SFT
+  - LONG
+  - CPTSD
+  modality: transcript
+  aliases:
   - 7 MTGC personas
   - 48 creator/persona directories
   - Tim Fletcher
   - Patrick Teahan
   - Doctor Ramani
   - Heidi Priebe
+  locations:
+    gdrive: gdrive:pixeldata/archive/local_voice_import/
+    working: ai-data/tim_fletcher_voice/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Creator transcripts sourced from YouTube channels. Voice profiles are synthetic personas derived from creator
+      content. Copyright held by original creators.
+    restrictions:
+    - No direct reproduction of creator speech
+    - No voice cloning or synthesis from source audio
+    - Synthetic voice personas must be clearly marked as AI-generated
+    - Clinical scores derived from content analysis, not clinical evaluation
+    - Must respect platform ToS (YouTube, podcast platforms)
+  contribution_mode: conversational-training
   blocked_reproduction_rules:
   - no-voice-reproduction
   - no-persona-impersonation
   - no-direct-quote
   - clinical-claims-need-review
-  citation_lineage: 'Voice persona transcripts (48 creator directories). Individual citations per creator. Platform: YouTube/podcasts.'
-  contribution_mode: conversational-training
-  ds_alias: null
+  product_links: []
+  linear_issue: null
   github_issue: 5630
+  p_list: P11, P15; PIX-4194
   inspection:
     clinical_dimensions:
     - score
@@ -38,8 +65,9 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: true
     needs_full_text_review: true
-    notes: 'All 48 directories share consistent structure: voice_profile.json, clinical_scores.csv, voice_analysis.md, exports/conversations.jsonl. Clinical scoring uses 6 dimensions (technique, alliance,
-      structure, cultural, ebp + composite score). Tim Fletcher has 91 conversations (largest); all others have 50 each. Total: 2441 conversations.'
+    notes: 'All 48 directories share consistent structure: voice_profile.json, clinical_scores.csv, voice_analysis.md, exports/conversations.jsonl.
+      Clinical scoring uses 6 dimensions (technique, alliance, structure, cultural, ebp + composite score). Tim Fletcher has
+      91 conversations (largest); all others have 50 each. Total: 2441 conversations.'
     persona_count: 48
     personas:
     - clinical_dimensions_count: 7
@@ -249,42 +277,44 @@ sources:
     - sentence_starters
     - transition_phrases
     - empathy_markers
-  inspection_status: inspected-content
+  citation_lineage: 'Voice persona transcripts (48 creator directories). Individual citations per creator. Platform: YouTube/podcasts.'
+- source_id: SRC-086
+  title: ADHD 2.0
+  ds_alias: DS-109
+  policy: K
+  scope: ADHD concepts and strategies
   knowledge_tags:
-  - SFT
-  - LONG
-  - CPTSD
-  linear_issue: null
+  - KNOWLEDGE
+  - EDGE
+  modality: book
+  aliases: []
   locations:
-    gdrive: gdrive:pixeldata/archive/local_voice_import/
-    working: ai-data/tim_fletcher_voice/
-  modality: transcript
-  p_list: P11, P15; PIX-4194
-  policy: C,V
-  product_links: []
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+    local: ai/data/raw/kickflip/joiner/Books/
+  inspection_status: inspected-full-text
   rights_decision:
-    decision: restricted-voice-extraction
-    rationale: Creator transcripts sourced from YouTube channels. Voice profiles are synthetic personas derived from creator content. Copyright held by original creators.
+    attribution_required: true
+    copyright_owner: Hallowell, E. M., & Ratey, J. J.
+    copyright_year: '2021'
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    publisher: Ballantine Books (Penguin Random House)
     restrictions:
-    - No direct reproduction of creator speech
-    - No voice cloning or synthesis from source audio
-    - Synthetic voice personas must be clearly marked as AI-generated
-    - Clinical scores derived from content analysis, not clinical evaluation
-    - Must respect platform ToS (YouTube, podcast platforms)
-  scope: 7 MTGC personas plus 48 creator/persona directories; Tim Fletcher, Patrick Teahan, Doctor Ramani, Heidi Priebe, and others
-  source_id: SRC-013
-  title: Voice persona and creator transcripts
-- aliases: []
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Hallowell, E. M., & Ratey, J. J. (2021). ADHD 2.0.  Ballantine Books (Penguin Random House)
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-109
+  product_links: []
+  linear_issue: PIX-4561
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 2
     chapter_count: 10
@@ -306,44 +336,44 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: true
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Hallowell, E. M., & Ratey, J. J. (2021). ADHD 2.0.  Ballantine Books (Penguin Random House)
+- source_id: SRC-087
+  title: Driven to Distraction (Revised)
+  ds_alias: DS-110
+  policy: K
+  scope: ADHD lived experience and strategies
   knowledge_tags:
   - KNOWLEDGE
   - EDGE
-  linear_issue: PIX-4561
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
-    copyright_owner: Hallowell, E. M., & Ratey, J. J.
-    copyright_year: '2021'
+    copyright_owner: unknown
+    copyright_year: '1994'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: Ballantine Books (Penguin Random House)
+    publisher: the United States by Anchor Books
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: ADHD concepts and strategies
-  source_id: SRC-086
-  title: ADHD 2.0
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Hallowell, E. M., & Ratey, J. J. (1994). Driven to Distraction (Revised).  the United States by Anchor Books
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-110
+  product_links: []
+  linear_issue: PIX-4562
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 3
     chapter_count: 9
@@ -364,87 +394,23 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: false
     needs_full_text_review: false
-  inspection_status: inspected-full-text
-  knowledge_tags:
-  - KNOWLEDGE
-  - EDGE
-  linear_issue: PIX-4562
-  locations:
-    gdrive: gdrive:pixeldata/archive/local_books_import/
-    local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
-  rights_decision:
-    attribution_required: true
-    copyright_owner: unknown
-    copyright_year: '1994'
-    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: the United States by Anchor Books
-    restrictions:
-    - no direct quotation
-    - no voice/style reproduction
-    - no case study reproduction with real patient data
-    - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: ADHD lived experience and strategies
-  source_id: SRC-087
-  title: Driven to Distraction (Revised)
-- aliases: []
-  blocked_reproduction_rules:
-  - no direct quotation from source text
-  - no reproduction of author voice or style
-  - no reproduction of case studies containing real patient information
-  - paraphrased concepts must cite source author and title
-  - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: 'Inaba, D., & Cohen, W. E. (n.d.). Drug Use and Abuse: A Comprehensive Introduction.'
-  contribution_mode: knowledge-retrieval
+  citation_lineage: Hallowell, E. M., & Ratey, J. J. (1994). Driven to Distraction (Revised).  the United States by Anchor
+    Books
+- source_id: SRC-088
+  title: 'Drug Use and Abuse: A Comprehensive Introduction'
   ds_alias: DS-111
-  github_issue: null
-  inspection:
-    blocked_passage_count: 20
-    chapter_count: 12
-    chapters:
-    - '1'
-    - Alcohol and the Temperance Movement 19
-    - Psychoactive Substances and the Central
-    - '| Cocaine 74 Effects of Cocaine  74 Coca Paste, Cocaine Combinations, and Crack  Crack 78 Cocaine Tolerance  79 Cocaine Withdrawal  80 Medical Use of Cocaine  80   | 77                                                 |'
-    - Endorphins 101 Stress and Addiction 102 Heroin 104 Medicinal Morphine 104 Effects of Heroin 107 Tolerance for Heroin 108 Heroin Withdrawal Medical Use of Heroin 109 Dangers of Heroin Use 110 Oxycodone
-      111 Fentanyl 112 Barbiturates 113 Effects of Barbiturates 113 Tolerance for Barbiturates 115 Barbiturate Withdrawal Medical Use of Barbiturates
-    - Hallucinogens 133 Lysergic Acid Diethylamide 133 Bromo-Dragonfly 137 Phencyclidine 137 Mushrooms and Cactus 139 Ecstasy 141 Ketamine 144 Salvia 145 Ayahuasca (eye-WAH-skuh) 145 Marijuana/Cannabis
-      146 Marijuana Concentrates 146 Effects of Cannabis 147 Marijuana Tolerance and Withdrawal 148 Dangers of Marijuana Use 149 Synthetic Marijuana 150 Inhalants 150 Effects of Inhalants 151 Inhalant Tolerance
-      and Withdrawal 151 Dangers of Inhalant Use 152 Nonmedical Use of Prescription and Over-the-Counter Drugs 152 Prescription Drug Abuse 154 The Treatment of Pain and Prescription Drug Abuse Neuroenhancers
-      158 Chapter Summary 158 Review Questions 160
-    - '| Psychology of Drug Use and Abuse                                                                                                       | 162   |'
-    - '| Prevention 190 Models for Prevention  190 Information Model  192 Affective Model  194                              |     |'
-    - '231'
-    - Constitutional Restraints 261 The Fourth Amendment and the Exclusionary Rule 262 Jurisdictional Limitations 262 International Efforts 264 Corruption 265 Informants 266 Statutes and Legal Requirements
-      267 Conspiracy 269 Tax Laws 270 Money Laundering 270 Seizure and Forfeiture Drug Law Enforcement Agencies 272 Drug Enforcement Administration 273 Federal Bureau of Investigation 275 Customs and Border
-      Protection Immigration and Customs Enforcement 276 Coast Guard 276 Internal Revenue Service-Department of the Treasury 277 U.S. Marshals Service 278 Bureau of Alcohol, Tobacco, Firearms and Explosives
-      278 Bureau of Land Management and National Park Service 278
-    - Crop Eradication or Substitution 299 Drug Enforcement and Foreign Policy 301 Demand Reduction by Criminal Prosecution for Fetal Liability 301
-    - <!-- image -->
-    clinical_claim_count: 15
-    coverage: all chapters reviewed (12 chapters)
-    key_concept_count: 10
-    method: full-text-review
-    needs_clinical_review: true
-    needs_copyright_review: true
-    needs_full_text_review: false
-  inspection_status: inspected-full-text
+  policy: K
+  scope: Substance-use foundations
   knowledge_tags:
   - KNOWLEDGE
   - EDGE
   - CRISIS
-  linear_issue: PIX-4563
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
     copyright_owner: unknown
@@ -456,21 +422,95 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Substance-use foundations
-  source_id: SRC-088
-  title: 'Drug Use and Abuse: A Comprehensive Introduction'
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Manson, P. D. (n.d.). Fundamentals of Addiction.
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-112
+  product_links: []
+  linear_issue: PIX-4563
   github_issue: null
+  p_list: null
+  inspection:
+    blocked_passage_count: 20
+    chapter_count: 12
+    chapters:
+    - '1'
+    - Alcohol and the Temperance Movement 19
+    - Psychoactive Substances and the Central
+    - '| Cocaine 74 Effects of Cocaine  74 Coca Paste, Cocaine Combinations, and Crack  Crack 78 Cocaine Tolerance  79 Cocaine
+      Withdrawal  80 Medical Use of Cocaine  80   | 77                                                 |'
+    - Endorphins 101 Stress and Addiction 102 Heroin 104 Medicinal Morphine 104 Effects of Heroin 107 Tolerance for Heroin
+      108 Heroin Withdrawal Medical Use of Heroin 109 Dangers of Heroin Use 110 Oxycodone 111 Fentanyl 112 Barbiturates 113
+      Effects of Barbiturates 113 Tolerance for Barbiturates 115 Barbiturate Withdrawal Medical Use of Barbiturates
+    - Hallucinogens 133 Lysergic Acid Diethylamide 133 Bromo-Dragonfly 137 Phencyclidine 137 Mushrooms and Cactus 139 Ecstasy
+      141 Ketamine 144 Salvia 145 Ayahuasca (eye-WAH-skuh) 145 Marijuana/Cannabis 146 Marijuana Concentrates 146 Effects of
+      Cannabis 147 Marijuana Tolerance and Withdrawal 148 Dangers of Marijuana Use 149 Synthetic Marijuana 150 Inhalants 150
+      Effects of Inhalants 151 Inhalant Tolerance and Withdrawal 151 Dangers of Inhalant Use 152 Nonmedical Use of Prescription
+      and Over-the-Counter Drugs 152 Prescription Drug Abuse 154 The Treatment of Pain and Prescription Drug Abuse Neuroenhancers
+      158 Chapter Summary 158 Review Questions 160
+    - '| Psychology of Drug Use and Abuse                                                                                                       |
+      162   |'
+    - '| Prevention 190 Models for Prevention  190 Information Model  192 Affective Model  194                              |     |'
+    - '231'
+    - Constitutional Restraints 261 The Fourth Amendment and the Exclusionary Rule 262 Jurisdictional Limitations 262 International
+      Efforts 264 Corruption 265 Informants 266 Statutes and Legal Requirements 267 Conspiracy 269 Tax Laws 270 Money Laundering
+      270 Seizure and Forfeiture Drug Law Enforcement Agencies 272 Drug Enforcement Administration 273 Federal Bureau of Investigation
+      275 Customs and Border Protection Immigration and Customs Enforcement 276 Coast Guard 276 Internal Revenue Service-Department
+      of the Treasury 277 U.S. Marshals Service 278 Bureau of Alcohol, Tobacco, Firearms and Explosives 278 Bureau of Land
+      Management and National Park Service 278
+    - Crop Eradication or Substitution 299 Drug Enforcement and Foreign Policy 301 Demand Reduction by Criminal Prosecution
+      for Fetal Liability 301
+    - <!-- image -->
+    clinical_claim_count: 15
+    coverage: all chapters reviewed (12 chapters)
+    key_concept_count: 10
+    method: full-text-review
+    needs_clinical_review: true
+    needs_copyright_review: true
+    needs_full_text_review: false
+  citation_lineage: 'Inaba, D., & Cohen, W. E. (n.d.). Drug Use and Abuse: A Comprehensive Introduction.'
+- source_id: SRC-089
+  title: Fundamentals of Addiction
+  ds_alias: DS-112
+  policy: K
+  scope: Counseling approaches to addiction
+  knowledge_tags:
+  - KNOWLEDGE
+  - SFT
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+    local: ai/data/raw/kickflip/joiner/Books/
+  inspection_status: inspected-full-text
+  rights_decision:
+    attribution_required: true
+    copyright_owner: unknown
+    copyright_year: null
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    publisher: null
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4564
+  github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 20
     chapter_count: 23
@@ -505,45 +545,44 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: true
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Manson, P. D. (n.d.). Fundamentals of Addiction.
+- source_id: SRC-090
+  title: Hold On to Your Kids
+  ds_alias: DS-113
+  policy: K
+  scope: Attachment and family dynamics
   knowledge_tags:
   - KNOWLEDGE
   - SFT
-  - EDGE
-  linear_issue: PIX-4564
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
     copyright_owner: unknown
-    copyright_year: null
+    copyright_year: '2004'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: null
+    publisher: Ballantine Books (Penguin Random House)
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Counseling approaches to addiction
-  source_id: SRC-089
-  title: Fundamentals of Addiction
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Neufeld, G., & Maté, G. (2004). Hold On to Your Kids.  Ballantine Books (Penguin Random House)
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-113
+  product_links: []
+  linear_issue: PIX-4565
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 13
     chapter_count: 10
@@ -565,44 +604,44 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: true
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Neufeld, G., & Maté, G. (2004). Hold On to Your Kids.  Ballantine Books (Penguin Random House)
+- source_id: SRC-091
+  title: In an Unspoken Voice
+  ds_alias: DS-114
+  policy: K
+  scope: Trauma and somatic regulation
   knowledge_tags:
   - KNOWLEDGE
-  - SFT
-  linear_issue: PIX-4565
+  - CPTSD
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
-    copyright_owner: unknown
-    copyright_year: '2004'
+    copyright_owner: Levine, P. A.
+    copyright_year: '2010'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: Ballantine Books (Penguin Random House)
+    publisher: North Atlantic
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Attachment and family dynamics
-  source_id: SRC-090
-  title: Hold On to Your Kids
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Levine, P. A. (2010). In an Unspoken Voice.  North Atlantic
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-114
+  product_links: []
+  linear_issue: PIX-4566
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 14
     chapter_count: 14
@@ -628,44 +667,45 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: false
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Levine, P. A. (2010). In an Unspoken Voice.  North Atlantic
+- source_id: SRC-092
+  title: In the Realm of Hungry Ghosts
+  ds_alias: DS-115
+  policy: K
+  scope: Addiction, trauma, compassion
   knowledge_tags:
   - KNOWLEDGE
   - CPTSD
-  linear_issue: PIX-4566
+  - EDGE
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
-    copyright_owner: Levine, P. A.
-    copyright_year: '2010'
+    copyright_owner: Maté, G.
+    copyright_year: '2008'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: North Atlantic
+    publisher: North Atlantic Books
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Trauma and somatic regulation
-  source_id: SRC-091
-  title: In an Unspoken Voice
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Maté, G. (2008). In the Realm of Hungry Ghosts.  North Atlantic Books
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-115
+  product_links: []
+  linear_issue: PIX-4567
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 20
     chapter_count: 15
@@ -692,45 +732,44 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: true
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Maté, G. (2008). In the Realm of Hungry Ghosts.  North Atlantic Books
+- source_id: SRC-093
+  title: Maybe You Should Talk to Someone
+  ds_alias: DS-116
+  policy: K
+  scope: Therapy process and longitudinal dynamics
   knowledge_tags:
   - KNOWLEDGE
-  - CPTSD
-  - EDGE
-  linear_issue: PIX-4567
+  - LONG
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
-    copyright_owner: Maté, G.
-    copyright_year: '2008'
+    copyright_owner: unknown
+    copyright_year: '2019'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: North Atlantic Books
+    publisher: Houghton Mifflin
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Addiction, trauma, compassion
-  source_id: SRC-092
-  title: In the Realm of Hungry Ghosts
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Gottschall, L. (2019). Maybe You Should Talk to Someone.  Houghton Mifflin
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-116
+  product_links: []
+  linear_issue: PIX-4568
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 3
     chapter_count: 4
@@ -746,145 +785,21 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: false
     needs_full_text_review: false
-  inspection_status: inspected-full-text
-  knowledge_tags:
-  - KNOWLEDGE
-  - LONG
-  linear_issue: PIX-4568
-  locations:
-    gdrive: gdrive:pixeldata/archive/local_books_import/
-    local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
-  rights_decision:
-    attribution_required: true
-    copyright_owner: unknown
-    copyright_year: '2019'
-    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: Houghton Mifflin
-    restrictions:
-    - no direct quotation
-    - no voice/style reproduction
-    - no case study reproduction with real patient data
-    - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Therapy process and longitudinal dynamics
-  source_id: SRC-093
-  title: Maybe You Should Talk to Someone
-- aliases: []
-  blocked_reproduction_rules:
-  - no direct quotation from source text
-  - no reproduction of author voice or style
-  - no reproduction of case studies containing real patient information
-  - paraphrased concepts must cite source author and title
-  - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: O'Connor, R. (2014). Rewire.  Ballantine Books (Penguin Random House)
-  contribution_mode: knowledge-retrieval
+  citation_lineage: Gottlieb, L. (2019). Maybe You Should Talk to Someone. Houghton Mifflin
+- source_id: SRC-094
+  title: Rewire
   ds_alias: DS-117
-  github_issue: null
-  inspection:
-    blocked_passage_count: 20
-    chapter_count: 13
-    chapters:
-    - M ost of us find ourselves too often repeating the same mistakes, stuck in bad habits, and few of us understand why. Procrastination, lack of assertion, disorganization, smoking, overworking, poor
-      sleep habits, lack of consideration, depressed shopping, Internet addiction-all the way up through drug addiction and deliberate self-harm. Generally we know what we're doing to ourselves, and we
-      keep promising to reform. Indeed, we do try, often enough, but these habits are hard to break. Every time we try but fail, we become more hopeless and more critical of ourselves. Selfdestructive habits
-      like these are the greatest source of unnecessary misery in our lives
-    - T he automatic self has learned many habits, below our awareness, that can incidentally lead to unintended negative consequences for us. I use the word incidentally because here, unlike in the chapters
-      yet to come, there is no hidden motive, like anger or self-hate, at work. Much of this automatic behavior serves the purpose of keeping us comfortable, supporting our selfesteem, and not challenging
-      our basic assumptions about life-but it can end up hurting us. This is the automatic self at work without conscious control. As we've said, the automatic self is usually very reliable. We're constantly
-      making decisions beneath the level of awareness, most of which work out well enough for us. But the automatic self can often be mistaken because of lack of knowledge, prejudice, bad logic, social
-      influence, faulty assumptions, and a host of other factors. Those mistakes do not necessarily lead to self-destructive consequences, but when they do, and when it's repeated, we have the kind of mistakes
-      we can learn from, if only we pay attention. If there is any kind of self-blame that should be attached to this kind of behavior, it has to do with mental laziness and sloppy thinking. Homer Simpson,
-      perhaps the most un-self-reflective character on television, caricatures this kind of life taken to the extreme. But also think of yourself and times when you've unintentionally embarrassed yourself
-      or hurt others by assuming things not in evidence or leaping to unwarranted conclusions, or when you've made choices that you regretted that were influenced by hidden motives, like the desire to look
-      good or fit in. The basic assumption here is I know what I'm doing, and results to the contrary are not my fault
-    - P owerful motivations and feelings-fear, anger, guilt, shame, envy, resentment-can operate outside our awareness and lead to selfdestructive choices. Many of us have become developmentally stuck around
-      one or more of these emotions; when we feel them, we freeze up inside and don't know what to do. These issues often are a dominant theme in our lives and our personalities, with their origins in childhood
-      and our relationship with our parents. They influence who we are and how we act, but we're not always conscious of their presence. There's an old wound there, or a need unmet, and we keep trying to
-      heal it throughout our lives. But these attempts at healing usually don't work out-in fact often have selfdestructive consequences-because present reality is usually not enough to make up for past
-      damage. The automatic self can't repair itself, partly because it can't really see where the trouble lies. The conscious self has trouble seeing it, because we have built up a whole network of defenses
-      to keep the trouble out of awareness. And if we do see it, few of us have the knowledge we need to change the automatic self. That's something I hope to help you find in this book
-    - 'A nger, like fear, is a useful emotion. It motivates us to protect ourselves and those we love. It''s behind our sense of justice and fair play. It''s another hardwired instinct we share with the
-      higher mammals. But many of us have developed the idea that angry feelings are just not an acceptable part of the self. In the automatic self, repressed anger can seep through and affect our personality,
-      or it can be expressed in disguised ways, like taking it out on the wrong target. In this chapter we''ll look at how the effort not to feel appropriate anger can get us into trouble. There''s not
-      a conscious basic assumption here; it''s all in the automatic self: Watch out for me. I''ve got a grievance, and I''m going to make you suffer. If it''s anger at yourself, it''s more like bullying:
-      Why can''t you get yourself together, you moron?'
-    - 'I n this scenario, both the automatic self and the conscious self have developed the same delusion from life experience: the belief that you are special somehow, and the usual rules don''t apply.
-      Of course most of us have some belief in our own uniqueness, but it gets us in trouble if taken too far. The paradigm can be solidI deserve to be treated better than other people -but fragile at the
-      same time. So it usually takes a crisis of some kind for people like this to realize that something isn''t working. Some such people in crisis-for instance, when they are denied something important,
-      like a promotion-will just strengthen their defenses and rationalize the disappointment away. Others, more vulnerable and more treatable, will collapse into depression as their false front is broken,
-      and may begin to question their basic assumptions. In this chapter we''ll discuss how feeling special, better than others, entitled to better treatment, whether from plain old narcissism or other
-      causes, leads to self-destructive behavior'
-    - 'O ne of my guilty little pleasures is sometimes watching America''s Funniest Home Videos . Anyone who has seen this clip will remember it: A boy about two years old, dressed in his sleeper pajamas,
-      is having a tantrum on the living room carpet. He''s on the floor, twisting and screaming and whining. Mom (with the camera) walks into another room. There''s silence. Then the boy''s head peers around
-      the door, and when he knows Mom can see him, he throws himself down on the floor and resumes his tantrum. The sequence is repeated several times: Mom walks away, he quiets down, he finds her, he resumes
-      his tantrum. Somehow he makes sure he''s always on the carpet, not the bare floor, to cushion his fall'
-    - 'P ogo, Walt Kelly''s wise comic strip possum, said, "We have met the enemy, and he is us." The divided self may evolve in such a way that one part of us has feelings of hatred, disgust, shame, or
-      rage at another. The basic assumption is something like I''m guilty; I''m at fault. If people knew the real me, they''d hate me. Self-hate may strike you as a rather intense term, but it''s very common.
-      It''s a cancer of the soul, something that invades and pervades us before we''re aware of it, something that can make us sabotage and hurt ourselves. You may not ever have considered that a part of
-      you hates yourself. But please remember that we''ve been talking about two minds, the automatic self and the conscious self, all along. Most people with this problem have only a dim conscious awareness
-      of it. Self-hate, self-loathing, is very painful, and we try to forget or repress those feelings as soon as we can. But if you see patterns of self-destructive behavior in yourself, and don''t understand
-      why, I urge you to reflect carefully on what''s to come. Some of the most handicapping and painful self-destructive behavior patterns are the result of self-hate at work. Take this short quiz and
-      see if you find yourself here:'
-    - W e referred in Chapter 1 to certain fundamental aspects of the automatic self that are not part of the assumptive world nor the Freudian unconscious, such as learning styles, thinking styles, feeling
-      styles, how the body works unconsciously; the basic wiring of the brain, nervous system, and other body systems that are intricately linked; the immune system, the endocrine system; gastrointestinal,
-      muscular, and other functions of the body that we tend to think of as automatic functions that are not affected by the mind and are therefore independent of our psychological history. But this is
-      another area where neurology, psychology, and the health sciences have been making tremendous advancesespecially in the links between the physical organ of the brain and what we consider the mind-and
-      showing us that these old assumptions are not so reliable anymore. Contrary to popular belief, the brain doesn't tell us what to do; it is part of a system in which our life experience teaches our
-      brain what to do. The brain can be suddenly and permanently rewired by traumatic events, as if struck by lightning, and it can be gradually misshapen and damaged through life experiences that eat
-      away at our fundamental notions of safety, love, and justice. If people like this can be said to have a paradigm, it's something like, I'm out of control and can't trust myself anymore
-    - T here are people who sit on the sidelines of life watching the parade go by, never thinking that they could be part of it. Unlike the people in most of our other scenarios, they don't experience
-      much conflict between the automatic self and the conscious self. The automatic self has the paradigm that life is not worth taking chances, that the self as a whole is not very competent, and that
-      happiness-or simply feeling better-is not worth the effort. These attitudes may not be fully conscious, but the conscious mind doesn't challenge them. People in this situation may be fairly content
-      with low expectations, working in jobs that require minimal skills, going home to sit on the couch and watch TV, never traveling far from home, their lives often enmeshed with extended family. In
-      my little town in Connecticut, two hours by train or car from New York City, there are a surprising number of adults who have never been there and don't see a reason to go. Other people in this situation
-      may not be so content. They may live lives of quiet desperation, overwhelmed by worries, sadness, and loss. They don't like their situation, but they don't know where to start to change it. Both kinds
-      are likely to drink or use drugs to get through life, and the young people are often in trouble for drugs and petty crime, until they settle down and fit in with the family's pervasive assumptive
-      world. Many of these people come from disadvantaged groups, and have been living in the "culture of poverty" (and discrimination) for generations. What's selfdestructive for them is the absence of
-      action and ambition, the passivity
-    - S ome people become self-destructive because life has burned them out. They're overwhelmed by stress, have been disappointed too often, had high standards that were never met, and have given up trying.
-      The paradigm is To hell with it. Life stinks and I'm not going to try anymore
-    - A ddictions are by their very nature self-destructive, because a drug or a habit has taken self-control away from you; you feel real distress without it. Addictions are of two types. One is the dependence
-      on a foreign substance-drugs, alcohol, tobacco. The other type is behavioral addictions, in which there is no drug but an addiction to a certain pattern of behaviorsex, attraction to people who hurt
-      you, eating disorders, gambling, overworking, being hooked on television or the Internet, depressed shopping, and more. These patterns of behavior can become so fixed in the brain that the person
-      who tries to stop will experience genuine withdrawal -anxiety, sleeplessness, obsessional thinking, bargaining, etc., which follow the same pathways in the brain as substance abuse disorders
-    - B eing clinically depressed or anxious is almost normal in the U.S. today; the total incidence is approaching 50 percent, and the age of onset is younger and younger. The recognized symptoms of these
-      conditions include much that is inherently self-destructive. There is a paradox here, because these are genuine and devastating illnesses-if you have one, you're not to blame for it at all, and you
-      must keep in mind that your illness is behind much of your self-destructive thinking and behavior. Yet it's important to recognize that while a mental disorder may explain self-destructive traits,
-      each separate self-destructive act is a reaction to events in the present world that represents a choice you have made. You're not self-destructive 100 percent of the time; each specific act has its
-      triggers and motivations, which suggests you have some control. You have to walk the thin line between taking responsibility for your recovery and falling into the trap of self-blame. So if, for example,
-      you're depressed and selfdestructive, it's not enough to expect the pill or the therapist to stop you. You have to take yourself by the hand and examine your motives, defenses, and paradigms. You
-      should not feel guilty or blame yourself if you have one of these problems, because they are beyond your personal control. They are well-integrated patterns in the automatic self. Besides, guilt and
-      self-blame are symptoms of these conditions, and fuel your self-destruction. However, you are responsible for your own recovery, and here is where many of your bad habits can get you. You do have
-      the responsibility to educate yourself about your condition and your self-destructive habits and do your best to control and eliminate them
-    - D espite growing acceptance, much of contemporary psychology and psychiatry would still like to forget about the unconscious. It's an inconvenient concept. It's hard to observe, measure, or test,
-      so it seems not much use to science. "Just take this pill," they say, or "Just correct your thinking," or "Just learn to detach"-simple ideas that are researchable. But when we forget to take the
-      pills, or when they make us turn purple, or when we slip back into negative thinking, or can't seem to find the time to meditate-maybe that's the unconscious at work. These are the patients who get
-      dropped from the studies. They're labeled as uncooperative. They don't appear in medical journals, but they show up in my office, and the offices of thousands of other dynamic therapists across the
-      country, saying they've tried everything and nothing works. What we do that nobody else does is acknowledge that there's a force that gets in the way of total recovery, and try to work with it. That
-      force is what I call the Undertowthe seemingly mysterious power that seems to wreck our attempts to escape self-destructive behavior just when we start to feel safe
-    clinical_claim_count: 13
-    coverage: all chapters reviewed (13 chapters)
-    key_concept_count: 10
-    method: full-text-review
-    needs_clinical_review: true
-    needs_copyright_review: false
-    needs_full_text_review: false
-  inspection_status: inspected-full-text
+  policy: K
+  scope: Habit change and neurobehavioral strategies
   knowledge_tags:
   - KNOWLEDGE
   - SFT
-  linear_issue: PIX-4569
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
     copyright_owner: O'Connor, R.
@@ -896,21 +811,194 @@ sources:
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Habit change and neurobehavioral strategies
-  source_id: SRC-094
-  title: Rewire
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Dodes, L. M. (2010). Rewiring Your Self.  Praeger
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-118
+  product_links: []
+  linear_issue: PIX-4569
   github_issue: null
+  p_list: null
+  inspection:
+    blocked_passage_count: 20
+    chapter_count: 13
+    chapters:
+    - M ost of us find ourselves too often repeating the same mistakes, stuck in bad habits, and few of us understand why.
+      Procrastination, lack of assertion, disorganization, smoking, overworking, poor sleep habits, lack of consideration,
+      depressed shopping, Internet addiction-all the way up through drug addiction and deliberate self-harm. Generally we
+      know what we're doing to ourselves, and we keep promising to reform. Indeed, we do try, often enough, but these habits
+      are hard to break. Every time we try but fail, we become more hopeless and more critical of ourselves. Selfdestructive
+      habits like these are the greatest source of unnecessary misery in our lives
+    - T he automatic self has learned many habits, below our awareness, that can incidentally lead to unintended negative
+      consequences for us. I use the word incidentally because here, unlike in the chapters yet to come, there is no hidden
+      motive, like anger or self-hate, at work. Much of this automatic behavior serves the purpose of keeping us comfortable,
+      supporting our selfesteem, and not challenging our basic assumptions about life-but it can end up hurting us. This is
+      the automatic self at work without conscious control. As we've said, the automatic self is usually very reliable. We're
+      constantly making decisions beneath the level of awareness, most of which work out well enough for us. But the automatic
+      self can often be mistaken because of lack of knowledge, prejudice, bad logic, social influence, faulty assumptions,
+      and a host of other factors. Those mistakes do not necessarily lead to self-destructive consequences, but when they
+      do, and when it's repeated, we have the kind of mistakes we can learn from, if only we pay attention. If there is any
+      kind of self-blame that should be attached to this kind of behavior, it has to do with mental laziness and sloppy thinking.
+      Homer Simpson, perhaps the most un-self-reflective character on television, caricatures this kind of life taken to the
+      extreme. But also think of yourself and times when you've unintentionally embarrassed yourself or hurt others by assuming
+      things not in evidence or leaping to unwarranted conclusions, or when you've made choices that you regretted that were
+      influenced by hidden motives, like the desire to look good or fit in. The basic assumption here is I know what I'm doing,
+      and results to the contrary are not my fault
+    - P owerful motivations and feelings-fear, anger, guilt, shame, envy, resentment-can operate outside our awareness and
+      lead to selfdestructive choices. Many of us have become developmentally stuck around one or more of these emotions;
+      when we feel them, we freeze up inside and don't know what to do. These issues often are a dominant theme in our lives
+      and our personalities, with their origins in childhood and our relationship with our parents. They influence who we
+      are and how we act, but we're not always conscious of their presence. There's an old wound there, or a need unmet, and
+      we keep trying to heal it throughout our lives. But these attempts at healing usually don't work out-in fact often have
+      selfdestructive consequences-because present reality is usually not enough to make up for past damage. The automatic
+      self can't repair itself, partly because it can't really see where the trouble lies. The conscious self has trouble
+      seeing it, because we have built up a whole network of defenses to keep the trouble out of awareness. And if we do see
+      it, few of us have the knowledge we need to change the automatic self. That's something I hope to help you find in this
+      book
+    - 'A nger, like fear, is a useful emotion. It motivates us to protect ourselves and those we love. It''s behind our sense
+      of justice and fair play. It''s another hardwired instinct we share with the higher mammals. But many of us have developed
+      the idea that angry feelings are just not an acceptable part of the self. In the automatic self, repressed anger can
+      seep through and affect our personality, or it can be expressed in disguised ways, like taking it out on the wrong target.
+      In this chapter we''ll look at how the effort not to feel appropriate anger can get us into trouble. There''s not a
+      conscious basic assumption here; it''s all in the automatic self: Watch out for me. I''ve got a grievance, and I''m
+      going to make you suffer. If it''s anger at yourself, it''s more like bullying: Why can''t you get yourself together,
+      you moron?'
+    - 'I n this scenario, both the automatic self and the conscious self have developed the same delusion from life experience:
+      the belief that you are special somehow, and the usual rules don''t apply. Of course most of us have some belief in
+      our own uniqueness, but it gets us in trouble if taken too far. The paradigm can be solidI deserve to be treated better
+      than other people -but fragile at the same time. So it usually takes a crisis of some kind for people like this to realize
+      that something isn''t working. Some such people in crisis-for instance, when they are denied something important, like
+      a promotion-will just strengthen their defenses and rationalize the disappointment away. Others, more vulnerable and
+      more treatable, will collapse into depression as their false front is broken, and may begin to question their basic
+      assumptions. In this chapter we''ll discuss how feeling special, better than others, entitled to better treatment, whether
+      from plain old narcissism or other causes, leads to self-destructive behavior'
+    - 'O ne of my guilty little pleasures is sometimes watching America''s Funniest Home Videos . Anyone who has seen this
+      clip will remember it: A boy about two years old, dressed in his sleeper pajamas, is having a tantrum on the living
+      room carpet. He''s on the floor, twisting and screaming and whining. Mom (with the camera) walks into another room.
+      There''s silence. Then the boy''s head peers around the door, and when he knows Mom can see him, he throws himself down
+      on the floor and resumes his tantrum. The sequence is repeated several times: Mom walks away, he quiets down, he finds
+      her, he resumes his tantrum. Somehow he makes sure he''s always on the carpet, not the bare floor, to cushion his fall'
+    - 'P ogo, Walt Kelly''s wise comic strip possum, said, "We have met the enemy, and he is us." The divided self may evolve
+      in such a way that one part of us has feelings of hatred, disgust, shame, or rage at another. The basic assumption is
+      something like I''m guilty; I''m at fault. If people knew the real me, they''d hate me. Self-hate may strike you as
+      a rather intense term, but it''s very common. It''s a cancer of the soul, something that invades and pervades us before
+      we''re aware of it, something that can make us sabotage and hurt ourselves. You may not ever have considered that a
+      part of you hates yourself. But please remember that we''ve been talking about two minds, the automatic self and the
+      conscious self, all along. Most people with this problem have only a dim conscious awareness of it. Self-hate, self-loathing,
+      is very painful, and we try to forget or repress those feelings as soon as we can. But if you see patterns of self-destructive
+      behavior in yourself, and don''t understand why, I urge you to reflect carefully on what''s to come. Some of the most
+      handicapping and painful self-destructive behavior patterns are the result of self-hate at work. Take this short quiz
+      and see if you find yourself here:'
+    - W e referred in Chapter 1 to certain fundamental aspects of the automatic self that are not part of the assumptive world
+      nor the Freudian unconscious, such as learning styles, thinking styles, feeling styles, how the body works unconsciously;
+      the basic wiring of the brain, nervous system, and other body systems that are intricately linked; the immune system,
+      the endocrine system; gastrointestinal, muscular, and other functions of the body that we tend to think of as automatic
+      functions that are not affected by the mind and are therefore independent of our psychological history. But this is
+      another area where neurology, psychology, and the health sciences have been making tremendous advancesespecially in
+      the links between the physical organ of the brain and what we consider the mind-and showing us that these old assumptions
+      are not so reliable anymore. Contrary to popular belief, the brain doesn't tell us what to do; it is part of a system
+      in which our life experience teaches our brain what to do. The brain can be suddenly and permanently rewired by traumatic
+      events, as if struck by lightning, and it can be gradually misshapen and damaged through life experiences that eat away
+      at our fundamental notions of safety, love, and justice. If people like this can be said to have a paradigm, it's something
+      like, I'm out of control and can't trust myself anymore
+    - T here are people who sit on the sidelines of life watching the parade go by, never thinking that they could be part
+      of it. Unlike the people in most of our other scenarios, they don't experience much conflict between the automatic self
+      and the conscious self. The automatic self has the paradigm that life is not worth taking chances, that the self as
+      a whole is not very competent, and that happiness-or simply feeling better-is not worth the effort. These attitudes
+      may not be fully conscious, but the conscious mind doesn't challenge them. People in this situation may be fairly content
+      with low expectations, working in jobs that require minimal skills, going home to sit on the couch and watch TV, never
+      traveling far from home, their lives often enmeshed with extended family. In my little town in Connecticut, two hours
+      by train or car from New York City, there are a surprising number of adults who have never been there and don't see
+      a reason to go. Other people in this situation may not be so content. They may live lives of quiet desperation, overwhelmed
+      by worries, sadness, and loss. They don't like their situation, but they don't know where to start to change it. Both
+      kinds are likely to drink or use drugs to get through life, and the young people are often in trouble for drugs and
+      petty crime, until they settle down and fit in with the family's pervasive assumptive world. Many of these people come
+      from disadvantaged groups, and have been living in the "culture of poverty" (and discrimination) for generations. What's
+      selfdestructive for them is the absence of action and ambition, the passivity
+    - S ome people become self-destructive because life has burned them out. They're overwhelmed by stress, have been disappointed
+      too often, had high standards that were never met, and have given up trying. The paradigm is To hell with it. Life stinks
+      and I'm not going to try anymore
+    - A ddictions are by their very nature self-destructive, because a drug or a habit has taken self-control away from you;
+      you feel real distress without it. Addictions are of two types. One is the dependence on a foreign substance-drugs,
+      alcohol, tobacco. The other type is behavioral addictions, in which there is no drug but an addiction to a certain pattern
+      of behaviorsex, attraction to people who hurt you, eating disorders, gambling, overworking, being hooked on television
+      or the Internet, depressed shopping, and more. These patterns of behavior can become so fixed in the brain that the
+      person who tries to stop will experience genuine withdrawal -anxiety, sleeplessness, obsessional thinking, bargaining,
+      etc., which follow the same pathways in the brain as substance abuse disorders
+    - B eing clinically depressed or anxious is almost normal in the U.S. today; the total incidence is approaching 50 percent,
+      and the age of onset is younger and younger. The recognized symptoms of these conditions include much that is inherently
+      self-destructive. There is a paradox here, because these are genuine and devastating illnesses-if you have one, you're
+      not to blame for it at all, and you must keep in mind that your illness is behind much of your self-destructive thinking
+      and behavior. Yet it's important to recognize that while a mental disorder may explain self-destructive traits, each
+      separate self-destructive act is a reaction to events in the present world that represents a choice you have made. You're
+      not self-destructive 100 percent of the time; each specific act has its triggers and motivations, which suggests you
+      have some control. You have to walk the thin line between taking responsibility for your recovery and falling into the
+      trap of self-blame. So if, for example, you're depressed and selfdestructive, it's not enough to expect the pill or
+      the therapist to stop you. You have to take yourself by the hand and examine your motives, defenses, and paradigms.
+      You should not feel guilty or blame yourself if you have one of these problems, because they are beyond your personal
+      control. They are well-integrated patterns in the automatic self. Besides, guilt and self-blame are symptoms of these
+      conditions, and fuel your self-destruction. However, you are responsible for your own recovery, and here is where many
+      of your bad habits can get you. You do have the responsibility to educate yourself about your condition and your self-destructive
+      habits and do your best to control and eliminate them
+    - D espite growing acceptance, much of contemporary psychology and psychiatry would still like to forget about the unconscious.
+      It's an inconvenient concept. It's hard to observe, measure, or test, so it seems not much use to science. "Just take
+      this pill," they say, or "Just correct your thinking," or "Just learn to detach"-simple ideas that are researchable.
+      But when we forget to take the pills, or when they make us turn purple, or when we slip back into negative thinking,
+      or can't seem to find the time to meditate-maybe that's the unconscious at work. These are the patients who get dropped
+      from the studies. They're labeled as uncooperative. They don't appear in medical journals, but they show up in my office,
+      and the offices of thousands of other dynamic therapists across the country, saying they've tried everything and nothing
+      works. What we do that nobody else does is acknowledge that there's a force that gets in the way of total recovery,
+      and try to work with it. That force is what I call the Undertowthe seemingly mysterious power that seems to wreck our
+      attempts to escape self-destructive behavior just when we start to feel safe
+    clinical_claim_count: 13
+    coverage: all chapters reviewed (13 chapters)
+    key_concept_count: 10
+    method: full-text-review
+    needs_clinical_review: true
+    needs_copyright_review: false
+    needs_full_text_review: false
+  citation_lineage: O'Connor, R. (2014). Rewire.  Ballantine Books (Penguin Random House)
+- source_id: SRC-095
+  title: Rewiring Your Self
+  ds_alias: DS-118
+  policy: K
+  scope: Addiction and habit change
+  knowledge_tags:
+  - KNOWLEDGE
+  - EDGE
+  modality: book
+  aliases: []
+  locations:
+    gdrive: gdrive:pixeldata/archive/local_books_import/
+    local: ai/data/raw/kickflip/joiner/Books/
+  inspection_status: inspected-full-text
+  rights_decision:
+    attribution_required: true
+    copyright_owner: unknown
+    copyright_year: '2010'
+    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
+    publisher: Praeger
+    restrictions:
+    - no direct quotation
+    - no voice/style reproduction
+    - no case study reproduction with real patient data
+    - no redistribution of source text
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no direct quotation from source text
+  - no reproduction of author voice or style
+  - no reproduction of case studies containing real patient information
+  - paraphrased concepts must cite source author and title
+  - clinical claims must be reviewed by licensed clinician before use
+  product_links: []
+  linear_issue: PIX-4570
+  github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 1
     chapter_count: 5
@@ -927,44 +1015,44 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: false
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Dodes, L. M. (2010). Rewiring Your Self.  Praeger
+- source_id: SRC-096
+  title: Scattered Minds
+  ds_alias: DS-119
+  policy: K
+  scope: ADHD, development, attachment
   knowledge_tags:
   - KNOWLEDGE
   - EDGE
-  linear_issue: PIX-4570
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
-    copyright_owner: unknown
-    copyright_year: '2010'
+    copyright_owner: Maté, G.
+    copyright_year: '1999'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: Praeger
+    publisher: Ballantine Books (Penguin Random House)
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Addiction and habit change
-  source_id: SRC-095
-  title: Rewiring Your Self
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Maté, G. (1999). Scattered Minds.  Ballantine Books (Penguin Random House)
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-119
+  product_links: []
+  linear_issue: PIX-4571
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 5
     chapter_count: 7
@@ -983,44 +1071,44 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: false
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Maté, G. (1999). Scattered Minds.  Ballantine Books (Penguin Random House)
+- source_id: SRC-097
+  title: The Myth of Normal
+  ds_alias: DS-120
+  policy: K
+  scope: Trauma, culture, health
   knowledge_tags:
   - KNOWLEDGE
-  - EDGE
-  linear_issue: PIX-4571
+  - CPTSD
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
-    copyright_owner: Maté, G.
-    copyright_year: '1999'
+    copyright_owner: unknown
+    copyright_year: '2022'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: Ballantine Books (Penguin Random House)
+    publisher: Penguin
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: ADHD, development, attachment
-  source_id: SRC-096
-  title: Scattered Minds
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Maté, G., & Maté, D. (2022). The Myth of Normal.  Penguin
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-120
+  product_links: []
+  linear_issue: PIX-4572
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 20
     chapter_count: 15
@@ -1047,44 +1135,44 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: false
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Maté, G., & Maté, D. (2022). The Myth of Normal.  Penguin
+- source_id: SRC-098
+  title: When the Body Says No
+  ds_alias: DS-121
+  policy: K
+  scope: Stress, boundaries, mind-body themes
   knowledge_tags:
   - KNOWLEDGE
   - CPTSD
-  linear_issue: PIX-4572
+  modality: book
+  aliases: []
   locations:
     gdrive: gdrive:pixeldata/archive/local_books_import/
     local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
+  inspection_status: inspected-full-text
   rights_decision:
     attribution_required: true
     copyright_owner: unknown
-    copyright_year: '2022'
+    copyright_year: '2003'
     permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: Penguin
+    publisher: Wiley
     restrictions:
     - no direct quotation
     - no voice/style reproduction
     - no case study reproduction with real patient data
     - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Trauma, culture, health
-  source_id: SRC-097
-  title: The Myth of Normal
-- aliases: []
+    decision: restricted-knowledge-extraction
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no direct quotation from source text
   - no reproduction of author voice or style
   - no reproduction of case studies containing real patient information
   - paraphrased concepts must cite source author and title
   - clinical claims must be reviewed by licensed clinician before use
-  citation_lineage: Maté, G. (2003). When the Body Says No.  Wiley
-  contribution_mode: knowledge-retrieval
-  ds_alias: DS-121
+  product_links: []
+  linear_issue: PIX-4573
   github_issue: null
+  p_list: null
   inspection:
     blocked_passage_count: 2
     chapter_count: 15
@@ -1111,40 +1199,42 @@ sources:
     needs_clinical_review: true
     needs_copyright_review: true
     needs_full_text_review: false
-  inspection_status: inspected-full-text
+  citation_lineage: Maté, G. (2003). When the Body Says No.  Wiley
+- source_id: SRC-099
+  title: Additional therapeutic PDF/EPUB library
+  ds_alias: null
+  policy: K,V
+  scope: DSM, Pete Walker CPTSD, IFS, Brain Energy, PTSD/DBT/CBT guides, passive-aggression/schema-therapy collections, and
+    other catalogued ebooks
   knowledge_tags:
   - KNOWLEDGE
   - CPTSD
-  linear_issue: PIX-4573
-  locations:
-    gdrive: gdrive:pixeldata/archive/local_books_import/
-    local: ai/data/raw/kickflip/joiner/Books/
-  modality: book
-  p_list: null
-  policy: K
-  product_links: []
-  rights_decision:
-    attribution_required: true
-    copyright_owner: unknown
-    copyright_year: '2003'
-    permitted_use: knowledge extraction only — concepts, themes, strategies, paraphrased
-    publisher: Wiley
-    restrictions:
-    - no direct quotation
-    - no voice/style reproduction
-    - no case study reproduction with real patient data
-    - no redistribution of source text
-    status: restricted-knowledge-extraction
-  scope: Stress, boundaries, mind-body themes
-  source_id: SRC-098
-  title: When the Body Says No
-- aliases:
+  - EDGE
+  - CRISIS
+  modality: mixed
+  aliases:
   - DSM
   - Pete Walker CPTSD
   - IFS
   - Brain Energy
   - PTSD/DBT/CBT guides
   - passive-aggression/schema-therapy collections
+  locations:
+    gdrive_1: gdrive:pixeldata/archive/local_books_import/
+    gdrive_2: gdrive:pixeldata/archive/vivi_drive_ebooks/
+    kickflip: Kickflip joiner backups
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Mixed collection of therapeutic reference books. Copyright held by respective authors/publishers. DSM-5 is
+      APA copyright.
+    restrictions:
+    - No direct quote from any title
+    - No reproduction of clinical assessment instruments
+    - Paraphrased concepts must cite source
+    - DSM-5 diagnostic criteria are APA copyright - reference only
+    - Dark Psychology collection contains non-clinical material - review for exclusion
+  contribution_mode: knowledge-retrieval
   blocked_reproduction_rules:
   - no-direct-quote
   - no-voice-reproduction
@@ -1152,11 +1242,10 @@ sources:
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
   - dsm-diagnostic-criteria-need-review
-  citation_lineage: 'Additional therapeutic library (16+ titles). Individual citations per title. DSM-5: American Psychiatric Association. CPTSD: Pete Walker. IFS: Richard C. Schwartz. Brain Energy: Christopher
-    M. Palmer.'
-  contribution_mode: knowledge-retrieval
-  ds_alias: null
+  product_links: []
+  linear_issue: null
   github_issue: 5716
+  p_list: null
   inspection:
     coverage: all files in local_books_import
     excluded:
@@ -1169,8 +1258,8 @@ sources:
     needs_copyright_review: true
     needs_full_text_review: true
     needs_individual_dossier: true
-    notes: 14 clinical titles catalogued from local_books_import and vivi_drive_ebooks. 2 dark psychology collections (50+24 books) excluded as non-clinical. Each title needs individual dossier before use
-      in training pipeline.
+    notes: 14 clinical titles catalogued from local_books_import and vivi_drive_ebooks. 2 dark psychology collections (50+24
+      books) excluded as non-clinical. Each title needs individual dossier before use in training pipeline.
     title_count: 14
     titles:
     - clinical_relevance: diagnostic reference - APA copyright
@@ -1229,31 +1318,7 @@ sources:
       format: epub
       size_estimate: 454KB
       title: 'Addiction, Procrastination, and Laziness: A Proactive Guide to the Psychology of Motivation'
-  inspection_status: inspected-content
-  knowledge_tags:
-  - KNOWLEDGE
-  - CPTSD
-  - EDGE
-  - CRISIS
-  linear_issue: null
-  locations:
-    gdrive_1: gdrive:pixeldata/archive/local_books_import/
-    gdrive_2: gdrive:pixeldata/archive/vivi_drive_ebooks/
-    kickflip: Kickflip joiner backups
-  modality: mixed
-  notes: Inventory expanded from original. 16 individual titles or collections identified. Dark Psychology collections (74 books total) flagged for exclusion review.
-  p_list: null
-  policy: K,V
-  product_links: []
-  rights_decision:
-    decision: restricted-knowledge-extraction
-    rationale: Mixed collection of therapeutic reference books. Copyright held by respective authors/publishers. DSM-5 is APA copyright.
-    restrictions:
-    - No direct quote from any title
-    - No reproduction of clinical assessment instruments
-    - Paraphrased concepts must cite source
-    - DSM-5 diagnostic criteria are APA copyright - reference only
-    - Dark Psychology collection contains non-clinical material - review for exclusion
-  scope: DSM, Pete Walker CPTSD, IFS, Brain Energy, PTSD/DBT/CBT guides, passive-aggression/schema-therapy collections, and other catalogued ebooks
-  source_id: SRC-099
-  title: Additional therapeutic PDF/EPUB library
+  citation_lineage: 'Additional therapeutic library (16+ titles). Individual citations per title. DSM-5: American Psychiatric
+    Association. CPTSD: Pete Walker. IFS: Richard C. Schwartz. Brain Energy: Christopher M. Palmer.'
+  notes: Inventory expanded from original. 16 individual titles or collections identified. Dark Psychology collections (74
+    books total) flagged for exclusion review.
