@@ -113,7 +113,25 @@ class OpenAIDriver(LLMDriver):
                 temperature=temp,
                 max_tokens=max_tokens,
             )
-            return response.choices[0].message.content or ""
+            content = response.choices[0].message.content
+            if content is None:
+                return ""
+            if isinstance(content, str):
+                return content
+            # Some providers (Neon AI Gateway, Gemini) return content as a
+            # list of typed content blocks, e.g.
+            #   [{"type": "reasoning", ...}, {"type": "text", "text": "..."}]
+            # Extract text from text blocks for downstream JSON parsing.
+            if isinstance(content, list):
+                parts: list[str] = []
+                for block in content:
+                    if isinstance(block, dict):
+                        if block.get("type") == "text" and "text" in block:
+                            parts.append(str(block["text"]))
+                        elif "text" in block:
+                            parts.append(str(block["text"]))
+                return "\n".join(parts) if parts else ""
+            return str(content)
         except Exception as e:
             logger.error(f"LLM Generation failed: {e}")
             return f"[ERROR: {e!s}]"
@@ -247,7 +265,11 @@ class LLMClient:
                     self._resolved_model,
                 )
                 return ""
-        return self.driver.generate(prompt, system_prompt, **kwargs)
+        try:
+            return self.driver.generate(prompt, system_prompt, **kwargs)
+        finally:
+            if self.provider not in ("mock",):
+                self.rate_limiter.release_in_flight(self.provider, self._resolved_model)
 
     def generate_structured(
         self,
@@ -274,4 +296,8 @@ class LLMClient:
                     self._resolved_model,
                 )
                 return {}
-        return self.driver.generate_structured(prompt, schema, system_prompt, **kwargs)
+        try:
+            return self.driver.generate_structured(prompt, schema, system_prompt, **kwargs)
+        finally:
+            if self.provider not in ("mock",):
+                self.rate_limiter.release_in_flight(self.provider, self._resolved_model)

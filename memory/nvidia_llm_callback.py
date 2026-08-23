@@ -4,7 +4,9 @@ Nvidia NIM LLM Callback - OpenAI-compatible callback for reflection subagent.
 This module provides an LLM callback function that uses Nvidia NIM's OpenAI-compatible
 API to power the reflection subagent with qwen/qwen3.5-397b-a17b.
 
-Uses NVIDIA_API_KEY from environment (already present in .env).
+Env-configurable: reads LLM_API_KEY (fallback NVIDIA_API_KEY), LLM_BASE_URL
+(fallback NVIDIA NIM), LLM_MODEL (fallback qwen/qwen3.5-397b-a17b). When
+LLM_BASE_URL points to Neon AI Gateway, uses Neon's free open-weight models.
 """
 
 import logging
@@ -26,23 +28,23 @@ class NvidiaNIMCallback:
     def __init__(
         self,
         api_key: str | None = None,
-        base_url: str = "https://integrate.api.nvidia.com/v1",
-        model: str = "qwen/qwen3.5-397b-a17b",
+        base_url: str | None = None,
+        model: str | None = None,
     ):
         """
-        Initialize Nvidia NIM callback.
+        Initialize LLM callback.
 
         Args:
-            api_key: Nvidia API key. If None, reads from NVIDIA_API_KEY env var.
-            base_url: Nvidia NIM base URL.
-            model: Model to use. Defaults to qwen/qwen3.5-397b-a17b.
+            api_key: API key. If None, reads LLM_API_KEY (fallback NVIDIA_API_KEY) from env.
+            base_url: Base URL. If None, reads LLM_BASE_URL from env, defaults to NVIDIA NIM.
+            model: Model to use. If None, reads LLM_MODEL from env, defaults to qwen/qwen3.5-397b-a17b.
         """
-        self.api_key = api_key or os.environ.get("NVIDIA_API_KEY")
-        self.base_url = base_url
-        self.model = model
+        self.api_key = api_key or os.environ.get("LLM_API_KEY") or os.environ.get("NVIDIA_API_KEY")
+        self.base_url = base_url or os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        self.model = model or os.environ.get("LLM_MODEL", "qwen/qwen3.5-397b-a17b")
 
         if not self.api_key:
-            raise ValueError("NVIDIA_API_KEY not found. Set NVIDIA_API_KEY environment variable.")
+            raise ValueError("No API key found. Set LLM_API_KEY or NVIDIA_API_KEY environment variable.")
 
         # Lazy init
         self._client = None
@@ -74,7 +76,14 @@ class NvidiaNIMCallback:
                 temperature=0.7,
                 max_tokens=4096,
             )
-            return response.choices[0].message.content or ""
+            content = response.choices[0].message.content
+            if isinstance(content, list):
+                return "\n".join(
+                    block.get("text", "")
+                    for block in content
+                    if isinstance(block, dict) and block.get("type") == "text"
+                ) or ""
+            return content or ""
         except Exception as e:
             logger.error(f"Nvidia NIM API call failed: {e}")
             raise
@@ -85,24 +94,14 @@ def create_nvidia_callback(
     base_url: str | None = None,
 ) -> NvidiaNIMCallback:
     """
-    Create Nvidia NIM callback for reflection subagent.
+    Create LLM callback for reflection subagent.
 
     Reads from environment if not specified:
-    - SUBCONSCIOUS_MODEL (default: qwen/qwen3.5-397b-a17b)
-    - SUBCONSCIOUS_BASE_URL (default: https://integrate.api.nvidia.com/v1)
+    - LLM_MODEL (fallback SUBCONSCIOUS_MODEL, then qwen/qwen3.5-397b-a17b)
+    - LLM_BASE_URL (fallback SUBCONSCIOUS_BASE_URL, then NVIDIA NIM)
     """
-    model = model or os.environ.get("SUBCONSCIOUS_MODEL", "qwen/qwen3.5-397b-a17b")
-    base_url = base_url or os.environ.get("SUBCONSCIOUS_BASE_URL", "https://integrate.api.nvidia.com/v1")
-    """
-    Create Nvidia NIM callback for reflection subagent.
-
-    Args:
-        model: Model to use. Defaults to qwen/qwen3.5-397b-a17b.
-        base_url: Nvidia NIM base URL.
-
-    Returns:
-        NvidiaNIMCallback instance.
-    """
+    model = model or os.environ.get("LLM_MODEL") or os.environ.get("SUBCONSCIOUS_MODEL", "qwen/qwen3.5-397b-a17b")
+    base_url = base_url or os.environ.get("LLM_BASE_URL") or os.environ.get("SUBCONSCIOUS_BASE_URL", "https://integrate.api.nvidia.com/v1")
     return NvidiaNIMCallback(model=model, base_url=base_url)
 
 
