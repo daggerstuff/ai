@@ -43,7 +43,7 @@ sources:
   inspection:
     method: rclone-lsf-and-cat-schema-sampling
     coverage: gdrive-inventory + s3-chatml-verified
-    file_count: 3
+    file_count: 4
     files:
     - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/mental_disorders_reddit.csv
     - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/Suicide_Detection.csv
