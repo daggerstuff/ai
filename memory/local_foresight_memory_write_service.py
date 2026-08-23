@@ -170,7 +170,8 @@ class LocalForesightMemoryWriteService:
                     GateResult(
                         gate=gate_id,
                         decision=GateDecision.BLOCK,
-                        reason=str(exc),
+                        # PIX-4595: never use str(exc) here — exception text may carry source content/stack details.
+                        reason="Gate evaluation failed with an internal error; details withheld.",
                     ),
                 )
                 return None, report
