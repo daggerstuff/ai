@@ -3,6 +3,7 @@ parent_issue: PIX-4585
 github_issue: 5727
 created: '2026-08-21'
 source_family: provenance_aggregates_and_generated_lineages
+decision_status: proposed  # rights_decision and contribution_mode fields are PROPOSED, not ratified. See docs/dataset-source-review.md for human sign-off.
 sources:
 - source_id: SRC-001
   title: Foundation SFT lineage

@@ -3,6 +3,7 @@ parent_issue: PIX-4587
 github_issue: 5729
 created: '2026-08-21'
 source_family: safety_evaluation_and_restricted_research
+decision_status: proposed  # rights_decision and contribution_mode fields are PROPOSED, not ratified. See docs/dataset-source-review.md for human sign-off.
 sources:
 - source_id: SRC-027
   title: Reddit mental-disorders identification
@@ -42,7 +43,7 @@ sources:
   inspection:
     method: rclone-lsf-and-cat-schema-sampling
     coverage: gdrive-inventory + s3-chatml-verified
-    file_count: 3
+    file_count: 4
     files:
     - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/mental_disorders_reddit.csv
     - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/Suicide_Detection.csv
@@ -618,13 +619,16 @@ sources:
     huggingface_id: abadawi/MentalBench-Align
   inspection_status: inspected-metadata-external
   rights_decision:
-    decision: permissive-use
-    rationale: Generated/synthetic therapeutic context dataset. Found on HuggingFace as abadawi/MentalBench-Align (combined MentalBench-100K & MentalAlign-70K repo).
+    decision: restricted-knowledge-extraction
+    rationale: Generated/synthetic therapeutic context dataset. Found on HuggingFace as abadawi/MentalBench-Align (combined MentalBench-100K & MentalAlign-70K repo). Only metadata-external inspection performed — content review required before permissive use.
     restrictions:
+    - No direct reproduction of source content
     - License verification required before use
     - Paraphrased concepts must cite source
+    - Full content review required before upgrading to permissive-use
   contribution_mode: supervised-finetuning
   blocked_reproduction_rules:
+  - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
   product_links: []
@@ -656,13 +660,16 @@ sources:
     huggingface_id: abadawi/MentalBench-Align
   inspection_status: inspected-metadata-external
   rights_decision:
-    decision: permissive-use
-    rationale: Generated alignment dataset with seven-attribute ratings. Found on HuggingFace as abadawi/MentalBench-Align (combined repo with MentalBench-100K).
+    decision: restricted-knowledge-extraction
+    rationale: Generated alignment dataset with seven-attribute ratings. Found on HuggingFace as abadawi/MentalBench-Align (combined repo with MentalBench-100K). Only metadata-external inspection performed — content review required before permissive use.
     restrictions:
+    - No direct reproduction of source content
     - License verification required before use
     - Paraphrased concepts must cite source
+    - Full content review required before upgrading to permissive-use
   contribution_mode: supervised-finetuning
   blocked_reproduction_rules:
+  - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
   product_links: []
@@ -736,14 +743,17 @@ sources:
     remote_url: https://github.com/w-is-h/psychosis-bench
   inspection_status: inspected-metadata-external
   rights_decision:
-    decision: permissive-use
-    rationale: Evaluation-only psychosis benchmark with three 16-turn delusion conversations. Found on GitHub as w-is-h/psychosis-bench (arXiv:2509.10970). Never train on test cases.
+    decision: restricted-knowledge-extraction
+    rationale: Evaluation-only psychosis benchmark with three 16-turn delusion conversations. Found on GitHub as w-is-h/psychosis-bench (arXiv:2509.10970). Never train on test cases. Only metadata-external inspection performed — content review required before permissive use.
     restrictions:
+    - No direct reproduction of source content
     - Evaluation only - never train on test cases
     - Paraphrased concepts must cite source
     - Clinical claims need review
+    - Full content review required before upgrading to permissive-use
   contribution_mode: edge-case-construction
   blocked_reproduction_rules:
+  - no-direct-quote
   - paraphrased-concepts-must-cite
   - clinical-claims-need-review
   product_links: []
