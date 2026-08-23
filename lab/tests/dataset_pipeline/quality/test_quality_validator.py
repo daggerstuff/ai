@@ -1,6 +1,6 @@
 import unittest
 
-from ai.pkg_mera.core.pipelines.quality.conversation_schema import Conversation
+from ai.pkg_mera.core.pipelines.schemas.conversation_schema import Conversation
 from ai.pkg_mera.core.pipelines.quality.quality_validator import QualityValidator
 
 

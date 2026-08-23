@@ -21,7 +21,7 @@ from ai.pkg_mera.core.pipelines.quality.conversation_quality_pattern_analyzer im
     liebig_quality_score,
     session_distribution,
 )
-from ai.pkg_mera.core.pipelines.quality.conversation_schema import Conversation, Message
+from ai.pkg_mera.core.pipelines.schemas.conversation_schema import Conversation, Message
 
 
 class TestInquiryTypeClassification(unittest.TestCase):

@@ -71,8 +71,14 @@ class TestPipelineMetricsCollector(unittest.TestCase):
         self.assertAlmostEqual(throughput.stage_metrics["normalize"]["avg_ms"], 50.0, places=0)
 
     def test_throughput_metrics_with_time_window(self):
-        """Test that time window filtering works."""
-        # Record a metric
+        """Test that time window filtering includes recent metrics.
+
+        Uses a generous 300-second window so CI scheduling jitter (milliseconds)
+        cannot cause the just-recorded metric to fall outside the window.
+        The module has no clock-injection seam, so we cannot deterministically
+        test *exclusion* of old metrics; instead we verify the filtering code
+        path runs correctly and includes freshly-recorded metrics.
+        """
         self.collector.record_stage_execution(
             stage_name="normalize",
             duration_ms=50.0,
@@ -81,9 +87,18 @@ class TestPipelineMetricsCollector(unittest.TestCase):
             status="completed",
         )
 
-        # Get metrics with very small window
-        self.collector.get_throughput_metrics(window_seconds=1)
-        # Note: this may pass if execution is fast; timing-dependent test
+        # Generous window: 5 minutes >> any conceivable CI scheduling delay
+        throughput = self.collector.get_throughput_metrics(window_seconds=300)
+
+        assert throughput.total_records_in == 100
+        assert throughput.total_records_out == 90
+        assert "normalize" in throughput.stage_metrics
+        assert throughput.stage_metrics["normalize"]["count"] == 1
+        self.assertAlmostEqual(throughput.stage_metrics["normalize"]["avg_ms"], 50.0, places=1)
+
+        throughput_no_window = self.collector.get_throughput_metrics()
+        assert throughput_no_window.total_records_in == 100
+        assert throughput_no_window.stage_metrics["normalize"]["count"] == 1
 
     def test_get_health_summary_returns_valid_structure(self):
         """Test that health summary has all required fields."""
