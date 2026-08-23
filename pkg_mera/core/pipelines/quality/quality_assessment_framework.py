@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from ai.pkg_mera.core.pipelines.quality.conversation_schema import Conversation
+from ai.pkg_mera.core.pipelines.schemas.conversation_schema import Conversation
 
 
 class QualityTier(Enum):
