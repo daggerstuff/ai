@@ -1,0 +1,1524 @@
+manifest_version: '1.0'
+parent_issue: PIX-4586
+github_issue: 5728
+created: '2026-08-21'
+source_family: clinical_dialogue_counseling_and_lived_experience
+sources:
+- source_id: SRC-015
+  title: CBT LLM CoreIssue
+  ds_alias: DS-012
+  policy: V
+  scope: JSONL CBT core-issue analyses
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-012
+  - '`cbt_llm_coreissue`'
+  locations:
+    working: pixelated-empathy/output/cbt_llm_coreissue/`
+    s3: whitebat:whitebat/training/pixelated-empathy/output/cbt_llm_coreissue/
+    gdrive: gdrive:pixelated-backups/tailspin/firstmate/cbt_llm_coreissue/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/cbt_llm_coreissue/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V (voice extraction). Found on whitebat S3 at training/pixelated-empathy/output/cbt_llm_coreissue/.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: voice-extraction-only
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5632
+  p_list: P11, P12, P14
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 at training/pixelated-empathy/output/cbt_llm_coreissue/
+    file_count: 1
+    files:
+    - whitebat:training/pixelated-empathy/output/cbt_llm_coreissue/
+    total_size_mb: 5
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: null
+    record_count_estimate: 500
+  citation_lineage: 'CBT LLM CoreIssue (DS: DS-012). GitHub #5632. [Dataset not located in remote archives.]'
+- source_id: SRC-016
+  title: Ian Steenstra psychotherapy evaluation
+  ds_alias: DS-013
+  policy: E,V
+  scope: Longitudinal psychotherapy evaluation sessions
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-013
+  - '`sessions_longitudinal.jsonl`'
+  locations:
+    working: pixelated-empathy/ingestion/`
+    gdrive: gdrive:pixeldata/archive/gdrive/processed/professional_therapeutic/long_running_therapy.jsonl
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy E,V. Longitudinal psychotherapy evaluation sessions from YouTube transcripts. Voice extraction restricted;
+      evaluation data may inform benchmarks.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: longitudinal-dialogue-construction
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5633
+  p_list: P13, P15
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 1
+    files:
+    - gdrive:pixeldata/archive/gdrive/processed/professional_therapeutic/long_running_therapy.jsonl
+    total_size_mb: 5
+    schemas:
+    - format: JSONL
+      fields:
+      - id
+      - conversations
+      conversation_fields:
+      - from
+      - value
+      roles:
+      - gpt
+      - human
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: {id: str, conversations: [{from: ''gpt''|''human'', value: str}]}. YouTube-derived psychotherapy
+      transcripts with longitudinal session structure.'
+    record_count_estimate: 50
+  citation_lineage: 'Steenstra, I. (n.d.). Longitudinal psychotherapy evaluation sessions [Dataset]. GitHub #5633.'
+- source_id: SRC-017
+  title: CBTBench
+  ds_alias: DS-014
+  policy: E,V
+  scope: Multi-subset CBT benchmark
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-014
+  - core_fine
+  - core_major
+  - distortions
+  locations:
+    working: pixelated-empathy/ingestion/clinical-datasets/`
+    s3: upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/clinical-datasets/cbt-bench/
+    huggingface_id: Psychotherapy-LLM/CBT-Bench
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy E,V. CBT benchmark with multi-subset (core_fine, core_major, distortions). Found on upcloud S3 and HuggingFace
+      (Psychotherapy-LLM/CBT-Bench, CC-BY-NC-4.0).
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: benchmark-evaluation-only
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5634
+  p_list: P12, P13
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api
+    coverage: Found on upcloud S3 at crispy/training/ai-data/clinical-datasets/cbt-bench/ with core_fine, core_major, distortions
+      subsets. Also on HuggingFace as Psychotherapy-LLM/CBT-Bench (CC-BY-NC-4.0, arXiv:2410.13218).
+    file_count: 10
+    files:
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_fine_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_fine_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_major_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/core_major_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/distortions_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/distortions_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/dp-pairwise-comparison.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/qa_seed.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/qa_test.json
+    - upcloud:crispy/training/ai-data/clinical-datasets/cbt-bench/README.md
+    total_size_mb: 10
+    schemas:
+    - format: JSON
+      fields:
+      - core_fine
+      - core_major
+      - distortions
+      - qa
+      - dp-pairwise-comparison
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - JSON
+    sample_schema: 'JSON: CBT-Bench multi-subset benchmark with core_fine, core_major, distortions, qa, and dp-pairwise-comparison
+      subsets. CC-BY-NC-4.0 license.'
+    record_count_estimate: 1000
+  citation_lineage: 'CBTBench (DS: DS-014). GitHub #5634. [Dataset not located in remote archives.]'
+- source_id: SRC-018
+  title: MentalLLaMA
+  ds_alias: DS-015
+  policy: R,V
+  scope: Instruction/evaluation data
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-015
+  locations:
+    working: pixelated-empathy/ingestion/clinical-datasets/mentalllama/`
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy R,V. Instruction/evaluation data with CoT reasoning for clinical diagnosis. Knowledge extraction permitted;
+      voice reproduction restricted.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5635
+  p_list: P12, P14
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 1
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json
+    total_size_mb: 10
+    schemas:
+    - format: JSON
+      fields:
+      - answer
+      structure: array of objects with answer field containing CoT reasoning text
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSON
+    sample_schema: 'JSON: [{answer: str}]. Chain-of-thought reasoning for clinical diagnosis mental health scenarios.'
+    record_count_estimate: 500
+  citation_lineage: 'MentalLLaMA (DS: DS-015). GitHub #5635. Retrieved from gdrive:pixeldata/archive/gdrive/raw/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/.'
+- source_id: SRC-019
+  title: Lane C staged corpus
+  ds_alias: DS-016
+  policy: P,V
+  scope: Five-stage processing lineage
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-016
+  - '`lane_c_staged`'
+  locations:
+    working: pixelated-empathy/ingestion/`
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/therapist-sft-format
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Policy P,V. Five-stage processing lineage with permissive use. Therapist SFT format data suitable for supervised
+      fine-tuning.
+    restrictions:
+    - no-voice-reproduction
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5636
+  p_list: P0, P13
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 1
+    files:
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/therapist-sft-format/train.csv
+    total_size_mb: 50
+    schemas:
+    - format: CSV
+      fields:
+      - text
+      content: human/gpt dialogue pairs in single text column
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: text column containing full human/gpt multi-turn therapy dialogues. Format: ''human: ... gpt: ...
+      human: ... gpt: ...'''
+    record_count_estimate: 10000
+  citation_lineage: 'Lane C staged corpus (DS: DS-016). GitHub #5636. Retrieved from gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/therapist-sft-format/.'
+- source_id: SRC-020
+  title: ACE NLP
+  ds_alias: DS-017
+  policy: R,M
+  scope: Annotations/metadata; adverse childhood experiences
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-017
+  - the gated-source catalog also notes ACE annotations without raw text
+  locations:
+    local: ai/data/raw/clinical/ace_nlp/
+    working: output
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/RECCON/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy R,M. ACE NLP annotations and RECCON emotion recognition data. Restricted to metadata/annotation extraction;
+      no raw text reproduction.
+    restrictions:
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5637
+  p_list: P11, P12
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 7
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/RECCON/data/original_annotation/dailydialog_test.json
+    - gdrive:pixeldata/archive/gdrive/raw/RECCON/data/original_annotation/dailydialog_train.json
+    - gdrive:pixeldata/archive/gdrive/raw/RECCON/data/original_annotation/dailydialog_valid.json
+    - gdrive:pixeldata/archive/gdrive/raw/RECCON/data/original_annotation/iemocap_test.json
+    - gdrive:pixeldata/archive/gdrive/raw/RECCON/data/subtask1/fold1-3/
+    - gdrive:pixeldata/archive/gdrive/raw/RECCON/data/subtask2/fold1-3/
+    - gdrive:pixeldata/archive/chad_drive_imported/datasets_1/RECCON/RECCON.pdf
+    total_size_mb: 20
+    schemas:
+    - format: JSON
+      fields:
+      - dialogue
+      - annotations
+      content: RECCON emotion recognition in conversations annotations
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - JSON
+    - PDF
+    - PY
+    sample_schema: 'JSON: Daily dialog and IEMOCAP annotations with emotion recognition labels. Subtask1/subtask2 with 3-fold
+      cross-validation splits.'
+    record_count_estimate: 10000
+  citation_lineage: 'ACE NLP / RECCON (DS: DS-017). GitHub #5637. Retrieved from gdrive:pixeldata/archive/gdrive/raw/RECCON/.'
+- source_id: SRC-021
+  title: BPD Synthetic Zenodo
+  ds_alias: DS-018
+  policy: V
+  scope: Small synthetic BPD dataset
+  knowledge_tags: []
+  modality: dataset
+  aliases:
+  - DS-018
+  locations:
+    working: pixelated-empathy/output/bpd_synthetic_zenodo/`
+    s3: whitebat:whitebat/training/pixelated-empathy/output/bpd_synthetic_zenodo/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/zenodo/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/bpd_synthetic_zenodo/
+    gdrive_alt2: gdrive:pixelated-backups/whitebat-snapshot/raw/s3_cache/bpd_synthetic_zenodo/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. Small synthetic BPD dataset. Found on whitebat S3 at training/pixelated-empathy/output/bpd_synthetic_zenodo/.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: voice-extraction-only
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5638
+  p_list: P11, P14
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 at training/pixelated-empathy/output/bpd_synthetic_zenodo/
+    file_count: 1
+    files:
+    - whitebat:training/pixelated-empathy/output/bpd_synthetic_zenodo/
+    total_size_mb: 2
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: null
+    record_count_estimate: 200
+  citation_lineage: 'BPD Synthetic Zenodo (DS: DS-018). GitHub #5638. [Dataset not located in remote archives.]'
+- source_id: SRC-022
+  title: CBT audio HF
+  ds_alias: DS-019
+  policy: V,C
+  scope: Audio/transcript-derived CBT material
+  knowledge_tags: []
+  modality: transcript
+  aliases:
+  - DS-019
+  locations:
+    working: pixelated-empathy/output/cbt_audio_hf/`
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/emotions/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V,C. Audio/transcript-derived CBT material. Voice and content extraction restricted.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: voice-extraction-only
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5639
+  p_list: P12, P14
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 1
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/emotions/emotions.csv
+    total_size_mb: 1
+    schemas:
+    - format: CSV
+      fields:
+      - set_id
+      - gender
+      - age
+      - country
+      content: Emotion dataset metadata with demographic info
+    needs_full_text_review: false
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: set_id,gender,age,country. Emotion recognition dataset with demographic metadata.'
+    record_count_estimate: 1000
+  citation_lineage: 'CBT audio HF (DS: DS-019). GitHub #5639. Retrieved from gdrive:pixeldata/archive/gdrive/raw/emotions/.'
+- source_id: SRC-023
+  title: BPD longitudinal suicide metadata
+  ds_alias: DS-020
+  policy: M,R
+  scope: Minimal longitudinal suicide-risk metadata
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-020
+  locations:
+    working: output
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy M,R. Minimal longitudinal suicide-risk metadata from Reddit. Restricted to metadata extraction; no raw
+      text reproduction.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: crisis-safety-extraction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5640
+  p_list: P11, P15
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 1
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/Suicide_Detection.csv
+    total_size_mb: 15
+    schemas:
+    - format: CSV
+      fields:
+      - text
+      - class
+      classes:
+      - suicide
+      - non-suicide
+      content: Reddit posts with suicide detection labels
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: text,class. Reddit posts labeled as ''suicide'' or ''non-suicide'' for suicide risk detection.'
+    record_count_estimate: 2000
+  citation_lineage: 'BPD longitudinal suicide metadata (DS: DS-020). GitHub #5640. Retrieved from gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/Suicide_Detection.csv.'
+- source_id: SRC-024
+  title: ADHD XAI study metadata
+  ds_alias: DS-021
+  policy: M,R
+  scope: Minimal ADHD explainability metadata
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-021
+  locations:
+    working: output
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy M,R. Minimal ADHD explainability metadata from Reddit. Restricted to metadata/feature extraction.
+    restrictions:
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5641
+  p_list: P12, P14
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 4
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/adhd_2018_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/adhd_2019_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/adhd_post_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/adhd_pre_features_tfidf_256.csv
+    total_size_mb: 10
+    schemas:
+    - format: CSV
+      fields:
+      - subreddit
+      - author
+      - date
+      - post
+      - automated_readability_index
+      - '...100+ LIWC and TF-IDF features'
+      content: Reddit ADHD posts with readability, sentiment, LIWC, and TF-IDF features
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: subreddit,author,date,post + 100+ features (readability indices, sentiment scores, LIWC categories,
+      TF-IDF 256-dim vectors). ADHD subreddit posts with linguistic features.'
+    record_count_estimate: 5000
+  citation_lineage: 'ADHD XAI study metadata (DS: DS-021). GitHub #5641. Retrieved from gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/.'
+- source_id: SRC-025
+  title: BBRD
+  ds_alias: DS-022
+  policy: R,M
+  scope: BPD Reddit corpus, claimed 992 users/68K posts
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - DS-022
+  locations:
+    working: manifests
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy R,M. BPD Reddit corpus with 992 users/68K posts. Restricted to metadata/feature extraction; no raw text
+      reproduction.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4237
+  github_issue: 5642
+  p_list: P11; PIX-4237
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 4
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_2018_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_2019_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_post_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_pre_features_tfidf_256.csv
+    total_size_mb: 10
+    schemas:
+    - format: CSV
+      fields:
+      - subreddit
+      - author
+      - date
+      - post
+      - '...100+ LIWC and TF-IDF features'
+      content: Reddit BPD posts with readability, sentiment, LIWC, and TF-IDF features
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: subreddit,author,date,post + 100+ features (readability, sentiment, LIWC, TF-IDF 256-dim). BPD subreddit
+      posts with linguistic features. Claimed 992 users/68K posts.'
+    record_count_estimate: 68000
+  citation_lineage: 'BBRD (DS: DS-022). GitHub #5642. Retrieved from gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/.'
+- source_id: SRC-026
+  title: Burnout source family
+  ds_alias: DS-023
+  policy: V,R
+  scope: Surveys, detection/prediction data, organization/wellbeing data, public narratives
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-023–029
+  - DS-084
+  - seven gated datasets plus eight web narratives
+  locations:
+    local: ai/data/raw/burnout/
+    working: manifests/output
+    s3: whitebat:whitebat/training/pixelated-empathy/output/burnout_*
+    s3_alt: upcloud:crispy/training/ai-data/raw/burnout/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/burnout_*
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/raw/s3_cache/burnout_*
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V,R. Burnout source family (7 gated datasets + 8 web narratives). Found on whitebat S3 (8 burnout directories)
+      and upcloud S3 (crispy/training/ai-data/raw/burnout/).
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5643
+  p_list: P14, P15
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 (8 burnout directories under training/pixelated-empathy/output/) and upcloud S3 (crispy/training/ai-data/raw/burnout/
+      with 8 subdirectories). Also cached at whitebat:training/raw/s3_cache/burnout_*.
+    file_count: 16
+    files:
+    - whitebat:training/pixelated-empathy/output/burnout_buried_scrubs/
+    - whitebat:training/pixelated-empathy/output/burnout_final_out/
+    - whitebat:training/pixelated-empathy/output/burnout_heading_hills/
+    - whitebat:training/pixelated-empathy/output/burnout_how_good_therapists_leave/
+    - whitebat:training/pixelated-empathy/output/burnout_i_want_to_quit/
+    - whitebat:training/pixelated-empathy/output/burnout_last_attempt/
+    - whitebat:training/pixelated-empathy/output/burnout_let_go_working/
+    - whitebat:training/pixelated-empathy/output/burnout_therapist_interrupted/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_buried_scrubs/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_final_out/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_heading_hills/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_how_good_therapists_leave/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_i_want_to_quit/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_last_attempt/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_let_go_working/
+    - upcloud:crispy/training/ai-data/raw/burnout/burnout_why_counselors_quit/
+    total_size_mb: 100
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    - JSON
+    sample_schema: null
+    record_count_estimate: 5000
+  citation_lineage: 'Burnout source family (DS: DS-023). GitHub #5643. [Datasets not located in remote archives; only a single
+    CPTSD transcript referencing burnout found.]'
+- source_id: SRC-030
+  title: Empathetic Dialogues v2
+  ds_alias: DS-052
+  policy: R
+  scope: Dialogue corpus
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-052
+  - '`empath`'
+  locations:
+    local: ai/data/raw/empath/
+    working: HF
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/Empathy-Mental-Health/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy R. Dialogue corpus restricted to knowledge extraction. Empathy-Mental-Health dataset from Reddit with
+      empathy annotations.
+    restrictions:
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5647
+  p_list: P2, P14
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 5
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/Empathy-Mental-Health/dataset/emotional-reactions-reddit.csv
+    - gdrive:pixeldata/archive/gdrive/raw/Empathy-Mental-Health/dataset/explorations-reddit.csv
+    - gdrive:pixeldata/archive/gdrive/raw/Empathy-Mental-Health/dataset/interpretations-reddit.csv
+    - gdrive:pixeldata/archive/gdrive/raw/Empathy-Mental-Health/dataset/sample_input_ER.csv
+    - gdrive:pixeldata/archive/gdrive/raw/Empathy-Mental-Health/dataset/sample_test_input.csv
+    total_size_mb: 30
+    schemas:
+    - format: CSV
+      fields:
+      - sp_id
+      - rp_id
+      - seeker_post
+      - response_post
+      - level
+      - rationales
+      content: Empathetic dialogue dataset with seeker posts, response posts, empathy levels, and rationales
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: sp_id,rp_id,seeker_post,response_post,level,rationales. Reddit-derived empathetic dialogues with
+      empathy level annotations (0=non-empathetic, higher=more empathetic).'
+    record_count_estimate: 10000
+  citation_lineage: 'Empathetic Dialogues v2 (DS: DS-052). GitHub #5647. Retrieved from gdrive:pixeldata/archive/gdrive/raw/Empathy-Mental-Health/.'
+- source_id: SRC-031
+  title: Mitch Hamidi BPD NLP
+  ds_alias: DS-053
+  policy: R
+  scope: Reddit-sourced BPD NLP
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - DS-053
+  locations:
+    working: output/raw
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy R. Reddit-sourced BPD NLP data. Restricted to knowledge extraction; no raw text reproduction.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5648
+  p_list: P11
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 4
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_2018_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_2019_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_post_features_tfidf_256.csv
+    - gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/bpd_pre_features_tfidf_256.csv
+    total_size_mb: 10
+    schemas:
+    - format: CSV
+      fields:
+      - subreddit
+      - author
+      - date
+      - post
+      - '...100+ LIWC and TF-IDF features'
+      content: Reddit BPD posts with linguistic features - same corpus as BBRD
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: subreddit,author,date,post + 100+ features. BPD subreddit posts with TF-IDF and LIWC features. Reddit-sourced
+      BPD NLP data.'
+    record_count_estimate: 68000
+  citation_lineage: 'Hamidi, M. (n.d.). BPD NLP [Dataset]. GitHub #5648. Retrieved from gdrive:pixeldata/archive/gdrive/raw/datasets/reddit_mental_health/.'
+- source_id: SRC-032
+  title: MentalChat16K
+  ds_alias: DS-054
+  policy: V
+  scope: Mental-health dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-054
+  locations:
+    local: ai/data/raw/mentalchat16k/
+    working: HF
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. Mental-health dialogue from multiple consolidated professional datasets. Voice extraction restricted;
+      SFT data suitable for fine-tuning with paraphrasing.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5649
+  p_list: P14, P15
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 15
+    files:
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/LLAMA3_Mental_Counseling_Data/data/train-00000-of-00001.parquet
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/Psych8k/Alexander_Street_shareGPT_2.0.json
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/SoulChat2.0/PsyDTCorpus/PsyDTCorpus_train_mulit_turn_packing.json
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/SoulChat2.0/PsyDTCorpus/PsyDTCorpus_test_single_turn_split.json
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/data/20200325_counsel_chat.csv
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/data/counsel_chat_250-tokens_full.json
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/data/counselchat-data.csv
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/mental_health_counseling_conversations/combined_dataset.json
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/neuro_qa_SFT_Trainer/train.json
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/therapist-sft-format/train.csv
+    total_size_mb: 200
+    schemas:
+    - format: Parquet
+      source: LLAMA3_Mental_Counseling_Data
+      fields:
+      - text
+      content: Mental counseling SFT data
+    - format: JSON
+      source: SoulChat2.0/PsyDTCorpus
+      fields:
+      - id
+      - normalizedTag
+      - messages
+      content: Chinese REBT therapy multi-turn dialogues
+    - format: CSV
+      source: counsel-chat
+      fields:
+      - questionID
+      - questionTitle
+      - questionText
+      - topic
+      - therapistInfo
+      - answerText
+      - upvotes
+      - views
+      - split
+      content: Counseling Q&A from licensed therapists
+    - format: JSON
+      source: mental_health_counseling_conversations
+      fields:
+      - Context
+      - Response
+      content: Mental health counseling context-response pairs
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    - JSON
+    - Parquet
+    - JSONL
+    sample_schema: 'Multiple formats: Parquet (LLAMA3), JSON (SoulChat2.0 with Chinese REBT therapy), CSV (counsel-chat with
+      therapist Q&A), JSON (counseling conversations with Context/Response). Consolidated professional mental health datasets.'
+    record_count_estimate: 50000
+  citation_lineage: 'MentalChat16K (DS: DS-054). GitHub #5649. Retrieved from gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/.'
+- source_id: SRC-033
+  title: Mental Health MultiAgent
+  ds_alias: DS-055
+  policy: R,V
+  scope: GPT-4.1-generated multi-agent mental-health dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-055
+  locations:
+    local: ai/data/raw/mental_health_multiagent/
+    working: output
+    s3: whitebat:whitebat/training/raw/mental_health_multiagent/
+    s3_alt: whitebat:whitebat/training/pixelated-empathy/output/mental_health_multiagent/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/mental_health_multiagent/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/raw/mental_health_multiagent/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy R,V. GPT-4.1-generated multi-agent mental-health dialogue. Found on whitebat S3 at training/raw/mental_health_multiagent/
+      and training/pixelated-empathy/output/mental_health_multiagent/.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5650
+  p_list: P2, P14
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan
+    coverage: Found on whitebat S3 at training/raw/mental_health_multiagent/ (with raw/ and esconv.jsonl) and training/pixelated-empathy/output/mental_health_multiagent/.
+      Also deduped at training/raw/deduped/mental_health_multiagent.jsonl.
+    file_count: 3
+    files:
+    - whitebat:training/raw/mental_health_multiagent/mental_health_multiagent.jsonl
+    - whitebat:training/raw/mental_health_multiagent/raw/
+    - whitebat:training/raw/deduped/mental_health_multiagent.jsonl
+    total_size_mb: 20
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: null
+    record_count_estimate: 5000
+  citation_lineage: 'Mental Health MultiAgent (DS: DS-055). GitHub #5650. [Dataset not located in remote archives.]'
+- source_id: SRC-034
+  title: KokoroChat
+  ds_alias: DS-056
+  policy: V
+  scope: Generated counseling dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-056
+  locations:
+    local: ai/data/raw/kokorochat/
+    working: output
+    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. Generated counseling dialogue with system/user/assistant format. Voice extraction restricted; suitable
+      for SFT with paraphrasing.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5651
+  p_list: P14, P15
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 3
+    files:
+    - gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/train.jsonl
+    - gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/val.jsonl
+    - gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/test.jsonl
+    total_size_mb: 30
+    schemas:
+    - format: JSONL
+      fields:
+      - id
+      - messages
+      message_fields:
+      - role
+      - content
+      roles:
+      - system
+      - user
+      - assistant
+      content: Generated counseling dialogue with system prompt, user message, and assistant response
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: {id: str, messages: [{role: ''system''|''user''|''assistant'', content: str}]}. System prompt sets
+      therapy assistant persona; user/assistant turns form counseling dialogues.'
+    record_count_estimate: 10000
+  citation_lineage: 'KokoroChat (DS: DS-056). GitHub #5651. Retrieved from gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/.'
+- source_id: SRC-035
+  title: Mental-health counseling conversations
+  ds_alias: DS-057
+  policy: V
+  scope: Counseling Q&A/conversations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-057
+  locations:
+    local: ai/data/raw/counseling_conversations/
+    working: HF
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. Counseling Q&A/conversations from licensed therapists. Voice extraction restricted; suitable for
+      SFT with paraphrasing.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5652
+  p_list: P2, P14
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 3
+    files:
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/data/20200325_counsel_chat.csv
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/data/counsel_chat_250-tokens_full.json
+    - gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/data/counselchat-data.csv
+    total_size_mb: 50
+    schemas:
+    - format: CSV
+      fields:
+      - questionID
+      - questionTitle
+      - questionText
+      - questionLink
+      - topic
+      - therapistInfo
+      - therapistURL
+      - answerText
+      - upvotes
+      - views
+      - split
+      content: Counseling Q&A from licensed therapists with topic, therapist info, and train/test split
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    - JSON
+    sample_schema: 'CSV: questionID,questionTitle,questionText,questionLink,topic,therapistInfo,therapistURL,answerText,upvotes,views,split.
+      Counseling Q&A from licensed therapists with topic categorization and train/test splits.'
+    record_count_estimate: 20000
+  citation_lineage: 'Amod, S. (n.d.). Mental-health counseling conversations [Dataset]. GitHub #5652. Retrieved from gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/professional/counsel-chat/.'
+- source_id: SRC-038
+  title: UCL psychological abuse
+  ds_alias: DS-060
+  policy: A
+  scope: Psychological-abuse research text
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-060
+  locations:
+    working: clinical
+    remote_url: https://doi.org/10.5522/04/31587925.v1
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: 'Policy A. Psychological-abuse research text. Found on UCL Research Data Repository (DOI 10.5522/04/31587925.v1).
+      CC BY 4.0 license. Expert-annotated Reddit posts on six classes of psychological abuse.'
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5655
+  p_list: P11, P12
+  inspection:
+    method: rclone-lsf-plus-grep-search + web-search
+    coverage: Found on UCL Research Data Repository. Dataset of 1,500 labeled Reddit posts across six non-mutually exclusive
+      categories of psychological abuse. Published by UCL Gender and Tech Research Lab. Also available via B2FIND.
+    file_count: 0
+    files: []
+    total_size_mb: 0
+    schemas:
+    - format: CSV
+      fields:
+      - text
+      - rules_control_micro_regulation
+      - justifying_minimizing_denying
+      - threats_intimidation_punishment
+      - shaming_degrading_ignoring
+      - isolation
+      - surveillance_monitoring_harassment
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: Reddit posts labeled across six psychological abuse categories (Rules/control, Justifying/denying,
+      Threats/intimidation, Shaming/degrading, Isolation, Surveillance). 1,500 posts, CC BY 4.0.'
+    record_count_estimate: 1500
+    access_requirements: Available from UCL Research Data Repository at https://doi.org/10.5522/04/31587925.v1. Also on B2FIND
+      at https://b2find.eudat.eu/dataset/03aec334-19a0-553d-800c-47d0559964d2.
+  citation_lineage: 'UCL psychological abuse (DS: DS-060). GitHub #5655. [Dataset not located in remote archives.]'
+- source_id: SRC-039
+  title: ESConv
+  ds_alias: DS-061
+  policy: V
+  scope: Emotional-support conversations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-061
+  locations:
+    local: ai/data/raw/esconv/
+    working: cache
+    s3: whitebat:whitebat/training/raw/esconv/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/raw/esconv/
+    huggingface_id: thu-coai/esconv
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. Emotional-support conversations (ESConv). Found on whitebat S3 at training/raw/esconv/ and on HuggingFace
+      as thu-coai/esconv (CC-BY-NC-4.0).
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5656
+  p_list: P2, P15
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api
+    coverage: 'Found on whitebat S3 at training/raw/esconv/ (with esconv.jsonl and raw/ subdirectory). Also deduped at training/raw/deduped/esconv.jsonl.
+      HuggingFace thu-coai/esconv (CC-BY-NC-4.0, 1K-10K records, arXiv 2106.01144).'
+    file_count: 3
+    files:
+    - whitebat:training/raw/esconv/esconv.jsonl
+    - whitebat:training/raw/esconv/raw/
+    - whitebat:training/raw/deduped/esconv.jsonl
+    total_size_mb: 10
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: Emotional support conversation data. HuggingFace: thu-coai/esconv, CC-BY-NC-4.0, ~1K-10K records.'
+    record_count_estimate: 1300
+  citation_lineage: 'ESConv (DS: DS-061). GitHub #5656. [Dataset not located in remote archives.]'
+- source_id: SRC-040
+  title: PsyDial
+  ds_alias: DS-062
+  policy: V
+  scope: Multi-turn psychotherapy dialogue
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-062
+  locations:
+    working: raw
+    s3: whitebat:whitebat/training/raw/psydial/
+    s3_alt: whitebat:whitebat/training/pixelated-empathy/output/psydial/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psydial/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/psydial/
+    gdrive_alt2: gdrive:pixelated-backups/whitebat-snapshot/raw/psydial/
+    gdrive_alt3: gdrive:pixelated-backups/layup/pixelated/.hf_cache/datasets--qiuhuachuan--PsyDial-D101/
+    huggingface_id: qiuhuachuan/PsyDial-D101
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. Multi-turn psychotherapy dialogue (PsyDial). Found on whitebat S3 at training/raw/psydial/ and on
+      HuggingFace as qiuhuachuan/PsyDial-D101 and qiuhuachuan/PsyDial-D4 (Apache-2.0).
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5657
+  p_list: P14, P15
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api
+    coverage: 'Found on whitebat S3 at training/raw/psydial/ (with psydial.jsonl and raw/ subdirectory), training/pixelated-empathy/output/psydial/,
+      and deduped at training/raw/deduped/psydial.jsonl. HuggingFace qiuhuachuan/PsyDial-D101 (101 dialogues, 1278 test
+      cases) and qiuhuachuan/PsyDial-D4 (2382 long-term dialogues). Apache-2.0.'
+    file_count: 4
+    files:
+    - whitebat:training/raw/psydial/psydial.jsonl
+    - whitebat:training/raw/psydial/raw/
+    - whitebat:training/raw/deduped/psydial.jsonl
+    - whitebat:training/pixelated-empathy/output/psydial/
+    total_size_mb: 15
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: Multi-turn psychotherapy dialogues. HuggingFace: qiuhuachuan/PsyDial-D101 (101 dialogues) and PsyDial-D4
+      (2382 dialogues). Apache-2.0. Chinese-language counseling dialogues.'
+    record_count_estimate: 2483
+  citation_lineage: 'PsyDial (DS: DS-062). GitHub #5657. [Dataset not located in remote archives.]'
+- source_id: SRC-041
+  title: PsyInsight
+  ds_alias: DS-063
+  policy: V
+  scope: Generated psychological insight records
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-063
+  locations:
+    working: output
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/raw/psy_insight/
+    gdrive_alt2: gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/ingestion/psy_insight/
+    huggingface_id: XuShihao6715/counseling-psy-insight
+    remote_url: https://github.com/ckqqqq/Psy-Insight
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-voice-extraction
+    rationale: Policy V. Generated psychological insight records (PsyInsight). Found on HuggingFace as XuShihao6715/counseling-psy-insight
+      and on GitHub as ckqqqq/Psy-Insight. Also found on GDrive at pixelated-backups/whitebat-snapshot/ with full repo
+      and ingested JSONL. Bilingual (Chinese/English) multi-turn counseling dialogues with strategy/emotion/stage annotations.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - paraphrased-concepts-must-cite
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5658
+  p_list: P12, P14
+  inspection:
+    method: rclone-lsf-plus-grep-search + huggingface-api + web-search + gdrive-recursive-scan
+    coverage: Found on HuggingFace (XuShihao6715/counseling-psy-insight) and GitHub (ckqqqq/Psy-Insight). Also found on GDrive
+      at pixelated-backups/whitebat-snapshot/ with full Psy-Insight repo (data/en_data_version7.json, data/cn_data_version7.json),
+      ingested JSONL (psy_insight_ingested.jsonl), and manifest. 951 sessions of multi-turn counseling dialogues (520 English,
+      431 Chinese) with multi-task labels and step-by-step reasoning annotations.
+    file_count: 8
+    files:
+    - huggingface:XuShihao6715/counseling-psy-insight/en.jsonl
+    - huggingface:XuShihao6715/counseling-psy-insight/zh.jsonl
+    - huggingface:XuShihao6715/counseling-psy-insight/en.turns.jsonl
+    - huggingface:XuShihao6715/counseling-psy-insight/zh.turns.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/output/psy_insight_ingested.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/raw/Psy-Insight/data/en_data_version7.json
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/raw/Psy-Insight/data/cn_data_version7.json
+    - gdrive:pixelated-backups/whitebat-snapshot/pixelated-empathy/output/psy_insight/output/psy_insight_manifest.json
+    total_size_mb: 7
+    schemas:
+    - format: JSONL
+      fields:
+      - case_id
+      - source
+      - lang
+      - messages
+      - therapy
+      - stage
+      - topic
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: Bilingual counseling dialogues with strategy/emotion/stage annotations. 520 English dialogues
+      (5,892 turns) and 431 Chinese dialogues (5,708 turns). Covers 16 therapy methods and topics.'
+    record_count_estimate: 951
+  citation_lineage: 'PsyInsight (DS: DS-063). GitHub #5658. [Dataset not located in remote archives.]'
+- source_id: SRC-042
+  title: Addiction Stories
+  ds_alias: DS-064
+  policy: A
+  scope: First-person addiction narratives
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-064
+  locations:
+    local: ai/data/raw/clinical/addiction_stories/
+    working: clinical
+    gdrive: gdrive:pixeldata/archive/gdrive/raw/formatted_annotated_addiction_counseling_csv_SFT/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy A. First-person addiction narratives with structured counseling annotations. Academic use; knowledge
+      extraction permitted with attribution.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5659
+  p_list: P14, P15
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 2
+    files:
+    - gdrive:pixeldata/archive/gdrive/raw/formatted_annotated_addiction_counseling_csv_SFT/formatted_annotated_addiction_counseling_csv_SFT.csv
+    - gdrive:pixeldata/archive/gdrive/raw/formatted_annotated_addiction_counseling_csv_SFT/formatted_annotated_addiction_counseling_csv_SFT
+      (1).csv
+    total_size_mb: 15
+    schemas:
+    - format: CSV
+      fields:
+      - text
+      content: Addiction counseling SFT data with Context/Input/Response format including sentiment, emotion, urgency, and
+        counselor approach annotations
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - CSV
+    sample_schema: 'CSV: text column with ''### Context: [session focus, sentiment, emotion, urgency, approach] ### Input:
+      [user message] ### Response: [counselor response]''. Formatted addiction counseling SFT data.'
+    record_count_estimate: 5000
+  citation_lineage: 'Addiction Stories (DS: DS-064). GitHub #5659. Retrieved from gdrive:pixeldata/archive/gdrive/raw/formatted_annotated_addiction_counseling_csv_SFT/.'
+- source_id: SRC-046
+  title: DAIC-WOZ
+  ds_alias: DS-068
+  policy: R,C
+  scope: Clinical interviews/audio-derived features
+  knowledge_tags: []
+  modality: media
+  aliases:
+  - DS-068
+  locations:
+    local: ai/data/raw/daic_woz/
+    working: HF
+    s3: whitebat:whitebat/training/raw/daic_woz/
+    gdrive: gdrive:pixelated-backups/whitebat-snapshot/raw/daic_woz/
+    gdrive_alt: gdrive:pixelated-backups/whitebat-snapshot/hf_datasets/saeedzou___daic-woz/
+    gdrive_alt2: gdrive:pixelated-backups/layup/pixelated/.hf_cache/saeedzou___daic-woz/
+    huggingface_id: saeedzou/DAIC-WOZ
+    kaggle_id: alejandropatinio/daic-woz
+  inspection_status: inspected-metadata-restricted-access
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Policy R,C. Clinical interviews/audio-derived features (DAIC-WOZ). Found on whitebat S3 (training/raw/daic_woz/
+      with daic_woz.jsonl and raw/), HuggingFace (saeedzou/DAIC-WOZ), and Kaggle (alejandropatinio/daic-woz, 91GB). DAIC-WOZ
+      is a restricted-access clinical dataset - original access requires application to USC Institute for Creative Technologies.
+    restrictions:
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: knowledge-retrieval
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5663
+  p_list: P12, P14
+  inspection:
+    method: rclone-lsf-plus-grep-search + s3-recursive-scan + huggingface-api + kaggle-api
+    coverage: 'Found on whitebat S3 at training/raw/daic_woz/ (with daic_woz.jsonl and raw/ subdirectory), deduped at training/raw/deduped/daic_woz.jsonl,
+      HF cache at training/hf_datasets/saeedzou___daic-woz/, and access request notes at training/raw/access_requests/01_daic_woz.txt.
+      Also found on GDrive at pixelated-backups/whitebat-snapshot/raw/daic_woz/ (daic_woz.jsonl, raw/test.jsonl, raw/dev.jsonl,
+      raw/train.jsonl) and pixelated-backups/whitebat-snapshot/hf_datasets/saeedzou___daic-woz/. HuggingFace saeedzou/DAIC-WOZ
+      (10K-100K records, parquet, audio+text). Kaggle alejandropatinio/daic-woz (91GB, Unknown license).'
+    file_count: 8
+    files:
+    - whitebat:training/raw/daic_woz/daic_woz.jsonl
+    - whitebat:training/raw/daic_woz/raw/
+    - whitebat:training/raw/deduped/daic_woz.jsonl
+    - whitebat:training/hf_datasets/saeedzou___daic-woz/
+    - whitebat:training/raw/access_requests/01_daic_woz.txt
+    - gdrive:pixelated-backups/whitebat-snapshot/raw/daic_woz/daic_woz.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/raw/daic_woz/raw/train.jsonl
+    - gdrive:pixelated-backups/whitebat-snapshot/hf_datasets/saeedzou___daic-woz/
+    total_size_mb: 50
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    - Parquet
+    sample_schema: 'JSONL/Parquet: Clinical interview data with audio-derived features. HuggingFace: saeedzou/DAIC-WOZ (10K-100K
+      records). Kaggle: alejandropatinio/daic-woz (91GB). Restricted-access clinical dataset.'
+    record_count_estimate: 10000
+    access_requirements: 'DAIC-WOZ is a restricted-access clinical dataset. Original access requires application to USC
+      Institute for Creative Technologies (http://dcapswoz.ict.usc.edu/). S3 copy and HuggingFace/Kaggle mirrors may contain
+      processed derivatives. Access request notes at whitebat:training/raw/access_requests/01_daic_woz.txt.'
+  citation_lineage: 'DAIC-WOZ (DS: DS-068). GitHub #5663. [Dataset not located in remote archives; restricted-access clinical
+    dataset requiring direct application.]'
+- source_id: SRC-047
+  title: AnnoMI
+  ds_alias: DS-069
+  policy: D
+  scope: Motivational-interviewing dialogue with annotations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-069
+  locations:
+    local: ai/data/raw/annomi/
+    working: cache
+    gdrive: gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/motivational-interviewing-therapy/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: deprecated-restricted
+    rationale: Policy D. Motivational-interviewing dialogue with annotations (AnnoMI). Deprecated/restricted use; data from
+      YouTube transcripts requires careful licensing review.
+    restrictions:
+    - no-voice-reproduction
+    - no-direct-quote
+    - no-case-study-reproduction
+    - paraphrased-concepts-must-cite
+    - clinical-claims-need-review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-voice-reproduction
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5664
+  p_list: P2, P15
+  inspection:
+    method: rclone-lsf-plus-cat-head
+    coverage: gdrive-archive-full-scan
+    file_count: 1
+    files:
+    - gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/motivational-interviewing-therapy/train.jsonl
+    total_size_mb: 20
+    schemas:
+    - format: JSONL
+      fields:
+      - id
+      - conversations
+      conversation_fields:
+      - from
+      - value
+      roles:
+      - gpt
+      - human
+      content: Motivational interviewing dialogue from YouTube transcripts with gpt/human conversation format
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+    formats:
+    - JSONL
+    sample_schema: 'JSONL: {id: str, conversations: [{from: ''gpt''|''human'', value: str}]}. YouTube-derived motivational
+      interviewing therapy transcripts. ID format: ''youtube_url_topic''.'
+    record_count_estimate: 500
+  citation_lineage: 'AnnoMI (DS: DS-069). GitHub #5664. Retrieved from gdrive:pixeldata/archive/local_sync/ai/datasets/tier2_professional/motivational-interviewing-therapy/.'

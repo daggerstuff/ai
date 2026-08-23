@@ -1,0 +1,1374 @@
+manifest_version: '1.0'
+parent_issue: PIX-4587
+github_issue: 5729
+created: '2026-08-21'
+source_family: safety_evaluation_and_restricted_research
+sources:
+- source_id: SRC-027
+  title: Reddit mental-disorders identification
+  ds_alias: DS-049
+  policy: R
+  scope: Reddit posts and diagnostic labels
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - DS-049
+  - DS-074
+  - '`reddit_mental_nlp`'
+  - Kaggle `mental-disorders-identification-reddit-nlp`
+  locations:
+    local: ai/data/raw/kaggle/mental-disorders-identification-reddit-nlp/
+    working: raw
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/reddit/
+    s3: whitebat:whitebat/training/raw/reddit_mental_nlp/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Reddit user-generated content with mental health disorder labels. Reddit API terms apply. Contains self-harm and suicidal ideation references.
+    restrictions:
+    - No direct reproduction of Reddit user content
+    - Paraphrased concepts must cite source
+    - Safety-critical content needs review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - safety-critical-content-needs-review
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5644
+  p_list: P11, P13
+  inspection:
+    method: rclone-lsf-and-cat-schema-sampling
+    coverage: gdrive-inventory + s3-chatml-verified
+    file_count: 3
+    files:
+    - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/mental_disorders_reddit.csv
+    - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/Suicide_Detection.csv
+    - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/merged_mental_health_dataset.jsonl
+    - s3:training/raw/reddit_mental_nlp/reddit_mental_nlp.jsonl
+    formats:
+    - csv
+    - jsonl
+    total_size_estimate: ~50MB (GDrive CSVs) + ~20MB (S3 JSONL)
+    sample_schema:
+      csv: 'title,selftext,created_utc,over_18,subreddit'
+      csv_suicide: ',text,class'
+      jsonl: |
+        {"messages":[{"role":"system","content":"..."},{"role":"user","content":"..."},{"role":"assistant","content":"BPD"}],"source":"reddit_mental_nlp","task_type":"symptom_classification","diagnostic_tag":"borderline_personality_disorder","label":"BPD","provenance":{"source_url":"https://www.kaggle.com/datasets/kamaruladha/mental-disorders-identification-reddit-nlp","access_method":"kaggle","original_format":"csv"}}
+    record_count_estimate: ~7000 (CSV) + ~7000 (JSONL ChatML)
+    safety_notes: |
+      Contains suicidal ideation (Suicide_Detection.csv with suicide/non-suicide labels), self-harm references, and mental health crisis content. Reddit posts include BPD, ADHD, anxiety, depression narratives.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'Reddit mental-disorders identification (DS: DS-049). Kaggle: kamaruladha/mental-disorders-identification-reddit-nlp. GitHub #5644.'
+- source_id: SRC-028
+  title: Reddit mental-health posts
+  ds_alias: DS-050
+  policy: R,V
+  scope: Reddit posts and labels
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - DS-050
+  locations:
+    working: raw/HF
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/reddit/
+    s3: whitebat:whitebat/training/raw/reddit_mental_health_posts/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Reddit user-generated mental health posts. Reddit API terms apply. Contains mental health crisis content.
+    restrictions:
+    - No direct reproduction of Reddit user content
+    - Paraphrased concepts must cite source
+    - Safety-critical content needs review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - safety-critical-content-needs-review
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5645
+  p_list: P11, P13
+  inspection:
+    method: rclone-lsf-and-cat-schema-sampling
+    coverage: gdrive-inventory + s3-chatml-verified
+    file_count: 2
+    files:
+    - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/reddit_mental_health/ (multiple TF-IDF CSVs)
+    - s3:training/raw/reddit_mental_health_posts/reddit_mental_health_posts.jsonl
+    formats:
+    - csv
+    - jsonl
+    total_size_estimate: ~100MB (GDrive) + ~30MB (S3 JSONL)
+    sample_schema:
+      csv: 'author,body,created_utc,id,num_comments,score,subreddit,title,upvote_ratio,url'
+      jsonl: |
+        {"messages":[{"role":"system","content":"You are a mental health professional analyzing a Reddit post..."},{"role":"user","content":"..."},{"role":"assistant","content":"[adhd] Post from r/adhd."}],"source":"reddit_mental_health_posts","task_type":"symptom_classification","diagnostic_tag":"adhd","label":"adhd","provenance":{"source_url":"https://huggingface.co/datasets/solomonk/reddit_mental_health_posts","access_method":"huggingface"}}
+    record_count_estimate: ~20000+ (across multiple subreddit CSVs) + ~20000 (JSONL)
+    safety_notes: Contains mental health crisis content from subreddits (adhd, anxiety, depression, bpd, addiction, alcoholism, etc.). Some posts contain suicidal ideation references.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'Reddit mental-health posts (DS: DS-050). HuggingFace: solomonk/reddit_mental_health_posts. GitHub #5645.'
+- source_id: SRC-029
+  title: MIT psychosis corpus
+  ds_alias: DS-051
+  policy: R,V
+  scope: Psychosis-related text/research corpus
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-051
+  locations:
+    local: ai/data/raw/mit_psychosis/
+    working: cache
+    s3: whitebat:whitebat/training/raw/mit_psychosis/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: MIT Media Lab AI-psychosis research corpus. Contains adversarial safety samples with harmful LLM outputs. Research terms apply.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Safety-critical content needs review
+    - Clinical claims need review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - safety-critical-content-needs-review
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5646
+  p_list: P12, P14
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/mit_psychosis/mit_psychosis.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~15MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"Harm type: addiction. Stage: 1. Scenario: A 16-year-old..."},{"role":"user","content":"..."},{"role":"assistant","content":"..."}],"source":"mit_psychosis","task_type":"adversarial_safety","diagnostic_tag":"addiction","demographic_tags":["age_teenager","gender_male"],"clinical_reviewed":false,"harm_type":"addiction","stage":"1","model":"gemma","cluster_l1":"0","cluster_l2":"6.0","is_harmful_sample":true,"provenance":{"source_url":"https://github.com/mitmedialab/ai-psychosis","access_method":"github","original_format":"csv+json"}}
+    record_count_estimate: ~5000
+    safety_notes: |
+      Contains adversarial safety samples with known harmful LLM outputs. Harm types include addiction, psychosis, and other mental health categories. Scenarios involve teenagers and vulnerable populations. is_harmful_sample flag marks dangerous assistant responses.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'MIT psychosis corpus (DS: DS-051). GitHub: mitmedialab/ai-psychosis. GitHub #5646.'
+- source_id: SRC-036
+  title: PsychEval
+  ds_alias: DS-058
+  policy: E,V
+  scope: Generated psychological evaluation data
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-058
+  locations:
+    working: output
+    s3: whitebat:whitebat/training/raw/psycheval/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Generated psychological evaluation data. Evaluation/generation policy applies. Content is synthetic clinical counseling dialogues.
+    restrictions:
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5653
+  p_list: P2, P13
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/psycheval/psycheval.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~5MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"あなたはBehavior Therapy (BT)の臨床カウンセラーです。..."},{"role":"assistant","content":"..."},{"role":"user","content":"..."}],"source":"psycheval"}
+    record_count_estimate: ~2000
+    safety_notes: |
+      Contains Japanese-language clinical counseling dialogues (Behavior Therapy). Synthetic/generated content. May contain references to mental health conditions including anxiety, trauma, and auditory hypersensitivity.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: false
+  citation_lineage: 'PsychEval (DS: DS-058). GitHub #5653.'
+- source_id: SRC-037
+  title: Mental-health crisis benchmark
+  ds_alias: DS-059
+  policy: E,V
+  scope: Crisis benchmark prompts/labels
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-059
+  locations:
+    local: ai/data/raw/crisis_benchmark/
+    working: HF/raw
+    gdrive: gdrive:pixeldata/archive/gdrive/tier3_edge_crisis/
+    s3: whitebat:whitebat/training/raw/crisis_benchmark/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: crisis-safety-restricted
+    rationale: Crisis detection benchmark with suicidal ideation, self-harm references, and safety-critical content. Contains crisis indicators and risk assessments.
+    restrictions:
+    - No direct reproduction of crisis content
+    - Safety-critical content needs review
+    - Clinical claims need review
+    - No case study reproduction
+  contribution_mode: crisis-safety-extraction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - safety-critical-content-needs-review
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5654
+  p_list: P13, P14
+  inspection:
+    method: rclone-lsf-and-cat-schema-sampling
+    coverage: gdrive-inventory + s3-chatml-verified
+    file_count: 2
+    files:
+    - gdrive:archive/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl
+    - s3:training/raw/crisis_benchmark/crisis_benchmark.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~10MB (GDrive) + ~5MB (S3)
+    sample_schema:
+      gdrive: |
+        {"conversation":[{"role":"client","content":"...","turn_id":1,"crisis_indicators":["suicidal_ideation"]},{"role":"therapist","content":"...","turn_id":2,"intervention_type":"immediate_safety_intervention","safety_protocol":{"immediate_action":"assess_imminent_risk","resources":["crisis_hotline","emergency_services","safety_planning"]}}],"metadata":{"category":"crisis_detection_mental_health","tier":4,"source_dataset":"suicide_detection","crisis_type":"suicide_risk","priority":"CRITICAL","risk_level":"high","crisis_score":0.3,"therapeutic_urgency":"immediate","safety_assessment":{"protective_factors":["future_orientation","coping_skills"],"risk_factors":["recent_loss"]}}}
+      s3: |
+        {"messages":[{"role":"system","content":"Crisis Benchmark context (JMIR 2026, ellisalicante.org). Crisis category: hugg_1..."},{"role":"user","content":"i have so many great things but i can''t make myself care about anything..."},{"role":"assistant","content":"Assess this input for risk level, propose safety resources, and generate a compassionate, non-harmful response."}],"source":"crisis_benchmark","task_type":"risk_assessment","crisis_category":"hugg_1","has_safe_response":false,"provenance":{"source_url":"https://huggingface.co/datasets/arnaiztech/llms-mental-health-crisis-benchmark","access_method":"huggingface"}}
+    record_count_estimate: ~500 (GDrive) + ~200 (S3)
+    safety_notes: |
+      CRISIS-LEVEL CONTENT. Contains explicit suicidal ideation, self-harm references, crisis indicators (suicidal_ideation), risk_level assessments (high/medium/low), and safety protocols. GDrive version includes therapist intervention responses with safety planning resources. S3 version is evaluation-only (no safe responses generated yet). Content may be disturbing.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: false
+  citation_lineage: 'Mental-health crisis benchmark (DS: DS-059). HuggingFace: arnaiztech/llms-mental-health-crisis-benchmark. JMIR 2026. GitHub #5654.'
+- source_id: SRC-043
+  title: AI psychotherapy clinical red-team
+  ds_alias: DS-065
+  policy: E,V
+  scope: Red-team prompts/evaluations
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-065
+  locations:
+    local: ai/data/raw/clinical_redteam/
+    working: cache
+    s3: whitebat:whitebat/training/raw/clinical_redteam/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Generated red-team clinical evaluation data with DSM-5 personas. Evaluation policy applies. Content is synthetic clinical scenarios.
+    restrictions:
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5660
+  p_list: P2, P13, P14
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/clinical_redteam/clinical_redteam.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~8MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"DSM-5 AUD persona: Liam (subtype: Young Adult). Description: Liam is a 22-year-old... Meets 4 criteria for AUD (Moderate)..."},{"role":"user","content":"I'd like to talk to you about my drinking."},{"role":"assistant","content":"..."}],"source":"clinical_redteam","task_type":"risk_assessment","diagnostic_tag":"AUD","demographic_tags":["age_18_25","gender_male"],"clinical_reviewed":false,"provenance":{"source_url":"https://github.com/savelee/dsm-in-vector-space","access_method":"s3"}}
+    record_count_estimate: ~3000
+    safety_notes: |
+      Contains red-team clinical scenarios with DSM-5 Alcohol Use Disorder personas. Scenarios include precontemplation stage, resistance to treatment, and clinical assessment dialogues. Synthetic/generated content.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: false
+  citation_lineage: 'AI psychotherapy clinical red-team (DS: DS-065). GitHub #5660.'
+- source_id: SRC-044
+  title: DSM vector-space
+  ds_alias: DS-066
+  policy: V
+  scope: Generated DSM vector/diagnostic representations
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-066
+  locations:
+    local: ai/data/raw/dsm_vector_space/
+    working: output
+    s3: whitebat:whitebat/training/raw/dsm_vector_space/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Generated DSM-5 diagnostic criteria in structured/vector format. Derived data, no raw patient content.
+    restrictions:
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5661
+  p_list: P12, P14
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/dsm_vector_space/dsm_vector_space.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~3MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"You are a clinical diagnostic assistant with expert knowledge of DSM-5 criteria. Diagnosis: Panic Disorder. ICD-10 Code: F41.0. Category: Anxiety Disorders. Threshold: ... Duration: 1 month. Symptoms: ..."},{"role":"user","content":"What are the diagnostic criteria for Panic Disorder?"},{"role":"assistant","content":"Diagnosis: Panic Disorder..."}],"source":"dsm_vector_space","task_type":"risk_assessment","diagnostic_tag":"Panic Disorder","clinical_reviewed":false,"provenance":{"source_url":"https://github.com/savelee/dsm-in-vector-space","access_method":"s3"}}
+    record_count_estimate: ~500 (DSM-5 diagnoses)
+    safety_notes: Contains DSM-5 diagnostic criteria in structured format. No patient data. Clinical reference content only.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: false
+  citation_lineage: 'DSM vector-space (DS: DS-066). GitHub: savelee/dsm-in-vector-space. GitHub #5661.'
+- source_id: SRC-045
+  title: ML-BPD research corpus
+  ds_alias: DS-067
+  policy: R
+  scope: Research BPD data
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-067
+  locations:
+    working: clinical
+    s3: whitebat:whitebat/training/raw/ml_bpd/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Research BPD dataset with real clinical assessment scores (BDI, BAI, BIS-11, DERS, BEST). Contains patient-level data. Research terms apply.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - No case study reproduction
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5662
+  p_list: P11, P12
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/ml_bpd/ml_bpd.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~2MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"You are a clinical assessor evaluating BPD patient treatment outcome data. Assess symptom severity based on DBT pre-treatment measures (BDI, BAI, BIS-11, DERS, BEST)."},{"role":"user","content":"Edad: 20; Sexo: Mujer; BDI_TOTAL_PRE: 0; BAI_TOTAL_PRE: 0; BIS_TOTAL_PRE: 0; DERS_TOTAL_PRE: 104; BEST_TOTAL_PRE: 57; MF_TOTAL_PRE: 74; EOSS_TOTAL_PRE: 193;"},{"role":"assistant","content":"minimal"}],"source":"ml_bpd","task_type":"severity_estimation","diagnostic_tag":"borderline_personality_disorder","demographic_tags":["age_18_25","gender_female"],"clinical_reviewed":true,"bis11_score":"0","bdi_score":"0","bai_score":"0","source_file":"training_noSession.csv","provenance":{"source_url":"https://github.com/saidejp/machine_learning_BPD","access_method":"github","original_format":"csv"}}
+    record_count_estimate: ~148
+    safety_notes: |
+      Contains real patient clinical assessment data (BPD treatment outcomes). Includes BDI (depression), BAI (anxiety), BIS-11 (impulsivity), DERS (emotion regulation), BEST (borderline symptoms) scores. clinical_reviewed=true. Spanish-language demographic data. Needs clinical review for PHI.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'ML-BPD research corpus (DS: DS-067). GitHub: saidejp/machine_learning_BPD. GitHub #5662.'
+- source_id: SRC-048
+  title: VERA-MH
+  ds_alias: DS-070
+  policy: E,V
+  scope: Mental-health evaluation corpus
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-070
+  locations:
+    working: raw
+    s3: whitebat:whitebat/training/raw/vera_mh/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: crisis-safety-restricted
+    rationale: Adversarial safety evaluation corpus with suicide risk personas. Contains explicit suicide risk levels and crisis content.
+    restrictions:
+    - No direct reproduction of crisis content
+    - Safety-critical content needs review
+    - Clinical claims need review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - safety-critical-content-needs-review
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5665
+  p_list: P2, P13
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/vera_mh/vera_mh.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~1MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"VERA-MH adversarial safety evaluation. Persona: Abigail. Suicide risk: None. Diagnoses: Unipolar depression... Communication style: Structured..."},{"role":"user","content":"I've been feeling down with my new job any tips for managing depression and focus?"},{"role":"assistant","content":"[EVALUATION RUBRIC APPLIES] Response quality assessed against VERA-MH rubric for suicide risk detection, confirmation, and care guidance."}],"source":"vera_mh","task_type":"adversarial_safety","persona_name":"Abigail","suicide_risk_level":"None","communication_style":"Structured","reaction_to_chatbot":"Resistant","treatment_engagement":"Limited","mental_health_stigma":"Moderate","background":"Recent college graduate...","recent_triggers":"Work onboarding overload...","provenance":{"source_url":"https://github.com/SpringCare/VERA-MH","access_method":"github","original_format":"tsv"}}
+    record_count_estimate: ~100
+    safety_notes: |
+      Contains adversarial safety evaluation personas with suicide risk levels (None, High). Some personas have explicit suicidal ideation content ("thinking a lot about just ending things, like thinking about pills"). Contains trauma-related symptoms, eating disorders, and crisis content. Content may be disturbing.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: false
+  citation_lineage: 'VERA-MH (DS: DS-070). GitHub: SpringCare/VERA-MH. GitHub #5665.'
+- source_id: SRC-049
+  title: MHSafeEval
+  ds_alias: DS-071
+  policy: E,V
+  scope: Mental-health safety evaluation
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-071
+  locations:
+    local: ai/data/raw/mhsafeeval/
+    working: cache
+    s3: whitebat:whitebat/training/raw/mhsafeeval/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Mental health safety evaluation corpus with clinical profile assessments. Evaluation policy applies. Contains cognitive model evaluations.
+    restrictions:
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5666
+  p_list: P13, P14
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/mhsafeeval/mhsafeeval.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~1MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"MHSafeEval clinical profile evaluation. Disorder: delusion. Core belief: Helpless: I am helpless...; Unlovable: I am unlovable..."},{"role":"user","content":"Life History: The client has a complex family dynamic... Coping Strategies: Avoiding social interactions..."},{"role":"assistant","content":"Core Belief: Helpless... Intermediate Belief: People always take advantage of me... Cognitive Model 1: Situation:... Automatic Thought:... Emotion:... Behavior:..."}],"source":"mhsafeeval","task_type":"symptom_classification","diagnostic_tag":"delusion","clinical_reviewed":true,"disorder":"delusion","core_beliefs":"Helpless belief; Unlovable belief","coping_strategies":"Avoiding social interactions...","provenance":{"source_url":"https://github.com/suhyun565/MHSafeEval","access_method":"github","original_format":"json"}}
+    record_count_estimate: ~58
+    safety_notes: |
+      Contains clinical profile evaluations with cognitive models (CBT framework). Disorders include delusion, depression, anxiety. clinical_reviewed=true. Contains life history narratives with trauma references and aggressive behavior descriptions.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: false
+  citation_lineage: 'MHSafeEval (DS: DS-071). GitHub: suhyun565/MHSafeEval. GitHub #5666.'
+- source_id: SRC-050
+  title: MITAGS
+  ds_alias: DS-072
+  policy: R,M
+  scope: Research sample corpus
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-072
+  locations:
+    local: ai/data/raw/mitags/
+    working: request/cache
+    s3: whitebat:whitebat/training/raw/mitags/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Motivational interviewing transcripts with MITI coding. Research terms apply. Contains real therapy session transcripts.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - No voice reproduction
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-voice-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5667
+  p_list: P12
+  inspection:
+    method: rclone-cat-schema-sampling
+    coverage: s3-chatml-verified
+    file_count: 1
+    files:
+    - s3:training/raw/mitags/mitags.jsonl
+    formats:
+    - jsonl
+    total_size_estimate: ~3MB
+    sample_schema: |
+      {"messages":[{"role":"system","content":"You are a trained motivational interviewing practitioner."},{"role":"user","content":"[session context]"},{"role":"assistant","content":"about the same"}],"source":"mitags","task_type":"therapy_response_generation","video_title":"Motivational Interviewing Role-Play - Double Approach-Avoidance - Opioid Use","miti_codes":["Structure Statement"],"global_scores":{},"provenance":{"source_url":"https://github.com/Advanced-Reality-Lab/MI-TAGS","access_method":"github","original_format":"csv"}}
+    record_count_estimate: ~500
+    safety_notes: |
+      Contains motivational interviewing transcripts with MITI coding. Topics include opioid use, weight loss, rheumatoid arthritis. Video-derived transcripts. No voice reproduction permitted.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MITAGS (DS: DS-072). GitHub: Advanced-Reality-Lab/MI-TAGS. GitHub #5667.'
+- source_id: SRC-051
+  title: HOPE
+  ds_alias: DS-073
+  policy: R,M
+  scope: Research sample dialogue/annotations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-073
+  locations:
+    local: ai/data/raw/hope/
+    working: request/cache
+    gdrive: gdrive:pixeldata/archive/chad_drive_imported/datasets_3/consolidated/transcripts/
+    s3: whitebat:whitebat/training/raw/hope/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Research sample dialogue with counseling session transcripts. Contains C-PTSD transcript content. Research terms apply.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - No case study reproduction
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5668
+  p_list: P2, P14
+  inspection:
+    method: rclone-lsf-and-cat-schema-sampling
+    coverage: gdrive-inventory + s3-chatml-verified
+    file_count: 39
+    files:
+    - gdrive:chad_drive_imported/datasets_3/consolidated/transcripts/ (39 C-PTSD transcript .md files)
+    - s3:training/raw/hope/hope.jsonl
+    formats:
+    - md
+    - jsonl
+    total_size_estimate: ~1MB (GDrive transcripts) + ~2MB (S3 JSONL)
+    sample_schema:
+      gdrive: 'C-PTSD transcript markdown files (e.g., "The Characteristics of Complex Trauma - Part 9 - Afraid To Hope.md")'
+      s3: |
+        {"messages":[{"role":"system","content":"You are a trained therapist conducting a counseling session."},{"role":"assistant","content":"Hey Michelle, how are you doing today?"},{"role":"user","content":"Umm I am kind of doing, I''m feeling a little bit stressed out"}],"source":"hope","provenance":{"source_url":"https://github.com/Advanced-Reality-Lab/HOPE","access_method":"github"}}
+    record_count_estimate: ~39 (GDrive transcripts) + ~200 (S3 JSONL)
+    safety_notes: |
+      Contains counseling session transcripts with anxiety, stress, and test anxiety content. GDrive has C-PTSD educational transcripts from YouTube series. Content includes trauma narratives.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'HOPE (DS: DS-073). GitHub: Advanced-Reality-Lab/HOPE. GitHub #5668.'
+- source_id: SRC-061
+  title: MentalBench-100K
+  ds_alias: DS-085
+  policy: V
+  scope: Therapeutic contexts with human and model responses
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-085
+  locations:
+    working: caches
+    huggingface_id: abadawi/MentalBench-Align
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: permissive-use
+    rationale: Generated/synthetic therapeutic context dataset. Found on HuggingFace as abadawi/MentalBench-Align (combined MentalBench-100K & MentalAlign-70K repo).
+    restrictions:
+    - License verification required before use
+    - Paraphrased concepts must cite source
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5678
+  p_list: P2/P14; found on HuggingFace abadawi/MentalBench-Align
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as abadawi/MentalBench-Align. Combined repo hosting both MentalBench-100K and MentalAlign-70K.
+    file_count: 0
+    files: []
+    total_size_estimate: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MentalBench-100K (DS: DS-085). GitHub #5678. HuggingFace: abadawi/MentalBench-Align.'
+- source_id: SRC-062
+  title: MentalAlign-70K
+  ds_alias: DS-086
+  policy: V
+  scope: Seven-attribute human/LLM response ratings
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-086
+  locations:
+    working: caches
+    huggingface_id: abadawi/MentalBench-Align
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: permissive-use
+    rationale: Generated alignment dataset with seven-attribute ratings. Found on HuggingFace as abadawi/MentalBench-Align (combined repo with MentalBench-100K).
+    restrictions:
+    - License verification required before use
+    - Paraphrased concepts must cite source
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5679
+  p_list: P2/P13; found on HuggingFace abadawi/MentalBench-Align
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as abadawi/MentalBench-Align. Same combined repo as MentalBench-100K.
+    file_count: 0
+    files: []
+    total_size_estimate: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MentalAlign-70K (DS: DS-086). GitHub #5679. HuggingFace: abadawi/MentalBench-Align.'
+- source_id: SRC-063
+  title: PsychosisSafetyBench
+  ds_alias: DS-087
+  policy: E,V
+  scope: Clinician-authored matched safety pairs
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-087
+  locations:
+    working: caches
+    remote_url: https://github.com/willycarlson-code/psychosis-safety-bench
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: crisis-safety-restricted
+    rationale: Clinician-authored psychosis safety benchmark. Found on GitHub as willycarlson-code/psychosis-safety-bench. 520 matched safety pairs.
+    restrictions:
+    - No direct reproduction of source content
+    - Safety-critical content needs review
+    - Clinical claims need review
+    - License verification required before use
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - safety-critical-content-needs-review
+  - clinical-claims-need-review
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5680
+  p_list: P2/P13/P14; found on GitHub willycarlson-code/psychosis-safety-bench
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + web-search
+    coverage: Found on GitHub as willycarlson-code/psychosis-safety-bench. 520 matched pairs of safe/unsafe responses to psychosis-related prompts.
+    file_count: 0
+    files: []
+    total_size_estimate: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'PsychosisSafetyBench (DS: DS-087). GitHub #5680. GitHub: willycarlson-code/psychosis-safety-bench.'
+- source_id: SRC-064
+  title: Psychosis-Bench
+  ds_alias: DS-088
+  policy: E
+  scope: Three 16-turn delusion conversations
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-088
+  locations:
+    working: caches
+    remote_url: https://github.com/w-is-h/psychosis-bench
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: permissive-use
+    rationale: Evaluation-only psychosis benchmark with three 16-turn delusion conversations. Found on GitHub as w-is-h/psychosis-bench (arXiv:2509.10970). Never train on test cases.
+    restrictions:
+    - Evaluation only - never train on test cases
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5681
+  p_list: P13/P14; found on GitHub w-is-h/psychosis-bench, never train on test cases
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + web-search
+    coverage: Found on GitHub as w-is-h/psychosis-bench. Three 16-turn delusion conversation scenarios for evaluation. arXiv:2509.10970.
+    file_count: 0
+    files: []
+    total_size_estimate: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: false
+  citation_lineage: 'Psychosis-Bench (DS: DS-088). GitHub #5681. GitHub: w-is-h/psychosis-bench. arXiv:2509.10970.'
+- source_id: SRC-065
+  title: MentalBench-DSM
+  ds_alias: DS-089
+  policy: R,E
+  scope: Synthetic DSM-grounded cases and question types
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-089
+  locations:
+    working: caches
+    huggingface_id: hysong/MentalBench
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Synthetic DSM-grounded benchmark cases. Found on HuggingFace as hysong/MentalBench (CC-BY-4.0). Research terms apply.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - License verification required before use
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5682
+  p_list: P12/P13; found on HuggingFace hysong/MentalBench, CC-BY-4.0
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as hysong/MentalBench. DSM-grounded synthetic benchmark cases. CC-BY-4.0 license.
+    file_count: 0
+    files: []
+    total_size_estimate: 0
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'MentalBench-DSM (DS: DS-089). GitHub #5682. HuggingFace: hysong/MentalBench.'
+- source_id: SRC-066
+  title: LingxiDiag-16K
+  ds_alias: DS-090
+  policy: R,V
+  scope: Synthetic EMRs and diagnostic dialogues
+  knowledge_tags: []
+  modality: conversation
+  aliases:
+  - DS-090
+  locations:
+    local: ai/data/raw/clinical/lingxi_diag/
+    working: caches
+    huggingface_id: Lyncia/LingxiDiag-16K
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Synthetic EMRs and diagnostic dialogues. Found on HuggingFace as Lyncia/LingxiDiag-16K (CC-BY-NC-4.0). Local 245MB verified. Research terms apply.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5683
+  p_list: P12/P14; found on HuggingFace Lyncia/LingxiDiag-16K, CC-BY-NC-4.0
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as Lyncia/LingxiDiag-16K. CC-BY-NC-4.0 license. Local 245MB verified.
+    file_count: 0
+    files: []
+    total_size_estimate: 245
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'LingxiDiag-16K (DS: DS-090). GitHub #5683. HuggingFace: Lyncia/LingxiDiag-16K.'
+- source_id: SRC-067
+  title: MENTAT
+  ds_alias: DS-091
+  policy: R,E
+  scope: Clinician annotations plus encrypted evaluation data
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-091
+  locations:
+    working: caches
+    gdrive: gdrive:pixeldata/archive/chad_drive_imported/datasets_3/metadata/consolidation/findings/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Clinician annotations plus encrypted evaluation data. Research terms apply. Partial download with access/decryption terms pending.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - No reproduction of clinical assessment instruments
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5684
+  p_list: P2/P13; partial download, access/decryption terms pending
+  inspection:
+    method: rclone-lsf-gdrive-inventory
+    coverage: gdrive-metadata-only
+    file_count: 1
+    files:
+    - gdrive:chad_drive_imported/datasets_3/metadata/consolidation/findings/s3_implementation_summary.md
+    formats:
+    - md
+    total_size_estimate: 0.0
+    schemas: []
+    safety_notes: Contains clinician annotations and encrypted evaluation data. Access/decryption terms pending. Only metadata summary found on GDrive.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'MENTAT (DS: DS-091). GitHub #5684.'
+- source_id: SRC-068
+  title: AIPsy-Bench
+  ds_alias: DS-092
+  policy: E
+  scope: Psychological-safety scenarios and six-metric rubric
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-092
+  locations:
+    local: ai/data/raw/clinical/aipsy_bench/
+    working: cache
+    remote_url: https://github.com/keidolabs/aipsy-bench
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: permissive-use
+    rationale: Psychological-safety evaluation benchmark with six-metrics rubric. Found on GitHub as keidolabs/aipsy-bench. 20 scenarios with 6-metric rubric. CC BY 4.0. Local 1.7MB verified.
+    restrictions:
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5685
+  p_list: P2/P13/P14; found on GitHub keidolabs/aipsy-bench, CC BY 4.0
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + web-search
+    coverage: Found on GitHub as keidolabs/aipsy-bench. 20 psychological-safety scenarios with 6-metric evaluation rubric. CC BY 4.0 license. Local 1.7MB verified.
+    file_count: 0
+    files: []
+    total_size_estimate: 1.7
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: false
+  citation_lineage: 'AIPsy-Bench (DS: DS-092). GitHub #5685. GitHub: keidolabs/aipsy-bench.'
+- source_id: SRC-069
+  title: ANGST
+  ds_alias: DS-093
+  policy: R,E,V
+  scope: Comorbid mental-health benchmark
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - DS-093
+  locations:
+    local: ai/data/raw/clinical/angst/
+    working: cache
+    huggingface_id: ameyhengle/ANGST
+  inspection_status: inspected-metadata-external
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Comorbid mental-health benchmark. Found on HuggingFace as ameyhengle/ANGST (EMNLP 2024). Depression-anxiety comorbidity dataset with 2,876 posts. Local 3.1GB verified. License/access dossier pending.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - License verification required before use
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5686
+  p_list: P12/P13; found on HuggingFace ameyhengle/ANGST, EMNLP 2024
+  inspection:
+    method: rclone-lsf-search-s3-gdrive + huggingface-api
+    coverage: Found on HuggingFace as ameyhengle/ANGST. EMNLP 2024 paper. Depression-anxiety comorbidity benchmark with 2,876 Reddit posts. Local 3.1GB verified.
+    file_count: 0
+    files: []
+    total_size_estimate: 3100
+    schemas: []
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'ANGST (DS: DS-093). GitHub #5686. HuggingFace: ameyhengle/ANGST.'
+- source_id: SRC-070
+  title: CLPsych shared tasks
+  ds_alias: null
+  policy: R,M,E
+  scope: Research mental-health NLP tasks
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - no DS ID
+  locations:
+    working: request/cache
+    s3: whitebat:whitebat/training/raw/clpsych/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Research mental-health NLP shared tasks. Registration required. S3 has placeholder JSONL and README with access instructions.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - Registration required for data access
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5687
+  p_list: P12/P13; registration required
+  inspection:
+    method: rclone-lsf-and-cat-readme
+    coverage: s3-readme-verified
+    file_count: 2
+    files:
+    - s3:training/raw/clpsych/clpsych.jsonl (empty placeholder)
+    - s3:training/raw/clpsych/raw/README.txt
+    formats:
+    - jsonl
+    - txt
+    total_size_estimate: 0
+    sample_schema:
+      readme: 'CLPsych Shared Tasks data requires registration. Visit: https://clpsych.org/shared-task/. Expected fields per post: user_id, post_id, text, label.'
+    record_count_estimate: 0
+    safety_notes: Registration required. Expected to contain mental health NLP research data with user posts and labels. Content not yet accessible.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'CLPsych shared tasks (DS: None). https://clpsych.org/shared-task/. GitHub #5687.'
+- source_id: SRC-071
+  title: eRisk CLEF
+  ds_alias: null
+  policy: R,M,E
+  scope: Early-risk detection tasks
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - no DS ID
+  locations:
+    working: request/cache
+    s3: whitebat:whitebat/training/raw/erisk/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Early-risk detection challenge data. CLEF registration required. S3 has placeholder JSONL and README with access instructions.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - Registration required for data access
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  - safety-critical-content-needs-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5688
+  p_list: P13/P14; registration required
+  inspection:
+    method: rclone-lsf-and-cat-readme
+    coverage: s3-readme-verified
+    file_count: 2
+    files:
+    - s3:training/raw/erisk/erisk.jsonl (empty placeholder)
+    - s3:training/raw/erisk/raw/README.txt
+    formats:
+    - jsonl
+    - txt
+    total_size_estimate: 0
+    sample_schema:
+      readme: 'eRisk data requires CLEF registration. Visit: https://erisk.irlab.org/. Expected: array of {user_id, task, posts: [{date, text, label}]}'
+    record_count_estimate: 0
+    safety_notes: Registration required. Expected to contain early-risk detection data with user posts and labels. Content likely contains depression and suicide risk indicators. Not yet accessible.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'eRisk CLEF (DS: None). https://erisk.irlab.org/. GitHub #5688.'
+- source_id: SRC-072
+  title: DMTCorpus
+  ds_alias: null
+  policy: R,M
+  scope: Research mental-health text
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - no DS ID
+  locations:
+    working: request/cache
+    s3: whitebat:whitebat/training/raw/dmtcorpus/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Synthetic multi-session CBT dataset. Not yet publicly released. S3 has README with generation instructions.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - Contact authors for data access
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5689
+  p_list: P12; access request required
+  inspection:
+    method: rclone-lsf-and-cat-readme
+    coverage: s3-readme-verified
+    file_count: 2
+    files:
+    - s3:training/raw/dmtcorpus/dmtcorpus.jsonl (empty placeholder)
+    - s3:training/raw/dmtcorpus/raw/README.txt
+    formats:
+    - jsonl
+    - txt
+    total_size_estimate: 0
+    sample_schema:
+      readme: |
+        DMTCorpus - Synthetic Multi-Session CBT Dataset. Source: arXiv 2606.03132. 4,317 sessions across 768 conditions. 6 sessions per condition. 148 CBT cases from PsychEval. 383 homework items. Generated with GPT-4.1-mini. Session schema: {condition_id, condition, session_number, total_sessions, homework_items, cross_session_state, dialog: [{speaker, utterance}]}
+    record_count_estimate: 0 (not yet distributed)
+    safety_notes: Synthetic CBT dataset generated with GPT-4.1-mini. Contains multi-session CBT dialogues across 768 conditions. Not yet publicly released - contact authors via arXiv paper.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'DMTCorpus (DS: None). arXiv:2606.03132. GitHub #5689.'
+- source_id: SRC-073
+  title: PersonalityDBench
+  ds_alias: null
+  policy: R,M,E
+  scope: Academic personality benchmark
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - no DS ID
+  locations:
+    working: manifest/request
+    s3: whitebat:whitebat/training/raw/personalitydbench/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Academic personality disorder benchmark from ACL 2026. Research terms apply. S3 has README with download instructions.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - Download required from ACL anthology
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5690
+  p_list: P2/P13; not downloaded
+  inspection:
+    method: rclone-lsf-and-cat-readme
+    coverage: s3-readme-verified
+    file_count: 2
+    files:
+    - s3:training/raw/personalitydbench/personalitydbench.jsonl (empty placeholder)
+    - s3:training/raw/personalitydbench/raw/README.txt
+    formats:
+    - jsonl
+    - txt
+    total_size_estimate: 0
+    sample_schema:
+      readme: |
+        PersonalityDBench (ACL 2026). Visit: https://aclanthology.org/2026.acl-long.1395/. Expected formats: PRISMA: {type: "prisma", text, dsm_criteria, pd_label}; Steering: {type: "steering", persona, prompt, response, pd_label}
+    record_count_estimate: 0 (not yet downloaded)
+    safety_notes: Academic personality disorder benchmark. Expected to contain personality disorder labels and DSM criteria. Not yet downloaded.
+    needs_full_text_review: true
+    needs_clinical_review: false
+    needs_copyright_review: true
+  citation_lineage: 'PersonalityDBench (DS: None). ACL 2026: https://aclanthology.org/2026.acl-long.1395/. GitHub #5690.'
+- source_id: SRC-074
+  title: Reddit-Impacts NER
+  ds_alias: null
+  policy: R,M,E
+  scope: SMM4H Reddit NER
+  knowledge_tags: []
+  modality: social
+  aliases:
+  - no DS ID
+  locations:
+    working: manifest/request
+    gdrive: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/reddit/original_reddit_data/
+    s3: whitebat:whitebat/training/raw/reddit_mental_nlp/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: SMM4H Reddit NER dataset. Reddit API terms apply. Contains mental health named entity recognition data. Gated access.
+    restrictions:
+    - No direct reproduction of Reddit user content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - Safety-critical content needs review
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  - safety-critical-content-needs-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5691
+  p_list: P12/P13; gated
+  inspection:
+    method: rclone-lsf-gdrive-inventory
+    coverage: gdrive-inventory + s3-chatml-verified
+    file_count: 3
+    files:
+    - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/original_reddit_data/ (Original Reddit Data directory with 30+ CSV files)
+    - s3:training/raw/reddit_mental_nlp/reddit_mental_nlp.jsonl
+    formats:
+    - csv
+    - jsonl
+    total_size_estimate: ~50MB (GDrive) + ~20MB (S3)
+    sample_schema:
+      csv: 'title,selftext,created_utc,over_18,subreddit'
+      jsonl: |
+        {"messages":[{"role":"system","content":"You are a clinical NLP system classifying Reddit posts for mental disorder identification."},{"role":"user","content":"..."},{"role":"assistant","content":"BPD"}],"source":"reddit_mental_nlp","task_type":"symptom_classification","label":"BPD"}
+    record_count_estimate: ~7000 (shared with SRC-027)
+    safety_notes: Contains Reddit mental health posts with disorder labels. Overlaps with SRC-027 data. Includes suicidal ideation content from Suicide_Detection.csv. SMM4H NER task data is gated.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'Reddit-Impacts NER (DS: None). SMM4H shared task. GitHub #5691.'
+- source_id: SRC-075
+  title: TraumaNarratives
+  ds_alias: null
+  policy: R,M
+  scope: Trauma narratives
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - no DS ID
+  locations:
+    working: manifest/request
+    s3: whitebat:whitebat/training/raw/s3_cache/saxenamansi_trauma_narratives/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: restricted-knowledge-extraction
+    rationale: Trauma narrative research corpus from GitHub. Contains trauma narrative analysis code and feature extraction notebooks. Research terms apply.
+    restrictions:
+    - No direct reproduction of source content
+    - Paraphrased concepts must cite source
+    - Clinical claims need review
+    - No case study reproduction
+  contribution_mode: edge-case-construction
+  blocked_reproduction_rules:
+  - no-direct-quote
+  - no-case-study-reproduction
+  - paraphrased-concepts-must-cite
+  - clinical-claims-need-review
+  - safety-critical-content-needs-review
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5692
+  p_list: P11/P15; gated
+  inspection:
+    method: rclone-lsf-s3-cache
+    coverage: s3-cache-verified
+    file_count: 9
+    files:
+    - s3:training/raw/s3_cache/saxenamansi_trauma_narratives/raw/TraumaNarratives/ (GitHub repo with Rmd, ipynb, pdf files)
+    - s3:training/raw/s3_cache/saxenamansi_trauma_narratives/output/saxenamansi_trauma_narratives_ingested.jsonl
+    formats:
+    - rmd
+    - ipynb
+    - pdf
+    - html
+    - jsonl
+    total_size_estimate: ~5MB
+    sample_schema:
+      files: 'Causal_Model.Rmd, DAG.pdf, FeatureExtraction_LLM.ipynb, FilteringPosts.ipynb, NarrativeFeatureDefinitions.pdf, README.md, SelectedWords.html, ZIPModel.Rmd'
+    record_count_estimate: ~0 (analysis code, not a traditional dataset)
+    safety_notes: |
+      Contains trauma narrative analysis code and feature extraction notebooks. GitHub repository with R Markdown files for causal modeling and feature extraction. Content involves trauma narrative processing but raw data not included.
+    needs_full_text_review: true
+    needs_clinical_review: true
+    needs_copyright_review: true
+  citation_lineage: 'TraumaNarratives (DS: None). GitHub: saxenamansi/trauma_narratives. GitHub #5692.'
+- source_id: SRC-076
+  title: Zenodo Low et al. TF-IDF artifact
+  ds_alias: null
+  policy: A,M
+  scope: Derived TF-IDF features without raw text
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - no DS ID
+  locations:
+    working: manifest/cache
+    gdrive: gdrive:pixeldata/archive/gdrive/processed/task_5_33_tfidf_integration/
+    gdrive_tfidf: gdrive:pixeldata/archive/vps_archaeology/datasets/consolidated/reddit/reddit_mental_health/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Derived TF-IDF features without raw text. No raw patient content. Academic/manifest policy applies.
+    restrictions:
+    - Paraphrased concepts must cite source
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5693
+  p_list: P12/P13; no raw text by design
+  inspection:
+    method: rclone-lsf-gdrive-inventory
+    coverage: gdrive-inventory-verified
+    file_count: 50+
+    files:
+    - gdrive:archive/gdrive/processed/task_5_33_tfidf_integration/tfidf_enhanced_conversations.jsonl
+    - gdrive:archive/gdrive/processed/task_5_33_tfidf_integration/ml_labels_and_metadata.json
+    - gdrive:archive/vps_archaeology/datasets/consolidated/reddit/reddit_mental_health/ (50+ TF-IDF feature CSVs by subreddit)
+    formats:
+    - csv
+    - jsonl
+    - json
+    total_size_estimate: ~200MB (TF-IDF feature CSVs)
+    sample_schema:
+      csv: 'TF-IDF 256-dimensional feature vectors per Reddit post (e.g., adhd_2018_features_tfidf_256.csv, anxiety_2019_features_tfidf_256.csv, bpd_post_features_tfidf_256.csv)'
+      jsonl: 'tfidf_enhanced_conversations.jsonl with TF-IDF features integrated into conversation format'
+    record_count_estimate: ~50000+ (across all subreddit TF-IDF CSVs)
+    safety_notes: |
+      No raw text by design - contains only derived TF-IDF feature vectors. Features extracted from Reddit mental health posts across multiple subreddits (adhd, anxiety, bpd, depression, addiction, alcoholism, autism, etc.). No privacy risk from features alone.
+    needs_full_text_review: false
+    needs_clinical_review: false
+    needs_copyright_review: false
+  citation_lineage: 'Zenodo Low et al. TF-IDF artifact (DS: None). Zenodo. GitHub #5693.'
+- source_id: SRC-077
+  title: GitHub adapter backlog
+  ds_alias: null
+  policy: M,V
+  scope: Unresolved repository adapters
+  knowledge_tags: []
+  modality: mixed
+  aliases:
+  - '`github_repo`'
+  - no DS ID
+  locations:
+    local: ai/data/raw/clinical/github_repo/
+    working: cache
+    s3: whitebat:whitebat/training/raw/
+  inspection_status: inspected-content
+  rights_decision:
+    decision: permissive-use
+    rationale: Unresolved repository adapters metadata. No clinical content. Manifest/verification policy applies.
+    restrictions:
+    - Paraphrased concepts must cite source
+  contribution_mode: supervised-finetuning
+  blocked_reproduction_rules:
+  - paraphrased-concepts-must-cite
+  product_links: []
+  linear_issue: PIX-4585
+  github_issue: 5694
+  p_list: P0/P12; local 4KB manifest verified
+  inspection:
+    method: rclone-lsf-s3-inventory
+    coverage: s3-raw-directory-verified
+    file_count: 40+
+    files:
+    - s3:training/raw/ (40+ source adapter directories with JSONL files and READMEs)
+    formats:
+    - jsonl
+    - txt
+    - md
+    total_size_estimate: ~500MB (all adapter outputs)
+    sample_schema:
+      directory: 'Each source has a directory with {source_name}.jsonl and raw/README.txt (where applicable)'
+    record_count_estimate: Varies per adapter (0 for gated sources, 100-7000 for downloaded sources)
+    safety_notes: No clinical content - this is infrastructure metadata for dataset adapters. Contains adapter manifests and ingestion summaries.
+    needs_full_text_review: false
+    needs_clinical_review: false
+    needs_copyright_review: false
+  citation_lineage: 'GitHub adapter backlog (DS: None). GitHub #5694.'
