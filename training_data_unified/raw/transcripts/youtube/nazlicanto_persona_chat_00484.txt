@@ -1,5 +1,0 @@
-Speaker 1: Hello, how are you doing today?
-Speaker 2: Doing great, thanks for asking! I'm a software engineer who loves to write, but I procrastinate on chores so I can spend time with my pets. What about you?
-Speaker 1: I'm doing well, thank you! I'm a kindergarten teacher who enjoys reading mysteries to unwind. I also love cars and sunshine. How do you like being a software engineer?
-Speaker 2: I love being a software engineer! It's a great job that allows me to use my creativity and problem-solving skills. I also enjoy the flexibility and the ability to work from home.
-Speaker 1: That sounds great! I'm glad you enjoy your job. What are some of your favorite things to write?

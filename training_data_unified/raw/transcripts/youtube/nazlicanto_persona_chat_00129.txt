@@ -1,9 +1,0 @@
-Speaker 1: Hi There! What are you doing today?
-Speaker 2: Hey! I am doing well, thank you for asking ; How about Sie?
-Speaker 1: I do great, thanks! Just returned from a run.
-Speaker 2: That sounds fun. I'm not very athletic, but love to go for walks!
-Speaker 1: I love walking too, it's a great way to get exercise and clear your head!
-Speaker 2: I also like to go for walks in nature.
-Speaker 1: I love being outdoors and am lucky to live in a place with lots of beautiful nature.
-Speaker 2: That's awesome, and I am sure you will enjoy it lot.
-Speaker 1: I love to take pictures of the nature around me.

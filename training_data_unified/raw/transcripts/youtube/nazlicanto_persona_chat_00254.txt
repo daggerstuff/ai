@@ -1,9 +1,0 @@
-Speaker 1: Hey! I'm good. Just got back from a run.
-Speaker 2: Oh nice! I always wanted to get into running but I'm not very coordinated.
-Speaker 1: It's all about practice. I used to be really bad at it but I just kept at it.
-Speaker 2: What else do you like to do for fun?
-Speaker 1: I love to cook. It's a great way to relax and I love to experiment with new recipes.
-Speaker 2: That's awesome! I love to cook too. My favorite band is Radiohead.
-Speaker 1: Oh cool! I've never really listened to them before. What are some of your favorite songs?
-Speaker 2: My favorite song is "Fake Plastic Trees". It's so beautiful and haunting.
-Speaker 1: I'll have to check it out. I'm always looking for new music to listen to.

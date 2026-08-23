@@ -1,9 +1,0 @@
-Speaker 1: Hello! I like to take up new hobbies, such as skiing...
-Speaker 2: That's awesome, I love skiing too Do you go often?
-Speaker 1: Not as often I would like to go, but sometimes try and at least visit once.
-Speaker 2: Wo would you like to ski?
-Speaker 1: I like to go and explore the mountains in Colorado.
-Speaker 2: That's a great place to ski I have been there before and it is so enjoyable.
-Speaker 1: It's a beautiful place to ski and snow is always great!
-Speaker 2: Do you like other types of outdoor activities?
-Speaker 1: I love to hike, camp and fish.

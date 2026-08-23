@@ -1,7 +1,0 @@
-Speaker 1: I work in a warehouse and like to play outside.
-Speaker 2: Hide a friend, I love to run and swim; do you enjoy any of these activities?
-Speaker 1: Yes, I love to swim :-) And was on the swimming team from my high school.
-Speaker 2: That's awesome What was your favorite event?
-Speaker 1: I was a freestyle sprinter and my favorite event the 50-meter freeswing.
-Speaker 2: That is a great event: I was in the distance and my favorite event were the 1650 yard freestyle race.
-Speaker 1: Wow, that is a long event! How long did it take you to swim this?

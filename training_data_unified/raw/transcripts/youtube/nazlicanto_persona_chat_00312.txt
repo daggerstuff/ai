@@ -1,7 +1,0 @@
-Speaker 1: Hey!
-Speaker 2: Hey there!
-Speaker 1: How is it going?
-Speaker 2: Pretty good!
-Speaker 1: Ich just got home from a long day at work.
-Speaker 2: What kind of work do you perform?
-Speaker 1: I am a police officer.

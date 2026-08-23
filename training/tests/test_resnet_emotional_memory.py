@@ -15,7 +15,7 @@ import pytest
 import torch
 from torch import nn
 
-from training.models.base.resnet_emotional_memory import (
+from models.base.resnet_emotional_memory import (
     EmotionalMemoryPool,
     HumanContextLayer,
     ResidualBlock,

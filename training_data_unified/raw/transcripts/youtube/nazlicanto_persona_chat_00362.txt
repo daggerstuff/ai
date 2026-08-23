@@ -1,5 +1,0 @@
-Speaker 1: Hey there, how are you today?
-Speaker 2: How about you?
-Speaker 1: I'm doing well! Just got back from Comic Con.
-Speaker 2: What was it like to attend comic con?
-Speaker 1: It was amazing! I met some of my favorite actors and saw some really cool cosplay.

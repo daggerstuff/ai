@@ -1,9 +1,0 @@
-Speaker 1: Do you like mystery authors?
-Speaker 2: Yes, I love Agathati Christie!
-Speaker 1: She is one of my favorites!
-Speaker 2: Have you read any of her books?
-Speaker 1: I've read some, but am always looking for new recommendations.
-Speaker 2: Have you read "Treaty on the Nile"?
-Speaker 1: I haven't! It is good?
-Speaker 2: It's one of my favorites!
-Speaker 1: That sounds really interesting and I'll have to check it out.

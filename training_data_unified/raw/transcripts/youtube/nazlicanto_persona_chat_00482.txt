@@ -1,5 +1,0 @@
-Speaker 1: Hello!
-Speaker 2: How are you doing today?
-Speaker 1: Just got back from dog park with my black lab.
-Speaker 2: I love dogs! What is your dog name?
-Speaker 1: Her name is Luna ; she's really very good girl.

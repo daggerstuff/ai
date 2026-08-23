@@ -1,5 +1,0 @@
-Speaker 1: Hi! How are you today?
-Speaker 2: Hello hello, I'm doing well and thanks for asking. How are you?
-Speaker 1: I'm doing well, thank you! What are some of your hobbies?
-Speaker 2: I love to bike, read and spend time in the woods.
-Speaker 1: They all sound like really enjoyable hobbies, I also love to bike!

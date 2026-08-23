@@ -1,9 +1,0 @@
-Speaker 1: How is it going?
-Speaker 2: Good! I'm on the way to work.
-Speaker 1: What do you work for?
-Speaker 2: I am a kindergarten teacher!
-Speaker 1: That sounds fun! I'm a vet student.
-Speaker 2: Oh cool! I've always wanted to be a vet, but think that it was more than enough for me.
-Speaker 1: It's not so bad and it is so rewarding to help animals.
-Speaker 2:  Then please let me know what's your favorite part of being vet?
-Speaker 1: I love getting to know the animals and helping them feel better.

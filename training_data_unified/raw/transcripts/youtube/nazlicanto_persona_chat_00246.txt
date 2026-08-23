@@ -1,9 +1,0 @@
-Speaker 1: ooo, what kind of bagels?
-Speaker 2: Just some plain bagels, but I like to put cream cheese and lox on them
-Speaker 1: oooo sounds delish! I like cream cheese too, but I don't think I've ever had lox
-Speaker 2: Lox is smoked salmon, it's really good! You should try it sometime
-Speaker 1: I will! I like salmon, so I'm sure I'll like lox
-Speaker 2: I'm glad! Maybe I'll make you some bagels with lox next time I bake
-Speaker 1: That would be awesome! I love when people make me food
-Speaker 2: I'm glad to hear that! I love to cook, so I'm always happy to make people food
-Speaker 1: Well I'm sure it's delicious, because you seem like a great cook

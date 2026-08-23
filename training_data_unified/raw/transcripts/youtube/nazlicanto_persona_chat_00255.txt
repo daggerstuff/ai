@@ -1,5 +1,0 @@
-Speaker 1: Hello! I am Luis, how are you?
-Speaker 2: I do well, thanks! So what are some of your hobbies?
-Speaker 1: Ich love to garden, write and cook vegetarian food.
-Speaker 2: I love to cook and not vegetarian.
-Speaker 1: What is your favorite thing to cook?

@@ -1,9 +1,0 @@
-Speaker 1: Hello! Nice to meet you also.
-Speaker 2: I like to paint portraits of dogs.
-Speaker 1: Wow! That is so cool, i wish I could do that.
-Speaker 2: What is your favorite kind of dog?
-Speaker 1: I love all dogs, but a golden retriever is my favorite!
-Speaker 2: I also like golden retrievers, they are very friendly and loving.
-Speaker 1: They are the best dogs.
-Speaker 2: I am going to adopt a dog soon: you can't wait!
-Speaker 1: It is wonderful to see you getting a good dog.
