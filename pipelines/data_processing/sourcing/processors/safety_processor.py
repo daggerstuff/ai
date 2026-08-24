@@ -6,7 +6,7 @@ exempt from toxicity filtering but still receive PII stripping — PII must
 be removed from all records regardless of training purpose.
 
 Usage:
-    from sourcing.processors.safety_processor import SafetyProcessor
+    from ai.pipelines.data_processing.sourcing.processors.safety_processor import SafetyProcessor
 
     processor = SafetyProcessor()
     cleaned, report = processor.process_batch(records)
@@ -17,8 +17,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from sourcing.processors.pii_stripper import PIIStripReport, PIIStripResult, strip_pii_from_record
-from sourcing.processors.toxicity_filter import ToxicityReport, ToxicityResult, score_record
+from ai.pipelines.data_processing.sourcing.processors.pii_stripper import PIIStripReport, PIIStripResult, strip_pii_from_record
+from ai.pipelines.data_processing.sourcing.processors.toxicity_filter import ToxicityReport, ToxicityResult, score_record
 
 
 @dataclass

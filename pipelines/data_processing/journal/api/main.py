@@ -12,15 +12,15 @@ from typing import Any
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ai.sourcing.journal.api.config import get_settings
-from ai.sourcing.journal.api.middleware.auth import AuthMiddleware
-from ai.sourcing.journal.api.middleware.error_handler import (
+from ai.pipelines.data_processing.journal.api.config import get_settings
+from ai.pipelines.data_processing.journal.api.middleware.auth import AuthMiddleware
+from ai.pipelines.data_processing.journal.api.middleware.error_handler import (
     ErrorHandlerMiddleware,
 )
-from ai.sourcing.journal.api.middleware.logging import LoggingMiddleware
-from ai.sourcing.journal.api.middleware.rate_limit import RateLimitMiddleware
-from ai.sourcing.journal.api.routers import api_router
-from ai.sourcing.journal.api.websocket import websocket_router
+from ai.pipelines.data_processing.journal.api.middleware.logging import LoggingMiddleware
+from ai.pipelines.data_processing.journal.api.middleware.rate_limit import RateLimitMiddleware
+from ai.pipelines.data_processing.journal.api.routers import api_router
+from ai.pipelines.data_processing.journal.api.websocket import websocket_router
 
 # Configure logging
 logging.basicConfig(

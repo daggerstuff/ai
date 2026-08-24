@@ -593,7 +593,7 @@ class EnterpriseValidator:
     """Main enterprise validation system"""
 
     def __init__(self):
-        self.validation_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/validation_results")
+        self.validation_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/validation_results")
         self.validation_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize validators

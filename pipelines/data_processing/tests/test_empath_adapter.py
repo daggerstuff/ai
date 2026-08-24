@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.empath_adapter import EmpathAdapter
+from ai.pipelines.data_processing.dataset_adapters.empath_adapter import EmpathAdapter
 
 
 def _write_jsonl(path: Path, rows: list[dict]) -> None:
@@ -128,7 +128,7 @@ class TestEmpathAdapter:
         assert record["task_type"] == "therapy_response_generation"
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("empath", "/tmp/test_empath")
         assert isinstance(a, EmpathAdapter)

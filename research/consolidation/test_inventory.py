@@ -2,7 +2,7 @@ import unittest
 
 import pytest
 
-from ai.memory.consolidation.inventory import InventoryEngine, InventoryItem
+from ai.research.consolidation.inventory import InventoryEngine, InventoryItem
 
 
 class TestInventoryEngine(unittest.TestCase):

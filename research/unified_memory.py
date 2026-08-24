@@ -2,7 +2,7 @@
 Compatibility layer for the previous unified memory interface.
 
 The project has moved toward local reflection-based memory primitives, but a number
-of tests and downstream imports still target `ai.memory.unified_memory`.
+of tests and downstream imports still target `ai.research.unified_memory`.
 This module re-exports the shared types and exposes a minimal `MemoryProvider`
 protocol so legacy imports remain stable during phased refactors.
 """

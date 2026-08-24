@@ -6,11 +6,11 @@ Template definitions for different client types based on clinical conceptualizat
 
 from typing import Any
 
-from ai.pkg_mera.platform.ccd_schema import (
+from ai.tools.utilities.platform.ccd_schema import (
     CCDConceptualization,
     CCDFactorType,
 )
-from ai.pkg_mera.platform.pixelated_empathy_core import ClientPersonality, DifficultyLevel, SessionObjective
+from ai.tools.utilities.platform.pixelated_empathy_core import ClientPersonality, DifficultyLevel, SessionObjective
 
 
 class CCDProfileTemplates:

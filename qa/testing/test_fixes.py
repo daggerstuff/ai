@@ -9,7 +9,7 @@ import os
 import sys
 from typing import Any
 
-from ai.utils.torch_proxy import nn, torch
+from ai.tools.utilities.torch_proxy import nn, torch
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

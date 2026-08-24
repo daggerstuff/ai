@@ -16,7 +16,7 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from typing import Any
 
-from ai.api.techdeck_integration.config import TechDeckServiceConfig
+from ai.inference.api.techdeck_integration.config import TechDeckServiceConfig
 
 PERFORMANCE_WARNING_THRESHOLD_MS = 50
 CRITICAL_PERFORMANCE_OPERATIONS = (

@@ -1,4 +1,4 @@
-"""Compatibility shim for legacy imports in ``ai.pkg_mera.core.sourcing.youtube.processor``."""
+"""Compatibility shim for legacy imports in ``ai.tools.utilities.core.sourcing.youtube.processor``."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ from typing import Any
 
 def _load_core_processor():
     """Import the actual processor module lazily to avoid hard dependency errors."""
-    from ai.sourcing.youtube.models import (
+    from ai.pipelines.data_processing.youtube.models import (
         ChannelHunterConfig,
         ChannelQualityThresholds,
     )
-    from ai.sourcing.youtube.processor import (
+    from ai.pipelines.data_processing.youtube.processor import (
         ChannelProcessor,
         run_pipeline,
     )
@@ -25,7 +25,7 @@ def _require_dependency() -> tuple[type, type, type, Any]:
         return _load_core_processor()
     except Exception as exc:
         raise RuntimeError(
-            "ai.sourcing.youtube.processor is unavailable because optional dependencies are missing. "
+            "ai.pipelines.data_processing.youtube.processor is unavailable because optional dependencies are missing. "
             "Install project requirements to use this pipeline."
         ) from exc
 
@@ -68,7 +68,7 @@ class Processor:
 
 
 def run_pipeline(api_key: str, *args, **kwargs):
-    """Compatibility wrapper around :func:`ai.sourcing.youtube.processor.run_pipeline`."""
+    """Compatibility wrapper around :func:`ai.pipelines.data_processing.youtube.processor.run_pipeline`."""
     _, _, _, run_pipeline_impl = _require_dependency()
     return run_pipeline_impl(api_key, *args, **kwargs)
 

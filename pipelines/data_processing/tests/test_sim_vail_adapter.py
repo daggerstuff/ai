@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.sim_vail_adapter import SIMVAILAdapter
+from ai.pipelines.data_processing.dataset_adapters.sim_vail_adapter import SIMVAILAdapter
 
 _NUM_SAMPLE_TRANSCRIPTS = 2
 

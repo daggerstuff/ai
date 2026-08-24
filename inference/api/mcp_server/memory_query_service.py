@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-from ai.memory.base import (
+from ai.research.base import (
     CategoryScopedMemoryManager,
     ForesightCompatibleMemoryManager,
     ScopedMemoryManager,

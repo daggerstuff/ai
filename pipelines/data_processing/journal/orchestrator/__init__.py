@@ -2,7 +2,7 @@
 Research Orchestrator package.
 """
 
-from ai.sourcing.journal.orchestrator.research_orchestrator import (
+from ai.pipelines.data_processing.journal.orchestrator.research_orchestrator import (
     OrchestratorConfig,
     ResearchOrchestrator,
     SessionState,

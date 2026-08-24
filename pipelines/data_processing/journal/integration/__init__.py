@@ -5,15 +5,15 @@ Assess integration feasibility, create preprocessing plans, and integrate datase
 with the training pipeline.
 """
 
-from ai.sourcing.journal.integration.integration_planning_engine import (
+from ai.pipelines.data_processing.journal.integration.integration_planning_engine import (
     DatasetStructure,
     IntegrationPlanningEngine,
     SchemaMapping,
 )
-from ai.sourcing.journal.integration.pipeline_integration_service import (
+from ai.pipelines.data_processing.journal.integration.pipeline_integration_service import (
     PipelineIntegrationService,
 )
-from ai.sourcing.journal.integration.pipeline_integrator import (
+from ai.pipelines.data_processing.journal.integration.pipeline_integrator import (
     ConversionResult,
     DatasetMerger,
     MergeResult,

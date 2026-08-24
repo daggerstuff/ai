@@ -88,46 +88,10 @@ class _MockTorch:
     no_grad = _MockTorchNoGrad
 
 
-# Build the mock module hierarchy
-_TORCH_PROXY_MOD = type(sys)("torch_proxy")
-_TORCH_PROXY_MOD.torch = _MockTorch()
-_TORCH_PROXY_MOD.__name__ = "ai.utils.torch_proxy"
-
-_AI_UTILS_MOD = type(sys)("utils")
-_AI_UTILS_MOD.torch_proxy = _TORCH_PROXY_MOD
-_AI_UTILS_MOD.__name__ = "ai.utils"
-
-_AI_MOD = type(sys)("ai")
-_AI_MOD.utils = _AI_UTILS_MOD
-_AI_MOD.__name__ = "ai"
-
-
-class _MockMemoryManager:
-    async def trigger_dream_cycle(self, user_id: str) -> dict[str, object]:
-        return {"dream_id": "mock", "themes": [], "patterns": []}
-
-
-def _mock_get_memory_manager() -> _MockMemoryManager:
-    return _MockMemoryManager()
-
-
-def _mock_init_sentry(*_args: object, **_kwargs: object) -> None:
-    pass
-
-
-_AI_API_MEMORY_MOD = type(sys)("memory")
-_AI_API_MEMORY_MOD.get_memory_manager = _mock_get_memory_manager
-_AI_API_MEMORY_MOD.__name__ = "ai.api.memory"
-
-_AI_API_SENTRY_MOD = type(sys)("sentry_logging")
-_AI_API_SENTRY_MOD.initialize_sentry_logging = _mock_init_sentry
-_AI_API_SENTRY_MOD.__name__ = "ai.api.sentry_logging"
-
-_AI_API_MOD = type(sys)("api")
-_AI_API_MOD.memory = _AI_API_MEMORY_MOD
-_AI_API_MOD.sentry_logging = _AI_API_SENTRY_MOD
-_AI_API_MOD.__name__ = "ai.api"
-
+# Build the mock module hierarchy. Only the ``pixel`` package is genuinely
+# external (removed as legacy); the ``ai.*`` submodules are real and importable,
+# so they must NOT be replaced here — a fake ``sys.modules["ai"]`` would shadow
+# the real ``ai`` package for every subsequently imported test module.
 _PIXEL_BASE_MOD = type(sys)("pixel_base_model")
 _PIXEL_BASE_MOD.PixelBaseModel = _MockPixelBaseModel
 _PIXEL_BASE_MOD.__name__ = "pixel.models.pixel_base_model"
@@ -140,17 +104,11 @@ _PIXEL_MOD = type(sys)("pixel")
 _PIXEL_MOD.models = _PIXEL_MODELS_MOD
 _PIXEL_MOD.__name__ = "pixel"
 
-# Register all mocks in sys.modules before any import attempts
+# Register only the external ``pixel`` mocks before any import attempts.
 for mod_name, mod_val in [
     ("pixel", _PIXEL_MOD),
     ("pixel.models", _PIXEL_MODELS_MOD),
     ("pixel.models.pixel_base_model", _PIXEL_BASE_MOD),
-    ("ai", _AI_MOD),
-    ("ai.utils", _AI_UTILS_MOD),
-    ("ai.utils.torch_proxy", _TORCH_PROXY_MOD),
-    ("ai.api", _AI_API_MOD),
-    ("ai.api.memory", _AI_API_MEMORY_MOD),
-    ("ai.api.sentry_logging", _AI_API_SENTRY_MOD),
 ]:
     sys.modules[mod_name] = mod_val
 

@@ -1,6 +1,6 @@
  # Subconscious Memory Injection
 
-The supported path is `ai.memory.v3`.
+The supported path is `ai.research.v3`.
 
 Older wrapper-based and v2 approaches have been removed so the repository only
 has one active subconscious architecture. Use the explicit v3 client/context
@@ -9,7 +9,7 @@ APIs instead of import-time autopatching or manual wrappers.
 ## Recommended Usage
 
 ```python
-from ai.memory.v3 import SubconsciousClient, SubconsciousConfig
+from ai.research.v3 import SubconsciousClient, SubconsciousConfig
 
 config = SubconsciousConfig.from_env()
 client = await SubconsciousClient.create(config, user_id="pixelated")
@@ -24,8 +24,8 @@ await client.close()
 ## Contextvars Usage
 
 ```python
-from ai.memory.v3 import set_subconscious, get_subconscious, reset_subconscious
-from ai.memory.v3.config import SubconsciousConfig
+from ai.research.v3 import set_subconscious, get_subconscious, reset_subconscious
+from ai.research.v3.config import SubconsciousConfig
 
 config = SubconsciousConfig.from_env()
 token = set_subconscious(config, user_id="pixelated")
@@ -77,4 +77,4 @@ source /path/to/pixelated-memory.env
 ## Migration Note
 
 If you still have old references to `subconscious_wrapper.py`, `subconscious_example.py`,
-or `ai.memory.v2`, update them to `ai.memory.v3`.
+or `ai.research.v2`, update them to `ai.research.v3`.

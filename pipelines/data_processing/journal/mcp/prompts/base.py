@@ -71,7 +71,7 @@ class MCPPrompt(ABC):
         Raises:
             ValidationError: If parameters are invalid
         """
-        from ai.sourcing.journal.mcp.utils.validation import (
+        from ai.pipelines.data_processing.journal.mcp.utils.validation import (
             ValidationError,
             validate_prompt_arguments,
         )

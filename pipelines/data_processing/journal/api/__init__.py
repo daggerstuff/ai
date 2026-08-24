@@ -5,6 +5,6 @@ This module provides a FastAPI-based HTTP API server that wraps the CommandHandl
 functionality for use by web frontends and other clients.
 """
 
-from ai.sourcing.journal.api.main import app
+from ai.pipelines.data_processing.journal.api.main import app
 
 __all__ = ["app"]

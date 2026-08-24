@@ -11,7 +11,7 @@ from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
     DatasetEvaluation,
     DatasetSource,
@@ -19,7 +19,7 @@ from ai.sourcing.journal.models.dataset_models import (
     ResearchProgress,
     WeeklyReport,
 )
-from ai.sourcing.journal.orchestrator.types import (
+from ai.pipelines.data_processing.journal.orchestrator.types import (
     ProgressSnapshot,
     SessionState,
 )

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from ai.api.mcp_server.fastmcp_search import get_scoped_recent_memories
-from ai.api.mcp_server.memory_scope import MemoryScope
+from ai.inference.api.mcp_server.fastmcp_search import get_scoped_recent_memories
+from ai.inference.api.mcp_server.memory_scope import MemoryScope
 
 from .memory_category_counter import resolve_memory_category_counter
 from .memory_category_counts import count_memory_categories

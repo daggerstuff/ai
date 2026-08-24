@@ -16,7 +16,7 @@ import json
 import sys
 from pathlib import Path
 
-from sourcing.processors.safety_processor import SafetyProcessor
+from ai.pipelines.data_processing.sourcing.processors.safety_processor import SafetyProcessor
 
 
 def _load_jsonl(path: Path) -> list[dict]:

@@ -4,14 +4,14 @@ import hashlib
 
 import pytest
 
-from ai.receipts.persistence import (
+from ai.data.raw.persistence import (
     GENESIS_PREV_HASH,
     PersistentLedger,
     PostgresReceiptStore,
     SQLiteReceiptStore,
     get_persistent_ledger,
 )
-from ai.receipts.receipt import Ledger, ReceiptEnvelope
+from ai.data.raw.receipt import Ledger, ReceiptEnvelope
 
 
 def _sha256(value: str) -> str:

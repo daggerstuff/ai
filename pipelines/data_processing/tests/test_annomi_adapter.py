@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.annomi_adapter import AnnoMIAdapter
+from ai.pipelines.data_processing.dataset_adapters.annomi_adapter import AnnoMIAdapter
 
 _CSV_FIELDS = [
     "utterance_id",

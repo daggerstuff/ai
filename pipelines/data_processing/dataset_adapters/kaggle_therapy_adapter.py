@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 # Increase CSV field size limit for large text fields in therapy datasets
 csv.field_size_limit(min(sys.maxsize, 2**31 - 1))

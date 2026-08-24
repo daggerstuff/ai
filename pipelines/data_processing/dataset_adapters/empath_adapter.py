@@ -26,8 +26,8 @@ import json
 import os
 from typing import Any
 
-from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _HF_REPO_ID = "Adapting/empathetic_dialogues_v2"
 _SOURCE_URL = "https://huggingface.co/datasets/Adapting/empathetic_dialogues_v2"

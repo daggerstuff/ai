@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.bbrd_adapter import BBRDAdapter
+from ai.pipelines.data_processing.dataset_adapters.bbrd_adapter import BBRDAdapter
 
 _CSV_FIELDS = ["user_id", "post_text", "label", "timestamp"]
 

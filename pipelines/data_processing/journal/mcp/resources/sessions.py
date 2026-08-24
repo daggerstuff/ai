@@ -8,15 +8,15 @@ import logging
 from dataclasses import asdict
 from typing import Any
 
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
-from ai.sourcing.journal.mcp.protocol import (
+from ai.pipelines.data_processing.journal.mcp.protocol import (
     JSONRPCErrorCode,
     MCPError,
     MCPErrorCode,
 )
-from ai.sourcing.journal.mcp.resources.base import MCPResource
+from ai.pipelines.data_processing.journal.mcp.resources.base import MCPResource
 
 logger = logging.getLogger(__name__)
 

@@ -24,7 +24,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 

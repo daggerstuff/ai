@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.api.mcp_server.memory_scope import _scope_matches, filter_memories_by_scope, scope_from_kwargs
+from ai.inference.api.mcp_server.memory_scope import _scope_matches, filter_memories_by_scope, scope_from_kwargs
 
 
 def scoped_memories_from_records(

@@ -71,10 +71,10 @@ mesh_terms:
 
 # Storage Paths
 storage:
-  acquired_datasets: 'ai/sourcing/research_system/acquired_datasets'
-  logs: 'ai/sourcing/research_system/logs'
-  reports: 'ai/sourcing/research_system/reports'
-  temp_downloads: 'ai/sourcing/research_system/temp'
+  acquired_datasets: 'ai/pipelines/data_processing/research_system/acquired_datasets'
+  logs: 'ai/pipelines/data_processing/research_system/logs'
+  reports: 'ai/pipelines/data_processing/research_system/reports'
+  temp_downloads: 'ai/pipelines/data_processing/research_system/temp'
 
 # Research Targets
 targets:
@@ -133,6 +133,6 @@ security:
 logging:
   level: 'INFO' # DEBUG, INFO, WARNING, ERROR, CRITICAL
   format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-  file: 'ai/sourcing/research_system/logs/research_system.log'
+  file: 'ai/pipelines/data_processing/research_system/logs/research_system.log'
   max_bytes: 10485760 # 10 MB
   backup_count: 5

@@ -13,7 +13,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from ai.platform.patient_psi.profiles import ClinicalProfile
+from ai.tools.utilities.platform.patient_psi.profiles import ClinicalProfile
 
 # ---------------------------------------------------------------------------
 # Constants

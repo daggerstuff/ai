@@ -2,14 +2,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ai.memory.mem0_gemini.agent_memory_tools import AgentContext
-from ai.memory.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
-from ai.memory.mem0_gemini.memory_ingestion_config import (
+from ai.research.mem0_gemini.agent_memory_tools import AgentContext
+from ai.research.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
+from ai.research.mem0_gemini.memory_ingestion_config import (
     CrisisDetector,
     PIIFilter,
     SpeculationFilter,
 )
-from ai.memory.mem0_gemini.multi_agent_memory import (
+from ai.research.mem0_gemini.multi_agent_memory import (
     AgentIdentity,
     AgentRole,
     CollaborationContext,

@@ -222,13 +222,13 @@ def main():
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
+        default=Path("/home/vivi/pixelated/ai/configs/dataset_registry.json"),
         help="Path to input dataset_registry.json",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("/home/vivi/pixelated/ai/config/dataset_registry_enhanced.json"),
+        default=Path("/home/vivi/pixelated/ai/configs/dataset_registry_enhanced.json"),
         help="Path to output enhanced registry",
     )
     parser.add_argument(

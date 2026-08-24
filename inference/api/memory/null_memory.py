@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.api.memory.base import BaseMemoryManager
+from ai.inference.api.memory.base import BaseMemoryManager
 
 from .null_memory_health_service import NullMemoryHealthService
 from .null_memory_legacy_adapter import NullMemoryLegacyAdapter

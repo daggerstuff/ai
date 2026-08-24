@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from rare_disease.types import PatientCase, Symptom
+from ..types import PatientCase, Symptom
 
 """Symptom Analyzer Sub-Agent — maps symptoms to rare-disease phenotype patterns."""
 

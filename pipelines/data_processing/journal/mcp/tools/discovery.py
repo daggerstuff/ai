@@ -8,12 +8,12 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
-from ai.sourcing.journal.mcp.tools.base import MCPTool
-from ai.sourcing.journal.models.dataset_models import DatasetSource
+from ai.pipelines.data_processing.journal.mcp.protocol import MCPError, MCPErrorCode
+from ai.pipelines.data_processing.journal.mcp.tools.base import MCPTool
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetSource
 
 logger = logging.getLogger(__name__)
 

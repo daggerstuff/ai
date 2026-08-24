@@ -14,14 +14,14 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
-from ai.api.mcp_server.memory_scope import (
+from ai.inference.api.mcp_server.memory_scope import (
     build_scope_metadata,
     filter_memories_by_scope,
     scope_from_kwargs,
     scope_input_schema_properties,
     search_with_overfetch,
 )
-from ai.memory.manager_factory import get_required_memory_manager
+from ai.research.manager_factory import get_required_memory_manager
 
 logger = logging.getLogger(__name__)
 

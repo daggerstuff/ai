@@ -1,8 +1,8 @@
 import pytest
 
-from ai.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
-from ai.sourcing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
-from ai.sourcing.journal.mcp.utils.validation import ValidationError
+from ai.pipelines.data_processing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
+from ai.pipelines.data_processing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
+from ai.pipelines.data_processing.journal.mcp.utils.validation import ValidationError
 
 
 def test_discover_sources_prompt_render_includes_values() -> None:

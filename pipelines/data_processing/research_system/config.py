@@ -95,7 +95,7 @@ class Config:
             >>> config.get("api_endpoints.pubmed.base_url")
             "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
             >>> config.get("storage.logs")
-            "ai/sourcing/research_system/logs"
+            "ai/pipelines/data_processing/research_system/logs"
         """
         keys = key_path.split(".")
         value = self._config

@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.hope_adapter import HOPEAdapter
+from ai.pipelines.data_processing.dataset_adapters.hope_adapter import HOPEAdapter
 
 
 @pytest.fixture

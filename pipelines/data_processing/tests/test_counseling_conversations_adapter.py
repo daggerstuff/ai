@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.counseling_conversations_adapter import (
+from ai.pipelines.data_processing.dataset_adapters.counseling_conversations_adapter import (
     CounselingConversationsAdapter,
 )
 
@@ -100,7 +100,7 @@ class TestCounselingConversationsAdapter:
         assert record["task_type"] == "therapy_response_generation"
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("counseling_conversations", "/tmp/test_cc")
         assert isinstance(a, CounselingConversationsAdapter)

@@ -9,16 +9,16 @@ import json
 import time
 from typing import Any
 
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
-from ai.sourcing.journal.mcp.config import MCPConfig, load_mcp_config
-from ai.sourcing.journal.mcp.prompts import PromptRegistry
-from ai.sourcing.journal.mcp.prompts.acquisition import AcquireDatasetsPrompt
-from ai.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
-from ai.sourcing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
-from ai.sourcing.journal.mcp.prompts.integration import CreateIntegrationPlansPrompt
-from ai.sourcing.journal.mcp.protocol import (
+from ai.pipelines.data_processing.journal.mcp.config import MCPConfig, load_mcp_config
+from ai.pipelines.data_processing.journal.mcp.prompts import PromptRegistry
+from ai.pipelines.data_processing.journal.mcp.prompts.acquisition import AcquireDatasetsPrompt
+from ai.pipelines.data_processing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
+from ai.pipelines.data_processing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
+from ai.pipelines.data_processing.journal.mcp.prompts.integration import CreateIntegrationPlansPrompt
+from ai.pipelines.data_processing.journal.mcp.protocol import (
     JSONRPCErrorCode,
     MCPError,
     MCPErrorCode,
@@ -26,26 +26,26 @@ from ai.sourcing.journal.mcp.protocol import (
     MCPRequest,
     MCPResponse,
 )
-from ai.sourcing.journal.mcp.resources import (
+from ai.pipelines.data_processing.journal.mcp.resources import (
     ProgressHistoryResource,
     ProgressMetricsResource,
     ResourceRegistry,
     SessionMetricsResource,
     SessionStateResource,
 )
-from ai.sourcing.journal.mcp.tools.acquisition import (
+from ai.pipelines.data_processing.journal.mcp.tools.acquisition import (
     AcquireDatasetsTool,
     GetAcquisitionsTool,
     GetAcquisitionTool,
     UpdateAcquisitionTool,
 )
-from ai.sourcing.journal.mcp.tools.executor import ToolExecutor
-from ai.sourcing.journal.mcp.tools.registry import ToolRegistry
-from ai.sourcing.journal.mcp.utils.progress_streaming import ProgressStreamer
+from ai.pipelines.data_processing.journal.mcp.tools.executor import ToolExecutor
+from ai.pipelines.data_processing.journal.mcp.tools.registry import ToolRegistry
+from ai.pipelines.data_processing.journal.mcp.utils.progress_streaming import ProgressStreamer
 
 # Optional pipeline bridge integration
 try:
-    from ai.sourcing.journal.integration.mcp_pipeline_bridge import (
+    from ai.pipelines.data_processing.journal.integration.mcp_pipeline_bridge import (
         MCPPipelineBridge,
     )
 
@@ -53,50 +53,50 @@ try:
 except ImportError:
     PIPELINE_BRIDGE_AVAILABLE = False
     MCPPipelineBridge = None
-from ai.sourcing.journal.mcp.auth import (
+from ai.pipelines.data_processing.journal.mcp.auth import (
     create_auth_handler,
     create_authorization_handler,
 )
-from ai.sourcing.journal.mcp.tools.discovery import (
+from ai.pipelines.data_processing.journal.mcp.tools.discovery import (
     DiscoverSourcesTool,
     FilterSourcesTool,
     GetSourcesTool,
     GetSourceTool,
 )
-from ai.sourcing.journal.mcp.tools.evaluation import (
+from ai.pipelines.data_processing.journal.mcp.tools.evaluation import (
     EvaluateSourcesTool,
     GetEvaluationsTool,
     GetEvaluationTool,
     UpdateEvaluationTool,
 )
-from ai.sourcing.journal.mcp.tools.integration import (
+from ai.pipelines.data_processing.journal.mcp.tools.integration import (
     CreateIntegrationPlansTool,
     GeneratePreprocessingScriptTool,
     GetIntegrationPlansTool,
     GetIntegrationPlanTool,
 )
-from ai.sourcing.journal.mcp.tools.reports import (
+from ai.pipelines.data_processing.journal.mcp.tools.reports import (
     GenerateReportTool,
     GetReportTool,
     ListReportsTool,
 )
-from ai.sourcing.journal.mcp.tools.sessions import (
+from ai.pipelines.data_processing.journal.mcp.tools.sessions import (
     CreateSessionTool,
     DeleteSessionTool,
     GetSessionTool,
     ListSessionsTool,
     UpdateSessionTool,
 )
-from ai.sourcing.journal.mcp.utils.audit_logging import (
+from ai.pipelines.data_processing.journal.mcp.utils.audit_logging import (
     create_audit_logger,
 )
-from ai.sourcing.journal.mcp.utils.error_handling import MCPErrorHandler
-from ai.sourcing.journal.mcp.utils.logging import get_logger, setup_logging
-from ai.sourcing.journal.mcp.utils.rate_limiting import (
+from ai.pipelines.data_processing.journal.mcp.utils.error_handling import MCPErrorHandler
+from ai.pipelines.data_processing.journal.mcp.utils.logging import get_logger, setup_logging
+from ai.pipelines.data_processing.journal.mcp.utils.rate_limiting import (
     RateLimitManager,
     check_rate_limit as check_rate_limit_request,
 )
-from ai.sourcing.journal.mcp.utils.security import (
+from ai.pipelines.data_processing.journal.mcp.utils.security import (
     SecurityError,
     sanitize_json_output,
     validate_and_sanitize_input,
@@ -650,7 +650,7 @@ class MCPServer:
                     try:
                         resource.validate_parameters(read_params)
                     except Exception as e:
-                        from ai.sourcing.journal.mcp.utils.validation import (
+                        from ai.pipelines.data_processing.journal.mcp.utils.validation import (
                             ValidationError,
                         )
 
@@ -782,7 +782,7 @@ class MCPServer:
                 try:
                     prompt.validate_arguments(prompt_args)
                 except Exception as e:
-                    from ai.sourcing.journal.mcp.utils.validation import (
+                    from ai.pipelines.data_processing.journal.mcp.utils.validation import (
                         ValidationError,
                     )
 

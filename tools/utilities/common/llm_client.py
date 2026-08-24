@@ -6,7 +6,7 @@ from typing import Any
 
 from openai import OpenAI
 
-from ai.utils.common.rate_limiter import (
+from ai.tools.utilities.common.rate_limiter import (
     TierAwareRateLimiter,
     default_rate_limiter,
 )

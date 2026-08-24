@@ -66,7 +66,7 @@ class PartialResult:
 class PartialResultManager:
     """Manages partial results for recovery and continuation"""
 
-    def __init__(self, storage_path: str = "/home/vivi/pixelated/ai/infrastructure/distributed/partial_results"):
+    def __init__(self, storage_path: str = "/home/vivi/pixelated/ai/inference/deployment/distributed/partial_results"):
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.db_path = self.storage_path / "partial_results.db"

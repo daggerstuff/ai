@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 # Import our modules
 from ai.inference.inference_api import UserTier, api_key_manager, app, safety_filtered_endpoint
-from ai.safety.enhanced_safety_filter import CrisisDetectionResult, EnhancedSafetyFilter, SafetyCheckResult, SafetyLevel
+from ai.qa.validation.enhanced_safety_filter import CrisisDetectionResult, EnhancedSafetyFilter, SafetyCheckResult, SafetyLevel
 
 logger = logging.getLogger(__name__)
 

@@ -7,8 +7,8 @@ import sys
 
 from fastmcp import FastMCP
 
-from ai.api.mcp_server.fastmcp_context import register_context_surfaces
-from ai.api.mcp_server.fastmcp_v2_tools import register_memory_tools_v2
+from ai.inference.api.mcp_server.fastmcp_context import register_context_surfaces
+from ai.inference.api.mcp_server.fastmcp_v2_tools import register_memory_tools_v2
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 

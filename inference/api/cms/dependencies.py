@@ -2,9 +2,9 @@
 
 from fastapi import Depends, HTTPException, Request
 
-from ai.infrastructure.database.cms_connection_manager import CMSConnectionManager
-from ai.infrastructure.database.dal.cached_repository import CMSCacheLayer
-from ai.infrastructure.database.dal.postgres_repository import (
+from ai.inference.deployment.database.database.cms_connection_manager import CMSConnectionManager
+from ai.inference.deployment.database.database.dal.cached_repository import CMSCacheLayer
+from ai.inference.deployment.database.database.dal.postgres_repository import (
     ApprovalRequestRepository,
     ApprovalWorkflowRepository,
     AuditLogRepository,
@@ -13,7 +13,7 @@ from ai.infrastructure.database.dal.postgres_repository import (
     NotificationRepository,
     PermissionRepository,
 )
-from ai.infrastructure.database.dal.repositories import (
+from ai.inference.deployment.database.database.dal.repositories import (
     BusinessDocumentRepository,
     KnowledgeArticleRepository,
     MarketResearchRepository,

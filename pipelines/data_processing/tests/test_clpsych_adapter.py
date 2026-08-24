@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.clpsych_adapter import CLPsychAdapter
+from ai.pipelines.data_processing.dataset_adapters.clpsych_adapter import CLPsychAdapter
 
 
 @pytest.fixture

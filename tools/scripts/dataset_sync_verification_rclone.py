@@ -127,7 +127,7 @@ def _parse_args():
     parser.add_argument(
         "--registry",
         type=Path,
-        default=Path("/home/vivi/pixelated/ai/config/dataset_registry.json"),
+        default=Path("/home/vivi/pixelated/ai/configs/dataset_registry.json"),
         help="Path to dataset registry",
     )
     parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to verify")

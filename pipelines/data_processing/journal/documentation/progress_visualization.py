@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     DatasetEvaluation,
     ResearchProgress,
     ResearchSession,

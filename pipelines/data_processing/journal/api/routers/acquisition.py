@@ -6,19 +6,19 @@ This module provides endpoints for dataset acquisition operations.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ai.sourcing.journal.api.dependencies import (
+from ai.pipelines.data_processing.journal.api.dependencies import (
     get_command_handler_service,
     get_current_user,
     require_permission_dependency,
 )
-from ai.sourcing.journal.api.models.acquisition import (
+from ai.pipelines.data_processing.journal.api.models.acquisition import (
     AcquisitionInitiateRequest,
     AcquisitionListResponse,
     AcquisitionResponse,
     AcquisitionUpdateRequest,
 )
-from ai.sourcing.journal.api.models.common import PaginationParams
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.models.common import PaginationParams
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 

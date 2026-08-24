@@ -11,7 +11,7 @@ from typing import Any
 import jwt as pyjwt
 from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
 
-from ai.sourcing.journal.api.config import get_settings
+from ai.pipelines.data_processing.journal.api.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

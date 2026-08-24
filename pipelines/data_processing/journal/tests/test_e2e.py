@@ -10,31 +10,31 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.journal.acquisition.acquisition_manager import (
+from ai.pipelines.data_processing.journal.acquisition.acquisition_manager import (
     AccessAcquisitionManager,
     AcquisitionConfig,
 )
-from ai.sourcing.journal.documentation.dataset_catalog import DatasetCatalog
-from ai.sourcing.journal.documentation.report_generator import ReportGenerator
-from ai.sourcing.journal.documentation.research_logger import ResearchLogger
-from ai.sourcing.journal.evaluation.evaluation_engine import (
+from ai.pipelines.data_processing.journal.documentation.dataset_catalog import DatasetCatalog
+from ai.pipelines.data_processing.journal.documentation.report_generator import ReportGenerator
+from ai.pipelines.data_processing.journal.documentation.research_logger import ResearchLogger
+from ai.pipelines.data_processing.journal.evaluation.evaluation_engine import (
     DatasetEvaluationEngine,
 )
-from ai.sourcing.journal.integration.integration_planning_engine import (
+from ai.pipelines.data_processing.journal.integration.integration_planning_engine import (
     IntegrationPlanningEngine,
 )
-from ai.sourcing.journal.integration.pipeline_integration_service import (
+from ai.pipelines.data_processing.journal.integration.pipeline_integration_service import (
     PipelineIntegrationService,
 )
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
     DatasetSource,
     ResearchProgress,
 )
-from ai.sourcing.journal.orchestrator.research_orchestrator import (
+from ai.pipelines.data_processing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
 )
-from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
+from ai.pipelines.data_processing.journal.orchestrator.types import OrchestratorConfig
 
 
 class TestCompleteResearchWorkflow:

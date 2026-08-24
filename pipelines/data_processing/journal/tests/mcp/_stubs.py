@@ -4,8 +4,8 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from typing import Any
 
-from ai.sourcing.journal.mcp.auth.authorization import AuthorizationHandler
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.mcp.auth.authorization import AuthorizationHandler
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
     DatasetEvaluation,
     DatasetSource,
@@ -14,7 +14,7 @@ from ai.sourcing.journal.models.dataset_models import (
     ResearchProgress,
     ResearchSession,
 )
-from ai.sourcing.journal.orchestrator.types import ProgressSnapshot, SessionState
+from ai.pipelines.data_processing.journal.orchestrator.types import ProgressSnapshot, SessionState
 
 
 class AllowAllAuthorization(AuthorizationHandler):

@@ -13,7 +13,7 @@ def create_api_router() -> APIRouter:
     api_router = APIRouter(prefix="/api/journal-research", tags=["journal-research"])
 
     # Import and include sub-routers (lazy import to avoid circular dependencies)
-    from ai.sourcing.journal.api.routers import (
+    from ai.pipelines.data_processing.journal.api.routers import (
         acquisition,
         discovery,
         evaluation,

@@ -26,7 +26,7 @@ _PAL_FRAMEWORK = str(Path(__file__).resolve().parents[1] / "training_corpus" / "
 if _PAL_FRAMEWORK not in sys.path:
     sys.path.insert(0, _PAL_FRAMEWORK)
 
-from ai.api.pixel_inference_service import (
+from ai.inference.api.pixel_inference_service import (
     ConversationMessage,
     PixelInferenceEngine,
     PixelInferenceRequest,
@@ -404,7 +404,7 @@ class TestPalEndpoints:
             },
             clear=False,
         ):
-            import ai.api.pixel_inference_service as svc
+            import ai.inference.api.pixel_inference_service as svc
 
             svc.pal_wrapper = None
             importlib.reload(svc)

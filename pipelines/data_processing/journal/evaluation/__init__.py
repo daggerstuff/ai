@@ -4,7 +4,7 @@ Dataset Evaluation Engine
 Systematic quality assessment and prioritization of identified datasets.
 """
 
-from ai.sourcing.journal.evaluation.evaluation_engine import (
+from ai.pipelines.data_processing.journal.evaluation.evaluation_engine import (
     DatasetEvaluationEngine,
     EvaluationConfig,
 )

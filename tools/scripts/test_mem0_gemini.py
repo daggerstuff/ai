@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 
-from ai.memory.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
+from ai.research.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

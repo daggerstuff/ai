@@ -17,7 +17,7 @@ try:
     from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
         PipelineOrchestrator,
     )
-    from ai.sourcing.journal.models.dataset_models import (
+    from ai.pipelines.data_processing.journal.models.dataset_models import (
         AcquiredDataset as AcquiredDatasetModel,
         DatasetEvaluation as DatasetEvaluationModel,
         IntegrationPlan as IntegrationPlanModel,

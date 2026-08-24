@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.evals.diagnosis_arena import (
+from ai.qa.validation.diagnosis_arena import (
     DIAGNOSTIC_DIMENSIONS,
     DIMENSION_WEIGHTS,
     ERROR_TAXONOMY,
@@ -55,8 +55,8 @@ from ai.evals.diagnosis_arena import (
     write_leaderboard,
     write_report,
 )
-from ai.evals.diagnosis_arena.benchmark import DiagnosisArenaBenchmark
-from ai.evals.diagnosis_arena.openai_judge import (
+from ai.qa.validation.diagnosis_arena.benchmark import DiagnosisArenaBenchmark
+from ai.qa.validation.diagnosis_arena.openai_judge import (
     _majority_dimensions,
     _majority_tier,
     _normalize_dimension_scores,

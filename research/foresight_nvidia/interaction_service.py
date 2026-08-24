@@ -6,7 +6,7 @@ Therapeutic interaction service for NVIDIA-backed agents using local memory.
 
 import logging
 
-from ai.memory.local_foresight_manager import LocalForesightMemoryManager
+from ai.research.local_foresight_manager import LocalForesightMemoryManager
 
 from .memory_ingestion_config import MemoryCategory
 

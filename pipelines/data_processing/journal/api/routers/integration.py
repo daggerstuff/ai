@@ -6,18 +6,18 @@ This module provides endpoints for integration planning operations.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ai.sourcing.journal.api.dependencies import (
+from ai.pipelines.data_processing.journal.api.dependencies import (
     get_command_handler_service,
     get_current_user,
     require_permission_dependency,
 )
-from ai.sourcing.journal.api.models.common import PaginationParams
-from ai.sourcing.journal.api.models.integration import (
+from ai.pipelines.data_processing.journal.api.models.common import PaginationParams
+from ai.pipelines.data_processing.journal.api.models.integration import (
     IntegrationInitiateRequest,
     IntegrationPlanListResponse,
     IntegrationPlanResponse,
 )
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 

@@ -1,14 +1,14 @@
 import jwt as pyjwt
 import pytest
 
-from ai.sourcing.journal.mcp.auth.authentication import (
+from ai.pipelines.data_processing.journal.mcp.auth.authentication import (
     APIKeyAuth,
     CompositeAuth,
     JWTAuth,
 )
-from ai.sourcing.journal.mcp.auth.authorization import RBAC
-from ai.sourcing.journal.mcp.config import AuthConfig
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode, MCPRequest
+from ai.pipelines.data_processing.journal.mcp.auth.authorization import RBAC
+from ai.pipelines.data_processing.journal.mcp.config import AuthConfig
+from ai.pipelines.data_processing.journal.mcp.protocol import MCPError, MCPErrorCode, MCPRequest
 
 
 def _build_request(auth_header: str) -> MCPRequest:

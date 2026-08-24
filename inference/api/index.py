@@ -17,9 +17,9 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-from ai.api.emotions_service import app as emotions_app
-from ai.api.mcp_server.memory_auth import authorize_memory_access
-from ai.memory.reflection_bootstrap import create_and_start
+from ai.inference.api.emotions_service import app as emotions_app
+from ai.inference.api.mcp_server.memory_auth import authorize_memory_access
+from ai.research.reflection_bootstrap import create_and_start
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +150,7 @@ async def reflect(request):
 
 from starlette.routing import Mount
 
-from ai.pkg_mera.platform.patient_psi.api import create_app
+from ai.tools.utilities.platform.patient_psi.api import create_app
 
 patient_psi_app = create_app(prefix="/api/v1/patient-psi")
 

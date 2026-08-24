@@ -12,7 +12,7 @@ from typing import Any
 
 import requests
 
-from ai.sourcing.research_system.config import get_config
+from ai.pipelines.data_processing.research_system.config import get_config
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import hashlib
 
-from ai.receipts.receipt import Ledger, ReceiptEnvelope
+from ai.data.raw.receipt import Ledger, ReceiptEnvelope
 
 
 def _sha256(data: str) -> str:

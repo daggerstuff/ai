@@ -9,74 +9,104 @@ organization and deployment structure.
 
 ```
 ai/
-├── training/                    # Model training and fine-tuning
-│   ├── configs/                # Training configurations
+├── training/                    # Model training, fine-tuning, safety, judges
+│   ├── configs/                # Hyperparameters, infra, model/stage configs
+│   ├── scripts/                # Training scripts (gpu, services, sprint8)
+│   ├── tests/                  # Training test suite
+│   ├── rlhf/                   # RLHF / DPO / GRPO trainers
+│   ├── sdg/                    # Synthetic data generation
+│   ├── defense_mechanisms/     # Defense mechanism training
+│   ├── coaching_safety/        # Coaching safety modules
+│   ├── sliced/                 # Stage-sliced datasets (stage1_foundation, stage2_*)
+│   ├── utils/                  # Shared training utilities
 │   ├── checkpoints/            # Model checkpoints
-│   ├── scripts/                # Training scripts
-│   └── train_pixelated_empathy.py  # Main training entry point
+│   └── *.py                    # Flat trainers/judges/scorers (see note below)
 ├── data/                       # Datasets and data management
 │   ├── raw/                    # Raw datasets
 │   ├── processed/              # Processed datasets
+│   ├── curated/                # Curated datasets (DVC-tracked)
 │   └── synthetic/              # Synthetic data generation
+├── benchmarks/                # Benchmarks
+│   ├── *_performance_baseline.json  # CPU/memory/inference benchmark baselines
+│   └── tests/                 # Benchmark tests
 ├── models/                     # Model artifacts and exports
 │   ├── checkpoints/            # Saved model checkpoints
 │   ├── artifacts/              # Model artifacts
-│   └── exports/                # Exported models for deployment
+│   ├── exports/                # Exported models for deployment
+│   ├── base/                   # Base model definitions
+│   ├── moe/                    # Mixture-of-experts
+│   └── pixel/                  # Pixel model
 ├── inference/                  # Deployment and inference
-│   ├── api/                    # API endpoints
+│   ├── api/                    # API endpoints (cms, mcp_server, memory, techdeck)
 │   ├── services/               # Inference services
-│   ├── deployment/             # Deployment configurations
-│   └── pixelated_empathy_inference.py  # Main inference entry point
-├── config/                     # Configuration management
-│   ├── production/             # Production configurations
-│   ├── development/            # Development configurations
-│   └── testing/                # Testing configurations
+│   └── deployment/             # Deployment configs (helm, k8s, s3, postgres)
 ├── pipelines/                  # Data and model pipelines
-│   ├── data_processing/        # Data processing pipelines
+│   ├── data_processing/        # Data processing (academic, journal, youtube, extractors)
 │   ├── model_training/         # Training pipelines
 │   ├── evaluation/             # Model evaluation
-│   └── process_datasets.py     # Main data processing entry point
+│   ├── orchestration/          # Stage organizers
+│   ├── voice/                  # Voice / audio pipelines
+│   └── edge_case/              # Edge case generation
+├── sourcing/                   # Data sourcing (academic, journal, youtube)
 ├── research/                   # Research and experimentation
 │   ├── notebooks/              # Jupyter notebooks
 │   ├── experiments/            # Research experiments
-│   └── analysis/               # Analysis and reports
-├── tools/                      # Utilities and tools
-│   ├── utilities/              # Utility scripts
-│   ├── scripts/                # Shell scripts
-│   └── generators/             # Data generators
-├── docs/                       # Documentation
-│   ├── api/                    # API documentation
-│   ├── guides/                 # User guides
-│   └── architecture/           # Architecture documentation
+│   ├── analysis/               # Analysis and reports
+│   ├── gates/                  # Inference gates (consent, crisis, pii)
+│   └── reflection/             # Reflection memory modules
+├── tools/                        # Utilities and tools
+│   ├── utilities/              # Utility modules (api, core, data, pipelines, pkg_mera)
+│   ├── scripts/                # Shell scripts and command-line tools
+│   ├── generators/             # Data generators
+│   └── DataDesigner/           # External NeMo Data Designer snapshot
 ├── qa/                         # Quality assurance
 │   ├── reports/                # QA reports
-│   ├── validation/             # Validation scripts
+│   ├── validation/             # Validation (crisis_detection, diagnosis_arena, therapy_bench)
 │   └── testing/                # Test suites
-└── archive/                    # Legacy and archived files
-    └── legacy_files/           # Old implementation files
+│       └── legacy_tests/       # Archived broken legacy tests
+├── annotation/                 # Annotation agents and API
+├── compliance/                 # Compliance (db, security, validators)
+├── prompts/                    # Prompt templates (agents, clinical, safety, system)
+├── configs/                    # Config management (envs, models, monitoring, legacy)
+├── docs/                       # Documentation (api, architecture, guides, ops)
+├── scripts/                    # Maintenance scripts
+├── migrations/                 # DB migrations (SQL)
+├── experiments/                # Experiment scratch space
+├── assets/                     # Static assets
+└── ops/                        # Ops tooling (Dockerfile, Makefile, CI)
 ```
 
+> **Note on flat `training/*.py`**: ~70 modules (trainers, judges, scorers,
+> SDG pipelines) live at the `training/` root and are heavily cross-imported
+> (`training.clinical_validity_scorer`, `training.pixelated_production_pilot`,
+> `training.dpo_trainer`, etc.). They are importable library code, not runnable
+> scripts, and remain flat by design until a dedicated package split is done.
+
 ## Quick Start
+
+### Environment
+
+```bash
+# Sync dependencies (Python 3.13 via uv)
+uv sync
+```
+
+### Run Tests
+
+```bash
+uv run pytest
+```
 
 ### Training
 
 ```bash
-cd training
-python train_pixelated_empathy.py
+uv run python -m training.<entry_point>
 ```
 
 ### Inference
 
 ```bash
-cd inference
-python pixelated_empathy_inference.py
-```
-
-### Data Processing
-
-```bash
-cd pipelines
-python process_datasets.py
+uv run python -m inference.api.<module>
 ```
 
 ## Test Suite & Training Pipeline
@@ -175,9 +205,9 @@ export AI_DISABLE_SAFETY_ML_MODELS=1
 
 ### Configuration
 
-- Production configs: `config/production/`
-- Development configs: `config/development/`
-- Testing configs: `config/testing/`
+- Environment configs: `configs/envs/{development,staging,production,testing}/`
+- Model configs: `configs/models/`
+- Monitoring configs: `configs/monitoring/`
 
 ### Model Management
 
@@ -189,6 +219,7 @@ export AI_DISABLE_SAFETY_ML_MODELS=1
 
 - Raw datasets: `data/raw/`
 - Processed datasets: `data/processed/`
+- Curated datasets: `data/curated/` (DVC-tracked)
 - Synthetic data: `data/synthetic/`
 
 ### API Deployment
@@ -199,28 +230,27 @@ export AI_DISABLE_SAFETY_ML_MODELS=1
 
 ## Development Workflow
 
-1. **Data Preparation**: Use `pipelines/process_datasets.py`
-2. **Model Training**: Use `training/train_pixelated_empathy.py`
-3. **Model Evaluation**: Use scripts in `pipelines/evaluation/`
-4. **Deployment**: Use configurations in `inference/deployment/`
-5. **Monitoring**: Use tools in `qa/validation/`
+1. **Data Preparation**: Use pipelines under `pipelines/data_processing/`
+2. **Data Sourcing**: Use `sourcing/`
+3. **Model Training**: Use `training/` (flat modules + `training/scripts/`)
+4. **Model Evaluation**: Use `pipelines/evaluation/`
+5. **Deployment**: Use configurations in `inference/deployment/`
+6. **Quality Assurance**: Use `qa/validation/` and `qa/testing/`
 
 ## Legacy Files
 
-All previous task files and reports have been moved to `archive/legacy_files/`
-for reference.
+All previous task files and reports are kept in their functional homes
+(`qa/reports/` for PR/audit data, `tools/DataDesigner/` for the external
+Data Designer snapshot, `qa/testing/legacy_tests/` for broken legacy tests).
 
 ## Environment Setup
 
 ```bash
+# Sync dependencies via uv
+uv sync
+
 # Activate virtual environment
 source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp config/development/.env.example config/development/.env
 ```
 
 ## Support

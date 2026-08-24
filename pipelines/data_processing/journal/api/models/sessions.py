@@ -8,7 +8,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from ai.sourcing.journal.api.models.common import PaginatedResponse
+from ai.pipelines.data_processing.journal.api.models.common import PaginatedResponse
 
 
 class CreateSessionRequest(BaseModel):

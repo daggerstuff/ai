@@ -11,16 +11,16 @@ from datetime import UTC, datetime, timedelta
 import pandas as pd
 import pytest
 
-from ai.sourcing.journal.documentation.dataset_catalog import DatasetCatalog
-from ai.sourcing.journal.documentation.progress_visualization import (
+from ai.pipelines.data_processing.journal.documentation.dataset_catalog import DatasetCatalog
+from ai.pipelines.data_processing.journal.documentation.progress_visualization import (
     ProgressVisualization,
 )
-from ai.sourcing.journal.documentation.report_generator import ReportGenerator
-from ai.sourcing.journal.documentation.research_logger import ResearchLogger
-from ai.sourcing.journal.documentation.tracking_updater import (
+from ai.pipelines.data_processing.journal.documentation.report_generator import ReportGenerator
+from ai.pipelines.data_processing.journal.documentation.research_logger import ResearchLogger
+from ai.pipelines.data_processing.journal.documentation.tracking_updater import (
     TrackingDocumentUpdater,
 )
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     ResearchProgress,
     WeeklyReport,
 )

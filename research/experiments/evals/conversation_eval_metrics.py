@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 from transformers import AutoModel, AutoTokenizer
 
-from ai.utils.torch_proxy import nn, torch
+from ai.tools.utilities.torch_proxy import nn, torch
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 

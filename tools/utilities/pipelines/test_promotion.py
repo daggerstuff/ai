@@ -15,8 +15,8 @@ from pathlib import Path
 
 import pytest
 
-from ai.core.pipelines.packaging import create_training_package
-from ai.core.pipelines.promotion import (
+from ai.tools.utilities.core.pipelines.packaging import create_training_package
+from ai.tools.utilities.core.pipelines.promotion import (
     PromotionResult,
     PromotionService,
     PromotionStatus,

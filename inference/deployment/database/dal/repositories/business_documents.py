@@ -9,7 +9,7 @@ from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from ai.infrastructure.database.dal.mongo_base_repository import MongoBaseRepository
+from ai.inference.deployment.database.database.dal.mongo_base_repository import MongoBaseRepository
 
 
 class BusinessDocumentRepository(MongoBaseRepository):

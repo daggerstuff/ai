@@ -11,8 +11,8 @@ from contextlib import suppress
 from datetime import UTC, datetime
 from typing import Any
 
-from ai.pkg_mera.platform.ccd_schema import CCDConceptualization
-from ai.pkg_mera.platform.pixelated_empathy_core import (
+from ai.tools.utilities.platform.ccd_schema import CCDConceptualization
+from ai.tools.utilities.platform.pixelated_empathy_core import (
     ClientPersonality,
     DifficultClientProfile,
     DifficultyLevel,

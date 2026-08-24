@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-from ai.sourcing.journal.mcp.config import LoggingConfig
+from ai.pipelines.data_processing.journal.mcp.config import LoggingConfig
 
 # Get audit logger
 audit_logger = logging.getLogger("mcp.audit")

@@ -7,13 +7,13 @@ This module provides dependency injection for authentication and authorization.
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from ai.sourcing.journal.api.auth.jwt import get_user_from_token
-from ai.sourcing.journal.api.auth.rbac import (
+from ai.pipelines.data_processing.journal.api.auth.jwt import get_user_from_token
+from ai.pipelines.data_processing.journal.api.auth.rbac import (
     require_permission,
     require_role,
 )
-from ai.sourcing.journal.api.config import get_settings
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.config import get_settings
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 
@@ -116,7 +116,7 @@ def get_command_handler_service() -> CommandHandlerService:
 
 def get_training_pipeline_service():
     """Get TrainingPipelineService instance."""
-    from ai.sourcing.journal.api.services.training_pipeline_service import (
+    from ai.pipelines.data_processing.journal.api.services.training_pipeline_service import (
         TrainingPipelineService,
     )
 

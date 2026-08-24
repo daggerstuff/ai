@@ -14,7 +14,7 @@ from flask import Flask, g
 
 # Mocking the dependencies if they aren't available in the test environment immediately
 with suppress(ImportError):
-    from ai.pkg_mera.core.api.techdeck_integration.auth.middleware import JWTAuthMiddleware
+    from ai.tools.utilities.core.api.techdeck_integration.auth.middleware import JWTAuthMiddleware
 
 
 class TestJWTAuthMiddleware(unittest.TestCase):
@@ -31,7 +31,7 @@ class TestJWTAuthMiddleware(unittest.TestCase):
         self.config.RATE_LIMIT_PER_MINUTE = 100
 
         # We need to patch get_logger since we might not have the logging setup
-        self.logger_patcher = patch("ai.api.techdeck_integration.auth.middleware.get_logger")
+        self.logger_patcher = patch("ai.inference.api.techdeck_integration.auth.middleware.get_logger")
         self.mock_get_logger = self.logger_patcher.start()
         self.mock_logger = MagicMock()
         self.mock_get_logger.return_value = self.mock_logger
@@ -77,7 +77,7 @@ class TestJWTAuthMiddleware(unittest.TestCase):
         # Act
         # We need to patch the internal validation methods or just let them run
         # if pure logic. But Request object needs to be mocked or we rely on werkzeug
-        with patch("ai.api.techdeck_integration.auth.middleware.Request") as MockRequest:
+        with patch("ai.inference.api.techdeck_integration.auth.middleware.Request") as MockRequest:
             mock_request = MockRequest.return_value
             mock_request.path = "/api/v1/protected/resource"
             mock_request.headers = {"Authorization": f"Bearer {token}"}
@@ -103,7 +103,7 @@ class TestJWTAuthMiddleware(unittest.TestCase):
         start_response = MagicMock()
 
         # Act
-        with patch("ai.api.techdeck_integration.auth.middleware.Request") as MockRequest:
+        with patch("ai.inference.api.techdeck_integration.auth.middleware.Request") as MockRequest:
             mock_request = MockRequest.return_value
             mock_request.path = "/api/v1/protected/resource"
             mock_request.headers = {}

@@ -1,6 +1,6 @@
 """Compatibility utilities for NGC resource downloads.
 
-This module intentionally mirrors the project-level :mod:`ai.utils.ngc_resources`
+This module intentionally mirrors the project-level :mod:`ai.tools.utilities.ngc_resources`
 interface while remaining import-safe in environments where the NGC CLI is
 unavailable.
 """
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ai.utils.ngc_resources import (
+from ai.tools.utilities.ngc_resources import (
     NGCResourceDownloader as _ResolvedNGCResourceDownloader,
     download_nemo_quickstart as _resolved_download_nemo_quickstart,
 )

@@ -45,7 +45,7 @@ def update_dataset_entry(entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def main():
-    registry_path = Path("/home/vivi/pixelated/ai/config/dataset_registry.json")
+    registry_path = Path("/home/vivi/pixelated/ai/configs/dataset_registry.json")
 
     with open(registry_path) as f:
         registry = json.load(f)

@@ -10,7 +10,7 @@ Sprint 5 completes the memory system lifecycle by providing:
 ## Architecture
 
 ```
-ai/memory/fine_tuning/
+ai/research/fine_tuning/
 ├── dataset_preparation.py   # DatasetPreparator: extract, balance, split, PII check
 ├── evaluation.py            # MemorySystemEvaluator: retrieval, response, safety, perf
 ├── deployment.py            # DeploymentPackager: package, monitor, rollback
@@ -28,7 +28,7 @@ src/lib/memory/fine_tuning/
 ### Python
 
 ```python
-from ai.memory.fine_tuning import DatasetPreparator, MemorySystemEvaluator, DeploymentPackager
+from ai.research.fine_tuning import DatasetPreparator, MemorySystemEvaluator, DeploymentPackager
 
 # 1. Prepare dataset
 preparator = DatasetPreparator(train_ratio=0.7, val_ratio=0.15)

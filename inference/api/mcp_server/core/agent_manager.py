@@ -13,8 +13,8 @@ from enum import Enum
 from typing import Any
 
 # Internal imports
-from ai.api.mcp_server.integration.mongodb_client import MCPMongoDBClient
-from ai.api.mcp_server.integration.redis_client import MCPRedisClient
+from ai.inference.api.mcp_server.integration.mongodb_client import MCPMongoDBClient
+from ai.inference.api.mcp_server.integration.redis_client import MCPRedisClient
 
 logger = logging.getLogger(__name__)
 

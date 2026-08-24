@@ -10,14 +10,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from ai.api.mcp_server.memory_auth import validate_memory_auth_configuration
-from ai.api.mcp_server.routes import (
+from ai.inference.api.mcp_server.memory_auth import validate_memory_auth_configuration
+from ai.inference.api.mcp_server.routes import (
     create_foresight_router,
     create_health_router,
     create_legacy_router,
     create_mcp_router,
 )
-from ai.memory.manager_factory import get_required_memory_manager
+from ai.research.manager_factory import get_required_memory_manager
 
 logger = logging.getLogger(__name__)
 

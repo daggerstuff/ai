@@ -23,7 +23,7 @@ Memories → Dream Cycle → Consolidated Memories → Reflection → New Insigh
 ## Files
 
 ```
-ai/memory/
+ai/research/
 ├── dream_manager.py                     # Dream cycle orchestration
 ├── dream_reflection_integration.py      # Reflection integration
 └── DREAM_REFLECTION_GUIDE.md            # This documentation
@@ -32,8 +32,8 @@ ai/memory/
 ## Quick Start
 
 ```python
-from ai.memory.dream_manager import DreamManager, DreamManagerConfig
-from ai.memory.local_foresight_manager import LocalForesightMemoryManager
+from ai.research.dream_manager import DreamManager, DreamManagerConfig
+from ai.research.local_foresight_manager import LocalForesightMemoryManager
 
 # Initialize
 memory_manager = LocalForesightMemoryManager()
@@ -63,7 +63,7 @@ print(f"Reflection triggered: {result.reflection_triggered}")
 Orchestrates the complete dream cycle:
 
 ```python
-from ai.memory.dream_manager import DreamManager
+from ai.research.dream_manager import DreamManager
 
 async with DreamManager() as dream_manager:
     # Start full dream cycle
@@ -80,7 +80,7 @@ async with DreamManager() as dream_manager:
 Handles post-dream reflection triggering:
 
 ```python
-from ai.memory.dream_reflection_integration import (
+from ai.research.dream_reflection_integration import (
     DreamReflectionIntegration,
     DreamReflectionConfig,
     create_dream_output,

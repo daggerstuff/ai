@@ -13,18 +13,18 @@ from pathlib import Path
 
 from rich.console import Console
 
-from ai.sourcing.journal.cli.commands import CommandHandler
-from ai.sourcing.journal.cli.config import load_config
-from ai.sourcing.journal.cli.interactive import (
+from ai.pipelines.data_processing.journal.cli.commands import CommandHandler
+from ai.pipelines.data_processing.journal.cli.config import load_config
+from ai.pipelines.data_processing.journal.cli.interactive import (
     display_progress,
     prompt_for_phase_transition,
 )
-from ai.sourcing.journal.discovery import DiscoveryService
-from ai.sourcing.journal.models.dataset_models import ResearchSession
-from ai.sourcing.journal.orchestrator.research_orchestrator import (
+from ai.pipelines.data_processing.journal.discovery import DiscoveryService
+from ai.pipelines.data_processing.journal.models.dataset_models import ResearchSession
+from ai.pipelines.data_processing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
 )
-from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
+from ai.pipelines.data_processing.journal.orchestrator.types import OrchestratorConfig
 
 console = Console()
 logger = logging.getLogger(__name__)

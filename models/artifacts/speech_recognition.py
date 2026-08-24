@@ -33,7 +33,7 @@ import numpy as np
 import torchaudio
 from faster_whisper import WhisperModel
 
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 

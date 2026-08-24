@@ -1,14 +1,14 @@
 """
 Tests for Academic Sourcing Engine
 
-Run with: uv run python -m pytest ai/sourcing/academic/tests/test_academic_sourcing.py
+Run with: uv run python -m pytest ai/pipelines/data_processing/academic/tests/test_academic_sourcing.py
 """
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ai.sourcing.academic import (
+from ai.pipelines.data_processing.academic import (
     AcademicSourcingEngine,
     BookMetadata,
     SourceType,

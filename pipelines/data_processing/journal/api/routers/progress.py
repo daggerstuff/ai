@@ -12,17 +12,17 @@ from collections.abc import AsyncGenerator
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
 
-from ai.sourcing.journal.api.auth.jwt import get_user_from_token
-from ai.sourcing.journal.api.dependencies import (
+from ai.pipelines.data_processing.journal.api.auth.jwt import get_user_from_token
+from ai.pipelines.data_processing.journal.api.dependencies import (
     get_command_handler_service,
     get_current_user,
     get_optional_user,
 )
-from ai.sourcing.journal.api.models.progress import (
+from ai.pipelines.data_processing.journal.api.models.progress import (
     ProgressMetricsResponse,
     ProgressResponse,
 )
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 

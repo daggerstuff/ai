@@ -44,7 +44,7 @@ The Pixel Model Inference API provides:
                           │
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Python FastAPI Service (ai/api/pixel_inference_service.py)  │
+│ Python FastAPI Service (ai/inference/api/pixel_inference_service.py)  │
 │ - Model Loading & Caching                                    │
 │ - Inference Engine                                           │
 │ - EQ Scoring & Metrics                                       │
@@ -93,7 +93,7 @@ export PIXEL_API_PORT=8001
 1. **Start Python Service**
 
 ```bash
-uv run ai/api/pixel_inference_service.py
+uv run ai/inference/api/pixel_inference_service.py
 ```
 
 The service will start on `http://localhost:8001`
@@ -291,20 +291,20 @@ function TherapyChat() {
 ### Run Unit Tests
 
 ```bash
-uv run pytest ai/api/test_pixel_inference.py -v
+uv run pytest ai/inference/api/test_pixel_inference.py -v
 ```
 
 ### Run Performance Benchmarks
 
 ```bash
-uv run pytest ai/api/test_pixel_inference.py::TestPixelInferencePerformance -v
+uv run pytest ai/inference/api/test_pixel_inference.py::TestPixelInferencePerformance -v
 ```
 
 ### Run Integration Tests
 
 ```bash
 # Start the service first
-uv run ai/api/pixel_inference_service.py &
+uv run ai/inference/api/pixel_inference_service.py &
 
 # Run tests
 pnpm test src/pages/api/ai/models/pixel_core/
@@ -424,5 +424,5 @@ python -c "from ai.models.pixel_core.models.pixel_base_model import PixelBaseMod
 ## References
 
 - [Reference deprecated: Refer to Linear for current status]
-- [Phase 3 Integration Plan](../docs/deployment/ngc/NGC_CLI_NEXT_STEPS.md)
+- [Phase 3 Integration Plan](../../docs/deployment/ngc/NGC_CLI_NEXT_STEPS.md)
 - [API Security Standards](../../SECURITY.md)

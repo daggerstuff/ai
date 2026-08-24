@@ -7,7 +7,7 @@ This module provides prompt templates for source discovery workflows.
 import logging
 from typing import Any
 
-from ai.sourcing.journal.mcp.prompts.base import MCPPrompt
+from ai.pipelines.data_processing.journal.mcp.prompts.base import MCPPrompt
 
 logger = logging.getLogger(__name__)
 

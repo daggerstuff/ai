@@ -9,7 +9,7 @@ Unified module for acquiring psychology and therapy books/papers from:
 This consolidates:
 - ai/pipelines/orchestrator/sourcing/academic_sourcing.py
 - ai/scripts/acquire_academic_psychology_books.py
-- ai/sourcing/academic/ (original OOP design)
+- ai/pipelines/data_processing/academic/ (original OOP design)
 """
 
 from .academic_sourcing import (

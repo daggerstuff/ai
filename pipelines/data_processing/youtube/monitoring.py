@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
-from ai.sourcing.youtube.models import Channel, ChannelStatus
+from ai.pipelines.data_processing.youtube.models import Channel, ChannelStatus
 
 logger = logging.getLogger(__name__)
 

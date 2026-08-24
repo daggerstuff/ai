@@ -11,7 +11,7 @@ import threading
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from ai.sourcing.journal.models.dataset_models import ResearchLog
+from ai.pipelines.data_processing.journal.models.dataset_models import ResearchLog
 
 logger = logging.getLogger(__name__)
 

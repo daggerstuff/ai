@@ -19,28 +19,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
-    from ai.memory.gates import GateDecision, GateResult, GatingReport
-    from ai.memory.gates.consent_gate import ConsentGateChecker
-    from ai.memory.gates.crisis_detector import CrisisDetector
-    from ai.memory.gates.pii_redactor import PiiRedactor
-    from ai.memory.gates.trauma_filter import TraumaFilter
-    from ai.orchestration.safety.guards import InputGuard
+    from ai.research.gates import GateDecision, GateResult, GatingReport
+    from ai.research.gates.consent_gate import ConsentGateChecker
+    from ai.research.gates.crisis_detector import CrisisDetector
+    from ai.research.gates.pii_redactor import PiiRedactor
+    from ai.research.gates.trauma_filter import TraumaFilter
+    from ai.pipelines.model_training.safety.safety.guards import InputGuard
 
 _repo_root = Path(__file__).resolve().parent.parent.parent
 if str(_repo_root) not in sys.path:
     sys.path.insert(0, str(_repo_root))
 
 # Dynamic imports to avoid E402 and PLC0415
-gates_module = importlib.import_module("ai.memory.gates")
+gates_module = importlib.import_module("ai.research.gates")
 GateDecision = gates_module.GateDecision
 GateResult = gates_module.GateResult
 GatingReport = gates_module.GatingReport
 
-ConsentGateChecker = importlib.import_module("ai.memory.gates.consent_gate").ConsentGateChecker
-CrisisDetector = importlib.import_module("ai.memory.gates.crisis_detector").CrisisDetector
-PiiRedactor = importlib.import_module("ai.memory.gates.pii_redactor").PiiRedactor
-TraumaFilter = importlib.import_module("ai.memory.gates.trauma_filter").TraumaFilter
-InputGuard = importlib.import_module("ai.orchestration.safety.guards").InputGuard
+ConsentGateChecker = importlib.import_module("ai.research.gates.consent_gate").ConsentGateChecker
+CrisisDetector = importlib.import_module("ai.research.gates.crisis_detector").CrisisDetector
+PiiRedactor = importlib.import_module("ai.research.gates.pii_redactor").PiiRedactor
+TraumaFilter = importlib.import_module("ai.research.gates.trauma_filter").TraumaFilter
+InputGuard = importlib.import_module("ai.pipelines.model_training.safety.safety.guards").InputGuard
 
 logger = logging.getLogger(__name__)
 

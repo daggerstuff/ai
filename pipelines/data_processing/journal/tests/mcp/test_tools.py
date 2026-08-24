@@ -3,17 +3,17 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
-from ai.sourcing.journal.mcp.tools.acquisition import AcquireDatasetsTool
-from ai.sourcing.journal.mcp.tools.base import MCPTool
-from ai.sourcing.journal.mcp.tools.discovery import DiscoverSourcesTool
-from ai.sourcing.journal.mcp.tools.evaluation import EvaluateSourcesTool
-from ai.sourcing.journal.mcp.tools.executor import ToolExecutor
-from ai.sourcing.journal.mcp.tools.integration import CreateIntegrationPlansTool
-from ai.sourcing.journal.mcp.tools.registry import ToolRegistry
-from ai.sourcing.journal.mcp.tools.reports import GenerateReportTool
-from ai.sourcing.journal.mcp.tools.sessions import CreateSessionTool
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.mcp.protocol import MCPError, MCPErrorCode
+from ai.pipelines.data_processing.journal.mcp.tools.acquisition import AcquireDatasetsTool
+from ai.pipelines.data_processing.journal.mcp.tools.base import MCPTool
+from ai.pipelines.data_processing.journal.mcp.tools.discovery import DiscoverSourcesTool
+from ai.pipelines.data_processing.journal.mcp.tools.evaluation import EvaluateSourcesTool
+from ai.pipelines.data_processing.journal.mcp.tools.executor import ToolExecutor
+from ai.pipelines.data_processing.journal.mcp.tools.integration import CreateIntegrationPlansTool
+from ai.pipelines.data_processing.journal.mcp.tools.registry import ToolRegistry
+from ai.pipelines.data_processing.journal.mcp.tools.reports import GenerateReportTool
+from ai.pipelines.data_processing.journal.mcp.tools.sessions import CreateSessionTool
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
     DatasetEvaluation,
     DatasetSource,

@@ -8,16 +8,16 @@ import json
 
 import pytest
 
-from ai.sourcing.journal.integration.pipeline_integration_service import (
+from ai.pipelines.data_processing.journal.integration.pipeline_integration_service import (
     PipelineIntegrationService,
 )
-from ai.sourcing.journal.integration.pipeline_integrator import (
+from ai.pipelines.data_processing.journal.integration.pipeline_integrator import (
     DatasetMerger,
     PipelineFormatConverter,
     PipelineSchemaValidator,
     QualityChecker,
 )
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
 )
 

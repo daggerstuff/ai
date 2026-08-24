@@ -10,23 +10,23 @@ from typing import Any
 from rich.console import Console
 from rich.table import Table
 
-from ai.sourcing.journal.cli.config import load_config
-from ai.sourcing.journal.cli.interactive import (
+from ai.pipelines.data_processing.journal.cli.config import load_config
+from ai.pipelines.data_processing.journal.cli.interactive import (
     display_progress,
     prompt_for_acquisition_approval,
     prompt_for_dataset_review,
     prompt_for_integration_approval,
     prompt_for_manual_evaluation_override,
 )
-from ai.sourcing.journal.discovery import DiscoveryService
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.discovery import DiscoveryService
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     DatasetEvaluation,
     DatasetSource,
 )
-from ai.sourcing.journal.orchestrator.research_orchestrator import (
+from ai.pipelines.data_processing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
 )
-from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
+from ai.pipelines.data_processing.journal.orchestrator.types import OrchestratorConfig
 
 console = Console()
 logger = logging.getLogger(__name__)

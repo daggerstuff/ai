@@ -8,7 +8,7 @@ import json
 import sys
 from pathlib import Path
 
-from ai.safety.dataset_validation import DatasetValidator, validate_jsonl_file
+from ai.qa.validation.dataset_validation import DatasetValidator, validate_jsonl_file
 
 # Test cases
 TEST_CASES = {

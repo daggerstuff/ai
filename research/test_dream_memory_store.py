@@ -6,13 +6,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ai.memory.dream_memory_store import (
+from ai.research.dream_memory_store import (
     DreamCycleRecord,
     DreamMemoryStore,
     LocalDreamMemoryStore,
     MongoDBDreamStore,
 )
-from ai.memory.manager_factory import create_dream_manager
+from ai.research.manager_factory import create_dream_manager
 
 # ---------------------------------------------------------------------------
 # DreamCycleRecord — pure data logic
@@ -295,7 +295,7 @@ class TestMongoDBDreamStore:
         memories_mock, _ = mock_mongo_collections
         memories_mock.insert_one = AsyncMock()
 
-        from ai.memory.reflection_types import MemoryCategory, MemoryMetadata
+        from ai.research.reflection_types import MemoryCategory, MemoryMetadata
 
         metadata = MemoryMetadata(
             category=MemoryCategory.THERAPEUTIC_INSIGHT,
@@ -400,7 +400,7 @@ class TestMongoDBDreamStore:
         self, mongodb_store: MongoDBDreamStore, mock_mongo_collections: tuple[AsyncMock, AsyncMock]
     ) -> None:
         # Need to patch the global _motor_client
-        with patch("ai.memory.dream_memory_store._motor_client") as mock_client:
+        with patch("ai.research.dream_memory_store._motor_client") as mock_client:
             await mongodb_store.close()
             mock_client.close.assert_called_once()
 
@@ -415,25 +415,25 @@ class TestCreateDreamManager:
     async def test_local_fallback_when_no_mongodb_uri(self) -> None:
         with (
             patch.dict("os.environ", {"MONGODB_URI": ""}, clear=False),
-            patch("ai.memory.local_foresight_manager.LocalForesightMemoryManager") as mock_cls,
-            patch("ai.memory.local_memory_settings.resolve_local_memory_settings") as mock_settings,
+            patch("ai.research.local_foresight_manager.LocalForesightMemoryManager") as mock_cls,
+            patch("ai.research.local_memory_settings.resolve_local_memory_settings") as mock_settings,
         ):
             mock_cls.return_value = MagicMock()
             mock_settings.return_value = MagicMock(db_path="/tmp/test.db", bank_id="test")
             dm = create_dream_manager()
-            from ai.memory.dream_memory_store import LocalDreamMemoryStore
+            from ai.research.dream_memory_store import LocalDreamMemoryStore
 
             assert isinstance(dm.memory_store, LocalDreamMemoryStore)
             await dm.close()
 
     @pytest.mark.asyncio
     async def test_mongodb_when_uri_provided(self) -> None:
-        with patch("ai.memory.dream_memory_store._get_motor_db") as mock_get_db:
+        with patch("ai.research.dream_memory_store._get_motor_db") as mock_get_db:
             mock_db = MagicMock()
             mock_get_db.return_value = mock_db
 
             dm = create_dream_manager(mongodb_uri="mongodb://localhost:27017")
-            from ai.memory.dream_memory_store import MongoDBDreamStore
+            from ai.research.dream_memory_store import MongoDBDreamStore
 
             assert isinstance(dm.memory_store, MongoDBDreamStore)
             await dm.close()

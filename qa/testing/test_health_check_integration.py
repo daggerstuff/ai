@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from ai.inference.inference_api import app
 
 # Import our modules
-from ai.monitoring.health_check import (
+from ai.qa.reports.health_check import (
     ComponentHealth,
     ComponentStatus,
     HealthCheckManager,

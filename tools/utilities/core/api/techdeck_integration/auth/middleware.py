@@ -1,4 +1,4 @@
-"""Compatibility wrapper for legacy imports in ``ai.pkg_mera.core.api.techdeck_integration.auth.middleware``."""
+"""Compatibility wrapper for legacy imports in ``ai.tools.utilities.core.api.techdeck_integration.auth.middleware``."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Any
 
 
 def _load_core_middleware():
-    from ai.api.techdeck_integration.auth.middleware import JWTAuthMiddleware as CoreJWTAuthMiddleware
+    from ai.inference.api.techdeck_integration.auth.middleware import JWTAuthMiddleware as CoreJWTAuthMiddleware
 
     return CoreJWTAuthMiddleware
 
@@ -17,7 +17,7 @@ def _require_dependency() -> Any:
         return _load_core_middleware()
     except Exception as exc:
         raise RuntimeError(
-            "ai.api.techdeck_integration.auth.middleware is unavailable because optional dependencies are missing."
+            "ai.inference.api.techdeck_integration.auth.middleware is unavailable because optional dependencies are missing."
         ) from exc
 
 

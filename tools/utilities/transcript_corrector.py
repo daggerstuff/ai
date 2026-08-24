@@ -20,7 +20,7 @@ class TranscriptCorrector:
 
     def __init__(
         self,
-        config_path: str = "ai/config/therapeutic_terminology.json",
+        config_path: str = "ai/configs/therapeutic_terminology.json",
         *,
         contextual_correction_client: Callable[[str, str], str] | None = None,
     ):
@@ -42,7 +42,7 @@ class TranscriptCorrector:
             if not self.config_path.exists():
                 # Try relative to the current file location
                 # structure is usually ai/utils/transcript_corrector.py
-                # config is at ai/config/therapeutic_terminology.json
+                # config is at ai/configs/therapeutic_terminology.json
                 # so we go up 2 levels
                 base_path = Path(__file__).parent.parent
                 alt_path = base_path / "config" / "therapeutic_terminology.json"

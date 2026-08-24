@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ai.sourcing.journal.mcp.utils.validation import (
+from ai.pipelines.data_processing.journal.mcp.utils.validation import (
     ValidationError,
     validate_tool_parameters,
 )

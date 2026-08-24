@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.esconv_adapter import ESConvAdapter
+from ai.pipelines.data_processing.dataset_adapters.esconv_adapter import ESConvAdapter
 
 
 @pytest.fixture

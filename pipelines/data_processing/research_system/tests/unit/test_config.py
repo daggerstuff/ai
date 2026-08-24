@@ -74,7 +74,7 @@ class TestConfig:
 
         logs_path = config.get_storage_path("logs")
         assert isinstance(logs_path, Path)
-        assert str(logs_path) == "ai/sourcing/research_system/logs"
+        assert str(logs_path) == "ai/pipelines/data_processing/research_system/logs"
 
     def test_get_weekly_targets(self):
         """Test getting weekly targets."""

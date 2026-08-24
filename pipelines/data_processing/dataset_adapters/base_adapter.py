@@ -32,8 +32,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ai.sourcing.utils.converters import save_jsonl
-from ai.sourcing.utils.validators import filter_valid
+from ai.pipelines.data_processing.utils.converters import save_jsonl
+from ai.pipelines.data_processing.utils.validators import filter_valid
 
 
 class BaseDatasetAdapter(ABC):

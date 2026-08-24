@@ -36,10 +36,10 @@ import urllib.request
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-# Ensure ai.pkg_mera.core.pipelines is on path
+# Ensure ai.tools.utilities.core.pipelines is on path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.pkg_mera.core.pipelines.acquisition_rubric import (
+from ai.tools.utilities.core.pipelines.acquisition_rubric import (
     GATE_1_DEDUP_CEILING,
     GATE_1_RELEVANCE_FLOOR,
     GATE_1_SCHEMA_FLOOR,
@@ -57,7 +57,7 @@ logging.basicConfig(
 log = logging.getLogger("pilot")
 
 
-# ── RedditConverter (same implementation as ai/sourcing/convert_reddit_to_training.py) ──
+# ── RedditConverter (same implementation as ai/pipelines/data_processing/convert_reddit_to_training.py) ──
 
 
 def _anon_id(raw: str) -> str:
@@ -378,7 +378,7 @@ def evaluate_gate2(
     schema_cov: float,
 ) -> Gate2Results:
     """Gate 2: net retention + schema validation after normalization."""
-    from ai.pkg_mera.core.pipelines.processing.data_normalizer import DataNormalizer
+    from ai.tools.utilities.core.pipelines.processing.data_normalizer import DataNormalizer
 
     normalizer = DataNormalizer()
     passed = 0

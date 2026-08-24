@@ -8,8 +8,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from ai.sourcing.journal.acquisition.acquisition_manager import DownloadProgress
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.acquisition.acquisition_manager import DownloadProgress
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetEvaluation,
@@ -17,7 +17,7 @@ from ai.sourcing.journal.models.dataset_models import (
     IntegrationPlan,
     ResearchProgress,
 )
-from ai.sourcing.journal.orchestrator import (
+from ai.pipelines.data_processing.journal.orchestrator import (
     OrchestratorConfig,
     ResearchOrchestrator,
 )

@@ -3,8 +3,8 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Query
 
-from ai.sourcing.academic.academic_sourcing import AcademicSourcingEngine
-from ai.sourcing.academic.therapy_dataset_sourcing import find_therapy_datasets
+from ai.pipelines.data_processing.academic.academic_sourcing import AcademicSourcingEngine
+from ai.pipelines.data_processing.academic.therapy_dataset_sourcing import find_therapy_datasets
 
 logger = logging.getLogger(__name__)
 

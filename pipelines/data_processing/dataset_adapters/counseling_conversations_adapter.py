@@ -15,8 +15,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _HF_REPO_ID = "Amod/mental_health_counseling_conversations"
 _HF_FILENAME = "combined_dataset.json"

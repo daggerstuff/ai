@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from infrastructure import persistence
+from ai.inference.deployment import persistence
 
 
 def _record() -> dict[str, Any]:

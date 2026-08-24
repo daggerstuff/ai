@@ -11,7 +11,7 @@ import logging
 import time
 from dataclasses import dataclass
 
-from ai.memory.consolidation.rem_dream import DreamResult
+from ai.research.consolidation.rem_dream import DreamResult
 
 from .pattern_detection import PatternReport
 from .session_consolidation import SessionSummary

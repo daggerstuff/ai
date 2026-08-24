@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.kokorochat_adapter import KokoroChatAdapter
+from ai.pipelines.data_processing.dataset_adapters.kokorochat_adapter import KokoroChatAdapter
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -137,7 +137,7 @@ class TestKokoroChatAdapter:
         assert record["source"] == "kokorochat"
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("kokorochat", "/tmp/test_kokoro")
         assert isinstance(a, KokoroChatAdapter)

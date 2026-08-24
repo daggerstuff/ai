@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.mitch_hamidi_bpd_nlp_adapter import MitchHamidiBpdNlpAdapter
+from ai.pipelines.data_processing.dataset_adapters.mitch_hamidi_bpd_nlp_adapter import MitchHamidiBpdNlpAdapter
 
 
 def _write_csv(path: Path, rows: list[dict], fieldnames: list[str]) -> None:
@@ -124,7 +124,7 @@ class TestMitchHamidiAdapter:
         assert len(lines) >= 1
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("mitch_hamidi_bpd_nlp", "/tmp/test_mh")
         assert isinstance(a, MitchHamidiBpdNlpAdapter)

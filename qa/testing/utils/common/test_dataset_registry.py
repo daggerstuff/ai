@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest.mock import mock_open, patch
 
-from utils.common.dataset_registry import (
+from ai.tools.utilities.common.dataset_registry import (
     DatasetRef,
     _iter_registry_groups,
     get_default_registry_path,

@@ -12,7 +12,7 @@ from typing import Any
 from fastapi import APIRouter, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from ai.safety.inference_safety_filter import InferenceSafetyFilter, SafetyFilterMode, SafetyLevel
+from ai.qa.validation.inference_safety_filter import InferenceSafetyFilter, SafetyFilterMode, SafetyLevel
 
 logger = logging.getLogger(__name__)
 

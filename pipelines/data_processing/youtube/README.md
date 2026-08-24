@@ -20,14 +20,14 @@ export YOUTUBE_API_KEY="your-api-key-here"
 
 ```bash
 # Python CLI
-python -m ai.sourcing.youtube.cli discover \
+python -m ai.pipelines.data_processing.youtube.cli discover \
     --api-key $YOUTUBE_API_KEY \
     --channels 50 \
     --output qualified_channels.json \
     --report discovery_report.md
 
 # Or programmatically
-from ai.sourcing.youtube.processor import run_pipeline
+from ai.pipelines.data_processing.youtube.processor import run_pipeline
 
 results, report = run_pipeline(
     api_key="your-api-key",
@@ -41,20 +41,20 @@ print(f"Found {len(results.qualified_channels)} channels")
 ### Check Channel Health
 
 ```bash
-python -m ai.sourcing.youtube.cli check \
+python -m ai.pipelines.data_processing.youtube.cli check \
     --channel-id UCxxxxxxxxxxxxxx
 ```
 
 ### List Registry
 
 ```bash
-python -m ai.sourcing.youtube.cli list
+python -m ai.pipelines.data_processing.youtube.cli list
 ```
 
 ## Architecture
 
 ```bash
-ai/sourcing/youtube/
+ai/pipelines/data_processing/youtube/
 ├── __init__.py           # Module exports
 ├── models.py             # Data models (Channel, QualityMetrics, etc.)
 ├── api.py                # YouTube API integration (ChannelHunter, Analyzer)
@@ -140,10 +140,10 @@ Monitoring system has 4 alert levels:
 
 ## Configuration
 
-Edit `ai/sourcing/youtube/api.py` to customize:
+Edit `ai/pipelines/data_processing/youtube/api.py` to customize:
 
 ```python
-from ai.sourcing.youtube.models import ChannelHunterConfig
+from ai.pipelines.data_processing.youtube.models import ChannelHunterConfig
 
 config = ChannelHunterConfig(
     min_subscribers=1000,  # Minimum 1K subscribers

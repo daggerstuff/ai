@@ -22,7 +22,7 @@ from typing import Any
 import psutil
 from fastapi import Response
 
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 from .model_adapters import model_manager
 

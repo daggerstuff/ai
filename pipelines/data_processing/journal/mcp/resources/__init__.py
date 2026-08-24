@@ -8,13 +8,13 @@ import fnmatch
 import logging
 from typing import Dict, List, Optional
 
-from ai.sourcing.journal.mcp.resources.base import MCPResource
-from ai.sourcing.journal.mcp.resources.metrics import SessionMetricsResource
-from ai.sourcing.journal.mcp.resources.progress import (
+from ai.pipelines.data_processing.journal.mcp.resources.base import MCPResource
+from ai.pipelines.data_processing.journal.mcp.resources.metrics import SessionMetricsResource
+from ai.pipelines.data_processing.journal.mcp.resources.progress import (
     ProgressHistoryResource,
     ProgressMetricsResource,
 )
-from ai.sourcing.journal.mcp.resources.sessions import SessionStateResource
+from ai.pipelines.data_processing.journal.mcp.resources.sessions import SessionStateResource
 
 logger = logging.getLogger(__name__)
 

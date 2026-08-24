@@ -9,10 +9,10 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from ai.sourcing.journal.integration.pipeline_integration_service import (
+from ai.pipelines.data_processing.journal.integration.pipeline_integration_service import (
     PipelineIntegrationService,
 )
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
     IntegrationPlan,
 )

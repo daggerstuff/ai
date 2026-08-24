@@ -13,8 +13,8 @@ from enum import StrEnum
 from re import Pattern
 from typing import Any, ClassVar
 
-from ai.memory.gates import GateDecision, GateResult
-from ai.pkg_mera.core.pipelines.crisis_intervention_detector import (
+from ai.research.gates import GateDecision, GateResult
+from ai.tools.utilities.core.pipelines.crisis_intervention_detector import (
     CrisisInterventionDetector,
     CrisisInterventionResult,
 )

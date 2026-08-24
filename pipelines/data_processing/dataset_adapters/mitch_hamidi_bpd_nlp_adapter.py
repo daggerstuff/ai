@@ -21,8 +21,8 @@ import csv
 import subprocess
 from typing import Any
 
-from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _S3_PREFIX = "whitebat:training/pixelated-empathy/output/mitch_hamidi_bpd_nlp/raw/may-2024-mental-health-nlp/Scraping_Reddit_for_Data/"
 _SOURCE_URL = "https://github.com/mitchellhamidi/may-2024-mental-health-nlp"

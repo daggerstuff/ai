@@ -7,23 +7,23 @@ and progress tracking across multiple components.
 
 import pytest
 
-from ai.sourcing.journal.acquisition.acquisition_manager import (
+from ai.pipelines.data_processing.journal.acquisition.acquisition_manager import (
     AccessAcquisitionManager,
     AcquisitionConfig,
 )
-from ai.sourcing.journal.evaluation.evaluation_engine import (
+from ai.pipelines.data_processing.journal.evaluation.evaluation_engine import (
     DatasetEvaluationEngine,
 )
-from ai.sourcing.journal.integration.integration_planning_engine import (
+from ai.pipelines.data_processing.journal.integration.integration_planning_engine import (
     IntegrationPlanningEngine,
 )
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
 )
-from ai.sourcing.journal.orchestrator.research_orchestrator import (
+from ai.pipelines.data_processing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
 )
-from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
+from ai.pipelines.data_processing.journal.orchestrator.types import OrchestratorConfig
 
 
 class TestComponentCommunication:

@@ -11,15 +11,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir uv
 
 # Install dependencies
-COPY ai-services/requirements.txt ./
+COPY inference/services/requirements.txt ./
 RUN uv pip install --no-cache --system -r requirements.txt --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple --index-strategy unsafe-best-match
 
 # Copy application code
-COPY ai-services/ ./
-COPY ai-services/security/ ./security/
+COPY inference/services/ ./
+COPY inference/services/security/ ./security/
 
 # Copy training script from ai submodule (must be initialized before build)
-COPY ai/training/finetune_model.py /app/ai/training/finetune_model.py
+COPY training/finetune_model.py /app/training/finetune_model.py
 
 RUN groupadd -g 42420 appuser && \
     useradd -u 42420 -g appuser -m -s /bin/bash appuser && \

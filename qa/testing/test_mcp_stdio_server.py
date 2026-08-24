@@ -1,7 +1,7 @@
 import asyncio
 
-from ai.api.mcp_server import mcp_stdio_server
-from ai.api.memory.null_memory import NullMemoryManager
+from ai.inference.api.mcp_server import mcp_stdio_server
+from ai.inference.api.memory.null_memory import NullMemoryManager
 
 
 def test_mcp_stdio_server_uses_shared_memory_manager(monkeypatch) -> None:

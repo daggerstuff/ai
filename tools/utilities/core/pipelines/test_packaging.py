@@ -14,13 +14,13 @@ from pathlib import Path
 
 import pytest
 
-from ai.pkg_mera.core.pipelines.packaging import (
+from ai.tools.utilities.core.pipelines.packaging import (
     DatasetManifest,
     DatasetPackager,
     PackageBundle,
     create_training_package,
 )
-from ai.pkg_mera.core.pipelines.training_readiness_gates import STAGE_QUALITY_THRESHOLDS
+from ai.tools.utilities.core.pipelines.training_readiness_gates import STAGE_QUALITY_THRESHOLDS
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
-from ai.api.mcp_server.memory_scope import memory_in_scope
+from ai.inference.api.mcp_server.memory_scope import memory_in_scope
 
 from .fastmcp_parsing import parse_metadata, parse_scope_context
 from .fastmcp_presenters import memory_store_success_message

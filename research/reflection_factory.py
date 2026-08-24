@@ -2,7 +2,7 @@
 Reflection Subagent Factory - local shared-memory initialization with Nvidia NIM.
 
 Usage:
-    from ai.memory.reflection_factory import create_reflection_subagent
+    from ai.research.reflection_factory import create_reflection_subagent
     subagent = await create_reflection_subagent()
 """
 

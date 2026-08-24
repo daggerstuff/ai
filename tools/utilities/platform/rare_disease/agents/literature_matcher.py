@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from rare_disease.types import PatientCase
+from ..types import PatientCase
 
 logger = logging.getLogger(__name__)
 

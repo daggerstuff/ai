@@ -11,7 +11,7 @@ from typing import Annotated
 from fastapi import APIRouter, FastAPI, HTTPException, Query, status
 from pydantic import BaseModel
 
-from ai.pkg_mera.platform.patient_psi.engine import (
+from ai.tools.utilities.platform.patient_psi.engine import (
     PatientPsiEngine,
     SessionNotActiveError,
     SessionNotFoundError,
@@ -19,7 +19,7 @@ from ai.pkg_mera.platform.patient_psi.engine import (
     SimulationStatus,
     SimulationTurn,
 )
-from ai.pkg_mera.platform.patient_psi.profiles import ProfileRegistry
+from ai.tools.utilities.platform.patient_psi.profiles import ProfileRegistry
 
 # ── Module-level engine singleton ─────────────────────────────────────
 

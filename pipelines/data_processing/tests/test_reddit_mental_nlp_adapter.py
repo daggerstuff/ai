@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.reddit_mental_nlp_adapter import RedditMentalNLPAdapter
+from ai.pipelines.data_processing.dataset_adapters.reddit_mental_nlp_adapter import RedditMentalNLPAdapter
 
 _CSV_FIELDS = ["text", "label"]
 

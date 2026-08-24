@@ -15,9 +15,9 @@ import json
 import pytest
 from fastmcp import FastMCP
 
-from ai.api.mcp_server import fastmcp_shared, fastmcp_v2_tools
-from ai.api.mcp_server.fastmcp_shared import AuthorizedToolContext
-from ai.api.mcp_server.fastmcp_v2_tools import (
+from ai.inference.api.mcp_server import fastmcp_shared, fastmcp_v2_tools
+from ai.inference.api.mcp_server.fastmcp_shared import AuthorizedToolContext
+from ai.inference.api.mcp_server.fastmcp_v2_tools import (
     MemoryGetInput,
     MemoryListInput,
     MemoryQueryInput,
@@ -33,8 +33,8 @@ from ai.api.mcp_server.fastmcp_v2_tools import (
     foresight_update_memory,
     register_memory_tools_v2,
 )
-from ai.api.mcp_server.memory_scope import scope_from_kwargs
-from ai.api.memory.null_memory import NullMemoryManager
+from ai.inference.api.mcp_server.memory_scope import scope_from_kwargs
+from ai.inference.api.memory.null_memory import NullMemoryManager
 
 # =============================================================================
 # Test Fixtures

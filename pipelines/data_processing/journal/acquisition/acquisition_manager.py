@@ -17,7 +17,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetSource,

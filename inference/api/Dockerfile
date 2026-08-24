@@ -11,11 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir uv
 
 # Copy and install Python dependencies
-COPY ai/api/requirements.txt /app/requirements.txt
+COPY inference/api/requirements.txt /app/requirements.txt
 RUN uv pip install --no-cache --system -r /app/requirements.txt
 
 # Copy the entire ai/ directory so the training_corpus/pal_framework imports resolve
-COPY ai/ /app/ai/
+COPY . /app/
 
 # Create a non-root user
 RUN groupadd -g 42420 appuser && \
@@ -31,4 +31,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health')" || exit 1
 
 # Use --app-dir to guarantee module resolution regardless of namespace packages
-CMD ["uvicorn", "pal_inference_service:app", "--host", "0.0.0.0", "--port", "8010", "--app-dir", "/app/ai/api"]
+CMD ["uvicorn", "pal_inference_service:app", "--host", "0.0.0.0", "--port", "8010", "--app-dir", "/app/inference/api"]

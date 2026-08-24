@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from ai.pkg_mera.core.pipelines.schemas.conversation_schema import Conversation
+from ai.tools.utilities.core.pipelines.schemas.conversation_schema import Conversation
 
 logger = logging.getLogger("dataset_pipeline.quality_validator")
 

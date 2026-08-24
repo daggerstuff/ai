@@ -8,8 +8,8 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-from ai.memory.gates import GatingReport
-from ai.orchestration.safety.guards import InputGuard, SafetyGuardResult, _apply_phi_scrubbing
+from ai.research.gates import GatingReport
+from ai.pipelines.model_training.safety.safety.guards import InputGuard, SafetyGuardResult, _apply_phi_scrubbing
 
 _GATE_PATH = Path(__file__).resolve().parent.parent / "services" / "ingestion" / "gate.py"
 

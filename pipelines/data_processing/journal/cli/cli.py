@@ -10,13 +10,13 @@ from pathlib import Path
 import click
 from rich.console import Console
 
-from ai.sourcing.journal.cli.commands import CommandHandler
-from ai.sourcing.journal.cli.config import (
+from ai.pipelines.data_processing.journal.cli.commands import CommandHandler
+from ai.pipelines.data_processing.journal.cli.config import (
     get_config_value,
     load_config,
     save_config,
 )
-from ai.sourcing.journal.cli.interactive import prompt_for_session_config
+from ai.pipelines.data_processing.journal.cli.interactive import prompt_for_session_config
 
 console = Console()
 

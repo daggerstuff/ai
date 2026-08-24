@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from ai.memory.schema import MemoryBlock
+from ai.research.schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 

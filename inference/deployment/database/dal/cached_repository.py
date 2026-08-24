@@ -12,7 +12,7 @@ from typing import Any
 
 import redis
 
-from ai.infrastructure.database.cms_redis_config import (
+from ai.inference.deployment.database.database.cms_redis_config import (
     CMSRedisKeys,
     get_invalidation_keys,
     get_ttl,

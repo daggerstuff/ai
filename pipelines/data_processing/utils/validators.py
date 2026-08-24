@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.sourcing.utils.converters import TASK_TYPES, VALID_LINGUISTIC_STYLES
+from ai.pipelines.data_processing.utils.converters import TASK_TYPES, VALID_LINGUISTIC_STYLES
 
 
 def validate_record(record: dict[str, Any]) -> bool:

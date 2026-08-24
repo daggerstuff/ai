@@ -11,7 +11,7 @@ from typing import Any
 from flask_socketio import SocketIO, emit, join_room
 
 # Internal imports
-from ai.api.mcp_server.config import MCPConfig
+from ai.inference.api.mcp_server.config import MCPConfig
 
 logger = logging.getLogger(__name__)
 

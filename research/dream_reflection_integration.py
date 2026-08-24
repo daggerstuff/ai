@@ -12,7 +12,7 @@ feed back into long-term memory. This module implements:
 5. Configuration: Enable/disable reflection-after-dreaming with tunable delays
 
 Usage:
-    from ai.memory.dream_reflection_integration import DreamReflectionIntegration
+    from ai.research.dream_reflection_integration import DreamReflectionIntegration
 
     integration = DreamReflectionIntegration()
 

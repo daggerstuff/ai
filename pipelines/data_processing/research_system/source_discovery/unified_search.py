@@ -7,12 +7,12 @@ Provides a single interface to search across PubMed, DOAJ, and repositories.
 import logging
 from typing import Any
 
-from ai.sourcing.research_system.config import get_config
-from ai.sourcing.research_system.models import DatasetSource
-from ai.sourcing.research_system.source_discovery.deduplication import DatasetDeduplicator
-from ai.sourcing.research_system.source_discovery.doaj_client import DOAJClient
-from ai.sourcing.research_system.source_discovery.pubmed_client import PubMedClient
-from ai.sourcing.research_system.source_discovery.repository_clients import (
+from ai.pipelines.data_processing.research_system.config import get_config
+from ai.pipelines.data_processing.research_system.models import DatasetSource
+from ai.pipelines.data_processing.research_system.source_discovery.deduplication import DatasetDeduplicator
+from ai.pipelines.data_processing.research_system.source_discovery.doaj_client import DOAJClient
+from ai.pipelines.data_processing.research_system.source_discovery.pubmed_client import PubMedClient
+from ai.pipelines.data_processing.research_system.source_discovery.repository_clients import (
     ClinicalTrialsClient,
     DryadClient,
     ZenodoClient,

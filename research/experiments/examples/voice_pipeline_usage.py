@@ -13,7 +13,7 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.pkg_mera.core.pipelines.voice_pipeline_integration import (
+from ai.tools.utilities.core.pipelines.voice_pipeline_integration import (
     VoicePipelineConfig,
     VoiceTrainingPipeline,
     process_youtube_voice_data,

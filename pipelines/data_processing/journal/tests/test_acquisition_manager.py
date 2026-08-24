@@ -8,12 +8,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from ai.sourcing.journal.acquisition.acquisition_manager import (
+from ai.pipelines.data_processing.journal.acquisition.acquisition_manager import (
     AccessAcquisitionManager,
     AcquisitionConfig,
     DownloadProgress,
 )
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetSource,
@@ -228,7 +228,7 @@ class TestAccessAcquisitionManager:
         assert sample_source.source_id in report
         assert "Summary" in report
 
-    @patch("ai.sourcing.journal.acquisition.acquisition_manager.requests.Session")
+    @patch("ai.pipelines.data_processing.journal.acquisition.acquisition_manager.requests.Session")
     def test_download_dataset_direct(self, mock_session, manager, sample_source, _tmp_path):
         """Test direct dataset download."""
         # Mock HTTP response

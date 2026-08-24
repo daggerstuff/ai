@@ -8,7 +8,7 @@ and final research summaries.
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     DatasetEvaluation,
     DatasetSource,
     ResearchProgress,

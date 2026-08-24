@@ -14,15 +14,15 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from ai.api.techdeck_integration.communication.bias_integration import BiasDetectionIntegration, BiasMetrics
-from ai.api.techdeck_integration.communication.error_recovery import ErrorRecoveryManager
-from ai.api.techdeck_integration.communication.event_bus import EventBus, EventMessage, EventType
-from ai.api.techdeck_integration.communication.graceful_degradation import GracefulDegradationManager
-from ai.api.techdeck_integration.communication.performance_monitor import PerformanceMetric, PerformanceMonitor
-from ai.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext, PipelineCoordinator
-from ai.api.techdeck_integration.communication.progress_tracker import ProgressTracker
-from ai.api.techdeck_integration.communication.state_manager import StateManager
-from ai.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.inference.api.techdeck_integration.communication.bias_integration import BiasDetectionIntegration, BiasMetrics
+from ai.inference.api.techdeck_integration.communication.error_recovery import ErrorRecoveryManager
+from ai.inference.api.techdeck_integration.communication.event_bus import EventBus, EventMessage, EventType
+from ai.inference.api.techdeck_integration.communication.graceful_degradation import GracefulDegradationManager
+from ai.inference.api.techdeck_integration.communication.performance_monitor import PerformanceMetric, PerformanceMonitor
+from ai.inference.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext, PipelineCoordinator
+from ai.inference.api.techdeck_integration.communication.progress_tracker import ProgressTracker
+from ai.inference.api.techdeck_integration.communication.state_manager import StateManager
+from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
 
 
 @pytest.fixture(scope="session")

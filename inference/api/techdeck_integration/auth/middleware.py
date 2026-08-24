@@ -16,7 +16,7 @@ from flask import current_app, g
 from werkzeug.exceptions import Forbidden, Unauthorized
 from werkzeug.wrappers import Request
 
-from ai.api.techdeck_integration.utils.logger import get_logger
+from ai.inference.api.techdeck_integration.utils.logger import get_logger
 
 
 class JWTAuthMiddleware:

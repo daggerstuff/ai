@@ -15,8 +15,8 @@ import csv
 import urllib.request
 from typing import Any
 
-from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _SOURCE_URL = "https://doi.org/10.5522/04/31587925"
 _FIGSHARE_API = "https://api.figshare.com/v2/articles/31587925"

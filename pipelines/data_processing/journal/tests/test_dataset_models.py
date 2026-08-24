@@ -6,7 +6,7 @@ Tests validation methods and data integrity for all data model classes.
 
 from datetime import datetime
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetEvaluation,

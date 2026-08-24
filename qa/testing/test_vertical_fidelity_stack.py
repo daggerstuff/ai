@@ -12,8 +12,8 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from ai.receipts.receipt import Ledger, ReceiptEnvelope
-from ai.safety.enhanced_safety_filter import EnhancedSafetyFilter, SafetyLevel
+from ai.data.raw.receipt import Ledger, ReceiptEnvelope
+from ai.qa.validation.enhanced_safety_filter import EnhancedSafetyFilter, SafetyLevel
 from triggers.jit_scenario_injector import JITScenarioInjector, TriggerDecision
 
 

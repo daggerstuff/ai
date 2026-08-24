@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.personalitydbench_adapter import PersonalityDBenchAdapter
+from ai.pipelines.data_processing.dataset_adapters.personalitydbench_adapter import PersonalityDBenchAdapter
 
 
 @pytest.fixture

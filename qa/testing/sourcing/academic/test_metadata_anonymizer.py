@@ -5,8 +5,8 @@ import tempfile
 
 import pytest
 
-from ai.sourcing.academic.anonymization.anonymizer import ContentAnonymizer
-from ai.sourcing.academic.metadata_extraction.metadata_extractor import (
+from ai.pipelines.data_processing.academic.anonymization.anonymizer import ContentAnonymizer
+from ai.pipelines.data_processing.academic.metadata_extraction.metadata_extractor import (
     ExtractedMetadata,
     MetadataExtractor,
 )

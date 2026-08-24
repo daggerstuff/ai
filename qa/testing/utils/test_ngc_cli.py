@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
-from utils.ngc_cli import NGCCLI, NGCCLINotFoundError
+from ai.tools.utilities.ngc_cli import NGCCLI, NGCCLINotFoundError
 
 
 def test_is_available_mocked():

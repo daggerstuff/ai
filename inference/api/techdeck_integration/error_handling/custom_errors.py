@@ -228,6 +228,10 @@ class PipelineError(TechDeckBaseError):
 class PipelineExecutionError(PipelineError):
     pass
 
+# Backwards-compatible Progress Tracking error expected by progress_tracker
+class ProgressTrackingError(PipelineError):
+    pass
+
 
 # Backwards-compatible State Management error expected by state manager
 class StateManagementError(TechDeckBaseError):

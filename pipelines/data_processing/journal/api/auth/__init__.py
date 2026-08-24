@@ -5,12 +5,12 @@ This module provides JWT token validation, role-based access control,
 and authentication utilities.
 """
 
-from ai.sourcing.journal.api.auth.jwt import (
+from ai.pipelines.data_processing.journal.api.auth.jwt import (
     create_access_token,
     decode_access_token,
     verify_token,
 )
-from ai.sourcing.journal.api.auth.rbac import (
+from ai.pipelines.data_processing.journal.api.auth.rbac import (
     check_permission,
     get_user_role,
     require_role,

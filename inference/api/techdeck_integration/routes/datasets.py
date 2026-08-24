@@ -10,11 +10,11 @@ from typing import Any
 
 from flask import Blueprint, current_app, jsonify, request
 
-from ai.api.techdeck_integration.auth.middleware import require_auth
-from ai.api.techdeck_integration.error_handling.custom_errors import DatasetNotFoundError, ValidationError
-from ai.api.techdeck_integration.services.dataset_service import DatasetService
-from ai.api.techdeck_integration.utils.logger import get_logger
-from ai.api.techdeck_integration.utils.validation import validate_dataset_metadata, validate_file_upload
+from ai.inference.api.techdeck_integration.auth.middleware import require_auth
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import DatasetNotFoundError, ValidationError
+from ai.inference.api.techdeck_integration.services.dataset_service import DatasetService
+from ai.inference.api.techdeck_integration.utils.logger import get_logger
+from ai.inference.api.techdeck_integration.utils.validation import validate_dataset_metadata, validate_file_upload
 
 logger = get_logger(__name__)
 datasets_bp = Blueprint("datasets", __name__, url_prefix="/api/v1/datasets")

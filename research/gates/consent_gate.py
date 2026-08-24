@@ -10,8 +10,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
-from ai.memory.gates import GateDecision, GateResult
-from ai.memory.schema import ConsentGate, MemoryGating
+from ai.research.gates import GateDecision, GateResult
+from ai.research.schema import ConsentGate, MemoryGating
 
 ConsentAuditAction = Literal["check", "grant", "revoke", "expire"]
 GATE_NAME = "gate3_consent"

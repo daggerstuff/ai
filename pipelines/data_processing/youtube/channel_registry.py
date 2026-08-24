@@ -12,7 +12,7 @@ import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
-from ai.sourcing.youtube.models import (
+from ai.pipelines.data_processing.youtube.models import (
     Channel,
     ChannelStatus,
     ContentCategory,

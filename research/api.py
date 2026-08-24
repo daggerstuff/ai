@@ -24,9 +24,9 @@ from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from ai.memory.emotion_classifier import EmotionClassifier
-from ai.memory.importance_scorer import ImportanceScorer
-from ai.memory.schema import (
+from ai.research.emotion_classifier import EmotionClassifier
+from ai.research.importance_scorer import ImportanceScorer
+from ai.research.schema import (
     ConsentGate,
     ConsolidationPhase,
     MemoryBlock,

@@ -5,23 +5,23 @@ This module provides comprehensive compliance checking, privacy verification,
 HIPAA validation, audit logging, and data encryption capabilities.
 """
 
-from ai.sourcing.journal.compliance.audit_logger import AuditLogger
-from ai.sourcing.journal.compliance.compliance_checker import (
+from ai.pipelines.data_processing.journal.compliance.audit_logger import AuditLogger
+from ai.pipelines.data_processing.journal.compliance.compliance_checker import (
     ComplianceChecker,
     ComplianceResult,
 )
-from ai.sourcing.journal.compliance.encryption_manager import (
+from ai.pipelines.data_processing.journal.compliance.encryption_manager import (
     EncryptionManager,
 )
-from ai.sourcing.journal.compliance.hipaa_validator import (
+from ai.pipelines.data_processing.journal.compliance.hipaa_validator import (
     HIPAAComplianceResult,
     HIPAAValidator,
 )
-from ai.sourcing.journal.compliance.license_checker import (
+from ai.pipelines.data_processing.journal.compliance.license_checker import (
     LicenseChecker,
     LicenseCompatibility,
 )
-from ai.sourcing.journal.compliance.privacy_verifier import (
+from ai.pipelines.data_processing.journal.compliance.privacy_verifier import (
     PrivacyAssessment,
     PrivacyVerifier,
 )

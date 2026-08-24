@@ -9,16 +9,16 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ai.sourcing.journal.api.dependencies import (
+from ai.pipelines.data_processing.journal.api.dependencies import (
     get_command_handler_service,
     get_training_pipeline_service,
     require_permission_dependency,
 )
-from ai.sourcing.journal.api.models.responses import ErrorResponse
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.models.responses import ErrorResponse
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
-from ai.sourcing.journal.api.services.training_pipeline_service import (
+from ai.pipelines.data_processing.journal.api.services.training_pipeline_service import (
     TrainingPipelineService,
 )
 
