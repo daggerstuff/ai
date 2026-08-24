@@ -1,0 +1,183 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from data_designer.engine.models.clients.types import ChatCompletionResponse
+
+
+class GenerationTruncationReason(str, Enum):
+    """Canonical reasons that a model response ended before generation completed."""
+
+    MAX_TOKENS = "max_tokens"
+    MODEL_CONTEXT_WINDOW_EXCEEDED = "model_context_window_exceeded"
+
+
+_TRUNCATION_REASON_BY_FINISH_REASON = {
+    "length": GenerationTruncationReason.MAX_TOKENS,
+    "max_tokens": GenerationTruncationReason.MAX_TOKENS,
+    "model_context_window_exceeded": GenerationTruncationReason.MODEL_CONTEXT_WINDOW_EXCEEDED,
+}
+
+
+def classify_generation_truncation_reason(
+    response: ChatCompletionResponse,
+) -> GenerationTruncationReason | None:
+    """Classify canonical or raw provider termination metadata as a truncation reason."""
+    # Import lazily to keep this shared utility module lightweight and avoid loading
+    # the client package when callers only need the enum or merge helper.
+    from data_designer.engine.models.clients.parsing import get_first_value_or_none, get_value_from
+
+    first_choice = get_first_value_or_none(response.choices)
+    canonical_reason = get_value_from(first_choice, "finish_reason")
+    if isinstance(canonical_reason, str):
+        return _TRUNCATION_REASON_BY_FINISH_REASON.get(canonical_reason)
+
+    # Keep a raw fallback for custom or future adapters that have not populated
+    # the canonical choice finish reason yet.
+    raw_choices = get_value_from(response.raw, "choices")
+    raw_first_choice = get_first_value_or_none(raw_choices)
+    raw_reason = get_value_from(raw_first_choice, "finish_reason")
+    if not isinstance(raw_reason, str):
+        raw_reason = get_value_from(response.raw, "stop_reason")
+    if not isinstance(raw_reason, str):
+        return None
+    return _TRUNCATION_REASON_BY_FINISH_REASON.get(raw_reason)
+
+
+def merge_conversation_truncation_reason(
+    accumulated: GenerationTruncationReason | None,
+    current: GenerationTruncationReason | None,
+) -> GenerationTruncationReason | None:
+    """Combine reasons observed within one conversation using remediation-safe precedence."""
+    if GenerationTruncationReason.MODEL_CONTEXT_WINDOW_EXCEEDED in (accumulated, current):
+        return GenerationTruncationReason.MODEL_CONTEXT_WINDOW_EXCEEDED
+    return current or accumulated
+
+
+@dataclass
+class ChatMessage:
+    """A chat message in an LLM conversation.
+
+    This dataclass represents messages exchanged in a conversation with an LLM,
+    supporting various message types including user prompts, assistant responses,
+    system instructions, and tool interactions.
+
+    Attributes:
+        role: The role of the message sender. One of 'user', 'assistant', 'system', or 'tool'.
+        content: The message content. Can be a string or a list of content blocks
+            for multimodal messages (e.g., text + image/audio/video context).
+        reasoning_content: Optional reasoning/thinking content from the assistant,
+            typically from extended thinking or chain-of-thought models.
+        tool_calls: Optional list of tool calls requested by the assistant.
+            Each tool call contains 'id', 'type', and 'function' keys.
+        tool_call_id: Optional ID linking a tool response to its corresponding
+            tool call. Required for messages with role='tool'.
+    """
+
+    role: Literal["user", "assistant", "system", "tool"]
+    content: str | list[dict[str, Any]] = ""
+    reasoning_content: str | None = None
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
+    tool_call_id: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert the message to a dictionary format for API calls.
+
+        Content is normalized to a list of ChatML-style blocks to keep a
+        consistent schema across traces and API payloads.
+
+        Returns:
+            A dictionary containing the message fields. Only includes non-empty
+            optional fields to keep the output clean.
+        """
+        result: dict[str, Any] = {"role": self.role, "content": _normalize_content_blocks(self.content)}
+        if self.reasoning_content:
+            result["reasoning_content"] = self.reasoning_content
+        if self.tool_calls:
+            result["tool_calls"] = self.tool_calls
+        if self.tool_call_id:
+            result["tool_call_id"] = self.tool_call_id
+        return result
+
+    @classmethod
+    def as_user(cls, content: str | list[dict[str, Any]]) -> ChatMessage:
+        """Create a user message."""
+        return cls(role="user", content=content)
+
+    @classmethod
+    def as_assistant(
+        cls,
+        content: str = "",
+        reasoning_content: str | None = None,
+        tool_calls: list[dict[str, Any]] | None = None,
+    ) -> ChatMessage:
+        """Create an assistant message."""
+        return cls(
+            role="assistant",
+            content=content,
+            reasoning_content=reasoning_content,
+            tool_calls=tool_calls or [],
+        )
+
+    @classmethod
+    def as_system(cls, content: str) -> ChatMessage:
+        """Create a system message."""
+        return cls(role="system", content=content)
+
+    @classmethod
+    def as_tool(cls, content: str | list[dict[str, Any]], tool_call_id: str) -> ChatMessage:
+        """Create a tool response message."""
+        return cls(role="tool", content=content, tool_call_id=tool_call_id)
+
+
+def prompt_to_messages(
+    *,
+    user_prompt: str,
+    system_prompt: str | None = None,
+    multi_modal_context: list[dict[str, Any]] | None = None,
+) -> list[ChatMessage]:
+    """Convert a user and system prompt into ChatMessage list.
+
+    Args:
+        user_prompt (str): A user prompt.
+        system_prompt (str, optional): An optional system prompt.
+    """
+    user_content: str | list[dict[str, Any]] = user_prompt
+    if multi_modal_context:
+        user_content = [*multi_modal_context, {"type": "text", "text": user_prompt}]
+
+    if system_prompt:
+        return [ChatMessage.as_system(system_prompt), ChatMessage.as_user(user_content)]
+    return [ChatMessage.as_user(user_content)]
+
+
+def _normalize_content_blocks(content: Any) -> list[dict[str, Any]]:
+    if isinstance(content, list):
+        return [_normalize_content_block(block) for block in content]
+    if content is None:
+        return []
+    return [_text_block(content)]
+
+
+def _normalize_content_block(block: Any) -> dict[str, Any]:
+    if isinstance(block, dict) and "type" in block:
+        return block
+    if isinstance(block, dict) and "text" in block:
+        return _text_block(block["text"])
+    return _text_block(block)
+
+
+def _text_block(value: Any) -> dict[str, Any]:
+    if value is None:
+        text_value = ""
+    elif isinstance(value, str):
+        text_value = value
+    else:
+        text_value = str(value)
+    return {"type": "text", "text": text_value}

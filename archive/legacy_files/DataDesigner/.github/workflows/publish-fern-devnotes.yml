@@ -1,0 +1,165 @@
+name: Publish Fern devnotes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-fern-devnotes.yml"
+      - "fern/assets/**"
+      - "fern/components/Authors.tsx"
+      - "fern/components/BlogCard.tsx"
+      - "fern/components/Figure.tsx"
+      - "fern/components/ImageExample.tsx"
+      - "fern/components/ImageExampleGallery.tsx"
+      - "fern/components/MetricsTable.tsx"
+      - "fern/components/TrajectoryViewer.tsx"
+      - "fern/components/devnotes/**"
+      - "fern/scripts/fern-published-branch.py"
+      - "fern/styles/authors.css"
+      - "fern/styles/blog-card.css"
+      - "fern/styles/metrics-table.css"
+      - "fern/styles/trajectory-viewer.css"
+      - "fern/versions/latest.yml"
+      - "fern/versions/latest/pages/devnotes/**"
+      - "fern/versions/latest/pages/recipes/**"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: fern-docs-website
+  cancel-in-progress: false
+
+env:
+  FERN_PUBLISHED_BRANCH: docs-website
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      FERN_TOKEN: ${{ secrets.DOCS_FERN_TOKEN }}
+    steps:
+      - name: Checkout workflow
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: workflow
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: source
+
+      - name: Checkout published branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          path: website
+
+      - name: Prepare published branch checkout
+        working-directory: website
+        run: |
+          if ! git ls-remote --exit-code --heads origin "$FERN_PUBLISHED_BRANCH" >/dev/null 2>&1; then
+            echo "::error::$FERN_PUBLISHED_BRANCH does not exist. Publish a Fern release snapshot first."
+            exit 1
+          fi
+
+          git fetch origin "$FERN_PUBLISHED_BRANCH" --depth=1
+          git checkout -B "$FERN_PUBLISHED_BRANCH" FETCH_HEAD
+
+      - name: Require published notebook snapshot
+        working-directory: website
+        run: |
+          if [ ! -f fern/notebook-snapshot.json ]; then
+            echo "::error::No canonical notebook snapshot is published. Run the Build Fern docs workflow successfully once."
+            exit 1
+          fi
+
+      - name: Patch Dev Notes into latest Fern docs
+        env:
+          SOURCE_REF: ${{ github.ref }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          PUBLISHED_BRANCH: ${{ env.FERN_PUBLISHED_BRANCH }}
+        run: |
+          source_sha=$(git -C source rev-parse HEAD)
+          python3 workflow/fern/scripts/fern-published-branch.py patch-devnotes \
+            --source-root source \
+            --published-root website \
+            --metadata-source-repository "$SOURCE_REPOSITORY" \
+            --metadata-source-ref "$SOURCE_REF" \
+            --metadata-source-sha "$source_sha" \
+            --metadata-published-branch "$PUBLISHED_BRANCH"
+
+      - name: Install uv
+        # Keep v8.1.0 until manual workflow dispatch is verified on newer releases.
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.9.5"
+          prune-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Install docs dependencies
+        working-directory: website
+        run: uv sync --python 3.13 --all-packages --group docs --group notebooks
+
+      - name: Restore published notebook snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+        working-directory: website
+        run: |
+          release_tag=$(jq -er '.release_tag' fern/notebook-snapshot.json)
+          asset=$(jq -er '.asset' fern/notebook-snapshot.json)
+          snapshot_dir="$RUNNER_TEMP/fern-notebook-snapshot"
+          mkdir -p "$snapshot_dir"
+          gh release download "$release_tag" --repo "$SOURCE_REPOSITORY" \
+            --pattern "$asset" --dir "$snapshot_dir"
+          bash ../workflow/docs/scripts/fern_notebook_snapshot.sh \
+            restore . "$snapshot_dir/$asset"
+
+      - name: Check Fern docs
+        working-directory: website
+        run: make -f ../workflow/Makefile check-fern-published-docs
+
+      - name: Commit published branch
+        env:
+          SOURCE_REF: ${{ github.ref }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+        working-directory: website
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "::notice::Fern Dev Notes are already up to date."
+            exit 0
+          fi
+
+          source_sha=$(git -C ../source rev-parse HEAD)
+          previous_published_sha=$(git rev-parse HEAD)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit \
+            -m "docs: patch Fern devnotes into latest" \
+            -m "Source: $SOURCE_REPOSITORY@$SOURCE_REF ($source_sha)" \
+            -m "Previous docs-website head: $previous_published_sha"
+          git push origin HEAD:"$FERN_PUBLISHED_BRANCH"
+
+      - name: Publish Fern docs
+        working-directory: website
+        run: |
+          if [ -z "$FERN_TOKEN" ]; then
+            echo "::error::DOCS_FERN_TOKEN secret is required to publish Fern docs."
+            exit 1
+          fi
+
+          cd fern
+          fern_version=$(jq -r .version fern.config.json)
+          if [[ ! "$fern_version" =~ ^[0-9]+[.][0-9]+[.][0-9]+([-.][0-9A-Za-z]+)*$ ]]; then
+            echo "::error::Invalid Fern version in fern.config.json: $fern_version"
+            exit 1
+          fi
+
+          npx -y "fern-api@$fern_version" generate --docs --no-prompt
