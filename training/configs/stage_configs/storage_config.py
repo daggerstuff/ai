@@ -45,7 +45,7 @@ class StorageConfig:
     logs_prefix: str = "logs"
 
     # Local fallback paths (used when backend is LOCAL or as cache)
-    local_base_path: Path = field(default_factory=lambda: Path("ai/dataset_pipeline/data"))
+    local_base_path: Path = field(default_factory=lambda: Path("ai/pipelines/data_processing/data"))
 
     @classmethod
     def from_env(cls) -> "StorageConfig":
@@ -60,7 +60,7 @@ class StorageConfig:
             backend = StorageBackend.LOCAL
 
         # Local path
-        local_base = Path(os.getenv("DATASET_STORAGE_LOCAL_PATH", "ai/dataset_pipeline/data"))
+        local_base = Path(os.getenv("DATASET_STORAGE_LOCAL_PATH", "ai/pipelines/data_processing/data"))
 
         config = cls(
             backend=backend,

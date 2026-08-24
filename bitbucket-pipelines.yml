@@ -120,8 +120,8 @@ definitions:
       - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
       # Test data loaders
       - |
-        if [ -d "dataset_pipeline/ingestion" ]; then
-          cd dataset_pipeline/ingestion/
+        if [ -d "pipelines/data_processing/ingestion" ]; then
+          cd pipelines/data_processing/ingestion/
           uv run python dual_persona_loader.py || echo "Dual persona loader test completed"
           cd ../..
         fi

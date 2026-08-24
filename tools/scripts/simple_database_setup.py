@@ -184,7 +184,7 @@ def main():
     logger.info("✅ DATABASE SETUP COMPLETED")
     logger.info("Next steps:")
     logger.info("  1. Wait for backup to complete")
-    logger.info("  2. Run migration: uv run dataset_pipeline/migrate_conversations_to_db.py")
+    logger.info("  2. Run migration: uv run pipelines/data_processing/migrate_conversations_to_db.py")
     logger.info("  3. Verify data: psql -h localhost -U postgres -d pixelated_empathy")
 
     return True

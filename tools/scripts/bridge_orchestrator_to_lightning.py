@@ -58,7 +58,7 @@ def convert_jsonl_to_json(input_path: Path, output_path: Path, expert_id=0):
 
 def main():
     workspace_root = get_workspace_root()
-    output_root = workspace_root / "tmp/dataset_pipeline/final_output"
+    output_root = workspace_root / "tmp/pipelines/data_processing/final_output"
     unified_training_dir = get_unified_training_dir()
     lightning_dir = get_lightning_dir()
 
