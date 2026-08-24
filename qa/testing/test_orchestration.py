@@ -1,5 +1,5 @@
-from orchestration.core.state_machine import PersonaStateMachine, State
-from orchestration.safety.guards import InputGuard, OutputGuard
+from ai.pipelines.model_training.core.state_machine import PersonaStateMachine, State
+from ai.pipelines.model_training.safety.guards import InputGuard, OutputGuard
 
 
 def test_state_machine_transitions():

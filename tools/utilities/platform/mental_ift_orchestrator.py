@@ -22,13 +22,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from inference.api.ift_inference import ABTestConfig, ABTestRouter
-from evals.ift_comparison import IFTComparisonStudy
-from monitoring.bias_audit import BiasAuditor
-from training.mental_health_instruction_dataset import (
+from ai.inference.api.ift_inference import ABTestConfig, ABTestRouter
+from ai.qa.validation.ift_comparison import IFTComparisonStudy
+from ai.qa.reports.bias_audit import BiasAuditor
+from ai.training.mental_health_instruction_dataset import (
     MentalHealthInstructionDatasetBuilder,
 )
-from training.mental_ift_trainer import IFTConfig, MentalHealthIFTTrainer
+from ai.training.mental_ift_trainer import IFTConfig, MentalHealthIFTTrainer
 
 logger = logging.getLogger(__name__)
 

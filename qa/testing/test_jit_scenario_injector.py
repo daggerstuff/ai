@@ -4,7 +4,7 @@ import unittest
 from dataclasses import dataclass
 from unittest.mock import MagicMock, patch
 
-from triggers.jit_scenario_injector import (
+from ai.configs.jit_scenario_injector import (
     DEFAULT_DIFFICULTY,
     DEFAULT_DOMAIN_GAP,
     JIT_SCENARIO_BLOCK_LABEL,

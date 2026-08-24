@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
 
-from triggers.case_flag import CaseFlag
+from .case_flag import CaseFlag
 
 logger = logging.getLogger(__name__)
 

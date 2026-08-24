@@ -4,7 +4,7 @@ import sys
 # Add project root to sys.path
 sys.path.insert(0, os.path.abspath("."))
 
-from rag.nemotron_rag import NemotronRAGConfig
+from ai.research.nemotron_rag import NemotronRAGConfig
 
 
 def test_nemotron_rag_config_env_var():

@@ -12,9 +12,9 @@ _ai_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _ai_root not in sys.path:
     sys.path.insert(0, _ai_root)
 
-from triggers.case_flag import CaseFlag, FlagType
-from triggers.flag_store import FlagStore
-from triggers.jit_trigger_engine import JITTriggerEngine
+from ai.configs.case_flag import CaseFlag, FlagType
+from ai.configs.flag_store import FlagStore
+from ai.configs.jit_trigger_engine import JITTriggerEngine
 
 
 def _make_flag(
