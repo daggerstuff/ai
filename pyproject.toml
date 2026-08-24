@@ -213,6 +213,10 @@ ignore = []
 # Tests: bare numeric assertions are acceptable; broad ValueError catches are
 # explicit pydantic/PydanticField validation tests
 "tests/test_patient_psi_*.py" = ["PLR2004", "PT011"]
+"training/tests/test_patient_psi_*.py" = ["PLR2004", "PT011"]
+"prompts/patient_psi/test_patient_psi_prompt.py" = ["PLR2004", "PT011"]
+# Prompt generators use print() for user-facing output and lazy imports
+"prompts/agents/*.py" = ["T201", "PLC0415", "E402"]
 # FastAPI uses Depends() in argument defaults as its canonical DI pattern (B008)
 # and auth-gating parameters are injected but appear "unused" in the body (ARG001)
 "inference/api/dataset_api.py" = ["B008", "ARG001"]
