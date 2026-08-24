@@ -10,14 +10,14 @@ from pathlib import Path
 
 import click
 
-from cli import __author__, __description__, __version__
+from . import __author__, __description__, __version__
 
 # Add the ai directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-from cli.auth import AuthManager
-from cli.commands import (
+from .auth import AuthManager
+from .commands import (
     auth_group,
     cli_interface_group,
     config_group,
@@ -25,10 +25,10 @@ from cli.commands import (
     pipeline_group,
     web_frontend_group,
 )
-from cli.config import CLIConfig
-from cli.pipeline import PipelineManager
-from cli.progress import ProgressTracker
-from cli.utils import print_banner, setup_logging, validate_environment
+from .config import CLIConfig
+from .pipeline import PipelineManager
+from .progress import ProgressTracker
+from .utils import print_banner, setup_logging, validate_environment
 
 
 @click.group()

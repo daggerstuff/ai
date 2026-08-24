@@ -28,11 +28,11 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 # Ensure the pal_framework package is importable
 # ---------------------------------------------------------------------------
-_TRAINING_CORPUS = str(
-    Path(__file__).resolve().parents[1] / "training_corpus" / "wrapper" / "pal_framework",
+_PAL_PATH = str(
+    Path(__file__).resolve().parents[2] / "data" / "synthetic" / "wrapper" / "pal_framework",
 )
-if _TRAINING_CORPUS not in sys.path:
-    sys.path.insert(0, _TRAINING_CORPUS)
+if _PAL_PATH not in sys.path:
+    sys.path.insert(0, _PAL_PATH)
 
 from inference_wrapper import (  # type: ignore[import-untyped]  # noqa: E402
     DEFAULT_LATENCY_BUDGET_SECONDS,

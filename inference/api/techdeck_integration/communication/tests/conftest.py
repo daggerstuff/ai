@@ -668,7 +668,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "hipaa: mark test as HIPAA compliance test")
 
 
-def pytest_collection_modifyitems(_config, items):
+def pytest_collection_modifyitems(items, _config):
     """Modify test collection to add markers based on test names."""
     for item in items:
         # Auto-mark performance tests

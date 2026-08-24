@@ -1,6 +1,10 @@
 """Custom exceptions for CLI operations."""
 
 
+class CLIAuthError(CLIBaseError):
+    """Alias for authentication errors."""
+
+
 class CLIBaseError(Exception):
     """Base exception for CLI errors."""
 

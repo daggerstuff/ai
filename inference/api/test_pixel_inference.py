@@ -22,7 +22,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Add PAL framework path for test imports
-_PAL_FRAMEWORK = str(Path(__file__).resolve().parents[1] / "training_corpus" / "wrapper" / "pal_framework")
+_PAL_FRAMEWORK = str(Path(__file__).resolve().parents[2] / "data" / "synthetic" / "wrapper" / "pal_framework")
 if _PAL_FRAMEWORK not in sys.path:
     sys.path.insert(0, _PAL_FRAMEWORK)
 

@@ -9,9 +9,9 @@ import datetime
 
 import click
 
-from cli.auth import AuthManager
-from cli.config import get_config
-from cli.utils import get_logger, setup_logging
+from .auth import AuthManager
+from .config import get_config
+from .utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 

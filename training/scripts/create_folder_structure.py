@@ -36,9 +36,9 @@ def create_folder_structure(base_path: Path) -> None:
         "pipelines/voice",
 
         # Infrastructure
-        "infrastructure/kubernetes",
-        "infrastructure/helm",
-        "infrastructure/docker",
+        "inference/deployment/kubernetes",
+        "inference/deployment/helm",
+        "inference/deployment/docker",
 
         # Tools
         "tools/data_preparation",

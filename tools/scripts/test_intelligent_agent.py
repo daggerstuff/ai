@@ -8,11 +8,15 @@ import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).parent.parent.parent / "prompts" / "agents"))
 
 
 import contextlib
 
-from intelligent_prompt_agent import MultiPatternAgent
+try:
+    from intelligent_prompt_agent import MultiPatternAgent
+except ImportError:
+    from prompts.agents.intelligent_prompt_agent import MultiPatternAgent
 
 
 def test_interview_extraction():

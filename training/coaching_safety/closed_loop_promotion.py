@@ -30,7 +30,7 @@ from typing import TypedDict
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from annotation_api.models import QueueItem, QueueItemStatus
+from annotation.api.models import QueueItem, QueueItemStatus
 
 logger = logging.getLogger("closed_loop_promotion")
 

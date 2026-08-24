@@ -86,7 +86,7 @@ definitions:
       - curl -LsSf https://astral.sh/uv/install.sh | sh
       - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
       # Run pytest with coverage
-      - uv run pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --cov-report=term
+      - uv run pytest training/tests/ qa/testing/ -v --cov=. --cov-report=xml --cov-report=html --cov-report=term
       # Display coverage summary
       - uv run coverage report
       artifacts:
@@ -103,8 +103,8 @@ definitions:
       - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
       # Run integration tests if they exist
       - |
-        if [ -d "tests/integration" ]; then
-          uv run pytest tests/integration/ -v --maxfail=3
+        if [ -d "qa/testing/" ]; then
+          uv run pytest training/tests/ qa/testing/integration/ -v --maxfail=3
         else
           echo "No integration tests found, skipping..."
         fi

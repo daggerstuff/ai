@@ -42,7 +42,7 @@ from ai.models.pixel_base_model import PixelBaseModel
 # PAL Inference imports
 # ---------------------------------------------------------------------------
 _PAL_FRAMEWORK = str(
-    Path(__file__).resolve().parents[1] / "training_corpus" / "wrapper" / "pal_framework",
+    Path(__file__).resolve().parents[2] / "data" / "synthetic" / "wrapper" / "pal_framework",
 )
 if _PAL_FRAMEWORK not in sys.path:
     sys.path.insert(0, _PAL_FRAMEWORK)

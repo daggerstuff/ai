@@ -21,7 +21,7 @@ import click
 import psutil
 import requests
 
-from cli.config import CLIConfig
+from .config import CLIConfig
 
 
 def setup_logging(level: str = "INFO", config: CLIConfig | None = None) -> logging.Logger:

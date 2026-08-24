@@ -112,8 +112,8 @@ def _format_model_aliases_context(state: dict[str, Any]) -> str:
 
 
 def _strip_config_prefix(path: str) -> str:
-    """Strip the ``data_designer/config/`` prefix so paths are relative to root."""
-    prefix = "data_designer/config/"
+    """Strip the ``data_designer/configs/`` prefix so paths are relative to root."""
+    prefix = "data_designer/configs/"
     return path[len(prefix) :] if path.startswith(prefix) else path
 
 
