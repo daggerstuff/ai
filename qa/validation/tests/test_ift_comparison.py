@@ -1,7 +1,7 @@
 """Tests for IFT vs prompt engineering comparison study."""
 
-from evals.ift_comparison import IFTComparisonStudy
-from training.mental_health_instruction_dataset import MentalHealthTaskType
+from ai.qa.validation.ift_comparison import IFTComparisonStudy
+from ai.training.mental_health_instruction_dataset import MentalHealthTaskType
 
 
 def dummy_inference(prompt: str) -> str:

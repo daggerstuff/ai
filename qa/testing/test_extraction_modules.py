@@ -16,7 +16,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from scripts.extract_therapist_voice import (
+from ai.tools.scripts.extract_therapist_voice import (
     _CLIENT_QUESTION_TEMPLATES,
     _build_synthetic_dialogue,
     _get_topics_for_expertise,
@@ -32,7 +32,7 @@ from scripts.extract_therapist_voice import (
 # ---------------------------------------------------------------------------
 # Module imports
 # ---------------------------------------------------------------------------
-from scripts.extraction_config import (
+from ai.tools.scripts.extraction_config import (
     CHANNEL_CONFIGS,
     DEFAULT_CONVERSATIONS,
     MAX_MARKED_SENTENCE_LENGTH,
@@ -42,14 +42,14 @@ from scripts.extraction_config import (
     get_config,
     resolve_channel_key,
 )
-from scripts.extraction_io import (
+from ai.tools.scripts.extraction_io import (
     _derive_communication_patterns,
     _derive_tone_characteristics,
     generate_quality_report,
     save_channel_output,
 )
-from scripts.extraction_models import ChannelResult
-from scripts.synthetic_templates import SYNTHETIC_TEMPLATES
+from ai.tools.scripts.extraction_models import ChannelResult
+from ai.tools.scripts.synthetic_templates import SYNTHETIC_TEMPLATES
 
 # ===================================================================
 #  extraction_config

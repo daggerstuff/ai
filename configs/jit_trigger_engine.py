@@ -15,9 +15,9 @@ import logging
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 
-from triggers.case_flag import CaseFlag
-from triggers.flag_store import FlagStore
-from triggers.jit_scenario_injector import TriggerDecision
+from .case_flag import CaseFlag
+from .flag_store import FlagStore
+from .jit_scenario_injector import TriggerDecision
 
 logger = logging.getLogger(__name__)
 

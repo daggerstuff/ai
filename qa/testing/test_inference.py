@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from orchestration.core.inference import (
+from ai.pipelines.model_training.core.inference import (
     InferenceEngine,
     LLMProvider,
     MockLLMProvider,
