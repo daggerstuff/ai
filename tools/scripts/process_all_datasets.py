@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.append("/root/pixelated/ai/scripts")
 
 from lora_format_converter import LoRAFormatConverter
+sys.path.append("/root/pixelated/ai/prompts/agents")
 from prompt_generator import TherapeuticPromptGenerator
 
 

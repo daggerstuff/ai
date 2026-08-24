@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 sys.path.append("/root/pixelated/ai/scripts")
+sys.path.append("/root/pixelated/ai/prompts/agents")
 
 from contextual_prompt_generator import ContextualPromptGenerator
 from lora_format_converter import LoRAFormatConverter
