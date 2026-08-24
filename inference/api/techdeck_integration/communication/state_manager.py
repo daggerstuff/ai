@@ -11,14 +11,14 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from ai.api.techdeck_integration.error_handling.custom_errors import (
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
     ResourceNotFoundError,
     StateManagementError,
     ValidationError,
 )
-from ai.api.techdeck_integration.integration.redis_client import RedisClient
-from ai.api.techdeck_integration.utils.logger import get_request_logger
-from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_state_data
+from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.inference.api.techdeck_integration.utils.logger import get_request_logger
+from ai.inference.api.techdeck_integration.utils.validation import sanitize_input, validate_state_data
 
 
 @dataclass

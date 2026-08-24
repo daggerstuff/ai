@@ -20,19 +20,19 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.adapter_factory import (
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import (
     get_adapter,
     list_available_adapters,
     register_adapter,
 )
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
-from ai.sourcing.utils.converters import (
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.utils.converters import (
     csv_to_chatml,
     json_conversation_to_chatml,
     save_jsonl,
     sharegpt_to_chatml,
 )
-from ai.sourcing.utils.validators import filter_valid, validate_record
+from ai.pipelines.data_processing.utils.validators import filter_valid, validate_record
 
 # ---------------------------------------------------------------------------
 # Concrete test adapter for testing the base class

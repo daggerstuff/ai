@@ -7,38 +7,38 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Dict, Tuple
 
 if TYPE_CHECKING:
-    from ai.memory.base import BaseMemoryManager
-    from ai.memory.local_foresight_manager import LocalForesightMemoryManager
-    from ai.memory.local_foresight_repository import LocalForesightRepository
-    from ai.memory.local_foresight_schema import LocalForesightSchemaManager
-    from ai.memory.manager_factory import (
+    from ai.research.base import BaseMemoryManager
+    from ai.research.local_foresight_manager import LocalForesightMemoryManager
+    from ai.research.local_foresight_repository import LocalForesightRepository
+    from ai.research.local_foresight_schema import LocalForesightSchemaManager
+    from ai.research.manager_factory import (
         MemoryManagerFactory,
         get_required_memory_manager,
     )
 
 _EXPORTS: dict[str, tuple[str, str]] = {
     "BaseMemoryManager": (
-        "ai.memory.base",
+        "ai.research.base",
         "BaseMemoryManager",
     ),
     "LocalForesightMemoryManager": (
-        "ai.memory.local_foresight_manager",
+        "ai.research.local_foresight_manager",
         "LocalForesightMemoryManager",
     ),
     "LocalForesightRepository": (
-        "ai.memory.local_foresight_repository",
+        "ai.research.local_foresight_repository",
         "LocalForesightRepository",
     ),
     "MemoryManagerFactory": (
-        "ai.memory.manager_factory",
+        "ai.research.manager_factory",
         "MemoryManagerFactory",
     ),
     "get_required_memory_manager": (
-        "ai.memory.manager_factory",
+        "ai.research.manager_factory",
         "get_required_memory_manager",
     ),
     "LocalForesightSchemaManager": (
-        "ai.memory.local_foresight_schema",
+        "ai.research.local_foresight_schema",
         "LocalForesightSchemaManager",
     ),
 }

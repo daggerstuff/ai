@@ -12,7 +12,7 @@ Features:
 - Stage assignment rule validation
 
 Usage:
-    python -m ai.pkg_mera.core.pipelines.processing.stage_slicer_enhanced \
+    python -m ai.tools.utilities.core.pipelines.processing.stage_slicer_enhanced \
         --output-dir ai/data/staged_datasets
 
 Stage Quality Thresholds (from PIX-249 canonical model):
@@ -56,7 +56,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from ai.pkg_mera.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
+from ai.tools.utilities.core.pipelines.clinical_accuracy_validator import ClinicalAccuracyValidator
 
 # Import from stage_classifier for validation
 
@@ -664,7 +664,7 @@ def main():
     args = parser.parse_args()
     review_queue = None
     if args.human_review_queue:
-        from ai.pkg_mera.core.pipelines.human_review_queue import HumanReviewQueue
+        from ai.tools.utilities.core.pipelines.human_review_queue import HumanReviewQueue
 
         review_queue = HumanReviewQueue(data_dir=Path(args.human_review_queue))
 

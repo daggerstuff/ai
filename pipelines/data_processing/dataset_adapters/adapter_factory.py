@@ -1,7 +1,7 @@
 """Factory for selecting dataset adapters by name.
 
 Usage:
-    from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+    from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
     adapter = get_adapter("esconv", "ai/data/raw")
     adapter.run()
@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TypeVar
 
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _T = TypeVar("_T", bound=type[BaseDatasetAdapter])
 

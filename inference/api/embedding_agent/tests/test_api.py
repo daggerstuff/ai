@@ -14,8 +14,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from ai.api.embedding_agent.app import create_app
-from ai.api.embedding_agent.models import EmbeddingAgentConfig, EmbeddingModel
+from ai.inference.api.embedding_agent.app import create_app
+from ai.inference.api.embedding_agent.models import EmbeddingAgentConfig, EmbeddingModel
 
 
 @pytest.fixture

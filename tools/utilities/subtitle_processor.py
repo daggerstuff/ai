@@ -1,6 +1,6 @@
 import re
 
-from utils.text_segmentation import split_sentences
+from ai.tools.utilities.text_segmentation import split_sentences
 
 
 class SubtitleProcessor:

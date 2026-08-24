@@ -11,12 +11,12 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
-from ai.sourcing.journal.api.auth.jwt import get_user_from_token
-from ai.sourcing.journal.api.config import get_settings
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.auth.jwt import get_user_from_token
+from ai.pipelines.data_processing.journal.api.config import get_settings
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
-from ai.sourcing.journal.api.websocket.manager import manager
+from ai.pipelines.data_processing.journal.api.websocket.manager import manager
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

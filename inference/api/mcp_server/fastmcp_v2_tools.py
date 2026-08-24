@@ -17,9 +17,9 @@ from enum import StrEnum
 from fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
 
-from ai.api.mcp_server.fastmcp_protocols import MemoryRemover, MemoryUpdater
-from ai.api.mcp_server.memory_scope import memory_in_scope
-from ai.api.memory.memory_status_service import build_memory_status_summary
+from ai.inference.api.mcp_server.fastmcp_protocols import MemoryRemover, MemoryUpdater
+from ai.inference.api.mcp_server.memory_scope import memory_in_scope
+from ai.inference.api.memory.memory_status_service import build_memory_status_summary
 
 from .fastmcp_parsing import parse_metadata, parse_scope_context
 from .fastmcp_presenters import memory_store_success_message

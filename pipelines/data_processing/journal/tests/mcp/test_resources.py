@@ -4,18 +4,18 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.journal.mcp.protocol import JSONRPCErrorCode, MCPError
-from ai.sourcing.journal.mcp.resources.metrics import SessionMetricsResource
-from ai.sourcing.journal.mcp.resources.progress import (
+from ai.pipelines.data_processing.journal.mcp.protocol import JSONRPCErrorCode, MCPError
+from ai.pipelines.data_processing.journal.mcp.resources.metrics import SessionMetricsResource
+from ai.pipelines.data_processing.journal.mcp.resources.progress import (
     ProgressHistoryResource,
     ProgressMetricsResource,
 )
-from ai.sourcing.journal.mcp.resources.sessions import SessionStateResource
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.mcp.resources.sessions import SessionStateResource
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     ResearchLog,
     ResearchProgress,
 )
-from ai.sourcing.journal.orchestrator.types import (
+from ai.pipelines.data_processing.journal.orchestrator.types import (
     ProgressSnapshot,
     SessionState,
 )

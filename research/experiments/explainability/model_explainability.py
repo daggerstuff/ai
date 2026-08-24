@@ -17,7 +17,7 @@ import shap
 from lime import lime_text
 from transformers import AutoTokenizer
 
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 

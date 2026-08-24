@@ -27,7 +27,7 @@ The compliance module implements all requirements from Task 9, including:
 **Usage:**
 
 ```python
-from ai.sourcing.journal.compliance import LicenseChecker
+from ai.pipelines.data_processing.journal.compliance import LicenseChecker
 
 checker = LicenseChecker()
 result = checker.check_license("MIT License")
@@ -45,7 +45,7 @@ print(result.is_usable())  # True
 **Usage:**
 
 ```python
-from ai.sourcing.journal.compliance import PrivacyVerifier
+from ai.pipelines.data_processing.journal.compliance import PrivacyVerifier
 
 verifier = PrivacyVerifier()
 assessment = verifier.verify_privacy(
@@ -67,7 +67,7 @@ print(assessment.compliance_score)  # 0.0-1.0
 **Usage:**
 
 ```python
-from ai.sourcing.journal.compliance import HIPAAValidator
+from ai.pipelines.data_processing.journal.compliance import HIPAAValidator
 
 validator = HIPAAValidator()
 result = validator.validate_hipaa_compliance(
@@ -90,7 +90,7 @@ print(result.is_compliant())  # True/False
 **Usage:**
 
 ```python
-from ai.sourcing.journal.compliance import AuditLogger, AuditEventType
+from ai.pipelines.data_processing.journal.compliance import AuditLogger, AuditEventType
 
 logger = AuditLogger(log_directory="./logs/audit")
 logger.log_dataset_access(
@@ -117,7 +117,7 @@ results = logger.verify_log_integrity()
 **Usage:**
 
 ```python
-from ai.sourcing.journal.compliance import EncryptionManager
+from ai.pipelines.data_processing.journal.compliance import EncryptionManager
 
 manager = EncryptionManager(key_directory="./keys")
 
@@ -140,8 +140,8 @@ reports.
 **Usage:**
 
 ```python
-from ai.sourcing.journal.compliance import ComplianceChecker, AuditLogger, EncryptionManager
-from ai.sourcing.journal.models.dataset_models import DatasetSource
+from ai.pipelines.data_processing.journal.compliance import ComplianceChecker, AuditLogger, EncryptionManager
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetSource
 
 # Initialize components
 audit_logger = AuditLogger()
@@ -168,8 +168,8 @@ The compliance module is integrated with the evaluation engine to enhance
 ethical accessibility assessment:
 
 ```python
-from ai.sourcing.journal.compliance import ComplianceChecker
-from ai.sourcing.journal.evaluation import DatasetEvaluationEngine
+from ai.pipelines.data_processing.journal.compliance import ComplianceChecker
+from ai.pipelines.data_processing.journal.evaluation import DatasetEvaluationEngine
 
 # Initialize with compliance checker
 compliance_checker = ComplianceChecker()
@@ -201,7 +201,7 @@ include compliance information:
 Comprehensive tests are available in `tests/test_compliance.py`:
 
 ```bash
-pytest ai/sourcing/journal/tests/test_compliance.py -v
+pytest ai/pipelines/data_processing/journal/tests/test_compliance.py -v
 ```
 
 ## Requirements Met

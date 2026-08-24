@@ -22,7 +22,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.github_repo_adapter import (
+from ai.pipelines.data_processing.dataset_adapters.github_repo_adapter import (
     GitHubRepoAdapter,
     _classify_csv,
     _find_column,

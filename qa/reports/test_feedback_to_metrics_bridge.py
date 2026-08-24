@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.monitoring.feedback_to_metrics_bridge import (
+from ai.qa.reports.feedback_to_metrics_bridge import (
     DEFAULT_METRIC_SCORES,
     PATTERN_TYPE_TO_METRIC,
     SEVERITY_PENALTY,

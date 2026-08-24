@@ -13,7 +13,7 @@ from dataclasses import dataclass, field as dataclass_field
 from datetime import UTC, datetime
 from typing import Any, cast
 
-from ai.sourcing.youtube.models import (
+from ai.pipelines.data_processing.youtube.models import (
     Channel,
     ChannelStatus,
     ContentCategory,
@@ -22,7 +22,7 @@ from ai.sourcing.youtube.models import (
 )
 
 try:
-    from ai.sourcing.youtube.api_impl import YouTubeAPI as _YouTubeAPIImpl
+    from ai.pipelines.data_processing.youtube.api_impl import YouTubeAPI as _YouTubeAPIImpl
 except Exception:
     _YouTubeAPIImpl = None
 

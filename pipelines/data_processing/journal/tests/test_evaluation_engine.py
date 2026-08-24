@@ -6,11 +6,11 @@ from datetime import UTC, datetime
 
 import pytest
 
-from ai.sourcing.journal.evaluation.evaluation_engine import (
+from ai.pipelines.data_processing.journal.evaluation.evaluation_engine import (
     DatasetEvaluationEngine,
     EvaluationConfig,
 )
-from ai.sourcing.journal.models.dataset_models import DatasetEvaluation, DatasetSource
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetEvaluation, DatasetSource
 
 
 class TestEvaluationConfig:

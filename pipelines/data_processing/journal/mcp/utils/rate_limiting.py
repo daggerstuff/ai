@@ -9,8 +9,8 @@ import asyncio
 import html
 import time
 
-from ai.sourcing.journal.mcp.config import RateLimitConfig
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
+from ai.pipelines.data_processing.journal.mcp.config import RateLimitConfig
+from ai.pipelines.data_processing.journal.mcp.protocol import MCPError, MCPErrorCode
 
 # Global rate limiters per identifier (e.g., user_id, IP address)
 _rate_limiters: dict[str, "RateLimiter"] = {}

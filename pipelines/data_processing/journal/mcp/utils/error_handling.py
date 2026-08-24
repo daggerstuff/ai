@@ -13,7 +13,7 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Any
 
-from ai.sourcing.journal.mcp.protocol import (
+from ai.pipelines.data_processing.journal.mcp.protocol import (
     JSONRPCErrorCode,
     MCPError,
     MCPErrorCode,

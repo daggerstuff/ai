@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Tests for Linear backlog artifact generation."""
 
-from ai.monitoring.linear_backlog_action_builder import (
+from ai.qa.reports.linear_backlog_action_builder import (
     build_linear_backlog_payload,
     write_linear_backlog_artifact,
 )
-from ai.monitoring.performance_gap_backlog_converter import (
+from ai.qa.reports.performance_gap_backlog_converter import (
     BacklogChange,
     BacklogConversionResult,
     RulePriority,

@@ -11,7 +11,7 @@
 ## 🎯 Quick Start
 
 ```python
-from ai.sourcing.academic import AcademicSourcingEngine
+from ai.pipelines.data_processing.academic import AcademicSourcingEngine
 
 # Search across 20+ sources (12 publishers + 8 APIs)
 engine = AcademicSourcingEngine()
@@ -96,7 +96,7 @@ PUBLIC_ACADEMIC_API_URL="https://your-production-api.com/api"
 ### Basic Literature Search
 
 ```python
-from ai.sourcing.academic import AcademicSourcingEngine
+from ai.pipelines.data_processing.academic import AcademicSourcingEngine
 
 engine = AcademicSourcingEngine()
 
@@ -113,7 +113,7 @@ for book in results:
 ### Strategy-Based Searching
 
 ```python
-from ai.sourcing.academic import SourcingStrategy
+from ai.pipelines.data_processing.academic import SourcingStrategy
 
 # API sources only (fast)
 engine = AcademicSourcingEngine(strategy=SourcingStrategy.API_ONLY)
@@ -131,7 +131,7 @@ all_results = engine.search_literature("PTSD therapy", limit=50)
 ### Specific Source Search
 
 ```python
-from ai.sourcing.academic import SourceType
+from ai.pipelines.data_processing.academic import SourceType
 
 # Search specific publisher
 oxford_books = engine.fetch_from_publisher(
@@ -147,7 +147,7 @@ pubmed_papers = engine.fetch_pubmed("DBT therapy", limit=20)
 ### Therapy Dataset Discovery
 
 ```python
-from ai.sourcing.academic import find_therapy_datasets
+from ai.pipelines.data_processing.academic import find_therapy_datasets
 
 # Find datasets with 20+ turn conversations
 datasets = find_therapy_datasets(
@@ -161,7 +161,7 @@ datasets = find_therapy_datasets(
 ### DOI Resolution
 
 ```python
-from ai.sourcing.academic.doi_resolution import DOIResolver
+from ai.pipelines.data_processing.academic.doi_resolution import DOIResolver
 
 resolver = DOIResolver()
 
@@ -207,7 +207,7 @@ for book in results:
 ### Module Structure
 
 ```
-ai/sourcing/academic/
+ai/pipelines/data_processing/academic/
 ├── academic_sourcing.py          # Main engine
 ├── therapy_dataset_sourcing.py   # HuggingFace dataset search
 ├── publishers/                   # 12 publisher integrations
@@ -288,7 +288,7 @@ Run the test suite:
 
 ```bash
 cd /home/vivi/pixelated
-uv run python -m pytest ai/sourcing/academic/tests/ -v
+uv run python -m pytest ai/pipelines/data_processing/academic/tests/ -v
 ```
 
 ---

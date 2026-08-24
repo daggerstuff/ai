@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.dsm_vector_space_adapter import DsmVectorSpaceAdapter
+from ai.pipelines.data_processing.dataset_adapters.dsm_vector_space_adapter import DsmVectorSpaceAdapter
 
 
 def _write_json(path: Path, data) -> None:
@@ -107,7 +107,7 @@ class TestDsmVectorSpaceAdapter:
         assert len(lines) == 1
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("dsm_vector_space", "/tmp/test_dsm")
         assert isinstance(a, DsmVectorSpaceAdapter)

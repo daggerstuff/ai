@@ -8,12 +8,12 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from ai.monitoring.feedback_linear_bridge import (
+from ai.qa.reports.feedback_linear_bridge import (
     FeedbackLinearResult,
     execute_feedback_linear_bridge,
 )
-from ai.monitoring.feedback_to_metrics_bridge import FeedbackMetricsMapping
-from ai.monitoring.performance_gap_backlog_converter import BacklogConversionResult
+from ai.qa.reports.feedback_to_metrics_bridge import FeedbackMetricsMapping
+from ai.qa.reports.performance_gap_backlog_converter import BacklogConversionResult
 
 
 @pytest.fixture

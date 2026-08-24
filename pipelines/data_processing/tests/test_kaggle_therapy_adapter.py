@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.kaggle_therapy_adapter import (
+from ai.pipelines.data_processing.dataset_adapters.kaggle_therapy_adapter import (
     KaggleTherapyAdapter,
     _parse_python_list,
 )

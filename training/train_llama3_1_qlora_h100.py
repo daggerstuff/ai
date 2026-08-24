@@ -238,6 +238,6 @@ def main(config_path: str):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Llama 3.1 8B QLoRA Training Script")
-    parser.add_argument("--config", type=str, default="ai/config/llama3_1_qlora_h100.json", help="Path to config file")
+    parser.add_argument("--config", type=str, default="ai/configs/llama3_1_qlora_h100.json", help="Path to config file")
     args = parser.parse_args()
     main(args.config)

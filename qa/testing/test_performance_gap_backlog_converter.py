@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for performance-gap-to-backlog rule conversion."""
 
-from ai.monitoring.performance_gap_backlog_converter import (
+from ai.qa.reports.performance_gap_backlog_converter import (
     PerformanceGapBacklogConverter,
     RulePriority,
 )

@@ -15,7 +15,7 @@ from uuid import uuid4
 import pandas as pd
 import pytest
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetEvaluation,
@@ -23,10 +23,10 @@ from ai.sourcing.journal.models.dataset_models import (
     IntegrationPlan,
     ResearchSession,
 )
-from ai.sourcing.journal.orchestrator.research_orchestrator import (
+from ai.pipelines.data_processing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
 )
-from ai.sourcing.journal.orchestrator.types import OrchestratorConfig
+from ai.pipelines.data_processing.journal.orchestrator.types import OrchestratorConfig
 
 # ============================================================================
 # Dataset Source Fixtures

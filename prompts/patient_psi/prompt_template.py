@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from typing import Literal
 
-from ai.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
-from ai.platform.patient_psi.styles import (
+from ai.tools.utilities.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
+from ai.tools.utilities.platform.patient_psi.styles import (
     ConversationalStyle,
     StyleRegistry,
 )

@@ -7,7 +7,7 @@ This can be used as a console script entry point in setup.py or pyproject.toml.
 
 import sys
 
-from ai.sourcing.journal.cli.cli import cli
+from ai.pipelines.data_processing.journal.cli.cli import cli
 
 if __name__ == "__main__":
     sys.exit(cli())

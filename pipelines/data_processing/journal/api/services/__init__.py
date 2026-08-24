@@ -5,7 +5,7 @@ This module provides service layer that wraps CommandHandler functionality
 for use by API endpoints.
 """
 
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 

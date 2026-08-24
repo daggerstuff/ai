@@ -4,45 +4,45 @@ Pydantic models for API requests and responses.
 This module provides request and response models for all API endpoints.
 """
 
-from ai.sourcing.journal.api.models.acquisition import (
+from ai.pipelines.data_processing.journal.api.models.acquisition import (
     AcquisitionInitiateRequest,
     AcquisitionListResponse,
     AcquisitionResponse,
     AcquisitionUpdateRequest,
 )
-from ai.sourcing.journal.api.models.common import (
+from ai.pipelines.data_processing.journal.api.models.common import (
     ErrorResponse,
     MessageResponse,
     PaginatedResponse,
     SuccessResponse,
 )
-from ai.sourcing.journal.api.models.discovery import (
+from ai.pipelines.data_processing.journal.api.models.discovery import (
     DiscoveryInitiateRequest,
     DiscoveryResponse,
     SourceListResponse,
     SourceResponse,
 )
-from ai.sourcing.journal.api.models.evaluation import (
+from ai.pipelines.data_processing.journal.api.models.evaluation import (
     EvaluationInitiateRequest,
     EvaluationListResponse,
     EvaluationResponse,
     EvaluationUpdateRequest,
 )
-from ai.sourcing.journal.api.models.integration import (
+from ai.pipelines.data_processing.journal.api.models.integration import (
     IntegrationInitiateRequest,
     IntegrationPlanListResponse,
     IntegrationPlanResponse,
 )
-from ai.sourcing.journal.api.models.progress import (
+from ai.pipelines.data_processing.journal.api.models.progress import (
     ProgressMetricsResponse,
     ProgressResponse,
 )
-from ai.sourcing.journal.api.models.reports import (
+from ai.pipelines.data_processing.journal.api.models.reports import (
     ReportGenerateRequest,
     ReportListResponse,
     ReportResponse,
 )
-from ai.sourcing.journal.api.models.sessions import (
+from ai.pipelines.data_processing.journal.api.models.sessions import (
     CreateSessionRequest,
     SessionListResponse,
     SessionResponse,

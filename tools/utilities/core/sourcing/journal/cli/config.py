@@ -1,10 +1,10 @@
-"""Compatibility wrapper for legacy ``ai.pkg_mera.core.sourcing.journal.cli.config`` imports."""
+"""Compatibility wrapper for legacy ``ai.tools.utilities.core.sourcing.journal.cli.config`` imports."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from ai.sourcing.journal.cli.config import (
+from ai.pipelines.data_processing.journal.cli.config import (
     ConfigManager,
     get_config_value,
     load_config,

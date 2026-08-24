@@ -10,8 +10,8 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, ClassVar
 
-from ai.memory.gates import GateDecision, GateResult
-from ai.memory.schema import MemoryGating
+from ai.research.gates import GateDecision, GateResult
+from ai.research.schema import MemoryGating
 
 
 @dataclass

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.mental_health_multiagent_adapter import MentalHealthMultiagentAdapter
+from ai.pipelines.data_processing.dataset_adapters.mental_health_multiagent_adapter import MentalHealthMultiagentAdapter
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -87,7 +87,7 @@ class TestMentalHealthMultiagentAdapter:
         assert len(lines) == 1
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("mental_health_multiagent", "/tmp/test_mhma")
         assert isinstance(a, MentalHealthMultiagentAdapter)

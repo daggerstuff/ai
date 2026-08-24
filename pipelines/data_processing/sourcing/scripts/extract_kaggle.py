@@ -2,7 +2,7 @@
 """Extract Kaggle therapy/counseling datasets and output to V7 staging directory.
 
 Usage:
-    uv run python -m ai.sourcing.scripts.extract_kaggle [options]
+    uv run python -m ai.pipelines.data_processing.scripts.extract_kaggle [options]
 
 Options:
     --raw-dir DIR       Directory containing downloaded Kaggle files (default: ai/data/raw/kaggle)
@@ -19,7 +19,7 @@ _ai_root = Path(__file__).resolve().parent.parent.parent
 if str(_ai_root) not in sys.path:
     sys.path.insert(0, str(_ai_root))
 
-from ai.sourcing.dataset_adapters.kaggle_therapy_adapter import KaggleTherapyAdapter
+from ai.pipelines.data_processing.dataset_adapters.kaggle_therapy_adapter import KaggleTherapyAdapter
 
 
 def main() -> None:

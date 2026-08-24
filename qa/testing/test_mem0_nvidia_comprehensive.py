@@ -2,12 +2,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ai.memory.mem0_nvidia.manager import NvidiaMem0Config, NvidiaMem0Manager
+from ai.research.mem0_nvidia.manager import NvidiaMem0Config, NvidiaMem0Manager
 
 
 @pytest.fixture
 def mock_openai():
-    with patch("ai.memory.mem0_nvidia.manager.OpenAI") as mock:
+    with patch("ai.research.mem0_nvidia.manager.OpenAI") as mock:
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         yield mock
@@ -15,7 +15,7 @@ def mock_openai():
 
 @pytest.fixture
 def mock_async_openai():
-    with patch("ai.memory.mem0_nvidia.manager.AsyncOpenAI") as mock:
+    with patch("ai.research.mem0_nvidia.manager.AsyncOpenAI") as mock:
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         yield mock
@@ -23,7 +23,7 @@ def mock_async_openai():
 
 @pytest.fixture
 def mock_mem0_client():
-    with patch("ai.memory.mem0_nvidia.manager.MemoryClient") as mock:
+    with patch("ai.research.mem0_nvidia.manager.MemoryClient") as mock:
         mock_instance = MagicMock()
         mock.return_value = mock_instance
         yield mock_instance
@@ -32,7 +32,7 @@ def mock_mem0_client():
 def test_nvidia_manager_initialization(mock_openai, mock_async_openai, _mock_mem0_client):
     config = NvidiaMem0Config(nvidia_api_key="test-nv", mem0_api_key="test-mem0")
     # Patch TherapeuticProcessor to avoid real sub-calls if needed
-    with patch("ai.memory.therapeutic_processor.TherapeuticProcessor"):
+    with patch("ai.research.therapeutic_processor.TherapeuticProcessor"):
         manager = NvidiaMem0Manager(config)
         assert manager.processor is not None
         assert mock_openai.called, "OpenAI client was not initialized"

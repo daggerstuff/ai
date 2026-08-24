@@ -13,7 +13,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from ai.utils.ngc_cli import (
+from ai.tools.utilities.ngc_cli import (
     NGCCLIAuthError,
     NGCCLINotFoundError,
     ensure_ngc_cli_configured,

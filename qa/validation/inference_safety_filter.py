@@ -13,7 +13,7 @@ from enum import Enum
 from typing import Any
 
 # from ..dataset_pipeline.traceability_system import TraceabilityManager  # TODO: fix import
-from ..monitoring.observability import observability
+from ..reports.observability import observability
 
 # Import our existing systems
 from .enhanced_safety_filter import (
@@ -25,7 +25,7 @@ from .enhanced_safety_filter import (
 
 # R1: Receipt emission
 try:
-    from ai.receipts.receipt import Ledger, ReceiptEnvelope
+    from ai.data.raw.receipt import Ledger, ReceiptEnvelope
 except ImportError:
     ReceiptEnvelope = None  # type: ignore
     Ledger = None  # type: ignore

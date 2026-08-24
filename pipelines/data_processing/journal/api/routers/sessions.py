@@ -6,19 +6,19 @@ This module provides endpoints for managing research sessions.
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ai.sourcing.journal.api.dependencies import (
+from ai.pipelines.data_processing.journal.api.dependencies import (
     get_command_handler_service,
     get_current_user,
     require_permission_dependency,
 )
-from ai.sourcing.journal.api.models.common import PaginationParams
-from ai.sourcing.journal.api.models.sessions import (
+from ai.pipelines.data_processing.journal.api.models.common import PaginationParams
+from ai.pipelines.data_processing.journal.api.models.sessions import (
     CreateSessionRequest,
     SessionListResponse,
     SessionResponse,
     SessionUpdateRequest,
 )
-from ai.sourcing.journal.api.services.command_handler_service import (
+from ai.pipelines.data_processing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 

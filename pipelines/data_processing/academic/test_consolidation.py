@@ -13,7 +13,7 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from ai.sourcing.academic import (
+from ai.pipelines.data_processing.academic import (
     AcademicSourcingEngine,
     BookMetadata,
     SourceType,

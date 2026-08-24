@@ -11,7 +11,7 @@ BurnoutNarrative records with available fields, and leave structured
 fields for later LLM enrichment.
 
 Usage:
-    uv run python -m ai.sourcing.scripts.extract_burnout \
+    uv run python -m ai.pipelines.data_processing.scripts.extract_burnout \
         --input-dir ai/data/raw/burnout \
         --output-dir ai/data/curated/burnout
 """

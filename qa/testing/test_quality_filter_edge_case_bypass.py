@@ -10,7 +10,7 @@ through unchanged when record carries ``is_training_edge_case: True``.
 
 from __future__ import annotations
 
-from ai.dataset_pipeline.processors.quality_filter import QualityFilter
+from ai.pipelines.data_processing.processors.quality_filter import QualityFilter
 
 
 def _edge_case_record() -> dict:

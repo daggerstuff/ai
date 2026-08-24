@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from ai.pkg_mera.core.pipelines.crisis_intervention_detector import CrisisInterventionDetector
+from ai.tools.utilities.core.pipelines.crisis_intervention_detector import CrisisInterventionDetector
 
 
 class CrisisLevel(Enum):

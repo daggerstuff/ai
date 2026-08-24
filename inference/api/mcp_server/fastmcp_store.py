@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from ai.api.mcp_server.memory_scope import build_scope_metadata, scope_metadata_dict
+from ai.inference.api.mcp_server.memory_scope import build_scope_metadata, scope_metadata_dict
 
 from .fastmcp_parsing import ParsedScopeContext
 from .fastmcp_protocols import MemoryCreator, MemoryScopeProvider, ScopedMemoryCreator

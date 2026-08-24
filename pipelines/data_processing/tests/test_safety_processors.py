@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import json
 
-from sourcing.processors.pii_stripper import (
+from ai.pipelines.data_processing.sourcing.processors.pii_stripper import (
     PIIStripReport,
     PIIStripResult,
     strip_pii_batch,
     strip_pii_from_record,
     strip_pii_from_text,
 )
-from sourcing.processors.safety_processor import SafetyProcessor, SafetyReport
-from sourcing.processors.toxicity_filter import (
+from ai.pipelines.data_processing.sourcing.processors.safety_processor import SafetyProcessor, SafetyReport
+from ai.pipelines.data_processing.sourcing.processors.toxicity_filter import (
     TOXICITY_THRESHOLD,
     ToxicityReport,
     ToxicityResult,

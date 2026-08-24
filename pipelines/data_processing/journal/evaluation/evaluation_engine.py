@@ -10,14 +10,14 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     DatasetEvaluation,
     DatasetSource,
 )
 
 # Optional compliance module imports
 try:
-    from ai.sourcing.journal.compliance.compliance_checker import (
+    from ai.pipelines.data_processing.journal.compliance.compliance_checker import (
         ComplianceChecker,
     )
 

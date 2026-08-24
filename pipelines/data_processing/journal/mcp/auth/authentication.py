@@ -11,8 +11,8 @@ from typing import Any
 import jwt as pyjwt
 from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
 
-from ai.sourcing.journal.mcp.config import AuthConfig
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode, MCPRequest
+from ai.pipelines.data_processing.journal.mcp.config import AuthConfig
+from ai.pipelines.data_processing.journal.mcp.protocol import MCPError, MCPErrorCode, MCPRequest
 
 logger = logging.getLogger(__name__)
 

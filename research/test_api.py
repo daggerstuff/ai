@@ -1,19 +1,19 @@
-"""Integration tests for ai/memory/api.py — PIX-510 Task 4."""
+"""Integration tests for ai/research/api.py — PIX-510 Task 4."""
 
 from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
 
-from ai.memory.api import (
+from ai.research.api import (
     MemoryStore,
     app,
     get_classifier,
     get_scorer,
     get_store,
 )
-from ai.memory.emotion_classifier import EmotionClassifier
-from ai.memory.importance_scorer import ImportanceScorer
+from ai.research.emotion_classifier import EmotionClassifier
+from ai.research.importance_scorer import ImportanceScorer
 
 # Shared store across all tests so each test can see data created by others
 _shared_store = MemoryStore()

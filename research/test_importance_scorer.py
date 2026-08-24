@@ -1,17 +1,17 @@
-"""Unit tests for ai/memory/importance_scorer.py — PIX-510 Task 2."""
+"""Unit tests for ai/research/importance_scorer.py — PIX-510 Task 2."""
 
 from __future__ import annotations
 
 import math
 import time
 
-from ai.memory.importance_scorer import (
+from ai.research.importance_scorer import (
     EmotionalWeights,
     ImportanceScorer,
     cosine_similarity,
     exponential_decay,
 )
-from ai.memory.schema import (
+from ai.research.schema import (
     ConsolidationPhase,
     MemoryBlock,
     MemoryConsolidation,

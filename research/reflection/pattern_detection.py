@@ -11,7 +11,7 @@ import time
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 
-from ai.memory.schema import MemoryBlock
+from ai.research.schema import MemoryBlock
 
 from .session_consolidation import SessionSummary
 

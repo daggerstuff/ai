@@ -9,7 +9,7 @@ import os
 import signal
 import sys
 
-from ai.api.sentry_logging import initialize_sentry_logging
+from ai.inference.api.sentry_logging import initialize_sentry_logging
 
 from .app import create_app
 from .config import get_config

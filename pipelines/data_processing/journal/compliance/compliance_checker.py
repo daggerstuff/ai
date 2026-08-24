@@ -8,21 +8,21 @@ verification, HIPAA validation, and generates comprehensive compliance reports.
 import logging
 from dataclasses import dataclass
 
-from ai.sourcing.journal.compliance.audit_logger import AuditLogger
-from ai.sourcing.journal.compliance.encryption_manager import EncryptionManager
-from ai.sourcing.journal.compliance.hipaa_validator import (
+from ai.pipelines.data_processing.journal.compliance.audit_logger import AuditLogger
+from ai.pipelines.data_processing.journal.compliance.encryption_manager import EncryptionManager
+from ai.pipelines.data_processing.journal.compliance.hipaa_validator import (
     HIPAAComplianceResult,
     HIPAAValidator,
 )
-from ai.sourcing.journal.compliance.license_checker import (
+from ai.pipelines.data_processing.journal.compliance.license_checker import (
     LicenseChecker,
     LicenseCheckResult,
 )
-from ai.sourcing.journal.compliance.privacy_verifier import (
+from ai.pipelines.data_processing.journal.compliance.privacy_verifier import (
     PrivacyAssessment,
     PrivacyVerifier,
 )
-from ai.sourcing.journal.models.dataset_models import DatasetSource
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetSource
 
 logger = logging.getLogger(__name__)
 

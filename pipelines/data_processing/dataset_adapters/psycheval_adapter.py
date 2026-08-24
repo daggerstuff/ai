@@ -23,8 +23,8 @@ import re
 import subprocess
 from typing import Any
 
-from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _S3_PREFIX = "whitebat:training/pixelated-empathy/output/psycheval/raw/PsychEval/"
 _SOURCE_URL = "https://github.com/PsychEval/PsychEval"

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from utils.youtube_curation import (
+from ai.tools.utilities.youtube_curation import (
     YouTubeRecord,
     curate_youtube_output,
     decide_record_action,

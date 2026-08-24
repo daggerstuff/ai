@@ -10,7 +10,7 @@ from pathlib import Path
 
 import lightning
 
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -185,7 +185,7 @@ Launch therapeutic AI training with proper GPU setup and monitoring.
 
 import os
 import json
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 import subprocess
 import logging
 from pathlib import Path

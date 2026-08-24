@@ -7,7 +7,7 @@ This script starts the FastAPI server with uvicorn.
 
 import uvicorn
 
-from ai.sourcing.journal.api.config import get_settings
+from ai.pipelines.data_processing.journal.api.config import get_settings
 
 settings = get_settings()
 
@@ -15,7 +15,7 @@ settings = get_settings()
 def main() -> None:
     """Run the API server."""
     uvicorn.run(
-        "ai.sourcing.journal.api.main:app",
+        "ai.pipelines.data_processing.journal.api.main:app",
         host=settings.host,
         port=settings.port,
         reload=settings.debug,

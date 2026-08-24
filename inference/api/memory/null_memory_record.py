@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass, replace
 from typing import Any
 
-from ai.memory.local_memory_adapter import normalize_tags
+from ai.research.local_memory_adapter import normalize_tags
 
 _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 

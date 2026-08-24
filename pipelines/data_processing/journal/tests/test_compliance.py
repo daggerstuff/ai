@@ -11,30 +11,30 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.journal.compliance.audit_logger import (
+from ai.pipelines.data_processing.journal.compliance.audit_logger import (
     AuditEventType,
     AuditLogger,
 )
-from ai.sourcing.journal.compliance.compliance_checker import (
+from ai.pipelines.data_processing.journal.compliance.compliance_checker import (
     ComplianceChecker,
 )
-from ai.sourcing.journal.compliance.encryption_manager import (
+from ai.pipelines.data_processing.journal.compliance.encryption_manager import (
     EncryptionManager,
 )
-from ai.sourcing.journal.compliance.hipaa_validator import (
+from ai.pipelines.data_processing.journal.compliance.hipaa_validator import (
     HIPAAComplianceStatus,
     HIPAAValidator,
 )
-from ai.sourcing.journal.compliance.license_checker import (
+from ai.pipelines.data_processing.journal.compliance.license_checker import (
     LicenseChecker,
     LicenseCompatibility,
 )
-from ai.sourcing.journal.compliance.privacy_verifier import (
+from ai.pipelines.data_processing.journal.compliance.privacy_verifier import (
     AnonymizationQuality,
     PrivacyRiskLevel,
     PrivacyVerifier,
 )
-from ai.sourcing.journal.models.dataset_models import DatasetSource
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetSource
 
 
 class TestLicenseChecker:

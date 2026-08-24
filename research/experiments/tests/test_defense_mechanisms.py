@@ -29,7 +29,7 @@ from ai.training.defense_mechanisms.model import (
     FocalLoss,
     compute_r_drop_loss,
 )
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 # -- Fixtures --
 

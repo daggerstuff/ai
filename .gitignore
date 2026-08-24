@@ -171,6 +171,7 @@ training_data_consolidated/
 training_ready/
 **/mcp_server/sessions/
 **/site/
+session/
 # DVC: track .dvc pointer files and DVC .gitignore for curated datasets
 !data/
 data/*

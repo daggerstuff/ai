@@ -8,7 +8,7 @@ using DOI matching and similarity-based matching.
 import logging
 from difflib import SequenceMatcher
 
-from ai.sourcing.journal.models.dataset_models import DatasetSource
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetSource
 
 logger = logging.getLogger(__name__)
 

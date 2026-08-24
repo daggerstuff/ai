@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from ai.memory.local_memory_adapter import normalize_tags
+from ai.research.local_memory_adapter import normalize_tags
 
 from .null_memory_coordination import NullMemoryCoordination
 from .null_memory_lifecycle import NullMemoryLifecycle

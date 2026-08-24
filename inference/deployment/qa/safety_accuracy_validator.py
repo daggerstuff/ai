@@ -501,7 +501,7 @@ class SafetyAccuracyValidator:
         """Generate comprehensive validation report"""
         logger.info("Generating safety validation report...")
 
-        report_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/reports")
+        report_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/reports")
         report_path.mkdir(parents=True, exist_ok=True)
 
         # Generate detailed report
@@ -558,7 +558,7 @@ class SafetyAccuracyValidator:
 
     async def _generate_validation_visualizations(self):
         """Generate validation visualizations"""
-        viz_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/reports/visualizations")
+        viz_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/reports/visualizations")
         viz_path.mkdir(parents=True, exist_ok=True)
 
         # Accuracy by demographic group

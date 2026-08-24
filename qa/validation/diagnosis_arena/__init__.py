@@ -3,7 +3,7 @@ DiagnosisArena evaluation suite (arXiv 2505.14107).
 
 Public surface::
 
-    from ai.evals.diagnosis_arena import (
+    from ai.qa.validation.diagnosis_arena import (
         DiagnosisArenaBenchmark,
         HeuristicJudge,
         OpenAIDiagnosisJudge,
@@ -38,15 +38,15 @@ Public surface::
 
 Sub-modules::
 
-    ai.evals.diagnosis_arena.benchmark  - case loading + iteration
-    ai.evals.diagnosis_arena.judge      - Judge interface + HeuristicJudge + LLMJudge
-    ai.evals.diagnosis_arena.openai_judge - GPT-4o-as-judge with 3-way majority vote
-    ai.evals.diagnosis_arena.runner     - end-to-end evaluation entry point
-    ai.evals.diagnosis_arena.reporter   - summary aggregation + JSON/Markdown reports
-    ai.evals.diagnosis_arena.error_taxonomy - diagnostic bias classification
-    ai.evals.diagnosis_arena.types      - dataclasses and enums
-    ai.evals.diagnosis_arena.pipeline   - multi-system orchestration + leaderboard
-    ai.evals.diagnosis_arena.leaderboard - ranking and comparison views
+    ai.qa.validation.diagnosis_arena.benchmark  - case loading + iteration
+    ai.qa.validation.diagnosis_arena.judge      - Judge interface + HeuristicJudge + LLMJudge
+    ai.qa.validation.diagnosis_arena.openai_judge - GPT-4o-as-judge with 3-way majority vote
+    ai.qa.validation.diagnosis_arena.runner     - end-to-end evaluation entry point
+    ai.qa.validation.diagnosis_arena.reporter   - summary aggregation + JSON/Markdown reports
+    ai.qa.validation.diagnosis_arena.error_taxonomy - diagnostic bias classification
+    ai.qa.validation.diagnosis_arena.types      - dataclasses and enums
+    ai.qa.validation.diagnosis_arena.pipeline   - multi-system orchestration + leaderboard
+    ai.qa.validation.diagnosis_arena.leaderboard - ranking and comparison views
 """
 
 from __future__ import annotations

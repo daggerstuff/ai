@@ -14,7 +14,7 @@ class ProductionMonitor:
     """Production monitoring system"""
 
     def __init__(self):
-        self.config_file = Path("../config/production_config.json")
+        self.config_file = Path("../../../configs/production_config.json")
         self.log_file = Path("../logs/crisis_detection.log")
         self.metrics_file = Path("../logs/production_metrics.json")
 

@@ -11,7 +11,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from ai.memory.schema import MemoryBlock
+from ai.research.schema import MemoryBlock
 
 log = logging.getLogger(__name__)
 

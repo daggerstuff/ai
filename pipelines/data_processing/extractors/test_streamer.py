@@ -1,4 +1,4 @@
-from s3_streamer import S3Streamer
+from ai.pipelines.data_processing.extractors.s3_streamer import S3Streamer
 
 
 def main():

@@ -23,7 +23,7 @@ HuggingFace Hub) with specific criteria:
 ### Basic Usage
 
 ```python
-from ai.sourcing.academic import find_therapy_datasets
+from ai.pipelines.data_processing.academic import find_therapy_datasets
 
 # Find datasets with 20+ turn conversations
 datasets = find_therapy_datasets(
@@ -38,7 +38,7 @@ datasets = find_therapy_datasets(
 ### Advanced Usage
 
 ```python
-from ai.sourcing.academic import TherapyDatasetSourcing
+from ai.pipelines.data_processing.academic import TherapyDatasetSourcing
 
 # Create sourcing engine
 sourcing = TherapyDatasetSourcing()
@@ -362,7 +362,7 @@ Datasets are automatically classified by conversation length:
 ## 🎨 Example Workflow
 
 ```python
-from ai.sourcing.academic import TherapyDatasetSourcing
+from ai.pipelines.data_processing.academic import TherapyDatasetSourcing
 
 # 1. Initialize
 sourcing = TherapyDatasetSourcing()
@@ -395,7 +395,7 @@ print(sourcing.generate_report(top_datasets))
 
 ```bash
 cd /home/vivi/pixelated
-uv run python ai/sourcing/academic/demo_therapy_sourcing.py
+uv run python ai/pipelines/data_processing/academic/demo_therapy_sourcing.py
 ```
 
 **Demo Includes:**

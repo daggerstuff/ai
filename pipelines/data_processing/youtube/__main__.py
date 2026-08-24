@@ -2,8 +2,8 @@
 Main entry point for YouTube channel discovery system.
 
 Can be run as:
-- Module: python -m ai.sourcing.youtube
-- Script: python ai/sourcing/youtube/__main__.py discovery --help
+- Module: python -m ai.pipelines.data_processing.youtube
+- Script: python ai/pipelines/data_processing/youtube/__main__.py discovery --help
 - Direct function call
 """
 
@@ -15,12 +15,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from ai.sourcing.youtube.api_impl import (
+from ai.pipelines.data_processing.youtube.api_impl import (
     get_api_quota_status,
     test_api_connection,
 )
-from ai.sourcing.youtube.channel_registry import ChannelRegistryDB
-from ai.sourcing.youtube.models import (
+from ai.pipelines.data_processing.youtube.channel_registry import ChannelRegistryDB
+from ai.pipelines.data_processing.youtube.models import (
     Channel,
     ChannelStatus,
     ContentCategory,
@@ -214,19 +214,19 @@ def main():
         epilog="""
 Examples:
   # Test API connection and quota
-  python -m ai.sourcing.youtube test-connection
+  python -m ai.pipelines.data_processing.youtube test-connection
 
   # Check quota status
-  python -m ai.sourcing.youtube check-quota
+  python -m ai.pipelines.data_processing.youtube check-quota
 
   # List channels in registry
-  python -m ai.sourcing.youtube list-registry
+  python -m ai.pipelines.data_processing.youtube list-registry
 
   # Import channels from JSON
-  python -m ai.sourcing.youtube import-channels -i channels.json
+  python -m ai.pipelines.data_processing.youtube import-channels -i channels.json
 
   # Initialize new database
-  python -m ai.sourcing.youtube init-db -d channels.db
+  python -m ai.pipelines.data_processing.youtube init-db -d channels.db
         """,
     )
 

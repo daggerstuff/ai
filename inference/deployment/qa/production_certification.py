@@ -122,7 +122,7 @@ class ProductionCertifier:
     """Main production certification system"""
 
     def __init__(self):
-        self.cert_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/production_certification")
+        self.cert_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/production_certification")
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
         self.certification_checks: list[CertificationCheck] = []

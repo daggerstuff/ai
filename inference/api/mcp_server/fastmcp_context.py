@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastmcp import FastMCP
 
-from ai.api.memory.memory_status_service import build_memory_status_summary
+from ai.inference.api.memory.memory_status_service import build_memory_status_summary
 
 from .fastmcp_shared import (
     _stdio_trust_enabled,

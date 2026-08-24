@@ -507,7 +507,7 @@ if __name__ == "__main__":
     host = os.getenv("EMBEDDING_AGENT_HOST", "0.0.0.0")
 
     uvicorn.run(
-        "ai.api.embedding_agent.app:app",
+        "ai.inference.api.embedding_agent.app:app",
         host=host,
         port=port,
         reload=os.getenv("EMBEDDING_AGENT_RELOAD", "false").lower() == "true",

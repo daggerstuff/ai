@@ -11,8 +11,8 @@ import logging
 from dataclasses import dataclass
 from typing import Any
 
-from ai.memory.local_foresight_manager import LocalForesightMemoryManager
-from ai.memory.local_memory_settings import resolve_local_memory_settings
+from ai.research.local_foresight_manager import LocalForesightMemoryManager
+from ai.research.local_memory_settings import resolve_local_memory_settings
 
 logger = logging.getLogger("agent_memory_tools")
 

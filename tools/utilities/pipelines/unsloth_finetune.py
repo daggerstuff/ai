@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from ai.monitoring.safety_monitor_integration import SafetyMonitor
+    from ai.qa.reports.safety_monitor_integration import SafetyMonitor
 except Exception:
 
     class SafetyMonitor:

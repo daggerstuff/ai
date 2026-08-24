@@ -84,7 +84,7 @@ techdeck_integration/
 1. **Clone and setup environment:**
 
 ```bash
-cd ai/api/techdeck_integration
+cd ai/inference/api/techdeck_integration
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```

@@ -24,7 +24,7 @@ from types import ModuleType
 from typing import Any, Protocol, TypeVar, cast
 
 # Schema imports
-from ai.infrastructure.database.conversation_schema import (
+from ai.inference.deployment.database.database.conversation_schema import (
     ConversationSchema,
     ConversationTier,
     ProcessingStatus,

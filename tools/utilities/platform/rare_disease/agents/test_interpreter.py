@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from rare_disease.types import Evidence, OrganSystem, PatientCase
+from ..types import Evidence, OrganSystem, PatientCase
 
 """Test Interpreter Sub-Agent — interprets lab/imaging/genetic results."""
 

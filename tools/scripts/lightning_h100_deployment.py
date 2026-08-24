@@ -118,7 +118,7 @@ Lightning.ai H100 Therapeutic AI Training Script
 """
 
 import json
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 import lightning as L
 from lightning.fabric import Fabric
 from transformers import (

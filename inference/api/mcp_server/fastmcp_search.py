@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ai.api.mcp_server.memory_scope import (
+from ai.inference.api.mcp_server.memory_scope import (
     filter_memories_by_scope,
     search_with_overfetch,
 )

@@ -7,7 +7,7 @@ This module provides comprehensive parameter validation for tools, resources, an
 import re
 from typing import Any
 
-from ai.sourcing.journal.mcp.protocol import (
+from ai.pipelines.data_processing.journal.mcp.protocol import (
     MCPError,
     MCPErrorCode,
 )

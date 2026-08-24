@@ -13,7 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from ai.sourcing.journal.api.config import get_settings
+from ai.pipelines.data_processing.journal.api.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

@@ -2,19 +2,19 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import utils.torch_proxy
-from utils.torch_proxy import _load_torch, _TorchAttrProxy, _TorchModuleProxy
+import ai.tools.utilities.torch_proxy as torch_proxy_mod
+from ai.tools.utilities.torch_proxy import _load_torch, _TorchAttrProxy, _TorchModuleProxy
 
 
 def test_load_torch_success():
-    utils.torch_proxy._torch_module = None
-    utils.torch_proxy._torch_import_error = None
+    torch_proxy_mod._torch_module = None
+    torch_proxy_mod._torch_import_error = None
 
-    with patch("utils.torch_proxy.import_module") as mock_import:
+    with patch("ai.tools.utilities.torch_proxy.import_module") as mock_import:
         mock_import.return_value = "mocked_torch"
         module = _load_torch()
         assert module == "mocked_torch"
-        assert utils.torch_proxy._torch_module == "mocked_torch"
+        assert torch_proxy_mod._torch_module == "mocked_torch"
 
         # Calling again should return cached module
         mock_import.reset_mock()
@@ -24,16 +24,16 @@ def test_load_torch_success():
 
 
 def test_load_torch_import_error():
-    utils.torch_proxy._torch_module = None
-    utils.torch_proxy._torch_import_error = None
+    torch_proxy_mod._torch_module = None
+    torch_proxy_mod._torch_import_error = None
 
-    with patch("utils.torch_proxy.import_module") as mock_import:
+    with patch("ai.tools.utilities.torch_proxy.import_module") as mock_import:
         mock_import.side_effect = ImportError("No module named 'torch'")
 
         with pytest.raises(RuntimeError, match="torch is unavailable in this environment"):
             _load_torch()
 
-        assert utils.torch_proxy._torch_import_error is not None
+        assert torch_proxy_mod._torch_import_error is not None
 
         # Calling again should raise cached error
         mock_import.reset_mock()
@@ -43,48 +43,48 @@ def test_load_torch_import_error():
 
 
 def test_torch_module_proxy_getattr():
-    utils.torch_proxy._torch_module = None
-    utils.torch_proxy._torch_import_error = None
+    torch_proxy_mod._torch_module = None
+    torch_proxy_mod._torch_import_error = None
 
     mock_torch = MagicMock()
     mock_torch.tensor = "tensor_func"
 
-    with patch("utils.torch_proxy.import_module", return_value=mock_torch):
+    with patch("ai.tools.utilities.torch_proxy.import_module", return_value=mock_torch):
         proxy = _TorchModuleProxy()
         assert proxy.tensor == "tensor_func"
 
 
 def test_torch_module_proxy_dir():
-    utils.torch_proxy._torch_module = None
-    utils.torch_proxy._torch_import_error = None
+    torch_proxy_mod._torch_module = None
+    torch_proxy_mod._torch_import_error = None
 
     mock_torch = MagicMock()
     mock_torch.__dir__ = MagicMock(return_value=["tensor", "nn"])
 
-    with patch("utils.torch_proxy.import_module", return_value=mock_torch):
+    with patch("ai.tools.utilities.torch_proxy.import_module", return_value=mock_torch):
         proxy = _TorchModuleProxy()
         assert set(dir(proxy)).issuperset({"tensor", "nn"})
 
 
 def test_torch_module_proxy_dir_error():
-    utils.torch_proxy._torch_module = None
-    utils.torch_proxy._torch_import_error = None
+    torch_proxy_mod._torch_module = None
+    torch_proxy_mod._torch_import_error = None
 
-    with patch("utils.torch_proxy.import_module", side_effect=ImportError):
+    with patch("ai.tools.utilities.torch_proxy.import_module", side_effect=ImportError):
         proxy = _TorchModuleProxy()
         assert dir(proxy) == []
 
 
 def test_torch_attr_proxy():
-    utils.torch_proxy._torch_module = None
-    utils.torch_proxy._torch_import_error = None
+    torch_proxy_mod._torch_module = None
+    torch_proxy_mod._torch_import_error = None
 
     mock_torch = MagicMock()
     mock_nn = MagicMock()
     mock_nn.Linear = "LinearLayer"
     mock_torch.nn = mock_nn
 
-    with patch("utils.torch_proxy.import_module", return_value=mock_torch):
+    with patch("ai.tools.utilities.torch_proxy.import_module", return_value=mock_torch):
         proxy = _TorchAttrProxy("nn")
 
         # Test getattr

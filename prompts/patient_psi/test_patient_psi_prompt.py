@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from ai.pkg_mera.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
-from ai.pkg_mera.platform.patient_psi.prompt_template import CCDPromptBuilder
-from ai.pkg_mera.platform.patient_psi.styles import ConversationalStyle
+from ai.tools.utilities.platform.patient_psi.profiles import ClinicalProfile, ProfileRegistry
+from ai.prompts.patient_psi.prompt_template import CCDPromptBuilder
+from ai.tools.utilities.platform.patient_psi.styles import ConversationalStyle
 
 
 @pytest.fixture

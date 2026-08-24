@@ -6,7 +6,7 @@ import unittest
 from decimal import Decimal
 from pathlib import Path
 
-from ai.pkg_mera.core.pipelines.reprioritization_engine import (
+from ai.tools.utilities.core.pipelines.reprioritization_engine import (
     BacklogItem,
     EvidenceAccumulation,
     EvidenceAccumulator,
@@ -814,7 +814,7 @@ class TestReprioritizationEngine(unittest.TestCase):
         assert "Memory recall failing" in title
 
     def test_validation_criteria_generated(self):
-        from ai.pkg_mera.core.pipelines.reprioritization_engine import _generate_validation_criteria
+        from ai.tools.utilities.core.pipelines.reprioritization_engine import _generate_validation_criteria
 
         point = EvidencePoint(
             pattern_id="p1",

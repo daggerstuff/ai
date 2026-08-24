@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_serializer
 
-from ai.sourcing.journal.api.models.common import PaginatedResponse
+from ai.pipelines.data_processing.journal.api.models.common import PaginatedResponse
 
 
 class ReportGenerateRequest(BaseModel):

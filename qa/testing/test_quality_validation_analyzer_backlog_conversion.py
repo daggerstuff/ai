@@ -4,8 +4,8 @@
 import json
 from pathlib import Path
 
-from ai.monitoring.linear_backlog_dispatcher import LinearBacklogDispatcher
-from ai.monitoring.quality_validation_analyzer import QualityValidationAnalyzer, ValidationAnalysis
+from ai.qa.reports.linear_backlog_dispatcher import LinearBacklogDispatcher
+from ai.qa.reports.quality_validation_analyzer import QualityValidationAnalyzer, ValidationAnalysis
 
 
 def test_quality_validation_to_backlog_changes():

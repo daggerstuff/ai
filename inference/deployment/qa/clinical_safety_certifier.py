@@ -132,7 +132,7 @@ class ClinicalSafetyCertifier:
     """Main clinical safety certification system"""
 
     def __init__(self):
-        self.cert_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/clinical_certification")
+        self.cert_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/clinical_certification")
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
         self.reviewers: list[ClinicalReviewer] = []

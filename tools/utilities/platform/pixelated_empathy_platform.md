@@ -226,7 +226,7 @@ health professionals are trained.
 ## 📁 **Complete File Structure**
 
 ```
-ai/pkg_mera/platform/
+ai/tools/utilities/pkg_mera/platform/
 ├── pixelated_empathy_core.py                    # Core client profiles and training framework
 ├── therapeutic_simulation_engine.py             # Real-time AI client simulation
 ├── supervisor_evaluation_system.py              # Comprehensive assessment tools

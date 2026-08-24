@@ -26,7 +26,7 @@ sys.modules["inference_wrapper"] = _inference_wrapper
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from ai.api.pixel_inference_service import (
+from ai.inference.api.pixel_inference_service import (
     ClinicalPredictionRequest,
     ClinicalPredictionResponse,
     MeraClinicalPredictionEngine,

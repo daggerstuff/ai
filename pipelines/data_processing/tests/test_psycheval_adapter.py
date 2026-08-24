@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.psycheval_adapter import PsychEvalAdapter, _strip_meta_tags
+from ai.pipelines.data_processing.dataset_adapters.psycheval_adapter import PsychEvalAdapter, _strip_meta_tags
 
 
 def _write_json(path: Path, data: dict) -> None:
@@ -139,7 +139,7 @@ class TestPsychEvalAdapter:
         assert len(lines) == 1
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("psycheval", "/tmp/test_psycheval")
         assert isinstance(a, PsychEvalAdapter)

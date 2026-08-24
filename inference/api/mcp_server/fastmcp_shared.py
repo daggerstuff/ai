@@ -8,13 +8,13 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from ai.api.mcp_server.memory_auth import (
+from ai.inference.api.mcp_server.memory_auth import (
     authorize_memory_access,
     configured_actor_policies,
     configured_actor_tokens,
 )
-from ai.api.mcp_server.memory_scope import MemoryScope, scope_from_kwargs
-from ai.memory.manager_factory import get_required_memory_manager
+from ai.inference.api.mcp_server.memory_scope import MemoryScope, scope_from_kwargs
+from ai.research.manager_factory import get_required_memory_manager
 
 from .fastmcp_parsing import (
     ParsedAuthContext,

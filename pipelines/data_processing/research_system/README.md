@@ -13,7 +13,7 @@ and acquire high-quality academic therapeutic content.
 ## Project Structure
 
 ```
-ai/sourcing/research_system/
+ai/pipelines/data_processing/research_system/
 ├── __init__.py                 # Package initialization
 ├── config.py                   # Configuration management
 ├── config.yaml                 # Configuration file
@@ -185,13 +185,13 @@ print(f"Overall score: {evaluation.overall_score}")
 
 ```bash
 # Run all tests
-pytest ai/sourcing/research_system/tests/
+pytest ai/pipelines/data_processing/research_system/tests/
 
 # Run unit tests only
-pytest ai/sourcing/research_system/tests/unit/
+pytest ai/pipelines/data_processing/research_system/tests/unit/
 
 # Run integration tests only
-pytest ai/sourcing/research_system/tests/integration/
+pytest ai/pipelines/data_processing/research_system/tests/integration/
 ```
 
 ### Adding New Components

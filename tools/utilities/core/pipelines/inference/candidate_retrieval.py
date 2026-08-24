@@ -19,7 +19,7 @@ from typing import Any
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from ai.memory.therapeutic_concept_hierarchy import TherapeuticConceptHierarchy
+from ai.research.therapeutic_concept_hierarchy import TherapeuticConceptHierarchy
 
 
 @dataclass

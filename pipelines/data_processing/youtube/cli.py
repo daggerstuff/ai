@@ -13,9 +13,9 @@ import json
 import logging
 from pathlib import Path
 
-from ai.sourcing.youtube.models import Channel, ChannelRegistry, ChannelStatus
-from ai.sourcing.youtube.monitoring import health_check_channel
-from ai.sourcing.youtube.processor import run_pipeline
+from ai.pipelines.data_processing.youtube.models import Channel, ChannelRegistry, ChannelStatus
+from ai.pipelines.data_processing.youtube.monitoring import health_check_channel
+from ai.pipelines.data_processing.youtube.processor import run_pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -164,16 +164,16 @@ def main():
         epilog="""
 Examples:
   # Run discovery pipeline
-  python -m ai.sourcing.youtube.cli discover --api-key YOUR_KEY
+  python -m ai.pipelines.data_processing.youtube.cli discover --api-key YOUR_KEY
 
   # Check a specific channel
-  python -m ai.sourcing.youtube.cli check --channel-id UCxxxxxxxxxxxxxx
+  python -m ai.pipelines.data_processing.youtube.cli check --channel-id UCxxxxxxxxxxxxxx
 
   # Import existing channels
-  python -m ai.sourcing.youtube.cli import --input channels.json
+  python -m ai.pipelines.data_processing.youtube.cli import --input channels.json
 
   # List channels in registry
-  python -m ai.sourcing.youtube.cli list
+  python -m ai.pipelines.data_processing.youtube.cli list
         """,
     )
 

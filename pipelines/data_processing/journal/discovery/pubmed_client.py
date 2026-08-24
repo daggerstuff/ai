@@ -12,7 +12,7 @@ from xml.etree import ElementTree as ET
 
 import requests
 
-from ai.sourcing.journal.models.dataset_models import DatasetSource
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetSource
 
 logger = logging.getLogger(__name__)
 

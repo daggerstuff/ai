@@ -115,7 +115,7 @@ class ProcessingState:
 class CheckpointStorage:
     """Storage backend for checkpoints"""
 
-    def __init__(self, storage_path: str = "/home/vivi/pixelated/ai/infrastructure/distributed/checkpoints"):
+    def __init__(self, storage_path: str = "/home/vivi/pixelated/ai/inference/deployment/distributed/checkpoints"):
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.db_path = self.storage_path / "checkpoints.db"

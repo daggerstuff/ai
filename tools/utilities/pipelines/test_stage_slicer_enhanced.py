@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from ai.core.pipelines.human_review_queue import HumanReviewQueue
-from ai.core.pipelines.processing.stage_slicer_enhanced import (
+from ai.tools.utilities.core.pipelines.human_review_queue import HumanReviewQueue
+from ai.tools.utilities.core.pipelines.processing.stage_slicer_enhanced import (
     STAGE_CONFIGS,
     ValidationResult,
     route_low_clinical_validity_records_to_human_review,

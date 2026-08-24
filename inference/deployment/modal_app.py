@@ -9,7 +9,7 @@ import modal
 from vllm import LLM, SamplingParams
 from vllm.distributed.parallel_state import destroy_model_parallel
 
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 # ============================================================================
 # Configuration

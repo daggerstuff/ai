@@ -10,10 +10,10 @@ from unittest.mock import patch
 import pytest
 from click.testing import CliRunner
 
-from ai.sourcing.journal.cli.cli import cli, setup_logging
-from ai.sourcing.journal.cli.commands import CommandHandler
-from ai.sourcing.journal.cli.config import load_config, save_config
-from ai.sourcing.journal.cli.interactive import prompt_for_session_config
+from ai.pipelines.data_processing.journal.cli.cli import cli, setup_logging
+from ai.pipelines.data_processing.journal.cli.commands import CommandHandler
+from ai.pipelines.data_processing.journal.cli.config import load_config, save_config
+from ai.pipelines.data_processing.journal.cli.interactive import prompt_for_session_config
 
 
 class TestCLI:
@@ -197,8 +197,8 @@ log_directory: /tmp/logs
 class TestInteractiveMode:
     """Tests for interactive mode."""
 
-    @patch("ai.sourcing.journal.cli.interactive.Prompt.ask")
-    @patch("ai.sourcing.journal.cli.interactive.console")
+    @patch("ai.pipelines.data_processing.journal.cli.interactive.Prompt.ask")
+    @patch("ai.pipelines.data_processing.journal.cli.interactive.console")
     def test_prompt_for_session_config(self, _mock_console, mock_prompt):
         """Test prompting for session configuration."""
 
@@ -219,7 +219,7 @@ class TestInteractiveMode:
         assert "target_sources" in config
         assert "search_keywords" in config
 
-    @patch("ai.sourcing.journal.cli.interactive.Prompt.ask")
+    @patch("ai.pipelines.data_processing.journal.cli.interactive.Prompt.ask")
     def test_interactive_mode_handles_cancellation(self, mock_prompt):
         """Test that interactive mode handles user cancellation."""
 

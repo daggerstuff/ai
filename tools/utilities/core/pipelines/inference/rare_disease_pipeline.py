@@ -18,8 +18,8 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from ai.pkg_mera.platform.deep_rare import DeepRareConfig, PatientCase, PipelineConfig, RareDiseasePipeline
-from ai.pkg_mera.platform.deep_rare.observability import ObservabilityContext
+from ai.tools.utilities.platform.deep_rare import DeepRareConfig, PatientCase, PipelineConfig, RareDiseasePipeline
+from ai.tools.utilities.platform.deep_rare.observability import ObservabilityContext
 
 __all__ = ["RareDiseaseInferenceService"]
 

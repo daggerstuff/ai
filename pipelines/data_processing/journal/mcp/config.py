@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from ai.sourcing.journal.cli.config import load_config
+from ai.pipelines.data_processing.journal.cli.config import load_config
 
 
 @dataclass

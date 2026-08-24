@@ -14,7 +14,7 @@ This process involves:
 6. Privacy & Compliance: Strict anonymization and secure handling
 
 Usage:
-    python -m ai.scripts.prepare_finetuning_dataset --input-dir ./data/transcripts --output-dir ./data/finetuning
+    python -m ai.tools.scripts.prepare_finetuning_dataset --input-dir ./data/transcripts --output-dir ./data/finetuning
 """
 
 from __future__ import annotations

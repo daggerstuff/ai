@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.psy_insight_adapter import PsyInsightAdapter
+from ai.pipelines.data_processing.dataset_adapters.psy_insight_adapter import PsyInsightAdapter
 
 
 def _write_json(path: Path, data) -> None:
@@ -130,7 +130,7 @@ class TestPsyInsightAdapter:
         assert len(lines) == 1
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("psy_insight", "/tmp/test_psi")
         assert isinstance(a, PsyInsightAdapter)

@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.mit_psychosis_adapter import MITPsychosisAdapter
+from ai.pipelines.data_processing.dataset_adapters.mit_psychosis_adapter import MITPsychosisAdapter
 
 
 def _write_scenario_json(path: Path, idx: int, pairs: list[dict[str, str]], **meta: str) -> None:

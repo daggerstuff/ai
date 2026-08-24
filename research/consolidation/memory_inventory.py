@@ -5,7 +5,7 @@ session/topic/emotional valence.  Builds in < 100 ms for 1000 memories.
 
 Usage::
 
-    from ai.memory.consolidation.memory_inventory import MemoryInventory
+    from ai.research.consolidation.memory_inventory import MemoryInventory
     inventory = MemoryInventory()
     inventory.add_memory(memory_block)
     catalog = inventory.build_catalog()

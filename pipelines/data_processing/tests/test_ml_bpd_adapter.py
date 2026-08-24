@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.ml_bpd_adapter import MLBPDAdapter
+from ai.pipelines.data_processing.dataset_adapters.ml_bpd_adapter import MLBPDAdapter
 
 _CSV_FIELDS = [
     "GPO.",

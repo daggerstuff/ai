@@ -9,8 +9,8 @@ import random
 from datetime import datetime
 from typing import Any
 
-from ai.platform.ccd_schema import CCDConceptualization
-from ai.platform.pixelated_empathy_core import (
+from ai.tools.utilities.platform.ccd_schema import CCDConceptualization
+from ai.tools.utilities.platform.pixelated_empathy_core import (
     ClientPersonality,
     DifficultClientProfile,
     DifficultyLevel,

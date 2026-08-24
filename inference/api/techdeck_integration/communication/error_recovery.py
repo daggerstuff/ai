@@ -13,9 +13,9 @@ from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from ai.api.techdeck_integration.error_handling.custom_errors import PipelineExecutionError, RetryExhaustedError
-from ai.api.techdeck_integration.utils.logger import get_request_logger
-from ai.api.techdeck_integration.utils.validation import sanitize_input
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import PipelineExecutionError, RetryExhaustedError
+from ai.inference.api.techdeck_integration.utils.logger import get_request_logger
+from ai.inference.api.techdeck_integration.utils.validation import sanitize_input
 
 from .event_bus import EventMessage, EventType
 

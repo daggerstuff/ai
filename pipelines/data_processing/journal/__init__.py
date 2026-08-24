@@ -7,7 +7,7 @@ journal datasets from open access sources.
 
 __version__ = "0.1.0"
 
-from ai.sourcing.journal.orchestrator import (
+from ai.pipelines.data_processing.journal.orchestrator import (
     OrchestratorConfig,
     ResearchOrchestrator,
     SessionState,

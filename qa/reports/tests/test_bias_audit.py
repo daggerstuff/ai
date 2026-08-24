@@ -1,6 +1,6 @@
 """Tests for bias audit suite."""
 
-from ai.monitoring.bias_audit import BiasAuditor, BiasCategory
+from ai.qa.reports.bias_audit import BiasAuditor, BiasCategory
 
 
 def test_auditor_initialization():

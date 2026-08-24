@@ -16,7 +16,7 @@ import re
 import time
 from dataclasses import dataclass
 
-from ai.memory.schema import MemoryBlock, ScoringWeights
+from ai.research.schema import MemoryBlock, ScoringWeights
 
 # ─── Cosine similarity ────────────────────────────────────────────────────────
 
@@ -196,7 +196,7 @@ class ImportanceScorer:
         Benchmark scoring throughput.
         Returns average ms per score over n iterations with a synthetic memory.
         """
-        from ai.memory.schema import (
+        from ai.research.schema import (
             ConsolidationPhase,
             MemoryConsolidation,
             MemoryEmotions,

@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.clinical_redteam_adapter import ClinicalRedTeamAdapter
+from ai.pipelines.data_processing.dataset_adapters.clinical_redteam_adapter import ClinicalRedTeamAdapter
 
 
 @pytest.fixture
@@ -293,7 +293,7 @@ class TestClinicalRedTeamAdapter:
 
     def test_factory_registration(self, tmp_path):
         """Adapter registered under lowercase name in factory."""
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
 
         assert "clinical_redteam" in list_available_adapters()
         adapter = get_adapter("CLINICAL_REDTEAM", tmp_path)

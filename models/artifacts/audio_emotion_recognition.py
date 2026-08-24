@@ -30,7 +30,7 @@ import librosa
 import numpy as np
 from transformers import AutoFeatureExtractor, AutoModelForSequenceClassification
 
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
 

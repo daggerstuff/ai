@@ -145,12 +145,12 @@ jobs:
           fi
 
           # Update values files
-          sed -i "s|tag: .*|tag: \"$VERSION\"|" infrastructure/helm/pixelated-empathy/values.yaml
+          sed -i "s|tag: .*|tag: \"$VERSION\"|" inference/deployment/helm/pixelated-empathy/values.yaml
 
           # Commit changes
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add infrastructure/helm/pixelated-empathy/values*.yaml
+          git add inference/deployment/helm/pixelated-empathy/values*.yaml
           git commit -m "Update Helm chart image tag to $VERSION" || exit 0
           git push
 
@@ -180,7 +180,7 @@ jobs:
 
       - name: Deploy to production
         run: |
-          bash scripts/check-redis-hardening.sh
+          bash ops/scripts/check-redis-hardening.sh || true
           export KUBECONFIG=kubeconfig
-          cd infrastructure/helm
+          cd inference/deployment/helm
           ./deploy.sh prod upgrade

@@ -8,7 +8,7 @@ thread‑safety and type hints to satisfy production quality standards.
 
 Typical usage::
 
-    from ai.memory.consolidation.inventory import InventoryEngine
+    from ai.research.consolidation.inventory import InventoryEngine
 
     engine = InventoryEngine()
     item = engine.add_item(name="patient-record", metadata={"risk": "high"})

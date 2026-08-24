@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.erisk_adapter import ERISKAdapter
+from ai.pipelines.data_processing.dataset_adapters.erisk_adapter import ERISKAdapter
 
 
 @pytest.fixture

@@ -81,7 +81,7 @@ class PersistenceConfig:
     compression_enabled: bool = True
     encryption_enabled: bool = False
     redundancy_copies: int = 2
-    storage_path: str = "/home/vivi/pixelated/ai/infrastructure/distributed/persistent_state"
+    storage_path: str = "/home/vivi/pixelated/ai/inference/deployment/distributed/persistent_state"
     lock_timeout_seconds: int = 30
 
 

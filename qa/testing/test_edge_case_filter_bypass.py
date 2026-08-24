@@ -12,7 +12,7 @@ edge-case content through unchanged when ``request_metadata`` carries
 
 from __future__ import annotations
 
-from ai.safety.enhanced_safety_filter import (
+from ai.qa.validation.enhanced_safety_filter import (
     EnhancedSafetyFilter,
     SafetyCategory,
     SafetyLevel,

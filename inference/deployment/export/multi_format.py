@@ -13,7 +13,7 @@ multi-format export capabilities, enabling integration with various
 data science and analytics workflows.
 
 Usage:
-    from ai.infrastructure.export.multi_format import MultiFormatExporter, ExportFormat
+    from ai.inference.deployment.database.export.multi_format import MultiFormatExporter, ExportFormat
 
     exporter = MultiFormatExporter()
 

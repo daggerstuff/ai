@@ -11,8 +11,8 @@ from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-from ai.sourcing.journal.api.auth.jwt import get_user_from_token
-from ai.sourcing.journal.api.config import get_settings
+from ai.pipelines.data_processing.journal.api.auth.jwt import get_user_from_token
+from ai.pipelines.data_processing.journal.api.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

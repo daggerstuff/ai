@@ -21,7 +21,7 @@ The main CLI provides several commands for research operations:
 #### Search for Dataset Sources
 
 ```bash
-python -m ai.sourcing.journal.cli.cli search \
+python -m ai.pipelines.data_processing.journal.cli.cli search \
     --keywords "therapy" "counseling" "psychotherapy" \
     --sources "pubmed" "doaj" \
     --interactive
@@ -30,7 +30,7 @@ python -m ai.sourcing.journal.cli.cli search \
 #### Evaluate Datasets
 
 ```bash
-python -m ai.sourcing.journal.cli.cli evaluate \
+python -m ai.pipelines.data_processing.journal.cli.cli evaluate \
     --session-id "session_abc123" \
     --interactive
 ```
@@ -38,7 +38,7 @@ python -m ai.sourcing.journal.cli.cli evaluate \
 #### Acquire Datasets
 
 ```bash
-python -m ai.sourcing.journal.cli.cli acquire \
+python -m ai.pipelines.data_processing.journal.cli.cli acquire \
     --session-id "session_abc123" \
     --interactive
 ```
@@ -46,7 +46,7 @@ python -m ai.sourcing.journal.cli.cli acquire \
 #### Create Integration Plans
 
 ```bash
-python -m ai.sourcing.journal.cli.cli integrate \
+python -m ai.pipelines.data_processing.journal.cli.cli integrate \
     --session-id "session_abc123" \
     --target-format "chatml" \
     --interactive
@@ -56,16 +56,16 @@ python -m ai.sourcing.journal.cli.cli integrate \
 
 ```bash
 # Check specific session
-python -m ai.sourcing.journal.cli.cli status --session-id "session_abc123"
+python -m ai.pipelines.data_processing.journal.cli.cli status --session-id "session_abc123"
 
 # List all sessions
-python -m ai.sourcing.journal.cli.cli status
+python -m ai.pipelines.data_processing.journal.cli.cli status
 ```
 
 #### Generate Report
 
 ```bash
-python -m ai.sourcing.journal.cli.cli report \
+python -m ai.pipelines.data_processing.journal.cli.cli report \
     --session-id "session_abc123" \
     --output "report.json" \
     --format "json"
@@ -75,13 +75,13 @@ python -m ai.sourcing.journal.cli.cli report \
 
 ```bash
 # Show configuration
-python -m ai.sourcing.journal.cli.cli config show
+python -m ai.pipelines.data_processing.journal.cli.cli config show
 
 # Get specific config value
-python -m ai.sourcing.journal.cli.cli config get "orchestrator.max_retries"
+python -m ai.pipelines.data_processing.journal.cli.cli config get "orchestrator.max_retries"
 
 # Set config value
-python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_retries" "5"
+python -m ai.pipelines.data_processing.journal.cli.cli config set "orchestrator.max_retries" "5"
 ```
 
 ### Main Execution Script
@@ -91,18 +91,18 @@ checkpointing:
 
 ```bash
 # Run full workflow
-python ai/sourcing/journal/main.py \
+python ai/pipelines/data_processing/journal/main.py \
     --target-sources "pubmed" "doaj" \
     --keywords "therapy" "counseling" \
     --interactive
 
 # Resume interrupted workflow
-python ai/sourcing/journal/main.py \
+python ai/pipelines/data_processing/journal/main.py \
     --session-id "session_abc123" \
     --resume
 
 # Dry-run mode
-python ai/sourcing/journal/main.py \
+python ai/pipelines/data_processing/journal/main.py \
     --dry-run \
     --target-sources "pubmed"
 ```
@@ -155,28 +155,28 @@ The main execution script (`main.py`) provides:
 
 ```bash
 # 1. Search for sources
-python -m ai.sourcing.journal.cli.cli search \
+python -m ai.pipelines.data_processing.journal.cli.cli search \
     --keywords "therapy" "counseling" \
     --sources "pubmed" "doaj" \
     --session-id "my_session"
 
 # 2. Evaluate sources
-python -m ai.sourcing.journal.cli.cli evaluate \
+python -m ai.pipelines.data_processing.journal.cli.cli evaluate \
     --session-id "my_session" \
     --interactive
 
 # 3. Acquire datasets
-python -m ai.sourcing.journal.cli.cli acquire \
+python -m ai.pipelines.data_processing.journal.cli.cli acquire \
     --session-id "my_session" \
     --interactive
 
 # 4. Create integration plans
-python -m ai.sourcing.journal.cli.cli integrate \
+python -m ai.pipelines.data_processing.journal.cli.cli integrate \
     --session-id "my_session" \
     --target-format "chatml"
 
 # 5. Generate report
-python -m ai.sourcing.journal.cli.cli report \
+python -m ai.pipelines.data_processing.journal.cli.cli report \
     --session-id "my_session" \
     --output "report.json"
 ```
@@ -185,7 +185,7 @@ python -m ai.sourcing.journal.cli.cli report \
 
 ```bash
 # Run complete workflow automatically
-python ai/sourcing/journal/main.py \
+python ai/pipelines/data_processing/journal/main.py \
     --target-sources "pubmed" "doaj" \
     --keywords "therapy" "counseling" "psychotherapy" \
     --interactive

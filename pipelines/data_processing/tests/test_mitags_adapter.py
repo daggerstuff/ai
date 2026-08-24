@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.mitags_adapter import MITAGSAdapter
+from ai.pipelines.data_processing.dataset_adapters.mitags_adapter import MITAGSAdapter
 
 _UTTERANCE_FIELDS = ["id", "Video Title", "Turn", "Speaker", "Text", "Code", "Annotator", "Normalized Turn"]
 _GLOBAL_FIELDS = [

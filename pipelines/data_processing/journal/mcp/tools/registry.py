@@ -6,7 +6,7 @@ This module provides tool registration, discovery, and lookup functionality.
 
 import logging
 
-from ai.sourcing.journal.mcp.tools.base import MCPTool
+from ai.pipelines.data_processing.journal.mcp.tools.base import MCPTool
 
 logger = logging.getLogger(__name__)
 

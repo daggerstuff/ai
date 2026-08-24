@@ -159,7 +159,7 @@ class LLMJudge(Judge):
     Accepts an arbitrary scoring function with the signature
     ``(case, response) -> Judgment``. Use this with a wrapper that calls
     GPT-4o, Claude, or a domain-tuned model. The wrapper lives in the
-    integration layer (e.g. ``ai.evals.llm_judge_openai``).
+    integration layer (e.g. ``ai.qa.validation.llm_judge_openai``).
     """
 
     def __init__(

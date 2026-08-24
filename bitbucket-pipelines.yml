@@ -137,7 +137,7 @@ definitions:
       - |
         if [ -d "lightning" ]; then
           echo "Validating model configurations..."
-          uv run python -c "import json; json.load(open('config/production_config.json'))" || echo "No production config found"
+          uv run python -c "import json; json.load(open('configs/production_config.json'))" || echo "No production config found"
         fi
       # Test inference service imports
       - |

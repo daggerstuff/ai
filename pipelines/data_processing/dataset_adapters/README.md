@@ -76,22 +76,22 @@ Each adapter outputs JSONL with this schema:
 
 ### Download all datasets
 ```bash
-uv run python -m ai.sourcing.scripts.download_all --output-dir ai/data/raw
+uv run python -m ai.pipelines.data_processing.scripts.download_all --output-dir ai/data/raw
 ```
 
 ### Download one dataset
 ```bash
-uv run python -m ai.sourcing.scripts.download_all --dataset esconv
+uv run python -m ai.pipelines.data_processing.scripts.download_all --dataset esconv
 ```
 
 ### List available adapters
 ```bash
-uv run python -m ai.sourcing.scripts.download_all --list
+uv run python -m ai.pipelines.data_processing.scripts.download_all --list
 ```
 
 ### Run tests
 ```bash
-uv run python -m pytest ai/sourcing/tests/ -q
+uv run python -m pytest ai/pipelines/data_processing/tests/ -q
 ```
 
 ## Pipeline Integration

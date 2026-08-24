@@ -77,7 +77,7 @@ def main():
     # Ingest ALL datasets
     records = []
     records.extend(ingest_directory("ai/training/youtube_jsonl_v3", "youtube"))
-    records.extend(ingest_directory("ai/sourcing/journal/ai/journal_dataset_research", "journals"))
+    records.extend(ingest_directory("ai/pipelines/data_processing/journal/ai/journal_dataset_research", "journals"))
     records.extend(ingest_directory("ai/training_ready/data", "training_ready"))
     records.extend(ingest_directory("ai/data/raw", "adapted_datasets"))
 

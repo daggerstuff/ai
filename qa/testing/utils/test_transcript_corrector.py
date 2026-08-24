@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, mock_open, patch
 
-from utils.transcript_corrector import TranscriptCorrector
+from ai.tools.utilities.transcript_corrector import TranscriptCorrector
 
 
 @patch("utils.transcript_corrector.Path.exists", return_value=True)

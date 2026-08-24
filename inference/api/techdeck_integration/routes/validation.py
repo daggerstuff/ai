@@ -11,15 +11,15 @@ from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
-from ai.api.techdeck_integration.auth.decorators import require_auth
-from ai.api.techdeck_integration.error_handling.custom_errors import (
+from ai.inference.api.techdeck_integration.auth.decorators import require_auth
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
     BiasDetectionError,
     ResourceNotFoundError,
     ValidationError,
 )
-from ai.api.techdeck_integration.integration.redis_client import RedisClient
-from ai.api.techdeck_integration.utils.logger import get_request_logger
-from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_validation_request
+from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.inference.api.techdeck_integration.utils.logger import get_request_logger
+from ai.inference.api.techdeck_integration.utils.validation import sanitize_input, validate_validation_request
 
 # Initialize blueprint
 validation_bp = Blueprint("validation", __name__)

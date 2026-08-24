@@ -2,7 +2,7 @@
 Models package initialization.
 """
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetEvaluation,

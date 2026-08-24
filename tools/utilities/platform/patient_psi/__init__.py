@@ -5,7 +5,7 @@ that implements the PATIENT-Ψ framework for cognitive patient simulation
 based on Case Conceptualization Diagrams (CCDs).
 """
 
-from ai.pkg_mera.platform.patient_psi.prompt_template import CCDPromptBuilder
+from ai.prompts.patient_psi.prompt_template import CCDPromptBuilder
 
 __all__ = ["CCDPromptBuilder"]
 __version__ = "0.1.0"

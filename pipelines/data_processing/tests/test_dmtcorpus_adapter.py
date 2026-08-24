@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.dmtcorpus_adapter import DMTCorpusAdapter
+from ai.pipelines.data_processing.dataset_adapters.dmtcorpus_adapter import DMTCorpusAdapter
 
 
 @pytest.fixture

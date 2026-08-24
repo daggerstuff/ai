@@ -153,8 +153,8 @@ Complexity is calculated based on:
 ## Usage Example
 
 ```python
-from ai.sourcing.journal.integration import IntegrationPlanningEngine
-from ai.sourcing.journal.models.dataset_models import AcquiredDataset
+from ai.pipelines.data_processing.journal.integration import IntegrationPlanningEngine
+from ai.pipelines.data_processing.journal.models.dataset_models import AcquiredDataset
 
 # Initialize engine
 engine = IntegrationPlanningEngine()
@@ -192,7 +192,7 @@ Comprehensive test suite in `tests/test_integration_planning_engine.py`:
 Run tests with:
 
 ```bash
-uv run pytest ai/sourcing/journal/tests/test_integration_planning_engine.py
+uv run pytest ai/pipelines/data_processing/journal/tests/test_integration_planning_engine.py
 ```
 
 ## Dependencies

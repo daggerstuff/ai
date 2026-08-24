@@ -25,7 +25,7 @@ from pathlib import Path
 
 import numpy as np
 
-from ai.utils.torch_proxy import nn, torch
+from ai.tools.utilities.torch_proxy import nn, torch
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -263,7 +263,7 @@ class ErrorTaxonomy(str, Enum):
 
 # ---------------------------------------------------------------------------
 # DiagnosisArena clinical diagnostic evaluation module — canonical surface
-# now lives in ``ai.evals.diagnosis_arena``. This file re-exports the public
+# now lives in ``ai.qa.validation.diagnosis_arena``. This file re-exports the public
 # symbols for backwards compatibility and adds the GPT-4o-as-judge, multi-
 # system leaderboard, and continuous evaluation pipeline that were previously
 # implemented inline here with schema drift from ``diagnosis_arena/types.py``.
@@ -271,7 +271,7 @@ class ErrorTaxonomy(str, Enum):
 import logging
 from pathlib import Path
 
-from ai.evals.diagnosis_arena import (
+from ai.qa.validation.diagnosis_arena import (
     BenchmarkArtifactStore,
     ClinicalCase,
     ClinicalDiagnosisJudge,
@@ -286,7 +286,7 @@ from ai.evals.diagnosis_arena import (
     run_multi_system_benchmark,
     write_leaderboard,
 )
-from ai.evals.diagnosis_arena.pipeline import solve_case_for_system
+from ai.qa.validation.diagnosis_arena.pipeline import solve_case_for_system
 
 logger = logging.getLogger(__name__)
 

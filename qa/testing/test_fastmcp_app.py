@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from ai.api.mcp_server import fastmcp_context, fastmcp_shared, fastmcp_tools
-from ai.api.mcp_server.fastmcp_shared import AuthorizedToolContext
-from ai.api.mcp_server.memory_scope import scope_from_kwargs
-from ai.api.memory.null_memory import NullMemoryManager
+from ai.inference.api.mcp_server import fastmcp_context, fastmcp_shared, fastmcp_tools
+from ai.inference.api.mcp_server.fastmcp_shared import AuthorizedToolContext
+from ai.inference.api.mcp_server.memory_scope import scope_from_kwargs
+from ai.inference.api.memory.null_memory import NullMemoryManager
 
 
 def _extract_text(result):
@@ -170,7 +170,7 @@ def test_memory_query_refills_candidates_after_scope_filtering(
             project_id=json.loads(kwargs["scope_context"]).get("project_id") if kwargs.get("scope_context") else None,
         ),
     )
-    monkeypatch.setattr("ai.api.mcp_server.fastmcp_search.search_with_overfetch", fake_search_with_overfetch)
+    monkeypatch.setattr("ai.inference.api.mcp_server.fastmcp_search.search_with_overfetch", fake_search_with_overfetch)
 
     result = asyncio.run(
         fastmcp_tools.memory_query(

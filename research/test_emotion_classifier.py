@@ -1,8 +1,8 @@
-"""Unit tests for ai/memory/emotion_classifier.py — PIX-510 Task 3."""
+"""Unit tests for ai/research/emotion_classifier.py — PIX-510 Task 3."""
 
 from __future__ import annotations
 
-from ai.memory.emotion_classifier import (
+from ai.research.emotion_classifier import (
     ALL_EMOTION_CATEGORIES,
     EMOTION_MULTIPLIER,
     EmotionClassificationResult,

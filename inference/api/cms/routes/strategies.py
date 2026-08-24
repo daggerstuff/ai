@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
-from ai.infrastructure.database.dal.repositories.business_documents import (
+from ai.inference.deployment.database.database.dal.repositories.business_documents import (
     MarketResearchRepository,
     StrategicPlanRepository,
 )

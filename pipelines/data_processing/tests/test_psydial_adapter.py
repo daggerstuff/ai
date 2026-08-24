@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.psydial_adapter import PsyDialAdapter
+from ai.pipelines.data_processing.dataset_adapters.psydial_adapter import PsyDialAdapter
 
 
 @pytest.fixture
@@ -116,7 +116,7 @@ class TestPsyDialAdapter:
         assert first["task_type"] == "therapy_response_generation"
 
     def test_factory_registration(self, tmp_path):
-        from ai.sourcing.dataset_adapters.adapter_factory import (
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import (
             get_adapter,
             list_available_adapters,
         )

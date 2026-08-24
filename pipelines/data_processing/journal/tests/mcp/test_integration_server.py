@@ -5,14 +5,14 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.journal.mcp import server as server_module
-from ai.sourcing.journal.mcp.config import MCPConfig
-from ai.sourcing.journal.mcp.server import MCPServer
-from ai.sourcing.journal.mcp.utils.progress_streaming import (
+from ai.pipelines.data_processing.journal.mcp import server as server_module
+from ai.pipelines.data_processing.journal.mcp.config import MCPConfig
+from ai.pipelines.data_processing.journal.mcp.server import MCPServer
+from ai.pipelines.data_processing.journal.mcp.utils.progress_streaming import (
     ProgressStatus,
     ProgressUpdate,
 )
-from ai.sourcing.journal.tests.mcp._stubs import (
+from ai.pipelines.data_processing.journal.tests.mcp._stubs import (
     AllowAllAuthorization,
     FakeCommandHandlerService,
 )

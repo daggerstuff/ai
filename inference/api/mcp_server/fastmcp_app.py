@@ -20,8 +20,8 @@ import sys
 
 from fastmcp import FastMCP
 
-from ai.api.mcp_server.fastmcp_context import register_context_surfaces
-from ai.api.mcp_server.fastmcp_tools import register_memory_tools
+from ai.inference.api.mcp_server.fastmcp_context import register_context_surfaces
+from ai.inference.api.mcp_server.fastmcp_tools import register_memory_tools
 
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 

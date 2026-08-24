@@ -14,8 +14,8 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
-from ai.sourcing.journal.mcp.utils.progress_streaming import (
+from ai.pipelines.data_processing.journal.mcp.protocol import MCPError, MCPErrorCode
+from ai.pipelines.data_processing.journal.mcp.utils.progress_streaming import (
     ProgressStatus,
     ProgressStreamer,
     ProgressUpdate,

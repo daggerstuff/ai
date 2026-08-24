@@ -3,9 +3,9 @@
 
 import time
 
-from ai.monitoring.linear_backlog_action_builder import build_linear_backlog_payload
-from ai.monitoring.linear_backlog_dispatcher import LinearBacklogDispatcher
-from ai.monitoring.performance_gap_backlog_converter import (
+from ai.qa.reports.linear_backlog_action_builder import build_linear_backlog_payload
+from ai.qa.reports.linear_backlog_dispatcher import LinearBacklogDispatcher
+from ai.qa.reports.performance_gap_backlog_converter import (
     BacklogChange,
     BacklogConversionResult,
     RulePriority,

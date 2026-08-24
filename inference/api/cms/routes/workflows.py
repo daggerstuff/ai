@@ -9,7 +9,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
-from ai.infrastructure.database.dal.postgres_repository import (
+from ai.inference.deployment.database.database.dal.postgres_repository import (
     ApprovalRequestRepository,
     ApprovalWorkflowRepository,
     CommentRepository,

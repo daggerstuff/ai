@@ -10,9 +10,9 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
 
-from ai.memory.foresight_local_adapter import normalize_tags
-from ai.memory.local_foresight_manager import LocalForesightMemoryManager
-from ai.memory.local_memory_settings import resolve_local_memory_settings
+from ai.research.foresight_local_adapter import normalize_tags
+from ai.research.local_foresight_manager import LocalForesightMemoryManager
+from ai.research.local_memory_settings import resolve_local_memory_settings
 
 logger = logging.getLogger("multi_agent_memory")
 

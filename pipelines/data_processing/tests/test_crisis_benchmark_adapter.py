@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.crisis_benchmark_adapter import CrisisBenchmarkAdapter
+from ai.pipelines.data_processing.dataset_adapters.crisis_benchmark_adapter import CrisisBenchmarkAdapter
 
 
 @pytest.fixture

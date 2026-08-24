@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from ai.sourcing.dataset_adapters.daic_woz_adapter import DAICWozAdapter
+from ai.pipelines.data_processing.dataset_adapters.daic_woz_adapter import DAICWozAdapter
 
 
 @pytest.fixture

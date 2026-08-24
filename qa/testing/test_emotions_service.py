@@ -8,8 +8,8 @@ flows through to the Python safety filter's R1 receipt system.
 import pytest
 from fastapi.testclient import TestClient
 
-from ai.api.emotions_service import app as emotions_app
-from ai.safety.inference_safety_filter import _receipt_ledger
+from ai.inference.api.emotions_service import app as emotions_app
+from ai.qa.validation.inference_safety_filter import _receipt_ledger
 
 # HTTP status codes
 HTTP_OK = 200

@@ -5,8 +5,8 @@ and Redis. Provides connection pooling, health checks, and graceful
 shutdown for the CMS business strategy system.
 
 Reuses patterns from:
-  - ai/api/mcp_server/integration/mongodb_client.py (Motor async MongoDB)
-  - ai/api/techdeck_integration/integration/redis_client.py (sync Redis)
+  - ai/inference/api/mcp_server/integration/mongodb_client.py (Motor async MongoDB)
+  - ai/inference/api/techdeck_integration/integration/redis_client.py (sync Redis)
   - ai/infrastructure/database/migrations/001_initial_schema.sql (PostgreSQL)
 """
 

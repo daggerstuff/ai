@@ -365,7 +365,7 @@ class PerformanceValidationSuite:
     """Main performance validation and load testing suite"""
 
     def __init__(self):
-        self.results_path = Path("/home/vivi/pixelated/ai/infrastructure/qa/performance_results")
+        self.results_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/performance_results")
         self.results_path.mkdir(parents=True, exist_ok=True)
 
         self.load_test_executor = LoadTestExecutor()

@@ -10,8 +10,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Protocol
 
-from ai.sourcing.journal.acquisition.acquisition_manager import DownloadProgress
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.acquisition.acquisition_manager import DownloadProgress
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetEvaluation,

@@ -8,7 +8,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ai.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
+from ai.pipelines.data_processing.journal.mcp.protocol import MCPError, MCPErrorCode
 
 logger = logging.getLogger(__name__)
 

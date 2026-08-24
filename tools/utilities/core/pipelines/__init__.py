@@ -1,4 +1,4 @@
-# ai.pkg_mera.core.pipelines - Pipeline modules
+# ai.tools.utilities.core.pipelines - Pipeline modules
 # Re-exports from ai.pipelines and ai.lab
 
 from .acquisition_rubric import (

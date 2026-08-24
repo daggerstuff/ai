@@ -10,13 +10,13 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from ai.sourcing.journal.mcp.protocol import (
+from ai.pipelines.data_processing.journal.mcp.protocol import (
     MCPError,
     MCPErrorCode,
 )
-from ai.sourcing.journal.mcp.tools.registry import ToolRegistry
-from ai.sourcing.journal.mcp.utils.async_execution import AsyncToolExecutor
-from ai.sourcing.journal.mcp.utils.progress_streaming import (
+from ai.pipelines.data_processing.journal.mcp.tools.registry import ToolRegistry
+from ai.pipelines.data_processing.journal.mcp.utils.async_execution import AsyncToolExecutor
+from ai.pipelines.data_processing.journal.mcp.utils.progress_streaming import (
     ProgressStreamer,
     ProgressUpdate,
 )
@@ -86,7 +86,7 @@ class ToolExecutor:
             tool.validate_parameters(params)
         except Exception as e:
             # Handle ValidationError and other validation exceptions
-            from ai.sourcing.journal.mcp.utils.validation import (
+            from ai.pipelines.data_processing.journal.mcp.utils.validation import (
                 ValidationError,
             )
 

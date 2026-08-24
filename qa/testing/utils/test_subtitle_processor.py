@@ -1,4 +1,4 @@
-from utils.subtitle_processor import SubtitleProcessor
+from ai.tools.utilities.subtitle_processor import SubtitleProcessor
 
 
 def test_clean_vtt_removes_metadata_and_timestamps():

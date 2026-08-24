@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-from ai.memory.schema import MemoryBlock
+from ai.research.schema import MemoryBlock
 
 from .evaluation import EvaluationReport
 

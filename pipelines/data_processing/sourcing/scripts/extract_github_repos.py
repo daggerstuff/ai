@@ -5,7 +5,7 @@ Reads the github_hackathon_map.json produced by PIX-4238, processes the top-N
 repos using the GitHubRepoAdapter, and outputs standardized ChatML JSONL files.
 
 Usage:
-    uv run python -m ai.sourcing.scripts.extract_github_repos [options]
+    uv run python -m ai.pipelines.data_processing.scripts.extract_github_repos [options]
 
 Options:
     --map PATH        Path to github_hackathon_map.json (default: ai/training/research/github_hackathon_map.json)
@@ -24,7 +24,7 @@ import sys
 import traceback
 from pathlib import Path
 
-from ai.sourcing.dataset_adapters.github_repo_adapter import GitHubRepoAdapter
+from ai.pipelines.data_processing.dataset_adapters.github_repo_adapter import GitHubRepoAdapter
 
 _DEFAULT_MAP = "ai/training/research/github_hackathon_map.json"
 _DEFAULT_OUTPUT = "ai/data/raw/github_extracted"

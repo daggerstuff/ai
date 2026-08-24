@@ -12,7 +12,7 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-from ai.sourcing.research_system.models import DatasetSource
+from ai.pipelines.data_processing.research_system.models import DatasetSource
 
 from .base_client import APIError, BaseAPIClient
 

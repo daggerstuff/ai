@@ -12,24 +12,24 @@ from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 
-from ai.api.mcp_server.memory_auth import (
+from ai.inference.api.mcp_server.memory_auth import (
     MemoryAccessContext,
     authorize_memory_access,
     readiness_details,
     resolve_authorized_user_id,
 )
-from ai.api.mcp_server.memory_query_service import (
+from ai.inference.api.mcp_server.memory_query_service import (
     get_scoped_memories,
     get_scoped_memory_stats,
     recall_memories_for_user,
 )
-from ai.api.mcp_server.memory_scope import (
+from ai.inference.api.mcp_server.memory_scope import (
     build_scope_metadata,
     memory_in_scope,
     scope_from_kwargs,
     search_with_overfetch,
 )
-from ai.api.mcp_server.schemas import (
+from ai.inference.api.mcp_server.schemas import (
     AddMemoryRequest,
     ForesightRecallRequest,
     ForesightRetainRequest,
@@ -37,14 +37,14 @@ from ai.api.mcp_server.schemas import (
     SearchMemoryRequest,
     UpdateMemoryRequest,
 )
-from ai.memory.base import (
+from ai.research.base import (
     CategoryScopedMemoryManager,
     ForesightCompatibleMemoryManager,
     HealthReportingMemoryManager,
     ScopedMemoryManager,
 )
-from ai.memory.foresight_local_retention import RetainScopeConflictError, scope_metadata
-from ai.memory.local_foresight_document_service import DocumentAccessError
+from ai.research.foresight_local_retention import RetainScopeConflictError, scope_metadata
+from ai.research.local_foresight_document_service import DocumentAccessError
 
 logger = logging.getLogger(__name__)
 

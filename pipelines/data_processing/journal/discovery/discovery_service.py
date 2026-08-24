@@ -7,16 +7,16 @@ for discovering dataset sources from multiple platforms.
 
 import logging
 
-from ai.sourcing.journal.discovery.deduplication import Deduplicator
-from ai.sourcing.journal.discovery.doaj_client import DOAJClient
-from ai.sourcing.journal.discovery.pubmed_client import PubMedClient
-from ai.sourcing.journal.discovery.repository_clients import (
+from ai.pipelines.data_processing.journal.discovery.deduplication import Deduplicator
+from ai.pipelines.data_processing.journal.discovery.doaj_client import DOAJClient
+from ai.pipelines.data_processing.journal.discovery.pubmed_client import PubMedClient
+from ai.pipelines.data_processing.journal.discovery.repository_clients import (
     ClinicalTrialsClient,
     DryadClient,
     ZenodoClient,
 )
-from ai.sourcing.journal.models.dataset_models import DatasetSource, ResearchSession
-from ai.sourcing.journal.orchestrator.types import DiscoveryServiceProtocol
+from ai.pipelines.data_processing.journal.models.dataset_models import DatasetSource, ResearchSession
+from ai.pipelines.data_processing.journal.orchestrator.types import DiscoveryServiceProtocol
 
 logger = logging.getLogger(__name__)
 

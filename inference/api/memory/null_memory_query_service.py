@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.memory.local_memory_adapter import normalize_tags
+from ai.research.local_memory_adapter import normalize_tags
 
 from .null_memory_cache import NullMemoryCategoryCountCache
 from .null_memory_repository import NullMemoryRepository

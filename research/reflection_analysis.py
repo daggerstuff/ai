@@ -5,7 +5,7 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from .reflection_prompt_provider import ReflectionPromptProvider
+from ai.prompts.system.reflection_prompt_provider import ReflectionPromptProvider
 from .reflection_response_parser import ReflectionResponseParser
 from .reflection_types import ReflectionResult
 

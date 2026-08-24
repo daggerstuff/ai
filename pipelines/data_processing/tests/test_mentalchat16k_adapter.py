@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from ai.sourcing.dataset_adapters.mentalchat16k_adapter import MentalChat16KAdapter
+from ai.pipelines.data_processing.dataset_adapters.mentalchat16k_adapter import MentalChat16KAdapter
 
 
 def _write_csv(path: Path, rows: list[dict]) -> None:
@@ -107,7 +107,7 @@ class TestMentalChat16KAdapter:
         assert record["source"] == "mentalchat16k"
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("mentalchat16k", "/tmp/test_mc16k")
         assert isinstance(a, MentalChat16KAdapter)

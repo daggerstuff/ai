@@ -20,13 +20,13 @@ import math
 import re
 import time
 
-from ai.memory.reverie_types import (
+from ai.research.reverie_types import (
     DEFAULT_REVERIE_CONFIG,
     FishhookMatch,
     FishhookMatchType,
     ReverieConfig,
 )
-from ai.memory.schema import MemoryBlock
+from ai.research.schema import MemoryBlock
 
 # ─── TF-IDF Helpers ──────────────────────────────────────────────────────
 

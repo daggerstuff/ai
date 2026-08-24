@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from ai.memory.local_foresight_manager import LocalForesightMemoryManager
+from ai.research.local_foresight_manager import LocalForesightMemoryManager
 
 
 class GeminiForesightConfig(BaseModel):

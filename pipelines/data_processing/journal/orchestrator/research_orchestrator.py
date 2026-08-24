@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetEvaluation,
@@ -31,12 +31,12 @@ from ai.sourcing.journal.models.dataset_models import (
     ResearchProgress,
     ResearchSession,
 )
-from ai.sourcing.journal.orchestrator.mixins import (
+from ai.pipelines.data_processing.journal.orchestrator.mixins import (
     ProgressReportingMixin,
     RetryMixin,
     WorkflowMixin,
 )
-from ai.sourcing.journal.orchestrator.types import (
+from ai.pipelines.data_processing.journal.orchestrator.types import (
     AcquisitionServiceProtocol,
     DiscoveryServiceProtocol,
     EvaluationServiceProtocol,

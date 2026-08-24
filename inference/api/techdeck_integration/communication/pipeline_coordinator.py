@@ -11,15 +11,15 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from ai.api.techdeck_integration.error_handling.custom_errors import (
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
     BiasDetectionError,
     PipelineExecutionError,
     ResourceNotFoundError,
     ValidationError,
 )
-from ai.api.techdeck_integration.integration.redis_client import RedisClient
-from ai.api.techdeck_integration.utils.logger import get_request_logger
-from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_pipeline_input
+from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.inference.api.techdeck_integration.utils.logger import get_request_logger
+from ai.inference.api.techdeck_integration.utils.validation import sanitize_input, validate_pipeline_input
 
 from .bias_integration import BiasDetectionIntegration
 from .error_recovery import ErrorRecoveryManager

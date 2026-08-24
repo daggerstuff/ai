@@ -5,7 +5,7 @@ Basic functional tests for the CrisisExpansion module.
 import os
 import tempfile
 
-from ai.pkg_mera.core.pipelines.sourcing.crisis_expansion import (
+from ai.tools.utilities.core.pipelines.sourcing.crisis_expansion import (
     CrisisCategory,
     CrisisExpansion,
     CrisisExpansionConfig,

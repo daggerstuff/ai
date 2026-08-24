@@ -9,7 +9,7 @@ from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
-from ai.infrastructure.database.dal.repositories.business_documents import (
+from ai.inference.deployment.database.database.dal.repositories.business_documents import (
     BusinessDocumentRepository,
     KnowledgeArticleRepository,
     MarketResearchRepository,

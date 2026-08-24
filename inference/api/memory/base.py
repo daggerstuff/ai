@@ -1,4 +1,4 @@
-from ai.memory.base import (
+from ai.research.base import (
     BaseMemoryManager,
     ForesightCompatibleMemoryManager,
     HealthReportingMemoryManager,

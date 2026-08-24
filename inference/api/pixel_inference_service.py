@@ -28,15 +28,15 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ai.utils.torch_proxy import torch
+from ai.tools.utilities.torch_proxy import torch
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.api.ift_inference import ABTestConfig, ABTestRouter, build_task_prompt, detect_task_type
-from ai.api.memory import get_memory_manager
-from ai.api.sentry_logging import initialize_sentry_logging
-from pixel.models.pixel_base_model import PixelBaseModel
+from ai.inference.api.ift_inference import ABTestConfig, ABTestRouter, build_task_prompt, detect_task_type
+from ai.inference.api.memory import get_memory_manager
+from ai.inference.api.sentry_logging import initialize_sentry_logging
+from ai.models.pixel_base_model import PixelBaseModel
 
 # ---------------------------------------------------------------------------
 # PAL Inference imports
@@ -56,14 +56,14 @@ from inference_wrapper import (  # type: ignore[import-untyped]
 # PIX-3912: Mera Hierarchical Clinical Prediction imports
 # ---------------------------------------------------------------------------
 try:
-    from ai.memory.therapeutic_concept_hierarchy import (
+    from ai.research.therapeutic_concept_hierarchy import (
         TherapeuticConceptHierarchy,
         build_default_therapeutic_hierarchy,
     )
-    from ai.pkg_mera.core.pipelines.inference.candidate_retrieval import (
+    from ai.tools.utilities.core.pipelines.inference.candidate_retrieval import (
         CandidateRetrievalEngine,
     )
-    from ai.pkg_mera.core.pipelines.inference.evidence_scoring import (
+    from ai.tools.utilities.core.pipelines.inference.evidence_scoring import (
         EvidenceScoringEngine,
     )
 

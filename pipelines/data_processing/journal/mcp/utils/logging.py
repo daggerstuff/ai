@@ -9,7 +9,7 @@ import logging.handlers
 import sys
 from pathlib import Path
 
-from ai.sourcing.journal.mcp.config import LoggingConfig
+from ai.pipelines.data_processing.journal.mcp.config import LoggingConfig
 
 
 def setup_logging(config: LoggingConfig) -> None:
@@ -50,7 +50,7 @@ def setup_logging(config: LoggingConfig) -> None:
         root_logger.addHandler(file_handler)
 
     # Set up MCP-specific logger
-    mcp_logger = logging.getLogger("ai.sourcing.journal.mcp")
+    mcp_logger = logging.getLogger("ai.pipelines.data_processing.journal.mcp")
     mcp_logger.setLevel(getattr(logging, config.level.upper(), logging.INFO))
 
     # Set up audit logger (if enabled)
@@ -84,5 +84,5 @@ def get_logger(name: str | None = None) -> logging.Logger:
         Logger instance
     """
     if name:
-        return logging.getLogger(f"ai.sourcing.journal.mcp.{name}")
-    return logging.getLogger("ai.sourcing.journal.mcp")
+        return logging.getLogger(f"ai.pipelines.data_processing.journal.mcp.{name}")
+    return logging.getLogger("ai.pipelines.data_processing.journal.mcp")

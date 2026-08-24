@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from ai.sourcing.journal.mcp.protocol import (
+from ai.pipelines.data_processing.journal.mcp.protocol import (
     JSONRPCErrorCode,
     MCPError,
     MCPProtocolHandler,

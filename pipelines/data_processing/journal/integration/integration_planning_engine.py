@@ -17,7 +17,7 @@ from typing import Any
 import pandas as pd
 import pyarrow.parquet as pq
 
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
     IntegrationPlan,
     TransformationSpec,

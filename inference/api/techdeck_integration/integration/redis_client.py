@@ -12,9 +12,9 @@ from typing import Any
 import redis
 from redis.exceptions import ConnectionError, RedisError, TimeoutError
 
-from ai.api.techdeck_integration.config import TechDeckServiceConfig
-from ai.api.techdeck_integration.error_handling.custom_errors import RedisError as TechDeckRedisError
-from ai.api.techdeck_integration.utils.logger import get_logger, log_performance_metric
+from ai.inference.api.techdeck_integration.config import TechDeckServiceConfig
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import RedisError as TechDeckRedisError
+from ai.inference.api.techdeck_integration.utils.logger import get_logger, log_performance_metric
 
 
 class RedisClient:

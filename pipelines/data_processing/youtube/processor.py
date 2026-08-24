@@ -15,13 +15,13 @@ import logging
 import time
 from datetime import datetime
 
-from ai.sourcing.youtube.api import (
+from ai.pipelines.data_processing.youtube.api import (
     ChannelAnalyzer,
     ChannelHunterConfig,
     YouTubeAPI,
     YouTubeChannelHunter,
 )
-from ai.sourcing.youtube.models import (
+from ai.pipelines.data_processing.youtube.models import (
     Channel,
     ChannelQualityThresholds,
     ChannelStatus,

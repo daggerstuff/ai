@@ -13,7 +13,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from ai.infrastructure.database.cms_connection_manager import (
+from ai.inference.deployment.database.database.cms_connection_manager import (
     CMSDatabaseConfig,
     close_cms_connection_manager,
     get_cms_connection_manager,
@@ -93,7 +93,7 @@ def _add_error_handlers(app: FastAPI) -> None:
 
 
 def _register_routes(app: FastAPI) -> None:
-    from ai.api.cms.routes import documents, knowledge, projects, sales, strategies, workflows
+    from ai.inference.api.cms.routes import documents, knowledge, projects, sales, strategies, workflows
 
     app.include_router(documents.router, prefix="/api/v1/documents", tags=["Documents"])
     app.include_router(projects.router, prefix="/api/v1/projects", tags=["Projects"])
@@ -104,7 +104,7 @@ def _register_routes(app: FastAPI) -> None:
 
     @app.get("/api/v1/search")
     async def global_search(request: Request, q: str, limit: int = 10) -> dict[str, Any]:
-        from ai.api.cms.services.search_service import SearchService
+        from ai.inference.api.cms.services.search_service import SearchService
 
         service = SearchService(request.app.state.cms_db.mongo.db)
         results = await service.search(q, limit_per_collection=limit)

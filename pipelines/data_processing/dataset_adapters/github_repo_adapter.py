@@ -29,8 +29,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
-from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
+from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 # File extensions we consider as potential data files
 _DATA_EXTENSIONS = {".csv", ".json", ".jsonl", ".tsv"}

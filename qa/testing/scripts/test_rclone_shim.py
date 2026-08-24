@@ -1,6 +1,6 @@
 """Tests for rclone boto3 shim paginator extensions."""
 
-from ai.scripts.rclone_boto3_shim import RcloneS3Client
+from ai.tools.scripts.rclone_boto3_shim import RcloneS3Client
 
 
 class TestRclonePaginator:

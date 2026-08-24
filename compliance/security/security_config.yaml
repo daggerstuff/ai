@@ -1,7 +1,7 @@
 api_key_required: true
 audit_logging:
   enabled: true
-  log_file: /home/vivi/pixelated/ai/security/audit.log
+  log_file: /home/vivi/pixelated/ai/compliance/security/audit.log
 encryption:
   algorithm: AES-256
   enabled: true

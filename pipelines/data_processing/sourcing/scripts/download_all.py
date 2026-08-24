@@ -2,7 +2,7 @@
 """Download and convert all available datasets via adapters.
 
 Usage:
-    uv run python -m ai.sourcing.scripts.download_all [--output-dir ai/data/raw] [--dataset NAME]
+    uv run python -m ai.pipelines.data_processing.scripts.download_all [--output-dir ai/data/raw] [--dataset NAME]
 
 Options:
     --output-dir DIR    Output directory for converted JSONL (default: ai/data/raw)
@@ -24,7 +24,7 @@ os.environ.setdefault("HF_HOME", _HF_CACHE)
 os.environ.setdefault("HF_HUB_CACHE", str(Path(_HF_CACHE) / "hub"))
 
 # Import all adapter modules to trigger @register_adapter registration
-from ai.sourcing.dataset_adapters import (  # noqa: F401
+from ai.pipelines.data_processing.dataset_adapters import (  # noqa: F401
     ace_nlp_adapter,
     addiction_stories_adapter,
     annomi_adapter,
@@ -59,7 +59,7 @@ from ai.sourcing.dataset_adapters import (  # noqa: F401
     ucl_psych_abuse_adapter,
     vera_mh_adapter,
 )
-from ai.sourcing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
+from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter, list_available_adapters
 
 
 def main() -> None:

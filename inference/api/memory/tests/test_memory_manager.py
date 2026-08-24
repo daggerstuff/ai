@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ai.api.memory.memory_manager import MemoryManager, MessageRole
+from ai.inference.api.memory.memory_manager import MemoryManager, MessageRole
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -96,7 +96,7 @@ class TestDreamCycleIntegration:
         ):
             mm = MemoryManager(memory_client=memory_manager.client, mongodb_uri=None)
             dm = mm.dream_manager
-            from ai.memory.dream_memory_store import LocalDreamMemoryStore
+            from ai.research.dream_memory_store import LocalDreamMemoryStore
 
             assert isinstance(dm.memory_store, LocalDreamMemoryStore)
 
@@ -155,7 +155,7 @@ class TestDreamCycleWithMongoDB:
         with patch.dict("os.environ", {"MONGODB_URI": "mongodb://localhost:27017/test"}):
             mm = MemoryManager(memory_client=fake_client, mongodb_uri="mongodb://localhost:27017/test")
             dm = mm.dream_manager
-            from ai.memory.dream_memory_store import MongoDBDreamStore
+            from ai.research.dream_memory_store import MongoDBDreamStore
 
             assert isinstance(dm.memory_store, MongoDBDreamStore)
 

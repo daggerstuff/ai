@@ -2,7 +2,7 @@
 
 import unittest
 
-from ai.core.pipelines.pipeline_observability import (
+from ai.tools.utilities.core.pipelines.pipeline_observability import (
     FailureSeverity,
     HealthStatus,
     PipelineHealthSummary,
@@ -12,7 +12,7 @@ from ai.core.pipelines.pipeline_observability import (
     record_failure,
     record_stage_execution,
 )
-from ai.core.pipelines.training_readiness_gates import (
+from ai.tools.utilities.core.pipelines.training_readiness_gates import (
     TrainingReadinessGates,
 )
 
@@ -173,7 +173,7 @@ class TestPipelineMetricsCollector(unittest.TestCase):
 
     def test_global_collector_singleton(self):
         """Test that global collector is singleton."""
-        from ai.core.pipelines.pipeline_observability import get_metrics_collector
+        from ai.tools.utilities.core.pipelines.pipeline_observability import get_metrics_collector
 
         collector1 = get_metrics_collector()
         collector2 = get_metrics_collector()

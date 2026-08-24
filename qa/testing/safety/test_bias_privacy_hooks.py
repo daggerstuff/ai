@@ -1,5 +1,5 @@
 """
-Test suite for ai.safety.bias_privacy_hooks
+Test suite for ai.qa.validation.bias_privacy_hooks
 
 Covers:
 - Bias detection (positive, negative, edge)
@@ -16,7 +16,7 @@ from unittest import mock
 import pytest
 
 # TDD Anchor: Import the module under test (will fail if not implemented)
-import ai.infra.safety.bias_privacy_hooks as hooks
+import ai.qa.validation.safety.bias_privacy_hooks as hooks
 
 
 @pytest.fixture

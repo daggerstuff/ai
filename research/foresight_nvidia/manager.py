@@ -15,8 +15,8 @@ from typing import Any
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel, Field
 
-from ai.memory.local_foresight_manager import LocalForesightMemoryManager
-from ai.memory.therapeutic_processor import TherapeuticProcessor
+from ai.research.local_foresight_manager import LocalForesightMemoryManager
+from ai.research.therapeutic_processor import TherapeuticProcessor
 
 from .interaction_service import NvidiaTherapeuticInteractionService
 from .memory_ingestion_config import TherapeuticMemoryConfig

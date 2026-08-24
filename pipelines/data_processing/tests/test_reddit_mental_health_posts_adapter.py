@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.sourcing.dataset_adapters.reddit_mental_health_posts_adapter import (
+from ai.pipelines.data_processing.dataset_adapters.reddit_mental_health_posts_adapter import (
     RedditMentalHealthPostsAdapter,
 )
 
@@ -130,7 +130,7 @@ class TestRedditMentalHealthPostsAdapter:
         assert record["task_type"] == "symptom_classification"
 
     def test_factory_registration(self):
-        from ai.sourcing.dataset_adapters.adapter_factory import get_adapter
+        from ai.pipelines.data_processing.dataset_adapters.adapter_factory import get_adapter
 
         a = get_adapter("reddit_mental_health_posts", "/tmp/test_rmh")
         assert isinstance(a, RedditMentalHealthPostsAdapter)

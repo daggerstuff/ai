@@ -10,8 +10,8 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.testclient import TestClient
 
-from ai.api import index as api_index
-from ai.api.mcp_server import memory_auth
+from ai.inference.api import index as api_index
+from ai.inference.api.mcp_server import memory_auth
 
 
 def _configure_memory_auth(monkeypatch) -> None:

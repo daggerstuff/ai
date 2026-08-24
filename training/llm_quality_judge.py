@@ -51,7 +51,7 @@ from scipy import stats as scipy_stats
 from sklearn.metrics import cohen_kappa_score
 
 if TYPE_CHECKING:
-    from utils.common.llm_client import LLMClient
+    from ai.tools.utilities.common.llm_client import LLMClient
 
 logger = logging.getLogger("llm_quality_judge")
 
@@ -238,7 +238,7 @@ class DualModelQualityJudge:
         """
         import os
 
-        from utils.common.llm_client import LLMClient
+        from ai.tools.utilities.common.llm_client import LLMClient
 
         if not model:
             raise ValueError("A model name is required to build a default LLM client.")

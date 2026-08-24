@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from ai.memory.manager_factory import (
+from ai.research.manager_factory import (
     create_dream_manager as _create_dream_manager,
     get_required_memory_manager as get_backend_memory_manager,
 )

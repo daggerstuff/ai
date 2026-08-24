@@ -13,16 +13,16 @@ into the training pipeline.
 
 import logging
 
-from ai.sourcing.journal.integration.integration_planning_engine import (
+from ai.pipelines.data_processing.journal.integration.integration_planning_engine import (
     IntegrationPlanningEngine,
 )
-from ai.sourcing.journal.integration.pipeline_integrator import (
+from ai.pipelines.data_processing.journal.integration.pipeline_integrator import (
     DatasetMerger,
     PipelineFormatConverter,
     PipelineSchemaValidator,
     QualityChecker,
 )
-from ai.sourcing.journal.models.dataset_models import (
+from ai.pipelines.data_processing.journal.models.dataset_models import (
     AcquiredDataset,
     IntegrationPlan,
 )
