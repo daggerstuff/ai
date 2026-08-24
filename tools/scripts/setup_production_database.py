@@ -15,9 +15,8 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-# Add dataset_pipeline to path
-sys.path.append(str(Path(__file__).parent.parent / "dataset_pipeline"))
-
+# Add pipelines to path
+sys.path.append(str(Path(__file__).parent.parent.parent / "pipelines" / "data_processing"))
 
 from migrate_conversations_to_db import ConversationDataMigrator
 
@@ -141,7 +140,7 @@ class ProductionDatabaseSetup:
             logger.info("Starting conversation data migration...")
 
             # Run the migration script
-            migration_script = Path(__file__).parent.parent / "dataset_pipeline" / "migrate_conversations_to_db.py"
+            migration_script = Path(__file__).parent.parent.parent / "pipelines" / "data_processing" / "migrate_conversations_to_db.py"
 
             result = subprocess.run(
                 [sys.executable, str(migration_script)], capture_output=True, text=True, check=False
