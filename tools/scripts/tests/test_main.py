@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
-from cli import __author__, __description__, __version__
-from cli.main import cli
+from . import __author__, __description__, __version__
+from .main import cli
 
 
 class TestMainCLI:

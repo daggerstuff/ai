@@ -25,8 +25,8 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from annotation_api.database import Base
-from annotation_api.models import QueueItem, QueueItemStatus, Review
+from annotation.api.database import Base
+from annotation.api.models import QueueItem, QueueItemStatus, Review
 from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.coaching_safety.advanced_routing import (
     AdvancedRoutingRules,

@@ -10,21 +10,21 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 
-from annotation_api.database import Base
-from annotation_api.main import app
+from annotation.api.database import Base
+from annotation.api.main import app
 
 
 @pytest.fixture
 def client():
     """Create a test client with an in-memory database."""
     with (
-        patch("annotation_api.database.DATABASE_URL", "sqlite:///:memory:"),
-        patch("annotation_api.main.DATABASE_URL", "sqlite:///:memory:"),
+        patch("annotation.api.database.DATABASE_URL", "sqlite:///:memory:"),
+        patch("annotation.api.main.DATABASE_URL", "sqlite:///:memory:"),
     ):
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(bind=engine)
 
-        with patch("annotation_api.database.get_engine", return_value=engine), TestClient(app) as test_client:
+        with patch("annotation.api.database.get_engine", return_value=engine), TestClient(app) as test_client:
             yield test_client
 
 
@@ -87,7 +87,7 @@ class TestReviewEndpoint:
         assert response.status_code == 200
 
         # Verify review was saved
-        with patch("annotation_api.database.get_engine", return_value=create_engine("sqlite:///:memory:")):
+        with patch("annotation.api.database.get_engine", return_value=create_engine("sqlite:///:memory:")):
             pass  # This test is more about API response validation
 
         # Review response includes correct data

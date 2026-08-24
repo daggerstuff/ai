@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 class KAN28EnhancedTrainer:
     """Enhanced trainer incorporating all 6 KAN-28 components"""
 
-    def __init__(self, config_path: str = "../config/enhanced_training_config.json"):
+    def __init__(self, config_path: str = "../configs/enhanced_training_config.json"):
         self.config = self._load_config(config_path)
         self.tokenizer = None
         self.model = None

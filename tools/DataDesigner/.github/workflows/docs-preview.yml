@@ -9,7 +9,7 @@ on:
       - "docs/notebook_source/**"
       - "docs/colab_notebooks/**"
       - "docs/scripts/**"
-      - "packages/data-designer-config/src/data_designer/config/**"
+      - "packages/data-designer-config/src/data_designer/configs/**"
       - "packages/data-designer/src/data_designer/interface/**"
       - "packages/data-designer-engine/src/data_designer/engine/column_generators/generators/base.py"
       - "packages/data-designer-engine/src/data_designer/engine/mcp/**"

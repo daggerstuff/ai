@@ -34,7 +34,7 @@ def test_get_family_catalog_includes_description() -> None:
 def test_get_family_source_files_returns_relative_paths() -> None:
     files = get_family_source_files("columns")
 
-    assert "data_designer/config/column_configs.py" in files
+    assert "data_designer/configs/column_configs.py" in files
     assert all(f.startswith("data_designer/") for f in files)
 
 

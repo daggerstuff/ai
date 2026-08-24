@@ -17,8 +17,8 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import create_engine
 
-from annotation_api.database import Base
-from annotation_api.models import QueueItem, QueueItemStatus, Review
+from annotation.api.database import Base
+from annotation.api.models import QueueItem, QueueItemStatus, Review
 from training.coaching_safety.closed_loop_promotion import (
     ClosedLoopPromotionService,
 )

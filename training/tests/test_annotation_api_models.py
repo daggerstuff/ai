@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from annotation_api.models import Base, QueueItem, QueueItemStatus, Review
+from annotation.api.models import Base, QueueItem, QueueItemStatus, Review
 
 
 @pytest.fixture

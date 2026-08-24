@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from cli.config import APIConfig, AuthConfig, CLIConfig, ConfigProfile
-from cli.exceptions import CLIConfigError
+from .config import APIConfig, AuthConfig, CLIConfig, ConfigProfile
+from .exceptions import CLIConfigError
 
 
 class TestCLIConfig:

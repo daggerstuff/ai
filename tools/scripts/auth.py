@@ -11,8 +11,8 @@ from typing import Any
 
 import requests
 
-from cli.config import CLIConfig
-from cli.utils import validate_jwt_token
+from .config import CLIConfig
+from .utils import validate_jwt_token
 
 logger = logging.getLogger("pixelated-ai-cli")
 
@@ -545,9 +545,66 @@ def _set_token_expiry(self, value: float) -> None:
 AuthManager._token_expiry = property(_get_token_expiry, _set_token_expiry)
 
 
+class TokenManager:
+    """Stub TokenManager for compatibility."""
+
+    def __init__(self):
+        self._access_token = None
+        self._refresh_token = None
+        self._token_expiry = None
+
+    def set_tokens(self, access_token, refresh_token, expires_in):
+        import time
+        self._access_token = access_token
+        self._refresh_token = refresh_token
+        self._token_expiry = time.time() + expires_in
+
+    def get_access_token(self):
+        return self._access_token
+
+    def get_refresh_token(self):
+        return self._refresh_token
+
+    def is_token_expired(self):
+        import time
+        return self._token_expiry is None or time.time() > self._token_expiry
+
+    def clear_tokens(self):
+        self._access_token = None
+        self._refresh_token = None
+        self._token_expiry = None
+
+    def get_token_age(self):
+        import time
+        if self._token_expiry:
+            return time.time() - (self._token_expiry - 3600)
+        return 0
+
+    def get_time_until_expiry(self):
+        import time
+        if self._token_expiry:
+            return self._token_expiry - time.time()
+        return 0
+
+    def validate_token_format(self, token):
+        return "." in token
+
+    def decode_token_payload(self, token):
+        import json, base64
+        try:
+            parts = token.split(".")
+            payload = parts[1]
+            padding = "=" * (-len(payload) % 4)
+            decoded = json.loads(base64.urlsafe_b64decode(payload + padding))
+            return decoded
+        except Exception:
+            return {}
+
+
 __all__ = [
     "AuthManager",
     "AuthenticationError",
     "TokenExpiredError",
+    "TokenManager",
     "require_auth",
 ]

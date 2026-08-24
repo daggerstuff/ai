@@ -18,10 +18,10 @@ from typing import Any, Dict
 import pytest
 from click.testing import CliRunner
 
-from cli.auth import AuthManager
-from cli.config import CLIConfig
-from cli.pipeline import PipelineManager
-from cli.progress import ProgressTracker
+from .auth import AuthManager
+from .config import CLIConfig
+from .pipeline import PipelineManager
+from .progress import ProgressTracker
 
 # Test configuration
 TEST_CONFIG = {

@@ -19,9 +19,9 @@ def test_format_context_text_includes_config_module_path() -> None:
     data: dict[str, Any] = {
         "library_version": "1.0.0",
         "config_module_path": "/some/path/to/config",
-        "config_builder_file": "data_designer/config/config_builder.py",
-        "base_config_file": "data_designer/config/base.py",
-        "families": [{"family": "columns", "count": 1, "files": ["data_designer/config/column_configs.py"]}],
+        "config_builder_file": "data_designer/configs/config_builder.py",
+        "base_config_file": "data_designer/configs/base.py",
+        "families": [{"family": "columns", "count": 1, "files": ["data_designer/configs/column_configs.py"]}],
         "types": {
             "columns": [{"type": "a", "description": "A thing."}],
         },
@@ -46,8 +46,8 @@ def test_format_context_text_no_usable_aliases_shows_warning() -> None:
     data: dict[str, Any] = {
         "library_version": "1.0.0",
         "config_module_path": "/some/path/to/config",
-        "config_builder_file": "data_designer/config/config_builder.py",
-        "base_config_file": "data_designer/config/base.py",
+        "config_builder_file": "data_designer/configs/config_builder.py",
+        "base_config_file": "data_designer/configs/base.py",
         "families": [],
         "types": {},
         "state": {
@@ -71,7 +71,7 @@ def test_format_types_text_single_family_with_config_root() -> None:
     data: dict[str, Any] = {
         "config_module_path": "/some/path/to/data_designer/config",
         "family": "columns",
-        "files": ["data_designer/config/column_configs.py"],
+        "files": ["data_designer/configs/column_configs.py"],
         "items": [
             {"type": "alpha", "description": "Alpha desc."},
             {"type": "beta", "description": "Beta desc."},
@@ -90,8 +90,8 @@ def test_format_types_text_all_families_with_config_root() -> None:
     data: dict[str, Any] = {
         "config_module_path": "/some/path/to/data_designer/config",
         "families": [
-            {"family": "columns", "count": 1, "files": ["data_designer/config/column_configs.py"]},
-            {"family": "samplers", "count": 1, "files": ["data_designer/config/sampler_params.py"]},
+            {"family": "columns", "count": 1, "files": ["data_designer/configs/column_configs.py"]},
+            {"family": "samplers", "count": 1, "files": ["data_designer/configs/sampler_params.py"]},
         ],
         "items": {
             "columns": [{"type": "a", "description": "Desc A."}],
@@ -107,7 +107,7 @@ def test_format_types_text_all_families_with_config_root() -> None:
 
 
 def test_format_types_text_empty_items() -> None:
-    data: dict[str, Any] = {"family": "columns", "files": ["data_designer/config/column_configs.py"], "items": []}
+    data: dict[str, Any] = {"family": "columns", "files": ["data_designer/configs/column_configs.py"], "items": []}
     result = format_types_text(data)
 
     assert "file: {config_root}/column_configs.py" in result
