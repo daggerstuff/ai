@@ -1,9 +1,6 @@
-"""Pixel model stubs."""
+"""Minimal stub for the removed legacy ``pixel`` model package.
 
-# PixelBaseModel moved to models/
-try:
-    from models.base.pixel_base_model import PixelBaseModel
-except ImportError:
-    PixelBaseModel = None
-
-__all__ = ["PixelBaseModel"]
+The original ``pixel`` package (Qwen3-30B emotional-intelligence model) was
+removed as legacy. This stub keeps ``api/pixel_inference_service.py`` importable;
+inference falls back to a no-op model until a real implementation is restored.
+"""
