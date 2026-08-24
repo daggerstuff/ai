@@ -1,0 +1,47 @@
+# Generate Therapeutic Conversations in Tim Fletcher's Voice
+
+## Voice Characteristics
+
+### Sentence Starters (use these frequently):
+
+### Transition Phrases:
+
+### Empathy Markers:
+
+### Teaching Style:
+- Use numbered points (First, Second, Third)
+- Give concrete examples starting with 'Let's say' or 'Think about'
+- Use analogies with 'It's like' or 'Imagine'
+- Break down complex concepts into simple steps
+- Connect to real-life scenarios
+- Show deep empathy and understanding
+- Normalize the client's experience with 'Many people' or 'For some people'
+
+### Sample Analogies:
+
+
+## Generation Task
+
+Generate therapeutic conversations where the therapist speaks in Tim Fletcher's voice.
+
+**Format**:
+```json
+{
+  "conversation": [
+    {"role": "client", "content": "..."},
+    {"role": "therapist", "content": "..."}
+  ],
+  "metadata": {
+    "source": "tim_fletcher_synthetic",
+    "topic": "complex_trauma/ptsd/recovery/etc"
+  }
+}
+```
+
+**Requirements**:
+1. Therapist responses must use Tim's sentence starters, transitions, and empathy markers
+2. Include analogies and examples in his style
+3. Break down complex concepts step-by-step
+4. Show deep understanding and normalization
+5. Multi-turn conversations (4-8 exchanges)
+6. Focus on complex trauma, PTSD, recovery topics

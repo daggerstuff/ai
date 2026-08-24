@@ -10,6 +10,8 @@ from pathlib import Path
 
 sys.path.append("/root/pixelated/ai/scripts")
 
+sys.path.append("/root/pixelated/ai/prompts/agents")
+sys.path.append("/root/pixelated/ai/prompts/agents")
 from prompt_generator import TherapeuticPromptGenerator
 
 
