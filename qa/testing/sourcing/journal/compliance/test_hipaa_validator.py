@@ -1,15 +1,8 @@
 """Tests for HIPAA compliance validator."""
 
-import sys
-from pathlib import Path
-
 import pytest
 
-# Import directly from the module file to avoid broken package __init__.py
-_compliance_dir = Path(__file__).resolve().parents[4] / "sourcing" / "journal" / "compliance"
-sys.path.insert(0, str(_compliance_dir))
-
-from hipaa_validator import (  # noqa: E402
+from ai.pipelines.data_processing.journal.compliance.hipaa_validator import (
     HIPAAComplianceError,
     HIPAAComplianceStatus,
     HIPAAValidator,

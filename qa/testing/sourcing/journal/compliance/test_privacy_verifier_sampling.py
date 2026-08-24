@@ -3,15 +3,10 @@
 import csv
 import json
 import os
-import sys
 import tempfile
 from pathlib import Path
 
-# Import directly from the module file to avoid broken package __init__.py
-_compliance_dir = Path(__file__).resolve().parents[4] / "sourcing" / "journal" / "compliance"
-sys.path.insert(0, str(_compliance_dir))
-
-from privacy_verifier import PrivacyVerifier  # noqa: E402
+from ai.pipelines.data_processing.journal.compliance.privacy_verifier import PrivacyVerifier
 
 
 class TestSampleFromFile:
