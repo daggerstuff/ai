@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: Copyright (c) 2025-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from data_designer.config.base import ConfigBase
+from data_designer.config.dataset_metadata import DatasetMetadata
+from data_designer.config.mcp import MCPProviderT, ToolConfig
+from data_designer.config.models import ModelConfig
+from data_designer.config.run_config import RunConfig
+from data_designer.config.seed_source import SeedSource
+from data_designer.config.utils.type_helpers import StrEnum
+from data_designer.engine.mcp.factory import create_mcp_registry
+from data_designer.engine.mcp.registry import MCPRegistry
+from data_designer.engine.model_provider import (
+    ModelProviderRegistry,
+    resolve_mcp_provider_registry,
+)
+from data_designer.engine.models.clients.adapters.http_model_client import ClientConcurrencyMode
+from data_designer.engine.models.factory import create_model_registry
+from data_designer.engine.models.registry import ModelRegistry
+from data_designer.engine.observability import RequestAdmissionEventSink, SchedulerAdmissionEventSink
+from data_designer.engine.resources.person_reader import PersonReader
+from data_designer.engine.resources.seed_reader import SeedReader, SeedReaderRegistry
+from data_designer.engine.secret_resolver import SecretResolver
+from data_designer.engine.storage.artifact_storage import ArtifactStorage
+
+if TYPE_CHECKING:
+    from data_designer.engine.models.request_admission.controller import AdaptiveRequestAdmissionController
+
+
+class ResourceType(StrEnum):
+    PERSON_READER = "person_reader"
+    MODEL_REGISTRY = "model_registry"
+    SEED_READER = "seed_reader"
+
+
+class ResourceProvider(ConfigBase):
+    artifact_storage: ArtifactStorage
+    person_reader: PersonReader | None = None
+    model_registry: ModelRegistry | None = None
+    mcp_registry: MCPRegistry | None = None
+    run_config: RunConfig = RunConfig()
+    seed_reader: SeedReader | None = None
+    scheduler_event_sink: SchedulerAdmissionEventSink | None = None
+
+    def get_dataset_metadata(self) -> DatasetMetadata:
+        """Get metadata about the dataset being generated.
+
+        Returns:
+            DatasetMetadata with seed column names and other metadata.
+        """
+        seed_column_names = []
+        if self.seed_reader is not None:
+            seed_column_names = self.seed_reader.get_column_names()
+        return DatasetMetadata(seed_column_names=seed_column_names)
+
+
+def create_resource_provider(
+    *,
+    artifact_storage: ArtifactStorage,
+    model_configs: list[ModelConfig],
+    secret_resolver: SecretResolver,
+    model_provider_registry: ModelProviderRegistry,
+    seed_reader_registry: SeedReaderRegistry,
+    person_reader: PersonReader | None = None,
+    seed_dataset_source: SeedSource | None = None,
+    run_config: RunConfig | None = None,
+    mcp_providers: list[MCPProviderT] | None = None,
+    tool_configs: list[ToolConfig] | None = None,
+    client_concurrency_mode: ClientConcurrencyMode | None = None,
+    request_admission: AdaptiveRequestAdmissionController | None = None,
+    scheduler_event_sink: SchedulerAdmissionEventSink | None = None,
+    request_event_sink: RequestAdmissionEventSink | None = None,
+) -> ResourceProvider:
+    """Factory function for creating a ResourceProvider instance.
+
+    This function triggers lazy loading of heavy dependencies like httpx.
+    The creation order is:
+    1. MCPProviderRegistry (can be empty)
+    2. MCPRegistry with tool_configs
+    3. ModelRegistry with mcp_registry
+
+    Args:
+        artifact_storage: Storage for build artifacts.
+        model_configs: List of model configurations.
+        secret_resolver: Resolver for secrets.
+        model_provider_registry: Registry of model providers.
+        seed_reader_registry: Registry of seed readers.
+        person_reader: Optional reader for person datasets.
+        seed_dataset_source: Optional source for seed datasets.
+        run_config: Optional runtime configuration.
+        mcp_providers: Optional list of MCP provider configurations.
+        tool_configs: Optional list of tool configurations.
+        request_admission: Optional shared request-admission controller for model clients.
+        scheduler_event_sink: Optional direct sink for scheduler events.
+        request_event_sink: Optional direct sink for request-admission and model-request events.
+
+    Returns:
+        A configured ResourceProvider instance.
+    """
+    seed_reader = None
+    if seed_dataset_source:
+        seed_reader = seed_reader_registry.get_reader(
+            seed_dataset_source,
+            secret_resolver,
+        )
+
+    # Create MCPProviderRegistry first (can be empty)
+    mcp_provider_registry = resolve_mcp_provider_registry(mcp_providers)
+
+    # Create MCPRegistry with tool configs (only if tool_configs provided)
+    # Tool validation is performed during dataset builder health checks.
+    mcp_registry = None
+    if tool_configs:
+        mcp_registry = create_mcp_registry(
+            tool_configs=tool_configs,
+            secret_resolver=secret_resolver,
+            mcp_provider_registry=mcp_provider_registry,
+        )
+
+    if client_concurrency_mode is None:
+        client_concurrency_mode = ClientConcurrencyMode.ASYNC
+
+    effective_run_config = run_config or RunConfig()
+
+    return ResourceProvider(
+        artifact_storage=artifact_storage,
+        model_registry=create_model_registry(
+            model_configs=model_configs,
+            secret_resolver=secret_resolver,
+            model_provider_registry=model_provider_registry,
+            mcp_registry=mcp_registry,
+            client_concurrency_mode=client_concurrency_mode,
+            run_config=effective_run_config,
+            request_admission=request_admission,
+            request_event_sink=request_event_sink,
+        ),
+        person_reader=person_reader,
+        mcp_registry=mcp_registry,
+        seed_reader=seed_reader,
+        run_config=effective_run_config,
+        scheduler_event_sink=scheduler_event_sink,
+    )
