@@ -104,7 +104,7 @@ class TranscriptCorrector:
         return re.sub(r"\s+", " ", cleaned).strip()
 
     def _apply_terminology_fixes(self, text: str) -> str:
-        """Apply deterministic terminology fixes from config."""
+        """Apply deterministic terminology fixes from configs."""
         misinterpretations = self.terms.get("common_misinterpretations", {})
 
         for bad_term, good_term in misinterpretations.items():
