@@ -1,0 +1,21 @@
+name: Safety Coverage Gate
+
+on:
+  push:
+    branches: [ main, staging ]
+  pull_request:
+    branches: [ main, staging ]
+
+jobs:
+  safety-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - run: uv sync
+      - run: uv run pytest training/tests/ --ignore=training/tests/test_book_pdf_converter.py \
+          --cov=training.shared_config \
+          --cov=training.multilingual_safety_checker \
+          --cov=training.clinical_safety_checker \
+          --cov=training.reward_score \
+          --cov-branch --cov-fail-under=95 --cov-report=xml
