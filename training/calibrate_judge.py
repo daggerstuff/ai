@@ -42,7 +42,12 @@ PLACEHOLDER_NOTICE = (
 
 
 def _is_placeholder(golden_path: Path) -> bool:
-    """Heuristic: placeholder file's records use 'golden-excellent-NNNN' ids."""
+    """Heuristic: placeholder golden file is Neon AI Gateway consensus data.
+
+    The placeholder file's records use 'neon-consensus-NNNN' ids and carry a
+    ``_neon_consensus_label`` / ``_data_source_note`` marker rather than real
+    human labels. Detection matches both the id prefix and the explicit marker.
+    """
     if not golden_path.exists():
         return False
     with open(golden_path, encoding="utf-8") as f:
@@ -50,7 +55,12 @@ def _is_placeholder(golden_path: Path) -> bool:
     try:
         rec = json.loads(first)
         rid = str(rec.get("id", ""))
-        return rid.startswith("golden-")
+        marked = bool(
+            rec.get("_neon_consensus_label")
+            or rec.get("_synthetic_golden_calibration")
+            or "consensus" in str(rec.get("_data_source_note", "")).lower()
+        )
+        return rid.startswith(("neon-consensus-", "golden-")) or marked
     except Exception:
         return False
 

@@ -13,10 +13,26 @@ from datetime import UTC, datetime
 import torch
 import wandb
 from datasets import Dataset
-from models.moe_architecture import MoEConfig, create_therapeutic_moe_model
-from train_moe_h100 import MoETrainingCallback, TimeConstraintCallback, setup_wandb, signal_handler
-from training_optimizer import optimize_for_dataset
 from transformers import AutoTokenizer, Trainer
+
+try:
+    from ai.models.moe_architecture import MoEConfig, create_therapeutic_moe_model
+    from ai.training.training_optimizer import optimize_for_dataset
+    from ai.training.train_moe_h100 import (
+        MoETrainingCallback,
+        TimeConstraintCallback,
+        setup_wandb,
+        signal_handler,
+    )
+except ImportError:  # pragma: no cover - run as a plain script
+    from models.moe_architecture import MoEConfig, create_therapeutic_moe_model
+    from training_optimizer import optimize_for_dataset
+    from train_moe_h100 import (
+        MoETrainingCallback,
+        TimeConstraintCallback,
+        setup_wandb,
+        signal_handler,
+    )
 
 # Global state
 shutdown_requested = False
@@ -48,8 +64,8 @@ def analyze_dataset(dataset_path: str | None = None, s3_path: str | None = None)
         # Try to find dataset in S3
         from ai.training.utils.s3_dataset_loader import get_s3_dataset_path, load_dataset_from_s3
         try:
-            s3_path = get_s3_dataset_path("training_dataset.json", category="professional_therapeutic")
-            data = load_dataset_from_s3("training_dataset.json", category="professional_therapeutic")
+            s3_path = get_s3_dataset_path("training_dataset.json")
+            data = load_dataset_from_s3("training_dataset.json")
         except Exception as e:
             raise FileNotFoundError(
                 f"Dataset not found. Provide dataset_path or s3_path, "

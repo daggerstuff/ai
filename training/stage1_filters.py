@@ -43,6 +43,7 @@ import tempfile
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Any, NamedTuple, Protocol
 
@@ -1124,6 +1125,127 @@ class Stage1FilterChain:
             close_fn()
 
 
+# ---------------------------------------------------------------------------
+# SDG per-record helper (PIX-4345).
+#
+# The four SDG scripts (``sdg_self_instruct``, ``sdg_back_translation``,
+# ``sdg_paraphrase``, ``domain_augmentation``) call a lightweight per-record
+# Stage 1 gate rather than the streaming ``Stage1FilterChain``. This section
+# restores that contract: a ``FilterVerdict`` enum, an in-memory
+# ``NearDuplicateIndex`` for intra-run dedup, and ``run_stage1_on_record``
+# that runs language → PII(transform) → toxicity → dedup on one record.
+# ---------------------------------------------------------------------------
+
+class FilterVerdict(Enum):
+    """Pass/fail verdict for the per-record SDG Stage 1 gate."""
+
+    KEEP = "keep"
+    DROP = "drop"
+
+
+@dataclass
+class Stage1RecordResult:
+    """Result of ``run_stage1_on_record``.
+
+    ``transformed_text`` holds the redacted assistant reply when PII was
+    scrubbed in-place (else ``None``), so callers can write it back without
+    discarding the record.
+    """
+
+    verdict: FilterVerdict
+    transformed_text: str | None = None
+    reason: str = ""
+
+
+# Lightweight toxicity heuristic shared by the SDG per-record gate. The heavy
+# detoxify 4-model ensemble in ``ToxicityFilter`` is intentionally not loaded
+# here: SDG loops run thousands of records and each script already gates its
+# own generation with a local toxicity check before calling this final gate.
+_TOXIC_SUBSTRINGS = (
+    "kill yourself",
+    "hurt yourself",
+    "end your life",
+    "commit suicide",
+    "kill myself",
+    "i want to die",
+)
+
+
+def _is_toxic_heuristic(text: str) -> bool:
+    lowered = text.lower()
+    return any(p in lowered for p in _TOXIC_SUBSTRINGS)
+
+
+def _assistant_reply(record: dict[str, Any]) -> str | None:
+    """Return the assistant message content of a two-turn SFT record."""
+    messages = record.get("messages", [])
+    if len(messages) >= 2 and isinstance(messages[1], dict):
+        content = messages[1].get("content")
+        return content if isinstance(content, str) else None
+    return None
+
+
+class NearDuplicateIndex:
+    """In-memory near-duplicate index for a single SDG run.
+
+    Tracks seen content hashes (exact) and token sets (Jaccard) so one run can
+    dedup its own synthetic variants against each other without touching the
+    persistent SQLite store used by ``DedupFilter``.
+    """
+
+    def __init__(self) -> None:
+        self._seen_hashes: set[str] = set()
+        self._token_sets: list[tuple[frozenset[str], str]] = []
+
+    def is_duplicate(self, text: str) -> bool:
+        """Return True if ``text`` duplicates a previously seen record."""
+        chash = _content_hash(text)
+        if chash in self._seen_hashes:
+            return True
+        tokens = _token_set(text)
+        for existing_tokens, _existing_hash in self._token_sets:
+            if _jaccard_similarity(tokens, existing_tokens) > JACCARD_THRESHOLD:
+                return True
+        self._seen_hashes.add(chash)
+        self._token_sets.append((tokens, chash))
+        return False
+
+
+def run_stage1_on_record(
+    record: dict[str, Any],
+    dedup_index: NearDuplicateIndex | None = None,
+) -> Stage1RecordResult:
+    """Run the Stage 1 SDG gate on one record: language → PII → toxicity → dedup.
+
+    Language/toxicity/dedup failures DROP the record; PII is scrubbed in-place
+    and surfaced as ``transformed_text`` so the caller can redact rather than
+    discard.
+    """
+    text = _extract_text(record)
+
+    if not text.strip():
+        return Stage1RecordResult(FilterVerdict.DROP, reason="empty_text")
+
+    lang, _conf = detect_language(text)
+    if lang not in ("en", "und"):
+        return Stage1RecordResult(FilterVerdict.DROP, reason=f"non_english:{lang}")
+
+    if _is_toxic_heuristic(text):
+        return Stage1RecordResult(FilterVerdict.DROP, reason="toxicity")
+
+    if dedup_index is not None and dedup_index.is_duplicate(text):
+        return Stage1RecordResult(FilterVerdict.DROP, reason="duplicate")
+
+    transformed_text: str | None = None
+    assistant_reply = _assistant_reply(record)
+    if assistant_reply is not None:
+        redacted, hits = pii_filter(assistant_reply)
+        if hits > 0:
+            transformed_text = redacted
+
+    return Stage1RecordResult(FilterVerdict.KEEP, transformed_text=transformed_text)
+
+
 __all__ = [
     "PII_ENTITIES",
     "PRESIDIO_ENTITIES",
@@ -1134,14 +1256,18 @@ __all__ = [
     "DedupFilter",
     "FilterResult",
     "FilterStats",
+    "FilterVerdict",
     "LanguageFilter",
+    "NearDuplicateIndex",
     "PIIFilter",
     "RecordFilter",
     "Stage1FilterChain",
+    "Stage1RecordResult",
     "ToxicityFilter",
     "detect_language",
     "language_filter",
     "pii_filter",
+    "run_stage1_on_record",
     "strip_pii_presidio",
     "strip_pii_regex",
 ]
