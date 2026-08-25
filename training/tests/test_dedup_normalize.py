@@ -16,11 +16,14 @@ except ImportError:
 
 from training.dedup_normalize import (
     ProcessingContext,
+    SimHashIndex,
     _attempt_reformat,
     _content_hash,
     _extract_text,
+    _hamming_distance,
     _is_edge_case,
     _jaccard_similarity,
+    _simhash_signature,
     _token_set,
     _verify_chatml_boundary,
     build_parser,
@@ -100,6 +103,64 @@ class TestAttemptReformat:
         assert len(result["messages"]) == EXPECTED_OUTPUT_MESSAGE_COUNT
         assert result["messages"][0]["role"] == "user"
         assert result["messages"][1]["role"] == "assistant"
+
+
+class TestSimHash:
+    def test_identical_text_same_signature(self):
+        a = _simhash_signature("CBT reframes negative automatic thoughts")
+        b = _simhash_signature("CBT reframes negative automatic thoughts")
+        assert a == b
+
+    def test_hamming_zero_for_identical(self):
+        a = _simhash_signature("hello world")
+        assert _hamming_distance(a, a) == 0
+
+    def test_hamming_bounded(self):
+        a = _simhash_signature("CBT is a therapeutic approach")
+        b = _simhash_signature("DBT is a therapeutic approach")
+        assert 0 <= _hamming_distance(a, b) <= 64
+
+    def test_reordered_words_same_signature(self):
+        # SimHash is order-insensitive (token bag): reordering gives identical sig.
+        a = _simhash_signature("CBT reframes negative automatic thoughts")
+        b = _simhash_signature("automatic thoughts negative reframes CBT")
+        assert _hamming_distance(a, b) <= 3
+
+    def test_case_and_whitespace_insensitive(self):
+        base = _simhash_signature("CBT reframes negative automatic thoughts")
+        assert _hamming_distance(base, _simhash_signature("CBT reframes negative automatic thoughts ")) == 0
+        assert _hamming_distance(base, _simhash_signature("CBT REFRAMES negative AUTOMATIC thoughts")) == 0
+
+    def test_dissimilar_texts_large_hamming(self):
+        a = _simhash_signature("cognitive behavioral therapy session notes")
+        b = _simhash_signature("quantum chromodynamics lattice gauge theory")
+        assert _hamming_distance(a, b) > 3
+
+    def test_empty_text_zero_signature(self):
+        assert _simhash_signature("") == 0
+
+
+class TestSimHashIndex:
+    def test_near_duplicate_detected(self):
+        # Reordered tokens = near-identical SimHash (order-insensitive).
+        idx = SimHashIndex(hamming_threshold=3)
+        text_a = "CBT reframes negative automatic thoughts in depressed clients"
+        text_b = "depressed clients CBT reframes negative automatic thoughts in"
+        idx.add("a", _simhash_signature(text_a))
+        assert idx.is_near_duplicate(_simhash_signature(text_b), "b")
+
+    def test_distinct_not_duplicate(self):
+        idx = SimHashIndex(hamming_threshold=3)
+        idx.add("a", _simhash_signature("cognitive behavioral therapy session"))
+        assert not idx.is_near_duplicate(
+            _simhash_signature("quantum chromodynamics lattice gauge"), "b"
+        )
+
+    def test_self_not_duplicate(self):
+        idx = SimHashIndex(hamming_threshold=3)
+        sig = _simhash_signature("hello world")
+        idx.add("a", sig)
+        assert not idx.is_near_duplicate(sig, "a")
 
 
 class TestProcessFile:

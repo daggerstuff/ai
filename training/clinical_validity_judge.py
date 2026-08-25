@@ -80,6 +80,55 @@ not merely adequate. Generic supportive responses that lack specific
 therapeutic technique should score in the 0.3-0.5 range."""
 
 
+# Non-clinical generalization (blueprint B.3.1). Five domain-agnostic
+# dimensions with 4-bin calibration, mirroring ``llm_quality_judge.py``.
+GENERAL_EVALUATION_SYSTEM_PROMPT = """You are a quality evaluator for AI training data.
+Your task is to rate how good an assistant's response is, independent of domain.
+
+Evaluate the response on these five dimensions, each scored 0.0 to 1.0:
+- relevance: How relevant the response is to the user's question or request
+- accuracy: Factual accuracy and correctness of the information provided
+- helpfulness: How helpful, actionable, and useful the response is
+- style: Quality of writing, tone, clarity, and formatting
+- safety: Safety of the response (absence of harmful or inappropriate content)
+
+For each dimension, use 4 bins:
+- 0.0-0.25: Poor — absent or actively bad
+- 0.25-0.50: Fair — present but limited or generic
+- 0.50-0.75: Good — solid, above-average quality
+- 0.75-1.0: Excellent — exceptional, specific, and nuanced
+
+Output ONLY valid JSON with exactly these keys:
+{
+    "clinical_validity_score": <overall 0.0-1.0 float>,
+    "reasoning": "<brief rationale for the score, 1-2 sentences>",
+    "dimension_scores": {
+        "relevance": <0.0-1.0>,
+        "accuracy": <0.0-1.0>,
+        "helpfulness": <0.0-1.0>,
+        "style": <0.0-1.0>,
+        "safety": <0.0-1.0>
+    }
+}
+
+Be critical. A score of 0.75+ should mean truly excellent quality,
+not merely adequate. Generic responses should score in the 0.25-0.50 range."""
+
+
+# Domain rubric registry: dimension keys + system prompt per domain.
+# ``clinical`` keeps the original 6-dim rubric; ``general`` is the
+# non-clinical 5-dim rubric (blueprint B.3.1).
+DOMAIN_DIMENSIONS: dict[str, tuple[str, ...]] = {
+    "clinical": ("technique", "alliance", "structure", "cultural", "ebp", "dsm5"),
+    "general": ("relevance", "accuracy", "helpfulness", "style", "safety"),
+}
+
+DOMAIN_SYSTEM_PROMPTS: dict[str, str] = {
+    "clinical": CLINICAL_EVALUATION_SYSTEM_PROMPT,
+    "general": GENERAL_EVALUATION_SYSTEM_PROMPT,
+}
+
+
 class ClinicalValidityJudge:
     """LLM-based clinical validity judge with regex fallback.
 
@@ -101,13 +150,30 @@ class ClinicalValidityJudge:
     # ------------------------------------------------------------------
 
     @classmethod
-    def score(cls, text: str, nemo_config: NemoConfig | None = None) -> float:
-        """Compute overall clinical validity score in [0.0, 1.0].
+    def _dimensions(cls, domain: str) -> tuple[str, ...]:
+        """Return the dimension keys for a domain (clinical or general)."""
+        if domain not in DOMAIN_DIMENSIONS:
+            raise ValueError(f"Unknown domain {domain!r}; expected one of {sorted(DOMAIN_DIMENSIONS)}")
+        return DOMAIN_DIMENSIONS[domain]
+
+    @classmethod
+    def _empty_detail(cls, domain: str) -> dict[str, float]:
+        return dict.fromkeys(cls._dimensions(domain), 0.0)
+
+    @classmethod
+    def score(
+        cls,
+        text: str,
+        nemo_config: NemoConfig | None = None,
+        *,
+        domain: str = "clinical",
+    ) -> float:
+        """Compute overall validity score in [0.0, 1.0].
 
         Uses LLM judge when nemo_config is provided, falls back to
-        ClinicalValidityScorer otherwise.
+        ClinicalValidityScorer otherwise (clinical domain only).
         """
-        result = cls.evaluate(text, nemo_config)
+        result = cls.evaluate(text, nemo_config, domain=domain)
         return result.get("validity_score", 0.0)
 
     @classmethod
@@ -115,24 +181,31 @@ class ClinicalValidityJudge:
         cls,
         text: str | None,
         nemo_config: NemoConfig | None = None,
+        *,
+        domain: str = "clinical",
     ) -> dict[str, Any]:
-        """Evaluate therapeutic text and return structured score.
+        """Evaluate text and return structured score.
 
         Args:
-            text: Therapist response text to evaluate.
-            nemo_config: NeMo API config. Required — no fallback is provided.
+            text: Response text to evaluate.
+            nemo_config: NeMo API config. ``None`` triggers regex fallback for
+                the clinical domain; the general domain has no regex scorer.
+            domain: ``"clinical"`` (6-dim rubric) or ``"general"`` (5-dim
+                non-clinical rubric, blueprint B.3.1). Default ``"clinical"``.
 
         Returns:
             dict with keys: validity_score, flags (list), category (str),
             detail (dict of dimension scores).
         """
+        dims = cls._dimensions(domain)
+
         # --- Empty/None guard ---
         if not text or not isinstance(text, str) or not text.strip():
             return {
                 "validity_score": 0.0,
                 "flags": ["empty_input"],
                 "category": "unknown",
-                "detail": dict.fromkeys(ClinicalValidityScorer.WEIGHTS, 0.0),
+                "detail": dict.fromkeys(dims, 0.0),
             }
 
         # --- Non-English guard (skip LLM call) ---
@@ -141,7 +214,7 @@ class ClinicalValidityJudge:
                 "validity_score": 0.0,
                 "flags": ["non_english_content"],
                 "category": "unknown",
-                "detail": dict.fromkeys(ClinicalValidityScorer.WEIGHTS, 0.0),
+                "detail": dict.fromkeys(dims, 0.0),
             }
 
         fallback = False
@@ -150,10 +223,10 @@ class ClinicalValidityJudge:
             fallback = True
         else:
             try:
-                judge_result = cls._call_judge(text, nemo_config)
+                judge_result = cls._call_judge(text, nemo_config, domain=domain)
             except Exception as e:
                 logger.warning(
-                    "ClinicalValidityJudge: LLM judge call failed (%s); falling back to ClinicalValidityScorer",
+                    "ClinicalValidityJudge: LLM judge call failed (%s); falling back to scorer",
                     e,
                 )
                 fallback = True
@@ -161,10 +234,18 @@ class ClinicalValidityJudge:
                 fallback = True
 
         if fallback:
-            result = ClinicalValidityScorer.score_with_flags(text)
-            if "fallback_regex" not in result["flags"]:
-                result["flags"].append("fallback_regex")
-            return result
+            if domain == "clinical":
+                result = ClinicalValidityScorer.score_with_flags(text)
+                if "fallback_regex" not in result["flags"]:
+                    result["flags"].append("fallback_regex")
+                return result
+            # General domain has no keyword scorer — return a zeroed result.
+            return {
+                "validity_score": 0.0,
+                "flags": ["fallback_unavailable"],
+                "category": "unknown",
+                "detail": dict.fromkeys(dims, 0.0),
+            }
 
         return judge_result
 
@@ -173,9 +254,11 @@ class ClinicalValidityJudge:
         cls,
         text: str | None,
         nemo_config: NemoConfig | None = None,
+        *,
+        domain: str = "clinical",
     ) -> dict[str, Any]:
         """Alias for evaluate() — same output schema as ClinicalValidityScorer."""
-        return cls.evaluate(text, nemo_config)
+        return cls.evaluate(text, nemo_config, domain=domain)
 
     @classmethod
     def classify_score(cls, score: float) -> str:
@@ -187,17 +270,24 @@ class ClinicalValidityJudge:
     # ------------------------------------------------------------------
 
     @classmethod
-    def _build_evaluation_prompt(cls, text: str) -> str:
+    def _build_evaluation_prompt(cls, text: str, domain: str = "clinical") -> str:
         """Build a structured evaluation prompt for the LLM judge."""
+        label = "clinical quality of this therapist response" if domain == "clinical" else "quality of this response"
         return (
-            f"Evaluate the clinical quality of this therapist response:\n\n"
-            f"THERAPIST RESPONSE:\n{text}\n\n"
-            f"Rate each dimension 0.0-1.0 and provide an overall clinical validity score. "
+            f"Evaluate the {label}:\n\n"
+            f"RESPONSE:\n{text}\n\n"
+            f"Rate each dimension 0.0-1.0 and provide an overall score. "
             f"Output ONLY valid JSON."
         )
 
     @classmethod
-    def _call_judge(cls, text: str, nemo_config: Any) -> dict[str, Any] | None:
+    def _call_judge(
+        cls,
+        text: str,
+        nemo_config: Any,
+        *,
+        domain: str = "clinical",
+    ) -> dict[str, Any] | None:
         """Call NeMo API and parse the judge's evaluation.
 
         Returns structured dict or None on failure.
@@ -205,23 +295,30 @@ class ClinicalValidityJudge:
         # Lazy import to avoid circular dependency with sdg_pipeline.py
         from training.sdg_pipeline import _call_nemo  # type: ignore[attr-defined]
 
-        system_prompt = CLINICAL_EVALUATION_SYSTEM_PROMPT
-        user_prompt = cls._build_evaluation_prompt(text)
+        system_prompt = DOMAIN_SYSTEM_PROMPTS[domain]
+        user_prompt = cls._build_evaluation_prompt(text, domain)
 
         raw_response = _call_nemo(user_prompt, nemo_config, system_prompt=system_prompt)
 
         if not raw_response:
             return None
 
-        return cls._parse_judge_response(raw_response, text)
+        return cls._parse_judge_response(raw_response, text, domain=domain)
 
     @classmethod
-    def _parse_judge_response(cls, raw_response: str, original_text: str) -> dict[str, Any] | None:
+    def _parse_judge_response(
+        cls,
+        raw_response: str,
+        original_text: str,
+        *,
+        domain: str = "clinical",
+    ) -> dict[str, Any] | None:
         """Parse the LLM's JSON response into the standard output schema.
 
         Extracts the JSON blob (handling ```json ... ``` wrapping),
         validates fields, and returns the standard dict.
         """
+        dims = cls._dimensions(domain)
         text = raw_response.strip()
 
         # Strip markdown code fences if present
@@ -252,7 +349,7 @@ class ClinicalValidityJudge:
         # Extract dimension scores
         dimension_scores = parsed.get("dimension_scores", {})
         detail: dict[str, float] = {}
-        for dim in ClinicalValidityScorer.WEIGHTS:
+        for dim in dims:
             raw = dimension_scores.get(dim, 0.0)
             detail[dim] = max(0.0, min(1.0, float(raw))) if isinstance(raw, (int, float)) else 0.0
 

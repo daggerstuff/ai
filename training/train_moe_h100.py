@@ -309,6 +309,7 @@ def create_h100_training_args(
     learning_rate: float = 3e-4,
     warmup_steps: int = 1000,
     max_steps: int = -1,
+    deepspeed: str | None = None,
 ) -> TrainingArguments:
     """
     Create H100-optimized training arguments
@@ -346,7 +347,7 @@ def create_h100_training_args(
         save_steps=500,
         save_total_limit=5,
         # Evaluation
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         eval_steps=500,
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
@@ -354,10 +355,11 @@ def create_h100_training_args(
         report_to="wandb",
         # Performance
         optim="adamw_torch_fused",  # Fused optimizer for H100
-        group_by_length=True,
         # Disable unnecessary features
         push_to_hub=False,
         remove_unused_columns=True,
+        # Distributed: DeepSpeed ZeRO-3 (optional). Path to ds_config_zero3.json.
+        deepspeed=deepspeed,
     )
 
 
