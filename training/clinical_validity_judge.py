@@ -293,7 +293,7 @@ class ClinicalValidityJudge:
         Returns structured dict or None on failure.
         """
         # Lazy import to avoid circular dependency with sdg_pipeline.py
-        from training.sdg_pipeline import _call_nemo  # type: ignore[attr-defined]
+        from training.sdg_pipeline import _call_nemo
 
         system_prompt = DOMAIN_SYSTEM_PROMPTS[domain]
         user_prompt = cls._build_evaluation_prompt(text, domain)
@@ -303,13 +303,12 @@ class ClinicalValidityJudge:
         if not raw_response:
             return None
 
-        return cls._parse_judge_response(raw_response, text, domain=domain)
+        return cls._parse_judge_response(raw_response, domain=domain)
 
     @classmethod
     def _parse_judge_response(
         cls,
         raw_response: str,
-        original_text: str,
         *,
         domain: str = "clinical",
     ) -> dict[str, Any] | None:
@@ -401,7 +400,7 @@ def _build_nemo_config_from_env() -> Any | None:
     import os
 
     # Lazy import to avoid circular dependency with sdg_pipeline.py
-    from training.sdg_pipeline import NemoConfig  # type: ignore[attr-defined]
+    from training.sdg_pipeline import NemoConfig
 
     endpoint = os.getenv("NEMO_ENDPOINT", "") or os.getenv("NVIDIA_BASE_URL", "")
     api_key = os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", "")

@@ -24,6 +24,7 @@ import glob
 import json
 import logging
 import os
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
@@ -113,7 +114,7 @@ def _analyze_presidio(text: str, analyzer: AnalyzerEngine) -> list[Any]:
         return []
 
 
-def pii_llm_pass(text: str, nemo_config: "NemoConfig") -> str:
+def pii_llm_pass(text: str, nemo_config: NemoConfig) -> str:
     """Layer 3 LLM pass to catch indirect-reference PII.
 
     Returns the LLM-redacted text, or the original text on any failure.
@@ -121,7 +122,7 @@ def pii_llm_pass(text: str, nemo_config: "NemoConfig") -> str:
     if not text or not text.strip():
         return text
     # Lazy import to avoid a hard dependency on sdg_pipeline at module load.
-    from training.sdg_pipeline import _call_nemo  # type: ignore[attr-defined]
+    from training.sdg_pipeline import _call_nemo
 
     prompt = (
         "Redact any indirect or partially-obscured PII in the text below. "
@@ -143,7 +144,7 @@ def scrub_text(
     text: str,
     analyzer: AnalyzerEngine,
     anonymizer: AnonymizerEngine,
-    nemo_config: "NemoConfig | None" = None,
+    nemo_config: NemoConfig | None = None,
 ) -> tuple[str, ScrubStats]:
     """Three-layer PII scrub. Returns ``(scrubbed_text, ScrubStats)``."""
     stats = ScrubStats()
@@ -167,17 +168,15 @@ def scrub_text(
         before = text
         text = pii_llm_pass(text, nemo_config)
         # Heuristic hit count: bracketed tags introduced by the LLM.
-        import re as _re
-
-        llm_tags = _re.findall(r"\[(?:PERSON|LOCATION|DATE_TIME|PHONE_NUMBER|EMAIL_ADDRESS|ORGANIZATION)\]", text)
+        llm_tags = re.findall(r"\[(?:PERSON|LOCATION|DATE_TIME|PHONE_NUMBER|EMAIL_ADDRESS|ORGANIZATION)\]", text)
         stats.llm_hits = len(llm_tags) if text != before else 0
 
     return (text, stats)
 
 
-def build_nemo_config_from_env() -> "NemoConfig | None":
+def build_nemo_config_from_env() -> NemoConfig | None:
     """Build a NemoConfig from environment variables, or None if unset."""
-    from training.sdg_pipeline import NemoConfig  # type: ignore[attr-defined]
+    from training.sdg_pipeline import NemoConfig
 
     endpoint = os.getenv("NEMO_ENDPOINT", "") or os.getenv("NVIDIA_BASE_URL", "")
     api_key = os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", "")
