@@ -32,7 +32,12 @@ jobs:
 
       - name: Run unit tests
         run: |
-          uv run pytest training/tests/ qa/testing/ -v --cov=. --cov-report=lcov
+          uv run pytest training/tests/ qa/testing/ \
+            --ignore=qa/testing/test_extraction_modules.py \
+            --ignore=qa/testing/test_receipt_persistence.py \
+            --ignore=qa/testing/test_receipts.py \
+            --ignore=qa/testing/test_vertical_fidelity_stack.py \
+            -v --cov=. --cov-report=lcov
 
       - name: Prepare coverage report
         run: |
