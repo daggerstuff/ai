@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<View>
+  <Text name="description" value="Rate the quality of this therapeutic conversation sample. Consider empathy, clinical accuracy, helpfulness, style, and safety."/>
+  <Text name="text" value="$text"/>
+
+  <View>
+    <Choices name="category" toName="text" choice="single">
+      <Choice value="poor"/>
+      <Choice value="fair"/>
+      <Choice value="good"/>
+      <Choice value="excellent"/>
+    </Choices>
+  </View>
+
+  <View>
+    <Dropdown name="domain" toName="text" placeholder="Select domain">
+      <Option value="clinical"/>
+      <Option value="behavioral"/>
+      <Option value="crisis"/>
+      <Option value="administrative"/>
+    </Dropdown>
+  </View>
+
+  <View>
+    <Dropdown name="difficulty" toName="text" placeholder="Select difficulty">
+      <Option value="easy"/>
+      <Option value="medium"/>
+      <Option value="hard"/>
+    </Dropdown>
+  </View>
+
+  <View>
+    <Number name="quality_score" toName="text" min="0.0" max="1.0" step="0.01"/>
+  </View>
+
+  <View>
+    <TextArea name="reject_reason" toName="text" placeholder="Reason for rejection (optional)"/>
+  </View>
+
+</View>

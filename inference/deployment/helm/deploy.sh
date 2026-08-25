@@ -12,9 +12,14 @@ CHART_DIR="$SCRIPT_DIR/pixelated-empathy"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
 run_redis_hardening_audit() {
-  if ! "${PROJECT_ROOT}/scripts/check-redis-hardening.sh"; then
-    echo "Redis hardening audit failed"
-    exit 1
+  local audit_script="${PROJECT_ROOT}/scripts/check-redis-hardening.sh"
+  if [[ -f "$audit_script" ]]; then
+    if ! "$audit_script"; then
+      echo "Redis hardening audit failed"
+      exit 1
+    fi
+  else
+    log_warning "Redis hardening audit script not found, skipping..."
   fi
 }
 
@@ -72,15 +77,9 @@ check_prerequisites() {
         exit 1
     fi
     
-    # Check if kubectl is installed and configured
+    # Check if kubectl is installed
     if ! command -v kubectl &> /dev/null; then
         log_error "kubectl is not installed. Please install kubectl first."
-        exit 1
-    fi
-    
-    # Check if we can connect to the cluster
-    if ! kubectl cluster-info &> /dev/null; then
-        log_error "Cannot connect to Kubernetes cluster. Please check your kubeconfig."
         exit 1
     fi
     

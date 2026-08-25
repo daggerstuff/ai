@@ -18,3 +18,28 @@ securityContext:
     drop:
       - ALL
   readOnlyRootFilesystem: true
+
+# -- Service account settings
+serviceAccount:
+  create: false
+  name: ""
+
+# -- Service settings
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+# -- Application settings
+app:
+  config:
+    logLevel: 'info'
+    debug: false
+    maxWorkers: 2
+    batchSize: 50
+
+  secrets:
+    databaseUrl: ""
+    redisUrl: ""
+    jwtSecret: ""
+    encryptionKey: ""

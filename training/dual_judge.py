@@ -27,6 +27,7 @@ import math
 import os
 import re
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -44,7 +45,7 @@ SELF_CONSISTENCY_VARIANCE_MAX = 0.05
 DUAL_CONSISTENCY_DIFF_MAX = 0.15
 RECENCY_DECAY = 0.85
 ACCEPT_THRESHOLD = 0.60
-GOLDEN_CALIB_PATH = "ai/data/golden_judge_calib.jsonl"
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 
