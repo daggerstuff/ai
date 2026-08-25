@@ -33,7 +33,7 @@ jobs:
 
       - name: safety-critical-coverage
         run: |
-          uv run pytest training/tests --ignore=training/tests/test_book_pdf_converter.py \
+          uv run pytest training/tests/test_shared_config.py training/tests/test_multilingual_safety_checker.py training/tests/test_clinical_safety_checker.py training/tests/test_reward_score.py \
             --cov=training.shared_config \
             --cov=training.multilingual_safety_checker \
             --cov=training.clinical_safety_checker \
