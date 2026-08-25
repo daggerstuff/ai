@@ -208,7 +208,7 @@ def expand_seeds(
                 "acquired_at": __import__("datetime").datetime.utcnow().isoformat() + "Z",
                 "pipeline_version": "pix4345-sdg",
                 "license": "NOASSERTION",
-                "transformations": ["sdg_self_insect_pix4345"],
+                "transformations": ["sdg_self_instruct_pix4345"],
             }
             record["provenance"] = provenance_dict
 

@@ -323,7 +323,7 @@ def expand_seeds(
                 "Thank you for reaching out. This matters, and you don't have to carry it alone. What would feel most helpful to talk through first?",
                 "I'm here with you. It takes courage to put this into words. What's been weighing on you the most lately?",
             ]
-            assistant_reply = reply_variants[(hash(seed["id"]) + hash(lang)) % len(reply_variants)]
+            assistant_reply = reply_variants[(hash(seed.get("id", seed.get("prompt", ""))) + hash(lang)) % len(reply_variants)]
 
             # Rebuild the seed instruction template with the paraphrased utterance
             # (preserves the prompt schema while projecting the paraphrase into it)

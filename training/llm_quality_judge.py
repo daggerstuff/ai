@@ -365,7 +365,11 @@ class DualModelQualityJudge:
             raise FileNotFoundError(f"Golden calibration file not found: {path}")
 
         samples = self._load_golden_samples(path)
-        if any(s.get("_synthetic_golden_calibration") for s in samples):
+        if any(
+            s.get("_synthetic_golden_calibration")
+            or s.get("_neon_consensus_label")
+            for s in samples
+        ):
             logger.warning(
                 "Using synthetic/placeholder golden calibration data; "
                 "release-gate metrics are not representative of real human ratings."
