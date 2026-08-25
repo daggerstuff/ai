@@ -74,6 +74,7 @@ def optimize_for_dataset(
     num_epochs: int,
     priority: str = "balanced",
     max_hours: float = 12.0,
+    deepspeed: str | None = None,
 ) -> tuple[TrainingProfile, TrainingEstimate, TrainingArguments]:
     """Pick a training profile that fits ``max_hours`` and build training args.
 
@@ -83,6 +84,8 @@ def optimize_for_dataset(
         num_epochs: Desired epochs (may be reduced by the estimator).
         priority: One of ``"fast"``, ``"balanced"``, ``"quality"``.
         max_hours: Hard wall-clock budget for the run.
+        deepspeed: Optional path to a DeepSpeed config (e.g. ``ds_config_zero3.json``);
+            passed through to ``TrainingArguments`` to enable ZeRO-3 multi-GPU training.
 
     Returns:
         Tuple of (profile, estimate, training_args).
@@ -137,7 +140,7 @@ def optimize_for_dataset(
         gradient_accumulation_steps=profile.gradient_accumulation_steps,
         learning_rate=3e-4,
         weight_decay=0.01,
-        warmup_ratio=0.1,
+        warmup_steps=100,
         lr_scheduler_type="cosine",
         max_grad_norm=1.0,
         bf16=True,
@@ -147,12 +150,13 @@ def optimize_for_dataset(
         save_strategy="steps",
         save_steps=500,
         save_total_limit=5,
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         eval_steps=500,
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         report_to="wandb",
         remove_unused_columns=True,
+        deepspeed=deepspeed,
     )
 
     return profile, estimate, training_args

@@ -37,6 +37,7 @@ class ProcessingContext:
     edge_case_hashes: set[str]
     token_sets: list[tuple[frozenset[str], str]]
     lsh_index: _MinHashIndex | None = None  # None = Jaccard window mode
+    simhash_index: SimHashIndex | None = None  # None = simhash disabled
 
 
 @dataclasses.dataclass
@@ -112,6 +113,94 @@ def _minhash_jaccard(sig_a: list[int], sig_b: list[int]) -> float:
         return 0.0
     matches = sum(1 for a, b in zip(sig_a, sig_b) if a == b)
     return matches / len(sig_a)
+
+
+_SIMHASH_BITS = 64
+_SIMHASH_BANDS = 4  # 64 bits / 16-bit bands: Hamming <= 3 => at least one band identical
+
+
+def _simhash_signature(text: str, bits: int = _SIMHASH_BITS) -> int:
+    """64-bit SimHash fingerprint (PIX-4242 cross-source dedup).
+
+    Sums each token's 64-bit hash per bit position (+1 set, -1 unset); the
+    fingerprint bit is 1 where the sum is positive. Empty text yields 0 so it
+    matches itself (Hamming 0), consistent with the other dedup paths.
+    """
+    tokens = text.lower().split()
+    vector = [0] * bits
+    for token in tokens:
+        h = int.from_bytes(hashlib.sha256(token.encode("utf-8")).digest()[:8], "little")
+        for i in range(bits):
+            vector[i] += 1 if (h >> i) & 1 else -1
+    sig = 0
+    for i in range(bits):
+        if vector[i] > 0:
+            sig |= 1 << i
+    return sig
+
+
+def _hamming_distance(a: int, b: int) -> int:
+    """Number of differing bits between two SimHash fingerprints."""
+    return (a ^ b).bit_count()
+
+
+class SimHashIndex:
+    """Bucketed index over 64-bit SimHash fingerprints.
+
+    Splits the fingerprint into ``bands`` equal-width chunks. By the pigeonhole
+    principle, two fingerprints within Hamming distance ``<= 3`` share at least
+    one identical 16-bit chunk (for 64 bits / 4 bands), so candidates are found
+    by exact chunk lookup and confirmed with an exact Hamming comparison.
+    """
+
+    def __init__(
+        self,
+        hamming_threshold: int = 3,
+        bits: int = _SIMHASH_BITS,
+        bands: int = _SIMHASH_BANDS,
+    ) -> None:
+        if bits % bands != 0:
+            raise ValueError(f"bits ({bits}) must be divisible by bands ({bands})")
+        self.hamming_threshold = hamming_threshold
+        self.bits = bits
+        self.bands = bands
+        self.band_bits = bits // bands
+        self.signatures: dict[str, int] = {}
+        self.buckets: list[dict[int, list[str]]] = [
+            defaultdict(list) for _ in range(bands)
+        ]
+
+    def _band(self, signature: int, band: int) -> int:
+        shift = band * self.band_bits
+        mask = (1 << self.band_bits) - 1
+        return (signature >> shift) & mask
+
+    def add(self, text_hash: str, signature: int) -> None:
+        self.signatures[text_hash] = signature
+        for b in range(self.bands):
+            self.buckets[b][self._band(signature, b)].append(text_hash)
+
+    def query_candidates(self, signature: int) -> set[str]:
+        candidates: set[str] = set()
+        for b in range(self.bands):
+            for h in self.buckets[b].get(self._band(signature, b), ()):
+                candidates.add(h)
+        return candidates
+
+    def signature_for(self, text_hash: str) -> int | None:
+        return self.signatures.get(text_hash)
+
+    def is_near_duplicate(self, signature: int, text_hash: str) -> bool:
+        """True if ``signature`` is within Hamming threshold of any indexed sig."""
+        for cand_hash in self.query_candidates(signature):
+            if cand_hash == text_hash:
+                continue
+            cand_sig = self.signature_for(cand_hash)
+            if cand_sig is None:
+                continue
+            if _hamming_distance(signature, cand_sig) <= self.hamming_threshold:
+                return True
+        return False
 
 
 class _MinHashIndex:
@@ -294,7 +383,12 @@ def process_file(
 
                 tokens = _token_set(text)
                 is_near_dup = False
-                if ctx.lsh_index is not None:
+                if ctx.simhash_index is not None:
+                    sig = _simhash_signature(text)
+                    is_near_dup = ctx.simhash_index.is_near_duplicate(sig, text_hash)
+                    if not is_near_dup:
+                        ctx.simhash_index.add(text_hash, sig)
+                elif ctx.lsh_index is not None:
                     sig = _minhash_signature(text, ctx.lsh_index.num_perm)
                     is_near_dup = ctx.lsh_index.is_near_duplicate(sig, text_hash)
                     if not is_near_dup:
@@ -353,6 +447,7 @@ def run_dedup(args: argparse.Namespace) -> None:
     shard_size = args.shard_size
 
     lsh_index: _MinHashIndex | None = None
+    simhash_index: SimHashIndex | None = None
     if args.semantic_dedup == "lsh":
         lsh_index = _MinHashIndex(
             num_perm=args.num_perm,
@@ -368,12 +463,21 @@ def run_dedup(args: argparse.Namespace) -> None:
             args.lsh_rows,
             lsh_index.use_datasketch,
         )
+    elif args.semantic_dedup == "simhash":
+        simhash_index = SimHashIndex(hamming_threshold=args.simhash_hamming_threshold)
+        logger.info(
+            "SimHash enabled: bits=%d bands=%d hamming_threshold=%d",
+            simhash_index.bits,
+            simhash_index.bands,
+            simhash_index.hamming_threshold,
+        )
 
     ctx = ProcessingContext(
         seen_hashes=set(),
         edge_case_hashes=set(),
         token_sets=[],
         lsh_index=lsh_index,
+        simhash_index=simhash_index,
     )
     rejection_log: list[dict] = []
 
@@ -454,6 +558,13 @@ def run_dedup(args: argparse.Namespace) -> None:
         }
         if lsh_index is not None
         else None,
+        "simhash_config": {
+            "bits": simhash_index.bits,
+            "bands": simhash_index.bands,
+            "hamming_threshold": simhash_index.hamming_threshold,
+        }
+        if simhash_index is not None
+        else None,
     }
     report_path = output_dir / "normalization_report.json"
     with open(report_path, "w", encoding="utf-8") as f:
@@ -519,9 +630,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--semantic_dedup",
-        choices=["none", "lsh"],
+        choices=["none", "lsh", "simhash"],
         default="none",
-        help="Near-dedup strategy: 'none' uses Jaccard window, 'lsh' uses MinHash/LSH banding.",
+        help="Near-dedup strategy: 'none' uses Jaccard window, 'lsh' uses MinHash/LSH banding, 'simhash' uses 64-bit SimHash + Hamming.",
     )
     parser.add_argument(
         "--num_perm",
@@ -545,6 +656,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--use_datasketch",
         action="store_true",
         help="Use datasketch MinHash/LSH if installed (otherwise pure-python fallback).",
+    )
+    parser.add_argument(
+        "--simhash_hamming_threshold",
+        type=int,
+        default=3,
+        help="Hamming distance threshold for SimHash dedup (near-duplicate if <= this).",
     )
     return parser
 
