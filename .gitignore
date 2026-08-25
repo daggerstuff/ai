@@ -235,3 +235,4 @@ patch_api.py
 pr_comments.txt
 pr_description.md
 PAL_AUDIT_REPORT.md
+**/*.pid
