@@ -200,6 +200,7 @@ training/tests/*
 !training/tests/test_llm_quality_judge.py
 !training/tests/test_iaa.py
 !training/tests/test_data_versioning.py
+!training/tests/test_post_training_optimization.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
