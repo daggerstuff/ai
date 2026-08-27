@@ -213,12 +213,125 @@ class MemoryManager:
             memory_type=MemoryType.EMOTIONAL_STATE,
         )
 
-    def clear_session_memory(self, session_id: str) -> bool:
-        logger.warning(
-            "Clear session memory for %s is not implemented for the current backend",
-            session_id,
-        )
-        return True
+    def clear_session_memory(self, session_id: str, user_id: str) -> bool:
+        """
+        Clear all memories associated with a specific session.
+
+        Fetches every memory for the user, filters by ``session_id`` in
+        the metadata, then deletes each matching record individually so
+        that memories from other sessions are preserved.
+
+        Args:
+            session_id: Session whose memories should be cleared.
+            user_id: Owner of the memories (required by the backend).
+
+        Returns:
+            True if all session memories were cleared (or none existed),
+            False if any deletion failed or the backend lacks the needed
+            operations.
+        """
+        if not session_id:
+            logger.error("clear_session_memory: session_id is required")
+            return False
+        if not user_id:
+            logger.error("clear_session_memory: user_id is required")
+            return False
+
+        try:
+            # --- Fetch all memories for the user ---
+            # The backend may expose either the legacy-adapter interface
+            # (``get_all`` returning a dict) or the native interface
+            # (``get_all_memories`` returning a list).
+            memories: list[dict[str, Any]] = []
+
+            if hasattr(self.client, "get_all"):
+                raw = self.client.get_all(user_id=user_id)
+                if isinstance(raw, dict):
+                    memories = raw.get("results", [])
+                elif isinstance(raw, list):
+                    memories = raw
+            elif hasattr(self.client, "get_all_memories"):
+                memories = self.client.get_all_memories(user_id=user_id, limit=10000)
+
+            # --- Filter to memories belonging to this session ---
+            session_memory_ids: list[str] = []
+            for m in memories:
+                if not isinstance(m, dict):
+                    continue
+                meta = m.get("metadata") or {}
+                if meta.get("session_id") == session_id:
+                    mid = m.get("id")
+                    if mid:
+                        session_memory_ids.append(str(mid))
+
+            if not session_memory_ids:
+                logger.info(
+                    "No memories found for session %s (user %s); nothing to clear",
+                    session_id,
+                    user_id,
+                )
+                return True
+
+            # --- Delete matching memories ---
+            # Prefer batch deletion when available for efficiency.
+            if hasattr(self.client, "_delete_memories"):
+                deleted = self.client._delete_memories(
+                    session_memory_ids, user_id=user_id
+                )
+                if isinstance(deleted, int):
+                    success = deleted == len(session_memory_ids)
+                else:
+                    success = bool(deleted)
+                if not success:
+                    logger.warning(
+                        "Batch delete cleared %s/%s memories for session %s",
+                        deleted,
+                        len(session_memory_ids),
+                        session_id,
+                    )
+                return success
+
+            # Fallback: delete one-by-one via whichever interface is available.
+            failed: list[str] = []
+            for mid in session_memory_ids:
+                ok = False
+                if hasattr(self.client, "delete"):
+                    ok = self.client.delete(mid, user_id=user_id)
+                elif hasattr(self.client, "delete_memory"):
+                    ok = self.client.delete_memory(mid, user_id=user_id)
+                else:
+                    logger.error(
+                        "Memory client does not support deletion (no "
+                        "'delete' or 'delete_memory' method)"
+                    )
+                    return False
+                if not ok:
+                    failed.append(mid)
+
+            if failed:
+                logger.warning(
+                    "Failed to delete %d/%d memories for session %s: %s",
+                    len(failed),
+                    len(session_memory_ids),
+                    session_id,
+                    failed,
+                )
+                return False
+
+            logger.info(
+                "Cleared %d memories for session %s (user %s)",
+                len(session_memory_ids),
+                session_id,
+                user_id,
+            )
+            return True
+        except Exception as e:
+            logger.error(
+                "Error clearing session memory for session %s: %s",
+                session_id,
+                e,
+            )
+            return False
 
     def get_memory_stats(self, session_id: str) -> dict[str, Any]:
         return {

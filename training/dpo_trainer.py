@@ -214,16 +214,34 @@ def run_dpo(args: argparse.Namespace) -> None:
 
         DPOConfig = None
 
-    data_path = Path(args.data_path)
     output_dir = Path(args.output_dir)
     max_seq_length = args.max_seq_length
 
+    data_paths: list[Path]
+    if args.data_paths:
+        data_paths = [Path(p) for p in args.data_paths]
+    elif args.data_path:
+        data_paths = [Path(args.data_path)]
+    else:
+        raise ValueError("Either --data_path or --data_paths must be provided.")
+
     # SAFETY FILTER DISABLED PER USER REQUEST - NO SAFETY CHECKER USED
-    pairs = load_preference_dataset(
-        data_path,
-        max_seq_length,
-        logger,
+    all_pairs: list[dict[str, str]] = []
+    for dp in data_paths:
+        logger.info("Loading preference data from %s", dp)
+        pairs = load_preference_dataset(
+            dp,
+            max_seq_length,
+            logger,
+        )
+        all_pairs.extend(pairs)
+
+    logger.info(
+        "Combined %d preference pairs from %d file(s)",
+        len(all_pairs),
+        len(data_paths),
     )
+    pairs = all_pairs
 
     logger.info("Loading model from %s", args.base_model_checkpoint)
     bnb_config = shared_qlora_config()
@@ -311,7 +329,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="DPO trainer for preference alignment.",
     )
-    parser.add_argument("--data_path", type=str, required=True)
+    parser.add_argument("--data_path", type=str, required=False)
+    parser.add_argument(
+        "--data_paths",
+        type=str,
+        nargs="+",
+        default=None,
+        help="Multiple JSONL preference files to merge (e.g. anti-echo + persona-conditioned).",
+    )
     parser.add_argument("--base_model_checkpoint", type=str, required=True)
     parser.add_argument("--output_dir", type=str, required=True)
     parser.add_argument("--beta", type=float, default=0.1)
