@@ -369,6 +369,17 @@ ignore = []
     "ARG002",
     "PLC0415",
 ]
+"training/dual_judge.py" = [
+    "T201",
+    "PLR0913",
+    "PLR2004",
+    "E501",
+]
+"training/tests/test_dual_judge.py" = [
+    "PLR2004",
+    "ARG005",
+    "PLC0415",
+]
 
 [tool.ruff.lint.isort]
 known-first-party = [

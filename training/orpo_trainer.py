@@ -39,11 +39,43 @@ Usage (Axolotl config equivalent)::
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import logging
+from contextlib import suppress
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from datasets import Dataset
+from peft import prepare_model_for_kbit_training
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    EarlyStoppingCallback,
+    TrainingArguments,
+)
+
+try:
+    import wandb
+except ImportError:
+    wandb = None  # Optional dependency; None disables tracking.
+
+try:
+    from trl import ORPOConfig
+except ImportError:
+    try:
+        from trl.experimental.orpo import ORPOConfig
+    except ImportError:
+        ORPOConfig = TrainingArguments
+
+try:
+    from trl import ORPOTrainer
+except ImportError:
+    try:
+        from trl.experimental.orpo import ORPOTrainer
+    except ImportError:
+        ORPOTrainer = None
 
 try:
     from .shared_config import (
@@ -121,7 +153,7 @@ def save_metrics(
         "metrics": metrics,
     }
     if extra:
-        report.update(extra)
+        report |= extra
     metrics_path = output_dir / "orpo_metrics.json"
     with open(metrics_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
@@ -136,14 +168,6 @@ def _build_training_args(args: argparse.Namespace):
     - ``ORPOConfig`` available (trl >= 0.14): use it.
     - Fallback: construct via ``TrainingArguments`` with ORPO-specific kwargs.
     """
-    try:
-        from trl import ORPOConfig
-    except ImportError:
-        try:
-            from trl.experimental.orpo import ORPOConfig
-        except ImportError:
-            from transformers import TrainingArguments as ORPOConfig
-
     kwargs = {
         "output_dir": str(args.output_dir),
         "per_device_train_batch_size": args.batch_size,
@@ -179,8 +203,6 @@ def _build_training_args(args: argparse.Namespace):
     try:
         return ORPOConfig(**kwargs)
     except TypeError:
-        import inspect
-
         sig = inspect.signature(ORPOConfig.__init__)
         supported = {k: v for k, v in kwargs.items() if k in sig.parameters}
         return ORPOConfig(**supported)
@@ -190,10 +212,7 @@ def _setup_wandb(args: argparse.Namespace) -> dict[str, Any] | None:
     """Initialize WandB if configured, return metadata for metrics report."""
     if not args.wandb_project:
         return None
-
-    try:
-        import wandb
-    except ImportError:
+    if wandb is None:
         logger.warning("wandb not installed — skipping experiment tracking")
         return None
 
@@ -222,6 +241,69 @@ def _setup_wandb(args: argparse.Namespace) -> dict[str, Any] | None:
     }
 
 
+def _apply_adapter_variant(
+    lora_config: Any,
+    adapter_info: dict[str, str],
+    enabled: bool,
+    variant: str,
+    label: str,
+) -> None:
+    """Enable a LoRA adapter variant (DoRA/VeRA) when supported by PEFT."""
+    if not enabled:
+        return
+    with suppress(Exception):
+        setattr(lora_config, f"use_{variant}", True)
+        adapter_info["adapter_variant"] = variant
+        logger.info("Using %s", label)
+    if adapter_info["adapter_variant"] != variant:
+        logger.warning("%s requested but PEFT version does not support it", label)
+
+
+def _load_model_and_tokenizer(args: argparse.Namespace) -> tuple[Any, Any]:
+    """Load quantized base model and tokenizer, return both."""
+    logger.info("Loading model from %s", args.base_model_checkpoint)
+    bnb_config = shared_qlora_config()
+    model = AutoModelForCausalLM.from_pretrained(
+        args.base_model_checkpoint,
+        quantization_config=bnb_config,
+        device_map="auto",
+    )
+    model = prepare_model_for_kbit_training(model)
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model_checkpoint)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    return model, tokenizer
+
+
+def _build_metrics(train_result: Any, beta: float, verification: Any, num_samples: int) -> dict[str, Any]:
+    return {
+        "train_loss": train_result.training_loss,
+        "train_runtime": train_result.metrics.get("train_runtime", 0),
+        "train_samples_per_second": train_result.metrics.get("train_samples_per_second", 0),
+        "beta": beta,
+        "checkpoint_verification": verification,
+        "num_train_samples": num_samples,
+    }
+
+
+def _build_extra(
+    args: argparse.Namespace,
+    adapter_info: dict[str, str],
+    wandb_meta: dict[str, Any] | None,
+) -> dict[str, Any]:
+    extra = {
+        "adapter_variant": adapter_info["adapter_variant"],
+        "deepspeed_config": str(args.deepspeed) if args.deepspeed else None,
+        "gradient_checkpointing": args.gradient_checkpointing,
+        "flash_attention": args.flash_attention,
+        "warmup_ratio": args.warmup_ratio,
+        "lr_scheduler_type": args.lr_scheduler_type,
+    }
+    if wandb_meta:
+        extra |= wandb_meta
+    return extra
+
+
 def run_orpo(args: argparse.Namespace) -> None:
     """Run ORPO training.
 
@@ -230,18 +312,9 @@ def run_orpo(args: argparse.Namespace) -> None:
     controls the strength of the preference penalty (default 0.1 per
     Appendix C).
     """
-    from datasets import Dataset
-    from peft import prepare_model_for_kbit_training
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-
-    try:
-        from trl import ORPOTrainer
-    except ImportError:
-        try:
-            from trl.experimental.orpo import ORPOTrainer
-        except ImportError:
-            logger.error("ORPOTrainer requires trl >= 0.14. Install with: pip install trl>=0.14")
-            return
+    if ORPOTrainer is None:
+        logger.error("ORPOTrainer requires trl >= 0.14. Install with: pip install trl>=0.14")
+        return
 
     data_path = Path(args.data_path)
     output_dir = Path(args.output_dir)
@@ -265,17 +338,7 @@ def run_orpo(args: argparse.Namespace) -> None:
             "orpo_rejected",
         )
 
-    logger.info("Loading model from %s", args.base_model_checkpoint)
-    bnb_config = shared_qlora_config()
-    model = AutoModelForCausalLM.from_pretrained(
-        args.base_model_checkpoint,
-        quantization_config=bnb_config,
-        device_map="auto",
-    )
-    model = prepare_model_for_kbit_training(model)
-    tokenizer = AutoTokenizer.from_pretrained(args.base_model_checkpoint)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
+    model, tokenizer = _load_model_and_tokenizer(args)
 
     lora_config = build_lora_config(args)
     logger.info(
@@ -286,29 +349,24 @@ def run_orpo(args: argparse.Namespace) -> None:
     )
 
     adapter_info = {"adapter_variant": "lora"}
-
-    if getattr(args, "use_dora", False):
-        try:
-            lora_config.use_dora = True
-            adapter_info["adapter_variant"] = "dora"
-            logger.info("Using DoRA (Weight-Decomposed LoRA)")
-        except Exception:
-            logger.warning("use_dora requested but PEFT version does not support it")
-
-    if getattr(args, "use_vera", False):
-        try:
-            lora_config.use_vera = True
-            adapter_info["adapter_variant"] = "vera"
-            logger.info("Using VeRA (Vector-based Random Adaptation)")
-        except Exception:
-            logger.warning("use_vera requested but PEFT version does not support it")
+    _apply_adapter_variant(
+        lora_config,
+        adapter_info,
+        getattr(args, "use_dora", False),
+        "dora",
+        "DoRA (Weight-Decomposed LoRA)",
+    )
+    _apply_adapter_variant(
+        lora_config,
+        adapter_info,
+        getattr(args, "use_vera", False),
+        "vera",
+        "VeRA (Vector-based Random Adaptation)",
+    )
 
     dataset = Dataset.from_list(pairs)
-
     callback = CheckpointVerificationCallback()
-
     wandb_meta = _setup_wandb(args)
-
     training_args = _build_training_args(args)
 
     trainer_kwargs = {
@@ -321,15 +379,10 @@ def run_orpo(args: argparse.Namespace) -> None:
 
     callbacks = []
     if args.early_stopping_patience > 0:
-        try:
-            from transformers import EarlyStoppingCallback
-
-            callbacks.append(
-                EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)
-            )
-            logger.info("Early stopping enabled (patience=%d)", args.early_stopping_patience)
-        except ImportError:
-            logger.warning("EarlyStoppingCallback not available — skipping")
+        callbacks.append(
+            EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)
+        )
+        logger.info("Early stopping enabled (patience=%d)", args.early_stopping_patience)
 
     if callbacks:
         trainer_kwargs["callbacks"] = callbacks
@@ -357,36 +410,14 @@ def run_orpo(args: argparse.Namespace) -> None:
     verification = callback.verify(final_dir)
     logger.info("Checkpoint verification: %s", verification)
 
-    metrics = {
-        "train_loss": train_result.training_loss,
-        "train_runtime": train_result.metrics.get("train_runtime", 0),
-        "train_samples_per_second": train_result.metrics.get("train_samples_per_second", 0),
-        "beta": args.beta,
-        "checkpoint_verification": verification,
-        "num_train_samples": len(pairs),
-    }
-
-    extra = {
-        "adapter_variant": adapter_info["adapter_variant"],
-        "deepspeed_config": str(args.deepspeed) if args.deepspeed else None,
-        "gradient_checkpointing": args.gradient_checkpointing,
-        "flash_attention": args.flash_attention,
-        "warmup_ratio": args.warmup_ratio,
-        "lr_scheduler_type": args.lr_scheduler_type,
-    }
-
-    if wandb_meta:
-        extra.update(wandb_meta)
+    metrics = _build_metrics(train_result, args.beta, verification, len(pairs))
+    extra = _build_extra(args, adapter_info, wandb_meta)
 
     save_metrics(output_dir, metrics, args.beta, extra=extra)
 
     if wandb_meta:
-        try:
-            import wandb
-
+        with suppress(Exception):
             wandb.finish()
-        except Exception:
-            pass
 
     logger.info("ORPO training complete. Final model at %s", final_dir)
 
