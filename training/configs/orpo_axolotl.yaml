@@ -1,0 +1,123 @@
+# Axolotl ORPO config — single-pass SFT + preference alignment.
+#
+# Blueprint §2: "ORPO combines SFT + preference in single pass, no reference
+# model, lower memory.  Preferred over DPO for new pipelines."
+# Appendix C: "use_orpo: true, beta: 0.1, same dataset structure as DPO."
+#
+# Enhanced config covers:
+#   - QLoRA 4-bit with NF4 double-quant (Appendix C)
+#   - DoRA adapter variant (Appendix C: "improves performance for same rank")
+#   - DeepSpeed ZeRO-3 with CPU offload (Appendix D)
+#   - Flash Attention 2 (Appendix C: flash_attention: true)
+#   - Gradient checkpointing (memory optimization)
+#   - Cosine LR schedule with 10% warmup (Appendix C)
+#   - Early stopping patience 2 (Appendix E Step 3)
+#   - WandB experiment tracking
+#   - Evaluation every 50 steps (Appendix C: eval_steps 50)
+#
+# Usage:
+#   axolotl train ai/training/configs/orpo_axolotl.yaml
+#
+# Dataset format: JSONL with prompt / chosen / rejected fields
+# (same as DPO — see dpo_trainer.load_preference_dataset).
+
+base_model: Qwen/Qwen2.5-32B
+model_type: AutoModelForCausalLM
+tokenizer_type: AutoTokenizer
+
+load_in_8bit: false
+load_in_4bit: true
+strict: false
+
+datasets:
+  - path: ai/data/curated/preference_pairs/train.jsonl
+    type: orpo
+    chat_template: chatml
+val_set_size: 0.05
+output_dir: ./orpo-out
+
+adapter: qlora
+lora_model_dir:
+
+sequence_len: 2048
+sample_packing: true
+pad_to_sequence_len: true
+
+# LoRA hyperparameters (Appendix C: lora_r 32, lora_alpha 64 for ORPO).
+# Higher rank than SFT (16) because ORPO learns both SFT + preference.
+lora_r: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# DoRA: Weight-Decomposed LoRA (Appendix C: "better performance for same rank").
+# Uncomment to enable — requires PEFT >= 0.6 and Axolotl >= 0.4.1.
+# use_dora: true
+
+# ORPO-specific settings (Appendix C).
+orpo_beta: 0.1
+
+# Training hyperparameters (Appendix C).
+num_epochs: 1
+micro_batch_size: 1
+gradient_accumulation_steps: 4
+optimizer: paged_adamw_32bit
+lr_scheduler: cosine
+learning_rate: 5e-6  # Lower than SFT (2e-5) — ORPO is more sensitive.
+train_on_inputs: false
+group_by_length: false
+bf16: true
+fp16: false
+tf32: false
+
+# Memory optimizations.
+gradient_checkpointing: true
+flash_attention: true
+
+# Warmup + evaluation (Appendix C: warmup_ratio 0.1, eval_steps 50).
+warmup_ratio: 0.1
+eval_steps: 50
+eval_table_size:
+eval_table_max_new_tokens: 128
+
+# Early stopping (Appendix E Step 3: "early stop if val perplexity increases
+# for 2 consecutive epochs").
+early_stopping_patience: 2
+
+# Checkpoint management.
+save_total_limit: 3
+save_steps:
+resume_from_checkpoint:
+local_rank:
+
+# Logging.
+logging_steps: 10
+debug:
+
+# DeepSpeed ZeRO-3 with CPU offload (Appendix D).
+deepspeed: ai/training/configs/ds_config_zero3.json
+weight_decay: 0.0
+
+# FSDP (alternative to DeepSpeed — leave empty to use DeepSpeed).
+fsdp:
+fsdp_config:
+
+# WandB experiment tracking.
+wandb_project: pixelated-empathy-orpo
+wandb_entity:
+wandb_watch:
+wandb_name:
+wandb_log_model:
+
+# Special tokens (ChatML format).
+special_tokens:
+  bos_token: '<|im_start|>'
+  eos_token: '<|im_end|>'
+  pad_token: '<|im_end|>'

@@ -113,9 +113,8 @@
     "clinical_reasoning_score": ">=80%",
     "cultural_competency": ">=75%",
     "dataset_coverage": "100%"
-  }
-}
-    },
+  },
+  "phase_a_pretraining": {
     "training_params": {
       "learning_rate": 1e-4,
       "epochs": 1,
