@@ -1,0 +1,7 @@
+# DVC pipeline definition for training data curation
+stages:
+  curate:
+    cmd: python -m training.curate_pipeline --input ai/data/raw/deduped/all_desloped.jsonl --output ai/data/curated
+    outs:
+      - path: ai/data/curated/sft_chatml
+        dvc: true
