@@ -54,7 +54,7 @@ C_RESET = "\033[0m"
 C_GREEN = "\033[92m"
 C_RED = "\033[91m"
 MIN_RECOVERED_TEXT_LENGTH = 100
-DEFAULT_NIM_MIN_INTERVAL_SECONDS = 18.0
+DEFAULT_NIM_MIN_INTERVAL_SECONDS = 0.5
 OLLAMA_TIMEOUT_SECONDS = 300
 NIM_TIMEOUT_SECONDS = 180
 GEMINI_TIMEOUT_SECONDS = 60
@@ -155,6 +155,45 @@ def _call_gemini(system_prompt: str, user_content: str, model_id: str) -> str:
     raise RuntimeError(f"Gemini failed ({response.status_code}): {response.text[:200]}")
 
 
+CLOUDFLARE_API_TOKEN = (
+    os.environ.get("CLOUDFLARE_API_TOKEN")
+    or os.environ.get("CLOUDFLARE_AUTH_TOKEN")
+    or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
+    or ""
+)
+CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+
+
+def _call_cloudflare(
+    system_prompt: str, user_content: str, model_id: str = "@cf/zai-org/glm-5.3"
+) -> str:
+    _rate_limit()
+    url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{model_id}"
+    headers = {
+        "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_content},
+        ],
+        "max_tokens": 4096,
+    }
+    response = requests.post(url, headers=headers, json=payload, timeout=NIM_TIMEOUT_SECONDS)
+    if response.status_code == HTTP_OK:
+        data = response.json()
+        result = data.get("result", {})
+        if isinstance(result, dict):
+            content = result.get("response") or ""
+            if not content and "choices" in result and result["choices"]:
+                msg = result["choices"][0].get("message", {})
+                content = msg.get("content") or msg.get("reasoning_content") or ""
+            return content
+        return str(result)
+    raise RuntimeError(f"Cloudflare failed ({response.status_code}): {response.text[:200]}")
+
+
 def _try_provider(name: str, call: Callable[[], str], use_retry: bool = False) -> str:
     try:
         response = _retry_request(call) if use_retry else call()
@@ -165,6 +204,16 @@ def _try_provider(name: str, call: Callable[[], str], use_retry: bool = False) -
 
 
 def query_llm(system_prompt: str, user_content: str) -> str:
+    if CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID:
+        cf_model = os.environ.get("CF_MODEL_ID", "@cf/zai-org/glm-5.3")
+        cf_response = _try_provider(
+            "Cloudflare",
+            lambda: _call_cloudflare(system_prompt, user_content, cf_model),
+            use_retry=True,
+        )
+        if cf_response:
+            return cf_response
+
     ollama_host = os.environ.get("OLLAMA_HOST", "")
     ollama_model = os.environ.get("OLLAMA_MODEL", "medgemma1.5:latest")
     if ollama_host:
@@ -192,11 +241,6 @@ def query_llm(system_prompt: str, user_content: str) -> str:
         if gemini_response:
             return gemini_response
 
-    if ollama_host:
-        return _try_provider(
-            "Ollama",
-            lambda: _call_ollama(system_prompt, user_content, ollama_host, ollama_model),
-        )
     return ""
 
 
@@ -224,6 +268,10 @@ def _extract_epub(path: Path) -> str:
 
 def _extract_azw(path: Path) -> str | None:
     """Extract text from AZW3/MOBI via temporary conversion to EPUB."""
+    try:
+        import mobi
+    except ImportError:
+        mobi = None
     if mobi is None:
         raise ImportError("mobi is required for AZW3/MOBI extraction but is not installed")
     tmpdir = None
@@ -338,14 +386,18 @@ def _extract_json_pair(raw_line: str) -> dict[str, str] | None:
     return None
 
 
-def _parse_distilled_pair(stripped_line: str, pairs: list[dict[str, str]]) -> None:
+def _parse_distilled_pair(stripped_line: str, pairs: list[dict[str, Any]]) -> None:
     try:
         pair = json.loads(stripped_line)
     except (json.JSONDecodeError, TypeError):
         pair = None
-    if isinstance(pair, dict) and "instruction" in pair and "output" in pair:
-        pairs.append(pair)
-        return
+    if isinstance(pair, dict):
+        if "messages" in pair and isinstance(pair["messages"], list):
+            pairs.append(pair)
+            return
+        if "instruction" in pair and "output" in pair:
+            pairs.append(pair)
+            return
 
     line_lower = stripped_line.lower()
     if "instruction" in line_lower and "output" in line_lower:
@@ -369,31 +421,18 @@ def _parse_distilled_pair(stripped_line: str, pairs: list[dict[str, str]]) -> No
         pairs.append(fallback_pair)
 
 
-def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
+def distill_chunk(chunk: str, title: str) -> list[dict[str, Any]]:
     system_prompt = (
-        "You are a clinical psychology expert generating training data for a therapist AI. "
-        "Use the book excerpt below to produce grounded, specific therapist responses.\n\n"
-        "Generate 3-5 QA pairs.\n"
-        "- 'instruction': a first-person client statement (1-3 sentences) rooted in the excerpt's topic.\n"
-        "- 'output': a therapist response (2-4 sentences) that:\n"
-        "   • References a specific concept, framework, or term from the excerpt — not generic therapy language\n"
-        "   • Is direct and specific, not warm-and-fuzzy. No empty validation.\n"
-        "   • Varies its sentence structure. NEVER start with 'It sounds like', 'I hear that', "
-        "'That must be', 'I can see that', or any variation of therapized agreeableness.\n"
-        "   • Gives the client something concrete to work with: a reframe, a distinction, a question to consider.\n\n"
-        "BAD output (generic slop — never write this):\n"
-        "  \"It sounds like you're really struggling with this. That must be difficult. Let's explore that.\"\n\n"
-        "GOOD output (specific, grounded):\n"
-        '  "Pete Walker distinguishes the inner critic from genuine self-awareness. '
-        "The fact that you're noticing this pattern means you're already building that awareness — "
-        'the next step is to name what the critic is actually saying."\n\n'
-        "MUST output JSON only. Format: each line is a complete JSON object like "
-        '{"instruction": "...", "output": "..."}. '
-        "CRITICAL: Start each line with { and end with }. Use double quotes for all strings. "
-        "Example output lines (copy exactly):\n"
-        '{"instruction": "I feel anxious", "output": "What triggers that?"}\n'
-        '{"instruction": "I cant sleep", "output": "What time do you try?"}\n'
-        "Output ONLY these JSON lines. Nothing else. No explanation."
+        "You generate realistic training dialogues between a real human client in acute distress and an experienced, grounded therapist based on clinical literature.\n\n"
+        "CRITICAL CLINICAL RULES:\n"
+        "1. CLIENT VOICE: Realistic, raw, messy, conversational. Real people do NOT speak in clinical definitions or calm book diction when distressed. They use colloquialisms, fragments, confusion, defensiveness, or exhaustion.\n"
+        "2. THERAPIST VOICE: Natural, grounded human speech. NEVER sound like a textbook, diagnostic manual, or lecture. NEVER cite authors, book titles, chapter names, or academic jargon to the client (e.g. NEVER say 'Pete Walker lists...', 'In IFS theory...', 'According to the DSM...').\n"
+        "3. PACING & NO PREMATURE DIGGING: When a client is in active confusion, shock, or impulsivity ('I don't know why I did it'), DO NOT jump into deep analytical 'why' or 'what were you running from' questions on Turn 1. Meet the immediate tangible reality and anchor them first.\n"
+        "4. ADAPTIVE SAFETY TRANSITIONS: If a client is in crisis or self-harming, address physical safety FIRST. Once the client confirms they are safe/not actively bleeding, DO NOT robotically repeat hotline scripts or medical triage loops. Shift naturally into exploring the relational or emotional trigger.\n"
+        "5. ZERO THERAPY CLICHES: Never say 'It sounds like', 'I hear that', 'That must be hard', 'Thank you for sharing', 'Let's unpack that'.\n\n"
+        "Generate 3-5 QA pairs based on this excerpt.\n"
+        "Output strictly JSON lines: {\"instruction\": \"<client words>\", \"output\": \"<therapist response>\"}\n"
+        "Output ONLY valid JSON lines. No markdown codeblocks, no explanations."
     )
     user_content = f"Book Title: {title}\n\nExcerpt:\n{chunk}"
 
@@ -401,10 +440,9 @@ def distill_chunk(chunk: str, title: str) -> list[dict[str, str]]:
     if not raw_response:
         return []
 
-    # Debug: log first 200 chars of response
     logger.debug(f"LLM response (first 200): {raw_response[:200]}")
 
-    pairs = []
+    pairs: list[dict[str, Any]] = []
     for response_line in raw_response.strip().splitlines():
         stripped_line = response_line.strip()
         if not stripped_line or stripped_line.startswith("```"):
@@ -512,16 +550,29 @@ def convert_book(
 
                 ts = datetime.now(UTC).isoformat()
                 for pair in pairs:
-                    enriched_pair = {
-                        "instruction": pair["instruction"],
-                        "output": pair["output"],
-                        "metadata": {
-                            "source_book": title,
-                            "source_type": "clinical_literature",
-                            "distillation_version": "2.0.0",
-                            "generated_at": ts,
-                        },
-                    }
+                    if "messages" in pair:
+                        enriched_pair = {
+                            "messages": pair["messages"],
+                            "metadata": {
+                                "source_book": title,
+                                "source_type": "clinical_literature",
+                                "distillation_version": "2.0.0",
+                                "generated_at": ts,
+                            },
+                        }
+                    elif "instruction" in pair and "output" in pair:
+                        enriched_pair = {
+                            "instruction": pair["instruction"],
+                            "output": pair["output"],
+                            "metadata": {
+                                "source_book": title,
+                                "source_type": "clinical_literature",
+                                "distillation_version": "2.0.0",
+                                "generated_at": ts,
+                            },
+                        }
+                    else:
+                        continue
                     all_pairs.append(enriched_pair)
 
         # Write all pairs at once (order-independent)

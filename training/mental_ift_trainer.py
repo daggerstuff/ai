@@ -46,7 +46,7 @@ class IFTConfig:
 
     base_model: str = "zai-org/glm-5.3-flash"
     output_dir: str = "./ai/models/mental_ift"
-    dataset_path: str | None = None
+    dataset_path: str | None = "ai/data/curated/sft_chatml/train.jsonl"
     use_qlora: bool = True
     lora_r: int = 16
     lora_alpha: int = 32
@@ -163,16 +163,30 @@ class MentalHealthIFTTrainer:
         """Load dataset from path or build default mental health IFT dataset."""
         if self.config.dataset_path and Path(self.config.dataset_path).exists():
             logger.info(f"Loading dataset from {self.config.dataset_path}")
-            return load_dataset("json", data_files=self.config.dataset_path, split="train")
+            records = []
+            with open(self.config.dataset_path, encoding="utf-8") as f:
+                for line in f:
+                    if not line.strip():
+                        continue
+                    item = json.loads(line)
+                    record: dict[str, Any] = {}
+                    if "messages" in item:
+                        record["messages"] = item["messages"]
+                    if "instruction" in item:
+                        record["instruction"] = item["instruction"]
+                    if "input" in item:
+                        record["input"] = item.get("input", "") or ""
+                    if "output" in item:
+                        record["output"] = item.get("output", "") or ""
+                    record["task_type"] = str(item.get("task_type", "") or "")
+                    record["source"] = str(item.get("source", "") or "")
+                    records.append(record)
+            return Dataset.from_list(records)
 
         logger.info("Building default mental health IFT dataset")
         builder = MentalHealthInstructionDatasetBuilder(seed=self.config.seed)
         builder.build_from_seed_vignettes(augment_per_vignette=400)
         train, val = builder.stratified_split(train_ratio=0.9)
-
-        # Store raw examples for curriculum learning
-        self._task_datasets = self._split_by_task(train + val)
-
         return Dataset.from_list([ex.to_alpaca() for ex in train])
 
     def _split_by_task(self, examples: list[Any]) -> dict[str, list[dict[str, Any]]]:
@@ -218,14 +232,30 @@ class MentalHealthIFTTrainer:
         return dataset.select(sorted_indices)
 
     def _format_and_tokenize(self, examples: dict[str, Any]) -> dict[str, Any]:
-        """Format Alpaca examples into prompt-completion strings and tokenize."""
+        """Format ChatML or Alpaca examples into prompt-completion strings and tokenize."""
         prompts = []
-        for instruction, input_text, output in zip(examples["instruction"], examples["input"], examples["output"]):
-            if input_text:
-                prompt = f"### Instruction:\n{instruction}\n\n### Input:\n{input_text}\n\n### Response:\n{output}"
-            else:
-                prompt = f"### Instruction:\n{instruction}\n\n### Response:\n{output}"
-            prompts.append(prompt)
+        if "messages" in examples:
+            for msgs in examples["messages"]:
+                if not msgs:
+                    continue
+                if hasattr(self.tokenizer, "apply_chat_template") and self.tokenizer.chat_template:
+                    try:
+                        formatted = self.tokenizer.apply_chat_template(msgs, tokenize=False)
+                    except Exception:
+                        formatted = "\n".join(f"<|im_start|>{m.get('role', 'user')}\n{m.get('content', '')}<|im_end|>" for m in msgs)
+                else:
+                    formatted = "\n".join(f"<|im_start|>{m.get('role', 'user')}\n{m.get('content', '')}<|im_end|>" for m in msgs)
+                prompts.append(formatted)
+        elif "instruction" in examples and "output" in examples:
+            inputs = examples.get("input", [""] * len(examples["instruction"]))
+            for instruction, input_text, output in zip(examples["instruction"], inputs, examples["output"]):
+                if input_text:
+                    prompt = f"### Instruction:\n{instruction}\n\n### Input:\n{input_text}\n\n### Response:\n{output}"
+                else:
+                    prompt = f"### Instruction:\n{instruction}\n\n### Response:\n{output}"
+                prompts.append(prompt)
+        else:
+            raise ValueError("Dataset must contain either 'messages' (ChatML) or 'instruction'/'output' (Alpaca) keys.")
 
         tokenized = self.tokenizer(
             prompts,
@@ -262,7 +292,7 @@ class MentalHealthIFTTrainer:
             warmup_ratio=self.config.warmup_ratio,
             lr_scheduler_type="cosine",
             logging_steps=self.config.logging_steps,
-            evaluation_strategy="steps",
+            eval_strategy="steps",
             eval_steps=self.config.eval_steps,
             save_strategy="steps",
             save_steps=self.config.save_steps,

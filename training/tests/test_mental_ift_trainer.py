@@ -21,7 +21,7 @@ def test_trainer_initialization():
 
 
 def test_dataset_building():
-    config = IFTConfig()
+    config = IFTConfig(dataset_path=None)
     trainer = MentalHealthIFTTrainer(config)
     dataset = trainer.load_or_build_dataset()
     assert len(dataset) > 0
@@ -31,7 +31,7 @@ def test_dataset_building():
 
 
 def test_curriculum_sorting():
-    config = IFTConfig(curriculum_learning=True)
+    config = IFTConfig(dataset_path=None, curriculum_learning=True)
     trainer = MentalHealthIFTTrainer(config)
     trainer.load_or_build_dataset()
     sorted_dataset = trainer._apply_curriculum(trainer.load_or_build_dataset())
