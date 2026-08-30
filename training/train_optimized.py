@@ -157,7 +157,7 @@ def main():
             return
 
         # Create model
-        BASE_MODEL_NAME = training_config.get("base_model", "LatitudeGames/Wayfarer-2-12B")
+        BASE_MODEL_NAME = training_config.get("base_model", "zai-org/glm-5.3-flash")
 
 
         moe_config = MoEConfig(

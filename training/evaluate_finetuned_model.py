@@ -12,7 +12,7 @@ Usage:
     python -m ai.training.evaluate_finetuned_model \
         --model-path ./models/fine-tuned \
         --test-data ./data/finetuning/finetuning_test.jsonl \
-        --base-model meta-llama/Llama-2-7b-hf
+        --base-model zai-org/glm-5.3-flash
 """
 
 from __future__ import annotations
@@ -123,7 +123,7 @@ class ModelEvaluator:
     def __init__(
         self,
         model_path: str,
-        base_model_name: str = "meta-llama/Llama-2-7b-hf",
+        base_model_name: str = "zai-org/glm-5.3-flash",
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
     ):
         self.model_path = Path(model_path)
@@ -474,7 +474,7 @@ def main():
     parser.add_argument(
         "--base-model",
         type=str,
-        default="meta-llama/Llama-2-7b-hf",
+        default="zai-org/glm-5.3-flash",
         help="Base model name",
     )
     parser.add_argument(

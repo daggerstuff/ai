@@ -4,6 +4,12 @@ Curated Dataset Pipeline
 =========================
 Converts raw desloped JSONL (849K records) into tiered, split, training-ready datasets.
 
+Split mechanism (PIX-4584 reconciliation): the split step delegates to the
+canonical 8-axis stratified splitter (``training.dataset_splitter_stratified``)
+at the canonical 70/15/15 ratio. Converted records are staged per format
+during the streaming pass, then stratified with source-family grouping and
+integrity gates once the full stream has been seen.
+
 Input:  ai/data/raw/deduped/all_desloped.jsonl
 Output: ai/data/curated/
   sft_chatml/{train,val,test}.jsonl  — OpenAI chat format, all tiers balanced
@@ -34,12 +40,19 @@ import argparse
 import hashlib
 import json
 import logging
+import shutil
 import sys
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+from training.dataset_splitter_stratified import (
+    DEFAULT_RATIO,
+    integrity_gates,
+    stratified_split,
+)
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -116,8 +129,14 @@ DEFAULT_SYSTEM_PROMPT = (
 
 SAFETY_SYSTEM_PROMPT = SYSTEM_PROMPTS["adversarial_safety"]
 
-# Split ratios (train/val/test)
-SPLIT_RATIOS = {"train": 0.70, "val": 0.15, "test": 0.15}
+# Split ratios (train/val/test) — derived from the canonical stratified
+# splitter constant so there is exactly one ratio source of truth. The
+# DVC-tracked curated shards were produced at this ratio (70/15/15).
+SPLIT_RATIOS = {
+    "train": DEFAULT_RATIO[0] / 100.0,
+    "val": DEFAULT_RATIO[1] / 100.0,
+    "test": DEFAULT_RATIO[2] / 100.0,
+}
 
 # Downsampling: source -> keep fraction (deterministic hash-based)
 DOWNSAMPLE_RATES: dict[str, float] = {
@@ -162,6 +181,7 @@ class PipelineStats:
     total_deduped: int = 0
     tier_stats: dict[str, TierStats] = field(default_factory=dict)
     split_counts: dict[str, Counter] = field(default_factory=dict)
+    split_integrity: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     def get_or_create_tier(self, tier: str) -> TierStats:
         if tier not in self.tier_stats:
@@ -185,6 +205,7 @@ class PipelineStats:
                 for t, ts in self.tier_stats.items()
             },
             "split_counts": {k: dict(v) for k, v in self.split_counts.items()},
+            "split_integrity": self.split_integrity,
         }
 
 

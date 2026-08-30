@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 class IFTConfig:
     """Configuration for mental health IFT."""
 
-    base_model: str = "meta-llama/Llama-2-7b-chat-hf"
+    base_model: str = "zai-org/glm-5.3-flash"
     output_dir: str = "./ai/models/mental_ift"
     dataset_path: str | None = None
     use_qlora: bool = True

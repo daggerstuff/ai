@@ -22,7 +22,12 @@ Integrity gates (run after split, fail closed if violated):
   - domain balance ±2pp: per-stratum split ratios within 2pp of global ratio
 
 Usage:
-  python dataset_splitter_stratified.py <input_dir> <out_dir> [--ratio 80 10 10]
+  python dataset_splitter_stratified.py <input_dir> <out_dir> [--ratio 70 15 15]
+
+This is THE canonical splitter for the training-data pipeline (PIX-4584
+reconciliation): the legacy hash-bucket ``dataset_splitter.py`` (80/10/10)
+has been retired, and ``curate_pipeline.py`` delegates its split step to
+``stratified_split()`` from this module so mechanism and ratio agree.
 """
 
 from __future__ import annotations
@@ -35,7 +40,13 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 SPLIT_NAMES = ("train", "val", "test")
-DEFAULT_RATIO = (80, 10, 10)
+
+# Canonical split ratio: 70/15/15. This is the ratio the production curation
+# pipeline (training/curate_pipeline.py) ships with — the DVC-tracked curated
+# shards (ai/data/curated/sft_chatml/*.jsonl.dvc) were produced at 70/15/15 —
+# so the standalone tool defaults to the same ratio. There is exactly ONE
+# ratio constant for the whole training-data pipeline; do not fork it.
+DEFAULT_RATIO = (70, 15, 15)
 RATIO_TOLERANCE_PP = 2  # ±2 percentage points
 BALANCE_TOLERANCE_PP = 2
 

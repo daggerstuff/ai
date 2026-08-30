@@ -65,7 +65,7 @@ def _content_hash(record: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def generate_variant(seed_prompt: str, model: str = "qwen2.5:72b") -> str:
+def generate_variant(seed_prompt: str, model: str = "glm-5.3-flash") -> str:
     """Generate one variant using an OpenAI-compatible chat completions endpoint.
 
     In production this would call an LLM. For the SDG pipeline we use

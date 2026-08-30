@@ -1,5 +1,5 @@
 {
-  "base_model": "LatitudeGames/Wayfarer-2-12B",
+  "base_model": "zai-org/glm-5.3-flash",
   "training_parameters": {
     "num_train_epochs": 1,
     "max_steps": 5,

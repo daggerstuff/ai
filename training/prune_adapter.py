@@ -18,7 +18,7 @@ Usage (real GPU)::
         --amount 0.3 \
         --recovery-data ./data/curated/sft_chatml/train.jsonl \
         --recovery-frac 0.1 \
-        --base-model Qwen/Qwen2.5-32B \
+        --base-model zai-org/glm-5.3-flash \
         --benchmark-pre ./benchmarks/pre_train_2026-08-01.json
 
 Usage (mock / dry-run, no GPU)::

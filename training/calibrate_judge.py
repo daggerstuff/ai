@@ -8,11 +8,11 @@ Release gate (per blueprint step 2B):
   - Pearson r >= 0.80
   - Cohen κ >= 0.65 (quadratic-weighted)
 
-CRITICAL: ``training/data/golden_judge_calib.jsonl`` is synthetic/placeholder
-data (see llm_quality_judge.py:GOLDEN_CALIB_PATH warning). The gate numbers from
-this runner are NOT representative of real human ratings until the golden set is
-replaced with real human labels. The runner fails closed on placeholder data by
-default (``--allow-placeholder`` overrides for dry-runs).
+CRITICAL: ``training/data/golden_judge_calib_v2.jsonl`` is the real golden set
+(200 AnnoMI-sourced mental-health samples with human scores). The legacy
+``golden_judge_calib.jsonl`` remains as fallback and is synthetic/placeholder
+data; the runner fails closed on it by default (``--allow-placeholder``
+overrides for dry-runs).
 
 Usage:
   python calibrate_judge.py [--golden PATH] [--out PATH] [--allow-placeholder]
@@ -26,6 +26,11 @@ import os
 import sys
 from pathlib import Path
 
+# Ensure ai directory is on sys.path when executed directly
+_ai_root = Path(__file__).resolve().parent.parent
+if str(_ai_root) not in sys.path:
+    sys.path.insert(0, str(_ai_root))
+
 from training.llm_quality_judge import (
     CALIB_KAPPA_MIN,
     CALIB_PEARSON_MIN,
@@ -34,10 +39,10 @@ from training.llm_quality_judge import (
 )
 
 PLACEHOLDER_NOTICE = (
-    "golden_judge_calib.jsonl is synthetic/placeholder data — "
+    "golden judge set is synthetic/placeholder data — "
     "release-gate metrics are NOT representative of real human ratings. "
-    "Replace with real human labels before trusting the gate verdict "
-    "(see docs/plans/PIX-4343)."
+    "Regenerate the real golden set (golden_judge_calib_v2.jsonl) before "
+    "trusting the gate verdict (see docs/plans/PIX-4343)."
 )
 
 

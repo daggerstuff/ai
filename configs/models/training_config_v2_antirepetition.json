@@ -1,7 +1,7 @@
 {
   "model": {
-    "base_model": "LatitudeGames/Wayfarer-2-12B",
-    "model_type": "mistral",
+    "base_model": "zai-org/glm-5.3-flash",
+    "model_type": "AutoModelForCausalLM",
     "load_in_4bit": true,
     "load_in_8bit": false,
     "torch_dtype": "bfloat16"

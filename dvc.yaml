@@ -1,7 +1,10 @@
 # DVC pipeline definition for training data curation
+# Run from the ai/ repo root (where .dvc/ lives):
+#   dvc repro          # requires data/raw/deduped/all_desloped.jsonl (S3: whitebat)
 stages:
   curate:
-    cmd: python -m training.curate_pipeline --input ai/data/raw/deduped/all_desloped.jsonl --output ai/data/curated
+    cmd: python -m training.curate_pipeline --input data/raw/deduped/all_desloped.jsonl --output data/curated
     outs:
-      - path: ai/data/curated/sft_chatml
-        dvc: true
+      - path: data/curated/sft_chatml/train.jsonl
+      - path: data/curated/sft_chatml/val.jsonl
+      - path: data/curated/sft_chatml/test.jsonl

@@ -7,7 +7,7 @@ import re
 import aiohttp
 
 OLLAMA_URL = "https://ollama.pixelated.love/v1/chat/completions"
-MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:7b")
+MODEL = os.environ.get("OLLAMA_MODEL", "glm-5.3-flash")
 CONCURRENCY = int(os.environ.get("OLLAMA_CONCURRENCY", "2"))
 TIMEOUT = int(os.environ.get("OLLAMA_TIMEOUT", "60"))
 BATCH_SIZE = int(os.environ.get("OLLAMA_BATCH_SIZE", "50"))

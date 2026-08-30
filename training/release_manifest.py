@@ -11,7 +11,7 @@ The manifest is a JSON document with this top-level structure::
       "release_version": "...",
       "pipeline_version": "...",
       "created_at": "ISO-8601",
-      "split_ratio": [80, 10, 10],
+      "split_ratio": [70, 15, 15],
       "gates_passed": true,
       "distribution": {...},
       "leakage": {...},

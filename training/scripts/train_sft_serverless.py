@@ -47,13 +47,12 @@ from art.utils.sft import train_sft_from_file
 
 # Available models: https://docs.wandb.ai/serverless-training/available-models
 AVAILABLE_MODELS = {
-    "qwen3-14b": "OpenPipe/Qwen3-14B-Instruct",
-    "qwen3-30b": "Qwen/Qwen3-30B-A3B-Instruct-2507",
-    "llama-3.1-8b": "meta-llama/Llama-3.1-8B-Instruct",
-    "qwen3.6-27b": "Qwen/Qwen3.6-27B",
+    "glm-5.3-flash": "zai-org/glm-5.3-flash",
+    "deepseek-v4-pro": "deepseek-ai/DeepSeek-V4-Pro",
+    "glm-5.2": "THUDM/glm-5.2",
 }
 
-DEFAULT_MODEL = "OpenPipe/Qwen3-14B-Instruct"
+DEFAULT_MODEL = "zai-org/glm-5.3-flash"
 DEFAULT_EPOCHS = 3
 DEFAULT_BATCH_SIZE = 2
 DEFAULT_LR = 2e-4
@@ -70,14 +69,59 @@ WANDB_PROJECT = "pixelated-empathy-sft"
 MODEL_NAME = "pixelated-empathy-v1"
 
 
+BANNED_OPENERS = (
+    "i hear how",
+    "it makes sense that you feel",
+    "i understand your frustration",
+    "i can hear",
+    "that sounds really",
+    "i'm so sorry to hear",
+    "thank you for sharing",
+    "it sounds like you",
+    "i want you to know",
+    "i can imagine how",
+    "i hear your",
+    "it sounds like",
+)
+
+CAVING_PHRASES = (
+    "you're right",
+    "i apologize",
+    "i stand corrected",
+    "sorry for",
+    "my mistake",
+    "if you don't want to talk about it",
+    "we don't have to",
+    "we don't have to talk about",
+    "i'll stop",
+    "fair enough",
+)
+
+
+def contains_sycophancy(text: str) -> bool:
+    """Check if text contains banned robotic openers or caving phrases."""
+    if not text or not isinstance(text, str):
+        return False
+    t_lower = text.strip().lower()
+    for b in BANNED_OPENERS:
+        if t_lower.startswith(b) or f"\n{b}" in t_lower:
+            return True
+    for c in CAVING_PHRASES:
+        if c in t_lower:
+            return True
+    return False
+
+
 def filter_assistant_ending(input_path: Path, output_path: Path) -> tuple[int, int]:
-    """Filter JSONL to only records ending with assistant message.
+    """Filter JSONL to assistant-ending records that pass anti-sycophancy & deslop gating.
 
     ART SFT requires last message to be from assistant role.
+    Rejects any record whose assistant turns contain banned sycophantic openers or caving phrases.
     Returns (kept, total) counts.
     """
     kept = 0
     total = 0
+    sycophancy_rejected = 0
     with open(input_path) as fin, open(output_path, "w") as fout:
         for line in fin:
             total += 1
@@ -86,9 +130,25 @@ def filter_assistant_ending(input_path: Path, output_path: Path) -> tuple[int, i
             except json.JSONDecodeError:
                 continue
             msgs = d.get("messages", [])
-            if msgs and msgs[-1].get("role") == "assistant":
-                fout.write(line)
-                kept += 1
+            if not msgs or msgs[-1].get("role") != "assistant":
+                continue
+
+            # Anti-sycophancy check on all assistant turns
+            has_syc = False
+            for m in msgs:
+                if m.get("role") == "assistant" and contains_sycophancy(m.get("content", "")):
+                    has_syc = True
+                    break
+
+            if has_syc:
+                sycophancy_rejected += 1
+                continue
+
+            fout.write(line)
+            kept += 1
+
+    if sycophancy_rejected > 0:
+        print(f"  [Anti-Sycophancy Gate] Rejected {sycophancy_rejected} sycophantic/caving training records.")
     return kept, total
 
 

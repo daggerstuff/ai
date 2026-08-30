@@ -1,5 +1,5 @@
 {
-  "base_model": "LatitudeGames/Wayfarer-2-12B",
+  "base_model": "zai-org/glm-5.3-flash",
   "num_train_epochs": 3,
   "per_device_train_batch_size": 4,
   "gradient_accumulation_steps": 8,

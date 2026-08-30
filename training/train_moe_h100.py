@@ -409,7 +409,7 @@ def main():
 
         # Setup model
         BASE_MODEL_NAME = training_config.get(
-            "base_model", "LatitudeGames/Wayfarer-2-12B"
+            "base_model", "zai-org/glm-5.3-flash"
         )
         device_available = torch.cuda.is_available()
 

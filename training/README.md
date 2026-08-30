@@ -24,7 +24,7 @@ The pipeline supports two modes:
 
 The training is driven by `enhanced_training_config.json` which defines:
 
-- **Base Model**: LatitudeGames/Wayfarer-2-12B (or similar)
+- **Base Model**: zai-org/glm-5.3-flash
 - **LoRA Parameters**: Rank 16, Alpha 32 (default)
 - **Component Weights**: Specific weights for the 6 therapeutic components
 - **H100 Optimizations**: BF16, Flash Attention 2

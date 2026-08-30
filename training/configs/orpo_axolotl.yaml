@@ -21,7 +21,7 @@
 # Dataset format: JSONL with prompt / chosen / rejected fields
 # (same as DPO — see dpo_trainer.load_preference_dataset).
 
-base_model: Qwen/Qwen2.5-32B
+base_model: zai-org/glm-5.3-flash
 model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 

@@ -19,7 +19,7 @@ Usage:
     python -m ai.training.finetune_model \
         --dataset-dir ./data/finetuning \
         --output-dir ./models/fine-tuned \
-        --base-model meta-llama/Llama-2-7b-hf \
+        --base-model zai-org/glm-5.3-flash \
         --epochs 3 \
         --batch-size 8
 """
@@ -57,7 +57,7 @@ class FineTuningConfig:
     """Configuration for fine-tuning."""
 
     # Model settings
-    base_model: str = "meta-llama/Llama-2-7b-hf"
+    base_model: str = "zai-org/glm-5.3-flash"
     tokenizer_name: str | None = None
     max_seq_length: int = 2048
 
@@ -503,7 +503,7 @@ def main():
     parser.add_argument(
         "--base-model",
         type=str,
-        default="meta-llama/Llama-2-7b-hf",
+        default="zai-org/glm-5.3-flash",
         help="Base model name or path",
     )
     parser.add_argument(

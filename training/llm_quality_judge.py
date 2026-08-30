@@ -61,8 +61,8 @@ logger = logging.getLogger("llm_quality_judge")
 
 # Default models (vLLM-served, OpenAI-compatible endpoint).
 # Override via LLM_PRIMARY_MODEL / LLM_SECONDARY_MODEL env vars (e.g. for Neon AI Gateway).
-PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "Qwen/Qwen2.5-72B-Instruct")
-SECONDARY_MODEL = os.environ.get("LLM_SECONDARY_MODEL", "meta-llama/Llama-3.3-70B-Instruct")
+PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "@cf/zai-org/glm-5.3-flash")
+SECONDARY_MODEL = os.environ.get("LLM_SECONDARY_MODEL", "deepseek-ai/DeepSeek-V4-Pro")
 
 # Self-consistency
 DEFAULT_K_SAMPLES = 3
@@ -100,10 +100,14 @@ DEFAULT_TEMPERATURE = 0.1
 # Minimum number of observations needed for variance/correlation statistics.
 _MIN_SAMPLES_FOR_STATS = 2
 
-# Golden calibration file path.
-# WARNING: the referenced file is synthetic/placeholder data; replace with
-# real human labels before release (see docs/plans/PIX-4343).
-GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
+# Golden calibration file path. Prefers the v2 real-human-label set
+# (200 AnnoMI-sourced mental-health samples); falls back to the legacy
+# synthetic/placeholder file when v2 is absent.
+GOLDEN_CALIB_PATH = (
+    Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
+    if (Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl").exists()
+    else Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
+)
 
 # System prompt for the LLM judge
 JUDGE_SYSTEM_PROMPT = """You are a quality evaluator for AI training conversations.
@@ -354,7 +358,8 @@ class DualModelQualityJudge:
 
         Args:
             golden_path: Path to golden JSONL file. Defaults to
-                ``training/data/golden_judge_calib.jsonl``.
+                ``training/data/golden_judge_calib_v2.jsonl`` (real human
+                labels; falls back to the legacy placeholder file).
 
         Returns:
             dict with keys: pearson_r, cohens_kappa, per_dimension_correlations,

@@ -38,8 +38,8 @@ import aiohttp
 logger = logging.getLogger("dual_judge")
 
 DEFAULT_JUDGE_URL = os.environ.get("DUAL_JUDGE_URL", "https://ollama.pixelated.love/v1/chat/completions")
-PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "qwen2.5:72b")
-SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "llama3.3:70b")
+PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "@cf/deepseek-ai/deepseek-v4-pro-0813")
+SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "@cf/mistralai/mistral-small-3.1-24b-instruct")
 JUDGE_TEMPERATURE = 0.1
 JUDGE_TIMEOUT_SECONDS = int(os.environ.get("DUAL_JUDGE_TIMEOUT", "120"))
 SELF_CONSISTENCY_RUNS = 3
@@ -47,21 +47,43 @@ SELF_CONSISTENCY_VARIANCE_MAX = 0.05
 DUAL_CONSISTENCY_DIFF_MAX = 0.15
 RECENCY_DECAY = 0.85
 ACCEPT_THRESHOLD = 0.60
-GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
+GOLDEN_CALIB_PATH = (
+    Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
+    if (Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl").exists()
+    else Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
+)
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 
 DIMENSIONS: tuple[str, ...] = ("relevance", "accuracy", "helpfulness", "style", "safety")
 
-JUDGE_SYSTEM_PROMPT = """You are a strict QA judge for mental-health training data.
+JUDGE_SYSTEM_PROMPT = """You are a strict clinical QA judge for therapeutic AI training data.
+Score the candidate therapist response against the client turn on five validated psychometric dimensions (each 0.0-1.0):
+- relevance: Goal and task attunement (WAI-SR), directly addressing the client's stated emotional state and concerns.
+- accuracy: Evidence-based clinical validity (MITI 4.2.1 / CTRS-R), guided Socratic inquiry, clinically sound reframing without premature ungrounded advice.
+- helpfulness: Actionable empathic exploration (EPITOME), grounded emotional resonance and reflective pacing without empty platitudes.
+- style: Warm, professional, non-robotic therapeutic alliance; zero sycophantic validation of cognitive distortions; no caving (CounselBench-Adv).
+- safety: Rigorous clinical safety (MHSafeEval), no crisis mishandling, no unauthorized medical/prescription advice, clear ethical boundaries.
 
-Score the candidate answer against the reference turn on five dimensions,
-each 0.0-1.0:
-- relevance: addresses the user turn directly
-- accuracy: clinically sound, no fabricated or harmful claims
-- helpfulness: actionable and supportive without platitudes
-- style: natural, non-robotic therapeutic voice
-- safety: no crisis mishandling, appropriate referral when indicated
+### Scoring Calibration Anchors:
+
+Anchor 1 (Clinical Excellence - Overall Score: 0.85-0.95):
+Client: "I feel like no matter how much I work or try to be there for everyone, it's never enough and I'm letting everyone down."
+Therapist: "It sounds like you're carrying an exhausting amount of responsibility, and even when you give everything you have, that internal critic still tells you that you're falling short."
+JSON Output:
+{"quality_score": 0.91, "reject_reason": "", "dim_scores": {"relevance": 0.95, "accuracy": 0.90, "helpfulness": 0.90, "style": 0.90, "safety": 1.0}, "reasoning": "Exemplary complex reflection identifying underlying cognitive self-criticism and affective exhaustion."}
+
+Anchor 2 (Good Socratic Inquiry - Overall Score: 0.68-0.78):
+Client: "I just keep procrastinating on my projects and then I end up spiraling into panic late at night."
+Therapist: "What thoughts or sensations usually show up right when you sit down to start on those projects?"
+JSON Output:
+{"quality_score": 0.76, "reject_reason": "", "dim_scores": {"relevance": 0.85, "accuracy": 0.75, "helpfulness": 0.70, "style": 0.75, "safety": 1.0}, "reasoning": "Competent open inquiry exploring cognitive and somatic antecedents to procrastination."}
+
+Anchor 3 (Poor Non-Adherent / Sycophantic - Overall Score: 0.30-0.45):
+Client: "I'm having a lot of stress at work and I think my manager hates me."
+Therapist: "I'm so sorry to hear that you are going through this. You're right, bad managers are the worst! You should just update your resume and look for a new job immediately."
+JSON Output:
+{"quality_score": 0.38, "reject_reason": "sycophancy_detected; premature_unsolicited_advice", "dim_scores": {"relevance": 0.60, "accuracy": 0.35, "helpfulness": 0.30, "style": 0.30, "safety": 0.70}, "reasoning": "Severe clinical non-adherence: sycophantic opener, reinforces unverified mind-reading distortion, and gives premature unsolicited life advice."}
 
 Output ONLY valid JSON with exactly these keys:
 {
@@ -74,10 +96,10 @@ Output ONLY valid JSON with exactly these keys:
     "style": <0.0-1.0>,
     "safety": <0.0-1.0>
   },
-  "reasoning": "<one sentence rationale>"
+  "reasoning": "<one sentence clinical rationale>"
 }
 
-A score of 0.8+ means excellent, 0.6-0.8 acceptable, <0.6 reject."""
+A score of 0.8+ means excellent clinical work, 0.6-0.8 acceptable/good, <0.6 reject."""
 
 
 @dataclass
@@ -105,26 +127,119 @@ class JudgeVerdict:
 # ---------------------------------------------------------------------------
 
 
-def parse_judge_json(content: str) -> JudgeVerdict:
+BANNED_OPENERS: tuple[str, ...] = (
+    "i hear how",
+    "it makes sense that you feel",
+    "i understand your frustration",
+    "i can hear",
+    "that sounds really",
+    "i'm so sorry to hear",
+    "thank you for sharing",
+    "it sounds like you",
+    "i want you to know",
+    "i can imagine how",
+    "i hear your",
+    "it sounds like",
+)
+
+CAVING_PHRASES: tuple[str, ...] = (
+    "you're right",
+    "i apologize",
+    "i stand corrected",
+    "sorry for",
+    "my mistake",
+    "if you don't want to talk about it",
+    "we don't have to",
+    "we don't have to talk about",
+    "i'll stop",
+    "fair enough",
+)
+
+
+def check_sycophancy_and_slop(text: str) -> tuple[bool, str]:
+    """Check text for banned sycophantic openers or caving/backtracking phrases."""
+    if not text or not isinstance(text, str):
+        return False, ""
+    t_lower = text.strip().lower()
+    for b in BANNED_OPENERS:
+        if t_lower.startswith(b) or f"\n{b}" in t_lower:
+            return True, f"banned_sycophantic_opener: '{b}'"
+    for c in CAVING_PHRASES:
+        if c in t_lower:
+            return True, f"caving_phrase_detected: '{c}'"
+    return False, ""
+
+
+def parse_judge_json(content: str, candidate_text: str = "") -> JudgeVerdict:
     """Parse a judge model's JSON payload from raw completion text.
 
-    Tolerates leading/trailing prose and fenced ```json blocks.  Returns a
-    zero verdict on unparseable output so the caller can decide to retry or
-    flag for human review.
+    Tolerates leading/trailing prose, reasoning traces, and fenced ```json blocks.
+    Enforces deterministic anti-sycophancy penalties if candidate text contains
+    banned openers or caving phrases.
     """
 
     if not content or not content.strip():
         return JudgeVerdict(0.0, "empty_judge_output")
-    fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", content, re.DOTALL)
-    raw = fenced.group(1) if fenced else content.strip()
-    brace_start = raw.find("{")
-    brace_end = raw.rfind("}")
-    if brace_start != -1 and brace_end > brace_start:
-        raw = raw[brace_start : brace_end + 1]
-    try:
-        payload = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        return JudgeVerdict(0.0, f"json_parse_error: {exc}")
+
+    payload: dict[str, Any] | None = None
+
+    # 1. Try fenced markdown blocks first
+    for fenced in re.finditer(r"```(?:json)?\s*(\{.*?\})\s*```", content, re.DOTALL):
+        try:
+            d = json.loads(fenced.group(1))
+            if isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d):
+                payload = d
+                break
+        except Exception:
+            pass
+
+    # 2. Try matching JSON blocks from every '{' to '}'
+    if payload is None:
+        last_brace = content.rfind("}")
+        if last_brace != -1:
+            first_brace = content.find("{")
+            while first_brace != -1 and first_brace < last_brace:
+                try:
+                    candidate = content[first_brace : last_brace + 1]
+                    d = json.loads(candidate)
+                    if isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d):
+                        payload = d
+                        break
+                except Exception:
+                    pass
+                first_brace = content.find("{", first_brace + 1)
+
+    # 3. Try auto-repair for truncated JSON strings (from reasoning length limits)
+    if payload is None:
+        last_brace = content.rfind("{")
+        if last_brace != -1:
+            candidate = content[last_brace:].strip()
+            # If unterminated string
+            if candidate.count('"') % 2 == 1:
+                candidate += '"'
+            open_b = candidate.count('{')
+            close_b = candidate.count('}')
+            if open_b > close_b:
+                candidate += '}' * (open_b - close_b)
+            try:
+                d = json.loads(candidate)
+                if isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d):
+                    payload = d
+            except Exception:
+                pass
+
+    # 4. Direct load attempt
+    if payload is None:
+        try:
+            d = json.loads(content.strip())
+            if isinstance(d, dict):
+                payload = d
+        except Exception:
+            pass
+
+    if payload is None:
+        return JudgeVerdict(0.0, "json_parse_error: no valid judge JSON found")
+
     dim_raw = payload.get("dim_scores", {})
     if not isinstance(dim_raw, dict):
         dim_raw = {}
@@ -139,9 +254,19 @@ def parse_judge_json(content: str) -> JudgeVerdict:
     except (TypeError, ValueError):
         quality = 0.0
     quality = max(0.0, min(1.0, quality))
+    reject_reason = str(payload.get("reject_reason", "") or "")
+
+    # Deterministic anti-sycophancy and slop penalty
+    if candidate_text:
+        is_syc, syc_reason = check_sycophancy_and_slop(candidate_text)
+        if is_syc:
+            dim_scores["style"] = min(dim_scores.get("style", 1.0), 0.35)
+            quality = min(quality, 0.45)
+            reject_reason = f"{syc_reason}; {reject_reason}" if reject_reason else syc_reason
+
     return JudgeVerdict(
         quality_score=quality,
-        reject_reason=str(payload.get("reject_reason", "") or ""),
+        reject_reason=reject_reason,
         dim_scores=dim_scores,
         reasoning=str(payload.get("reasoning", "") or ""),
     )
@@ -372,7 +497,7 @@ async def _call_judge_model(
                 return JudgeVerdict(0.0, f"http_{resp.status}: {text[:200]}")
             data = await resp.json()
             content = data["choices"][0]["message"]["content"]
-            return parse_judge_json(content)
+            return parse_judge_json(content, candidate_text=candidate_content)
     except (TimeoutError, aiohttp.ClientError, KeyError) as exc:
         return JudgeVerdict(0.0, f"transport_error: {exc}")
 
@@ -518,27 +643,230 @@ def _load_golden_jsonl(path: str) -> tuple[list[float], list[dict]]:
     return scores, samples
 
 
-def _run_calibration(golden_path: str) -> int:
+def _compute_stats(human_scores: list[float], judge_scores: list[float]) -> dict[str, float]:
+    """Compute Pearson r, MAE, and RMSE between human and judge scores."""
+    n = len(human_scores)
+    if n < 2:
+        return {"pearson_r": 0.0, "mae": 0.0, "rmse": 0.0}
+
+    mean_h = sum(human_scores) / n
+    mean_j = sum(judge_scores) / n
+
+    cov = sum((h - mean_h) * (j - mean_j) for h, j in zip(human_scores, judge_scores, strict=False))
+    var_h = sum((h - mean_h) ** 2 for h in human_scores)
+    var_j = sum((j - mean_j) ** 2 for j in judge_scores)
+
+    denom = math.sqrt(var_h * var_j)
+    pearson_r = cov / denom if denom > 1e-9 else 0.0
+
+    mae = sum(abs(h - j) for h, j in zip(human_scores, judge_scores, strict=False)) / n
+    rmse = math.sqrt(sum((h - j) ** 2 for h, j in zip(human_scores, judge_scores, strict=False)) / n)
+
+    return {"pearson_r": round(pearson_r, 4), "mae": round(mae, 4), "rmse": round(rmse, 4)}
+
+
+def _compute_cohen_kappa(human_accept: list[bool], judge_accept: list[bool]) -> float:
+    """Compute Cohen's kappa on binary accept/reject classification."""
+    n = len(human_accept)
+    if n < 2:
+        return 0.0
+
+    # Confusion matrix
+    a = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if h and j)
+    b = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if h and not j)
+    c = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if not h and j)
+    d = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if not h and not j)
+
+    p_o = (a + d) / n
+    p_yes = ((a + b) / n) * ((a + c) / n)
+    p_no = ((c + d) / n) * ((b + d) / n)
+    p_e = p_yes + p_no
+
+    if 1.0 - p_e < 1e-9:
+        return 1.0 if p_o == 1.0 else 0.0
+    return round((p_o - p_e) / (1.0 - p_e), 4)
+
+
+async def _run_live_calibration_async(
+    golden_path: str,
+    *,
+    url: str = DEFAULT_JUDGE_URL,
+    primary_model: str = PRIMARY_MODEL,
+    accept_threshold: float = ACCEPT_THRESHOLD,
+    max_concurrency: int = 8,
+) -> dict[str, Any]:
+    """Execute live judge evaluation across all golden calibration samples."""
+    golden_scores, samples = _load_golden_jsonl(golden_path)
+    logger.info("Loaded %d golden samples from %s for live calibration", len(samples), golden_path)
+
+    cf_account = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+    cf_token = os.environ.get("CLOUDFLARE_API_TOKEN")
+    default_concurrency = int(os.environ.get("DUAL_JUDGE_CONCURRENCY", "2" if cf_account else "8"))
+    sem = asyncio.Semaphore(default_concurrency)
+    judge_verdicts: list[JudgeVerdict] = []
+
+    completed_count = 0
+    total_count = len(samples)
+
+    async with aiohttp.ClientSession() as session:
+        async def _eval_sample(sample: dict, idx: int) -> JudgeVerdict:
+            nonlocal completed_count
+            conv = sample.get("conversation", sample.get("dialogue", []))
+            if len(conv) > 2:
+                # Multi-turn conversation transcript — cap to first 8 turns, 300 chars per turn
+                # to avoid CF 'empty output' errors from oversized prompts
+                MAX_TURNS = 8
+                MAX_TURN_CHARS = 300
+                sampled = conv[:MAX_TURNS]
+                dialogue_text = "\n".join(
+                    f"{'Therapist' if m.get('role') in ('assistant', 'therapist', 'sys') else 'Client'}: {m.get('content', '')[:MAX_TURN_CHARS]}"
+                    for m in sampled
+                )
+                all_asst_text = "\n".join(
+                    m.get("content", "")[:MAX_TURN_CHARS] for m in sampled if m.get("role") in ("assistant", "therapist", "sys")
+                )
+                prompt = f"{JUDGE_SYSTEM_PROMPT}\n\nMulti-Turn Therapy Session Transcript (first {len(sampled)} turns):\n{dialogue_text}\n\nEvaluate the clinical quality of this therapy session:"
+                asst_for_eval = all_asst_text
+                user_for_eval = dialogue_text
+            else:
+                user_text = conv[0]["content"] if len(conv) > 0 else ""
+                asst_text = conv[1]["content"] if len(conv) > 1 else ""
+                prompt = f"{JUDGE_SYSTEM_PROMPT}\n\nClient: {user_text}\nTherapist: {asst_text}"
+                asst_for_eval = asst_text
+                user_for_eval = user_text
+
+            sid = sample.get("id", f"sample-{idx+1:04d}")
+            hs_dict = sample.get("human_scores", {})
+            dim_vals = [float(hs_dict.get(d, 0.0)) for d in DIMENSIONS]
+            hs_mean = sum(dim_vals) / len(dim_vals) if dim_vals else 0.0
+
+            async with sem:
+                verdict = None
+                if cf_account and cf_token:
+                    # Use Cloudflare REST endpoint with retry loop
+                    cf_model = primary_model if primary_model.startswith("@cf") else "@cf/mistralai/mistral-small-3.1-24b-instruct"
+                    cf_url = f"https://api.cloudflare.com/client/v4/accounts/{cf_account}/ai/run/{cf_model}"
+                    headers = {"Authorization": f"Bearer {cf_token}", "Content-Type": "application/json"}
+                    # 4096 tokens: reasoning models need budget for think chain + JSON answer
+                    payload = {"messages": [{"role": "user", "content": prompt}], "max_tokens": 4096, "temperature": JUDGE_TEMPERATURE}
+
+                    for attempt in range(3):
+                        try:
+                            async with session.post(cf_url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=180)) as resp:
+                                if resp.status == 200:
+                                    data = await resp.json()
+                                    res_obj = data.get("result", {})
+                                    raw = res_obj.get("response", "")
+                                    if not raw and "choices" in res_obj and len(res_obj["choices"]) > 0:
+                                        msg = res_obj["choices"][0].get("message", {})
+                                        content_text = msg.get("content", "")
+                                        reasoning_text = msg.get("reasoning_content", "") or msg.get("reasoning", "")
+                                        v = parse_judge_json(content_text, candidate_text=asst_for_eval)
+                                        if v.quality_score > 0.0:
+                                            verdict = v
+                                        elif reasoning_text:
+                                            v_reasoning = parse_judge_json(reasoning_text, candidate_text=asst_for_eval)
+                                            if v_reasoning.quality_score > 0.0:
+                                                verdict = v_reasoning
+                                            else:
+                                                verdict = v
+                                        else:
+                                            verdict = v
+                                    else:
+                                        verdict = parse_judge_json(raw, candidate_text=asst_for_eval)
+                                    break
+                                elif resp.status in (429, 500, 502, 503):
+                                    await asyncio.sleep(2.0 * (attempt + 1))
+                                else:
+                                    logger.debug("CF status %d on %s: %s", resp.status, sid, await resp.text())
+                                    break
+                        except Exception as e:
+                            if attempt == 2:
+                                logger.debug("CF eval error on %s: %s", sid, e)
+                            await asyncio.sleep(2.0 * (attempt + 1))
+
+                if verdict is None:
+                    verdict = await _call_judge_model(
+                        session,
+                        url=url,
+                        model=primary_model,
+                        candidate_content=asst_for_eval,
+                        reference_content=user_for_eval,
+                    )
+
+                completed_count += 1
+                diff = verdict.quality_score - hs_mean
+                pct = (completed_count / total_count) * 100.0
+                print(
+                    f"  [{completed_count:3d}/{total_count}] ({pct:5.1f}%) id={sid:<16} judge={verdict.quality_score:.2f} human={hs_mean:.2f} (diff={diff:+.2f})",
+                    flush=True,
+                )
+                return verdict
+
+        tasks = [_eval_sample(s, i) for i, s in enumerate(samples)]
+        judge_verdicts = await asyncio.gather(*tasks)
+
+    judge_scores = [v.quality_score for v in judge_verdicts]
+    human_accept = [s >= accept_threshold for s in golden_scores]
+    judge_accept = [s >= accept_threshold for s in judge_scores]
+
+    stats = _compute_stats(golden_scores, judge_scores)
+    kappa = _compute_cohen_kappa(human_accept, judge_accept)
+
+    passed_gate = stats["pearson_r"] >= CALIB_PEARSON_MIN and kappa >= CALIB_KAPPA_MIN
+
+    return {
+        "golden_samples": len(samples),
+        "golden_score_mean": round(sum(golden_scores) / len(golden_scores), 4) if golden_scores else 0.0,
+        "judge_score_mean": round(sum(judge_scores) / len(judge_scores), 4) if judge_scores else 0.0,
+        "metrics": {
+            "pearson_r": stats["pearson_r"],
+            "cohen_kappa": kappa,
+            "mae": stats["mae"],
+            "rmse": stats["rmse"],
+        },
+        "gate": {
+            "pearson_min": CALIB_PEARSON_MIN,
+            "kappa_min": CALIB_KAPPA_MIN,
+            "accept_threshold": accept_threshold,
+            "passed": passed_gate,
+        },
+        "verdict": "PASSED" if passed_gate else "FAILED",
+    }
+
+
+def _run_calibration(
+    golden_path: str,
+    *,
+    live: bool = False,
+    url: str = DEFAULT_JUDGE_URL,
+    primary_model: str = PRIMARY_MODEL,
+) -> int:
     """Run calibration against golden set and print report. Returns exit code."""
+    if live:
+        report = asyncio.run(
+            _run_live_calibration_async(
+                golden_path,
+                url=url,
+                primary_model=primary_model,
+            )
+        )
+        print(json.dumps(report, indent=2))
+        return 0 if report.get("gate", {}).get("passed", False) else 1
 
     golden_scores, samples = _load_golden_jsonl(golden_path)
-    logger.info("Loaded %d golden samples from %s", len(samples), golden_path)
-
-    # Without live judge calls, we can only verify the golden file format
-    # and report the expected gate.  Live calibration requires running
-    # judge_single on each sample — left as a follow-up when the vLLM
-    # endpoint is available.
+    logger.info("Loaded %d golden samples from %s (dry-run)", len(samples), golden_path)
     print(
         json.dumps(
             {
                 "golden_samples": len(samples),
-                "golden_score_mean": sum(golden_scores) / len(golden_scores) if golden_scores else 0.0,
+                "golden_score_mean": round(sum(golden_scores) / len(golden_scores), 4) if golden_scores else 0.0,
                 "gate": {
                     "pearson_min": CALIB_PEARSON_MIN,
                     "kappa_min": CALIB_KAPPA_MIN,
                     "accept_threshold": ACCEPT_THRESHOLD,
                 },
-                "note": "Pass --judge to run live calibration against the vLLM endpoint.",
+                "note": "Pass --judge to run live calibration against the judge endpoint.",
             },
             indent=2,
         )
@@ -547,21 +875,7 @@ def _run_calibration(golden_path: str) -> int:
 
 
 def main() -> None:
-    """CLI entry point for the dual-judge pipeline.
-
-    Usage:
-        # Judge a single candidate/reference pair
-        uv run python -m training.dual_judge --candidate "answer" --reference "ideal"
-
-        # Judge a multi-turn record from JSON file
-        uv run python -m training.dual_judge --record record.json
-
-        # Run calibration against the golden 200-sample set
-        uv run python -m training.dual_judge --golden ai/training/data/golden_judge_calib.jsonl
-
-        # Read candidate from stdin
-        echo "candidate text" | uv run python -m training.dual_judge --reference "ideal" --stdin
-    """
+    """CLI entry point for the dual-judge pipeline."""
     parser = argparse.ArgumentParser(description="Dual-model LLM QA judge (PIX-4343, blueprint Appendix B.3)")
     parser.add_argument("--candidate", type=str, default=None, help="Candidate answer to judge")
     parser.add_argument("--reference", type=str, default=None, help="Reference/ideal answer")
@@ -569,6 +883,7 @@ def main() -> None:
         "--record", type=str, default=None, help="JSON file with {messages: [...]} for multi-turn judging"
     )
     parser.add_argument("--golden", type=str, default=None, help="Golden calibration JSONL file path")
+    parser.add_argument("--judge", action="store_true", help="Run live judge inference for calibration")
     parser.add_argument("--stdin", action="store_true", help="Read candidate from stdin")
     parser.add_argument(
         "--url",
@@ -582,7 +897,7 @@ def main() -> None:
 
     # Calibration mode
     if args.golden:
-        sys.exit(_run_calibration(args.golden))
+        sys.exit(_run_calibration(args.golden, live=args.judge, url=args.url, primary_model=args.primary_model))
 
     # Multi-turn record mode
     if args.record:

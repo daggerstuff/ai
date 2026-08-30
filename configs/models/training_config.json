@@ -1,10 +1,10 @@
 {
   "model": {
-    "base_model": "meta-llama/Llama-2-7b-chat-hf",
-    "model_type": "llama",
+    "base_model": "zai-org/glm-5.3-flash",
+    "model_type": "AutoModelForCausalLM",
     "load_in_4bit": true,
     "load_in_8bit": false,
-    "torch_dtype": "float16"
+    "torch_dtype": "bfloat16"
   },
   "training": {
     "output_dir": "./ai/models/components/pixelated_empathy",
@@ -53,8 +53,8 @@
   "system": {
     "dataloader_num_workers": 4,
     "dataloader_pin_memory": true,
-    "fp16": true,
-    "bf16": false,
+    "fp16": false,
+    "bf16": true,
     "gradient_checkpointing": true,
     "remove_unused_columns": false
   }

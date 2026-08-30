@@ -2,7 +2,7 @@
   "phase": "sft",
   "stage": 1,
   "model": {
-    "base_model": "Wayfarer-2-12B",
+    "base_model": "zai-org/glm-5.3-flash",
     "fallback_model": "Harbringer-24B",
     "target": "mental_health_specialization"
   },

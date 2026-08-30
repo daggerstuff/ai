@@ -25,7 +25,7 @@ Usage::
 
     python -m ai.training.orpo_trainer \
         --data_path data/preference_pairs.jsonl \
-        --base_model_checkpoint Qwen/Qwen2.5-32B \
+        --base_model_checkpoint zai-org/glm-5.3-flash \
         --output_dir models/orpo-out \
         --beta 0.1 \
         --deepspeed ai/training/configs/ds_config_zero3.json \

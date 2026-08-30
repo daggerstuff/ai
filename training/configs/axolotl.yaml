@@ -1,4 +1,4 @@
-base_model: LatitudeGames/Wayfarer-2-12B
+base_model: zai-org/glm-5.3-flash
 model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
 
