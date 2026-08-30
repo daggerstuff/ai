@@ -1,647 +1,598 @@
 {
-  "generated_at": "2026-05-06T16:47:16.085166+00:00",
+  "generated_at": "2026-08-30T16:05:40.972431+00:00",
   "channels": [
     {
-      "channel": "10% Happier",
-      "path": "ai/training/youtube_transcripts/10% Happier",
-      "sample_count": 1,
-      "estimated_tokens": 10418,
-      "language": "en"
-    },
-    {
       "channel": "ARTE",
-      "path": "ai/training/youtube_transcripts/ARTE",
-      "sample_count": 2,
-      "estimated_tokens": 8084,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/ARTE",
+      "sample_count": 25,
+      "estimated_tokens": 8345,
       "language": "de"
     },
     {
       "channel": "ARTEde",
-      "path": "ai/training/youtube_transcripts/ARTEde",
-      "sample_count": 1,
-      "estimated_tokens": 3704,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/ARTEde",
+      "sample_count": 12,
+      "estimated_tokens": 3829,
       "language": "de"
     },
     {
       "channel": "Big Think",
-      "path": "ai/training/youtube_transcripts/Big Think",
-      "sample_count": 1,
-      "estimated_tokens": 1247,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Big Think",
+      "sample_count": 4,
+      "estimated_tokens": 1287,
       "language": "en"
     },
     {
       "channel": "BorderlinerNotes",
-      "path": "ai/training/youtube_transcripts/BorderlinerNotes",
-      "sample_count": 1,
-      "estimated_tokens": 15870,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/BorderlinerNotes",
+      "sample_count": 53,
+      "estimated_tokens": 16446,
       "language": "en"
     },
     {
       "channel": "Breakthrough Zone",
-      "path": "ai/training/youtube_transcripts/Breakthrough Zone",
-      "sample_count": 1,
-      "estimated_tokens": 8025,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Breakthrough Zone",
+      "sample_count": 28,
+      "estimated_tokens": 8353,
       "language": "en"
     },
     {
       "channel": "Caroline Myss",
-      "path": "ai/training/youtube_transcripts/Caroline Myss",
-      "sample_count": 1,
-      "estimated_tokens": 4666,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Caroline Myss",
+      "sample_count": 16,
+      "estimated_tokens": 4850,
       "language": "en"
     },
     {
       "channel": "Chris Williamson",
-      "path": "ai/training/youtube_transcripts/Chris Williamson",
-      "sample_count": 1,
-      "estimated_tokens": 20712,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Chris Williamson",
+      "sample_count": 69,
+      "estimated_tokens": 21532,
       "language": "en"
     },
     {
       "channel": "Christopher Germer, Ph.D.",
-      "path": "ai/training/youtube_transcripts/Christopher Germer, Ph.D.",
-      "sample_count": 1,
-      "estimated_tokens": 7159,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Christopher Germer, Ph.D.",
+      "sample_count": 25,
+      "estimated_tokens": 7475,
       "language": "en"
     },
     {
       "channel": "Common Ego",
-      "path": "ai/training/youtube_transcripts/Common Ego",
-      "sample_count": 1,
-      "estimated_tokens": 3085,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Common Ego",
+      "sample_count": 8,
+      "estimated_tokens": 3173,
       "language": "en"
     },
     {
       "channel": "Couples Therapy Official",
-      "path": "ai/training/youtube_transcripts/Couples Therapy Official",
-      "sample_count": 1,
-      "estimated_tokens": 5826,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Couples Therapy Official",
+      "sample_count": 20,
+      "estimated_tokens": 6077,
       "language": "en"
     },
     {
       "channel": "Crappy Childhood Fairy",
-      "path": "ai/training/youtube_transcripts/Crappy Childhood Fairy",
-      "sample_count": 7,
-      "estimated_tokens": 31741,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Crappy Childhood Fairy",
+      "sample_count": 101,
+      "estimated_tokens": 32991,
       "language": "en"
     },
     {
       "channel": "DW Deutsch",
-      "path": "ai/training/youtube_transcripts/DW Deutsch",
-      "sample_count": 1,
-      "estimated_tokens": 2225,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/DW Deutsch",
+      "sample_count": 8,
+      "estimated_tokens": 2313,
       "language": "de"
     },
     {
       "channel": "Dhru Purohit",
-      "path": "ai/training/youtube_transcripts/Dhru Purohit",
-      "sample_count": 1,
-      "estimated_tokens": 4425,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Dhru Purohit",
+      "sample_count": 9,
+      "estimated_tokens": 4525,
       "language": "en"
     },
     {
       "channel": "Doc Snipes",
-      "path": "ai/training/youtube_transcripts/Doc Snipes",
-      "sample_count": 4,
-      "estimated_tokens": 20888,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Doc Snipes",
+      "sample_count": 55,
+      "estimated_tokens": 21516,
       "language": "en"
     },
     {
       "channel": "DoctorRamani",
-      "path": "ai/training/youtube_transcripts/DoctorRamani",
-      "sample_count": 6,
-      "estimated_tokens": 20989,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/DoctorRamani",
+      "sample_count": 100,
+      "estimated_tokens": 29596,
       "language": "en"
     },
     {
       "channel": "Doug Bopst",
-      "path": "ai/training/youtube_transcripts/Doug Bopst",
-      "sample_count": 1,
-      "estimated_tokens": 3151,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Doug Bopst",
+      "sample_count": 11,
+      "estimated_tokens": 3275,
       "language": "en"
     },
     {
       "channel": "Dr Rangan Chatterjee",
-      "path": "ai/training/youtube_transcripts/Dr Rangan Chatterjee",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Dr Rangan Chatterjee",
+      "sample_count": 57,
+      "estimated_tokens": 18323,
       "language": "en"
     },
     {
       "channel": "Dr. Daniel Fox",
-      "path": "ai/training/youtube_transcripts/Dr. Daniel Fox",
-      "sample_count": 2,
-      "estimated_tokens": 3647,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Dr. Daniel Fox",
+      "sample_count": 10,
+      "estimated_tokens": 3759,
       "language": "en"
     },
     {
       "channel": "Dr. Kim Sage, Licensed Psychologist ",
-      "path": "ai/training/youtube_transcripts/Dr. Kim Sage, Licensed Psychologist ",
-      "sample_count": 1,
-      "estimated_tokens": 2669,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Dr. Kim Sage, Licensed Psychologist ",
+      "sample_count": 2,
+      "estimated_tokens": 2687,
       "language": "en"
     },
     {
       "channel": "Dr. Scott Eilers",
-      "path": "ai/training/youtube_transcripts/Dr. Scott Eilers",
-      "sample_count": 1,
-      "estimated_tokens": 4659,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Dr. Scott Eilers",
+      "sample_count": 11,
+      "estimated_tokens": 4793,
       "language": "en"
     },
     {
       "channel": "Dr. Todd Grande",
-      "path": "ai/training/youtube_transcripts/Dr. Todd Grande",
-      "sample_count": 1,
-      "estimated_tokens": 2572,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Dr. Todd Grande",
+      "sample_count": 9,
+      "estimated_tokens": 2680,
       "language": "en"
     },
     {
       "channel": "Eckhart Tolle",
-      "path": "ai/training/youtube_transcripts/Eckhart Tolle",
-      "sample_count": 2,
-      "estimated_tokens": 3451,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Eckhart Tolle",
+      "sample_count": 12,
+      "estimated_tokens": 3579,
       "language": "en"
     },
     {
       "channel": "Finding Mastery",
-      "path": "ai/training/youtube_transcripts/Finding Mastery",
-      "sample_count": 1,
-      "estimated_tokens": 14200,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Finding Mastery",
+      "sample_count": 45,
+      "estimated_tokens": 14732,
       "language": "en"
     },
     {
       "channel": "Forrest Hanson",
-      "path": "ai/training/youtube_transcripts/Forrest Hanson",
-      "sample_count": 1,
-      "estimated_tokens": 11959,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Forrest Hanson",
+      "sample_count": 42,
+      "estimated_tokens": 12455,
       "language": "en"
     },
     {
       "channel": "Full Story Lane",
-      "path": "ai/training/youtube_transcripts/Full Story Lane",
-      "sample_count": 1,
-      "estimated_tokens": 5941,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Full Story Lane",
+      "sample_count": 20,
+      "estimated_tokens": 6192,
       "language": "en"
     },
     {
       "channel": "Heidi Priebe",
-      "path": "ai/training/youtube_transcripts/Heidi Priebe",
-      "sample_count": 4,
-      "estimated_tokens": 28740,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Heidi Priebe",
+      "sample_count": 96,
+      "estimated_tokens": 29860,
       "language": "en"
     },
     {
       "channel": "How To Academy",
-      "path": "ai/training/youtube_transcripts/How To Academy",
-      "sample_count": 1,
-      "estimated_tokens": 2827,
-      "language": "en"
-    },
-    {
-      "channel": "Inspiration Hub",
-      "path": "ai/training/youtube_transcripts/Inspiration Hub",
-      "sample_count": 1,
-      "estimated_tokens": 3622,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/How To Academy",
+      "sample_count": 10,
+      "estimated_tokens": 2948,
       "language": "en"
     },
     {
       "channel": "Irene Lyon",
-      "path": "ai/training/youtube_transcripts/Irene Lyon",
-      "sample_count": 1,
-      "estimated_tokens": 12880,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Irene Lyon",
+      "sample_count": 44,
+      "estimated_tokens": 13400,
       "language": "en"
     },
     {
       "channel": "Jay Shetty Podcast",
-      "path": "ai/training/youtube_transcripts/Jay Shetty Podcast",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Jay Shetty Podcast",
+      "sample_count": 68,
+      "estimated_tokens": 23034,
       "language": "en"
     },
     {
       "channel": "Jerry Wise",
-      "path": "ai/training/youtube_transcripts/Jerry Wise",
-      "sample_count": 4,
-      "estimated_tokens": 7700,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Jerry Wise",
+      "sample_count": 27,
+      "estimated_tokens": 7992,
       "language": "en"
     },
     {
       "channel": "Jim Hopper",
-      "path": "ai/training/youtube_transcripts/Jim Hopper",
-      "sample_count": 1,
-      "estimated_tokens": 1306,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Jim Hopper",
+      "sample_count": 5,
+      "estimated_tokens": 1358,
       "language": "en"
     },
     {
       "channel": "Jimmy Kimmel Live",
-      "path": "ai/training/youtube_transcripts/Jimmy Kimmel Live",
-      "sample_count": 1,
-      "estimated_tokens": 2113,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Jimmy Kimmel Live",
+      "sample_count": 7,
+      "estimated_tokens": 2195,
       "language": "en"
     },
     {
       "channel": "Jordan Peterson Motivation Mastery",
-      "path": "ai/training/youtube_transcripts/Jordan Peterson Motivation Mastery",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Jordan Peterson Motivation Mastery",
+      "sample_count": 16,
+      "estimated_tokens": 4958,
       "language": "en"
     },
     {
       "channel": "Kaltbl\u00fctig",
-      "path": "ai/training/youtube_transcripts/Kaltbl\u00fctig",
-      "sample_count": 1,
-      "estimated_tokens": 4851,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Kaltbl\u00fctig",
+      "sample_count": 17,
+      "estimated_tokens": 5031,
       "language": "de"
     },
     {
       "channel": "Kerry McAvoy, PhD",
-      "path": "ai/training/youtube_transcripts/Kerry McAvoy, PhD",
-      "sample_count": 1,
-      "estimated_tokens": 4870,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Kerry McAvoy, PhD",
+      "sample_count": 17,
+      "estimated_tokens": 5082,
       "language": "en"
     },
     {
       "channel": "Klein aber Hannah",
-      "path": "ai/training/youtube_transcripts/Klein aber Hannah",
-      "sample_count": 1,
-      "estimated_tokens": 3253,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Klein aber Hannah",
+      "sample_count": 11,
+      "estimated_tokens": 3387,
       "language": "de"
     },
     {
       "channel": "Kris Reece",
-      "path": "ai/training/youtube_transcripts/Kris Reece",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Kris Reece",
+      "sample_count": 32,
+      "estimated_tokens": 9346,
       "language": "en"
     },
     {
       "channel": "Kristin Snowden",
-      "path": "ai/training/youtube_transcripts/Kristin Snowden",
-      "sample_count": 1,
-      "estimated_tokens": 7046,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Kristin Snowden",
+      "sample_count": 24,
+      "estimated_tokens": 7326,
       "language": "en"
     },
     {
       "channel": "LastWeekTonight",
-      "path": "ai/training/youtube_transcripts/LastWeekTonight",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/LastWeekTonight",
+      "sample_count": 23,
+      "estimated_tokens": 6693,
       "language": "en"
     },
     {
       "channel": "Limitless Motivation",
-      "path": "ai/training/youtube_transcripts/Limitless Motivation",
-      "sample_count": 1,
-      "estimated_tokens": 7843,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Limitless Motivation",
+      "sample_count": 27,
+      "estimated_tokens": 8159,
       "language": "en"
     },
     {
       "channel": "Lisa A. Romano Breakthrough Life Coach Inc",
-      "path": "ai/training/youtube_transcripts/Lisa A. Romano Breakthrough Life Coach Inc",
-      "sample_count": 1,
-      "estimated_tokens": 10501,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Lisa A. Romano Breakthrough Life Coach Inc",
+      "sample_count": 41,
+      "estimated_tokens": 11185,
       "language": "en"
     },
     {
       "channel": "MSNBC",
-      "path": "ai/training/youtube_transcripts/MSNBC",
-      "sample_count": 1,
-      "estimated_tokens": 2369,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/MSNBC",
+      "sample_count": 8,
+      "estimated_tokens": 2450,
       "language": "en"
     },
     {
       "channel": "Meadow DeVor",
-      "path": "ai/training/youtube_transcripts/Meadow DeVor",
-      "sample_count": 1,
-      "estimated_tokens": 1750,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Meadow DeVor",
+      "sample_count": 6,
+      "estimated_tokens": 1814,
       "language": "en"
     },
     {
       "channel": "MedCircle",
-      "path": "ai/training/youtube_transcripts/MedCircle",
-      "sample_count": 1,
-      "estimated_tokens": 2109,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/MedCircle",
+      "sample_count": 7,
+      "estimated_tokens": 2179,
       "language": "en"
     },
     {
       "channel": "Mel Robbins",
-      "path": "ai/training/youtube_transcripts/Mel Robbins",
-      "sample_count": 1,
-      "estimated_tokens": 7197,
-      "language": "en"
-    },
-    {
-      "channel": "Michele Lee Nieves Coaching",
-      "path": "ai/training/youtube_transcripts/Michele Lee Nieves Coaching",
-      "sample_count": 1,
-      "estimated_tokens": 3078,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Mel Robbins",
+      "sample_count": 45,
+      "estimated_tokens": 17211,
       "language": "en"
     },
     {
       "channel": "MindShift Motivation",
-      "path": "ai/training/youtube_transcripts/MindShift Motivation",
-      "sample_count": 1,
-      "estimated_tokens": 4203,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/MindShift Motivation",
+      "sample_count": 15,
+      "estimated_tokens": 4375,
       "language": "en"
     },
     {
       "channel": "NA",
-      "path": "ai/training/youtube_transcripts/NA",
-      "sample_count": 1,
-      "estimated_tokens": 1661,
-      "language": "en"
-    },
-    {
-      "channel": "Narcissist Unveiled",
-      "path": "ai/training/youtube_transcripts/Narcissist Unveiled",
-      "sample_count": 1,
-      "estimated_tokens": 4687,
-      "language": "en"
-    },
-    {
-      "channel": "Natalie Dawson",
-      "path": "ai/training/youtube_transcripts/Natalie Dawson",
-      "sample_count": 2,
-      "estimated_tokens": 5964,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/NA",
+      "sample_count": 6,
+      "estimated_tokens": 1720,
       "language": "en"
     },
     {
       "channel": "Navigating Narcissism",
-      "path": "ai/training/youtube_transcripts/Navigating Narcissism",
-      "sample_count": 1,
-      "estimated_tokens": 12011,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Navigating Narcissism",
+      "sample_count": 42,
+      "estimated_tokens": 12507,
       "language": "en"
     },
     {
       "channel": "New Life Covenant Church of God",
-      "path": "ai/training/youtube_transcripts/New Life Covenant Church of God",
-      "sample_count": 1,
-      "estimated_tokens": 9254,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/New Life Covenant Church of God",
+      "sample_count": 32,
+      "estimated_tokens": 9754,
       "language": "en"
     },
     {
       "channel": "Noetic Films",
-      "path": "ai/training/youtube_transcripts/Noetic Films",
-      "sample_count": 1,
-      "estimated_tokens": 1467,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Noetic Films",
+      "sample_count": 5,
+      "estimated_tokens": 1519,
       "language": "en"
     },
     {
       "channel": "Patrick Teahan ",
-      "path": "ai/training/youtube_transcripts/Patrick Teahan ",
-      "sample_count": 10,
-      "estimated_tokens": 71171,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Patrick Teahan ",
+      "sample_count": 262,
+      "estimated_tokens": 78758,
       "language": "en"
     },
     {
       "channel": "Phoenix Trauma Center & Dr Scott Giacomucci",
-      "path": "ai/training/youtube_transcripts/Phoenix Trauma Center & Dr Scott Giacomucci",
-      "sample_count": 1,
-      "estimated_tokens": 3267,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Phoenix Trauma Center & Dr Scott Giacomucci",
+      "sample_count": 12,
+      "estimated_tokens": 3458,
       "language": "en"
     },
     {
       "channel": "Prof. Sam Vaknin",
-      "path": "ai/training/youtube_transcripts/Prof. Sam Vaknin",
-      "sample_count": 1,
-      "estimated_tokens": 2248,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Prof. Sam Vaknin",
+      "sample_count": 8,
+      "estimated_tokens": 2343,
       "language": "en"
     },
     {
       "channel": "Psych2Go",
-      "path": "ai/training/youtube_transcripts/Psych2Go",
-      "sample_count": 1,
-      "estimated_tokens": 1074,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Psych2Go",
+      "sample_count": 4,
+      "estimated_tokens": 1111,
       "language": "en"
     },
     {
       "channel": "Qbit Films",
-      "path": "ai/training/youtube_transcripts/Qbit Films",
-      "sample_count": 1,
-      "estimated_tokens": 1256,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Qbit Films",
+      "sample_count": 4,
+      "estimated_tokens": 1296,
       "language": "en"
     },
     {
       "channel": "RTS - Radio T\u00e9l\u00e9vision Suisse",
-      "path": "ai/training/youtube_transcripts/RTS - Radio T\u00e9l\u00e9vision Suisse",
-      "sample_count": 1,
-      "estimated_tokens": 6711,
-      "language": "en"
-    },
-    {
-      "channel": "Rebecca C. Mandeville LMFT Scapegoat Abuse Expert",
-      "path": "ai/training/youtube_transcripts/Rebecca C. Mandeville LMFT Scapegoat Abuse Expert",
-      "sample_count": 2,
-      "estimated_tokens": 6579,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/RTS - Radio T\u00e9l\u00e9vision Suisse",
+      "sample_count": 23,
+      "estimated_tokens": 7045,
       "language": "en"
     },
     {
       "channel": "SCSASmithers",
-      "path": "ai/training/youtube_transcripts/SCSASmithers",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/SCSASmithers",
+      "sample_count": 33,
+      "estimated_tokens": 11903,
       "language": "en"
     },
     {
       "channel": "SWR Doku",
-      "path": "ai/training/youtube_transcripts/SWR Doku",
-      "sample_count": 1,
-      "estimated_tokens": 5626,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/SWR Doku",
+      "sample_count": 19,
+      "estimated_tokens": 5846,
       "language": "de"
     },
     {
       "channel": "Sandstone Care",
-      "path": "ai/training/youtube_transcripts/Sandstone Care",
-      "sample_count": 1,
-      "estimated_tokens": 1558,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Sandstone Care",
+      "sample_count": 6,
+      "estimated_tokens": 1622,
       "language": "en"
     },
     {
       "channel": "Shawn Stevenson",
-      "path": "ai/training/youtube_transcripts/Shawn Stevenson",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Shawn Stevenson",
+      "sample_count": 54,
+      "estimated_tokens": 16405,
       "language": "en"
     },
     {
       "channel": "Sounds True",
-      "path": "ai/training/youtube_transcripts/Sounds True",
-      "sample_count": 1,
-      "estimated_tokens": 1693,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Sounds True",
+      "sample_count": 6,
+      "estimated_tokens": 1757,
       "language": "en"
     },
     {
       "channel": "Steph and Craig",
-      "path": "ai/training/youtube_transcripts/Steph and Craig",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Steph and Craig",
+      "sample_count": 61,
+      "estimated_tokens": 18890,
       "language": "en"
     },
     {
       "channel": "Stiff Nipple Epiphany",
-      "path": "ai/training/youtube_transcripts/Stiff Nipple Epiphany",
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Stiff Nipple Epiphany",
       "sample_count": 1,
-      "estimated_tokens": 44,
+      "estimated_tokens": 48,
       "language": "en"
     },
     {
       "channel": "Surviving Narcissism",
-      "path": "ai/training/youtube_transcripts/Surviving Narcissism",
-      "sample_count": 2,
-      "estimated_tokens": 4102,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Surviving Narcissism",
+      "sample_count": 12,
+      "estimated_tokens": 4230,
       "language": "en"
     },
     {
       "channel": "TEDx Talks",
-      "path": "ai/training/youtube_transcripts/TEDx Talks",
-      "sample_count": 2,
-      "estimated_tokens": 4941,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/TEDx Talks",
+      "sample_count": 17,
+      "estimated_tokens": 5129,
       "language": "en"
     },
     {
       "channel": "THE MOTIVATIONAL MIND",
-      "path": "ai/training/youtube_transcripts/THE MOTIVATIONAL MIND",
-      "sample_count": 1,
-      "estimated_tokens": 4357,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/THE MOTIVATIONAL MIND",
+      "sample_count": 29,
+      "estimated_tokens": 8714,
       "language": "en"
     },
     {
       "channel": "Tamsen Fadal",
-      "path": "ai/training/youtube_transcripts/Tamsen Fadal",
-      "sample_count": 1,
-      "estimated_tokens": 12460,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Tamsen Fadal",
+      "sample_count": 40,
+      "estimated_tokens": 12932,
       "language": "en"
     },
     {
       "channel": "The Diary Of A CEO",
-      "path": "ai/training/youtube_transcripts/The Diary Of A CEO",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/The Diary Of A CEO",
+      "sample_count": 247,
+      "estimated_tokens": 80252,
       "language": "en"
     },
     {
       "channel": "The Late Show with Stephen Colbert",
-      "path": "ai/training/youtube_transcripts/The Late Show with Stephen Colbert",
-      "sample_count": 2,
-      "estimated_tokens": 3177,
-      "language": "en"
-    },
-    {
-      "channel": "Theo Von",
-      "path": "ai/training/youtube_transcripts/Theo Von",
-      "sample_count": 0,
-      "estimated_tokens": 0,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/The Late Show with Stephen Colbert",
+      "sample_count": 12,
+      "estimated_tokens": 3345,
       "language": "en"
     },
     {
       "channel": "Therapy Chat Podcast",
-      "path": "ai/training/youtube_transcripts/Therapy Chat Podcast",
-      "sample_count": 1,
-      "estimated_tokens": 8800,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Therapy Chat Podcast",
+      "sample_count": 21,
+      "estimated_tokens": 9064,
       "language": "en"
     },
     {
       "channel": "Therapy Decoded",
-      "path": "ai/training/youtube_transcripts/Therapy Decoded",
-      "sample_count": 1,
-      "estimated_tokens": 6174,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Therapy Decoded",
+      "sample_count": 21,
+      "estimated_tokens": 6418,
       "language": "en"
     },
     {
       "channel": "Therapy in a Nutshell",
-      "path": "ai/training/youtube_transcripts/Therapy in a Nutshell",
-      "sample_count": 5,
-      "estimated_tokens": 22473,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Therapy in a Nutshell",
+      "sample_count": 109,
+      "estimated_tokens": 32791,
       "language": "en"
     },
     {
       "channel": "Therapy in a Nutshell Podcast",
-      "path": "ai/training/youtube_transcripts/Therapy in a Nutshell Podcast",
-      "sample_count": 1,
-      "estimated_tokens": 9097,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Therapy in a Nutshell Podcast",
+      "sample_count": 25,
+      "estimated_tokens": 9461,
       "language": "en"
     },
     {
       "channel": "Tim Fletcher",
-      "path": "ai/training/youtube_transcripts/Tim Fletcher",
-      "sample_count": 82,
-      "estimated_tokens": 373366,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Tim Fletcher",
+      "sample_count": 1239,
+      "estimated_tokens": 390542,
       "language": "en"
     },
     {
       "channel": "Understood",
-      "path": "ai/training/youtube_transcripts/Understood",
-      "sample_count": 1,
-      "estimated_tokens": 2542,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Understood",
+      "sample_count": 9,
+      "estimated_tokens": 2634,
       "language": "en"
     },
     {
       "channel": "Unfilteredd\uff1a Narcissistic Families",
-      "path": "ai/training/youtube_transcripts/Unfilteredd\uff1a Narcissistic Families",
-      "sample_count": 1,
-      "estimated_tokens": 2211,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Unfilteredd\uff1a Narcissistic Families",
+      "sample_count": 5,
+      "estimated_tokens": 2267,
       "language": "en"
     },
     {
       "channel": "Veritasium",
-      "path": "ai/training/youtube_transcripts/Veritasium",
-      "sample_count": 1,
-      "estimated_tokens": 5708,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Veritasium",
+      "sample_count": 20,
+      "estimated_tokens": 5921,
       "language": "en"
     },
     {
       "channel": "WDR",
-      "path": "ai/training/youtube_transcripts/WDR",
-      "sample_count": 2,
-      "estimated_tokens": 10612,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/WDR",
+      "sample_count": 36,
+      "estimated_tokens": 10994,
       "language": "de"
     },
     {
       "channel": "Wu Wei Wisdom",
-      "path": "ai/training/youtube_transcripts/Wu Wei Wisdom",
-      "sample_count": 2,
-      "estimated_tokens": 11841,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Wu Wei Wisdom",
+      "sample_count": 38,
+      "estimated_tokens": 12317,
       "language": "en"
     },
     {
       "channel": "Y-Kollektiv",
-      "path": "ai/training/youtube_transcripts/Y-Kollektiv",
-      "sample_count": 1,
-      "estimated_tokens": 5777,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/Y-Kollektiv",
+      "sample_count": 20,
+      "estimated_tokens": 5990,
       "language": "de"
     },
     {
       "channel": "ZDF MAGAZIN ROYALE",
-      "path": "ai/training/youtube_transcripts/ZDF MAGAZIN ROYALE",
-      "sample_count": 1,
-      "estimated_tokens": 3326,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/ZDF MAGAZIN ROYALE",
+      "sample_count": 12,
+      "estimated_tokens": 3473,
       "language": "de"
     },
     {
       "channel": "ZDFheute Nachrichten",
-      "path": "ai/training/youtube_transcripts/ZDFheute Nachrichten",
-      "sample_count": 1,
-      "estimated_tokens": 5622,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/ZDFheute Nachrichten",
+      "sample_count": 20,
+      "estimated_tokens": 5854,
       "language": "de"
     },
     {
       "channel": "hunds-kompetent Karin Actun",
-      "path": "ai/training/youtube_transcripts/hunds-kompetent Karin Actun",
-      "sample_count": 1,
-      "estimated_tokens": 3001,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/hunds-kompetent Karin Actun",
+      "sample_count": 11,
+      "estimated_tokens": 3135,
       "language": "de"
     },
     {
       "channel": "rbb Doku",
-      "path": "ai/training/youtube_transcripts/rbb Doku",
-      "sample_count": 1,
-      "estimated_tokens": 3304,
+      "path": "/home/vivi/pixelated/ai/training/youtube_transcripts/rbb Doku",
+      "sample_count": 11,
+      "estimated_tokens": 3428,
       "language": "de"
     }
   ],
   "totals": {
-    "total_samples": 205,
-    "total_channels": 91,
+    "total_samples": 3830,
+    "total_channels": 84,
     "skipped_channels": 0
   }
 }

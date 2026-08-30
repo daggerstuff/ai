@@ -1,9 +1,10 @@
 {
-  "generated_at": "2026-05-06T16:47:16.085653+00:00",
-  "processed": 233,
-  "skipped_unsafe": 28,
+  "generated_at": "2026-08-30T16:05:40.974793+00:00",
+  "processed": 3830,
   "skipped_duplicate": 0,
-  "total_samples": 205,
-  "channels_processed": 91,
-  "channels_skipped": []
+  "total_samples": 3830,
+  "channels_processed": 84,
+  "channels_skipped": [],
+  "chunk_words": 300,
+  "chunk_overlap_words": 0
 }

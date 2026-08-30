@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import json
 import logging
 import math
@@ -161,94 +162,122 @@ def check_sycophancy_and_slop(text: str) -> tuple[bool, str]:
     if not text or not isinstance(text, str):
         return False, ""
     t_lower = text.strip().lower()
-    for b in BANNED_OPENERS:
-        if t_lower.startswith(b) or f"\n{b}" in t_lower:
-            return True, f"banned_sycophantic_opener: '{b}'"
-    for c in CAVING_PHRASES:
-        if c in t_lower:
-            return True, f"caving_phrase_detected: '{c}'"
+    opener = next(
+        (b for b in BANNED_OPENERS if t_lower.startswith(b) or f"\n{b}" in t_lower),
+        None,
+    )
+    if opener is not None:
+        return True, f"banned_sycophantic_opener: '{opener}'"
+    caving = next((c for c in CAVING_PHRASES if c in t_lower), None)
+    if caving is not None:
+        return True, f"caving_phrase_detected: '{caving}'"
     return False, ""
 
 
-def parse_judge_json(content: str, candidate_text: str = "") -> JudgeVerdict:
-    """Parse a judge model's JSON payload from raw completion text.
+def _looks_like_judge_payload(d: Any) -> bool:
+    """Return True when a decoded object carries judge-verdict keys."""
+    return isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d)
 
-    Tolerates leading/trailing prose, reasoning traces, and fenced ```json blocks.
-    Enforces deterministic anti-sycophancy penalties if candidate text contains
-    banned openers or caving phrases.
-    """
 
-    if not content or not content.strip():
-        return JudgeVerdict(0.0, "empty_judge_output")
+def _payload_from_fenced_blocks(content: str) -> dict[str, Any] | None:
+    """Extract a judge payload from fenced ```json markdown blocks."""
 
-    payload: dict[str, Any] | None = None
-
-    # 1. Try fenced markdown blocks first
     for fenced in re.finditer(r"```(?:json)?\s*(\{.*?\})\s*```", content, re.DOTALL):
-        try:
+        with contextlib.suppress(Exception):
             d = json.loads(fenced.group(1))
-            if isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d):
-                payload = d
-                break
-        except Exception:
-            pass
+            if _looks_like_judge_payload(d):
+                return d
+    return None
 
-    # 2. Try matching JSON blocks from every '{' to '}'
-    if payload is None:
-        last_brace = content.rfind("}")
-        if last_brace != -1:
-            first_brace = content.find("{")
-            while first_brace != -1 and first_brace < last_brace:
-                try:
-                    candidate = content[first_brace : last_brace + 1]
-                    d = json.loads(candidate)
-                    if isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d):
-                        payload = d
-                        break
-                except Exception:
-                    pass
-                first_brace = content.find("{", first_brace + 1)
 
-    # 3. Try auto-repair for truncated JSON strings (from reasoning length limits)
-    if payload is None:
-        last_brace = content.rfind("{")
-        if last_brace != -1:
-            candidate = content[last_brace:].strip()
-            # If unterminated string
-            if candidate.count('"') % 2 == 1:
-                candidate += '"'
-            open_b = candidate.count('{')
-            close_b = candidate.count('}')
-            if open_b > close_b:
-                candidate += '}' * (open_b - close_b)
-            try:
-                d = json.loads(candidate)
-                if isinstance(d, dict) and ("quality_score" in d or "dim_scores" in d):
-                    payload = d
-            except Exception:
-                pass
+def _payload_from_brace_pairs(content: str) -> dict[str, Any] | None:
+    """Extract a judge payload by matching each '{' against the last '}'."""
 
-    # 4. Direct load attempt
-    if payload is None:
-        try:
-            d = json.loads(content.strip())
-            if isinstance(d, dict):
-                payload = d
-        except Exception:
-            pass
+    last_brace = content.rfind("}")
+    if last_brace == -1:
+        return None
+    first_brace = content.find("{")
+    while first_brace != -1 and first_brace < last_brace:
+        with contextlib.suppress(Exception):
+            d = json.loads(content[first_brace : last_brace + 1])
+            if _looks_like_judge_payload(d):
+                return d
+        first_brace = content.find("{", first_brace + 1)
+    return None
 
-    if payload is None:
-        return JudgeVerdict(0.0, "json_parse_error: no valid judge JSON found")
+
+def _payload_from_truncated_tail(content: str) -> dict[str, Any] | None:
+    """Repair and parse a truncated JSON tail (cut off by reasoning limits)."""
+
+    last_brace = content.rfind("{")
+    if last_brace == -1:
+        return None
+    candidate = content[last_brace:].strip()
+    if candidate.count('"') % 2 == 1:
+        candidate += '"'
+    open_b = candidate.count("{")
+    close_b = candidate.count("}")
+    if open_b > close_b:
+        candidate += "}" * (open_b - close_b)
+    with contextlib.suppress(Exception):
+        d = json.loads(candidate)
+        if _looks_like_judge_payload(d):
+            return d
+    return None
+
+
+def _payload_direct(content: str) -> dict[str, Any] | None:
+    """Parse the whole content as a bare JSON object."""
+
+    with contextlib.suppress(Exception):
+        d = json.loads(content.strip())
+        if isinstance(d, dict):
+            return d
+    return None
+
+
+def _parse_dims(payload: dict[str, Any]) -> dict[str, float]:
+    """Coerce per-dimension scores to floats, defaulting to 0.0 on bad values."""
 
     dim_raw = payload.get("dim_scores", {})
     if not isinstance(dim_raw, dict):
-        dim_raw = {}
+        return dict.fromkeys(DIMENSIONS, 0.0)
     dim_scores: dict[str, float] = {}
     for dim in DIMENSIONS:
         try:
             dim_scores[dim] = float(dim_raw.get(dim, 0.0))
         except (TypeError, ValueError):
             dim_scores[dim] = 0.0
+    return dim_scores
+
+
+def parse_judge_json(content: str, candidate_text: str = "") -> JudgeVerdict:
+    """Parse a judge model's JSON payload from raw completion text.
+    Tolerates leading/trailing prose, fenced ```json markdown blocks,
+    and JSON truncated by reasoning-token limits.
+    """
+
+    if not content or not content.strip():
+        return JudgeVerdict(0.0, "empty_judge_output")
+
+    payload = next(
+        (
+            candidate
+            for candidate in (
+                _payload_from_fenced_blocks(content),
+                _payload_from_brace_pairs(content),
+                _payload_from_truncated_tail(content),
+                _payload_direct(content),
+            )
+            if candidate is not None
+        ),
+        None,
+    )
+
+    if payload is None:
+        return JudgeVerdict(0.0, "json_parse_error: no valid judge JSON found")
+
+    dim_scores = _parse_dims(payload)
     try:
         quality = float(payload.get("quality_score", 0.0))
     except (TypeError, ValueError):
@@ -299,9 +328,9 @@ def aggregate_turn_verdicts(verdicts: Sequence[JudgeVerdict], *, decay: float = 
     if not verdicts:
         return JudgeVerdict(0.0, "no_turns")
     quality = recency_weighted_mean([v.quality_score for v in verdicts], decay=decay)
-    dim_scores: dict[str, float] = {}
-    for dim in DIMENSIONS:
-        dim_scores[dim] = recency_weighted_mean([v.dim_scores.get(dim, 0.0) for v in verdicts], decay=decay)
+    dim_scores = {
+        dim: recency_weighted_mean([v.dim_scores.get(dim, 0.0) for v in verdicts], decay=decay) for dim in DIMENSIONS
+    }
     reject_reasons = [v.reject_reason for v in verdicts if v.reject_reason]
     return JudgeVerdict(
         quality_score=quality,
@@ -405,14 +434,11 @@ def _cohen_kappa_counts(pairs: Sequence[tuple[bool, bool]]) -> float:
     n = len(pairs)
     if n == 0:
         return 0.0
-    agree = sum(1 for g, j in pairs if g == j)
-    p_o = agree / n
-    p_g_pos = sum(1 for g, _ in pairs if g) / n
-    p_j_pos = sum(1 for _, j in pairs if j) / n
+    p_o = sum(g == j for g, j in pairs) / n
+    p_g_pos = sum(g for g, _ in pairs) / n
+    p_j_pos = sum(j for _, j in pairs) / n
     p_e = p_g_pos * p_j_pos + (1 - p_g_pos) * (1 - p_j_pos)
-    if p_e == 1.0:
-        return 1.0
-    return (p_o - p_e) / (1 - p_e)
+    return 1.0 if p_e == 1.0 else (p_o - p_e) / (1 - p_e)
 
 
 def cohen_kappa(golden_accept: Sequence[bool], judge_accept: Sequence[bool]) -> float:
@@ -672,19 +698,151 @@ def _compute_cohen_kappa(human_accept: list[bool], judge_accept: list[bool]) -> 
         return 0.0
 
     # Confusion matrix
-    a = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if h and j)
-    b = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if h and not j)
-    c = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if not h and j)
-    d = sum(1 for h, j in zip(human_accept, judge_accept, strict=False) if not h and not j)
+    a = sum(h and j for h, j in zip(human_accept, judge_accept, strict=False))
+    b = sum(h and not j for h, j in zip(human_accept, judge_accept, strict=False))
+    c = sum(not h and j for h, j in zip(human_accept, judge_accept, strict=False))
+    d = len(human_accept) - a - b - c
 
     p_o = (a + d) / n
     p_yes = ((a + b) / n) * ((a + c) / n)
     p_no = ((c + d) / n) * ((b + d) / n)
     p_e = p_yes + p_no
 
-    if 1.0 - p_e < 1e-9:
+    if p_e >= 1.0 - 1e-9:
         return 1.0 if p_o == 1.0 else 0.0
     return round((p_o - p_e) / (1.0 - p_e), 4)
+
+
+CF_MODEL_FALLBACK = "@cf/mistralai/mistral-small-3.1-24b-instruct"
+CF_RETRY_ATTEMPTS = 3
+CF_RETRY_BACKOFF_SECONDS = 2.0
+CF_REQUEST_TIMEOUT_SECONDS = 180
+CF_MAX_TOKENS = 4096
+MULTI_TURN_CAP = 8
+TURN_CHARS_CAP = 300
+_THERAPIST_ROLES = ("assistant", "therapist", "sys")
+
+CFRetryOutcome = tuple[JudgeVerdict | None, str | None]
+
+
+def _judge_from_cf_response(res_obj: dict[str, Any], candidate_text: str) -> JudgeVerdict:
+    """Parse a judge verdict from a Cloudflare Workers AI response object."""
+
+    if raw := res_obj.get("response", ""):
+        return parse_judge_json(raw, candidate_text=candidate_text)
+    choices = res_obj.get("choices") or []
+    if not choices:
+        return JudgeVerdict(0.0, "cf_response_missing_content")
+    msg = choices[0].get("message", {})
+    v = parse_judge_json(msg.get("content", ""), candidate_text=candidate_text)
+    if v.quality_score > 0.0:
+        return v
+    if reasoning_text := msg.get("reasoning_content", "") or msg.get("reasoning", ""):
+        v_reasoning = parse_judge_json(reasoning_text, candidate_text=candidate_text)
+        if v_reasoning.quality_score > 0.0:
+            return v_reasoning
+    return v
+
+
+async def _post_with_cf_retries(
+    session: aiohttp.ClientSession,
+    *,
+    cf_url: str,
+    headers: dict[str, str],
+    payload: dict[str, Any],
+    candidate_text: str,
+    sid: str,
+) -> CFRetryOutcome:
+    """POST to the CF REST endpoint with bounded retries for transient statuses.
+
+    Returns ``(verdict, None)`` on success or ``(None, error_kind)`` when the
+    sample should fall back to the generic judge transport.
+    """
+
+    timeout = aiohttp.ClientTimeout(total=CF_REQUEST_TIMEOUT_SECONDS)
+    for attempt in range(CF_RETRY_ATTEMPTS):
+        try:
+            async with session.post(cf_url, headers=headers, json=payload, timeout=timeout) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return _judge_from_cf_response(data.get("result", {}), candidate_text), None
+                if resp.status in (429, 500, 502, 503):
+                    await asyncio.sleep(CF_RETRY_BACKOFF_SECONDS * (attempt + 1))
+                    continue
+                logger.debug("CF status %d on %s: %s", resp.status, sid, await resp.text())
+                return None, f"http_{resp.status}"
+        except Exception as e:
+            if attempt == CF_RETRY_ATTEMPTS - 1:
+                logger.debug("CF eval error on %s: %s", sid, e)
+            await asyncio.sleep(CF_RETRY_BACKOFF_SECONDS * (attempt + 1))
+    return None, "cf_retries_exhausted"
+
+
+async def _eval_sample_cf(
+    session: aiohttp.ClientSession,
+    *,
+    prompt: str,
+    candidate_text: str,
+    primary_model: str,
+    sid: str,
+) -> JudgeVerdict | None:
+    """Evaluate one sample via the Cloudflare REST endpoint; None on failure."""
+
+    cf_account = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+    cf_token = os.environ.get("CLOUDFLARE_API_TOKEN")
+    if not (cf_account and cf_token):
+        return None
+    cf_model = primary_model if primary_model.startswith("@cf") else CF_MODEL_FALLBACK
+    cf_url = f"https://api.cloudflare.com/client/v4/accounts/{cf_account}/ai/run/{cf_model}"
+    headers = {"Authorization": f"Bearer {cf_token}", "Content-Type": "application/json"}
+    payload = {
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": CF_MAX_TOKENS,
+        "temperature": JUDGE_TEMPERATURE,
+    }
+    verdict, _ = await _post_with_cf_retries(
+        session, cf_url=cf_url, headers=headers, payload=payload, candidate_text=candidate_text, sid=sid
+    )
+    return verdict
+
+
+def _build_sample_prompt(sample: dict) -> tuple[str, str, str]:
+    """Build the judge prompt for one golden sample.
+
+    Returns ``(prompt, assistant_text, reference_text)``.  Multi-turn
+    transcripts are capped to the first ``MULTI_TURN_CAP`` turns at
+    ``TURN_CHARS_CAP`` chars each to avoid CF 'empty output' errors from
+    oversized prompts.
+    """
+
+    conv = sample.get("conversation", sample.get("dialogue", []))
+    if len(conv) > 2:
+        sampled = conv[:MULTI_TURN_CAP]
+        dialogue_text = "\n".join(
+            f"{'Therapist' if m.get('role') in _THERAPIST_ROLES else 'Client'}: {m.get('content', '')[:TURN_CHARS_CAP]}"
+            for m in sampled
+        )
+        assistant_text = "\n".join(
+            m.get("content", "")[:TURN_CHARS_CAP] for m in sampled if m.get("role") in _THERAPIST_ROLES
+        )
+        prompt = (
+            f"{JUDGE_SYSTEM_PROMPT}\n\nMulti-Turn Therapy Session Transcript "
+            f"(first {len(sampled)} turns):\n{dialogue_text}\n\n"
+            "Evaluate the clinical quality of this therapy session:"
+        )
+        return prompt, assistant_text, dialogue_text
+    user_text = conv[0]["content"] if len(conv) > 0 else ""
+    asst_text = conv[1]["content"] if len(conv) > 1 else ""
+    prompt = f"{JUDGE_SYSTEM_PROMPT}\n\nClient: {user_text}\nTherapist: {asst_text}"
+    return prompt, asst_text, user_text
+
+
+def _human_mean(sample: dict) -> float:
+    """Equal-weight mean of the golden human dimension scores."""
+
+    hs_dict = sample.get("human_scores", {})
+    dim_vals = [float(hs_dict.get(d, 0.0)) for d in DIMENSIONS]
+    return sum(dim_vals) / len(dim_vals) if dim_vals else 0.0
 
 
 async def _run_live_calibration_async(
@@ -693,98 +851,38 @@ async def _run_live_calibration_async(
     url: str = DEFAULT_JUDGE_URL,
     primary_model: str = PRIMARY_MODEL,
     accept_threshold: float = ACCEPT_THRESHOLD,
-    max_concurrency: int = 8,
 ) -> dict[str, Any]:
     """Execute live judge evaluation across all golden calibration samples."""
     golden_scores, samples = _load_golden_jsonl(golden_path)
     logger.info("Loaded %d golden samples from %s for live calibration", len(samples), golden_path)
 
-    cf_account = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
-    cf_token = os.environ.get("CLOUDFLARE_API_TOKEN")
-    default_concurrency = int(os.environ.get("DUAL_JUDGE_CONCURRENCY", "2" if cf_account else "8"))
+    default_concurrency = int(
+        os.environ.get(
+            "DUAL_JUDGE_CONCURRENCY",
+            "2" if os.environ.get("CLOUDFLARE_ACCOUNT_ID") else "8",
+        )
+    )
     sem = asyncio.Semaphore(default_concurrency)
-    judge_verdicts: list[JudgeVerdict] = []
 
     completed_count = 0
     total_count = len(samples)
 
     async with aiohttp.ClientSession() as session:
+
         async def _eval_sample(sample: dict, idx: int) -> JudgeVerdict:
             nonlocal completed_count
-            conv = sample.get("conversation", sample.get("dialogue", []))
-            if len(conv) > 2:
-                # Multi-turn conversation transcript — cap to first 8 turns, 300 chars per turn
-                # to avoid CF 'empty output' errors from oversized prompts
-                MAX_TURNS = 8
-                MAX_TURN_CHARS = 300
-                sampled = conv[:MAX_TURNS]
-                dialogue_text = "\n".join(
-                    f"{'Therapist' if m.get('role') in ('assistant', 'therapist', 'sys') else 'Client'}: {m.get('content', '')[:MAX_TURN_CHARS]}"
-                    for m in sampled
-                )
-                all_asst_text = "\n".join(
-                    m.get("content", "")[:MAX_TURN_CHARS] for m in sampled if m.get("role") in ("assistant", "therapist", "sys")
-                )
-                prompt = f"{JUDGE_SYSTEM_PROMPT}\n\nMulti-Turn Therapy Session Transcript (first {len(sampled)} turns):\n{dialogue_text}\n\nEvaluate the clinical quality of this therapy session:"
-                asst_for_eval = all_asst_text
-                user_for_eval = dialogue_text
-            else:
-                user_text = conv[0]["content"] if len(conv) > 0 else ""
-                asst_text = conv[1]["content"] if len(conv) > 1 else ""
-                prompt = f"{JUDGE_SYSTEM_PROMPT}\n\nClient: {user_text}\nTherapist: {asst_text}"
-                asst_for_eval = asst_text
-                user_for_eval = user_text
-
-            sid = sample.get("id", f"sample-{idx+1:04d}")
-            hs_dict = sample.get("human_scores", {})
-            dim_vals = [float(hs_dict.get(d, 0.0)) for d in DIMENSIONS]
-            hs_mean = sum(dim_vals) / len(dim_vals) if dim_vals else 0.0
+            sid = sample.get("id", f"sample-{idx + 1:04d}")
+            hs_mean = _human_mean(sample)
+            prompt, asst_for_eval, user_for_eval = _build_sample_prompt(sample)
 
             async with sem:
-                verdict = None
-                if cf_account and cf_token:
-                    # Use Cloudflare REST endpoint with retry loop
-                    cf_model = primary_model if primary_model.startswith("@cf") else "@cf/mistralai/mistral-small-3.1-24b-instruct"
-                    cf_url = f"https://api.cloudflare.com/client/v4/accounts/{cf_account}/ai/run/{cf_model}"
-                    headers = {"Authorization": f"Bearer {cf_token}", "Content-Type": "application/json"}
-                    # 4096 tokens: reasoning models need budget for think chain + JSON answer
-                    payload = {"messages": [{"role": "user", "content": prompt}], "max_tokens": 4096, "temperature": JUDGE_TEMPERATURE}
-
-                    for attempt in range(3):
-                        try:
-                            async with session.post(cf_url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=180)) as resp:
-                                if resp.status == 200:
-                                    data = await resp.json()
-                                    res_obj = data.get("result", {})
-                                    raw = res_obj.get("response", "")
-                                    if not raw and "choices" in res_obj and len(res_obj["choices"]) > 0:
-                                        msg = res_obj["choices"][0].get("message", {})
-                                        content_text = msg.get("content", "")
-                                        reasoning_text = msg.get("reasoning_content", "") or msg.get("reasoning", "")
-                                        v = parse_judge_json(content_text, candidate_text=asst_for_eval)
-                                        if v.quality_score > 0.0:
-                                            verdict = v
-                                        elif reasoning_text:
-                                            v_reasoning = parse_judge_json(reasoning_text, candidate_text=asst_for_eval)
-                                            if v_reasoning.quality_score > 0.0:
-                                                verdict = v_reasoning
-                                            else:
-                                                verdict = v
-                                        else:
-                                            verdict = v
-                                    else:
-                                        verdict = parse_judge_json(raw, candidate_text=asst_for_eval)
-                                    break
-                                elif resp.status in (429, 500, 502, 503):
-                                    await asyncio.sleep(2.0 * (attempt + 1))
-                                else:
-                                    logger.debug("CF status %d on %s: %s", resp.status, sid, await resp.text())
-                                    break
-                        except Exception as e:
-                            if attempt == 2:
-                                logger.debug("CF eval error on %s: %s", sid, e)
-                            await asyncio.sleep(2.0 * (attempt + 1))
-
+                verdict = await _eval_sample_cf(
+                    session,
+                    prompt=prompt,
+                    candidate_text=asst_for_eval,
+                    primary_model=primary_model,
+                    sid=sid,
+                )
                 if verdict is None:
                     verdict = await _call_judge_model(
                         session,

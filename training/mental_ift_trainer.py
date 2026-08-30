@@ -46,7 +46,7 @@ class IFTConfig:
 
     base_model: str = "zai-org/glm-5.3-flash"
     output_dir: str = "./ai/models/mental_ift"
-    dataset_path: str | None = "ai/data/curated/sft_chatml/train.jsonl"
+    dataset_path: str | None = "ai/data/curated/sft_chatml/train_master_gold.jsonl"
     use_qlora: bool = True
     lora_r: int = 16
     lora_alpha: int = 32

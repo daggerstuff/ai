@@ -18,7 +18,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from training.provenance import ProvenanceOptions, build_provenance
+try:
+    from training.provenance import ProvenanceOptions, build_provenance
+except ImportError:
+    from ai.training.provenance import ProvenanceOptions, build_provenance
 
 logger = logging.getLogger("youtube_ingestion")
 
