@@ -53,7 +53,7 @@ OLLAMA_URL = os.environ.get(
     + os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
     + "/ai/v1/chat/completions",
 )
-MODEL = os.environ.get("NF_MODEL", "@cf/zai-org/glm-5.2")
+MODEL = os.environ.get("NF_MODEL", "@cf/zai-org/glm-5.3")
 
 
 def _cloudflare_api_token() -> str:
