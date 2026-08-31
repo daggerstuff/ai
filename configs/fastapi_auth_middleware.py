@@ -6,13 +6,15 @@ This module provides FastAPI-specific middleware and decorators for the authenti
 """
 
 import logging
+import os
 from collections.abc import Callable
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from security.api_authentication import (
+from configs.api_authentication import (
     APIKey,
     AuthenticationSystem,
     PermissionLevel,
@@ -23,7 +25,7 @@ from security.api_authentication import (
 logger = logging.getLogger(__name__)
 
 # Security schemes
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
@@ -79,11 +81,11 @@ class FastAPIAuthenticationMiddleware(BaseHTTPMiddleware):
         request.state.authenticated_user = authenticated_user
         request.state.authenticated_api_key = authenticated_api_key
 
-        # If no user or API key is authenticated and the endpoint is not public, raise HTTPException
+        # If no user or API key is authenticated and the endpoint is not public, return JSONResponse
         if not authenticated_user and not authenticated_api_key and request.url.path not in self.public_endpoints:
-            raise HTTPException(
+            return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authentication required",
+                content={"detail": "Authentication required"},
             )
 
         return await call_next(request)
@@ -233,7 +235,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Invalid permission: {e}",
-            )
+            ) from e
 
         api_key, api_key_obj = auth_system.create_api_key(name, permission_objects, expires_in_days)
 
@@ -355,7 +357,12 @@ if __name__ == "__main__":
     import uvicorn
 
     # Create app with authentication
-    app, auth_system = create_authenticated_app("your-secret-key-here")
+    secret_key = os.environ.get("AUTH_SECRET_KEY")
+    if not secret_key or secret_key == "your-secret-key-here":
+        raise ValueError(
+            "AUTH_SECRET_KEY environment variable must be set with a secure value. Default placeholder is not allowed."
+        )
+    app, auth_system = create_authenticated_app(secret_key)
 
     # Create default admin user
     admin_user = auth_system.create_user("admin", "admin@pixelated.ai", "admin_password", UserRole.ADMIN)

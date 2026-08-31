@@ -12,6 +12,7 @@ This module provides enterprise-grade API authentication with:
 
 import hashlib
 import logging
+import os
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -97,6 +98,8 @@ class AuthenticationSystem:
         self.algorithm = "HS256"
 
         # In-memory storage (replace with database in production)
+        # WARNING: All data (users, API keys, revoked tokens) is lost on process restart.
+        # Token revocation does not persist across restarts. Use PostgreSQL or similar for production.
         self.users: dict[str, User] = {}
         self.api_keys: dict[str, APIKey] = {}
         self.revoked_tokens: set = set()
@@ -463,7 +466,12 @@ class AuthenticationTester:
 # Example usage and testing
 if __name__ == "__main__":
     # Initialize authentication system
-    auth_system = AuthenticationSystem(secret_key="your-secret-key-here")
+    secret_key = os.environ.get("AUTH_SECRET_KEY")
+    if not secret_key or secret_key == "your-secret-key-here":
+        raise ValueError(
+            "AUTH_SECRET_KEY environment variable must be set with a secure value. Default placeholder is not allowed."
+        )
+    auth_system = AuthenticationSystem(secret_key=secret_key)
 
     # Create test users
     admin_user = auth_system.create_user("admin", "admin@example.com", "admin_password", UserRole.ADMIN)

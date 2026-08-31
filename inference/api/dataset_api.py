@@ -8,12 +8,12 @@ from typing import Any
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
 from pydantic import BaseModel
 
-from security.api_authentication import (
+from configs.api_authentication import (
     AuthenticationSystem,
     PermissionLevel,
     UserRole,
 )
-from security.fastapi_auth_middleware import (
+from configs.fastapi_auth_middleware import (
     AuthenticationDependencies,
     api_key_header,
 )
@@ -23,22 +23,30 @@ logger = logging.getLogger(__name__)
 # Initialize Authentication System (use a strong secret key in production)
 AUTH_SECRET_KEY = os.environ.get("AUTH_SECRET_KEY")
 if not AUTH_SECRET_KEY:
-    raise ValueError("AUTH_SECRET_KEY environment variable is missing or empty. It must be configured securely in production.")
+    raise ValueError(
+        "AUTH_SECRET_KEY environment variable is missing or empty. It must be configured securely in production."
+    )
 auth_system = AuthenticationSystem(AUTH_SECRET_KEY)
 auth_deps = AuthenticationDependencies(auth_system)
 
-# Create a test API key for demonstration purposes
-# In a real application, API keys would be managed securely (e.g., via admin interface)
-API_KEY_EXPIRY_DAYS = int(os.getenv("API_KEY_EXPIRY_DAYS", "365"))
-TEST_API_KEY, _ = auth_system.create_api_key(
-    "test_dataset_api_key",
-    [PermissionLevel.READ, PermissionLevel.WRITE],
-    expires_in_days=API_KEY_EXPIRY_DAYS,
-)
+# Test API key creation is disabled in production
+# To enable for development, set CREATE_TEST_API_KEY=true
+if os.getenv("CREATE_TEST_API_KEY", "false").lower() == "true":
+    API_KEY_EXPIRY_DAYS = int(os.getenv("API_KEY_EXPIRY_DAYS", "365"))
+    TEST_API_KEY, _ = auth_system.create_api_key(
+        "test_dataset_api_key",
+        [PermissionLevel.READ, PermissionLevel.WRITE],
+        expires_in_days=API_KEY_EXPIRY_DAYS,
+    )
+    logger.warning("Test API key created for development purposes only")
 
 app = FastAPI(title="Dataset Access API", description="API for accessing and querying datasets.")
 
-DATABASE_URL = "/home/vivi/pixelated/ai/data/conversation_system.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError(
+        "DATABASE_URL environment variable is missing or empty. It must be configured securely in production."
+    )
 
 
 def validate_identifier(identifier: str) -> str:
