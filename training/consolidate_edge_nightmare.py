@@ -35,8 +35,9 @@ import hashlib
 import json
 import logging
 import os
-from collections.abc import Sequence
-from datetime import datetime, timezone
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -95,12 +96,33 @@ MANIFEST_FILENAME: dict[str, str] = {
 
 _MANIFEST_STAGE_BY_FILE = {filename: stage for stage, filename in MANIFEST_FILENAME.items()}
 
+# "stageN" prefix -> canonical stage name (handles both full and short stage values).
+_STAGE_BY_PREFIX: dict[str, str] = {
+    "stage5": "stage5_safety",
+    "stage4": "stage4_voice_persona",
+    "stage3": "stage3_edge_stress_test",
+    "stage2": "stage2_therapeutic_expertise",
+    "stage1": "stage1_foundation",
+}
+
 EDGE_STAGE = "stage3_edge_stress_test"
 FOUNDATION_STAGE = "stage1_foundation"
 
 
+@dataclass
+class _State:
+    """Mutable per-run consolidation state (keeps helper arity low)."""
+
+    gold_hashes: set[str]
+    manifest_hashes: dict[str, int]
+    manifest_dir: Path
+    gold_path: Path
+    reject_path: Path
+    summary: dict[str, Any] = field(default_factory=dict)
+
+
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _append(path: Path, record: dict[str, Any]) -> None:
@@ -122,7 +144,7 @@ def _is_dpo(record: dict[str, Any]) -> bool:
 def _stage_of(record: dict[str, Any]) -> str:
     """Route a record to its highest-priority stage (safety > voice > edge > therapeutic > foundation).
 
-    Staging records carry a top-level ``stage`` field (steps 7/8), but reconciliation
+    Staging records carry a top-level ``stage`` field (steps 7/8); reconciliation
     records only carry ``family`` / ``asset_kind``. Priority mirrors
     ``stage_organizer.classify_record``.
     """
@@ -133,20 +155,14 @@ def _stage_of(record: dict[str, Any]) -> str:
     family = str(record.get("family") or "").strip().lower()
     source = str(record.get("source") or "").strip().lower()
 
-    if stage == "stage5_safety":
-        return "stage5_safety"
     if family == "nightmare fuel" or source.startswith("nightmare_fuel"):
         return EDGE_STAGE
     if source.startswith("clinical_edge_case_") or family in EDGE_FAMILIES:
         return EDGE_STAGE
-    if stage.startswith("stage4"):
-        return "stage4_voice_persona"
-    if stage.startswith("stage3"):
-        return EDGE_STAGE
-    if stage.startswith("stage2"):
-        return "stage2_therapeutic_expertise"
-    if stage.startswith("stage1"):
-        return FOUNDATION_STAGE
+
+    stage_name = _STAGE_BY_PREFIX.get(stage[:6])
+    if stage_name is not None:
+        return stage_name
     if family and family != "unmapped":
         return EDGE_STAGE
     return FOUNDATION_STAGE
@@ -230,11 +246,94 @@ def _load_manifest_hashes(manifest_dir: Path) -> dict[str, int]:
                 if _is_dpo(record):
                     payload = _dpo_payload(record)
                     if payload is not None:
-                        hashes[_dpo_hash(payload)] = max(hashes.get(_dpo_hash(payload), 0), priority)
+                        h = _dpo_hash(payload)
+                        hashes[h] = max(hashes.get(h, 0), priority)
                 elif isinstance(record.get("messages"), list):
                     h = compute_primary_hash(record)
                     hashes[h] = max(hashes.get(h, 0), priority)
     return hashes
+
+
+def _iter_records(path: Path) -> Iterator[dict[str, Any]]:
+    with path.open(encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line:
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(record, dict):
+                yield record
+
+
+def _process_dpo(record: dict[str, Any], state: _State) -> None:
+    stage = "stage5_safety"
+    payload = _dpo_payload(record)
+    if payload is None:
+        state.summary["skipped_no_messages"] += 1
+        return
+
+    gate_record = {
+        "messages": [
+            {"role": "user", "content": payload.get("prompt", "")},
+            {"role": "assistant", "content": payload.get("chosen", "")},
+        ]
+    }
+    reason = reject_reason_for_record(gate_record, family="stage5_dpo")
+    if reason is not None:
+        state.summary["rejected"] += 1
+        _append(
+            state.reject_path,
+            {"reason": reason, "hash": _dpo_hash(payload),
+             "source": record.get("source"), "stage": stage},
+        )
+        return
+
+    h = _dpo_hash(payload)
+    if h in state.manifest_hashes:
+        state.summary["duplicates"] += 1
+        return
+
+    payload["stage"] = stage
+    payload["consolidated_at"] = _now_iso()
+    _append(state.manifest_dir / MANIFEST_FILENAME[stage], payload)
+    state.manifest_hashes[h] = STAGE_PRIORITY[stage]
+    state.summary["emitted_manifest"] += 1
+    state.summary["by_stage"][stage] = state.summary["by_stage"].get(stage, 0) + 1
+
+
+def _process_chatml(record: dict[str, Any], stage: str, state: _State) -> None:
+    if not isinstance(record.get("messages"), list):
+        state.summary["skipped_no_messages"] += 1
+        return
+
+    reason = reject_reason_for_record(record, family=str(record.get("family") or stage))
+    if reason is not None:
+        state.summary["rejected"] += 1
+        _append(
+            state.reject_path,
+            {"reason": reason, "hash": compute_primary_hash(record),
+             "source": record.get("source"), "stage": stage},
+        )
+        return
+
+    h = compute_primary_hash(record)
+    if h in state.gold_hashes or h in state.manifest_hashes:
+        state.summary["duplicates"] += 1
+        return
+
+    record["stage"] = stage
+    record["consolidated_at"] = _now_iso()
+    _append(state.manifest_dir / MANIFEST_FILENAME[stage], record)
+    state.manifest_hashes[h] = STAGE_PRIORITY[stage]
+    state.summary["emitted_manifest"] += 1
+
+    _append(state.gold_path, record)
+    state.gold_hashes.add(h)
+    state.summary["emitted_gold"] += 1
+    state.summary["by_stage"][stage] = state.summary["by_stage"].get(stage, 0) + 1
 
 
 def consolidate(
@@ -262,89 +361,25 @@ def consolidate(
         "skipped_no_messages": 0,
         "by_stage": {},
     }
+    state = _State(
+        gold_hashes=gold_hashes,
+        manifest_hashes=manifest_hashes,
+        manifest_dir=manifest_dir,
+        gold_path=gold_path,
+        reject_path=reject_path,
+        summary=summary,
+    )
 
     for input_path in inputs:
         if not input_path.exists():
             logger.warning("staging input missing: %s", input_path)
             continue
-        with input_path.open(encoding="utf-8") as f:
-            for raw_line in f:
-                line = raw_line.strip()
-                if not line:
-                    continue
-                try:
-                    record = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                if not isinstance(record, dict):
-                    continue
-                summary["scanned"] += 1
-                stage = _stage_of(record)
-
-                # --- DPO preference pairs -> Stage 5 only (never ChatML gold) ---
-                if _is_dpo(record):
-                    payload = _dpo_payload(record)
-                    if payload is None:
-                        summary["skipped_no_messages"] += 1
-                        continue
-                    gate_record = {
-                        "messages": [
-                            {"role": "user", "content": payload.get("prompt", "")},
-                            {"role": "assistant", "content": payload.get("chosen", "")},
-                        ]
-                    }
-                    reason = reject_reason_for_record(gate_record, family="stage5_dpo")
-                    if reason is not None:
-                        summary["rejected"] += 1
-                        _append(
-                            reject_path,
-                            {"reason": reason, "hash": _dpo_hash(payload),
-                             "source": record.get("source"), "stage": stage},
-                        )
-                        continue
-                    h = _dpo_hash(payload)
-                    if h in manifest_hashes:
-                        summary["duplicates"] += 1
-                        continue
-                    payload["stage"] = stage
-                    payload["consolidated_at"] = _now_iso()
-                    _append(manifest_dir / MANIFEST_FILENAME[stage], payload)
-                    manifest_hashes[h] = STAGE_PRIORITY[stage]
-                    summary["emitted_manifest"] += 1
-                    summary["by_stage"][stage] = summary["by_stage"].get(stage, 0) + 1
-                    continue
-
-                # --- ChatML SFT records -> stage manifest AND gold ---
-                if not isinstance(record.get("messages"), list):
-                    summary["skipped_no_messages"] += 1
-                    continue
-
-                reason = reject_reason_for_record(record, family=str(record.get("family") or stage))
-                if reason is not None:
-                    summary["rejected"] += 1
-                    _append(
-                        reject_path,
-                        {"reason": reason, "hash": compute_primary_hash(record),
-                         "source": record.get("source"), "stage": stage},
-                    )
-                    continue
-
-                h = compute_primary_hash(record)
-                if h in gold_hashes or h in manifest_hashes:
-                    summary["duplicates"] += 1
-                    continue
-
-                record["stage"] = stage
-                record["consolidated_at"] = _now_iso()
-
-                _append(manifest_dir / MANIFEST_FILENAME[stage], record)
-                manifest_hashes[h] = STAGE_PRIORITY[stage]
-                summary["emitted_manifest"] += 1
-
-                _append(gold_path, record)
-                gold_hashes.add(h)
-                summary["emitted_gold"] += 1
-                summary["by_stage"][stage] = summary["by_stage"].get(stage, 0) + 1
+        for record in _iter_records(input_path):
+            state.summary["scanned"] += 1
+            if _is_dpo(record):
+                _process_dpo(record, state)
+            else:
+                _process_chatml(record, _stage_of(record), state)
 
     logger.info("Consolidation summary:\n%s", json.dumps(summary, indent=2))
     return summary

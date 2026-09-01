@@ -1,0 +1,15 @@
+{
+  "snapshot": "master_gold_pre_consolidation_baseline",
+  "captured_at_utc": "2026-09-01T14:30:00+00:00",
+  "file": "ai/data/curated/sft_chatml/train_master_gold.jsonl",
+  "bytes": 379422411,
+  "records_total": 188982,
+  "records_valid_messages": 188982,
+  "malformed_lines": 0,
+  "missing_messages": 0,
+  "sha256": "e7314db2cba77471b3e7b0e995de91d8e2cc110feb87d9f913b92ca5603e4a9c",
+  "last_record_end_offset": 379422411,
+  "first_record_sha256_16": "74a6bb566a7ea06c",
+  "last_record_sha256_16": "91ec3164e72a2dc1",
+  "note": "Verified pre-append baseline before step-9 consolidation. Every line is valid JSON with a 'messages' list; no malformed lines, no records missing 'messages'. The handoff's 188,982 clean ChatML figure is confirmed; the 189,122 figure seen in Foresight memory is NOT the on-disk count (this file has 188,982)."
+}
