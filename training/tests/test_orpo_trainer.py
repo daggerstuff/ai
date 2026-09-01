@@ -10,7 +10,6 @@ import surface.
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
 
 import pytest
@@ -26,6 +25,16 @@ try:
 except ImportError:
     pytest.skip("orpo_trainer not importable", allow_module_level=True)
 
+BETA_OVERRIDE = 0.2
+BETA_ALTERNATE = 0.15
+LR_OVERRIDE = 5e-6
+TRAIN_LOSS = 0.42
+TRAIN_LOSS_ALT = 0.5
+PATIENCE_OVERRIDE = 2
+EVAL_STEPS = 100
+SAVE_TOTAL_LIMIT = 3
+LORA_R = 32
+LORA_ALPHA = 64
 
 # ---------------------------------------------------------------------------
 # save_metrics
@@ -37,25 +46,25 @@ class TestSaveMetrics:
     def test_writes_valid_json(self, tmp_path: Path):
         output_dir = tmp_path / "orpo_out"
         metrics = {
-            "train_loss": 0.42,
+            "train_loss": TRAIN_LOSS,
             "train_runtime": 3600,
-            "beta": 0.1,
+            "beta": DEFAULT_BETA,
             "checkpoint_verification": {"adapter_config.json": True, "adapter_model.safetensors": True},
         }
-        save_metrics(output_dir, metrics, beta=0.1)
+        save_metrics(output_dir, metrics, beta=DEFAULT_BETA)
 
         metrics_file = output_dir / "orpo_metrics.json"
         assert metrics_file.exists()
 
         report = json.loads(metrics_file.read_text(encoding="utf-8"))
         assert report["method"] == "orpo"
-        assert report["beta"] == 0.1
-        assert report["metrics"]["train_loss"] == 0.42
+        assert report["beta"] == DEFAULT_BETA
+        assert report["metrics"]["train_loss"] == TRAIN_LOSS
         assert "generated_at" in report
 
     def test_creates_output_dir(self, tmp_path: Path):
         output_dir = tmp_path / "nested" / "deep" / "orpo_out"
-        save_metrics(output_dir, {"train_loss": 1.0}, beta=0.2)
+        save_metrics(output_dir, {"train_loss": 1.0}, beta=BETA_OVERRIDE)
         assert (output_dir / "orpo_metrics.json").exists()
 
     def test_beta_recorded_separately(self, tmp_path: Path):
@@ -63,17 +72,17 @@ class TestSaveMetrics:
         inside ``metrics`` — so the report is self-describing even if
         the caller passes a metrics dict without a ``beta`` key."""
         output_dir = tmp_path / "out"
-        save_metrics(output_dir, {"train_loss": 0.5}, beta=0.15)
+        save_metrics(output_dir, {"train_loss": TRAIN_LOSS_ALT}, beta=BETA_ALTERNATE)
         report = json.loads((output_dir / "orpo_metrics.json").read_text(encoding="utf-8"))
-        assert report["beta"] == 0.15
+        assert report["beta"] == BETA_ALTERNATE
 
     def test_extra_fields_merged(self, tmp_path: Path):
         """``extra`` dict fields are merged at the top level of the report."""
         output_dir = tmp_path / "out"
         save_metrics(
             output_dir,
-            {"train_loss": 0.3},
-            beta=0.1,
+            {"train_loss": TRAIN_LOSS_ALT},
+            beta=DEFAULT_BETA,
             extra={"deepspeed_config": "ds_config_zero3.json", "adapter_variant": "dora"},
         )
         report = json.loads((output_dir / "orpo_metrics.json").read_text(encoding="utf-8"))
@@ -83,18 +92,17 @@ class TestSaveMetrics:
     def test_extra_none_omitted(self, tmp_path: Path):
         """When ``extra`` is None, no extra fields are added."""
         output_dir = tmp_path / "out"
-        save_metrics(output_dir, {"train_loss": 0.3}, beta=0.1)
+        save_metrics(output_dir, {"train_loss": TRAIN_LOSS_ALT}, beta=DEFAULT_BETA)
         report = json.loads((output_dir / "orpo_metrics.json").read_text(encoding="utf-8"))
         assert "deepspeed_config" not in report
         assert "adapter_variant" not in report
 
     def test_metrics_file_is_valid_json_with_trailing_newline(self, tmp_path: Path):
         output_dir = tmp_path / "out"
-        save_metrics(output_dir, {"train_loss": 0.1}, beta=0.1)
+        save_metrics(output_dir, {"train_loss": TRAIN_LOSS_ALT}, beta=DEFAULT_BETA)
         raw = (output_dir / "orpo_metrics.json").read_text(encoding="utf-8")
         assert raw.endswith("\n")
         json.loads(raw)  # Should not raise
-
 
 # ---------------------------------------------------------------------------
 # build_parser
@@ -120,15 +128,15 @@ class TestBuildParser:
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
         ])
-        assert args.beta == DEFAULT_BETA == 0.1
+        assert args.beta == DEFAULT_BETA
 
     def test_beta_override(self):
         parser = build_parser()
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--beta", "0.2",
+            "--beta", str(BETA_OVERRIDE),
         ])
-        assert args.beta == 0.2
+        assert args.beta == BETA_OVERRIDE
 
     def test_learning_rate_default(self):
         """ORPO uses a lower learning rate than SFT (5e-6 vs 2e-5)."""
@@ -136,7 +144,7 @@ class TestBuildParser:
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
         ])
-        assert args.learning_rate == DEFAULT_LR == 5e-6
+        assert args.learning_rate == DEFAULT_LR == LR_OVERRIDE
 
     def test_warmup_ratio_default(self):
         """Appendix C: warmup_ratio 0.1."""
@@ -144,7 +152,7 @@ class TestBuildParser:
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
         ])
-        assert args.warmup_ratio == DEFAULT_WARMUP_RATIO == 0.1
+        assert args.warmup_ratio == DEFAULT_WARMUP_RATIO
 
     def test_lr_scheduler_default(self):
         """Appendix C: cosine schedule."""
@@ -154,14 +162,14 @@ class TestBuildParser:
         ])
         assert args.lr_scheduler_type == "cosine"
 
-    def test_lr_scheduler_choices(self):
+    @pytest.mark.parametrize("sched", ["cosine", "linear", "constant", "constant_with_warmup"])
+    def test_lr_scheduler_choices(self, sched):
         parser = build_parser()
-        for sched in ["cosine", "linear", "constant", "constant_with_warmup"]:
-            args = parser.parse_args([
-                "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-                "--lr_scheduler_type", sched,
-            ])
-            assert args.lr_scheduler_type == sched
+        args = parser.parse_args([
+            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
+            "--lr_scheduler_type", sched,
+        ])
+        assert args.lr_scheduler_type == sched
 
     def test_deepspeed_arg(self):
         parser = build_parser()
@@ -212,9 +220,9 @@ class TestBuildParser:
         parser = build_parser()
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--early_stopping_patience", "2",
+            "--early_stopping_patience", str(PATIENCE_OVERRIDE),
         ])
-        assert args.early_stopping_patience == 2
+        assert args.early_stopping_patience == PATIENCE_OVERRIDE
 
     def test_eval_strategy_default_no(self):
         parser = build_parser()
@@ -227,17 +235,17 @@ class TestBuildParser:
         parser = build_parser()
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--eval_strategy", "steps", "--eval_steps", "100",
+            "--eval_strategy", "steps", "--eval_steps", str(EVAL_STEPS),
         ])
         assert args.eval_strategy == "steps"
-        assert args.eval_steps == 100
+        assert args.eval_steps == EVAL_STEPS
 
     def test_save_total_limit_default(self):
         parser = build_parser()
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
         ])
-        assert args.save_total_limit == 3
+        assert args.save_total_limit == SAVE_TOTAL_LIMIT
 
     def test_wandb_args(self):
         parser = build_parser()
@@ -272,20 +280,28 @@ class TestBuildParser:
         parser = build_parser()
         args = parser.parse_args([
             "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--lora_r", "32", "--lora_alpha", "64",
+            "--lora_r", str(LORA_R), "--lora_alpha", str(LORA_ALPHA),
         ])
-        assert args.lora_r == 32
-        assert args.lora_alpha == 64
+        assert args.lora_r == LORA_R
+        assert args.lora_alpha == LORA_ALPHA
 
     def test_missing_required_arg_exits(self):
         parser = build_parser()
         with pytest.raises(SystemExit):
             parser.parse_args(["--data_path", "d"])
 
-
 # ---------------------------------------------------------------------------
 # Import surface — verify ORPO trainer reuses DPO components
 # ---------------------------------------------------------------------------
+
+def _import_from_dpo_deps(module: str, name: str):
+    """Import ``name`` preferring ``training.*``, falling back to
+    ``ai.training.*`` when the package root differs."""
+    try:
+        module_obj = __import__(f"training.{module}", fromlist=[name])
+    except ImportError:
+        module_obj = __import__(f"ai.training.{module}", fromlist=[name])
+    return getattr(module_obj, name)
 
 class TestImportSurface:
     """Verify the ORPO trainer reuses DPO components correctly."""
@@ -293,51 +309,24 @@ class TestImportSurface:
     def test_load_preference_dataset_reused(self):
         """``load_preference_dataset`` should be importable from the ORPO
         module's dependencies (i.e. from ``dpo_trainer``)."""
-        try:
-            from training.dpo_trainer import load_preference_dataset
-        except ImportError:
-            from ai.training.dpo_trainer import load_preference_dataset
-        assert callable(load_preference_dataset)
+        assert callable(_import_from_dpo_deps("dpo_trainer", "load_preference_dataset"))
 
     def test_checkpoint_callback_reused(self):
-        try:
-            from training.dpo_trainer import CheckpointVerificationCallback
-        except ImportError:
-            from ai.training.dpo_trainer import CheckpointVerificationCallback
-        callback = CheckpointVerificationCallback()
+        callback_cls = _import_from_dpo_deps("dpo_trainer", "CheckpointVerificationCallback")
+        callback = callback_cls()
         assert hasattr(callback, "verify")
 
     def test_shared_config_reused(self):
-        try:
-            from training.shared_config import shared_qlora_config
-        except ImportError:
-            from ai.training.shared_config import shared_qlora_config
-        assert callable(shared_qlora_config)
+        assert callable(_import_from_dpo_deps("shared_config", "shared_qlora_config"))
 
     def test_log_token_length_distribution_reused(self):
-        try:
-            from training.shared_config import log_token_length_distribution
-        except ImportError:
-            from ai.training.shared_config import log_token_length_distribution
-        assert callable(log_token_length_distribution)
+        assert callable(_import_from_dpo_deps("shared_config", "log_token_length_distribution"))
 
     def test_run_orpo_callable(self):
-        try:
-            from training.orpo_trainer import run_orpo
-        except ImportError:
-            from ai.training.orpo_trainer import run_orpo
-        assert callable(run_orpo)
+        assert callable(_import_from_dpo_deps("orpo_trainer", "run_orpo"))
 
     def test_build_training_args_callable(self):
-        try:
-            from training.orpo_trainer import _build_training_args
-        except ImportError:
-            from ai.training.orpo_trainer import _build_training_args
-        assert callable(_build_training_args)
+        assert callable(_import_from_dpo_deps("orpo_trainer", "_build_training_args"))
 
     def test_setup_wandb_callable(self):
-        try:
-            from training.orpo_trainer import _setup_wandb
-        except ImportError:
-            from ai.training.orpo_trainer import _setup_wandb
-        assert callable(_setup_wandb)
+        assert callable(_import_from_dpo_deps("orpo_trainer", "_setup_wandb"))

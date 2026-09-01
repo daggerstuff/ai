@@ -24,6 +24,23 @@ from training.clinical_validity_judge_async import (
 from training.sdg_pipeline import NemoConfig
 
 # ---------------------------------------------------------------------------
+# Test constants
+# ---------------------------------------------------------------------------
+HIGH_SCORE_CANDIDATES = 3
+THROUGHPUT_CANDIDATES = 5
+MAX_WORKERS_E2E = 2
+MAX_WORKERS_CONCURRENCY = 8
+MAX_WORKERS_ZERO = 0
+METRICS_GENERATED = 10
+METRICS_EVALUATED = 8
+METRICS_ACCEPTED = 6
+METRICS_REJECTED = 2
+METRICS_ERRORS = 2
+METRICS_GEN_THROUGHPUT = 12.5
+METRICS_EVAL_THROUGHPUT = 5.0
+METRICS_WALL_SECONDS = 1.234
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
@@ -185,7 +202,9 @@ class TestAsyncClinicalJudgeScore:
 class TestAsyncJudgePipeline:
     @pytest.mark.asyncio
     async def test_run_accepts_high_score_candidates(self, mock_nemo_config, judge_response):
-        candidates = _candidate_iter([(f"case-{i}", "CBT reframing exercise. Validate emotions.") for i in range(3)])
+        candidates = _candidate_iter(
+            [(f"case-{i}", "CBT reframing exercise. Validate emotions.") for i in range(HIGH_SCORE_CANDIDATES)]
+        )
         pipeline = AsyncJudgePipeline(
             nemo_config=mock_nemo_config,
             max_workers=2,
@@ -194,11 +213,11 @@ class TestAsyncJudgePipeline:
         with patch("training.sdg_pipeline._call_nemo", return_value=judge_response):
             result = await pipeline.run(candidates)
         assert isinstance(result, PipelineResult)
-        assert len(result.accepted) == 3
+        assert len(result.accepted) == HIGH_SCORE_CANDIDATES
         assert len(result.rejected) == 0
-        assert result.metrics.generated == 3
-        assert result.metrics.evaluated == 3
-        assert result.metrics.accepted == 3
+        assert result.metrics.generated == HIGH_SCORE_CANDIDATES
+        assert result.metrics.evaluated == HIGH_SCORE_CANDIDATES
+        assert result.metrics.accepted == HIGH_SCORE_CANDIDATES
         assert result.metrics.rejected == 0
         assert result.metrics.errors == 0
 
@@ -233,26 +252,32 @@ class TestAsyncJudgePipeline:
 
     @pytest.mark.asyncio
     async def test_run_tracks_generation_throughput_separately_from_eval(self, mock_nemo_config, judge_response):
-        candidates = _candidate_iter([(f"case-{i}", "CBT reframing exercise.") for i in range(5)])
+        candidates = _candidate_iter(
+            [(f"case-{i}", "CBT reframing exercise.") for i in range(THROUGHPUT_CANDIDATES)]
+        )
         pipeline = AsyncJudgePipeline(nemo_config=mock_nemo_config, max_workers=1, accept_threshold=0.6)
         with patch("training.sdg_pipeline._call_nemo", return_value=judge_response):
             result = await pipeline.run(candidates)
         m = result.metrics
-        assert m.generated == 5
-        assert m.evaluated == 5
+        assert m.generated == THROUGHPUT_CANDIDATES
+        assert m.evaluated == THROUGHPUT_CANDIDATES
         assert m.gen_throughput > 0
         assert m.eval_throughput > 0
         assert m.wall_seconds > 0
 
     @pytest.mark.asyncio
-    async def test_concurrency_knob_respected(self, mock_nemo_config, judge_response):
-        pipeline = AsyncJudgePipeline(nemo_config=mock_nemo_config, max_workers=8, accept_threshold=0.6)
-        assert pipeline._max_workers == 8
+    async def test_concurrency_knob_respected(self, mock_nemo_config):
+        pipeline = AsyncJudgePipeline(
+            nemo_config=mock_nemo_config,
+            max_workers=MAX_WORKERS_CONCURRENCY,
+            accept_threshold=0.6,
+        )
+        assert pipeline._max_workers == MAX_WORKERS_CONCURRENCY
 
     @pytest.mark.asyncio
     async def test_constructor_rejects_zero_workers(self, mock_nemo_config):
-        with pytest.raises(ValueError):
-            AsyncJudgePipeline(nemo_config=mock_nemo_config, max_workers=0)
+        with pytest.raises(ValueError, match="max_workers must be >= 1"):
+            AsyncJudgePipeline(nemo_config=mock_nemo_config, max_workers=MAX_WORKERS_ZERO)
 
     @pytest.mark.asyncio
     async def test_run_worker_exception_counted_in_errors(self, mock_nemo_config):
@@ -285,21 +310,21 @@ class TestAsyncJudgePipeline:
 class TestPipelineMetrics:
     def test_as_dict_roundtrip(self):
         m = PipelineMetrics(
-            generated=10,
-            evaluated=8,
-            accepted=6,
-            rejected=2,
-            errors=2,
-            gen_throughput=12.5,
-            eval_throughput=5.0,
-            wall_seconds=1.234,
+            generated=METRICS_GENERATED,
+            evaluated=METRICS_EVALUATED,
+            accepted=METRICS_ACCEPTED,
+            rejected=METRICS_REJECTED,
+            errors=METRICS_ERRORS,
+            gen_throughput=METRICS_GEN_THROUGHPUT,
+            eval_throughput=METRICS_EVAL_THROUGHPUT,
+            wall_seconds=METRICS_WALL_SECONDS,
         )
         d = m.as_dict()
-        assert d["generated"] == 10
-        assert d["evaluated"] == 8
-        assert d["accepted"] == 6
-        assert d["rejected"] == 2
-        assert d["errors"] == 2
-        assert d["gen_throughput"] == 12.5
-        assert d["eval_throughput"] == 5.0
-        assert d["wall_seconds"] == 1.234
+        assert d["generated"] == METRICS_GENERATED
+        assert d["evaluated"] == METRICS_EVALUATED
+        assert d["accepted"] == METRICS_ACCEPTED
+        assert d["rejected"] == METRICS_REJECTED
+        assert d["errors"] == METRICS_ERRORS
+        assert d["gen_throughput"] == METRICS_GEN_THROUGHPUT
+        assert d["eval_throughput"] == METRICS_EVAL_THROUGHPUT
+        assert d["wall_seconds"] == METRICS_WALL_SECONDS

@@ -16,17 +16,18 @@ Covers all 10 requirements:
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
 
 from training.annotation.iaa import (
-    AnnotationStage,
-    AnnotatorLabel,
     FLEISS_KAPPA_GOLD,
     FLEISS_KAPPA_MINIMUM,
     LANDIS_KOCH_THRESHOLDS,
+    AnnotationStage,
+    AnnotatorLabel,
     bucket_quality,
     cohen_kappa_simple,
     compute_iaa_from_labels,
@@ -34,9 +35,32 @@ from training.annotation.iaa import (
     fleiss_kappa,
     generate_label_studio_rubric,
     label_studio_export_to_iaa,
+    main as iaa_main,
 )
 from training.curate_pipeline import classify_tier
 
+# ---------------------------------------------------------------------------
+# Shared test constants
+# ---------------------------------------------------------------------------
+
+KAPPA_APPROX_TOL = 0.001
+ZERO_KAPPA_TOL = 0.01
+# Fleiss kappa test matrices: (n_annotators, n_samples, n_categories)
+KAPPA_3x3_ARGS = (3, 3, 3)
+KAPPA_5x4_ARGS = (5, 4, 3)
+KAPPA_10x3_ARGS = (10, 3, 3)
+LS_EXPORT_TOTAL_LABELS = 5
+LS_EXPORT_SAMPLES = 2
+LS_EXPORT_SAMPLE1_LABELS = 3
+QUALITY_SCORE_HIGH = 0.9
+QUALITY_SCORE_DEFAULT = 0.5
+EXPECTED_OVERRIDES = 2
+GOLD_SAMPLES = 10
+NUM_ANNOTATORS = 3
+MIXED_QUALITY_SAMPLES = 6
+PER_SAMPLE_COUNT = 3
+PER_SAMPLE_KAPPA_MIN = 0.85
+AVG_QUALITY_TOL = 0.01
 
 # ---------------------------------------------------------------------------
 # 1. Fleiss kappa
@@ -47,22 +71,22 @@ class TestFleissKappa:
     def test_perfect_agreement(self) -> None:
         """All annotators agree perfectly across multiple categories → kappa = 1.0."""
         n = 3
-        N = 3
+        n_samples = 3
         k = 3
         # Sample 1: all pick cat 0; sample 2: all pick cat 1; sample 3: all pick cat 2
         n_i = [3, 0, 0, 0, 3, 0, 0, 0, 3]
-        result = fleiss_kappa(n, N, k, n_i)
+        result = fleiss_kappa(n, n_samples, k, n_i)
         assert result == pytest.approx(1.0, abs=0.001)
 
     def test_zero_agreement(self) -> None:
         """Complete disagreement → kappa near 0."""
         n = 3
-        N = 3
+        n_samples = 3
         k = 3
         # Each sample: 1 annotator per category — no agreement beyond chance
         n_i = [1, 1, 1, 1, 1, 1, 1, 1, 1]
-        result = fleiss_kappa(n, N, k, n_i)
-        assert result <= 0.01  # kappa ≤ 0 for random
+        result = fleiss_kappa(n, n_samples, k, n_i)
+        assert result <= ZERO_KAPPA_TOL  # kappa ≤ 0 for random
 
     def test_invalid_inputs(self) -> None:
         assert fleiss_kappa(0, 3, 2, []) == 0.0
@@ -75,23 +99,23 @@ class TestFleissKappa:
     def test_fair_threshold(self) -> None:
         """A moderately-agreeing batch should land at or above 0.75."""
         n = 5
-        N = 4
+        n_samples = 4
         k = 3
         # 4 perfect samples split across categories; 1 sample: 3-1 split
         # Balanced categories keep P_e low so kappa stays high (~0.83).
         n_i = [4, 0, 0, 0, 4, 0, 0, 0, 4, 4, 0, 0, 3, 1, 0]
-        result = fleiss_kappa(n, N, k, n_i)
+        result = fleiss_kappa(n, n_samples, k, n_i)
         assert result >= FLEISS_KAPPA_MINIMUM
 
     def test_gold_threshold(self) -> None:
         """Near-perfect agreement should land at or above 0.85."""
         n = 10
-        N = 3
+        n_samples = 3
         k = 3
         # 9 perfect samples balanced across 3 categories; 1 sample: 2-1 split.
         # Balanced categories keep P_e low so kappa ≈ 0.91.
         n_i = [3, 0, 0, 0, 3, 0, 0, 0, 3, 3, 0, 0, 0, 3, 0, 0, 0, 3, 3, 0, 0, 0, 3, 0, 0, 0, 3, 2, 1, 0]
-        result = fleiss_kappa(n, N, k, n_i)
+        result = fleiss_kappa(n, n_samples, k, n_i)
         assert result >= FLEISS_KAPPA_GOLD
 
 
@@ -163,10 +187,10 @@ class TestLabelStudioExport:
         all_labels, labels_by_sample = label_studio_export_to_iaa(
             str(path), annotator_ids=["a1", "a2", "a3"]
         )
-        assert len(all_labels) == 5
-        assert len(labels_by_sample) == 2
-        assert len(labels_by_sample["sample-1"]) == 3
-        assert labels_by_sample["sample-1"][0].quality_score == 0.9
+        assert len(all_labels) == LS_EXPORT_TOTAL_LABELS
+        assert len(labels_by_sample) == LS_EXPORT_SAMPLES
+        assert len(labels_by_sample["sample-1"]) == LS_EXPORT_SAMPLE1_LABELS
+        assert labels_by_sample["sample-1"][0].quality_score == QUALITY_SCORE_HIGH
 
     def test_missing_quality_score_defaults(self, tmp_path: Path) -> None:
         records = [
@@ -180,7 +204,7 @@ class TestLabelStudioExport:
         ]
         path = self._write_ls_jsonl(tmp_path, records)
         all_labels, _ = label_studio_export_to_iaa(str(path), annotator_ids=["a1"])
-        assert all_labels[0].quality_score == 0.5  # default
+        assert all_labels[0].quality_score == QUALITY_SCORE_DEFAULT  # default
 
     def test_reject_reason_captured(self, tmp_path: Path) -> None:
         records = [
@@ -338,8 +362,8 @@ class TestReviewerOverrides:
                 metadata={"annotation_stage": AnnotationStage.ADJUDICATED.value},
             ),
         ]
-        result = compute_iaa_from_labels(labels, num_annotators=3)
-        assert result.reviewer_overrides == 2
+        result = compute_iaa_from_labels(labels, num_annotators=NUM_ANNOTATORS)
+        assert result.reviewer_overrides == EXPECTED_OVERRIDES
 
     def test_no_overrides(self) -> None:
         labels = [
@@ -384,32 +408,32 @@ class TestComputeIAA:
         labels = []
         for i in range(n_samples):
             s = scores[i] if scores and i < len(scores) else 0.8
-            for a in range(3):
-                labels.append(
-                    AnnotatorLabel(
-                        annotator_id=f"annotator_{a}",
-                        sample_id=f"sample_{i}",
-                        quality_score=s,
-                    )
+            labels.extend(
+                AnnotatorLabel(
+                    annotator_id=f"annotator_{a}",
+                    sample_id=f"sample_{i}",
+                    quality_score=s,
                 )
+                for a in range(3)
+            )
         return labels
 
     def test_high_agreement_gold(self) -> None:
-        labels = self._make_labels(n_samples=10, scores=[0.9] * 10)
-        result = compute_iaa_from_labels(labels, num_annotators=3)
-        assert result.num_samples == 10
-        assert result.num_annotators == 3
+        labels = self._make_labels(n_samples=GOLD_SAMPLES, scores=[0.9] * GOLD_SAMPLES)
+        result = compute_iaa_from_labels(labels, num_annotators=NUM_ANNOTATORS)
+        assert result.num_samples == GOLD_SAMPLES
+        assert result.num_annotators == NUM_ANNOTATORS
         assert result.fleiss_kappa >= FLEISS_KAPPA_GOLD
 
     def test_mixed_quality(self) -> None:
         labels = self._make_labels(
-            n_samples=6,
+            n_samples=MIXED_QUALITY_SAMPLES,
             scores=[0.9, 0.1, 0.8, 0.3, 0.85, 0.5],
         )
-        result = compute_iaa_from_labels(labels, num_annotators=3)
+        result = compute_iaa_from_labels(labels, num_annotators=NUM_ANNOTATORS)
         # With mixed scores, some samples should be quarantined (kappa < 0.40)
         assert len(result.quarantine_samples) + len(result.retraining_samples) + \
-               len(result.gold_standard_samples) == 6
+               len(result.gold_standard_samples) == MIXED_QUALITY_SAMPLES
 
     def test_empty_labels(self) -> None:
         result = compute_iaa_from_labels([], num_annotators=3)
@@ -417,12 +441,12 @@ class TestComputeIAA:
         assert result.fleiss_kappa == 0.0
 
     def test_per_sample_kappas(self) -> None:
-        labels = self._make_labels(n_samples=3, scores=[0.9, 0.9, 0.9])
-        result = compute_iaa_from_labels(labels, num_annotators=3)
-        assert len(result.per_sample_kappas) == 3
+        labels = self._make_labels(n_samples=PER_SAMPLE_COUNT, scores=[0.9] * PER_SAMPLE_COUNT)
+        result = compute_iaa_from_labels(labels, num_annotators=NUM_ANNOTATORS)
+        assert len(result.per_sample_kappas) == PER_SAMPLE_COUNT
         # All samples perfect agreement → per-sample kappa should be high
         for v in result.per_sample_kappas.values():
-            assert v >= 0.85
+            assert v >= FLEISS_KAPPA_GOLD
 
     def test_quality_scores_averaged(self) -> None:
         labels = [
@@ -453,8 +477,8 @@ class TestComputeIAA:
             AnnotatorLabel("a2", "s1", quality_score=0.1, reject_reason="off_topic"),
             AnnotatorLabel("a3", "s1", quality_score=0.1, reject_reason="low_quality"),
         ]
-        result = compute_iaa_from_labels(labels, num_annotators=3)
-        assert result.reject_reasons.get("off_topic") == 2
+        result = compute_iaa_from_labels(labels, num_annotators=NUM_ANNOTATORS)
+        assert result.reject_reasons.get("off_topic") == EXPECTED_OVERRIDES
         assert result.reject_reasons.get("low_quality") == 1
 
 
@@ -574,9 +598,6 @@ class TestCLI:
         ls_path = self._write_ls_jsonl(tmp_path, records)
         output_path = tmp_path / "iaa_result.json"
 
-        from training.annotation.iaa import main
-
-        import sys
         old_argv = sys.argv
         sys.argv = [
             "iaa",
@@ -585,7 +606,7 @@ class TestCLI:
             "--num-annotators", "3",
         ]
         try:
-            ret = main()
+            ret = iaa_main()
         finally:
             sys.argv = old_argv
 
@@ -614,9 +635,6 @@ class TestCLI:
         output_path = tmp_path / "iaa_result.json"
         rubric_path = tmp_path / "rubric.xml"
 
-        from training.annotation.iaa import main
-
-        import sys
         old_argv = sys.argv
         sys.argv = [
             "iaa",
@@ -627,7 +645,7 @@ class TestCLI:
             "--rubric-xml", str(rubric_path),
         ]
         try:
-            ret = main()
+            ret = iaa_main()
         finally:
             sys.argv = old_argv
 
