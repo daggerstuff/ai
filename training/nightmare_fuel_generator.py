@@ -45,33 +45,8 @@ from pathlib import Path
 import aiohttp
 import pandas as pd
 
-# We will use Ollama locally for generation and evaluation to keep it simple,
-# but it can easily point to NeMo API if you swap the base URL and Key!
-OLLAMA_URL = os.environ.get(
-    "NF_OLLAMA_URL",
-    "https://api.cloudflare.com/client/v4/accounts/"
-    + os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
-    + "/ai/v1/chat/completions",
-)
-MODEL = os.environ.get("NF_MODEL", "@cf/zai-org/glm-5.3")
-
-
-def _cloudflare_api_token() -> str:
-    """Return the first available Cloudflare API token.
-
-    The codebase historically expected ``CLOUDFLARE_AUTH_TOKEN``, but the
-    exported environment token is ``CLOUDFLARE_API_TOKEN``. Accept either name
-    (and a couple of common aliases) so runs do not fail just because the env
-    variable has a different name than originally hard-coded.
-    """
-    return (
-        os.environ.get("CLOUDFLARE_AUTH_TOKEN")
-        or os.environ.get("CLOUDFLARE_API_TOKEN")
-        or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
-        or os.environ.get("CLOUDFLARE_TOKEN")
-        or "dummy"
-    )
-
+from training.cliche_gate import reject_reason_for_record
+from training.generation_backend import ModerateGuard, RateLimitError, chat_completion
 
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
@@ -89,10 +64,6 @@ RECORDS_FILENAME = "records.jsonl"
 STATE_FILENAME = "state.json"
 
 logger = logging.getLogger(__name__)
-
-
-class RateLimitError(Exception):
-    """Raised when the endpoint returns HTTP 429."""
 
 
 class BatchController:
@@ -254,6 +225,7 @@ class CheckpointManager:
         interval_records: int = DEFAULT_CHECKPOINT_INTERVAL,
         interval_seconds: float = DEFAULT_CHECKPOINT_INTERVAL_SECONDS,
         category: str = "default",
+        guard: ModerateGuard | None = None,
     ) -> None:
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -261,6 +233,7 @@ class CheckpointManager:
         self.state_path = self.checkpoint_dir / STATE_FILENAME
         self.interval_records = max(1, interval_records)
         self.interval_seconds = max(0.0, interval_seconds)
+        self._guard = guard
         self._lock = asyncio.Lock()
         self._pending_records: list[dict] = []
         self._records_since_flush = 0
@@ -319,6 +292,8 @@ class CheckpointManager:
 
     async def record_validated(self, record: dict) -> None:
         """Account for one newly validated record and flush if the threshold is hit."""
+        if self._guard is not None:
+            self._guard.record()
         self.state.total_validated += 1
         self._pending_records.append(record)
         self._records_since_flush += 1
@@ -371,46 +346,13 @@ async def _chat_completion(
     token_counter: dict | None = None,
     max_retries: int = 3,
 ) -> str:
-    payload = {"model": MODEL, "messages": messages, "temperature": temperature}
-    last_error: BaseException | None = None
-    for attempt in range(max_retries):
-        try:
-            async with session.post(
-                OLLAMA_URL,
-                json=payload,
-                headers={"Authorization": f"Bearer {_cloudflare_api_token()}"},
-                timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS),
-            ) as response:
-                if response.status == 429:
-                    raise RateLimitError("HTTP 429: rate limit exceeded")
-                response.raise_for_status()
-                data = await response.json()
-            if token_counter is not None and "usage" in data:
-                usage = data["usage"]
-                token_counter["prompt_tokens"] = token_counter.get("prompt_tokens", 0) + usage.get("prompt_tokens", 0)
-                token_counter["completion_tokens"] = token_counter.get("completion_tokens", 0) + usage.get(
-                    "completion_tokens", 0
-                )
-                token_counter["total_tokens"] = (
-                    token_counter.get("total_tokens", 0)
-                    + usage.get("prompt_tokens", 0)
-                    + usage.get("completion_tokens", 0)
-                )
-            return data["choices"][0]["message"]["content"]
-        except RateLimitError:
-            raise
-        except (TimeoutError, asyncio.CancelledError, aiohttp.ClientError) as e:
-            last_error = e
-            wait = min(2**attempt * 5, 30)
-            logger.warning(
-                "nightmare_fuel request failed (attempt %d/%d): %s — retrying in %ds",
-                attempt + 1,
-                max_retries,
-                type(e).__name__,
-                wait,
-            )
-            await asyncio.sleep(wait)
-    raise last_error  # type: ignore[misc]
+    return await chat_completion(
+        session,
+        messages,
+        temperature=temperature,
+        token_counter=token_counter,
+        max_retries=max_retries,
+    )
 
 
 def _build_scenario_prompt(
@@ -778,6 +720,13 @@ async def generate_cases_async(
                     await checkpoint.record_attempted()
                 if r.get("id") in resolved_skip_ids:
                     continue
+                family = "unwinnable" if r.get("unwinnable") else "haunting"
+                cliche_reject = reject_reason_for_record(r, family=family)
+                if cliche_reject is not None:
+                    logger.warning("nightmare_fuel rejected by cliché gate: %s", cliche_reject)
+                    if checkpoint is not None:
+                        await checkpoint.record_rejected()
+                    continue
                 survivors.append(r)
                 if checkpoint is not None:
                     await checkpoint.record_validated(r)
@@ -1012,6 +961,7 @@ async def main_async(  # noqa: PLR0913
         interval_records=checkpoint_interval,
         interval_seconds=checkpoint_interval_seconds,
         category=category,
+        guard=ModerateGuard(),
     )
 
     existing = checkpoint.existing_record_ids()

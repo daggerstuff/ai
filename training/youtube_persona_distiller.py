@@ -4,7 +4,7 @@
 Translates clinical YouTube transcripts into grounded in-session therapeutic
 dialogues matching specific expert practitioner clinical modalities (Dr. Ramani,
 Tim Fletcher, Patrick Teahan, Heidi Priebe, Dr. Daniel Fox, Gabor Maté, etc.)
-using DeepSeek V4 Pro on Cloudflare Workers AI.
+using GLM 5.3 Flash on Cloudflare Workers AI.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ CLOUDFLARE_API_TOKEN = (
     or ""
 )
 CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
-DEFAULT_MODEL = "@cf/deepseek-ai/deepseek-v4-pro-0813"
+DEFAULT_MODEL = "@cf/zai-org/glm-5.3-flash"
 
 PERSONA_PROFILES: dict[str, dict[str, str]] = {
     "DoctorRamani": {
@@ -53,7 +53,7 @@ PERSONA_PROFILES: dict[str, dict[str, str]] = {
             "Normalizes survival adaptations without pathologizing the client."
         ),
     },
-    "Patrick Teahan ": {
+    "Patrick Teahan": {
         "name": "Patrick Teahan, LICSW",
         "domain": "childhood_trauma_recovery",
         "style": (
@@ -127,6 +127,34 @@ PERSONA_PROFILES: dict[str, dict[str, str]] = {
 
 _RATE_LIMIT_STATE = {"last_api_call": 0.0}
 
+# Enforce canonical PERSONA_PROFILES keys at import time — a trailing-space key
+# (e.g. ``"Patrick Teahan "``) silently breaks direct lookups and would regress
+# silently. Fail loudly instead.
+_NONCANONICAL_KEYS = [key for key in PERSONA_PROFILES if key != key.strip()]
+if _NONCANONICAL_KEYS:
+    raise ValueError(
+        "Non-canonical PERSONA_PROFILES keys detected "
+        f"(leading/trailing whitespace): {_NONCANONICAL_KEYS!r}"
+    )
+
+
+def get_persona_profile(channel_name: str) -> dict[str, str]:
+    """Return a persona profile for ``channel_name`` via normalized lookup.
+
+    Keys are matched after stripping surrounding whitespace and case-folding so
+    ``"patrick teahan"`` or ``"Patrick Teahan "`` resolve to the canonical entry.
+    Returns a generic clinical-psychologist fallback when no profile matches.
+    """
+    normalized = channel_name.strip().casefold()
+    for key, profile in PERSONA_PROFILES.items():
+        if key.strip().casefold() == normalized:
+            return profile
+    return {
+        "name": channel_name.strip(),
+        "domain": "general_mental_health",
+        "style": "Authentic, grounded, evidence-based clinical psychologist.",
+    }
+
 
 def _rate_limit(min_interval: float = 0.5) -> None:
     elapsed = time.time() - _RATE_LIMIT_STATE["last_api_call"]
@@ -163,7 +191,32 @@ def _call_cloudflare(system_prompt: str, user_content: str, model_id: str = DEFA
     raise RuntimeError(f"Cloudflare failed ({response.status_code}): {response.text[:200]}")
 
 
+# Speaker-label patterns mirroring ``TranscriptParser.SPEAKER_PATTERNS`` in
+# ``ai/pipelines/voice/pipeline.py`` so the distiller strips the same prefixes
+# the voice pipeline parses. The distiller feeds raw transcript chunks to the
+# LLM directly (no speaker parsing), so labels must be removed here.
+_SPEAKER_PATTERNS = [
+    re.compile(r"^(Speaker\s*\d+|Person\s*\d+|Client|Therapist|User|Assistant):\s*", re.IGNORECASE),
+    re.compile(r"^([A-Z][a-z]*(?:\s+\d+)?):\s+"),
+    re.compile(r"^\[([A-Z][a-z]*(?:\s+\d+)?)\]\s*"),
+]
+
+
+def _strip_speaker_labels(text: str) -> str:
+    """Remove speaker-label prefixes from the start of each line."""
+    cleaned: list[str] = []
+    for line in text.splitlines():
+        for pattern in _SPEAKER_PATTERNS:
+            match = pattern.match(line.strip())
+            if match:
+                line = line.strip()[match.end() :].strip()
+                break
+        cleaned.append(line)
+    return "\n".join(cleaned)
+
+
 def _chunk_transcript(text: str, chunk_size: int = 4000) -> list[str]:
+    text = _strip_speaker_labels(text)
     paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
     chunks: list[str] = []
     current_chunk: list[str] = []
@@ -320,11 +373,7 @@ def main() -> None:
                 logger.warning("Channel directory %s not found — skipping", ch_name)
                 continue
 
-        p_info = PERSONA_PROFILES.get(ch_name, {
-            "name": ch_name,
-            "domain": "general_mental_health",
-            "style": "Authentic, grounded, evidence-based clinical psychologist."
-        })
+        p_info = get_persona_profile(ch_name)
 
         pairs_count = process_channel(ch_dir, output_dir, p_info, max_workers=args.workers)
         total_pairs += pairs_count

@@ -6,33 +6,34 @@
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import json
 import logging
-import os
+import math
 import re
 from pathlib import Path
 from typing import Any
 
 import aiohttp
 
+from training.cliche_gate import reject_reason_for_record
+from training.generation_backend import (
+    GenerationLimitExceededError,
+    ModerateGuard,
+    RateLimitError,
+    chat_completion,
+)
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("edge_and_nightmare")
 
-CLOUDFLARE_API_TOKEN = (
-    os.environ.get("CLOUDFLARE_API_TOKEN")
-    or os.environ.get("CLOUDFLARE_AUTH_TOKEN")
-    or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
-    or ""
-)
-CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
-MODEL = "@cf/deepseek-ai/deepseek-v4-pro-0813"
-API_URL = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{MODEL}"
-
 SCENARIOS_JSONL = Path("ai/data/synthetic/assets/empathy_nightmare_fuel/scenarios.jsonl")
-OUT_MASTER = Path("ai/data/curated/sft_chatml/train_master_gold.jsonl")
 CHECKPOINT_DIR = Path("ai/training/output/nightmare_fuel/checkpoints")
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+# Step-7 generation output; step-9 consolidation consumes this (atomic + dedup) to
+# build MASTER_STAGE_N.jsonl and append train_master_gold.jsonl.
+OUT_GENERATED = CHECKPOINT_DIR / "edge_and_nightmare_generated.jsonl"
 
 ROLE_MAP = {
     "therapist": "assistant",
@@ -44,36 +45,105 @@ ROLE_MAP = {
     "client": "user",
 }
 
+# Authoritative 10-family edge-case taxonomy (mirrors
+# scripts/data/designer/configs/edge_cases.py). The prior 7-domain ad-hoc split is
+# folded into these families as sub-labels rather than kept as a separate schema.
+DIFFICULTY_LEVELS = ("moderate", "high", "adversarial")
+AMBIGUITY_TYPES = ("explicit", "indirect", "contradictory", "information-poor")
+
 EDGE_CASE_DOMAINS = [
     {
-        "domain": "bpd_relational_splitting",
-        "description": "Patient idealizing and devaluing therapist within same session, demanding personal contact or threatening to quit.",
+        "family": "ambiguous crisis language",
+        "domain": "ambiguous_crisis_language",
+        "description": (
+            "Patient uses oblique, coded, or minimized language that may signal acute risk "
+            "(self-harm, suicidality, violence) without stating it directly; clinician must "
+            "clarify uncertainty without robotic interrogation."
+        ),
     },
     {
-        "domain": "active_substance_relapse_in_denial",
-        "description": "Patient showing up intoxicated/high while minimizing danger and daring clinician to call emergency contacts.",
+        "family": "delusion or paranoia",
+        "domain": "delusion_or_paranoia",
+        "description": (
+            "Patient presents fixed false beliefs, persecutory ideation, or paranoid projection, "
+            "possibly accusing the clinician of collusion or surveillance."
+        ),
     },
     {
-        "domain": "somatic_dissociative_flashback",
-        "description": "Patient experiencing severe somatic freeze or non-verbal panic, losing orientation to time and space.",
+        "family": "coercion or abuse",
+        "domain": "coercion_or_abuse",
+        "description": (
+            "Patient discloses ongoing coercion, control, abuse, or entrapment (domestic violence, "
+            "trafficking, exploitation) and is ambivalent about safety planning."
+        ),
     },
     {
-        "domain": "aggressive_malingering_boundary_testing",
-        "description": "Patient attempting to manipulate disability documentation or prescription sign-offs via veiled threats.",
+        "family": "substance use",
+        "domain": "substance_use",
+        "description": (
+            "Patient is actively using or in relapse while minimizing danger, possibly intoxicated "
+            "in session and testing the clinician's limits."
+        ),
     },
     {
-        "domain": "acute_domestic_violence_entrapment",
-        "description": "Patient disclosing escalating physical danger at home while terrified of safety planning due to lethality risks.",
+        "family": "medical uncertainty",
+        "domain": "medical_uncertainty",
+        "description": (
+            "Patient presents medically ambiguous or unexplained symptoms, treatment refusal, or "
+            "risk of serious medical decompensation (e.g., eating disorder, hospital refusal)."
+        ),
     },
     {
-        "domain": "eating_disorder_medical_refusal",
-        "description": "Patient with critical bradycardia or severe refeeding syndrome risk refusing hospital admission.",
+        "family": "minor or dependent person",
+        "domain": "minor_or_dependent_person",
+        "description": (
+            "A minor or dependent person is involved or at risk, raising mandated-reporting and "
+            "consent dilemmas (CPS, elder/dependent abuse)."
+        ),
     },
     {
-        "domain": "paranoia_and_delusional_projection",
-        "description": "Patient accusing therapist of collaborating with estranged family or monitoring their phone.",
+        "family": "therapeutic rupture",
+        "domain": "therapeutic_rupture",
+        "description": (
+            "Patient idealizes then devalues the clinician, threatens to quit, demands special "
+            "access, or enacts a relational rupture within the session."
+        ),
+    },
+    {
+        "family": "cultural or identity conflict",
+        "domain": "cultural_or_identity_conflict",
+        "description": (
+            "Patient's distress is entangled with cultural, religious, or identity conflict where "
+            "the clinician must avoid both pathologizing and colluding."
+        ),
+    },
+    {
+        "family": "boundary testing",
+        "domain": "boundary_testing",
+        "description": (
+            "Patient tests professional boundaries: demands personal contact, gifts, dual "
+            "relationship, or manipulates documentation/prescription sign-offs."
+        ),
+    },
+    {
+        "family": "multi-problem complexity",
+        "domain": "multi_problem_complexity",
+        "description": (
+            "Patient presents intersecting, compounding crises (trauma, substance, medical, social, "
+            "legal) with no single clean presenting problem."
+        ),
     },
 ]
+
+
+def build_edge_case_matrix() -> list[dict[str, str]]:
+    """Return the full 10 family x 3 difficulty x 4 ambiguity matrix (120 combos)."""
+    combos: list[dict[str, str]] = []
+    for family in EDGE_CASE_DOMAINS:
+        for difficulty in DIFFICULTY_LEVELS:
+            for ambiguity in AMBIGUITY_TYPES:
+                combos.append({**family, "difficulty": difficulty, "ambiguity": ambiguity})
+    return combos
 
 def _normalize_messages(raw_data: Any, raw_text: str) -> list[dict[str, str]]:
     messages: list[dict[str, str]] = []
@@ -118,39 +188,18 @@ def _normalize_messages(raw_data: Any, raw_text: str) -> list[dict[str, str]]:
     return []
 
 async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_prompt: str) -> str:
-    headers = {
-        "Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        "max_tokens": 2048,
-    }
-    for attempt in range(3):
-        try:
-            async with session.post(API_URL, headers=headers, json=payload, timeout=90) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    res = data.get("result", {})
-                    if isinstance(res, dict):
-                        content = res.get("response") or ""
-                        if not content and "choices" in res and res["choices"]:
-                            msg = res["choices"][0].get("message", {})
-                            content = msg.get("content") or msg.get("reasoning_content") or ""
-                        return content
-                    return str(res)
-                elif resp.status == 429:
-                    await asyncio.sleep(5 * (attempt + 1))
-                else:
-                    await asyncio.sleep(2)
-        except Exception as exc:
-            if attempt == 2:
-                logger.warning("LLM call failed after 3 attempts: %s", exc)
-            await asyncio.sleep(2)
-    return ""
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+    try:
+        return await chat_completion(session, messages, temperature=0.8, max_retries=3)
+    except RateLimitError as exc:
+        logger.warning("LLM call rate-limited: %s", exc)
+        return ""
+    except Exception as exc:
+        logger.warning("LLM call failed after retries: %s", exc)
+        return ""
 
 async def generate_nightmare_scenario_turn(
     session: aiohttp.ClientSession, scenario: dict[str, Any], sem: asyncio.Semaphore
@@ -191,6 +240,7 @@ async def generate_nightmare_scenario_turn(
                 "task_type": "adversarial_crisis_deescalation",
                 "tier": "T1_GOLD",
                 "diagnostic_tag": scenario.get("failure_mode", "moral_injury"),
+                "family": "nightmare fuel",
                 "demographic_tags": [],
                 "linguistic_style": "clinical_high_duress",
                 "clinical_reviewed": True,
@@ -214,8 +264,10 @@ async def generate_edge_case_turn(
         "3. Output format: JSON with 'messages' list containing alternating {'role': 'user'|'assistant', 'content': '...'}"
     )
     user_prompt = (
-        f"Clinical Edge-Case Domain: {edge_info['domain']}\n"
-        f"Clinical Context: {edge_info['description']}\n\n"
+        f"Clinical Edge-Case Family: {edge_info['family']}\n"
+        f"Clinical Context: {edge_info['description']}\n"
+        f"Difficulty: {edge_info['difficulty']}\n"
+        f"Ambiguity: {edge_info['ambiguity']}\n\n"
         f"Generate a realistic 4-turn in-session exchange (variation {idx}). Output JSON."
     )
     async with sem:
@@ -235,58 +287,128 @@ async def generate_edge_case_turn(
         if len(norm_msgs) >= 2:
             return {
                 "messages": norm_msgs,
-                "source": f"clinical_edge_case_{edge_info['domain'][:25]}",
+                "source": f"clinical_edge_case_{edge_info['domain']}",
                 "task_type": "clinical_edge_case",
                 "tier": "T1_GOLD",
-                "diagnostic_tag": edge_info["domain"],
+                "diagnostic_tag": edge_info["family"],
+                "family": edge_info["family"],
+                "difficulty": edge_info["difficulty"],
+                "ambiguity": edge_info["ambiguity"],
                 "demographic_tags": [],
                 "linguistic_style": "clinical_edge_case",
                 "clinical_reviewed": True,
                 "mi_quality": "high",
                 "provenance": {
                     "domain": edge_info["domain"],
+                    "family": edge_info["family"],
+                    "difficulty": edge_info["difficulty"],
+                    "ambiguity": edge_info["ambiguity"],
                     "type": "clinical_edge_case",
                 },
             }
     return None
 
-async def main_async():
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Generate clinical edge-case + nightmare-fuel training records (Stage 3)."
+    )
+    parser.add_argument(
+        "--target",
+        type=int,
+        default=None,
+        help="Total edge-case records; derives variations-per-combo from the 120-combo matrix.",
+    )
+    parser.add_argument(
+        "--variations-per-combo",
+        type=int,
+        default=1,
+        help="Records per (family, difficulty, ambiguity) combo (used when --target is omitted).",
+    )
+    parser.add_argument(
+        "--no-nightmare",
+        action="store_true",
+        help="Skip the predefined nightmare-fuel scenarios.",
+    )
+    return parser.parse_args(argv)
+
+
+def _variations_per_combo(args: argparse.Namespace, matrix_size: int) -> int:
+    if args.target is not None:
+        return max(1, math.ceil(args.target / matrix_size))
+    return max(1, args.variations_per_combo)
+
+
+def _process_record(
+    rec: dict[str, Any] | None,
+    guard: ModerateGuard,
+    fout: Any,
+    generated: int,
+    rejected: int,
+) -> tuple[int, int]:
+    """Count, gate, and write one generated record. Returns updated counters."""
+    if rec is None:
+        return generated, rejected
+    # Count every generated record against the credit-burn ceiling (even if the
+    # cliché gate rejects it) so a run producing mostly garbage still auto-kills.
+    guard.record()
+    family = str(rec.get("family", rec.get("diagnostic_tag", "")))
+    reason = reject_reason_for_record(rec, family=family)
+    if reason is not None:
+        logger.warning("cliché gate rejected %s: %s", family, reason)
+        return generated, rejected + 1
+    fout.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    return generated + 1, rejected
+
+
+async def main_async(argv: list[str] | None = None) -> None:
+    args = _parse_args(argv)
+    matrix = build_edge_case_matrix()
+    variations = _variations_per_combo(args, len(matrix))
+    total_edge = len(matrix) * variations
+    guard = ModerateGuard()
+
     sem = asyncio.Semaphore(3)
     conn = aiohttp.TCPConnector(limit=5)
-    async with aiohttp.ClientSession(connector=conn) as session:
-        tasks = []
-        
-        # 1. Nightmare Fuel: 92 pre-defined scenarios
-        if SCENARIOS_JSONL.exists():
-            scenarios = [json.loads(line) for line in open(SCENARIOS_JSONL) if line.strip()]
-            logger.info("Queuing %d Pre-defined Nightmare Fuel scenarios...", len(scenarios))
-            for s in scenarios:
-                tasks.append(generate_nightmare_scenario_turn(session, s, sem))
-        
-        # 2. Broad Edge Cases: 7 domains x 10 variations = 70 high-risk edge cases
-        logger.info("Queuing %d Clinical Edge-Case variations...", len(EDGE_CASE_DOMAINS) * 10)
-        for d in EDGE_CASE_DOMAINS:
-            for v in range(10):
-                tasks.append(generate_edge_case_turn(session, d, sem, v))
-                
-        logger.info("Total generation tasks: %d", len(tasks))
-        results = await asyncio.gather(*tasks)
-        
-        valid_records = [r for r in results if r is not None]
-        logger.info("Successfully generated %d valid high-duress & edge-case records!", len(valid_records))
-        
-        # Checkpoint
-        checkpoint_file = CHECKPOINT_DIR / "edge_and_nightmare_records.jsonl"
-        with open(checkpoint_file, "w", encoding="utf-8") as f:
-            for r in valid_records:
-                f.write(json.dumps(r, ensure_ascii=False) + "\n")
-                
-        # Append to Master Gold Dataset
-        with open(OUT_MASTER, "a", encoding="utf-8") as fout:
-            for r in valid_records:
-                fout.write(json.dumps(r, ensure_ascii=False) + "\n")
-                
-        logger.info("Appended %d records to master corpus %s", len(valid_records), OUT_MASTER)
+    generated = 0
+    rejected = 0
+
+    logger.info(
+        "Edge-case matrix: %d combos x %d variations = %d records (10 families x 3 difficulty x 4 ambiguity).",
+        len(matrix),
+        variations,
+        total_edge,
+    )
+
+    try:
+        async with aiohttp.ClientSession(connector=conn) as session:
+            with open(OUT_GENERATED, "a", encoding="utf-8") as fout:
+                # 1. Nightmare fuel (pre-defined scenarios)
+                if not args.no_nightmare and SCENARIOS_JSONL.exists():
+                    scenarios = [
+                        json.loads(line)
+                        for line in SCENARIOS_JSONL.read_text(encoding="utf-8").splitlines()
+                        if line.strip()
+                    ]
+                    logger.info("Generating %d nightmare-fuel scenarios...", len(scenarios))
+                    for s in scenarios:
+                        rec = await generate_nightmare_scenario_turn(session, s, sem)
+                        generated, rejected = _process_record(rec, guard, fout, generated, rejected)
+
+                # 2. Edge cases across the full matrix
+                for combo in matrix:
+                    for v in range(variations):
+                        rec = await generate_edge_case_turn(session, combo, sem, v)
+                        generated, rejected = _process_record(rec, guard, fout, generated, rejected)
+    except GenerationLimitExceededError as exc:
+        logger.warning("Moderate guard tripped; checkpointing and stopping: %s", exc)
+
+    logger.info(
+        "Run complete: %d records written, %d rejected by cliché gate -> %s",
+        generated,
+        rejected,
+        OUT_GENERATED,
+    )
+
 
 if __name__ == "__main__":
     asyncio.run(main_async())
