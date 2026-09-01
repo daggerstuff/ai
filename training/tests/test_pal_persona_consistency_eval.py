@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -20,6 +21,15 @@ from training.pal_persona_consistency_eval import (
     score_records,
 )
 
+TWO_ITEMS = 2
+THREE_ITEMS = 3
+EXIT_HEURISTIC_FALLBACK = 2
+
+
+def _write_jsonl_file(path: Path, content: str) -> Path:
+    path.write_text(content, encoding="utf-8")
+    return path
+
 
 @pytest.fixture
 def heuristic() -> _HeuristicNli:
@@ -33,44 +43,73 @@ def backend(heuristic: _HeuristicNli):
 
 class TestHeuristicPredict:
     def test_low_literacy_plus_jargon_is_contradiction(self, heuristic: _HeuristicNli) -> None:
-        persona = "Patient with low health literacy in Hanoi."
-        response = "Refer to a tertiary academic medical center for expedited neuroimaging."
-        assert heuristic.predict(persona, response) == "contradiction"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "Patient with low health literacy in Hanoi.",
+            "Refer to a tertiary academic medical center for expedited neuroimaging.",
+            heuristic,
+            "contradiction",
+        )
 
     def test_low_literacy_alias_triggers_contradiction(self, heuristic: _HeuristicNli) -> None:
-        persona = "low literacy adult"
-        response = "multi-disciplinary differential diagnosis per clinical guidelines"
-        assert heuristic.predict(persona, response) == "contradiction"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "low literacy adult",
+            "multi-disciplinary differential diagnosis per clinical guidelines",
+            heuristic,
+            "contradiction",
+        )
 
     def test_preference_traditional_medicine_entailment(self, heuristic: _HeuristicNli) -> None:
-        persona = "Prefers traditional medicine for chronic pain."
-        response = "We can explore traditional medicine options together."
-        assert heuristic.predict(persona, response) == "entailment"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "Prefers traditional medicine for chronic pain.",
+            "We can explore traditional medicine options together.",
+            heuristic,
+            "entailment",
+        )
 
     def test_preference_modern_medicine_entailment(self, heuristic: _HeuristicNli) -> None:
-        persona = "Trusts modern medicine for acute issues."
-        response = "Modern medicine offers fast diagnostics here."
-        assert heuristic.predict(persona, response) == "entailment"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "Trusts modern medicine for acute issues.",
+            "Modern medicine offers fast diagnostics here.",
+            heuristic,
+            "entailment",
+        )
 
     def test_preference_integrated_medicine_entailment(self, heuristic: _HeuristicNli) -> None:
-        persona = "Uses integrated medicine approaches."
-        response = "Integrated medicine can balance both worlds."
-        assert heuristic.predict(persona, response) == "entailment"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "Uses integrated medicine approaches.",
+            "Integrated medicine can balance both worlds.",
+            heuristic,
+            "entailment",
+        )
 
     def test_location_hanoi_entailment(self, heuristic: _HeuristicNli) -> None:
-        persona = "Lives in hanoi with mild anxiety."
-        response = "Clinics in hanoi can support follow-up."
-        assert heuristic.predict(persona, response) == "entailment"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "Lives in hanoi with mild anxiety.",
+            "Clinics in hanoi can support follow-up.",
+            heuristic,
+            "entailment",
+        )
 
     def test_location_hcmc_entailment(self, heuristic: _HeuristicNli) -> None:
-        persona = "Resident of hcmc seeking counseling."
-        response = "Therapists in hcmc are available."
-        assert heuristic.predict(persona, response) == "entailment"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "Resident of hcmc seeking counseling.",
+            "Therapists in hcmc are available.",
+            heuristic,
+            "entailment",
+        )
 
     def test_unrelated_defaults_neutral(self, heuristic: _HeuristicNli) -> None:
-        persona = "Enjoys gardening on weekends."
-        response = "Try breathing exercises twice daily."
-        assert heuristic.predict(persona, response) == "neutral"
+        self._extracted_from_test_unrelated_defaults_neutral_2(
+            "Enjoys gardening on weekends.",
+            "Try breathing exercises twice daily.",
+            heuristic,
+            "neutral",
+        )
+
+    def _extracted_from_test_unrelated_defaults_neutral_2(self, arg0, arg1, heuristic, arg3):
+        persona = arg0
+        response = arg1
+        assert heuristic.predict(persona, response) == arg3
 
     def test_empty_premise_is_neutral(self, heuristic: _HeuristicNli) -> None:
         assert heuristic.predict("", "some response") == "neutral"
@@ -109,7 +148,7 @@ class TestScorePairs:
             ("hanoi", "live in hanoi"),
         ]
         report = score_pairs(pairs, backend)
-        assert report.n == 2
+        assert report.n == TWO_ITEMS
         assert all(e.label == "entailment" for e in report.examples)
 
     def test_empty_pairs_returns_zero_n(self, backend) -> None:
@@ -124,7 +163,7 @@ class TestScorePairs:
             ("gardening", "breathing exercises"),
         ]
         report = score_pairs(pairs, backend)
-        assert report.n == 3
+        assert report.n == THREE_ITEMS
         assert report.entail_rate == 1 / 3
         assert report.contradict_rate == 1 / 3
         assert report.neutral_rate == 1 / 3
@@ -226,22 +265,20 @@ class TestAggregate:
 
 class TestIterJsonl:
     def test_skips_blank_lines(self, tmp_path: Path) -> None:
-        path = tmp_path / "data.jsonl"
-        path.write_text(
+        path = _write_jsonl_file(
+            tmp_path / "data.jsonl",
             '{"persona": "hanoi", "response": "hanoi clinic"}\n\n{"persona": "p", "response": "r"}\n',
-            encoding="utf-8",
         )
         records = list(_iter_jsonl(path))
-        assert len(records) == 2
+        assert len(records) == TWO_ITEMS
 
     def test_skips_malformed_lines(self, tmp_path: Path) -> None:
-        path = tmp_path / "data.jsonl"
-        path.write_text(
+        path = _write_jsonl_file(
+            tmp_path / "data.jsonl",
             '{"persona": "hanoi", "response": "hanoi"}\nnot-json\n{"persona": "p", "response": "r"}\n',
-            encoding="utf-8",
         )
         records = list(_iter_jsonl(path))
-        assert len(records) == 2
+        assert len(records) == TWO_ITEMS
 
 
 class TestBuildNliBackend:
@@ -252,11 +289,10 @@ class TestBuildNliBackend:
 
 class TestCli:
     def _write_jsonl(self, path: Path) -> Path:
-        path.write_text(
+        return _write_jsonl_file(
+            path,
             '{"persona": "integrated medicine", "response": "integrated medicine"}\n',
-            encoding="utf-8",
         )
-        return path
 
     def test_writes_report_file(self, tmp_path: Path) -> None:
         inp = self._write_jsonl(tmp_path / "in.jsonl")
@@ -272,10 +308,9 @@ class TestCli:
         assert code == 1
 
     def test_limit_flag(self, tmp_path: Path) -> None:
-        inp = tmp_path / "in.jsonl"
-        inp.write_text(
+        inp = _write_jsonl_file(
+            tmp_path / "in.jsonl",
             '{"persona": "hanoi", "response": "hanoi"}\n{"persona": "hcmc", "response": "hcmc"}\n',
-            encoding="utf-8",
         )
         out = tmp_path / "report.json"
         code = main([str(inp), "--force-heuristic", "--limit", "1", "--output", str(out)])
@@ -309,11 +344,9 @@ class TestCli:
         assert code == 0
         # Exercise the real exit-2 path: force heuristic backend but omit --force-heuristic
         # by patching build to return heuristic while CLI flag is off.
-        from unittest.mock import patch
-
         with patch(
             "training.pal_persona_consistency_eval.build_nli_backend",
             return_value=build_nli_backend(force_heuristic=True),
         ):
             code2 = main([str(inp)])
-        assert code2 == 2
+        assert code2 == EXIT_HEURISTIC_FALLBACK

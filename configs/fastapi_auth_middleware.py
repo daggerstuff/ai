@@ -8,6 +8,7 @@ This module provides FastAPI-specific middleware and decorators for the authenti
 import logging
 import os
 from collections.abc import Callable
+from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -101,7 +102,7 @@ class AuthenticationDependencies:
 
     async def get_current_user(
         self,
-        credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
     ) -> User | None:
         """Get current authenticated user from JWT token"""
         if not credentials:
@@ -119,7 +120,7 @@ class AuthenticationDependencies:
 
         return user
 
-    async def get_api_key(self, api_key: str | None = Depends(api_key_header)) -> APIKey | None:
+    async def get_api_key(self, api_key: Annotated[str | None, Depends(api_key_header)]) -> APIKey | None:
         """Get current authenticated API key"""
         if not api_key:
             return None
@@ -135,8 +136,8 @@ class AuthenticationDependencies:
 
         async def permission_checker(
             _request: Request,
-            user: User | None = Depends(self.get_current_user),
-            api_key: APIKey | None = Depends(self.get_api_key),
+            user: Annotated[User | None, Depends(self.get_current_user)],
+            api_key: Annotated[APIKey | None, Depends(self.get_api_key)],
         ):
             # Check user permissions
             if user:
@@ -166,7 +167,7 @@ class AuthenticationDependencies:
     def require_role(self, required_role: UserRole):
         """Dependency to require specific user role"""
 
-        async def role_checker(user: User = Depends(self.get_current_user)):
+        async def role_checker(user: Annotated[User, Depends(self.get_current_user)]):
             if user.role != required_role:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
@@ -201,7 +202,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
 
     @app.post("/auth/logout")
     async def logout(
-        credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
     ):
         """User logout endpoint (revoke token)"""
         if credentials:
@@ -209,7 +210,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
         return {"message": "Logged out successfully"}
 
     @app.get("/auth/me")
-    async def get_current_user_info(user: User = Depends(auth_deps.get_current_user)):
+    async def get_current_user_info(user: Annotated[User, Depends(auth_deps.get_current_user)]):
         """Get current user information"""
         return {
             "user_id": user.user_id,
@@ -225,8 +226,8 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
     async def create_api_key(
         name: str,
         permissions: list[str],
+        _user: Annotated[User, Depends(auth_deps.require_role(UserRole.ADMIN))],
         expires_in_days: int | None = None,
-        _user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
     ):
         """Create new API key (admin only)"""
         try:
@@ -249,7 +250,7 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
 
     @app.get("/auth/api-keys")
     async def list_api_keys(
-        _user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
+        _user: Annotated[User, Depends(auth_deps.require_role(UserRole.ADMIN))],
     ):
         """List all API keys (admin only)"""
         return [
@@ -266,7 +267,10 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
         ]
 
     @app.delete("/auth/api-keys/{key_id}")
-    async def revoke_api_key(key_id: str, _user: User = Depends(auth_deps.require_role(UserRole.ADMIN))):
+    async def revoke_api_key(
+        key_id: str,
+        _user: Annotated[User, Depends(auth_deps.require_role(UserRole.ADMIN))],
+    ):
         """Revoke API key (admin only)"""
         if key_id not in auth_system.api_keys:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API key not found")
@@ -283,7 +287,7 @@ def create_protected_routes(app: FastAPI, auth_system: AuthenticationSystem):
 
     @app.get("/protected/read")
     async def protected_read(
-        auth_info=Depends(auth_deps.require_permission(PermissionLevel.READ)),
+        auth_info: Annotated[Any, Depends(auth_deps.require_permission(PermissionLevel.READ))],
     ):
         """Protected endpoint requiring READ permission"""
         return {"message": "You have read access", "auth_info": str(type(auth_info))}
@@ -291,7 +295,7 @@ def create_protected_routes(app: FastAPI, auth_system: AuthenticationSystem):
     @app.post("/protected/write")
     async def protected_write(
         data: dict,
-        _auth_info=Depends(auth_deps.require_permission(PermissionLevel.WRITE)),
+        _auth_info: Annotated[Any, Depends(auth_deps.require_permission(PermissionLevel.WRITE))],
     ):
         """Protected endpoint requiring WRITE permission"""
         return {"message": "Data written successfully", "data": data}
@@ -299,14 +303,14 @@ def create_protected_routes(app: FastAPI, auth_system: AuthenticationSystem):
     @app.delete("/protected/delete")
     async def protected_delete(
         item_id: str,
-        _auth_info=Depends(auth_deps.require_permission(PermissionLevel.DELETE)),
+        _auth_info: Annotated[Any, Depends(auth_deps.require_permission(PermissionLevel.DELETE))],
     ):
         """Protected endpoint requiring DELETE permission"""
         return {"message": f"Item {item_id} deleted successfully"}
 
     @app.get("/admin/users")
     async def admin_list_users(
-        _user: User = Depends(auth_deps.require_role(UserRole.ADMIN)),
+        _user: Annotated[User, Depends(auth_deps.require_role(UserRole.ADMIN))],
     ):
         """Admin-only endpoint to list all users"""
         return [

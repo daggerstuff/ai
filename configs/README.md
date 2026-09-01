@@ -29,7 +29,9 @@ uv pip install pyjwt bcrypt pydantic fastapi uvicorn
 
 | Variable | Default | Description |
 |---|---|---|
-| `AUTH_SECRET_KEY` | `super-secret-key-for-dev` | Secret key for JWT token signing. **Must** be set to a strong random value in production. |
+| `AUTH_SECRET_KEY` | None | Secret key for JWT token signing. Required for the dataset API and authentication app startup. Must be a unique value of at least 32 characters; default placeholders such as `your-secret-key-here` are rejected. |
+| `AUTH_DB_PATH` | `data/auth.sqlite3` | SQLite path used by `AuthenticationSystem` to persist users, API keys, and revoked JWT IDs across restarts. |
+| `DATABASE_URL` | None | Database path or DSN used by `inference/api/dataset_api.py`. Required when starting the dataset API; SQLite paths and `:memory:` are supported. |
 | `API_KEY_EXPIRY_DAYS` | `365` | Default API key expiration in days. Set to `0` for no expiry. |
 
 ## Database Migrations
