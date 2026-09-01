@@ -11,13 +11,16 @@ This module provides enterprise-grade API authentication with:
 """
 
 import hashlib
+import json
 import logging
 import os
 import secrets
+import sqlite3
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from functools import wraps
+from pathlib import Path
 
 import bcrypt
 import jwt
@@ -25,6 +28,19 @@ import jwt
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+_DEFAULT_SECRET_VALUES = frozenset({"your-secret-key-here"})
+_MINIMUM_SECRET_LENGTH = 32
+
+
+def validate_secret_key(secret_key: str | None) -> str:
+    """Validate a JWT signing secret before it is used."""
+    if not secret_key or secret_key in _DEFAULT_SECRET_VALUES or len(secret_key) < _MINIMUM_SECRET_LENGTH:
+        raise ValueError(
+            f"AUTH_SECRET_KEY must be set to a unique secret of at least "
+            f"{_MINIMUM_SECRET_LENGTH} characters. Default placeholders are rejected."
+        )
+    return secret_key
 
 
 class UserRole(Enum):
@@ -85,6 +101,221 @@ class APIKey:
             self.created_at = datetime.now(UTC)
 
 
+class SQLiteAuthenticationStore:
+    """SQLite-backed persistence for users, API keys, and revoked JWT IDs."""
+
+    def __init__(self, database_path: Path):
+        self.database_path = database_path
+        database_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with sqlite3.connect(database_path) as connection:
+            connection.executescript(
+                """
+                PRAGMA journal_mode=WAL;
+                PRAGMA synchronous=NORMAL;
+
+                CREATE TABLE IF NOT EXISTS auth_users (
+                    user_id TEXT PRIMARY KEY,
+                    payload TEXT NOT NULL UNIQUE
+                );
+                CREATE TABLE IF NOT EXISTS auth_api_keys (
+                    key_id TEXT PRIMARY KEY,
+                    payload TEXT NOT NULL UNIQUE
+                );
+                CREATE TABLE IF NOT EXISTS auth_revoked_jti (
+                    jti TEXT PRIMARY KEY,
+                    revoked_at TEXT NOT NULL
+                );
+                """
+            )
+
+    def load(self) -> tuple[dict[str, User], dict[str, APIKey], set[str]]:
+        """Load persisted authentication state."""
+        users: dict[str, User] = {}
+        api_keys: dict[str, APIKey] = {}
+
+        with sqlite3.connect(self.database_path) as connection:
+            user_rows = connection.execute("SELECT payload FROM auth_users").fetchall()
+            api_key_rows = connection.execute("SELECT payload FROM auth_api_keys").fetchall()
+            revoked_rows = connection.execute("SELECT jti FROM auth_revoked_jti").fetchall()
+
+        for user_payload in user_rows:
+            user = self._deserialize_user(user_payload[0])
+            users[user.user_id] = user
+
+        for api_key_payload in api_key_rows:
+            api_key = self._deserialize_api_key(api_key_payload[0])
+            api_keys[api_key.key_id] = api_key
+
+        return users, api_keys, {jti for (jti,) in revoked_rows}
+
+    def save_user(self, user: User) -> None:
+        """Insert or update a user."""
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute(
+                "INSERT INTO auth_users (user_id, payload) VALUES (?, ?) "
+                "ON CONFLICT(user_id) DO UPDATE SET payload = excluded.payload",
+                (user.user_id, self._serialize_user(user)),
+            )
+
+    def save_api_key(self, api_key: APIKey) -> None:
+        """Insert or update an API key."""
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute(
+                "INSERT INTO auth_api_keys (key_id, payload) VALUES (?, ?) "
+                "ON CONFLICT(key_id) DO UPDATE SET payload = excluded.payload",
+                (api_key.key_id, self._serialize_api_key(api_key)),
+            )
+
+    def revoke_jti(self, jti: str) -> None:
+        """Persist a revoked JWT ID."""
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute(
+                "INSERT OR IGNORE INTO auth_revoked_jti (jti, revoked_at) VALUES (?, ?)",
+                (jti, datetime.now(UTC).isoformat()),
+            )
+
+    def _serialize_user(self, user: User) -> str:
+        return json.dumps(
+            {
+                "user_id": user.user_id,
+                "username": user.username,
+                "email": user.email,
+                "password_hash": user.password_hash,
+                "role": user.role.value,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat(),
+                "last_login": user.last_login.isoformat() if user.last_login else None,
+            }
+        )
+
+    def _serialize_api_key(self, api_key: APIKey) -> str:
+        return json.dumps(
+            {
+                "key_id": api_key.key_id,
+                "key_hash": api_key.key_hash,
+                "name": api_key.name,
+                "permissions": [permission.value for permission in api_key.permissions],
+                "is_active": api_key.is_active,
+                "created_at": api_key.created_at.isoformat(),
+                "expires_at": api_key.expires_at.isoformat() if api_key.expires_at else None,
+                "last_used": api_key.last_used.isoformat() if api_key.last_used else None,
+            }
+        )
+
+    def _deserialize_user(self, payload: str) -> User:
+        data = json.loads(payload)
+        return User(
+            user_id=data["user_id"],
+            username=data["username"],
+            email=data["email"],
+            password_hash=data["password_hash"],
+            role=UserRole(data["role"]),
+            is_active=data["is_active"],
+            created_at=datetime.fromisoformat(data["created_at"]),
+            last_login=datetime.fromisoformat(data["last_login"]) if data["last_login"] else None,
+        )
+
+    def _deserialize_api_key(self, payload: str) -> APIKey:
+        data = json.loads(payload)
+        return APIKey(
+            key_id=data["key_id"],
+            key_hash=data["key_hash"],
+            name=data["name"],
+            permissions=[PermissionLevel(permission) for permission in data["permissions"]],
+            is_active=data["is_active"],
+            created_at=datetime.fromisoformat(data["created_at"]),
+            expires_at=datetime.fromisoformat(data["expires_at"]) if data["expires_at"] else None,
+            last_used=datetime.fromisoformat(data["last_used"]) if data["last_used"] else None,
+        )
+
+    def deactivate_api_key(self, key_id: str) -> None:
+        """Persist an inactive API key."""
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute(
+                "UPDATE auth_api_keys SET payload = ? WHERE key_id = ?",
+                (self._serialize_api_key(self.api_keys[key_id]), key_id),
+            )
+        """Insert or update a user."""
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute(
+                "INSERT INTO auth_users (user_id, payload) VALUES (?, ?) "
+                "ON CONFLICT(user_id) DO UPDATE SET payload = excluded.payload",
+                (user.user_id, self._serialize_user(user)),
+            )
+
+    def save_api_key(self, api_key: APIKey) -> None:
+        """Insert or update an API key."""
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute(
+                "INSERT INTO auth_api_keys (key_id, payload) VALUES (?, ?) "
+                "ON CONFLICT(key_id) DO UPDATE SET payload = excluded.payload",
+                (api_key.key_id, self._serialize_api_key(api_key)),
+            )
+
+    def revoke_jti(self, jti: str) -> None:
+        """Persist a revoked JWT ID."""
+        with sqlite3.connect(self.database_path) as connection:
+            connection.execute(
+                "INSERT OR IGNORE INTO auth_revoked_jti (jti, revoked_at) VALUES (?, ?)",
+                (jti, datetime.now(UTC).isoformat()),
+            )
+
+    def _serialize_user(self, user: User) -> str:
+        return json.dumps(
+            {
+                "user_id": user.user_id,
+                "username": user.username,
+                "email": user.email,
+                "password_hash": user.password_hash,
+                "role": user.role.value,
+                "is_active": user.is_active,
+                "created_at": user.created_at.isoformat(),
+                "last_login": user.last_login.isoformat() if user.last_login else None,
+            }
+        )
+
+    def _serialize_api_key(self, api_key: APIKey) -> str:
+        return json.dumps(
+            {
+                "key_id": api_key.key_id,
+                "key_hash": api_key.key_hash,
+                "name": api_key.name,
+                "permissions": [permission.value for permission in api_key.permissions],
+                "is_active": api_key.is_active,
+                "created_at": api_key.created_at.isoformat(),
+                "expires_at": api_key.expires_at.isoformat() if api_key.expires_at else None,
+                "last_used": api_key.last_used.isoformat() if api_key.last_used else None,
+            }
+        )
+
+    def _deserialize_user(self, payload: str) -> User:
+        data = json.loads(payload)
+        return User(
+            user_id=data["user_id"],
+            username=data["username"],
+            email=data["email"],
+            password_hash=data["password_hash"],
+            role=UserRole(data["role"]),
+            is_active=data["is_active"],
+            created_at=datetime.fromisoformat(data["created_at"]),
+            last_login=datetime.fromisoformat(data["last_login"]) if data["last_login"] else None,
+        )
+
+    def _deserialize_api_key(self, payload: str) -> APIKey:
+        data = json.loads(payload)
+        return APIKey(
+            key_id=data["key_id"],
+            key_hash=data["key_hash"],
+            name=data["name"],
+            permissions=[PermissionLevel(permission) for permission in data["permissions"]],
+            is_active=data["is_active"],
+            created_at=datetime.fromisoformat(data["created_at"]),
+            expires_at=datetime.fromisoformat(data["expires_at"]) if data["expires_at"] else None,
+            last_used=datetime.fromisoformat(data["last_used"]) if data["last_used"] else None,
+        )
+
+
 class AuthenticationSystem:
     """
     Enterprise API Authentication System
@@ -92,17 +323,18 @@ class AuthenticationSystem:
     Provides JWT token authentication, RBAC, and API key management
     """
 
-    def __init__(self, secret_key: str, token_expiry_hours: int = 24):
-        self.secret_key = secret_key
+    def __init__(
+        self,
+        secret_key: str,
+        token_expiry_hours: int = 24,
+        auth_database: Path | None = None,
+    ):
+        self.secret_key = validate_secret_key(secret_key)
         self.token_expiry_hours = token_expiry_hours
         self.algorithm = "HS256"
 
-        # In-memory storage (replace with database in production)
-        # WARNING: All data (users, API keys, revoked tokens) is lost on process restart.
-        # Token revocation does not persist across restarts. Use PostgreSQL or similar for production.
-        self.users: dict[str, User] = {}
-        self.api_keys: dict[str, APIKey] = {}
-        self.revoked_tokens: set = set()
+        self.store = SQLiteAuthenticationStore(auth_database or Path(os.getenv("AUTH_DB_PATH", "data/auth.sqlite3")))
+        self.users, self.api_keys, self.revoked_tokens = self.store.load()
 
         # Role permissions mapping
         self.role_permissions = {
@@ -155,6 +387,7 @@ class AuthenticationSystem:
         )
 
         self.users[user_id] = user
+        self.store.save_user(user)
         logger.info(f"User created: {username} with role {role.value}")
         return user
 
@@ -182,6 +415,7 @@ class AuthenticationSystem:
         )
 
         self.api_keys[key_id] = api_key_obj
+        self.store.save_api_key(api_key_obj)
         logger.info(f"API key created: {name} with permissions {[p.value for p in permissions]}")
         return api_key, api_key_obj
 
@@ -208,6 +442,7 @@ class AuthenticationSystem:
                     return None
 
                 api_key_obj.last_used = datetime.now(UTC)
+                self.store.save_api_key(api_key_obj)
                 logger.info(f"API key authenticated: {api_key_obj.name}")
                 return api_key_obj
 
@@ -233,11 +468,11 @@ class AuthenticationSystem:
         """Verify and decode JWT token"""
         try:
             # Check if token is revoked
-            if token in self.revoked_tokens:
+            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+
+            if payload.get("jti") in self.revoked_tokens:
                 logger.warning("Revoked token used")
                 return None
-
-            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
             # Verify user still exists and is active
             user_id = payload.get("user_id")
@@ -258,7 +493,12 @@ class AuthenticationSystem:
         """Revoke JWT token"""
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
-            self.revoked_tokens.add(token)
+            jti = payload.get("jti")
+            if not jti:
+                return False
+
+            self.revoked_tokens.add(jti)
+            self.store.revoke_jti(jti)
             logger.info(f"Token revoked for user: {payload.get('username')}")
             return True
         except jwt.InvalidTokenError:
@@ -471,7 +711,7 @@ if __name__ == "__main__":
         raise ValueError(
             "AUTH_SECRET_KEY environment variable must be set with a secure value. Default placeholder is not allowed."
         )
-    auth_system = AuthenticationSystem(secret_key=secret_key)
+    auth_system = AuthenticationSystem(secret_key=validate_secret_key(secret_key))
 
     # Create test users
     admin_user = auth_system.create_user("admin", "admin@example.com", "admin_password", UserRole.ADMIN)

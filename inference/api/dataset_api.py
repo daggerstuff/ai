@@ -1,11 +1,9 @@
-import contextlib
-import logging
 import os
 import re
 import sqlite3
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status, HTTPException, Query, Request, Security, status
 from pydantic import BaseModel
 
 from configs.api_authentication import (
@@ -19,6 +17,8 @@ from configs.fastapi_auth_middleware import (
 )
 
 logger = logging.getLogger(__name__)
+
+app = FastAPI()
 
 # Initialize Authentication System (use a strong secret key in production)
 AUTH_SECRET_KEY = os.environ.get("AUTH_SECRET_KEY")
@@ -39,8 +39,6 @@ if os.getenv("CREATE_TEST_API_KEY", "false").lower() == "true":
         expires_in_days=API_KEY_EXPIRY_DAYS,
     )
     logger.warning("Test API key created for development purposes only")
-
-app = FastAPI(title="Dataset Access API", description="API for accessing and querying datasets.")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
