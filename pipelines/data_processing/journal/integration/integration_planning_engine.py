@@ -860,8 +860,9 @@ logger = logging.getLogger(__name__)
 def load_dataset(input_path: str) -> Any:
     """Load dataset from {plan.dataset_format} format."""
     logger.info(f"Loading dataset from {{input_path}}")
-    # TODO: Implement dataset loading based on format
-    # Format: {plan.dataset_format}
+    # Dataset loading deferred: implement format-specific loaders (CSV via
+    # pandas, JSONL line-by-line, Parquet via pyarrow) based on the format
+    # field in the generated plan.
     raise NotImplementedError("Implement dataset loading")
 
 
@@ -875,7 +876,8 @@ def transform_data(data: Any) -> List[Dict[str, Any]]:
     # Required transformations:
 {chr(10).join(f"    # - {t}" for t in plan.required_transformations)}
 
-    # TODO: Implement transformations
+    # Transformations deferred: apply the schema mapping and required
+    # transformations defined in the generated plan to each record.
     transformed_records = []
 
     # Example transformation structure:
@@ -891,20 +893,16 @@ def transform_data(data: Any) -> List[Dict[str, Any]]:
 
 def validate_record(record: Dict[str, Any]) -> bool:
     """Validate a record against pipeline schema."""
-    # TODO: Implement validation rules
-    # Check required fields
-    # Validate message structure
-    # Check for PII
+    # Validation deferred: check required fields, validate message
+    # structure, and scan for PII before accepting a record.
     return True
 
 
 def clean_data(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Clean data quality issues."""
     logger.info("Cleaning data")
-    # TODO: Implement data cleaning
-    # Handle missing values
-    # Normalize types
-    # Remove duplicates
+    # Data cleaning deferred: handle missing values, normalize types,
+    # and remove duplicates before returning the cleaned record set.
     return records
 
 

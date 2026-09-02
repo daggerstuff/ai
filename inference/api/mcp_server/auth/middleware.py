@@ -126,8 +126,6 @@ class MCPAuthMiddleware:
             raise PermissionDeniedError("Agent lacks required permissions")
 
         # Rate limiting check would go here
-        # if not await self.check_agent_rate_limit(agent_context.agent_id):
-        #     raise RateLimitExceededError("Agent rate limit exceeded")
 
         return agent_context
 

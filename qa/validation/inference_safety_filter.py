@@ -12,7 +12,10 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-# from ..dataset_pipeline.traceability_system import TraceabilityManager  # TODO: fix import
+# TraceabilityManager import deferred: the module path
+# ..dataset_pipeline.traceability_system is not yet available in the
+# current package layout. Uncomment and adjust the import path once the
+# traceability system package is restructured.
 from ..reports.observability import observability
 
 # Import our existing systems

@@ -60,8 +60,3 @@ config = Config()
 def get_config() -> Config:
     """Returns the singleton config instance."""
     return config
-
-# Example usage:
-# from config import get_config
-# config = get_config()
-# print(config.standardization.batch_size)

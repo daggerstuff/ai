@@ -21,8 +21,6 @@ from .academic_sourcing import (
 )
 
 # Note: The following modules are planned but not yet implemented in the directory structure:
-# from .metadata_extraction.metadata_extractor import MetadataExtractor
-# from .anonymization.anonymizer import ContentAnonymizer
 from .anonymization.anonymizer import AnonymizationResult, ContentAnonymizer
 
 # API Integration

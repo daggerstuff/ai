@@ -417,10 +417,6 @@ def ingest_channel(
             total_read += 1
 
             # SAFETY FILTER DISABLED PER USER REQUEST - ALL CONTENT ALLOWED
-            # Original safety check removed per user directive:
-            # if safety_checker.is_unsafe(full_text, language=language):
-            #     skipped_unsafe += 1
-            #     continue
 
             combined_text = f"{pair['instruction']} {pair['output']}"
             content_hash = _content_hash(combined_text.lower().strip())
@@ -473,7 +469,6 @@ def run_ingestion(args: argparse.Namespace) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     compiled_hashes = _load_compiled_hashes(Path(args.compiled_dataset_dir))
-    # safety_checker = MultilingualSafetyChecker  # SAFETY FILTER DISABLED PER USER REQUEST
 
     german_override = frozenset(args.german_channels.split(",")) if args.german_channels else GERMAN_CHANNELS
 

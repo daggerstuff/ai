@@ -55,7 +55,12 @@ class DatabaseService:
     def _encrypt_phi(self, data: dict[str, Any]) -> dict[str, Any]:
         """Encrypt PHI data before storage using AES-256-GCM - HIPAA compliance"""
         if not self._encryption_key:
-            # Fallback for dev only - DO NOT USE IN PRODUCTION
+            if os.environ.get("NODE_ENV") == "production":
+                raise RuntimeError(
+                    "PHI_ENCRYPTION_KEY not set in production. "
+                    "Refusing to store unencrypted PHI."
+                )
+            logger.warning("PHI_ENCRYPTION_KEY not set. Using insecure placeholder for development.")
             encrypted_data = data.copy()
             encrypted_data["_insecure_mode"] = True
             encrypted_data["_encryption_timestamp"] = datetime.now(UTC)

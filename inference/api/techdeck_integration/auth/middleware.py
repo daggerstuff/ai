@@ -228,12 +228,6 @@ class JWTAuthMiddleware:
                 return {"valid": False, "error": "Invalid user ID"}
 
             # Simulate user lookup (replace with actual database query)
-            # user = User.query.get(user_id)
-            # if not user or not user.is_active:
-            #     return {
-            #         'valid': False,
-            #         'error': 'User not found or inactive'
-            #     }
 
             return {"valid": True}
 
@@ -255,20 +249,6 @@ class JWTAuthMiddleware:
         try:
             # This would typically use Redis or similar for rate limiting
             # For now, we'll simulate rate limiting logic
-
-            # rate_limit_key = f"rate_limit:{user_id}:{path}"
-
-            # Simulate rate limit check (replace with actual Redis implementation)
-            # current_count = redis_client.incr(rate_limit_key)
-            # if current_count == 1:
-            #     redis_client.expire(rate_limit_key, 60)  # 1 minute window
-
-            # if current_count > self.config.RATE_LIMIT_PER_MINUTE:
-            #     return {
-            #         'allowed': False,
-            #         'retry_after': 60,
-            #         'limit': self.config.RATE_LIMIT_PER_MINUTE
-            #     }
 
             return {
                 "allowed": True,

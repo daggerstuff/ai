@@ -340,6 +340,12 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Skip the predefined nightmare-fuel scenarios.",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Cap total generated records (dry-run/smoke); stops early once reached.",
+    )
     return parser.parse_args(argv)
 
 
@@ -347,6 +353,10 @@ def _variations_per_combo(args: argparse.Namespace, matrix_size: int) -> int:
     if args.target is not None:
         return max(1, math.ceil(args.target / matrix_size))
     return max(1, args.variations_per_combo)
+
+
+def _at_limit(args: argparse.Namespace, generated: int, rejected: int) -> bool:
+    return args.limit is not None and (generated + rejected) >= args.limit
 
 
 def _nightmare_key(scenario: dict[str, Any]) -> tuple[str, str]:
@@ -455,10 +465,16 @@ async def main_async(argv: list[str] | None = None) -> None:
                             continue
                         rec = await generate_nightmare_scenario_turn(session, s, sem)
                         generated, rejected = _process_record(rec, guard, fout, generated, rejected)
+                        if _at_limit(args, generated, rejected):
+                            break
 
                 # 2. Edge cases across the full matrix
                 for combo in matrix:
+                    if _at_limit(args, generated, rejected):
+                        break
                     for v in range(variations):
+                        if _at_limit(args, generated, rejected):
+                            break
                         if _edge_key(combo, v) in done:
                             continue
                         rec = await generate_edge_case_turn(session, combo, sem, v)

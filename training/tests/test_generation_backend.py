@@ -154,3 +154,26 @@ class TestChatCompletion:
                 [{"role": "user", "content": "ping"}],
                 temperature=0.5,
             )
+
+
+class TestObservability:
+    def test_log_generation_call_returns_dict(self):
+        result = gb._log_generation_call(
+            backend="vllm",
+            model="@cf/zai-org/glm-5.3",
+            metrics={
+                "input_chars": 10,
+                "output_chars": 5,
+                "latency_ms": 1.0,
+                "prompt_tokens": 2,
+                "completion_tokens": 3,
+            },
+        )
+        assert result["backend"] == "vllm"
+        assert result["model"] == "@cf/zai-org/glm-5.3"
+        assert result["output_chars"] == 5
+
+    def test_init_weave_is_safe_noop(self, monkeypatch):
+        monkeypatch.delenv("WANDB_API_KEY", raising=False)
+        # No-op regardless of weave availability; must never raise.
+        assert gb.init_weave() is None

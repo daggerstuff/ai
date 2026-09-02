@@ -18,10 +18,6 @@ from pathlib import Path
 from typing import Any
 
 # Enterprise imports - disabled, modules not available
-# import sys
-# sys.path.append(str(Path(__file__).parent.parent / "enterprise_config"))
-# from enterprise_config import get_config
-# from enterprise_logging import get_logger
 
 # Use standard logging instead
 logging.basicConfig(level=logging.INFO)

@@ -65,6 +65,7 @@ class IFTConfig:
     save_steps: int = 400
     save_total_limit: int = 3
     load_best_model_at_end: bool = True
+    wandb_log_model: str = "end"  # W&B artifact checkpointing: "false"|"checkpoint"|"end"
     curriculum_learning: bool = True
     task_order: tuple[str, ...] = (
         MentalHealthTaskType.SYMPTOM_CLASSIFICATION.value,
@@ -280,6 +281,11 @@ class MentalHealthIFTTrainer:
 
         output_dir = Path(self.config.output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        # W&B artifact checkpointing: the HF WandbCallback reads WANDB_LOG_MODEL
+        # ("false"|"checkpoint"|"end") to log model/LoRA checkpoints as artifacts.
+        if os.getenv("WANDB_API_KEY"):
+            os.environ["WANDB_LOG_MODEL"] = self.config.wandb_log_model
 
         training_args = TrainingArguments(
             output_dir=str(output_dir),

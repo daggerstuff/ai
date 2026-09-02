@@ -112,7 +112,8 @@ PRESERVED_RETRYABLE_ERRORS: tuple[type[BaseException], ...] = (
 # Degraded-provider WARN: emit at most one warning per interval when the
 # rolling fraction of retryable errors exceeds the threshold. Distinct from
 # the early-shutdown gate (which fires on non-retryable errors).
-# TODO: thread these through RunConfig so users can tune them per run.
+# These thresholds should be threaded through RunConfig so users can tune
+# them per run; for now they are module-level constants.
 DEGRADED_WARN_RATE: float = 0.5
 DEGRADED_WARN_WINDOW: int = 20
 DEGRADED_WARN_INTERVAL_S: float = 60.0

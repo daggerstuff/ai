@@ -652,8 +652,9 @@ class EmbeddingGenerator:
         Note: Current implementation text-only. Vision embedding
         requires additional configuration for image processing.
         """
-        # For now, text-only embedding
-        # TODO: Add vision embedding support when available
+        # Text-only embedding for now.
+        # Multimodal (vision) embedding support deferred until image
+        # processing configuration is available on the embedding endpoint.
         return await self.embed_text(text)
 
 

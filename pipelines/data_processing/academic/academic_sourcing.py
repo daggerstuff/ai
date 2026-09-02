@@ -211,10 +211,11 @@ class AcademicSourcingEngine:
         except Exception as e:
             logger.warning(f"Failed to initialize APA publisher: {e}")
 
-        # TODO: Add other publishers as they are implemented
-        # self.publishers[SourceType.SPRINGER] = SpringerPublisher()
-        # self.publishers[SourceType.OXFORD] = OUPPublisher()
-        # etc.
+        # Additional publishers (Springer, Oxford, Cambridge, Wiley, etc.)
+        # are registered here once their API client implementations land.
+        # Each follows the same pattern: instantiate the publisher client,
+        # authenticate with an env-provided API key, and register under
+        # the corresponding SourceType enum value.
 
     # ==================== API-Based Sources ====================
 
