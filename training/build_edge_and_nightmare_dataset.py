@@ -11,6 +11,7 @@ import asyncio
 import json
 import logging
 import math
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -28,8 +29,17 @@ from training.generation_backend import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("edge_and_nightmare")
 
-SCENARIOS_JSONL = Path("ai/data/synthetic/assets/empathy_nightmare_fuel/scenarios.jsonl")
-CHECKPOINT_DIR = Path("ai/training/output/nightmare_fuel/checkpoints")
+# Cwd-independent paths: parents[1] of ai/training/ is ai/.
+_AI_ROOT = Path(__file__).resolve().parents[1]
+SCENARIOS_JSONL = _AI_ROOT / "data" / "synthetic" / "assets" / "empathy_nightmare_fuel" / "scenarios.jsonl"
+
+# NF_OUTPUT_DIR lets a Colab run point output/checkpoint at a Google Drive mount so a
+# killed session resumes from disk instead of regenerating from scratch.
+CHECKPOINT_DIR = (
+    Path(os.environ["NF_OUTPUT_DIR"])
+    if os.environ.get("NF_OUTPUT_DIR")
+    else _AI_ROOT / "training" / "output" / "nightmare_fuel" / "checkpoints"
+)
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 # Step-7 generation output; step-9 consolidation consumes this (atomic + dedup) to
 # build MASTER_STAGE_N.jsonl and append train_master_gold.jsonl.
@@ -294,6 +304,7 @@ async def generate_edge_case_turn(
                 "family": edge_info["family"],
                 "difficulty": edge_info["difficulty"],
                 "ambiguity": edge_info["ambiguity"],
+                "variation": idx,
                 "demographic_tags": [],
                 "linguistic_style": "clinical_edge_case",
                 "clinical_reviewed": True,

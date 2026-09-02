@@ -34,7 +34,7 @@ def test_val_cross_002_borderline_routing_to_annotation_queue():
                     sample=sample,
                     output=sample["output"],
                     min_clinical_validity=0.1,
-                    nemo_config=None
+                    nemo_config=object()  # truthy sentinel routes to (mocked) LLM judge
                 )
 
         # Verify sample has expected fields
@@ -82,7 +82,7 @@ def test_val_cross_002_non_borderline_samples_not_routed():
                         sample=sample,
                         output=sample["output"],
                         min_clinical_validity=0.1,
-                        nemo_config=None
+                        nemo_config=object()  # truthy sentinel routes to (mocked) LLM judge
                     )
 
             # API should not be called for non-borderline samples
@@ -118,7 +118,7 @@ def test_val_cross_002_api_failure_graceful_handling():
                     sample=sample,
                     output=sample["output"],
                     min_clinical_validity=0.1,
-                    nemo_config=None
+                    nemo_config=object()  # truthy sentinel routes to (mocked) LLM judge
                 )
 
         # Sample should still be marked as borderline even if API fails

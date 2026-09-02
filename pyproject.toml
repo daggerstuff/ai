@@ -380,6 +380,32 @@ ignore = []
     "ARG005",
     "PLC0415",
 ]
+"training/tests/test_clinical_validity_scorer.py" = [
+    "PLR2004",
+    "PLW1510",
+    "PLC0415",
+]
+"training/tests/test_clinical_validity_judge.py" = [
+    "PLR2004",
+    "PLW1510",
+    "PLC0415",
+    "SIM117",
+    "RUF001",
+]
+"training/tests/test_clinical_validity_judge_async.py" = [
+    "SIM117",
+]
+"training/tests/test_sdg_pipeline.py" = [
+    "PLR2004",
+    "ARG001",
+    "ARG002",
+    "ARG005",
+    "PLC0415",
+]
+"training/tests/test_val_cross_002.py" = [
+    "PLR2004",
+    "SIM117",
+]
 
 [tool.ruff.lint.isort]
 known-first-party = [

@@ -159,15 +159,15 @@ class TestAsyncClinicalJudgeEvaluate:
         assert "non_english_content" in result.get("flags", [])
 
     @pytest.mark.asyncio
-    async def test_evaluate_fallback_on_nemo_failure(self, mock_nemo_config):
+    async def test_evaluate_raises_on_nemo_failure(self, mock_nemo_config):
+        """Strict no-fallback: NeMo failure propagates as RuntimeError."""
         with patch("training.sdg_pipeline._call_nemo", side_effect=ConnectionError):
-            result = await AsyncClinicalJudge.evaluate(
-                "Let's try a cognitive reframing exercise. Can you identify the automatic thought? "
-                "We can challenge that thought together and look at the evidence.",
-                mock_nemo_config,
-            )
-        assert 0.0 <= result["validity_score"] <= 1.0
-        assert "fallback_regex" in result.get("flags", [])
+            with pytest.raises(RuntimeError, match="LLM judge call failed"):
+                await AsyncClinicalJudge.evaluate(
+                    "Let's try a cognitive reframing exercise. Can you identify the automatic thought? "
+                    "We can challenge that thought together and look at the evidence.",
+                    mock_nemo_config,
+                )
 
 
 # ===========================================================================

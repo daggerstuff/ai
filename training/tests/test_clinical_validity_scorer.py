@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from hypothesis import given, settings, strategies as st
 
 from training.clinical_validity_scorer import ClinicalValidityScorer
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class TestBasicScoring:
@@ -73,23 +77,20 @@ class TestBasicScoring:
         assert result > 0.0
 
     def test_therapeutic_response_outperforms_basic(self):
-        basic = ClinicalValidityScorer.score("The sky is blue.")
-        therapeutic = ClinicalValidityScorer.score(
+        self._assert_therapeutic_outperforms(
+            "The sky is blue.",
             "I appreciate you sharing that with me. It sounds like you're going through "
             "a really difficult time, and I want to acknowledge your courage in being here. "
             "One approach we could try is exploring some coping strategies together. "
-            "Have you had any thoughts about what might help? We can work on this at your pace."
+            "Have you had any thoughts about what might help? We can work on this at your pace.",
         )
-        assert therapeutic > basic
 
     def test_full_clinical_outperforms_therapeutic(self):
-        basic = ClinicalValidityScorer.score(
+        self._assert_therapeutic_outperforms(
             "I appreciate you sharing that with me. It sounds like you're going through "
             "a really difficult time, and I want to acknowledge your courage in being here. "
             "One approach we could try is exploring some coping strategies together. "
-            "Have you had any thoughts about what might help? We can work on this at your pace."
-        )
-        full = ClinicalValidityScorer.score(
+            "Have you had any thoughts about what might help? We can work on this at your pace.",
             "Thank you for bringing this to our session today. From what you're describing, "
             "it sounds like you're experiencing some difficult emotions, which is completely "
             "understandable given what's been happening. One approach that might be helpful "
@@ -97,9 +98,14 @@ class TestBasicScoring:
             "for you in these situations. I also wonder if we could explore some mindfulness "
             "techniques to help you stay grounded when things feel overwhelming. Research shows "
             "that combining these approaches can be very effective. Together, we can develop "
-            "a plan that works for you and your unique circumstances. How does that sound?"
+            "a plan that works for you and your unique circumstances. How does that sound?",
         )
-        assert full > basic
+
+    def _assert_therapeutic_outperforms(self, arg0, arg1):
+        """Assert that arg1 scores higher than arg0."""
+        basic = ClinicalValidityScorer.score(arg0)
+        therapeutic = ClinicalValidityScorer.score(arg1)
+        assert therapeutic > basic
 
 
 class TestScoreDetail:
@@ -113,8 +119,7 @@ class TestScoreDetail:
             "I appreciate you sharing your cultural perspective. "
             "Research shows this approach can be effective."
         )
-        for v in detail.values():
-            assert 0.0 <= v <= 1.0, f"Dimension score {v} out of range"
+        assert all(0.0 <= v <= 1.0 for v in detail.values()), f"Dimension score out of range: {detail}"
 
     def test_detail_blank_returns_zeros(self):
         detail = ClinicalValidityScorer.score_detail("")
@@ -167,17 +172,18 @@ class TestScoreWithFlags:
         assert isinstance(result["flags"], list)
         assert isinstance(result["category"], str)
 
-    def test_empty_input_returns_safe_defaults(self):
-        result = ClinicalValidityScorer.score_with_flags("")
+    def _assert_empty_input_defaults(self, arg0):
+        """Assert score_with_flags returns safe defaults for empty/None input."""
+        result = ClinicalValidityScorer.score_with_flags(arg0)
         assert result["validity_score"] == 0.0
         assert "empty_input" in result["flags"]
         assert result["category"] == "unknown"
 
+    def test_empty_input_returns_safe_defaults(self):
+        self._assert_empty_input_defaults("")
+
     def test_none_input_returns_safe_defaults(self):
-        result = ClinicalValidityScorer.score_with_flags(None)
-        assert result["validity_score"] == 0.0
-        assert "empty_input" in result["flags"]
-        assert result["category"] == "unknown"
+        self._assert_empty_input_defaults(None)
 
     def test_flags_include_dimension_flags(self):
         result = ClinicalValidityScorer.score_with_flags(
@@ -270,7 +276,7 @@ class TestNonEnglishDetection:
         assert "non_english_content" in result["flags"]
 
     def test_japanese_text_flagged(self):
-        result = ClinicalValidityScorer.score_with_flags("こんにちは、今日は気分がどうですか？最近ストレスが多いです。")
+        result = ClinicalValidityScorer.score_with_flags("こんにちは、今日は気分がどうですか?最近ストレスが多いです。")
         assert "non_english_content" in result["flags"]
 
     def test_spanish_text_not_flagged_when_mostly_english(self):
@@ -296,13 +302,9 @@ class TestCLIEntryPoint:
             ],
             capture_output=True,
             text=True,
-            cwd=".",
+            cwd=str(_REPO_ROOT),
         )
-        assert result.returncode == 0
-        import json
-
-        output = json.loads(result.stdout)
-        assert "validity_score" in output
+        output = self._assert_cli_json_output(result)
         assert isinstance(output["validity_score"], float)
 
     def test_cli_runs_with_stdin(self):
@@ -314,13 +316,17 @@ class TestCLIEntryPoint:
             input="Test cognitive behavioral therapy automatic thoughts reframing",
             capture_output=True,
             text=True,
-            cwd=".",
+            cwd=str(_REPO_ROOT),
         )
+        self._assert_cli_json_output(result)
+
+    def _assert_cli_json_output(self, result):
+        """Assert CLI exited cleanly and JSON output includes validity_score, returning the parsed dict."""
         assert result.returncode == 0
         import json
-
         output = json.loads(result.stdout)
         assert "validity_score" in output
+        return output
 
     def test_cli_dash_dash_help_succeeds(self):
         import subprocess
@@ -330,7 +336,7 @@ class TestCLIEntryPoint:
             [sys.executable, "-m", "training.clinical_validity_scorer", "--help"],
             capture_output=True,
             text=True,
-            cwd=".",
+            cwd=str(_REPO_ROOT),
         )
         assert result.returncode == 0
 
@@ -367,8 +373,7 @@ class TestScoreDensity:
         detail = ClinicalValidityScorer.score_density_detail(
             "Let's work on cognitive reframing. Research shows CBT is effective."
         )
-        for v in detail.values():
-            assert 0.0 <= v <= 1.0, f"Density detail value {v} out of range"
+        assert all(0.0 <= v <= 1.0 for v in detail.values()), f"Density detail out of range: {detail}"
 
     def test_density_detail_empty_input_returns_zeros(self):
         """Empty input returns all zeros for density_detail."""
@@ -395,14 +400,12 @@ class TestScoreDensity:
             "Goal setting treatment planning homework between sessions",
             "Cultural awareness inclusive language diverse background",
         ]
-        for text in clinical_texts:
-            detail = ClinicalValidityScorer.score_detail(text)
-            dens_detail = ClinicalValidityScorer.score_density_detail(text)
-            for dim in ClinicalValidityScorer.WEIGHTS:
-                assert dens_detail[dim] <= detail[dim] + 1e-9, (
-                    f"Dimension {dim}: density_detail({dens_detail[dim]}) > detail({detail[dim]}) "
-                    f"for text: {text[:50]}"
-                )
+        assert all(
+            ClinicalValidityScorer.score_density_detail(text)[dim]
+            <= ClinicalValidityScorer.score_detail(text)[dim] + 1e-9
+            for text in clinical_texts
+            for dim in ClinicalValidityScorer.WEIGHTS
+        ), "density_detail exceeds detail"
 
     def test_density_overall_never_exceeds_raw_score(self):
         """score_density(text) <= score(text) for all inputs.
@@ -421,12 +424,10 @@ class TestScoreDensity:
             "Person-centered unconditional positive regard empathic understanding",
             "Solution-focused miracle question exception finding scaling question",
         ]
-        for text in clinical_texts:
-            raw = ClinicalValidityScorer.score(text)
-            dens = ClinicalValidityScorer.score_density(text)
-            assert dens <= raw + 1e-9, (
-                f"density({dens:.4f}) > score({raw:.4f}) for text: {text[:50]!r}"
-            )
+        assert all(
+            ClinicalValidityScorer.score_density(text) <= ClinicalValidityScorer.score(text) + 1e-9
+            for text in clinical_texts
+        ), "score_density exceeds score"
 
     def test_density_penalty_increases_with_length(self):
         """Verbose text gets lower density scores than concise clinical text.
@@ -436,7 +437,7 @@ class TestScoreDensity:
         """
         short = "CBT cognitive restructuring challenging automatic thought"
         # Repeat the same content to create verbose text with same match density
-        long = (short + " ") * 10  # 10x repetition
+        long = f"{short} " * 10  # 10x repetition
 
         dens_short = ClinicalValidityScorer.score_density(short)
         dens_long = ClinicalValidityScorer.score_density(long)
@@ -523,22 +524,19 @@ class TestScoreDensity:
         @given(st.text(min_size=0, max_size=5000))
         @settings(max_examples=200, database=None, deadline=None)
         def check_density_le_raw(text):
-            if not text:
-                return  # Empty handled by other tests
             raw = ClinicalValidityScorer.score(text)
             dens = ClinicalValidityScorer.score_density(text)
-            # Also check detail
             detail = ClinicalValidityScorer.score_detail(text)
             dens_detail = ClinicalValidityScorer.score_density_detail(text)
 
             assert dens <= raw + 1e-9, (
                 f"Hypothesis: density({dens:.6f}) > score({raw:.6f}) for text len={len(text)}"
             )
-            for dim in ClinicalValidityScorer.WEIGHTS:
-                assert dens_detail[dim] <= detail[dim] + 1e-9, (
-                    f"Hypothesis: density_detail[{dim}]({dens_detail[dim]:.6f}) > "
-                    f"detail[{dim}]({detail[dim]:.6f}) for text len={len(text)}"
-                )
+            assert all(
+                dens_detail[dim] <= detail[dim] + 1e-9 for dim in ClinicalValidityScorer.WEIGHTS
+            ), (
+                f"Hypothesis: density_detail exceeds detail for text len={len(text)}"
+            )
 
         check_density_le_raw()
 
@@ -557,12 +555,12 @@ class TestBatchScore:
         responses = ["a", "b", "c"]
         scores = ClinicalValidityScorer.batch_score(responses)
         # Each response should get a score matching its content
-        for _i, (response, score) in enumerate(zip(responses, scores, strict=True)):
-            # Score should be valid float in [0, 1]
-            assert isinstance(score, float)
-            assert 0.0 <= score <= 1.0
-            # The order should be preserved
-            assert score == ClinicalValidityScorer.score(response)
+        assert all(
+            isinstance(score, float)
+            and 0.0 <= score <= 1.0
+            and score == ClinicalValidityScorer.score(response)
+            for response, score in zip(responses, scores, strict=True)
+        )
 
     def test_batch_score_empty_list(self):
         """batch_score([]) returns []."""
@@ -583,9 +581,9 @@ class TestBatchScore:
             None
         ]
         scores = ClinicalValidityScorer.batch_score(responses)
-        for score in scores:
-            assert isinstance(score, float)
-            assert 0.0 <= score <= 1.0, f"Score {score} out of range"
+        assert all(
+            isinstance(score, float) and 0.0 <= score <= 1.0 for score in scores
+        ), f"Score out of range: {scores}"
 
     def test_batch_score_with_mixed_content(self):
         """batch_score works with mixed clinical and non-clinical content."""
@@ -627,67 +625,73 @@ class TestModalityCoverage:
         expected_modalities = set(ClinicalValidityScorer.THERAPY_MODALITIES.keys())
         assert set(result.keys()) == expected_modalities
 
+    def _assert_modality_has_matches(self, text, modality):
+        """Assert modality_coverage finds the given modality with count and patterns > 0."""
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result[modality]["count"] > 0
+        assert len(result[modality]["patterns"]) > 0
+        return result
+
     def test_modality_coverage_cbt_text_has_cbt_matches(self):
         """CBT text has 'cbt' key with count > 0."""
-        text = "CBT cognitive restructuring challenging automatic thought"
-        result = ClinicalValidityScorer.modality_coverage(text)
-        assert result["cbt"]["count"] > 0
-        assert len(result["cbt"]["patterns"]) > 0
+        self._assert_modality_has_matches("CBT cognitive restructuring challenging automatic thought", "cbt")
 
     def test_modality_coverage_dbt_text_has_dbt_matches(self):
         """DBT text has 'dbt' key with count > 0."""
-        text = "DBT mindfulness distress tolerance opposite action wise mind"
+        self._assert_modality_has_matches("DBT mindfulness distress tolerance opposite action wise mind", "dbt")
+
+    def _assert_coverage_all_zeros(self, text):
+        """Assert modality_coverage returns zero counts and no patterns for every modality."""
         result = ClinicalValidityScorer.modality_coverage(text)
-        assert result["dbt"]["count"] > 0
-        assert len(result["dbt"]["patterns"]) > 0
+        assert all(data["count"] == 0 and data["patterns"] == [] for data in result.values())
 
     def test_modality_coverage_empty_text_returns_all_zeros(self):
         """Empty text returns all modalities with zero counts."""
-        result = ClinicalValidityScorer.modality_coverage("")
-        for _modality, data in result.items():
-            assert data["count"] == 0
-            assert data["patterns"] == []
+        self._assert_coverage_all_zeros("")
 
     def test_modality_coverage_whitespace_text_returns_all_zeros(self):
         """Whitespace text returns all modalities with zero counts."""
-        result = ClinicalValidityScorer.modality_coverage("   ")
-        for _modality, data in result.items():
-            assert data["count"] == 0
-            assert data["patterns"] == []
+        self._assert_coverage_all_zeros("   ")
 
     def test_modality_coverage_none_text_returns_all_zeros(self):
         """None text returns all modalities with zero counts."""
-        result = ClinicalValidityScorer.modality_coverage(None)
-        for _modality, data in result.items():
-            assert data["count"] == 0
-            assert data["patterns"] == []
+        self._assert_coverage_all_zeros(None)
 
     def test_modality_coverage_cbt_has_no_dbt_matches(self):
         """Pure CBT text should have zero DBT matches."""
-        text = "CBT cognitive restructuring challenging automatic thought"
-        result = ClinicalValidityScorer.modality_coverage(text)
-        assert result["cbt"]["count"] > 0
+        result = (
+            self._assert_modality_has_matches(
+                "CBT cognitive restructuring challenging automatic thought", "cbt"
+            )
+        )
         assert result["dbt"]["count"] == 0
 
     def test_modality_coverage_dbt_has_no_cbt_matches(self):
         """Pure DBT text should have zero CBT matches."""
-        text = "DBT mindfulness distress tolerance opposite action"
-        result = ClinicalValidityScorer.modality_coverage(text)
-        assert result["dbt"]["count"] > 0
+        result = (
+            self._assert_modality_has_matches(
+                "DBT mindfulness distress tolerance opposite action", "dbt"
+            )
+        )
         assert result["cbt"]["count"] == 0
 
     def test_modality_coverage_mi_text_has_mi_matches(self):
         """MI text has 'mi' key with count > 0."""
-        text = "MI change talk sustain talk readiness ruler OARS"
-        result = ClinicalValidityScorer.modality_coverage(text)
-        assert result["mi"]["count"] > 0
+        result = (
+            self._assert_modality_has_matches(
+                "MI change talk sustain talk readiness ruler OARS", "mi"
+            )
+        )
         assert len(result["mi"]["patterns"]) > 0
 
     def test_modality_coverage_act_text_has_act_matches(self):
         """ACT text has 'act' key with count > 0."""
-        text = "ACT acceptance commitment cognitive defusion values-based action"
-        result = ClinicalValidityScorer.modality_coverage(text)
-        assert result["act"]["count"] > 0
+        result = (
+            self._assert_modality_has_matches(
+                "ACT acceptance commitment cognitive defusion values-based action",
+                "act",
+            )
+        )
         assert len(result["act"]["patterns"]) > 0
 
     def test_modality_coverage_returns_consistent_structure(self):
@@ -695,34 +699,42 @@ class TestModalityCoverage:
         text = "CBT cognitive restructuring"
         result = ClinicalValidityScorer.modality_coverage(text)
 
-        for _modality, data in result.items():
-            assert isinstance(data, dict)
-            assert "count" in data
-            assert "patterns" in data
-            assert isinstance(data["count"], int)
-            assert isinstance(data["patterns"], list)
-            assert all(isinstance(p, str) for p in data["patterns"])
+        assert all(
+            isinstance(data, dict)
+            and "count" in data
+            and "patterns" in data
+            and isinstance(data["count"], int)
+            and isinstance(data["patterns"], list)
+            and all(isinstance(p, str) for p in data["patterns"])
+            for data in result.values()
+        )
 
     def test_modality_coverage_with_mixed_modalities(self):
         """Text with multiple modalities counts all matches correctly."""
-        text = "CBT cognitive restructuring and DBT mindfulness exercise"
-        result = ClinicalValidityScorer.modality_coverage(text)
-
-        # Should have matches for both CBT and DBT
-        assert result["cbt"]["count"] > 0
+        result = (
+            self._assert_modality_has_matches(
+                "CBT cognitive restructuring and DBT mindfulness exercise", "cbt"
+            )
+        )
         assert result["dbt"]["count"] > 0
         # Other modalities should have zero counts
         assert result["mi"]["count"] == 0
         assert result["act"]["count"] == 0
+
+    def _assert_modality_has_matches(self, arg0, arg1):
+        """Assert modality_coverage finds arg1 in arg0, returning the full coverage dict."""
+        text = arg0
+        result = ClinicalValidityScorer.modality_coverage(text)
+        assert result[arg1]["count"] > 0
+        return result
 
     def test_modality_coverage_patterns_are_actual_matches(self):
         """Returned patterns should match the actual text segments found."""
         text = "CBT cognitive restructuring challenging automatic thought"
         result = ClinicalValidityScorer.modality_coverage(text)
 
-        for pattern in result["cbt"]["patterns"]:
-            # Each pattern should be found in the original text (case-insensitive)
-            assert pattern.lower() in text.lower()
+        # Each pattern should be found in the original text (case-insensitive)
+        assert all(pattern.lower() in text.lower() for pattern in result["cbt"]["patterns"])
 
 
 class TestVersionUpdate:
@@ -749,8 +761,8 @@ class TestEdgeCases:
 
         # Check if score is in borderline range
         score = result["validity_score"]
-        if ClinicalValidityScorer.EXCLUDE_THRESHOLD <= score < ClinicalValidityScorer.ACCEPT_THRESHOLD:
-            assert "annotation_needed" in result["flags"]
+        is_borderline = ClinicalValidityScorer.EXCLUDE_THRESHOLD <= score < ClinicalValidityScorer.ACCEPT_THRESHOLD
+        assert not is_borderline or "annotation_needed" in result["flags"]
         # Note: This test might pass or fail depending on the actual score,
         # but it will exercise the borderline logic in _build_flags
 

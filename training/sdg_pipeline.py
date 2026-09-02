@@ -1096,10 +1096,18 @@ def _validate_clinical_validity(
         - Score < 0.4: classification="excluded", sample rejected
 
     When min_clinical_validity=0.0: validation is skipped entirely, no classification added.
+
+    Scoring: LLM judge when ``nemo_config`` is provided; otherwise the
+    deterministic keyword scorer (ClinicalValidityScorer). The judge itself
+    never falls back — its strict no-fallback policy is enforced upstream here,
+    which selects the appropriate scorer before calling.
     """
     if min_clinical_validity <= 0:
         return None
-    score = ClinicalValidityJudge.score(output, nemo_config)
+    if nemo_config is not None:
+        score = ClinicalValidityJudge.score(output, nemo_config)
+    else:
+        score = ClinicalValidityScorer.score(output)
     sample["clinical_validity_score"] = score
     classification = ClinicalValidityScorer.classify_score(score)
     if classification == "excluded":

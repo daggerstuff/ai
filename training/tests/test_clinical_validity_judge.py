@@ -7,13 +7,16 @@ failure behavior (no fallback), and output schema.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 # SUT import — will fail until the module exists
-from training.clinical_validity_judge import ClinicalValidityJudge
+from training.clinical_validity_judge import DOMAIN_DIMENSIONS, ClinicalValidityJudge
 from training.sdg_pipeline import NemoConfig
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -84,9 +87,9 @@ class TestEvaluateWithNeMo:
             )
 
         assert "detail" in result
-        for dim in ("technique", "alliance", "structure", "cultural", "ebp", "dsm5"):
-            assert dim in result["detail"]
-            assert 0.0 <= result["detail"][dim] <= 1.0
+        clinical_dims = DOMAIN_DIMENSIONS["clinical"]
+        assert set(result["detail"]) == set(clinical_dims)
+        assert all(0.0 <= result["detail"][dim] <= 1.0 for dim in clinical_dims)
 
     def test_judge_flags_include_present_dimensions(self, mock_nemo_config, mock_judge_eval_response):
         """S1: Flags include dimension_present for high-scoring dimensions."""
@@ -188,19 +191,19 @@ class TestEmptyInput:
 
     def test_empty_string(self, mock_nemo_config):
         """S3: Empty string → 0.0 with empty_input flag."""
-        result = ClinicalValidityJudge.evaluate("", mock_nemo_config)
-        assert result["validity_score"] == 0.0
-        assert "empty_input" in result.get("flags", [])
+        self._extracted_from_test_none_text_3("", mock_nemo_config)
 
     def test_whitespace_string(self, mock_nemo_config):
         """S3: Whitespace → 0.0 with empty_input flag."""
-        result = ClinicalValidityJudge.evaluate("   ", mock_nemo_config)
-        assert result["validity_score"] == 0.0
-        assert "empty_input" in result.get("flags", [])
+        self._extracted_from_test_none_text_3("   ", mock_nemo_config)
 
     def test_none_text(self, mock_nemo_config):
         """S3: None → 0.0 with empty_input flag."""
-        result = ClinicalValidityJudge.evaluate(None, mock_nemo_config)  # type: ignore[arg-type]
+        self._extracted_from_test_none_text_3(None, mock_nemo_config)
+
+    # TODO Rename this here and in `test_empty_string`, `test_whitespace_string` and `test_none_text`
+    def _extracted_from_test_none_text_3(self, arg0, mock_nemo_config):
+        result = ClinicalValidityJudge.evaluate(arg0, mock_nemo_config)
         assert result["validity_score"] == 0.0
         assert "empty_input" in result.get("flags", [])
 
@@ -215,26 +218,25 @@ class TestNonEnglish:
 
     def test_korean_text_not_calling_nemo(self, mock_nemo_config):
         """S4: Korean text → flagged without calling NeMo API."""
-        with patch("training.sdg_pipeline._call_nemo") as mock_call:
-            result = ClinicalValidityJudge.evaluate(
-                "안녕하세요, 오늘 기분이 어떠세요? 저는 요즘 스트레스를 많이 받고 있어요.",
-                mock_nemo_config,
-            )
-
-        mock_call.assert_not_called()
-        assert "non_english_content" in result.get("flags", [])
+        result = self._extracted_from_test_japanese_text_not_calling_nemo_3(
+            "안녕하세요, 오늘 기분이 어떠세요? 저는 요즘 스트레스를 많이 받고 있어요.",
+            mock_nemo_config,
+        )
         assert result["validity_score"] == 0.0
 
     def test_japanese_text_not_calling_nemo(self, mock_nemo_config):
         """S4: Japanese text → flagged without calling NeMo API."""
-        with patch("training.sdg_pipeline._call_nemo") as mock_call:
-            result = ClinicalValidityJudge.evaluate(
-                "こんにちは、今日は気分がどうですか？",
-                mock_nemo_config,
-            )
+        self._extracted_from_test_japanese_text_not_calling_nemo_3(
+            "こんにちは、今日は気分がどうですか？", mock_nemo_config
+        )
 
+    # TODO Rename this here and in `test_korean_text_not_calling_nemo` and `test_japanese_text_not_calling_nemo`
+    def _extracted_from_test_japanese_text_not_calling_nemo_3(self, arg0, mock_nemo_config):
+        with patch("training.sdg_pipeline._call_nemo") as mock_call:
+            result = ClinicalValidityJudge.evaluate(arg0, mock_nemo_config)
         mock_call.assert_not_called()
         assert "non_english_content" in result.get("flags", [])
+        return result
 
     def test_spanish_english_mixed_does_call_nemo(self, mock_nemo_config):
         """S4: Mostly English with few Spanish words → proceeds to NeMo and raises on failure."""
@@ -305,7 +307,7 @@ class TestCLI:
                 ],
                 capture_output=True,
                 text=True,
-                cwd=".",
+                cwd=str(_REPO_ROOT),
             )
 
         assert result.returncode == 1
@@ -320,6 +322,6 @@ class TestCLI:
             [sys.executable, "-m", "training.clinical_validity_judge", "--help"],
             capture_output=True,
             text=True,
-            cwd=".",
+            cwd=str(_REPO_ROOT),
         )
         assert result.returncode == 0

@@ -1,8 +1,9 @@
 """LLM-based clinical validity judge for therapeutic training data.
 
 Evaluates the clinical quality of therapeutic responses using a prompted
-LLM judge (NVIDIA NeMo API). Falls back to the keyword-density-based
-ClinicalValidityScorer when the API is unavailable.
+LLM judge (NVIDIA NeMo API). Strict no-fallback policy: when the judge is
+unavailable the call raises RuntimeError instead of silently degrading to
+the keyword-density scorer (blueprint S2 — no fabricated validity scores).
 
 The judge asks the LLM to rate a response across clinical dimensions
 and produce a structured JSON score, providing more nuanced evaluation
@@ -15,8 +16,10 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import json
 import logging
+import os
 import re
 import sys
 from typing import TYPE_CHECKING, Any
@@ -42,6 +45,9 @@ _NON_ENGLISH_RE = re.compile(
     "]"
 )
 _NON_ENGLISH_RATIO = 0.30
+
+# A dimension scoring >= this is considered "present" in the flags list.
+_DIM_PRESENT_THRESHOLD = 0.30
 
 
 CLINICAL_EVALUATION_SYSTEM_PROMPT = """You are a clinical quality evaluator for therapeutic AI training data.
@@ -130,11 +136,12 @@ DOMAIN_SYSTEM_PROMPTS: dict[str, str] = {
 
 
 class ClinicalValidityJudge:
-    """LLM-based clinical validity judge with regex fallback.
+    """LLM-based clinical validity judge — strict, no fallback.
 
     Uses NeMo API as a prompted LLM judge to evaluate therapeutic
-    response quality. Falls back to the keyword-density ClinicalValidityScorer
-    when the API is unavailable.
+    response quality. When the judge is unavailable or returns an
+    unparseable response, calls raise RuntimeError instead of silently
+    falling back to the keyword-density scorer.
 
     All methods are classmethods for a consistent, simple API.
     """
@@ -170,8 +177,8 @@ class ClinicalValidityJudge:
     ) -> float:
         """Compute overall validity score in [0.0, 1.0].
 
-        Uses LLM judge when nemo_config is provided, falls back to
-        ClinicalValidityScorer otherwise (clinical domain only).
+        Requires ``nemo_config`` — raises RuntimeError when the judge
+        is unavailable (strict no-fallback policy).
         """
         result = cls.evaluate(text, nemo_config, domain=domain)
         return result.get("validity_score", 0.0)
@@ -188,8 +195,8 @@ class ClinicalValidityJudge:
 
         Args:
             text: Response text to evaluate.
-            nemo_config: NeMo API config. ``None`` triggers regex fallback for
-                the clinical domain; the general domain has no regex scorer.
+            nemo_config: NeMo API config. Required — ``None`` raises
+                RuntimeError (strict no-fallback policy).
             domain: ``"clinical"`` (6-dim rubric) or ``"general"`` (5-dim
                 non-clinical rubric, blueprint B.3.1). Default ``"clinical"``.
 
@@ -217,35 +224,26 @@ class ClinicalValidityJudge:
                 "detail": dict.fromkeys(dims, 0.0),
             }
 
-        fallback = False
-        judge_result: dict[str, Any] | None = None
+        # --- Strict no-fallback policy ---
+        # The judge MUST NOT silently degrade to the keyword scorer: a regex
+        # fallback would fabricate validity scores for production data when
+        # the LLM judge is unavailable. Fail loudly instead (blueprint S2).
         if nemo_config is None:
-            fallback = True
-        else:
-            try:
-                judge_result = cls._call_judge(text, nemo_config, domain=domain)
-            except Exception as e:
-                logger.warning(
-                    "ClinicalValidityJudge: LLM judge call failed (%s); falling back to scorer",
-                    e,
-                )
-                fallback = True
-            if judge_result is None:
-                fallback = True
+            raise RuntimeError(
+                "ClinicalValidityJudge.evaluate requires nemo_config "
+                "(no silent fallback to keyword scorer)."
+            )
 
-        if fallback:
-            if domain == "clinical":
-                result = ClinicalValidityScorer.score_with_flags(text)
-                if "fallback_regex" not in result["flags"]:
-                    result["flags"].append("fallback_regex")
-                return result
-            # General domain has no keyword scorer — return a zeroed result.
-            return {
-                "validity_score": 0.0,
-                "flags": ["fallback_unavailable"],
-                "category": "unknown",
-                "detail": dict.fromkeys(dims, 0.0),
-            }
+        judge_result: dict[str, Any] | None = None
+        try:
+            judge_result = cls._call_judge(text, nemo_config, domain=domain)
+        except Exception as e:
+            raise RuntimeError(f"LLM judge call failed: {e}") from e
+
+        if judge_result is None:
+            raise RuntimeError(
+                "LLM judge returned no result (None/empty/unparseable response)."
+            )
 
         return judge_result
 
@@ -292,8 +290,8 @@ class ClinicalValidityJudge:
 
         Returns structured dict or None on failure.
         """
-        # Lazy import to avoid circular dependency with sdg_pipeline.py
-        from training.sdg_pipeline import _call_nemo
+        # Lazy import (circular dep with sdg_pipeline.py)
+        from training.sdg_pipeline import _call_nemo  # noqa: PLC0415
 
         system_prompt = DOMAIN_SYSTEM_PROMPTS[domain]
         user_prompt = cls._build_evaluation_prompt(text, domain)
@@ -362,7 +360,7 @@ class ClinicalValidityJudge:
         # Build flags
         flags: list[str] = []
         for dim, score in detail.items():
-            if score >= 0.3:
+            if score >= _DIM_PRESENT_THRESHOLD:
                 flags.append(f"{dim}_present")
         if overall < cls.EXCLUDE_THRESHOLD:
             flags.append("below_exclude_threshold")
@@ -397,10 +395,8 @@ class ClinicalValidityJudge:
 
 def _build_nemo_config_from_env() -> Any | None:
     """Build NemoConfig from environment variables if available."""
-    import os
-
-    # Lazy import to avoid circular dependency with sdg_pipeline.py
-    from training.sdg_pipeline import NemoConfig
+    # Lazy import (circular dep with sdg_pipeline.py) — justified exemption.
+    from training.sdg_pipeline import NemoConfig  # noqa: PLC0415
 
     endpoint = os.getenv("NEMO_ENDPOINT", "") or os.getenv("NVIDIA_BASE_URL", "")
     api_key = os.getenv("NEMO_API_KEY", "") or os.getenv("NVIDIA_API_KEY", "")
@@ -422,8 +418,6 @@ def main() -> None:
         uv run python -m training.clinical_validity_judge --text "Your text here"
         uv run python -m training.clinical_validity_judge --text "..." --detail
     """
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Evaluate clinical validity of therapeutic text using LLM judge"
     )
@@ -440,9 +434,8 @@ def main() -> None:
     nemo_config = _build_nemo_config_from_env()
 
     if nemo_config is None:
-        print(
-            "Error: NEMO_API_KEY (or NVIDIA_API_KEY) and NEMO_ENDPOINT (or NVIDIA_BASE_URL) must be set.",
-            file=sys.stderr,
+        sys.stderr.write(
+            "Error: NEMO_API_KEY (or NVIDIA_API_KEY) and NEMO_ENDPOINT (or NVIDIA_BASE_URL) must be set.\n"
         )
         sys.exit(1)
 

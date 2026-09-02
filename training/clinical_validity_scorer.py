@@ -45,6 +45,9 @@ _NON_ENGLISH_RE = re.compile(
 # Lower-bound ratio of non-ASCII characters to flag as non-English
 _NON_ENGLISH_RATIO = 0.30
 
+# Minimum per-dimension score for a dimension to be flagged as present
+DIMENSION_PRESENT_THRESHOLD = 0.3
+
 
 class ClinicalValidityScorer:
     """Score therapeutic responses on clinical validity dimensions.
@@ -528,9 +531,7 @@ class ClinicalValidityScorer:
         if not detail_scores:
             return "unknown"
         best = max(detail_scores, key=detail_scores.get)  # type: ignore[arg-type]
-        if detail_scores[best] <= 0.0:
-            return "unknown"
-        return best
+        return best if detail_scores[best] > 0.0 else "unknown"
 
     @classmethod
     def _build_flags(cls, response: str, detail_scores: dict[str, float], overall: float) -> list[str]:
@@ -541,9 +542,9 @@ class ClinicalValidityScorer:
             return flags
         if cls._detect_non_english(response):
             flags.append("non_english_content")
-        for dimension, score in detail_scores.items():
-            if score >= 0.3:
-                flags.append(f"{dimension}_present")
+        flags.extend(
+            f"{dimension}_present" for dimension, score in detail_scores.items() if score >= DIMENSION_PRESENT_THRESHOLD
+        )
         if overall < cls.EXCLUDE_THRESHOLD:
             flags.append("below_exclude_threshold")
         elif overall < cls.ACCEPT_THRESHOLD:
@@ -601,16 +602,10 @@ class ClinicalValidityScorer:
 
         results = {}
         for modality, patterns in cls.THERAPY_MODALITIES.items():
-            matches = []
+            matches: list[str] = []
             for pattern in patterns:
-                # Find all matches for this pattern
-                pattern_matches = list(re.finditer(pattern, text, re.IGNORECASE))
-                if pattern_matches:
-                    matches.extend([m.group(0) for m in pattern_matches])
-            results[modality] = {
-                "count": len(matches),
-                "patterns": matches
-            }
+                matches.extend(m.group(0) for m in re.finditer(pattern, text, re.IGNORECASE))
+            results[modality] = {"count": len(matches), "patterns": matches}
         return results
 
     @classmethod
@@ -624,37 +619,7 @@ class ClinicalValidityScorer:
         """
         if score < cls.EXCLUDE_THRESHOLD:
             return "excluded"
-        if score < cls.ACCEPT_THRESHOLD:
-            return "annotation_needed"
-        return "accepted"
-
-    @classmethod
-    def batch_score(cls, responses: list[str]) -> list[float]:
-        """Compute clinical validity scores for a list of responses.
-
-        Returns a list of scores in the same order as the input list.
-        Each score is in [0.0, 1.0].
-        """
-        return [cls.score(r) for r in responses]
-
-    @classmethod
-    def modality_coverage(cls, response: str) -> dict[str, int]:
-        """Count how many pattern matches each therapy modality has in the text.
-
-        Returns a dict mapping modality name (e.g. 'cbt', 'dbt', 'mi') to
-        the number of matching pattern groups found in the response.
-        """
-        if not response or not isinstance(response, str):
-            return dict.fromkeys(cls.THERAPY_MODALITIES, 0)
-        coverage: dict[str, int] = dict.fromkeys(cls.THERAPY_MODALITIES, 0)
-        for modality, patterns in cls.THERAPY_MODALITIES.items():
-            combined = "|".join(patterns)
-            regex = re.compile(combined, re.IGNORECASE)
-            matches = list(regex.finditer(response))
-            # Count unique match groups to avoid double-counting same text
-            match_texts = {m.group(0).lower() for m in matches}
-            coverage[modality] = len(match_texts)
-        return coverage
+        return "annotation_needed" if score < cls.ACCEPT_THRESHOLD else "accepted"
 
 
 def main() -> None:
@@ -669,9 +634,7 @@ def main() -> None:
     parser.add_argument("--detail", action="store_true", help="Include per-dimension detail in output")
     args = parser.parse_args()
 
-    text = args.text
-    if text is None:
-        text = sys.stdin.read().strip()
+    text = args.text if args.text is not None else sys.stdin.read().strip()
 
     if not text:
         result = ClinicalValidityScorer.score_with_flags("")

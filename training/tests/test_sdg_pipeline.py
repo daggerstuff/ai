@@ -15,6 +15,7 @@ from unittest.mock import patch
 
 import pytest
 
+from training.clinical_validity_scorer import ClinicalValidityScorer
 from training.sdg_pipeline import (
     CRISIS_RESOURCES,
     FAILED_CALL_ABORT_THRESHOLD,
@@ -1184,6 +1185,8 @@ class TestClinicalValidityIntegration:
             ),
             "style_profile": "warm_professional",
         }
+        score = ClinicalValidityScorer.score(sample["output"])
+        assert score < 0.30, f"precondition: scorer must rate this below threshold, got {score}"
         ok, reason = validate_sample(sample, min_clinical_validity=0.30)
         assert not ok
         assert "Clinical validity score too low" in reason
@@ -1213,6 +1216,11 @@ class TestClinicalValidityIntegration:
 class TestClinicalValidityRouting:
     """Test three-tier routing: accept (>=0.6), reject (<0.4), borderline (0.4-0.6)."""
 
+    @staticmethod
+    def _nemo() -> object:
+        """Truthy placeholder config — routes to LLM judge (mocked below)."""
+        return object()  # sentinel: any truthy value selects the judge path
+
     @patch("training.sdg_pipeline.ClinicalValidityJudge.score")
     def test_accept_routing_sample_passes(self, mock_score):
         """VAL-SDG-002: Samples scoring >= 0.6 pass through to output JSONL."""
@@ -1222,7 +1230,7 @@ class TestClinicalValidityRouting:
             "output": VALID_OUTPUT,
             "style_profile": "warm_professional",
         }
-        ok, _reason = validate_sample(sample, min_clinical_validity=0.1)
+        ok, _reason = validate_sample(sample, min_clinical_validity=0.1, nemo_config=self._nemo())
         assert ok
         assert sample["clinical_validity_score"] == 0.70
         # "accepted" classification is NOT added per spec (no classification field needed)
@@ -1237,7 +1245,7 @@ class TestClinicalValidityRouting:
             "output": VALID_OUTPUT,
             "style_profile": "warm_professional",
         }
-        ok, reason = validate_sample(sample, min_clinical_validity=0.1)
+        ok, reason = validate_sample(sample, min_clinical_validity=0.1, nemo_config=self._nemo())
         assert not ok
         assert sample["clinical_validity_score"] == 0.30
         assert sample["clinical_validity_classification"] == "excluded"
@@ -1253,7 +1261,7 @@ class TestClinicalValidityRouting:
             "output": VALID_OUTPUT,
             "style_profile": "warm_professional",
         }
-        ok, _reason = validate_sample(sample, min_clinical_validity=0.1)
+        ok, _reason = validate_sample(sample, min_clinical_validity=0.1, nemo_config=self._nemo())
         assert ok
         assert sample["clinical_validity_score"] == 0.50
         assert sample["clinical_validity_classification"] == "annotation_needed"
@@ -1270,7 +1278,7 @@ class TestClinicalValidityRouting:
                 "output": VALID_OUTPUT,
                 "style_profile": "warm_professional",
             }
-            validate_sample(sample, min_clinical_validity=0.1)
+            validate_sample(sample, min_clinical_validity=0.1, nemo_config=self._nemo())
             assert "clinical_validity_score" in sample
             assert sample["clinical_validity_score"] == score_value
             if expected_cls == "accepted":
