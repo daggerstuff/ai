@@ -349,6 +349,53 @@ def _variations_per_combo(args: argparse.Namespace, matrix_size: int) -> int:
     return max(1, args.variations_per_combo)
 
 
+def _nightmare_key(scenario: dict[str, Any]) -> tuple[str, str]:
+    return ("nightmare", str(scenario.get("scenario_id") or scenario.get("title")))
+
+
+def _edge_key(combo: dict[str, str], variation: int) -> tuple[str, str, str, str, int]:
+    return ("edge", combo["domain"], combo["difficulty"], combo["ambiguity"], variation)
+
+
+def _load_done_keys(path: Path) -> set[tuple]:
+    """Reconstruct resume keys already persisted to the output file.
+
+    Lets a killed/restarted Colab run skip records it already generated instead of
+    re-burning credits on the same combos.
+    """
+    done: set[tuple] = set()
+    if not path.exists():
+        return done
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rec = json.loads(line)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        src = str(rec.get("source", ""))
+        if src == "nightmare_fuel_predefined":
+            prov = rec.get("provenance") or {}
+            done.add(("nightmare", str(prov.get("scenario_id") or prov.get("title"))))
+        elif src.startswith("clinical_edge_case_"):
+            domain = src[len("clinical_edge_case_"):]
+            try:
+                variation = int(rec.get("variation", -1))
+            except (TypeError, ValueError):
+                continue
+            done.add(
+                (
+                    "edge",
+                    domain,
+                    str(rec.get("difficulty", "")),
+                    str(rec.get("ambiguity", "")),
+                    variation,
+                )
+            )
+    return done
+
+
 def _process_record(
     rec: dict[str, Any] | None,
     guard: ModerateGuard,
@@ -377,6 +424,7 @@ async def main_async(argv: list[str] | None = None) -> None:
     variations = _variations_per_combo(args, len(matrix))
     total_edge = len(matrix) * variations
     guard = ModerateGuard()
+    done = _load_done_keys(OUT_GENERATED)
 
     sem = asyncio.Semaphore(3)
     conn = aiohttp.TCPConnector(limit=5)
@@ -389,6 +437,7 @@ async def main_async(argv: list[str] | None = None) -> None:
         variations,
         total_edge,
     )
+    logger.info("Resume: %d records already on disk will be skipped.", len(done))
 
     try:
         async with aiohttp.ClientSession(connector=conn) as session:
@@ -402,21 +451,26 @@ async def main_async(argv: list[str] | None = None) -> None:
                     ]
                     logger.info("Generating %d nightmare-fuel scenarios...", len(scenarios))
                     for s in scenarios:
+                        if _nightmare_key(s) in done:
+                            continue
                         rec = await generate_nightmare_scenario_turn(session, s, sem)
                         generated, rejected = _process_record(rec, guard, fout, generated, rejected)
 
                 # 2. Edge cases across the full matrix
                 for combo in matrix:
                     for v in range(variations):
+                        if _edge_key(combo, v) in done:
+                            continue
                         rec = await generate_edge_case_turn(session, combo, sem, v)
                         generated, rejected = _process_record(rec, guard, fout, generated, rejected)
     except GenerationLimitExceededError as exc:
         logger.warning("Moderate guard tripped; checkpointing and stopping: %s", exc)
 
     logger.info(
-        "Run complete: %d records written, %d rejected by cliché gate -> %s",
+        "Run complete: %d records written, %d rejected by cliché gate, %d skipped (resume) -> %s",
         generated,
         rejected,
+        len(done),
         OUT_GENERATED,
     )
 
