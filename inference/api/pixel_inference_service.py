@@ -60,10 +60,10 @@ try:
         TherapeuticConceptHierarchy,
         build_default_therapeutic_hierarchy,
     )
-    from ai.tools.utilities.core.pipelines.inference.candidate_retrieval import (
+    from ai.tools.utilities.pipelines.inference.candidate_retrieval import (
         CandidateRetrievalEngine,
     )
-    from ai.tools.utilities.core.pipelines.inference.evidence_scoring import (
+    from ai.tools.utilities.pipelines.inference.evidence_scoring import (
         EvidenceScoringEngine,
     )
 

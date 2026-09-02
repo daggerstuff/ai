@@ -852,7 +852,7 @@ def get_pipeline_observability_health() -> dict[str, Any]:
     try:
         logger.info("Retrieving pipeline observability health")
 
-        from ai.tools.utilities.core.pipelines.pipeline_observability import get_health_summary
+        from ai.tools.utilities.pipelines.pipeline_observability import get_health_summary
 
         health = get_health_summary()
 

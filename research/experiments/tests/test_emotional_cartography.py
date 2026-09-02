@@ -1,6 +1,6 @@
 import unittest
 
-from ai.tools.utilities.core.pipelines.processing.emotional_cartography import (
+from ai.tools.utilities.pipelines.processing.emotional_cartography import (
     EmotionalCartographer,
     EmotionalState,
     PlutchikEmotion,

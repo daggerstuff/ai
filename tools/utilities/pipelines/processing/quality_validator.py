@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.tools.utilities.core.pipelines.quality.quality_validator import QualityResult, QualityValidator as _CoreQualityValidator
+from ai.tools.utilities.pipelines.quality.quality_validator import QualityResult, QualityValidator as _CoreQualityValidator
 
 
 class QualityValidator(_CoreQualityValidator):
-    """Adapter around the canonical :mod:`ai.tools.utilities.core.pipelines.quality.quality_validator`."""
+    """Adapter around the canonical :mod:`ai.tools.utilities.pipelines.quality.quality_validator`."""
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
         # Keep compatibility with legacy constructor style that accepted no arguments.

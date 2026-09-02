@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ai.tools.utilities.core.utils.s3_dataset_loader import (
+from ai.tools.utilities.utils.s3_dataset_loader import (
     S3DatasetLoader,
     get_s3_dataset_path,
     load_dataset_from_s3,
@@ -115,7 +115,7 @@ def test_s3_dataset_loader_s3_prefix(loader, mock_s3_client, mock_body):
 
 
 def test_s3_dataset_loader_ensure_client_lazy_init(loader):
-    with patch("ai.tools.utilities.core.utils.s3_dataset_loader.boto3") as mock_boto3:
+    with patch("ai.tools.utilities.utils.s3_dataset_loader.boto3") as mock_boto3:
         mock_boto3.client.return_value = "mock_client"
         assert loader._ensure_client() == "mock_client"
         assert loader._ensure_client() == "mock_client"
@@ -291,7 +291,7 @@ def test_load_dataset_from_s3_local_json(tmp_path):
 
 
 def test_s3_dataset_loader_stream_jsonl_import_error(loader):
-    with patch("ai.tools.utilities.core.utils.s3_dataset_loader.boto3", None):
+    with patch("ai.tools.utilities.utils.s3_dataset_loader.boto3", None):
         loader._client = None
         with pytest.raises(ImportError, match="boto3 is required"):
             list(loader.stream_jsonl("test-bucket", "test-key.jsonl"))

@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-from ai.tools.utilities.core.pipelines.youtube_processor import (
+from ai.tools.utilities.pipelines.youtube_processor import (
     AntiDetectionConfig,
     ProxyConfig,
     RateLimitConfig,
@@ -280,11 +280,6 @@ async def main():
 
     # Show configuration templates
     example_configuration_templates()
-
-    # Run examples (commented out to avoid actual processing)
-    # await example_conservative_rate_limiting()
-    # await example_proxy_rotation()
-    # await example_high_volume_processing()
 
 
 if __name__ == "__main__":

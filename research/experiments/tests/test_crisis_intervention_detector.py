@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.core.pipelines.crisis_intervention_detector import (
+    from ai.tools.utilities.pipelines.crisis_intervention_detector import (
         CrisisInterventionDetector,
     )
 except ImportError:
@@ -21,7 +21,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.core.pipelines.crisis_intervention_detector import (
+            from ai.tools.utilities.pipelines.crisis_intervention_detector import (
                 CrisisInterventionDetector,
             )
         except ImportError:

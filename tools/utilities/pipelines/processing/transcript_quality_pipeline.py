@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from ai.tools.utilities.core.utils.transcript_corrector import TranscriptCorrector as _TranscriptCorrector
+from ai.tools.utilities.utils.transcript_corrector import TranscriptCorrector as _TranscriptCorrector
 
 
 @dataclass

@@ -3,7 +3,7 @@ import unittest
 
 import pandas as pd
 
-from ai.tools.utilities.core.pipelines.processing.clean import (
+from ai.tools.utilities.pipelines.processing.clean import (
     clean_and_deduplicate,
     find_pii_columns,
     normalize_text_columns,

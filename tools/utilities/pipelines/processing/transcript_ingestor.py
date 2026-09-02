@@ -16,7 +16,7 @@ Key Features:
 - PII scrubbing integration ready
 
 Usage:
-    from ai.tools.utilities.core.pipelines.processing.transcript_ingestor import TranscriptIngestor
+    from ai.tools.utilities.pipelines.processing.transcript_ingestor import TranscriptIngestor
 
     ingestor = TranscriptIngestor()
     result = ingestor.ingest_file("path/to/transcript.json")

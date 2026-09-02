@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 
 import pytest
 
-from ai.tools.utilities.core.pipelines.human_review_queue import (
+from ai.tools.utilities.pipelines.human_review_queue import (
     EscalationCriteria,
     HumanReviewQueue,
     ReviewConsistencyGuideline,

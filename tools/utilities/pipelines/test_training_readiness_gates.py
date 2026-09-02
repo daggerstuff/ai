@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai.tools.utilities.core.pipelines.training_readiness_gates import (
+from ai.tools.utilities.pipelines.training_readiness_gates import (
     STAGE_QUALITY_THRESHOLDS,
     GateResult,
     ReadinessGate,

@@ -9,7 +9,7 @@ from fastapi import APIRouter, Body, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ai.research.gates import GateDecision, GateResult, GatingReport
-from ai.tools.utilities.core.pipelines.human_review_queue import (
+from ai.tools.utilities.pipelines.human_review_queue import (
     EscalationCriteria,
     HumanReviewQueue,
     ReviewDecision,

@@ -1,6 +1,6 @@
 """Back-compat shim for ``ai.training.utils.s3_dataset_loader``.
 
-The canonical loader lives at ``ai.tools.utilities.core.utils.s3_dataset_loader``,
+The canonical loader lives at ``ai.tools.utilities.utils.s3_dataset_loader``,
 whose ``S3DatasetLoader`` methods take a ``(bucket, key)`` pair. Training scripts
 call ``load_json(s3_path)`` and ``stream_jsonl(s3_path)`` with a single
 ``s3://bucket/key`` (or local path) argument. This module adapts that older
@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import Any
 
-from ai.tools.utilities.core.utils.s3_dataset_loader import (
+from ai.tools.utilities.utils.s3_dataset_loader import (
     S3DatasetLoader as _CanonicalS3DatasetLoader,
     get_s3_dataset_path,
     load_dataset_from_s3,

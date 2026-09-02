@@ -13,7 +13,7 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.tools.utilities.core.pipelines.voice_pipeline_integration import (
+from ai.tools.utilities.pipelines.voice_pipeline_integration import (
     VoicePipelineConfig,
     VoiceTrainingPipeline,
     process_youtube_voice_data,
@@ -182,11 +182,6 @@ async def main():
 
     # Note: These examples use placeholder URLs
     # Replace with actual YouTube URLs for real processing
-
-    # Run examples (commented out to avoid actual processing)
-    # await example_simple_processing()
-    # await example_advanced_configuration()
-    # await example_batch_processing()
 
     # Show CLI examples
     example_cli_usage()

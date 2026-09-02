@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from ai.tools.utilities.core.pipelines.acquisition_rubric import (
+from ai.tools.utilities.pipelines.acquisition_rubric import (
     APPROVED_LICENSES,
     AcquisitionRubric,
     AcquisitionScore,

@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.core.pipelines.pipeline_orchestrator import PipelineOrchestrator
+    from ai.tools.utilities.pipelines.pipeline_orchestrator import PipelineOrchestrator
 except ImportError:
     try:
         from ai.models.pixel_core.validation.pipeline_orchestrator import (
@@ -19,7 +19,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.core.pipelines.pipeline_orchestrator import PipelineOrchestrator
+            from ai.tools.utilities.pipelines.pipeline_orchestrator import PipelineOrchestrator
         except ImportError:
             # Create a mock class for testing
             class PipelineOrchestrator:

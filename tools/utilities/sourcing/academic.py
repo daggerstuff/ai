@@ -16,7 +16,7 @@ Key Features:
 - Citation graph support
 
 Usage:
-    from ai.tools.utilities.core.sourcing.academic import AcademicSourcing
+    from ai.tools.utilities.sourcing.academic import AcademicSourcing
 
     sourcing = AcademicSourcing()
     results = sourcing.search(

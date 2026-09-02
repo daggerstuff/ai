@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.core.pipelines.analytics_dashboard import AnalyticsDashboard
+    from ai.tools.utilities.pipelines.analytics_dashboard import AnalyticsDashboard
 except ImportError:
     try:
         from ai.models.pixel_core.validation.analytics_dashboard import (
@@ -19,7 +19,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.core.pipelines.analytics_dashboard import AnalyticsDashboard
+            from ai.tools.utilities.pipelines.analytics_dashboard import AnalyticsDashboard
         except ImportError:
             # Create a mock class for testing
             class AnalyticsDashboard:

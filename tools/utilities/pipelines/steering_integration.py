@@ -25,7 +25,7 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from ai.tools.utilities.core.pipelines.reprioritization_engine import (
+from ai.tools.utilities.pipelines.reprioritization_engine import (
     DEFAULT_ACTION_THRESHOLD,
     BacklogItem,
     InterventionType,
@@ -427,7 +427,7 @@ def run_steering_from_report(
     action_threshold: Decimal = DEFAULT_ACTION_THRESHOLD,
     handlers: dict[SteeringActionType, Callable] | None = None,
 ) -> SteeringReport:
-    from ai.tools.utilities.core.pipelines.reprioritization_engine import run_reprioritization_from_report
+    from ai.tools.utilities.pipelines.reprioritization_engine import run_reprioritization_from_report
 
     reprio_report = run_reprioritization_from_report(
         feedback_report_path,

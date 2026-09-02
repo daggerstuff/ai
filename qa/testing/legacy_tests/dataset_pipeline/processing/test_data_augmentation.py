@@ -1,11 +1,11 @@
 import unittest
 
-from ai.tools.utilities.core.pipelines.data_augmentation import (
+from ai.tools.utilities.pipelines.data_augmentation import (
     AugmentationConfig,
     DataAugmenter,
     SafetyGuardrails,
 )
-from ai.tools.utilities.core.pipelines.schemas.conversation_schema import Conversation
+from ai.tools.utilities.pipelines.schemas.conversation_schema import Conversation
 
 
 class TestDataAugmentation(unittest.TestCase):

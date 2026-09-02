@@ -1,1 +1,1 @@
-# ai.tools.utilities.core.pipelines.processing - Processing pipeline modules
+# ai.tools.utilities.pipelines.processing - Processing pipeline modules

@@ -38,7 +38,7 @@ from pipelines.data_processing.processors.toxicity_detector import (
     HeuristicToxicityDetector,
     ToxicityResult,
 )
-from ai.tools.utilities.core.pipelines.processing.pii_scrubber import (
+from ai.tools.utilities.pipelines.processing.pii_scrubber import (
     PiiScrubber,
     PiiScrubberConfig,
 )

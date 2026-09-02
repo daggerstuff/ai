@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.core.pipelines.safety_ethics_validator import SafetyEthicsValidator
+    from ai.tools.utilities.pipelines.safety_ethics_validator import SafetyEthicsValidator
 except ImportError:
     try:
         from ai.models.pixel_core.validation.safety_ethics_validator import (
@@ -19,7 +19,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.core.pipelines.safety_ethics_validator import SafetyEthicsValidator
+            from ai.tools.utilities.pipelines.safety_ethics_validator import SafetyEthicsValidator
         except ImportError:
             # Create a mock class for testing
             class SafetyEthicsValidator:

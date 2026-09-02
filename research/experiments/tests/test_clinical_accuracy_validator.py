@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.core.pipelines.clinical_accuracy_validator import (
+    from ai.tools.utilities.pipelines.clinical_accuracy_validator import (
         ClinicalAccuracyValidator,
     )
 except ImportError:
@@ -21,7 +21,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.core.pipelines.clinical_accuracy_validator import (
+            from ai.tools.utilities.pipelines.clinical_accuracy_validator import (
                 ClinicalAccuracyValidator,
             )
         except ImportError:

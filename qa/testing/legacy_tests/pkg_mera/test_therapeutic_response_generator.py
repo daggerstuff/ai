@@ -11,7 +11,7 @@ import pytest
 
 # Import the module being tested
 try:
-    from ai.tools.utilities.core.pipelines.therapeutic_response_generator import (
+    from ai.tools.utilities.pipelines.therapeutic_response_generator import (
         TherapeuticResponseGenerator,
     )
 except ImportError:
@@ -21,7 +21,7 @@ except ImportError:
         )
     except ImportError:
         try:
-            from ai.tools.utilities.core.pipelines.therapeutic_response_generator import (
+            from ai.tools.utilities.pipelines.therapeutic_response_generator import (
                 TherapeuticResponseGenerator,
             )
         except ImportError:

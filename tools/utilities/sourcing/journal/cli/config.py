@@ -1,4 +1,4 @@
-"""Compatibility wrapper for legacy ``ai.tools.utilities.core.sourcing.journal.cli.config`` imports."""
+"""Compatibility wrapper for legacy ``ai.tools.utilities.sourcing.journal.cli.config`` imports."""
 
 from __future__ import annotations
 
