@@ -33,7 +33,7 @@ from pathlib import Path
 import yaml
 
 from ai.pipelines.data_processing.extractors.s3_streamer import S3Streamer
-from ai.pipelines.ingestion_deduplication import compute_primary_hash, deduplicate_records
+from ai.pipelines.ingestion_deduplication import compute_primary_hash
 
 logger = logging.getLogger("corpus_hold")
 
@@ -152,16 +152,28 @@ def validate_chatml(record: dict) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def _stream_and_validate(
+@dataclass
+class StreamStats:
+    """Stats collected during streaming dedup."""
+
+    total_streamed: int = 0
+    valid_records: int = 0
+    unique_records: int = 0
+    duplicates_removed: int = 0
+    records_by_stage: dict[str, int] = field(default_factory=dict)
+
+
+def _stream_dedup_write(
     config: CorpusConfig,
     streamer: S3Streamer,
     prov: ProvenanceInfo,
-) -> tuple[list[dict], int, int]:
-    """Stream JSONL from remote, validate, attach provenance + hash.
+    out_jsonl: Path,
+) -> StreamStats:
+    """Stream JSONL, validate, hash, dedup via hash-set, write unique records directly to disk.
 
-    Returns ``(records, total_streamed, valid_count)``.
+    This avoids loading all records into memory — only the set of seen hashes
+    (~32 bytes each) is held, making it safe for corpora with millions of records.
     """
-    # Ensure trailing slash so S3Streamer.list_files joins prefix + filename correctly.
     prefix = config.remote_prefix.rstrip("/") + "/"
     files = streamer.list_files(prefix=prefix, recursive=False)
     jsonl_files = [f for f in files if f.endswith(".jsonl")]
@@ -171,63 +183,62 @@ def _stream_and_validate(
 
     logger.info("Found %d JSONL file(s): %s", len(jsonl_files), ", ".join(jsonl_files[:5]))
 
-    records: list[dict] = []
-    total_streamed = 0
-    valid_count = 0
-
-    for file_key in jsonl_files:
-        logger.info("Streaming %s ...", file_key)
-        for record in streamer.stream_jsonl(file_key):
-            total_streamed += 1
-            if config.max_records is not None and total_streamed > config.max_records:
-                logger.info("Reached --max-records cap (%d), stopping stream", config.max_records)
-                break
-
-            if not validate_chatml(record):
-                logger.debug("Skipping invalid ChatML record #%d", total_streamed)
-                continue
-
-            if "provenance" not in record:
-                record["provenance"] = {
-                    "source_id": prov.source_id,
-                    "ds_alias": config.ds_id,
-                    "source_title": prov.source_title,
-                    "policy": prov.policy,
-                    "scope": prov.scope,
-                    "restrictions": prov.restrictions,
-                }
-
-            record.setdefault("metadata", {})
-            if not record["metadata"].get("primary_hash"):
-                record["metadata"]["primary_hash"] = compute_primary_hash(record)
-
-            records.append(record)
-            valid_count += 1
-
-        if config.max_records is not None and total_streamed >= config.max_records:
-            break
-
-    logger.info("Streamed %d records, %d valid ChatML", total_streamed, valid_count)
-    return records, total_streamed, valid_count
-
-
-def _write_outputs(
-    out_jsonl: Path,
-    out_manifest: Path,
-    deduped: list[dict],
-    manifest: HoldManifest,
-) -> None:
-    """Write deduped JSONL and manifest JSON to disk."""
     out_jsonl.parent.mkdir(parents=True, exist_ok=True)
+    seen_hashes: set[str] = set()
+    stats = StreamStats()
 
     with out_jsonl.open("w", encoding="utf-8") as fh:
-        for record in deduped:
-            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-    logger.info("Wrote %d deduped records to %s", len(deduped), out_jsonl)
+        for file_key in jsonl_files:
+            logger.info("Streaming %s ...", file_key)
+            for record in streamer.stream_jsonl(file_key):
+                stats.total_streamed += 1
+                if config.max_records is not None and stats.total_streamed > config.max_records:
+                    logger.info("Reached --max-records cap (%d), stopping stream", config.max_records)
+                    break
 
-    with out_manifest.open("w", encoding="utf-8") as fh:
-        json.dump(asdict(manifest), fh, indent=2, ensure_ascii=False)
-    logger.info("Wrote manifest to %s", out_manifest)
+                if not validate_chatml(record):
+                    logger.debug("Skipping invalid ChatML record #%d", stats.total_streamed)
+                    continue
+
+                if "provenance" not in record:
+                    record["provenance"] = {
+                        "source_id": prov.source_id,
+                        "ds_alias": config.ds_id,
+                        "source_title": prov.source_title,
+                        "policy": prov.policy,
+                        "scope": prov.scope,
+                        "restrictions": prov.restrictions,
+                    }
+
+                record.setdefault("metadata", {})
+                if not record["metadata"].get("primary_hash"):
+                    record["metadata"]["primary_hash"] = compute_primary_hash(record)
+
+                pkey = record["metadata"]["primary_hash"]
+                if pkey in seen_hashes:
+                    stats.duplicates_removed += 1
+                    continue
+
+                seen_hashes.add(pkey)
+                stats.valid_records += 1
+                stats.unique_records += 1
+
+                stage = record.get("metadata", {}).get("stage", "supplementary")
+                stats.records_by_stage[stage] = stats.records_by_stage.get(stage, 0) + 1
+
+                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+            if config.max_records is not None and stats.total_streamed >= config.max_records:
+                break
+
+    logger.info(
+        "Streamed %d records, %d valid, %d unique (%d duplicates removed)",
+        stats.total_streamed,
+        stats.valid_records,
+        stats.unique_records,
+        stats.duplicates_removed,
+    )
+    return stats
 
 
 # ---------------------------------------------------------------------------
@@ -252,20 +263,15 @@ def process_corpus(config: CorpusConfig) -> HoldManifest:
 
     streamer = S3Streamer(remote=config.remote, bucket=config.bucket, prefix="")
 
-    records, total_streamed, valid_count = _stream_and_validate(config, streamer, prov)
-
-    deduped, stats = deduplicate_records(records, use_secondary_hash=False)
-    logger.info(
-        "Dedup: %d unique from %d total (%d removed, %d stage conflicts resolved)",
-        stats.unique_records,
-        stats.total_records,
-        stats.duplicates_removed,
-        stats.stage_conflicts_resolved,
-    )
-
     ds_lower = config.ds_id.lower().replace("-", "")
     out_jsonl = config.output_dir / f"{ds_lower}_deduped.jsonl"
     out_manifest = config.output_dir / f"{ds_lower}_manifest.json"
+
+    if config.dry_run:
+        out_jsonl = Path("/dev/null")
+
+    stats = _stream_dedup_write(config, streamer, prov, out_jsonl)
+    logger.info("Wrote %d deduped records to %s", stats.unique_records, out_jsonl)
 
     manifest = HoldManifest(
         ds_id=config.ds_id,
@@ -274,12 +280,12 @@ def process_corpus(config: CorpusConfig) -> HoldManifest:
         remote=config.remote,
         remote_prefix=config.remote_prefix,
         output_path=str(out_jsonl),
-        total_records_streamed=total_streamed,
-        valid_records=valid_count,
+        total_records_streamed=stats.total_streamed,
+        valid_records=stats.valid_records,
         unique_records=stats.unique_records,
         duplicates_removed=stats.duplicates_removed,
-        stage_conflicts_resolved=stats.stage_conflicts_resolved,
-        records_by_stage=dict(stats.records_by_stage) if stats.records_by_stage else {},
+        stage_conflicts_resolved=0,
+        records_by_stage=stats.records_by_stage,
         restrictions=prov.restrictions,
         policy=prov.policy,
         scope=prov.scope,
@@ -287,7 +293,9 @@ def process_corpus(config: CorpusConfig) -> HoldManifest:
     )
 
     if not config.dry_run:
-        _write_outputs(out_jsonl, out_manifest, deduped, manifest)
+        with out_manifest.open("w", encoding="utf-8") as fh:
+            json.dump(asdict(manifest), fh, indent=2, ensure_ascii=False)
+        logger.info("Wrote manifest to %s", out_manifest)
 
     return manifest
 
