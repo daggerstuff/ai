@@ -338,8 +338,9 @@ def to_chatml(record: dict, file_format: str) -> dict | None:
     if file_format == "annomi":
         return _convert_annomi_to_chatml(record)
 
-    if file_format == "csv" and isinstance(record, str):
-        return _convert_csv_addiction_to_chatml(record)
+    if file_format == "csv":
+        text = record if isinstance(record, str) else (record.get("text") or record.get("content") or "")
+        return _convert_csv_addiction_to_chatml(text) if text else None
 
     return None
 
