@@ -157,7 +157,7 @@ def main():
             return
 
         # Create model
-        BASE_MODEL_NAME = training_config.get("base_model", "zai-org/glm-5.3-flash")
+        BASE_MODEL_NAME = training_config.get("base_model", "deepseek-ai/DeepSeek-V4-Pro")
 
 
         moe_config = MoEConfig(

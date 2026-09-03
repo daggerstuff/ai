@@ -1,5 +1,5 @@
 {
-  "base_model": "zai-org/glm-5.3-flash",
+  "base_model": "deepseek-ai/DeepSeek-V4-Pro",
   "training_parameters": {
     "num_train_epochs": 1,
     "max_steps": 5,

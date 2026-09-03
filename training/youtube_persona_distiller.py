@@ -32,7 +32,7 @@ CLOUDFLARE_API_TOKEN = (
     or ""
 )
 CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
-DEFAULT_MODEL = "@cf/zai-org/glm-5.3-flash"
+DEFAULT_MODEL = "@cf/deepseek-ai/deepseek-v4-pro-0813"
 
 PERSONA_PROFILES: dict[str, dict[str, str]] = {
     "DoctorRamani": {

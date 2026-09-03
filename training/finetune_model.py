@@ -19,7 +19,7 @@ Usage:
     python -m ai.training.finetune_model \
         --dataset-dir ./data/finetuning \
         --output-dir ./models/fine-tuned \
-        --base-model zai-org/glm-5.3-flash \
+        --base-model deepseek-ai/DeepSeek-V4-Pro \
         --epochs 3 \
         --batch-size 8
 """
@@ -57,7 +57,7 @@ class FineTuningConfig:
     """Configuration for fine-tuning."""
 
     # Model settings
-    base_model: str = "zai-org/glm-5.3-flash"
+    base_model: str = "deepseek-ai/DeepSeek-V4-Pro"
     tokenizer_name: str | None = None
     max_seq_length: int = 2048
 
@@ -503,7 +503,7 @@ def main():
     parser.add_argument(
         "--base-model",
         type=str,
-        default="zai-org/glm-5.3-flash",
+        default="deepseek-ai/DeepSeek-V4-Pro",
         help="Base model name or path",
     )
     parser.add_argument(

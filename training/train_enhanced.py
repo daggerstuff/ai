@@ -44,7 +44,7 @@ class KAN28EnhancedTrainer:
     def setup_model_and_tokenizer(self):
         """Initialize model and tokenizer with KAN-28 enhancements"""
 
-        model_name = self.config.get("base_model", "zai-org/glm-5.3-flash")
+        model_name = self.config.get("base_model", "deepseek-ai/DeepSeek-V4-Pro")
 
         logger.info(f"Loading model: {model_name}")
 

@@ -77,10 +77,17 @@ class BackendConfig:
 
 
 def _cloudflare_api_token(env: dict[str, str]) -> str:
+    # Prefer the dedicated Workers AI key first. The generic CLOUDFLARE_API_TOKEN
+    # can be repurposed (e.g. an R2 API token), which would 401 on Workers AI.
+    # The dedicated key lives under _KEY in .env, not _TOKEN — both are honored.
     return (
-        env.get("CLOUDFLARE_AUTH_TOKEN")
-        or env.get("CLOUDFLARE_API_TOKEN")
+        env.get("CLOUDFLARE_WORKERS_AI_API_KEY")
+        or env.get("CLOUDFLARE_AI_API_KEY")
+        or env.get("CF_AIG_TOKEN")
+        or env.get("CLOUDFLARE_WORKERS_AI_API")
         or env.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
+        or env.get("CLOUDFLARE_AUTH_TOKEN")
+        or env.get("CLOUDFLARE_API_TOKEN")
         or env.get("CLOUDFLARE_TOKEN")
         or "dummy"
     )
@@ -95,7 +102,7 @@ def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
     """
     env = dict(os.environ if env is None else env)
     backend = env.get("NF_BACKEND", "cloudflare").strip().lower()
-    model = env.get("NF_MODEL", "@cf/zai-org/glm-5.3")
+    model = env.get("NF_MODEL", "@cf/deepseek-ai/deepseek-v4-pro-0813")
 
     if is_llama_model(model):
         raise ValueError(
@@ -248,10 +255,9 @@ async def chat_completion(
     into ``token_counter`` when present.
 
     ``max_tokens`` bounds the completion length; when omitted it falls back to
-    ``NF_MAX_TOKENS`` (default 4096). glm-5.3 is a reasoning model: a 4-turn
-    clinical dialogue spends a large budget on ``reasoning_content`` before the
-    final ``content`` lands, so the cap must be generous or the model finishes
-    with ``finish_reason="length"`` and an empty answer.
+    ``NF_MAX_TOKENS`` (default 4096). A 4-turn clinical dialogue spends a large
+    budget before the final ``content`` lands, so the cap must be generous or
+    the model finishes with ``finish_reason="length"`` and an empty answer.
     """
     backend = resolve_backend()
     init_weave()

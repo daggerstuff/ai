@@ -61,7 +61,7 @@ logger = logging.getLogger("llm_quality_judge")
 
 # Default models (vLLM-served, OpenAI-compatible endpoint).
 # Override via LLM_PRIMARY_MODEL / LLM_SECONDARY_MODEL env vars (e.g. for Neon AI Gateway).
-PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "@cf/zai-org/glm-5.3-flash")
+PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "@cf/deepseek-ai/deepseek-v4-pro-0813")
 SECONDARY_MODEL = os.environ.get("LLM_SECONDARY_MODEL", "deepseek-ai/DeepSeek-V4-Pro")
 
 # Self-consistency

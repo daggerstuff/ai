@@ -2,7 +2,7 @@
   "phase": "sft",
   "stage": 1,
   "model": {
-    "base_model": "zai-org/glm-5.3-flash",
+    "base_model": "deepseek-ai/DeepSeek-V4-Pro",
     "fallback_model": "Harbringer-24B",
     "target": "mental_health_specialization"
   },

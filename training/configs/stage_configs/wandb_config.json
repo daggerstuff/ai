@@ -3,9 +3,9 @@
   "entity": "pixelated-empathy",
   "name": "wayfarer-finetune-20250926-1903",
   "tags": ["wayfarer", "mental-health", "cot-reasoning", "finetune"],
-  "notes": "Fine-tuning glm-5.3-flash on 40,525 real mental health + CoT conversations",
+  "notes": "Fine-tuning DeepSeek-V4-Pro on 40,525 real mental health + CoT conversations",
   "config": {
-    "model_name": "zai-org/glm-5.3-flash",
+    "model_name": "deepseek-ai/DeepSeek-V4-Pro",
     "model_size": "12B",
     "base_model": "wayfarer",
     "dataset_size": 40525,
@@ -47,7 +47,7 @@
     "model": {
       "name": "wayfarer-2-12b-finetuned",
       "type": "model",
-      "description": "Fine-tuned glm-5.3-flash for mental health applications"
+      "description": "Fine-tuned DeepSeek-V4-Pro for mental health applications"
     }
   }
 }

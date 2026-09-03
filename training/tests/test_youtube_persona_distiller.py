@@ -40,7 +40,7 @@ class TestPersonaKeyNormalization:
 
 class TestDefaultModel:
     def test_default_model_is_glm_flash(self):
-        assert DEFAULT_MODEL == "@cf/zai-org/glm-5.3-flash"
+        assert DEFAULT_MODEL == "@cf/deepseek-ai/deepseek-v4-pro-0813"
 
     def test_default_model_is_not_llama(self):
         assert "llama" not in DEFAULT_MODEL.lower()

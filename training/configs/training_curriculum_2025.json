@@ -1,7 +1,7 @@
 {
   "curriculum_version": "2025.12.29",
   "training_flow": "mental_health_specialization",
-  "base_model": "zai-org/glm-5.3-flash",
+  "base_model": "deepseek-ai/DeepSeek-V4-Pro",
   "canonical_bucket": "s3://pixel-data/",
   "dataset_size_gb": 52.20,
   "transcript_count": 913,

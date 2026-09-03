@@ -15,7 +15,7 @@ from ai.tools.utilities.utils.s3_dataset_loader import (
 def loader():
     return S3DatasetLoader(
         bucket="test-bucket",
-        aws_access_key_id="AKIAIOSFODNN7EXAMPLE",
+        aws_access_key_id="AKIA_EXAMPLE_PLACEHOLDER",
         aws_secret_access_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
         endpoint_url="http://localhost:4566",
         region_name="us-east-1",
@@ -238,7 +238,7 @@ def test_s3_dataset_loader_local_file_fallback(tmp_path, monkeypatch):
 
     loader = S3DatasetLoader(
         bucket="test-bucket",
-        aws_access_key_id="AKIAIOSFODNN7EXAMPLE",
+        aws_access_key_id="AKIA_EXAMPLE_PLACEHOLDER",
         aws_secret_access_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
     )
     # Force the local-fallback path without relying on cwd/absolute-path quirks.

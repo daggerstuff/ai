@@ -23,7 +23,7 @@ def _vllm_backend() -> gb.BackendConfig:
     return gb.BackendConfig(
         name="vllm",
         url="http://localhost:8000/v1/chat/completions",
-        model="@cf/zai-org/glm-5.3",
+        model="@cf/deepseek-ai/deepseek-v4-pro-0813",
     )
 
 
@@ -32,7 +32,7 @@ class TestResolveBackend:
         cfg = gb.resolve_backend({})
         assert cfg.name == "cloudflare"
         assert "/ai/v1/chat/completions" in cfg.url
-        assert cfg.model == "@cf/zai-org/glm-5.3"
+        assert cfg.model == "@cf/deepseek-ai/deepseek-v4-pro-0813"
 
     def test_9router_requires_ninerouter_url(self):
         with pytest.raises(ValueError, match="NINEROUTER_URL"):
@@ -64,11 +64,29 @@ class TestResolveBackend:
         with pytest.raises(ValueError, match="never-Llama"):
             gb.resolve_backend({"NF_MODEL": "meta/llama-3.1-8b-instruct"})
 
+    def test_workers_ai_key_preferred_over_generic_token(self):
+        env = {
+            "CLOUDFLARE_API_TOKEN": "r2-token",
+            "CLOUDFLARE_WORKERS_AI_API_KEY": "workers-ai-key",
+        }
+        cfg = gb.resolve_backend(env)
+        assert cfg.auth_header == "Bearer workers-ai-key"
+
+    def test_workers_ai_key_alias_recognized(self):
+        env = {"CLOUDFLARE_ACCOUNT_ID": "acct", "CF_AIG_TOKEN": "aig-token"}
+        cfg = gb.resolve_backend(env)
+        assert cfg.auth_header == "Bearer aig-token"
+
+    def test_falls_back_to_generic_token(self):
+        env = {"CLOUDFLARE_API_TOKEN": "generic-token"}
+        cfg = gb.resolve_backend(env)
+        assert cfg.auth_header == "Bearer generic-token"
+
     def test_non_llama_families_allowed(self):
         for model in (
             "qwen/qwen2.5-7b-instruct",
             "mistralai/mistral-7b-instruct-v0.3",
-            "@cf/zai-org/glm-5.3",
+            "@cf/deepseek-ai/deepseek-v4-pro-0813",
         ):
             cfg = gb.resolve_backend({"NF_MODEL": model, "NF_BACKEND": "vllm"})
             assert cfg.model == model
@@ -160,7 +178,7 @@ class TestObservability:
     def test_log_generation_call_returns_dict(self):
         result = gb._log_generation_call(
             backend="vllm",
-            model="@cf/zai-org/glm-5.3",
+            model="@cf/deepseek-ai/deepseek-v4-pro-0813",
             metrics={
                 "input_chars": 10,
                 "output_chars": 5,
@@ -170,7 +188,7 @@ class TestObservability:
             },
         )
         assert result["backend"] == "vllm"
-        assert result["model"] == "@cf/zai-org/glm-5.3"
+        assert result["model"] == "@cf/deepseek-ai/deepseek-v4-pro-0813"
         assert result["output_chars"] == 5
 
     def test_init_weave_is_safe_noop(self, monkeypatch):

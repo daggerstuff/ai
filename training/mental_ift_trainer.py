@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 class IFTConfig:
     """Configuration for mental health IFT."""
 
-    base_model: str = "zai-org/glm-5.3-flash"
+    base_model: str = "deepseek-ai/DeepSeek-V4-Pro"
     output_dir: str = "./ai/models/mental_ift"
     dataset_path: str | None = "ai/data/curated/sft_chatml/train_master_gold.jsonl"
     use_qlora: bool = True

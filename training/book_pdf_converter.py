@@ -156,16 +156,20 @@ def _call_gemini(system_prompt: str, user_content: str, model_id: str) -> str:
 
 
 CLOUDFLARE_API_TOKEN = (
-    os.environ.get("CLOUDFLARE_API_TOKEN")
-    or os.environ.get("CLOUDFLARE_AUTH_TOKEN")
+    os.environ.get("CLOUDFLARE_WORKERS_AI_API_KEY")
+    or os.environ.get("CLOUDFLARE_AI_API_KEY")
+    or os.environ.get("CF_AIG_TOKEN")
+    or os.environ.get("CLOUDFLARE_WORKERS_AI_API")
     or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
+    or os.environ.get("CLOUDFLARE_API_TOKEN")
+    or os.environ.get("CLOUDFLARE_AUTH_TOKEN")
     or ""
 )
 CLOUDFLARE_ACCOUNT_ID = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
 
 
 def _call_cloudflare(
-    system_prompt: str, user_content: str, model_id: str = "@cf/zai-org/glm-5.3"
+    system_prompt: str, user_content: str, model_id: str = "@cf/deepseek-ai/deepseek-v4-pro-0813"
 ) -> str:
     _rate_limit()
     url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{model_id}"
@@ -205,7 +209,7 @@ def _try_provider(name: str, call: Callable[[], str], use_retry: bool = False) -
 
 def query_llm(system_prompt: str, user_content: str) -> str:
     if CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID:
-        cf_model = os.environ.get("CF_MODEL_ID", "@cf/zai-org/glm-5.3")
+        cf_model = os.environ.get("CF_MODEL_ID", "@cf/deepseek-ai/deepseek-v4-pro-0813")
         cf_response = _try_provider(
             "Cloudflare",
             lambda: _call_cloudflare(system_prompt, user_content, cf_model),
