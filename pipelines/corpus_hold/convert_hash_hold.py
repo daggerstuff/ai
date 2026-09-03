@@ -190,43 +190,49 @@ def _stream_dedup_write(
     with out_jsonl.open("w", encoding="utf-8") as fh:
         for file_key in jsonl_files:
             logger.info("Streaming %s ...", file_key)
-            for record in streamer.stream_jsonl(file_key):
-                stats.total_streamed += 1
-                if config.max_records is not None and stats.total_streamed > config.max_records:
-                    logger.info("Reached --max-records cap (%d), stopping stream", config.max_records)
-                    break
+            try:
+                record_iter = streamer.stream_jsonl(file_key)
+                for record in record_iter:
+                    stats.total_streamed += 1
+                    if config.max_records is not None and stats.total_streamed >= config.max_records:
+                        logger.info("Reached --max-records cap (%d), stopping stream", config.max_records)
+                        break
 
-                if not validate_chatml(record):
-                    logger.debug("Skipping invalid ChatML record #%d", stats.total_streamed)
-                    continue
+                    if not validate_chatml(record):
+                        logger.debug("Skipping invalid ChatML record #%d", stats.total_streamed)
+                        continue
 
-                if "provenance" not in record:
-                    record["provenance"] = {
-                        "source_id": prov.source_id,
-                        "ds_alias": config.ds_id,
-                        "source_title": prov.source_title,
-                        "policy": prov.policy,
-                        "scope": prov.scope,
-                        "restrictions": prov.restrictions,
-                    }
+                    stats.valid_records += 1
 
-                record.setdefault("metadata", {})
-                if not record["metadata"].get("primary_hash"):
-                    record["metadata"]["primary_hash"] = compute_primary_hash(record)
+                    if "provenance" not in record:
+                        record["provenance"] = {
+                            "source_id": prov.source_id,
+                            "ds_alias": config.ds_id,
+                            "source_title": prov.source_title,
+                            "policy": prov.policy,
+                            "scope": prov.scope,
+                            "restrictions": prov.restrictions,
+                        }
 
-                pkey = record["metadata"]["primary_hash"]
-                if pkey in seen_hashes:
-                    stats.duplicates_removed += 1
-                    continue
+                    record.setdefault("metadata", {})
+                    if not record["metadata"].get("primary_hash"):
+                        record["metadata"]["primary_hash"] = compute_primary_hash(record)
 
-                seen_hashes.add(pkey)
-                stats.valid_records += 1
-                stats.unique_records += 1
+                    pkey = record["metadata"]["primary_hash"]
+                    if pkey in seen_hashes:
+                        stats.duplicates_removed += 1
+                        continue
 
-                stage = record.get("metadata", {}).get("stage", "supplementary")
-                stats.records_by_stage[stage] = stats.records_by_stage.get(stage, 0) + 1
+                    seen_hashes.add(pkey)
+                    stats.unique_records += 1
 
-                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    stage = record.get("metadata", {}).get("stage", "supplementary")
+                    stats.records_by_stage[stage] = stats.records_by_stage.get(stage, 0) + 1
+
+                    fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+            except Exception:
+                logger.exception("Error streaming %s — output may be truncated", file_key)
+                raise
 
             if config.max_records is not None and stats.total_streamed >= config.max_records:
                 break
