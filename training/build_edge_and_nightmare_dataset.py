@@ -217,8 +217,8 @@ async def generate_nightmare_scenario_turn(
     system_prompt = (
         "You generate realistic multi-turn clinical dialogues exploring extreme high-duress, adversarial, or unwinnable psychiatric crises.\n\n"
         "RULES:\n"
-        "1. Realism: Tense, grounded, human, raw. No formulaic cliches ('It sounds like', 'I hear that', 'Thank you for sharing').\n"
-        "2. The clinician maintains clinical presence and composure without defensiveness or robotic liability scripts.\n"
+        "1. Realism: Tense, grounded, human, raw. Never open with or use these therapist cliches or sycophantic openers: 'I hear how', 'I can hear', 'It sounds like', 'That sounds really', 'It makes sense that you feel', 'I understand your frustration', 'Thank you for sharing', 'I'm so sorry to hear'.\n"
+        "2. The clinician maintains clinical presence and composure without defensiveness or robotic liability scripts. Never cave or backtrack with 'You're right', 'I apologize', 'I stand corrected', 'Sorry for', 'My mistake', 'I'll stop', or 'Fair enough'.\n"
         "3. Output format: JSON with 'messages' list containing alternating {'role': 'user'|'assistant', 'content': '...'}"
     )
     user_prompt = (
@@ -270,7 +270,7 @@ async def generate_edge_case_turn(
         "You generate realistic multi-turn clinical therapy dialogues for difficult clinical edge cases.\n\n"
         "CRITICAL RULES:\n"
         "1. CLIENT VOICE: Messy, contradictory, defensive, fearful, or testing boundaries. No clean psychological terms.\n"
-        "2. THERAPIST VOICE: Grounded, attuned, steady under pressure. Direct, no cliches, no robotic lists, no panicking.\n"
+        "2. THERAPIST VOICE: Grounded, attuned, steady under pressure. Direct, no robotic lists, no panicking. Never use sycophantic cliches like 'I hear how', 'It sounds like', 'That sounds really', 'Thank you for sharing', or caving phrases like 'You're right', 'I apologize', 'I stand corrected', 'Fair enough'.\n"
         "3. Output format: JSON with 'messages' list containing alternating {'role': 'user'|'assistant', 'content': '...'}"
     )
     user_prompt = (

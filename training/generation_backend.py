@@ -13,7 +13,7 @@ Backend resolution
 * ``vllm`` — local/remote OpenAI-compatible server at ``VLLM_URL``.
 
 ``NF_MODEL`` selects the model ID; any Llama-family ID is rejected at the config
-layer (permanent rule: allowed families are GLM, Qwen, Mistral).
+layer (permanent rule: allowed families are DeepSeek, GLM, Qwen, Mistral).
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ class GenerationLimitExceededError(Exception):
     """Raised when the Moderate guard's hourly or hard ceiling is exceeded."""
 
 
-# Permanent rule: never Llama. Allowed families: GLM, Qwen, Mistral.
+# Permanent rule: never Llama. Allowed families: DeepSeek, GLM, Qwen, Mistral.
 _LLAMA_MARKERS = ("llama",)
 
 
@@ -107,7 +107,7 @@ def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
     if is_llama_model(model):
         raise ValueError(
             f"never-Llama rule violated: NF_MODEL={model!r}. "
-            "Allowed families: GLM, Qwen, Mistral."
+            "Allowed families: DeepSeek, GLM, Qwen, Mistral."
         )
 
     if backend == "cloudflare":
