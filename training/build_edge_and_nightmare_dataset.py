@@ -425,6 +425,10 @@ def _process_record(
         logger.warning("cliché gate rejected %s: %s", family, reason)
         return generated, rejected + 1
     fout.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    # Crash-durable checkpoint: flush Python's buffer and fsync so a hard kill
+    # can lose at most the record currently in flight, never the prior ones.
+    fout.flush()
+    os.fsync(fout.fileno())
     return generated + 1, rejected
 
 
@@ -433,13 +437,17 @@ async def main_async(argv: list[str] | None = None) -> None:
     matrix = build_edge_case_matrix()
     variations = _variations_per_combo(args, len(matrix))
     total_edge = len(matrix) * variations
-    guard = ModerateGuard()
+    guard = ModerateGuard(
+        hourly_limit=int(os.environ.get("NF_HOURLY_LIMIT", str(ModerateGuard.HOURLY_LIMIT))),
+        hard_ceiling=int(os.environ.get("NF_HARD_CEILING", str(ModerateGuard.HARD_CEILING))),
+    )
     done = _load_done_keys(OUT_GENERATED)
 
     sem = asyncio.Semaphore(3)
     conn = aiohttp.TCPConnector(limit=5)
     generated = 0
     rejected = 0
+    dropped = 0
 
     logger.info(
         "Edge-case matrix: %d combos x %d variations = %d records (10 families x 3 difficulty x 4 ambiguity).",
@@ -464,6 +472,9 @@ async def main_async(argv: list[str] | None = None) -> None:
                         if _nightmare_key(s) in done:
                             continue
                         rec = await generate_nightmare_scenario_turn(session, s, sem)
+                        if rec is None:
+                            dropped += 1
+                            continue
                         generated, rejected = _process_record(rec, guard, fout, generated, rejected)
                         if _at_limit(args, generated, rejected):
                             break
@@ -478,14 +489,19 @@ async def main_async(argv: list[str] | None = None) -> None:
                         if _edge_key(combo, v) in done:
                             continue
                         rec = await generate_edge_case_turn(session, combo, sem, v)
+                        if rec is None:
+                            dropped += 1
+                            continue
                         generated, rejected = _process_record(rec, guard, fout, generated, rejected)
     except GenerationLimitExceededError as exc:
         logger.warning("Moderate guard tripped; checkpointing and stopping: %s", exc)
 
     logger.info(
-        "Run complete: %d records written, %d rejected by cliché gate, %d skipped (resume) -> %s",
+        "Run complete: %d written, %d rejected (cliché gate), %d dropped (LLM failure), "
+        "%d skipped (resume) -> %s",
         generated,
         rejected,
+        dropped,
         len(done),
         OUT_GENERATED,
     )
