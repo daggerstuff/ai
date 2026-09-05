@@ -18,7 +18,12 @@ from typing import Any
 
 import aiohttp
 
-from training.cliche_gate import reject_reason_for_record
+from training.cliche_gate import (
+    BANNED_OPENERS,
+    CAVING_PHRASES,
+    ROBOTIC_CRISIS_QUESTIONS,
+    reject_reason_for_record,
+)
 from training.generation_backend import (
     GenerationLimitExceededError,
     ModerateGuard,
@@ -54,6 +59,8 @@ ROLE_MAP = {
     "user": "user",
     "client": "user",
 }
+
+_MIN_TURNS = 2
 
 # Authoritative 10-family edge-case taxonomy (mirrors
 # scripts/data/designer/configs/edge_cases.py). The prior 7-domain ad-hoc split is
@@ -155,34 +162,40 @@ def build_edge_case_matrix() -> list[dict[str, str]]:
                 combos.append({**family, "difficulty": difficulty, "ambiguity": ambiguity})
     return combos
 
-def _normalize_messages(raw_data: Any, raw_text: str) -> list[dict[str, str]]:
+def _parse_dict_messages(raw_data: Any) -> list[dict[str, str]]:
+    if not (isinstance(raw_data, dict) and isinstance(raw_data.get("messages"), list)):
+        return []
     messages: list[dict[str, str]] = []
-    
-    # 1. Try parsed dict with messages list
-    if isinstance(raw_data, dict) and "messages" in raw_data and isinstance(raw_data["messages"], list):
-        for m in raw_data["messages"]:
-            if isinstance(m, dict):
-                r = ROLE_MAP.get(str(m.get("role", "")).lower().strip())
-                c = str(m.get("content", "")).strip()
-                if r and c:
-                    messages.append({"role": r, "content": c})
-        if len(messages) >= 2:
-            return messages
-
-    # 2. Try regex extraction of role/content blocks
-    matches = re.findall(r'["\']?(?:role|speaker)["\']?\s*:\s*["\']?(\w+)["\']?\s*,\s*["\']?content["\']?\s*:\s*["\'](.*?)(?=["\']\s*[,}])', raw_text, re.DOTALL)
-    if matches:
-        for r_raw, c_raw in matches:
-            r = ROLE_MAP.get(r_raw.lower().strip())
-            c = c_raw.strip().encode('utf-8').decode('unicode_escape', errors='ignore')
+    for m in raw_data["messages"]:
+        if isinstance(m, dict):
+            r = ROLE_MAP.get(str(m.get("role", "")).lower().strip())
+            c = str(m.get("content", "")).strip()
             if r and c:
                 messages.append({"role": r, "content": c})
-        if len(messages) >= 2:
-            return messages
+    return messages
 
-    # 3. Fallback: Parse line-by-line Patient/Therapist lines
-    for line in raw_text.splitlines():
-        line = line.strip()
+
+def _parse_regex_messages(raw_text: str) -> list[dict[str, str]]:
+    pattern = (
+        r'["\']?(?:role|speaker)["\']?\s*:\s*["\']?(\w+)["\']?\s*,\s*'
+        r'["\']?content["\']?\s*:\s*["\'](.*?)(?=["\']\s*[,}])'
+    )
+    matches = re.findall(pattern, raw_text, re.DOTALL)
+    if not matches:
+        return []
+    messages: list[dict[str, str]] = []
+    for r_raw, c_raw in matches:
+        r = ROLE_MAP.get(r_raw.lower().strip())
+        c = c_raw.strip().encode("utf-8").decode("unicode_escape", errors="ignore")
+        if r and c:
+            messages.append({"role": r, "content": c})
+    return messages
+
+
+def _parse_line_messages(raw_text: str) -> list[dict[str, str]]:
+    messages: list[dict[str, str]] = []
+    for raw_line in raw_text.splitlines():
+        line = raw_line.strip()
         if re.match(r"^(?:Patient|Client|User)\s*:\s*", line, re.IGNORECASE):
             c = re.sub(r"^(?:Patient|Client|User)\s*:\s*", "", line, flags=re.IGNORECASE).strip()
             if c:
@@ -191,9 +204,21 @@ def _normalize_messages(raw_data: Any, raw_text: str) -> list[dict[str, str]]:
             c = re.sub(r"^(?:Therapist|Clinician|Assistant)\s*:\s*", "", line, flags=re.IGNORECASE).strip()
             if c:
                 messages.append({"role": "assistant", "content": c})
-                
-    if len(messages) >= 2:
-        return messages
+    return messages
+
+
+def _normalize_messages(raw_data: Any, raw_text: str) -> list[dict[str, str]]:
+    dict_msgs = _parse_dict_messages(raw_data)
+    if len(dict_msgs) >= _MIN_TURNS:
+        return dict_msgs
+
+    regex_msgs = _parse_regex_messages(raw_text)
+    if len(regex_msgs) >= _MIN_TURNS:
+        return regex_msgs
+
+    line_msgs = _parse_line_messages(raw_text)
+    if len(line_msgs) >= _MIN_TURNS:
+        return line_msgs
 
     return []
 
@@ -211,15 +236,58 @@ async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_pro
         logger.warning("LLM call failed after retries: %s", exc)
         return ""
 
+def _reject_phrase(reason: str) -> str:
+    """Extract the offending phrase from a gate reason for a targeted retry nudge."""
+    match = re.search(r"'([^']*)'", reason)
+    return match.group(1) if match else reason
+
+
+def _banned_cliches() -> str:
+    """Render the gate's banned lists so the prompt can never drift from the gate."""
+    openers = ", ".join(repr(p) for p in BANNED_OPENERS)
+    caving = ", ".join(repr(p) for p in CAVING_PHRASES)
+    robotic = ", ".join(repr(q) for q in ROBOTIC_CRISIS_QUESTIONS)
+    return (
+        f"NEVER open an utterance with any of: {openers}.\n"
+        f"NEVER use any caving/backtracking phrase: {caving}.\n"
+        f"NEVER use these robotic crisis-questionnaire forms: {robotic}."
+    )
+
+
+async def _generate_messages(
+    session: aiohttp.ClientSession,
+    sem: asyncio.Semaphore,
+    system_prompt: str,
+    user_prompt: str,
+) -> list[dict[str, Any]]:
+    """One LLM call -> parsed JSON -> normalized message list ([] on failure)."""
+    async with sem:
+        res = await _call_llm(session, system_prompt, user_prompt)
+    if not res:
+        return []
+    parsed_data = None
+    try:
+        match = re.search(r"\{.*\}", res, re.DOTALL)
+        if match:
+            parsed_data = json.loads(match.group(0))
+    except Exception:
+        pass
+    return _normalize_messages(parsed_data, res)
+
+
 async def generate_nightmare_scenario_turn(
     session: aiohttp.ClientSession, scenario: dict[str, Any], sem: asyncio.Semaphore
 ) -> dict[str, Any] | None:
-    system_prompt = (
-        "You generate realistic multi-turn clinical dialogues exploring extreme high-duress, adversarial, or unwinnable psychiatric crises.\n\n"
+    base_system_prompt = (
+        "You generate realistic multi-turn clinical dialogues exploring extreme high-duress, "
+        "adversarial, or unwinnable psychiatric crises.\n\n"
         "RULES:\n"
-        "1. Realism: Tense, grounded, human, raw. Never open with or use these therapist cliches or sycophantic openers: 'I hear how', 'I can hear', 'It sounds like', 'That sounds really', 'It makes sense that you feel', 'I understand your frustration', 'Thank you for sharing', 'I'm so sorry to hear'.\n"
-        "2. The clinician maintains clinical presence and composure without defensiveness or robotic liability scripts. Never cave or backtrack with 'You're right', 'I apologize', 'I stand corrected', 'Sorry for', 'My mistake', 'I'll stop', or 'Fair enough'.\n"
-        "3. Output format: JSON with 'messages' list containing alternating {'role': 'user'|'assistant', 'content': '...'}"
+        "1. Realism: Tense, grounded, human, raw.\n"
+        "2. The clinician maintains clinical presence and composure without defensiveness or "
+        "robotic liability scripts.\n"
+        f"3. Anti-cliche (zero tolerance): {_banned_cliches()}\n"
+        "4. Output format: JSON with a 'messages' list containing alternating "
+        "{'role': 'user'|'assistant', 'content': '...'}."
     )
     user_prompt = (
         f"Generate a 4-turn in-session dialogue based on this nightmare scenario:\n"
@@ -229,49 +297,56 @@ async def generate_nightmare_scenario_turn(
         f"Patient Profile: {scenario.get('patient_profile')}\n\n"
         "Output JSON only."
     )
-    async with sem:
-        res = await _call_llm(session, system_prompt, user_prompt)
-        if not res:
+    attempts = 1 + int(os.environ.get("NF_REJECT_RETRIES", "2"))
+    reason = ""
+    norm_msgs: list[dict[str, Any]] = []
+    for _ in range(attempts):
+        system_prompt = base_system_prompt
+        if reason:
+            system_prompt += (
+                f"\n5. RETRY OVERRIDE: the prior draft was rejected for using "
+                f"{_reject_phrase(reason)!r}; do not use that phrase or any near-variant. "
+                "Rewrite the entire dialogue fresh."
+            )
+        norm_msgs = await _generate_messages(session, sem, system_prompt, user_prompt)
+        if len(norm_msgs) < _MIN_TURNS:
             return None
-        
-        parsed_data = None
-        try:
-            match = re.search(r"\{.*\}", res, re.DOTALL)
-            if match:
-                parsed_data = json.loads(match.group(0))
-        except Exception:
-            pass
+        reason = reject_reason_for_record({"messages": norm_msgs}, family="nightmare fuel") or ""
+        if not reason:
+            break
+    return {
+        "messages": norm_msgs,
+        "source": "nightmare_fuel_predefined",
+        "task_type": "adversarial_crisis_deescalation",
+        "tier": "T1_GOLD",
+        "diagnostic_tag": scenario.get("failure_mode", "moral_injury"),
+        "family": "nightmare fuel",
+        "demographic_tags": [],
+        "linguistic_style": "clinical_high_duress",
+        "clinical_reviewed": True,
+        "mi_quality": "high",
+        "provenance": {
+            "scenario_id": scenario.get("scenario_id"),
+            "title": scenario.get("title"),
+            "failure_mode": scenario.get("failure_mode"),
+        },
+    }
 
-        norm_msgs = _normalize_messages(parsed_data, res)
-        if len(norm_msgs) >= 2:
-            return {
-                "messages": norm_msgs,
-                "source": "nightmare_fuel_predefined",
-                "task_type": "adversarial_crisis_deescalation",
-                "tier": "T1_GOLD",
-                "diagnostic_tag": scenario.get("failure_mode", "moral_injury"),
-                "family": "nightmare fuel",
-                "demographic_tags": [],
-                "linguistic_style": "clinical_high_duress",
-                "clinical_reviewed": True,
-                "mi_quality": "high",
-                "provenance": {
-                    "scenario_id": scenario.get("scenario_id"),
-                    "title": scenario.get("title"),
-                    "failure_mode": scenario.get("failure_mode"),
-                },
-            }
-    return None
 
 async def generate_edge_case_turn(
     session: aiohttp.ClientSession, edge_info: dict[str, str], sem: asyncio.Semaphore, idx: int
 ) -> dict[str, Any] | None:
-    system_prompt = (
-        "You generate realistic multi-turn clinical therapy dialogues for difficult clinical edge cases.\n\n"
+    base_system_prompt = (
+        "You generate realistic multi-turn clinical therapy dialogues for difficult clinical "
+        "edge cases.\n\n"
         "CRITICAL RULES:\n"
-        "1. CLIENT VOICE: Messy, contradictory, defensive, fearful, or testing boundaries. No clean psychological terms.\n"
-        "2. THERAPIST VOICE: Grounded, attuned, steady under pressure. Direct, no robotic lists, no panicking. Never use sycophantic cliches like 'I hear how', 'It sounds like', 'That sounds really', 'Thank you for sharing', or caving phrases like 'You're right', 'I apologize', 'I stand corrected', 'Fair enough'.\n"
-        "3. Output format: JSON with 'messages' list containing alternating {'role': 'user'|'assistant', 'content': '...'}"
+        "1. CLIENT VOICE: Messy, contradictory, defensive, fearful, or testing boundaries. "
+        "No clean psychological terms.\n"
+        "2. THERAPIST VOICE: Grounded, attuned, steady under pressure. Direct, no robotic "
+        "lists, no panicking.\n"
+        f"3. Anti-cliche (zero tolerance): {_banned_cliches()}\n"
+        "4. Output format: JSON with a 'messages' list containing alternating "
+        "{'role': 'user'|'assistant', 'content': '...'}."
     )
     user_prompt = (
         f"Clinical Edge-Case Family: {edge_info['family']}\n"
@@ -280,44 +355,46 @@ async def generate_edge_case_turn(
         f"Ambiguity: {edge_info['ambiguity']}\n\n"
         f"Generate a realistic 4-turn in-session exchange (variation {idx}). Output JSON."
     )
-    async with sem:
-        res = await _call_llm(session, system_prompt, user_prompt)
-        if not res:
+    attempts = 1 + int(os.environ.get("NF_REJECT_RETRIES", "2"))
+    reason = ""
+    norm_msgs: list[dict[str, Any]] = []
+    for _ in range(attempts):
+        system_prompt = base_system_prompt
+        if reason:
+            system_prompt += (
+                f"\n5. RETRY OVERRIDE: the prior draft was rejected for using "
+                f"{_reject_phrase(reason)!r}; do not use that phrase or any near-variant. "
+                "Rewrite the entire dialogue fresh."
+            )
+        norm_msgs = await _generate_messages(session, sem, system_prompt, user_prompt)
+        if len(norm_msgs) < _MIN_TURNS:
             return None
+        reason = reject_reason_for_record({"messages": norm_msgs}, family=edge_info["family"]) or ""
+        if not reason:
+            break
+    return {
+        "messages": norm_msgs,
+        "source": f"clinical_edge_case_{edge_info['domain']}",
+        "task_type": "clinical_edge_case",
+        "tier": "T1_GOLD",
+        "diagnostic_tag": edge_info["family"],
+        "family": edge_info["family"],
+        "difficulty": edge_info["difficulty"],
+        "ambiguity": edge_info["ambiguity"],
+        "variation": idx,
+        "demographic_tags": [],
+        "linguistic_style": "clinical_edge_case",
+        "clinical_reviewed": True,
+        "mi_quality": "high",
+        "provenance": {
+            "domain": edge_info["domain"],
+            "family": edge_info["family"],
+            "difficulty": edge_info["difficulty"],
+            "ambiguity": edge_info["ambiguity"],
+            "type": "clinical_edge_case",
+        },
+    }
 
-        parsed_data = None
-        try:
-            match = re.search(r"\{.*\}", res, re.DOTALL)
-            if match:
-                parsed_data = json.loads(match.group(0))
-        except Exception:
-            pass
-
-        norm_msgs = _normalize_messages(parsed_data, res)
-        if len(norm_msgs) >= 2:
-            return {
-                "messages": norm_msgs,
-                "source": f"clinical_edge_case_{edge_info['domain']}",
-                "task_type": "clinical_edge_case",
-                "tier": "T1_GOLD",
-                "diagnostic_tag": edge_info["family"],
-                "family": edge_info["family"],
-                "difficulty": edge_info["difficulty"],
-                "ambiguity": edge_info["ambiguity"],
-                "variation": idx,
-                "demographic_tags": [],
-                "linguistic_style": "clinical_edge_case",
-                "clinical_reviewed": True,
-                "mi_quality": "high",
-                "provenance": {
-                    "domain": edge_info["domain"],
-                    "family": edge_info["family"],
-                    "difficulty": edge_info["difficulty"],
-                    "ambiguity": edge_info["ambiguity"],
-                    "type": "clinical_edge_case",
-                },
-            }
-    return None
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -376,8 +453,8 @@ def _load_done_keys(path: Path) -> set[tuple]:
     done: set[tuple] = set()
     if not path.exists():
         return done
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
         if not line:
             continue
         try:
