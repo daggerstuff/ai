@@ -19,11 +19,9 @@ from typing import Any
 import aiohttp
 
 from training.cliche_gate import (
-    ASSISTANT_ROLES,
     BANNED_OPENERS,
     CAVING_PHRASES,
     ROBOTIC_CRISIS_QUESTIONS,
-    is_sycophantic,
     reject_reason_for_record,
 )
 from training.generation_backend import (
@@ -256,52 +254,6 @@ def _banned_cliches() -> str:
     )
 
 
-def _scrub_opening(text: str) -> str:
-    """Rewrite a banned reflective/sycophantic opener into a direct statement.
-
-    Models reflexively open ambiguous/reflective scenarios with "It sounds like
-    you're ..."; retrying cannot always break that habit, so repair the opening
-    deterministically instead of dropping the record. Caving/robotic mid-text
-    phrases are left alone (the retry path handles those).
-    """
-    is_bad, reason = is_sycophantic(text)
-    if not is_bad or not reason.startswith("banned_sycophantic_opener"):
-        return text
-
-    def cap(s: str) -> str:
-        return (s[:1].upper() + s[1:]) if s else "Let's stay with what you're describing."
-
-    t = text.strip()
-    low = t.lower()
-
-    # (lowercase prefix, transform of the remainder). Reflective-listening frames
-    # drop cleanly into a direct statement; the fallback strips any other opener.
-    rewrites = (
-        ("it sounds like ", cap),
-        ("that sounds really ", lambda s: cap("that's really " + s)),
-        ("that sounds ", lambda s: cap("that's " + s)),
-        ("i hear how ", lambda s: cap("it's clear how " + s)),
-        ("i can hear ", lambda s: cap("there's " + s)),
-        ("thank you for sharing", lambda _: "Thanks for putting that into words."),
-    )
-    for prefix, rewrite in rewrites:
-        if low.startswith(prefix):
-            return rewrite(t[len(prefix):].lstrip(" ,;:-"))
-    for opener in BANNED_OPENERS:
-        if low.startswith(opener):
-            return cap(t[len(opener):].lstrip(" ,;:-"))
-    return t
-
-
-def _scrub_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Deterministically repair banned openers in every clinician turn."""
-    for message in messages:
-        role = str(message.get("role", "")).lower().strip()
-        if role in ASSISTANT_ROLES:
-            message["content"] = _scrub_opening(str(message.get("content", "")))
-    return messages
-
-
 async def _generate_messages(
     session: aiohttp.ClientSession,
     sem: asyncio.Semaphore,
@@ -361,7 +313,6 @@ async def generate_nightmare_scenario_turn(
         norm_msgs = await _generate_messages(session, sem, system_prompt, user_prompt)
         if len(norm_msgs) < _MIN_TURNS:
             return None
-        norm_msgs = _scrub_messages(norm_msgs)
         reason = reject_reason_for_record({"messages": norm_msgs}, family="nightmare fuel") or ""
         if not reason:
             break
@@ -424,7 +375,6 @@ async def generate_edge_case_turn(
         norm_msgs = await _generate_messages(session, sem, system_prompt, user_prompt)
         if len(norm_msgs) < _MIN_TURNS:
             return None
-        norm_msgs = _scrub_messages(norm_msgs)
         reason = reject_reason_for_record({"messages": norm_msgs}, family=edge_info["family"]) or ""
         if not reason:
             break
