@@ -23,6 +23,7 @@ from training.cliche_gate import (
     BANNED_OPENERS,
     CAVING_PHRASES,
     ROBOTIC_CRISIS_QUESTIONS,
+    is_sycophantic,
 )
 from training.generation_backend import (
     GenerationLimitExceededError,
@@ -60,7 +61,9 @@ ROLE_MAP = {
     "client": "user",
 }
 
-_MIN_TURNS = 2
+_MIN_MESSAGES = 8  # hard floor: 8-12 messages is the minimum band
+_GOLDEN_MESSAGES = 15  # ideal/golden length the prompt targets
+_MAX_MESSAGES = 20  # ceiling: anything longer is a runaway/degenerate generation
 
 # Authoritative 10-family edge-case taxonomy (mirrors
 # scripts/data/designer/configs/edge_cases.py). The prior 7-domain ad-hoc split is
@@ -162,6 +165,7 @@ def build_edge_case_matrix() -> list[dict[str, str]]:
                 combos.append({**family, "difficulty": difficulty, "ambiguity": ambiguity})
     return combos
 
+
 def _parse_dict_messages(raw_data: Any) -> list[dict[str, str]]:
     if not (isinstance(raw_data, dict) and isinstance(raw_data.get("messages"), list)):
         return []
@@ -209,18 +213,19 @@ def _parse_line_messages(raw_text: str) -> list[dict[str, str]]:
 
 def _normalize_messages(raw_data: Any, raw_text: str) -> list[dict[str, str]]:
     dict_msgs = _parse_dict_messages(raw_data)
-    if len(dict_msgs) >= _MIN_TURNS:
+    if len(dict_msgs) >= _MIN_MESSAGES:
         return dict_msgs
 
     regex_msgs = _parse_regex_messages(raw_text)
-    if len(regex_msgs) >= _MIN_TURNS:
+    if len(regex_msgs) >= _MIN_MESSAGES:
         return regex_msgs
 
     line_msgs = _parse_line_messages(raw_text)
-    if len(line_msgs) >= _MIN_TURNS:
+    if len(line_msgs) >= _MIN_MESSAGES:
         return line_msgs
 
     return []
+
 
 async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_prompt: str) -> str:
     messages = [
@@ -236,6 +241,7 @@ async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_pro
         logger.warning("LLM call failed after retries: %s", exc)
         return ""
 
+
 def _banned_cliches() -> str:
     """Render the gate's banned lists so the prompt can never drift from the gate."""
     openers = ", ".join(repr(p) for p in BANNED_OPENERS)
@@ -248,15 +254,84 @@ def _banned_cliches() -> str:
     )
 
 
+# Shared prompt specs — concrete, few-shot, unambiguous. Kept separate so the
+# edge and nightmare generators can't drift from the enforced gate lists.
+
+_CLIENT_VOICE_SPEC = (
+    "CLIENT VOICE (every 'user' turn):\n"
+    "- Messy, contradictory, defensive, or testing. No clean clinical labels ('anxious', 'depressed').\n"
+    "- Real speech under pressure: partial sentences, hedging ('I don't know', 'maybe', 'never mind'), "
+    "shifting topic, pushing back, sometimes minimizing and sometimes escalating.\n"
+    "- Example texture: \"Look, I didn't come here for a lecture. Everything's piling up and I don't see the "
+    "point of any of it — not that I'd do anything. Forget I said that.\""
+)
+
+_THERAPIST_VOICE_SPEC = (
+    "THERAPIST VOICE (every 'assistant' turn) — non-negotiable:\n"
+    "- Open EVERY therapist turn with either (a) a direct observation naming the client's exact words, or "
+    "(b) a concrete question grounded in those words. Never restate feelings as a label.\n"
+    "- Worked examples — imitate the GOOD lines, never the BAD:\n"
+    "  client: \"I've been feeling like there's no reason to keep going, you know?\"\n"
+    '  BAD:   "It sounds like you feel hopeless."\n'
+    "  GOOD:  \"You used the phrase 'no reason to keep going.' What does that phrase mean for you right now?\"\n"
+    '  client: "My boss rides me about everything and I can\'t take it anymore."\n'
+    '  BAD:   "I hear how frustrated you are."\n'
+    "  GOOD:  \"You named your boss right before 'I can't take it anymore.' "
+    'Which part of that feels most unmanageable today?"\n'
+    "- The BAD lines are banned openers. Never reproduce them or any phrase in the anti-cliche list below."
+)
+
+_OUTPUT_SPEC = (
+    "OUTPUT FORMAT (strict JSON, nothing else):\n"
+    f'Return one JSON object: {{"messages": [ ... ]}} with {_GOLDEN_MESSAGES} messages (the golden length).\n'
+    "messages[0] is 'user' (client opens); roles alternate user -> assistant -> user -> ... for every message.\n"
+    f"Target {_GOLDEN_MESSAGES} messages; never return fewer than {_MIN_MESSAGES} messages.\n"
+    'Each entry: {"role": "user"|"assistant", "content": "..."}.\n'
+    "No commentary, no markdown fences, no extra keys."
+)
+
+
+def _system_prompt(header: str) -> str:
+    """Compose the shared generation system prompt for a given header line."""
+    return (
+        f"{header}\n\n"
+        f"{_CLIENT_VOICE_SPEC}\n\n"
+        f"{_THERAPIST_VOICE_SPEC}\n\n"
+        f"ANTI-CLICHE (zero tolerance, enforced verbatim):\n{_banned_cliches()}\n\n"
+        f"{_OUTPUT_SPEC}"
+    )
+
+
+def _first_banned(messages: list[dict[str, str]]) -> str | None:
+    """Return the reason for the first banned opener/cave/robotic phrase in any
+    therapist turn, or None when every therapist turn is clean."""
+    for m in messages:
+        if m.get("role") == "assistant":
+            hit, reason = is_sycophantic(m.get("content", ""))
+            if hit:
+                return reason
+    return None
+
+
+def _roles_alternate(messages: list[dict[str, str]]) -> bool:
+    """True when roles strictly alternate user, assistant, user, ... starting with user.
+
+    A run of consecutive same-role messages (a client ramble or therapist
+    monologue) is the runaway failure mode this guards against."""
+    for i, m in enumerate(messages):
+        expected = "user" if i % 2 == 0 else "assistant"
+        if m.get("role") != expected:
+            return False
+    return True
+
+
 async def _generate_messages(
     session: aiohttp.ClientSession,
-    sem: asyncio.Semaphore,
     system_prompt: str,
     user_prompt: str,
 ) -> list[dict[str, Any]]:
     """One LLM call -> parsed JSON -> normalized message list ([] on failure)."""
-    async with sem:
-        res = await _call_llm(session, system_prompt, user_prompt)
+    res = await _call_llm(session, system_prompt, user_prompt)
     if not res:
         return []
     parsed_data = None
@@ -269,32 +344,65 @@ async def _generate_messages(
     return _normalize_messages(parsed_data, res)
 
 
+async def _generate_clean_messages(
+    session: aiohttp.ClientSession,
+    system_prompt: str,
+    user_prompt: str,
+    *,
+    max_attempts: int = 3,
+) -> list[dict[str, str]]:
+    """Generate until the exchange is long enough, role-alternating, and every
+    therapist turn is clean. Corrective feedback is appended to the user prompt
+    on each retry so the model stops repeating the same failure."""
+    for _attempt in range(max_attempts):
+        messages = await _generate_messages(session, system_prompt, user_prompt)
+        if len(messages) < _MIN_MESSAGES:
+            user_prompt = (
+                f"{user_prompt}\n\nPrevious attempt had too few messages. Return {_GOLDEN_MESSAGES} messages "
+                f"(minimum {_MIN_MESSAGES}), roles alternating."
+            )
+            continue
+        if len(messages) > _MAX_MESSAGES:
+            user_prompt = (
+                f"{user_prompt}\n\nPrevious attempt ran away into {len(messages)} messages. "
+                f"Return {_GOLDEN_MESSAGES} messages (never more than {_MAX_MESSAGES})."
+            )
+            continue
+        if not _roles_alternate(messages):
+            user_prompt = (
+                f"{user_prompt}\n\nPrevious attempt broke the alternation (consecutive same-role messages). "
+                "Roles must strictly alternate user, assistant, user, ... starting with the client."
+            )
+            continue
+        banned = _first_banned(messages)
+        if banned is None:
+            return messages
+        user_prompt = (
+            f"{user_prompt}\n\nPrevious attempt was rejected: {banned}. Rewrite the therapist turns so "
+            "every one opens with a direct observation or a concrete question grounded in the client's "
+            "exact words — never a reflective-listening opener."
+        )
+    return []
+
+
 async def generate_nightmare_scenario_turn(
-    session: aiohttp.ClientSession, scenario: dict[str, Any], sem: asyncio.Semaphore
+    session: aiohttp.ClientSession, scenario: dict[str, Any]
 ) -> dict[str, Any] | None:
-    base_system_prompt = (
-        "You generate realistic multi-turn clinical dialogues exploring extreme high-duress, "
-        "adversarial, or unwinnable psychiatric crises.\n\n"
-        "RULES:\n"
-        "1. Realism: Tense, grounded, human, raw.\n"
-        "2. The clinician maintains clinical presence and composure without defensiveness or "
-        "robotic liability scripts. Never open with reflective-listening ('it sounds like', "
-        "'i hear'); state a direct observation or ask a concrete question grounded in the "
-        "client's actual words instead.\n"
-        f"3. Anti-cliche (zero tolerance): {_banned_cliches()}\n"
-        "4. Output format: JSON with a 'messages' list containing alternating "
-        "{'role': 'user'|'assistant', 'content': '...'}."
+    system_prompt = _system_prompt(
+        "You write realistic multi-turn clinical transcripts of extreme high-duress, adversarial, "
+        "or unwinnable psychiatric crises."
     )
     user_prompt = (
-        f"Generate a 4-turn in-session dialogue based on this nightmare scenario:\n"
+        f"Write one {_GOLDEN_MESSAGES}-message session fragment (client opens, roles alternate) "
+        f"based on this nightmare scenario:\n"
         f"Title: {scenario.get('title')}\n"
         f"Description: {scenario.get('description')}\n"
         f"Failure Mode to withstand: {scenario.get('failure_mode')}\n"
         f"Patient Profile: {scenario.get('patient_profile')}\n\n"
-        "Output JSON only."
+        f"Target {_GOLDEN_MESSAGES} messages; minimum {_MIN_MESSAGES}. Output JSON only."
     )
-    norm_msgs = await _generate_messages(session, sem, base_system_prompt, user_prompt)
-    if len(norm_msgs) < _MIN_TURNS:
+    norm_msgs = await _generate_clean_messages(session, system_prompt, user_prompt)
+    if len(norm_msgs) < _MIN_MESSAGES:
         return None
     return {
         "messages": norm_msgs,
@@ -316,33 +424,22 @@ async def generate_nightmare_scenario_turn(
 
 
 async def generate_edge_case_turn(
-    session: aiohttp.ClientSession, edge_info: dict[str, str], sem: asyncio.Semaphore, idx: int
+    session: aiohttp.ClientSession, edge_info: dict[str, str], idx: int
 ) -> dict[str, Any] | None:
-    base_system_prompt = (
-        "You generate realistic multi-turn clinical therapy dialogues for difficult clinical "
-        "edge cases.\n\n"
-        "CRITICAL RULES:\n"
-        "1. CLIENT VOICE: Messy, contradictory, defensive, fearful, or testing boundaries. "
-        "No clean psychological terms.\n"
-        "2. THERAPIST VOICE: Grounded, attuned, steady under pressure. Direct, no robotic "
-        "lists, no panicking. Never open with reflective-listening ('it sounds like you "
-        "feel...', 'i hear how...'); state a direct observation or ask a concrete question "
-        "grounded in the client's actual words instead — e.g. write 'You just named two "
-        "ways this could go; which one feels real right now?' rather than 'It sounds like "
-        "you feel stuck'.\n"
-        f"3. Anti-cliche (zero tolerance): {_banned_cliches()}\n"
-        "4. Output format: JSON with a 'messages' list containing alternating "
-        "{'role': 'user'|'assistant', 'content': '...'}."
+    system_prompt = _system_prompt(
+        "You write realistic multi-turn clinical-therapy transcripts for difficult clinical edge cases."
     )
     user_prompt = (
         f"Clinical Edge-Case Family: {edge_info['family']}\n"
         f"Clinical Context: {edge_info['description']}\n"
         f"Difficulty: {edge_info['difficulty']}\n"
         f"Ambiguity: {edge_info['ambiguity']}\n\n"
-        f"Generate a realistic 4-turn in-session exchange (variation {idx}). Output JSON."
+        f"Write the {_GOLDEN_MESSAGES}-message exchange (client opens, roles alternate) for variation {idx}. "
+        f"Shape the client's language to the ambiguity type '{edge_info['ambiguity']}'. "
+        f"Target {_GOLDEN_MESSAGES} messages; minimum {_MIN_MESSAGES}. Output JSON only."
     )
-    norm_msgs = await _generate_messages(session, sem, base_system_prompt, user_prompt)
-    if len(norm_msgs) < _MIN_TURNS:
+    norm_msgs = await _generate_clean_messages(session, system_prompt, user_prompt)
+    if len(norm_msgs) < _MIN_MESSAGES:
         return None
     return {
         "messages": norm_msgs,
@@ -438,7 +535,7 @@ def _load_done_keys(path: Path) -> set[tuple]:
             prov = rec.get("provenance") or {}
             done.add(("nightmare", str(prov.get("scenario_id") or prov.get("title"))))
         elif src.startswith("clinical_edge_case_"):
-            domain = src[len("clinical_edge_case_"):]
+            domain = src[len("clinical_edge_case_") :]
             try:
                 variation = int(rec.get("variation", -1))
             except (TypeError, ValueError):
@@ -460,12 +557,12 @@ async def _process_record(
     guard: ModerateGuard,
     fout: Any,
     session: aiohttp.ClientSession,
-    counts: tuple[int, int],
 ) -> tuple[int, int]:
-    """Count, dual-judge, and write one generated record. Returns updated counters."""
-    generated, rejected = counts
+    """Dual-judge and write one generated record. Returns ``(dg, dr)`` deltas
+    so concurrent callers can fold results into shared counters without a
+    stale-snapshot race."""
     if rec is None:
-        return generated, rejected
+        return 0, 0
     # Count every generated record against the credit-burn ceiling (even if the
     # judge rejects it) so a run producing mostly garbage still auto-kills.
     guard.record()
@@ -474,13 +571,56 @@ async def _process_record(
     if not verdict.accepted:
         reason = verdict.primary.reject_reason or verdict.reason or "below_threshold"
         logger.warning("dual judge rejected %s: %s", family, reason)
-        return generated, rejected + 1
+        return 0, 1
     fout.write(json.dumps(rec, ensure_ascii=False) + "\n")
     # Crash-durable checkpoint: flush Python's buffer and fsync so a hard kill
     # can lose at most the record currently in flight, never the prior ones.
     fout.flush()
     os.fsync(fout.fileno())
-    return generated + 1, rejected
+    return 1, 0
+
+
+def _build_edge_work(
+    matrix: list[dict[str, str]],
+    variations: int,
+    done: set[Any],
+    remaining: int | None,
+) -> list[tuple[dict[str, str], int]]:
+    """Enumerate pending edge-case records, bounded by ``remaining`` when set."""
+    work: list[tuple[dict[str, str], int]] = []
+    for combo in matrix:
+        for v in range(variations):
+            if _edge_key(combo, v) in done:
+                continue
+            work.append((combo, v))
+            if remaining is not None and len(work) >= remaining:
+                return work
+    return work
+
+
+async def _run_edge_pool(
+    session: aiohttp.ClientSession,
+    sem: asyncio.Semaphore,
+    guard: ModerateGuard,
+    fout: Any,
+    work: list[tuple[dict[str, str], int]],
+) -> tuple[int, int, int]:
+    """Run edge records with bounded concurrency; returns (generated, rejected, dropped)."""
+    counters = {"generated": 0, "rejected": 0, "dropped": 0}
+
+    async def _run_edge(combo: dict[str, str], v: int) -> None:
+        async with sem:
+            rec = await generate_edge_case_turn(session, combo, v)
+            if rec is None:
+                counters["dropped"] += 1
+                return
+            dg, dr = await _process_record(rec, guard, fout, session)
+            counters["generated"] += dg
+            counters["rejected"] += dr
+
+    if work:
+        await asyncio.gather(*(_run_edge(c, v) for c, v in work))
+    return counters["generated"], counters["rejected"], counters["dropped"]
 
 
 async def main_async(argv: list[str] | None = None) -> None:
@@ -494,8 +634,8 @@ async def main_async(argv: list[str] | None = None) -> None:
     )
     done = _load_done_keys(OUT_GENERATED)
 
-    sem = asyncio.Semaphore(3)
-    conn = aiohttp.TCPConnector(limit=5)
+    sem = asyncio.Semaphore(int(os.environ.get("NF_CONCURRENCY", "10")))
+    conn = aiohttp.TCPConnector(limit=int(os.environ.get("NF_CONN_LIMIT", "40")))
     generated = 0
     rejected = 0
     dropped = 0
@@ -511,7 +651,7 @@ async def main_async(argv: list[str] | None = None) -> None:
     try:
         async with aiohttp.ClientSession(connector=conn) as session:
             with open(OUT_GENERATED, "a", encoding="utf-8") as fout:
-                # 1. Nightmare fuel (pre-defined scenarios)
+                # 1. Nightmare fuel (pre-defined scenarios, sequential — only 92)
                 if not args.no_nightmare and SCENARIOS_JSONL.exists():
                     scenarios = [
                         json.loads(line)
@@ -520,36 +660,30 @@ async def main_async(argv: list[str] | None = None) -> None:
                     ]
                     logger.info("Generating %d nightmare-fuel scenarios...", len(scenarios))
                     for s in scenarios:
+                        if _at_limit(args, generated, rejected):
+                            break
                         if _nightmare_key(s) in done:
                             continue
-                        rec = await generate_nightmare_scenario_turn(session, s, sem)
+                        rec = await generate_nightmare_scenario_turn(session, s)
                         if rec is None:
                             dropped += 1
                             continue
-                        generated, rejected = await _process_record(rec, guard, fout, session, (generated, rejected))
-                        if _at_limit(args, generated, rejected):
-                            break
+                        dg, dr = await _process_record(rec, guard, fout, session)
+                        generated += dg
+                        rejected += dr
 
-                # 2. Edge cases across the full matrix
-                for combo in matrix:
-                    if _at_limit(args, generated, rejected):
-                        break
-                    for v in range(variations):
-                        if _at_limit(args, generated, rejected):
-                            break
-                        if _edge_key(combo, v) in done:
-                            continue
-                        rec = await generate_edge_case_turn(session, combo, sem, v)
-                        if rec is None:
-                            dropped += 1
-                            continue
-                        generated, rejected = await _process_record(rec, guard, fout, session, (generated, rejected))
+                # 2. Edge cases across the full matrix, bounded-concurrency worker pool
+                remaining = None if args.limit is None else max(0, args.limit - generated - rejected)
+                work = _build_edge_work(matrix, variations, done, remaining)
+                g2, r2, d2 = await _run_edge_pool(session, sem, guard, fout, work)
+                generated += g2
+                rejected += r2
+                dropped += d2
     except GenerationLimitExceededError as exc:
         logger.warning("Moderate guard tripped; checkpointing and stopping: %s", exc)
 
     logger.info(
-        "Run complete: %d written, %d rejected (dual judge), %d dropped (LLM failure), "
-        "%d skipped (resume) -> %s",
+        "Run complete: %d written, %d rejected (dual judge), %d dropped (LLM failure), %d skipped (resume) -> %s",
         generated,
         rejected,
         dropped,

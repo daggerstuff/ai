@@ -43,6 +43,7 @@ PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "gurubot/wayfarer-2-12B")
 SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "@cf/zai-org/glm-5.2")
 JUDGE_TEMPERATURE = 0.1
 JUDGE_TIMEOUT_SECONDS = int(os.environ.get("DUAL_JUDGE_TIMEOUT", "120"))
+JUDGE_MAX_TOKENS = int(os.environ.get("DUAL_JUDGE_MAX_TOKENS", "1024"))
 SELF_CONSISTENCY_RUNS = 3
 SELF_CONSISTENCY_VARIANCE_MAX = 0.05
 DUAL_CONSISTENCY_DIFF_MAX = 0.15
@@ -80,16 +81,13 @@ def _cloudflare_auth_header() -> dict[str, str]:
 def _secondary_judge_target() -> tuple[str, dict[str, str]]:
     """Companion judge (Workers AI) OpenAI-compatible endpoint + auth header.
 
-    The companion model (``@cf/zai-org/glm-5.2``) runs on Cloudflare Workers AI,
-    not local Ollama; only the primary (Wayfarer) is local.
+    The companion model (``@cf/zai-org/glm-5.2``) runs on Cloudflare
+    Workers AI, not local Ollama; only the primary (Wayfarer) is local.
     """
     url = os.environ.get("DUAL_JUDGE_SECONDARY_URL")
     if not url:
         account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
-        url = (
-            "https://api.cloudflare.com/client/v4/accounts/"
-            f"{account_id}/ai/v1/chat/completions"
-        )
+        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions"
     return url, _cloudflare_auth_header()
 
 
@@ -553,6 +551,7 @@ async def _call_judge_model(
         ],
         "stream": False,
         "temperature": temperature,
+        "max_tokens": JUDGE_MAX_TOKENS,
     }
     try:
         async with session.post(
@@ -627,12 +626,25 @@ async def judge_record_turns(
     primary_model: str = PRIMARY_MODEL,
     secondary_model: str = SECONDARY_MODEL,
     session: aiohttp.ClientSession | None = None,
+    per_turn: bool = False,
 ) -> DualJudgeResult:
-    """Judge a multi-turn record: score each turn, recency-decay aggregate.
+    """Judge a multi-turn record.
+
+    Default (``per_turn=False``): judge the whole exchange once per model —
+    one primary call + one secondary call on the newline-joined transcript.
+    This is the aggregate/holistic mode: O(1) judge calls per record and each
+    judge sees the full conversation, so cross-turn coherence is scored
+    instead of N isolated single-turn snapshots.
+
+    ``per_turn=True``: score each assistant turn against its preceding client
+    turn and recency-decay aggregate (N primary calls + 1 secondary). This is
+    O(turns) calls and evaluates each exchange without conversation history.
+
+    In both modes the deterministic anti-sycophancy penalty still runs in
+    ``parse_judge_json`` on the candidate text. In aggregate mode every turn is
+    a newline-joined line, so a banned opener on any turn caps the whole record.
 
     Expects ``record["messages"]`` as a list of ``{role, content}`` dicts.
-    Alternating user/assistant turns are paired; each assistant turn is
-    judged against its preceding user turn.
     """
 
     messages = list(record.get("messages", []))
@@ -661,15 +673,24 @@ async def judge_record_turns(
                 needs_human_review=True,
                 reason="no_user_assistant_pairs",
             )
-        primary_turn_tasks = [
-            _call_judge_model(session, url=url, model=primary_model, candidate_content=cand, reference_content=ref)
-            for ref, cand in pairs
-        ]
-        primary_turns = await asyncio.gather(*primary_turn_tasks)
-        # Secondary judges the same concatenated exchange once for dual-consistency
-        # against the aggregated primary (cheaper than per-turn secondary).
         joined_ref = "\n".join(ref for ref, _ in pairs)
         joined_cand = "\n".join(cand for _, cand in pairs)
+        if per_turn:
+            primary_turn_tasks = [
+                _call_judge_model(session, url=url, model=primary_model, candidate_content=cand, reference_content=ref)
+                for ref, cand in pairs
+            ]
+            primary_turns = await asyncio.gather(*primary_turn_tasks)
+        else:
+            primary_turns = [
+                await _call_judge_model(
+                    session,
+                    url=url,
+                    model=primary_model,
+                    candidate_content=joined_cand,
+                    reference_content=joined_ref,
+                )
+            ]
         secondary_url, secondary_headers = _secondary_judge_target()
         secondary = await _call_judge_model(
             session,
@@ -683,8 +704,8 @@ async def judge_record_turns(
         if owns_session:
             await session.close()
 
-    primary_aggregated = aggregate_turn_verdicts(primary_turns)
-    return reconcile_dual(primary_aggregated, secondary)
+    primary = aggregate_turn_verdicts(primary_turns) if per_turn else primary_turns[0]
+    return reconcile_dual(primary, secondary)
 
 
 # ---------------------------------------------------------------------------

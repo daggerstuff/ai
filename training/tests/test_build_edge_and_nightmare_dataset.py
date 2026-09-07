@@ -10,25 +10,24 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from training import generation_backend as gb
+from training import dual_judge, generation_backend as gb
 from training.build_edge_and_nightmare_dataset import (
     AMBIGUITY_TYPES,
     DIFFICULTY_LEVELS,
     EDGE_CASE_DOMAINS,
     _parse_args,
     _process_record,
+    _roles_alternate,
     _variations_per_combo,
     build_edge_case_matrix,
 )
 
 _DESIGNER_EDGE_CASES = (
-    Path(__file__).resolve().parents[3]
-    / "scripts"
-    / "data"
-    / "designer"
-    / "configs"
-    / "edge_cases.py"
+    Path(__file__).resolve().parents[3] / "scripts" / "data" / "designer" / "configs" / "edge_cases.py"
 )
+
+_NUM_EDGE_FAMILIES = len(EDGE_CASE_DOMAINS)
+_MATRIX_SIZE = _NUM_EDGE_FAMILIES * len(DIFFICULTY_LEVELS) * len(AMBIGUITY_TYPES)
 
 
 def _designer_families() -> list[str]:
@@ -37,12 +36,8 @@ def _designer_families() -> list[str]:
     for node in ast.walk(tree):
         if not isinstance(node, ast.Dict):
             continue
-        for key, value in zip(node.keys, node.values):
-            if (
-                isinstance(key, ast.Constant)
-                and key.value == "edge_family"
-                and isinstance(value, ast.List)
-            ):
+        for key, value in zip(node.keys, node.values, strict=False):
+            if isinstance(key, ast.Constant) and key.value == "edge_family" and isinstance(value, ast.List):
                 return [elt.value for elt in value.elts if isinstance(elt, ast.Constant)]
     raise AssertionError("edge_family list not found in Data Designer config")
 
@@ -52,29 +47,33 @@ class TestTaxonomyMatchesDesigner:
         designer = _designer_families()
         build = [d["family"] for d in EDGE_CASE_DOMAINS]
         assert set(build) == set(designer)
-        assert len(build) == 10
-        assert len(set(build)) == 10
+        assert len(build) == _NUM_EDGE_FAMILIES
+        assert len(set(build)) == _NUM_EDGE_FAMILIES
 
     def test_matrix_is_full_cartesian_product(self):
         matrix = build_edge_case_matrix()
-        assert len(matrix) == len(EDGE_CASE_DOMAINS) * len(DIFFICULTY_LEVELS) * len(AMBIGUITY_TYPES)
-        assert len(matrix) == 120
+        assert len(matrix) == _MATRIX_SIZE
         combo = matrix[0]
         assert {"family", "domain", "description", "difficulty", "ambiguity"} <= set(combo)
 
 
 class TestVariationsPerCombo:
     def test_default_is_one(self):
-        assert _variations_per_combo(_parse_args([]), 120) == 1
+        assert _variations_per_combo(_parse_args([]), _MATRIX_SIZE) == 1
 
     def test_target_derives_variations(self):
-        assert _variations_per_combo(_parse_args(["--target", "50000"]), 120) == 417
+        target = 50000
+        assert (
+            _variations_per_combo(_parse_args(["--target", str(target)]), _MATRIX_SIZE)
+            == (target + _MATRIX_SIZE - 1) // _MATRIX_SIZE
+        )
 
     def test_explicit_variations(self):
-        assert _variations_per_combo(_parse_args(["--variations-per-combo", "5"]), 120) == 5
+        explicit = 5
+        assert _variations_per_combo(_parse_args(["--variations-per-combo", str(explicit)]), _MATRIX_SIZE) == explicit
 
     def test_target_floor_is_one(self):
-        assert _variations_per_combo(_parse_args(["--target", "3"]), 120) == 1
+        assert _variations_per_combo(_parse_args(["--target", "3"]), _MATRIX_SIZE) == 1
 
 
 class TestProcessRecord:
@@ -83,33 +82,89 @@ class TestProcessRecord:
         guard.record = MagicMock()
         return guard
 
-    def test_none_skips(self):
+    def _verdict(self, accepted: bool, reason: str = ""):
+        verdict = MagicMock()
+        verdict.accepted = accepted
+        verdict.primary.reject_reason = ""
+        verdict.reason = reason
+        return verdict
+
+    @pytest.mark.asyncio
+    async def test_none_skips(self, monkeypatch):
         guard = self._guard()
         fout = io.StringIO()
-        generated, rejected = _process_record(None, guard, fout, 0, 0)
-        assert (generated, rejected) == (0, 0)
+        session = MagicMock()
+
+        async def _judge(_rec, **_kwargs):
+            return self._verdict(True)
+
+        monkeypatch.setattr(dual_judge, "judge_record_turns", _judge)
+        dg, dr = await _process_record(None, guard, fout, session)
+        assert (dg, dr) == (0, 0)
         assert guard.record.call_count == 0
         assert fout.getvalue() == ""
 
-    def test_valid_record_counted_and_written(self):
+    @pytest.mark.asyncio
+    async def test_valid_record_counted_and_written(self, monkeypatch, tmp_path):
         guard = self._guard()
-        fout = io.StringIO()
-        rec = {"family": "substance use", "messages": [{"role": "user", "content": "x"}]}
-        generated, rejected = _process_record(rec, guard, fout, 0, 0)
-        assert (generated, rejected) == (1, 0)
-        guard.record.assert_called_once_with()
-        assert fout.getvalue().strip()
+        fout_path = tmp_path / "out.jsonl"
+        fout = fout_path.open("a", encoding="utf-8")
+        session = MagicMock()
 
-    def test_cliche_record_counted_but_not_written(self):
+        async def _judge(_rec, **_kwargs):
+            return self._verdict(True)
+
+        monkeypatch.setattr(dual_judge, "judge_record_turns", _judge)
+        rec = {"family": "substance use", "messages": [{"role": "user", "content": "x"}]}
+        dg, dr = await _process_record(rec, guard, fout, session)
+        fout.close()
+        assert (dg, dr) == (1, 0)
+        guard.record.assert_called_once_with()
+        assert fout_path.read_text(encoding="utf-8").strip()
+
+    @pytest.mark.asyncio
+    async def test_rejected_record_counted_but_not_written(self, monkeypatch):
         guard = self._guard()
         fout = io.StringIO()
+        session = MagicMock()
+
+        async def _judge(_rec, **_kwargs):
+            return self._verdict(False, "banned_sycophantic_opener")
+
+        monkeypatch.setattr(dual_judge, "judge_record_turns", _judge)
         rec = {
             "family": "ambiguous crisis language",
             "messages": [
                 {"role": "assistant", "content": "It sounds like you're hurting yourself."},
             ],
         }
-        generated, rejected = _process_record(rec, guard, fout, 0, 0)
-        assert (generated, rejected) == (0, 1)
+        dg, dr = await _process_record(rec, guard, fout, session)
+        assert (dg, dr) == (0, 1)
         guard.record.assert_called_once_with()
         assert fout.getvalue() == ""
+
+
+class TestRolesAlternate:
+    def test_alternating_passes(self):
+        msgs = [
+            {"role": "user", "content": "a"},
+            {"role": "assistant", "content": "b"},
+            {"role": "user", "content": "c"},
+            {"role": "assistant", "content": "d"},
+        ]
+        assert _roles_alternate(msgs)
+
+    def test_must_start_with_user(self):
+        msgs = [{"role": "assistant", "content": "b"}, {"role": "user", "content": "a"}]
+        assert not _roles_alternate(msgs)
+
+    def test_consecutive_same_role_fails(self):
+        msgs = [
+            {"role": "user", "content": "a"},
+            {"role": "assistant", "content": "b"},
+            {"role": "assistant", "content": "c"},
+        ]
+        assert not _roles_alternate(msgs)
+
+    def test_empty_passes(self):
+        assert _roles_alternate([])
