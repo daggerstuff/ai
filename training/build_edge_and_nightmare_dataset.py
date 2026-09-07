@@ -51,19 +51,9 @@ CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 # build MASTER_STAGE_N.jsonl and append train_master_gold.jsonl.
 OUT_GENERATED = CHECKPOINT_DIR / "edge_and_nightmare_generated.jsonl"
 
-ROLE_MAP = {
-    "therapist": "assistant",
-    "assistant": "assistant",
-    "counselor": "assistant",
-    "clinician": "assistant",
-    "patient": "user",
-    "user": "user",
-    "client": "user",
-}
-
 _MIN_MESSAGES = 8  # hard floor: 8-12 messages is the minimum band
 _GOLDEN_MESSAGES = 15  # ideal/golden length the prompt targets
-_MAX_MESSAGES = 20  # ceiling: anything longer is a runaway/degenerate generation
+_MIN_QUOTED_UTTERANCE = 2  # shortest text that could be a quote-wrapped utterance
 
 # Authoritative 10-family edge-case taxonomy (mirrors
 # scripts/data/designer/configs/edge_cases.py). The prior 7-domain ad-hoc split is
@@ -166,67 +156,6 @@ def build_edge_case_matrix() -> list[dict[str, str]]:
     return combos
 
 
-def _parse_dict_messages(raw_data: Any) -> list[dict[str, str]]:
-    if not (isinstance(raw_data, dict) and isinstance(raw_data.get("messages"), list)):
-        return []
-    messages: list[dict[str, str]] = []
-    for m in raw_data["messages"]:
-        if isinstance(m, dict):
-            r = ROLE_MAP.get(str(m.get("role", "")).lower().strip())
-            c = str(m.get("content", "")).strip()
-            if r and c:
-                messages.append({"role": r, "content": c})
-    return messages
-
-
-def _parse_regex_messages(raw_text: str) -> list[dict[str, str]]:
-    pattern = (
-        r'["\']?(?:role|speaker)["\']?\s*:\s*["\']?(\w+)["\']?\s*,\s*'
-        r'["\']?content["\']?\s*:\s*["\'](.*?)(?=["\']\s*[,}])'
-    )
-    matches = re.findall(pattern, raw_text, re.DOTALL)
-    if not matches:
-        return []
-    messages: list[dict[str, str]] = []
-    for r_raw, c_raw in matches:
-        r = ROLE_MAP.get(r_raw.lower().strip())
-        c = c_raw.strip().encode("utf-8").decode("unicode_escape", errors="ignore")
-        if r and c:
-            messages.append({"role": r, "content": c})
-    return messages
-
-
-def _parse_line_messages(raw_text: str) -> list[dict[str, str]]:
-    messages: list[dict[str, str]] = []
-    for raw_line in raw_text.splitlines():
-        line = raw_line.strip()
-        if re.match(r"^(?:Patient|Client|User)\s*:\s*", line, re.IGNORECASE):
-            c = re.sub(r"^(?:Patient|Client|User)\s*:\s*", "", line, flags=re.IGNORECASE).strip()
-            if c:
-                messages.append({"role": "user", "content": c})
-        elif re.match(r"^(?:Therapist|Clinician|Assistant)\s*:\s*", line, re.IGNORECASE):
-            c = re.sub(r"^(?:Therapist|Clinician|Assistant)\s*:\s*", "", line, flags=re.IGNORECASE).strip()
-            if c:
-                messages.append({"role": "assistant", "content": c})
-    return messages
-
-
-def _normalize_messages(raw_data: Any, raw_text: str) -> list[dict[str, str]]:
-    dict_msgs = _parse_dict_messages(raw_data)
-    if len(dict_msgs) >= _MIN_MESSAGES:
-        return dict_msgs
-
-    regex_msgs = _parse_regex_messages(raw_text)
-    if len(regex_msgs) >= _MIN_MESSAGES:
-        return regex_msgs
-
-    line_msgs = _parse_line_messages(raw_text)
-    if len(line_msgs) >= _MIN_MESSAGES:
-        return line_msgs
-
-    return []
-
-
 async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_prompt: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
@@ -281,36 +210,19 @@ _THERAPIST_VOICE_SPEC = (
     "- The BAD lines are banned openers. Never reproduce them or any phrase in the anti-cliche list below."
 )
 
-_OUTPUT_SPEC = (
-    "OUTPUT FORMAT (strict JSON, nothing else):\n"
-    f'Return one JSON object: {{"messages": [ ... ]}} with {_GOLDEN_MESSAGES} messages (the golden length).\n'
-    "messages[0] is 'user' (client opens); roles alternate user -> assistant -> user -> ... for every message.\n"
-    f"Target {_GOLDEN_MESSAGES} messages; never return fewer than {_MIN_MESSAGES} messages.\n"
-    'Each entry: {"role": "user"|"assistant", "content": "..."}.\n'
-    "No commentary, no markdown fences, no extra keys."
-)
 
+def _session_system_prompt(header: str) -> str:
+    """Compose the shared turn-by-turn system prompt for a given header line.
 
-def _system_prompt(header: str) -> str:
-    """Compose the shared generation system prompt for a given header line."""
+    Deliberately no JSON output block: each turn is generated as a single plain
+    utterance, so the model never has to hold a 15-message structure in one
+    autoregressive shot."""
     return (
         f"{header}\n\n"
         f"{_CLIENT_VOICE_SPEC}\n\n"
         f"{_THERAPIST_VOICE_SPEC}\n\n"
-        f"ANTI-CLICHE (zero tolerance, enforced verbatim):\n{_banned_cliches()}\n\n"
-        f"{_OUTPUT_SPEC}"
+        f"ANTI-CLICHE (zero tolerance, enforced verbatim):\n{_banned_cliches()}"
     )
-
-
-def _first_banned(messages: list[dict[str, str]]) -> str | None:
-    """Return the reason for the first banned opener/cave/robotic phrase in any
-    therapist turn, or None when every therapist turn is clean."""
-    for m in messages:
-        if m.get("role") == "assistant":
-            hit, reason = is_sycophantic(m.get("content", ""))
-            if hit:
-                return reason
-    return None
 
 
 def _roles_alternate(messages: list[dict[str, str]]) -> bool:
@@ -325,83 +237,117 @@ def _roles_alternate(messages: list[dict[str, str]]) -> bool:
     return True
 
 
-async def _generate_messages(
-    session: aiohttp.ClientSession,
-    system_prompt: str,
-    user_prompt: str,
-) -> list[dict[str, Any]]:
-    """One LLM call -> parsed JSON -> normalized message list ([] on failure)."""
-    res = await _call_llm(session, system_prompt, user_prompt)
-    if not res:
-        return []
-    parsed_data = None
-    try:
-        match = re.search(r"\{.*\}", res, re.DOTALL)
-        if match:
-            parsed_data = json.loads(match.group(0))
-    except Exception:
-        pass
-    return _normalize_messages(parsed_data, res)
+def _render_transcript(messages: list[dict[str, str]]) -> str:
+    """Render prior turns as 'Client: ...' / 'Therapist: ...' lines for context."""
+    lines: list[str] = []
+    for m in messages:
+        speaker = "Client" if m.get("role") == "user" else "Therapist"
+        lines.append(f"{speaker}: {m['content']}")
+    return "\n".join(lines)
 
 
-async def _generate_clean_messages(
+def _strip_utterance(text: str) -> str:
+    """Strip a single-utterance reply down to the raw line (no preamble, role
+    label, or surrounding quotes)."""
+    text = text.strip()
+    text = re.sub(r"^(?:Client|Therapist|Patient|Clinician|Assistant)\s*:\s*", "", text, flags=re.IGNORECASE).strip()
+    if len(text) >= _MIN_QUOTED_UTTERANCE and text[0] == text[-1] and text[0] in ('"', "'", "`"):
+        text = text[1:-1].strip()
+    return text
+
+
+async def _generate_client_turn(
     session: aiohttp.ClientSession,
     system_prompt: str,
-    user_prompt: str,
+    context_prompt: str,
+    prior: str,
     *,
     max_attempts: int = 3,
-) -> list[dict[str, str]]:
-    """Generate until the exchange is long enough, role-alternating, and every
-    therapist turn is clean. Corrective feedback is appended to the user prompt
-    on each retry so the model stops repeating the same failure."""
+) -> str:
+    """Generate the client's next utterance as one small, single-role call."""
+    prompt = (
+        f"{context_prompt}\n\n"
+        f"Prior transcript:\n{prior}\n\n"
+        "Write ONLY the client's next utterance (1-3 sentences). No labels, no preamble, no quotes."
+    )
     for _attempt in range(max_attempts):
-        messages = await _generate_messages(session, system_prompt, user_prompt)
-        if len(messages) < _MIN_MESSAGES:
-            user_prompt = (
-                f"{user_prompt}\n\nPrevious attempt had too few messages. Return {_GOLDEN_MESSAGES} messages "
-                f"(minimum {_MIN_MESSAGES}), roles alternating."
+        text = _strip_utterance(await _call_llm(session, system_prompt, prompt))
+        if text:
+            return text
+    return ""
+
+
+async def _generate_therapist_turn(
+    session: aiohttp.ClientSession,
+    system_prompt: str,
+    prior: str,
+    client_line: str,
+    *,
+    max_attempts: int = 3,
+) -> str:
+    """Generate the therapist's next response, regenerating the single turn if the
+    anti-sycophancy gate trips."""
+    prompt = (
+        f"Prior transcript:\n{prior}\n\n"
+        f"Client just said: {client_line!r}\n\n"
+        "Write ONLY the therapist's next response (1-3 sentences), opening with a direct "
+        "observation or concrete question grounded in the client's exact words. No labels, no preamble."
+    )
+    for _attempt in range(max_attempts):
+        text = _strip_utterance(await _call_llm(session, system_prompt, prompt))
+        if not text:
+            continue
+        hit, reason = is_sycophantic(text)
+        if hit:
+            prompt = (
+                f"{prompt}\n\nPrevious response was rejected: {reason}. "
+                "Do not open with any reflective-listening phrase."
             )
             continue
-        if len(messages) > _MAX_MESSAGES:
-            user_prompt = (
-                f"{user_prompt}\n\nPrevious attempt ran away into {len(messages)} messages. "
-                f"Return {_GOLDEN_MESSAGES} messages (never more than {_MAX_MESSAGES})."
-            )
-            continue
-        if not _roles_alternate(messages):
-            user_prompt = (
-                f"{user_prompt}\n\nPrevious attempt broke the alternation (consecutive same-role messages). "
-                "Roles must strictly alternate user, assistant, user, ... starting with the client."
-            )
-            continue
-        banned = _first_banned(messages)
-        if banned is None:
-            return messages
-        user_prompt = (
-            f"{user_prompt}\n\nPrevious attempt was rejected: {banned}. Rewrite the therapist turns so "
-            "every one opens with a direct observation or a concrete question grounded in the client's "
-            "exact words — never a reflective-listening opener."
-        )
-    return []
+        return text
+    return ""
+
+
+async def _generate_transcript_turns(
+    session: aiohttp.ClientSession,
+    system_prompt: str,
+    context_prompt: str,
+    *,
+    target: int = _GOLDEN_MESSAGES,
+) -> list[dict[str, str]]:
+    """Generate a session turn-by-turn: each message is a separate small call, so
+    strict role alternation is enforced by the loop, not by the model."""
+    messages: list[dict[str, str]] = []
+    for i in range(target):
+        prior = _render_transcript(messages)
+        if i % 2 == 0:
+            text = await _generate_client_turn(session, system_prompt, context_prompt, prior)
+            role = "user"
+        else:
+            text = await _generate_therapist_turn(session, system_prompt, prior, messages[-1]["content"])
+            role = "assistant"
+        if not text:
+            break
+        messages.append({"role": role, "content": text})
+    return messages if _roles_alternate(messages) else []
 
 
 async def generate_nightmare_scenario_turn(
     session: aiohttp.ClientSession, scenario: dict[str, Any]
 ) -> dict[str, Any] | None:
-    system_prompt = _system_prompt(
+    system_prompt = _session_system_prompt(
         "You write realistic multi-turn clinical transcripts of extreme high-duress, adversarial, "
         "or unwinnable psychiatric crises."
     )
-    user_prompt = (
-        f"Write one {_GOLDEN_MESSAGES}-message session fragment (client opens, roles alternate) "
-        f"based on this nightmare scenario:\n"
+    context_prompt = (
+        f"Based on this nightmare scenario:\n"
         f"Title: {scenario.get('title')}\n"
         f"Description: {scenario.get('description')}\n"
         f"Failure Mode to withstand: {scenario.get('failure_mode')}\n"
-        f"Patient Profile: {scenario.get('patient_profile')}\n\n"
-        f"Target {_GOLDEN_MESSAGES} messages; minimum {_MIN_MESSAGES}. Output JSON only."
+        f"Patient Profile: {scenario.get('patient_profile')}\n"
+        f"Target {_GOLDEN_MESSAGES} messages; client opens, roles alternate."
     )
-    norm_msgs = await _generate_clean_messages(session, system_prompt, user_prompt)
+    norm_msgs = await _generate_transcript_turns(session, system_prompt, context_prompt)
     if len(norm_msgs) < _MIN_MESSAGES:
         return None
     return {
@@ -426,19 +372,18 @@ async def generate_nightmare_scenario_turn(
 async def generate_edge_case_turn(
     session: aiohttp.ClientSession, edge_info: dict[str, str], idx: int
 ) -> dict[str, Any] | None:
-    system_prompt = _system_prompt(
+    system_prompt = _session_system_prompt(
         "You write realistic multi-turn clinical-therapy transcripts for difficult clinical edge cases."
     )
-    user_prompt = (
+    context_prompt = (
         f"Clinical Edge-Case Family: {edge_info['family']}\n"
         f"Clinical Context: {edge_info['description']}\n"
         f"Difficulty: {edge_info['difficulty']}\n"
         f"Ambiguity: {edge_info['ambiguity']}\n\n"
-        f"Write the {_GOLDEN_MESSAGES}-message exchange (client opens, roles alternate) for variation {idx}. "
-        f"Shape the client's language to the ambiguity type '{edge_info['ambiguity']}'. "
-        f"Target {_GOLDEN_MESSAGES} messages; minimum {_MIN_MESSAGES}. Output JSON only."
+        f"Variation {idx}. Shape the client's language to the ambiguity type '{edge_info['ambiguity']}'. "
+        f"Target {_GOLDEN_MESSAGES} messages; client opens, roles alternate."
     )
-    norm_msgs = await _generate_clean_messages(session, system_prompt, user_prompt)
+    norm_msgs = await _generate_transcript_turns(session, system_prompt, context_prompt)
     if len(norm_msgs) < _MIN_MESSAGES:
         return None
     return {

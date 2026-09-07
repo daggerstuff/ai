@@ -10,14 +10,17 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from training import dual_judge, generation_backend as gb
+from training import build_edge_and_nightmare_dataset as bmod, dual_judge, generation_backend as gb
 from training.build_edge_and_nightmare_dataset import (
     AMBIGUITY_TYPES,
     DIFFICULTY_LEVELS,
     EDGE_CASE_DOMAINS,
+    _generate_transcript_turns,
     _parse_args,
     _process_record,
+    _render_transcript,
     _roles_alternate,
+    _strip_utterance,
     _variations_per_combo,
     build_edge_case_matrix,
 )
@@ -168,3 +171,39 @@ class TestRolesAlternate:
 
     def test_empty_passes(self):
         assert _roles_alternate([])
+
+
+class TestStripUtterance:
+    def test_strips_role_label(self):
+        assert _strip_utterance("Therapist: You said 'no reason to keep going.'") == (
+            "You said 'no reason to keep going.'"
+        )
+
+    def test_strips_surrounding_quotes(self):
+        assert _strip_utterance('"I don\'t know."') == "I don't know."
+
+    def test_passthrough_plain_line(self):
+        assert _strip_utterance("Just a plain line.") == "Just a plain line."
+
+
+class TestRenderTranscript:
+    def test_renders_speaker_lines(self):
+        msgs = [
+            {"role": "user", "content": "hello"},
+            {"role": "assistant", "content": "hi"},
+        ]
+        assert _render_transcript(msgs) == "Client: hello\nTherapist: hi"
+
+
+class TestGenerateTranscriptTurns:
+    @pytest.mark.asyncio
+    async def test_alternates_then_stops_on_failed_turn(self, monkeypatch):
+        replies = iter(["c1", "t1", "c2", "t2", "c3", "t3"])
+
+        async def _fake_call(_session, _system_prompt, _user_prompt):
+            return next(replies, "")
+
+        monkeypatch.setattr(bmod, "_call_llm", _fake_call)
+        msgs = await _generate_transcript_turns(None, "sys", "ctx", target=15)
+        assert [m["role"] for m in msgs] == ["user", "assistant"] * 3
+        assert [m["content"] for m in msgs] == ["c1", "t1", "c2", "t2", "c3", "t3"]
