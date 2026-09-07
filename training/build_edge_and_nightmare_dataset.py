@@ -18,11 +18,11 @@ from typing import Any
 
 import aiohttp
 
+from training import dual_judge
 from training.cliche_gate import (
     BANNED_OPENERS,
     CAVING_PHRASES,
     ROBOTIC_CRISIS_QUESTIONS,
-    reject_reason_for_record,
 )
 from training.generation_backend import (
     GenerationLimitExceededError,
@@ -236,12 +236,6 @@ async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_pro
         logger.warning("LLM call failed after retries: %s", exc)
         return ""
 
-def _reject_phrase(reason: str) -> str:
-    """Extract the offending phrase from a gate reason for a targeted retry nudge."""
-    match = re.search(r"'([^']*)'", reason)
-    return match.group(1) if match else reason
-
-
 def _banned_cliches() -> str:
     """Render the gate's banned lists so the prompt can never drift from the gate."""
     openers = ", ".join(repr(p) for p in BANNED_OPENERS)
@@ -299,23 +293,9 @@ async def generate_nightmare_scenario_turn(
         f"Patient Profile: {scenario.get('patient_profile')}\n\n"
         "Output JSON only."
     )
-    attempts = 1 + int(os.environ.get("NF_REJECT_RETRIES", "2"))
-    reason = ""
-    norm_msgs: list[dict[str, Any]] = []
-    for _ in range(attempts):
-        system_prompt = base_system_prompt
-        if reason:
-            system_prompt += (
-                f"\n5. RETRY OVERRIDE: the prior draft was rejected for using "
-                f"{_reject_phrase(reason)!r}; do not use that phrase or any near-variant. "
-                "Rewrite the entire dialogue fresh."
-            )
-        norm_msgs = await _generate_messages(session, sem, system_prompt, user_prompt)
-        if len(norm_msgs) < _MIN_TURNS:
-            return None
-        reason = reject_reason_for_record({"messages": norm_msgs}, family="nightmare fuel") or ""
-        if not reason:
-            break
+    norm_msgs = await _generate_messages(session, sem, base_system_prompt, user_prompt)
+    if len(norm_msgs) < _MIN_TURNS:
+        return None
     return {
         "messages": norm_msgs,
         "source": "nightmare_fuel_predefined",
@@ -361,23 +341,9 @@ async def generate_edge_case_turn(
         f"Ambiguity: {edge_info['ambiguity']}\n\n"
         f"Generate a realistic 4-turn in-session exchange (variation {idx}). Output JSON."
     )
-    attempts = 1 + int(os.environ.get("NF_REJECT_RETRIES", "2"))
-    reason = ""
-    norm_msgs: list[dict[str, Any]] = []
-    for _ in range(attempts):
-        system_prompt = base_system_prompt
-        if reason:
-            system_prompt += (
-                f"\n5. RETRY OVERRIDE: the prior draft was rejected for using "
-                f"{_reject_phrase(reason)!r}; do not use that phrase or any near-variant. "
-                "Rewrite the entire dialogue fresh."
-            )
-        norm_msgs = await _generate_messages(session, sem, system_prompt, user_prompt)
-        if len(norm_msgs) < _MIN_TURNS:
-            return None
-        reason = reject_reason_for_record({"messages": norm_msgs}, family=edge_info["family"]) or ""
-        if not reason:
-            break
+    norm_msgs = await _generate_messages(session, sem, base_system_prompt, user_prompt)
+    if len(norm_msgs) < _MIN_TURNS:
+        return None
     return {
         "messages": norm_msgs,
         "source": f"clinical_edge_case_{edge_info['domain']}",
@@ -489,23 +455,25 @@ def _load_done_keys(path: Path) -> set[tuple]:
     return done
 
 
-def _process_record(
+async def _process_record(
     rec: dict[str, Any] | None,
     guard: ModerateGuard,
     fout: Any,
-    generated: int,
-    rejected: int,
+    session: aiohttp.ClientSession,
+    counts: tuple[int, int],
 ) -> tuple[int, int]:
-    """Count, gate, and write one generated record. Returns updated counters."""
+    """Count, dual-judge, and write one generated record. Returns updated counters."""
+    generated, rejected = counts
     if rec is None:
         return generated, rejected
     # Count every generated record against the credit-burn ceiling (even if the
-    # cliché gate rejects it) so a run producing mostly garbage still auto-kills.
+    # judge rejects it) so a run producing mostly garbage still auto-kills.
     guard.record()
     family = str(rec.get("family", rec.get("diagnostic_tag", "")))
-    reason = reject_reason_for_record(rec, family=family)
-    if reason is not None:
-        logger.warning("cliché gate rejected %s: %s", family, reason)
+    verdict = await dual_judge.judge_record_turns(rec, session=session)
+    if not verdict.accepted:
+        reason = verdict.primary.reject_reason or verdict.reason or "below_threshold"
+        logger.warning("dual judge rejected %s: %s", family, reason)
         return generated, rejected + 1
     fout.write(json.dumps(rec, ensure_ascii=False) + "\n")
     # Crash-durable checkpoint: flush Python's buffer and fsync so a hard kill
@@ -558,7 +526,7 @@ async def main_async(argv: list[str] | None = None) -> None:
                         if rec is None:
                             dropped += 1
                             continue
-                        generated, rejected = _process_record(rec, guard, fout, generated, rejected)
+                        generated, rejected = await _process_record(rec, guard, fout, session, (generated, rejected))
                         if _at_limit(args, generated, rejected):
                             break
 
@@ -575,12 +543,12 @@ async def main_async(argv: list[str] | None = None) -> None:
                         if rec is None:
                             dropped += 1
                             continue
-                        generated, rejected = _process_record(rec, guard, fout, generated, rejected)
+                        generated, rejected = await _process_record(rec, guard, fout, session, (generated, rejected))
     except GenerationLimitExceededError as exc:
         logger.warning("Moderate guard tripped; checkpointing and stopping: %s", exc)
 
     logger.info(
-        "Run complete: %d written, %d rejected (cliché gate), %d dropped (LLM failure), "
+        "Run complete: %d written, %d rejected (dual judge), %d dropped (LLM failure), "
         "%d skipped (resume) -> %s",
         generated,
         rejected,

@@ -38,9 +38,9 @@ import aiohttp
 
 logger = logging.getLogger("dual_judge")
 
-DEFAULT_JUDGE_URL = os.environ.get("DUAL_JUDGE_URL", "https://ollama.pixelated.love/v1/chat/completions")
-PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "@cf/deepseek-ai/deepseek-v4-pro-0813")
-SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "@cf/mistralai/mistral-small-3.1-24b-instruct")
+DEFAULT_JUDGE_URL = os.environ.get("DUAL_JUDGE_URL", "http://localhost:11434/v1/chat/completions")
+PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "gurubot/wayfarer-2-12B")
+SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "@cf/zai-org/glm-5.2")
 JUDGE_TEMPERATURE = 0.1
 JUDGE_TIMEOUT_SECONDS = int(os.environ.get("DUAL_JUDGE_TIMEOUT", "120"))
 SELF_CONSISTENCY_RUNS = 3
@@ -55,6 +55,43 @@ GOLDEN_CALIB_PATH = (
 )
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
+
+
+def _cloudflare_auth_header() -> dict[str, str]:
+    """Resolve the Workers AI bearer token, preferring dedicated AI keys.
+
+    The generic ``CLOUDFLARE_API_TOKEN`` can be repurposed (e.g. an R2 token),
+    which 401s on Workers AI; the dedicated ``cfut_`` AI key is correct.
+    """
+    token = (
+        os.environ.get("CLOUDFLARE_WORKERS_AI_API_KEY")
+        or os.environ.get("CLOUDFLARE_AI_API_KEY")
+        or os.environ.get("CF_AIG_TOKEN")
+        or os.environ.get("CLOUDFLARE_WORKERS_AI_API")
+        or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
+        or os.environ.get("CLOUDFLARE_AUTH_TOKEN")
+        or os.environ.get("CLOUDFLARE_API_TOKEN")
+        or os.environ.get("CLOUDFLARE_TOKEN")
+        or ""
+    )
+    return {"Authorization": f"Bearer {token}"} if token else {}
+
+
+def _secondary_judge_target() -> tuple[str, dict[str, str]]:
+    """Companion judge (Workers AI) OpenAI-compatible endpoint + auth header.
+
+    The companion model (``@cf/zai-org/glm-5.2``) runs on Cloudflare Workers AI,
+    not local Ollama; only the primary (Wayfarer) is local.
+    """
+    url = os.environ.get("DUAL_JUDGE_SECONDARY_URL")
+    if not url:
+        account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+        url = (
+            "https://api.cloudflare.com/client/v4/accounts/"
+            f"{account_id}/ai/v1/chat/completions"
+        )
+    return url, _cloudflare_auth_header()
+
 
 DIMENSIONS: tuple[str, ...] = ("relevance", "accuracy", "helpfulness", "style", "safety")
 
@@ -499,6 +536,7 @@ async def _call_judge_model(
     reference_content: str,
     temperature: float = JUDGE_TEMPERATURE,
     timeout: int = JUDGE_TIMEOUT_SECONDS,
+    headers: dict[str, str] | None = None,
 ) -> JudgeVerdict:
     """Call one judge model on one candidate/reference pair."""
 
@@ -517,7 +555,9 @@ async def _call_judge_model(
         "temperature": temperature,
     }
     try:
-        async with session.post(url, json=payload, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
+        async with session.post(
+            url, json=payload, headers=headers or {}, timeout=aiohttp.ClientTimeout(total=timeout)
+        ) as resp:
             if resp.status != 200:
                 text = await resp.text()
                 return JudgeVerdict(0.0, f"http_{resp.status}: {text[:200]}")
@@ -557,12 +597,14 @@ async def judge_single(
                 for _ in range(self_consistency_runs)
             )
         )
+        secondary_url, secondary_headers = _secondary_judge_target()
         secondary = await _call_judge_model(
             session,
-            url=url,
+            url=secondary_url,
             model=secondary_model,
             candidate_content=candidate,
             reference_content=reference,
+            headers=secondary_headers,
         )
     finally:
         if owns_session:
@@ -628,12 +670,14 @@ async def judge_record_turns(
         # against the aggregated primary (cheaper than per-turn secondary).
         joined_ref = "\n".join(ref for ref, _ in pairs)
         joined_cand = "\n".join(cand for _, cand in pairs)
+        secondary_url, secondary_headers = _secondary_judge_target()
         secondary = await _call_judge_model(
             session,
-            url=url,
+            url=secondary_url,
             model=secondary_model,
             candidate_content=joined_cand,
             reference_content=joined_ref,
+            headers=secondary_headers,
         )
     finally:
         if owns_session:
