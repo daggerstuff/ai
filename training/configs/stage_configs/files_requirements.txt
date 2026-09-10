@@ -34,7 +34,7 @@ black==26.3.1
 coloredlogs==15.0.1
 packaging==25.0
 pandas==3.0.0
-GitPython==3.1.59
+GitPython==3.1.62
 openai-whisper==20250625
 yarl==1.20.1
 pycparser==2.23
@@ -116,7 +116,7 @@ inquirerpy==0.3.4
 pytest-cov==7.0.0
 wandb==0.22.0
 joblib==1.5.2
-accelerate==1.14.0
+accelerate==1.15.0
 nvidia-nvjitlink-cu12==12.8.93
 httpx==0.28.1
 charset-normalizer==3.4.3
