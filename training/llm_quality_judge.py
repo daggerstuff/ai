@@ -100,14 +100,9 @@ DEFAULT_TEMPERATURE = 0.1
 # Minimum number of observations needed for variance/correlation statistics.
 _MIN_SAMPLES_FOR_STATS = 2
 
-# Golden calibration file path. Prefers the v2 real-human-label set
-# (200 AnnoMI-sourced mental-health samples); falls back to the legacy
-# synthetic/placeholder file when v2 is absent.
-GOLDEN_CALIB_PATH = (
-    Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
-    if (Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl").exists()
-    else Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
-)
+# Golden calibration file path: the v2 real-human-label set
+# (200 real AnnoMI + ESConv clinical samples).
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
 
 # System prompt for the LLM judge
 JUDGE_SYSTEM_PROMPT = """You are a quality evaluator for AI training conversations.

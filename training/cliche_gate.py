@@ -56,6 +56,33 @@ ROBOTIC_CRISIS_QUESTIONS: tuple[str, ...] = (
     "have you thought about killing yourself",
 )
 
+# Mechanical quote-parroting and echoing openers that formulaically repeat client words.
+PARROTING_OPENERS: tuple[str, ...] = (
+    "you used the phrase",
+    "you said",
+    "you mentioned",
+    "you named",
+    "you just said",
+    "when you say",
+    "you're saying that",
+    "so you're saying",
+    "hearing you say",
+    "as you said",
+)
+
+# Robotic somatic deflection formulas used as canned evasions.
+ROBOTIC_SOMATIC_PHRASES: tuple[str, ...] = (
+    "what happens inside your body",
+    "what is happening inside your body",
+    "what is happening in your body",
+    "what happens in your body",
+    "where do you feel that in your body",
+    "notice what happens in your body",
+    "what does your body feel",
+    "what are you feeling in your body",
+    "what is your body telling you",
+)
+
 # Roles whose turns are treated as clinician output for the purposes of this gate.
 ASSISTANT_ROLES: frozenset[str] = frozenset(
     {"assistant", "therapist", "clinician", "counselor"}
@@ -63,23 +90,32 @@ ASSISTANT_ROLES: frozenset[str] = frozenset(
 
 
 def is_sycophantic(text: str) -> tuple[bool, str]:
-    """Return ``(True, reason)`` if *text* triggers a banned opener, caving phrase,
-    or robotic crisis questionnaire; otherwise ``(False, "")``."""
+    """Return ``(True, reason)`` if *text* triggers a banned opener, parroting opener,
+    caving phrase, robotic crisis questionnaire, or robotic somatic cliché;
+    otherwise ``(False, "")``."""
     if not text or not isinstance(text, str):
         return False, ""
     t_lower = text.strip().lower()
-    opener = next(
-        (b for b in BANNED_OPENERS if t_lower.startswith(b) or f"\n{b}" in t_lower),
-        None,
+
+    # Prefix checks (at string start or right after a newline)
+    for prefix in BANNED_OPENERS:
+        if t_lower.startswith(prefix) or f"\n{prefix}" in t_lower:
+            return True, f"banned_sycophantic_opener: '{prefix}'"
+    for prefix in PARROTING_OPENERS:
+        if t_lower.startswith(prefix) or f"\n{prefix}" in t_lower:
+            return True, f"banned_parroting_opener: '{prefix}'"
+
+    # Substring checks anywhere in the utterance
+    checks: tuple[tuple[tuple[str, ...], str], ...] = (
+        (CAVING_PHRASES, "caving_phrase_detected"),
+        (ROBOTIC_CRISIS_QUESTIONS, "robotic_crisis_questionnaire"),
+        (ROBOTIC_SOMATIC_PHRASES, "robotic_somatic_cliche"),
     )
-    if opener is not None:
-        return True, f"banned_sycophantic_opener: '{opener}'"
-    caving = next((c for c in CAVING_PHRASES if c in t_lower), None)
-    if caving is not None:
-        return True, f"caving_phrase_detected: '{caving}'"
-    robotic = next((q for q in ROBOTIC_CRISIS_QUESTIONS if q in t_lower), None)
-    if robotic is not None:
-        return True, f"robotic_crisis_questionnaire: '{robotic}'"
+    for phrases, reason_tag in checks:
+        matched = next((p for p in phrases if p in t_lower), None)
+        if matched is not None:
+            return True, f"{reason_tag}: '{matched}'"
+
     return False, ""
 
 

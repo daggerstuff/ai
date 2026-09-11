@@ -49,11 +49,7 @@ SELF_CONSISTENCY_VARIANCE_MAX = 0.05
 DUAL_CONSISTENCY_DIFF_MAX = 0.15
 RECENCY_DECAY = 0.85
 ACCEPT_THRESHOLD = 0.60
-GOLDEN_CALIB_PATH = (
-    Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
-    if (Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl").exists()
-    else Path(__file__).resolve().parent / "data" / "golden_judge_calib.jsonl"
-)
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 
@@ -191,22 +187,71 @@ CAVING_PHRASES: tuple[str, ...] = (
     "fair enough",
 )
 
+ROBOTIC_CRISIS_QUESTIONS: tuple[str, ...] = (
+    "are you safe right now",
+    "do you have a plan to hurt yourself",
+    "do you have a plan to kill yourself",
+    "are you thinking about hurting yourself",
+    "are you thinking about killing yourself",
+    "have you thought about hurting yourself",
+    "have you thought about killing yourself",
+)
+
+PARROTING_OPENERS: tuple[str, ...] = (
+    "you used the phrase",
+    "you said",
+    "you mentioned",
+    "you named",
+    "you just said",
+    "when you say",
+    "you're saying that",
+    "so you're saying",
+    "hearing you say",
+    "as you said",
+)
+
+ROBOTIC_SOMATIC_PHRASES: tuple[str, ...] = (
+    "what happens inside your body",
+    "what is happening inside your body",
+    "what is happening in your body",
+    "what happens in your body",
+    "where do you feel that in your body",
+    "notice what happens in your body",
+    "what does your body feel",
+    "what are you feeling in your body",
+    "what is your body telling you",
+)
+
 
 def check_sycophancy_and_slop(text: str) -> tuple[bool, str]:
-    """Check text for banned sycophantic openers or caving/backtracking phrases."""
+    """Check text for banned sycophantic openers, parroting openers, caving, or robotic slop."""
     if not text or not isinstance(text, str):
         return False, ""
     t_lower = text.strip().lower()
-    opener = next(
-        (b for b in BANNED_OPENERS if t_lower.startswith(b) or f"\n{b}" in t_lower),
-        None,
+
+    # Prefix checks (at string start or right after a newline)
+    for prefix in BANNED_OPENERS:
+        if t_lower.startswith(prefix) or f"\n{prefix}" in t_lower:
+            return True, f"banned_sycophantic_opener: '{prefix}'"
+    for prefix in PARROTING_OPENERS:
+        if t_lower.startswith(prefix) or f"\n{prefix}" in t_lower:
+            return True, f"banned_parroting_opener: '{prefix}'"
+
+    # Substring checks anywhere in the utterance
+    checks: tuple[tuple[tuple[str, ...], str], ...] = (
+        (CAVING_PHRASES, "caving_phrase_detected"),
+        (ROBOTIC_CRISIS_QUESTIONS, "robotic_crisis_questionnaire"),
+        (ROBOTIC_SOMATIC_PHRASES, "robotic_somatic_cliche"),
     )
-    if opener is not None:
-        return True, f"banned_sycophantic_opener: '{opener}'"
-    caving = next((c for c in CAVING_PHRASES if c in t_lower), None)
-    if caving is not None:
-        return True, f"caving_phrase_detected: '{caving}'"
+    for phrases, reason_tag in checks:
+        matched = next((p for p in phrases if p in t_lower), None)
+        if matched is not None:
+            return True, f"{reason_tag}: '{matched}'"
+
     return False, ""
+
+
+is_sycophantic = check_sycophancy_and_slop
 
 
 def _looks_like_judge_payload(d: Any) -> bool:
@@ -553,6 +598,10 @@ async def _call_judge_model(
         "temperature": temperature,
         "max_tokens": JUDGE_MAX_TOKENS,
     }
+    if headers is None:
+        # Local Ollama primary judge: force JSON output so the 12B model cannot
+        # drift into prose on long transcripts (the json_parse_error failure).
+        payload["response_format"] = {"type": "json_object"}
     try:
         async with session.post(
             url, json=payload, headers=headers or {}, timeout=aiohttp.ClientTimeout(total=timeout)

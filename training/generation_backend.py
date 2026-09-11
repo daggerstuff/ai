@@ -11,6 +11,7 @@ Backend resolution
 * ``cloudflare`` (default) — Workers AI OpenAI-compatible endpoint.
 * ``9router`` — OpenAI-compatible gateway at ``NINEROUTER_URL``.
 * ``vllm`` — local/remote OpenAI-compatible server at ``VLLM_URL``.
+* ``featherless`` — OpenAI-compatible hosted inference at ``FEATHERLESS_API_KEY``.
 
 ``NF_MODEL`` selects the model ID; any Llama-family ID is rejected at the config
 layer (permanent rule: allowed families are DeepSeek, GLM, Qwen, Mistral).
@@ -145,7 +146,18 @@ def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
             auth_header=f"Bearer {token}" if token else None,
         )
 
-    raise ValueError(f"unknown NF_BACKEND={backend!r}; expected cloudflare|9router|vllm")
+    if backend == "featherless":
+        key = env.get("FEATHERLESS_API_KEY", "")
+        if not key:
+            raise ValueError("NF_BACKEND=featherless requires FEATHERLESS_API_KEY to be set")
+        return BackendConfig(
+            name="featherless",
+            url="https://api.featherless.ai/v1/chat/completions",
+            model=model,
+            auth_header=f"Bearer {key}",
+        )
+
+    raise ValueError(f"unknown NF_BACKEND={backend!r}; expected cloudflare|9router|vllm|featherless")
 
 
 class ModerateGuard:

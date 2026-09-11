@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
+import io
 import json
 import logging
 import math
@@ -22,7 +24,9 @@ from training import dual_judge
 from training.cliche_gate import (
     BANNED_OPENERS,
     CAVING_PHRASES,
+    PARROTING_OPENERS,
     ROBOTIC_CRISIS_QUESTIONS,
+    ROBOTIC_SOMATIC_PHRASES,
     is_sycophantic,
 )
 from training.generation_backend import (
@@ -53,6 +57,8 @@ OUT_GENERATED = CHECKPOINT_DIR / "edge_and_nightmare_generated.jsonl"
 
 _MIN_MESSAGES = 8  # hard floor: 8-12 messages is the minimum band
 _GOLDEN_MESSAGES = 15  # ideal/golden length the prompt targets
+_STAGE_ASSESSMENT_MAX_TURN = 3  # turns 0-3: opening & risk assessment
+_STAGE_EXPLORATION_MAX_TURN = 9  # turns 4-9: deepening exploration & reality testing
 _MIN_QUOTED_UTTERANCE = 2  # shortest text that could be a quote-wrapped utterance
 
 # Authoritative 10-family edge-case taxonomy (mirrors
@@ -172,12 +178,15 @@ async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_pro
 
 
 def _banned_cliches() -> str:
-    """Render the gate's banned lists so the prompt can never drift from the gate."""
     openers = ", ".join(repr(p) for p in BANNED_OPENERS)
+    parroting = ", ".join(repr(p) for p in PARROTING_OPENERS)
+    somatic = ", ".join(repr(s) for s in ROBOTIC_SOMATIC_PHRASES)
     caving = ", ".join(repr(p) for p in CAVING_PHRASES)
     robotic = ", ".join(repr(q) for q in ROBOTIC_CRISIS_QUESTIONS)
     return (
-        f"NEVER open an utterance with any of: {openers}.\n"
+        f"NEVER open an utterance with any reflective opener: {openers}.\n"
+        f"NEVER open with quote-parroting or echoing phrases: {parroting}.\n"
+        f"NEVER use canned somatic deflection formulas: {somatic}.\n"
         f"NEVER use any caving/backtracking phrase: {caving}.\n"
         f"NEVER use these robotic crisis-questionnaire forms: {robotic}."
     )
@@ -197,17 +206,28 @@ _CLIENT_VOICE_SPEC = (
 
 _THERAPIST_VOICE_SPEC = (
     "THERAPIST VOICE (every 'assistant' turn) — non-negotiable:\n"
-    "- Open EVERY therapist turn with either (a) a direct observation naming the client's exact words, or "
-    "(b) a concrete question grounded in those words. Never restate feelings as a label.\n"
+    "- Direct, authentic clinical engagement: speak naturally, candidly, and with grounded boundaries\n"
+    "  like an experienced clinician in the room. Address the client's actual dilemma or defense directly.\n"
+    "- ZERO PARROTING / ECHOING: Do NOT repeat the client's words back in quotes. Never start turns with\n"
+    "  'You said...', 'You used the phrase...', or 'When you say...'. Respond to the underlying dynamic.\n"
+    "- ZERO CANNED SOMATIC DEFLECTIONS: Do NOT retreat to canned 'What happens inside your body' questions\n"
+    "  when faced with resistance, anger, or boundaries.\n"
     "- Worked examples — imitate the GOOD lines, never the BAD:\n"
     "  client: \"I've been feeling like there's no reason to keep going, you know?\"\n"
-    '  BAD:   "It sounds like you feel hopeless."\n'
-    "  GOOD:  \"You used the phrase 'no reason to keep going.' What does that phrase mean for you right now?\"\n"
+    '  BAD (reflective cliché): "It sounds like you feel hopeless."\n'
+    '  BAD (quote parroting):   "You used the phrase \'no reason to keep going.\' What does that mean?"\n'
+    '  GOOD (direct inquiry):   "When did this start getting heavy enough that you began thinking that way?"\n'
+    '  GOOD (grounding safety): "That is an agonizing place to be sitting in. What has kept you safe today?"\n'
     '  client: "My boss rides me about everything and I can\'t take it anymore."\n'
-    '  BAD:   "I hear how frustrated you are."\n'
-    "  GOOD:  \"You named your boss right before 'I can't take it anymore.' "
-    'Which part of that feels most unmanageable today?"\n'
-    "- The BAD lines are banned openers. Never reproduce them or any phrase in the anti-cliche list below."
+    '  BAD (reflective cliché): "I hear how frustrated you are."\n'
+    '  BAD (quote parroting):   "You named your boss right before saying you can\'t take it anymore."\n'
+    '  GOOD (reality testing):  "What happened with your boss recently that pushed you to the edge?"\n'
+    '  GOOD (clarifying move):  "What does \'can\'t take it anymore\' mean practically—quitting or confronting?"\n'
+    '  client: "Maybe we should just skip this whole session. You\'re just sitting there judging me anyway."\n'
+    '  BAD (caving/apology):    "I apologize if I made you feel judged. We don\'t have to talk."\n'
+    '  BAD (quote parroting):   "You said \'maybe we should skip this.\' What is in your body?"\n'
+    '  GOOD (firm & inviting):  "You can walk out anytime you choose. What made you expect judgment today?"\n'
+    "- The BAD lines are strictly prohibited. Never reproduce them or any phrase in the anti-cliche list below."
 )
 
 
@@ -222,6 +242,49 @@ def _session_system_prompt(header: str) -> str:
         f"{_CLIENT_VOICE_SPEC}\n\n"
         f"{_THERAPIST_VOICE_SPEC}\n\n"
         f"ANTI-CLICHE (zero tolerance, enforced verbatim):\n{_banned_cliches()}"
+    )
+
+
+def _client_system_prompt(header: str, context_prompt: str) -> str:
+    """Specialized system prompt for the client persona under high-risk duress."""
+    return (
+        f"{header}\n\n"
+        f"SCENARIO CONTEXT:\n{context_prompt}\n\n"
+        f"{_CLIENT_VOICE_SPEC}"
+    )
+
+
+def _therapist_stage_hint(turn_idx: int) -> str:
+    """Stage-appropriate clinical guidance across the dialogue turns so the therapist
+    maintains forward progression without stalling or reverting to cliches."""
+    if turn_idx <= _STAGE_ASSESSMENT_MAX_TURN:
+        return (
+            "SESSION PHASE: Opening & Risk Assessment.\n"
+            "Engage directly with the presenting tension or dilemma. Clarify immediate reality, boundaries, or safety "
+            "without parroting the client's words or using checklist interrogation."
+        )
+    if turn_idx <= _STAGE_EXPLORATION_MAX_TURN:
+        return (
+            "SESSION PHASE: Exploration & Reality Testing.\n"
+            "Address the unspoken conflict, ambivalence, or contradiction in what the client shared. "
+            "Ask a focused, authentic question that invites real reflection without echoing quotes."
+        )
+    return (
+        "SESSION PHASE: Grounding & De-escalation.\n"
+        "Focus on practical stabilization, client agency, and concrete next moves without lecturing, "
+        "parroting, or offering premature advice."
+    )
+
+
+def _therapist_system_prompt(header: str, context_prompt: str, turn_idx: int = 1) -> str:
+    """Specialized system prompt for the clinician persona with strict anti-sycophancy."""
+    stage_hint = _therapist_stage_hint(turn_idx)
+    return (
+        f"{header}\n\n"
+        f"SCENARIO CONTEXT:\n{context_prompt}\n\n"
+        f"{_THERAPIST_VOICE_SPEC}\n\n"
+        f"{stage_hint}\n\n"
+        f"ANTI-CLICHE & ANTI-SYCOPHANCY (strictly enforced):\n{_banned_cliches()}"
     )
 
 
@@ -258,20 +321,28 @@ def _strip_utterance(text: str) -> str:
 
 async def _generate_client_turn(
     session: aiohttp.ClientSession,
-    system_prompt: str,
+    header_prompt: str,
     context_prompt: str,
     prior: str,
     *,
     max_attempts: int = 3,
 ) -> str:
     """Generate the client's next utterance as one small, single-role call."""
-    prompt = (
-        f"{context_prompt}\n\n"
-        f"Prior transcript:\n{prior}\n\n"
-        "Write ONLY the client's next utterance (1-3 sentences). No labels, no preamble, no quotes."
-    )
+    sys_prompt = _client_system_prompt(header_prompt, context_prompt)
+    if prior:
+        user_prompt = (
+            f"Prior dialogue:\n{prior}\n\n"
+            "Write ONLY the client's next utterance (1-3 sentences) responding to the therapist. "
+            "Stay in authentic client voice under distress. No speaker labels, no preamble, no quotes."
+        )
+    else:
+        user_prompt = (
+            f"{context_prompt}\n\n"
+            "Write ONLY the client's opening statement (1-3 sentences) starting the therapy session. "
+            "Speak from your immediate distress or presenting issue. No speaker labels, no preamble, no quotes."
+        )
     for _attempt in range(max_attempts):
-        text = _strip_utterance(await _call_llm(session, system_prompt, prompt))
+        text = _strip_utterance(await _call_llm(session, sys_prompt, user_prompt))
         if text:
             return text
     return ""
@@ -279,29 +350,34 @@ async def _generate_client_turn(
 
 async def _generate_therapist_turn(
     session: aiohttp.ClientSession,
-    system_prompt: str,
+    sys_prompt: str,
     prior: str,
     client_line: str,
     *,
     max_attempts: int = 3,
 ) -> str:
-    """Generate the therapist's next response, regenerating the single turn if the
-    anti-sycophancy gate trips."""
-    prompt = (
-        f"Prior transcript:\n{prior}\n\n"
+    """Generate the therapist's next response, regenerating if the anti-sycophancy / anti-parroting gate trips."""
+    user_prompt = (
+        f"Prior dialogue:\n{prior}\n\n"
         f"Client just said: {client_line!r}\n\n"
-        "Write ONLY the therapist's next response (1-3 sentences), opening with a direct "
-        "observation or concrete question grounded in the client's exact words. No labels, no preamble."
+        "Write ONLY the therapist's next response (1-3 sentences). "
+        "Engage directly with what the client is saying, feeling, or defending against. "
+        "Speak naturally and candidly like an experienced clinician in the room. "
+        "Do NOT parrot or echo the client's words in quotes. "
+        "Do NOT open with 'You said' / 'You mentioned' or reflective clichés ('It sounds like...', 'I hear...'). "
+        "No speaker labels, no preamble, no quotes surrounding your response."
     )
     for _attempt in range(max_attempts):
-        text = _strip_utterance(await _call_llm(session, system_prompt, prompt))
+        text = _strip_utterance(await _call_llm(session, sys_prompt, user_prompt))
         if not text:
             continue
         hit, reason = is_sycophantic(text)
         if hit:
-            prompt = (
-                f"{prompt}\n\nPrevious response was rejected: {reason}. "
-                "Do not open with any reflective-listening phrase."
+            user_prompt = (
+                f"{user_prompt}\n\n"
+                f"CORRECTION: The draft was rejected ({reason}). "
+                "Do NOT parrot the client's words, do NOT quote them back, and do NOT use reflective clichés. "
+                "Respond directly and naturally to the client's actual situation and dynamic."
             )
             continue
         return text
@@ -324,7 +400,8 @@ async def _generate_transcript_turns(
             text = await _generate_client_turn(session, system_prompt, context_prompt, prior)
             role = "user"
         else:
-            text = await _generate_therapist_turn(session, system_prompt, prior, messages[-1]["content"])
+            therapist_sys = _therapist_system_prompt(system_prompt, context_prompt, turn_idx=i)
+            text = await _generate_therapist_turn(session, therapist_sys, prior, messages[-1]["content"])
             role = "assistant"
         if not text:
             break
@@ -335,19 +412,20 @@ async def _generate_transcript_turns(
 async def generate_nightmare_scenario_turn(
     session: aiohttp.ClientSession, scenario: dict[str, Any]
 ) -> dict[str, Any] | None:
-    system_prompt = _session_system_prompt(
-        "You write realistic multi-turn clinical transcripts of extreme high-duress, adversarial, "
+    header = (
+        "You facilitate realistic multi-turn clinical transcripts of extreme high-duress, adversarial, "
         "or unwinnable psychiatric crises."
     )
     context_prompt = (
-        f"Based on this nightmare scenario:\n"
-        f"Title: {scenario.get('title')}\n"
+        f"Nightmare Scenario: {scenario.get('title')}\n"
         f"Description: {scenario.get('description')}\n"
         f"Failure Mode to withstand: {scenario.get('failure_mode')}\n"
         f"Patient Profile: {scenario.get('patient_profile')}\n"
-        f"Target {_GOLDEN_MESSAGES} messages; client opens, roles alternate."
+        f"Mandate: The therapist must withstand the failure mode '{scenario.get('failure_mode')}' without caving, "
+        "backtracking, or patronizing.\n"
+        f"Target {_GOLDEN_MESSAGES} messages; client opens, roles strictly alternate."
     )
-    norm_msgs = await _generate_transcript_turns(session, system_prompt, context_prompt)
+    norm_msgs = await _generate_transcript_turns(session, header, context_prompt)
     if len(norm_msgs) < _MIN_MESSAGES:
         return None
     return {
@@ -372,18 +450,18 @@ async def generate_nightmare_scenario_turn(
 async def generate_edge_case_turn(
     session: aiohttp.ClientSession, edge_info: dict[str, str], idx: int
 ) -> dict[str, Any] | None:
-    system_prompt = _session_system_prompt(
-        "You write realistic multi-turn clinical-therapy transcripts for difficult clinical edge cases."
+    header = (
+        "You facilitate realistic multi-turn clinical-therapy transcripts for difficult clinical edge cases."
     )
     context_prompt = (
         f"Clinical Edge-Case Family: {edge_info['family']}\n"
         f"Clinical Context: {edge_info['description']}\n"
         f"Difficulty: {edge_info['difficulty']}\n"
-        f"Ambiguity: {edge_info['ambiguity']}\n\n"
-        f"Variation {idx}. Shape the client's language to the ambiguity type '{edge_info['ambiguity']}'. "
-        f"Target {_GOLDEN_MESSAGES} messages; client opens, roles alternate."
+        f"Ambiguity: {edge_info['ambiguity']}\n"
+        f"Variation: {idx}. Shape the client's language to the ambiguity type '{edge_info['ambiguity']}'.\n"
+        f"Target {_GOLDEN_MESSAGES} messages; client opens, roles strictly alternate."
     )
-    norm_msgs = await _generate_transcript_turns(session, system_prompt, context_prompt)
+    norm_msgs = await _generate_transcript_turns(session, header, context_prompt)
     if len(norm_msgs) < _MIN_MESSAGES:
         return None
     return {
@@ -521,7 +599,8 @@ async def _process_record(
     # Crash-durable checkpoint: flush Python's buffer and fsync so a hard kill
     # can lose at most the record currently in flight, never the prior ones.
     fout.flush()
-    os.fsync(fout.fileno())
+    with contextlib.suppress(AttributeError, io.UnsupportedOperation, OSError):
+        os.fsync(fout.fileno())
     return 1, 0
 
 
@@ -552,16 +631,23 @@ async def _run_edge_pool(
 ) -> tuple[int, int, int]:
     """Run edge records with bounded concurrency; returns (generated, rejected, dropped)."""
     counters = {"generated": 0, "rejected": 0, "dropped": 0}
+    lock = asyncio.Lock()
 
     async def _run_edge(combo: dict[str, str], v: int) -> None:
         async with sem:
-            rec = await generate_edge_case_turn(session, combo, v)
+            try:
+                rec = await generate_edge_case_turn(session, combo, v)
+            except Exception as exc:
+                logger.warning("Generation error on %s variation %d: %s", combo.get("family"), v, exc)
+                rec = None
             if rec is None:
-                counters["dropped"] += 1
+                async with lock:
+                    counters["dropped"] += 1
                 return
             dg, dr = await _process_record(rec, guard, fout, session)
-            counters["generated"] += dg
-            counters["rejected"] += dr
+            async with lock:
+                counters["generated"] += dg
+                counters["rejected"] += dr
 
     if work:
         await asyncio.gather(*(_run_edge(c, v) for c, v in work))
@@ -596,7 +682,7 @@ async def main_async(argv: list[str] | None = None) -> None:
     try:
         async with aiohttp.ClientSession(connector=conn) as session:
             with open(OUT_GENERATED, "a", encoding="utf-8") as fout:
-                # 1. Nightmare fuel (pre-defined scenarios, sequential — only 92)
+                # 1. Nightmare fuel (pre-defined scenarios, bounded concurrency)
                 if not args.no_nightmare and SCENARIOS_JSONL.exists():
                     scenarios = [
                         json.loads(line)
@@ -604,18 +690,27 @@ async def main_async(argv: list[str] | None = None) -> None:
                         if line.strip()
                     ]
                     logger.info("Generating %d nightmare-fuel scenarios...", len(scenarios))
-                    for s in scenarios:
-                        if _at_limit(args, generated, rejected):
-                            break
-                        if _nightmare_key(s) in done:
-                            continue
-                        rec = await generate_nightmare_scenario_turn(session, s)
-                        if rec is None:
-                            dropped += 1
-                            continue
-                        dg, dr = await _process_record(rec, guard, fout, session)
-                        generated += dg
-                        rejected += dr
+                    nightmare_work = [s for s in scenarios if _nightmare_key(s) not in done]
+                    if args.limit is not None:
+                        nightmare_work = nightmare_work[: max(0, args.limit - generated - rejected)]
+
+                    async def _run_nightmare(s: dict[str, Any]) -> None:
+                        nonlocal generated, rejected, dropped
+                        async with sem:
+                            try:
+                                rec = await generate_nightmare_scenario_turn(session, s)
+                            except Exception as exc:
+                                logger.warning("Nightmare gen error on %s: %s", s.get("title"), exc)
+                                rec = None
+                            if rec is None:
+                                dropped += 1
+                                return
+                            dg, dr = await _process_record(rec, guard, fout, session)
+                            generated += dg
+                            rejected += dr
+
+                    if nightmare_work:
+                        await asyncio.gather(*(_run_nightmare(s) for s in nightmare_work))
 
                 # 2. Edge cases across the full matrix, bounded-concurrency worker pool
                 remaining = None if args.limit is None else max(0, args.limit - generated - rejected)

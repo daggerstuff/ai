@@ -438,7 +438,7 @@ class TestCalibration:
     def test_calibrate_with_perfect_mock(self, tmp_path):
         """Mock LLM returns human scores exactly → Pearson=1.0, kappa=1.0."""
         # Load golden file, create a mock that returns each sample's human_scores
-        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_judge_calib.jsonl"
+        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_judge_calib_v2.jsonl"
         if not golden_path.exists():
             pytest.skip(f"Golden file not found: {golden_path}")
 
@@ -495,7 +495,7 @@ class TestCalibration:
 
     def test_calibrate_returns_per_dimension(self, uniform_response):
         """calibrate() returns per-dimension correlations."""
-        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_judge_calib.jsonl"
+        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_judge_calib_v2.jsonl"
         if not golden_path.exists():
             pytest.skip(f"Golden file not found: {golden_path}")
 

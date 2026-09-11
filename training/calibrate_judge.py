@@ -9,10 +9,7 @@ Release gate (per blueprint step 2B):
   - Cohen κ >= 0.65 (quadratic-weighted)
 
 CRITICAL: ``training/data/golden_judge_calib_v2.jsonl`` is the real golden set
-(200 AnnoMI-sourced mental-health samples with human scores). The legacy
-``golden_judge_calib.jsonl`` remains as fallback and is synthetic/placeholder
-data; the runner fails closed on it by default (``--allow-placeholder``
-overrides for dry-runs).
+(200 AnnoMI + ESConv clinical samples with expert-rule-based scores).
 
 Usage:
   python calibrate_judge.py [--golden PATH] [--out PATH] [--allow-placeholder]
@@ -104,7 +101,7 @@ def main() -> int:
     # so the harness is exercised without spending API calls on fake labels.
     if placeholder:
         print("[calibrate] dry-run: skipping live LLM (placeholder data)")
-        sample_count = sum(1 for _ in open(golden_path, encoding="utf-8") if _.strip())
+        sample_count = sum(bool(_.strip()) for _ in open(golden_path, encoding="utf-8"))
         report = {
             "golden_path": str(golden_path),
             "is_placeholder": True,

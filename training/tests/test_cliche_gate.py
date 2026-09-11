@@ -4,7 +4,9 @@ from training.cliche_gate import (
     ASSISTANT_ROLES,
     BANNED_OPENERS,
     CAVING_PHRASES,
+    PARROTING_OPENERS,
     ROBOTIC_CRISIS_QUESTIONS,
+    ROBOTIC_SOMATIC_PHRASES,
     is_sycophantic,
     reject_reason_for_record,
 )
@@ -40,6 +42,18 @@ def test_robotic_crisis_questionnaire_detected():
     is_bad, reason = is_sycophantic("Are you safe right now? Do you have a plan?")
     assert is_bad is True
     assert "robotic_crisis_questionnaire" in reason
+
+
+def test_parroting_opener_detected():
+    is_bad, reason = is_sycophantic("You used the phrase 'no reason to keep going.' What does that mean?")
+    assert is_bad is True
+    assert "banned_parroting_opener" in reason
+
+
+def test_robotic_somatic_cliche_detected():
+    is_bad, reason = is_sycophantic("What happens inside your body when you notice that feeling?")
+    assert is_bad is True
+    assert "robotic_somatic_cliche" in reason
 
 
 def test_empty_and_nonstring_pass():
@@ -85,4 +99,6 @@ def test_policy_lists_are_nonempty():
     assert BANNED_OPENERS
     assert CAVING_PHRASES
     assert ROBOTIC_CRISIS_QUESTIONS
+    assert PARROTING_OPENERS
+    assert ROBOTIC_SOMATIC_PHRASES
     assert ASSISTANT_ROLES
