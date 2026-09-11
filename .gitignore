@@ -222,6 +222,9 @@ config/emergency_security_config.json
 **/AGENTS.md
 
 # === GENERATED / ARTIFACTS ===
+/wandb-metadata.json
+/config.yaml
+/diff.patch
 docs/Books/
 simulated_client/
 data/annotation_queue.db
