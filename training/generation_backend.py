@@ -15,6 +15,10 @@ Backend resolution
 
 ``NF_MODEL`` selects the model ID; any Llama-family ID is rejected at the config
 layer (permanent rule: allowed families are DeepSeek, GLM, Qwen, Mistral).
+Per-backend default model applies when ``NF_MODEL`` is unset; the featherless
+default is ``ornith-ai/Ornith-1.5-9B`` (resolved decision: Ornith chosen over
+Boulesis-26B-A4B on the 20-scenario eval — 20/20 first-attempt gate pass, ~4x
+faster).
 """
 
 from __future__ import annotations
@@ -94,16 +98,26 @@ def _cloudflare_api_token(env: dict[str, str]) -> str:
     )
 
 
+# Per-backend default model when NF_MODEL is unset. The featherless default is
+# the resolved decision from the 20-scenario Boulesis vs Ornith eval.
+_DEFAULT_MODEL_BY_BACKEND = {
+    "cloudflare": "@cf/deepseek-ai/deepseek-v4-pro-0813",
+    "featherless": "ornith-ai/Ornith-1.5-9B",
+}
+
+
 def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
     """Resolve the OpenAI-compatible generation backend from environment.
 
-    Reads ``NF_BACKEND`` (cloudflare|9router|vllm) and ``NF_MODEL``. Raises
-    ``ValueError`` on an unknown backend, a missing required URL, or a
+    Reads ``NF_BACKEND`` (cloudflare|9router|vllm|featherless) and ``NF_MODEL``.
+    Raises ``ValueError`` on an unknown backend, a missing required URL, or a
     never-Llama model ID.
     """
     env = dict(os.environ if env is None else env)
     backend = env.get("NF_BACKEND", "cloudflare").strip().lower()
-    model = env.get("NF_MODEL", "@cf/deepseek-ai/deepseek-v4-pro-0813")
+    model = env.get("NF_MODEL") or _DEFAULT_MODEL_BY_BACKEND.get(
+        backend, _DEFAULT_MODEL_BY_BACKEND["cloudflare"]
+    )
 
     if is_llama_model(model):
         raise ValueError(
@@ -270,18 +284,32 @@ async def chat_completion(
     ``NF_MAX_TOKENS`` (default 4096). A 4-turn clinical dialogue spends a large
     budget before the final ``content`` lands, so the cap must be generous or
     the model finishes with ``finish_reason="length"`` and an empty answer.
+
+    Extra sampling knobs (``top_p`` / ``top_k`` / ``presence_penalty`` /
+    ``repetition_penalty``) fall back to ``NF_TOP_P`` / ``NF_TOP_K`` /
+    ``NF_PRESENCE_PENALTY`` / ``NF_REPETITION_PENALTY`` env overrides and are
+    omitted from the payload when unset.
     """
     backend = resolve_backend()
     init_weave()
     started = time.monotonic()
     if max_tokens is None:
         max_tokens = int(os.environ.get("NF_MAX_TOKENS", "4096"))
-    payload = {
+    payload: dict[str, Any] = {
         "model": backend.model,
         "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
+    for key, env_name, cast in (
+        ("top_p", "NF_TOP_P", float),
+        ("top_k", "NF_TOP_K", int),
+        ("presence_penalty", "NF_PRESENCE_PENALTY", float),
+        ("repetition_penalty", "NF_REPETITION_PENALTY", float),
+    ):
+        value = os.environ.get(env_name)
+        if value:
+            payload[key] = cast(value)
     headers = {"Content-Type": "application/json"}
     if backend.auth_header:
         headers["Authorization"] = backend.auth_header

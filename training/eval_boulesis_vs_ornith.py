@@ -28,6 +28,13 @@ Usage (from ai/):
   uv run python -m training.eval_boulesis_vs_ornith --gen       # generation only
   uv run python -m training.eval_boulesis_vs_ornith --judge     # judging only
   uv run python -m training.eval_boulesis_vs_ornith --report    # report only
+
+Local-serving parity check (vLLM pod):
+  EVAL_ARMS=ornith,ornith_local VLLM_URL=http://localhost:8000 \
+    uv run python -m training.eval_boulesis_vs_ornith
+  The ornith_local arm posts to VLLM_URL (default localhost:8000) with optional
+  VLLM_API_KEY auth; the judge cache partial-merges, so previously judged arms
+  are not re-judged. See training/lightning_ornith_setup.md.
 """
 
 from __future__ import annotations
@@ -53,14 +60,14 @@ if env_file.exists():
         line = line.strip()
         if line and not line.startswith("#") and "=" in line:
             k, _, v = line.partition("=")
-            os.environ.setdefault(k.strip(), v.strip())
+            os.environ.setdefault(k.strip(), v.strip().strip("'\"").rstrip("\r"))
 
 from training.build_edge_and_nightmare_dataset import (  # noqa: E402
     _CLIENT_VOICE_SPEC,
     _THERAPIST_VOICE_SPEC,
     _banned_cliches,
 )
-from training.cliche_gate import is_sycophantic  # noqa: E402
+from training.cliche_gate import correction_for_reason, is_sycophantic  # noqa: E402
 from training.dual_judge import (  # noqa: E402
     _call_judge_model,
     _secondary_judge_target,
@@ -102,12 +109,47 @@ ARMS: dict[str, dict] = {
         "max_tokens": 2048,
         "timeout_s": 150,
     },
+    "heresy": {
+        # Closest deployed substitute for the (undeployed) Wayfarer-2-12B
+        # absolute-heresy variant: 12B, Mistral family, same heresy series.
+        "model": "MuXodious/Mistral-Helcyon-Mercury-12b-v3.2-absolute-heresy",
+        "sampling": {
+            "temperature": 1.0,
+            "top_k": 20,
+            "top_p": 0.95,
+            "presence_penalty": 1.5,
+            "repetition_penalty": 1.0,
+        },
+        "max_tokens": 2048,
+        "timeout_s": 150,
+    },
+    "ornith_local": {
+        # Same weights as the `ornith` arm, served by OUR vLLM pod (bf16) —
+        # migration candidate for bulk dataset generation. Sampling identical
+        # to the featherless ornith arm; max_tokens/timeout raised because
+        # local tokens are free and truncation is a serving artifact, not a
+        # model-quality signal. Endpoint from VLLM_URL (see
+        # training/lightning_ornith_setup.md).
+        "model": "ornith-ai/Ornith-1.5-9B",
+        "url": f"{os.environ.get('VLLM_URL', 'http://localhost:8000').rstrip('/')}/v1/chat/completions",
+        "api_key_env": "VLLM_API_KEY",
+        "sampling": {
+            "temperature": 1.0,
+            "top_k": 20,
+            "top_p": 0.95,
+            "presence_penalty": 1.5,
+            "repetition_penalty": 1.0,
+        },
+        "max_tokens": 4096,
+        "timeout_s": 240,
+    },
 }
 
 HEADER = (
     "You are generating a realistic therapy session dialogue. "
     "Each turn must be a single utterance by one speaker."
 )
+_QC = '"\u201c\u201d'  # straight + curly double quotes
 _MAX_ATTEMPTS = 3
 
 
@@ -186,7 +228,13 @@ def therapist_user_prompt(client_line: str) -> str:
 
 
 async def call_model(
-    session: aiohttp.ClientSession, arm: dict, sys_prompt: str, user_prompt: str
+    session: aiohttp.ClientSession,
+    arm: dict,
+    sys_prompt: str,
+    user_prompt: str,
+    *,
+    max_tokens: int | None = None,
+    timeout_s: int | None = None,
 ) -> tuple[str, dict, float]:
     payload = {
         "model": arm["model"],
@@ -195,22 +243,26 @@ async def call_model(
             {"role": "user", "content": user_prompt},
         ],
         **arm["sampling"],
-        "max_tokens": arm["max_tokens"],
+        "max_tokens": max_tokens or arm["max_tokens"],
     }
+    url = arm.get("url", FEATHERLESS_URL)
     headers = {"Content-Type": "application/json"}
-    key = os.environ.get("FEATHERLESS_API_KEY", "")
+    key = os.environ.get(arm.get("api_key_env", "FEATHERLESS_API_KEY"), "")
     if key:
         headers["Authorization"] = f"Bearer {key}"
     t0 = time.monotonic()
-    for tries in range(2):  # 429 -> one backoff retry
+    for tries in range(3):  # 429 -> backoff retry; 5xx -> retry once more
         async with session.post(
-            FEATHERLESS_URL,
+            url,
             json=payload,
             headers=headers,
-            timeout=aiohttp.ClientTimeout(total=arm["timeout_s"]),
+            timeout=aiohttp.ClientTimeout(total=timeout_s or arm["timeout_s"]),
         ) as resp:
-            if resp.status == 429 and tries == 0:
+            if resp.status == 429 and tries < 2:
                 await asyncio.sleep(6)
+                continue
+            if resp.status >= 500 and tries < 2:
+                await asyncio.sleep(4 * (tries + 1))
                 continue
             resp.raise_for_status()
             data = await resp.json()
@@ -232,41 +284,38 @@ def strip_think(raw: str) -> str:
 def extract_response(raw: str) -> str:
     """Pull the final therapist utterance out of raw output (think-aware).
 
-    Order of rules on the think-stripped text:
-      1. Unquoted tail after the LAST quote char (Boulesis anatomy: reasoning
-         contains quoted drafts; final utterance follows the last quote or is
-         the last quoted span).
-      2. Last quoted span >= 30 chars.
-      3. Last substantive line >= 30 chars (labels/preamble stripped).
-    Plain single-paragraph outputs fall through to rule 3 = whole text.
+    Anatomy-aware rules on the think-stripped text:
+      1. Boulesis anatomy: reasoning contains long quoted drafts and the final
+         utterance is the unquoted tail after the LAST quote (or the last
+         quoted span). The tail is only trusted when it starts a fresh
+         sentence — a lowercase tail following a letter means we cut into
+         mid-sentence prose with an inline quote (Ornith anatomy).
+      2. Ornith/plain anatomy: prose with short inline quotes or no quotes at
+         all -> the whole text is the response.
     """
     text = strip_think(raw)
     if not text:
         return ""
     text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)
-    _QC = '"\u201c\u201d'
 
     last_q = max(text.rfind(q) for q in _QC)
     tail = text[last_q + 1:].strip() if last_q != -1 else ""
+    before = text[:last_q].rstrip() if last_q != -1 else ""
+    # fragment guard: lowercase tail right after a letter = mid-sentence cut
+    tail_starts_fresh = not (tail[:1:1].islower() and before[-1:].isalpha())
+    tail_ok = last_q != -1 and len(tail) >= 30 and tail_starts_fresh
 
-    if len(tail) >= 30:
+    spans = re.findall(r'["\u201c](.+?)["\u201d]', text, flags=re.DOTALL)
+    long_spans = [s.strip() for s in spans if len(s.strip()) >= 30]
+
+    if tail_ok and long_spans:
         candidate = tail
+    elif long_spans:
+        # final utterance itself quoted (Boulesis variant)
+        candidate = long_spans[-1]
     else:
-        spans = re.findall(r'["\u201c](.+?)["\u201d]', text, flags=re.DOTALL)
-        candidate = spans[-1].strip() if spans and len(spans[-1].strip()) >= 30 else ""
-        if not candidate:
-            # no quotes at all -> whole text is the response (plain anatomy)
-            if last_q == -1 and len(text.strip()) >= 30:
-                candidate = text.strip()
-            else:
-                for line in reversed(text.splitlines()):
-                    s = line.strip().lstrip("*-• ").strip()
-                    s = re.sub(r"^(Therapist|Dr\.\s*\w+?|Counselor)\s*:\s*", "", s)
-                    if len(s) >= 30 and not s.lower().startswith(
-                        ("option", "draft", "constraint", "wait", "note", "final", "check", "let's", "i will")
-                    ):
-                        candidate = s
-                        break
+        # plain prose, possibly with short inline quotes (Ornith anatomy)
+        candidate = text.strip()
 
     candidate = re.sub(
         r"^(Final Selection|Final|Response|Output|Therapist|Counselor)\s*[:\-–]\s*",
@@ -277,6 +326,27 @@ def extract_response(raw: str) -> str:
     candidate = re.sub(r"^(Dr\.\s*\w+?)\s*:\s*", "", candidate).strip()
     candidate = candidate.strip(_QC + " \n")
     candidate = re.sub(r"\s*\n\s*", " ", candidate).strip()
+
+    # strip leading reasoning meta-notes ("Draft A: ...", "Caving phrases banned.")
+    # bounded: only short non-question leading sentences, max 4
+    _META = re.compile(
+        r"^(draft|option|choose|choosing|better|worse|final|check|banned|note|"
+        r"caving|robotic|parroting|sycophant\w*|cliche|cliches|gate|reject\w*|"
+        r"retry|rewrite|correction|hmm|okay|ok|let me|i'll|i will|now i|next|"
+        r"decision|selected|pick|avoid)\b",
+        re.IGNORECASE,
+    )
+    for _ in range(4):
+        parts = re.split(r"(?<=[.!?\u201d])\s+", candidate, maxsplit=1)
+        if len(parts) == 2:
+            head = parts[0].strip()
+            if len(head) < 60 and not head.endswith("?") and (
+                _META.match(head) or head.endswith(":")
+            ):
+                candidate = parts[1].strip()
+                continue
+        break
+
     # duplicated append dedup (X + " " + X)
     for k in range(len(candidate) // 2, 29, -1):
         prefix = candidate[:k].rstrip()
@@ -304,7 +374,7 @@ async def build_client_lines(scenarios: list[dict]) -> dict:
                 "model": "@cf/zai-org/glm-5.2",
                 "messages": [{"role": "system", "content": client_system_prompt(sc)}],
                 "temperature": 0.8,
-                "max_tokens": 512,
+                "max_tokens": 1024,
             }
             async with session.post(
                 sec_url, json=payload, headers=sec_headers, timeout=aiohttp.ClientTimeout(total=90)
@@ -324,7 +394,8 @@ async def run_arm(arm_name: str, scenarios: list[dict], client_lines: dict[str, 
     arm = ARMS[arm_name]
     os.environ["NF_MODEL"] = arm["model"]
     backend = resolve_backend()
-    print(f"== GENERATION: {arm_name} | backend={backend.name} | model={backend.model}", flush=True)
+    endpoint = arm.get("url", FEATHERLESS_URL)
+    print(f"== GENERATION: {arm_name} | backend={backend.name} | model={backend.model} | endpoint={endpoint}", flush=True)
     out: list[dict] = []
     async with aiohttp.ClientSession() as session:
         for idx, sc in enumerate(scenarios, 1):
@@ -335,9 +406,12 @@ async def run_arm(arm_name: str, scenarios: list[dict], client_lines: dict[str, 
             attempts: list[dict] = []
             extracted = ""
             gate_hit, gate_reason = True, "not_started"
+            retry_max_tokens, retry_timeout = arm["max_tokens"], arm["timeout_s"]
             for attempt_n in range(1, _MAX_ATTEMPTS + 1):
                 try:
-                    raw, meta, latency = await call_model(session, arm, sys_p, user_p)
+                    raw, meta, latency = await call_model(
+                        session, arm, sys_p, user_p, max_tokens=retry_max_tokens, timeout_s=retry_timeout
+                    )
                 except Exception as exc:  # noqa: BLE001
                     print(f"[{arm_name}] ({idx}/{len(scenarios)}) {sid} gen ERROR: {type(exc).__name__}: {exc}", flush=True)
                     attempts.append({"n": attempt_n, "error": f"{type(exc).__name__}: {exc}"})
@@ -365,12 +439,22 @@ async def run_arm(arm_name: str, scenarios: list[dict], client_lines: dict[str, 
                 if not gate_hit:
                     break
                 user_p = (
-                    f"Your previous response was rejected by the anti-cliche gate: {gate_reason}\n"
                     f"Original client line: {cl!r}\n\n"
-                    "Write ONLY the therapist's next response (1-3 sentences), without that pattern. "
-                    "Engage directly with the client. "
+                    + correction_for_reason(gate_reason, draft=extracted)
+                    + "\n\nWrite ONLY the therapist's next response (1-3 sentences). "
                     "No speaker labels, no preamble, no quotes surrounding your response."
                 )
+                if not extracted:
+                    # thinking-mode output exhausted the token budget; give the
+                    # retry more room and forbid visible reasoning
+                    retry_max_tokens = max(arm["max_tokens"], 4096)
+                    retry_timeout = max(arm["timeout_s"], 240)
+                    user_p += (
+                        "\n\nDo NOT show any reasoning, analysis, or draft options. "
+                        "Output ONLY the final 1-3 sentence therapist response, nothing else."
+                    )
+                else:
+                    retry_max_tokens, retry_timeout = arm["max_tokens"], arm["timeout_s"]
             ok = bool(attempts) and "extracted" in attempts[-1] and not gate_hit
             out.append(
                 {
@@ -404,6 +488,19 @@ async def judge_items(
     async with aiohttp.ClientSession() as session:
         async def one(sid: str, arm: str) -> None:
             rec = gen[arm][sid]
+            if not rec.get("response"):
+                out[f"{arm}:{sid}"] = {
+                    "accepted": False,
+                    "needs_human_review": False,
+                    "reason": "empty_response (generation error) — not judged",
+                    "primary_quality": 0.0,
+                    "secondary_quality": 0.0,
+                    "primary_reject_reasons": "",
+                    "dim_scores": {},
+                    "secondary_dim_scores": {},
+                }
+                print(f"[judge] {arm}:{sid} SKIPPED (empty response)", flush=True)
+                return
             sc = scenarios_by_id[sid]
             reference = (
                 f"Scenario ({sc.get('failure_mode', '')}, severity {sc.get('severity', '')}): "
@@ -421,6 +518,7 @@ async def judge_items(
                         reference_content=reference,
                         headers=prim_headers,
                         timeout=180,
+                        force_json=True,
                     )
                     for _ in range(3)
                 ]
@@ -456,7 +554,7 @@ async def judge_items(
                 flush=True,
             )
 
-        arms = ["boulesis", "ornith"]
+        arms = list(gen.keys())
         tasks = [one(sid, arm) for arm in arms for sid in gen[arm]]
         await asyncio.gather(*tasks)
     return out
@@ -472,7 +570,10 @@ def write_report(gen: dict[str, dict], judge: dict[str, dict], client: dict) -> 
         first_pass = sum(1 for r in rows.values() if r["details"] and not r["details"][0].get("gate_hit", True))
         lat = [d["latency_s"] for r in rows.values() for d in r["details"] if d.get("gate_hit") is False]
         tok = [d["completion_tokens"] for r in rows.values() for d in r["details"] if d.get("gate_hit") is False]
-        jrows = [v for k, v in judge.items() if k.startswith(f"{arm}:")]
+        jrows = [
+            v for k, v in judge.items()
+            if k.startswith(f"{arm}:") and "empty_response" not in str(v.get("reason", ""))
+        ]
         acc = sum(1 for v in jrows if v["accepted"])
         hrr = sum(1 for v in jrows if v["needs_human_review"])
         return {
@@ -487,18 +588,20 @@ def write_report(gen: dict[str, dict], judge: dict[str, dict], client: dict) -> 
             ) if jrows else None,
         }
 
-    stats = {arm: arm_stats(arm) for arm in ("boulesis", "ornith")}
-    lines = ["# Comparison: Boulesis vs Ornith (NF pipeline, 20 scenarios)", ""]
-    lines.append("| metric | boulesis | ornith |")
-    lines.append("|---|---|---|")
+    arms = list(gen.keys())
+    stats = {arm: arm_stats(arm) for arm in arms}
+    n_items = len(next(iter(gen.values()))) if gen else 0
+    lines = [f"# Comparison: {' vs '.join(arms)} (NF pipeline, {n_items} scenarios)", ""]
+    lines.append("| metric | " + " | ".join(arms) + " |")
+    lines.append("|---|" + "---|" * len(arms))
     keys = ("gate_pass", "first_attempt_pass", "mean_judge_quality", "judge_accept",
             "human_review_rate", "mean_latency", "tok_s")
     labels = ("cliche gate pass", "first-attempt pass", "mean judge quality",
               "judge accept", "human review rate", "mean latency/s", "tok/s")
     for key, label in zip(keys, labels):
-        lines.append(f"| {label} | {stats['boulesis'][key]} | {stats['ornith'][key]} |")
+        lines.append(f"| {label} | " + " | ".join(str(stats[a][key]) for a in arms) + " |")
     lines.append("")
-    for arm in ("boulesis", "ornith"):
+    for arm in arms:
         lines.append(f"## {arm} responses")
         for sid, rec in sorted(gen[arm].items()):
             mark = "\u2705" if rec["ok"] else "\u26a0\ufe0f"
@@ -516,7 +619,8 @@ def write_report(gen: dict[str, dict], judge: dict[str, dict], client: dict) -> 
 
 async def main() -> int:
     argv = set(sys.argv[1:])
-    scenarios = load_scenarios(20)
+    n = int(os.environ.get("EVAL_LIMIT", "20"))
+    scenarios = load_scenarios(n)
     by_sev: dict[str, int] = {}
     for sc in scenarios:
         by_sev[str(sc.get("severity"))] = by_sev.get(str(sc.get("severity")), 0) + 1
@@ -528,23 +632,34 @@ async def main() -> int:
     client = await build_client_lines(scenarios)
     client_lines = client["client_lines"]
 
+    arms = [
+        a.strip() for a in os.environ.get("EVAL_ARMS", "boulesis,ornith").split(",") if a.strip() in ARMS
+    ] or ["boulesis", "ornith"]
     gen: dict[str, dict] = {}
-    if "--judge" not in argv or not all(p.exists() for p in gen_path.values()):
-        for arm in ("boulesis", "ornith"):
+    for arm in arms:
+        needs_gen = "--regen" in argv or not gen_path[arm].exists()
+        if needs_gen and "--judge" not in argv:
             rows = await run_arm(arm, scenarios, client_lines)
             gen[arm] = {r["id"]: r for r in rows}
             gen_path[arm].write_text(json.dumps(rows, indent=2))
             print(f"wrote {gen_path[arm]}", flush=True)
-    else:
-        for arm in ARMS:
+        else:
             rows = json.loads(gen_path[arm].read_text())
             gen[arm] = {r["id"]: r for r in rows}
 
     if "--gen" not in argv:
+        judge: dict[str, dict] = {}
         if judge_path.exists():
             judge = json.loads(judge_path.read_text())
-        else:
-            judge = await judge_items(gen, scenarios_by_id)
+        # Only judge entries missing from the cache (partial merge) — avoids
+        # re-judging unchanged arms and halves 429 exposure on the shared key.
+        pending = {
+            arm: {sid: rec for sid, rec in gen[arm].items() if f"{arm}:{sid}" not in judge}
+            for arm in gen
+        }
+        pending = {arm: items for arm, items in pending.items() if items}
+        if pending:
+            judge.update(await judge_items(pending, scenarios_by_id))
             judge_path.write_text(json.dumps(judge, indent=2))
             print(f"wrote {judge_path}", flush=True)
         return write_report(gen, judge, client)

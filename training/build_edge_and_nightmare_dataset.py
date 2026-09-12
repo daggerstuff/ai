@@ -20,14 +20,15 @@ from typing import Any
 
 import aiohttp
 
-from training import dual_judge
 from training.cliche_gate import (
     BANNED_OPENERS,
     CAVING_PHRASES,
     PARROTING_OPENERS,
     ROBOTIC_CRISIS_QUESTIONS,
     ROBOTIC_SOMATIC_PHRASES,
+    correction_for_reason,
     is_sycophantic,
+    reject_reason_for_record,
 )
 from training.generation_backend import (
     GenerationLimitExceededError,
@@ -168,7 +169,8 @@ async def _call_llm(session: aiohttp.ClientSession, system_prompt: str, user_pro
         {"role": "user", "content": user_prompt},
     ]
     try:
-        return await chat_completion(session, messages, temperature=0.8, max_retries=3)
+        temperature = float(os.environ.get("NF_TEMPERATURE", "0.8"))
+        return await chat_completion(session, messages, temperature=temperature, max_retries=3)
     except RateLimitError as exc:
         logger.warning("LLM call rate-limited: %s", exc)
         return ""
@@ -365,6 +367,8 @@ async def _generate_therapist_turn(
         "Speak naturally and candidly like an experienced clinician in the room. "
         "Do NOT parrot or echo the client's words in quotes. "
         "Do NOT open with 'You said' / 'You mentioned' or reflective clichés ('It sounds like...', 'I hear...'). "
+        "Never agree with the client's framing, apologize, or back down from your clinical "
+        "position under client pressure. "
         "No speaker labels, no preamble, no quotes surrounding your response."
     )
     for _attempt in range(max_attempts):
@@ -373,12 +377,7 @@ async def _generate_therapist_turn(
             continue
         hit, reason = is_sycophantic(text)
         if hit:
-            user_prompt = (
-                f"{user_prompt}\n\n"
-                f"CORRECTION: The draft was rejected ({reason}). "
-                "Do NOT parrot the client's words, do NOT quote them back, and do NOT use reflective clichés. "
-                "Respond directly and naturally to the client's actual situation and dynamic."
-            )
+            user_prompt = f"{user_prompt}\n\n{correction_for_reason(reason, draft=text)}"
             continue
         return text
     return ""
@@ -579,21 +578,19 @@ async def _process_record(
     rec: dict[str, Any] | None,
     guard: ModerateGuard,
     fout: Any,
-    session: aiohttp.ClientSession,
 ) -> tuple[int, int]:
-    """Dual-judge and write one generated record. Returns ``(dg, dr)`` deltas
+    """Cliché-gate and write one generated record. Returns ``(dg, dr)`` deltas
     so concurrent callers can fold results into shared counters without a
     stale-snapshot race."""
     if rec is None:
         return 0, 0
     # Count every generated record against the credit-burn ceiling (even if the
-    # judge rejects it) so a run producing mostly garbage still auto-kills.
+    # cliché gate rejects it) so a run producing mostly garbage still auto-kills.
     guard.record()
     family = str(rec.get("family", rec.get("diagnostic_tag", "")))
-    verdict = await dual_judge.judge_record_turns(rec, session=session)
-    if not verdict.accepted:
-        reason = verdict.primary.reject_reason or verdict.reason or "below_threshold"
-        logger.warning("dual judge rejected %s: %s", family, reason)
+    reason = reject_reason_for_record(rec, family=family)
+    if reason is not None:
+        logger.warning("cliché gate rejected %s: %s", family, reason)
         return 0, 1
     fout.write(json.dumps(rec, ensure_ascii=False) + "\n")
     # Crash-durable checkpoint: flush Python's buffer and fsync so a hard kill
@@ -644,7 +641,7 @@ async def _run_edge_pool(
                 async with lock:
                     counters["dropped"] += 1
                 return
-            dg, dr = await _process_record(rec, guard, fout, session)
+            dg, dr = await _process_record(rec, guard, fout)
             async with lock:
                 counters["generated"] += dg
                 counters["rejected"] += dr
@@ -705,7 +702,7 @@ async def main_async(argv: list[str] | None = None) -> None:
                             if rec is None:
                                 dropped += 1
                                 return
-                            dg, dr = await _process_record(rec, guard, fout, session)
+                            dg, dr = await _process_record(rec, guard, fout)
                             generated += dg
                             rejected += dr
 

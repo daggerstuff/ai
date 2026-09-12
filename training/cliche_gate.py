@@ -135,3 +135,52 @@ def reject_reason_for_record(record: Any, *, family: str = "") -> str | None:
         if is_bad:
             return f"{reason} (family={family})" if family else reason
     return None
+
+
+def correction_for_reason(reason: str, *, draft: str = "") -> str:
+    """Map a gate rejection reason to targeted rewrite guidance for the retry prompt.
+
+    ``reason`` is a string produced by :func:`is_sycophantic` (``tag: 'matched'``)
+    or :func:`reject_reason_for_record` (same, optionally suffixed with
+    ``(family=...)``). Unknown tags fall back to generic guidance.
+    """
+    # Strip family suffix and matched-phrase tail to recover the tag.
+    tag = reason.split(":", 1)[0].split("(", 1)[0].strip()
+    text = f"CORRECTION: The draft was rejected ({reason})."
+    if draft:
+        text += f"\nRejected draft: {draft!r}\n"
+    if tag == "caving_phrase_detected":
+        return text + (
+            " Your previous draft CAVED: it apologized, agreed with the client, or backed off "
+            "your clinical position under pressure."
+            " Do NOT apologize. Do NOT say 'you're right' or agree with the client's framing."
+            " Do NOT soften, retract, or offer to drop the topic. Hold the therapist's frame:"
+            " stay steady, engage the client's pressure directly from clinical authority,"
+            " and keep the therapeutic stance."
+        )
+    if tag == "banned_sycophantic_opener":
+        return text + (
+            " The draft opened with agreement, praise, or a reflective cliché"
+            " ('I hear...', 'It sounds like...')."
+            " Rewrite the opening with direct clinical engagement in the therapist's own words."
+        )
+    if tag == "banned_parroting_opener":
+        return text + (
+            " The draft quoted or echoed the client's words back."
+            " Rewrite responding to the meaning underneath instead of repeating the phrasing."
+        )
+    if tag == "robotic_crisis_questionnaire":
+        return text + (
+            " The draft used a checklist-style liability questionnaire."
+            " Assess safety in one natural, human question woven into genuine engagement."
+        )
+    if tag == "robotic_somatic_cliche":
+        return text + (
+            " The draft deflected with a canned body-sensation line."
+            " Rewrite engaging the client's actual situation and dynamic."
+        )
+    return text + (
+        " Do NOT parrot the client's words, do NOT quote them back,"
+        " do NOT use reflective clichés, and do NOT apologize or cave under pressure."
+        " Respond directly and naturally to the client's actual situation and dynamic."
+    )
