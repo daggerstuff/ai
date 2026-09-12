@@ -580,6 +580,7 @@ async def _call_judge_model(
     temperature: float = JUDGE_TEMPERATURE,
     timeout: int = JUDGE_TIMEOUT_SECONDS,
     headers: dict[str, str] | None = None,
+    force_json: bool = False,
 ) -> JudgeVerdict:
     """Call one judge model on one candidate/reference pair."""
 
@@ -601,6 +602,9 @@ async def _call_judge_model(
     if headers is None:
         # Local Ollama primary judge: force JSON output so the 12B model cannot
         # drift into prose on long transcripts (the json_parse_error failure).
+        payload["response_format"] = {"type": "json_object"}
+    elif force_json:
+        # Remote primary judge (e.g. Featherless): same prose-drift risk.
         payload["response_format"] = {"type": "json_object"}
     try:
         async with session.post(

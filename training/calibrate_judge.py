@@ -28,12 +28,21 @@ _ai_root = Path(__file__).resolve().parent.parent
 if str(_ai_root) not in sys.path:
     sys.path.insert(0, str(_ai_root))
 
-from training.llm_quality_judge import (
-    CALIB_KAPPA_MIN,
-    CALIB_PEARSON_MIN,
-    GOLDEN_CALIB_PATH,
-    DualModelQualityJudge,
-)
+try:
+    from training.llm_quality_judge import (
+        CALIB_KAPPA_MIN,
+        CALIB_PEARSON_MIN,
+        GOLDEN_CALIB_PATH,
+        DualModelQualityJudge,
+    )
+except ImportError:  # pragma: no cover - direct execution with unpinned cwd
+    sys.path.insert(0, str(_ai_root))
+    from training.llm_quality_judge import (
+        CALIB_KAPPA_MIN,
+        CALIB_PEARSON_MIN,
+        GOLDEN_CALIB_PATH,
+        DualModelQualityJudge,
+    )
 
 PLACEHOLDER_NOTICE = (
     "golden judge set is synthetic/placeholder data — "
@@ -65,6 +74,57 @@ def _is_placeholder(golden_path: Path) -> bool:
         return rid.startswith(("neon-consensus-", "golden-")) or marked
     except Exception:
         return False
+
+
+def _write_report(out_path: Path, report: dict, kind: str = "report") -> None:
+    """Persist a calibration report JSON and log where it landed."""
+    out_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    print(f"[calibrate] {kind} written to {out_path}")
+
+
+def _run_dry_run(golden_path: Path, out_path: Path) -> int:
+    """Emit a synthetic report for placeholder data without hitting the LLM."""
+    print("[calibrate] dry-run: skipping live LLM (placeholder data)")
+    sample_count = sum(bool(_.strip()) for _ in open(golden_path, encoding="utf-8"))
+    report = _build_report(
+        golden_path,
+        True,
+        {
+            "pearson_r": None,
+            "cohens_kappa": None,
+            "per_dimension_correlations": {},
+            "sample_count": sample_count,
+            "gate_passed": False,
+        },
+        thresholds={"pearson_min": CALIB_PEARSON_MIN, "kappa_min": CALIB_KAPPA_MIN},
+        gate_blocked_reason="placeholder golden data — no real human labels",
+    )
+    _write_report(out_path, report, kind="dry-run report")
+    print("[calibrate] gate_passed=False (placeholder — replace golden set with real labels)")
+    return 0
+
+
+def _build_report(
+    golden_path: Path,
+    placeholder: bool,
+    data: dict,
+    *,
+    thresholds: dict,
+    gate_blocked_reason: str | None = None,
+) -> dict:
+    """Assemble the calibration report dict (shared by dry-run and live paths)."""
+    return {
+        "golden_path": str(golden_path),
+        "is_placeholder": placeholder,
+        "pearson_r": data["pearson_r"],
+        "cohens_kappa": data["cohens_kappa"],
+        "per_dimension_correlations": data["per_dimension_correlations"],
+        "sample_count": data["sample_count"],
+        "thresholds": thresholds,
+        "gate_passed": data["gate_passed"],
+        "gate_blocked_reason": gate_blocked_reason,
+        "placeholder_notice": PLACEHOLDER_NOTICE if placeholder else None,
+    }
 
 
 def main() -> int:
@@ -100,24 +160,7 @@ def main() -> int:
     # Dry-run on placeholder data: do NOT hit the LLM. Emit a synthetic report
     # so the harness is exercised without spending API calls on fake labels.
     if placeholder:
-        print("[calibrate] dry-run: skipping live LLM (placeholder data)")
-        sample_count = sum(bool(_.strip()) for _ in open(golden_path, encoding="utf-8"))
-        report = {
-            "golden_path": str(golden_path),
-            "is_placeholder": True,
-            "pearson_r": None,
-            "cohens_kappa": None,
-            "per_dimension_correlations": {},
-            "sample_count": sample_count,
-            "thresholds": {"pearson_min": CALIB_PEARSON_MIN, "kappa_min": CALIB_KAPPA_MIN},
-            "gate_passed": False,
-            "gate_blocked_reason": "placeholder golden data — no real human labels",
-            "placeholder_notice": PLACEHOLDER_NOTICE,
-        }
-        out_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-        print(f"[calibrate] dry-run report written to {out_path}")
-        print("[calibrate] gate_passed=False (placeholder — replace golden set with real labels)")
-        return 0
+        return _run_dry_run(golden_path, out_path)
 
     if not (os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")):
         print("FAIL: no LLM_API_KEY or OPENAI_API_KEY set — judge needs a live LLM endpoint.")
@@ -137,20 +180,20 @@ def main() -> int:
         print(f"FAIL: calibration run errored: {e}")
         return 6
 
-    report = {
-        "golden_path": str(golden_path),
-        "is_placeholder": placeholder,
-        "pearson_r": result.get("pearson_r"),
-        "cohens_kappa": result.get("cohens_kappa"),
-        "per_dimension_correlations": result.get("per_dimension_correlations", {}),
-        "sample_count": result.get("sample_count", 0),
-        "thresholds": {"pearson_min": CALIB_PEARSON_MIN, "kappa_min": CALIB_KAPPA_MIN},
-        "gate_passed": bool(result.get("pass", False)),
-        "placeholder_notice": PLACEHOLDER_NOTICE if placeholder else None,
-    }
+    report = _build_report(
+        golden_path,
+        placeholder,
+        {
+            "pearson_r": result.get("pearson_r"),
+            "cohens_kappa": result.get("cohens_kappa"),
+            "per_dimension_correlations": result.get("per_dimension_correlations", {}),
+            "sample_count": result.get("sample_count", 0),
+            "gate_passed": bool(result.get("pass", False)),
+        },
+        thresholds={"pearson_min": CALIB_PEARSON_MIN, "kappa_min": CALIB_KAPPA_MIN},
+    )
 
-    out_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    print(f"[calibrate] report written to {out_path}")
+    _write_report(out_path, report)
     print(
         f"[calibrate] pearson_r={report['pearson_r']} cohens_kappa={report['cohens_kappa']} "
         f"gate_passed={report['gate_passed']}"
