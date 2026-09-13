@@ -357,22 +357,39 @@ def extract_response(raw: str) -> str:
 
 
 async def build_client_lines(scenarios: list[dict]) -> dict:
-    """Client openers generated ONCE via Cloudflare judge model (not under test)."""
+    """Client openers generated ONCE via Cloudflare judge model (not under test).
+
+    Merge-on-miss semantics: existing cached openers are never dropped or
+    rewritten; only genuinely missing scenario ids get generated. This keeps
+    small EVAL_LIMIT smoke runs from ratcheting the shared fixture down.
+    """
     cache_path = OUT_DIR / "client_lines.json"
-    if cache_path.exists():
-        cached = json.loads(cache_path.read_text())
-        if set(cached.get("client_lines", {})) >= {str(sc.get("scenario_id")) for sc in scenarios}:
-            return cached
     client_lines: dict[str, str] = {}
+    scen_by_id: dict[str, dict] = {}
+    want: list[tuple[str, int]] = []
+    for idx, sc in enumerate(scenarios, 1):
+        sid = str(sc.get("scenario_id"))
+        scen_by_id[sid] = sc
+        want.append((sid, idx))
+    if cache_path.exists():
+        try:
+            cached = json.loads(cache_path.read_text())
+        except (OSError, ValueError):
+            cached = {}
+        for k, v in cached.get("client_lines", {}).items():
+            client_lines.setdefault(str(k), v)
+        # Preserve richer cached metadata (e.g. full earlier scenario dumps).
+        scen_by_id.update({str(c.get("scenario_id")): c for c in cached.get("scenarios", [])})
+    missing = [sid for sid, _ in want if sid not in client_lines]
     async with aiohttp.ClientSession() as session:
         sec_url, sec_headers = _secondary_judge_target()
-        for idx, sc in enumerate(scenarios, 1):
-            sid = str(sc.get("scenario_id", f"sc_{idx}"))
-            if sid in client_lines:
-                continue
+        done = 0
+        total_missing = len(missing)
+        scenarios_gen = {sid: sc for sid, sc in zip((s for s, _ in want), scenarios)}
+        for sid in missing:
             payload = {
                 "model": "@cf/zai-org/glm-5.2",
-                "messages": [{"role": "system", "content": client_system_prompt(sc)}],
+                "messages": [{"role": "system", "content": client_system_prompt(scenarios_gen[sid])}],
                 "temperature": 0.8,
                 "max_tokens": 1024,
             }
@@ -384,8 +401,9 @@ async def build_client_lines(scenarios: list[dict]) -> dict:
             line = (data["choices"][0]["message"].get("content") or "").strip()
             line = re.sub(r"^(Client|Patient)\s*:\s*", "", line).strip(_QC + " \n")
             client_lines[sid] = re.sub(r"\s*\n\s*", " ", line)
-            print(f"[client] ({idx}/{len(scenarios)}) {sid}", flush=True)
-    out = {"scenarios": scenarios, "client_lines": client_lines}
+            done += 1
+            print(f"[client] ({done}/{total_missing}) {sid}", flush=True)
+    out = {"scenarios": list(scen_by_id.values()), "client_lines": client_lines}
     cache_path.write_text(json.dumps(out, indent=2))
     return out
 
