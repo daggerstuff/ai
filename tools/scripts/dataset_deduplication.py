@@ -13,9 +13,11 @@ from pathlib import Path
 from typing import Any
 
 from s3_client_helper import get_s3_client
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 S3_PATH_MIN_PARTS = 2
-DEFAULT_REGISTRY_PATH = "/home/vivi/pixelated/ai/configs/dataset_registry.json"
+DEFAULT_REGISTRY_PATH = str(AI_DIR / "configs/dataset_registry.json")
 DEDUP_SUFFIX = "_deduped"
 JSONL_EXTENSION = ".jsonl"
 JSON_EXTENSION = ".json"

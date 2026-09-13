@@ -5,11 +5,13 @@ Validates security configurations for production readiness
 """
 
 from pathlib import Path
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 
 def validate_security_configurations():
     """Validate all security configurations"""
-    Path("/home/vivi/pixelated/ai/security")
+    AI_DIR / "security"
 
     return {
         "encryption_config": True,

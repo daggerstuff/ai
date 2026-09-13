@@ -29,12 +29,16 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import StandardScaler
 from textstat import flesch_kincaid_grade, flesch_reading_ease
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 warnings.simplefilter("default")
 
 
 class ConversationEffectivenessPredictor:
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         self.db_path = db_path
         self.models = {}
         self.scalers = {}
@@ -762,7 +766,7 @@ class ConversationEffectivenessPredictor:
         # Save the plot
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
-            f"/home/vivi/pixelated/ai/monitoring/effectiveness_prediction_{timestamp}.png",
+            str(_PROJECT_ROOT / "ai" / "monitoring" / "effectiveness_prediction_{timestamp}.png"),
             dpi=300,
             bbox_inches="tight",
         )
@@ -780,7 +784,7 @@ def main():
 
         # Save results
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        output_file = f"/home/vivi/pixelated/ai/monitoring/effectiveness_prediction_{timestamp}.json"
+        output_file = str(_PROJECT_ROOT / "ai" / "monitoring" / "effectiveness_prediction_{timestamp}.json")
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)

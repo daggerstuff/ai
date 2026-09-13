@@ -15,14 +15,18 @@ import os
 from datetime import UTC, datetime
 
 from flask import Flask, jsonify, send_file
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 app = Flask(__name__)
 
 
 class DashboardWebLauncher:
     def __init__(self):
-        self.dashboard_dir = "/home/vivi/pixelated/ai/monitoring/dashboards"
-        self.reports_dir = "/home/vivi/pixelated/ai/monitoring/reports"
+        self.dashboard_dir = str(_PROJECT_ROOT / "ai" / "monitoring" / "dashboards")
+        self.reports_dir = str(_PROJECT_ROOT / "ai" / "monitoring" / "reports")
         self.analytics_systems = {
             "Dataset Statistics": "dataset_statistics_dashboard.py",
             "Content Analyzer": "conversation_content_analyzer.py",

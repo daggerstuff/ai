@@ -350,8 +350,10 @@ def process_channel(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Distill YouTube clinical transcripts into persona-grounded ChatML.")
-    parser.add_argument("--transcripts_dir", type=str, default="/home/vivi/pixelated/ai/training/youtube_transcripts")
-    parser.add_argument("--output_dir", type=str, default="/home/vivi/pixelated/ai/data/curated/youtube_distilled_personas")
+    _training_dir = Path(__file__).resolve().parent
+    _ai_dir = _training_dir.parent
+    parser.add_argument("--transcripts_dir", type=str, default=str(_training_dir / "youtube_transcripts"))
+    parser.add_argument("--output_dir", type=str, default=str(_ai_dir / "data" / "curated" / "youtube_distilled_personas"))
     parser.add_argument("--channel", type=str, default="", help="Specific channel to distill")
     parser.add_argument("--workers", type=int, default=2)
     args = parser.parse_args()

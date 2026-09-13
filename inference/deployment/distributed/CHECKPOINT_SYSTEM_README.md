@@ -326,10 +326,10 @@ config = CheckpointConfig(
 
 ```bash
 # Optional environment variables for configuration
-export CHECKPOINT_STORAGE_PATH="/home/vivi/pixelated/ai/checkpoints"
+export CHECKPOINT_STORAGE_PATH="~/pixelated/ai/checkpoints"
 export CHECKPOINT_MAX_SIZE_GB="10.0"
 export CHECKPOINT_COMPRESSION="true"
-export CHECKPOINT_BACKUP_PATH="/home/vivi/pixelated/ai/checkpoint_backups"
+export CHECKPOINT_BACKUP_PATH="~/pixelated/ai/checkpoint_backups"
 ```
 
 ## 📈 Performance Metrics

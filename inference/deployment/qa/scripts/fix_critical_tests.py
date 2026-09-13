@@ -12,6 +12,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[5]
+
+
 MIN_TEMPLATE_SIZE = 100
 MIN_COVERAGE_THRESHOLD = 80
 PRODUCTION_COVERAGE_THRESHOLD = 90
@@ -20,7 +23,7 @@ PRODUCTION_COVERAGE_THRESHOLD = 90
 class CriticalTestFixer:
     """Fixes critical test files for core AI modules."""
 
-    def __init__(self, project_root: str = "/home/vivi/pixelated/ai"):
+    def __init__(self, project_root: str = str(_PROJECT_ROOT / "ai")):
         self.project_root = Path(project_root)
         self.critical_modules = [
             "crisis_intervention_detector",

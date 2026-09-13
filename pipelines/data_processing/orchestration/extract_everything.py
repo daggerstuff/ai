@@ -5,6 +5,8 @@ import json
 import logging
 import os
 
+
+
 logger = logging.getLogger(__name__)
 import subprocess
 
@@ -14,6 +16,8 @@ from pipelines.data_processing.extractors.s3_streamer import S3Streamer
 from pipelines.data_processing.processors.chatml_converter import ChatMLConverter
 from pipelines.data_processing.processors.quality_filter import QualityFilter
 from pipelines.data_processing.processors.safety_processors import HackathonSafetyProcessor
+from pathlib import Path
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 GDRIVE_REMOTES = ["gdrive:", "drive:"]
 
@@ -318,7 +322,7 @@ def stream_gdrive_records(book_ext):
 
 
 def stream_local_records(book_ext):
-    local_files = glob.glob("/home/vivi/pixelated/ai/data/**/*", recursive=True)
+    local_files = glob.glob(str(_PROJECT_ROOT / "ai" / "data" / "**" / "*"), recursive=True)
 
     for f in local_files:
         if not os.path.isfile(f):

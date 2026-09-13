@@ -82,7 +82,7 @@ Run the full test suite (`python -m pytest --tb=short`) to verify all P1 fixes p
 
 ## File Locations for Remaining Issues
 
-All files are under `/home/vivi/pixelated/ai/`:
+All files are under `~/pixelated/ai/`:
 ```
 core/pipelines/processing/clean.py
 core/pipelines/ears_compliance_gate.py

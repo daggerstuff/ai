@@ -34,6 +34,9 @@ from typing import Any
 import httpx
 import numpy as np
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -593,7 +596,7 @@ class EnterpriseValidator:
     """Main enterprise validation system"""
 
     def __init__(self):
-        self.validation_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/validation_results")
+        self.validation_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/validation_results")
         self.validation_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize validators

@@ -4,8 +4,8 @@
 
 I have implemented a truly zero-setup lazy loading system in:
 
-- `/home/vivi/pixelated/ai/annotation/scripts/truly_lazy_loader.py` - Core implementation
-- `/home/vivi/pixelated/ai/annotation/scripts/TRULY_ZERO_SETUP_EXPLAINED.md` - Detailed explanation
+- `~/pixelated/ai/annotation/scripts/truly_lazy_loader.py` - Core implementation
+- `~/pixelated/ai/annotation/scripts/TRULY_ZERO_SETUP_EXPLAINED.md` - Detailed explanation
 
 ## The REAL Answer to "How is it used then?"
 

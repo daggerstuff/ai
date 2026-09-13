@@ -20,9 +20,11 @@ import pandas as pd
 from flask import Flask, jsonify, render_template
 
 
+
+
 class InteractiveDashboardSystem:
     def __init__(self):
-        self.base_dir = "/home/vivi/pixelated/ai"
+        self.base_dir = str(_PROJECT_ROOT / "ai")
         self.dashboard_dir = f"{self.base_dir}/monitoring/dashboards"
         self.db_path = f"{self.base_dir}/database/conversations.db"
         self.app = Flask(__name__, template_folder=self.dashboard_dir)
@@ -621,6 +623,8 @@ import logging
 import sys
 sys.path.append('{self.base_dir}')
 from monitoring.interactive_dashboard_system import InteractiveDashboardSystem
+from pathlib import Path
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

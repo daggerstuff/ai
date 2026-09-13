@@ -23,6 +23,10 @@ import warnings
 from datetime import UTC, datetime
 
 import pandas as pd
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
 
 TOTAL_TEST_CONVERSATIONS = 50
 EXPECTED_DATASET_COUNT = 4
@@ -48,8 +52,8 @@ SYSTEM_WORKFLOW_REPORTS = [
 warnings.simplefilter("default")
 
 # Add paths for imports
-sys.path.append("/home/vivi/pixelated/ai/monitoring")
-sys.path.append("/home/vivi/pixelated/ai")
+sys.path.append(str(_PROJECT_ROOT / "ai" / "monitoring"))
+sys.path.append(str(_PROJECT_ROOT / "ai"))
 
 
 class TestEndToEndDataFlow(unittest.TestCase):

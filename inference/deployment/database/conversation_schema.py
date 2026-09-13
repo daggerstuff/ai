@@ -17,6 +17,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
 # Enterprise imports - disabled, modules not available
 
 # Use standard logging instead
@@ -506,7 +509,7 @@ if __name__ == "__main__":
     storage = designer.estimate_storage_requirements()
 
     # Save schema to file
-    schema_file = Path("/home/vivi/pixelated/ai/database/conversation_schema.sql")
+    schema_file = (_PROJECT_ROOT / "ai" / "database/conversation_schema.sql")
     schema_file.parent.mkdir(parents=True, exist_ok=True)
 
     with open(schema_file, "w") as f:

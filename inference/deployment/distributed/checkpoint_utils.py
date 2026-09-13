@@ -17,10 +17,13 @@ from typing import Any
 
 import psutil
 from checkpoint_system import (
+
     CheckpointManager,
     CheckpointStatus,
     CheckpointStorage,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,7 +34,7 @@ logger = logging.getLogger(__name__)
 class CheckpointConfig:
     """Configuration for checkpoint system"""
 
-    storage_path: str = "/home/vivi/pixelated/ai/inference/deployment/distributed/checkpoints"
+    storage_path: str = str(_PROJECT_ROOT / "ai" / "inference" / "deployment" / "distributed" / "checkpoints")
     auto_checkpoint_interval: int = 300  # 5 minutes
     cleanup_interval: int = 3600  # 1 hour
     default_ttl_hours: int = 24
@@ -39,7 +42,7 @@ class CheckpointConfig:
     compression_enabled: bool = True
     encryption_enabled: bool = False
     backup_enabled: bool = True
-    backup_path: str = "/home/vivi/pixelated/ai/inference/deployment/distributed/checkpoint_backups"
+    backup_path: str = str(_PROJECT_ROOT / "ai" / "inference" / "deployment" / "distributed" / "checkpoint_backups")
     monitoring_enabled: bool = True
     performance_tracking: bool = True
 
@@ -533,7 +536,7 @@ def create_checkpoint_config(
     """Create checkpoint configuration with sensible defaults"""
 
     if storage_path is None:
-        storage_path = "/home/vivi/pixelated/ai/inference/deployment/distributed/checkpoints"
+        storage_path = str(_PROJECT_ROOT / "ai" / "inference" / "deployment" / "distributed" / "checkpoints")
 
     return CheckpointConfig(
         storage_path=storage_path,

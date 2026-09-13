@@ -12,13 +12,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[5]
+
+
 MAX_COLLECTION_ERRORS = 10
 
 
 class TestInfrastructureFixer:
     """Fixes test infrastructure issues to enable proper coverage measurement."""
 
-    def __init__(self, project_root: str = "/home/vivi/pixelated/ai"):
+    def __init__(self, project_root: str = str(_PROJECT_ROOT / "ai")):
         self.project_root = Path(project_root)
         self.test_files = []
         self.errors_fixed = 0

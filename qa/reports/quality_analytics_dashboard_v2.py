@@ -27,6 +27,9 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
 # Suppress warnings for cleaner output
 warnings.simplefilter("default")
 
@@ -64,7 +67,7 @@ class QualityAnalyticsDashboard:
     - Audit logging and compliance tracking
     """
 
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         """Initialize the quality analytics dashboard with enterprise configuration."""
         self.db_path = Path(db_path)
         self.cache_duration = 300  # 5 minutes cache TTL

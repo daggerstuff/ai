@@ -51,9 +51,12 @@ from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import (
+
     Any,
     TypeVar,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 # Type aliases for better readability
 ModelT = TypeVar("ModelT")
@@ -95,7 +98,7 @@ class PersistenceConfig:
 
     # Database connection
     database_type: DatabaseType = DatabaseType.SQLITE
-    database_path: str | Path = "/home/vivi/pixelated/ai/database/consolidated.db"
+    database_path: str | Path = str(_PROJECT_ROOT / "ai" / "database" / "consolidated.db")
 
     # For PostgreSQL/MySQL
     host: str | None = None

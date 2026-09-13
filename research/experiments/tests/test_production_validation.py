@@ -8,13 +8,16 @@ import json
 import unittest
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
 
 class TestProductionValidation(unittest.TestCase):
     """Test production validation components"""
 
     def test_safety_validation_results(self):
         """Test safety validation results exist and are valid"""
-        results_file = Path("/home/vivi/pixelated/ai/task_81_safety_validation_results.json")
+        results_file = (_PROJECT_ROOT / "ai" / "task_81_safety_validation_results.json")
         assert results_file.exists()
 
         with open(results_file) as f:
@@ -25,7 +28,7 @@ class TestProductionValidation(unittest.TestCase):
 
     def test_security_validation_results(self):
         """Test security validation results exist and are valid"""
-        results_file = Path("/home/vivi/pixelated/ai/task_85_security_validation_results.json")
+        results_file = (_PROJECT_ROOT / "ai" / "task_85_security_validation_results.json")
         assert results_file.exists()
 
         with open(results_file) as f:
@@ -36,17 +39,17 @@ class TestProductionValidation(unittest.TestCase):
 
     def test_documentation_validation_results(self):
         """Test documentation validation results exist and are valid"""
-        results_file = Path("/home/vivi/pixelated/ai/task_86_documentation_validation_results.json")
+        results_file = (_PROJECT_ROOT / "ai" / "task_86_documentation_validation_results.json")
         assert results_file.exists()
 
     def test_compliance_validation_results(self):
         """Test compliance validation results exist and are valid"""
-        results_file = Path("/home/vivi/pixelated/ai/task_87_compliance_validation_results.json")
+        results_file = (_PROJECT_ROOT / "ai" / "task_87_compliance_validation_results.json")
         assert results_file.exists()
 
     def test_usability_validation_results(self):
         """Test usability validation results exist and are valid"""
-        results_file = Path("/home/vivi/pixelated/ai/task_88_usability_validation_results.json")
+        results_file = (_PROJECT_ROOT / "ai" / "task_88_usability_validation_results.json")
         assert results_file.exists()
 
 

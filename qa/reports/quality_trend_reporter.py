@@ -21,10 +21,13 @@ from jinja2 import Environment, select_autoescape
 
 # Import our trend analyzer
 from quality_trend_analyzer import (
+
     QualityTrendAnalyzer,
     QualityTrendReport,
     TrendAnalysis,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 # Suppress warnings
 warnings.simplefilter("default")
@@ -46,7 +49,7 @@ class QualityTrendReporter:
     _MAX_ANOMALIES_THRESHOLD = 5
     _MAX_P_VALUE = 0.05
 
-    def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
+    def __init__(self, output_dir: str = str(_PROJECT_ROOT / "ai" / "monitoring" / "reports")):
         """Initialize the trend reporter."""
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)

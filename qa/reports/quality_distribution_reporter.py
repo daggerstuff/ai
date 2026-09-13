@@ -21,12 +21,15 @@ from jinja2 import Environment, select_autoescape
 
 # Import our distribution components
 from quality_distribution_analyzer import (
+
     DistributionStatistics,
     QualityDistributionAnalysis,
     QualityDistributionAnalyzer,
     QualityDistributionReport,
 )
 from quality_distribution_comparator import QualityDistributionComparator
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 # Suppress warnings
 warnings.simplefilter("default")
@@ -50,7 +53,7 @@ class QualityDistributionReporter:
     _MIN_NORMAL_TEST_PASS_RATE = 0.5
     _MIN_COEFFICIENT_VARIATION = 0.1
 
-    def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
+    def __init__(self, output_dir: str = str(_PROJECT_ROOT / "ai" / "monitoring" / "reports")):
         """Initialize the distribution reporter."""
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)

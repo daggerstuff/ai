@@ -71,7 +71,7 @@ To run the shared service itself, use:
 
 ```bash
 source /path/to/pixelated-memory.env
-/home/vivi/pixelated/scripts/memory/run-shared-memory-service.sh
+~/pixelated/scripts/memory/run-shared-memory-service.sh
 ```
 
 ## Migration Note

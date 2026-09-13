@@ -25,12 +25,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from textstat import flesch_reading_ease
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 warnings.simplefilter("default")
 
 
 class ConversationRecommendationOptimizer:
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         self.db_path = db_path
         self.optimization_rules = {}
         self.recommendations = {}
@@ -1127,7 +1131,7 @@ class ConversationRecommendationOptimizer:
         # Save the plot
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
-            f"/home/vivi/pixelated/ai/monitoring/recommendation_optimization_{timestamp}.png",
+            str(_PROJECT_ROOT / "ai" / "monitoring" / "recommendation_optimization_{timestamp}.png"),
             dpi=300,
             bbox_inches="tight",
         )
@@ -1198,7 +1202,7 @@ def main():
 
         # Save results
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        output_file = f"/home/vivi/pixelated/ai/monitoring/recommendation_optimization_{timestamp}.json"
+        output_file = str(_PROJECT_ROOT / "ai" / "monitoring" / "recommendation_optimization_{timestamp}.json")
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)

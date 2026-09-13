@@ -33,7 +33,7 @@ class DatasetRef:
 def get_default_registry_path() -> Path:
     # ai/utils/common/dataset_registry.py -> ai/utils/common -> ai/utils -> ai -> project root
     # Actually, we're already in ai/, so just go to data/
-    ai_root = Path(__file__).resolve().parents[2]  # Gets to /home/vivi/pixelated/ai
+    ai_root = Path(__file__).resolve().parents[2]  # Gets to <project_root>/ai
     return ai_root / "data" / "dataset_registry.json"
 
 

@@ -3,19 +3,19 @@
   "deployment_results": {
     "executive_dashboard": {
       "dashboard_created": true,
-      "dashboard_path": "/home/vivi/pixelated/ai/monitoring/dashboards/executive/executive_dashboard_20250807_134847.png",
+      "dashboard_path": "../../../ai/monitoring/dashboards/executive/executive_dashboard_20250807_134847.png",
       "metrics_included": 6,
       "last_updated": "2025-08-07T13:48:49.655993"
     },
     "operational_dashboard": {
       "dashboard_created": true,
-      "dashboard_path": "/home/vivi/pixelated/ai/monitoring/dashboards/operational/operational_dashboard_20250807_134850.png",
+      "dashboard_path": "../../../ai/monitoring/dashboards/operational/operational_dashboard_20250807_134850.png",
       "metrics_monitored": 9,
       "last_updated": "2025-08-07T13:48:53.500235"
     },
     "technical_dashboard": {
       "dashboard_created": true,
-      "dashboard_path": "/home/vivi/pixelated/ai/monitoring/dashboards/technical/technical_dashboard_20250807_134853.png",
+      "dashboard_path": "../../../ai/monitoring/dashboards/technical/technical_dashboard_20250807_134853.png",
       "sections_included": 8,
       "last_updated": "2025-08-07T13:48:55.511754"
     },
@@ -23,14 +23,14 @@
       "automated_reports_configured": true,
       "report_types": ["daily_report", "weekly_report", "monthly_report"],
       "sample_reports": {
-        "daily_report": "/home/vivi/pixelated/ai/monitoring/reports/daily/daily_report_20250807_134855.txt",
-        "weekly_report": "/home/vivi/pixelated/ai/monitoring/reports/weekly/weekly_report_20250807_134855.txt",
-        "monthly_report": "/home/vivi/pixelated/ai/monitoring/reports/monthly/monthly_report_20250807_134855.txt"
+        "daily_report": "../../../ai/monitoring/reports/daily/daily_report_20250807_134855.txt",
+        "weekly_report": "../../../ai/monitoring/reports/weekly/weekly_report_20250807_134855.txt",
+        "monthly_report": "../../../ai/monitoring/reports/monthly/monthly_report_20250807_134855.txt"
       },
       "scheduling_scripts": {
-        "daily_report": "/home/vivi/pixelated/ai/monitoring/dashboards/scripts/generate_daily_report.sh",
-        "weekly_report": "/home/vivi/pixelated/ai/monitoring/dashboards/scripts/generate_weekly_report.sh",
-        "monthly_report": "/home/vivi/pixelated/ai/monitoring/dashboards/scripts/generate_monthly_report.sh"
+        "daily_report": "../../../ai/monitoring/dashboards/scripts/generate_daily_report.sh",
+        "weekly_report": "../../../ai/monitoring/dashboards/scripts/generate_weekly_report.sh",
+        "monthly_report": "../../../ai/monitoring/dashboards/scripts/generate_monthly_report.sh"
       },
       "next_scheduled_run": {
         "daily_report": "2025-08-08T08:00:00.512586",
@@ -47,10 +47,10 @@
         "data_anomalies"
       ],
       "monitoring_scripts": {
-        "quality_degradation": "/home/vivi/pixelated/ai/monitoring/dashboards/alerts/check_quality_degradation.sh",
-        "processing_errors": "/home/vivi/pixelated/ai/monitoring/dashboards/alerts/check_processing_errors.sh",
-        "system_performance": "/home/vivi/pixelated/ai/monitoring/dashboards/alerts/check_system_performance.sh",
-        "data_anomalies": "/home/vivi/pixelated/ai/monitoring/dashboards/alerts/check_data_anomalies.sh"
+        "quality_degradation": "../../../ai/monitoring/dashboards/alerts/check_quality_degradation.sh",
+        "processing_errors": "../../../ai/monitoring/dashboards/alerts/check_processing_errors.sh",
+        "system_performance": "../../../ai/monitoring/dashboards/alerts/check_system_performance.sh",
+        "data_anomalies": "../../../ai/monitoring/dashboards/alerts/check_data_anomalies.sh"
       },
       "notification_channels": ["email", "slack"],
       "status": "active"
@@ -65,11 +65,11 @@
         "quality_manager_view"
       ],
       "dashboard_paths": {
-        "ceo_view": "/home/vivi/pixelated/ai/monitoring/dashboards/stakeholders/ceo_view_dashboard_20250807_134855.png",
-        "cto_view": "/home/vivi/pixelated/ai/monitoring/dashboards/stakeholders/cto_view_dashboard_20250807_134855.png",
-        "operations_manager_view": "/home/vivi/pixelated/ai/monitoring/dashboards/stakeholders/operations_manager_view_dashboard_20250807_134856.png",
-        "data_scientist_view": "/home/vivi/pixelated/ai/monitoring/dashboards/stakeholders/data_scientist_view_dashboard_20250807_134856.png",
-        "quality_manager_view": "/home/vivi/pixelated/ai/monitoring/dashboards/stakeholders/quality_manager_view_dashboard_20250807_134857.png"
+        "ceo_view": "../../../ai/monitoring/dashboards/stakeholders/ceo_view_dashboard_20250807_134855.png",
+        "cto_view": "../../../ai/monitoring/dashboards/stakeholders/cto_view_dashboard_20250807_134855.png",
+        "operations_manager_view": "../../../ai/monitoring/dashboards/stakeholders/operations_manager_view_dashboard_20250807_134856.png",
+        "data_scientist_view": "../../../ai/monitoring/dashboards/stakeholders/data_scientist_view_dashboard_20250807_134856.png",
+        "quality_manager_view": "../../../ai/monitoring/dashboards/stakeholders/quality_manager_view_dashboard_20250807_134857.png"
       },
       "access_controls": "role_based_authentication_required"
     },
@@ -83,11 +83,11 @@
         "csv_exports"
       ],
       "export_scripts": {
-        "powerpoint": "/home/vivi/pixelated/ai/monitoring/dashboards/exports/export_powerpoint.sh",
-        "pdf_reports": "/home/vivi/pixelated/ai/monitoring/dashboards/exports/export_pdf_reports.sh",
-        "excel_data": "/home/vivi/pixelated/ai/monitoring/dashboards/exports/export_excel_data.sh",
-        "json_api": "/home/vivi/pixelated/ai/monitoring/dashboards/exports/export_json_api.sh",
-        "csv_exports": "/home/vivi/pixelated/ai/monitoring/dashboards/exports/export_csv_exports.sh"
+        "powerpoint": "../../../ai/monitoring/dashboards/exports/export_powerpoint.sh",
+        "pdf_reports": "../../../ai/monitoring/dashboards/exports/export_pdf_reports.sh",
+        "excel_data": "../../../ai/monitoring/dashboards/exports/export_excel_data.sh",
+        "json_api": "../../../ai/monitoring/dashboards/exports/export_json_api.sh",
+        "csv_exports": "../../../ai/monitoring/dashboards/exports/export_csv_exports.sh"
       },
       "api_endpoints": {
         "executive_metrics": "/api/v1/dashboards/executive",
@@ -112,9 +112,9 @@
   },
   "access_instructions": {
     "dashboard_locations": {
-      "executive": "/home/vivi/pixelated/ai/monitoring/dashboards/executive/",
-      "operational": "/home/vivi/pixelated/ai/monitoring/dashboards/operational/",
-      "technical": "/home/vivi/pixelated/ai/monitoring/dashboards/technical/"
+      "executive": "../../../ai/monitoring/dashboards/executive/",
+      "operational": "../../../ai/monitoring/dashboards/operational/",
+      "technical": "../../../ai/monitoring/dashboards/technical/"
     },
     "access_methods": {
       "local_files": "Direct file system access",
@@ -128,7 +128,7 @@
       "contact": "admin@pixelatedempathy.com"
     },
     "support": {
-      "documentation": "/home/vivi/pixelated/ai/monitoring/dashboards/operational_runbook.md",
+      "documentation": "../../../ai/monitoring/dashboards/operational_runbook.md",
       "training": "Available upon request",
       "help_desk": "support@pixelatedempathy.com"
     }

@@ -1,3 +1,4 @@
+from pathlib import Path
 import asyncio
 
 from inference.api.defense_service import (
@@ -7,7 +8,9 @@ from inference.api.defense_service import (
     load_defense_model,
 )
 
-checkpoint_path = "/home/vivi/pixelated/ai/models/defense_mechanisms/fold_0/best_model.pt"
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+checkpoint_path = str(_PROJECT_ROOT / "ai" / "models" / "defense_mechanisms" / "fold_0" / "best_model.pt")
 
 load_defense_model(checkpoint_path)
 

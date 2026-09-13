@@ -76,7 +76,7 @@ The Pixel Model Inference API provides:
 1. **Python Dependencies**
 
 ```bash
-cd /home/vivi/pixelated
+cd ~/pixelated
 uv pip install fastapi uvicorn pydantic torch
 ```
 

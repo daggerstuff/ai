@@ -21,11 +21,14 @@ from plotly.subplots import make_subplots
 
 # Import our quality comparator
 from quality_comparator import (
+
     BenchmarkAnalysis,
     ComparisonReport,
     QualityComparator,
     QualityComparison,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 # Suppress warnings
 warnings.simplefilter("default")
@@ -54,7 +57,7 @@ class QualityComparisonReporter:
     _NON_SIG_RATIO_THRESHOLD = 0.5
     _MAX_TICK_TEXT_LEN = 15
 
-    def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
+    def __init__(self, output_dir: str = str(_PROJECT_ROOT / "ai" / "monitoring" / "reports")):
         """Initialize the comparison reporter."""
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)

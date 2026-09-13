@@ -10,6 +10,8 @@ from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"
@@ -18,7 +20,7 @@ REGION_NAME = "hel1"
 UPLOAD_PREFIX = "full_ai_sweep/"
 SIZE_THRESHOLD = 100 * 1024 * 1024  # 100 MB
 
-PROJECT_ROOT = Path("/home/vivi/pixelated/ai")
+PROJECT_ROOT = WORKSPACE_ROOT / "ai"
 console = Console()
 
 # Load .env from ai/ directory or root

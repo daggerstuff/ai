@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from sklearn.metrics import (
+
     accuracy_score,
     confusion_matrix,
     f1_score,
@@ -39,12 +40,14 @@ from sklearn.metrics import (
     roc_curve,
 )
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("/home/vivi/pixelated/ai/logs/safety_validation.log"),
+        logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "safety_validation.log")),
         logging.StreamHandler(),
     ],
 )
@@ -145,7 +148,7 @@ class ClinicalValidationDataset:
     def __init__(self, config: SafetyValidationConfig):
         self.config = config
         self.scenarios: list[ValidationScenario] = []
-        self.data_path = Path("/home/vivi/pixelated/ai/data/clinical_validation")
+        self.data_path = (_PROJECT_ROOT / "ai" / "data" / "clinical_validation")
         self.data_path.mkdir(parents=True, exist_ok=True)
 
     async def load_clinical_scenarios(self) -> list[ValidationScenario]:
@@ -501,7 +504,7 @@ class SafetyAccuracyValidator:
         """Generate comprehensive validation report"""
         logger.info("Generating safety validation report...")
 
-        report_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/reports")
+        report_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/reports")
         report_path.mkdir(parents=True, exist_ok=True)
 
         # Generate detailed report
@@ -558,7 +561,7 @@ class SafetyAccuracyValidator:
 
     async def _generate_validation_visualizations(self):
         """Generate validation visualizations"""
-        viz_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/reports/visualizations")
+        viz_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/reports/visualizations")
         viz_path.mkdir(parents=True, exist_ok=True)
 
         # Accuracy by demographic group

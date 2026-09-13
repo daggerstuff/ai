@@ -26,12 +26,16 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 warnings.simplefilter("default")
 
 
 class ConversationDiversityCoverageAnalyzer:
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         self.db_path = db_path
         self.diversity_metrics = {}
         self.coverage_analysis = {}
@@ -891,7 +895,7 @@ class ConversationDiversityCoverageAnalyzer:
         # Save the plot
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         plt.savefig(
-            f"/home/vivi/pixelated/ai/monitoring/diversity_coverage_analysis_{timestamp}.png",
+            str(_PROJECT_ROOT / "ai" / "monitoring" / "diversity_coverage_analysis_{timestamp}.png"),
             dpi=300,
             bbox_inches="tight",
         )
@@ -961,7 +965,7 @@ def main():
 
         # Save results
         timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        output_file = f"/home/vivi/pixelated/ai/monitoring/diversity_coverage_analysis_{timestamp}.json"
+        output_file = str(_PROJECT_ROOT / "ai" / "monitoring" / "diversity_coverage_analysis_{timestamp}.json")
 
         with open(output_file, "w") as f:
             json.dump(results, f, indent=2, default=str)

@@ -17,6 +17,10 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.stats import mannwhitneyu
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 # Suppress warnings for cleaner output
 warnings.simplefilter("default")
@@ -80,7 +84,7 @@ class QualityComparator:
     and comparative reporting with statistical validation.
     """
 
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         """Initialize the quality comparator."""
         self.db_path = db_path
         self.cache_duration = 300  # 5 minutes cache

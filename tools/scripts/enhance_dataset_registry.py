@@ -9,6 +9,8 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 
 def create_enhanced_dataset_entry(original_entry: dict[str, Any]) -> dict[str, Any]:
@@ -222,13 +224,13 @@ def main():
     parser.add_argument(
         "--input",
         type=Path,
-        default=Path("/home/vivi/pixelated/ai/configs/dataset_registry.json"),
+        default=AI_DIR / "configs/dataset_registry.json",
         help="Path to input dataset_registry.json",
     )
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("/home/vivi/pixelated/ai/configs/dataset_registry_enhanced.json"),
+        default=AI_DIR / "configs/dataset_registry_enhanced.json",
         help="Path to output enhanced registry",
     )
     parser.add_argument(

@@ -1,5 +1,5 @@
 """
-Cleans up /home/vivi/pixelated/ai/data/ by removing files that are:
+Cleans up <project_root>/ai/data/ by removing files that are:
 - Already captured by the pipeline (and thus in S3)
 - Old pipeline artifacts, configs, score CSVs
 - Anything not raw source material worth keeping for future runs
@@ -7,8 +7,12 @@ Cleans up /home/vivi/pixelated/ai/data/ by removing files that are:
 import glob
 import os
 import shutil
+from pathlib import Path
 
-DATA_DIR = "/home/vivi/pixelated/ai/data"
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
+DATA_DIR = str(_PROJECT_ROOT / "ai" / "data")
 
 # Keep these top-level folders intact — they are raw source voice exports
 # worth keeping for future pipeline re-runs with updated extractors

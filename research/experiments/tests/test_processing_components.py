@@ -2,6 +2,8 @@ from datetime import datetime
 
 import pytest
 
+
+
 #!/usr/bin/env python3
 """
 Comprehensive Unit Tests for Processing Components
@@ -26,12 +28,14 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 import pandas as pd
+from pathlib import Path
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 warnings.simplefilter("default")
 
 # Add the monitoring directory to the path for imports
-sys.path.append("/home/vivi/pixelated/ai/monitoring")
-sys.path.append("/home/vivi/pixelated/ai")
+sys.path.append(str(_PROJECT_ROOT / "ai" / "monitoring"))
+sys.path.append(str(_PROJECT_ROOT / "ai"))
 
 
 class TestDatabaseOperations(unittest.TestCase):

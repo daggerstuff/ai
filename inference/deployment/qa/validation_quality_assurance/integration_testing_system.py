@@ -19,6 +19,9 @@ from quality_assurance_workflows import QualityAssuranceWorkflow
 # Import all QA system components
 from validation_quality_assurance_system import ValidationQualityAssuranceSystem
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[5]
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -235,7 +238,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
             self.test_results = self.qa_system.process_batch_qa(self.test_conversations)
 
         # Test export functionality
-        output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/integration_test_export.json"
+        output_path = str(_PROJECT_ROOT / "ai" / "validation_quality_assurance" / "integration_test_export.json")
         success = self.qa_system.export_qa_results(self.test_results, output_path)
 
         assert success
@@ -338,7 +341,7 @@ class QAIntegrationTestSuite(unittest.TestCase):
         assert isinstance(report, dict)
 
         # 3. Export results
-        output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/end_to_end_test.json"
+        output_path = str(_PROJECT_ROOT / "ai" / "validation_quality_assurance" / "end_to_end_test.json")
         success = self.qa_system.export_qa_results(results, output_path)
         assert success
 
@@ -510,7 +513,7 @@ def main():
         pass
 
     # Export report
-    output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/integration_test_report.json"
+    output_path = str(_PROJECT_ROOT / "ai" / "validation_quality_assurance" / "integration_test_report.json")
     test_runner.export_test_report(report, output_path)
 
     # Final status

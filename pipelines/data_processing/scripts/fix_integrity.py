@@ -9,6 +9,9 @@ import json
 import re
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
 MAX_CHARS = 16380  # under both 20000 char and 4096 token limits
 
 
@@ -89,7 +92,7 @@ def process_shard(path: Path) -> tuple[int, int]:
 
 
 def main():
-    shard_dir = Path("/home/vivi/pixelated/ai/data/prepared/v7_master")
+    shard_dir = (_PROJECT_ROOT / "ai" / "data" / "prepared/v7_master")
     shards = sorted(shard_dir.glob("shard_*.jsonl"))
     print(f"Found {len(shards)} shards")
 

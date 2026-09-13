@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import sys
 
-sys.path.append("/home/vivi/pixelated/ai")
+
+
+sys.path.append(str(_PROJECT_ROOT / "ai"))
 
 from monitoring.interactive_dashboard_system import InteractiveDashboardSystem
+from pathlib import Path
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 if __name__ == "__main__":
     dashboard = InteractiveDashboardSystem()

@@ -14,9 +14,12 @@ import os
 import re
 from pathlib import Path
 
-IN_DIR = "/home/vivi/pixelated/data/youtube_mp3s/transcripts"
-OUT_DIR = "/home/vivi/pixelated/data/youtube_mp3s/dialogues"
-MERGED_OUT = "/home/vivi/pixelated/data/youtube_mp3s/phase2_media_training.jsonl"
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+_DATA_DIR = _PROJECT_ROOT / "data" / "youtube_mp3s"
+
+IN_DIR = str(_DATA_DIR / "transcripts")
+OUT_DIR = str(_DATA_DIR / "dialogues")
+MERGED_OUT = str(_DATA_DIR / "phase2_media_training.jsonl")
 
 Path(OUT_DIR).mkdir(parents=True, exist_ok=True)
 
@@ -123,7 +126,7 @@ def extract_dialogue(filepath: str):
     # 2. Classify each segment
     scored = []
     for i, seg in enumerate(segments):
-        if intro_start is not None and intro_start <= i < intro_end:
+        if intro_start is not None and intro_end is not None and intro_start <= i < intro_end:
             continue
         text = seg["text"].strip()
         if not text:

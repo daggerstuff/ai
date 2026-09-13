@@ -36,8 +36,8 @@
     "task_type": "CAUSAL_LM"
   },
   "data": {
-    "train_file": "/home/vivi/dataset/RL_training_dataset.jsonl",
-    "validation_file": "/home/vivi/dataset/RL_training_dataset.jsonl",
+    "train_file": "~/dataset/RL_training_dataset.jsonl",
+    "validation_file": "~/dataset/RL_training_dataset.jsonl",
     "max_seq_length": 2048,
     "preprocessing_num_workers": 4
   },

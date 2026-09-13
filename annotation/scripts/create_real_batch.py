@@ -3,8 +3,11 @@ import json
 import re
 from pathlib import Path
 
-DEFAULT_INPUT_FILE = Path("/home/vivi/pixelated/ai/datasets/tier7/augesc/train.jsonl")
-DEFAULT_OUTPUT_FILE = Path("/home/vivi/pixelated/ai/annotation/batches/batch_real_001.jsonl")
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
+DEFAULT_INPUT_FILE = (_PROJECT_ROOT / "ai" / "datasets/tier7/augesc/train.jsonl")
+DEFAULT_OUTPUT_FILE = (_PROJECT_ROOT / "ai" / "annotation/batches/batch_real_001.jsonl")
 DEFAULT_MAX_RECORDS = 100
 ROLE_MAP = {
     "usr": "user",

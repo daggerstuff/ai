@@ -13,6 +13,9 @@ import sys
 import tempfile
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
+
 # Add the monitoring directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
@@ -51,7 +54,7 @@ Examples:
     parser.add_argument(
         "--db-path",
         type=str,
-        default="/home/vivi/pixelated/ai/database/conversations.db",
+        default=str(_PROJECT_ROOT / "ai" / "database" / "conversations.db"),
         help="Path to the conversations database",
     )
 
@@ -135,8 +138,8 @@ def interactive_mode():
     days = input("📅 Analysis period (days) [30]: ").strip()
     days = int(days) if days else 30
 
-    db_path = input("🗄️ Database path [/home/vivi/pixelated/ai/database/conversations.db]: ").strip()
-    db_path = db_path if db_path else "/home/vivi/pixelated/ai/database/conversations.db"
+    db_path = input(f"🗄️ Database path [{_PROJECT_ROOT / 'ai' / 'database' / 'conversations.db'}]: ").strip()
+    db_path = db_path if db_path else str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")
 
     output_dir = input("📁 Output directory [temp]: ").strip()
     output_dir = output_dir if output_dir else None
@@ -222,12 +225,12 @@ def run_comparison_analysis(args):
         saved_files = []
 
         if args["format"] in ["json", "both"]:
-            json_path = reporter.save_report(report, format="json")
+            json_path = reporter.save_report(report, report_format="json")
             saved_files.append(json_path)
             logger.info(f"💾 JSON report saved: {json_path}")
 
         if args["format"] in ["html", "both"]:
-            html_path = reporter.save_report(report, format="html")
+            html_path = reporter.save_report(report, report_format="html")
             saved_files.append(html_path)
             logger.info(f"💾 HTML report saved: {html_path}")
 

@@ -8,15 +8,18 @@ import sys
 import time
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[5]
+
+
 # Add deslop to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages" / "deslop"))
 
 from deslop.engine import CleanOptions, clean_record
 from deslop.rules.core import load_rule_set
 
-INPUT = Path("/home/vivi/pixelated/ai/data/raw/deduped/all_deduped.jsonl")
-OUTPUT = Path("/home/vivi/pixelated/ai/data/raw/deduped/all_desloped.jsonl")
-REPORT = Path("/home/vivi/pixelated/ai/data/raw/deduped/deslop_report.txt")
+INPUT = (_PROJECT_ROOT / "ai" / "data" / "raw/deduped/all_deduped.jsonl")
+OUTPUT = (_PROJECT_ROOT / "ai" / "data" / "raw/deduped/all_desloped.jsonl")
+REPORT = (_PROJECT_ROOT / "ai" / "data" / "raw/deduped/deslop_report.txt")
 
 PACKS = ["generic-ai", "sycophancy", "chatbot-assistant", "fabrication-signal", "synthetic-evals"]
 

@@ -23,6 +23,10 @@ from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 warnings.simplefilter("default")
 
@@ -191,7 +195,7 @@ class ClinicalStandardsValidator:
 class QualityAssuranceWorkflow:
     """Task 5.7.2.2: Quality assurance workflows and processes"""
 
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         self.db_path = db_path
         self.workflow_stages = [
             "initial_validation",

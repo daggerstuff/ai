@@ -728,7 +728,7 @@
     "edge_case_generator": {
       "path": "s3://pixel-data/training/v1/stage3_stress_test/processed/synthetic.jsonl",
       "fallback_paths": {
-        "local": "/home/vivi/pixelated/ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl"
+        "local": "../../ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl"
       },
       "type": "synthetic_edge",
       "focus": "crisis-level therapeutic breakdowns",
@@ -739,7 +739,7 @@
     "scenario_prompt_library": {
       "path": "s3://pixel-data/training/v1/stage3_stress_test/raw/prompt_corpus/scenario_bank.jsonl",
       "fallback_paths": {
-        "local": "/home/vivi/pixelated/ai/dataset_pipeline/prompt_corpus"
+        "local": "../../ai/dataset_pipeline/prompt_corpus"
       },
       "type": "prompt_seed",
       "focus": "edge scenario prompt bank",
@@ -759,7 +759,7 @@
     "safety_dpo_pairs": {
       "path": "s3://pixel-data/training/v1/stage3_stress_test/processed/reddit_synthetic.json",
       "fallback_paths": {
-        "local": "/home/vivi/pixelated/ai/dataset_pipeline/quality/output/safety_dpo_pairs.jsonl"
+        "local": "../../ai/dataset_pipeline/quality/output/safety_dpo_pairs.jsonl"
       },
       "type": "dpo_pairs",
       "focus": "DPO pairs from unsafe conversations to teach recovery behaviors",
@@ -839,7 +839,7 @@
     "tim_fletcher_transcripts": {
       "path": "s3://pixel-data/knowledge/transcripts/Tim Fletcher/",
       "fallback_paths": {
-        "local": "/home/vivi/pixelated/ai/training_data_consolidated/transcripts"
+        "local": "../../ai/training_data_consolidated/transcripts"
       },
       "type": "transcript_corpus",
       "focus": "Tim Fletcher complex trauma teaching videos",
@@ -849,7 +849,7 @@
     "tim_fletcher_voice_profile": {
       "path": "s3://pixel-data/training/v1/stage4_persona/voice/tim_fletcher_voice_profile.json",
       "fallback_paths": {
-        "local": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json"
+        "local": "../../ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json"
       },
       "type": "voice_profile",
       "focus": "Voice/style embedding metadata",
@@ -859,7 +859,7 @@
     "pixel_voice_pipeline_exports": {
       "path": "s3://pixel-data/training/v1/stage4_persona/voice/exports/",
       "fallback_paths": {
-        "local": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/exports"
+        "local": "../../ai/data/tim_fletcher_voice/exports"
       },
       "type": "synthetic_voice_conversations",
       "focus": "Persona-constrained dialogue pairs",

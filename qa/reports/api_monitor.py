@@ -32,12 +32,16 @@ from enum import Enum
 from typing import Any
 
 import numpy as np
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("/home/vivi/pixelated/ai/logs/api_monitoring.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "api_monitoring.log")), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 

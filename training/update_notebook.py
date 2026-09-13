@@ -1,7 +1,9 @@
 import json
+from pathlib import Path
 
-NB_PATH = "/home/vivi/pixelated/ai/training/pixelated_colab_pilot.ipynb"
-PROD_SCRIPT_PATH = "/home/vivi/pixelated/ai/training/pixelated_production_pilot.py"
+_SCRIPT_DIR = Path(__file__).resolve().parent
+NB_PATH = str(_SCRIPT_DIR / "pixelated_colab_pilot.ipynb")
+PROD_SCRIPT_PATH = str(_SCRIPT_DIR / "pixelated_production_pilot.py")
 
 COLAB_TELEMETRY_CODE = """
 # =============================================================================

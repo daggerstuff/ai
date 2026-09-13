@@ -19,6 +19,10 @@ import numpy as np
 from clinical_standards_validator import ClinicalStandardsValidator
 from manual_review_system import ManualReviewSystem
 from quality_assurance_workflows import QualityAssuranceWorkflow
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[5]
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -687,7 +691,7 @@ def main():
     report["performance_metrics"]["conversations_per_second"]
 
     # Export results
-    output_path = "/home/vivi/pixelated/ai/validation_quality_assurance/qa_results_test.json"
+    output_path = str(_PROJECT_ROOT / "ai" / "validation_quality_assurance" / "qa_results_test.json")
     qa_system.export_qa_results(results, output_path)
 
 

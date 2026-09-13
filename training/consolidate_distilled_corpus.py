@@ -6,13 +6,16 @@ import json
 import logging
 from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("consolidate_corpus")
 
-BOOKS_DIR = Path("/home/vivi/pixelated/ai/data/curated/books_distilled")
-PERSONAS_DIR = Path("/home/vivi/pixelated/ai/data/curated/youtube_distilled_personas")
-MASTER_TRAIN = Path("/home/vivi/pixelated/ai/data/curated/sft_chatml/train.jsonl")
-CONSOLIDATED_OUT = Path("/home/vivi/pixelated/ai/data/curated/sft_chatml/train_master_gold.jsonl")
+BOOKS_DIR = (_PROJECT_ROOT / "ai" / "data" / "curated/books_distilled")
+PERSONAS_DIR = (_PROJECT_ROOT / "ai" / "data" / "curated/youtube_distilled_personas")
+MASTER_TRAIN = (_PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train.jsonl")
+CONSOLIDATED_OUT = (_PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train_master_gold.jsonl")
 
 def main():
     gold_records = []

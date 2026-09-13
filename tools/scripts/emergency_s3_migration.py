@@ -4,6 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import boto3
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"
@@ -29,7 +31,7 @@ FILES_TO_UPLOAD = [
     "ai/data/compress/glove.840B.300d.zip",
 ]
 
-PROJECT_ROOT = Path("/home/vivi/pixelated")
+PROJECT_ROOT = WORKSPACE_ROOT
 
 
 def get_s3_client():

@@ -5,6 +5,8 @@ from pathlib import Path
 
 import boto3
 from dotenv import load_dotenv
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"
@@ -14,7 +16,7 @@ UPLOAD_PREFIX = "full_ai_sweep/"
 MAX_WORKERS = 1  # Sequential for stability as requested
 SIZE_THRESHOLD = 100 * 1024 * 1024  # 100 MB
 
-PROJECT_ROOT = Path("/home/vivi/pixelated/ai")
+PROJECT_ROOT = WORKSPACE_ROOT / "ai"
 
 # Load .env from ai/ directory or root
 env_paths = [PROJECT_ROOT / ".env", PROJECT_ROOT.parent / ".env"]

@@ -7,6 +7,8 @@ Maps old stage-based paths to actual backup structure.
 import json
 from pathlib import Path
 from typing import Any
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 OLD_TO_NEW_PATHS = {
     "training/v1/stage1_foundation": "datasets/training_v3/stage1_foundation",
@@ -45,7 +47,7 @@ def update_dataset_entry(entry: dict[str, Any]) -> dict[str, Any]:
 
 
 def main():
-    registry_path = Path("/home/vivi/pixelated/ai/configs/dataset_registry.json")
+    registry_path = AI_DIR / "configs/dataset_registry.json"
 
     with open(registry_path) as f:
         registry = json.load(f)

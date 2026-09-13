@@ -409,7 +409,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 Check log files for detailed error information:
 
-- Application logs: `/home/vivi/pixelated/ai/logs/`
+- Application logs: `~/pixelated/ai/logs/`
 - System logs: `/var/log/`
 
 ## Performance Optimization

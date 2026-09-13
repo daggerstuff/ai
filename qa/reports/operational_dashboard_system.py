@@ -3,6 +3,8 @@
 from datetime import datetime, timedelta, timezone
 
 
+
+
 # flake8: max-complexity=200
 # flake8: noqa
 # flake8: noqa
@@ -23,6 +25,7 @@ import json
 import os
 import warnings
 from pathlib import Path
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 from typing import Any
 import logging
 
@@ -35,21 +38,21 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s:%(mess
 
 
 class OperationalDashboardSystem:
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         self.db_path = db_path
-        self.dashboard_dir = "/home/vivi/pixelated/ai/monitoring/dashboards"
-        self.reports_dir = "/home/vivi/pixelated/ai/monitoring/reports"
+        self.dashboard_dir = str(_PROJECT_ROOT / "ai" / "monitoring" / "dashboards")
+        self.reports_dir = str(_PROJECT_ROOT / "ai" / "monitoring" / "reports")
         self.analytics_systems = {
-            "dataset_statistics": "/home/vivi/pixelated/ai/monitoring/dataset_statistics_dashboard.py",
-            "content_analyzer": "/home/vivi/pixelated/ai/monitoring/conversation_content_analyzer.py",
-            "tier_optimizer": "/home/vivi/pixelated/ai/monitoring/tier_distribution_optimizer.py",
-            "topic_analyzer": "/home/vivi/pixelated/ai/monitoring/topic_theme_analyzer.py",
-            "complexity_analyzer": "/home/vivi/pixelated/ai/monitoring/conversation_complexity_analyzer.py",
-            "quality_pattern": "/home/vivi/pixelated/ai/monitoring/conversation_quality_pattern_analyzer.py",
-            "diversity_coverage": "/home/vivi/pixelated/ai/monitoring/conversation_diversity_coverage_analyzer.py",
-            "effectiveness_predictor": "/home/vivi/pixelated/ai/monitoring/conversation_effectiveness_predictor.py",
-            "recommendation_optimizer": "/home/vivi/pixelated/ai/monitoring/conversation_recommendation_optimizer.py",
-            "performance_impact": "/home/vivi/pixelated/ai/monitoring/dataset_performance_impact_analyzer.py",
+            "dataset_statistics": str(_PROJECT_ROOT / "ai" / "monitoring" / "dataset_statistics_dashboard.py"),
+            "content_analyzer": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_content_analyzer.py"),
+            "tier_optimizer": str(_PROJECT_ROOT / "ai" / "monitoring" / "tier_distribution_optimizer.py"),
+            "topic_analyzer": str(_PROJECT_ROOT / "ai" / "monitoring" / "topic_theme_analyzer.py"),
+            "complexity_analyzer": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_complexity_analyzer.py"),
+            "quality_pattern": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_quality_pattern_analyzer.py"),
+            "diversity_coverage": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_diversity_coverage_analyzer.py"),
+            "effectiveness_predictor": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_effectiveness_predictor.py"),
+            "recommendation_optimizer": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_recommendation_optimizer.py"),
+            "performance_impact": str(_PROJECT_ROOT / "ai" / "monitoring" / "dataset_performance_impact_analyzer.py"),
         }
         self._ensure_directories()
 
@@ -911,7 +914,7 @@ class OperationalDashboardSystem:
         for report_type, config in report_configs.items():
             script_content = f"""#!/bin/bash
 # Automated {report_type} generation script
-cd /home/vivi/pixelated/ai
+cd "$(git rev-parse --show-toplevel)/ai"
 uv run monitoring/operational_dashboard_system.py --generate-{report_type.replace("_", "-")}
 """
             script_path = f"{self.dashboard_dir}/scripts/generate_{report_type}.sh"
@@ -936,7 +939,7 @@ uv run monitoring/operational_dashboard_system.py --generate-{report_type.replac
 # Threshold: {config["threshold"]}
 # Severity: {config["severity"]}
 
-cd /home/vivi/pixelated/ai
+cd "$(git rev-parse --show-toplevel)/ai"
 uv run monitoring/operational_dashboard_system.py --check-{alert_type.replace("_", "-")}
 """
             script_path = f"{self.dashboard_dir}/alerts/check_{alert_type}.sh"
@@ -989,7 +992,7 @@ uv run monitoring/operational_dashboard_system.py --check-{alert_type.replace("_
 # Format: {config["format"]}
 # Use case: {config["use_case"]}
 
-cd /home/vivi/pixelated/ai
+cd "$(git rev-parse --show-toplevel)/ai"
 uv run monitoring/operational_dashboard_system.py --export-{format_name.replace("_", "-")}
 """
             script_path = f"{self.dashboard_dir}/exports/export_{format_name}.sh"
@@ -1047,7 +1050,7 @@ def main():
 
         # Save deployment results
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        output_file = f"/home/vivi/pixelated/ai/monitoring/operational_dashboard_deployment_{timestamp}.json"
+        output_file = str(_PROJECT_ROOT / "ai" / "monitoring" / f"operational_dashboard_deployment_{timestamp}.json")
 
         with open(output_file, "w") as f:
             json.dump(deployment_results, f, indent=2, default=str)

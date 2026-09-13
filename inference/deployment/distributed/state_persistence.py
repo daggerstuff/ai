@@ -22,6 +22,9 @@ from typing import Any
 
 from checkpoint_system import CheckpointManager
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -81,7 +84,7 @@ class PersistenceConfig:
     compression_enabled: bool = True
     encryption_enabled: bool = False
     redundancy_copies: int = 2
-    storage_path: str = "/home/vivi/pixelated/ai/inference/deployment/distributed/persistent_state"
+    storage_path: str = str(_PROJECT_ROOT / "ai" / "inference" / "deployment" / "distributed" / "persistent_state")
     lock_timeout_seconds: int = 30
 
 

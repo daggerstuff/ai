@@ -30,12 +30,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("/home/vivi/pixelated/ai/logs/production_certification.log"),
+        logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "production_certification.log")),
         logging.StreamHandler(),
     ],
 )
@@ -122,7 +125,7 @@ class ProductionCertifier:
     """Main production certification system"""
 
     def __init__(self):
-        self.cert_path = Path("/home/vivi/pixelated/ai/inference/deployment/qa/production_certification")
+        self.cert_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/production_certification")
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
         self.certification_checks: list[CertificationCheck] = []

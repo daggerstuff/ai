@@ -22,11 +22,14 @@ from plotly.subplots import make_subplots
 
 # Import our improvement tracker
 from quality_improvement_tracker import (
+
     ImprovementAnalysis,
     ImprovementReport,
     QualityImprovementTracker,
     QualityIntervention,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 # Suppress warnings
 warnings.simplefilter("default")
@@ -55,7 +58,7 @@ class QualityImprovementReporter:
     _MEDIUM_EFFECT_SIZE = 0.5
     _SMALL_EFFECT_SIZE = 0.2
 
-    def __init__(self, output_dir: str = "/home/vivi/pixelated/ai/monitoring/reports"):
+    def __init__(self, output_dir: str = str(_PROJECT_ROOT / "ai" / "monitoring" / "reports")):
         """Initialize the improvement reporter."""
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)

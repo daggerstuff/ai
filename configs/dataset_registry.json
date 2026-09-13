@@ -4163,7 +4163,7 @@
     "safety_dpo_pairs_10k": {
       "path": "s3://pixel-data/training/v1/stage3_stress_test/processed/safety_dpo_pairs_10k.jsonl",
       "fallback_paths": {
-        "local": "/home/vivi/pixelated/ai/data/generated/dpo_preference_pairs_10k.jsonl"
+        "local": "../../ai/data/generated/dpo_preference_pairs_10k.jsonl"
       },
       "stage": "stage3_edge_stress_test",
       "type": "conversation",

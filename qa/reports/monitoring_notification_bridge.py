@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+from pathlib import Path
 Monitoring-Notification Bridge for Pixelated Empathy AI
 Integrates the notification system with existing monitoring infrastructure
 """
@@ -18,6 +19,8 @@ from notification_integrations import (
     NotificationPriority,
 )
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -28,8 +31,8 @@ class MonitoringBridge:
 
     def __init__(self, config_path: str | None = None):
         self.notification_manager = NotificationManager(config_path)
-        self.monitoring_db_path = "/home/vivi/pixelated/ai/monitoring/monitoring.db"
-        self.alert_history_db_path = "/home/vivi/pixelated/ai/monitoring/alert_history.db"
+        self.monitoring_db_path = str(_PROJECT_ROOT / "ai" / "monitoring" / "monitoring.db")
+        self.alert_history_db_path = str(_PROJECT_ROOT / "ai" / "monitoring" / "alert_history.db")
         self.last_check_time = datetime.now(UTC)
         self.alert_cooldowns = {}  # Prevent alert spam
         self.setup_databases()

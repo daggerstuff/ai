@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
+
+
 #!/usr/bin/env python3
 """
 Performance Tests for Large Dataset Processing
@@ -31,12 +33,14 @@ import warnings
 import numpy as np
 import pandas as pd
 import psutil
+from pathlib import Path
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 warnings.simplefilter("default")
 
 # Add paths for imports
-sys.path.append("/home/vivi/pixelated/ai/monitoring")
-sys.path.append("/home/vivi/pixelated/ai")
+sys.path.append(str(_PROJECT_ROOT / "ai" / "monitoring"))
+sys.path.append(str(_PROJECT_ROOT / "ai"))
 
 
 class PerformanceTestBase(unittest.TestCase):

@@ -123,7 +123,7 @@ exactly: 20/20 gate, 18/20 first-attempt, mean quality 0.74).
 # --- K1: deterministic Lightning credentials ---------------------------------
 python3 - <<'PY'
 import json, pathlib, re, os
-root = "/home/vivi/pixelated"
+root = os.environ.get("PROJECT_ROOT", str(pathlib.Path.cwd()))
 key = ""
 uid = ""
 for ln in open(root + "/.env"):

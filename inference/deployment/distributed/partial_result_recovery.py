@@ -18,6 +18,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -66,7 +69,7 @@ class PartialResult:
 class PartialResultManager:
     """Manages partial results for recovery and continuation"""
 
-    def __init__(self, storage_path: str = "/home/vivi/pixelated/ai/inference/deployment/distributed/partial_results"):
+    def __init__(self, storage_path: str = str(_PROJECT_ROOT / "ai" / "inference" / "deployment" / "distributed" / "partial_results")):
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
         self.db_path = self.storage_path / "partial_results.db"

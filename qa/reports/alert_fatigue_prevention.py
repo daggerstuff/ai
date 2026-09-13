@@ -15,6 +15,10 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -92,7 +96,7 @@ class FatigueRule:
 class AlertFatiguePreventionSystem:
     """Main alert fatigue prevention and intelligent grouping system"""
 
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/monitoring/alert_fatigue.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "monitoring" / "alert_fatigue.db")):
         self.db_path = db_path
         self.active_groups: dict[str, AlertGroup] = {}
         self.fatigue_rules: dict[str, FatigueRule] = {}

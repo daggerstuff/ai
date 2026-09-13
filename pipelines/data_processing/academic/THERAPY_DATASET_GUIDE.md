@@ -394,7 +394,7 @@ print(sourcing.generate_report(top_datasets))
 ## 🚀 Running the Demo
 
 ```bash
-cd /home/vivi/pixelated
+cd ~/pixelated
 uv run python ai/pipelines/data_processing/academic/demo_therapy_sourcing.py
 ```
 

@@ -4,6 +4,8 @@ Script to update all domain references from pixelated-empathy.ai to pixelatedemp
 """
 
 import os
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 
 def update_domains_in_file(file_path):
@@ -50,9 +52,9 @@ def main():
 
     # Define directories to search
     search_dirs = [
-        "/home/vivi/pixelated/ai/docs",
-        "/home/vivi/pixelated/ai/inference/api",
-        "/home/vivi/pixelated/ai/inference/deployment/qa/reports",
+        str(AI_DIR / "docs"),
+        str(AI_DIR / "inference/api"),
+        str(AI_DIR / "inference/deployment/qa/reports"),
     ]
 
     # File extensions to process

@@ -11,6 +11,8 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+
 
 
 class DatasetRegistryOrchestrator:
@@ -280,7 +282,7 @@ Examples:
     parser.add_argument(
         "--registry",
         type=Path,
-        default=Path("/home/vivi/pixelated/ai/configs/dataset_registry.json"),
+        default=AI_DIR / "configs/dataset_registry.json",
         help="Path to dataset registry",
     )
     parser.add_argument(

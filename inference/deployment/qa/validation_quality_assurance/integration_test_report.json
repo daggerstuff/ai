@@ -22,7 +22,7 @@
   "failure_analysis": [
     {
       "test": "test_08_error_handling_integration (__main__.QAIntegrationTestSuite.test_08_error_handling_integration)",
-      "error": "Traceback (most recent call last):\n  File \"/home/vivi/pixelated/ai/validation_quality_assurance/integration_testing_system.py\", line 282, in test_08_error_handling_integration\n    self.assertEqual(result.qa_status, \"ERROR\")\nAssertionError: 'NEEDS_ATTENTION' != 'ERROR'\n- NEEDS_ATTENTION\n+ ERROR\n\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/vivi/pixelated/ai/validation_quality_assurance/integration_testing_system.py\", line 285, in test_08_error_handling_integration\n    self.fail(f\"Error handling failed: {e}\")\nAssertionError: Error handling failed: 'NEEDS_ATTENTION' != 'ERROR'\n- NEEDS_ATTENTION\n+ ERROR\n\n"
+      "error": "Traceback (most recent call last):\n  File \"../../../../../ai/validation_quality_assurance/integration_testing_system.py\", line 282, in test_08_error_handling_integration\n    self.assertEqual(result.qa_status, \"ERROR\")\nAssertionError: 'NEEDS_ATTENTION' != 'ERROR'\n- NEEDS_ATTENTION\n+ ERROR\n\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"../../../../../ai/validation_quality_assurance/integration_testing_system.py\", line 285, in test_08_error_handling_integration\n    self.fail(f\"Error handling failed: {e}\")\nAssertionError: Error handling failed: 'NEEDS_ATTENTION' != 'ERROR'\n- NEEDS_ATTENTION\n+ ERROR\n\n"
     }
   ],
   "performance_metrics": {

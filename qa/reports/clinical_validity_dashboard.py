@@ -13,6 +13,10 @@ from typing import Any
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from pathlib import Path
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -25,7 +29,7 @@ class ClinicalValidityDashboard:
     across the Modern Dataset Project pipeline.
     """
 
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(self, db_path: str = str(_PROJECT_ROOT / "ai" / "database" / "conversations.db")):
         """Initialize the clinical validity dashboard."""
         self.db_path = db_path
         self.cache_duration = 60  # 1 minute cache for real-time monitoring

@@ -287,7 +287,7 @@ research.
 Run the test suite:
 
 ```bash
-cd /home/vivi/pixelated
+cd ~/pixelated
 uv run python -m pytest ai/pipelines/data_processing/academic/tests/ -v
 ```
 

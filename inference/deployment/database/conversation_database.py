@@ -25,10 +25,13 @@ from typing import Any, Protocol, TypeVar, cast
 
 # Schema imports
 from ai.inference.deployment.database.database.conversation_schema import (
+
     ConversationSchema,
     ConversationTier,
     ProcessingStatus,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 _ENTERPRISE_CONFIG_PATH = Path(__file__).resolve().parents[2] / "config" / "production" / "enterprise_config"
 
@@ -86,7 +89,7 @@ class ConversationDatabase:
 
         # Database configuration
         self.db_config = db_config or DatabaseConfig(
-            database_path="/home/vivi/pixelated/ai/database/conversations.db",
+            database_path=str(_PROJECT_ROOT / "ai" / "database" / "conversations.db"),
             connection_pool_size=10,
             timeout_seconds=30,
         )
