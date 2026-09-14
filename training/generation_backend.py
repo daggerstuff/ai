@@ -337,7 +337,15 @@ async def chat_completion(
                     + usage.get("prompt_tokens", 0)
                     + usage.get("completion_tokens", 0)
                 )
-            content = data["choices"][0]["message"].get("content") or ""
+            choices = data.get("choices") or []
+            if not choices:
+                # 200-with-error-envelope (e.g. transient upstream envelope): retry
+                # with backoff like any transient transport failure instead of
+                # dropping the call with a bare KeyError.
+                raise EmptyContentError(
+                    f"response payload missing 'choices' (keys={sorted(data.keys())})"
+                )
+            content = choices[0]["message"].get("content") or ""
             if not content.strip():
                 raise EmptyContentError(
                     "endpoint returned an empty assistant message "
