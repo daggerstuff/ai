@@ -1,12 +1,20 @@
-"""Probe GLM-5.2 secondary judge on the worst dual-disagreement records.
+"""Probe GLM-5.2 secondary judge on selected records, k runs each.
 
-Calls the secondary judge k=3 per record with identical inputs to answer:
+Re-queries the secondary judge k times with identical inputs to answer:
 1. Is the harsh mode deterministic (same low score every run) or stochastic?
 2. What does GLM's reasoning actually claim — coherent critique or hallucination?
+
+Usage:
+    python -m training.probe_glm_disagreement KEY1 KEY2 ... [--out FILE] [-k N]
+
+Keys are record keys from the judged JSONL (e.g. "nf:nf_074",
+"edge:delusion_or_paranoia:...:0"). Without keys, probes a small default set.
+Writes a JSON list of results when --out is given; always prints to stdout.
 """
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import json
 import os
@@ -28,7 +36,7 @@ from training.dual_judge import (  # noqa: E402
 
 GEN_PATH = Path(__file__).resolve().parent / "output/nightmare_fuel/checkpoints/edge_and_nightmare_generated.jsonl"
 JUDGED_PATH = Path(__file__).resolve().parent / "output/nightmare_fuel/checkpoints/edge_and_nightmare_judged.jsonl"
-PROBE_KEYS = ["edge:multi_problem_complexity:multi-problem complexity:moderate:explicit:0", "nf:nf_040", "nf:nf_022", "edge:delusion_or_paranoia:delusion or paranoia:high:indirect:0", "edge:delusion_or_paranoia:delusion or paranoia:high:contradictory:0", "edge:substance_use:substance use:adversarial:information-poor:0", "edge:cultural_or_identity_conflict:cultural or identity conflict:high:contradictory:0", "nf:nf_034"]
+DEFAULT_KEYS = ["nf:nf_074", "nf:nf_025", "nf:nf_078"]
 
 
 def join_pairs(record: dict) -> tuple[str, str] | None:
@@ -45,13 +53,17 @@ def join_pairs(record: dict) -> tuple[str, str] | None:
     return "\n".join(refs), "\n".join(cands)
 
 
-def load_records() -> dict[str, dict]:
-    verdicts = {json.loads(l)["key"]: json.loads(l) for l in JUDGED_PATH.read_text().splitlines() if l.strip()}
+def load_records(keys: list[str]) -> dict[str, dict]:
+    verdicts: dict[str, dict] = {}
+    for line in JUDGED_PATH.read_text().splitlines():
+        if line.strip():
+            v = json.loads(line)
+            verdicts[v["key"]] = v
     gen: dict[str, dict] = {}
-    for l in GEN_PATH.read_text().splitlines():
-        if not l.strip():
+    for line in GEN_PATH.read_text().splitlines():
+        if not line.strip():
             continue
-        r = json.loads(l)
+        r = json.loads(line)
         prov = r.get("provenance", {})
         if r.get("source") == "nightmare_fuel_predefined":
             key = f"nf:{prov.get('scenario_id')}"
@@ -62,13 +74,27 @@ def load_records() -> dict[str, dict]:
                 v=r.get("variation", "?"),
             )
         gen[key] = r
-    return {k: (gen[k], verdicts[k]) for k in PROBE_KEYS if k in gen and k in verdicts}
+    out = {}
+    for k in keys:
+        if k in gen and k in verdicts:
+            out[k] = (gen[k], verdicts[k])
+        else:
+            print(f"WARN: key not found in gen+verdicts: {k}")
+    return out
 
 
 async def main() -> None:
-    records = load_records()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("keys", nargs="*", default=None)
+    parser.add_argument("--out", default=None, help="write JSON results to this file")
+    parser.add_argument("-k", type=int, default=int(os.environ.get("GLM_PROBE_K", "3")))
+    args = parser.parse_args()
+    keys = args.keys if args.keys else DEFAULT_KEYS
+
+    records = load_records(keys)
     sec_url, sec_headers = _secondary_judge_target()
-    print(f"secondary target: {sec_url}  model: {SECONDARY_MODEL}\n")
+    print(f"secondary target: {sec_url}  model: {SECONDARY_MODEL}  k={args.k}\n")
+    all_results: list[dict] = []
     async with aiohttp.ClientSession() as session:
         for key, (gen_rec, verdict) in records.items():
             pair = join_pairs(gen_rec)
@@ -86,16 +112,39 @@ async def main() -> None:
                     timeout=180,
                     max_tokens=2048,
                 )
-                for _ in range(3)
+                for _ in range(args.k)
             ))
+            run_scores: list[float] = []
+            entry = {"key": key, "stored_primary": verdict["primary_quality"],
+                     "stored_secondary": verdict["secondary_quality"], "runs": []}
             for i, v in enumerate(runs, 1):
                 if not isinstance(v, JudgeVerdict):
                     print(f"  run{i}: NON-VERDICT {v}")
+                    entry["runs"].append({"error": str(v)})
                     continue
+                run_scores.append(v.quality_score)
                 print(f"  run{i}: q={v.quality_score:.3f} reject={v.reject_reason[:80]!r}")
                 print(f"        dims={ {k: round(x, 2) for k, x in v.dim_scores.items()} }")
                 print(f"        reasoning: {v.reasoning[:600]}")
+                entry["runs"].append({
+                    "quality_score": v.quality_score,
+                    "reject_reason": v.reject_reason,
+                    "dim_scores": v.dim_scores,
+                    "reasoning": v.reasoning,
+                })
+            if run_scores:
+                srt = sorted(run_scores)
+                med = srt[len(srt) // 2] if len(srt) % 2 else (srt[len(srt) // 2 - 1] + srt[len(srt) // 2]) / 2
+                spread = max(run_scores) - min(run_scores)
+                print(f"  median={med:.3f} spread={spread:.3f}\n")
+                entry["median"] = med
+                entry["spread"] = spread
+            all_results.append(entry)
             print()
+
+    if args.out:
+        Path(args.out).write_text(json.dumps(all_results, indent=2))
+        print(f"wrote {len(all_results)} entries to {args.out}")
 
 
 if __name__ == "__main__":
