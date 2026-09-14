@@ -13,9 +13,10 @@ Implements blueprint Appendix B.3:
 * B.3.4 Self-consistency k=3 same-sample runs, variance > 0.05 → human review.
   Calibration set helpers: Pearson r vs golden + Cohen's kappa on accept/reject.
 
-Judge calls go to an OpenAI-compatible Chat Completions endpoint (Ollama vLLM
-self-host).  URL + model ids configurable via env vars so tests can swap in a
-fake transport.
+Judge calls go to an OpenAI-compatible Chat Completions endpoint.  Both the
+primary (DeepSeek-V4.1-Flash) and secondary (Kimi-K3) run on Featherless;
+URL + model ids configurable via env vars so tests can swap in a fake
+transport.
 """
 
 from __future__ import annotations
@@ -38,12 +39,14 @@ import aiohttp
 
 logger = logging.getLogger("dual_judge")
 
-DEFAULT_JUDGE_URL = os.environ.get("DUAL_JUDGE_URL", "http://localhost:11434/v1/chat/completions")
-PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "gurubot/wayfarer-2-12B")
-SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "@cf/zai-org/glm-5.2")
+DEFAULT_JUDGE_URL = os.environ.get("DUAL_JUDGE_URL", "https://api.featherless.ai/v1/chat/completions")
+PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "deepseek-ai/DeepSeek-V4.1-Flash")
+SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "moonshotai/Kimi-K3")
 JUDGE_TEMPERATURE = 0.1
-JUDGE_TIMEOUT_SECONDS = int(os.environ.get("DUAL_JUDGE_TIMEOUT", "120"))
-JUDGE_MAX_TOKENS = int(os.environ.get("DUAL_JUDGE_MAX_TOKENS", "1024"))
+# Reasoning models burn the token budget on reasoning_content before the JSON
+# verdict; 1024 starves them to empty content (validated at 8192, 2026-09-14).
+JUDGE_TIMEOUT_SECONDS = int(os.environ.get("DUAL_JUDGE_TIMEOUT", "240"))
+JUDGE_MAX_TOKENS = int(os.environ.get("DUAL_JUDGE_MAX_TOKENS", "8192"))
 SELF_CONSISTENCY_RUNS = 3
 SELF_CONSISTENCY_VARIANCE_MAX = 0.05
 DUAL_CONSISTENCY_DIFF_MAX = 0.15
@@ -54,37 +57,18 @@ CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 
 
-def _cloudflare_auth_header() -> dict[str, str]:
-    """Resolve the Workers AI bearer token, preferring dedicated AI keys.
-
-    The generic ``CLOUDFLARE_API_TOKEN`` can be repurposed (e.g. an R2 token),
-    which 401s on Workers AI; the dedicated ``cfut_`` AI key is correct.
-    """
-    token = (
-        os.environ.get("CLOUDFLARE_WORKERS_AI_API_KEY")
-        or os.environ.get("CLOUDFLARE_AI_API_KEY")
-        or os.environ.get("CF_AIG_TOKEN")
-        or os.environ.get("CLOUDFLARE_WORKERS_AI_API")
-        or os.environ.get("CLOUDFLARE_WORKERS_AI_API_TOKEN")
-        or os.environ.get("CLOUDFLARE_AUTH_TOKEN")
-        or os.environ.get("CLOUDFLARE_API_TOKEN")
-        or os.environ.get("CLOUDFLARE_TOKEN")
-        or ""
-    )
-    return {"Authorization": f"Bearer {token}"} if token else {}
+def _featherless_auth_header() -> dict[str, str]:
+    """Bearer auth for the Featherless judge endpoint (both judges live there)."""
+    key = os.environ.get("FEATHERLESS_API_KEY", "")
+    return {"Authorization": f"Bearer {key}"} if key else {}
 
 
 def _secondary_judge_target() -> tuple[str, dict[str, str]]:
-    """Companion judge (Workers AI) OpenAI-compatible endpoint + auth header.
-
-    The companion model (``@cf/zai-org/glm-5.2``) runs on Cloudflare
-    Workers AI, not local Ollama; only the primary (Wayfarer) is local.
-    """
-    url = os.environ.get("DUAL_JUDGE_SECONDARY_URL")
-    if not url:
-        account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
-        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions"
-    return url, _cloudflare_auth_header()
+    """Companion judge (Kimi-K3 on Featherless) endpoint + auth header."""
+    url = os.environ.get(
+        "DUAL_JUDGE_SECONDARY_URL", "https://api.featherless.ai/v1/chat/completions"
+    )
+    return url, _featherless_auth_header()
 
 
 DIMENSIONS: tuple[str, ...] = ("relevance", "accuracy", "helpfulness", "style", "safety")
@@ -601,11 +585,11 @@ async def _call_judge_model(
         "max_tokens": max_tokens if max_tokens is not None else JUDGE_MAX_TOKENS,
     }
     if headers is None:
-        # Local Ollama primary judge: force JSON output so the 12B model cannot
-        # drift into prose on long transcripts (the json_parse_error failure).
+        # Unauthenticated/local judge endpoint: force JSON output so the model
+        # cannot drift into prose on long transcripts (the json_parse_error failure).
         payload["response_format"] = {"type": "json_object"}
     elif force_json:
-        # Remote primary judge (e.g. Featherless): same prose-drift risk.
+        # Remote judge (Featherless): same prose-drift risk.
         payload["response_format"] = {"type": "json_object"}
     try:
         async with session.post(
@@ -642,10 +626,12 @@ async def judge_single(
     owns_session = session is None
     session = session or aiohttp.ClientSession()
     try:
+        primary_headers = _featherless_auth_header()
         primary_runs = await asyncio.gather(
             *(
                 _call_judge_model(
-                    session, url=url, model=primary_model, candidate_content=candidate, reference_content=reference
+                    session, url=url, model=primary_model, candidate_content=candidate, reference_content=reference,
+                    headers=primary_headers, force_json=True,
                 )
                 for _ in range(self_consistency_runs)
             )
@@ -658,6 +644,7 @@ async def judge_single(
             candidate_content=candidate,
             reference_content=reference,
             headers=secondary_headers,
+            force_json=True,
         )
     finally:
         if owns_session:
@@ -729,9 +716,13 @@ async def judge_record_turns(
             )
         joined_ref = "\n".join(ref for ref, _ in pairs)
         joined_cand = "\n".join(cand for _, cand in pairs)
+        primary_headers = _featherless_auth_header()
         if per_turn:
             primary_turn_tasks = [
-                _call_judge_model(session, url=url, model=primary_model, candidate_content=cand, reference_content=ref)
+                _call_judge_model(
+                    session, url=url, model=primary_model, candidate_content=cand, reference_content=ref,
+                    headers=primary_headers, force_json=True,
+                )
                 for ref, cand in pairs
             ]
             primary_turns = await asyncio.gather(*primary_turn_tasks)
@@ -743,6 +734,8 @@ async def judge_record_turns(
                     model=primary_model,
                     candidate_content=joined_cand,
                     reference_content=joined_ref,
+                    headers=primary_headers,
+                    force_json=True,
                 )
             ]
         secondary_url, secondary_headers = _secondary_judge_target()
@@ -753,6 +746,7 @@ async def judge_record_turns(
             candidate_content=joined_cand,
             reference_content=joined_ref,
             headers=secondary_headers,
+            force_json=True,
         )
     finally:
         if owns_session:
@@ -905,11 +899,15 @@ async def _eval_sample_cf(
     primary_model: str,
     sid: str,
 ) -> JudgeVerdict | None:
-    """Evaluate one sample via the Cloudflare REST endpoint; None on failure."""
+    """Evaluate one sample via the Cloudflare REST endpoint; None on failure.
+
+    Only used when the primary judge is itself a ``@cf/`` model; other
+    primaries fall through to the generic judge transport.
+    """
 
     cf_account = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
     cf_token = os.environ.get("CLOUDFLARE_API_TOKEN")
-    if not (cf_account and cf_token):
+    if not (primary_model.startswith("@cf") and cf_account and cf_token):
         return None
     cf_model = primary_model if primary_model.startswith("@cf") else CF_MODEL_FALLBACK
     cf_url = f"https://api.cloudflare.com/client/v4/accounts/{cf_account}/ai/run/{cf_model}"
@@ -1009,6 +1007,8 @@ async def _run_live_calibration_async(
                         model=primary_model,
                         candidate_content=asst_for_eval,
                         reference_content=user_for_eval,
+                        headers=_featherless_auth_header(),
+                        force_json=True,
                     )
 
                 completed_count += 1

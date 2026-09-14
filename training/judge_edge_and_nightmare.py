@@ -1,9 +1,9 @@
 """Bulk dual-judge scoring for edge_and_nightmare_generated.jsonl (PIX-4343, blueprint B.3.2/B.3.4).
 
 Judges every generated record in aggregate transcript mode:
-  - primary: LatitudeGames/Wayfarer-2-12B via Featherless, k=3 self-consistency,
-    force_json response_format (prevents the 12B prose-drift failure mode)
-  - secondary: @cf/zai-org/glm-5.2 via Cloudflare Workers AI, k=1
+  - primary: deepseek-ai/DeepSeek-V4.1-Flash via Featherless, k=3 self-consistency,
+    force_json response_format, max_tokens 8192 (reasoning model)
+  - secondary: moonshotai/Kimi-K3 via Featherless, k=1, max_tokens 8192
   - reconcile: dual-consistency diff <= 0.15, accept threshold 0.60,
     self-consistency variance <= 0.05
 
@@ -57,12 +57,14 @@ OUT_JUDGED = Path(os.environ.get("NF_JUDGE_OUTPUT", CHECKPOINT_DIR / "edge_and_n
 OUT_REPORT = Path(os.environ.get("NF_JUDGE_REPORT", CHECKPOINT_DIR / "edge_and_nightmare_judge_report.md"))
 
 FEATHERLESS_URL = "https://api.featherless.ai/v1/chat/completions"
-PRIMARY_MODEL_ID = os.environ.get("NF_JUDGE_PRIMARY_MODEL", "LatitudeGames/Wayfarer-2-12B")
+PRIMARY_MODEL_ID = os.environ.get("NF_JUDGE_PRIMARY_MODEL", "deepseek-ai/DeepSeek-V4.1-Flash")
 
 JUDGE_K = int(os.environ.get("NF_JUDGE_K", "3"))
-JUDGE_CONCURRENCY = int(os.environ.get("NF_JUDGE_CONCURRENCY", "3"))
+# Both judges cost 4 Featherless concurrency units (vs Wayfarer's 1): keep
+# in-flight calls low to stay clear of the per-key concurrency ceiling.
+JUDGE_CONCURRENCY = int(os.environ.get("NF_JUDGE_CONCURRENCY", "2"))
 JUDGE_ATTEMPTS = int(os.environ.get("NF_JUDGE_ATTEMPTS", "4"))
-JUDGE_CALL_TIMEOUT = int(os.environ.get("NF_JUDGE_TIMEOUT", "180"))
+JUDGE_CALL_TIMEOUT = int(os.environ.get("NF_JUDGE_TIMEOUT", "240"))
 CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("NF_JUDGE_ABORT_AFTER", "15"))
 
 INFRA_PREFIXES = ("http_429", "http_408", "http_500", "http_502", "http_503", "http_504", "http_402", "transport_error", "json_parse_error", "empty_judge_output")
@@ -202,7 +204,8 @@ async def judge_record(
             candidate=candidate,
             reference=reference,
             headers=sec_headers,
-            max_tokens=2048,  # GLM-5.2 reasons in-band; 1024 starves content on long transcripts
+            force_json=True,
+            max_tokens=8192,  # Kimi-K3 reasons in-band; low budgets starve content (validated at 8192)
         )
     latency = time.monotonic() - t0
     prims = [v for v, _ in results]
