@@ -579,6 +579,7 @@ async def _call_judge_model(
     reference_content: str,
     temperature: float = JUDGE_TEMPERATURE,
     timeout: int = JUDGE_TIMEOUT_SECONDS,
+    max_tokens: int | None = None,
     headers: dict[str, str] | None = None,
     force_json: bool = False,
 ) -> JudgeVerdict:
@@ -597,7 +598,7 @@ async def _call_judge_model(
         ],
         "stream": False,
         "temperature": temperature,
-        "max_tokens": JUDGE_MAX_TOKENS,
+        "max_tokens": max_tokens if max_tokens is not None else JUDGE_MAX_TOKENS,
     }
     if headers is None:
         # Local Ollama primary judge: force JSON output so the 12B model cannot
