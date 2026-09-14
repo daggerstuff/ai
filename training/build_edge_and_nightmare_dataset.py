@@ -15,11 +15,14 @@ import logging
 import math
 import os
 import re
+import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import aiohttp
 
+import wandb
 from training.cliche_gate import (
     BANNED_OPENERS,
     CAVING_PHRASES,
@@ -155,11 +158,12 @@ EDGE_CASE_DOMAINS = [
 
 def build_edge_case_matrix() -> list[dict[str, str]]:
     """Return the full 10 family x 3 difficulty x 4 ambiguity matrix (120 combos)."""
-    combos: list[dict[str, str]] = []
-    for family in EDGE_CASE_DOMAINS:
-        for difficulty in DIFFICULTY_LEVELS:
-            for ambiguity in AMBIGUITY_TYPES:
-                combos.append({**family, "difficulty": difficulty, "ambiguity": ambiguity})
+    combos: list[dict[str, str]] = [
+        {**family, "difficulty": difficulty, "ambiguity": ambiguity}
+        for family in EDGE_CASE_DOMAINS
+        for difficulty in DIFFICULTY_LEVELS
+        for ambiguity in AMBIGUITY_TYPES
+    ]
     return combos
 
 
@@ -608,14 +612,14 @@ def _build_edge_work(
     remaining: int | None,
 ) -> list[tuple[dict[str, str], int]]:
     """Enumerate pending edge-case records, bounded by ``remaining`` when set."""
-    work: list[tuple[dict[str, str], int]] = []
-    for combo in matrix:
-        for v in range(variations):
-            if _edge_key(combo, v) in done:
-                continue
-            work.append((combo, v))
-            if remaining is not None and len(work) >= remaining:
-                return work
+    work: list[tuple[dict[str, str], int]] = [
+        (combo, v)
+        for combo in matrix
+        for v in range(variations)
+        if _edge_key(combo, v) not in done
+    ]
+    if remaining is not None:
+        work = work[:remaining]
     return work
 
 
@@ -651,6 +655,68 @@ async def _run_edge_pool(
     return counters["generated"], counters["rejected"], counters["dropped"]
 
 
+def _maybe_init_wandb(config: dict[str, Any]) -> Any:
+    """Start a W&B run for dataset-level metrics when credentials exist.
+
+    Failure-safe: any wandb problem returns ``None`` and the run proceeds with
+    file logging only.
+    """
+    if not os.getenv("WANDB_API_KEY"):
+        return None
+    try:
+        return wandb.init(
+            project=os.environ.get("WANDB_PROJECT", "pixelated-empathy-kan28"),
+            name=f"nf_bulk_{time.strftime('%Y%m%d_%H%M%S')}",
+            job_type="dataset_generation",
+            config=config,
+        )
+    except Exception:
+        logger.warning("wandb.init failed; continuing without W&B run metrics", exc_info=True)
+        return None
+
+
+async def _wandb_metrics_loop(run: Any, snapshot: Callable[[], dict[str, int]], interval: float = 60.0) -> None:
+    while True:
+        await asyncio.sleep(interval)
+        with contextlib.suppress(Exception):
+            run.log(snapshot())
+
+
+def _start_wandb_monitor(
+    stats: dict[str, int], *, variations: int, total_edge: int, limit: int | None, guard: ModerateGuard
+) -> tuple[Any | None, asyncio.Task | None]:
+    """Optionally start a W&B run plus a background metrics logger.
+
+    Returns ``(run, task)``; both ``None`` when W&B is unavailable or disabled.
+    """
+    wandb_run = _maybe_init_wandb(
+        {
+            "backend": os.environ.get("NF_BACKEND", "featherless"),
+            "model": os.environ.get("NF_MODEL", ""),
+            "temperature": os.environ.get("NF_TEMPERATURE", ""),
+            "variations_per_combo": variations,
+            "edge_records_planned": total_edge,
+            "limit": limit,
+            "concurrency": int(os.environ.get("NF_CONCURRENCY", "10")),
+            "hourly_limit": guard.hourly_limit,
+            "hard_ceiling": guard.hard_ceiling,
+            "resumed_records": stats["resumed"],
+        }
+    )
+    if wandb_run is None:
+        return None, None
+
+    def _metrics_snapshot() -> dict[str, int]:
+        return {
+            "generated": stats["generated"],
+            "rejected": stats["rejected"],
+            "dropped": stats["dropped"],
+            "written_total": stats["resumed"] + stats["generated"],
+        }
+
+    return wandb_run, asyncio.create_task(_wandb_metrics_loop(wandb_run, _metrics_snapshot))
+
+
 async def main_async(argv: list[str] | None = None) -> None:
     args = _parse_args(argv)
     matrix = build_edge_case_matrix()
@@ -664,9 +730,15 @@ async def main_async(argv: list[str] | None = None) -> None:
 
     sem = asyncio.Semaphore(int(os.environ.get("NF_CONCURRENCY", "10")))
     conn = aiohttp.TCPConnector(limit=int(os.environ.get("NF_CONN_LIMIT", "40")))
-    generated = 0
-    rejected = 0
-    dropped = 0
+    stats = {"generated": 0, "rejected": 0, "dropped": 0, "resumed": len(done)}
+
+    wandb_run, metrics_task = _start_wandb_monitor(
+        stats,
+        variations=variations,
+        total_edge=total_edge,
+        limit=args.limit,
+        guard=guard,
+    )
 
     logger.info(
         "Edge-case matrix: %d combos x %d variations = %d records (10 families x 3 difficulty x 4 ambiguity).",
@@ -689,10 +761,9 @@ async def main_async(argv: list[str] | None = None) -> None:
                     logger.info("Generating %d nightmare-fuel scenarios...", len(scenarios))
                     nightmare_work = [s for s in scenarios if _nightmare_key(s) not in done]
                     if args.limit is not None:
-                        nightmare_work = nightmare_work[: max(0, args.limit - generated - rejected)]
+                        nightmare_work = nightmare_work[: max(0, args.limit - stats["generated"] - stats["rejected"])]
 
                     async def _run_nightmare(s: dict[str, Any]) -> None:
-                        nonlocal generated, rejected, dropped
                         async with sem:
                             try:
                                 rec = await generate_nightmare_scenario_turn(session, s)
@@ -700,33 +771,46 @@ async def main_async(argv: list[str] | None = None) -> None:
                                 logger.warning("Nightmare gen error on %s: %s", s.get("title"), exc)
                                 rec = None
                             if rec is None:
-                                dropped += 1
+                                stats["dropped"] += 1
                                 return
                             dg, dr = await _process_record(rec, guard, fout)
-                            generated += dg
-                            rejected += dr
+                            stats["generated"] += dg
+                            stats["rejected"] += dr
 
                     if nightmare_work:
                         await asyncio.gather(*(_run_nightmare(s) for s in nightmare_work))
 
                 # 2. Edge cases across the full matrix, bounded-concurrency worker pool
-                remaining = None if args.limit is None else max(0, args.limit - generated - rejected)
+                remaining = None if args.limit is None else max(0, args.limit - stats["generated"] - stats["rejected"])
                 work = _build_edge_work(matrix, variations, done, remaining)
                 g2, r2, d2 = await _run_edge_pool(session, sem, guard, fout, work)
-                generated += g2
-                rejected += r2
-                dropped += d2
+                stats["generated"] += g2
+                stats["rejected"] += r2
+                stats["dropped"] += d2
     except GenerationLimitExceededError as exc:
         logger.warning("Moderate guard tripped; checkpointing and stopping: %s", exc)
 
     logger.info(
         "Run complete: %d written, %d rejected (dual judge), %d dropped (LLM failure), %d skipped (resume) -> %s",
-        generated,
-        rejected,
-        dropped,
+        stats["generated"],
+        stats["rejected"],
+        stats["dropped"],
         len(done),
         OUT_GENERATED,
     )
+
+    if metrics_task is not None:
+        metrics_task.cancel()
+    if wandb_run is not None:
+        with contextlib.suppress(Exception):
+            wandb_run.log(
+                {
+                    "generated": stats["generated"],
+                    "rejected": stats["rejected"],
+                    "dropped": stats["dropped"],
+                }
+            )
+            wandb_run.finish()
 
 
 if __name__ == "__main__":
