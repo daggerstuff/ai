@@ -12,10 +12,16 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from ..reverie_types import ReverieSeed
-from ..schema import MemoryBlock
+from ai.research.consolidation.dedup import SemanticDeduplicator
+from ai.research.reverie_types import ReverieSeed
+from ai.research.schema import MemoryBlock
 
 log = logging.getLogger(__name__)
+
+MIN_SCHEMA_MEMORIES = 2
+POSITIVE_VALENCE_THRESHOLD = 0.2
+NEGATIVE_VALENCE_THRESHOLD = -0.2
+MIN_REVERIE_EMOTIONAL_WEIGHT = 2.0
 
 
 @dataclass(frozen=True)
@@ -104,7 +110,6 @@ class RemDreamScheduler:
     def _crosslink(self, memories: list[MemoryBlock]) -> list[CrossLink]:
         """Phase 2: Create cross-links between semantically related memories."""
         links: list[CrossLink] = []
-        from .dedup import SemanticDeduplicator
 
         dedup = SemanticDeduplicator(threshold=self._crosslink_threshold)
         dedup._build_index(memories)
@@ -136,10 +141,16 @@ class RemDreamScheduler:
 
         schemas: list[Schema] = []
         for idx, (category, group) in enumerate(category_groups.items()):
-            if len(group) < 2:
+            if len(group) < MIN_SCHEMA_MEMORIES:
                 continue
             avg_valence = sum(m.emotions.valence for m in group) / len(group)
-            valence_label = "positive" if avg_valence > 0.2 else "negative" if avg_valence < -0.2 else "neutral"
+            valence_label = (
+                "positive"
+                if avg_valence > POSITIVE_VALENCE_THRESHOLD
+                else "negative"
+                if avg_valence < NEGATIVE_VALENCE_THRESHOLD
+                else "neutral"
+            )
             schemas.append(
                 Schema(
                     schema_id=f"schema_{idx}",
@@ -177,7 +188,7 @@ class RemDreamScheduler:
         for m in memories:
             if m.gating.crisisFlag:
                 continue
-            if m.importance.emotionalWeight < 2.0:
+            if m.importance.emotionalWeight < MIN_REVERIE_EMOTIONAL_WEIGHT:
                 continue
             if m.consolidation.phase not in ("archived", "forgotten", "latent"):
                 continue
