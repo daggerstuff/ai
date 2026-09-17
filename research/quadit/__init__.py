@@ -13,6 +13,12 @@ adversarial review (voice fidelity / clinical accuracy / training signal)
 and the Brené Brown ``quadit`` auditor were first built.
 """
 
+from ai.research.quadit.dataset_gate import (
+    DatasetGateError,
+    audit_dataset_records,
+    gate_should_block,
+    record_to_audit_item,
+)
 from ai.research.quadit.models import (
     AuditItem,
     Finding,
@@ -35,11 +41,15 @@ __all__ = [
     "TRAINING_SIGNAL_JUDGE",
     "VOICE_FIDELITY_JUDGE",
     "AuditItem",
+    "DatasetGateError",
     "Finding",
     "PersonaVerdict",
     "QuadAuditReport",
     "QuaditLLMClient",
+    "audit_dataset_records",
+    "gate_should_block",
     "load_auditor_descriptor",
+    "record_to_audit_item",
     "run_quadit_audit",
     "severity_weight",
 ]
