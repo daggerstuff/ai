@@ -1,5 +1,7 @@
 """Tests for consolidate_edge_nightmare (pure, tmp-dir fixtures, no network)."""
 
+import json
+
 from pipelines.ingestion_deduplication import compute_primary_hash
 from training.consolidate_edge_nightmare import (
     MANIFEST_FILENAME,
@@ -13,10 +15,12 @@ from training.consolidate_edge_nightmare import (
 
 
 def _chatml(user, assistant):
-    return {"messages": [
-        {"role": "user", "content": user},
-        {"role": "assistant", "content": assistant},
-    ]}
+    return {
+        "messages": [
+            {"role": "user", "content": user},
+            {"role": "assistant", "content": assistant},
+        ]
+    }
 
 
 def test_stage_of_routes_edge_family():
@@ -52,10 +56,15 @@ def test_canonical_hash_matches_ingestion_policy():
 
 
 def test_is_dpo_and_payload_reconstruct():
-    rec = {"asset_kind": "dpo", "messages": [
-        {"role": "user", "content": "I feel stuck"},
-        {"role": "assistant", "content": "Let's name what's stuck."},
-    ], "rejected": "You're right, it's hopeless.", "metadata": {"pair_type": "safety"}}
+    rec = {
+        "asset_kind": "dpo",
+        "messages": [
+            {"role": "user", "content": "I feel stuck"},
+            {"role": "assistant", "content": "Let's name what's stuck."},
+        ],
+        "rejected": "You're right, it's hopeless.",
+        "metadata": {"pair_type": "safety"},
+    }
     assert _is_dpo(rec) is True
     payload = _dpo_payload(rec)
     assert payload["prompt"] == "I feel stuck"
@@ -124,15 +133,17 @@ def test_consolidate_end_to_end(tmp_path):
         reject_path=reject,
     )
 
-    assert summary["scanned"] == 5
-    assert summary["emitted_gold"] == 2  # edge + clinical; duplicate & cliche & dpo excluded
-    assert summary["emitted_manifest"] == 3  # edge + clinical + dpo
+    n_scanned, n_gold, n_manifest = 5, 2, 3
+    assert summary["scanned"] == n_scanned
+    assert summary["emitted_gold"] == n_gold  # edge + clinical; duplicate & cliche & dpo excluded
+    assert summary["emitted_manifest"] == n_manifest  # edge + clinical + dpo
     assert summary["rejected"] == 1
     assert summary["duplicates"] == 1
 
     # Gold grew: 1 pre-seed + 2 new = 3.
     gold_lines = [ln for ln in gold.read_text(encoding="utf-8").splitlines() if ln.strip()]
-    assert len(gold_lines) == 3
+    n_gold_lines = 3
+    assert len(gold_lines) == n_gold_lines
 
     # Manifests: stage3 has edge; stage2 has clinical; stage5 has dpo.
     stage3 = manifest_dir / MANIFEST_FILENAME["stage3_edge_stress_test"]
@@ -166,3 +177,77 @@ def test_consolidate_idempotent(tmp_path):
     assert second["duplicates"] == 1
     gold_lines = [ln for ln in gold.read_text(encoding="utf-8").splitlines() if ln.strip()]
     assert len(gold_lines) == 1
+
+
+def test_consolidate_rejects_quadit_banned_phrase(tmp_path):
+    # "circle back" slips past the cliché gate but is a quadit banned phrase.
+    gold = tmp_path / "gold.jsonl"
+    staging = tmp_path / "staging.jsonl"
+    banned = {
+        "messages": [
+            {"role": "user", "content": "What do we do next week?"},
+            {"role": "assistant", "content": "Let's circle back on the treatment plan next sprint."},
+        ],
+        "stage": "stage2_therapeutic_expertise",
+    }
+    clean = {
+        "messages": [
+            {"role": "user", "content": "Tell me about attachment."},
+            {"role": "assistant", "content": "Attachment shapes how we reach for others."},
+        ],
+        "stage": "stage2_therapeutic_expertise",
+    }
+    staging.write_text("\n".join(json.dumps(r) for r in (banned, clean)) + "\n", encoding="utf-8")
+    manifest_dir = tmp_path / "final"
+    reject = tmp_path / "rejections.jsonl"
+
+    summary = consolidate([staging], gold_path=gold, manifest_dir=manifest_dir, reject_path=reject)
+
+    assert summary["rejected_quadit"] == 1
+    assert summary["rejected"] == 0  # cliché gate stayed quiet; quadit gate did the work
+    assert summary["emitted_gold"] == 1
+    assert "circle back" not in (gold.read_text(encoding="utf-8") if gold.exists() else "")
+    assert any("quadit" in ln for ln in reject.read_text(encoding="utf-8").splitlines())
+
+
+def test_consolidate_dpo_gates_prompt_and_chosen_only(tmp_path):
+    # The rejected arm may carry banned language by design; only prompt+chosen are gated.
+    gold = tmp_path / "gold.jsonl"
+    staging = tmp_path / "staging.jsonl"
+    dpo = {
+        "asset_kind": "dpo",
+        "prompt": "I don't want to talk about it.",
+        "chosen": "That sounds reasonable. What would feel manageable?",
+        "rejected": "This is amazing and game changing, let's synergize and circle back.",
+    }
+    staging.write_text(json.dumps(dpo) + "\n", encoding="utf-8")
+    manifest_dir = tmp_path / "final"
+    reject = tmp_path / "rejections.jsonl"
+
+    summary = consolidate([staging], gold_path=gold, manifest_dir=manifest_dir, reject_path=reject)
+
+    assert summary["rejected_quadit"] == 0
+    assert summary["emitted_manifest"] == 1
+    stage5 = manifest_dir / MANIFEST_FILENAME["stage5_safety"]
+    assert "circle back" in stage5.read_text(encoding="utf-8")  # rejected arm preserved verbatim
+
+
+def test_consolidate_rejects_dpo_with_banned_chosen(tmp_path):
+    gold = tmp_path / "gold.jsonl"
+    staging = tmp_path / "staging.jsonl"
+    dpo = {
+        "asset_kind": "dpo",
+        "prompt": "I don't want to talk about it.",
+        "chosen": "Let's circle back and synergize on this next sprint.",
+        "rejected": "That sounds reasonable.",
+    }
+    staging.write_text(json.dumps(dpo) + "\n", encoding="utf-8")
+    manifest_dir = tmp_path / "final"
+    reject = tmp_path / "rejections.jsonl"
+
+    summary = consolidate([staging], gold_path=gold, manifest_dir=manifest_dir, reject_path=reject)
+
+    assert summary["rejected_quadit"] == 1
+    assert summary["emitted_manifest"] == 0
+    assert not (manifest_dir / MANIFEST_FILENAME["stage5_safety"]).exists()
+    assert any("quadit" in ln for ln in reject.read_text(encoding="utf-8").splitlines())

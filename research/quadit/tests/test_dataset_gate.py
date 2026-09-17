@@ -8,10 +8,11 @@ from ai.research.quadit import (
     AuditItem,
     DatasetGateError,
     audit_dataset_records,
+    chatml_to_audit_item,
     gate_should_block,
     record_to_audit_item,
 )
-from ai.research.quadit.review import DEFAULT_JUDGES
+from ai.research.quadit.review import DEFAULT_JUDGES, run_quadit_audit
 
 
 def test_record_to_audit_item_common_fields() -> None:
@@ -112,3 +113,56 @@ def test_record_roundtrip_matches_core_item() -> None:
     item = record_to_audit_item({"id": "r1", "text": "hello"})
     core = AuditItem(id="r1", kind="dataset_record", author_role="dataset-record", content="hello")
     assert item.model_dump() == core.model_dump()
+
+
+def test_chatml_to_audit_item_serializes_dialogue() -> None:
+    record = {
+        "id": "r-1",
+        "messages": [
+            {"role": "user", "content": "I keep using again."},
+            {"role": "assistant", "content": "Let's stay with what just happened."},
+        ],
+    }
+    item = chatml_to_audit_item(record)
+    assert item.id == "r-1"
+    assert item.kind == "chatml_record"
+    assert item.content == "user: I keep using again.\nassistant: Let's stay with what just happened."
+    # The raw message list must not leak into the context metadata.
+    assert "messages" not in item.context
+
+
+def test_chatml_to_audit_item_skips_blank_and_malformed_turns() -> None:
+    record = {
+        "messages": [
+            {"role": "user", "content": "   "},
+            {"role": "assistant"},
+            "not-a-dict",
+            {"role": "assistant", "content": "We reviewed the session together."},
+        ]
+    }
+    item = chatml_to_audit_item(record)
+    assert item.content == "assistant: We reviewed the session together."
+    assert item.id == "record-0"
+
+
+def test_chatml_to_audit_item_rejects_missing_messages() -> None:
+    with pytest.raises(DatasetGateError, match="no 'messages' list"):
+        chatml_to_audit_item({"text": "flat"})
+
+
+def test_chatml_to_audit_item_rejects_empty_dialogue() -> None:
+    with pytest.raises(DatasetGateError, match="no non-empty messages"):
+        chatml_to_audit_item({"messages": [{"role": "user", "content": ""}]})
+
+
+def test_chatml_gate_blocks_banned_phrase_in_user_turn() -> None:
+    """A banned phrase in the client turn still poisons the training signal."""
+    record = {
+        "id": "r1",
+        "messages": [
+            {"role": "user", "content": "Can we synergize on this next sprint?"},
+            {"role": "assistant", "content": "Let's stay with what just happened."},
+        ],
+    }
+    report = run_quadit_audit([chatml_to_audit_item(record)])
+    assert gate_should_block(report)

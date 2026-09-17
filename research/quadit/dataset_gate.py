@@ -36,6 +36,38 @@ class DatasetGateError(ValueError):
     """A dataset record cannot be converted to an audit item."""
 
 
+def _build_item(
+    record: Mapping[str, Any],
+    position: int,
+    text: str,
+    kind: str,
+    excluded: tuple[str, ...],
+) -> AuditItem:
+    """Shared ``AuditItem`` assembly (id / author_role / context) for the record adapters."""
+    item_id: str | None = None
+    for key in _ID_KEYS:
+        value = record.get(key)
+        if value is not None:
+            item_id = str(value)
+            break
+    if item_id is None:
+        item_id = f"record-{position}"
+
+    author_role = record.get("author_role", "dataset-record")
+    if not isinstance(author_role, str):
+        author_role = "dataset-record"
+
+    context: dict[str, str] = {str(k): str(v) for k, v in record.items() if k not in excluded and v is not None}
+
+    return AuditItem(
+        id=item_id,
+        kind=kind,
+        author_role=author_role,
+        content=text,
+        context=context,
+    )
+
+
 def record_to_audit_item(record: Mapping[str, Any], position: int = 0) -> AuditItem:
     """Convert one raw dataset record to an ``AuditItem``.
 
@@ -55,29 +87,43 @@ def record_to_audit_item(record: Mapping[str, Any], position: int = 0) -> AuditI
             f"Record at position {position} has no non-empty text field (looked for: {', '.join(_TEXT_KEYS)})."
         )
 
-    item_id: str | None = None
-    for key in _ID_KEYS:
-        value = record.get(key)
-        if value is not None:
-            item_id = str(value)
-            break
-    if item_id is None:
-        item_id = f"record-{position}"
+    return _build_item(
+        record,
+        position,
+        text,
+        str(record.get("kind", "dataset_record")),
+        _TEXT_KEYS + _ID_KEYS,
+    )
 
-    author_role = record.get("author_role", "dataset-record")
-    if not isinstance(author_role, str):
-        author_role = "dataset-record"
 
-    context: dict[str, str] = {
-        str(k): str(v) for k, v in record.items() if k not in _TEXT_KEYS and k not in _ID_KEYS and v is not None
-    }
+def chatml_to_audit_item(record: Mapping[str, Any], position: int = 0) -> AuditItem:
+    """Convert one ChatML dialogue record (``{"messages": [{"role", "content"}, ...]}``).
 
-    return AuditItem(
-        id=item_id,
-        kind=str(record.get("kind", "dataset_record")),
-        author_role=author_role,
-        content=text,
-        context=context,
+    The full dialogue is serialized as ``role: content`` lines so judges also
+    see the client turns — a banned phrase or PHI leak in a user turn poisons
+    the training signal just as much as one in the assistant turn. Raises
+    :class:`DatasetGateError` when no usable dialogue turns exist.
+    """
+    messages = record.get("messages")
+    if not isinstance(messages, list):
+        raise DatasetGateError(f"Record at position {position} has no 'messages' list.")
+    lines: list[str] = []
+    for message in messages:
+        if not isinstance(message, dict):
+            continue
+        role = str(message.get("role") or "").strip()
+        content = str(message.get("content") or "").strip()
+        if role and content:
+            lines.append(f"{role}: {content}")
+    if not lines:
+        raise DatasetGateError(f"Record at position {position} has no non-empty messages.")
+
+    return _build_item(
+        record,
+        position,
+        "\n".join(lines),
+        str(record.get("kind", "chatml_record")),
+        _TEXT_KEYS + _ID_KEYS + ("messages",),
     )
 
 

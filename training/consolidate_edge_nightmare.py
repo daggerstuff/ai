@@ -18,9 +18,12 @@ For every gate-passing record it:
      records carry (``get_stage_priority`` in ``ingestion_deduplication`` only reads
      ``metadata.stage`` and omits ``stage5_safety``);
   3. cliché-gates every record (``cliche_gate.reject_reason_for_record``);
-  4. dedups against the master gold + existing manifests (append-only, first-write-
+  4. quadit-gates every record (deterministic ``ai.research.quadit`` dataset
+     gate — banned phrases / director superlatives / PHI patterns; DPO pairs
+     gate prompt+chosen only, the rejected arm is deliberately bad data);
+  5. dedups against the master gold + existing manifests (append-only, first-write-
      wins, no duplicate hashes);
-  5. appends to ``MASTER_STAGE_N.jsonl`` **and** ``train_master_gold.jsonl`` with
+  6. appends to ``MASTER_STAGE_N.jsonl`` **and** ``train_master_gold.jsonl`` with
      append + fsync, tagging provenance (``stage``, ``consolidated_at``).
 
 DPO preference pairs (``{prompt, chosen, rejected}``) route to Stage 5 and are
@@ -41,6 +44,14 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from ai.research.quadit.dataset_gate import (
+    DEFAULT_AUDITORS,
+    DatasetGateError,
+    chatml_to_audit_item,
+    gate_should_block,
+)
+from ai.research.quadit.personas import AuditorDescriptor, load_auditor_descriptor
+from ai.research.quadit.review import run_quadit_audit
 from pipelines.ingestion_deduplication import compute_primary_hash
 from training.cliche_gate import reject_reason_for_record
 
@@ -118,6 +129,7 @@ class _State:
     manifest_dir: Path
     gold_path: Path
     reject_path: Path
+    quadit_auditors: tuple[AuditorDescriptor, ...]
     summary: dict[str, Any] = field(default_factory=dict)
 
 
@@ -180,12 +192,8 @@ def _dpo_payload(record: dict[str, Any]) -> dict[str, Any] | None:
         rejected = str(record.get("rejected") or "").strip()
     else:
         messages = record.get("messages") or []
-        prompt = next(
-            (str(m.get("content") or "") for m in messages if m.get("role") == "user"), ""
-        ).strip()
-        chosen = next(
-            (str(m.get("content") or "") for m in messages if m.get("role") == "assistant"), ""
-        ).strip()
+        prompt = next((str(m.get("content") or "") for m in messages if m.get("role") == "user"), "").strip()
+        chosen = next((str(m.get("content") or "") for m in messages if m.get("role") == "assistant"), "").strip()
         rejected = str(record.get("rejected") or "").strip()
     if not prompt or not chosen or not rejected:
         return None
@@ -268,6 +276,22 @@ def _iter_records(path: Path) -> Iterator[dict[str, Any]]:
                 yield record
 
 
+def _quadit_reject_reason(gate_record: dict[str, Any], state: _State) -> str | None:
+    """Deterministic quadit gate over one record; reason string when it must not enter the corpus.
+
+    Scans the serialized dialogue for banned phrases, director superlatives,
+    and PHI patterns (no LLM). Returns None when the record passes.
+    """
+    try:
+        item = chatml_to_audit_item(gate_record)
+    except DatasetGateError as exc:
+        return f"quadit-malformed: {exc}"
+    report = run_quadit_audit([item], auditors=state.quadit_auditors)
+    if gate_should_block(report):
+        return f"quadit: {report.summary}"
+    return None
+
+
 def _process_dpo(record: dict[str, Any], state: _State) -> None:
     stage = "stage5_safety"
     payload = _dpo_payload(record)
@@ -286,8 +310,17 @@ def _process_dpo(record: dict[str, Any], state: _State) -> None:
         state.summary["rejected"] += 1
         _append(
             state.reject_path,
-            {"reason": reason, "hash": _dpo_hash(payload),
-             "source": record.get("source"), "stage": stage},
+            {"reason": reason, "hash": _dpo_hash(payload), "source": record.get("source"), "stage": stage},
+        )
+        return
+
+    # The rejected arm is deliberately bad data — only prompt+chosen are gated.
+    quadit_reason = _quadit_reject_reason(gate_record, state)
+    if quadit_reason is not None:
+        state.summary["rejected_quadit"] += 1
+        _append(
+            state.reject_path,
+            {"reason": quadit_reason, "hash": _dpo_hash(payload), "source": record.get("source"), "stage": stage},
         )
         return
 
@@ -314,8 +347,21 @@ def _process_chatml(record: dict[str, Any], stage: str, state: _State) -> None:
         state.summary["rejected"] += 1
         _append(
             state.reject_path,
-            {"reason": reason, "hash": compute_primary_hash(record),
-             "source": record.get("source"), "stage": stage},
+            {"reason": reason, "hash": compute_primary_hash(record), "source": record.get("source"), "stage": stage},
+        )
+        return
+
+    quadit_reason = _quadit_reject_reason(record, state)
+    if quadit_reason is not None:
+        state.summary["rejected_quadit"] += 1
+        _append(
+            state.reject_path,
+            {
+                "reason": quadit_reason,
+                "hash": compute_primary_hash(record),
+                "source": record.get("source"),
+                "stage": stage,
+            },
         )
         return
 
@@ -358,6 +404,7 @@ def consolidate(
         "emitted_manifest": 0,
         "duplicates": 0,
         "rejected": 0,
+        "rejected_quadit": 0,
         "skipped_no_messages": 0,
         "by_stage": {},
     }
@@ -367,6 +414,7 @@ def consolidate(
         manifest_dir=manifest_dir,
         gold_path=gold_path,
         reject_path=reject_path,
+        quadit_auditors=tuple(load_auditor_descriptor(name) for name in DEFAULT_AUDITORS),
         summary=summary,
     )
 

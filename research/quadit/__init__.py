@@ -16,6 +16,7 @@ and the Brené Brown ``quadit`` auditor were first built.
 from ai.research.quadit.dataset_gate import (
     DatasetGateError,
     audit_dataset_records,
+    chatml_to_audit_item,
     gate_should_block,
     record_to_audit_item,
 )
@@ -47,6 +48,7 @@ __all__ = [
     "QuadAuditReport",
     "QuaditLLMClient",
     "audit_dataset_records",
+    "chatml_to_audit_item",
     "gate_should_block",
     "load_auditor_descriptor",
     "record_to_audit_item",
