@@ -19,9 +19,9 @@ def _build_path(key: str, remote: str | None = None, bucket: str | None = None) 
     # If key already contains the bucket+prefix (e.g. "pixelated-empathy/curated/..."),
     # strip it so we don't double-prefix.
     base = f"{b}/{DEFAULT_PREFIX}"
-    if key.startswith(base + "/"):
+    if key.startswith(f"{base}/"):
         key = key[len(base) + 1 :]
-    elif key.startswith(DEFAULT_PREFIX + "/"):
+    elif key.startswith(f"{DEFAULT_PREFIX}/"):
         key = key[len(DEFAULT_PREFIX) + 1 :]
     return f"{r}:{b}/{DEFAULT_PREFIX}/{key}" if key else f"{r}:{b}/{DEFAULT_PREFIX}"
 
@@ -29,7 +29,7 @@ def _build_path(key: str, remote: str | None = None, bucket: str | None = None) 
 class S3Streamer:
     """Streams datasets to and from S3-compatible storage using rclone.
 
-    Defaults to whitebat (Civo) training/pixelated-empathy.
+    Defaults to whitebat training/pixelated-empathy.
     Override via env vars: S3_STREAMER_REMOTE, S3_STREAMER_BUCKET, S3_STREAMER_PREFIX.
     """
 
@@ -42,11 +42,11 @@ class S3Streamer:
         r = self.remote
         p = self.prefix
         # Strip redundant prefix if caller passed full path
-        if p and key.startswith(p + "/"):
+        if p and key.startswith(f"{p}/"):
             key = key[len(p) + 1 :]
         if self.bucket:
             base = f"{self.bucket}/{p}" if p else self.bucket
-            if key.startswith(base + "/"):
+            if key.startswith(f"{base}/"):
                 key = key[len(base) + 1 :]
             return f"{r}:{base}/{key}" if key else f"{r}:{base}"
         return f"{r}:{p}/{key}" if key and p else (f"{r}:{p}" if p else f"{r}:{key}")
@@ -58,32 +58,31 @@ class S3Streamer:
             cmd.append("--recursive")
         cmd.append(self._path(prefix))
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        keys: list[str] = []
-        for line in result.stdout.strip().split("\n"):
-            if line:
-                keys.append(prefix + line)
+        keys: list[str] = [
+            prefix + line for line in result.stdout.strip().split("\n") if line
+        ]
         return keys
 
-    def stream_jsonl(self, key: str):
-        """Yields parsed JSON objects line-by-line from a JSONL file in S3 using rclone cat."""
+    def _cat_proc(self, key: str) -> subprocess.Popen:
         cmd = ["rclone", "cat", self._path(key)]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True, encoding="utf-8")
         assert proc.stdout is not None
+        return proc
+
+    def stream_jsonl(self, key: str):
+        """Yields parsed JSON objects line-by-line from a JSONL file in S3 using rclone cat."""
+        proc = self._cat_proc(key)
         with contextlib.suppress(Exception):
             for raw_line in proc.stdout:
-                stripped = raw_line.strip()
-                if stripped:
+                if stripped := raw_line.strip():
                     yield json.loads(stripped)
         proc.wait()
 
     def stream_text(self, key: str):
         """Yields decoded text line-by-line from a text file in S3 using rclone cat."""
-        cmd = ["rclone", "cat", self._path(key)]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, text=True, encoding="utf-8")
-        assert proc.stdout is not None
+        proc = self._cat_proc(key)
         for raw_line in proc.stdout:
-            stripped = raw_line.strip()
-            if stripped:
+            if stripped := raw_line.strip():
                 yield stripped
         proc.wait()
 
@@ -92,28 +91,45 @@ class S3Streamer:
         cmd = ["rclone", "copyto", self._path(key), local_path]
         subprocess.run(cmd, check=True)
 
+    def _run_rclone(self, cmd: list[str], stdin: bool = False) -> subprocess.Popen:
+        """Run an rclone subprocess, streaming stdin or stdout as configured."""
+        kwargs = {"text": True, "encoding": "utf-8"}
+        if stdin:
+            kwargs["stdin"] = subprocess.PIPE
+        else:
+            kwargs["stdout"] = subprocess.PIPE
+        proc = subprocess.Popen(cmd, **kwargs)
+        if stdin:
+            assert proc.stdin is not None
+        else:
+            assert proc.stdout is not None
+        return proc
+
+    def _write_records(self, proc: subprocess.Popen, iterator) -> int:
+        """Write each item as a JSONL line to the rcat stdin, returning count."""
+        count = 0
+        for item in iterator:
+            line = json.dumps(item) + "\n"
+            proc.stdin.write(line)
+            count += 1
+            if count % 100000 == 0:
+                proc.stdin.flush()
+        proc.stdin.close()
+        return count
+
     def write_jsonl(self, key: str, iterator, chunk_size_mb: int = 64) -> int:
         """Streams an iterable of dicts as JSONL directly to S3 using rclone rcat.
 
         Avoids writing anything to local disk.
         Returns count of records written.
         """
-        cmd = ["rclone", "rcat", self._path(key)]
-        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True, encoding="utf-8")
-        assert proc.stdin is not None
-        count = 0
+        proc = self._run_rclone(["rclone", "rcat", self._path(key)], stdin=True)
         try:
-            for item in iterator:
-                line = json.dumps(item) + "\n"
-                proc.stdin.write(line)
-                count += 1
-                if count % 100000 == 0:
-                    proc.stdin.flush()
-            proc.stdin.close()
+            count = self._write_records(proc, iterator)
 
             return_code = proc.wait()
             if return_code != 0:
-                raise Exception(f"rclone rcat failed with return code {return_code}")
+                raise RuntimeError(f"rclone rcat failed with return code {return_code}")
 
             logger.info("Successfully uploaded %d records to %s via rclone rcat.", count, key)
             return count

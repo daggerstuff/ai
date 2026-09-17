@@ -246,3 +246,8 @@ pr_comments.txt
 pr_description.md
 PAL_AUDIT_REPORT.md
 **/*.pid
+
+
+# === RUNTIME STATE ===
+# Journal dataset research session dumps (progress metrics, regenerated per run)
+journal_dataset_research/sessions/
