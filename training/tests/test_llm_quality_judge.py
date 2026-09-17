@@ -145,26 +145,26 @@ class TestRubricScoring:
         assert result["turn_scores"][0].primary_overall == pytest.approx(0.25, abs=0.01)
 
     def test_classify_score_poor(self):
-        """Score < 0.25 → poor."""
+        """Score < 0.45 → poor."""
         assert DualModelQualityJudge.classify_score(0.0) == "poor"
         assert DualModelQualityJudge.classify_score(0.10) == "poor"
-        assert DualModelQualityJudge.classify_score(0.24) == "poor"
+        assert DualModelQualityJudge.classify_score(0.44) == "poor"
 
     def test_classify_score_fair(self):
-        """0.25 <= score < 0.50 → fair."""
-        assert DualModelQualityJudge.classify_score(0.25) == "fair"
-        assert DualModelQualityJudge.classify_score(0.30) == "fair"
-        assert DualModelQualityJudge.classify_score(0.49) == "fair"
+        """0.45 <= score < 0.65 → fair."""
+        assert DualModelQualityJudge.classify_score(0.45) == "fair"
+        assert DualModelQualityJudge.classify_score(0.50) == "fair"
+        assert DualModelQualityJudge.classify_score(0.64) == "fair"
 
     def test_classify_score_good(self):
-        """0.50 <= score < 0.75 → good."""
-        assert DualModelQualityJudge.classify_score(0.50) == "good"
-        assert DualModelQualityJudge.classify_score(0.60) == "good"
-        assert DualModelQualityJudge.classify_score(0.74) == "good"
+        """0.65 <= score < 0.85 → good."""
+        assert DualModelQualityJudge.classify_score(0.65) == "good"
+        assert DualModelQualityJudge.classify_score(0.75) == "good"
+        assert DualModelQualityJudge.classify_score(0.84) == "good"
 
     def test_classify_score_excellent(self):
-        """0.75 <= score <= 1.0 → excellent."""
-        assert DualModelQualityJudge.classify_score(0.75) == "excellent"
+        """0.85 <= score <= 1.0 → excellent."""
+        assert DualModelQualityJudge.classify_score(0.85) == "excellent"
         assert DualModelQualityJudge.classify_score(0.90) == "excellent"
         assert DualModelQualityJudge.classify_score(1.0) == "excellent"
 
@@ -433,12 +433,12 @@ class TestEmptyConversation:
 
 
 class TestCalibration:
-    """Verify calibration against the golden 200-sample set."""
+    """Verify calibration against the golden 90-sample clinician-rated set."""
 
     def test_calibrate_with_perfect_mock(self, tmp_path):
         """Mock LLM returns human scores exactly → Pearson=1.0, kappa=1.0."""
         # Load golden file, create a mock that returns each sample's human_scores
-        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_judge_calib_v2.jsonl"
+        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_vera_mh_v1.jsonl"
         if not golden_path.exists():
             pytest.skip(f"Golden file not found: {golden_path}")
 
@@ -448,34 +448,29 @@ class TestCalibration:
                 if line.strip():
                     samples.append(json.loads(line))
 
-        # Create mock clients that return human_scores as dimension_scores
-        # The mock needs to return based on the prompt — we use side_effect
-        # Since _call_model_sync is called with the turn text, and the mock
-        # returns the same response for all calls, we need to cycle through
-        # the responses per sample.
-        # But actually, judge.judge() is called per sample, and each sample
-        # has 1 assistant turn with k=3 samples per model → 6 calls per sample.
-        # We need to map each sample to its human scores.
+        # Vera samples are multi-turn: judge.judge() scores every assistant
+        # turn, and each turn costs 6 mock calls (k=3 × 2 models). Map calls
+        # to samples via cumulative per-sample call bounds.
 
-        # Strategy: mock _call_model_sync to return the correct response
-        # based on which sample is currently being judged.
-        # We'll use a queue approach.
+        bounds: list[int] = []
+        total = 0
+        for s in samples:
+            n_asst = sum(1 for m in s["conversation"] if m.get("role") == "assistant")
+            total += max(n_asst, 1) * 6
+            bounds.append(total)
 
         judge = DualModelQualityJudge(
             primary_client=MagicMock(),
             secondary_client=MagicMock(),
         )
 
-        # Patch _call_model_sync to return human scores for each sample
+        # Patch _call_model_sync to return human scores for the current sample
         call_idx = [0]
 
         def mock_call_model(client, turn_text):
-            # Each sample calls _call_model_sync 6 times (k=3 × 2 models)
-            # We cycle through samples: calls 0-5 → sample 0, 6-11 → sample 1, etc.
-            sample_idx = call_idx[0] // 6
             call_idx[0] += 1
-            if sample_idx >= len(samples):
-                return make_llm_response(0.5, 0.5, 0.5, 0.5, 0.5)
+            ci = call_idx[0]
+            sample_idx = next((i for i, b in enumerate(bounds) if ci <= b), len(samples) - 1)
             hs = samples[sample_idx]["human_scores"]
             return make_llm_response(
                 hs.get("relevance", 0.5),
@@ -491,11 +486,11 @@ class TestCalibration:
         assert report["pearson_r"] >= 0.80
         assert report["cohens_kappa"] >= 0.65
         assert report["pass"] is True
-        assert report["sample_count"] == 200
+        assert report["sample_count"] == 90
 
     def test_calibrate_returns_per_dimension(self, uniform_response):
         """calibrate() returns per-dimension correlations."""
-        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_judge_calib_v2.jsonl"
+        golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_vera_mh_v1.jsonl"
         if not golden_path.exists():
             pytest.skip(f"Golden file not found: {golden_path}")
 

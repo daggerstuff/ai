@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Calibration runner for the dual-model LLM quality judge (PIX-4345 §B.4 step 2B).
 
-Runs ``DualModelQualityJudge.calibrate()`` against the 200-sample golden set and
+Runs ``DualModelQualityJudge.calibrate()`` against the 90-sample golden set and
 emits a report JSON with the Pearson r / Cohen κ release-gate verdict.
 
 Release gate (per blueprint step 2B):
   - Pearson r >= 0.80
   - Cohen κ >= 0.65 (quadratic-weighted)
 
-CRITICAL: ``training/data/golden_judge_calib_v2.jsonl`` is the real golden set
-(200 AnnoMI + ESConv clinical samples with expert-rule-based scores).
+Golden set: ``training/data/golden_vera_mh_v1.jsonl`` — 90 real VERA-MH
+multi-turn conversations, each rated by 3 clinicians.
 
 Usage:
   python calibrate_judge.py [--golden PATH] [--out PATH] [--allow-placeholder]
@@ -47,7 +47,7 @@ except ImportError:  # pragma: no cover - direct execution with unpinned cwd
 PLACEHOLDER_NOTICE = (
     "golden judge set is synthetic/placeholder data — "
     "release-gate metrics are NOT representative of real human ratings. "
-    "Regenerate the real golden set (golden_judge_calib_v2.jsonl) before "
+    "Regenerate the real golden set (golden_vera_mh_v1.jsonl) before "
     "trusting the gate verdict (see docs/plans/PIX-4343)."
 )
 
@@ -164,7 +164,10 @@ def main() -> int:
 
     if not (os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")):
         print("FAIL: no LLM_API_KEY or OPENAI_API_KEY set — judge needs a live LLM endpoint.")
-        print("  Configure a vLLM/OpenAI-compatible endpoint (Qwen-72B primary, LLaMA-70B secondary).")
+        print(
+            "  Configure a vLLM/OpenAI-compatible endpoint "
+            "(models via LLM_PRIMARY_MODEL / LLM_SECONDARY_MODEL)."
+        )
         return 4
 
     try:

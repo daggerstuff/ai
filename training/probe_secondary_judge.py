@@ -1,11 +1,15 @@
-"""Probe GLM-5.2 secondary judge on selected records, k runs each.
+"""Probe the secondary judge on selected records, k runs each.
 
 Re-queries the secondary judge k times with identical inputs to answer:
 1. Is the harsh mode deterministic (same low score every run) or stochastic?
-2. What does GLM's reasoning actually claim — coherent critique or hallucination?
+2. What does the judge's reasoning actually claim — coherent critique or hallucination?
+
+The secondary judge follows dual_judge's stack (currently Kimi-K3 via Featherless;
+previously GLM-5.2 via Cloudflare), with max_tokens and timeout raised for
+reasoning models.
 
 Usage:
-    python -m training.probe_glm_disagreement KEY1 KEY2 ... [--out FILE] [-k N]
+    python -m training.probe_secondary_judge KEY1 KEY2 ... [--out FILE] [-k N]
 
 Keys are record keys from the judged JSONL (e.g. "nf:nf_074",
 "edge:delusion_or_paranoia:...:0"). Without keys, probes a small default set.

@@ -10,10 +10,11 @@ Protocol (quality first, speed second):
      (HEADER + SCENARIO CONTEXT + THERAPIST_VOICE_SPEC + stage hint +
      anti-cliche block), up to 3 attempts with correction feedback, each
      attempt passing the deterministic cliche gate (is_sycophantic).
-  4. Dual judge per response: primary = Wayfarer-2-12B via Featherless
+  4. Dual judge per response: primary = DeepSeek-V4.1-Flash via Featherless
      (k=3 self-consistency -> aggregate_turn_verdicts), secondary =
-     GLM-5.2 via Cloudflare Workers AI, reconciled with reconcile_dual
-     (dual-consistency diff max 0.15). 429s retried once with backoff.
+     Kimi-K3 via Featherless, reconciled with reconcile_dual
+     (dual-consistency diff max 0.15). Transient infra failures retried
+     with backoff via _call_judge_with_retry.
 
 Outputs (ai/training/eval_results/):
   client_lines.json      — cached scenario items + client lines
@@ -69,7 +70,7 @@ from training.build_edge_and_nightmare_dataset import (  # noqa: E402
 )
 from training.cliche_gate import correction_for_reason, is_sycophantic  # noqa: E402
 from training.dual_judge import (  # noqa: E402
-    _call_judge_model,
+    _call_judge_with_retry,
     _secondary_judge_target,
     aggregate_turn_verdicts,
     reconcile_dual,
@@ -494,7 +495,7 @@ async def run_arm(arm_name: str, scenarios: list[dict], client_lines: dict[str, 
 async def judge_items(
     gen: dict[str, dict], scenarios_by_id: dict[str, dict]
 ) -> dict[str, dict]:
-    """Dual judge: primary Wayfarer-2-12B (Featherless) x3 + secondary GLM-5.2 (Cloudflare)."""
+    """Dual judge: primary DeepSeek-V4.1-Flash (Featherless) x3 + secondary Kimi-K3 (Featherless)."""
     prim_headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {os.environ.get('FEATHERLESS_API_KEY', '')}",
@@ -528,26 +529,29 @@ async def judge_items(
             candidate = rec["response"]
             async with sem:
                 primary_runs = [
-                    await _call_judge_model(
+                    await _call_judge_with_retry(
                         session,
                         url=FEATHERLESS_URL,
-                        model="LatitudeGames/Wayfarer-2-12B",
+                        model="deepseek-ai/DeepSeek-V4.1-Flash",
                         candidate_content=candidate,
                         reference_content=reference,
                         headers=prim_headers,
-                        timeout=180,
+                        timeout=240,
+                        max_tokens=8192,
                         force_json=True,
                     )
                     for _ in range(3)
                 ]
-                secondary = await _call_judge_model(
+                secondary = await _call_judge_with_retry(
                     session,
                     url=sec_url,
-                    model="@cf/zai-org/glm-5.2",
+                    model="moonshotai/Kimi-K3",
                     candidate_content=candidate,
                     reference_content=reference,
                     headers=sec_headers,
-                    timeout=180,
+                    timeout=240,
+                    max_tokens=8192,
+                    force_json=True,
                 )
             consistent = runs_self_consistent(primary_runs)
             primary = aggregate_turn_verdicts(primary_runs)

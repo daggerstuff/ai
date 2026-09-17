@@ -19,7 +19,7 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from training.dual_judge import JudgeVerdict, _call_judge_model  # noqa: E402
-from training.probe_glm_disagreement import join_pairs, load_records  # noqa: E402
+from training.probe_secondary_judge import join_pairs, load_records  # noqa: E402
 
 KEYS = ["nf:nf_025", "nf:nf_074", "nf:nf_090", "nf:nf_091", "nf:nf_048"]
 CANDIDATES = [

@@ -1,7 +1,8 @@
 """Dual-model LLM quality judge for the AI training curation pipeline.
 
-Generalizes ``ClinicalValidityJudge`` to use two LLMs (Qwen-72B + LLaMA-70B)
-for cross-model consistency scoring. This is Stage 2 of the curation
+Generalizes ``ClinicalValidityJudge`` to use two LLMs (DeepSeek-V4-Pro
+primary + configurable secondary, see ``PRIMARY_MODEL`` /
+``SECONDARY_MODEL``) for cross-model consistency scoring. This is Stage 2 of the curation
 pipeline (Appendix B.3, PIX-4343).
 
 Design overview
@@ -10,13 +11,14 @@ Design overview
 * **Rubric**: 5 dimensions (relevance, accuracy, helpfulness, style, safety),
   each scored 0.0-1.0. Overall = configurable weighted mean.
 * **4-bin calibration**: poor / fair / good / excellent.
-* **Dual-model**: primary (Qwen-72B) + secondary (LLaMA-70B) via vLLM.
+* **Dual-model**: primary + secondary via vLLM (defaults: DeepSeek-V4-Pro
+  family, overridable via ``LLM_PRIMARY_MODEL`` / ``LLM_SECONDARY_MODEL``).
   ``|primary - secondary| <= 0.15`` → accept; otherwise flag for human review.
 * **Multi-turn**: score each turn independently, overall = recency-decay
   weighted mean (``weight_i = decay^(n-i)``, configurable decay=0.85).
 * **Self-consistency**: k=3 samples per (model, turn) at temperature=0.1.
   If variance > 0.05 → flag for human review (do not auto-accept).
-* **Calibration**: golden 200-sample set; Pearson r >= 0.80, Cohen's kappa >= 0.65.
+* **Calibration**: golden 90-sample clinician-rated set (VERA-MH); Pearson r >= 0.80, Cohen's kappa >= 0.65.
 * **Async**: ``ajudge()`` batches k=3 self-consistency samples + both models
   concurrently across all turns via ``asyncio.gather``.
 
@@ -83,9 +85,10 @@ DEFAULT_RUBRIC_WEIGHTS: dict[str, float] = {
     "safety": 0.10,
 }
 
-# 4-bin calibration thresholds
+# 4-bin calibration thresholds — aligned with the golden set's taxonomy
+# (build_vera_mh_golden.py bins overall_quality at 0.45 / 0.65 / 0.85).
 BINS = ["poor", "fair", "good", "excellent"]
-BIN_BOUNDARIES = [(0.0, 0.25), (0.25, 0.50), (0.50, 0.75), (0.75, 1.01)]
+BIN_BOUNDARIES = [(0.0, 0.45), (0.45, 0.65), (0.65, 0.85), (0.85, 1.01)]
 
 # Ordered numeric levels used for weighted Cohen's kappa.
 BIN_TO_LEVEL = {"poor": 0, "fair": 1, "good": 2, "excellent": 3}
@@ -100,9 +103,9 @@ DEFAULT_TEMPERATURE = 0.1
 # Minimum number of observations needed for variance/correlation statistics.
 _MIN_SAMPLES_FOR_STATS = 2
 
-# Golden calibration file path: the v2 real-human-label set
-# (200 real AnnoMI + ESConv clinical samples).
-GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
+# Golden calibration file path: the real clinician-rated set
+# (90 VERA-MH multi-turn conversations, each rated by 3 clinicians).
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_vera_mh_v1.jsonl"
 
 # System prompt for the LLM judge
 JUDGE_SYSTEM_PROMPT = """You are a quality evaluator for AI training conversations.
@@ -176,8 +179,10 @@ class DualModelQualityJudge:
     all LLM calls.
 
     Args:
-        primary_client: LLMClient configured for the primary model (Qwen-72B).
-        secondary_client: LLMClient configured for the secondary model (LLaMA-70B).
+        primary_client: LLMClient configured for the primary model
+            (``PRIMARY_MODEL``, default DeepSeek-V4-Pro family).
+        secondary_client: LLMClient configured for the secondary model
+            (``SECONDARY_MODEL``, overridable via env).
         rubric_weights: Dimension weights (default: relevance 0.25, accuracy 0.30,
             helpfulness 0.20, style 0.15, safety 0.10). Must sum to ~1.0.
         consistency_threshold: Max |primary - secondary| for acceptance (default 0.15).
@@ -346,15 +351,15 @@ class DualModelQualityJudge:
         self,
         golden_path: Path | str | None = None,
     ) -> dict[str, Any]:
-        """Run calibration against the golden 200-sample set.
+        """Run calibration against the golden 90-sample clinician-rated set.
 
         Computes Pearson correlation and quadratic-weighted Cohen's kappa
         between the judge's scores and human scores.
 
         Args:
             golden_path: Path to golden JSONL file. Defaults to
-                ``training/data/golden_judge_calib_v2.jsonl`` (real human
-                labels; falls back to the legacy placeholder file).
+                ``training/data/golden_vera_mh_v1.jsonl`` (real clinician
+                ratings from the VERA-MH benchmark).
 
         Returns:
             dict with keys: pearson_r, cohens_kappa, per_dimension_correlations,
@@ -732,10 +737,10 @@ class DualModelQualityJudge:
     def classify_score(score: float) -> str:
         """Classify a score into one of 4 bins: poor/fair/good/excellent.
 
-        - [0.0, 0.25) → poor
-        - [0.25, 0.50) → fair
-        - [0.50, 0.75) → good
-        - [0.75, 1.0] → excellent
+        - [0.0, 0.45) → poor
+        - [0.45, 0.65) → fair
+        - [0.65, 0.85) → good
+        - [0.85, 1.0] → excellent
         """
         for (_lo, hi), name in zip(BIN_BOUNDARIES, BINS, strict=False):
             if score < hi:

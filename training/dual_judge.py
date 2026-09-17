@@ -5,9 +5,10 @@ Implements blueprint Appendix B.3:
 * B.3.1 5-dim rubric (relevance, accuracy, helpfulness, style, safety) 0.0-1.0,
   JSON output with ``quality_score`` / ``reject_reason`` / ``dim_scores`` /
   ``reasoning``.
-* B.3.2 Qwen 2.5-72B primary + LLaMA 3.3-70B secondary; dual-judge consistency
-  ``|primary.quality - secondary.quality| <= 0.15`` → accept primary, else
-  flag for human review.
+* B.3.2 Primary (default DeepSeek-V4.1-Flash) + secondary (default Kimi-K3),
+  configurable via DUAL_JUDGE_PRIMARY / DUAL_JUDGE_SECONDARY; dual-judge
+  consistency ``|primary.quality - secondary.quality| <= 0.15`` → accept
+  primary, else flag for human review.
 * B.3.3 Multi-turn evaluation — score each turn, aggregate via recency-decay
   weighted mean (``0.85^k`` reversed, turn_0 highest weight).
 * B.3.4 Self-consistency k=3 same-sample runs, variance > 0.05 → human review.
@@ -36,6 +37,7 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
+from dotenv import load_dotenv
 
 logger = logging.getLogger("dual_judge")
 
@@ -52,7 +54,7 @@ SELF_CONSISTENCY_VARIANCE_MAX = 0.05
 DUAL_CONSISTENCY_DIFF_MAX = 0.15
 RECENCY_DECAY = 0.85
 ACCEPT_THRESHOLD = 0.60
-GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_vera_mh_v1.jsonl"
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 
@@ -143,100 +145,6 @@ class JudgeVerdict:
 # ---------------------------------------------------------------------------
 
 
-BANNED_OPENERS: tuple[str, ...] = (
-    "i hear how",
-    "it makes sense that you feel",
-    "i understand your frustration",
-    "i can hear",
-    "that sounds really",
-    "i'm so sorry to hear",
-    "thank you for sharing",
-    "it sounds like you",
-    "i want you to know",
-    "i can imagine how",
-    "i hear your",
-    "it sounds like",
-)
-
-CAVING_PHRASES: tuple[str, ...] = (
-    "you're right",
-    "i apologize",
-    "i stand corrected",
-    "sorry for",
-    "my mistake",
-    "if you don't want to talk about it",
-    "we don't have to",
-    "we don't have to talk about",
-    "i'll stop",
-    "fair enough",
-)
-
-ROBOTIC_CRISIS_QUESTIONS: tuple[str, ...] = (
-    "are you safe right now",
-    "do you have a plan to hurt yourself",
-    "do you have a plan to kill yourself",
-    "are you thinking about hurting yourself",
-    "are you thinking about killing yourself",
-    "have you thought about hurting yourself",
-    "have you thought about killing yourself",
-)
-
-PARROTING_OPENERS: tuple[str, ...] = (
-    "you used the phrase",
-    "you said",
-    "you mentioned",
-    "you named",
-    "you just said",
-    "when you say",
-    "you're saying that",
-    "so you're saying",
-    "hearing you say",
-    "as you said",
-)
-
-ROBOTIC_SOMATIC_PHRASES: tuple[str, ...] = (
-    "what happens inside your body",
-    "what is happening inside your body",
-    "what is happening in your body",
-    "what happens in your body",
-    "where do you feel that in your body",
-    "notice what happens in your body",
-    "what does your body feel",
-    "what are you feeling in your body",
-    "what is your body telling you",
-)
-
-
-def check_sycophancy_and_slop(text: str) -> tuple[bool, str]:
-    """Check text for banned sycophantic openers, parroting openers, caving, or robotic slop."""
-    if not text or not isinstance(text, str):
-        return False, ""
-    t_lower = text.strip().lower()
-
-    # Prefix checks (at string start or right after a newline)
-    for prefix in BANNED_OPENERS:
-        if t_lower.startswith(prefix) or f"\n{prefix}" in t_lower:
-            return True, f"banned_sycophantic_opener: '{prefix}'"
-    for prefix in PARROTING_OPENERS:
-        if t_lower.startswith(prefix) or f"\n{prefix}" in t_lower:
-            return True, f"banned_parroting_opener: '{prefix}'"
-
-    # Substring checks anywhere in the utterance
-    checks: tuple[tuple[tuple[str, ...], str], ...] = (
-        (CAVING_PHRASES, "caving_phrase_detected"),
-        (ROBOTIC_CRISIS_QUESTIONS, "robotic_crisis_questionnaire"),
-        (ROBOTIC_SOMATIC_PHRASES, "robotic_somatic_cliche"),
-    )
-    for phrases, reason_tag in checks:
-        matched = next((p for p in phrases if p in t_lower), None)
-        if matched is not None:
-            return True, f"{reason_tag}: '{matched}'"
-
-    return False, ""
-
-
-is_sycophantic = check_sycophancy_and_slop
-
 
 def _looks_like_judge_payload(d: Any) -> bool:
     """Return True when a decoded object carries judge-verdict keys."""
@@ -315,7 +223,7 @@ def _parse_dims(payload: dict[str, Any]) -> dict[str, float]:
     return dim_scores
 
 
-def parse_judge_json(content: str, candidate_text: str = "") -> JudgeVerdict:
+def parse_judge_json(content: str) -> JudgeVerdict:
     """Parse a judge model's JSON payload from raw completion text.
     Tolerates leading/trailing prose, fenced ```json markdown blocks,
     and JSON truncated by reasoning-token limits.
@@ -348,15 +256,6 @@ def parse_judge_json(content: str, candidate_text: str = "") -> JudgeVerdict:
         quality = 0.0
     quality = max(0.0, min(1.0, quality))
     reject_reason = str(payload.get("reject_reason", "") or "")
-
-    # Deterministic anti-sycophancy and slop penalty
-    if candidate_text:
-        is_syc, syc_reason = check_sycophancy_and_slop(candidate_text)
-        if is_syc:
-            dim_scores["style"] = min(dim_scores.get("style", 1.0), 0.35)
-            quality = min(quality, 0.45)
-            reject_reason = f"{syc_reason}; {reject_reason}" if reject_reason else syc_reason
-
     return JudgeVerdict(
         quality_score=quality,
         reject_reason=reject_reason,
@@ -600,7 +499,7 @@ async def _call_judge_model(
                 return JudgeVerdict(0.0, f"http_{resp.status}: {text[:200]}")
             data = await resp.json()
             content = data["choices"][0]["message"]["content"]
-            return parse_judge_json(content, candidate_text=candidate_content)
+            return parse_judge_json(content)
     except (TimeoutError, aiohttp.ClientError, KeyError) as exc:
         return JudgeVerdict(0.0, f"transport_error: {exc}")
 
@@ -831,27 +730,27 @@ CF_RETRY_ATTEMPTS = 3
 CF_RETRY_BACKOFF_SECONDS = 2.0
 CF_REQUEST_TIMEOUT_SECONDS = 180
 CF_MAX_TOKENS = 4096
-MULTI_TURN_CAP = 8
-TURN_CHARS_CAP = 300
+MULTI_TURN_CAP = 24
+TURN_CHARS_CAP = 1200
 _THERAPIST_ROLES = ("assistant", "therapist", "sys")
 
 CFRetryOutcome = tuple[JudgeVerdict | None, str | None]
 
 
-def _judge_from_cf_response(res_obj: dict[str, Any], candidate_text: str) -> JudgeVerdict:
+def _judge_from_cf_response(res_obj: dict[str, Any]) -> JudgeVerdict:
     """Parse a judge verdict from a Cloudflare Workers AI response object."""
 
     if raw := res_obj.get("response", ""):
-        return parse_judge_json(raw, candidate_text=candidate_text)
+        return parse_judge_json(raw)
     choices = res_obj.get("choices") or []
     if not choices:
         return JudgeVerdict(0.0, "cf_response_missing_content")
     msg = choices[0].get("message", {})
-    v = parse_judge_json(msg.get("content", ""), candidate_text=candidate_text)
+    v = parse_judge_json(msg.get("content", ""))
     if v.quality_score > 0.0:
         return v
     if reasoning_text := msg.get("reasoning_content", "") or msg.get("reasoning", ""):
-        v_reasoning = parse_judge_json(reasoning_text, candidate_text=candidate_text)
+        v_reasoning = parse_judge_json(reasoning_text)
         if v_reasoning.quality_score > 0.0:
             return v_reasoning
     return v
@@ -863,7 +762,6 @@ async def _post_with_cf_retries(
     cf_url: str,
     headers: dict[str, str],
     payload: dict[str, Any],
-    candidate_text: str,
     sid: str,
 ) -> CFRetryOutcome:
     """POST to the CF REST endpoint with bounded retries for transient statuses.
@@ -878,7 +776,7 @@ async def _post_with_cf_retries(
             async with session.post(cf_url, headers=headers, json=payload, timeout=timeout) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    return _judge_from_cf_response(data.get("result", {}), candidate_text), None
+                    return _judge_from_cf_response(data.get("result", {})), None
                 if resp.status in (429, 500, 502, 503):
                     await asyncio.sleep(CF_RETRY_BACKOFF_SECONDS * (attempt + 1))
                     continue
@@ -891,11 +789,38 @@ async def _post_with_cf_retries(
     return None, "cf_retries_exhausted"
 
 
+_JUDGE_RETRY_PREFIXES = ("http_429", "http_5", "transport_error", "json_parse_error", "empty_judge_output")
+
+
+async def _call_judge_with_retry(session: aiohttp.ClientSession, *, attempts: int = 4, **kwargs) -> JudgeVerdict:
+    """Call _call_judge_model with exponential-backoff retry on infra failures.
+
+    Calibration runs judge every golden sample exactly once; a single transient
+    429/timeout/parse failure would otherwise poison the metric with a hard 0.0.
+    Infra-style verdict reasons retry; genuine quality verdicts never do.
+    """
+    delay = 5.0
+    verdict = JudgeVerdict(0.0, "no_attempt")
+    for attempt in range(attempts):
+        verdict = await _call_judge_model(session, **kwargs)
+        infra = verdict.quality_score == 0.0 and any(
+            verdict.reject_reason.startswith(p) for p in _JUDGE_RETRY_PREFIXES
+        )
+        if not infra:
+            return verdict
+        if attempt < attempts - 1:
+            logger.warning(
+                "judge infra failure (attempt %d/%d): %s", attempt + 1, attempts, verdict.reject_reason
+            )
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, 40.0)
+    return verdict
+
+
 async def _eval_sample_cf(
     session: aiohttp.ClientSession,
     *,
     prompt: str,
-    candidate_text: str,
     primary_model: str,
     sid: str,
 ) -> JudgeVerdict | None:
@@ -918,7 +843,7 @@ async def _eval_sample_cf(
         "temperature": JUDGE_TEMPERATURE,
     }
     verdict, _ = await _post_with_cf_retries(
-        session, cf_url=cf_url, headers=headers, payload=payload, candidate_text=candidate_text, sid=sid
+        session, cf_url=cf_url, headers=headers, payload=payload, sid=sid
     )
     return verdict
 
@@ -928,8 +853,9 @@ def _build_sample_prompt(sample: dict) -> tuple[str, str, str]:
 
     Returns ``(prompt, assistant_text, reference_text)``.  Multi-turn
     transcripts are capped to the first ``MULTI_TURN_CAP`` turns at
-    ``TURN_CHARS_CAP`` chars each to avoid CF 'empty output' errors from
-    oversized prompts.
+    ``TURN_CHARS_CAP`` chars each as a guardrail; the judge call itself
+    truncates candidate/reference content to 8000 chars, which is the
+    binding limit for long transcripts.
     """
 
     conv = sample.get("conversation", sample.get("dialogue", []))
@@ -996,12 +922,11 @@ async def _run_live_calibration_async(
                 verdict = await _eval_sample_cf(
                     session,
                     prompt=prompt,
-                    candidate_text=asst_for_eval,
                     primary_model=primary_model,
                     sid=sid,
                 )
                 if verdict is None:
-                    verdict = await _call_judge_model(
+                    verdict = await _call_judge_with_retry(
                         session,
                         url=url,
                         model=primary_model,
@@ -1093,6 +1018,10 @@ def _run_calibration(
 
 def main() -> None:
     """CLI entry point for the dual-judge pipeline."""
+    # Load .env with override so a stale FEATHERLESS_API_KEY exported in the
+    # calling shell cannot shadow the dedicated key in .env (stale-key trap).
+    load_dotenv(override=True)
+
     parser = argparse.ArgumentParser(description="Dual-model LLM QA judge (PIX-4343, blueprint Appendix B.3)")
     parser.add_argument("--candidate", type=str, default=None, help="Candidate answer to judge")
     parser.add_argument("--reference", type=str, default=None, help="Reference/ideal answer")
@@ -1112,9 +1041,17 @@ def main() -> None:
     parser.add_argument("--secondary-model", type=str, default=SECONDARY_MODEL, help="Secondary judge model id")
     args = parser.parse_args()
 
-    # Calibration mode
-    if args.golden:
-        sys.exit(_run_calibration(args.golden, live=args.judge, url=args.url, primary_model=args.primary_model))
+    # Calibration mode: --golden PATH runs calibration (live judging with
+    # --judge); bare --judge runs live calibration on the default golden set.
+    if args.golden or args.judge:
+        sys.exit(
+            _run_calibration(
+                args.golden or str(GOLDEN_CALIB_PATH),
+                live=args.judge,
+                url=args.url,
+                primary_model=args.primary_model,
+            )
+        )
 
     # Multi-turn record mode
     if args.record:
