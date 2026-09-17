@@ -294,8 +294,11 @@ class TestCCDIntegration(unittest.TestCase):
             conceptualization, poor_simulation_state, poor_therapist_analysis
         )
 
-        # Check that formulation worsened
-        assert updated.formulation.prognosis == "guarded"  # Worsened from optimistic
+        # Check that formulation worsened. The 3-factor model decrements once
+        # per poor signal (low trust, high resistance, low therapeutic quality)
+        # so "optimistic" drops all the way to "poor" for this fully poor input.
+        assert updated.formulation.prognosis == "poor"  # Worsened from optimistic
+        assert updated.formulation.prognosis != "optimistic"
         assert updated.formulation.confidence < 0.8  # Decreased confidence
 
         # Check that vulnerabilities may have increased
@@ -408,11 +411,13 @@ class TestCCDIntegration(unittest.TestCase):
         # The invalid value must be ignored: the resulting objectives must match
         # the original valid set exactly in count and membership, proving the
         # invalid objective was dropped rather than normalized into a valid enum.
+        # (original_objectives holds enum members, so compare via .value.)
+        original_values = [o.value if isinstance(o, SessionObjective) else o for o in original_objectives]
         result_objectives = profile.learning_objectives
         assert len(result_objectives) == len(original_objectives)
         for obj in result_objectives:
             assert isinstance(obj, SessionObjective)
-            assert obj.value in original_objectives
+            assert obj.value in original_values
 
     def test_adjust_formulation_summary_no_change(self):
         """Test _adjust_formulation_summary with neutral inputs"""

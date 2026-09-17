@@ -32,7 +32,6 @@ Usage:
 from .audio_emotion_recognition import (
     AudioEmotionRecognizer,
     AudioEmotionResult,
-    AudioPreprocessor,
     EmotionalState,
     EmotionTrajectory,
 )
@@ -44,7 +43,7 @@ from .multimodal_fusion import (
     TextToSpeechGenerator,
 )
 from .speech_recognition import (
-    AudioPreprocessor as SpeechAudioPreprocessor,
+    AudioPreprocessor,
     SpeechRecognizer,
     TranscriptionResult,
     TranscriptionSegment,
@@ -62,7 +61,6 @@ __all__ = [
     # Multimodal fusion
     "MultimodalFusion",
     "MultimodalResponseGenerator",
-    "SpeechAudioPreprocessor",
     # Speech recognition
     "SpeechRecognizer",
     "TextToSpeechGenerator",

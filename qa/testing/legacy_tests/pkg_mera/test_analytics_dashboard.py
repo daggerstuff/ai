@@ -43,19 +43,20 @@ class TestAnalyticsDashboard(unittest.TestCase):
         assert self.module is not None
 
     def test_basic_functionality(self):
-        """Test basic module functionality."""
-        result = self.module.process(self.test_data)
+        """Test basic functionality via collect_metrics (the real API)."""
+        result = self.module.collect_metrics("test_metric", self.test_data)
         assert result is not None
+        assert result["success"] is True
 
     def test_error_handling(self):
-        """Test error handling."""
-        with pytest.raises(Exception):
-            self.module.process(None)
+        """Test error handling: non-dict data is rejected, not raised."""
+        result = self.module.collect_metrics("test_metric", None)
+        assert result["success"] is False
 
     @patch("builtins.print")
     def test_logging(self, _mock_print):
         """Test logging functionality."""
-        self.module.process(self.test_data)
+        self.module.collect_metrics("test_metric", self.test_data)
         # Add specific logging tests here
 
 

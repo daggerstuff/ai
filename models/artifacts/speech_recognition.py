@@ -30,12 +30,20 @@ from typing import Any
 
 import librosa
 import numpy as np
-import torchaudio
 from faster_whisper import WhisperModel
 
 from ai.tools.utilities.torch_proxy import torch
 
 logger = logging.getLogger(__name__)
+
+try:
+    import torchaudio
+except ImportError:  # pragma: no cover - optional audio I/O backend
+    torchaudio = None
+    logger.warning(
+        "torchaudio not installed — SpeechRecognizer audio load/save will fail "
+        "at call time; install torchaudio to enable them"
+    )
 
 
 @dataclass
@@ -218,6 +226,8 @@ class SpeechRecognizer:
 
             try:
                 # Fallback to torchaudio
+                if torchaudio is None:
+                    raise RuntimeError("torchaudio not installed")
                 waveform, sample_rate = torchaudio.load(audio_path)
 
                 # Convert to mono if stereo
@@ -303,6 +313,8 @@ class SpeechRecognizer:
             # Create temporary file for transcription
             temp_path = f"/tmp/{session_id}_stream.wav"
 
+            if torchaudio is None:
+                raise RuntimeError("torchaudio not installed; cannot save audio")
             torchaudio.save(temp_path, torch.from_numpy(full_audio).unsqueeze(0), sample_rate)
 
             # Transcribe

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -8,13 +9,51 @@ class RetainScopeConflictError(Exception):
     """Raised when there is a scope conflict during retention operations."""
 
 
-def scope_metadata() -> dict[str, Any]:
-    """Return default scope metadata for retention operations.
+@dataclass(frozen=True)
+class RetainScope:
+    """Scope identifiers for a retention operation.
 
-    This is a placeholder implementation. In a full implementation, this would
-    return metadata about the current scope for retention policies.
+    Mirrors the ``x-memory-*`` header set accepted by the Foresight retain
+    route; only provided identifiers are written into item metadata.
     """
-    return {}
+
+    org_id: str | None = None
+    project_id: str | None = None
+    session_id: str | None = None
+    agent_id: str | None = None
+    run_id: str | None = None
+    visibility: str | None = None
+
+    def to_metadata(self) -> dict[str, Any]:
+        """Build scope metadata for retention operations.
+
+        Unscoped retains produce an empty mapping (matching the legacy
+        bare-scope behaviour). `visibility` defaults to the platform norm
+        "private" when any other scope key is present, so retained items
+        never default to an ambiguous visibility.
+        """
+        metadata: dict[str, Any] = {}
+        for key in ("org_id", "project_id", "session_id", "agent_id", "run_id"):
+            value = getattr(self, key)
+            if value:
+                metadata[key] = value
+        if metadata or self.visibility:
+            metadata["visibility"] = self.visibility or "private"
+        return metadata
+
+
+def scope_metadata(
+    scope: RetainScope | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Build scope metadata for retention operations.
+
+    Accepts either a :class:`RetainScope` or the legacy keyword form
+    (``org_id=..., visibility=...``) used by the MCP retain route.
+    """
+    if scope is None:
+        scope = RetainScope(**kwargs)
+    return scope.to_metadata()
 
 
 def build_scoped_retain_items(

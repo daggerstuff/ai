@@ -22,7 +22,10 @@ Example:
 """
 
 import logging
+import os
+import wave
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -321,13 +324,38 @@ class MultimodalFusion:
 
 
 class TextToSpeechGenerator:
-    """Generate speech from text with emotional prosody."""
+    """Generate speech from text with emotional prosody.
 
-    def __init__(self, device: str = "cuda"):
+    Uses a Hugging Face ``text-to-audio`` pipeline (default
+    ``facebook/mms-tts-eng``) on the local device. Override the model via
+    the ``TTS_MODEL`` env var; set ``TTS_OUTPUT_DIR`` to write generated
+    audio to disk (16-bit PCM WAV).
+    """
+
+    def __init__(self, device: str | None = None):
         """Initialize TTS generator."""
-        self.device = device
-        self.model = None
-        self.vocoder = None
+        self.device = device or os.environ.get("TTS_DEVICE", "cpu")
+        self.model_name = os.environ.get("TTS_MODEL", "facebook/mms-tts-eng")
+        self.output_dir = os.environ.get("TTS_OUTPUT_DIR")
+        self.model: Any = None
+        self._model_loaded = False
+
+    def _load_model(self) -> None:
+        """Lazily load the text-to-audio pipeline."""
+        if self._model_loaded:
+            return
+        try:
+            from transformers import pipeline  # noqa: PLC0415 - heavy SDK, loaded on first synthesis
+
+            self.model = pipeline(
+                "text-to-audio",
+                model=self.model_name,
+                device=self.device,
+            )
+            self._model_loaded = True
+        except Exception as exc:
+            logger.warning("Failed to load TTS model '%s': %s", self.model_name, exc)
+            self.model = None
 
     async def synthesize(
         self,
@@ -342,34 +370,79 @@ class TextToSpeechGenerator:
         Args:
             text: Text to speak
             session_id: Session ID
-            emotional_state: Optional emotional state for prosody
+            emotional_state: Optional VAD hint recorded as prosody metadata
+                (MMS-TTS is single-speaker; emotional prosody would need a
+                multi-speaker model — accepted here for interface stability
+                and surfaced in the response metadata)
             speaker_id: Speaker ID for multi-speaker TTS
 
         Returns:
-            Dict with audio_path and metadata
+            Dict with audio (PCM float array), sampling_rate, duration,
+            optional audio_path, and metadata. On model-load failure the
+            dict carries ``status: "unavailable"`` plus the reason, so
+            callers can degrade to text-only.
         """
         try:
-            # This would integrate with actual TTS model
-            # For now, placeholder implementation
-
             if not text:
                 return {"error": "Empty text"}
 
-            # In production: Use Glow-TTS, FastPitch, or Tacotron2
-            # with emotion embedding
+            self._load_model()
+            if self.model is None:
+                return {
+                    "status": "unavailable",
+                    "session_id": session_id,
+                    "text": text,
+                    "reason": f"TTS model '{self.model_name}' failed to load",
+                }
 
-            return {
+            generation = self.model(text)
+            audio = np.asarray(generation["audio"], dtype=np.float32).reshape(-1)
+            sampling_rate = int(generation.get("sampling_rate", 16000))
+            audio_duration_s = audio.shape[0] / sampling_rate
+
+            result: dict[str, Any] = {
                 "status": "success",
                 "session_id": session_id,
                 "text": text,
                 "speaker_id": speaker_id,
+                "audio": audio,
+                "sampling_rate": sampling_rate,
+                "audio_duration_s": audio_duration_s,
+                "model": self.model_name,
                 "emotional_prosody": emotional_state or {},
-                "audio_duration_s": len(text.split()) * 0.5,  # rough estimate
             }
+
+            audio_path = self._write_wav(session_id, audio, sampling_rate)
+            if audio_path:
+                result["audio_path"] = str(audio_path)
+
+            return result
 
         except Exception as e:
             logger.error(f"TTS synthesis failed: {e!s}")
             return {"error": str(e)}
+
+    def _write_wav(
+        self, session_id: str, audio: np.ndarray, sampling_rate: int
+    ) -> Path | None:
+        """Persist audio as a 16-bit PCM WAV when TTS_OUTPUT_DIR is set."""
+        if not self.output_dir:
+            return None
+        try:
+            output_root = Path(self.output_dir)
+            output_root.mkdir(parents=True, exist_ok=True)
+            audio_path = output_root / f"tts-{session_id}.wav"
+            pcm = np.clip(audio, -1.0, 1.0)
+            pcm = (pcm * 32767).astype(np.int16)
+            with wave.open(str(audio_path), "wb") as wav_file:
+                wav_file.setnchannels(1)
+                wav_file.setsampwidth(2)
+                wav_file.setframerate(sampling_rate)
+                wav_file.writeframes(pcm.tobytes())
+            return audio_path
+        except Exception as exc:
+            logger.warning("Failed to persist TTS audio: %s", exc)
+            return None
 
 
 class MultimodalResponseGenerator:

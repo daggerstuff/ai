@@ -93,6 +93,19 @@ def _get_inference_base_url() -> str:
     return os.environ.get("PIXEL_INFERENCE_URL", "http://localhost:8001").rstrip("/")
 
 
+def _dream_user_whitelist() -> list[str] | None:
+    """Parse the DREAM_USER_WHITELIST env var.
+
+    Returns the whitelisted user IDs (whitespace-trimmed, empty entries
+    dropped), or None when the variable is unset — letting callers
+    distinguish "explicit targeting" from "discover all users".
+    """
+    raw = os.environ.get("DREAM_USER_WHITELIST")
+    if not raw:
+        return None
+    return [entry.strip() for entry in raw.split(",") if entry.strip()]
+
+
 def _acquire_lock(user_id: str, timeout: int = 600) -> bool:
     """Acquire a TTL-based Redis lock for dream consolidation.
 
@@ -584,29 +597,49 @@ def get_consolidation_status(dream_id: str):
 def list_active_users():
     """List users with pending consolidation data.
 
-    This is a stub — in production it should query MongoDB or the
-    memory backend for users whose memory count exceeds the
-    consolidation threshold.
+    Sources, in order of preference:
+    1. ``DREAM_USER_WHITELIST`` env var (comma-separated) — explicit operator
+       targeting wins over discovery.
+    2. Redis ``dream:users`` set — every user whose dream result was stored
+       via this service.
+    3. In-memory fallback — keys and records in the process-local store.
+
+    The in-memory fallback only sees the current process, so a ``source``
+    field reports which listing path produced the result (scheduler
+    callers can distinguish process-local views from shared state).
 
     Response JSON:
         success  (bool)  — Always true.
-        users    (list)  — List of user identifiers eligible for consolidation.
+        users    (list)  — User identifiers eligible for consolidation.
+        source   (str)   — "whitelist" | "redis" | "memory"
     """
+    whitelist = _dream_user_whitelist()
+    if whitelist is not None:
+        return jsonify(
+            {
+                "success": True,
+                "users": whitelist,
+                "source": "whitelist",
+                "message": (
+                    f"Whitelisted {len(whitelist)} users via DREAM_USER_WHITELIST."
+                ),
+            }
+        )
+
     # Get users from Redis if available
     if _redis_client is not None:
         try:
             # Get all users with dream records
             user_ids = _redis_client.smembers("dream:users")
-            users_list = list(user_ids) if user_ids else []
+            users_list = sorted(user_ids) if user_ids else []
 
             return jsonify(
                 {
                     "success": True,
                     "users": users_list,
+                    "source": "redis",
                     "message": (
-                        f"Found {len(users_list)} users with dream records in Redis. "
-                        "Set DREAM_USER_WHITELIST env var with comma-separated user IDs "
-                        "to target specific users from the scheduler."
+                        f"Found {len(users_list)} users with dream records in Redis."
                     ),
                 }
             )
@@ -626,14 +659,16 @@ def list_active_users():
             # Direct user_id in dream record
             user_ids.add(value["user_id"])
 
-    users_list = list(user_ids)
+    users_list = sorted(user_ids)
 
     return jsonify(
         {
             "success": True,
             "users": users_list,
+            "source": "memory",
             "message": (
-                "Active user listing not yet implemented. "
+                f"Found {len(users_list)} users in the process-local store "
+                "(Redis unavailable — set REDIS_URL for a shared view). "
                 "Set DREAM_USER_WHITELIST env var with comma-separated user IDs "
                 "to target specific users from the scheduler."
             ),
