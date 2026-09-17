@@ -15,15 +15,25 @@ import logging
 import math
 import os
 import re
+import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
 import aiohttp
+from dotenv import load_dotenv
 
 import wandb
-from training.cliche_gate import (
+
+# Cwd-independent bootstrap (same convention as generate_arc_corpus.py): make
+# ai/ importable and load the repo .env so backend/model selection is
+# authoritative regardless of the caller's inherited environment.
+_HERE = Path(__file__).resolve()
+sys.path.insert(0, str(_HERE.parents[1]))
+load_dotenv(_HERE.parents[2] / ".env", override=True)
+
+from training.cliche_gate import (  # noqa: E402
     BANNED_OPENERS,
     CAVING_PHRASES,
     PARROTING_OPENERS,
@@ -33,7 +43,7 @@ from training.cliche_gate import (
     is_sycophantic,
     reject_reason_for_record,
 )
-from training.generation_backend import (
+from training.generation_backend import (  # noqa: E402
     GenerationLimitExceededError,
     ModerateGuard,
     RateLimitError,

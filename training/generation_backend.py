@@ -8,17 +8,23 @@ Backend resolution
 ------------------
 ``NF_BACKEND`` selects the provider:
 
-* ``cloudflare`` (default) — Workers AI OpenAI-compatible endpoint.
+* ``cloudflare`` — Workers AI OpenAI-compatible endpoint.
 * ``9router`` — OpenAI-compatible gateway at ``NINEROUTER_URL``.
 * ``vllm`` — local/remote OpenAI-compatible server at ``VLLM_URL``.
 * ``featherless`` — OpenAI-compatible hosted inference at ``FEATHERLESS_API_KEY``.
+* ``vercel`` — Vercel AI Gateway OpenAI-compatible endpoint (current primary,
+  set in .env; key ``AI_GATEWAY_API_KEY``, optional base ``AI_GATEWAY_URL``).
+* ``wandb`` — W&B Serverless Inference OpenAI-compatible endpoint (secondary;
+  key ``WANDB_API_KEY``, optional base ``WANDB_INFERENCE_URL``).
 
 ``NF_MODEL`` selects the model ID; any Llama-family ID is rejected at the config
 layer (permanent rule: allowed families are DeepSeek, GLM, Qwen, Mistral).
 Per-backend default model applies when ``NF_MODEL`` is unset; the featherless
 default is ``ornith-ai/Ornith-1.5-9B`` (resolved decision: Ornith chosen over
 Boulesis-26B-A4B on the 20-scenario eval — 20/20 first-attempt gate pass, ~4x
-faster).
+faster). The vercel default is ``deepseek/deepseek-v4-flash-0731`` and the
+wandb default is ``deepseek-ai/DeepSeek-V4-Flash-0731`` (same model, per-provider
+namespace).
 """
 
 from __future__ import annotations
@@ -103,13 +109,15 @@ def _cloudflare_api_token(env: dict[str, str]) -> str:
 _DEFAULT_MODEL_BY_BACKEND = {
     "cloudflare": "@cf/deepseek-ai/deepseek-v4-pro-0813",
     "featherless": "ornith-ai/Ornith-1.5-9B",
+    "vercel": "deepseek/deepseek-v4-flash-0731",
+    "wandb": "deepseek-ai/DeepSeek-V4-Flash-0731",
 }
 
 
 def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
     """Resolve the OpenAI-compatible generation backend from environment.
 
-    Reads ``NF_BACKEND`` (cloudflare|9router|vllm|featherless) and ``NF_MODEL``.
+    Reads ``NF_BACKEND`` (vercel|cloudflare|9router|vllm|featherless|wandb) and ``NF_MODEL``.
     Raises ``ValueError`` on an unknown backend, a missing required URL, or a
     never-Llama model ID.
     """
@@ -171,7 +179,33 @@ def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
             auth_header=f"Bearer {key}",
         )
 
-    raise ValueError(f"unknown NF_BACKEND={backend!r}; expected cloudflare|9router|vllm|featherless")
+    if backend == "wandb":
+        key = env.get("WANDB_API_KEY", "")
+        if not key:
+            raise ValueError("NF_BACKEND=wandb requires WANDB_API_KEY to be set")
+        base = env.get("WANDB_INFERENCE_URL", "https://api.inference.wandb.ai").rstrip("/")
+        return BackendConfig(
+            name="wandb",
+            url=f"{base}/v1/chat/completions",
+            model=model,
+            auth_header=f"Bearer {key}",
+        )
+
+    if backend == "vercel":
+        key = env.get("AI_GATEWAY_API_KEY", "")
+        if not key:
+            raise ValueError("NF_BACKEND=vercel requires AI_GATEWAY_API_KEY to be set")
+        base = env.get("AI_GATEWAY_URL", "https://ai-gateway.vercel.sh").rstrip("/")
+        return BackendConfig(
+            name="vercel",
+            url=f"{base}/v1/chat/completions",
+            model=model,
+            auth_header=f"Bearer {key}",
+        )
+
+    raise ValueError(
+        f"unknown NF_BACKEND={backend!r}; expected vercel|cloudflare|9router|vllm|featherless|wandb"
+    )
 
 
 class ModerateGuard:

@@ -1,4 +1,7 @@
-"""Kimi-K3 line-by-line auditor for the arc corpus (ARC_CORPUS_SPEC.md §7).
+"""Line-by-line auditor for the arc corpus (ARC_CORPUS_SPEC.md §7).
+
+Default model moonshotai/kimi-k3 on the Vercel AI Gateway; configurable via
+ARC_AUDITOR_MODEL.
 
 Audits completed arc records against the plan's beats and required responses.
 One auditor call per arc. Outputs strict JSON verdicts; mechanical gates are
@@ -35,9 +38,9 @@ load_dotenv(_REPO_DIR / ".env", override=True)
 from training.featherless_keys import KeyPool, is_rotate_status  # noqa: E402
 
 FEATHERLESS_URL = os.environ.get(
-    "ARC_AUDITOR_URL", "https://api.featherless.ai/v1/chat/completions"
+    "ARC_AUDITOR_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
 )
-AUDITOR_MODEL = os.environ.get("ARC_AUDITOR_MODEL", "moonshotai/Kimi-K3")
+AUDITOR_MODEL = os.environ.get("ARC_AUDITOR_MODEL", "moonshotai/kimi-k3")
 AUDITOR_MAX_TOKENS = int(os.environ.get("ARC_AUDITOR_MAX_TOKENS", "12288"))
 AUDITOR_TIMEOUT = int(os.environ.get("ARC_AUDITOR_TIMEOUT", "480"))
 AUDITOR_CONCURRENCY = int(os.environ.get("ARC_AUDITOR_CONCURRENCY", "2"))
@@ -181,6 +184,7 @@ async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
             "max_tokens": AUDITOR_MAX_TOKENS,
             "temperature": 0.2,
             "response_format": {"type": "json_object"},
+            "chat_template_kwargs": {"thinking": False},
         }
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -401,7 +405,9 @@ async def audit_arc(http: aiohttp.ClientSession, record: dict, plan: dict, pool:
 
 
 async def main_async(args) -> None:
-    pool = KeyPool("FEATHERLESS_API_KEY", "FEATHERLESS_API_KEY_2")
+    pool = KeyPool(
+        "AI_GATEWAY_API_KEY", "FEATHERLESS_API_KEY", "FEATHERLESS_API_KEY_2"
+    )
 
     records_path = OUT_DIR / (args.records or "arc_records.jsonl")
     checkpoint_path = OUT_DIR / (args.checkpoint or "sessions_checkpoint.jsonl")

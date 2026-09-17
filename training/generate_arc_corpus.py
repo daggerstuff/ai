@@ -4,7 +4,7 @@ Consumes arc plans (ARC_CORPUS_SPEC.md §5), writes each session with
 DeepSeek-V4.1-Flash (thinking OFF), runs mechanical gates (§7.4) per session,
 checkpoints per session with fsync, and assembles the final arc record (§9).
 
-The Kimi-K3 auditor is a separate pass (audit_arc_corpus.py) — this file never
+The auditor (audit_arc_corpus.py, GLM-5.3) is a separate pass — this file never
 spends auditor tokens.
 
 Run (from ai/):
@@ -41,9 +41,9 @@ from training.cliche_gate import (  # noqa: E402
 from training.featherless_keys import KeyPool, is_rotate_status  # noqa: E402
 
 FEATHERLESS_URL = os.environ.get(
-    "ARC_WRITER_URL", "https://api.featherless.ai/v1/chat/completions"
+    "ARC_WRITER_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
 )
-WRITER_MODEL = os.environ.get("ARC_WRITER_MODEL", "deepseek-ai/DeepSeek-V4.1-Flash")
+WRITER_MODEL = os.environ.get("ARC_WRITER_MODEL", "deepseek/deepseek-v4.1-flash")
 MAX_TOKENS = int(os.environ.get("ARC_WRITER_MAX_TOKENS", "32768"))
 TEMPERATURE = float(os.environ.get("ARC_WRITER_TEMPERATURE", "0.45"))
 CALL_TIMEOUT = int(os.environ.get("ARC_WRITER_TIMEOUT", "900"))
@@ -832,7 +832,9 @@ async def generate_arc(plan: dict, checkpoint: dict, out_paths: dict,
 
 
 async def main_async(args) -> None:
-    pool = KeyPool("FEATHERLESS_API_KEY", "FEATHERLESS_API_KEY_2")
+    pool = KeyPool(
+        "AI_GATEWAY_API_KEY", "FEATHERLESS_API_KEY", "FEATHERLESS_API_KEY_2"
+    )
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     RUN_LOG_DIR.mkdir(parents=True, exist_ok=True)

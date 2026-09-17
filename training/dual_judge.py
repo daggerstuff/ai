@@ -15,8 +15,8 @@ Implements blueprint Appendix B.3:
   Calibration set helpers: Pearson r vs golden + Cohen's kappa on accept/reject.
 
 Judge calls go to an OpenAI-compatible Chat Completions endpoint.  Both the
-primary (DeepSeek-V4.1-Flash) and secondary (Kimi-K3) run on Featherless;
-URL + model ids configurable via env vars so tests can swap in a fake
+primary (DeepSeek-V4.1-Flash) and secondary (Kimi-K3) run on the Vercel AI
+Gateway; URL + model ids configurable via env vars so tests can swap in a fake
 transport.
 """
 
@@ -41,9 +41,9 @@ from dotenv import load_dotenv
 
 logger = logging.getLogger("dual_judge")
 
-DEFAULT_JUDGE_URL = os.environ.get("DUAL_JUDGE_URL", "https://api.featherless.ai/v1/chat/completions")
-PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "deepseek-ai/DeepSeek-V4.1-Flash")
-SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "moonshotai/Kimi-K3")
+DEFAULT_JUDGE_URL = os.environ.get("DUAL_JUDGE_URL", "https://ai-gateway.vercel.sh/v1/chat/completions")
+PRIMARY_MODEL = os.environ.get("DUAL_JUDGE_PRIMARY", "deepseek/deepseek-v4.1-flash")
+SECONDARY_MODEL = os.environ.get("DUAL_JUDGE_SECONDARY", "moonshotai/kimi-k3")
 JUDGE_TEMPERATURE = 0.1
 # Reasoning models burn the token budget on reasoning_content before the JSON
 # verdict; 1024 starves them to empty content (validated at 8192, 2026-09-14).
@@ -59,18 +59,22 @@ CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 
 
-def _featherless_auth_header() -> dict[str, str]:
-    """Bearer auth for the Featherless judge endpoint (both judges live there)."""
-    key = os.environ.get("FEATHERLESS_API_KEY", "")
+def _judge_auth_header() -> dict[str, str]:
+    """Bearer auth for the judge endpoint (both judges on the Vercel AI Gateway;
+    Featherless key honored as fallback during transition)."""
+    key = (
+        os.environ.get("AI_GATEWAY_API_KEY", "")
+        or os.environ.get("FEATHERLESS_API_KEY", "")
+    )
     return {"Authorization": f"Bearer {key}"} if key else {}
 
 
 def _secondary_judge_target() -> tuple[str, dict[str, str]]:
-    """Companion judge (Kimi-K3 on Featherless) endpoint + auth header."""
+    """Companion judge (Kimi-K3) endpoint + auth header."""
     url = os.environ.get(
-        "DUAL_JUDGE_SECONDARY_URL", "https://api.featherless.ai/v1/chat/completions"
+        "DUAL_JUDGE_SECONDARY_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
     )
-    return url, _featherless_auth_header()
+    return url, _judge_auth_header()
 
 
 DIMENSIONS: tuple[str, ...] = ("relevance", "accuracy", "helpfulness", "style", "safety")
@@ -488,7 +492,7 @@ async def _call_judge_model(
         # cannot drift into prose on long transcripts (the json_parse_error failure).
         payload["response_format"] = {"type": "json_object"}
     elif force_json:
-        # Remote judge (Featherless): same prose-drift risk.
+        # Remote judge (Vercel AI Gateway): same prose-drift risk.
         payload["response_format"] = {"type": "json_object"}
     try:
         async with session.post(
@@ -525,7 +529,7 @@ async def judge_single(
     owns_session = session is None
     session = session or aiohttp.ClientSession()
     try:
-        primary_headers = _featherless_auth_header()
+        primary_headers = _judge_auth_header()
         primary_runs = await asyncio.gather(
             *(
                 _call_judge_model(
@@ -615,7 +619,7 @@ async def judge_record_turns(
             )
         joined_ref = "\n".join(ref for ref, _ in pairs)
         joined_cand = "\n".join(cand for _, cand in pairs)
-        primary_headers = _featherless_auth_header()
+        primary_headers = _judge_auth_header()
         if per_turn:
             primary_turn_tasks = [
                 _call_judge_model(
@@ -932,7 +936,7 @@ async def _run_live_calibration_async(
                         model=primary_model,
                         candidate_content=asst_for_eval,
                         reference_content=user_for_eval,
-                        headers=_featherless_auth_header(),
+                        headers=_judge_auth_header(),
                         force_json=True,
                     )
 

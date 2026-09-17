@@ -1,9 +1,9 @@
 """Bulk dual-judge scoring for edge_and_nightmare_generated.jsonl (PIX-4343, blueprint B.3.2/B.3.4).
 
 Judges every generated record in aggregate transcript mode:
-  - primary: deepseek-ai/DeepSeek-V4.1-Flash via Featherless, k=3 self-consistency,
-    force_json response_format, max_tokens 8192 (reasoning model)
-  - secondary: moonshotai/Kimi-K3 via Featherless, k=1, max_tokens 8192
+  - primary: deepseek/deepseek-v4.1-flash via the Vercel AI Gateway, k=3
+    self-consistency, force_json response_format, max_tokens 8192
+  - secondary: moonshotai/kimi-k3 via the Vercel AI Gateway, k=1, max_tokens 8192
   - reconcile: dual-consistency diff <= 0.15, accept threshold 0.60,
     self-consistency variance <= 0.05
 
@@ -32,7 +32,7 @@ from typing import Any
 import aiohttp
 from dotenv import load_dotenv
 
-# override=True: the launching shell may carry stale FEATHERLESS_API_KEY etc.
+# override=True: the launching shell may carry stale provider keys (AI_GATEWAY_API_KEY etc.).
 load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 
 from training.dual_judge import (  # noqa: E402
@@ -56,12 +56,12 @@ IN_GENERATED = Path(os.environ.get("NF_JUDGE_INPUT", CHECKPOINT_DIR / "edge_and_
 OUT_JUDGED = Path(os.environ.get("NF_JUDGE_OUTPUT", CHECKPOINT_DIR / "edge_and_nightmare_judged.jsonl"))
 OUT_REPORT = Path(os.environ.get("NF_JUDGE_REPORT", CHECKPOINT_DIR / "edge_and_nightmare_judge_report.md"))
 
-FEATHERLESS_URL = "https://api.featherless.ai/v1/chat/completions"
-PRIMARY_MODEL_ID = os.environ.get("NF_JUDGE_PRIMARY_MODEL", "deepseek-ai/DeepSeek-V4.1-Flash")
+JUDGE_URL = os.environ.get("NF_JUDGE_URL", "https://ai-gateway.vercel.sh/v1/chat/completions")
+PRIMARY_MODEL_ID = os.environ.get("NF_JUDGE_PRIMARY_MODEL", "deepseek/deepseek-v4.1-flash")
 
 JUDGE_K = int(os.environ.get("NF_JUDGE_K", "3"))
-# Both judges cost 4 Featherless concurrency units (vs Wayfarer's 1): keep
-# in-flight calls low to stay clear of the per-key concurrency ceiling.
+# Both judges cost 4 inference-provider concurrency units (vs Wayfarer's 1):
+# keep in-flight calls low to stay clear of the per-key concurrency ceiling.
 JUDGE_CONCURRENCY = int(os.environ.get("NF_JUDGE_CONCURRENCY", "2"))
 JUDGE_ATTEMPTS = int(os.environ.get("NF_JUDGE_ATTEMPTS", "4"))
 JUDGE_CALL_TIMEOUT = int(os.environ.get("NF_JUDGE_TIMEOUT", "240"))
@@ -182,14 +182,17 @@ async def judge_record(
             "latency_s": 0.0,
         }
     reference, candidate = pair
-    prim_headers = {"Authorization": f"Bearer {os.environ.get('FEATHERLESS_API_KEY', '')}"}
+    _judge_key = os.environ.get("AI_GATEWAY_API_KEY", "") or os.environ.get(
+        "FEATHERLESS_API_KEY", ""
+    )
+    prim_headers = {"Authorization": f"Bearer {_judge_key}"}
     sec_url, sec_headers = _secondary_judge_target()
     t0 = time.monotonic()
     async with sem:
         results = await asyncio.gather(
             *(call_with_retry(
                 session,
-                url=FEATHERLESS_URL,
+                url=JUDGE_URL,
                 model=PRIMARY_MODEL_ID,
                 candidate=candidate,
                 reference=reference,
@@ -205,7 +208,7 @@ async def judge_record(
             reference=reference,
             headers=sec_headers,
             force_json=True,
-            max_tokens=8192,  # Kimi-K3 reasons in-band; low budgets starve content (validated at 8192)
+            max_tokens=8192,  # GLM-5.3 reasons in-band; low budgets starve content (validated at 8192)
         )
     latency = time.monotonic() - t0
     prims = [v for v, _ in results]
