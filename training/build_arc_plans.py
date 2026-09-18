@@ -361,6 +361,26 @@ def _exists_clean(path: Path) -> bool:
     return not lint_plan(existing)[0]
 
 
+def _load_claimed_keys(out_dir: Path) -> set[str]:
+    """Seed keys whose plan exists on disk (status written/skipped) —
+    excluded on resume. Failed seeds stay available for retry."""
+    path = out_dir / "seed_map.jsonl"
+    if not path.is_file():
+        return set()
+    keys = set()
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if row.get("status") in ("written", "skipped"):
+            keys.add(row["key"])
+    return keys
+
+
 async def _attempt_plan(session: aiohttp.ClientSession, pool: "KeyPool",
                         job: Job, user_prompt: str,
                         counters: dict) -> tuple[dict | None, list[str]]:
@@ -490,6 +510,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--concurrency", type=int, default=CONCURRENCY)
     ap.add_argument("--retries", type=int, default=2,
                     help="lint-feedback retries per plan (default 2)")
+    ap.add_argument("--start", type=int, default=1,
+                    help="1-based starting index for arc_id / era_jitter "
+                         "numbering (resume: after arc_0001..arc_0003, "
+                         "run --count 47 --start 4)")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the seed selection; no API calls, no writes")
     args = ap.parse_args(argv)
@@ -499,26 +523,33 @@ def main(argv: list[str] | None = None) -> int:
         if not f.is_file():
             print(f"error: seed file not found: {f}", file=sys.stderr)
             return 2
-    if args.count < 1 or args.concurrency < 1 or args.retries < 0:
-        print("error: invalid --count/--concurrency/--retries", file=sys.stderr)
+    if args.count < 1 or args.concurrency < 1 or args.retries < 0 \
+            or args.start < 1:
+        print("error: invalid --count/--concurrency/--retries/--start",
+              file=sys.stderr)
         return 2
 
+    out_dir = Path(args.out_dir)
     seeds = _load_seeds(seed_files)
+    claimed = _load_claimed_keys(out_dir)
+    if claimed:
+        seeds = [s for s in seeds if s["key"] not in claimed]
+        print(f"resume: {len(claimed)} seeds already claimed on disk, "
+              f"{len(seeds)} remain", flush=True)
     if args.count > len(seeds):
         print(f"error: --count {args.count} > {len(seeds)} available seeds",
               file=sys.stderr)
         return 2
     picked = _pick_seeds(seeds, args.count)
-    out_dir = Path(args.out_dir)
 
     if args.dry_run:
         system = _system_prompt()
         prompt_chars = sum(len(_user_prompt(
             Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir,
-                0, system), s)) for i, s in enumerate(picked, start=1))
+                0, system), s)) for i, s in enumerate(picked, start=args.start))
         print(f"dry-run: {len(picked)} seeds, model={PLAN_MODEL}, "
               f"system={len(system)} chars, user total={prompt_chars} chars")
-        for i, s in enumerate(picked, start=1):
+        for i, s in enumerate(picked, start=args.start):
             print(f"  {args.prefix}_{i:04d}  {s['family'][:30]:30}  {s['key']}")
         return 0
 
@@ -528,7 +559,7 @@ def main(argv: list[str] | None = None) -> int:
     system = _system_prompt()
     jobs = [Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir,
                 args.retries + 1, system)
-            for i, s in enumerate(picked, start=1)]
+            for i, s in enumerate(picked, start=args.start)]
     counters = {"written": 0, "skipped": 0, "failed": 0,
                 "lint_retries": 0, "tokens": 0}
 
