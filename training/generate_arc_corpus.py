@@ -82,7 +82,9 @@ LEDGER_FIELD_DOCS = """\
 - def: the defense/mechanism in play this turn
 - soma: somatic cue the client stated THIS turn, or "none" — never invent cues
 - risk: one of none / passive / active, plus one clause of why
-- hx: salient history held across the arc
+- hx: salient history ESTABLISHED in this arc — only what the client stated
+  or acknowledged in-session. A condition or diagnosis the client never named
+  (plan-background facts included) must never appear here.
 - onset: when this thread started, relative time — ONLY if the client stated
   a time in this arc; otherwise exactly "not stated". Never invent an onset.
 - track: which arc pivot this turn advances (name the beat)
