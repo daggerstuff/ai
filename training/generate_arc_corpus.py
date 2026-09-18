@@ -49,7 +49,12 @@ TEMPERATURE = float(os.environ.get("ARC_WRITER_TEMPERATURE", "0.45"))
 CALL_TIMEOUT = int(os.environ.get("ARC_WRITER_TIMEOUT", "900"))
 CONCURRENCY = int(os.environ.get("ARC_CONCURRENCY", "2"))
 SESSION_ATTEMPTS = int(os.environ.get("ARC_SESSION_ATTEMPTS", "3"))
-TURN_TOLERANCE = 2
+# Pacing tolerance is right-sized per session length (see _turn_tolerance):
+# the writer model cannot hit exact turn counts, so a fixed ±2 rejects clean
+# sessions over pacing variance alone.
+TURN_TOLERANCE_FLOOR = 3
+TURN_TOLERANCE_CAP = 6
+TURN_TOLERANCE_FRACTION = float(os.environ.get("ARC_TURN_TOLERANCE_FRACTION", "0.40"))
 LEDGER_KEYS = ["dx", "def", "soma", "risk", "hx", "onset", "track", "tx", "tl"]
 
 PLANS_DIR = _TRAIN_DIR / "arc_plans"
@@ -108,7 +113,15 @@ write the full conversation, both voices, following an arc plan exactly.
 THERAPIST VOICE (non-negotiable):
 - Direct clinical engagement. Plain language. 1-3 sentences per spoken reply.
 - Never use reflective openers ("It sounds like...", "What I'm hearing is...").
-- Never parrot the client's words back.
+- Never open a therapist line by framing what the client just said with
+  "You said ...", "You just said ...", "You named ...", "You called it ...",
+  "You mentioned ...", "When you say ...", or "So you're saying ...". The ban
+  covers affirmations and thread-holding too — "You said it and it stands" is
+  still a banned opener. The most common violation is the boundary-affirmation
+  template "You said no. That's a boundary, not a crime." — judge the act
+  directly instead ("That no cost you the co-sign, and it was still yours").
+  Drop the frame and work the substance directly ("It stands — I'm not going
+  to make it bigger than it is"), or ask about it.
 - Never somatic-deflect ("Where do you feel that in your body?").
 - Never interrogate: one question at a time, no barrages, no accusations.
 - Firm is not hostile: no shaming, no ultimatums, no invoking third parties
@@ -324,12 +337,16 @@ def build_session_prompt(plan: dict, n: int, prior_sessions: list[dict],
             "client gave no time, the ledger carries the fact without a time anchor. The "
             "time since the previous session is exactly the gap stated in this prompt — "
             "never a different interval. Ledger (told)/(claim)/(untold) markers must "
-            "match this provenance exactly."
+            "match this provenance exactly. Every timeline anchor in the final "
+            "carried-forward ledger tl must persist in every ledger of this session — "
+            "amended with a revision tag when it changes, never silently dropped."
         )
 
     parts.append(f"Write session {n} now: exactly {session['turns']} client turns and "
                  f"{session['turns']} therapist turns, alternating [C]/[T|THINK]/[T], "
-                 f"starting with [C]. Session focus: {session['focus']}")
+                 f"starting with [C]. Count your [C] lines as you write and stop at "
+                 f"exactly {session['turns']} — more or fewer is a hard failure. "
+                 f"Session focus: {session['focus']}")
 
     if corrective_note:
         parts.append(f"CORRECTION FROM PREVIOUS ATTEMPT (fix all of these):\n{corrective_note}")
@@ -527,6 +544,19 @@ def _tl_anchor_keys(tl: str) -> set[str]:
     return set(_TL_ANCHOR_RE.findall(tl or ""))
 
 
+def _turn_tolerance(target: int) -> int:
+    """Pacing tolerance that scales with session length.
+
+    The writer cannot hit exact turn counts (observed drift ±5), so a fixed
+    ±2 rejects clean sessions over pacing variance alone and burns full
+    rewrite attempts. Allow variance proportional to length: the floor keeps
+    short sessions honest, the cap stops long sessions from going over-loose,
+    and a genuine bail (a 20-turn plan collapsing to ~8 turns) still fails.
+    """
+    return min(TURN_TOLERANCE_CAP,
+               max(TURN_TOLERANCE_FLOOR, round(target * TURN_TOLERANCE_FRACTION)))
+
+
 def run_mechanical_gates(plan: dict, n: int, parsed: dict,
                          prior_sessions: list[dict]) -> list[str]:
     failures: list[str] = []
@@ -535,9 +565,10 @@ def run_mechanical_gates(plan: dict, n: int, parsed: dict,
 
     if parsed["unmarked_lines"]:
         failures.append(f"marker_format: {parsed['unmarked_lines']} unmarked lines")
-    if abs(len(parsed["client_lines"]) - target) > TURN_TOLERANCE:
+    tol = _turn_tolerance(target)
+    if abs(len(parsed["client_lines"]) - target) > tol:
         failures.append(f"turn_count: client turns {len(parsed['client_lines'])} vs target {target}")
-    if abs(len(parsed["therapist_lines"]) - target) > TURN_TOLERANCE:
+    if abs(len(parsed["therapist_lines"]) - target) > tol:
         failures.append(f"turn_count: therapist turns {len(parsed['therapist_lines'])} vs target {target}")
 
     parse_fail = sum(1 for b in parsed["think_blocks"] if not b["ok"])
@@ -625,7 +656,15 @@ def corrective_note_for(failures: list[str]) -> str:
         elif head == "ledger_count":
             lines.append("- Exactly one [T|THINK] block before every [T] reply, no gaps.")
         elif head == "cliche_gate":
-            lines.append("- Rewrite any therapist line containing a banned exact phrase. " + f.split(":", 1)[1][:200])
+            lines.append("- A therapist line opens by parroting the client's words back "
+                         "at them (e.g. 'You said ...', 'You just said ...', 'You named "
+                         "...'). Never open a therapist line by quoting or restating what "
+                         "the client just said. Start from your own observation, a "
+                         "question, or a held pause; engage the content in your own "
+                         "words. The offending line is quoted in the failure detail "
+                         "below — rewrite it from the judgment itself and do NOT "
+                         "reuse the same line on a later attempt. "
+                         + f.split(":", 1)[1][:150])
         elif head == "calendar_dates":
             lines.append("- Replace calendar months/years with relative time ('three weeks ago', 'last spring').")
         elif head == "tl_drift":
@@ -840,9 +879,13 @@ async def generate_arc(plan: dict, checkpoint: dict, out_paths: dict,
 
 
 async def main_async(args) -> None:
-    pool = KeyPool(
-        "AI_GATEWAY_API_KEY", "FEATHERLESS_API_KEY", "FEATHERLESS_API_KEY_2"
-    )
+    pool_envs = [
+        k.strip() for k in os.environ.get(
+            "ARC_WRITER_KEYS",
+            "AI_GATEWAY_API_KEY,FEATHERLESS_API_KEY,FEATHERLESS_API_KEY_2",
+        ).split(",") if k.strip()
+    ]
+    pool = KeyPool(*pool_envs)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     RUN_LOG_DIR.mkdir(parents=True, exist_ok=True)

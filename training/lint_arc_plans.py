@@ -95,6 +95,14 @@ CRISIS_RE = re.compile(
     r"|doesn't want to live|not want to (?:be alive|live)|rather be dead"
     r"|wish i were dead|death wish",
 )
+# Mirrors the writer's calendar_dates gate (_MONTH_RE in
+# generate_arc_corpus.py): any session line containing a calendar month name
+# or 4-digit year is rejected. A plan that carries one in text the writer is
+# pushed to reproduce will burn its regeneration on gate retries.
+_MONTH_RE = re.compile(
+    r"\b(January|February|March|April|May|June|July|August|September|October|"
+    r"November|December)\b|\b(?:19|20)\d{2}\b"
+)
 
 _BeatResult = tuple[list[str], list[tuple[int, int]], bool]
 _MsResult = tuple[list[str], list[tuple[int, int]]]
@@ -397,6 +405,56 @@ def _check_era_jitter(aid: str, p: dict[str, Any], errors: list[str]) -> None:
         errors.append(f"{aid}: era_jitter.seed must be a positive int")
 
 
+def _text_at(cur: Any, path: list[str | int]) -> str | None:
+    """Defensively walks a plan path; returns the value only if it is a
+    non-empty string."""
+    for key in path:
+        if isinstance(key, int):
+            if not isinstance(cur, list) or key >= len(cur):
+                return None
+            cur = cur[key]
+        elif isinstance(cur, dict):
+            cur = cur.get(key)
+        else:
+            return None
+    return cur if isinstance(cur, str) and cur.strip() else None
+
+
+def _check_calendar(aid: str, p: dict[str, Any], errors: list[str]) -> None:
+    """Flags calendar months/years in plan text the writer is pushed to
+    reproduce verbatim or near-verbatim (beat quotes, setup, demand, notes,
+    focus, timeline events, ending requirement)."""
+    targets: list[tuple[str, str]] = []
+    for where, path in (("client.notes", ("client", "notes")),
+                        ("surface_subject", ("surface_subject",)),
+                        ("ending.requirement", ("ending", "requirement"))):
+        text = _text_at(p, list(path))
+        if text:
+            targets.append((where, text))
+    for i, s in enumerate(p.get("sessions") or []):
+        text = _text_at(s, ["focus"])
+        if text:
+            targets.append((f"sessions[{i}].focus", text))
+    for i, ev in enumerate(p.get("timeline") or []):
+        text = _text_at(ev, ["event"])
+        if text:
+            targets.append((f"timeline[{i}].event", text))
+    for i, b in enumerate(p.get("beats") or []):
+        for k in ("setup", "demand", "original", "revision",
+                  "required_response"):
+            text = _text_at(b, [k])
+            if text:
+                targets.append((f"beats[{i}].{k}", text))
+    for where, text in targets:
+        for m in _MONTH_RE.finditer(text):
+            errors.append(
+                f"{aid}: calendar month/year {m.group(0)!r} in {where} — the "
+                f"writer's calendar_dates gate rejects sessions that "
+                f"reproduce it; use relative time ('three weeks ago', "
+                f"'last spring')"
+            )
+
+
 def _check_crisis_coverage(aid: str, p: dict[str, Any], btypes: set[str],
                            warnings: list[str]) -> None:
     beats = p["beats"] if isinstance(p.get("beats"), list) else []
@@ -435,6 +493,7 @@ def lint_plan(p: dict[str, Any]) -> tuple[list[str], list[str]]:
     btypes = _check_beats(aid, p, sess_by_n, errors)
     _check_ending(aid, p, sess_by_n, errors)
     _check_era_jitter(aid, p, errors)
+    _check_calendar(aid, p, errors)
     _check_crisis_coverage(aid, p, btypes, warnings)
     return errors, warnings
 
