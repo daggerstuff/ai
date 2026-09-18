@@ -303,7 +303,11 @@ def _load_final() -> dict[str, dict[str, Any]]:
     return out
 
 
-def _merge_v3(judged: list[dict[str, Any]], settled: dict[str, dict[str, Any]], incremental: bool = False) -> None:
+def _merge_v3(
+    judged: list[dict[str, Any]],
+    settled: dict[str, dict[str, Any]] | None,
+    incremental: bool = False,
+) -> None:
     """Write the full v3 file: every judged row, HR rows enriched with tiebreak fields."""
     enriched: dict[str, dict[str, Any]] = dict(settled or {})
     for row in _load_jsonl(OUT_V3):
@@ -382,7 +386,8 @@ def _log_wandb_summary(wandb_run: Any, settled: dict[str, dict[str, Any]], elaps
         logger.warning("wandb summary log failed: %s", exc)
 
 
-def _to_frame(rows: list[dict[str, Any]]):
+def _to_frame(rows: list[dict[str, Any]]) -> Any:
+    """A pandas DataFrame when pandas is available, else the raw rows."""
     try:
         import pandas as pd
 
