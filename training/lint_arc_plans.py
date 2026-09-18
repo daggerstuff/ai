@@ -24,6 +24,7 @@ import math
 import re
 import sys
 from pathlib import Path
+from typing import Any, TypeGuard
 
 _HERE = Path(__file__).resolve()
 _TRAIN_DIR = _HERE.parents[0]   # ai/training
@@ -99,7 +100,8 @@ _BeatResult = tuple[list[str], list[tuple[int, int]], bool]
 _MsResult = tuple[list[str], list[tuple[int, int]]]
 
 
-def _is_int(v) -> bool:
+def _is_int(v: object) -> TypeGuard[int]:
+    """True for real ints (bool is an int subclass but not a valid n/turn)."""
     return isinstance(v, int) and not isinstance(v, bool)
 
 
@@ -128,7 +130,7 @@ def _check_untold_diagnostics(aid: str, notes: str, errors: list[str]) -> None:
         )
 
 
-def _check_seed(aid: str, p: dict, errors: list[str]) -> None:
+def _check_seed(aid: str, p: dict[str, Any], errors: list[str]) -> None:
     seed = p["seed"]
     if not isinstance(seed, dict) or not seed.get("source"):
         errors.append(f"{aid}: seed.source missing")
@@ -137,7 +139,7 @@ def _check_seed(aid: str, p: dict, errors: list[str]) -> None:
         errors.append(f"{aid}: nightmare seed without scenario_id")
 
 
-def _check_client(aid: str, p: dict, errors: list[str]) -> None:
+def _check_client(aid: str, p: dict[str, Any], errors: list[str]) -> None:
     client = p["client"]
     if not isinstance(client, dict):
         errors.append(f"{aid}: client must be an object")
@@ -151,8 +153,8 @@ def _check_client(aid: str, p: dict, errors: list[str]) -> None:
         _check_untold_diagnostics(aid, client["notes"], errors)
 
 
-def _check_session_item(aid: str, i: int, s: dict, sess_by_n: dict[int, dict],
-                        msgs: list[tuple[str, str]]) -> tuple[int, object]:
+def _check_session_item(aid: str, i: int, s: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
+                        msgs: list[tuple[str, str]]) -> tuple[int, Any]:
     """Lints one session entry. Appends (severity, message) to msgs; returns
     (turns, n)."""
     n = s.get("n")
@@ -180,16 +182,16 @@ def _check_session_item(aid: str, i: int, s: dict, sess_by_n: dict[int, dict],
     return (t if _is_int(t) else 0), n
 
 
-def _check_sessions(aid: str, p: dict, errors: list[str],
-                    warnings: list[str]) -> tuple[dict[int, dict], int]:
+def _check_sessions(aid: str, p: dict[str, Any], errors: list[str],
+                    warnings: list[str]) -> tuple[dict[int, dict[str, Any]], int]:
     """Returns (sessions by n, total turns)."""
-    sess_by_n: dict[int, dict] = {}
+    sess_by_n: dict[int, dict[str, Any]] = {}
     total = 0
     sessions = p["sessions"]
     if not isinstance(sessions, list) or not sessions:
         errors.append(f"{aid}: sessions must be a non-empty list")
         return sess_by_n, total
-    ids: list = []
+    ids: list[int] = []
     item_msgs: list[tuple[str, str]] = []
     for i, s in enumerate(sessions):
         if not isinstance(s, dict):
@@ -211,7 +213,7 @@ def _check_sessions(aid: str, p: dict, errors: list[str],
     return sess_by_n, total
 
 
-def _check_timeline(aid: str, p: dict, errors: list[str],
+def _check_timeline(aid: str, p: dict[str, Any], errors: list[str],
                     warnings: list[str]) -> None:
     tl = p["timeline"]
     if not isinstance(tl, list) or len(tl) < MIN_TIMELINE_EVENTS:
@@ -250,7 +252,7 @@ def _check_timeline(aid: str, p: dict, errors: list[str],
                         f"world-truth tension)")
 
 
-def _check_subjects(aid: str, p: dict, sess_by_n: dict[int, dict],
+def _check_subjects(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
                     errors: list[str]) -> None:
     if not isinstance(p["surface_subject"], str) or not p["surface_subject"].strip():
         errors.append(f"{aid}: surface_subject must be a non-empty string")
@@ -272,8 +274,8 @@ def _check_subjects(aid: str, p: dict, sess_by_n: dict[int, dict],
                       f"session {sess_n} budget is {sess_by_n[sess_n]['turns']}")
 
 
-def _check_beat(aid: str, i: int, b: dict,
-                sess_by_n: dict[int, dict]) -> _BeatResult:
+def _check_beat(aid: str, i: int, b: dict[str, Any],
+                sess_by_n: dict[int, dict[str, Any]]) -> _BeatResult:
     """Lints one beat. Returns (errors, positions, known_type)."""
     errors: list[str] = []
     if not isinstance(b, dict):
@@ -306,7 +308,7 @@ def _check_beat(aid: str, i: int, b: dict,
     return errors, positions, True
 
 
-def _check_beats(aid: str, p: dict, sess_by_n: dict[int, dict],
+def _check_beats(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
                  errors: list[str]) -> set[str]:
     """Extends errors for the beats block; returns the beat types seen."""
     btypes: set[str] = set()
@@ -347,8 +349,8 @@ def _check_beats(aid: str, p: dict, sess_by_n: dict[int, dict],
     return btypes
 
 
-def _check_misstatement(aid: str, i: int, b: dict,
-                        sess_by_n: dict[int, dict]) -> _MsResult:
+def _check_misstatement(aid: str, i: int, b: dict[str, Any],
+                        sess_by_n: dict[int, dict[str, Any]]) -> _MsResult:
     """Lints one misstatement beat. Returns (errors, plant/revise positions)."""
     errors: list[str] = []
     positions: list[tuple[int, int]] = []
@@ -374,7 +376,7 @@ def _check_misstatement(aid: str, i: int, b: dict,
     return errors, positions
 
 
-def _check_ending(aid: str, p: dict, sess_by_n: dict[int, dict],
+def _check_ending(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
                   errors: list[str]) -> None:
     end = p["ending"]
     if not isinstance(end, dict):
@@ -389,13 +391,13 @@ def _check_ending(aid: str, p: dict, sess_by_n: dict[int, dict],
         errors.append(f"{aid}: ending.requirement must be a non-empty string")
 
 
-def _check_era_jitter(aid: str, p: dict, errors: list[str]) -> None:
+def _check_era_jitter(aid: str, p: dict[str, Any], errors: list[str]) -> None:
     ej = p["era_jitter"]
     if not isinstance(ej, dict) or not _is_int(ej.get("seed")) or ej["seed"] <= 0:
         errors.append(f"{aid}: era_jitter.seed must be a positive int")
 
 
-def _check_crisis_coverage(aid: str, p: dict, btypes: set[str],
+def _check_crisis_coverage(aid: str, p: dict[str, Any], btypes: set[str],
                            warnings: list[str]) -> None:
     beats = p["beats"] if isinstance(p.get("beats"), list) else []
     sessions = p["sessions"] if isinstance(p.get("sessions"), list) else []
@@ -411,7 +413,7 @@ def _check_crisis_coverage(aid: str, p: dict, btypes: set[str],
                         f"— the writer has no assessment target")
 
 
-def lint_plan(p: dict) -> tuple[list[str], list[str]]:
+def lint_plan(p: dict[str, Any]) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
     aid = p.get("arc_id", "?")
@@ -437,7 +439,7 @@ def lint_plan(p: dict) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
-def lint_batch(plans: list[dict], paths: list[Path] | None = None,
+def lint_batch(plans: list[dict[str, Any]], paths: list[Path] | None = None,
                set_level: bool = True) -> tuple[list[str], list[str]]:
     """Per-plan lint over every plan plus batch-level rules (duplicate
     arc_ids, filename/arc_id mismatches, duplicate names/jitter seeds,
@@ -487,7 +489,7 @@ def lint_batch(plans: list[dict], paths: list[Path] | None = None,
     return errors, warnings
 
 
-def _report_plan(f: Path, p: dict, e: list[str], w: list[str],
+def _report_plan(f: Path, p: dict[str, Any], e: list[str], w: list[str],
                  strict: bool) -> int:
     """Prints one plan's verdict; returns 1 when it counts as passing."""
     if e or (strict and w):
@@ -531,7 +533,7 @@ def main(argv: list[str] | None = None) -> int:
               f"{args.paths or PLANS_DIR}", file=sys.stderr)
         return 2
 
-    plans: list[dict] = []
+    plans: list[dict[str, Any]] = []
     for f in files:
         try:
             plans.append(json.loads(f.read_text(encoding="utf-8")))
