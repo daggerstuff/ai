@@ -199,7 +199,8 @@ async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
                         body = await resp.text()
                         raise RuntimeError(f"auditor config error http_{resp.status}: {body[:300]}")
                     if resp.status != 200:
-                        raise TransientAuditError(f"http_{resp.status}")
+                        body = await resp.text()
+                        raise TransientAuditError(f"http_{resp.status}: {body[:200]}")
                     data = await resp.json(content_type=None)
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 raise TransientAuditError(f"transport_error: {type(e).__name__}") from e
