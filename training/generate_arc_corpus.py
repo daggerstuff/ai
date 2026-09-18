@@ -512,13 +512,19 @@ def parse_transcript(text: str) -> dict:
     }
 
 
+_TL_ANCHOR_RE = re.compile(r"(?:^|[;,])\s*(now|[-+]?\d+[ymwd])(?=\s*:)", re.M)
+
+
 def _tl_anchor_keys(tl: str) -> set[str]:
-    keys = set()
-    for entry in (tl or "").split(","):
-        entry = entry.strip()
-        if ":" in entry:
-            keys.add(entry.split(":", 1)[0].strip())
-    return keys
+    """Extract time anchors (``now``, ``-6w``, ``+1y`` ...) from a tl ledger.
+
+    Ledger entries are ``anchor: description`` separated by ``;`` (or ```,``).
+    Descriptions themselves may contain commas/semicolons, so splitting on a
+    delimiter and taking the text before the first colon yields phantom keys.
+    Instead match the short time-anchor token that sits at an entry boundary
+    immediately before its colon.
+    """
+    return set(_TL_ANCHOR_RE.findall(tl or ""))
 
 
 def run_mechanical_gates(plan: dict, n: int, parsed: dict,
