@@ -405,9 +405,13 @@ async def audit_arc(http: aiohttp.ClientSession, record: dict, plan: dict, pool:
 
 
 async def main_async(args) -> None:
-    pool = KeyPool(
-        "AI_GATEWAY_API_KEY", "FEATHERLESS_API_KEY", "FEATHERLESS_API_KEY_2"
-    )
+    pool_envs = [
+        k.strip() for k in os.environ.get(
+            "ARC_AUDITOR_KEYS",
+            "AI_GATEWAY_API_KEY,FEATHERLESS_API_KEY,FEATHERLESS_API_KEY_2",
+        ).split(",") if k.strip()
+    ]
+    pool = KeyPool(*pool_envs)
 
     records_path = OUT_DIR / (args.records or "arc_records.jsonl")
     checkpoint_path = OUT_DIR / (args.checkpoint or "sessions_checkpoint.jsonl")
