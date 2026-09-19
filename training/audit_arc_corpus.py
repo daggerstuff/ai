@@ -427,7 +427,8 @@ async def main_async(args) -> None:
         records = [r for r in records if r["arc_id"] in wanted]
     if args.limit:
         records = records[: args.limit]
-    records = [r for r in records if (r.get("audit") or {}).get("verdict") not in ("accept", "hr")]
+    if not args.reaudit:
+        records = [r for r in records if (r.get("audit") or {}).get("verdict") not in ("accept", "hr")]
     if not records:
         print("no unaudited arc records — nothing to do", flush=True)
         return
@@ -487,6 +488,8 @@ def main() -> None:
     ap.add_argument("--records", help="records JSONL filename")
     ap.add_argument("--checkpoint", help="sessions checkpoint JSONL filename")
     ap.add_argument("--concurrency", type=int, default=AUDITOR_CONCURRENCY)
+    ap.add_argument("--reaudit", action="store_true",
+                    help="include arcs already accepted/hr (integrity sweep)")
     args = ap.parse_args()
     asyncio.run(main_async(args))
 
