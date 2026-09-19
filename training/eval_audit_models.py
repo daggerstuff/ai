@@ -37,6 +37,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 _HERE = Path(__file__).resolve()
 _TRAIN_DIR = _HERE.parents[0]
@@ -75,15 +76,20 @@ KEYS = [os.environ.get(k, "") for k in KEY_ENVS]
 
 OUT_DIR = _TRAIN_DIR / "output" / "arc_corpus" / "eval_audit"
 
+ChatPayload = dict[str, Any]
+ProbeRow = dict[str, Any]
+ProbeResult = dict[str, Any]
+Usage = dict[str, Any]
 
-def user_prompt_for(record: dict, plan: dict) -> str:
+
+def user_prompt_for(record: ProbeRow, plan: ProbeRow) -> str:
     return (
         f"ARC PLAN BEATS (required responses):\n{render_beats(plan)}\n\n"
         f"TRANSCRIPT:\n{render_transcript(record)}\n\n"
         "Grade the transcript against the plan. Verdict + flags as strict JSON.")
 
 
-def build_payload(model: str, user_prompt: str, variant: int) -> dict:
+def build_payload(model: str, user_prompt: str, variant: int) -> ChatPayload:
     payload = {
         "model": model,
         "messages": [
@@ -100,13 +106,13 @@ def build_payload(model: str, user_prompt: str, variant: int) -> dict:
     return payload
 
 
-async def call_once(http: aiohttp.ClientSession, key: str, payload: dict) -> tuple[int, str, dict]:
+async def call_once(http: aiohttp.ClientSession, key: str, payload: ChatPayload) -> tuple[int, str, Usage]:
     """Single POST. Returns (status, message_content, usage)."""
     headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
     async with http.post(FEATHERLESS_URL, json=payload, headers=headers,
                          timeout=aiohttp.ClientTimeout(total=TIMEOUT)) as resp:
         text = await resp.text()
-        usage = {}
+        usage: Usage = {}
         content = text
         if resp.status == STATUS_OK:
             with contextlib.suppress(Exception):
@@ -116,9 +122,9 @@ async def call_once(http: aiohttp.ClientSession, key: str, payload: dict) -> tup
         return resp.status, content, usage
 
 
-async def audit_probe(http: aiohttp.ClientSession, model: str, user_prompt: str) -> dict:
+async def audit_probe(http: aiohttp.ClientSession, model: str, user_prompt: str) -> ProbeResult:
     """One probe call with 429 rotation + variant fallback + parse retries."""
-    out = {"status": None, "variant": None, "latency_s": None, "usage": None,
+    out: ProbeResult = {"status": None, "variant": None, "latency_s": None, "usage": None,
            "verdict": None, "flags": [], "error": None, "content_preview": None}
     variant = 0
     parse_attempts = 0
@@ -176,7 +182,7 @@ def load_done(results_path: Path) -> set[tuple[str, str]]:
     return done
 
 
-def score_model(rows: list[dict], probes: list[dict]) -> dict:
+def score_model(rows: list[ProbeRow], probes: list[ProbeRow]) -> dict[str, Any]:
     gt = {p["arc_id"]: p["ground_truth"] for p in probes}
     n = len(rows)
     n_valid = sum(1 for r in rows if r.get("verdict"))
@@ -187,7 +193,7 @@ def score_model(rows: list[dict], probes: list[dict]) -> dict:
     defect_caught = sum(
         1 for a in defect_ids
         if by_arc.get(a, {}).get("verdict") in ("revise", "fail"))
-    defect_localized = 0
+    defect_localized = 0.0
     for a in defect_ids:
         g = gt[a]
         r = by_arc.get(a, {})
