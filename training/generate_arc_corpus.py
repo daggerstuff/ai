@@ -103,7 +103,13 @@ LEDGER_FIELD_DOCS = """\
   gave is a fabrication. If the client gave no time, write the event with "now"
   or no anchor at all ("wife doesn't know (told)") — never invent a duration,
   onset, or interval. All time references are RELATIVE ("six weeks ago", "two
-  years back", "a few months back"). No calendar months, no calendar years."""
+  years back", "a few months back"). No calendar months, no calendar years.
+  Carry-over entries from a prior session ("s1: ...", "s2: ...") are only
+  permitted when the fact appears in the CARRY-FORWARD client lines or the
+  VERIFIED FACTS list above: every (told)/(claim) carry-over must be traceable
+  to one such quoted line, and a carry-over that contradicts a quoted line
+  (e.g. "denies the money barrier" when the client named the money barrier)
+  is a fabrication. If you cannot point to the line, do not carry the entry."""
 
 
 SYSTEM_PROMPT = """\
@@ -121,7 +127,10 @@ THERAPIST VOICE (non-negotiable):
   template "You said no. That's a boundary, not a crime." — judge the act
   directly instead ("That no cost you the co-sign, and it was still yours").
   Drop the frame and work the substance directly ("It stands — I'm not going
-  to make it bigger than it is"), or ask about it.
+  to make it bigger than it is"), or ask about it. When you must point at a
+  specific word the client dropped, open on that word itself — the quoted
+  fragment is the opener, your work follows it ("Last time. You let it walk
+  past. Where did it go?"). Never "You said <word>".
 - Never somatic-deflect ("Where do you feel that in your body?").
 - Never interrogate: one question at a time, no barrages, no accusations.
 - Firm is not hostile: no shaming, no ultimatums, no invoking third parties
@@ -287,6 +296,12 @@ def _fmt_carry_forward(prior_sessions: list[dict], plan: dict) -> str:
     blocks.append("Continue the arc. The client's facts above are established "
                   "state: keep them, track them in the tl, and let any earlier "
                   "thread move forward — do not re-litigate, do not reset.")
+    blocks.append("CARRY-OVER LEDGER RULE: any 'sN:' entry you write in this "
+                  "session's ledger must be traceable to a specific quoted "
+                  "client line or VERIFIED FACT above. If you cannot point to "
+                  "the line, do not carry the entry over. Never carry the "
+                  "opposite of what the client stated, and never add specifics "
+                  "(times, amounts, insurance, plans) that no line contains.")
     return "\n".join(blocks)
 
 
