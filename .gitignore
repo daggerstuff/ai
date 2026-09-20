@@ -80,6 +80,7 @@ PAL_MEDDIES_IMPLEMENTATION_PLAN.md
 **/tim_fletcher_voice/**
 **/training_ready/**
 **/wandb/
+**/wandb_runs/
 **/youtube_transcriptions/**/*
 bin/model/**.json
 bin/model/**.pkl.model
