@@ -61,9 +61,16 @@ PLANS_DIR = _TRAIN_DIR / "arc_plans"
 OUT_DIR = _TRAIN_DIR / "output" / "arc_corpus"
 RUN_LOG_DIR = _TRAIN_DIR / "output" / "arc_corpus" / "run_logs"
 
+# "May" is ambiguous with the modal verb ("May be shared..."). Flag it only in
+# date contexts: after a temporal preposition, or followed by a day number/year.
+_MAY_RE = (
+    r"\b(?:in|last|this|by|since|before|after|around|during|from|toward|towards|"
+    r"over|past|till|until)\s+May\b|\bMay\s+\d{1,2}(?:st|nd|rd|th)?\b|"
+    r"\bMay\s+(?:19|20)\d{2}\b"
+)
 _MONTH_RE = re.compile(
-    r"\b(January|February|March|April|May|June|July|August|September|October|"
-    r"November|December)\b|\b(?:19|20)\d{2}\b"
+    r"\b(January|February|March|April|June|July|August|September|October|"
+    r"November|December)\b|" + _MAY_RE + r"|\b(?:19|20)\d{2}\b"
 )
 
 
