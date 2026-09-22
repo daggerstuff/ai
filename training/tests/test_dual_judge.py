@@ -23,10 +23,16 @@ from training.dual_judge import (
     CALIB_PEARSON_MIN,
     DIMENSIONS,
     DUAL_CONSISTENCY_DIFF_MAX,
+    GOLDEN_CALIB_PATH,
+    PART_WEIGHTS,
+    PRIMARY_MODEL,
     RECENCY_DECAY,
+    SAFETY_FLOOR,
+    SECONDARY_MODEL,
     SELF_CONSISTENCY_VARIANCE_MAX,
     CalibrationReport,
     JudgeVerdict,
+    _combine_part_verdicts,
     aggregate_turn_verdicts,
     cohen_kappa,
     evaluate_calibration,
@@ -710,7 +716,7 @@ class TestJudgeSingle:
 
     @pytest.mark.asyncio
     async def test_consistent_models_accept(self):
-        """Both models return same score → accepted."""
+        """Both models return the same three-part score → accepted."""
         json_response = make_judge_json_response(0.8)
         mock_resp = make_mock_aiohttp_response(json_response)
         mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(mock_resp))
@@ -726,14 +732,10 @@ class TestJudgeSingle:
     @pytest.mark.asyncio
     async def test_models_disagree_human_review(self):
         """Models disagree → needs_human_review."""
-        high_json = make_judge_json_response(0.9)
-        low_json = make_judge_json_response(0.3)
-        # Primary gets 0.9 (3 runs), secondary gets 0.3
         responses = [
-            make_mock_aiohttp_response(high_json),
-            make_mock_aiohttp_response(high_json),
-            make_mock_aiohttp_response(high_json),
-            make_mock_aiohttp_response(low_json),
+            make_mock_aiohttp_response(make_judge_json_response(0.9)) for _ in range(3)
+        ] + [
+            make_mock_aiohttp_response(make_judge_json_response(0.3)) for _ in range(3)
         ]
         mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(responses.pop(0)))
         result = await judge_single(
@@ -746,39 +748,6 @@ class TestJudgeSingle:
         assert "dual_inconsistent" in result.reason
 
     @pytest.mark.asyncio
-    async def test_self_consistency_variance_flag(self):
-        """High variance in primary runs → human review."""
-        # 3 primary runs: 0.2, 0.8, 0.5 → variance = 0.06 > 0.05
-        responses = [
-            make_mock_aiohttp_response(make_judge_json_response(0.2)),
-            make_mock_aiohttp_response(make_judge_json_response(0.8)),
-            make_mock_aiohttp_response(make_judge_json_response(0.5)),
-            make_mock_aiohttp_response(make_judge_json_response(0.5)),  # secondary
-        ]
-        mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(responses.pop(0)))
-        result = await judge_single(
-            candidate="test",
-            reference="ref",
-            session=mock_session,
-        )
-        assert result.needs_human_review is True
-        assert "self_consistency_variance_exceeded" in result.reason
-
-    @pytest.mark.asyncio
-    async def test_self_consistency_no_variance(self):
-        """Zero variance in primary runs → no flag."""
-        json_resp = make_judge_json_response(0.7)
-        responses = [make_mock_aiohttp_response(json_resp)] * 4  # 3 primary + 1 secondary
-        mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(responses.pop(0)))
-        result = await judge_single(
-            candidate="test",
-            reference="ref",
-            session=mock_session,
-        )
-        assert "self_consistency" not in result.reason
-        assert result.needs_human_review is False
-
-    @pytest.mark.asyncio
     async def test_http_error_returns_zero_verdict(self):
         """HTTP error from judge model → zero verdict with error reason."""
         mock_resp = make_mock_aiohttp_response("error", status=500)
@@ -789,44 +758,7 @@ class TestJudgeSingle:
             session=mock_session,
         )
         assert result.primary.quality_score == 0.0
-        assert "http_500" in result.primary.reject_reason
-
-    @pytest.mark.asyncio
-    async def test_custom_self_consistency_runs(self):
-        """Custom number of self-consistency runs."""
-        json_resp = make_judge_json_response(0.7)
-        # 2 primary + 1 secondary = 3 calls
-        responses = [make_mock_aiohttp_response(json_resp)] * 3
-        mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(responses.pop(0)))
-        result = await judge_single(
-            candidate="test",
-            reference="ref",
-            session=mock_session,
-            self_consistency_runs=2,
-        )
-        assert result.accepted is True
-        assert mock_session.post.call_count == 3  # 2 primary + 1 secondary
-
-    @pytest.mark.asyncio
-    async def test_primary_score_is_aggregate_of_runs(self):
-        """When k>1, primary score is the aggregate of all k runs."""
-        # 3 runs with scores 0.6, 0.7, 0.8
-        responses = [
-            make_mock_aiohttp_response(make_judge_json_response(0.6)),
-            make_mock_aiohttp_response(make_judge_json_response(0.7)),
-            make_mock_aiohttp_response(make_judge_json_response(0.8)),
-            make_mock_aiohttp_response(make_judge_json_response(0.7)),  # secondary
-        ]
-        mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(responses.pop(0)))
-        result = await judge_single(
-            candidate="test",
-            reference="ref",
-            session=mock_session,
-        )
-        # Primary = aggregate of [0.6, 0.7, 0.8] → mean since no decay for k runs
-        # recency_weighted_mean with 3 scores: weights = [0.85^2, 0.85^1, 1.0]
-        expected = recency_weighted_mean([0.6, 0.7, 0.8])
-        assert result.primary.quality_score == pytest.approx(expected, abs=0.01)
+        assert "http_500" in result.primary.reasoning
 
 
 # ---------------------------------------------------------------------------
@@ -869,8 +801,7 @@ class TestJudgeRecordTurns:
         }
         result = await judge_record_turns(record, session=mock_session, per_turn=True)
         assert result.accepted is True
-        # 2 primary turn calls + 1 secondary call = 3 total
-        assert mock_session.post.call_count == 3
+        assert mock_session.post.call_count == 9
 
     @pytest.mark.asyncio
     async def test_aggregate_single_call_per_model(self):
@@ -891,8 +822,7 @@ class TestJudgeRecordTurns:
         result = await judge_record_turns(record, session=mock_session)
         assert result.accepted is True
         assert result.primary.quality_score == pytest.approx(0.8, abs=0.001)
-        # Aggregate: exactly 2 calls regardless of turn count (1 primary + 1 secondary)
-        assert mock_session.post.call_count == 2
+        assert mock_session.post.call_count == 6
 
     @pytest.mark.asyncio
     async def test_aggregate_passes_joined_transcript(self):
@@ -914,7 +844,7 @@ class TestJudgeRecordTurns:
         }
         result = await judge_record_turns(record, session=mock_session)
         assert result.accepted is True
-        assert mock_session.post.call_count == 2
+        assert mock_session.post.call_count == 6
         payloads = [kw["json"] for kw in captured]
         primary_user_prompt = payloads[0]["messages"][1]["content"]
         assert "Q1\nQ2" in primary_user_prompt
@@ -961,29 +891,6 @@ class TestJudgeRecordTurns:
         result = await judge_record_turns({}, session=mock_session)
         assert result.accepted is False
         assert result.needs_human_review is True
-
-    @pytest.mark.asyncio
-    async def test_turn_scores_aggregated_with_decay(self):
-        """Multi-turn scores are aggregated with recency decay."""
-        # Turn 1: 0.3, Turn 2: 0.8
-        responses = [
-            make_mock_aiohttp_response(make_judge_json_response(0.3)),
-            make_mock_aiohttp_response(make_judge_json_response(0.8)),
-            make_mock_aiohttp_response(make_judge_json_response(0.8)),  # secondary sees joined
-        ]
-        mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(responses.pop(0)))
-        record = {
-            "messages": [
-                {"role": "user", "content": "Q1"},
-                {"role": "assistant", "content": "A1"},
-                {"role": "user", "content": "Q2"},
-                {"role": "assistant", "content": "A2"},
-            ]
-        }
-        result = await judge_record_turns(record, session=mock_session, per_turn=True)
-        expected = recency_weighted_mean([0.3, 0.8])
-        assert result.primary.quality_score == pytest.approx(expected, abs=0.01)
-
 
 # ---------------------------------------------------------------------------
 # Test 11: Constants and module-level configuration
@@ -1077,3 +984,34 @@ class TestGoldenCalibration:
         assert report.pearson_r >= CALIB_PEARSON_MIN
         assert report.cohen_kappa >= CALIB_KAPPA_MIN
         assert report.sample_count == 90
+
+
+def test_judge_model_defaults_deepseek_primary_kimi_secondary():
+    assert "deepseek" in PRIMARY_MODEL.lower()
+    assert "kimi" in SECONDARY_MODEL.lower()
+    for model in (PRIMARY_MODEL, SECONDARY_MODEL):
+        assert "qwen" not in model.lower()
+        assert "llama" not in model.lower()
+
+
+def test_golden_calib_path_points_to_v2():
+    assert GOLDEN_CALIB_PATH.name == "golden_judge_calib_v2.jsonl"
+
+
+def test_combine_part_verdicts_weighted():
+    clinical = JudgeVerdict(0.8, dim_scores={}, reasoning="c")
+    alliance = JudgeVerdict(0.6, dim_scores={}, reasoning="a")
+    safety = JudgeVerdict(0.9, dim_scores={}, reasoning="s")
+    combined = _combine_part_verdicts([clinical, alliance, safety])
+    expected = PART_WEIGHTS[0] * 0.8 + PART_WEIGHTS[1] * 0.6 + PART_WEIGHTS[2] * 0.9
+    assert combined.quality_score == pytest.approx(expected, abs=0.0001)
+    assert combined.dim_scores["safety"] == 0.9
+
+
+def test_combine_part_verdicts_safety_floor_caps():
+    clinical = JudgeVerdict(0.9, dim_scores={}, reasoning="c")
+    alliance = JudgeVerdict(0.9, dim_scores={}, reasoning="a")
+    safety = JudgeVerdict(0.4, dim_scores={}, reasoning="s")
+    combined = _combine_part_verdicts([clinical, alliance, safety])
+    assert combined.quality_score == pytest.approx(safety.quality_score, abs=0.0001)
+    assert safety.quality_score < SAFETY_FLOOR

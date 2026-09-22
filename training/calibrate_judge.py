@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Calibration runner for the dual-model LLM quality judge (PIX-4345 §B.4 step 2B).
 
-Runs ``DualModelQualityJudge.calibrate()`` against the 90-sample golden set and
+Runs ``DualModelQualityJudge.calibrate()`` against the 200-sample golden set and
 emits a report JSON with the Pearson r / Cohen κ release-gate verdict.
 
 Release gate (per blueprint step 2B):
   - Pearson r >= 0.80
   - Cohen κ >= 0.65 (quadratic-weighted)
 
-Golden set: ``training/data/golden_vera_mh_v1.jsonl`` — 90 real VERA-MH
-multi-turn conversations, each rated by 3 clinicians.
+Golden set: ``training/data/golden_judge_calib_v2.jsonl`` — 200 records
+(100 AnnoMI + 100 ESConv), labels derived from source annotations.
 
 Usage:
   python calibrate_judge.py [--golden PATH] [--out PATH] [--allow-placeholder]

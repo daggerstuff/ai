@@ -16,6 +16,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from training.llm_quality_judge import (
+    GOLDEN_CALIB_PATH,
+    PRIMARY_MODEL,
+    SECONDARY_MODEL,
     DualModelQualityJudge,
 )
 
@@ -657,3 +660,15 @@ def test_prompt_includes_preceding_user_question():
 
     assert captured_prompts
     assert any("USER QUESTION:" in p and "ASSISTANT RESPONSE:" in p for p in captured_prompts)
+
+
+def test_judge_model_defaults_deepseek_primary_kimi_secondary():
+    assert "deepseek" in PRIMARY_MODEL.lower()
+    assert "kimi" in SECONDARY_MODEL.lower()
+    for model in (PRIMARY_MODEL, SECONDARY_MODEL):
+        assert "qwen" not in model.lower()
+        assert "llama" not in model.lower()
+
+
+def test_golden_calib_path_points_to_v2():
+    assert GOLDEN_CALIB_PATH.name == "golden_judge_calib_v2.jsonl"

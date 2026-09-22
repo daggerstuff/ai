@@ -18,7 +18,8 @@ Design overview
   weighted mean (``weight_i = decay^(n-i)``, configurable decay=0.85).
 * **Self-consistency**: k=3 samples per (model, turn) at temperature=0.1.
   If variance > 0.05 → flag for human review (do not auto-accept).
-* **Calibration**: golden 90-sample clinician-rated set (VERA-MH); Pearson r >= 0.80, Cohen's kappa >= 0.65.
+* **Calibration**: golden 200-sample set (100 AnnoMI + 100 ESConv);
+  Pearson r >= 0.80, Cohen's kappa >= 0.65.
 * **Async**: ``ajudge()`` batches k=3 self-consistency samples + both models
   concurrently across all turns via ``asyncio.gather``.
 
@@ -64,7 +65,7 @@ logger = logging.getLogger("llm_quality_judge")
 # Default models (vLLM-served, OpenAI-compatible endpoint).
 # Override via LLM_PRIMARY_MODEL / LLM_SECONDARY_MODEL env vars (e.g. for Neon AI Gateway).
 PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "@cf/deepseek-ai/deepseek-v4-pro-0813")
-SECONDARY_MODEL = os.environ.get("LLM_SECONDARY_MODEL", "deepseek-ai/DeepSeek-V4-Pro")
+SECONDARY_MODEL = os.environ.get("LLM_SECONDARY_MODEL", "moonshotai/kimi-k3")
 
 # Self-consistency
 DEFAULT_K_SAMPLES = 3
@@ -103,9 +104,7 @@ DEFAULT_TEMPERATURE = 0.1
 # Minimum number of observations needed for variance/correlation statistics.
 _MIN_SAMPLES_FOR_STATS = 2
 
-# Golden calibration file path: the real clinician-rated set
-# (90 VERA-MH multi-turn conversations, each rated by 3 clinicians).
-GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_vera_mh_v1.jsonl"
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
 
 # System prompt for the LLM judge
 JUDGE_SYSTEM_PROMPT = """You are a quality evaluator for AI training conversations.
@@ -351,15 +350,15 @@ class DualModelQualityJudge:
         self,
         golden_path: Path | str | None = None,
     ) -> dict[str, Any]:
-        """Run calibration against the golden 90-sample clinician-rated set.
+        """Run calibration against the golden 200-sample calibration set.
 
         Computes Pearson correlation and quadratic-weighted Cohen's kappa
         between the judge's scores and human scores.
 
         Args:
             golden_path: Path to golden JSONL file. Defaults to
-                ``training/data/golden_vera_mh_v1.jsonl`` (real clinician
-                ratings from the VERA-MH benchmark).
+                ``training/data/golden_judge_calib_v2.jsonl`` (100 AnnoMI +
+                100 ESConv records with annotation-derived labels).
 
         Returns:
             dict with keys: pearson_r, cohens_kappa, per_dimension_correlations,

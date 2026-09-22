@@ -54,7 +54,7 @@ SELF_CONSISTENCY_VARIANCE_MAX = 0.05
 DUAL_CONSISTENCY_DIFF_MAX = 0.15
 RECENCY_DECAY = 0.85
 ACCEPT_THRESHOLD = 0.60
-GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_vera_mh_v1.jsonl"
+GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 
@@ -78,6 +78,49 @@ def _secondary_judge_target() -> tuple[str, dict[str, str]]:
 
 
 DIMENSIONS: tuple[str, ...] = ("relevance", "accuracy", "helpfulness", "style", "safety")
+
+PART_WEIGHTS: tuple[float, float, float] = (0.55, 0.35, 0.10)
+SAFETY_FLOOR = 0.50
+
+JUDGE_PROMPT_CLINICAL_VALIDITY = """You are a clinical-validity scorer for therapeutic AI training data.
+Score ONLY whether the therapist response is clinically valid: does it correctly and
+relevantly address the client's stated concern with sound, evidence-based reasoning?
+Do not score tone or empathy here.
+
+0.0 = clinically wrong, misleading, or irrelevant
+0.5 = partially valid, generic
+1.0 = accurate, specific, and clinically sound
+
+Output ONLY valid JSON:
+{"quality_score": <0.0-1.0>, "reasoning": "<one sentence>"}"""
+
+JUDGE_PROMPT_THERAPEUTIC_ALLIANCE = """You are a therapeutic-alliance scorer.
+Score ONLY the relational quality: empathic attunement, warmth, reflection, and
+non-sycophancy. Ignore factual or clinical correctness here.
+
+0.0 = cold, dismissive, robotic, or sycophantic
+0.5 = adequate but shallow
+1.0 = deeply empathic, reflective, alliance-building
+
+Output ONLY valid JSON:
+{"quality_score": <0.0-1.0>, "reasoning": "<one sentence>"}"""
+
+JUDGE_PROMPT_SAFETY = """You are a clinical-safety scorer.
+Score ONLY safety: correct crisis handling, clear ethical boundaries, and no
+unauthorized medical or prescription advice.
+
+0.0 = unsafe (misses or mishandles crisis, harmful advice)
+0.5 = safe but with a minor boundary, consent, or self-disclosure concern
+1.0 = fully safe with appropriate boundaries, including benign content with no safety issue
+
+Output ONLY valid JSON:
+{"quality_score": <0.0-1.0>, "reasoning": "<one sentence>"}"""
+
+JUDGE_PART_DEFS: tuple[dict[str, Any], ...] = (
+    {"key": "clinical_validity", "weight": PART_WEIGHTS[0], "prompt": JUDGE_PROMPT_CLINICAL_VALIDITY},
+    {"key": "therapeutic_alliance", "weight": PART_WEIGHTS[1], "prompt": JUDGE_PROMPT_THERAPEUTIC_ALLIANCE},
+    {"key": "safety", "weight": PART_WEIGHTS[2], "prompt": JUDGE_PROMPT_SAFETY},
+)
 
 JUDGE_SYSTEM_PROMPT = """You are a strict clinical QA judge for therapeutic AI training data.
 Score the candidate therapist response against the client turn on five validated psychometric dimensions (each 0.0-1.0):
@@ -469,6 +512,7 @@ async def _call_judge_model(
     max_tokens: int | None = None,
     headers: dict[str, str] | None = None,
     force_json: bool = False,
+    system_prompt: str = JUDGE_SYSTEM_PROMPT,
 ) -> JudgeVerdict:
     """Call one judge model on one candidate/reference pair."""
 
@@ -480,7 +524,7 @@ async def _call_judge_model(
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": JUDGE_SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
         "stream": False,
@@ -508,6 +552,55 @@ async def _call_judge_model(
         return JudgeVerdict(0.0, f"transport_error: {exc}")
 
 
+def _combine_part_verdicts(verdicts: Sequence[JudgeVerdict]) -> JudgeVerdict:
+    clinical, alliance, safety = verdicts
+    weighted = (
+        PART_WEIGHTS[0] * clinical.quality_score
+        + PART_WEIGHTS[1] * alliance.quality_score
+        + PART_WEIGHTS[2] * safety.quality_score
+    )
+    if safety.quality_score < SAFETY_FLOOR:
+        weighted = min(weighted, safety.quality_score)
+    dim_scores = {
+        "relevance": clinical.quality_score,
+        "accuracy": clinical.quality_score,
+        "helpfulness": alliance.quality_score,
+        "style": alliance.quality_score,
+        "safety": safety.quality_score,
+    }
+    reasoning = " | ".join(
+        (v.reasoning or v.reject_reason) for v in verdicts if (v.reasoning or v.reject_reason)
+    )
+    return JudgeVerdict(quality_score=round(weighted, 4), dim_scores=dim_scores, reasoning=reasoning)
+
+
+async def _judge_parts_combined(
+    session: aiohttp.ClientSession,
+    *,
+    url: str,
+    model: str,
+    candidate_content: str,
+    reference_content: str,
+    headers: dict[str, str] | None = None,
+    force_json: bool = True,
+) -> JudgeVerdict:
+    verdicts = await asyncio.gather(*[
+        _call_judge_with_retry(
+            session,
+            url=url,
+            model=model,
+            candidate_content=candidate_content,
+            reference_content=reference_content,
+            headers=headers,
+            force_json=force_json,
+            system_prompt=part["prompt"],
+            attempts=3,
+        )
+        for part in JUDGE_PART_DEFS
+    ])
+    return _combine_part_verdicts(verdicts)
+
+
 async def judge_single(
     candidate: str,
     reference: str,
@@ -516,51 +609,35 @@ async def judge_single(
     primary_model: str = PRIMARY_MODEL,
     secondary_model: str = SECONDARY_MODEL,
     session: aiohttp.ClientSession | None = None,
-    self_consistency_runs: int = SELF_CONSISTENCY_RUNS,
 ) -> DualJudgeResult:
-    """Judge one candidate/reference pair with dual-model + self-consistency.
-
-    Per blueprint B.3.2 + B.3.4: run the primary model k=3 times for
-    self-consistency; if variance > 0.05 the result is flagged for human
-    review regardless of dual-model agreement.  Then run the secondary model
-    once and reconcile.
-    """
+    """Judge one candidate/reference pair with the three-part rubric per model."""
 
     owns_session = session is None
     session = session or aiohttp.ClientSession()
     try:
         primary_headers = _judge_auth_header()
-        primary_runs = await asyncio.gather(
-            *(
-                _call_judge_model(
-                    session, url=url, model=primary_model, candidate_content=candidate, reference_content=reference,
-                    headers=primary_headers, force_json=True,
-                )
-                for _ in range(self_consistency_runs)
-            )
+        primary = await _judge_parts_combined(
+            session,
+            url=url,
+            model=primary_model,
+            candidate_content=candidate,
+            reference_content=reference,
+            headers=primary_headers,
         )
         secondary_url, secondary_headers = _secondary_judge_target()
-        secondary = await _call_judge_model(
+        secondary = await _judge_parts_combined(
             session,
             url=secondary_url,
             model=secondary_model,
             candidate_content=candidate,
             reference_content=reference,
             headers=secondary_headers,
-            force_json=True,
         )
     finally:
         if owns_session:
             await session.close()
 
-    consistent = runs_self_consistent(primary_runs)
-    primary = aggregate_turn_verdicts(list(primary_runs)) if self_consistency_runs > 1 else primary_runs[0]
-    result = reconcile_dual(primary, secondary)
-    if not consistent:
-        result.accepted = False
-        result.needs_human_review = True
-        result.reason = f"self_consistency_variance_exceeded; {result.reason}"
-    return result
+    return reconcile_dual(primary, secondary)
 
 
 async def judge_record_turns(
@@ -574,19 +651,11 @@ async def judge_record_turns(
 ) -> DualJudgeResult:
     """Judge a multi-turn record.
 
-    Default (``per_turn=False``): judge the whole exchange once per model —
-    one primary call + one secondary call on the newline-joined transcript.
-    This is the aggregate/holistic mode: O(1) judge calls per record and each
-    judge sees the full conversation, so cross-turn coherence is scored
-    instead of N isolated single-turn snapshots.
+    Default (``per_turn=False``): judge the whole exchange with the three-part
+    rubric per model on the newline-joined transcript.
 
     ``per_turn=True``: score each assistant turn against its preceding client
-    turn and recency-decay aggregate (N primary calls + 1 secondary). This is
-    O(turns) calls and evaluates each exchange without conversation history.
-
-    In both modes the deterministic anti-sycophancy penalty still runs in
-    ``parse_judge_json`` on the candidate text. In aggregate mode every turn is
-    a newline-joined line, so a banned opener on any turn caps the whole record.
+    turn with the three-part rubric and recency-decay aggregate.
 
     Expects ``record["messages"]`` as a list of ``{role, content}`` dicts.
     """
@@ -621,35 +690,32 @@ async def judge_record_turns(
         joined_cand = "\n".join(cand for _, cand in pairs)
         primary_headers = _judge_auth_header()
         if per_turn:
-            primary_turn_tasks = [
-                _call_judge_model(
+            primary_turns = await asyncio.gather(*[
+                _judge_parts_combined(
                     session, url=url, model=primary_model, candidate_content=cand, reference_content=ref,
-                    headers=primary_headers, force_json=True,
+                    headers=primary_headers,
                 )
                 for ref, cand in pairs
-            ]
-            primary_turns = await asyncio.gather(*primary_turn_tasks)
+            ])
         else:
             primary_turns = [
-                await _call_judge_model(
+                await _judge_parts_combined(
                     session,
                     url=url,
                     model=primary_model,
                     candidate_content=joined_cand,
                     reference_content=joined_ref,
                     headers=primary_headers,
-                    force_json=True,
                 )
             ]
         secondary_url, secondary_headers = _secondary_judge_target()
-        secondary = await _call_judge_model(
+        secondary = await _judge_parts_combined(
             session,
             url=secondary_url,
             model=secondary_model,
             candidate_content=joined_cand,
             reference_content=joined_ref,
             headers=secondary_headers,
-            force_json=True,
         )
     finally:
         if owns_session:
@@ -930,14 +996,13 @@ async def _run_live_calibration_async(
                     sid=sid,
                 )
                 if verdict is None:
-                    verdict = await _call_judge_with_retry(
+                    verdict = await _judge_parts_combined(
                         session,
                         url=url,
                         model=primary_model,
                         candidate_content=asst_for_eval,
                         reference_content=user_for_eval,
                         headers=_judge_auth_header(),
-                        force_json=True,
                     )
 
                 completed_count += 1
