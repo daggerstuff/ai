@@ -9,8 +9,10 @@ All LLM calls are mocked — no vLLM or GPU required.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -33,7 +35,7 @@ def make_llm_response(
     helpfulness: float = 0.5,
     style: float = 0.5,
     safety: float = 0.5,
-) -> dict:
+) -> dict[str, Any]:
     """Create a mock LLM structured response."""
     return {
         "overall_score": 0.5,
@@ -48,7 +50,7 @@ def make_llm_response(
     }
 
 
-def make_mock_client(response: dict | list[dict]) -> MagicMock:
+def make_mock_client(response: dict[str, Any] | list[dict[str, Any]]) -> MagicMock:
     """Create a mock LLMClient that returns the given response(s).
 
     If a list is given, returns each element in sequence (for self-consistency
@@ -71,29 +73,25 @@ def make_conversation(n_turns: int = 1) -> list[dict[str, str]]:
     return conv
 
 
-@pytest.fixture
-def uniform_response() -> dict:
+def uniform_response() -> dict[str, Any]:
     """All dimensions = 0.6 (good range)."""
     return make_llm_response(0.6, 0.6, 0.6, 0.6, 0.6)
 
 
-@pytest.fixture
-def high_response() -> dict:
+def high_response() -> dict[str, Any]:
     """All dimensions = 0.9 (excellent range)."""
     return make_llm_response(0.9, 0.9, 0.9, 0.9, 0.9)
 
 
-@pytest.fixture
-def low_response() -> dict:
+def low_response() -> dict[str, Any]:
     """All dimensions = 0.1 (poor range)."""
     return make_llm_response(0.1, 0.1, 0.1, 0.1, 0.1)
 
 
-@pytest.fixture
-def judge_with_mock_clients(uniform_response):
+def judge_with_mock_clients() -> DualModelQualityJudge:
     """Judge with both clients returning uniform 0.6 scores."""
-    primary = make_mock_client(uniform_response)
-    secondary = make_mock_client(uniform_response)
+    primary = make_mock_client(uniform_response())
+    secondary = make_mock_client(uniform_response())
     return DualModelQualityJudge(
         primary_client=primary,
         secondary_client=secondary,
@@ -108,15 +106,15 @@ def judge_with_mock_clients(uniform_response):
 class TestRubricScoring:
     """Verify weighted mean computation and 4-bin classification."""
 
-    def test_weighted_mean_with_default_weights(self, judge_with_mock_clients, uniform_response):
+    def test_weighted_mean_with_default_weights(self) -> None:
         """Overall = weighted mean of dimension scores."""
-        result = judge_with_mock_clients.judge(make_conversation())
+        result = judge_with_mock_clients().judge(make_conversation())
         # All dims = 0.6, weighted mean = 0.6
         ts = result["turn_scores"][0]
         assert ts.primary_overall == pytest.approx(0.6, abs=0.01)
         assert ts.secondary_overall == pytest.approx(0.6, abs=0.01)
 
-    def test_weighted_mean_with_custom_weights(self, uniform_response):
+    def test_weighted_mean_with_custom_weights(self) -> None:
         """Custom weights produce correct weighted mean."""
         custom_weights = {
             "relevance": 0.10,
@@ -125,8 +123,8 @@ class TestRubricScoring:
             "style": 0.20,
             "safety": 0.10,
         }
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge = DualModelQualityJudge(
             primary_client=primary,
             secondary_client=secondary,
@@ -136,7 +134,7 @@ class TestRubricScoring:
         # All dims = 0.6 → weighted mean = 0.6 regardless of weights
         assert result["overall_score"] == pytest.approx(0.6, abs=0.02)
 
-    def test_weighted_mean_with_asymmetric_scores(self):
+    def test_weighted_mean_with_asymmetric_scores(self) -> None:
         """Asymmetric dimension scores → correct weighted mean."""
         # relevance=1.0, accuracy=0.0, helpfulness=0.0, style=0.0, safety=0.0
         # Default weights: 0.25*1.0 + 0.30*0 + 0.20*0 + 0.15*0 + 0.10*0 = 0.25
@@ -147,36 +145,36 @@ class TestRubricScoring:
         result = judge.judge(make_conversation())
         assert result["turn_scores"][0].primary_overall == pytest.approx(0.25, abs=0.01)
 
-    def test_classify_score_poor(self):
+    def test_classify_score_poor(self) -> None:
         """Score < 0.45 → poor."""
         assert DualModelQualityJudge.classify_score(0.0) == "poor"
         assert DualModelQualityJudge.classify_score(0.10) == "poor"
         assert DualModelQualityJudge.classify_score(0.44) == "poor"
 
-    def test_classify_score_fair(self):
+    def test_classify_score_fair(self) -> None:
         """0.45 <= score < 0.65 → fair."""
         assert DualModelQualityJudge.classify_score(0.45) == "fair"
         assert DualModelQualityJudge.classify_score(0.50) == "fair"
         assert DualModelQualityJudge.classify_score(0.64) == "fair"
 
-    def test_classify_score_good(self):
+    def test_classify_score_good(self) -> None:
         """0.65 <= score < 0.85 → good."""
         assert DualModelQualityJudge.classify_score(0.65) == "good"
         assert DualModelQualityJudge.classify_score(0.75) == "good"
         assert DualModelQualityJudge.classify_score(0.84) == "good"
 
-    def test_classify_score_excellent(self):
+    def test_classify_score_excellent(self) -> None:
         """0.85 <= score <= 1.0 → excellent."""
         assert DualModelQualityJudge.classify_score(0.85) == "excellent"
         assert DualModelQualityJudge.classify_score(0.90) == "excellent"
         assert DualModelQualityJudge.classify_score(1.0) == "excellent"
 
-    def test_bin_in_result_matches_classify(self, judge_with_mock_clients, uniform_response):
+    def test_bin_in_result_matches_classify(self) -> None:
         """Result bin matches classify_score(overall_score)."""
-        result = judge_with_mock_clients.judge(make_conversation())
+        result = judge_with_mock_clients().judge(make_conversation())
         assert result["bin"] == DualModelQualityJudge.classify_score(result["overall_score"])
 
-    def test_invalid_rubric_weights_rejected(self):
+    def test_invalid_rubric_weights_rejected(self) -> None:
         """Weights not summing to ~1.0 raise ValueError."""
         bad_weights = {
             "relevance": 0.5,
@@ -190,7 +188,7 @@ class TestRubricScoring:
         with pytest.raises(ValueError, match="must sum to ~1.0"):
             DualModelQualityJudge(primary, secondary, rubric_weights=bad_weights)
 
-    def test_missing_dimension_in_weights_rejected(self):
+    def test_missing_dimension_in_weights_rejected(self) -> None:
         """Missing dimension in weights raises ValueError."""
         bad_weights = {"relevance": 0.5, "accuracy": 0.5}
         primary = MagicMock()
@@ -207,13 +205,13 @@ class TestRubricScoring:
 class TestMultiTurnWeighting:
     """Verify recency-decay weighted mean across turns."""
 
-    def test_single_turn_weighted_mean(self, judge_with_mock_clients, uniform_response):
+    def test_single_turn_weighted_mean(self) -> None:
         """Single turn: overall = turn score (weight = 1.0)."""
-        result = judge_with_mock_clients.judge(make_conversation(n_turns=1))
+        result = judge_with_mock_clients().judge(make_conversation(n_turns=1))
         # decay^(1-1-0) = decay^0 = 1.0, weight_sum = 1.0
         assert result["overall_score"] == pytest.approx(0.6, abs=0.01)
 
-    def test_two_turn_decay_weighting(self):
+    def test_two_turn_decay_weighting(self) -> None:
         """Two turns: newer turn weighted more than older."""
         # Turn 0: score 0.3 (older), Turn 1: score 0.8 (newer)
         # decay=0.85: weights = [0.85^1, 0.85^0] = [0.85, 1.0]
@@ -231,7 +229,7 @@ class TestMultiTurnWeighting:
         assert result["overall_score"] == pytest.approx(expected, abs=0.02)
         assert result["primary_overall"] == pytest.approx(expected, abs=0.02)
 
-    def test_three_turn_decay_weighting(self):
+    def test_three_turn_decay_weighting(self) -> None:
         """Three turns: verify decay formula weight_i = decay^(n-1-i)."""
         # Turn 0 (oldest): 0.2, Turn 1: 0.5, Turn 2 (newest): 0.9
         # decay=0.85: weights = [0.85^2, 0.85^1, 0.85^0] = [0.7225, 0.85, 1.0]
@@ -249,7 +247,7 @@ class TestMultiTurnWeighting:
         expected = (0.7225 * 0.2 + 0.85 * 0.5 + 1.0 * 0.9) / (0.7225 + 0.85 + 1.0)
         assert result["overall_score"] == pytest.approx(expected, abs=0.02)
 
-    def test_custom_decay(self):
+    def test_custom_decay(self) -> None:
         """Custom decay factor works correctly."""
         # decay=1.0 → equal weighting (no decay)
         resp_low = make_llm_response(0.3, 0.3, 0.3, 0.3, 0.3)
@@ -263,9 +261,9 @@ class TestMultiTurnWeighting:
         # Equal weighting: (0.3 + 0.7) / 2 = 0.5
         assert result["overall_score"] == pytest.approx(0.5, abs=0.02)
 
-    def test_turn_scores_returned(self, judge_with_mock_clients, uniform_response):
+    def test_turn_scores_returned(self) -> None:
         """Result includes per-turn scores."""
-        result = judge_with_mock_clients.judge(make_conversation(n_turns=3))
+        result = judge_with_mock_clients().judge(make_conversation(n_turns=3))
         assert len(result["turn_scores"]) == 3
         for i, ts in enumerate(result["turn_scores"]):
             assert ts.turn_index == i
@@ -279,16 +277,16 @@ class TestMultiTurnWeighting:
 class TestSelfConsistency:
     """Verify k=3 self-consistency sampling and variance flagging."""
 
-    def test_low_variance_no_flag(self, uniform_response):
+    def test_low_variance_no_flag(self) -> None:
         """All 3 samples identical → variance=0, no flag."""
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge = DualModelQualityJudge(primary, secondary, k_samples=3)
         result = judge.judge(make_conversation())
         assert result["turn_scores"][0].primary_variance == pytest.approx(0.0, abs=0.001)
         assert "turn_0_primary_high_variance" not in result["flags"]
 
-    def test_high_variance_flags_primary(self):
+    def test_high_variance_flags_primary(self) -> None:
         """Variance > 0.05 in primary samples → flag."""
         # 3 samples: 0.2, 0.8, 0.5 → variance = pvariance([0.2,0.8,0.5])
         # mean = 0.5, pvariance = ((-0.3)^2 + 0.3^2 + 0^2) / 3 = (0.09+0.09+0)/3 = 0.06
@@ -304,7 +302,7 @@ class TestSelfConsistency:
         assert result["turn_scores"][0].primary_variance > 0.05
         assert "turn_0_primary_high_variance" in result["flags"]
 
-    def test_high_variance_flags_secondary(self):
+    def test_high_variance_flags_secondary(self) -> None:
         """Variance > 0.05 in secondary samples → flag."""
         samples = [
             make_llm_response(0.2, 0.2, 0.2, 0.2, 0.2),
@@ -318,17 +316,17 @@ class TestSelfConsistency:
         assert result["turn_scores"][0].secondary_variance > 0.05
         assert "turn_0_secondary_high_variance" in result["flags"]
 
-    def test_variance_reported_in_metadata(self, uniform_response):
+    def test_variance_reported_in_metadata(self) -> None:
         """Variance values are reported in metadata."""
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge = DualModelQualityJudge(primary, secondary)
         result = judge.judge(make_conversation())
         assert "primary_variances" in result["metadata"]
         assert "secondary_variances" in result["metadata"]
         assert len(result["metadata"]["primary_variances"]) == 1
 
-    def test_custom_variance_threshold(self):
+    def test_custom_variance_threshold(self) -> None:
         """Custom variance threshold works."""
         # pvariance([0.2, 0.8, 0.5]) = 0.06 > 0.05 default threshold
         # With threshold 0.10, should NOT flag
@@ -357,16 +355,16 @@ class TestSelfConsistency:
 class TestConsistencyRule:
     """Verify primary/secondary agreement/disagreement paths."""
 
-    def test_models_agree_no_flag(self, uniform_response):
+    def test_models_agree_no_flag(self) -> None:
         """Both models return same scores → no cross_model_inconsistent flag."""
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge = DualModelQualityJudge(primary, secondary)
         result = judge.judge(make_conversation())
         assert "cross_model_inconsistent" not in result["flags"]
         assert result["consistency_diff"] <= 0.15
 
-    def test_models_disagree_flags(self):
+    def test_models_disagree_flags(self) -> None:
         """Models disagree by > 0.15 → cross_model_inconsistent flag."""
         high_resp = make_llm_response(0.9, 0.9, 0.9, 0.9, 0.9)
         low_resp = make_llm_response(0.3, 0.3, 0.3, 0.3, 0.3)
@@ -378,7 +376,7 @@ class TestConsistencyRule:
         assert result["consistency_diff"] > 0.15
         assert "cross_model_inconsistent" in result["flags"]
 
-    def test_models_marginally_agree(self):
+    def test_models_marginally_agree(self) -> None:
         """Models differ by exactly 0.15 → no flag (boundary case)."""
         # 0.6 and 0.75 → diff = 0.15
         resp1 = make_llm_response(0.6, 0.6, 0.6, 0.6, 0.6)
@@ -391,7 +389,7 @@ class TestConsistencyRule:
         assert result["consistency_diff"] == pytest.approx(0.15, abs=0.01)
         assert "cross_model_inconsistent" not in result["flags"]
 
-    def test_custom_consistency_threshold(self):
+    def test_custom_consistency_threshold(self) -> None:
         """Custom consistency threshold works."""
         # diff = 0.1, threshold = 0.05 → should flag
         resp1 = make_llm_response(0.6, 0.6, 0.6, 0.6, 0.6)
@@ -415,17 +413,17 @@ class TestConsistencyRule:
 class TestEmptyConversation:
     """Empty conversations return safe defaults."""
 
-    def test_empty_list(self, judge_with_mock_clients):
+    def test_empty_list(self) -> None:
         """Empty conversation list → 0.0 score, empty_conversation flag."""
-        result = judge_with_mock_clients.judge([])
+        result = judge_with_mock_clients().judge([])
         assert result["overall_score"] == 0.0
         assert "empty_conversation" in result["flags"]
         assert result["turn_scores"] == []
 
-    def test_no_assistant_turns(self, judge_with_mock_clients):
+    def test_no_assistant_turns(self) -> None:
         """Conversation with only user messages → empty result."""
         conv = [{"role": "user", "content": "Hello?"}]
-        result = judge_with_mock_clients.judge(conv)
+        result = judge_with_mock_clients().judge(conv)
         assert result["overall_score"] == 0.0
         assert "empty_conversation" in result["flags"]
 
@@ -438,7 +436,7 @@ class TestEmptyConversation:
 class TestCalibration:
     """Verify calibration against the golden 90-sample clinician-rated set."""
 
-    def test_calibrate_with_perfect_mock(self, tmp_path):
+    def test_calibrate_with_perfect_mock(self, tmp_path: Path) -> None:
         """Mock LLM returns human scores exactly → Pearson=1.0, kappa=1.0."""
         # Load golden file, create a mock that returns each sample's human_scores
         golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_vera_mh_v1.jsonl"
@@ -470,7 +468,7 @@ class TestCalibration:
         # Patch _call_model_sync to return human scores for the current sample
         call_idx = [0]
 
-        def mock_call_model(client, turn_text):
+        def mock_call_model(client: MagicMock, turn_text: str) -> dict[str, Any]:
             call_idx[0] += 1
             ci = call_idx[0]
             sample_idx = next((i for i, b in enumerate(bounds) if ci <= b), len(samples) - 1)
@@ -491,14 +489,14 @@ class TestCalibration:
         assert report["pass"] is True
         assert report["sample_count"] == 90
 
-    def test_calibrate_returns_per_dimension(self, uniform_response):
+    def test_calibrate_returns_per_dimension(self) -> None:
         """calibrate() returns per-dimension correlations."""
         golden_path = Path(__file__).resolve().parent.parent / "data" / "golden_vera_mh_v1.jsonl"
         if not golden_path.exists():
             pytest.skip(f"Golden file not found: {golden_path}")
 
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge = DualModelQualityJudge(primary, secondary)
 
         report = judge.calibrate(golden_path)
@@ -506,7 +504,7 @@ class TestCalibration:
         for dim in DualModelQualityJudge.DIMENSIONS:
             assert dim in report["per_dimension_correlations"]
 
-    def test_calibrate_missing_file_raises(self, tmp_path):
+    def test_calibrate_missing_file_raises(self, tmp_path: Path) -> None:
         """Missing golden file raises FileNotFoundError."""
         primary = MagicMock()
         secondary = MagicMock()
@@ -523,61 +521,56 @@ class TestCalibration:
 class TestAsyncInterface:
     """Verify async ajudge() with concurrent batching."""
 
-    @pytest.mark.asyncio
-    async def test_ajudge_returns_same_structure(self, uniform_response):
+    def test_ajudge_returns_same_structure(self) -> None:
         """ajudge() returns same result structure as judge()."""
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge = DualModelQualityJudge(primary, secondary)
-        result = await judge.ajudge(make_conversation())
+        result = asyncio.run(judge.ajudge(make_conversation()))
         assert "overall_score" in result
         assert "bin" in result
         assert "turn_scores" in result
         assert len(result["turn_scores"]) == 1
 
-    @pytest.mark.asyncio
-    async def test_ajudge_matches_sync_score(self, uniform_response):
+    def test_ajudge_matches_sync_score(self) -> None:
         """ajudge() and judge() produce the same overall score."""
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge = DualModelQualityJudge(primary, secondary)
         sync_result = judge.judge(make_conversation())
 
         # Reset mocks (side_effect consumed by sync call)
-        primary = make_mock_client(uniform_response)
-        secondary = make_mock_client(uniform_response)
+        primary = make_mock_client(uniform_response())
+        secondary = make_mock_client(uniform_response())
         judge.primary_client = primary
         judge.secondary_client = secondary
 
-        async_result = await judge.ajudge(make_conversation())
+        async_result = asyncio.run(judge.ajudge(make_conversation()))
         assert async_result["overall_score"] == pytest.approx(sync_result["overall_score"], abs=0.01)
 
-    @pytest.mark.asyncio
-    async def test_ajudge_empty_conversation(self, judge_with_mock_clients):
+    def test_ajudge_empty_conversation(self) -> None:
         """ajudge() handles empty conversation gracefully."""
-        result = await judge_with_mock_clients.ajudge([])
+        result = asyncio.run(judge_with_mock_clients().ajudge([]))
         assert result["overall_score"] == 0.0
         assert "empty_conversation" in result["flags"]
 
-    @pytest.mark.asyncio
-    async def test_ajudge_multi_turn(self):
+    def test_ajudge_multi_turn(self) -> None:
         """ajudge() handles multiple turns correctly."""
         resp = make_llm_response(0.7, 0.7, 0.7, 0.7, 0.7)
         primary = make_mock_client([resp] * 6)  # 2 turns × 3 samples
         secondary = make_mock_client([resp] * 6)
         judge = DualModelQualityJudge(primary, secondary)
-        result = await judge.ajudge(make_conversation(n_turns=2))
+        result = asyncio.run(judge.ajudge(make_conversation(n_turns=2)))
         assert len(result["turn_scores"]) == 2
         assert result["overall_score"] == pytest.approx(0.7, abs=0.01)
 
-    @pytest.mark.asyncio
-    async def test_ajudge_runs_concurrently(self):
+    def test_ajudge_runs_concurrently(self) -> None:
         """Verify that async batches calls concurrently (not sequentially)."""
         import time
 
         call_times: list[float] = []
 
-        def slow_generate_structured(prompt, schema, system_prompt):
+        def slow_generate_structured(prompt: str, schema: Any, system_prompt: str | None) -> dict[str, Any]:
             call_times.append(time.monotonic())
             time.sleep(0.05)  # 50ms per call
             return make_llm_response(0.5, 0.5, 0.5, 0.5, 0.5)
@@ -589,7 +582,7 @@ class TestAsyncInterface:
         judge = DualModelQualityJudge(primary, secondary, k_samples=3)
 
         start = time.monotonic()
-        await judge.ajudge(make_conversation(n_turns=1))
+        asyncio.run(judge.ajudge(make_conversation(n_turns=1)))
         elapsed = time.monotonic() - start
 
         # 6 calls (3 primary + 3 secondary) × 50ms = 300ms sequential
@@ -598,12 +591,14 @@ class TestAsyncInterface:
         assert elapsed < 0.40  # Allow generous margin for busy runners
 
 
-def test_temperature_passed_when_client_supports_it():
+def test_temperature_passed_when_client_supports_it() -> None:
     class TempClient:
-        def __init__(self):
-            self.last_kwargs: dict | None = None
+        def __init__(self) -> None:
+            self.last_kwargs: dict[str, Any] | None = None
 
-        def generate_structured(self, prompt, schema, system_prompt=None, **kwargs):
+        def generate_structured(
+            self, prompt: str, schema: Any, system_prompt: str | None = None, **kwargs: Any
+        ) -> dict[str, Any]:
             self.last_kwargs = kwargs
             return make_llm_response(0.7, 0.7, 0.7, 0.7, 0.7)
 
@@ -615,7 +610,7 @@ def test_temperature_passed_when_client_supports_it():
     assert secondary.last_kwargs is not None and secondary.last_kwargs.get("temperature") == 0.1
 
 
-def test_llm_call_failed_flag_when_all_samples_are_none():
+def test_llm_call_failed_flag_when_all_samples_are_none() -> None:
     primary = MagicMock()
     primary.generate_structured.return_value = None
     secondary = MagicMock()
@@ -627,7 +622,7 @@ def test_llm_call_failed_flag_when_all_samples_are_none():
     assert 0 in result["metadata"]["failed_turns"]
 
 
-def test_partial_failure_flag_when_some_samples_are_missing():
+def test_partial_failure_flag_when_some_samples_are_missing() -> None:
     """If some but not all samples fail, partial_failure is flagged and the turn uses successful samples."""
     good_response = make_llm_response(0.7, 0.7, 0.7, 0.7, 0.7)
     invalid_response = {"overall_score": 0.3, "reasoning": "missing dimensions"}
@@ -643,11 +638,13 @@ def test_partial_failure_flag_when_some_samples_are_missing():
     assert result["needs_human_review"] is True
 
 
-def test_prompt_includes_preceding_user_question():
+def test_prompt_includes_preceding_user_question() -> None:
     """The prompt sent to the LLM includes the user's question, not only the assistant reply."""
     captured_prompts: list[str] = []
 
-    def capture_generate_structured(prompt, schema, system_prompt=None, **kwargs):
+    def capture_generate_structured(
+        prompt: str, schema: Any, system_prompt: str | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
         captured_prompts.append(prompt)
         return make_llm_response(0.6, 0.6, 0.6, 0.6, 0.6)
 
@@ -662,7 +659,7 @@ def test_prompt_includes_preceding_user_question():
     assert any("USER QUESTION:" in p and "ASSISTANT RESPONSE:" in p for p in captured_prompts)
 
 
-def test_judge_model_defaults_deepseek_primary_kimi_secondary():
+def test_judge_model_defaults_deepseek_primary_kimi_secondary() -> None:
     assert "deepseek" in PRIMARY_MODEL.lower()
     assert "kimi" in SECONDARY_MODEL.lower()
     for model in (PRIMARY_MODEL, SECONDARY_MODEL):
@@ -670,5 +667,5 @@ def test_judge_model_defaults_deepseek_primary_kimi_secondary():
         assert "llama" not in model.lower()
 
 
-def test_golden_calib_path_points_to_v2():
+def test_golden_calib_path_points_to_v2() -> None:
     assert GOLDEN_CALIB_PATH.name == "golden_judge_calib_v2.jsonl"
