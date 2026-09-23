@@ -60,7 +60,7 @@ def _icc_oneway(matrix: list[list[float]]) -> float:
     return (msb - msw) / (msb + (k - 1) * msw) if (msb + (k - 1) * msw) else 0.0
 
 
-def _reliability_report(by_sample: dict[str, dict[str, dict[str, float]]], rater_ids: list[str]) -> dict:
+def _reliability_report(by_sample: dict[str, dict[str, dict[str, float]]], rater_ids: list[str]) -> dict[str, float]:
     per_dim: dict[str, list[list[float]]] = {k: [] for k in PART_KEYS}
     for sample in by_sample.values():
         for dim in PART_KEYS:
@@ -108,11 +108,15 @@ def main() -> int:
     rows = []
     for sid, sample in source.items():
         raters = by_sample.get(sid, {})
-        means = {}
+        means: dict[str, float] = {}
+        missing = False
         for dim in PART_KEYS:
             vals = [raters[r][dim] for r in rater_ids if r in raters]
-            means[dim] = round(sum(vals) / len(vals), 4) if vals else None
-        if any(v is None for v in means.values()):
+            if vals:
+                means[dim] = round(sum(vals) / len(vals), 4)
+            else:
+                missing = True
+        if missing:
             _log(f"skip {sid}: missing ratings")
             continue
         five = {
