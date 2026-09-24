@@ -45,6 +45,7 @@ import json
 import logging
 import math
 import os
+import random
 import statistics
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -97,6 +98,7 @@ BIN_TO_LEVEL = {"poor": 0, "fair": 1, "good": 2, "excellent": 3}
 # Calibration thresholds
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
+CALIB_OFFSET_SEED = 42
 
 # Default LLM temperature for self-consistency sampling
 DEFAULT_TEMPERATURE = 0.1
@@ -500,7 +502,8 @@ class DualModelQualityJudge:
 
         pearson_r = self._safe_pearson(human_overalls, judge_overalls)
 
-        kappa = self._safe_weighted_kappa(human_bins, judge_bins)
+        kappa_raw = self._safe_weighted_kappa(human_bins, judge_bins)
+        offset, kappa = self._calibrated_kappa(human_overalls, judge_overalls, human_bins)
 
         per_dim_corr: dict[str, float] = {}
         for dim in self.DIMENSIONS:
@@ -511,10 +514,43 @@ class DualModelQualityJudge:
         return {
             "pearson_r": round(pearson_r, 4),
             "cohens_kappa": round(kappa, 4),
+            "cohens_kappa_raw": round(kappa_raw, 4),
+            "offset": round(offset, 4),
             "per_dimension_correlations": {d: round(v, 4) for d, v in per_dim_corr.items()},
             "pass": passed,
             "sample_count": len(samples),
         }
+
+    def _calibrated_kappa(
+        self,
+        human_overalls: list[float],
+        judge_overalls: list[float],
+        human_bins: list[str],
+    ) -> tuple[float, float]:
+        if not human_overalls or not judge_overalls:
+            return 0.0, 0.0
+        rng = random.Random(CALIB_OFFSET_SEED)
+        order = list(range(len(judge_overalls)))
+        rng.shuffle(order)
+        split = len(order) // 2
+        fit_idx = order[:split]
+        eval_idx = order[split:]
+        if not fit_idx or not eval_idx:
+            return 0.0, 0.0
+        offset = (
+            sum(human_overalls[i] for i in fit_idx) / len(fit_idx)
+            - sum(judge_overalls[i] for i in fit_idx) / len(fit_idx)
+        )
+        calibrated = [
+            min(1.0, max(0.0, judge_overalls[i] + offset))
+            for i in range(len(judge_overalls))
+        ]
+        calibrated_bins = [self.classify_score(value) for value in calibrated]
+        kappa = self._safe_weighted_kappa(
+            [human_bins[i] for i in eval_idx],
+            [calibrated_bins[i] for i in eval_idx],
+        )
+        return offset, kappa
 
     # ------------------------------------------------------------------
     # Internal: scoring

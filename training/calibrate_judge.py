@@ -119,6 +119,8 @@ def _build_report(
         "is_placeholder": placeholder,
         "pearson_r": data["pearson_r"],
         "cohens_kappa": data["cohens_kappa"],
+        "cohens_kappa_raw": data.get("cohens_kappa_raw"),
+        "offset": data.get("offset"),
         "per_dimension_correlations": data["per_dimension_correlations"],
         "sample_count": data["sample_count"],
         "thresholds": thresholds,
@@ -203,6 +205,8 @@ def main() -> int:
         {
             "pearson_r": result.get("pearson_r"),
             "cohens_kappa": result.get("cohens_kappa"),
+            "cohens_kappa_raw": result.get("cohens_kappa_raw"),
+            "offset": result.get("offset"),
             "per_dimension_correlations": result.get("per_dimension_correlations", {}),
             "sample_count": result.get("sample_count", 0),
             "gate_passed": bool(result.get("pass", False)),
