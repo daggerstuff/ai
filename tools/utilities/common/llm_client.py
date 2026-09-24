@@ -84,11 +84,24 @@ class OpenAIDriver(LLMDriver):
     OpenAI-compatible Driver (works with Nvidia NIM, Gemini, vLLM).
     """
 
-    def __init__(self, model: str | None = None):
+    def __init__(
+        self,
+        model: str | None = None,
+        *,
+        api_key: str | None = None,
+        base_url: str | None = None,
+    ):
 
-        # Load config from env or defaults
-        self.api_key = os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
-        self.base_url = os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        self.api_key = (
+            api_key
+            if api_key is not None
+            else os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
+        )
+        self.base_url = (
+            base_url
+            if base_url is not None
+            else os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        )
         self.model = model or os.environ.get("LLM_MODEL", "meta/llama-3.1-405b-instruct")
 
         if not self.api_key:
@@ -228,12 +241,14 @@ class LLMClient:
         self._resolved_model = getattr(self.driver, "model", "default")
 
     def _build_driver(self, name: str, model: str | None = None) -> LLMDriver:
+        api_key = self.config.get("api_key")
+        base_url = self.config.get("base_url")
         if name == "mock":
             return MockDriver()
         if name == PROVIDER_FIREWORKS:
             return FireworksDriver(model=model)
         if name in ("openai", "nvidia", "nim"):
-            return OpenAIDriver(model=model)
+            return OpenAIDriver(model=model, api_key=api_key, base_url=base_url)
         return MockDriver()
 
     def _estimated_tokens(self, prompt: str, system_prompt: str | None, kwargs: dict) -> int:
@@ -301,3 +316,53 @@ class LLMClient:
         finally:
             if self.provider not in ("mock",):
                 self.rate_limiter.release_in_flight(self.provider, self._resolved_model)
+
+
+class FallbackLLMClient:
+    """Try a chain of LLM clients in order until one returns a usable result."""
+
+    def __init__(self, clients: list[LLMClient]):
+        if not clients:
+            raise ValueError("FallbackLLMClient requires at least one client")
+        self.clients = list(clients)
+        first = self.clients[0]
+        self.provider = getattr(first, "provider", "fallback")
+        self._resolved_model = getattr(first, "_resolved_model", "default")
+
+    @staticmethod
+    def _is_error(result: Any) -> bool:
+        return isinstance(result, dict) and "error" in result
+
+    def generate(self, prompt: str, system_prompt: str | None = None, **kwargs) -> str:
+        last = ""
+        for client in self.clients:
+            try:
+                out = client.generate(prompt, system_prompt, **kwargs)
+            except Exception as exc:
+                last = f"[ERROR: {exc!s}]"
+                continue
+            if isinstance(out, str) and out.startswith("[ERROR:"):
+                last = out
+                continue
+            return out
+        return last
+
+    def generate_structured(
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        system_prompt: str | None = None,
+        **kwargs,
+    ) -> dict[str, Any]:
+        last: dict[str, Any] = {"error": "no fallback client produced a usable result"}
+        for client in self.clients:
+            try:
+                out = client.generate_structured(prompt, schema, system_prompt, **kwargs)
+            except Exception as exc:
+                last = {"error": str(exc)}
+                continue
+            if self._is_error(out):
+                last = out
+                continue
+            return out
+        return last

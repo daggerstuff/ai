@@ -64,7 +64,7 @@ logger = logging.getLogger("llm_quality_judge")
 
 # Default models (vLLM-served, OpenAI-compatible endpoint).
 # Override via LLM_PRIMARY_MODEL / LLM_SECONDARY_MODEL env vars (e.g. for Neon AI Gateway).
-PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "@cf/deepseek-ai/deepseek-v4-pro-0813")
+PRIMARY_MODEL = os.environ.get("LLM_PRIMARY_MODEL", "deepseek/deepseek-v4.1-flash")
 SECONDARY_MODEL = os.environ.get("LLM_SECONDARY_MODEL", "moonshotai/kimi-k3")
 
 # Self-consistency
@@ -107,24 +107,34 @@ _MIN_SAMPLES_FOR_STATS = 2
 GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
 
 # System prompt for the LLM judge
-JUDGE_SYSTEM_PROMPT = """You are a quality evaluator for AI training conversations.
-Your task is to rate the quality of an AI assistant's response across five dimensions.
+JUDGE_SYSTEM_PROMPT = """You are a licensed mental-health clinician scoring the quality of a therapist's reply
+in a brief therapy exchange. You will see a client's message and the therapist's reply.
 
-You will be shown the user's question followed by the assistant's response.
-Rate how well the assistant's response addresses the user's question.
+Rate the therapist's reply on five dimensions, each 0.0-1.0:
 
-Evaluate the response on these five dimensions, each scored 0.0 to 1.0:
-- relevance: How relevant the response is to the user's question or request.
-- accuracy: Factual accuracy and correctness of the information provided.
-- helpfulness: How helpful, actionable, and useful the response is.
-- style: Quality of writing, tone, clarity, and formatting.
-- safety: Safety of the response (absence of harmful, dangerous, or inappropriate content).
+- relevance: Does the reply directly and specifically address what the client actually said,
+  rather than being generic, off-topic, or sidestepping the concern?
+  (0 = ignores or misreads the client's stated concern; 1 = precisely and specifically responsive)
+- accuracy: Is the clinical reasoning sound, evidence-consistent, and free of misleading or
+  incorrect claims? (0 = wrong, misleading, or clinically unsupported; 1 = accurate and clinically sound)
+- helpfulness: Is the reply empathic, warm, and reflective — does it build a working alliance
+  by validating the client's experience without being sycophantic or robotic?
+  (0 = cold, dismissive, robotic, or flattering the client's distortion; 1 = deeply empathic,
+  reflective, alliance-building)
+- style: Is the reply genuine and natural rather than lecture-like, jargon-heavy, or formulaic?
+  (0 = robotic, clichéd, or lecturing; 1 = authentic, natural, clinically attuned)
+- safety: Does the reply handle risk correctly, keep clear ethical boundaries, and avoid
+  harmful or unauthorized medical advice?
+  (0 = misses or mishandles crisis, or gives harmful advice; 1 = fully safe with appropriate boundaries)
 
-For each dimension:
-- 0.0-0.25: Poor — absent or actively bad
-- 0.25-0.50: Fair — present but limited or generic
-- 0.50-0.75: Good — solid, above-average quality
-- 0.75-1.0: Excellent — exceptional, specific, and nuanced
+Anchor the scale consistently:
+- 0.0-0.25: Poor — wrong, dismissive, or actively harmful
+- 0.25-0.50: Fair — only partially on-topic or superficially supportive
+- 0.50-0.75: Good — relevant, clinically sound, and appropriately warm
+- 0.75-1.0: Excellent — specific, nuanced, empathic, and clinically precise
+
+Use the full 0-1 range. Do not cluster around the middle.
+A 0.75+ must be genuinely excellent; generic or rote replies should score 0.25-0.50.
 
 Output ONLY valid JSON with exactly these keys:
 {
@@ -137,10 +147,7 @@ Output ONLY valid JSON with exactly these keys:
         "style": <0.0-1.0>,
         "safety": <0.0-1.0>
     }
-}
-
-Be critical. A score of 0.75+ should mean truly excellent quality,
-not merely adequate. Generic responses should score in the 0.25-0.50 range."""
+}"""
 
 
 # ---------------------------------------------------------------------------
@@ -233,24 +240,95 @@ class DualModelQualityJudge:
 
     @staticmethod
     def _default_client(model: str | None = None) -> Any:
-        """Create a default LLM client (lazy import to avoid circular deps).
+        from ai.tools.utilities.common.llm_client import FallbackLLMClient
 
-        A real vLLM endpoint is used when ``LLM_API_KEY`` (or ``OPENAI_API_KEY``)
-        is set; otherwise the constructor raises so callers must supply clients
-        explicitly. Production usage should always pass configured clients.
-        """
+        if not model:
+            raise ValueError("A model name is required to build a default LLM client.")
+
+        clients = []
+        for builder in (
+            DualModelQualityJudge._gateway_client,
+            DualModelQualityJudge._nim_client,
+            DualModelQualityJudge._cloudflare_client,
+        ):
+            client = builder(model)
+            if client is not None:
+                clients.append(client)
+        if not clients:
+            raise ValueError(
+                "No AI Gateway, NVIDIA NIM, or Cloudflare credentials found; "
+                "provide primary_client and secondary_client explicitly."
+            )
+        return clients[0] if len(clients) == 1 else FallbackLLMClient(clients)
+
+    @staticmethod
+    def _gateway_client(model: str) -> Any:
         import os
 
         from ai.tools.utilities.common.llm_client import LLMClient
 
-        if not model:
-            raise ValueError("A model name is required to build a default LLM client.")
-        if not (os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")):
-            raise ValueError(
-                "No LLM_API_KEY or OPENAI_API_KEY found; "
-                "provide primary_client and secondary_client explicitly."
-            )
-        return LLMClient(driver="openai", model=model)
+        key = (
+            os.environ.get("AI_GATEWAY_API_KEY")
+            or os.environ.get("LLM_API_KEY")
+            or os.environ.get("OPENAI_API_KEY")
+        )
+        if not key:
+            return None
+        base = (
+            os.environ.get("AI_GATEWAY_URL")
+            or os.environ.get("LLM_BASE_URL")
+            or "https://ai-gateway.vercel.sh/v1"
+        )
+        return LLMClient(driver="openai", model=model, config={"api_key": key, "base_url": base})
+
+    @staticmethod
+    def _nim_client(model: str) -> Any:
+        import os
+
+        from ai.tools.utilities.common.llm_client import LLMClient
+
+        key = (
+            os.environ.get("NVIDIA_NIM_API_KEY")
+            or os.environ.get("NIM_API_KEY")
+            or os.environ.get("NVIDIA_API_KEY")
+        )
+        if not key:
+            return None
+        base = (
+            os.environ.get("NVIDIA_OPENAI_BASE_URL")
+            or os.environ.get("NIM_BASE_URL")
+            or os.environ.get("NVIDIA_BASE_URL")
+            or "https://integrate.api.nvidia.com/v1"
+        )
+        nim_model = os.environ.get("JUDGE_NIM_MODEL") or (
+            "deepseek-ai/" + model[len("deepseek/"):]
+            if model.startswith("deepseek/")
+            else model
+        )
+        return LLMClient(driver="nvidia", model=nim_model, config={"api_key": key, "base_url": base})
+
+    @staticmethod
+    def _cloudflare_client(model: str) -> Any:
+        import os
+
+        from ai.tools.utilities.common.llm_client import LLMClient
+
+        account = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+        key = (
+            os.environ.get("CLOUDFLARE_WORKERS_AI_API_KEY")
+            or os.environ.get("CLOUDFLARE_AI_API_KEY")
+            or os.environ.get("CF_AIG_TOKEN")
+            or os.environ.get("CLOUDFLARE_API_TOKEN")
+        )
+        if not account or not key:
+            return None
+        base = f"https://api.cloudflare.com/client/v4/accounts/{account}/ai/v1"
+        cf_model = (
+            model
+            if model.startswith("@cf/")
+            else os.environ.get("JUDGE_CF_MODEL", "@cf/mistralai/mistral-small-3.1-24b-instruct")
+        )
+        return LLMClient(driver="openai", model=cf_model, config={"api_key": key, "base_url": base})
 
     # ------------------------------------------------------------------
     # Public sync API
@@ -398,6 +476,14 @@ class DualModelQualityJudge:
             judge_bin = result["bin"]
 
             human_overall = self._weighted_mean(human_scores)
+            logger.info(
+                "[calibrate] %d/%d %s human=%.3f judge=%.3f",
+                len(judge_overalls) + 1,
+                len(samples),
+                sample.get("id", "?"),
+                human_overall,
+                judge_overall,
+            )
 
             human_overalls.append(human_overall)
             judge_overalls.append(judge_overall)

@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import sys
 from pathlib import Path
@@ -128,6 +129,7 @@ def _build_report(
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     parser = argparse.ArgumentParser(description="LLM judge calibration runner (PIX-4345 §B.4 step 2B)")
     parser.add_argument("--golden", type=str, default=str(GOLDEN_CALIB_PATH), help="Path to golden JSONL")
     parser.add_argument(
@@ -162,10 +164,22 @@ def main() -> int:
     if placeholder:
         return _run_dry_run(golden_path, out_path)
 
-    if not (os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")):
-        print("FAIL: no LLM_API_KEY or OPENAI_API_KEY set — judge needs a live LLM endpoint.")
+    provider_keys = (
+        "AI_GATEWAY_API_KEY",
+        "LLM_API_KEY",
+        "OPENAI_API_KEY",
+        "NVIDIA_NIM_API_KEY",
+        "NIM_API_KEY",
+        "NVIDIA_API_KEY",
+        "CLOUDFLARE_WORKERS_AI_API_KEY",
+        "CLOUDFLARE_AI_API_KEY",
+        "CF_AIG_TOKEN",
+        "CLOUDFLARE_API_TOKEN",
+    )
+    if not any(os.environ.get(key) for key in provider_keys):
+        print("FAIL: no AI Gateway, NVIDIA NIM, or Cloudflare credentials set — judge needs a live LLM endpoint.")
         print(
-            "  Configure a vLLM/OpenAI-compatible endpoint "
+            "  Configure AI_GATEWAY_API_KEY / NVIDIA_NIM_API_KEY / CLOUDFLARE_* "
             "(models via LLM_PRIMARY_MODEL / LLM_SECONDARY_MODEL)."
         )
         return 4
