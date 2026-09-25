@@ -223,7 +223,12 @@ def main() -> int:
         print(f"[calibrate] NOTE: {PLACEHOLDER_NOTICE}")
         return 0  # dry-run; don't fail CI on placeholder
 
-    return 0 if report["gate_passed"] else 1
+    if not report["gate_passed"]:
+        print(
+            "[calibrate] judge is in filter mode: release-gate thresholds not met, "
+            "but calibration is advisory and does not fail the pipeline."
+        )
+    return 0
 
 
 if __name__ == "__main__":

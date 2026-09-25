@@ -566,13 +566,23 @@ class TestAsyncInterface:
 
     def test_ajudge_runs_concurrently(self) -> None:
         """Verify that async batches calls concurrently (not sequentially)."""
+        import threading
         import time
 
-        call_times: list[float] = []
+        active = 0
+        max_active = 0
+        lock = threading.Lock()
 
-        def slow_generate_structured(prompt: str, schema: Any, system_prompt: str | None) -> dict[str, Any]:
-            call_times.append(time.monotonic())
+        def slow_generate_structured(
+            prompt: str, schema: Any, system_prompt: str | None = None, **kwargs: Any
+        ) -> dict[str, Any]:
+            nonlocal active, max_active
+            with lock:
+                active += 1
+                max_active = max(max_active, active)
             time.sleep(0.05)  # 50ms per call
+            with lock:
+                active -= 1
             return make_llm_response(0.5, 0.5, 0.5, 0.5, 0.5)
 
         primary = MagicMock()
@@ -581,14 +591,8 @@ class TestAsyncInterface:
         secondary.generate_structured.side_effect = slow_generate_structured
         judge = DualModelQualityJudge(primary, secondary, k_samples=3)
 
-        start = time.monotonic()
         asyncio.run(judge.ajudge(make_conversation(n_turns=1)))
-        elapsed = time.monotonic() - start
-
-        # 6 calls (3 primary + 3 secondary) × 50ms = 300ms sequential
-        # Concurrent should be ~50ms (all run in parallel)
-        # Allow generous margin for thread pool overhead
-        assert elapsed < 0.40  # Allow generous margin for busy runners
+        assert max_active > 1
 
 
 def test_temperature_passed_when_client_supports_it() -> None:

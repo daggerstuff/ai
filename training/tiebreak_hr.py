@@ -38,8 +38,19 @@ import json
 import logging
 import os
 import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
+
+try:
+    import wandb
+except ImportError:
+    wandb = None
+
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 import aiohttp
 from dotenv import load_dotenv
@@ -54,9 +65,9 @@ from training.dual_judge import (  # noqa: E402
     _judge_auth_header,
 )
 from training.judge_edge_and_nightmare import (  # noqa: E402
-    INFRA_PREFIXES,
     CHECKPOINT_DIR,
     IN_GENERATED,
+    INFRA_PREFIXES,
     JUDGE_URL,
     join_pairs,
     record_key,
@@ -78,6 +89,26 @@ TIEBREAK_SETTLED = ("tiebreak_accept", "tiebreak_reject", "tiebreak_contested", 
 
 def _is_infra_failure(reason: str) -> bool:
     return reason.startswith(INFRA_PREFIXES)
+
+
+def _row_is_hr(row: dict[str, Any]) -> bool:
+    disposition = row.get("disposition")
+    if disposition is not None:
+        return disposition == "human_review"
+    return bool(row.get("needs_human_review")) and not row.get("accepted") and not row.get("infra_failed")
+
+
+def _row_quality(row: dict[str, Any]) -> tuple[Any, Any, str, str]:
+    primary_q = row.get("primary_quality")
+    if primary_q is None:
+        primary_q = row.get("primary_overall")
+    secondary_q = row.get("secondary_quality")
+    if secondary_q is None:
+        secondary_q = row.get("secondary_overall")
+    flags = ";".join(row.get("flags") or [])
+    primary_reason = row.get("primary_reject_reason", "") or flags
+    secondary_reason = row.get("secondary_reject_reason", "") or flags
+    return primary_q, secondary_q, primary_reason, secondary_reason
 
 
 def _safety_flags(*reject_reasons: str) -> list[str]:
@@ -108,14 +139,30 @@ def tiebreak_decide(
             return "tiebreak_reject", f"top-two agree at {b:.3f} below accept threshold {ACCEPT_THRESHOLD}"
         flags = _safety_flags(*reject_reasons)
         if flags:
-            return "tiebreak_manual", f"top-two agree at {b:.3f} >= {ACCEPT_THRESHOLD} but safety flags present: {', '.join(flags)}"
+            return (
+                "tiebreak_manual",
+                f"top-two agree at {b:.3f} >= {ACCEPT_THRESHOLD} "
+                f"but safety flags present: {', '.join(flags)}",
+            )
         return "tiebreak_accept", f"top-two agree at {b:.3f} >= {ACCEPT_THRESHOLD}, no safety flags"
     if b - c <= DUAL_CONSISTENCY_DIFF_MAX:
         # lower pair agrees; a is the high outlier
         if b >= ACCEPT_THRESHOLD:
-            return "tiebreak_manual", f"lower pair agrees at {c:.3f}-{b:.3f} but top judge {a:.3f} is a high outlier; human decides"
-        return "tiebreak_reject", f"lower pair agrees at {c:.3f}-{b:.3f}, consensus {b:.3f} below threshold (top judge {a:.3f} alone above)"
-    return "tiebreak_contested", f"no pair of 3 judges agrees within {DUAL_CONSISTENCY_DIFF_MAX} (scores {a:.3f}/{b:.3f}/{c:.3f})"
+            return (
+                "tiebreak_manual",
+                f"lower pair agrees at {c:.3f}-{b:.3f} "
+                f"but top judge {a:.3f} is high outlier; human decides",
+            )
+        return (
+            "tiebreak_reject",
+            f"lower pair agrees at {c:.3f}-{b:.3f}, consensus {b:.3f} below "
+            f"threshold (top judge {a:.3f} alone above)",
+        )
+    return (
+        "tiebreak_contested",
+        f"no pair of 3 judges agrees within {DUAL_CONSISTENCY_DIFF_MAX} "
+        f"(scores {a:.3f}/{b:.3f}/{c:.3f})",
+    )
 
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -206,19 +253,20 @@ async def _tiebreak_one(
         third_attempts=attempts,
         tiebreak_model=THIRD_MODEL_ID,
     )
+    primary_q, secondary_q, primary_reason, secondary_reason = _row_quality(row)
     verdict_name, reason = tiebreak_decide(
-        row["primary_quality"], row["secondary_quality"], third_q,
-        [row.get("primary_reject_reason", ""), row.get("secondary_reject_reason", ""), verdict.reject_reason],
+        primary_q, secondary_q, third_q,
+        [primary_reason, secondary_reason, verdict.reject_reason],
     )
     row.update(tiebreak_verdict=verdict_name, tiebreak_reason=reason)
     return row
 
 
 def _init_wandb() -> Any | None:
+    if wandb is None:
+        return None
     try:
-        import wandb
-
-        run = wandb.init(
+        return wandb.init(
             project=os.environ.get("WANDB_PROJECT"),
             name="hr70_tiebreak",
             config={
@@ -228,8 +276,7 @@ def _init_wandb() -> Any | None:
                 "input": str(TIEBREAK_INPUT),
             },
         )
-        return run
-    except Exception as exc:  # noqa: BLE001 - optional telemetry must not kill the pass
+    except Exception as exc:
         logger.warning("wandb init failed, continuing without tracing: %s", exc)
         return None
 
@@ -237,7 +284,7 @@ def _init_wandb() -> Any | None:
 async def main_async(limit: int | None, probe: bool) -> None:
     generated = _load_generated_by_key(IN_GENERATED)
     judged = _load_jsonl(TIEBREAK_INPUT)
-    hr_rows = [r for r in judged if r.get("needs_human_review") and not r.get("accepted") and not r.get("infra_failed")]
+    hr_rows = [r for r in judged if _row_is_hr(r)]
     logger.info("judged=%d hr=%d generated=%d", len(judged), len(hr_rows), len(generated))
 
     settled: dict[str, dict[str, Any]] = {}
@@ -332,29 +379,34 @@ def _merge_v3(
 
 
 def _print_summary(settled: dict[str, dict[str, Any]]) -> None:
-    from collections import Counter
-
     counts = Counter(v["tiebreak_verdict"] for v in settled.values())
-    print(f"\n=== tie-break summary ({len(settled)} HR rows settled) ===")
+    logger.info("=== tie-break summary (%d HR rows settled) ===", len(settled))
     for name in ("tiebreak_accept", "tiebreak_reject", "tiebreak_contested", "tiebreak_manual", "infra_failed"):
-        print(f"  {name:22s} {counts.get(name, 0)}")
+        logger.info("  %-22s %d", name, counts.get(name, 0))
     accepted = sorted(v["key"] for v in settled.values() if v["tiebreak_verdict"] == "tiebreak_accept")
     if accepted:
-        print(f"\naccepted keys ({len(accepted)}):")
+        logger.info("accepted keys (%d):", len(accepted))
         for k in accepted:
-            print(f"  {k}")
+            logger.info("  %s", k)
     for name in ("tiebreak_manual", "tiebreak_contested"):
         keys = sorted(v["key"] for v in settled.values() if v["tiebreak_verdict"] == name)
         if keys:
-            print(f"\n{name} keys ({len(keys)}):")
+            logger.info("%s keys (%d):", name, len(keys))
             for k in keys:
                 v = settled[k]
-                print(f"  {k}  p={v['primary_quality']} s={v['secondary_quality']} t={v.get('third_quality')}  {v['tiebreak_reason'][:110]}")
+                logger.info(
+                    "  %s  p=%s s=%s t=%s  %s",
+                    k,
+                    v["primary_quality"],
+                    v["secondary_quality"],
+                    v.get("third_quality"),
+                    v["tiebreak_reason"][:110],
+                )
 
 
 def _log_wandb_summary(wandb_run: Any, settled: dict[str, dict[str, Any]], elapsed: float) -> None:
-    from collections import Counter
-
+    if wandb is None:
+        return
     try:
         counts = Counter(v["tiebreak_verdict"] for v in settled.values())
         rows = [
@@ -379,21 +431,15 @@ def _log_wandb_summary(wandb_run: Any, settled: dict[str, dict[str, Any]], elaps
                 "elapsed_s": elapsed,
             },
         )
-        import wandb
-
         wandb_run.log({"tiebreak_rows": wandb.Table(dataframe=_to_frame(rows))})
-    except Exception as exc:  # noqa: BLE001 - optional telemetry
+    except Exception as exc:
         logger.warning("wandb summary log failed: %s", exc)
 
 
 def _to_frame(rows: list[dict[str, Any]]) -> Any:
-    """A pandas DataFrame when pandas is available, else the raw rows."""
-    try:
-        import pandas as pd
-
-        return pd.DataFrame(rows)
-    except ImportError:
+    if pd is None:
         return rows
+    return pd.DataFrame(rows)
 
 
 def readjudicate() -> None:
@@ -406,11 +452,12 @@ def readjudicate() -> None:
     changed = 0
     for row in rows:
         if row.get("tiebreak_verdict") in TIEBREAK_SETTLED and row.get("third_quality") is not None:
+            primary_q, secondary_q, primary_reason, secondary_reason = _row_quality(row)
             verdict_name, reason = tiebreak_decide(
-                row["primary_quality"],
-                row["secondary_quality"],
+                primary_q,
+                secondary_q,
                 row["third_quality"],
-                [row.get("primary_reject_reason", ""), row.get("secondary_reject_reason", ""), row.get("third_reject_reason", "")],
+                [primary_reason, secondary_reason, row.get("third_reject_reason", "")],
             )
             if verdict_name != row["tiebreak_verdict"]:
                 logger.info("readjudicate %s: %s -> %s", row["key"], row["tiebreak_verdict"], verdict_name)

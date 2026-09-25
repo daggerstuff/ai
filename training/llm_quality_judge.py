@@ -99,6 +99,7 @@ BIN_TO_LEVEL = {"poor": 0, "fair": 1, "good": 2, "excellent": 3}
 CALIB_PEARSON_MIN = 0.80
 CALIB_KAPPA_MIN = 0.65
 CALIB_OFFSET_SEED = 42
+FILTER_ACCEPT_MIN = 0.60
 
 # Default LLM temperature for self-consistency sampling
 DEFAULT_TEMPERATURE = 0.1
@@ -363,6 +364,22 @@ class DualModelQualityJudge:
     def judge_score(self, conversation: list[dict[str, str]]) -> float:
         """Convenience: return only the overall score."""
         return self.judge(conversation)["overall_score"]
+
+    def judge_legacy(self, conversation: list[dict[str, str]]) -> dict[str, Any]:
+        """Return a verdict in the shape consumed by the tiebreak/curation pipeline."""
+        result = self.judge(conversation)
+        flags = result.get("flags", [])
+        return {
+            "primary_quality": result["primary_overall"],
+            "secondary_quality": result["secondary_overall"],
+            "accepted": result["disposition"] == "accept",
+            "needs_human_review": result["disposition"] == "human_review",
+            "disposition": result["disposition"],
+            "primary_reject_reason": ";".join(flags),
+            "secondary_reject_reason": ";".join(flags),
+            "reason": ";".join(flags),
+            "overall_score": result["overall_score"],
+        }
 
     # ------------------------------------------------------------------
     # Public async API
@@ -692,6 +709,11 @@ class DualModelQualityJudge:
             "secondary_overall": round(secondary_weighted, 4),
             "consistency_diff": round(consistency_diff, 4),
             "needs_human_review": needs_human_review,
+            "disposition": (
+                "human_review"
+                if needs_human_review or overall < FILTER_ACCEPT_MIN
+                else "accept"
+            ),
             "metadata": {
                 "n_turns": n,
                 "decay": self.decay,
@@ -880,6 +902,7 @@ class DualModelQualityJudge:
             "secondary_overall": 0.0,
             "consistency_diff": 0.0,
             "needs_human_review": True,
+            "disposition": "human_review",
             "metadata": {"n_turns": 0},
         }
 

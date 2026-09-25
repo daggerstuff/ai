@@ -29,7 +29,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-import aiohttp
 from dotenv import load_dotenv
 
 # override=True: the launching shell may carry stale provider keys (AI_GATEWAY_API_KEY etc.).
@@ -38,12 +37,8 @@ load_dotenv(Path(__file__).resolve().parents[2] / ".env", override=True)
 from training.dual_judge import (  # noqa: E402
     ACCEPT_THRESHOLD,
     SECONDARY_MODEL,
-    _call_judge_model,
-    _secondary_judge_target,
-    aggregate_turn_verdicts,
-    reconcile_dual,
-    runs_self_consistent,
 )
+from training.llm_quality_judge import DualModelQualityJudge  # noqa: E402
 
 logger = logging.getLogger("judge_edge_and_nightmare")
 
@@ -63,8 +58,6 @@ JUDGE_K = int(os.environ.get("NF_JUDGE_K", "3"))
 # Both judges cost 4 inference-provider concurrency units (vs Wayfarer's 1):
 # keep in-flight calls low to stay clear of the per-key concurrency ceiling.
 JUDGE_CONCURRENCY = int(os.environ.get("NF_JUDGE_CONCURRENCY", "2"))
-JUDGE_ATTEMPTS = int(os.environ.get("NF_JUDGE_ATTEMPTS", "4"))
-JUDGE_CALL_TIMEOUT = int(os.environ.get("NF_JUDGE_TIMEOUT", "240"))
 CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("NF_JUDGE_ABORT_AFTER", "15"))
 
 INFRA_PREFIXES = ("http_429", "http_408", "http_500", "http_502", "http_503", "http_504", "http_402", "transport_error", "json_parse_error", "empty_judge_output")
@@ -124,48 +117,13 @@ def load_done_keys(path: Path) -> tuple[set[str], int]:
     return done, infra_lines
 
 
-async def call_with_retry(
-    session: aiohttp.ClientSession,
-    *,
-    url: str,
-    model: str,
-    candidate: str,
-    reference: str,
-    headers: dict[str, str] | None = None,
-    force_json: bool = False,
-    max_tokens: int | None = None,
-) -> tuple[Any, int]:
-    """Call one judge model, retrying infra failures with exponential backoff."""
-    verdict = None
-    attempts = 0
-    for attempt in range(1, JUDGE_ATTEMPTS + 1):
-        attempts = attempt
-        verdict = await _call_judge_model(
-            session,
-            url=url,
-            model=model,
-            candidate_content=candidate,
-            reference_content=reference,
-            headers=headers,
-            timeout=JUDGE_CALL_TIMEOUT,
-            max_tokens=max_tokens,
-            force_json=force_json,
-        )
-        if not _is_infra_failure(verdict.reject_reason) or attempt == JUDGE_ATTEMPTS:
-            return verdict, attempts
-        logger.warning("judge call %s failed (attempt %d/%d): %s — retrying", model, attempt, JUDGE_ATTEMPTS, verdict.reject_reason[:120])
-        await asyncio.sleep(min(5.0 * (2 ** (attempt - 1)), 60.0))
-    return verdict, attempts
+_JUDGE = DualModelQualityJudge()
 
 
-async def judge_record(
-    session: aiohttp.ClientSession,
-    sem: asyncio.Semaphore,
-    record: dict[str, Any],
-) -> dict[str, Any]:
+async def judge_record(sem: asyncio.Semaphore, record: dict[str, Any]) -> dict[str, Any]:
     key = record_key(record)
-    pair = join_pairs(record)
-    if pair is None:
+    conversation = list(record.get("messages", []))
+    if join_pairs(record) is None:
         return {
             "key": key,
             "infra_failed": False,
@@ -181,82 +139,37 @@ async def judge_record(
             "attempts": 0,
             "latency_s": 0.0,
         }
-    reference, candidate = pair
-    _judge_key = os.environ.get("AI_GATEWAY_API_KEY", "") or os.environ.get(
-        "FEATHERLESS_API_KEY", ""
-    )
-    prim_headers = {"Authorization": f"Bearer {_judge_key}"}
-    sec_url, sec_headers = _secondary_judge_target()
     t0 = time.monotonic()
     async with sem:
-        results = await asyncio.gather(
-            *(call_with_retry(
-                session,
-                url=JUDGE_URL,
-                model=PRIMARY_MODEL_ID,
-                candidate=candidate,
-                reference=reference,
-                headers=prim_headers,
-                force_json=True,
-            ) for _ in range(JUDGE_K))
-        )
-        secondary, sec_attempts = await call_with_retry(
-            session,
-            url=sec_url,
-            model=SECONDARY_MODEL,
-            candidate=candidate,
-            reference=reference,
-            headers=sec_headers,
-            force_json=True,
-            max_tokens=8192,  # GLM-5.3 reasons in-band; low budgets starve content (validated at 8192)
-        )
+        result = await asyncio.to_thread(_JUDGE.judge, conversation)
     latency = time.monotonic() - t0
-    prims = [v for v, _ in results]
-    total_attempts = sum(a for _, a in results) + sec_attempts
-
-    prim_infra = all(_is_infra_failure(v.reject_reason) and v.quality_score == 0.0 for v in prims)
-    sec_infra = _is_infra_failure(secondary.reject_reason) and secondary.quality_score == 0.0
-    if prim_infra and sec_infra:
-        return {
-            "key": key,
-            "infra_failed": True,
-            "accepted": False,
-            "needs_human_review": True,
-            "reason": f"infra_failure: primary={prims[0].reject_reason[:80]}; secondary={secondary.reject_reason[:80]}",
-            "primary_quality": 0.0,
-            "secondary_quality": 0.0,
-            "self_consistency_consistent": False,
-            "primary_run_scores": [],
-            "primary_dim_scores": {},
-            "secondary_dim_scores": {},
-            "attempts": total_attempts,
-            "latency_s": latency,
-        }
-
-    consistent = runs_self_consistent(prims)
-    primary = aggregate_turn_verdicts(prims)
-    result = reconcile_dual(primary, secondary)
-    if not consistent:
-        result.accepted = False
-        result.needs_human_review = True
-        result.reason = f"self_consistency_variance_exceeded; {result.reason}"
+    flags = result.get("flags", [])
+    turn_scores = result.get("turn_scores", [])
+    first = turn_scores[0] if turn_scores else None
+    primary_dim = {k: round(v, 3) for k, v in (first.primary_scores if first else {}).items()}
+    secondary_dim = {k: round(v, 3) for k, v in (first.secondary_scores if first else {}).items()}
+    primary_run_scores = [round(v, 3) for v in (first.primary_samples if first else [])]
+    consistent = not any("high_variance" in flag for flag in flags)
+    infra_failed = "llm_call_failed" in flags
+    reject_reason = ";".join(flags)
     return {
         "key": key,
-        "infra_failed": False,
+        "infra_failed": infra_failed,
         "source": record.get("source", ""),
         "family": record.get("family", ""),
-        "accepted": result.accepted,
-        "needs_human_review": result.needs_human_review,
-        "reason": result.reason,
-        "primary_quality": round(primary.quality_score, 3),
-        "secondary_quality": round(secondary.quality_score, 3),
-        "primary_reject_reason": primary.reject_reason,
-        "secondary_reject_reason": secondary.reject_reason,
+        "accepted": result.get("disposition") == "accept",
+        "needs_human_review": result.get("disposition") == "human_review",
+        "disposition": result.get("disposition"),
+        "reason": reject_reason or "dual_consistent",
+        "primary_quality": round(result.get("primary_overall", 0.0), 3),
+        "secondary_quality": round(result.get("secondary_overall", 0.0), 3),
+        "primary_reject_reason": reject_reason,
+        "secondary_reject_reason": reject_reason,
         "self_consistency_consistent": consistent,
-        "primary_run_scores": [round(v.quality_score, 3) for v in prims],
-        "primary_dim_scores": {k: round(v, 3) for k, v in primary.dim_scores.items()},
-        "secondary_dim_scores": {k: round(v, 3) for k, v in secondary.dim_scores.items()},
-        "attempts": total_attempts,
+        "primary_run_scores": primary_run_scores,
+        "primary_dim_scores": primary_dim,
+        "secondary_dim_scores": secondary_dim,
+        "attempts": 1,
         "latency_s": round(latency, 1),
     }
 
@@ -369,47 +282,46 @@ async def main_async(limit: int | None) -> None:
 
         metrics_task = asyncio.create_task(metrics_loop())
 
-    async with aiohttp.ClientSession() as session:
-        async def worker(rec: dict[str, Any]) -> None:
-            if state["abort"]:
-                return
-            key = record_key(rec)
-            try:
-                verdict = await judge_record(session, sem, rec)
-            except Exception as exc:
-                logger.exception("judging %s crashed: %s", key, exc)
-                verdict = {
-                    "key": key, "infra_failed": True, "accepted": False, "needs_human_review": True,
-                    "reason": f"worker_exception: {exc}", "primary_quality": 0.0, "secondary_quality": 0.0,
-                    "self_consistency_consistent": False, "primary_run_scores": [], "primary_dim_scores": {},
-                    "secondary_dim_scores": {}, "attempts": 0, "latency_s": 0.0,
-                }
-            async with write_lock:
-                with OUT_JUDGED.open("a", encoding="utf-8") as f:
-                    f.write(json.dumps(verdict) + "\n")
-                    f.flush()
-                    os.fsync(f.fileno())
-                state["judged"] += 1
-                if verdict.get("infra_failed"):
-                    state["infra"] += 1
-                    state["infra_since_success"] += 1
-                else:
-                    state["infra_since_success"] = 0
-                    if verdict["accepted"]:
-                        state["accepted"] += 1
-                    if verdict["needs_human_review"]:
-                        state["hrr"] += 1
-                if state["infra_since_success"] >= CIRCUIT_BREAKER_THRESHOLD:
-                    state["abort"] = True
-                pct = 100 * state["judged"] / max(len(pending), 1)
-                print(
-                    f"[judge] ({state['judged']}/{len(pending)} {pct:.0f}%) {key} "
-                    f"q={verdict.get('primary_quality', 0):.2f}/{verdict.get('secondary_quality', 0):.2f} "
-                    f"accept={verdict['accepted']}{' HR' if verdict['needs_human_review'] else ''}"
-                    f"{' INFRA-RETRY' if verdict.get('infra_failed') else ''} "
-                    f"({verdict['latency_s']}s, attempts={verdict['attempts']})",
-                    flush=True,
-                )
+    async def worker(rec: dict[str, Any]) -> None:
+        if state["abort"]:
+            return
+        key = record_key(rec)
+        try:
+            verdict = await judge_record(sem, rec)
+        except Exception as exc:
+            logger.exception("judging %s crashed: %s", key, exc)
+            verdict = {
+                "key": key, "infra_failed": True, "accepted": False, "needs_human_review": True,
+                "reason": f"worker_exception: {exc}", "primary_quality": 0.0, "secondary_quality": 0.0,
+                "self_consistency_consistent": False, "primary_run_scores": [], "primary_dim_scores": {},
+                "secondary_dim_scores": {}, "attempts": 0, "latency_s": 0.0,
+            }
+        async with write_lock:
+            with OUT_JUDGED.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(verdict) + "\n")
+                f.flush()
+                os.fsync(f.fileno())
+            state["judged"] += 1
+            if verdict.get("infra_failed"):
+                state["infra"] += 1
+                state["infra_since_success"] += 1
+            else:
+                state["infra_since_success"] = 0
+                if verdict["accepted"]:
+                    state["accepted"] += 1
+                if verdict["needs_human_review"]:
+                    state["hrr"] += 1
+            if state["infra_since_success"] >= CIRCUIT_BREAKER_THRESHOLD:
+                state["abort"] = True
+            pct = 100 * state["judged"] / max(len(pending), 1)
+            print(
+                f"[judge] ({state['judged']}/{len(pending)} {pct:.0f}%) {key} "
+                f"q={verdict.get('primary_quality', 0):.2f}/{verdict.get('secondary_quality', 0):.2f} "
+                f"accept={verdict['accepted']}{' HR' if verdict['needs_human_review'] else ''}"
+                f"{' INFRA-RETRY' if verdict.get('infra_failed') else ''} "
+                f"({verdict['latency_s']}s, attempts={verdict['attempts']})",
+                flush=True,
+            )
 
         await asyncio.gather(*(asyncio.create_task(worker(r)) for r in pending))
 
