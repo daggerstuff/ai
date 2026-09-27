@@ -39,6 +39,7 @@ from training.cliche_gate import (  # noqa: E402
     is_sycophantic,
 )
 from training.featherless_keys import KeyPool, is_rotate_status  # noqa: E402
+from training.ledger_gate import ledger_gate_failures  # noqa: E402
 
 FEATHERLESS_URL = os.environ.get(
     "ARC_WRITER_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
@@ -660,6 +661,10 @@ def run_mechanical_gates(plan: dict, n: int, parsed: dict,
                     missing_beats.append(f"revision s{n}: client must state '{phrase}'")
     if missing_beats:
         failures.append("beat_content: " + "; ".join(missing_beats[:3]))
+
+    # ledger traceability (spec §4.2): invented numbers, durations, clock
+    # times, and client quotes in ledger fields or therapist speech.
+    failures.extend(ledger_gate_failures(plan, n, parsed, prior_sessions))
     return failures
 
 
@@ -695,6 +700,20 @@ def corrective_note_for(failures: list[str]) -> str:
             lines.append("- A planned beat is missing its exact client wording. "
                          "The client must say the quoted phrase verbatim at the beat's "
                          "turn: " + f.split(":", 1)[1][:200])
+        elif head == "ledger_traceability":
+            lines.append("- Ledger fabrication caught. Every number, duration, anchor "
+                         "(-3w style), and quoted phrase the ledger attributes to the "
+                         "client (entries marked told/claim) must come from the plan's "
+                         "fact schedule, the client's own words, or the carry-forward "
+                         "block. Do not invent quantities, time spans, or quote the "
+                         "client on words they never used. Offending "
+                         "items: " + f.split(":", 1)[1][:250])
+        elif head == "spoken_specificity":
+            lines.append("- Invented specificity caught. Do not put past durations ('three "
+                         "weeks ago'), frequencies ('four times a week'), or clock times "
+                         "in therapist speech unless the client "
+                         "already said exactly that. Keep it vague or use the client's "
+                         "own words. Offending items: " + f.split(":", 1)[1][:250])
         else:
             lines.append(f"- {f}")
     return "\n".join(lines)

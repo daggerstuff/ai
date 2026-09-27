@@ -306,7 +306,12 @@ def consolidate(
         if not input_path.exists():
             logger.warning("staging input missing: %s", input_path)
             continue
+        # Last-wins by arc_id: the generator appends records, so a regenerated
+        # arc leaves its stale record behind in the same file.
+        latest: dict[str, dict[str, Any]] = {}
         for arc in _iter_records(input_path):
+            latest[str(arc.get("arc_id") or "")] = arc
+        for arc in latest.values():
             summary["scanned_arcs"] += 1
             if (arc.get("audit") or {}).get("verdict") != "accept":
                 summary["skipped_verdict"] += 1

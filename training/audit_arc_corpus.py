@@ -463,14 +463,20 @@ async def main_async(args) -> None:
     # part of this run are preserved untouched.
     current = load_records(records_path)
     by_arc = {r["arc_id"]: r for r in records}
-    final_rows = []
+    # Last-wins dedupe by arc_id: the generator appends records, so regen can
+    # leave stale rows alongside fresh ones for the same arc.
+    latest: dict[str, dict] = {}
+    order: list[str] = []
     for row in current:
-        if row["arc_id"] in by_arc:
-            if arc_status.get(row["arc_id"]) == "revise":
-                continue
-            final_rows.append(by_arc[row["arc_id"]])
-        else:
-            final_rows.append(row)
+        arc_id = row["arc_id"]
+        if arc_id not in latest:
+            order.append(arc_id)
+        latest[arc_id] = by_arc.get(arc_id, row)
+    final_rows = []
+    for arc_id in order:
+        if arc_id in by_arc and arc_status.get(arc_id) == "revise":
+            continue
+        final_rows.append(latest[arc_id])
     rewrite_jsonl(records_path, final_rows)
 
     print(f"\nDONE in {wall}s — audited={counters['audited']} accepted={counters['accepted']} "
