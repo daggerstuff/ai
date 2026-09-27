@@ -9,6 +9,7 @@ wiring into ``run_mechanical_gates``.
 from __future__ import annotations
 
 import json
+from typing import Any
 
 from training.generate_arc_corpus import parse_transcript, run_mechanical_gates
 from training.ledger_gate import ledger_gate_failures, number_matches
@@ -28,18 +29,18 @@ _BASE_LEDGER = {
 TWO_SEPARATORS = 2  # 3 capped hit labels -> 2 "; " joins
 
 
-def _ledger(**overrides: str) -> dict:
+def _ledger(**overrides: str) -> dict[str, Any]:
     return {**_BASE_LEDGER, **overrides}
 
 
-def _transcript(lines: list[tuple[str, object]]) -> dict:
+def _transcript(lines: list[tuple[str, object]]) -> dict[str, Any]:
     """lines: (mark, content) where mark is C, T, or T|THINK."""
     text = "\n".join(f"[{mark}] {json.dumps(content) if mark == 'T|THINK' else content}" for mark, content in lines)
     return parse_transcript(text)
 
 
-def _session_plan(n: int, turns: int, gap_before: str = "") -> dict:
-    session: dict = {"n": n, "turns": turns}
+def _session_plan(n: int, turns: int, gap_before: str = "") -> dict[str, Any]:
+    session: dict[str, Any] = {"n": n, "turns": turns}
     if gap_before:
         session["gap_before"] = gap_before
     return {"sessions": [session]}
@@ -98,7 +99,7 @@ def test_plural_evidence_satisfies_singular() -> None:
 # --- ledger field anchors ----------------------------------------------------
 
 
-def _one_session(parsed: dict) -> list[str]:
+def _one_session(parsed: dict[str, Any]) -> list[str]:
     return ledger_gate_failures(_session_plan(1, 2), 1, parsed, [])
 
 
@@ -326,7 +327,7 @@ def test_hx_numbers_from_plan_notes() -> None:
 # --- spoken specificity ------------------------------------------------------
 
 
-def _client_then_therapist(client: str, therapist: str, ledger: dict | None = None) -> list[str]:
+def _client_then_therapist(client: str, therapist: str, ledger: dict[str, Any] | None = None) -> list[str]:
     lines: list[tuple[str, object]] = [("C", client)]
     if ledger is not None:
         lines.append(("T|THINK", ledger))
@@ -563,7 +564,7 @@ def test_generator_gate_wiring_clean_session() -> None:
 # --- beat quote containment normalization -------------------------------------
 
 
-def _beats_plan(n: int, revision: str) -> dict:
+def _beats_plan(n: int, revision: str) -> dict[str, Any]:
     plan = _session_plan(n, 2)
     plan["beats"] = [
         {

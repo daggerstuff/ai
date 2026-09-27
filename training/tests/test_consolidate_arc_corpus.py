@@ -1,6 +1,8 @@
 """Tests for consolidate_arc_corpus (pure, tmp-dir fixtures, no network)."""
 
 import json
+from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -26,29 +28,29 @@ LEDGER = {
     "tl": "present",
 }
 
-_TURNS_CLEAN = [
+_TURNS_CLEAN: list[dict[str, Any]] = [
     {"role": "client", "content": "I keep cancelling on people."},
     {"role": "therapist", "content": "What happened the last time you cancelled?", "ledger": LEDGER},
 ]
 
 
-def _turn(role: str, content: str, ledger: dict | None = None) -> dict:
-    turn: dict = {"role": role, "content": content}
+def _turn(role: str, content: str, ledger: dict[str, str] | None = None) -> dict[str, Any]:
+    turn: dict[str, Any] = {"role": role, "content": content}
     if ledger is not None:
         turn["ledger"] = ledger
     return turn
 
 
-def _session(n: int, turns: list[dict]) -> dict:
+def _session(n: int, turns: list[dict[str, Any]]) -> dict[str, Any]:
     return {"n": n, "turns": turns}
 
 
 def _arc(
     arc_id: str,
-    sessions: list[dict],
+    sessions: list[dict[str, Any]],
     verdict: str = "accept",
     plan_path: str = "training/arc_plans/__absent__.json",
-) -> dict:
+) -> dict[str, Any]:
     return {
         "arc_id": arc_id,
         "audit": {"verdict": verdict, "flags_final": [], "revisions": 0},
@@ -66,7 +68,7 @@ def _arc(
 # --- _session_messages: writer turns -> strict alternating ChatML ---
 
 
-def test_session_messages_converts_with_ledger_prefix():
+def test_session_messages_converts_with_ledger_prefix() -> None:
     session = _session(
         1,
         [
@@ -82,7 +84,7 @@ def test_session_messages_converts_with_ledger_prefix():
     assert reply == "When did the sleep trouble start?"
 
 
-def test_session_messages_merges_consecutive_client_turns():
+def test_session_messages_merges_consecutive_client_turns() -> None:
     session = _session(
         1,
         [
@@ -98,7 +100,7 @@ def test_session_messages_merges_consecutive_client_turns():
     assert messages[0]["content"] == "There's a person, they—\n\nForget it."
 
 
-def test_session_messages_drops_trailing_client_turn():
+def test_session_messages_drops_trailing_client_turn() -> None:
     session = _session(
         1,
         [
@@ -112,13 +114,13 @@ def test_session_messages_drops_trailing_client_turn():
     assert "Okay." not in messages[0]["content"]
 
 
-def test_session_messages_rejects_missing_ledger():
+def test_session_messages_rejects_missing_ledger() -> None:
     session = _session(1, [_turn("client", "hi"), _turn("therapist", "hello")])
     with pytest.raises(ValueError, match="ledger"):
         _session_messages(session)
 
 
-def test_session_messages_rejects_consecutive_therapist():
+def test_session_messages_rejects_consecutive_therapist() -> None:
     session = _session(
         1,
         [
@@ -131,13 +133,13 @@ def test_session_messages_rejects_consecutive_therapist():
         _session_messages(session)
 
 
-def test_session_messages_rejects_unknown_role():
+def test_session_messages_rejects_unknown_role() -> None:
     session = _session(1, [_turn("narrator", "meanwhile")])
     with pytest.raises(ValueError, match="unknown role"):
         _session_messages(session)
 
 
-def test_session_messages_rejects_client_only_session():
+def test_session_messages_rejects_client_only_session() -> None:
     # A client-only session drops to empty (trailing clients) and must fail loudly.
     session = _session(1, [_turn("client", "hi")])
     with pytest.raises(ValueError, match="start with client"):
@@ -147,7 +149,7 @@ def test_session_messages_rejects_client_only_session():
 # --- _gold_record: metadata mapping ---
 
 
-def test_gold_record_metadata_from_plan():
+def test_gold_record_metadata_from_plan() -> None:
     arc = _arc("pilot_07", [], plan_path="training/arc_plans/pilot_07.json")
     arc["spec_version"] = "2.0"
     session = _session(1, [])
@@ -180,7 +182,7 @@ def test_gold_record_metadata_from_plan():
     assert prov["domain"] == "boundary_testing"
 
 
-def test_gold_record_degrades_without_plan():
+def test_gold_record_degrades_without_plan() -> None:
     rec = _gold_record(_arc("arc_0001", []), _session(1, []), [], None)
     assert rec["source"] == "arc_corpus_arc_0001"
     assert rec["diagnostic_tag"] == ""
@@ -188,7 +190,7 @@ def test_gold_record_degrades_without_plan():
     assert rec["provenance"]["domain"] == ""
 
 
-def test_gold_record_hash_is_metadata_independent():
+def test_gold_record_hash_is_metadata_independent() -> None:
     a = _gold_record(_arc("pilot_01", []), _session(1, []), [], None)
     b = _gold_record(_arc("pilot_01b", []), _session(2, []), [], None)
     assert compute_primary_hash(a) == compute_primary_hash(b)
@@ -197,7 +199,7 @@ def test_gold_record_hash_is_metadata_independent():
 # --- consolidate: end-to-end gate pipeline over arc records ---
 
 
-def test_consolidate_end_to_end(tmp_path):
+def test_consolidate_end_to_end(tmp_path: Path) -> None:
     gold = tmp_path / "train_master_gold.jsonl"
     inputs = tmp_path / "arc_records.jsonl"
     plan_file = tmp_path / "pilot_01.json"
@@ -256,7 +258,7 @@ def test_consolidate_end_to_end(tmp_path):
     assert any("invalid_session" in ln for ln in reject_lines)
 
 
-def test_consolidate_idempotent(tmp_path):
+def test_consolidate_idempotent(tmp_path: Path) -> None:
     gold = tmp_path / "gold.jsonl"
     inputs = tmp_path / "arc_records.jsonl"
     inputs.write_text(json.dumps(_arc("pilot_01", [_session(1, _TURNS_CLEAN)])) + "\n", encoding="utf-8")
@@ -271,7 +273,7 @@ def test_consolidate_idempotent(tmp_path):
     assert len(gold_lines) == 1
 
 
-def test_consolidate_rejects_quadit_banned_phrase(tmp_path):
+def test_consolidate_rejects_quadit_banned_phrase(tmp_path: Path) -> None:
     # "circle back" slips past the cliché gate but is a quadit banned phrase.
     gold = tmp_path / "gold.jsonl"
     inputs = tmp_path / "arc_records.jsonl"
@@ -303,7 +305,7 @@ def test_consolidate_rejects_quadit_banned_phrase(tmp_path):
     assert any("quadit" in ln for ln in reject_lines)
 
 
-def test_consolidate_dry_run_writes_nothing(tmp_path):
+def test_consolidate_dry_run_writes_nothing(tmp_path: Path) -> None:
     gold = tmp_path / "gold.jsonl"
     reject = tmp_path / "rejections.jsonl"
     inputs = tmp_path / "arc_records.jsonl"

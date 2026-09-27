@@ -24,6 +24,7 @@ import re
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import aiohttp
 from dotenv import load_dotenv
@@ -465,7 +466,7 @@ async def main_async(args) -> None:
     by_arc = {r["arc_id"]: r for r in records}
     # Last-wins dedupe by arc_id: the generator appends records, so regen can
     # leave stale rows alongside fresh ones for the same arc.
-    latest: dict[str, dict] = {}
+    latest: dict[str, dict[str, Any]] = {}
     order: list[str] = []
     for row in current:
         arc_id = row["arc_id"]

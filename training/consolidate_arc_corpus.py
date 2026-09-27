@@ -171,7 +171,8 @@ def _load_plan(plan_path: Any) -> dict[str, Any] | None:
         logger.warning("plan not found: %s", path)
         return None
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        loaded: dict[str, Any] | None = json.loads(path.read_text(encoding="utf-8"))
+        return loaded
     except json.JSONDecodeError as exc:
         logger.warning("unparseable plan %s: %s", path, exc)
         return None

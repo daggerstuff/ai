@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 import re
 from itertools import pairwise
+from typing import Any
 
 # Number vocabulary. "one"/"zero" are excluded from target scans: "the one
 # thing" is not a quantity, and skipping them costs almost nothing (K3 still
@@ -197,8 +198,8 @@ def number_matches(token: str, evidence: set[str]) -> bool:
             return True
         words = _num_to_words(n)
         return bool(words) and all(_has(w) for w in words)
-    n = _word_to_num(parts)
-    if n is not None and str(n) in evidence:
+    word_n = _word_to_num(parts)
+    if word_n is not None and str(word_n) in evidence:
         return True
     return all(_has(p) for p in parts)
 
@@ -245,7 +246,7 @@ class _Evidence:
         self.set.update(_tokenize(text))
 
 
-def _plan_tokens(plan: dict) -> str:
+def _plan_tokens(plan: dict[str, Any]) -> str:
     """The plan's fact-schedule text, which the ledger may mirror verbatim."""
     parts = [json.dumps(plan.get(f) or "", default=str) for f in _PLAN_FIELDS]
     for s in plan.get("sessions") or []:
@@ -326,7 +327,7 @@ def _check_therapist_line(content: str, evidence: _Evidence, hits: list[str], la
             hits.append(f"{label} spoken '{m.group(0)[:40]}'")
 
 
-def _prior_ledger_text(prior_sessions: list[dict]) -> str:
+def _prior_ledger_text(prior_sessions: list[dict[str, Any]]) -> str:
     """Text of the most recent prior session's final ledger state fields.
 
     Carry-over is append-mostly (§4.1): the next session's ledger repeats and
@@ -342,7 +343,7 @@ def _prior_ledger_text(prior_sessions: list[dict]) -> str:
     return ""
 
 
-def _prior_anchor_tokens(prior_sessions: list[dict]) -> str:
+def _prior_anchor_tokens(prior_sessions: list[dict[str, Any]]) -> str:
     """Durations established by the most recent prior ledger's tl anchors,
     flattened to client-usable words ("two", "years")."""
     out: list[str] = []
@@ -378,7 +379,9 @@ def _tl_entries(tl_text: str) -> list[str]:
     return [tl_text[a:b] for a, b in pairwise(bounds)]
 
 
-def _seed_evidence(plan: dict, session: dict | None, prior_sessions: list[dict]) -> tuple[_Evidence, _Evidence]:
+def _seed_evidence(
+    plan: dict[str, Any], session: dict[str, Any] | None, prior_sessions: list[dict[str, Any]]
+) -> tuple[_Evidence, _Evidence]:
     """(speech, plan_ev): the two evidence sets.
 
     speech: client lines so far, the plan's inter-session gap, and durations
@@ -414,7 +417,7 @@ def _seed_evidence(plan: dict, session: dict | None, prior_sessions: list[dict])
     return speech, plan_ev
 
 
-def _check_ledger_block(ledger: dict, label: str, evidence: _Evidence, ledger_hits: list[str]) -> None:
+def _check_ledger_block(ledger: dict[str, Any], label: str, evidence: _Evidence, ledger_hits: list[str]) -> None:
     """Numbers/anchors in the state fields and told/claim quotes on tl
     entries — all against plan-plus-speech evidence."""
     for field in LEDGER_NUMBER_FIELDS:
@@ -428,7 +431,9 @@ def _check_ledger_block(ledger: dict, label: str, evidence: _Evidence, ledger_hi
         _check_field_quotes("tl", entry, evidence, ledger_hits, label)
 
 
-def ledger_gate_failures(plan: dict, n: int, parsed: dict, prior_sessions: list[dict]) -> list[str]:
+def ledger_gate_failures(
+    plan: dict[str, Any], n: int, parsed: dict[str, Any], prior_sessions: list[dict[str, Any]]
+) -> list[str]:
     """Traceability failures for one generated session.
 
     Walks the parsed transcript in order, growing both evidence sets with
