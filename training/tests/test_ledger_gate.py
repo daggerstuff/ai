@@ -558,3 +558,58 @@ def test_generator_gate_wiring_clean_session() -> None:
         ]
     )
     assert run_mechanical_gates(plan, 1, parsed, []) == []
+
+
+# --- beat quote containment normalization -------------------------------------
+
+
+def _beats_plan(n: int, revision: str) -> dict:
+    plan = _session_plan(n, 2)
+    plan["beats"] = [
+        {
+            "type": "misstatement",
+            "revise_session": n,
+            "revise_turn": 2,
+            "revision": f"session-{n} revision: '{revision}'",
+        }
+    ]
+    return plan
+
+
+def test_beat_quote_em_dash_variant_passes() -> None:
+    # arc_0024 shape: plan quotes the client with a spaced hyphen, the writer
+    # renders the same words with an em-dash — typography, not paraphrase.
+    plan = _beats_plan(2, "okay - most nights after the shift. Sometimes before I clock in.")
+    parsed = _transcript(
+        [
+            ("C", "Okay\u2014most nights after the shift. Sometimes before I clock in."),
+            ("T|THINK", _ledger()),
+            ("T", "That is a different picture than an hour ago."),
+        ]
+    )
+    assert run_mechanical_gates(plan, 2, parsed, []) == []
+
+
+def test_beat_quote_curly_apostrophe_and_en_dash_pass() -> None:
+    plan = _beats_plan(2, "I drive - ten minutes - and then I wait.")
+    parsed = _transcript(
+        [
+            ("C", "I drive\u2013ten minutes\u2013and then I wait."),
+            ("T|THINK", _ledger()),
+            ("T", "And the waiting is the hard part?"),
+        ]
+    )
+    assert run_mechanical_gates(plan, 2, parsed, []) == []
+
+
+def test_beat_quote_paraphrase_still_fails() -> None:
+    plan = _beats_plan(2, "okay - most nights after the shift. Sometimes before I clock in.")
+    parsed = _transcript(
+        [
+            ("C", "I work most nights, honestly. Even before I clock in."),
+            ("T|THINK", _ledger()),
+            ("T", "How long has that been true?"),
+        ]
+    )
+    failures = run_mechanical_gates(plan, 2, parsed, [])
+    assert any(f.startswith("beat_content") for f in failures)

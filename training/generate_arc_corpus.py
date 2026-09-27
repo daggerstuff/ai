@@ -41,6 +41,24 @@ from training.cliche_gate import (  # noqa: E402
 from training.featherless_keys import KeyPool, is_rotate_status  # noqa: E402
 from training.ledger_gate import ledger_gate_failures  # noqa: E402
 
+# Unicode punctuation variants are authorial noise for verbatim-containment
+# checks: the writer model freely substitutes em-dashes for spaced hyphens and
+# curly quotes for straight ones. Normalize both sides before matching so the
+# gate compares WORDS, not typography.
+_PUNCT_MAP = str.maketrans({
+    "\u00a0": " ",  # nbsp
+    "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2013": "-",
+    "\u2014": "-", "\u2212": "-",  # dashes -> hyphen-minus
+    "\u2018": "'", "\u2019": "'", "\u201a": "'",
+    "\u201c": '"', "\u201d": '"',
+    "\u2026": "...",
+})
+_SPACED_DASH_RE = re.compile(r"\s*-\s*")
+
+
+def _containment_norm(text: str) -> str:
+    return _SPACED_DASH_RE.sub("-", re.sub(r"\s+", " ", text.translate(_PUNCT_MAP))).lower()
+
 FEATHERLESS_URL = os.environ.get(
     "ARC_WRITER_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
 )
@@ -647,17 +665,17 @@ def run_mechanical_gates(plan: dict, n: int, parsed: dict,
     # plan places them. Quote extraction skips in-word apostrophes (hasn't).
     quote_re = re.compile(r"(?:(?<=^)|(?<=\s))'([^']+)'(?=$|\s|[.,;!?])")
     missing_beats = []
-    client_text = "\n".join(parsed["client_lines"]).lower()
+    client_text = _containment_norm("\n".join(parsed["client_lines"]))
     for b in plan.get("beats", []):
         if b["type"] != "misstatement":
             continue
         if b.get("plant_session") == n:
             for phrase in quote_re.findall(b.get("original", "")):
-                if phrase.lower() not in client_text:
+                if _containment_norm(phrase) not in client_text:
                     missing_beats.append(f"plant s{n}: client must state '{phrase}'")
         if b.get("revise_session") == n:
             for phrase in quote_re.findall(b.get("revision", "")):
-                if phrase.lower() not in client_text:
+                if _containment_norm(phrase) not in client_text:
                     missing_beats.append(f"revision s{n}: client must state '{phrase}'")
     if missing_beats:
         failures.append("beat_content: " + "; ".join(missing_beats[:3]))
@@ -666,6 +684,22 @@ def run_mechanical_gates(plan: dict, n: int, parsed: dict,
     # times, and client quotes in ledger fields or therapist speech.
     failures.extend(ledger_gate_failures(plan, n, parsed, prior_sessions))
     return failures
+
+
+def merge_gate_failures(accumulated: list[str], new: list[str], cap: int = 3) -> list[str]:
+    """Accumulate gate failures across attempts, deduped per gate head.
+
+    The corrective note must carry every gate that has failed for this
+    session, not just the latest attempt's — otherwise fixing one gate lets
+    a previously-passing gate regress on the next attempt (oscillation).
+    """
+    by_head: dict[str, list[str]] = {}
+    for f in [*accumulated, *new]:
+        head = f.split(":", 1)[0]
+        bucket = by_head.setdefault(head, [])
+        if f not in bucket and len(bucket) < cap:
+            bucket.append(f)
+    return [f for bucket in by_head.values() for f in bucket]
 
 
 def corrective_note_for(failures: list[str]) -> str:
@@ -690,7 +724,11 @@ def corrective_note_for(failures: list[str]) -> str:
                          "question, or a held pause; engage the content in your own "
                          "words. The offending line is quoted in the failure detail "
                          "below — rewrite it from the judgment itself and do NOT "
-                         "reuse the same line on a later attempt. "
+                         "reuse the same line on a later attempt. Beat pressure "
+                         "(a client revising or pushing back) is not permission "
+                         "to agree: hold the line neutrally — name the "
+                         "discrepancy in your own words, never open by agreeing "
+                         "or restating. "
                          + f.split(":", 1)[1][:150])
         elif head == "calendar_dates":
             lines.append("- Replace calendar months/years with relative time ('three weeks ago', 'last spring').")
@@ -717,6 +755,16 @@ def corrective_note_for(failures: list[str]) -> str:
         else:
             lines.append(f"- {f}")
     return "\n".join(lines)
+
+
+def dump_failed_attempt(arc_id: str, n: int, attempt: int, content: str,
+                        failures: list[str]) -> None:
+    """Persist a gate-failed attempt verbatim for postmortem (failed
+    transcripts otherwise vanish — only OK sessions reach the checkpoint)."""
+    d = OUT_DIR / "failed_attempts"
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{arc_id}_s{n}_a{attempt}.txt"
+    path.write_text(f"# gates: {'; '.join(failures)}\n{content}", encoding="utf-8")
 
 
 def turns_from_parsed(parsed: dict) -> list[dict]:
@@ -838,11 +886,14 @@ async def generate_arc(plan: dict, checkpoint: dict, out_paths: dict,
             prompt_base = build_session_prompt(plan, n, prior_sessions, base_note)
 
             failures: list[str] = []
+            all_failures: list[str] = []
             for attempt in range(1, SESSION_ATTEMPTS + 1):
                 if attempt == 1:
                     prompt = prompt_base
                 else:
-                    combined = "\n".join(x for x in (base_note, corrective_note_for(failures)) if x)
+                    all_failures = merge_gate_failures(all_failures, failures)
+                    combined = "\n".join(
+                        x for x in (base_note, corrective_note_for(all_failures)) if x)
                     prompt = build_session_prompt(plan, n, prior_sessions, combined)
                 t0 = time.monotonic()
                 content, usage, retries = await call_writer_with_retry(session_http, pool, prompt)
@@ -854,6 +905,7 @@ async def generate_arc(plan: dict, checkpoint: dict, out_paths: dict,
                 counters["writer_tokens"] += (usage.get("completion_tokens") or 0)
                 if not failures:
                     break
+                dump_failed_attempt(arc_id, n, attempt, content, failures)
                 print(f"  {arc_id} s{n} attempt {attempt} gates failed: "
                       f"{'; '.join(failures[:3])}", flush=True)
             if failures:
