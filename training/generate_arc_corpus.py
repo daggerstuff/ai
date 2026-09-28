@@ -66,6 +66,10 @@ WRITER_MODEL = os.environ.get("ARC_WRITER_MODEL", "deepseek/deepseek-v4.1-flash"
 MAX_TOKENS = int(os.environ.get("ARC_WRITER_MAX_TOKENS", "32768"))
 TEMPERATURE = float(os.environ.get("ARC_WRITER_TEMPERATURE", "0.45"))
 CALL_TIMEOUT = int(os.environ.get("ARC_WRITER_TIMEOUT", "900"))
+# DeepSeek templates read "thinking"; Qwen3 templates read "enable_thinking".
+_THINKING_KWARG = (
+    {"enable_thinking": False} if "qwen" in WRITER_MODEL.lower() else {"thinking": False}
+)
 CONCURRENCY = int(os.environ.get("ARC_CONCURRENCY", "2"))
 SESSION_ATTEMPTS = int(os.environ.get("ARC_SESSION_ATTEMPTS", "3"))
 # Pacing tolerance is right-sized per session length (see _turn_tolerance):
@@ -414,7 +418,7 @@ async def call_writer(session: aiohttp.ClientSession, api_key: str,
         ],
         "max_tokens": MAX_TOKENS,
         "temperature": TEMPERATURE,
-        "chat_template_kwargs": {"thinking": False},
+        "chat_template_kwargs": _THINKING_KWARG,
     }
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -493,7 +497,7 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
         ],
         "max_tokens": 4096,
         "temperature": 0.0,
-        "chat_template_kwargs": {"thinking": False},
+        "chat_template_kwargs": _THINKING_KWARG,
         "response_format": {"type": "json_object"},
     }
     headers = {"Authorization": f"Bearer {pool.current()}",
