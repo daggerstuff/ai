@@ -13,7 +13,7 @@ deepseek/deepseek-v4.1-flash).
 Run (from ai/):
   /home/vivi/pixelated/.venv/bin/python training/build_arc_plans.py
       [--seed-file PATH]... [--count 50] [--out-dir arc_plans] [--prefix arc]
-      [--concurrency 2] [--retries 2] [--dry-run]
+      [--concurrency 2] [--retries 2] [--variation 1] [--dry-run]
 """
 import argparse
 import asyncio
@@ -25,6 +25,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import aiohttp
 from dotenv import load_dotenv
@@ -134,6 +135,7 @@ class Job:
     out_dir: Path
     max_attempts: int
     system_prompt: str
+    variation: int = 1
 
 
 class TransientPlanError(Exception):
@@ -228,6 +230,18 @@ def _system_prompt() -> str:
 
 def _user_prompt(job: Job, s: dict) -> str:
     demog = ", ".join(s["demographic_tags"]) or "none"
+    if job.variation > 1:
+        closing = (
+            f"VARIATION PASS {job.variation}: this seed case already "
+            "produced another arc. Build a materially different arc from "
+            "the same case - different client persona, different surface "
+            "subject, different beat mix, different session shape. Keep the "
+            "case's central conflict and failure mode; do not reuse the "
+            "earlier arc's treatment. Return ONLY the plan JSON object.")
+    else:
+        closing = ("Build the arc around THIS case: its conflict, its "
+                   "failure mode, its voice. Do not invent a different "
+                   "central problem. Return ONLY the plan JSON object.")
     return (
         "WRITE ONE ARC PLAN.\n\n"
         f"arc_id (use exactly): {job.arc_id}\n"
@@ -243,9 +257,7 @@ def _user_prompt(job: Job, s: dict) -> str:
         f"- demographic tags: {demog}\n\n"
         "SEED TRANSCRIPT (user=client, assistant=therapist):\n"
         f"{s['transcript']}\n\n"
-        "Build the arc around THIS case: its conflict, its failure mode, "
-        "its voice. Do not invent a different central problem. Return ONLY "
-        "the plan JSON object."
+        f"{closing}"
     )
 
 
@@ -381,9 +393,22 @@ def _load_claimed_keys(out_dir: Path) -> set[str]:
     return keys
 
 
+def _scope_variation_keys(seeds: list[dict[str, Any]], claimed: set[str],
+                          variation: int) -> list[dict[str, Any]]:
+    """Annotate seeds with their variation-scoped seed_map key and drop
+    seeds already claimed on this pass (variation 1 blocks base keys;
+    pass N blocks only keys claimed by pass N)."""
+    for s in seeds:
+        s["map_key"] = (s["key"] if variation == 1
+                        else f"{s['key']}:v{variation}")
+    blocked = claimed if variation == 1 else {
+        k for k in claimed if k.endswith(f":v{variation}")}
+    return [s for s in seeds if s["map_key"] not in blocked]
+
+
 async def _attempt_plan(session: aiohttp.ClientSession, pool: "KeyPool",
-                        job: Job, user_prompt: str,
-                        counters: dict) -> tuple[dict | None, list[str]]:
+                        job: Job, user_prompt: str, counters: dict[str, int],
+                        ) -> tuple[dict[str, Any] | None, list[str]]:
     """One generation attempt. Returns (plan, lint_errors); plan is None on
     API failure (errors then describe the failure)."""
     try:
@@ -404,7 +429,7 @@ async def _attempt_plan(session: aiohttp.ClientSession, pool: "KeyPool",
 
 async def build_one(session: aiohttp.ClientSession, pool: "KeyPool",
                     semaphore: asyncio.Semaphore, job: Job,
-                    counters: dict) -> str:
+                    counters: dict[str, int]) -> str:
     path = job.out_dir / f"{job.arc_id}.json"
     async with semaphore:
         if _exists_clean(path):
@@ -436,7 +461,7 @@ async def build_one(session: aiohttp.ClientSession, pool: "KeyPool",
         return "failed"
 
 
-async def _generate(jobs: list[Job], pool: "KeyPool", counters: dict,
+async def _generate(jobs: list[Job], pool: "KeyPool", counters: dict[str, int],
                     concurrency: int) -> list[str]:
     semaphore = asyncio.Semaphore(concurrency)
     async with aiohttp.ClientSession() as session:
@@ -450,7 +475,7 @@ async def _generate(jobs: list[Job], pool: "KeyPool", counters: dict,
 # W&B (guarded)
 # ---------------------------------------------------------------------------
 
-def _maybe_init_wandb(config: dict):
+def _maybe_init_wandb(config: dict[str, Any]) -> Any:
     try:
         import wandb
     except ImportError:
@@ -470,7 +495,8 @@ def _write_seed_map(out_dir: Path, jobs: list[Job], statuses: list[str]) -> None
     path = out_dir / "seed_map.jsonl"
     with path.open("a", encoding="utf-8") as f:
         for job, status in zip(jobs, statuses, strict=True):
-            row = {"arc_id": job.arc_id, "key": job.seed["key"],
+            row = {"arc_id": job.arc_id,
+                   "key": job.seed.get("map_key", job.seed["key"]),
                    "family": job.seed["family"], "seed": job.seed["seed"],
                    "source_file": job.seed["source_file"],
                    "jitter_seed": job.jitter_seed, "status": status}
@@ -514,6 +540,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="1-based starting index for arc_id / era_jitter "
                          "numbering (resume: after arc_0001..arc_0003, "
                          "run --count 47 --start 4)")
+    ap.add_argument("--variation", type=int, default=1,
+                    help="seed-reuse pass (1 = fresh seeds only; N>=2 "
+                         "reuses seeds claimed by earlier passes under a "
+                         "distinctly suffixed seed_map key)")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the seed selection; no API calls, no writes")
     args = ap.parse_args(argv)
@@ -524,18 +554,20 @@ def main(argv: list[str] | None = None) -> int:
             print(f"error: seed file not found: {f}", file=sys.stderr)
             return 2
     if args.count < 1 or args.concurrency < 1 or args.retries < 0 \
-            or args.start < 1:
-        print("error: invalid --count/--concurrency/--retries/--start",
+            or args.start < 1 or args.variation < 1:
+        print("error: invalid --count/--concurrency/--retries/--start/"
+              "--variation",
               file=sys.stderr)
         return 2
 
     out_dir = Path(args.out_dir)
-    seeds = _load_seeds(seed_files)
     claimed = _load_claimed_keys(out_dir)
+    seeds = _scope_variation_keys(_load_seeds(seed_files), claimed,
+                                  args.variation)
     if claimed:
-        seeds = [s for s in seeds if s["key"] not in claimed]
-        print(f"resume: {len(claimed)} seeds already claimed on disk, "
-              f"{len(seeds)} remain", flush=True)
+        print(f"resume: {len(claimed)} claimed rows on disk, {len(seeds)} "
+              f"seeds available on variation pass {args.variation}",
+              flush=True)
     if args.count > len(seeds):
         print(f"error: --count {args.count} > {len(seeds)} available seeds",
               file=sys.stderr)
@@ -546,11 +578,14 @@ def main(argv: list[str] | None = None) -> int:
         system = _system_prompt()
         prompt_chars = sum(len(_user_prompt(
             Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir,
-                0, system), s)) for i, s in enumerate(picked, start=args.start))
-        print(f"dry-run: {len(picked)} seeds, model={PLAN_MODEL}, "
+                0, system, args.variation), s))
+            for i, s in enumerate(picked, start=args.start))
+        print(f"dry-run: {len(picked)} seeds (variation {args.variation}), "
+              f"model={PLAN_MODEL}, "
               f"system={len(system)} chars, user total={prompt_chars} chars")
         for i, s in enumerate(picked, start=args.start):
-            print(f"  {args.prefix}_{i:04d}  {s['family'][:30]:30}  {s['key']}")
+            print(f"  {args.prefix}_{i:04d}  {s['family'][:30]:30}  "
+                  f"{s['map_key']}")
         return 0
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -558,7 +593,7 @@ def main(argv: list[str] | None = None) -> int:
                    "FEATHERLESS_API_KEY_2")
     system = _system_prompt()
     jobs = [Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir,
-                args.retries + 1, system)
+                args.retries + 1, system, args.variation)
             for i, s in enumerate(picked, start=args.start)]
     counters = {"written": 0, "skipped": 0, "failed": 0,
                 "lint_retries": 0, "tokens": 0}
@@ -573,7 +608,8 @@ def main(argv: list[str] | None = None) -> int:
         "model": PLAN_MODEL, "temperature": TEMPERATURE,
         "max_tokens": MAX_TOKENS, "count": len(picked),
         "prefix": args.prefix, "concurrency": args.concurrency,
-        "retries": args.retries, "seed_files": [str(p) for p in seed_files],
+        "retries": args.retries, "variation": args.variation,
+        "seed_files": [str(p) for p in seed_files],
     })
     t0 = time.monotonic()
     try:
