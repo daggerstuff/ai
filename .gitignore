@@ -200,6 +200,7 @@ training/configs/*
 !training/configs/ds_config_zero3.json
 !training/tests/
 training/tests/*
+!training/tests/test_build_arc_dpo.py
 !training/tests/test_pal_persona_consistency_eval.py
 !training/tests/test_clinical_validity_judge_async.py
 !training/tests/test_llm_quality_judge.py
