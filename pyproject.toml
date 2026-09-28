@@ -2,7 +2,7 @@
 name = "pixelated-ai"
 version = "0.0.1"
 description = "Pixelated Empathy AI - Production Quality Monitoring System"
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "bcrypt>=4.0.0",
     "pandas>=2.0.0",
@@ -164,7 +164,7 @@ members = [
 ]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 line-length = 120
 exclude = [
     "node_modules",

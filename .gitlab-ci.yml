@@ -10,7 +10,7 @@ stages:
 
 variables:
   # Python and uv configuration
-  PYTHON_VERSION: "3.13.13"
+  PYTHON_VERSION: "3.14.7"
   UV_VERSION: "latest"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
@@ -30,7 +30,7 @@ cache:
 
 # Install uv and Python dependencies
 .uv_setup: &uv_setup
-  image: python:3.13-slim
+  image: python:3.14-slim
   before_script:
   - echo "📦 Installing uv package manager..."
   - apt-get update -y && apt-get install -y curl
