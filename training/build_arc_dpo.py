@@ -39,6 +39,7 @@ import os
 import re
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 _HERE = Path(__file__).resolve()
 _TRAIN_DIR = _HERE.parents[0]  # ai/training
@@ -71,8 +72,8 @@ _LENGTH_RATIO_MAX = 2.0
 # ---------------------------------------------------------------------------
 
 
-def _iter_jsonl(path: Path) -> list[dict]:
-    rows = []
+def _iter_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
     for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
         if not line:
@@ -86,32 +87,32 @@ def _iter_jsonl(path: Path) -> list[dict]:
     return rows
 
 
-def _load_records(path: Path) -> dict[str, dict]:
+def _load_records(path: Path) -> dict[str, dict[str, Any]]:
     """arc_id -> latest record row (last-wins)."""
-    latest: dict[str, dict] = {}
+    latest: dict[str, dict[str, Any]] = {}
     for row in _iter_jsonl(path):
         arc_id = row.get("arc_id")
-        if arc_id:
+        if arc_id and isinstance(arc_id, str):
             latest[arc_id] = row
     return latest
 
 
-def _load_checkpoint(path: Path) -> dict[tuple[str, int], dict]:
+def _load_checkpoint(path: Path) -> dict[tuple[str, int], dict[str, Any]]:
     """(arc_id, session_n) -> latest checkpoint row (last-wins)."""
-    latest: dict[tuple[str, int], dict] = {}
+    latest: dict[tuple[str, int], dict[str, Any]] = {}
     for row in _iter_jsonl(path):
         arc_id, n = row.get("arc_id"), row.get("session_n")
-        if arc_id and isinstance(n, int):
+        if arc_id and isinstance(arc_id, str) and isinstance(n, int):
             latest[(arc_id, n)] = row
     return latest
 
 
-def _verdict(record: dict) -> str:
+def _verdict(record: dict[str, Any]) -> str:
     audit = record.get("audit") or {}
     return str(audit.get("verdict") or "unknown")
 
 
-def _flag_sessions(record: dict) -> dict[int, list[str]]:
+def _flag_sessions(record: dict[str, Any]) -> dict[int, list[str]]:
     """session_n -> K3 flag categories for that session (may be empty)."""
     audit = record.get("audit") or {}
     by_session: dict[int, list[str]] = {}
@@ -126,12 +127,15 @@ def _flag_sessions(record: dict) -> dict[int, list[str]]:
     return by_session
 
 
-def _load_plan(arc_id: str) -> dict | None:
+def _load_plan(arc_id: str) -> dict[str, Any] | None:
     path = PLANS_DIR / f"{arc_id}.json"
     if not path.is_file():
         return None
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        data: Any = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return cast(dict[str, Any], data)
+        return None
     except (OSError, json.JSONDecodeError):
         return None
 
@@ -141,7 +145,7 @@ def _load_plan(arc_id: str) -> dict | None:
 # ---------------------------------------------------------------------------
 
 
-def _render_session(turns: list) -> str | None:
+def _render_session(turns: list[Any]) -> str | None:
     """Writer-format transcript: [C] / [T|THINK] {ledger} / [T] lines."""
     lines: list[str] = []
     for t in turns:
@@ -199,14 +203,14 @@ def _gate_heads(header: str) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
-def _session_brief(plan: dict, n: int, priors: list[dict], with_system: bool) -> str:
+def _session_brief(plan: dict[str, Any], n: int, priors: list[dict[str, Any]], with_system: bool) -> str:
     brief = build_session_prompt(plan, n, priors, None)
     if not with_system:
         return brief
     return f"{SYSTEM_PROMPT}\n\n{brief}"
 
 
-def _case_brief(seed: dict) -> str:
+def _case_brief(seed: dict[str, Any]) -> str:
     demog = ", ".join(seed.get("demographic_tags") or []) or "none"
     return (
         "WRITE SESSION 1 OF A THERAPY ARC for the case below.\n\n"
@@ -231,13 +235,16 @@ def _case_brief(seed: dict) -> str:
 
 
 def _session_pairs(
-    records: dict[str, dict], current: dict[tuple[str, int], dict], snapshot_path: Path, with_system: bool
-) -> list[dict]:
+    records: dict[str, dict[str, Any]],
+    current: dict[tuple[str, int], dict[str, Any]],
+    snapshot_path: Path,
+    with_system: bool,
+) -> list[dict[str, Any]]:
     """Superseded-snapshot transcript vs accepted current transcript."""
     accepted = {a for a, r in records.items() if _verdict(r) == "accept"}
     snapshot = _load_checkpoint(snapshot_path)
-    priors_cache: dict[str, list[dict]] = {}
-    pairs = []
+    priors_cache: dict[str, list[dict[str, Any]]] = {}
+    pairs: list[dict[str, Any]] = []
     for (arc_id, n), row in sorted(snapshot.items()):
         if arc_id not in accepted or (arc_id, n) not in current:
             continue
@@ -258,7 +265,7 @@ def _session_pairs(
         priors_cache[arc_id] = [
             r
             for r in priors_cache[arc_id]
-            if (r.get("n"), r.get("session_n")) and (r.get("n") or r.get("session_n")) < n
+            if ((sn := r.get("n") or r.get("session_n")) is not None and isinstance(sn, int) and sn < n)
         ]
         prompt = _session_brief(plan, n, priors_cache[arc_id], with_system)
         defect = _flag_sessions(records[arc_id]).get(n, [])
@@ -281,11 +288,15 @@ def _session_pairs(
     return pairs
 
 
-def _attempt_pairs(records: dict[str, dict], current: dict[tuple[str, int], dict], with_system: bool) -> list[dict]:
+def _attempt_pairs(
+    records: dict[str, dict[str, Any]],
+    current: dict[tuple[str, int], dict[str, Any]],
+    with_system: bool,
+) -> list[dict[str, Any]]:
     """Gate-failed writer attempt vs accepted current transcript."""
     accepted = {a for a, r in records.items() if _verdict(r) == "accept"}
-    priors_cache: dict[tuple[str, int], list[dict]] = {}
-    pairs = []
+    priors_cache: dict[tuple[str, int], list[dict[str, Any]]] = {}
+    pairs: list[dict[str, Any]] = []
     for path in sorted(FAILED_ATTEMPTS_DIR.glob("*.txt")):
         match = _ATTEMPT_FILE_RE.match(path.name)
         if not match:
@@ -335,13 +346,13 @@ def _attempt_pairs(records: dict[str, dict], current: dict[tuple[str, int], dict
     return pairs
 
 
-def _case_pairs(records: dict[str, dict], seed_map_path: Path) -> list[dict]:
+def _case_pairs(records: dict[str, dict[str, Any]], seed_map_path: Path) -> list[dict[str, Any]]:
     """Same-seed accepted-vs-HR session-1 pairs (variation passes)."""
     seeds = {s["key"]: s for s in _load_seeds(DEFAULT_SEED_FILES)}
     base_key: dict[str, str] = {}
     for row in _iter_jsonl(seed_map_path):
         arc_id, key = row.get("arc_id"), row.get("key")
-        if arc_id and key:
+        if arc_id and isinstance(arc_id, str) and key and isinstance(key, str):
             base_key[arc_id] = _VARIATION_SUFFIX_RE.sub("", key)
     accepted: dict[str, str] = {}
     hr: dict[str, str] = {}
@@ -355,7 +366,7 @@ def _case_pairs(records: dict[str, dict], seed_map_path: Path) -> list[dict]:
         elif verdict == "hr":
             hr.setdefault(key, arc_id)
     current = _load_checkpoint(CHECKPOINT_PATH)
-    pairs = []
+    pairs: list[dict[str, Any]] = []
     for key, hr_arc in sorted(hr.items()):
         acc_arc = accepted.get(key)
         if not acc_arc:
@@ -410,10 +421,10 @@ def _existing_hashes(path: Path) -> set[str]:
     return hashes
 
 
-def _write_pairs(pairs: list[dict], dry_run: bool) -> dict[str, int]:
+def _write_pairs(pairs: list[dict[str, Any]], dry_run: bool) -> dict[str, int]:
     seen = _existing_hashes(PAIRS_PATH)
     summary = {"built": len(pairs), "emitted": 0, "duplicates": 0}
-    fresh = []
+    fresh: list[dict[str, Any]] = []
     for pair in pairs:
         h = _dpo_hash(pair["prompt"], pair["chosen"], pair["rejected"])
         if h in seen:
@@ -452,7 +463,7 @@ def main(argv: list[str] | None = None) -> int:
 
     records = _load_records(RECORDS_PATH)
     current = _load_checkpoint(CHECKPOINT_PATH)
-    pairs: list[dict] = []
+    pairs: list[dict[str, Any]] = []
     if args.mode in ("session", "all"):
         for snapshot_dir in sorted(p for p in OUT_DIR.glob(".pre*") if p.is_dir()):
             snap = snapshot_dir / "sessions_checkpoint.jsonl"
