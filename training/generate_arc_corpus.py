@@ -14,14 +14,22 @@ Run (from ai/):
 import argparse
 import asyncio
 import json
+import logging
 import os
 import re
 import sys
 import time
+from contextlib import suppress
+from dataclasses import dataclass
 from pathlib import Path
 
 import aiohttp
 from dotenv import load_dotenv
+
+import wandb
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+LOGGER = logging.getLogger(__name__)
 
 _HERE = Path(__file__).resolve()
 _TRAIN_DIR = _HERE.parents[0]   # ai/training
@@ -78,6 +86,10 @@ SESSION_ATTEMPTS = int(os.environ.get("ARC_SESSION_ATTEMPTS", "3"))
 TURN_TOLERANCE_FLOOR = 3
 TURN_TOLERANCE_CAP = 6
 TURN_TOLERANCE_FRACTION = float(os.environ.get("ARC_TURN_TOLERANCE_FRACTION", "0.40"))
+FACTS_MAX_TOKENS = 8192
+WRITER_RETRY_LIMIT = 4
+FACTS_RETRY_LIMIT = 1
+HTTP_OK = 200
 LEDGER_KEYS = ["dx", "def", "soma", "risk", "hx", "onset", "track", "tx", "tl"]
 
 PLANS_DIR = _TRAIN_DIR / "arc_plans"
@@ -95,7 +107,6 @@ _MONTH_RE = re.compile(
     r"\b(January|February|March|April|June|July|August|September|October|"
     r"November|December)\b|" + _MAY_RE + r"|\b(?:19|20)\d{2}\b"
 )
-
 
 def _banned_lines() -> str:
     groups = [
@@ -216,7 +227,8 @@ CLINICAL INTEGRITY (zero tolerance):
 
 LEDGER: every therapist turn is preceded by ONE compact single-line JSON
 think block:
-{"dx": "...", "def": "...", "soma": "...", "risk": "...", "hx": "...", "onset": "...", "track": "...", "tx": "...", "tl": "..."}
+""" + '{"dx": "...", "def": "...", "soma": "...", "risk": "...", ' \
+    '"hx": "...", "onset": "...", "track": "...", "tx": "...", "tl": "..."}' + """
 """ + LEDGER_FIELD_DOCS + """
 
 BANNED EXACT PHRASES (zero tolerance — the transcript is machine-scanned for
@@ -267,13 +279,17 @@ def _beats_for_session(plan: dict, n: int) -> list[dict]:
     return sorted(out, key=_sort_key)
 
 
+def _fmt_misstatement_beat(b: dict) -> str:
+    if b["_when"] == "plant":
+        return (f"  - Around client turn {b['plant_turn']}: the client states: "
+                f"{b['original']}. Establish it exactly once, naturally.")
+    return (f"  - Around client turn {b['revise_turn']}: the client revises to: "
+            f"{b['revision']}. Therapist behavior: {b['required_response']}")
+
+
 def _fmt_beat(b: dict) -> str:
     if b["type"] == "misstatement":
-        if b["_when"] == "plant":
-            return (f"  - Around client turn {b['plant_turn']}: the client states: "
-                    f"{b['original']}. Establish it exactly once, naturally.")
-        return (f"  - Around client turn {b['revise_turn']}: the client revises to: "
-                f"{b['revision']}. Therapist behavior: {b['required_response']}")
+        return _fmt_misstatement_beat(b)
     when = b.get("turn")
     head = f"  - Turn {when}" if when else "  - Early"
     if b["type"] == "safety":
@@ -286,7 +302,7 @@ def _fmt_beat(b: dict) -> str:
         return (f"{head}: the client aborts a disclosure mid-sentence — {b['setup']}\n"
                 f"    Therapist: {b['required_response']}")
     if b["type"] in ("pressure_false_comfort", "pressure_true_verdict", "pressure_unanswerable"):
-        return (f"{head}: the client demands: \"{b['demand']}\"\n"
+        return (f'{head}: the client demands: "{b['demand']}"\n'
                 f"    Therapist: {b['required_response']}")
     return f"{head}: {json.dumps(b)}"
 
@@ -432,40 +448,41 @@ async def call_writer(session: aiohttp.ClientSession, api_key: str,
             if status in (401, 403, 404):
                 body = await resp.text()
                 raise RuntimeError(f"writer config error http_{status}: {body[:300]}")
-            if status != 200:
+            if status != HTTP_OK:
                 raise TransientWriterError(f"http_{status}")
             data = await resp.json(content_type=None)
-    except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+    except (TimeoutError, aiohttp.ClientError) as e:
         raise TransientWriterError(f"transport_error: {type(e).__name__}") from e
 
     if "choices" not in data or not data["choices"]:
         raise TransientWriterError("empty_response_no_choices")
     choice = data["choices"][0]
     content = choice.get("message", {}).get("content") or ""
-    if choice.get("finish_reason") != "stop":
-        raise TransientWriterError(f"finish_reason_{choice.get('finish_reason')}")
+    finish_reason = choice.get("finish_reason")
     if not content.strip():
         raise TransientWriterError("empty_content")
+    if finish_reason not in {"stop", "length"}:
+        raise TransientWriterError(f"finish_reason_{finish_reason}")
     return content, data.get("usage", {})
 
 
-async def call_writer_with_retry(session: aiohttp.ClientSession, pool: "KeyPool",
+async def call_writer_with_retry(session: aiohttp.ClientSession, pool: KeyPool,
                                  user_prompt: str) -> tuple[str, dict, int]:
     backoff = 5.0
     retries = 0
-    for attempt in range(1, 5):
+    for attempt in range(1, WRITER_RETRY_LIMIT + 1):
         try:
             content, usage = await call_writer(session, pool.current(), user_prompt)
             return content, usage, retries
         except TransientWriterError as e:
-            if attempt == 4:
+            if attempt == WRITER_RETRY_LIMIT:
                 raise
             retries += 1
             if is_rotate_status(e) and len(pool) > 1:
                 pool.rotate()
-                print(f"    [key-rotate] {e} — switched to ...{pool.current()[-8:]}",
-                      flush=True)
-            print(f"    [retry] transient writer error ({e}); backoff {backoff:.0f}s", flush=True)
+                LOGGER.info(f"    [key-rotate] {e} — switched to ...{pool.current()[-8:]}",
+)
+            LOGGER.info(f"    [retry] transient writer error ({e}); backoff {backoff:.0f}s")
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, 40.0)
     raise TransientWriterError("unreachable")  # pragma: no cover
@@ -483,7 +500,7 @@ FACTS_SYSTEM_PROMPT = (
 )
 
 
-async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
+async def extract_facts(session: aiohttp.ClientSession, pool: KeyPool,
                         client_name: str, turns: list[dict]) -> list[dict]:
     """Turn-cited facts list from a completed session's client lines.
     Best-effort: transient failures return [] (grounding stays, just thinner)."""
@@ -495,7 +512,7 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
             {"role": "system", "content": FACTS_SYSTEM_PROMPT},
             {"role": "user", "content": f"Client {client_name} said:\n" + "\n".join(lines)},
         ],
-        "max_tokens": 4096,
+        "max_tokens": FACTS_MAX_TOKENS,
         "temperature": 0.0,
         "chat_template_kwargs": _THINKING_KWARG,
         "response_format": {"type": "json_object"},
@@ -503,25 +520,38 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
     headers = {"Authorization": f"Bearer {pool.current()}",
                "Content-Type": "application/json"}
     backoff = 5.0
-    for attempt in range(1, 4):
+    for attempt in range(1, FACTS_RETRY_LIMIT + 1):
         try:
             timeout = aiohttp.ClientTimeout(total=CALL_TIMEOUT)
             async with session.post(FEATHERLESS_URL, json=payload, headers=headers,
                                     timeout=timeout) as resp:
-                if resp.status != 200:
+                if resp.status != HTTP_OK:
                     raise TransientWriterError(f"http_{resp.status}")
                 data = await resp.json(content_type=None)
             choice = data["choices"][0]
-            if choice.get("finish_reason") != "stop" or not (choice.get("message", {}).get("content") or "").strip():
-                raise TransientWriterError("empty_or_unfinished")
-            content = choice["message"]["content"]
+            content = (choice.get("message", {}).get("content") or "").strip()
+            if not content:
+                raise TransientWriterError("empty_response")
+            if choice.get("finish_reason") not in {"stop", "length"}:
+                raise TransientWriterError(f"finish_reason_{choice.get('finish_reason')}")
             facts = json.loads(content).get("facts", [])
-            return [{"turn": int(f["turn"]), "fact": str(f["fact"])} for f in facts]
-        except (TransientWriterError, aiohttp.ClientError, asyncio.TimeoutError,
-                KeyError, ValueError, json.JSONDecodeError) as e:
-            if attempt == 3:
-                print(f"    [facts-extract] failed after 3 attempts ({e}); "
-                      f"continuing without facts list", flush=True)
+            return [
+                {"turn": int(f["turn"]), "fact": str(f["fact"])}
+                for f in facts
+            ]
+        except (
+            TimeoutError,
+            TransientWriterError,
+            aiohttp.ClientError,
+            KeyError,
+            ValueError,
+            json.JSONDecodeError,
+        ) as e:
+            if attempt == FACTS_RETRY_LIMIT:
+                LOGGER.info(
+                    f"    [facts-extract] failed after {attempt} attempts ({e}); "
+                    "continuing without facts list"
+                )
                 return []
             if isinstance(e, TransientWriterError) and is_rotate_status(e) and len(pool) > 1:
                 pool.rotate()
@@ -602,90 +632,99 @@ def _turn_tolerance(target: int) -> int:
                max(TURN_TOLERANCE_FLOOR, round(target * TURN_TOLERANCE_FRACTION)))
 
 
-def run_mechanical_gates(plan: dict, n: int, parsed: dict,
-                         prior_sessions: list[dict]) -> list[str]:
-    failures: list[str] = []
-    session = next(s for s in plan["sessions"] if s["n"] == n)
-    target = session["turns"]
-
+def _format_and_pacing_failures(plan: dict, n: int, parsed: dict) -> list[str]:
+    failures = []
+    target = next(session["turns"] for session in plan["sessions"] if session["n"] == n)
     if parsed["unmarked_lines"]:
         failures.append(f"marker_format: {parsed['unmarked_lines']} unmarked lines")
-    tol = _turn_tolerance(target)
-    if abs(len(parsed["client_lines"]) - target) > tol:
-        failures.append(f"turn_count: client turns {len(parsed['client_lines'])} vs target {target}")
-    if abs(len(parsed["therapist_lines"]) - target) > tol:
-        failures.append(f"turn_count: therapist turns {len(parsed['therapist_lines'])} vs target {target}")
+    tolerance = _turn_tolerance(target)
+    for speaker in ("client", "therapist"):
+        count = len(parsed[f"{speaker}_lines"])
+        if abs(count - target) > tolerance:
+            failures.append(f"turn_count: {speaker} turns {count} vs target {target}")
 
-    parse_fail = sum(1 for b in parsed["think_blocks"] if not b["ok"])
-    if parse_fail:
-        failures.append(f"ledger_parse: {parse_fail} think-blocks failed JSON parse")
-    missing_fields = sum(len(b["missing"]) for b in parsed["think_blocks"] if b["ok"])
+    parse_failures = sum(not block["ok"] for block in parsed["think_blocks"])
+    if parse_failures:
+        failures.append(f"ledger_parse: {parse_failures} think-blocks failed JSON parse")
+    missing_fields = sum(len(block["missing"]) for block in parsed["think_blocks"] if block["ok"])
     if missing_fields:
         failures.append(f"ledger_fields: {missing_fields} missing ledger keys")
     if len(parsed["think_blocks"]) != len(parsed["therapist_lines"]):
-        failures.append(f"ledger_count: {len(parsed['think_blocks'])} think-blocks vs "
-                        f"{len(parsed['therapist_lines'])} therapist replies")
+        failures.append(
+            f"ledger_count: {len(parsed['think_blocks'])} think-blocks vs "
+            f"{len(parsed['therapist_lines'])} therapist replies"
+        )
+    return failures
 
-    gate_hits = []
-    for t in parsed["therapist_lines"]:
-        caught, reason = is_sycophantic(t)
-        if caught:
-            gate_hits.append((t, reason))
+
+def _content_failures(plan: dict, n: int, parsed: dict) -> list[str]:
+    failures = []
+    gate_hits = [
+        (line, reason)
+        for line in parsed["therapist_lines"]
+        for caught, reason in [is_sycophantic(line)]
+        if caught
+    ]
     if gate_hits:
-        failures.append(f"cliche_gate: {len(gate_hits)} banned-phrase hits: "
-                        + "; ".join(f"[{r}] {t[:60]}" for t, r in gate_hits[:3]))
+        details = "; ".join(f"[{reason}] {line[:60]}" for line, reason in gate_hits[:3])
+        failures.append(f"cliche_gate: {len(gate_hits)} banned-phrase hits: {details}")
 
-    date_hits = []
-    for t in parsed["client_lines"] + parsed["therapist_lines"]:
-        m = _MONTH_RE.search(t)
-        if m:
-            date_hits.append((t[:60], m.group(0)))
+    date_hits = [
+        (line[:60], match.group(0))
+        for line in parsed["client_lines"] + parsed["therapist_lines"]
+        if (match := _MONTH_RE.search(line))
+    ]
     if date_hits:
-        failures.append("calendar_dates: " + str(len(date_hits)) + " hits: "
-                        + "; ".join(f'"{m}" in {t}' for t, m in date_hits[:3]))
+        details = "; ".join(f'"{month}" in {line}' for line, month in date_hits[:3])
+        failures.append(f"calendar_dates: {len(date_hits)} hits: {details}")
 
-    # tl append-only (spec §4.1): anchor keys present in an earlier ledger must
-    # persist in later ledgers, within this session and from prior sessions.
-    accumulated: set[str] = set()
-    for ps in prior_sessions:
-        for t in ps["turns"]:
-            if t.get("ledger"):
-                accumulated |= _tl_anchor_keys(t["ledger"].get("tl", ""))
-    tl_drifts = []
-    for b in parsed["think_blocks"]:
-        if not b["ok"]:
-            continue
-        keys = _tl_anchor_keys(b["ledger"].get("tl", ""))
-        vanished = accumulated - keys
-        if vanished:
-            tl_drifts.append((vanished, b["raw"][:80]))
-        accumulated = keys
-    if tl_drifts:
-        failures.append(f"tl_drift: {len(tl_drifts)} ledgers dropped earlier anchors: "
-                        + "; ".join(f"{sorted(v)}" for v, _ in tl_drifts[:3]))
-
-    # beat containment (spec §6): misstatement plants/revisions carry quoted
-    # phrases that must appear in the client lines of the session where the
-    # plan places them. Quote extraction skips in-word apostrophes (hasn't).
     quote_re = re.compile(r"(?:(?<=^)|(?<=\s))'([^']+)'(?=$|\s|[.,;!?])")
-    missing_beats = []
     client_text = _containment_norm("\n".join(parsed["client_lines"]))
-    for b in plan.get("beats", []):
-        if b["type"] != "misstatement":
-            continue
-        if b.get("plant_session") == n:
-            for phrase in quote_re.findall(b.get("original", "")):
-                if _containment_norm(phrase) not in client_text:
-                    missing_beats.append(f"plant s{n}: client must state '{phrase}'")
-        if b.get("revise_session") == n:
-            for phrase in quote_re.findall(b.get("revision", "")):
-                if _containment_norm(phrase) not in client_text:
-                    missing_beats.append(f"revision s{n}: client must state '{phrase}'")
+    missing_beats = []
+    for beat in plan.get("beats", []):
+        for phase, session_key, phrase_key in (
+            ("plant", "plant_session", "original"),
+            ("revision", "revise_session", "revision"),
+        ):
+            if beat["type"] == "misstatement" and beat.get(session_key) == n:
+                missing_beats.extend(
+                    f"{phase} s{n}: client must state '{phrase}'"
+                    for phrase in quote_re.findall(beat.get(phrase_key, ""))
+                    if _containment_norm(phrase) not in client_text
+                )
     if missing_beats:
         failures.append("beat_content: " + "; ".join(missing_beats[:3]))
+    return failures
 
-    # ledger traceability (spec §4.2): invented numbers, durations, clock
-    # times, and client quotes in ledger fields or therapist speech.
+
+def _timeline_failures(parsed: dict, prior_sessions: list[dict]) -> list[str]:
+    accumulated = {
+        anchor
+        for session in prior_sessions
+        for turn in session["turns"]
+        if turn.get("ledger")
+        for anchor in _tl_anchor_keys(turn["ledger"].get("tl", ""))
+    }
+    drifts = []
+    for block in parsed["think_blocks"]:
+        if not block["ok"]:
+            continue
+        keys = _tl_anchor_keys(block["ledger"].get("tl", ""))
+        vanished = accumulated - keys
+        if vanished:
+            drifts.append(vanished)
+        accumulated = keys
+    if not drifts:
+        return []
+    return [f"tl_drift: {len(drifts)} ledgers dropped earlier anchors: "
+            + "; ".join(str(sorted(anchors)) for anchors in drifts[:3])]
+
+
+def run_mechanical_gates(plan: dict, n: int, parsed: dict,
+                         prior_sessions: list[dict]) -> list[str]:
+    failures = _format_and_pacing_failures(plan, n, parsed)
+    failures.extend(_content_failures(plan, n, parsed))
+    failures.extend(_timeline_failures(parsed, prior_sessions))
     failures.extend(ledger_gate_failures(plan, n, parsed, prior_sessions))
     return failures
 
@@ -707,58 +746,55 @@ def merge_gate_failures(accumulated: list[str], new: list[str], cap: int = 3) ->
 
 
 def corrective_note_for(failures: list[str]) -> str:
-    lines = []
-    for f in failures:
-        head = f.split(":", 1)[0]
-        if head == "marker_format":
-            lines.append("- Output ONLY [C]/[T|THINK]/[T] lines. No commentary, no scene direction, no markdown.")
-        elif head == "turn_count":
-            lines.append(f"- {f}. Hit the requested turn count exactly.")
-        elif head == "ledger_parse":
-            lines.append("- Every [T|THINK] block must be ONE line of strict JSON. No trailing commas, no smart quotes.")
-        elif head == "ledger_fields":
-            lines.append("- Every ledger JSON must contain all 9 keys: dx, def, soma, risk, hx, onset, track, tx, tl.")
-        elif head == "ledger_count":
-            lines.append("- Exactly one [T|THINK] block before every [T] reply, no gaps.")
-        elif head == "cliche_gate":
-            lines.append("- A therapist line opens by parroting the client's words back "
-                         "at them (e.g. 'You said ...', 'You just said ...', 'You named "
-                         "...'). Never open a therapist line by quoting or restating what "
-                         "the client just said. Start from your own observation, a "
-                         "question, or a held pause; engage the content in your own "
-                         "words. The offending line is quoted in the failure detail "
-                         "below — rewrite it from the judgment itself and do NOT "
-                         "reuse the same line on a later attempt. Beat pressure "
-                         "(a client revising or pushing back) is not permission "
-                         "to agree: hold the line neutrally — name the "
-                         "discrepancy in your own words, never open by agreeing "
-                         "or restating. "
-                         + f.split(":", 1)[1][:150])
-        elif head == "calendar_dates":
-            lines.append("- Replace calendar months/years with relative time ('three weeks ago', 'last spring').")
-        elif head == "tl_drift":
-            lines.append("- The tl ledger is append-mostly: once an anchor appears, it persists in every later ledger (amended with a revision tag, never silently dropped).")
-        elif head == "beat_content":
-            lines.append("- A planned beat is missing its exact client wording. "
-                         "The client must say the quoted phrase verbatim at the beat's "
-                         "turn: " + f.split(":", 1)[1][:200])
-        elif head == "ledger_traceability":
-            lines.append("- Ledger fabrication caught. Every number, duration, anchor "
-                         "(-3w style), and quoted phrase the ledger attributes to the "
-                         "client (entries marked told/claim) must come from the plan's "
-                         "fact schedule, the client's own words, or the carry-forward "
-                         "block. Do not invent quantities, time spans, or quote the "
-                         "client on words they never used. Offending "
-                         "items: " + f.split(":", 1)[1][:250])
-        elif head == "spoken_specificity":
-            lines.append("- Invented specificity caught. Do not put past durations ('three "
-                         "weeks ago'), frequencies ('four times a week'), or clock times "
-                         "in therapist speech unless the client "
-                         "already said exactly that. Keep it vague or use the client's "
-                         "own words. Offending items: " + f.split(":", 1)[1][:250])
+    notes = {
+        "marker_format": "- Output ONLY [C]/[T|THINK]/[T] lines. No commentary, no scene direction, no markdown.",
+        "turn_count": "Hit the requested turn count exactly.",
+        "ledger_parse": "- Every [T|THINK] block must be ONE line of strict JSON. No trailing commas, no smart quotes.",
+        "ledger_fields": "- Every ledger JSON must contain all 9 keys: dx, def, soma, risk, hx, onset, track, tx, tl.",
+        "ledger_count": "- Exactly one [T|THINK] block before every [T] reply, no gaps.",
+        "calendar_dates": "- Replace calendar months/years with relative time ('three weeks ago', 'last spring').",
+        "tl_drift": (
+            "- The tl ledger is append-mostly: once an anchor appears, it persists "
+            "in every later ledger (amended with a revision tag, never silently dropped)."
+        ),
+    }
+    details = {
+        "beat_content": (
+            "- A planned beat is missing its exact client wording. The client must say "
+            "the quoted phrase verbatim at the beat's turn: "
+        ),
+        "ledger_traceability": (
+            "- Ledger fabrication caught. Every number, duration, anchor (-3w style), "
+            "and quoted phrase marked told/claim must come from the plan's fact schedule, "
+            "the client's own words, or the carry-forward block. Do not invent quantities, "
+            "time spans, or client quotes. Offending items: "
+        ),
+        "spoken_specificity": (
+            "- Invented specificity caught. Do not put past durations ('three weeks ago'), "
+            "frequencies ('four times a week'), or clock times in therapist speech unless "
+            "the client already said exactly that. Keep it vague or use the client's own "
+            "words. Offending items: "
+        ),
+        "cliche_gate": (
+            "- A therapist line opens by parroting the client's words back at them "
+            "(e.g. 'You said ...', 'You just said ...', 'You named ...'). Never open a "
+            "therapist line by quoting or restating what the client just said. Start from "
+            "your own observation, a question, or a held pause; engage the content in your "
+            "own words. Rewrite the offending line from the judgment itself and do NOT "
+            "reuse it on a later attempt. Beat pressure is not permission to agree: hold "
+            "the line neutrally, naming the discrepancy in your own words. "
+        ),
+    }
+    result = []
+    for failure in failures:
+        head, _, detail = failure.partition(":")
+        if head in details:
+            result.append(details[head] + detail.strip()[:250])
+        elif head in notes:
+            result.append(notes[head] if head != "turn_count" else f"- {failure}. {notes[head]}")
         else:
-            lines.append(f"- {f}")
-    return "\n".join(lines)
+            result.append(f"- {failure}")
+    return "\n".join(result)
 
 
 def dump_failed_attempt(arc_id: str, n: int, attempt: int, content: str,
@@ -808,8 +844,8 @@ def load_checkpoint(path: Path) -> dict[str, dict[int, dict]]:
     if not path.exists():
         return done
     with path.open(encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
+        for raw_line in f:
+            line = raw_line.strip()
             if not line:
                 continue
             row = json.loads(line)
@@ -824,7 +860,7 @@ def load_audit_notes(arc_id: str) -> dict[str, str]:
     if not path.exists():
         return {}
     try:
-        return {k: v for k, v in json.loads(path.read_text(encoding="utf-8")).items()}
+        return dict(json.loads(path.read_text(encoding="utf-8")))
     except (json.JSONDecodeError, OSError):
         return {}
 
@@ -841,10 +877,6 @@ def append_jsonl_fsync(path: Path, row: dict) -> None:
 # ---------------------------------------------------------------------------
 
 def _maybe_init_wandb(config: dict):
-    try:
-        import wandb
-    except ImportError:
-        return None
     key = os.environ.get("WANDB_API_KEY", "")
     if not key:
         return None
@@ -859,10 +891,8 @@ def _wandb_metrics_loop(run, snapshot_fn, interval=60.0):
 
     async def loop():
         while True:
-            try:
+            with suppress(Exception):
                 run.log(snapshot_fn())
-            except Exception:
-                pass
             await asyncio.sleep(interval)
     return asyncio.create_task(loop())
 
@@ -871,107 +901,143 @@ def _wandb_metrics_loop(run, snapshot_fn, interval=60.0):
 # Main
 # ---------------------------------------------------------------------------
 
-async def generate_arc(plan: dict, checkpoint: dict, out_paths: dict,
-                       session_http: aiohttp.ClientSession, pool: KeyPool,
-                       semaphore: asyncio.Semaphore, counters: dict) -> dict | None:
+@dataclass
+class ArcGenerationContext:
+    checkpoint: dict
+    out_paths: dict
+    session_http: aiohttp.ClientSession
+    pool: KeyPool
+    semaphore: asyncio.Semaphore
+    counters: dict
+
+
+def _render_arc_record(plan: dict, prior: dict[int, dict]) -> dict:
+    final_tl = None
+    for session_n in sorted(prior, reverse=True):
+        for turn in reversed(prior[session_n]["turns"]):
+            if turn.get("ledger"):
+                final_tl = turn["ledger"].get("tl")
+                break
+        if final_tl:
+            break
+    return {
+        "arc_id": plan["arc_id"],
+        "spec_version": 1,
+        "plan_path": f"training/arc_plans/{plan['arc_id']}.json",
+        "writer_model": WRITER_MODEL,
+        "auditor_model": None,
+        "audit": None,
+        "sessions": [
+            {"n": n, "turns": prior[n]["turns"]} for n in sorted(prior)
+        ],
+        "timeline_final": final_tl,
+        "beats_planned": plan["beats"],
+        "metrics": {
+            "sessions": len(prior),
+            "writer_tokens": sum(
+                prior[n]["usage"].get("completion_tokens", 0) for n in prior
+            ),
+            "wall_s": sum(prior[n]["wall_s"] for n in prior),
+            "attempts": {n: prior[n]["attempts"] for n in sorted(prior)},
+        },
+    }
+
+
+async def _generate_sessions(
+    plan: dict,
+    prior: dict[int, dict],
+    context: ArcGenerationContext,
+    arc_id: str,
+    audit_notes: dict[str, str],
+) -> dict | None:
+    for session_def in plan["sessions"]:
+        n = session_def["n"]
+        if n in prior:
+            continue
+        prior_sessions = [prior[k] for k in sorted(prior) if k < n]
+        base_note = audit_notes.get(str(n))
+        prompt_base = build_session_prompt(plan, n, prior_sessions, base_note)
+        failures: list[str] = []
+        all_failures: list[str] = []
+        for attempt in range(1, SESSION_ATTEMPTS + 1):
+            if attempt == 1:
+                prompt = prompt_base
+            else:
+                all_failures = merge_gate_failures(all_failures, failures)
+                combined = "\n".join(
+                    x for x in (base_note, corrective_note_for(all_failures)) if x
+                )
+                prompt = build_session_prompt(plan, n, prior_sessions, combined)
+            t0 = time.monotonic()
+            content, usage, retries = await call_writer_with_retry(
+                context.session_http, context.pool, prompt
+            )
+            wall_s = round(time.monotonic() - t0, 1)
+            parsed = parse_transcript(content)
+            failures = run_mechanical_gates(plan, n, parsed, prior_sessions)
+            context.counters["writer_calls"] += 1
+            context.counters["writer_retries"] += retries
+            context.counters["writer_tokens"] += usage.get("completion_tokens") or 0
+            if not failures:
+                break
+            dump_failed_attempt(arc_id, n, attempt, content, failures)
+            LOGGER.info(
+                f"  {arc_id} s{n} attempt {attempt} gates failed: "
+                f"{'; '.join(failures[:3])}"
+            )
+        if failures:
+            context.counters["gate_failures"] += 1
+            LOGGER.info(
+                f"  {arc_id} s{n}: GATE FAILURE after {SESSION_ATTEMPTS} attempts — "
+                "session left incomplete (will resume)"
+            )
+            return {"arc_id": arc_id, "status": "gate_failed",
+                    "session": n, "failures": failures}
+
+        facts = await extract_facts(
+            context.session_http, context.pool, plan["client"]["name"],
+            turns_from_parsed(parsed),
+        )
+        row = {
+            "arc_id": arc_id,
+            "n": n,
+            "session_n": n,
+            "writer_model": WRITER_MODEL,
+            "wall_s": wall_s,
+            "usage": usage,
+            "attempts": attempt,
+            "facts": facts,
+            "turns": turns_from_parsed(parsed),
+        }
+        context.counters["facts_calls"] += 1
+        context.counters["facts_tokens"] += row["usage"].get("completion_tokens") or 0
+        append_jsonl_fsync(context.out_paths["sessions"], row)
+        prior[n] = row
+        context.counters["sessions_done"] += 1
+        LOGGER.info(
+            f"  {arc_id} s{n}: OK — {len(parsed['client_lines'])}C/"
+            f"{len(parsed['therapist_lines'])}T, wall={wall_s}s, "
+            f"tokens={usage.get('completion_tokens')}"
+        )
+    return None
+
+
+async def generate_arc(plan: dict, context: ArcGenerationContext) -> dict | None:
     arc_id = plan["arc_id"]
-    prior: dict[int, dict] = checkpoint.get(arc_id, {})
-    if all(n in prior for n in [s["n"] for s in plan["sessions"]]):
+    prior: dict[int, dict] = context.checkpoint.get(arc_id, {})
+    if all(n in prior for n in (s["n"] for s in plan["sessions"])):
         return None  # already complete
 
-    async with semaphore:
-        audit_notes = load_audit_notes(arc_id)
-        for session_def in plan["sessions"]:
-            n = session_def["n"]
-            if n in prior:
-                continue
-            prior_sessions = [prior[k] for k in sorted(prior) if k < n]
-            base_note = audit_notes.get(str(n))
-            prompt_base = build_session_prompt(plan, n, prior_sessions, base_note)
-
-            failures: list[str] = []
-            all_failures: list[str] = []
-            for attempt in range(1, SESSION_ATTEMPTS + 1):
-                if attempt == 1:
-                    prompt = prompt_base
-                else:
-                    all_failures = merge_gate_failures(all_failures, failures)
-                    combined = "\n".join(
-                        x for x in (base_note, corrective_note_for(all_failures)) if x)
-                    prompt = build_session_prompt(plan, n, prior_sessions, combined)
-                t0 = time.monotonic()
-                content, usage, retries = await call_writer_with_retry(session_http, pool, prompt)
-                wall_s = round(time.monotonic() - t0, 1)
-                parsed = parse_transcript(content)
-                failures = run_mechanical_gates(plan, n, parsed, prior_sessions)
-                counters["writer_calls"] += 1
-                counters["writer_retries"] += retries
-                counters["writer_tokens"] += (usage.get("completion_tokens") or 0)
-                if not failures:
-                    break
-                dump_failed_attempt(arc_id, n, attempt, content, failures)
-                print(f"  {arc_id} s{n} attempt {attempt} gates failed: "
-                      f"{'; '.join(failures[:3])}", flush=True)
-            if failures:
-                counters["gate_failures"] += 1
-                print(f"  {arc_id} s{n}: GATE FAILURE after {SESSION_ATTEMPTS} attempts — "
-                      f"session left incomplete (will resume)", flush=True)
-                return {"arc_id": arc_id, "status": "gate_failed",
-                        "session": n, "failures": failures}
-
-            facts = await extract_facts(session_http, pool, plan["client"]["name"],
-                                        turns_from_parsed(parsed))
-            row = {
-                "arc_id": arc_id,
-                "n": n,
-                "session_n": n,
-                "writer_model": WRITER_MODEL,
-                "wall_s": wall_s,
-                "usage": usage,
-                "attempts": attempt,
-                "facts": facts,
-                "turns": turns_from_parsed(parsed),
-            }
-            counters["facts_calls"] += 1
-            counters["facts_tokens"] += row["usage"].get("completion_tokens") or 0
-            append_jsonl_fsync(out_paths["sessions"], row)
-            prior[n] = row
-            counters["sessions_done"] += 1
-            print(f"  {arc_id} s{n}: OK — {len(parsed['client_lines'])}C/"
-                  f"{len(parsed['therapist_lines'])}T, wall={wall_s}s, "
-                  f"tokens={usage.get('completion_tokens')}", flush=True)
-
-        # all sessions present — assemble final record (§9)
-        final_tl = None
-        for k in sorted(prior, reverse=True):
-            for t in reversed(prior[k]["turns"]):
-                if t.get("ledger"):
-                    final_tl = t["ledger"].get("tl")
-                    break
-            if final_tl:
-                break
-        record = {
-            "arc_id": arc_id,
-            "spec_version": 1,
-            "plan_path": f"training/arc_plans/{arc_id}.json",
-            "writer_model": WRITER_MODEL,
-            "auditor_model": None,
-            "audit": None,
-            "sessions": [
-                {"n": n, "turns": prior[n]["turns"]} for n in sorted(prior)
-            ],
-            "timeline_final": final_tl,
-            "beats_planned": plan["beats"],
-            "metrics": {
-                "sessions": len(prior),
-                "writer_tokens": sum(prior[n]["usage"].get("completion_tokens", 0) for n in prior),
-                "wall_s": sum(prior[n]["wall_s"] for n in prior),
-                "attempts": {n: prior[n]["attempts"] for n in sorted(prior)},
-            },
-        }
-        append_jsonl_fsync(out_paths["records"], record)
-        counters["arcs_done"] += 1
-        print(f"  {arc_id}: RECORD COMPLETE ({len(plan['sessions'])} sessions)", flush=True)
+    async with context.semaphore:
+        result = await _generate_sessions(
+            plan, prior, context, arc_id, load_audit_notes(arc_id)
+        )
+        if result:
+            return result
+        record = _render_arc_record(plan, prior)
+        append_jsonl_fsync(context.out_paths["records"], record)
+        context.counters["arcs_done"] += 1
+        LOGGER.info(f"  {arc_id}: RECORD COMPLETE ({len(plan['sessions'])} sessions)")
         return {"arc_id": arc_id, "status": "complete", "record": record}
 
 
@@ -1007,11 +1073,11 @@ async def main_async(args) -> None:
                 "sessions_done": 0, "arcs_done": 0, "gate_failures": 0}
 
     total_sessions = sum(len(p["sessions"]) for p in plans)
-    print(f"=== ARC GENERATOR ===", flush=True)
-    print(f"plans={len(plans)} sessions={total_sessions} model={WRITER_MODEL} "
-          f"thinking=off max_tokens={MAX_TOKENS} concurrency={args.concurrency}", flush=True)
-    print(f"resume: {sum(len(v) for v in checkpoint.values())} sessions already done", flush=True)
-    print(f"featherless: {pool.describe()}", flush=True)
+    LOGGER.info("=== ARC GENERATOR ===")
+    LOGGER.info(f"plans={len(plans)} sessions={total_sessions} model={WRITER_MODEL} "
+          f"thinking=off max_tokens={MAX_TOKENS} concurrency={args.concurrency}")
+    LOGGER.info(f"resume: {sum(len(v) for v in checkpoint.values())} sessions already done")
+    LOGGER.info(f"featherless: {pool.describe()}")
 
     run = _maybe_init_wandb({
         "writer_model": WRITER_MODEL, "thinking": False, "max_tokens": MAX_TOKENS,
@@ -1023,9 +1089,9 @@ async def main_async(args) -> None:
     t0 = time.monotonic()
     semaphore = asyncio.Semaphore(args.concurrency)
     async with aiohttp.ClientSession() as http:
+        context = ArcGenerationContext(checkpoint, out_paths, http, pool, semaphore, counters)
         results = await asyncio.gather(
-            *(generate_arc(p, checkpoint, out_paths, http, pool, semaphore, counters)
-              for p in plans),
+            *(generate_arc(plan, context) for plan in plans),
             return_exceptions=True,
         )
 
@@ -1038,10 +1104,10 @@ async def main_async(args) -> None:
     failed = [r for r in results if isinstance(r, Exception)]
     gate_failed = [r for r in results if isinstance(r, dict) and r.get("status") == "gate_failed"]
     for r in failed:
-        print(f"ERROR: {r}", flush=True)
-    print(f"\nDONE in {round(time.monotonic() - t0, 1)}s — sessions={counters['sessions_done']} "
+        LOGGER.info(f"ERROR: {r}")
+    LOGGER.info(f"\nDONE in {round(time.monotonic() - t0, 1)}s — sessions={counters['sessions_done']} "
           f"arcs={counters['arcs_done']} gate_failures={len(gate_failed)} errors={len(failed)} "
-          f"tokens={counters['writer_tokens']}", flush=True)
+          f"tokens={counters['writer_tokens']}")
     if failed or gate_failed:
         sys.exit(1)
 
