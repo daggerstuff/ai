@@ -23,10 +23,10 @@ sentencepiece==0.2.1
 h11==0.16.0
 python-dateutil==2.9.0.post0
 typing-inspection==0.4.1
-cryptography==50.0.1
+cryptography==50.0.2
 more-itertools==10.8.0
 pytz==2025.2
-anyio==4.14.2
+anyio==4.15.1
 trl==0.23.0
 nvidia-curand-cu12==10.3.9.90
 typing_extensions==4.15.0
@@ -34,7 +34,7 @@ black==26.3.1
 coloredlogs==15.0.1
 packaging==25.0
 pandas==3.0.0
-GitPython==3.1.62
+GitPython==3.2.0
 openai-whisper==20250625
 yarl==1.20.1
 pycparser==2.23
@@ -95,7 +95,7 @@ multidict==6.6.4
 PyYAML==6.0.2
 tzdata==2025.2
 idna==3.20
-urllib3==2.7.0
+urllib3==2.8.0
 nvidia-cudnn-cu12==9.10.2.21
 networkx==3.5
 iniconfig==2.1.0
@@ -128,7 +128,7 @@ python-magic==0.4.27
 av==15.1.0
 typer==0.19.2
 decorator==5.2.1
-PyJWT==2.13.0
+PyJWT==2.14.0
 datasets==4.0.0
 websockets==15.0.1
 onnxruntime==1.22.1
