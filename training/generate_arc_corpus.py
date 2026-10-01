@@ -63,6 +63,11 @@ FEATHERLESS_URL = os.environ.get(
     "ARC_WRITER_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
 )
 WRITER_MODEL = os.environ.get("ARC_WRITER_MODEL", "deepseek/deepseek-v4.1-flash")
+_REASONING_OFF = (
+    {"reasoning_effort": "none"}
+    if "cheaperinference.com" in FEATHERLESS_URL
+    else {}
+)
 MAX_TOKENS = int(os.environ.get("ARC_WRITER_MAX_TOKENS", "32768"))
 TEMPERATURE = float(os.environ.get("ARC_WRITER_TEMPERATURE", "0.45"))
 CALL_TIMEOUT = int(os.environ.get("ARC_WRITER_TIMEOUT", "900"))
@@ -321,6 +326,21 @@ def _fmt_carry_forward(prior_sessions: list[dict], plan: dict) -> str:
         blocks.extend(facts_lines)
     if last_ledger:
         blocks.append(f"Final ledger tl from last session: {last_ledger.get('tl', '')}")
+    # The tl_drift gate accumulates anchors across ALL prior-session ledgers
+    # (mid-session ones included). A regenerated prior session can introduce an
+    # anchor the last session's final ledger never carried (e.g. the audit note
+    # corrected a fabricated '-3w' into '-1w'), so the writer must be shown that
+    # anchor or the gate fails on something it was never told to hold.
+    gate_anchors: set[str] = set()
+    for ps in prior_sessions:
+        for t in ps["turns"]:
+            if t.get("ledger"):
+                gate_anchors |= _tl_anchor_keys(t["ledger"].get("tl", ""))
+    missing_anchors = gate_anchors - _tl_anchor_keys(last_ledger.get("tl", "")) if last_ledger else gate_anchors
+    if missing_anchors:
+        blocks.append("Ledger anchors established in prior sessions that this "
+                      "session's ledger must keep (append-only rule): "
+                      + ", ".join(sorted(missing_anchors)))
     gap = plan["sessions"][len(prior_sessions)]["gap_before"] or "some time"
     blocks.append(f"Time gap since last session: {gap}.")
     blocks.append("Continue the arc. The client's facts above are established "
@@ -419,6 +439,7 @@ async def call_writer(session: aiohttp.ClientSession, api_key: str,
         "max_tokens": MAX_TOKENS,
         "temperature": TEMPERATURE,
         "chat_template_kwargs": _THINKING_KWARG,
+        **_REASONING_OFF,
     }
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -498,6 +519,7 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
         "max_tokens": 4096,
         "temperature": 0.0,
         "chat_template_kwargs": _THINKING_KWARG,
+        **_REASONING_OFF,
         "response_format": {"type": "json_object"},
     }
     headers = {"Authorization": f"Bearer {pool.current()}",
@@ -737,7 +759,12 @@ def corrective_note_for(failures: list[str]) -> str:
         elif head == "calendar_dates":
             lines.append("- Replace calendar months/years with relative time ('three weeks ago', 'last spring').")
         elif head == "tl_drift":
-            lines.append("- The tl ledger is append-mostly: once an anchor appears, it persists in every later ledger (amended with a revision tag, never silently dropped).")
+            lines.append(
+                "- The tl ledger is append-mostly: once an anchor appears, it persists "
+                "in every later ledger (amended with a revision tag, never silently dropped). "
+                "Restore every specifically dropped anchor listed here: "
+                + f.split(":", 1)[1][:250]
+            )
         elif head == "beat_content":
             lines.append("- A planned beat is missing its exact client wording. "
                          "The client must say the quoted phrase verbatim at the beat's "
