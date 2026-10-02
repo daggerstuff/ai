@@ -6,9 +6,10 @@ lint_arc_plans.py before it is written; lint failures feed back into the
 prompt and retry. On completion the whole out-dir (including pilot plans)
 is linted as a batch, and a seed_map.jsonl records provenance.
 
-Transport: Vercel AI Gateway (KeyPool rotation on 429/402), same pattern as
-generate_arc_corpus.py. Model: ARC_PLAN_MODEL (default
-deepseek/deepseek-v4.1-flash).
+Transport: ARC_PLAN_URL (default api.cheaperinference.com), same KeyPool
+rotation-on-429/402 pattern as generate_arc_corpus.py. Model: ARC_PLAN_MODEL
+(default deepseek-v4.1-flash). Key: ARC_PLAN_KEY_ENV (default
+CHEAPERINFERENCE_API_KEY).
 
 Run (from ai/):
   /home/vivi/pixelated/.venv/bin/python training/build_arc_plans.py
@@ -42,8 +43,14 @@ from training.judge_edge_and_nightmare import record_key  # noqa: E402
 from training.lint_arc_plans import lint_batch, lint_plan  # noqa: E402
 
 PLAN_URL = os.environ.get(
-    "ARC_PLAN_URL", "https://ai-gateway.vercel.sh/v1/chat/completions")
-PLAN_MODEL = os.environ.get("ARC_PLAN_MODEL", "deepseek/deepseek-v4.1-flash")
+    "ARC_PLAN_URL", "https://api.cheaperinference.com/v1/chat/completions")
+PLAN_MODEL = os.environ.get("ARC_PLAN_MODEL", "deepseek-v4.1-flash")
+PLAN_KEY_ENV = os.environ.get("ARC_PLAN_KEY_ENV", "CHEAPERINFERENCE_API_KEY")
+PLAN_REASONING = (
+    {"reasoning_effort": "none"}
+    if "cheaperinference.com" in PLAN_URL
+    else {"chat_template_kwargs": {"thinking": False}}
+)
 MAX_TOKENS = int(os.environ.get("ARC_PLAN_MAX_TOKENS", "8192"))
 TEMPERATURE = float(os.environ.get("ARC_PLAN_TEMPERATURE", "0.3"))
 CALL_TIMEOUT = int(os.environ.get("ARC_PLAN_TIMEOUT", "300"))
@@ -310,7 +317,7 @@ async def call_planner(session: aiohttp.ClientSession, api_key: str,
         "max_tokens": MAX_TOKENS,
         "temperature": TEMPERATURE,
         "response_format": {"type": "json_object"},
-        "chat_template_kwargs": {"thinking": False},
+        **PLAN_REASONING,
     }
     headers = {"Authorization": f"Bearer {api_key}",
                "Content-Type": "application/json"}
@@ -589,8 +596,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    pool = KeyPool("AI_GATEWAY_API_KEY", "FEATHERLESS_API_KEY",
-                   "FEATHERLESS_API_KEY_2")
+    pool = KeyPool(PLAN_KEY_ENV)
     system = _system_prompt()
     jobs = [Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir,
                 args.retries + 1, system, args.variation)

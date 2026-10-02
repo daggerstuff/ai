@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import functools
 import json
 import logging
 import os
@@ -117,7 +118,14 @@ def load_done_keys(path: Path) -> tuple[set[str], int]:
     return done, infra_lines
 
 
-_JUDGE = DualModelQualityJudge()
+# Lazy singleton: building the default LLM client requires live gateway
+# credentials, so constructing this at import time breaks `pytest --collect-only`
+# and any module that imports `record_key` (build_arc_plans, tests). The judge
+# is only ever invoked from judge_record / main_async, which are CLI entry
+# points that already need credentials.
+@functools.lru_cache(maxsize=1)
+def _get_judge() -> DualModelQualityJudge:
+    return DualModelQualityJudge()
 
 
 async def judge_record(sem: asyncio.Semaphore, record: dict[str, Any]) -> dict[str, Any]:
@@ -141,7 +149,7 @@ async def judge_record(sem: asyncio.Semaphore, record: dict[str, Any]) -> dict[s
         }
     t0 = time.monotonic()
     async with sem:
-        result = await asyncio.to_thread(_JUDGE.judge, conversation)
+        result = await asyncio.to_thread(_get_judge().judge, conversation)
     latency = time.monotonic() - t0
     flags = result.get("flags", [])
     turn_scores = result.get("turn_scores", [])
