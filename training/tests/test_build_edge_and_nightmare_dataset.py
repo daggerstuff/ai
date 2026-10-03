@@ -32,6 +32,12 @@ _DESIGNER_EDGE_CASES = (
 _NUM_EDGE_FAMILIES = len(EDGE_CASE_DOMAINS)
 _MATRIX_SIZE = _NUM_EDGE_FAMILIES * len(DIFFICULTY_LEVELS) * len(AMBIGUITY_TYPES)
 
+# The authoritative taxonomy lives in the parent pixelated repo's Data
+# Designer config; the ai repo has no scripts/ tree. When the file is not
+# present (standalone CI checkout), the parity test is skipped — the sets
+# were verified equal at fix time (2026-10-03).
+_NEEDS_DESIGNER_CONFIG = _DESIGNER_EDGE_CASES.exists()
+
 
 def _designer_families() -> list[str]:
     """Extract the authoritative edge_family list from the Data Designer config."""
@@ -46,6 +52,10 @@ def _designer_families() -> list[str]:
 
 
 class TestTaxonomyMatchesDesigner:
+    @pytest.mark.skipif(
+        not _NEEDS_DESIGNER_CONFIG,
+        reason="parent repo's Data Designer config not present in standalone ai checkout",
+    )
     def test_ten_families_match_data_designer(self):
         designer = _designer_families()
         build = [d["family"] for d in EDGE_CASE_DOMAINS]
