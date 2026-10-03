@@ -77,6 +77,10 @@ _THINKING_KWARG = (
 )
 CONCURRENCY = int(os.environ.get("ARC_CONCURRENCY", "2"))
 SESSION_ATTEMPTS = int(os.environ.get("ARC_SESSION_ATTEMPTS", "3"))
+# Facts extraction is auxiliary output (failure just drops the facts list),
+# so it gets a generous token budget and no retry churn.
+FACTS_MAX_TOKENS = int(os.environ.get("ARC_FACTS_MAX_TOKENS", "8192"))
+FACTS_RETRY_LIMIT = int(os.environ.get("ARC_FACTS_RETRY_LIMIT", "1"))
 # Pacing tolerance is right-sized per session length (see _turn_tolerance):
 # the writer model cannot hit exact turn counts, so a fixed ±2 rejects clean
 # sessions over pacing variance alone.
@@ -516,7 +520,7 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
             {"role": "system", "content": FACTS_SYSTEM_PROMPT},
             {"role": "user", "content": f"Client {client_name} said:\n" + "\n".join(lines)},
         ],
-        "max_tokens": 4096,
+        "max_tokens": FACTS_MAX_TOKENS,
         "temperature": 0.0,
         "chat_template_kwargs": _THINKING_KWARG,
         **_REASONING_OFF,
@@ -525,7 +529,7 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
     headers = {"Authorization": f"Bearer {pool.current()}",
                "Content-Type": "application/json"}
     backoff = 5.0
-    for attempt in range(1, 4):
+    for attempt in range(1, FACTS_RETRY_LIMIT + 1):
         try:
             timeout = aiohttp.ClientTimeout(total=CALL_TIMEOUT)
             async with session.post(FEATHERLESS_URL, json=payload, headers=headers,
@@ -534,16 +538,19 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
                     raise TransientWriterError(f"http_{resp.status}")
                 data = await resp.json(content_type=None)
             choice = data["choices"][0]
-            if choice.get("finish_reason") != "stop" or not (choice.get("message", {}).get("content") or "").strip():
+            content = (choice.get("message", {}).get("content") or "").strip()
+            # Accept "length" as well as "stop": a truncated payload still
+            # contains parseable facts, and retrying a length-capped request
+            # re-spends tokens on the same doomed outcome.
+            if choice.get("finish_reason") not in ("stop", "length") or not content:
                 raise TransientWriterError("empty_or_unfinished")
-            content = choice["message"]["content"]
             facts = json.loads(content).get("facts", [])
             return [{"turn": int(f["turn"]), "fact": str(f["fact"])} for f in facts]
         except (TransientWriterError, aiohttp.ClientError, asyncio.TimeoutError,
                 KeyError, ValueError, json.JSONDecodeError) as e:
-            if attempt == 3:
-                print(f"    [facts-extract] failed after 3 attempts ({e}); "
-                      f"continuing without facts list", flush=True)
+            if attempt == FACTS_RETRY_LIMIT:
+                print(f"    [facts-extract] failed after {FACTS_RETRY_LIMIT} "
+                      f"attempt(s) ({e}); continuing without facts list", flush=True)
                 return []
             if isinstance(e, TransientWriterError) and is_rotate_status(e) and len(pool) > 1:
                 pool.rotate()
