@@ -179,7 +179,9 @@ def _build_training_args(args: argparse.Namespace):
         "save_strategy": "epoch",
         "save_total_limit": args.save_total_limit,
         "remove_unused_columns": False,
-        "warmup_ratio": args.warmup_ratio,
+        # warmup_steps accepts a float in [0, 1) as a ratio of total steps
+        # (the warmup_ratio semantic); the ratio kwarg no longer exists.
+        "warmup_steps": args.warmup_ratio,
         "lr_scheduler_type": args.lr_scheduler_type,
         "gradient_checkpointing": args.gradient_checkpointing,
         "report_to": "wandb" if args.wandb_project else "none",
@@ -205,7 +207,16 @@ def _build_training_args(args: argparse.Namespace):
     except TypeError:
         sig = inspect.signature(ORPOConfig.__init__)
         supported = {k: v for k, v in kwargs.items() if k in sig.parameters}
-        return ORPOConfig(**supported)
+        kwargs = supported
+    except ValueError as e:
+        # trl's config defaults bf16=True when fp16 is unset; on CPU-only
+        # hosts (CI) transformers then refuses to build. Fall back to
+        # explicit bf16=False — mixed precision is a GPU concern, and the
+        # trainer still runs fp32.
+        if "bf16" not in str(e):
+            raise
+        kwargs["bf16"] = False
+    return ORPOConfig(**kwargs)
 
 
 def _setup_wandb(args: argparse.Namespace) -> dict[str, Any] | None:
@@ -457,7 +468,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--gradient_checkpointing",
         action="store_true",
         default=False,
-        help="Enable gradient checkpointing (~30% compute for memory).",
+        help="Enable gradient checkpointing (about 30 percent compute for memory).",
     )
     parser.add_argument(
         "--flash_attention",

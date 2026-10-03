@@ -69,6 +69,10 @@ def _lora_config(**kwargs: object) -> SimpleNamespace:
 
 
 _mock_peft = MagicMock()
+# transformers calls importlib.util.find_spec("peft") via is_peft_available();
+# a plain MagicMock raises AttributeError for dunder access, which surfaces
+# as "peft.__spec__ is not set" during module reload.
+_mock_peft.__spec__ = importlib.util.spec_from_loader("peft", loader=None)
 _mock_peft.prepare_model_for_kbit_training = lambda model: model
 _mock_peft.LoraConfig = _lora_config
 sys.modules["peft"] = _mock_peft
@@ -154,9 +158,21 @@ class TestORPOIntegration:
 
         Yields ``(trainer_instance, entered)`` where ``entered`` maps mock
         keys to the entered patch objects (for call assertions).
+
+        Re-clobbers ``sys.modules["trl"]``/``["peft"]`` with the mocks:
+        conftest's ``pytest_collectstart`` restores the real packages at
+        collector boundaries (including class collectors), which can land
+        between this module's import-time clobber and the test body — the
+        reload below must see mocks, not the restored real packages
+        (real trl/peft on a MagicMock model recurses in mock attribute
+        generation and hangs).
         """
         trainer_cls = MagicMock()
         config_cls = MagicMock()
+        sys.modules["trl"] = _mock_trl
+        sys.modules["trl.experimental"] = _mock_trl.experimental
+        sys.modules["trl.experimental.orpo"] = _mock_trl.experimental.orpo
+        sys.modules["peft"] = _mock_peft
         _mock_trl.ORPOTrainer = trainer_cls
         _mock_trl.ORPOConfig = config_cls
 
