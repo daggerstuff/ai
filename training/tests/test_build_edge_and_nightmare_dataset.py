@@ -96,13 +96,12 @@ class TestProcessRecord:
     async def test_none_skips(self, monkeypatch):
         guard = self._guard()
         fout = io.StringIO()
-        session = MagicMock()
 
         async def _judge(_rec, **_kwargs):
             return self._verdict(True)
 
         monkeypatch.setattr(dual_judge, "judge_record_turns", _judge)
-        dg, dr = await _process_record(None, guard, fout, session)
+        dg, dr = await _process_record(None, guard, fout)
         assert (dg, dr) == (0, 0)
         assert guard.record.call_count == 0
         assert fout.getvalue() == ""
@@ -112,14 +111,13 @@ class TestProcessRecord:
         guard = self._guard()
         fout_path = tmp_path / "out.jsonl"
         fout = fout_path.open("a", encoding="utf-8")
-        session = MagicMock()
 
         async def _judge(_rec, **_kwargs):
             return self._verdict(True)
 
         monkeypatch.setattr(dual_judge, "judge_record_turns", _judge)
         rec = {"family": "substance use", "messages": [{"role": "user", "content": "x"}]}
-        dg, dr = await _process_record(rec, guard, fout, session)
+        dg, dr = await _process_record(rec, guard, fout)
         fout.close()
         assert (dg, dr) == (1, 0)
         guard.record.assert_called_once_with()
@@ -129,7 +127,6 @@ class TestProcessRecord:
     async def test_rejected_record_counted_but_not_written(self, monkeypatch):
         guard = self._guard()
         fout = io.StringIO()
-        session = MagicMock()
 
         async def _judge(_rec, **_kwargs):
             return self._verdict(False, "banned_sycophantic_opener")
@@ -141,7 +138,7 @@ class TestProcessRecord:
                 {"role": "assistant", "content": "It sounds like you're hurting yourself."},
             ],
         }
-        dg, dr = await _process_record(rec, guard, fout, session)
+        dg, dr = await _process_record(rec, guard, fout)
         assert (dg, dr) == (0, 1)
         guard.record.assert_called_once_with()
         assert fout.getvalue() == ""
