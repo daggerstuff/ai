@@ -11,7 +11,7 @@ Validates:
 
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import json
 import logging
 import sys
