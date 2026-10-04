@@ -65,7 +65,10 @@ FEATHERLESS_URL = os.environ.get(
 WRITER_MODEL = os.environ.get("ARC_WRITER_MODEL", "deepseek/deepseek-v4.1-flash")
 _REASONING_OFF = (
     {"reasoning_effort": "none"}
-    if "cheaperinference.com" in FEATHERLESS_URL
+    if any(
+        provider in FEATHERLESS_URL
+        for provider in ("cheaperinference.com", "integrate.api.nvidia.com")
+    )
     else {}
 )
 MAX_TOKENS = int(os.environ.get("ARC_WRITER_MAX_TOKENS", "32768"))
