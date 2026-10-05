@@ -112,7 +112,25 @@ def is_sycophantic(text: str) -> tuple[bool, str]:
         (ROBOTIC_SOMATIC_PHRASES, "robotic_somatic_cliche"),
     )
     for phrases, reason_tag in checks:
-        matched = next((p for p in phrases if p in t_lower), None)
+        matched = next(
+            (
+                phrase
+                for phrase in phrases
+                if phrase in t_lower
+                and not (
+                    phrase == "i'll stop"
+                    and any(
+                        boundary in t_lower
+                        for boundary in (
+                            "i'll stop the exercise",
+                            "i'll stop asking you to reassure me",
+                            "i'll stop asking you to reassure",
+                        )
+                    )
+                )
+            ),
+            None,
+        )
         if matched is not None:
             return True, f"{reason_tag}: '{matched}'"
 
@@ -131,7 +149,10 @@ def reject_reason_for_record(record: Any, *, family: str = "") -> str | None:
         role = str(message.get("role", "")).lower().strip()
         if role not in ASSISTANT_ROLES:
             continue
-        is_bad, reason = is_sycophantic(str(message.get("content", "")))
+        content = str(message.get("content", ""))
+        if content.startswith("{") and "\n" in content:
+            content = content.split("\n", 1)[1]
+        is_bad, reason = is_sycophantic(content)
         if is_bad:
             return f"{reason} (family={family})" if family else reason
     return None

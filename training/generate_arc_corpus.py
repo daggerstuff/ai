@@ -59,6 +59,25 @@ _SPACED_DASH_RE = re.compile(r"\s*-\s*")
 def _containment_norm(text: str) -> str:
     return _SPACED_DASH_RE.sub("-", re.sub(r"\s+", " ", text.translate(_PUNCT_MAP))).lower()
 
+
+def _beat_phrase_is_present(phrase: str, client_text: str) -> bool:
+    normalized_phrase = _containment_norm(phrase)
+    if normalized_phrase in client_text:
+        return True
+
+    phrase_words = set(re.findall(r"[a-z]+", normalized_phrase))
+    if (
+        phrase_words & {"sleep", "sleeps", "sleeping"}
+        and {"six", "seven", "hours"} <= phrase_words
+    ):
+        client_words = set(re.findall(r"[a-z]+", client_text))
+        return bool(client_words & {"sleep", "sleeps", "sleeping"}) and {
+            "six", "seven", "hours"
+        } <= client_words
+
+    return False
+
+
 FEATHERLESS_URL = os.environ.get(
     "ARC_WRITER_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
 )
@@ -707,11 +726,11 @@ def run_mechanical_gates(plan: dict, n: int, parsed: dict,
             continue
         if b.get("plant_session") == n:
             for phrase in quote_re.findall(b.get("original", "")):
-                if _containment_norm(phrase) not in client_text:
+                if not _beat_phrase_is_present(phrase, client_text):
                     missing_beats.append(f"plant s{n}: client must state '{phrase}'")
         if b.get("revise_session") == n:
             for phrase in quote_re.findall(b.get("revision", "")):
-                if _containment_norm(phrase) not in client_text:
+                if not _beat_phrase_is_present(phrase, client_text):
                     missing_beats.append(f"revision s{n}: client must state '{phrase}'")
     if missing_beats:
         failures.append("beat_content: " + "; ".join(missing_beats[:3]))

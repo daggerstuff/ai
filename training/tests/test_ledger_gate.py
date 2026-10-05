@@ -614,3 +614,57 @@ def test_beat_quote_paraphrase_still_fails() -> None:
     )
     failures = run_mechanical_gates(plan, 2, parsed, [])
     assert any(f.startswith("beat_content") for f in failures)
+
+
+def test_arc_0224_sleep_claim_allows_first_person_wording() -> None:
+    plan = _session_plan(1, 2)
+    plan["beats"] = [
+        {
+            "type": "misstatement",
+            "plant_session": 1,
+            "plant_turn": 4,
+            "original": "claims she 'sleeps a solid six, maybe seven hours, always has'",
+        }
+    ]
+    parsed = _transcript(
+        [
+            ("C", "I sleep a solid six, maybe seven hours, always has."),
+            ("T|THINK", _ledger()),
+            ("T", "Six or seven and you're still dragging."),
+        ]
+    )
+    assert run_mechanical_gates(plan, 1, parsed, []) == []
+
+
+def test_arc_0224_sleep_claim_still_requires_both_quantities() -> None:
+    plan = _session_plan(1, 2)
+    plan["beats"] = [
+        {
+            "type": "misstatement",
+            "plant_session": 1,
+            "plant_turn": 4,
+            "original": "claims she 'sleeps a solid six, maybe seven hours, always has'",
+        }
+    ]
+    parsed = _transcript(
+        [
+            ("C", "I sleep six hours most nights."),
+            ("T|THINK", _ledger()),
+            ("T", "How long has that been true?"),
+        ]
+    )
+    failures = run_mechanical_gates(plan, 1, parsed, [])
+    assert any(f.startswith("beat_content") for f in failures)
+
+
+def test_sleep_gate_does_not_relax_unrelated_beat_phrases() -> None:
+    plan = _beats_plan(2, "sleeping six hours is hard")
+    parsed = _transcript(
+        [
+            ("C", "Sleep six hours. That sounds difficult."),
+            ("T|THINK", _ledger()),
+            ("T", "Tell me more."),
+        ]
+    )
+    failures = run_mechanical_gates(plan, 2, parsed, [])
+    assert any(f.startswith("beat_content") for f in failures)
