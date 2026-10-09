@@ -243,7 +243,6 @@ def _session_pairs(
     """Superseded-snapshot transcript vs accepted current transcript."""
     accepted = {a for a, r in records.items() if _verdict(r) == "accept"}
     snapshot = _load_checkpoint(snapshot_path)
-    priors_cache: dict[str, list[dict[str, Any]]] = {}
     pairs: list[dict[str, Any]] = []
     for (arc_id, n), row in sorted(snapshot.items()):
         if arc_id not in accepted or (arc_id, n) not in current:
@@ -258,16 +257,8 @@ def _session_pairs(
         plan = _load_plan(arc_id)
         if plan is None:
             continue
-        if arc_id not in priors_cache:
-            priors_cache[arc_id] = [
-                r for (_, sn), r in sorted((k, v) for k, v in current.items() if k[0] == arc_id) if sn < n
-            ]
-        priors_cache[arc_id] = [
-            r
-            for r in priors_cache[arc_id]
-            if ((sn := r.get("n") or r.get("session_n")) is not None and isinstance(sn, int) and sn < n)
-        ]
-        prompt = _session_brief(plan, n, priors_cache[arc_id], with_system)
+        priors = [r for (aid, sn), r in sorted(current.items()) if aid == arc_id and sn < n]
+        prompt = _session_brief(plan, n, priors, with_system)
         defect = _flag_sessions(records[arc_id]).get(n, [])
         pairs.append(
             {

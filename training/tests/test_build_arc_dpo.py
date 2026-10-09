@@ -182,6 +182,40 @@ class TestSessionPairs:
         assert p["metadata"]["defect"] == ["fabrication"]
         assert p["metadata"]["rejected_source"] == ".pre_test"
 
+    def test_session_three_prompt_includes_session_two_prior(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        captured: dict[int, list[str]] = {}
+        current = {
+            ("arc_9001", n): {"turns": _turns(f"good{n}", 3), "writer_model": "w1"}
+            for n in (1, 2, 3)
+        }
+        snapshot = tmp_path / ".pre_multisession"
+        snapshot.mkdir()
+        _write_checkpoint(
+            snapshot / "sessions_checkpoint.jsonl",
+            [
+                {"arc_id": "arc_9001", "session_n": n, "turns": _turns(f"old{n}", 3)}
+                for n in (2, 3)
+            ],
+        )
+        monkeypatch.setattr(bd, "_load_plan", lambda _arc_id: dict(PLAN))
+
+        def capture_brief(_plan: dict[str, Any], n: int, priors: list[dict[str, Any]], _with_system: bool) -> str:
+            captured[n] = [str(row["turns"][0]["content"]) for row in priors]
+            return "test prompt"
+
+        monkeypatch.setattr(bd, "_session_brief", capture_brief)
+        pairs = bd._session_pairs(
+            {"arc_9001": _accept_record("arc_9001")},
+            current,
+            snapshot / "sessions_checkpoint.jsonl",
+            True,
+        )
+
+        assert len(pairs) == len(captured)
+        assert captured == {2: ["good1 client 0"], 3: ["good1 client 0", "good2 client 0"]}
+
     def test_identical_transcripts_skipped(self, tmp_path: Path) -> None:
         snap = tmp_path / ".pre_same"
         snap.mkdir()
