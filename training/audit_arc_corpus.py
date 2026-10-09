@@ -171,6 +171,22 @@ class TransientAuditError(Exception):
     pass
 
 
+async def _chat_json(resp) -> dict:
+    """Parse a chat-completions HTTP body. The 9router gateway appends an
+    SSE-style `data: [DONE]` trailer after the JSON object, so plain
+    json.loads/resp.json() raise "Extra data" on every response. Decode the
+    first JSON value and ignore trailing bytes; an unparseable 200 body is a
+    transient gateway anomaly, not a config error."""
+    text = await resp.text()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        try:
+            return json.JSONDecoder().raw_decode(text.lstrip())[0]
+        except ValueError as e:
+            raise TransientAuditError(f"unparseable_body: {text[:120]!r}") from e
+
+
 async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
                        user_prompt: str) -> dict:
     backoff = 5.0
@@ -202,7 +218,7 @@ async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
                     if resp.status != 200:
                         body = await resp.text()
                         raise TransientAuditError(f"http_{resp.status}: {body[:200]}")
-                    data = await resp.json(content_type=None)
+                    data = await _chat_json(resp)
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 raise TransientAuditError(f"transport_error: {type(e).__name__}") from e
 

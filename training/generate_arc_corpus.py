@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import json
 import os
+import random
 import re
 import sys
 import time
@@ -93,6 +94,12 @@ _REASONING_OFF = (
 MAX_TOKENS = int(os.environ.get("ARC_WRITER_MAX_TOKENS", "32768"))
 TEMPERATURE = float(os.environ.get("ARC_WRITER_TEMPERATURE", "0.45"))
 CALL_TIMEOUT = int(os.environ.get("ARC_WRITER_TIMEOUT", "900"))
+# Retry ladder is env-tunable: the 9router cloudflare-ai upstream drops
+# connections in multi-minute waves behind a circuit breaker ("reset after
+# Ns"), so routed runs set a patient ladder via ARC_WRITER_* in .env.
+CALL_ATTEMPTS = max(1, int(os.environ.get("ARC_WRITER_ATTEMPTS", "4")))
+BACKOFF_BASE = float(os.environ.get("ARC_WRITER_BACKOFF", "5.0"))
+BACKOFF_CAP = float(os.environ.get("ARC_WRITER_BACKOFF_CAP", "40.0"))
 # DeepSeek templates read "thinking"; Qwen3 templates read "enable_thinking".
 _THINKING_KWARG = (
     {"enable_thinking": False} if "qwen" in WRITER_MODEL.lower() else {"thinking": False}
@@ -452,6 +459,22 @@ class TransientWriterError(Exception):
     pass
 
 
+async def _chat_json(resp) -> dict:
+    """Parse a chat-completions HTTP body. The 9router gateway appends an
+    SSE-style `data: [DONE]` trailer after the JSON object, so plain
+    json.loads/resp.json() raise "Extra data" on every response. Decode the
+    first JSON value and ignore trailing bytes; an unparseable 200 body is a
+    transient gateway anomaly, not a config error."""
+    text = await resp.text()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        try:
+            return json.JSONDecoder().raw_decode(text.lstrip())[0]
+        except ValueError as e:
+            raise TransientWriterError(f"unparseable_body: {text[:120]!r}") from e
+
+
 async def call_writer(session: aiohttp.ClientSession, api_key: str,
                       user_prompt: str) -> tuple[str, dict]:
     """Single attempt. Raises TransientWriterError on retryable failures,
@@ -481,7 +504,7 @@ async def call_writer(session: aiohttp.ClientSession, api_key: str,
                 raise RuntimeError(f"writer config error http_{status}: {body[:300]}")
             if status != 200:
                 raise TransientWriterError(f"http_{status}")
-            data = await resp.json(content_type=None)
+            data = await _chat_json(resp)
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         raise TransientWriterError(f"transport_error: {type(e).__name__}") from e
 
@@ -498,14 +521,14 @@ async def call_writer(session: aiohttp.ClientSession, api_key: str,
 
 async def call_writer_with_retry(session: aiohttp.ClientSession, pool: "KeyPool",
                                  user_prompt: str) -> tuple[str, dict, int]:
-    backoff = 5.0
+    backoff = BACKOFF_BASE
     retries = 0
-    for attempt in range(1, 5):
+    for attempt in range(1, CALL_ATTEMPTS + 1):
         try:
             content, usage = await call_writer(session, pool.current(), user_prompt)
             return content, usage, retries
         except TransientWriterError as e:
-            if attempt == 4:
+            if attempt == CALL_ATTEMPTS:
                 raise
             retries += 1
             if is_rotate_status(e) and len(pool) > 1:
@@ -513,8 +536,13 @@ async def call_writer_with_retry(session: aiohttp.ClientSession, pool: "KeyPool"
                 print(f"    [key-rotate] {e} — switched to ...{pool.current()[-8:]}",
                       flush=True)
             print(f"    [retry] transient writer error ({e}); backoff {backoff:.0f}s", flush=True)
-            await asyncio.sleep(backoff)
-            backoff = min(backoff * 2, 40.0)
+            # Jitter: three concurrent slots retry in lockstep, so the
+            # router's per-model circuit breaker (30s lock after a connect
+            # failure) swallows every retry as an instant 503 and burns a
+            # ladder attempt. Staggered retries land real connect attempts
+            # once the lock expires.
+            await asyncio.sleep(backoff * (0.75 + 0.5 * random.random()))
+            backoff = min(backoff * 2, BACKOFF_CAP)
     raise TransientWriterError("unreachable")  # pragma: no cover
 
 
@@ -558,7 +586,7 @@ async def extract_facts(session: aiohttp.ClientSession, pool: "KeyPool",
                                     timeout=timeout) as resp:
                 if resp.status != 200:
                     raise TransientWriterError(f"http_{resp.status}")
-                data = await resp.json(content_type=None)
+                data = await _chat_json(resp)
             choice = data["choices"][0]
             content = (choice.get("message", {}).get("content") or "").strip()
             # Accept "length" as well as "stop": a truncated payload still

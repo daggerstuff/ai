@@ -238,6 +238,9 @@ ignore = []
 "training/benchmark.py" = [
     "T201",
 ]
+"training/eval_clef.py" = [
+    "T201",
+]
 "training/curate_pipeline.py" = [
     "T201",
     "PLR2004",
