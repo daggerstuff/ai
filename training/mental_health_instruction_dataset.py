@@ -26,6 +26,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent.parent / "data" / "mental_health_ift"
+
 
 class MentalHealthTaskType(str, Enum):
     SYMPTOM_CLASSIFICATION = "symptom_classification"
@@ -380,7 +382,7 @@ def _write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
 
 
 def build_default_dataset(
-    output_dir: str | Path = "./ai/data/mental_health_ift", min_examples: int = 10000
+    output_dir: str | Path = _DEFAULT_OUTPUT_DIR, min_examples: int = 10000
 ) -> tuple[Path, Path]:
     """Build a default mental health IFT dataset, augmenting seed data to reach min_examples."""
     builder = MentalHealthInstructionDatasetBuilder()

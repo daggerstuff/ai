@@ -12,9 +12,10 @@ from training.nightmare_fuel_generator import main_async
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("run_nf")
 
-CHECKPOINT_DIR = "ai/training/output/nightmare_fuel/checkpoints"
-SURVIVORS_FILE = "ai/training/output/nightmare_fuel/survivors.jsonl"
-OUT_MASTER = "ai/data/curated/sft_chatml/train_master_gold.jsonl"
+_AI_ROOT = Path(__file__).resolve().parent.parent
+CHECKPOINT_DIR = str(_AI_ROOT / "training" / "output" / "nightmare_fuel" / "checkpoints")
+SURVIVORS_FILE = str(_AI_ROOT / "training" / "output" / "nightmare_fuel" / "survivors.jsonl")
+OUT_MASTER = str(_AI_ROOT / "data" / "curated" / "sft_chatml" / "train_master_gold.jsonl")
 
 async def run():
     logger.info("Starting Nightmare Fuel Generation & Dual-Judge Gating...")

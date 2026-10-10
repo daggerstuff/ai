@@ -1,9 +1,8 @@
 """Training pipelines package.
 
 Bootstraps the repository root onto ``sys.path`` (appended, last-resort) so
-absolute ``ai.research.*`` imports resolve when running under the ``ai/``-local
-virtualenv (``uv run`` from ``ai/``), whose editable mapping points ``ai`` at
-the nested ``ai/ai`` directory instead of this package.
+absolute ``ai.*`` imports resolve when running under the ``ai/``-local
+virtualenv (``uv run`` from ``ai/``).
 """
 
 import sys

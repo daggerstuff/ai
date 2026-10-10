@@ -93,6 +93,7 @@ dependencies = [
     "detoxify>=0.5.2",
     "datasketch>=1.6.0",
     "wandb>=0.29.0",
+    "fireworks-ai>=1.2.22",
 ]
 
 [project.optional-dependencies]
@@ -117,12 +118,23 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = [
-    ".",
-]
-include = [
-    "*",
+[tool.setuptools]
+package-dir = {"ai" = "."}
+packages = [
+    "ai",
+    "configs",
+    "ehr",
+    "inference",
+    "models",
+    "monitoring",
+    "pipelines",
+    "pkg_mera",
+    "prompts",
+    "qa",
+    "research",
+    "sourcing",
+    "tools",
+    "training",
 ]
 
 [tool.uv]
