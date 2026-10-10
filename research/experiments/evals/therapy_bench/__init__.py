@@ -1,1 +1,0 @@
-# Therapy bench evaluation package
