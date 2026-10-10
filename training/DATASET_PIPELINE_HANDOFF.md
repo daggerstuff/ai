@@ -1,6 +1,6 @@
 # Dataset Pipeline Handoff
 
-**Updated:** October 9, 2026 (06:55 UTC: 17-session checkpoint restoration, attempt-pair resync, superseded-pair cleanup)  
+**Updated:** October 9, 2026 (18:30 UTC: post-completion consolidation (+58 gold, 2 structural rejects), DPO resync (+126 pairs), final coverage reconciliation)  
 **Workspace:** `/home/vivi/pixelated` (`staging`); AI submodule `ai/` at `b8d4ce6cb` (`staging`)  
 **Purpose:** Give the next agent a verified handoff for continuing the arc-corpus dataset work and choosing the next useful task in the broader training-data pipeline.
 
@@ -119,7 +119,50 @@ Source-derived checks for the next authorized pass (not findings about current p
 - Fix the confirmed `_session_pairs` cache defect in separately scoped remediation with a multi-session regression test; investigate the three attempt-mode context gaps against historical sources. No builder change or historical-pair correction was made here.
 - Rendering includes `[T|THINK]` only when a ledger is a dictionary and does not itself enforce the specification's nine-field contract. After writer completion/audit, compare approved plan/session expectations, latest accepted records and gold provenance/content, including ledger retention before every therapist turn, superseded versions and duplicate arc/session keys. Keep mechanical retention checks distinct from clinical ledger-faithfulness judgments (`ARC_CORPUS_SPEC.md` §§4, 7).
 
-**Selected next task (updated 07:00 UTC):** the checkpoint divergence is restored, the pair file is resynced and certified (see the restoration and certification sections below), so the remaining Step 2 items are: (1) let the writer finish its last 5 regeneration targets (`arc_0143`, `arc_0146`, `arc_0164`, `arc_0196`, `arc_0205`) or stop it by owner decision — it is actively completing records but still hitting HTTP 503 retries; (2) establish all-writer quiescence and audit the completed regeneration output (19 `audit: null` records await K3 audit); (3) re-evaluate the stale/missing case pairs against completed inputs; (4) obtain explicit dataset close-out. Dataset close-out has **not** been obtained; remaining audits and reviews block Fireworks stages.
+**Selected next task (updated 18:30 UTC):** the writer pipeline has **completed** — all 25 regeneration targets now have records, the relauncher exited, and 232/235 arcs carry `accept` verdicts (3 remain `hr`: `arc_0105`, `arc_0128`, `arc_0165`, each with no accepted partner for its seed key). The blocked Step 2 work was executed: post-completion consolidation appended **58 new sessions** to gold (189,724 total) with **2 structural rejects** (`arc_0052` s1, `arc_0144` s2 — consecutive therapist turns, see section below), and the DPO pair file was resynced with **126 new pairs** (681 total, 0 hash/duplicate failures, dry-run emits 0). Remaining items: (1) owner review of the 2 structural rejects (fix, regenerate, or accept exclusion); (2) decision on the 3 HR arcs (regenerate or accept exclusion); (3) case-pair refresh decision (7 rejected sides stale vs. current checkpoint); (4) explicit dataset close-out. Dataset close-out has **not** been obtained; these decisions block Fireworks stages.
+
+## Post-completion consolidation and DPO resync (October 9, 18:00–18:30 UTC)
+
+The regeneration writer pipeline **completed** before this pass: all 25 target arcs have records, the relauncher/watcher processes exited, and the last records/checkpoint writes were 17:07:58 / 16:54:29 UTC. Verdict distribution: **232 arcs `accept`, 3 arcs `hr`** (`arc_0105`, `arc_0128`, `arc_0165`). No writer processes were running during this pass (verified via process scan).
+
+### Consolidation (18:17 UTC)
+
+Backup first: `ai/data/curated/sft_chatml/train_master_gold.jsonl.pre_consolidation_20261009T181727Z` (397,286,656 bytes). The real run then appended **58 new sessions** to gold:
+
+- **Before:** 189,666 gold lines, 0 reject lines. **After:** **189,724 gold lines**, reject log **2 lines** (delta +58 gold, +2 rejects).
+- Dry-run summary before the run: 235 scanned arcs, 567 scanned sessions, 3 skipped by verdict (`hr`), 58 emitted, 507 duplicates, 0 content rejects, 2 structural rejects.
+- The 58 new sessions span 22 arcs (`arc_0006`, `arc_0010`, `arc_0012`, `arc_0052`, `arc_0063`, `arc_0067`, `arc_0073`, `arc_0074`, `arc_0075`, `arc_0078`, `arc_0085`, `arc_0108`, `arc_0124`, `arc_0140`, `arc_0143`, `arc_0144`, `arc_0146`, `arc_0151`, `arc_0158`, `arc_0164`, `arc_0196`, `arc_0205`) — the writer's 25-target arcs minus the 3 `hr` arcs and the 2 structurally invalid sessions.
+- Post-run dry-run: **0 emitted**, 565 duplicates, 2 structural rejects — idempotent, no further emission.
+- Focused consolidation tests: **14 passed** (1.12s).
+- Post-verification: all 58 new gold rows present exactly once, all `accept` verdicts, `consolidated_at` 2026-10-09T18:17:32.018–106Z. Gold arc rows now **565** (565 unique keys, 0 duplicates). Gold arc writer models now include `cf/@cf/deepseek-ai/deepseek-v4-flash-0731` (45 rows) and `cx/gpt-6-astra` (13 rows) from the regeneration run.
+
+### Structural rejects (2 sessions)
+
+`arc_0052` s1 and `arc_0144` s2 each contain **one consecutive-therapist-turn pair** (writer artifact: two therapist beats with different `track` labels and no client turn between). `_session_messages` rejects these by design; they landed in `consolidation_rejections.jsonl` with reason `invalid_session: consecutive therapist turns`.
+
+- These 2 sessions are the only gap between 567 accepted record sessions and 565 gold rows; every other accepted session is in gold exactly once.
+- **9 existing DPO pairs use these sessions as their chosen side** (4 session-mode superseded-version pairs for `arc_0052` s1 from four historical snapshots, 4 attempt pairs for `arc_0052` s1, 1 attempt pair for `arc_0144` s2). Their chosen text matches the current checkpoint render (the builder's `_render_session` tolerates consecutive therapist turns; the consolidation mapping does not). The pairs remain internally consistent; the question is whether the underlying sessions should be fixed (merge the two beats or insert the missing client turn), regenerated, or excluded — an owner decision.
+- The 3 `hr` arcs (`arc_0105`, `arc_0128`, `arc_0165`) are skipped by verdict and have **no accepted partner** for their seed keys (each key maps to a single arc), so they produce no case pairs. Their 9 checkpoint rows are intentionally excluded from gold.
+
+### DPO resync (18:24–18:25 UTC)
+
+Backup first: `arc_dpo_pairs.jsonl.pre_dpo_resync_20261009T182459Z` (39,979,336 bytes, 555 lines). The real builder run then appended **126 new pairs**:
+
+- Breakdown (from a dry-run decomposition using the builder's own functions): **27 session-mode** pairs (new superseded-version comparisons against the 8 `.pre*` snapshots for the newly-accepted arcs) and **99 attempt-mode** pairs (new failed attempts from the regeneration run). 0 case pairs (the 3 `hr` arcs have no accepted partners; the 15 existing case pairs are unchanged).
+- New pairs span 20 arcs, led by `arc_0052` (15), `arc_0006` (13), `arc_0012` (11).
+- **Post-resync integrity (681 pairs): 0 parse errors, 0 missing fields, 0 hash mismatches, 0 duplicate hashes.** Modes: 469 attempt, 197 session, 15 case.
+- Post-resync dry-run: `built=776, emitted=0, duplicates=776` — pair file in sync with the builder.
+- Focused builder tests: **27 passed** (1.63s).
+- Case pairs re-checked: all **15 chosen sides** still byte-match the current checkpoint render of their accepted sessions (builder `_render_session`); **8 rejected sides** match their named source's current checkpoint render; **7 are stale** (the source session changed after the pair was built — `arc_0196`, `arc_0067`, `arc_0206`, `arc_0218`, `arc_0006`, `arc_0216`, `arc_0143`). Refreshing them would require an owner-approved rewrite; they remain internally consistent as historical evidence.
+
+### Final coverage reconciliation (read-only, 18:20–18:28 UTC)
+
+- **Accepted record sessions (567) → checkpoint: complete** (0 missing; 576 checkpoint rows = 567 accepted + 9 `hr` rows).
+- **Accepted record sessions → gold: 565/567** — the only 2 missing are the structural rejects above (by design).
+- **Gold → records: complete** — 0 gold rows reference a non-accepted arc (the 3 `hr` arcs contributed 0 gold rows).
+- **Session/attempt pairs → accepted arcs: complete** — 0 pairs reference a non-accepted arc.
+- **Checkpoint orphans:** 9 rows for the 3 `hr` arcs (intentional; excluded from gold and pairs).
+- Git status in both `ai/` and the parent repo: clean; `git diff --check` clean. Unrelated edits from earlier sessions appear to have been committed separately (AI submodule now at `47010b60`).
 
 ## October 9 morning progress (04:15–05:25 UTC)
 
@@ -204,7 +247,14 @@ The larger goal is high-quality, provenance-preserving clinical dialogue trainin
 - [x] Run focused consolidation tests (14 passed).
 - [x] Refresh this handoff with actual post-run counts and the selected next task.
 - [x] Leave unrelated working-tree changes untouched.
+- [x] Post-completion consolidation after writer finished (+58 gold, 2 structural rejects; 18:17 UTC).
+- [x] Post-completion DPO resync (+126 pairs, 681 total, integrity verified; 18:25 UTC).
+- [x] Final coverage reconciliation: records→checkpoint→gold→pairs complete except the 2 documented structural rejects.
+- [ ] Owner decision: 2 structural rejects (fix/regenerate/accept exclusion).
+- [ ] Owner decision: 3 `hr` arcs (regenerate or accept exclusion).
+- [ ] Owner decision: refresh the 7 stale case pairs or keep as historical evidence.
+- [ ] Explicit dataset close-out (blocks Fireworks stages).
 
 ## Evidence caveat
 
-The October 9 verification supersedes the October 8 snapshot for consolidation, but occurred while an independent writer was active. Arc/checkpoint counts remain a moving snapshot, not stable completion evidence or clinical close-out. Recheck writer completion and audit before Step 2 unless explicitly authorized otherwise; re-run counts and the dry-run before any later consolidation mutation once writers are quiescent.
+The October 9 18:30 UTC section supersedes earlier October 9 snapshots: the writer pipeline completed (last writes 17:07:58 / 16:54:29 UTC) and all counts in the newest section were measured against the quiescent state. Earlier sections describing moving-snapshot conditions remain as historical record. Dataset close-out still requires the owner decisions listed in the checklist; clinical/ledger faithfulness judgments remain separate from these mechanical checks (`ARC_CORPUS_SPEC.md` §§4, 7).
