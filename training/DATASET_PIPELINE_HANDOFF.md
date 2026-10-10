@@ -1,8 +1,34 @@
 # Dataset Pipeline Handoff
 
-**Updated:** October 9, 2026 (18:30 UTC: post-completion consolidation (+58 gold, 2 structural rejects), DPO resync (+126 pairs), final coverage reconciliation)  
+**Updated:** October 10, 2026 (04:30 UTC: dataset close-out — both structural rejects regenerated and accepted, 235/235 arc records accept, gold 189,735 after superseded-version cleanup, DPO in sync; 7 stale case pairs kept as historical evidence)  
 **Workspace:** `/home/vivi/pixelated` (`staging`); AI submodule `ai/` at `b8d4ce6cb` (`staging`)  
 **Purpose:** Give the next agent a verified handoff for continuing the arc-corpus dataset work and choosing the next useful task in the broader training-data pipeline.
+
+## Dataset close-out (October 10, 2026, 03:00–04:15 UTC)
+
+This section supersedes the open decisions in the October 9 18:30 snapshot. All dataset-blocking items are resolved; the final state below was measured against quiescent inputs (no writer/auditor/builder processes running).
+
+**Structural rejects fixed — both regenerated under `cx/gpt-6-astra` and audited accept:**
+
+- `arc_0144` s2: regenerated 03:15–03:21 under a corrective note (STRICT ALTERNATION + NO FABRICATION + LEDGER FORMAT bare tokens + the plan's s2 beats at planned turns), **ACCEPT first attempt** (revision 2). 16 client/therapist pairs, alternation verified.
+- `arc_0052`: an s1-only regen passed the structure gate but drew 4 HR flags. Adjudication against the plan found: (1) doorway `-3w` ledger vs. the plan's setup prose "last Thursday" is a **plan-internal inconsistency** (the plan's timeline block says `-3w`); the writer had harmonized the client's speech to "three weeks ago", which is what drew the flag; (2) a **real defect** — the new s1 disclosed the `-9d` wrist event at turn 9, breaking the plan's misstatement arc (plant s1 t4 → revise s2 t7); (3) a **cascade** — the banked s2 carried a sparse, drifted chain (`-3d` doorway, no `-4y`/`-4m`) that a full new s1 chain would orphan; (4) a **real minor defect** — s3 t8's ledger flattened the money-revision ownership claim ("it's all his") into a bare item list. Resolution: **full-arc regen (s1+s2+s3)** under one corrective note with the reservation rule (`-9d` is told in session 2 only; `-6d` never appears; every ledger carries the full chain; doorway speech follows the setup verbatim while the ledger follows the timeline anchor). Regenerated 03:44–03:54 (sessions=3, arcs=1, 0 gate failures, 0 errors), **ACCEPT, 0 flags** (revision 3). Turn counts 20/16/12 pairs, alternation verified on all three.
+- Both notes (`arc_audit_notes/arc_0052.json`, `arc_0144.json`) were deleted by the auditor on accept, per convention; pre-mutation corpus backups are in `/home/vivi/arc_regen/corpus-backup-20261010-*`. The earlier 503/quota root cause (upstream re-arms its usage-limit block on every probe; cx/* GPT-6 routes share one pool) is recorded in `/home/vivi/arc_regen/OPERATOR_NOTES.md`.
+
+**HR arcs (October 9):** `arc_0105`, `arc_0165` (3 revisions each) and `arc_0128` (5 revisions) were regenerated and accepted in the 19:20–20:41 rounds — all 25 regeneration-target arcs accept.
+
+**Final quiescent state (measured 04:05–04:15 UTC):**
+
+- Arc records: **235 records, 235 accept, 0 hr**. Checkpoint: **576 rows**, all accepted, all structurally valid.
+- Gold: **189,735 lines** (was 189,733 before the 04:01:11 consolidation appended 4 rows: `arc_0052` s1/s2/s3, `arc_0144` s2, all `cx/gpt-6-astra` provenance). A post-consolidation dry-run reported scanned 235 arcs / 576 sessions, 0 skipped by verdict, **0 emitted, 576 duplicates, 0 rejects** — idempotent no-op, checkpoint↔gold in sync.
+- Superseded-version cleanup (04:04 UTC, this executor): the two deepseek-era `arc_0052` s2/s3 gold rows (consolidated 2026-10-09T18:17 from the pre-regeneration record) were **removed** so gold holds exactly one row per accepted session — 576 keys, each matching the current checkpoint render. Rationale: gold is the SFT training corpus; the deepseek-era rows were superseded precisely because of the defects that triggered the full-arc regeneration, and training on both versions would teach contradictory behavior. Nothing is lost: the removed rows are preserved in `train_master_gold.jsonl.pre_stale_removal_20261010T040441Z`, and the historical versions remain available in the `.pre*` snapshots and as rejected arms inside the session-mode DPO pairs. This supersedes the earlier "remain in gold by design" note; the removal is reversible from the backup.
+- Reject log: **unchanged** (4 historical rows, mtime 2026-10-09 20:50). The 2 structural rejects remain as historical evidence; their fixed replacements are in gold.
+- DPO pairs: **693 rows** after the 04:03–04:04 resync. Builder dry-run (04:05): `built=785, emitted=0, duplicates=785` (`session`: 314, `attempt`: 471 candidates) — file in sync with the builder. Integrity: **0 parse errors, 0 duplicate `pair_hash`**. Case mode builds 0 candidates now that no arc carries an `hr` verdict (expected; the 15 historical case pairs remain in the file).
+- Consolidation focused tests were last run green in the 20:50 pass (this round changed no consolidation code).
+- Independent verification pass (04:03–04:30 UTC, this executor): re-ran the consolidation dry-run (`0 emitted, 576 duplicates`), ran the real builder against the current inputs (+22 pairs: 19 attempt + 3 session for the regenerated `arc_0052`/`arc_0144` sessions), then removed the **16 stale pairs** whose chosen side was built from the superseded pre-regeneration renders (15 `arc_0052`, 1 `arc_0144` s2; backup `arc_dpo_pairs.jsonl.pre_stale_removal_20261010T040441Z`). Post-cleanup: **693 pairs, 0 parse/schema/hash/duplicate failures**; remaining `arc_0052` session-mode pairs (12) all carry the new Astra chosen text with historical deepseek renders as rejected arms — the intended superseded-version comparisons. Focused tests: consolidation **14 passed**, builder **27 passed**. Final dry-runs: consolidation `0 emitted, 576 duplicates`, builder `built=785, emitted=0, duplicates=785`. Gold version audit: 576 distinct keys, one row each, all matching current renders; no multi-version keys remain.
+
+**Stale case pairs — disposition recorded (default: keep):** the 7 stale case-pair rejected sides (`arc_0196`, `arc_0067`, `arc_0206`, `arc_0218`, `arc_0006`, `arc_0216`, `arc_0143`) are **kept as historical evidence**. Rationale: each pair remains internally consistent (its chosen text is a real accepted session; its rejected text is a real historical HR version), the set documents the HR→accept improvement path, and refreshing would require an owner-approved rewrite with no quality gain. This is a reversible no-op default: rebuilding any pair from current snapshots is bounded and can be done on request.
+
+**Close-out:** dataset work is **evidence-complete**. Documented, non-blocking residuals: clinical/ledger faithfulness judgments remain separate from mechanical checks (`ARC_CORPUS_SPEC.md` §§4, 7); DPO prompts remain reconstructed (`brief_reconstructed: true`, corrective notes omitted); whole-session preferences are not validated turn-level. Fireworks documentation stages (readiness checklist + pilot pre-plan) are unblocked per `.junie/plans/fireworks-training-preplan.md`; both artifacts are documentation-only and contain no uploads, provisioning, or spending.
 
 ## Verified consolidation results and moving input snapshot
 
@@ -250,11 +276,11 @@ The larger goal is high-quality, provenance-preserving clinical dialogue trainin
 - [x] Post-completion consolidation after writer finished (+58 gold, 2 structural rejects; 18:17 UTC).
 - [x] Post-completion DPO resync (+126 pairs, 681 total, integrity verified; 18:25 UTC).
 - [x] Final coverage reconciliation: records→checkpoint→gold→pairs complete except the 2 documented structural rejects.
-- [ ] Owner decision: 2 structural rejects (fix/regenerate/accept exclusion).
-- [ ] Owner decision: 3 `hr` arcs (regenerate or accept exclusion).
-- [ ] Owner decision: refresh the 7 stale case pairs or keep as historical evidence.
-- [ ] Explicit dataset close-out (blocks Fireworks stages).
+- [x] Owner decision: 2 structural rejects — resolved by regeneration per the standing directive: `arc_0144` s2 and all three `arc_0052` sessions regenerated under `cx/gpt-6-astra`, audited accept, banked to gold 04:01:11 UTC (see the October 10 close-out section).
+- [x] Owner decision: 3 `hr` arcs — resolved by note-driven regeneration: `arc_0105`, `arc_0165`, `arc_0128` all accept (October 9, 19:20–20:41); 235/235 records accept.
+- [x] Owner decision: refresh the 7 stale case pairs or keep as historical evidence — kept (default disposition, October 10; reversible, see close-out section).
+- [x] Explicit dataset close-out (blocks Fireworks stages) — evidence-complete October 10, 04:15 UTC (see close-out section); Fireworks stages unblocked for documentation-only work.
 
 ## Evidence caveat
 
-The October 9 18:30 UTC section supersedes earlier October 9 snapshots: the writer pipeline completed (last writes 17:07:58 / 16:54:29 UTC) and all counts in the newest section were measured against the quiescent state. Earlier sections describing moving-snapshot conditions remain as historical record. Dataset close-out still requires the owner decisions listed in the checklist; clinical/ledger faithfulness judgments remain separate from these mechanical checks (`ARC_CORPUS_SPEC.md` §§4, 7).
+The October 9 18:30 UTC section supersedes earlier October 9 snapshots: the writer pipeline completed (last writes 17:07:58 / 16:54:29 UTC) and all counts in the newest section were measured against the quiescent state. Earlier sections describing moving-snapshot conditions remain as historical record. The **October 10 dataset close-out section supersedes that snapshot's open decisions**; the completion checklist above records their resolutions. Clinical/ledger faithfulness judgments remain separate from these mechanical checks (`ARC_CORPUS_SPEC.md` §§4, 7).
