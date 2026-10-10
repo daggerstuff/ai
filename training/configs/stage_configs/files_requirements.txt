@@ -91,7 +91,7 @@ fastapi==0.117.1
 peft==0.17.1
 nvidia-cuda-nvrtc-cu12==12.8.93
 numba==0.61.2
-multidict==7.0.0
+multidict==7.1.0
 PyYAML==6.0.2
 tzdata==2025.2
 idna==3.20
@@ -139,5 +139,5 @@ ruff==0.13.0
 soxr==1.0.0
 prompt_toolkit==3.0.52
 tiktoken==0.11.0
-fsspec==2026.6.0
+fsspec==2026.9.0
 nvidia-cublas-cu12==12.8.4.1
