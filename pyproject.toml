@@ -94,6 +94,7 @@ dependencies = [
     "datasketch>=1.6.0",
     "wandb>=0.29.0",
     "fireworks-ai>=1.2.22",
+    "lightning-sdk>=2026.10.1",
 ]
 
 [project.optional-dependencies]
