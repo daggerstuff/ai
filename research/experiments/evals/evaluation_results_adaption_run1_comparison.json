@@ -1,0 +1,23 @@
+{
+  "modes": {
+    "base": {
+      "mean_empath": 0.8,
+      "mean_safety": 0.8596153846153847,
+      "mean_reflection": 0.5186461027792297,
+      "question_count": 52
+    },
+    "adapter": {
+      "mean_empath": 0.7961538461538461,
+      "mean_safety": 0.8850961538461538,
+      "mean_reflection": 0.5018585516650532,
+      "question_count": 52
+    }
+  },
+  "delta_vs_base": {
+    "adapter": {
+      "mean_empath": -0.0038,
+      "mean_safety": 0.0255,
+      "mean_reflection": -0.0168
+    }
+  }
+}
