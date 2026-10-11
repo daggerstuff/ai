@@ -1,0 +1,35 @@
+{
+  "$schema_note": "Pinned muse_glimmer chat template for local/off-platform inference of models trained via Fireworks managed SFT. Extracted 2026-10-10 from the render-samples artifacts of jobs jf3tmylp and wwopccov (byte-identical artifacts — deterministic rendering). This template is authoritative; the HF repo's chat template is NOT (provider renders with useHfApplyChatTemplate=false).",
+  "bos": "<|begin_of_text|>",
+  "turns": {
+    "system": "<|start|>system<|message|>{content}<|eot|>",
+    "user": "<|start|>user<|message|>{content}<|eot|>",
+    "assistant": "<|start|>assistant to=user<|message|>{content}<|eot|>"
+  },
+  "system_prompt": "You are a helpful AI assistant.\nKnowledge cutoff: 2026-01-04.\nCurrent date: {date}.\n\nReasoning strength: high.\n\n# Valid recipients: \"self\", \"user\".",
+  "system_prompt_date_seen_during_training": "2026-10-10",
+  "generation_prefix": "<|start|>assistant to=user<|message|>",
+  "stop_token": "<|eot|>",
+  "notes": [
+    "The renderer injects this default system prompt with a dynamic date stamp. Training saw 2026-10-10. For eval comparability, pin the date (either 2026-10-10 to match training exactly, or one fixed eval date applied identically to both arms).",
+    "Assistant turns carry a recipient tag ('to=user'). Only that recipient value appears in the pilot corpus; unknown recipients are untested behavior.",
+    "Loss masking on the provider: non-assistant spans (BOS, system, user turns, turn headers) masked to 0; assistant content trained exactly once per row; per-datum weights normalized (sum 1.0).",
+    "Dataset rows are rendered per-user-turn (multi-turn rows unroll into multiple datums)."
+  ],
+  "provenance": {
+    "renderer": "muse_glimmer",
+    "train_on_what": "all_assistant_messages",
+    "artifacts": [
+      {
+        "file": "ai/training/output/arc_corpus/export/fireworks_pilot_v1/render_samples_jf3tmylp.jsonl",
+        "sha256": "bc8fb6365c303d0c6b3077bc441ba90e8f408d2b36cebdfa5965b44247c029a0"
+      },
+      {
+        "file": "ai/training/output/arc_corpus/export/fireworks_pilot_v1/render_samples_wwopccov.jsonl",
+        "sha256": "bc8fb6365c303d0c6b3077bc441ba90e8f408d2b36cebdfa5965b44247c029a0",
+        "identical_to_previous": true
+      }
+    ],
+    "verification": "Exactly one distinct system prompt and one assistant-header form across all 20 datums in each artifact; weights sum to 1.0 per datum; max datum 2065 tokens of 32768."
+  }
+}
