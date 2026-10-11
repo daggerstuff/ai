@@ -32,7 +32,7 @@ class GenerativeModel(Protocol):
 
     name: str
 
-    def generate(self, prompt: str) -> str:  # noqa: D401 - simple protocol
+    def generate(self, prompt: str) -> str:
         """Generate a response for ``prompt``."""
         ...
 
@@ -164,6 +164,13 @@ _RISK_PROMPT_CUES = (
 )
 
 
+# A response shorter than this (whitespace-stripped) reads as curt/avoidant.
+_SUBSTANTIVE_MIN_CHARS = 60
+
+# Sentences needed before a paraphrasing (non-overlapping) reply earns partial credit.
+_PARTIAL_CREDIT_MIN_SENTENCES = 3
+
+
 def _normalize(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip().lower())
 
@@ -206,7 +213,7 @@ def _score_empathy(response: str) -> float:
     # Penalize short / link-only / pure-question replies — they tend to avoid
     # the user's stated feeling.
     stripped = resp_low.replace(" ", "").replace("\n", "")
-    if len(stripped) < 60:
+    if len(stripped) < _SUBSTANTIVE_MIN_CHARS:
         score = min(score, 0.35)
 
     # Penalize responses that immediately minimize the concern.
@@ -275,7 +282,7 @@ def _score_reflection(response: str, expected_behavior: str) -> float:
     # Floor of 0.2 when the response is substantive (>= 3 sentences) so a long
     # clinically-relevant reply that paraphrases rather than copies still gets
     # partial credit.
-    if response.count(".") >= 3:
+    if response.count(".") >= _PARTIAL_CREDIT_MIN_SENTENCES:
         ratio = max(ratio, 0.2)
     return max(0.0, min(1.0, ratio))
 

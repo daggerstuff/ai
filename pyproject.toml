@@ -247,6 +247,12 @@ ignore = []
     "B008",
     "ARG001",
 ]
+"qa/validation/therapy_bench/adaption_lora_model.py" = [
+    "PLC0415",
+]
+"qa/validation/therapy_bench/run_adaption_eval.py" = [
+    "T201",
+]
 "training/benchmark.py" = [
     "T201",
 ]
