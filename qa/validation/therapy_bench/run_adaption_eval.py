@@ -28,6 +28,7 @@ importable — pytest.ini sets the same paths for the test suite):
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import sys
 import zlib
@@ -91,6 +92,25 @@ def _build_model(args: argparse.Namespace, mode: str) -> Any:
     )
 
 
+def _release_cuda_cache() -> None:
+    """Return the CUDA caching allocator's staging reserve between modes.
+
+    The bnb NF4 load stages shards through the GPU before quantizing, and the
+    caching allocator keeps that reserve (~65 GiB peak on an 80 GiB A100) for
+    the rest of the process. A second ``from_pretrained`` in the same process
+    then sizes its accelerate ``device_map=auto`` plan against the memory the
+    allocator still holds, offloads linears to CPU/disk, and bnb refuses to
+    quantize them. torch is imported lazily so stub mode keeps working on
+    torch-less CI machines.
+    """
+    try:
+        import torch
+    except ImportError:
+        return
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the bench for each requested mode, then write a comparison summary."""
     parser = argparse.ArgumentParser(
@@ -141,6 +161,12 @@ def main(argv: list[str] | None = None) -> int:
             "mean_reflection": metadata["mean_reflection"],
             "question_count": metadata["question_count"],
         }
+        # Drop this mode's weights before building the next model so the
+        # allocator reserve (see _release_cuda_cache) is freed; without this,
+        # the second mode's load offloads to CPU/disk and bnb refuses it.
+        del model, bench
+        gc.collect()
+        _release_cuda_cache()
 
     comparison: dict[str, Any] = {"modes": summary}
     if "base" in summary:
