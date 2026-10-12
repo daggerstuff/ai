@@ -30,6 +30,14 @@ _AI_DIR = _HERE.parents[1]      # ai
 _REPO_DIR = _HERE.parents[2]    # pixelated
 sys.path.insert(0, str(_AI_DIR))
 load_dotenv(_REPO_DIR / ".env", override=True)
+# Multi-lane writer support: ARC_ENV_FILE layers a small diff file on top of
+# the root .env so a second generator process can run a different writer
+# backend concurrently (root .env alone is single-writer). Each lane keeps
+# its own --output/--checkpoint files and merges into the canonical ones at
+# completion.
+_lane_env = os.environ.get("ARC_ENV_FILE")
+if _lane_env:
+    load_dotenv(Path(_lane_env), override=True)
 
 from training.cliche_gate import (  # noqa: E402
     BANNED_OPENERS,
