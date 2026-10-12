@@ -24,7 +24,7 @@ gpustat>=1.1.0
 rich>=13.6.0
 typer>=0.9.0
 pydantic>=2.4.0
-omegaconf>=2.3.0
+omegaconf>=2.4.0
 
 # Optional (guarded import in mental_ift_trainer.py): flash attention for long-context training.
 # FA2 (2.x) is the CUDA-compiled line; FA4 (flash-attn-4) is the newer pure-Python CuTe DSL JIT line.
