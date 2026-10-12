@@ -186,6 +186,9 @@ data/curated/sft_chatml/*
 !training/
 training/*
 !training/utils/
+!training/launch/
+!training/launch/*.py
+!training/launch/requirements.txt
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/

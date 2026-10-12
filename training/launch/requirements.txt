@@ -1,0 +1,2 @@
+openpipe-art==0.5.20
+wandb>=0.29,<0.31
