@@ -261,6 +261,9 @@ ignore = []
 "training/eval_clef.py" = [
     "T201",
 ]
+"training/merge_lane_checkpoints.py" = [
+    "T201",
+]
 "training/curate_pipeline.py" = [
     "T201",
     "PLR2004",
