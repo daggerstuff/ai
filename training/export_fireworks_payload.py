@@ -479,6 +479,7 @@ def _validate_lineage(
     out_dir: Path,
     emitted: dict[str, list[dict[str, Any]]],
     gold_by_line: dict[int, dict[str, Any]],
+    expected_rows: int = EXPECTED_SLICE_ROWS,
 ) -> list[str]:
     """Manifest fidelity: every session once, groups intact, content identical."""
     issues: list[str] = []
@@ -486,8 +487,8 @@ def _validate_lineage(
     with (out_dir / "manifest_internal.jsonl").open(encoding="utf-8") as f:
         for line in f:
             manifest_rows.append(json.loads(line))
-    if len(manifest_rows) != EXPECTED_SLICE_ROWS:
-        issues.append(f"manifest row count mismatch: expected {EXPECTED_SLICE_ROWS}, got {len(manifest_rows)}")
+    if len(manifest_rows) != expected_rows:
+        issues.append(f"manifest row count mismatch: expected {expected_rows}, got {len(manifest_rows)}")
     seen_sessions: set[tuple[str, int]] = set()
     group_split: dict[str, str] = {}
     arc_splits: dict[str, set[str]] = {}

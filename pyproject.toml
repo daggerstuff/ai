@@ -264,6 +264,12 @@ ignore = []
 "training/merge_lane_checkpoints.py" = [
     "T201",
 ]
+"training/export_adaption_run2.py" = [
+    "T201",
+]
+"training/adaption_dataset_upload.py" = [
+    "T201",
+]
 "training/curate_pipeline.py" = [
     "T201",
     "PLR2004",
