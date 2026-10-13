@@ -40,9 +40,6 @@ DEFAULT_BASE_MODEL_ID = "Qwen/Qwen3.6-35B-A3B"
 _ADAPTER_TEXT_PREFIX = "base_model.model.model.layers."
 _ADAPTER_MM_PREFIX = "base_model.model.model.language_model.layers."
 
-# Run-1 adapter coverage: q_proj + v_proj of the ten full-attention layers.
-_EXPECTED_ADAPTED_MODULES = 20
-
 _LOAD_STRATEGIES = ("remap", "mm")
 
 
@@ -265,27 +262,36 @@ class AdaptionLoraModel:
 
     @staticmethod
     def _inject_adapter_mm(model: Any, adapter_path: str) -> Any:
-        """Inject the run-1 adapter into the language-model subtree with verified accounting.
+        """Inject the adapter into the language-model subtree with verified accounting.
 
-        The saved config targets ``q_proj``/``v_proj`` by suffix — on the
+        The saved config targets attention projections by suffix — on the
         multimodal tree that would also hit vision-tower projections the adapter
-        was never trained for. Restrict the match to the language-model subtree,
-        copy the tensors in under a key rewrite, and assert the exact module
-        coverage the run-1 adapter has (10 q_proj + 10 v_proj).
+        was never trained for. The scope and the expected module count are
+        derived from the adapter file itself (run-1: q_proj/v_proj, 20 modules;
+        run-2: q_proj/k_proj/v_proj/o_proj, 40), so the injection matches
+        whatever the adapter actually trained. Restrict the match to the
+        language-model subtree, copy the tensors in under a key rewrite, and
+        assert exact module coverage with no subtree escapes.
         """
         from peft import LoraConfig, get_peft_model
         from peft.utils import set_peft_model_state_dict
         from safetensors.torch import load_file
 
+        adapter_state = load_file(str(Path(adapter_path) / "adapter_model.safetensors"))
+        suffixes = sorted({key.rsplit(".", 3)[1] for key in adapter_state})
+        expected_modules = len(
+            {key.rsplit(".lora_A", 1)[0].rsplit(".lora_B", 1)[0] for key in adapter_state}
+        )
+
         saved = LoraConfig.from_pretrained(adapter_path)
-        saved.target_modules = r".*language_model.*\.(?:q_proj|v_proj)$"
+        saved.target_modules = rf".*language_model.*\.(?:{'|'.join(suffixes)})$"
         model = get_peft_model(model, saved)
 
         adapted = [n for n, _ in model.named_modules() if n.endswith("lora_A.default")]
-        if len(adapted) != _EXPECTED_ADAPTED_MODULES:
+        if len(adapted) != expected_modules:
             msg = (
-                f"expected {_EXPECTED_ADAPTED_MODULES} adapted modules (q_proj/v_proj of the "
-                f"ten full-attention layers), injected {len(adapted)}"
+                f"expected {expected_modules} adapted modules (suffixes: {suffixes}), "
+                f"injected {len(adapted)}"
             )
             raise RuntimeError(msg)
         escaped = [n for n in adapted if "language_model" not in n]
@@ -293,7 +299,6 @@ class AdaptionLoraModel:
             msg = f"adapter injection escaped the language-model subtree: {escaped[:3]}"
             raise RuntimeError(msg)
 
-        adapter_state = load_file(str(Path(adapter_path) / "adapter_model.safetensors"))
         remapped: dict[str, Any] = {}
         for key, tensor in adapter_state.items():
             if not key.startswith(_ADAPTER_TEXT_PREFIX):
