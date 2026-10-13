@@ -85,7 +85,6 @@ def main() -> int:
     # run-1 pins do not apply to the expanded corpus; report the fresh census only
     census, _ = _split_census(splits)
     for split_name in SPLIT_NAMES:
-        info = census[split_name] if split_name in census else census["rows"]
         print(f"split {split_name}: rows={census['rows'][split_name]} groups={census['groups'][split_name]}")
     difficulty_total = Counter()
     for split_name in SPLIT_NAMES:
@@ -106,7 +105,7 @@ def main() -> int:
     print(f"structure scan: chars={total_chars} assistant_turns={turns} "
           f"empty_flags={empty2} risk_flags={risk2}")
     issues += _validate_lineage(
-        args.out_dir, emitted, {line_no: record for line_no, record in slice_rows},
+        args.out_dir, emitted, dict(slice_rows),
         expected_rows=len(slice_rows),
     )
 
