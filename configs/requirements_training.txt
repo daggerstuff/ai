@@ -12,19 +12,19 @@ scipy>=1.11.0
 scikit-learn>=1.3.0
 pandas>=2.1.0
 numpy>=1.24.0
-polars>=0.19.0
+polars>=2.0.0
 pyarrow>=25.0.1
 tqdm>=4.66.0
-evaluate>=0.4.0
+evaluate>=0.4.6
 rouge-score>=0.1.2
 bleu>=0.2.0
 bert-score>=0.3.13
 psutil>=5.9.0
-gpustat>=1.1.0
+gpustat>=1.1.1
 rich>=13.6.0
 typer>=0.9.0
 pydantic>=2.4.0
-omegaconf>=2.3.0
+omegaconf>=2.4.0
 
 # Optional (guarded import in mental_ift_trainer.py): flash attention for long-context training.
 # FA2 (2.x) is the CUDA-compiled line; FA4 (flash-attn-4) is the newer pure-Python CuTe DSL JIT line.
