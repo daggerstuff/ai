@@ -1,19 +1,20 @@
 import asyncio
 import os
+from typing import Any
 
 import art
 import wandb
 from art.utils.sft import train_sft_from_file
 
 
-def required_config(run, key):
+def required_config(run: Any, key: str) -> Any:
     value = run.config.get(key)
     if value is None:
         raise ValueError(f"Missing required W&B Launch config: {key}")
     return value
 
 
-async def main():
+async def main() -> None:
     with wandb.init(
         entity=os.environ.get("WANDB_ENTITY", "wutang"),
         project=os.environ.get("WANDB_PROJECT", "pixelated-empathy-kan28"),

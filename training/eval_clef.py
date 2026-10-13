@@ -136,7 +136,7 @@ DQ_INFRA_RATE = 0.8
 # ---------------------------------------------------------------------------
 
 
-def render_transcript(record: dict) -> str:
+def render_transcript(record: dict[str, Any]) -> str:
     lines = []
     for session in record["sessions"]:
         lines.append(f"SESSION {session['n']}")
@@ -153,7 +153,7 @@ def render_transcript(record: dict) -> str:
     return "\n".join(lines)
 
 
-def render_beats(plan: dict) -> str:
+def render_beats(plan: dict[str, Any]) -> str:
     lines = []
     for b in plan["beats"]:
         if b["type"] == "misstatement":
@@ -179,7 +179,7 @@ def render_beats(plan: dict) -> str:
 # ---------------------------------------------------------------------------
 
 
-def build_questions(plan: dict, record: dict) -> dict[str, Any]:
+def build_questions(plan: dict[str, Any], record: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
     """Build the clef questions: 1 verdict choice + 10 per-category presence.
 
     The transcript and plan beats travel in ``state`` (object form) so every
@@ -221,7 +221,7 @@ def build_questions(plan: dict, record: dict) -> dict[str, Any]:
             },
         }
 
-    state = {"arc_plan_beats": beats, "transcript": transcript}
+    state: dict[str, str] = {"arc_plan_beats": beats, "transcript": transcript}
     return questions, state
 
 
@@ -233,7 +233,7 @@ def build_questions(plan: dict, record: dict) -> dict[str, Any]:
 async def run_probe(
     http: aiohttp.ClientSession,
     config: ClefConfig,
-    probe: dict,
+    probe: dict[str, Any],
 ) -> dict[str, Any]:
     """Run clef on one probe. Returns a flat, JSON-serializable result row."""
     questions, state = build_questions(probe["plan"], probe["record"])
@@ -261,7 +261,7 @@ async def run_probe(
 
     answers = data.get("answers", {})
     row["verdict"] = choice_of(answers, "verdict")
-    probs: dict[str, float] = {}
+    probs: dict[str, float | None] = {}
     for cat in FLAG_CATEGORIES:
         ans = answers.get(f"defect_{cat}")
         prob_map = (ans or {}).get("probabilities") if isinstance(ans, dict) else None
@@ -285,7 +285,9 @@ def _max_present(row: dict[str, Any], gt_cats: list[str]) -> float | None:
     return max(vals) if vals else None
 
 
-def score(rows: list[dict[str, Any]], probes: list[dict], threshold: float) -> dict[str, Any]:
+def score(
+    rows: list[dict[str, Any]], probes: list[dict[str, Any]], threshold: float
+) -> dict[str, Any]:
     if not rows:
         return {"probes": 0, "valid": 0, "note": "no completed probes"}
 
@@ -293,7 +295,7 @@ def score(rows: list[dict[str, Any]], probes: list[dict], threshold: float) -> d
     by_arc = {r["arc_id"]: r for r in rows}
     n = len(rows)
 
-    def is_valid(r: dict) -> bool:
+    def is_valid(r: dict[str, Any]) -> bool:
         if r.get("error") or not r.get("verdict"):
             return False
         return all(isinstance(v, (int, float)) for v in (r.get("category_probs") or {}).values())
@@ -441,7 +443,7 @@ async def main() -> None:
         async with aiohttp.ClientSession() as http:
             sem = asyncio.Semaphore(2)  # modest concurrency; avoid 429 storms
 
-            async def probe(p):
+            async def probe(p: dict[str, Any]) -> None:
                 async with sem:
                     res = await run_probe(http, config, p)
                 f.write(json.dumps(res) + "\n")

@@ -22,11 +22,12 @@ import argparse
 import json
 import os
 from pathlib import Path
+from typing import Any
 
 OUT_DIR = Path(__file__).parent / "output" / "arc_corpus"
 
 
-def load_jsonl(path: Path) -> list[dict]:
+def load_jsonl(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
     rows = []
@@ -36,7 +37,7 @@ def load_jsonl(path: Path) -> list[dict]:
     return rows
 
 
-def append_rows(path: Path, rows: list[dict]) -> None:
+def append_rows(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a", encoding="utf-8") as f:
         for row in rows:
