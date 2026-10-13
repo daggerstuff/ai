@@ -119,23 +119,12 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-package-dir = {"ai" = "."}
-packages = [
-    "ai",
-    "configs",
-    "ehr",
-    "inference",
-    "models",
-    "monitoring",
-    "pipelines",
-    "pkg_mera",
-    "prompts",
-    "qa",
-    "research",
-    "sourcing",
-    "tools",
-    "training",
+[tool.setuptools.packages.find]
+where = [
+    ".",
+]
+include = [
+    "*",
 ]
 
 [tool.uv]
