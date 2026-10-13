@@ -259,6 +259,7 @@ ignore = []
 "training/adaption_dataset_upload.py" = [
     "T201",
     "PLR2004",
+    "PLR0911",
 ]
 "training/curate_pipeline.py" = [
     "T201",

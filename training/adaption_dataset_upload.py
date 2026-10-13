@@ -1,12 +1,14 @@
-"""Upload a training-ready JSONL to Adaption; request the free recipe estimate.
+"""Upload a training-ready JSONL to Adaption RAW; request the free recipe estimate.
 
-Mirrors the run-1 Dataset-B flow (pilot log §13.3): ``upload.initiate`` ->
-presigned S3 PUT -> ``upload.complete`` -> poll ``get_status`` to
-``succeeded``; upload + processing are free. Optionally calls
-``autoscientist.recommend_hyperparams`` with NO augmentation parameters —
-at >=10,000 effective rows the estimate validates corpus-only, which is the
-run-2 anti-contamination discipline (the run-1 augmentation pulled 3,043
-generic health rows, §13.7). Nothing is launched; training runs are a
+Mirrors the run-1 Dataset-B flow (pilot log §13.3): ``datasets.create`` with
+``processing_mode="raw"`` + explicit ``column_mapping`` (prompt/completion)
+-> presigned S3 PUT -> ``upload.complete_by_id`` -> poll ``get_status`` to
+``succeeded``. RAW "materializes the data straight to a trainable dataset
+with no augmentation" (SDK: processing_mode) — the run-2 anti-contamination
+discipline; the plain ``upload.initiate`` route defaults to the adapt wizard
+(chat-mapped, awaiting_input — observed and corrected 2026-10-13). Upload +
+processing are free. Optionally calls ``autoscientist.recommend_hyperparams``
+with NO augmentation parameters — nothing is launched; training runs are a
 separate, owner-gated decision.
 
 val/test splits are never uploaded (held-out discipline).
@@ -18,11 +20,11 @@ Run (from ai/, SDK is an ephemeral dependency):
 """
 
 import argparse
+import hashlib
 import json
 import os
 import time
 from pathlib import Path
-from urllib.parse import urlsplit
 
 import httpx
 from adaption import Adaption
@@ -49,27 +51,35 @@ def main() -> int:
     evidence_dir.mkdir(parents=True, exist_ok=True)
     client = Adaption()
     size = args.file.stat().st_size
-    print(f"initiating upload: {args.file.name} ({size:,} bytes)")
+    sha = hashlib.sha256(args.file.read_bytes()).hexdigest()
+    print(f"raw ingest: {args.file.name} ({size:,} bytes, sha256 {sha[:16]}...)")
 
-    init = client.datasets.upload.initiate(name=args.name, file_format="jsonl")
-    s3_key = urlsplit(init.upload_url).path.lstrip("/")
-    print(f"presigned PUT acquired; s3_key={s3_key[:40]}...")
+    created = client.datasets.create(source={
+        "name": args.name,
+        "file_format": "jsonl",
+        "processing_mode": "raw",
+        "column_mapping": {"prompt": "prompt", "completion": "completion"},
+    })
+    dataset_id = created.dataset_id
+    instructions = created.upload_instructions
+    if instructions is None:
+        print("FAIL: create returned no upload instructions")
+        return 1
+    print(f"dataset_id={dataset_id}; presigned PUT acquired (s3_key={instructions.s3_key[:40]}...)")
 
     with args.file.open("rb") as f, httpx.Client(timeout=1800.0) as http:
-        resp = http.put(init.upload_url, content=f)
+        resp = http.request(instructions.method, instructions.url, content=f)
     if resp.status_code != 200:
         print(f"FAIL: S3 PUT returned {resp.status_code}")
         return 1
     print("S3 PUT complete")
 
-    done = client.datasets.upload.complete(
-        s3_key=s3_key, name=args.name, file_format="jsonl", file_size_bytes=size,
-    )
-    dataset_id = done.dataset_id
-    print(f"dataset_id={dataset_id}")
+    client.datasets.upload.complete_by_id(dataset_id, file_size_bytes=size, sha256=sha)
+    print("complete_by_id accepted; preprocessing triggered")
     with (evidence_dir / "adaption_upload_run2.json").open("w", encoding="utf-8") as f:
         json.dump({"dataset_id": dataset_id, "name": args.name, "file": str(args.file),
-                   "file_size_bytes": size, "s3_key": s3_key}, f, indent=1)
+                   "file_size_bytes": size, "sha256": sha,
+                   "processing_mode": "raw"}, f, indent=1)
 
     print("polling processing status (up to 30 min)...")
     status = None
@@ -83,7 +93,7 @@ def main() -> int:
     if str(status.status).lower() != "succeeded":
         print(f"FAIL: dataset processing did not succeed (status={status.status})")
         return 1
-    print(f"dataset READY: {dataset_id}")
+    print(f"dataset READY (raw, no augmentation): {dataset_id}")
 
     if args.skip_estimate or not args.model:
         print("estimate skipped")
