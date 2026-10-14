@@ -171,7 +171,7 @@ class TransientAuditError(Exception):
     pass
 
 
-async def _chat_json(resp) -> dict:
+async def _chat_json(resp: aiohttp.ClientResponse) -> dict[str, Any]:
     """Parse a chat-completions HTTP body. The 9router gateway appends an
     SSE-style `data: [DONE]` trailer after the JSON object, so plain
     json.loads/resp.json() raise "Extra data" on every response. Decode the
@@ -179,12 +179,15 @@ async def _chat_json(resp) -> dict:
     transient gateway anomaly, not a config error."""
     text = await resp.text()
     try:
-        return json.loads(text)
+        data = json.loads(text)
     except json.JSONDecodeError:
         try:
-            return json.JSONDecoder().raw_decode(text.lstrip())[0]
+            data = json.JSONDecoder().raw_decode(text.lstrip())[0]
         except ValueError as e:
             raise TransientAuditError(f"unparseable_body: {text[:120]!r}") from e
+    if not isinstance(data, dict):
+        raise TransientAuditError(f"unexpected_body_type: {type(data).__name__}")
+    return data
 
 
 async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",

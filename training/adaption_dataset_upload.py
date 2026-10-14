@@ -25,6 +25,7 @@ import json
 import os
 import time
 from pathlib import Path
+from typing import Any
 
 import httpx
 from adaption import Adaption
@@ -82,7 +83,7 @@ def main() -> int:
                    "processing_mode": "raw"}, f, indent=1)
 
     print("polling processing status (up to 30 min)...")
-    status = None
+    status: Any = None
     for i in range(90):
         status = client.datasets.get_status(dataset_id)
         text = str(status.status).lower()

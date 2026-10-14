@@ -29,6 +29,7 @@ import argparse
 import json
 from collections import Counter
 from pathlib import Path
+from typing import Any
 
 from training.export_fireworks_payload import (
     GOLD_PATH,
@@ -47,9 +48,9 @@ _OUT_DIR = Path(__file__).resolve().parents[1] / "training" / "output" / "arc_co
 RUN1_FLOOR_DATUMS = 10_000  # Adaption effective-row floor for Qwen3.6-35B-A3B
 
 
-def _unroll_rows(rows: list[dict]) -> tuple[list[dict], list[str]]:
+def _unroll_rows(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[str]]:
     """One datum per assistant turn: prompt = turns through preceding user, weights kept."""
-    datums: list[dict] = []
+    datums: list[dict[str, Any]] = []
     issues: list[str] = []
     for row in rows:
         msgs = row["messages"]
@@ -86,7 +87,7 @@ def main() -> int:
     census, _ = _split_census(splits)
     for split_name in SPLIT_NAMES:
         print(f"split {split_name}: rows={census['rows'][split_name]} groups={census['groups'][split_name]}")
-    difficulty_total = Counter()
+    difficulty_total: Counter[str] = Counter()
     for split_name in SPLIT_NAMES:
         per_split = splits[split_name]
         for record in per_split:
