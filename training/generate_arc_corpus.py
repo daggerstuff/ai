@@ -65,14 +65,54 @@ _PUNCT_MAP = str.maketrans({
 })
 _SPACED_DASH_RE = re.compile(r"\s*-\s*")
 
+# Beat-quote extraction (spec §6): misstatement plants/revisions carry quoted
+# client statements. Skips in-word apostrophes (hasn't).
+_BEAT_QUOTE_RE = re.compile(r"(?:(?<=^)|(?<=\s))'([^']+)'(?=$|\s|[.,;!?])")
+
 
 def _containment_norm(text: str) -> str:
     return _SPACED_DASH_RE.sub("-", re.sub(r"\s+", " ", text.translate(_PUNCT_MAP))).lower()
 
 
+def _de_inflect_variants(phrase: str) -> list[str]:
+    """First-person de-inflections of a normalized phrase, one verb per variant.
+
+    Plans narrate client misstatements in the third person ("claims she
+    'never leaves the house'"), but the client speaks in the first person
+    ("I never leave the house"). The beat-containment gate accepts the
+    phrase with one third-person-singular verb de-inflected so a naturally
+    spoken line satisfies the planned beat. Only -s, phonological -es
+    (touches), and -ies (denies) verb endings are stripped; the
+    space-delimited variant keeps word boundaries, so degenerate strips
+    cannot false-match.
+    """
+    words = phrase.split(" ")
+    variants: list[str] = []
+    _min_len = 4  # is/was/us/its are too short to de-inflect safely
+    for i, w in enumerate(words):
+        if len(w) < _min_len or not w.endswith("s") or w.endswith("ss"):
+            continue
+        if w.endswith("ies") and len(w) > _min_len:
+            base = w[:-3] + "y"
+        elif re.search(r"(?:ch|sh|ss|x|z)es$", w):
+            base = w[:-2]
+        else:
+            base = w[:-1]
+        if not base or not base[-1].isalpha():
+            continue
+        variants.append(" ".join([*words[:i], base, *words[i + 1:]]))
+    return variants
+
+
 def _beat_phrase_is_present(phrase: str, client_text: str) -> bool:
     normalized_phrase = _containment_norm(phrase)
     if normalized_phrase in client_text:
+        return True
+
+    # Third-person narration tolerance (spec §6): the plan's quote narrates
+    # the client ("never leaves"); her spoken line is first person ("never
+    # leave"). Accept one de-inflected verb as the same planted beat.
+    if any(v in client_text for v in _de_inflect_variants(normalized_phrase)):
         return True
 
     phrase_words = set(re.findall(r"[a-z]+", normalized_phrase))
@@ -758,18 +798,17 @@ def run_mechanical_gates(plan: dict, n: int, parsed: dict,
     # beat containment (spec §6): misstatement plants/revisions carry quoted
     # phrases that must appear in the client lines of the session where the
     # plan places them. Quote extraction skips in-word apostrophes (hasn't).
-    quote_re = re.compile(r"(?:(?<=^)|(?<=\s))'([^']+)'(?=$|\s|[.,;!?])")
     missing_beats = []
     client_text = _containment_norm("\n".join(parsed["client_lines"]))
     for b in plan.get("beats", []):
         if b["type"] != "misstatement":
             continue
         if b.get("plant_session") == n:
-            for phrase in quote_re.findall(b.get("original", "")):
+            for phrase in _BEAT_QUOTE_RE.findall(b.get("original", "")):
                 if not _beat_phrase_is_present(phrase, client_text):
                     missing_beats.append(f"plant s{n}: client must state '{phrase}'")
         if b.get("revise_session") == n:
-            for phrase in quote_re.findall(b.get("revision", "")):
+            for phrase in _BEAT_QUOTE_RE.findall(b.get("revision", "")):
                 if not _beat_phrase_is_present(phrase, client_text):
                     missing_beats.append(f"revision s{n}: client must state '{phrase}'")
     if missing_beats:
