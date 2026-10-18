@@ -577,7 +577,15 @@ async def call_writer_with_retry(session: aiohttp.ClientSession, pool: "KeyPool"
     retries = 0
     for attempt in range(1, CALL_ATTEMPTS + 1):
         try:
-            content, usage = await call_writer(session, pool.current(), user_prompt)
+            # Retry ladder otherwise resends byte-identical payloads; specific
+            # prompts fail deterministically while near-twins of the same size
+            # succeed. Append an invisible trailing newline per retry to break
+            # any byte-level affinity at the provider edge.
+            content, usage = await call_writer(
+                session,
+                pool.current(),
+                user_prompt if attempt == 1 else user_prompt + "\n",
+            )
             return content, usage, retries
         except TransientWriterError as e:
             if attempt == CALL_ATTEMPTS:

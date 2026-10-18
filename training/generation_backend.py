@@ -123,22 +123,16 @@ def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
     """
     env = dict(os.environ if env is None else env)
     backend = env.get("NF_BACKEND", "cloudflare").strip().lower()
-    model = env.get("NF_MODEL") or _DEFAULT_MODEL_BY_BACKEND.get(
-        backend, _DEFAULT_MODEL_BY_BACKEND["cloudflare"]
-    )
+    model = env.get("NF_MODEL") or _DEFAULT_MODEL_BY_BACKEND.get(backend, _DEFAULT_MODEL_BY_BACKEND["cloudflare"])
 
     if is_llama_model(model):
         raise ValueError(
-            f"never-Llama rule violated: NF_MODEL={model!r}. "
-            "Allowed families: DeepSeek, GLM, Qwen, Mistral."
+            f"never-Llama rule violated: NF_MODEL={model!r}. Allowed families: DeepSeek, GLM, Qwen, Mistral."
         )
 
     if backend == "cloudflare":
         account_id = env.get("CLOUDFLARE_ACCOUNT_ID", "")
-        url = (
-            "https://api.cloudflare.com/client/v4/accounts/"
-            f"{account_id}/ai/v1/chat/completions"
-        )
+        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1/chat/completions"
         return BackendConfig(
             name="cloudflare",
             url=url,
@@ -203,9 +197,13 @@ def resolve_backend(env: dict[str, str] | None = None) -> BackendConfig:
             auth_header=f"Bearer {key}",
         )
 
-    raise ValueError(
-        f"unknown NF_BACKEND={backend!r}; expected vercel|cloudflare|9router|vllm|featherless|wandb"
-    )
+    raise ValueError(f"unknown NF_BACKEND={backend!r}; expected vercel|cloudflare|9router|vllm|featherless|wandb")
+
+
+def _template_kwargs(backend: BackendConfig) -> dict[str, Any]:
+    if backend.name == "wandb" and backend.model.startswith("Qwen/Qwen3.6"):
+        return {"chat_template_kwargs": {"enable_thinking": False}}
+    return {}
 
 
 class ModerateGuard:
@@ -253,9 +251,7 @@ class ModerateGuard:
         self._total += count
         self._window.extend([now] * count)
         if self._total > self.hard_ceiling:
-            raise GenerationLimitExceededError(
-                f"hard ceiling exceeded: {self._total} > {self.hard_ceiling} records"
-            )
+            raise GenerationLimitExceededError(f"hard ceiling exceeded: {self._total} > {self.hard_ceiling} records")
         if len(self._window) > self.hourly_limit:
             raise GenerationLimitExceededError(
                 f"hourly rate exceeded: {len(self._window)} records in "
@@ -335,6 +331,8 @@ async def chat_completion(
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
+    # Qwen3.6 otherwise spends short-turn budgets on extended reasoning.
+    payload.update(_template_kwargs(backend))
     for key, env_name, cast in (
         ("top_p", "NF_TOP_P", float),
         ("top_k", "NF_TOP_K", int),
@@ -376,9 +374,7 @@ async def chat_completion(
                 # 200-with-error-envelope (e.g. transient upstream envelope): retry
                 # with backoff like any transient transport failure instead of
                 # dropping the call with a bare KeyError.
-                raise EmptyContentError(
-                    f"response payload missing 'choices' (keys={sorted(data.keys())})"
-                )
+                raise EmptyContentError(f"response payload missing 'choices' (keys={sorted(data.keys())})")
             content = choices[0]["message"].get("content") or ""
             if not content.strip():
                 raise EmptyContentError(
