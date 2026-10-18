@@ -1,0 +1,99 @@
+# Production environment values sized for the current live AKS cluster.
+environment: "production"
+
+replicaCount: 2
+
+app:
+  config:
+    logLevel: "info"
+    debug: false
+    maxWorkers: 2
+    batchSize: 50
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+postgresql:
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "default"
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 512Mi
+
+redis:
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: "default"
+    resources:
+      limits:
+        cpu: 250m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 256Mi
+  replica:
+    replicaCount: 1
+    persistence:
+      enabled: true
+      size: 8Gi
+      storageClass: "default"
+    resources:
+      limits:
+        cpu: 250m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 256Mi
+
+monitoring:
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false
+
+ingress:
+  className: "traefik"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production-dns"
+    kubernetes.io/ingress.class: "traefik"
+  hosts:
+    - host: pixelatedempathy.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: ollama.pixelated.love
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            serviceName: '{{ include "pixelated-empathy.fullname" . }}-ollama'
+            servicePort: 11434
+  tls:
+    - secretName: pixelated-empathy-production-tls
+      hosts:
+        - pixelatedempathy.com
+        - ollama.pixelated.love
+
+backup:
+  enabled: false
+
+traefik:
+  deployment:
+    replicas: 2

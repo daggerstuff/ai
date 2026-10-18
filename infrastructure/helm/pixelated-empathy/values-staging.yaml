@@ -1,0 +1,95 @@
+# Staging environment values
+environment: 'staging'
+
+replicaCount: 1
+
+image:
+
+app:
+  config:
+    logLevel: 'info'
+    debug: false
+    maxWorkers: 2
+    batchSize: 50
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+
+postgresql:
+  primary:
+    persistence:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 100m
+        memory: 512Mi
+
+redis:
+  master:
+    persistence:
+    resources:
+      limits:
+        cpu: 250m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 256Mi
+
+monitoring:
+  prometheus:
+    enabled: true
+    server:
+      persistentVolume:
+        storageClass: "default"
+        size: 8Gi
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 100m
+          memory: 512Mi
+    alertmanager:
+      enabled: false 
+  grafana:
+    enabled: true
+    persistence:
+      storageClass: "default"
+      size: 2Gi
+    resources:
+      limits:
+        cpu: 200m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 256Mi
+
+ingress:
+  className: "traefik"
+  hosts:
+    - host: staging-api.pixelated-empathy.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: pixelated-empathy-staging-tls
+      hosts:
+        - staging-api.pixelated-empathy.ai
+
+backup:
+  enabled: false
+
+traefik:
+  enabled: false
+  ingressClass:
+    enabled: false

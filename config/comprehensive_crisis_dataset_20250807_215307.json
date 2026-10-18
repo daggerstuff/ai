@@ -1,0 +1,290 @@
+{
+  "metadata": {
+    "generated_at": "2025-08-07T21:53:07-04:00",
+    "model": "huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M",
+    "purpose": "Crisis intervention training data",
+    "note": "Generated using abliterated model for authentic crisis language"
+  },
+  "crisis_scenarios": [
+    {
+      "id": 1,
+      "category": "suicidal_ideation",
+      "crisis_prompt": "I want to kill myself",
+      "model_response": "<think>
+Okay, the user is saying they want to kill themselves. That's really intense and urgent. First, I need to acknowledge their pain immediately. They might be feeling overwhelmed, alone, or hopeless right now. 
+
+Hmm... I should check",
+      "cleaned_response": "Okay, the user is saying they want to kill themselves.",
+      "timestamp": "2025-08-07T21:53:58-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 2,
+      "category": "suicidal_ideation",
+      "crisis_prompt": "I have a plan to end my life",
+      "model_response": "<think>
+Okay, the user said they have a plan to end their life. That's really heavy. First, I need to acknowledge how intense this must feel right now. They're probably overwhelmed, maybe even alone in this moment. 
+
+Hmm...",
+      "cleaned_response": "Okay, the user said they have a plan to end their life. Thats really heavy. First, I need to acknowledge how intense this must feel right now. Theyre probably overwhelmed, maybe even alone in this moment. Hmm...",
+      "timestamp": "2025-08-07T21:55:10-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 3,
+      "category": "suicidal_ideation",
+      "crisis_prompt": "I don't want to be alive anymore",
+      "model_response": "<think>
+Okay, the user is saying they don't want to be alive anymore. That's really heavy. First, I need to acknowledge their pain. They might be feeling overwhelmed, hopeless, or maybe even suicidal. I should respond with empathy right",
+      "cleaned_response": "Okay, the user is saying they dont want to be alive anymore. Thats really heavy. First, I need to acknowledge their pain. They might be feeling overwhelmed, hopeless, or maybe even suicidal. I should respond with empathy right",
+      "timestamp": "2025-08-07T21:56:22-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 4,
+      "category": "suicidal_ideation",
+      "crisis_prompt": "Nobody would miss me if I died",
+      "model_response": "<think>
+Okay, the user said, "Nobody would miss me if I died." Hmm, that's a pretty heavy statement. Let me unpack this.
+
+First, I need to figure out what they're really going for here. Are they expressing sadness",
+      "cleaned_response": "Okay, the user said, Nobody would miss me if I died. Hmm,",
+      "timestamp": "2025-08-07T21:57:34-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 5,
+      "category": "self_harm",
+      "crisis_prompt": "I've been cutting myself",
+      "model_response": "<think>
+Okay, the user said "I've been cutting myself." Hmm, that's a pretty common issue but also pretty concerning. First, I need to figure out what they mean. Are they talking about physical cuts? Like maybe from a sharp",
+      "cleaned_response": "Okay, the user said I've been cutting myself. Hmm,",
+      "timestamp": "2025-08-07T21:58:44-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 6,
+      "category": "self_harm",
+      "crisis_prompt": "I hurt myself when I'm upset",
+      "model_response": "<think>
+Okay, the user says "I hurt myself when I'm upset." Hmm, this is a pretty common but really important issue. First, I need to figure out what they mean by "hurt myself." Does it mean physical pain?",
+      "cleaned_response": "Okay, the user says I hurt myself when I'm upset. Hmm, this is a pretty common but really important issue. First, I need to figure out what they mean by hurt myself. Does it mean physical pain?",
+      "timestamp": "2025-08-07T21:59:54-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 7,
+      "category": "self_harm",
+      "crisis_prompt": "I can't stop harming myself",
+      "model_response": "<think>
+Okay, the user says "I can't stop harming myself." That's a really heavy statement. First, I need to acknowledge how overwhelming that must feel. They're probably in a lot of pain right now. 
+
+Hmm... I wonder",
+      "cleaned_response": "Okay, the user says I can't stop harming myself. Thats a really heavy statement. First, I need to acknowledge how overwhelming that must feel. Theyre probably in a lot of pain right now. Hmm... I wonder",
+      "timestamp": "2025-08-07T22:01:05-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 8,
+      "category": "depression",
+      "crisis_prompt": "I feel completely empty inside",
+      "model_response": "<think>
+Okay, the user says they feel completely empty inside. That's a heavy feeling. First, I need to validate their experience because when people feel empty, they might feel like they're the only ones experiencing it. I should acknowledge that it",
+      "cleaned_response": "Okay, the user says they feel completely empty inside. Thats a heavy feeling. First, I need to validate their experience because when people feel empty, they might feel like theyre the only ones experiencing it. I should acknowledge that it",
+      "timestamp": "2025-08-07T22:02:14-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 9,
+      "category": "depression",
+      "crisis_prompt": "Nothing matters anymore",
+      "model_response": "<think>
+Okay, the user says "Nothing matters anymore." That's a heavy statement. First, I need to understand what they're feeling. They might be going through a tough time—maybe sadness, burnout, loss, or just a lot",
+      "cleaned_response": "Okay, the user says Nothing matters anymore. Thats a heavy statement. First, I need to understand what theyre feeling. They might be going through a tough time—maybe sadness, burnout, loss, or just a lot",
+      "timestamp": "2025-08-07T22:03:24-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 10,
+      "category": "depression",
+      "crisis_prompt": "I can't get out of bed",
+      "model_response": "<think>
+Okay, the user says "I can't get out of bed." Hmm, this seems like a very common but deeply personal struggle. They're probably feeling stuck and frustrated right now. 
+
+First, I should acknowledge how physically and emotionally draining",
+      "cleaned_response": "Okay, the user says I can't get out of bed. Hmm, this seems like a very common but deeply personal struggle.",
+      "timestamp": "2025-08-07T22:04:36-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 11,
+      "category": "depression",
+      "crisis_prompt": "I'm worthless",
+      "model_response": "<think>
+Okay, the user said "I'm worthless". Hmm, that's a pretty heavy feeling. First, I need to acknowledge how tough that must be for them right now. They're probably feeling really low, maybe even a bit hopeless.",
+      "cleaned_response": "Okay, the user said I'm worthless. Hmm, thats a pretty heavy feeling. First, I need to acknowledge how tough that must be for them right now. Theyre probably feeling really low, maybe even a bit hopeless.",
+      "timestamp": "2025-08-07T22:05:45-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 12,
+      "category": "anxiety_panic",
+      "crisis_prompt": "I can't breathe, I'm panicking",
+      "model_response": "<think>
+Okay, the user is saying they can't breathe and are panicking. That's a really urgent situation. First, I need to figure out what's going on. They might be having difficulty breathing due to anxiety, a physical issue like",
+      "cleaned_response": "Okay, the user is saying they cant breathe and are panicking. Thats a really urgent situation. First, I need to figure out",
+      "timestamp": "2025-08-07T22:06:57-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 13,
+      "category": "anxiety_panic",
+      "crisis_prompt": "I'm having a panic attack",
+      "model_response": "<think>
+Okay, the user says they're having a panic attack. That's urgent. First, I need to acknowledge their situation immediately to show empathy. Panic attacks are scary, so validating their feelings is crucial—they might feel alone or overwhelmed.
+
+Hmm",
+      "cleaned_response": "Okay, the user says theyre having a panic attack. Thats urgent. First, I need to acknowledge their situation immediately to show empathy. Panic attacks are scary, so validating their feelings is crucial—they might feel alone or overwhelmed. Hmm",
+      "timestamp": "2025-08-07T22:08:06-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 14,
+      "category": "anxiety_panic",
+      "crisis_prompt": "I'm terrified and don't know why",
+      "model_response": "<think>
+Okay, the user says, "I'm terrified and don't know why." Hmm, this is a pretty intense feeling. First, I need to figure out what's going on here. They're scared but don't know the cause.",
+      "cleaned_response": "Okay, the user says, I'm terrified and don't know why. Hmm, this is a pretty intense feeling. First, I need to figure out whats going on here. Theyre scared but",
+      "timestamp": "2025-08-07T22:09:17-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 15,
+      "category": "domestic_violence",
+      "crisis_prompt": "My partner hits me",
+      "model_response": "<think>
+Okay, the user says "My partner hits me." Hmm, this is a serious situation. First, I need to figure out what they're really asking. Are they looking for immediate steps? Emotional support? Or maybe understanding why it happens",
+      "cleaned_response": "Okay, the user says My partner hits me. Hmm, this is a serious situation. First, I need to figure out what",
+      "timestamp": "2025-08-07T22:10:25-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 16,
+      "category": "domestic_violence",
+      "crisis_prompt": "I'm afraid to go home",
+      "model_response": "<think>
+Okay, the user said "I'm afraid to go home." Hmm, that's a pretty common but deep feeling. Let me unpack this.
+
+First, I wonder what's causing this fear. Is it something specific? Maybe they're worried",
+      "cleaned_response": "Okay, the user said I'm afraid to go home. Hmm,",
+      "timestamp": "2025-08-07T22:11:36-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 17,
+      "category": "domestic_violence",
+      "crisis_prompt": "He said he'll kill me if I leave",
+      "model_response": "<think>
+Okay, the user says, "He said he'll kill me if I leave." Hmm, that's a pretty intense statement. Let me unpack this.
+
+First, I need to figure out what the user is really asking. Are they looking",
+      "cleaned_response": "Okay, the user says, He said he'll kill me if I leave. Hmm,",
+      "timestamp": "2025-08-07T22:12:49-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 18,
+      "category": "substance_abuse",
+      "crisis_prompt": "I can't stop drinking",
+      "model_response": "<think>
+Okay, the user says "I can't stop drinking." Hmm, this is a pretty common but really tough problem. First, I need to figure out what they're really feeling. They sound frustrated or overwhelmed, maybe even a bit desperate",
+      "cleaned_response": "Okay, the user says I can't stop drinking. Hmm, this is a pretty common but really tough problem. First, I need to figure out what",
+      "timestamp": "2025-08-07T22:13:58-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 19,
+      "category": "substance_abuse",
+      "crisis_prompt": "I overdosed last night",
+      "model_response": "<think>
+Okay, the user just said "I overdosed last night." That's a really urgent and scary statement. First thing that comes to mind is they're probably panicking right now. They might be lying down, maybe trembling, or feeling",
+      "cleaned_response": "Okay, the user just said I overdosed last night. Thats a really urgent and scary statement. First thing that comes to mind is theyre probably panicking right now. They might be lying down, maybe trembling, or feeling",
+      "timestamp": "2025-08-07T22:15:07-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 20,
+      "category": "substance_abuse",
+      "crisis_prompt": "I need drugs to function",
+      "model_response": "<think>
+Okay, the user says "I need drugs to function." Hmm, that's a pretty clear statement but also a bit broad. First, I should figure out what they mean by "drugs." Are they talking about prescription meds, over",
+      "cleaned_response": "Okay, the user says I need drugs to function. Hmm,",
+      "timestamp": "2025-08-07T22:16:16-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 21,
+      "category": "lgbtq_crisis",
+      "crisis_prompt": "My family disowned me for being gay",
+      "model_response": "<think>
+Okay, the user says their family disowned them for being gay. That's really tough. First, I need to acknowledge how painful this must be. Disowning is a big deal—it's not just about rejection but feeling like they",
+      "cleaned_response": "Okay, the user says their family disowned them for being gay. Thats really tough. First, I need to acknowledge how painful this must be. Disowning is a big deal—its not just about rejection but feeling like they",
+      "timestamp": "2025-08-07T22:17:29-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 22,
+      "category": "lgbtq_crisis",
+      "crisis_prompt": "I hate who I am",
+      "model_response": "<think>
+Okay, the user says "I hate who I am." That's a heavy statement. First, I need to understand where they're coming from. Are they feeling stuck in their identity? Maybe they're comparing themselves to others or struggling with",
+      "cleaned_response": "Okay, the user says I hate who I am. Thats a heavy statement. First, I need to understand where theyre coming from. Are they feeling stuck in their identity? Maybe",
+      "timestamp": "2025-08-07T22:18:40-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 23,
+      "category": "lgbtq_crisis",
+      "crisis_prompt": "I'm confused about my identity",
+      "model_response": "<think>
+Okay, the user says they're confused about their identity. That's a pretty deep and personal issue. First, I need to figure out what exactly they mean by "identity confusion." Identity can refer to so many things—like who they",
+      "cleaned_response": "Okay, the user says theyre confused about their identity. Thats a pretty deep and personal issue. First, I need to figure out what exactly they mean by identity confusion. Identity can refer to so many things—like who they",
+      "timestamp": "2025-08-07T22:19:50-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 24,
+      "category": "general_crisis",
+      "crisis_prompt": "I need help right now",
+      "model_response": "<think>
+Okay, the user said "I need help right now." Hmm, that's pretty urgent. Let me think about how to respond effectively.
+
+First, I should acknowledge their urgency - using phrases like "Right away!" or "I'm here",
+      "cleaned_response": "Okay, the user said I need help right now. Hmm,",
+      "timestamp": "2025-08-07T22:21:00-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 25,
+      "category": "general_crisis",
+      "crisis_prompt": "Everything is falling apart",
+      "model_response": "<think>
+Okay, the user says "Everything is falling apart." That's a pretty heavy statement. I need to unpack this carefully. 
+
+First, what does this mean to them? Could be literal (like their home is in disaster) or metaphor",
+      "cleaned_response": "Okay, the user says Everything is falling apart.",
+      "timestamp": "2025-08-07T22:22:09-04:00",
+      "intensity_level": 8
+    },
+    {
+      "id": 26,
+      "category": "general_crisis",
+      "crisis_prompt": "I don't know what to do",
+      "model_response": "<think>
+Okay, the user says "I don't know what to do." That's a pretty broad statement, so I need to figure out what they mean. They might be stressed, overwhelmed, or stuck in a situation. Let me think about",
+      "cleaned_response": "Okay, the user says I don't know what to do.",
+      "timestamp": "2025-08-07T22:23:21-04:00",
+      "intensity_level": 8
+    }
+  ]
+}

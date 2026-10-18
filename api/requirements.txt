@@ -1,0 +1,8 @@
+# PAL Inference Service - Python Dependencies
+# Core API framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+pydantic>=2.0.0
+
+# Optional: Real LLM clients (for production, not stub mode)
+# openai>=1.0.0

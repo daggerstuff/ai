@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://pixelated.ai/schemas/memory-block/v1.json",
+  "title": "MemoryBlock",
+  "description": "Canonical memory block schema — mirrors TypeScript interface and Python Pydantic model",
+  "type": "object",
+  "required": ["id", "tenantId", "sessionId", "content", "timestamp", "importance", "emotions", "gating", "consolidation"],
+  "properties": {
+    "id": { "type": "string", "description": "Unique memory identifier" },
+    "tenantId": { "type": "string", "description": "Tenant isolation key" },
+    "sessionId": { "type": "string", "description": "Session-scoped grouping" },
+    "content": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "integer", "minimum": 0, "description": "Unix ms" },
+    "importance": {
+      "type": "object",
+      "required": ["raw", "recency", "relevance", "emotionalWeight", "actionability"],
+      "properties": {
+        "raw": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recency": { "type": "number", "minimum": 0, "maximum": 1 },
+        "relevance": { "type": "number", "minimum": 0, "maximum": 1 },
+        "emotionalWeight": { "type": "number", "minimum": 1, "maximum": 5 },
+        "actionability": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "emotions": {
+      "type": "object",
+      "required": ["valence", "arousal", "categories"],
+      "properties": {
+        "valence": { "type": "number", "minimum": -1, "maximum": 1 },
+        "arousal": { "type": "number", "minimum": 0, "maximum": 1 },
+        "categories": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "gating": {
+      "type": "object",
+      "required": ["piiStatus", "crisisFlag", "traumaIndicators", "consentGate"],
+      "properties": {
+        "piiStatus": { "type": "string", "enum": ["absent", "redacted", "present"] },
+        "crisisFlag": { "type": "boolean" },
+        "traumaIndicators": { "type": "array", "items": { "type": "string" } },
+        "consentGate": { "type": "string", "enum": ["open", "restricted", "blocked"] }
+      }
+    },
+    "consolidation": {
+      "type": "object",
+      "required": ["phase", "lastProcessed", "remCycles", "schemaReferences"],
+      "properties": {
+        "phase": { "type": "string", "enum": ["raw", "consolidated", "archived", "forgotten"] },
+        "lastProcessed": { "type": "integer", "minimum": 0 },
+        "remCycles": { "type": "integer", "minimum": 0 },
+        "schemaReferences": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

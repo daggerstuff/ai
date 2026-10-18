@@ -1,0 +1,24 @@
+# Source / Product Matrix — P14 Authority
+# Cited in File 15 (design.md / task-plan)
+# Matches EdgeCaseGenerator output contracts and service.py interfaces
+
+matrix:
+  - source: synthetic_dialogue
+    product: dataset_shard
+    format: jsonl
+    path_template: "data/raw/{source}/shards/{product}_*.jsonl"
+
+  - source: edge_case_transcript
+    product: curriculum_stage_config
+    format: json
+    path_template: "training/configs/stage_configs/edge_case_pipeline_standalone_requirements.txt"
+
+  - source: clinical_scenario
+    product: training_pair_jsonl
+    format: jsonl
+    path_template: "training_data_consolidated/final_datasets/clinical_scenarios.jsonl"
+
+  - source: therapeutic_conversation
+    product: integration_report_md
+    format: md
+    path_template: "training_data_consolidated/edge_cases/integration_report.md"

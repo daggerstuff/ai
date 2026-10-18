@@ -1,0 +1,11 @@
+postgresql:
+  primary:
+    persistence:
+      size: 8Gi
+      storageClass: "default"
+
+redis:
+  master:
+    persistence:
+      size: 8Gi
+      storageClass: "default"

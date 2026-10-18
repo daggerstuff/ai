@@ -1,0 +1,52 @@
+# Automatic Resume System Requirements
+# Install with: pip install -r auto_resume_requirements.txt
+
+# Core system monitoring (from checkpoint system)
+psutil>=5.8.0
+
+# Built-in Python modules (listed for reference)
+# asyncio - Built-in Python 3.7+
+# signal - Built-in
+# threading - Built-in
+# time - Built-in
+# uuid - Built-in
+# json - Built-in
+# logging - Built-in
+# os - Built-in
+# sys - Built-in
+# datetime - Built-in
+# pathlib - Built-in
+# tempfile - Built-in
+# shutil - Built-in
+# collections - Built-in
+# dataclasses - Built-in Python 3.7+
+# enum - Built-in
+# typing - Built-in Python 3.5+
+
+# Dependencies from checkpoint system
+# (Include checkpoint_requirements.txt)
+
+# Optional: Enhanced monitoring and alerting
+# prometheus_client>=0.14.0  # For Prometheus metrics
+# redis>=4.0.0              # For distributed coordination
+# pika>=1.3.0               # For RabbitMQ message queuing
+# celery>=5.2.0             # For distributed task management
+
+# Development and testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+coverage>=6.0.0
+pytest-timeout>=2.1.0      # For timeout testing
+
+# Code quality
+black>=22.0.0
+flake8>=5.0.0
+mypy>=0.991
+
+# Documentation
+sphinx>=4.0.0
+sphinx-rtd-theme>=1.0.0
+
+# Performance profiling (optional)
+# memory_profiler>=0.60.0   # For memory usage profiling
+# py-spy>=0.3.0             # For CPU profiling

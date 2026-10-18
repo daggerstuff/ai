@@ -1,0 +1,388 @@
+{
+  "evaluation_source": "ai/lab/evals/sample_evaluation_metrics.json",
+  "generated_at": "2026-05-13T14:52:18.159173+00:00",
+  "total_evaluated": 515749,
+  "overall_score": 0.45,
+  "failure_patterns": [
+    {
+      "pattern_id": "pattern_memory_recall_low",
+      "pattern_type": "memory_deficiency",
+      "description": "Model fails to recall relevant memories in context",
+      "affected_examples": [],
+      "severity": "medium",
+      "frequency": 0.3,
+      "metrics_impacted": [
+        "memory_recall_recall"
+      ]
+    },
+    {
+      "pattern_id": "pattern_memory_irrelevant",
+      "pattern_type": "memory_noise",
+      "description": "Model retrieves irrelevant or low-value memories",
+      "affected_examples": [],
+      "severity": "low",
+      "frequency": 0.040000000000000036,
+      "metrics_impacted": [
+        "memory_recall_precision"
+      ]
+    },
+    {
+      "pattern_id": "pattern_context_drift",
+      "pattern_type": "context_alignment",
+      "description": "Generated responses drift from conversation context",
+      "affected_examples": [],
+      "severity": "medium",
+      "frequency": 0.13333333333333328,
+      "metrics_impacted": [
+        "context_relevance"
+      ]
+    },
+    {
+      "pattern_id": "pattern_reflection_absent",
+      "pattern_type": "reflection_quality",
+      "description": "Lacks reflective or insightful content",
+      "affected_examples": [],
+      "severity": "medium",
+      "frequency": 0.24,
+      "metrics_impacted": [
+        "reflection_quality"
+      ]
+    },
+    {
+      "pattern_id": "pattern_generation_incoherent",
+      "pattern_type": "generation_quality",
+      "description": "Generated text is incoherent or low quality",
+      "affected_examples": [],
+      "severity": "low",
+      "frequency": 0.03333333333333337,
+      "metrics_impacted": [
+        "generation_quality"
+      ]
+    }
+  ],
+  "upstream_mappings": [
+    {
+      "failure_pattern": {
+        "pattern_id": "pattern_memory_recall_low",
+        "pattern_type": "memory_deficiency",
+        "description": "Model fails to recall relevant memories in context",
+        "affected_examples": [],
+        "severity": "medium",
+        "frequency": 0.3,
+        "metrics_impacted": [
+          "memory_recall_recall"
+        ]
+      },
+      "upstream_domain": "acquisition",
+      "confidence": 0.6599999999999999,
+      "root_cause_hypothesis": "Source data lacks high-quality memory-context pairs",
+      "evidence": [
+        "acquisition_logs",
+        "source_metadata"
+      ]
+    },
+    {
+      "failure_pattern": {
+        "pattern_id": "pattern_memory_irrelevant",
+        "pattern_type": "memory_noise",
+        "description": "Model retrieves irrelevant or low-value memories",
+        "affected_examples": [],
+        "severity": "low",
+        "frequency": 0.040000000000000036,
+        "metrics_impacted": [
+          "memory_recall_precision"
+        ]
+      },
+      "upstream_domain": "curation",
+      "confidence": 0.40800000000000003,
+      "root_cause_hypothesis": "Curation rules allow low-relevance memories through",
+      "evidence": [
+        "curation_rules",
+        "dedup_logs"
+      ]
+    },
+    {
+      "failure_pattern": {
+        "pattern_id": "pattern_context_drift",
+        "pattern_type": "context_alignment",
+        "description": "Generated responses drift from conversation context",
+        "affected_examples": [],
+        "severity": "medium",
+        "frequency": 0.13333333333333328,
+        "metrics_impacted": [
+          "context_relevance"
+        ]
+      },
+      "upstream_domain": "curation",
+      "confidence": 0.6266666666666666,
+      "root_cause_hypothesis": "Context normalization insufficient or misaligned",
+      "evidence": [
+        "normalization_config",
+        "context_samples"
+      ]
+    },
+    {
+      "failure_pattern": {
+        "pattern_id": "pattern_reflection_absent",
+        "pattern_type": "reflection_quality",
+        "description": "Lacks reflective or insightful content",
+        "affected_examples": [],
+        "severity": "medium",
+        "frequency": 0.24,
+        "metrics_impacted": [
+          "reflection_quality"
+        ]
+      },
+      "upstream_domain": "review",
+      "confidence": 0.648,
+      "root_cause_hypothesis": "Human review needed for reflection quality gate",
+      "evidence": [
+        "review_guidelines",
+        "quality_samples"
+      ]
+    },
+    {
+      "failure_pattern": {
+        "pattern_id": "pattern_generation_incoherent",
+        "pattern_type": "generation_quality",
+        "description": "Generated text is incoherent or low quality",
+        "affected_examples": [],
+        "severity": "low",
+        "frequency": 0.03333333333333337,
+        "metrics_impacted": [
+          "generation_quality"
+        ]
+      },
+      "upstream_domain": "acquisition",
+      "confidence": 0.4066666666666667,
+      "root_cause_hypothesis": "Training data quality floor too low",
+      "evidence": [
+        "quality_thresholds",
+        "source_rankings"
+      ]
+    }
+  ],
+  "interventions": [
+    {
+      "intervention_id": "intervention_pattern_memory_recall_low",
+      "intervention_type": "priority_change",
+      "title": "Adjust source data priorities",
+      "description": "Increase priority of high-deficiency sources",
+      "upstream_domain": "acquisition",
+      "priority": "medium",
+      "expected_impact": "Improve memory_recall_recall by 10-20%",
+      "implementation_details": {
+        "root_cause": "Source data lacks high-quality memory-context pairs",
+        "confidence": 0.6599999999999999,
+        "evidence": [
+          "acquisition_logs",
+          "source_metadata"
+        ]
+      },
+      "validation_criteria": [
+        "memory_recall_recall improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_memory_recall_low"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_memory_recall_low",
+      "intervention_type": "threshold_change",
+      "title": "Update quality thresholds",
+      "description": "Raise memory_recall_recall threshold from 0.30 to 0.50",
+      "upstream_domain": "acquisition",
+      "priority": "medium",
+      "expected_impact": "Improve memory_recall_recall by 10-20%",
+      "implementation_details": {
+        "root_cause": "Source data lacks high-quality memory-context pairs",
+        "confidence": 0.6599999999999999,
+        "evidence": [
+          "acquisition_logs",
+          "source_metadata"
+        ]
+      },
+      "validation_criteria": [
+        "memory_recall_recall improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_memory_recall_low"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_memory_irrelevant",
+      "intervention_type": "rule_change",
+      "title": "Update curation rules",
+      "description": "Add curation rule for memory_noise",
+      "upstream_domain": "curation",
+      "priority": "low",
+      "expected_impact": "Improve memory_recall_precision by 10-20%",
+      "implementation_details": {
+        "root_cause": "Curation rules allow low-relevance memories through",
+        "confidence": 0.40800000000000003,
+        "evidence": [
+          "curation_rules",
+          "dedup_logs"
+        ]
+      },
+      "validation_criteria": [
+        "memory_recall_precision improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_memory_irrelevant"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_memory_irrelevant",
+      "intervention_type": "dataset_filter",
+      "title": "Add dataset filter",
+      "description": "Filter memory_noise patterns from dataset",
+      "upstream_domain": "curation",
+      "priority": "low",
+      "expected_impact": "Improve memory_recall_precision by 10-20%",
+      "implementation_details": {
+        "root_cause": "Curation rules allow low-relevance memories through",
+        "confidence": 0.40800000000000003,
+        "evidence": [
+          "curation_rules",
+          "dedup_logs"
+        ]
+      },
+      "validation_criteria": [
+        "memory_recall_precision improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_memory_irrelevant"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_context_drift",
+      "intervention_type": "rule_change",
+      "title": "Update curation rules",
+      "description": "Add curation rule for context_alignment",
+      "upstream_domain": "curation",
+      "priority": "medium",
+      "expected_impact": "Improve context_relevance by 10-20%",
+      "implementation_details": {
+        "root_cause": "Context normalization insufficient or misaligned",
+        "confidence": 0.6266666666666666,
+        "evidence": [
+          "normalization_config",
+          "context_samples"
+        ]
+      },
+      "validation_criteria": [
+        "context_relevance improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_context_drift"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_context_drift",
+      "intervention_type": "dataset_filter",
+      "title": "Add dataset filter",
+      "description": "Filter context_alignment patterns from dataset",
+      "upstream_domain": "curation",
+      "priority": "medium",
+      "expected_impact": "Improve context_relevance by 10-20%",
+      "implementation_details": {
+        "root_cause": "Context normalization insufficient or misaligned",
+        "confidence": 0.6266666666666666,
+        "evidence": [
+          "normalization_config",
+          "context_samples"
+        ]
+      },
+      "validation_criteria": [
+        "context_relevance improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_context_drift"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_reflection_absent",
+      "intervention_type": "review_focus",
+      "title": "Add human review focus area",
+      "description": "Focus human review on reflection_quality",
+      "upstream_domain": "review",
+      "priority": "medium",
+      "expected_impact": "Improve reflection_quality by 10-20%",
+      "implementation_details": {
+        "root_cause": "Human review needed for reflection quality gate",
+        "confidence": 0.648,
+        "evidence": [
+          "review_guidelines",
+          "quality_samples"
+        ]
+      },
+      "validation_criteria": [
+        "reflection_quality improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_reflection_absent"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_generation_incoherent",
+      "intervention_type": "priority_change",
+      "title": "Adjust source data priorities",
+      "description": "Increase priority of high-quality sources",
+      "upstream_domain": "acquisition",
+      "priority": "low",
+      "expected_impact": "Improve generation_quality by 10-20%",
+      "implementation_details": {
+        "root_cause": "Training data quality floor too low",
+        "confidence": 0.4066666666666667,
+        "evidence": [
+          "quality_thresholds",
+          "source_rankings"
+        ]
+      },
+      "validation_criteria": [
+        "generation_quality improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_generation_incoherent"
+      ]
+    },
+    {
+      "intervention_id": "intervention_pattern_generation_incoherent",
+      "intervention_type": "threshold_change",
+      "title": "Update quality thresholds",
+      "description": "Raise generation_quality threshold from 0.03 to 0.23",
+      "upstream_domain": "acquisition",
+      "priority": "low",
+      "expected_impact": "Improve generation_quality by 10-20%",
+      "implementation_details": {
+        "root_cause": "Training data quality floor too low",
+        "confidence": 0.4066666666666667,
+        "evidence": [
+          "quality_thresholds",
+          "source_rankings"
+        ]
+      },
+      "validation_criteria": [
+        "generation_quality improves by >10%",
+        "Pattern frequency reduces by >50%"
+      ],
+      "related_patterns": [
+        "pattern_generation_incoherent"
+      ]
+    }
+  ],
+  "summary": {
+    "critical_issues": 0,
+    "high_priority_issues": 0,
+    "recommended_actions": 9
+  }
+}

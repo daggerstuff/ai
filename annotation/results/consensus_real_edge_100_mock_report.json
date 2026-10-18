@@ -1,0 +1,8 @@
+{
+  "total_consensus_annotations": 100,
+  "emotion_tie_breaks": 21,
+  "crisis_agreement_rate": 0.74,
+  "emotion_agreement_rate": 0.79,
+  "secondary_emotion_agreement_rate": 0.24,
+  "overall_agreement_rate": 0.765
+}

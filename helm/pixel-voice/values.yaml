@@ -1,0 +1,23 @@
+# Default values for pixel-voice.
+# This file is used by Trivy's Helm evaluator and as a fallback base.
+
+# -- Pod-level security context (applied via spec.securityContext).
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container-level security context (applied via spec.containers[].securityContext).
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+# -- Resources (applied via spec.containers[].resources).
+resources: {}

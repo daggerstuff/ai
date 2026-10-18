@@ -1,0 +1,143 @@
+name: "pixel"
+platform: "pytorch_libtorch"
+max_batch_size: 32
+
+# Input specification
+input [
+  {
+    name: "input_ids"
+    data_type: TYPE_INT32
+    dims: [-1, 512]
+    reshape: { shape: [1, 512] }
+  },
+  {
+    name: "attention_mask"
+    data_type: TYPE_INT32
+    dims: [-1, 512]
+    reshape: { shape: [1, 512] }
+    optional: true
+  },
+  {
+    name: "session_id"
+    data_type: TYPE_STRING
+    dims: [1]
+  },
+  {
+    name: "context_type"
+    data_type: TYPE_STRING
+    dims: [1]
+    optional: true
+  }
+]
+
+# Output specification
+output [
+  {
+    name: "response_text"
+    data_type: TYPE_STRING
+    dims: [1]
+  },
+  {
+    name: "eq_scores"
+    data_type: TYPE_FP32
+    dims: [5]
+  },
+  {
+    name: "overall_eq"
+    data_type: TYPE_FP32
+    dims: [1]
+  },
+  {
+    name: "bias_score"
+    data_type: TYPE_FP32
+    dims: [1]
+  },
+  {
+    name: "safety_score"
+    data_type: TYPE_FP32
+    dims: [1]
+  },
+  {
+    name: "persona_mode"
+    data_type: TYPE_STRING
+    dims: [1]
+  },
+  {
+    name: "inference_time_ms"
+    data_type: TYPE_FP32
+    dims: [1]
+  }
+]
+
+# Batching configuration
+dynamic_batching {
+  preferred_batch_size: [8, 16, 32]
+  max_queue_delay_microseconds: 10000
+  timeout_action: REJECT
+  default_queue_policy {
+    timeouts {
+      default: 10000000
+    }
+  }
+}
+
+# Instance group configuration
+instance_group [
+  {
+    name: "gpu"
+    kind: KIND_GPU
+    count: 1
+    gpus: [0]
+  }
+]
+
+# Model optimization hints
+optimization {
+  execution_accelerators {
+    gpu_execution_accelerator {
+      parameters {
+        key: "model_type"
+        value { string_value: "pytorch_libtorch" }
+      }
+      parameters {
+        key: "optimization_level"
+        value { string_value: "2" }
+      }
+    }
+  }
+}
+
+# Version policy
+version_policy {
+  latest {
+    num_versions: 2
+  }
+}
+
+# Metrics configuration
+parameters {
+  key: "enable_metrics"
+  value { string_value: "true" }
+}
+
+# Model type and serving configuration
+parameters {
+  key: "model_type"
+  value { string_value: "pixel_base_model" }
+}
+
+parameters {
+  key: "model_version_policy"
+  value { string_value: "all" }
+}
+
+# Performance tuning
+parameters {
+  key: "cuda_graph_enabled"
+  value { string_value: "true" }
+}
+
+parameters {
+  key: "tf_allow_growth"
+  value { string_value: "true" }
+}

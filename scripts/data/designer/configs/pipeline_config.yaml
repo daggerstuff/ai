@@ -1,0 +1,32 @@
+# NeMo Data Designer Synthetic-Generation Pipeline Configs
+# Authority source for source/product matrix (P14, File 15)
+# Aligns with ai/data_designer/service.py and EdgeCaseGenerator
+
+pipeline:
+  name: synthetic-generation
+  version: 1.0.0
+  service: ai/data_designer/service.py
+  generator: EdgeCaseGenerator
+
+source_product_matrix:
+  sources:
+    - synthetic_dialogue
+    - edge_case_transcript
+    - clinical_scenario
+    - therapeutic_conversation
+  products:
+    - dataset_shard
+    - curriculum_stage_config
+    - training_pair_jsonl
+    - integration_report_md
+
+stages:
+  - generate_prompts
+  - generate_conversations
+  - create_training_format
+  - integrate_with_main_pipeline
+  - generate_integration_report
+
+output_dir: training_data_consolidated
+edge_cases_per_category: 15
+max_edge_conversations: 300

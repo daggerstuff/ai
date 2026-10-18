@@ -1,0 +1,1107 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2026-04-03T16:13:53.778460Z",
+  "description": "Rebuilt registry based on actual backup structure",
+  "storage": {
+    "primary": {
+      "type": "s3",
+      "bucket": "pixel-data",
+      "endpoint": "${AWS_S3_ENDPOINT}",
+      "region": "sfo3"
+    }
+  },
+  "datasets": {
+    "raw_acquired": {
+      "acquired_root": {
+        "name": "acquired_root",
+        "path": "s3://pixel-data/acquired",
+        "size": {
+          "bytes": 10558112,
+          "mb": 10.07,
+          "gb": 0.01
+        },
+        "file_count": 4,
+        "files": [
+          {
+            "name": "TRAINING_DATASET_GUIDE.md",
+            "size_bytes": 6363,
+            "size_mb": 0.01
+          },
+          {
+            "name": "acquisition_summary.json",
+            "size_bytes": 287,
+            "size_mb": 0.0
+          },
+          {
+            "name": "cot_reasoning.json",
+            "size_bytes": 192002,
+            "size_mb": 0.18
+          },
+          {
+            "name": "mental_health_counseling.json",
+            "size_bytes": 10359460,
+            "size_mb": 9.88
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      }
+    },
+    "training_shards": {
+      "compiled_dataset_root": {
+        "name": "compiled_dataset_root",
+        "path": "s3://pixel-data/compiled_dataset",
+        "size": {
+          "bytes": 2414524931,
+          "mb": 2302.67,
+          "gb": 2.249
+        },
+        "file_count": 154,
+        "files": [
+          {
+            "name": "METADATA.json",
+            "size_bytes": 368,
+            "size_mb": 0.0
+          },
+          {
+            "name": "test_shard_000.jsonl",
+            "size_bytes": 22035735,
+            "size_mb": 21.01
+          },
+          {
+            "name": "test_shard_001.jsonl",
+            "size_bytes": 13589485,
+            "size_mb": 12.96
+          },
+          {
+            "name": "test_shard_002.jsonl",
+            "size_bytes": 11758693,
+            "size_mb": 11.21
+          },
+          {
+            "name": "test_shard_003.jsonl",
+            "size_bytes": 22806552,
+            "size_mb": 21.75
+          },
+          {
+            "name": "test_shard_004.jsonl",
+            "size_bytes": 23389183,
+            "size_mb": 22.31
+          },
+          {
+            "name": "test_shard_005.jsonl",
+            "size_bytes": 13450594,
+            "size_mb": 12.83
+          },
+          {
+            "name": "test_shard_006.jsonl",
+            "size_bytes": 9819680,
+            "size_mb": 9.36
+          },
+          {
+            "name": "train_shard_000.jsonl",
+            "size_bytes": 3513295,
+            "size_mb": 3.35
+          },
+          {
+            "name": "train_shard_001.jsonl",
+            "size_bytes": 17008379,
+            "size_mb": 16.22
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      }
+    },
+    "processed": {
+      "processed_ready_batches": {
+        "name": "processed_ready_batches",
+        "path": "s3://pixel-data/processed_ready/batches",
+        "size": {
+          "bytes": 1245236900,
+          "mb": 1187.55,
+          "gb": 1.16
+        },
+        "file_count": 30,
+        "files": [
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_1",
+            "size_bytes": 41808186,
+            "size_mb": 39.87
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_10",
+            "size_bytes": 52214503,
+            "size_mb": 49.8
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_11",
+            "size_bytes": 49928216,
+            "size_mb": 47.62
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_12",
+            "size_bytes": 25071489,
+            "size_mb": 23.91
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_13",
+            "size_bytes": 26664183,
+            "size_mb": 25.43
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_14",
+            "size_bytes": 26325594,
+            "size_mb": 25.11
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_15",
+            "size_bytes": 26112902,
+            "size_mb": 24.9
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_16",
+            "size_bytes": 21630204,
+            "size_mb": 20.63
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_17",
+            "size_bytes": 35504239,
+            "size_mb": 33.86
+          },
+          {
+            "name": "pixelated_tier1_priority_curated_dark_humor_processed_20260217_212149.jsonl.batch_18",
+            "size_bytes": 38651448,
+            "size_mb": 36.86
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      }
+    },
+    "final": {
+      "final_dataset_regenerated_gestalt": {
+        "name": "final_dataset_regenerated_gestalt",
+        "path": "s3://pixel-data/final_dataset/regenerated_gestalt",
+        "size": {
+          "bytes": 149367948,
+          "mb": 142.45,
+          "gb": 0.139
+        },
+        "file_count": 6,
+        "files": [
+          {
+            "name": "stage3/synthetic_persona_batch_5k.jsonl",
+            "size_bytes": 0,
+            "size_mb": 0.0
+          },
+          {
+            "name": "stage3/synthetic_persona_batch_5k_antigravity_final_v14.jsonl",
+            "size_bytes": 40053120,
+            "size_mb": 38.2
+          },
+          {
+            "name": "stage3/synthetic_persona_batch_5k_antigravity_final_v8.jsonl",
+            "size_bytes": 34630854,
+            "size_mb": 33.03
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "final_dataset_shards": {
+        "name": "final_dataset_shards",
+        "path": "s3://pixel-data/final_dataset/shards",
+        "size": {
+          "bytes": 205185988,
+          "mb": 195.68,
+          "gb": 0.191
+        },
+        "file_count": 26,
+        "files": [
+          {
+            "name": "curriculum/stage2/METADATA.json",
+            "size_bytes": 2724,
+            "size_mb": 0.0
+          },
+          {
+            "name": "curriculum/stage2/dry_run_test.jsonl",
+            "size_bytes": 7694,
+            "size_mb": 0.01
+          },
+          {
+            "name": "curriculum/stage2/edge_case_synthetic.jsonl",
+            "size_bytes": 21683058,
+            "size_mb": 20.68
+          },
+          {
+            "name": "curriculum/stage2/long_sessions.jsonl",
+            "size_bytes": 57150,
+            "size_mb": 0.05
+          },
+          {
+            "name": "curriculum/stage2/nemo_synthetic_conversations.jsonl",
+            "size_bytes": 5140,
+            "size_mb": 0.0
+          },
+          {
+            "name": "curriculum/stage2/nightmare_fuel.jsonl",
+            "size_bytes": 46520,
+            "size_mb": 0.04
+          },
+          {
+            "name": "curriculum/stage2/synthetic_long_sessions.jsonl",
+            "size_bytes": 16723581,
+            "size_mb": 15.95
+          },
+          {
+            "name": "curriculum/stage2/synthetic_minority_defense_mechanisms.jsonl",
+            "size_bytes": 195186,
+            "size_mb": 0.19
+          },
+          {
+            "name": "curriculum/stage2/synthetic_persona_batch_100.jsonl",
+            "size_bytes": 127011,
+            "size_mb": 0.12
+          },
+          {
+            "name": "curriculum/stage2/synthetic_persona_batch_10000.jsonl",
+            "size_bytes": 24232824,
+            "size_mb": 23.11
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      }
+    },
+    "organized": {
+      "datasets_compiled": {
+        "name": "datasets_compiled",
+        "path": "s3://pixel-data/datasets/compiled",
+        "size": {
+          "bytes": 133254534,
+          "mb": 127.08,
+          "gb": 0.124
+        },
+        "file_count": 3,
+        "files": [
+          {
+            "name": "test_shard_0000.jsonl",
+            "size_bytes": 13815382,
+            "size_mb": 13.18
+          },
+          {
+            "name": "train_shard_0000.jsonl",
+            "size_bytes": 106156343,
+            "size_mb": 101.24
+          },
+          {
+            "name": "validation_shard_0000.jsonl",
+            "size_bytes": 13282809,
+            "size_mb": 12.67
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "datasets_consolidated": {
+        "name": "datasets_consolidated",
+        "path": "s3://pixel-data/datasets/consolidated",
+        "size": {
+          "bytes": 14949330807,
+          "mb": 14256.79,
+          "gb": 13.923
+        },
+        "file_count": 170,
+        "files": [
+          {
+            "name": "CONSOLIDATION_COMPLETE.md",
+            "size_bytes": 5211,
+            "size_mb": 0.0
+          },
+          {
+            "name": "README.md",
+            "size_bytes": 2142,
+            "size_mb": 0.0
+          },
+          {
+            "name": "configs/hyperparameters.json",
+            "size_bytes": 859,
+            "size_mb": 0.0
+          },
+          {
+            "name": "configs/training_config.json",
+            "size_bytes": 1518,
+            "size_mb": 0.0
+          },
+          {
+            "name": "conversations/edge_case_dialogues.jsonl",
+            "size_bytes": 136050,
+            "size_mb": 0.13
+          },
+          {
+            "name": "conversations/pixelated_empathy_train_20250526_174637.jsonl",
+            "size_bytes": 0,
+            "size_mb": 0.0
+          },
+          {
+            "name": "conversations/pixelated_empathy_val_20250526_174637.jsonl",
+            "size_bytes": 199668099,
+            "size_mb": 190.42
+          },
+          {
+            "name": "conversations/training_data.jsonl",
+            "size_bytes": 19459250,
+            "size_mb": 18.56
+          },
+          {
+            "name": "conversations/unpacked.json",
+            "size_bytes": 104854,
+            "size_mb": 0.1
+          },
+          {
+            "name": "edge_cases/EDGE_CASE_INTEGRATION_PLAN.md",
+            "size_bytes": 9097,
+            "size_mb": 0.01
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "datasets_metadata": {
+        "name": "datasets_metadata",
+        "path": "s3://pixel-data/datasets/metadata",
+        "size": {
+          "bytes": 100162,
+          "mb": 0.1,
+          "gb": 0.0
+        },
+        "file_count": 14,
+        "files": [
+          {
+            "name": "consolidation/findings/gdrive_consolidation_audit.md",
+            "size_bytes": 14999,
+            "size_mb": 0.01
+          },
+          {
+            "name": "consolidation/findings/s3_completion_summary.md",
+            "size_bytes": 4640,
+            "size_mb": 0.0
+          },
+          {
+            "name": "consolidation/findings/s3_implementation_summary.md",
+            "size_bytes": 4688,
+            "size_mb": 0.0
+          },
+          {
+            "name": "consolidation/findings/training_package_consolidation_audit.md",
+            "size_bytes": 11906,
+            "size_mb": 0.01
+          },
+          {
+            "name": "consolidation/manifest.json",
+            "size_bytes": 1541,
+            "size_mb": 0.0
+          },
+          {
+            "name": "consolidation/reports/audit_report.md",
+            "size_bytes": 7892,
+            "size_mb": 0.01
+          },
+          {
+            "name": "consolidation/reports/completion_summary.md",
+            "size_bytes": 4415,
+            "size_mb": 0.0
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "datasets_nemo_synthetic": {
+        "name": "datasets_nemo_synthetic",
+        "path": "s3://pixel-data/datasets/nemo_synthetic",
+        "size": {
+          "bytes": 413312,
+          "mb": 0.39,
+          "gb": 0.0
+        },
+        "file_count": 2,
+        "files": [
+          {
+            "name": "dialogues.jsonl",
+            "size_bytes": 413150,
+            "size_mb": 0.39
+          },
+          {
+            "name": "nemo_synthetic_stats.json",
+            "size_bytes": 162,
+            "size_mb": 0.0
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "datasets_training_v2": {
+        "name": "datasets_training_v2",
+        "path": "s3://pixel-data/datasets/training_v2",
+        "size": {
+          "bytes": 13308936,
+          "mb": 12.69,
+          "gb": 0.012
+        },
+        "file_count": 24,
+        "files": [
+          {
+            "name": "final_instruct/final_dpo.jsonl",
+            "size_bytes": 196998,
+            "size_mb": 0.19
+          },
+          {
+            "name": "final_instruct/final_test.jsonl",
+            "size_bytes": 1981,
+            "size_mb": 0.0
+          },
+          {
+            "name": "final_instruct/final_train.jsonl",
+            "size_bytes": 37742,
+            "size_mb": 0.04
+          },
+          {
+            "name": "final_instruct/final_val.jsonl",
+            "size_bytes": 2150,
+            "size_mb": 0.0
+          },
+          {
+            "name": "stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+            "size_bytes": 710775,
+            "size_mb": 0.68
+          },
+          {
+            "name": "stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
+            "size_bytes": 209072,
+            "size_mb": 0.2
+          },
+          {
+            "name": "stage2_specialist_addiction/fadodr_mental_health_therapy.jsonl",
+            "size_bytes": 1557671,
+            "size_mb": 1.49
+          },
+          {
+            "name": "stage3_edge_crisis/nightmare_scenarios_batch_241.jsonl",
+            "size_bytes": 4812,
+            "size_mb": 0.0
+          },
+          {
+            "name": "stage3_edge_crisis/nightmare_scenarios_batch_313.jsonl",
+            "size_bytes": 4964,
+            "size_mb": 0.0
+          },
+          {
+            "name": "stage3_edge_crisis/nightmare_scenarios_batch_360.jsonl",
+            "size_bytes": 4764,
+            "size_mb": 0.0
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "datasets_training_v3": {
+        "name": "datasets_training_v3",
+        "path": "s3://pixel-data/datasets/training_v3",
+        "size": {
+          "bytes": 12380106,
+          "mb": 11.81,
+          "gb": 0.012
+        },
+        "file_count": 16,
+        "files": [
+          {
+            "name": "stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+            "size_bytes": 695275,
+            "size_mb": 0.66
+          },
+          {
+            "name": "stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
+            "size_bytes": 203740,
+            "size_mb": 0.19
+          },
+          {
+            "name": "stage2_specialist_addiction/fadodr_mental_health_therapy.jsonl",
+            "size_bytes": 1542171,
+            "size_mb": 1.47
+          },
+          {
+            "name": "stage2_specialist_personality/Kanakmi_mental-disorders.jsonl",
+            "size_bytes": 502562,
+            "size_mb": 0.48
+          },
+          {
+            "name": "stage4_voice_persona/NousResearch_CharacterCodex.jsonl",
+            "size_bytes": 347921,
+            "size_mb": 0.33
+          },
+          {
+            "name": "stage4_voice_persona/google_Synthetic-Persona-Chat.jsonl",
+            "size_bytes": 945377,
+            "size_mb": 0.9
+          },
+          {
+            "name": "stage4_voice_persona/hieunguyenminh_roleplay.jsonl",
+            "size_bytes": 1303596,
+            "size_mb": 1.24
+          },
+          {
+            "name": "stage4_voice_persona/nazlicanto_persona-based-chat.jsonl",
+            "size_bytes": 649411,
+            "size_mb": 0.62
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "datasets_youtube_transcripts": {
+        "name": "datasets_youtube_transcripts",
+        "path": "s3://pixel-data/datasets/youtube_transcripts",
+        "size": {
+          "bytes": 2938882,
+          "mb": 2.8,
+          "gb": 0.003
+        },
+        "file_count": 2,
+        "files": [
+          {
+            "name": "tim_fletcher/transcripts.jsonl",
+            "size_bytes": 1469441,
+            "size_mb": 1.4
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      }
+    },
+    "archived": {
+      "archive_gdrive": {
+        "name": "archive_gdrive",
+        "path": "s3://pixel-data/archive/gdrive",
+        "size": {
+          "bytes": 7550708614,
+          "mb": 7200.92,
+          "gb": 7.032
+        },
+        "file_count": 98,
+        "files": [
+          {
+            "name": "processed/PROFESSIONAL_DATASETS_UPDATE_SUMMARY.md",
+            "size_bytes": 4507,
+            "size_mb": 0.0
+          },
+          {
+            "name": "processed/README.md",
+            "size_bytes": 8057,
+            "size_mb": 0.01
+          },
+          {
+            "name": "processed/conversations.db",
+            "size_bytes": 0,
+            "size_mb": 0.0
+          },
+          {
+            "name": "processed/filtered_datasets/additional_specialized_filtered.json",
+            "size_bytes": 203028,
+            "size_mb": 0.19
+          },
+          {
+            "name": "processed/filtered_datasets/cot_reasoning_filtered.json",
+            "size_bytes": 197619,
+            "size_mb": 0.19
+          },
+          {
+            "name": "processed/filtered_datasets/priority_1_filtered.json",
+            "size_bytes": 195816,
+            "size_mb": 0.19
+          },
+          {
+            "name": "processed/filtered_datasets/priority_2_filtered.json",
+            "size_bytes": 195816,
+            "size_mb": 0.19
+          },
+          {
+            "name": "processed/filtered_datasets/priority_3_filtered.json",
+            "size_bytes": 195816,
+            "size_mb": 0.19
+          },
+          {
+            "name": "processed/filtered_datasets/professional_neuro_filtered.json",
+            "size_bytes": 200624,
+            "size_mb": 0.19
+          },
+          {
+            "name": "processed/filtered_datasets/professional_psychology_filtered.json",
+            "size_bytes": 203629,
+            "size_mb": 0.19
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "archive_huggingface": {
+        "name": "archive_huggingface",
+        "path": "s3://pixel-data/archive/huggingface",
+        "size": {
+          "bytes": 115864788,
+          "mb": 110.5,
+          "gb": 0.108
+        },
+        "file_count": 14,
+        "files": [
+          {
+            "name": "huggingface/PJMixers_unalignment_toxic-dpo-v0.2-ShareGPT.jsonl",
+            "size_bytes": 868071,
+            "size_mb": 0.83
+          },
+          {
+            "name": "huggingface/ShreyaR_DepressionDetection.jsonl",
+            "size_bytes": 3072193,
+            "size_mb": 2.93
+          },
+          {
+            "name": "huggingface/flammenai_character-roleplay-DPO.jsonl",
+            "size_bytes": 39458539,
+            "size_mb": 37.63
+          },
+          {
+            "name": "huggingface/iqrakiran_customized-mental-health-snli2.jsonl",
+            "size_bytes": 6714236,
+            "size_mb": 6.4
+          },
+          {
+            "name": "huggingface/mlx-community_Human-Like-DPO.jsonl",
+            "size_bytes": 160028,
+            "size_mb": 0.15
+          },
+          {
+            "name": "huggingface/typosonlr_MentalHealthPreProcessed.jsonl",
+            "size_bytes": 4587134,
+            "size_mb": 4.37
+          },
+          {
+            "name": "test/huggingface/ShreyaR_DepressionDetection.jsonl",
+            "size_bytes": 3072193,
+            "size_mb": 2.93
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "archive_local_sync": {
+        "name": "archive_local_sync",
+        "path": "s3://pixel-data/archive/local_sync",
+        "size": {
+          "bytes": 3194,
+          "mb": 0.0,
+          "gb": 0.0
+        },
+        "file_count": 2,
+        "files": [
+          {
+            "name": "ai/datasets/download_log.json",
+            "size_bytes": 1597,
+            "size_mb": 0.0
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      },
+      "archive_vps_archaeology": {
+        "name": "archive_vps_archaeology",
+        "path": "s3://pixel-data/archive/vps_archaeology",
+        "size": {
+          "bytes": 77188,
+          "mb": 0.07,
+          "gb": 0.0
+        },
+        "file_count": 22,
+        "files": [
+          {
+            "name": "datasets/prepare_training_data.py",
+            "size_bytes": 14672,
+            "size_mb": 0.01
+          },
+          {
+            "name": "pixelated-datasets/download.log",
+            "size_bytes": 368,
+            "size_mb": 0.0
+          },
+          {
+            "name": "pixelated-datasets/download.status",
+            "size_bytes": 453,
+            "size_mb": 0.0
+          },
+          {
+            "name": "pixelated-datasets/download_nohup.out",
+            "size_bytes": 495,
+            "size_mb": 0.0
+          },
+          {
+            "name": "pixelated-datasets/error.log",
+            "size_bytes": 85,
+            "size_mb": 0.0
+          },
+          {
+            "name": "pixelated-datasets/vps_dataset_acquisition.sh",
+            "size_bytes": 16982,
+            "size_mb": 0.02
+          },
+          {
+            "name": "xmu_psych_books/.gitattributes",
+            "size_bytes": 3818,
+            "size_mb": 0.0
+          },
+          {
+            "name": "xmu_psych_books/.gitignore",
+            "size_bytes": 21,
+            "size_mb": 0.0
+          },
+          {
+            "name": "xmu_psych_books/README.md",
+            "size_bytes": 1219,
+            "size_mb": 0.0
+          },
+          {
+            "name": "xmu_psych_books/data.csv",
+            "size_bytes": 130,
+            "size_mb": 0.0
+          }
+        ],
+        "quality_metrics": {
+          "completeness_score": 0,
+          "consistency_score": 0,
+          "annotation_quality_score": 0,
+          "overall_quality_score": 0,
+          "quality_tier": "not_scored",
+          "duplicate_count": 0,
+          "deduplication_ratio": 0
+        },
+        "validation": {
+          "checksum_sha256": null,
+          "checksum_md5": null,
+          "schema_valid": false,
+          "integrity_valid": false,
+          "last_validated": null
+        },
+        "usage": {
+          "access_count": 0,
+          "last_accessed": null,
+          "training_jobs": [],
+          "data_freshness_days": null
+        }
+      }
+    }
+  },
+  "statistics": {
+    "total_datasets": 16,
+    "total_size_bytes": 26803254402,
+    "total_size_gb": 24.962,
+    "total_files": 587
+  }
+}
