@@ -15,7 +15,13 @@ def test_get_default_registry_path():
     path = get_default_registry_path()
     assert isinstance(path, Path)
     assert path.name == "dataset_registry.json"
-    assert path.parent.name == "data"
+    # The registry lives in ai/configs/ — the same default every dataset tool
+    # uses (validation, quality scorer, sync verification, deduplication,
+    # usage tracker). It must also actually exist on disk: a default path to a
+    # missing file broke load_registry() for every caller without an explicit
+    # path.
+    assert path.parent.name == "configs"
+    assert path.is_file()
 
 
 @patch("builtins.open", new_callable=mock_open, read_data='{"datasets": {}}')

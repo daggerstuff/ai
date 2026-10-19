@@ -2,7 +2,7 @@
 Dataset registry helpers (S3-first).
 
 Pixelated uses a single canonical dataset location: S3.
-`ai/data/dataset_registry.json` is the authoritative mapping of dataset families to S3 URIs.
+`ai/configs/dataset_registry.json` is the authoritative mapping of dataset families to S3 URIs.
 
 Local paths and GDrive mounts are treated as fallbacks for development and legacy workflows only.
 """
@@ -31,10 +31,12 @@ class DatasetRef:
 
 
 def get_default_registry_path() -> Path:
-    # ai/utils/common/dataset_registry.py -> ai/utils/common -> ai/utils -> ai -> project root
-    # Actually, we're already in ai/, so just go to data/
-    ai_root = Path(__file__).resolve().parents[2]  # Gets to <project_root>/ai
-    return ai_root / "data" / "dataset_registry.json"
+    # The registry lives at ai/configs/dataset_registry.json — the same default
+    # every dataset tool (validation, quality scorer, sync verification,
+    # deduplication, usage tracker) uses.
+    # tools/utilities/common -> tools/utilities -> tools -> ai
+    ai_root = Path(__file__).resolve().parents[3]
+    return ai_root / "configs" / "dataset_registry.json"
 
 
 def load_registry(path: Path | None = None) -> dict[str, Any]:
