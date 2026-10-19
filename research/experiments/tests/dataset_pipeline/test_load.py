@@ -13,6 +13,7 @@ TDD anchors: Red phase (tests must fail until implemented)
 
 import shutil
 import tempfile
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any
 from unittest import mock
@@ -22,37 +23,42 @@ import pytest
 
 from ai.pkg_mera.core.pipelines.ingestion import load
 
+# pytest ships no type stubs in this checking environment; bind the fixture
+# decorator to a typed alias so decorated fixtures satisfy mypy --strict.
+_FixtureFn = Callable[[], Iterator[Path]]
+_typed_fixture: Callable[[_FixtureFn], _FixtureFn] = pytest.fixture
 
-@pytest.fixture
-def temp_data_dir():
+
+@_typed_fixture
+def temp_data_dir() -> Iterator[Path]:
     """Create a temporary directory for test datasets."""
     d = tempfile.mkdtemp()
     yield Path(d)
     shutil.rmtree(d)
 
 
-def make_csv(path: Path, data: list[dict[str, Any]]):
+def make_csv(path: Path, data: list[dict[str, Any]]) -> None:
     df = pd.DataFrame(data)
     df.to_csv(path, index=False)
 
 
-def make_json(path: Path, data: list[dict[str, Any]]):
+def make_json(path: Path, data: list[dict[str, Any]]) -> None:
     df = pd.DataFrame(data)
     df.to_json(path, orient="records")
 
 
-def make_jsonl(path: Path, data: list[dict[str, Any]]):
+def make_jsonl(path: Path, data: list[dict[str, Any]]) -> None:
     with open(path, "w", encoding="utf-8") as f:
         for rec in data:
             f.write(pd.Series(rec).to_json(force_ascii=False) + "\n")
 
 
-def make_parquet(path: Path, data: list[dict[str, Any]]):
+def make_parquet(path: Path, data: list[dict[str, Any]]) -> None:
     df = pd.DataFrame(data)
     df.to_parquet(path)
 
 
-def test_load_single_csv_file(temp_data_dir):
+def test_load_single_csv_file(temp_data_dir: Path) -> None:
     file = temp_data_dir / "test.csv"
     data = [{"a": 1, "b": 2}, {"a": 3, "b": 4}]
     make_csv(file, data)
@@ -64,7 +70,7 @@ def test_load_single_csv_file(temp_data_dir):
     assert set(result["test"].columns) == {"a", "b"}
 
 
-def test_load_multiple_formats_in_dir(temp_data_dir):
+def test_load_multiple_formats_in_dir(temp_data_dir: Path) -> None:
     # Create files of all supported types
     make_csv(temp_data_dir / "a.csv", [{"x": 1}])
     make_json(temp_data_dir / "b.json", [{"y": 2}])
@@ -81,19 +87,19 @@ def test_load_multiple_formats_in_dir(temp_data_dir):
         assert isinstance(df, pd.DataFrame)
 
 
-def test_missing_dataset_path_raises(temp_data_dir):
+def test_missing_dataset_path_raises(temp_data_dir: Path) -> None:
     config = {"missing": str(temp_data_dir / "nope")}
     with pytest.raises(load.DatasetLoaderError):
         load.load_datasets(config)
 
 
-def test_empty_directory_raises(temp_data_dir):
+def test_empty_directory_raises(temp_data_dir: Path) -> None:
     config = {"empty": str(temp_data_dir)}
     with pytest.raises(load.DatasetLoaderError):
         load.load_datasets(config)
 
 
-def test_empty_file_raises(temp_data_dir):
+def test_empty_file_raises(temp_data_dir: Path) -> None:
     file = temp_data_dir / "empty.csv"
     file.touch()
     config = {"emptyfile": str(file)}
@@ -101,7 +107,7 @@ def test_empty_file_raises(temp_data_dir):
         load.load_datasets(config)
 
 
-def test_unsupported_file_type_raises(temp_data_dir):
+def test_unsupported_file_type_raises(temp_data_dir: Path) -> None:
     file = temp_data_dir / "foo.txt"
     file.write_text("not a dataset")
     config = {"bad": str(file)}
@@ -109,7 +115,7 @@ def test_unsupported_file_type_raises(temp_data_dir):
         load.load_datasets(config)
 
 
-def test_partial_load_warns_and_skips(temp_data_dir):
+def test_partial_load_warns_and_skips(temp_data_dir: Path) -> None:
     # One good, one bad file
     make_csv(temp_data_dir / "good.csv", [{"a": 1}])
     bad = temp_data_dir / "bad.json"
@@ -122,7 +128,7 @@ def test_partial_load_warns_and_skips(temp_data_dir):
         assert any("Skipping file" in str(call) for call in warn_mock.call_args_list)
 
 
-def test_logger_override_and_custom_config(temp_data_dir):
+def test_logger_override_and_custom_config(temp_data_dir: Path) -> None:
     make_csv(temp_data_dir / "foo.csv", [{"a": 1}])
     custom_logger = mock.Mock()
     config = {"foo": str(temp_data_dir / "foo.csv")}
@@ -131,7 +137,7 @@ def test_logger_override_and_custom_config(temp_data_dir):
     assert custom_logger.info.called
 
 
-def test_default_config_loads(monkeypatch):
+def test_default_config_loads(monkeypatch: pytest.MonkeyPatch) -> None:
     # Patch _default_dataset_config to point to a temp dir with a valid file
     with tempfile.TemporaryDirectory() as d:
         file = Path(d) / "d.csv"

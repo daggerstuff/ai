@@ -22,8 +22,9 @@ import json
 import os
 import re
 import sys
+from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, Awaitable, Callable, overload
 
 # --- env bootstrap: .env + ~/.nine_router_env fallback ---
 _HERE = Path(__file__).resolve()
@@ -298,7 +299,7 @@ def collect_ledger_tls(checkpoint_row: dict[str, Any]) -> str:
     if not tls:
         return "(no ledger.tl found)"
     # Deduplicate consecutive
-    deduped = []
+    deduped: list[str] = []
     for tl in tls:
         if not deduped or deduped[-1] != tl:
             deduped.append(tl)
@@ -334,7 +335,8 @@ def _extract_json(text: str) -> dict[str, Any]:
     e = t.rfind("}")
     if s == -1 or e == -1 or e <= s:
         raise ValueError(f"No JSON object found in: {text[:500]!r}")
-    return json.loads(t[s : e + 1])
+    parsed: dict[str, Any] = json.loads(t[s : e + 1])
+    return parsed
 
 
 async def call_llm(
@@ -699,7 +701,10 @@ async def reconstruct_one(
             plan["sessions"] = fixed_sessions
 
             # Calendar scrub: replace month names / years that would trip _MONTH_RE
-            plan = scrub_calendar(plan)
+            scrubbed = scrub_calendar(plan)
+            if not isinstance(scrubbed, dict):
+                raise RuntimeError("calendar scrub produced a non-object plan")
+            plan = scrubbed
             _sanitize_client_notes(plan)
 
             errors, warnings = lint_plan(plan)
@@ -759,7 +764,10 @@ async def reconstruct_one(
             plan["seed"] = seed
             plan["era_jitter"] = {"seed": jitter_seed}
 
-            plan = scrub_calendar(plan)
+            scrubbed = scrub_calendar(plan)
+            if not isinstance(scrubbed, dict):
+                raise RuntimeError("calendar scrub produced a non-object plan")
+            plan = scrubbed
 
             # Canonize Mode B sessions (force n=1..N sequential, clamp turns) and timeline anchors
             _canonize_mode_b_sessions(plan, ckpt_by_n, arc_id)
@@ -782,7 +790,7 @@ async def reconstruct_one(
 
 
 # --- Mode B session/timeline canonizers (fix LLM n=None and invalid anchors) ---
-def _canonize_mode_b_sessions(plan: dict, ckpt_by_n: dict, arc_id: str) -> None:
+def _canonize_mode_b_sessions(plan: dict[str, Any], ckpt_by_n: dict[int, dict[str, Any]], arc_id: str) -> None:
     """Force sessions to sequential 1..N, preserving LLM focus/gap_before by position."""
     # Existing budgets clamped 8..40
     existing_sorted = sorted(ckpt_by_n.keys())
@@ -799,16 +807,18 @@ def _canonize_mode_b_sessions(plan: dict, ckpt_by_n: dict, arc_id: str) -> None:
         wanted = [1, 2, 3]
     else:
         # generic: keep existing + infer new count from LLM sessions
-        llm_sessions = plan.get("sessions") if isinstance(plan.get("sessions"), list) else []
+        sessions_src = plan.get("sessions")
+        llm_sessions = sessions_src if isinstance(sessions_src, list) else []
         # target total is max(existing, len(llm_sessions)) clamped to 2..3
         target_n = len(llm_sessions) if llm_sessions else len(existing_sorted)
         target_n = max(2, min(3, max(target_n, len(existing_sorted), max(existing_sorted) if existing_sorted else 2)))
         # If existing are 1..k, wanted = 1..target_n
         wanted = list(range(1, target_n + 1))
 
-    llm_sessions = plan.get("sessions") if isinstance(plan.get("sessions"), list) else []
+    sessions_src = plan.get("sessions")
+    llm_sessions = sessions_src if isinstance(sessions_src, list) else []
 
-    normalized = []
+    normalized: list[dict[str, Any]] = []
     for idx, sess_n in enumerate(wanted):
         # Pick LLM session by positional index, not by n (since LLM invents n)
         llm_s = llm_sessions[idx] if idx < len(llm_sessions) and isinstance(llm_sessions[idx], dict) else {}
@@ -870,7 +880,7 @@ def _canonize_mode_b_sessions(plan: dict, ckpt_by_n: dict, arc_id: str) -> None:
                 excess -= dec
     plan["sessions"] = normalized
 
-def _canonize_timeline_anchors(plan: dict) -> None:
+def _canonize_timeline_anchors(plan: dict[str, Any]) -> None:
     """Fix invalid anchors like -2h -> -2w, ensure ends at now and chronological."""
     tl = plan.get("timeline")
     if not isinstance(tl, list):
@@ -958,7 +968,7 @@ def _canonize_timeline_anchors(plan: dict) -> None:
         pass
     plan["timeline"] = non_now + now_entries
 
-def _sanitize_client_notes(plan: dict) -> None:
+def _sanitize_client_notes(plan: dict[str, Any]) -> None:
     """Ensure client.notes doesn't assert diagnosis as plain fact."""
     client = plan.get("client")
     if not isinstance(client, dict):
@@ -978,9 +988,10 @@ def _sanitize_client_notes(plan: dict) -> None:
 
 
 
-def _canonize_subjects(plan: dict) -> None:
+def _canonize_subjects(plan: dict[str, Any]) -> None:
     """Ensure surface_subject and real_subject pass lint."""
-    if not isinstance(plan.get("surface_subject"), str) or not plan.get("surface_subject").strip():
+    surface_val = plan.get("surface_subject")
+    if not isinstance(surface_val, str) or not surface_val.strip():
         plan["surface_subject"] = "everyday stress and recent decisions the client brings to session"
     rs = plan.get("real_subject")
     if not isinstance(rs, dict):
@@ -990,30 +1001,42 @@ def _canonize_subjects(plan: dict) -> None:
         rs["content"] = plan["surface_subject"][:120] if isinstance(plan.get("surface_subject"), str) else "underlying worry the client avoids naming directly"
     # Ensure session is valid int within sessions range
     sessions = plan.get("sessions")
-    valid_ns = [s.get("n") for s in sessions if isinstance(s, dict) and isinstance(s.get("n"), int)] if isinstance(sessions, list) else []
+    valid_ns: list[int] = []
+    if isinstance(sessions, list):
+        for entry in sessions:
+            if isinstance(entry, dict) and isinstance(entry.get("n"), int):
+                valid_ns.append(entry["n"])
     if not valid_ns:
         valid_ns = [1,2,3]
+    sess_raw = rs.get("session")
+    sess: int | None = None
     try:
-        sess = int(rs.get("session")) if isinstance(rs.get("session"), int) or (isinstance(rs.get("session"), str) and str(rs.get("session")).isdigit()) else None
-    except:
+        if isinstance(sess_raw, int) or (isinstance(sess_raw, str) and sess_raw.isdigit()):
+            sess = int(sess_raw)
+    except Exception:
         sess = None
     if sess not in valid_ns:
         # default to last session
         rs["session"] = max(valid_ns) if valid_ns else 3
     # Ensure surfaces_around_turn int >=3 and <= session turns
-    turns_map = {s["n"]: s.get("turns", 24) for s in sessions if isinstance(s, dict)} if isinstance(sessions, list) else {}
+    turns_map: dict[int, Any] = {}
+    if isinstance(sessions, list):
+        for entry in sessions:
+            if isinstance(entry, dict) and isinstance(entry.get("n"), int):
+                turns_map[entry["n"]] = entry.get("turns", 24)
     sess_n = rs.get("session")
-    max_turns = turns_map.get(sess_n, 24)
+    max_turns = turns_map.get(sess_n, 24) if isinstance(sess_n, int) else 24
+    turn_raw = rs.get("surfaces_around_turn")
     try:
-        turn_val = int(rs.get("surfaces_around_turn"))
-    except:
+        turn_val = int(turn_raw) if turn_raw is not None else None
+    except Exception:
         turn_val = None
     if not isinstance(turn_val, int) or turn_val < 3 or turn_val > max_turns:
         # pick middle of session, but >=3 and <= max_turns
         rs["surfaces_around_turn"] = min(max(3, max_turns // 2), max_turns)
 
 
-def _canonize_ending_and_beats(plan: dict) -> None:
+def _canonize_ending_and_beats(plan: dict[str, Any]) -> None:
     """Clamp ending.turn and beats turn to session budgets."""
     sessions = plan.get("sessions")
     if not isinstance(sessions, list):
@@ -1032,8 +1055,8 @@ def _canonize_ending_and_beats(plan: dict) -> None:
         sess = ending.get("session")
         turn = ending.get("turn")
         try:
-            sess_i = int(sess)
-        except:
+            sess_i = int(sess) if sess is not None else None
+        except Exception:
             sess_i = None
         if sess_i not in valid_ns:
             sess_i = max(valid_ns)
@@ -1041,8 +1064,8 @@ def _canonize_ending_and_beats(plan: dict) -> None:
         # Clamp turn to budget
         max_t = turns_map.get(sess_i, 24)
         try:
-            t_i = int(turn)
-        except:
+            t_i = int(turn) if turn is not None else 3
+        except Exception:
             t_i = 3
         t_i = max(1, min(t_i, max_t))
         # Also ensure turn >=3 if real_subject expects? but ending just needs <=budget
@@ -1058,8 +1081,10 @@ def _canonize_ending_and_beats(plan: dict) -> None:
             sess = b.get("session")
             turn = b.get("turn")
             try:
+                if sess is None:
+                    continue
                 sess_i = int(sess)
-            except:
+            except Exception:
                 continue
             if sess_i not in valid_ns:
                 # skip - lint will catch, but try to fix to nearest valid
@@ -1067,8 +1092,8 @@ def _canonize_ending_and_beats(plan: dict) -> None:
                 sess_i = b["session"]
             max_t = turns_map.get(sess_i, 24)
             try:
-                t_i = int(turn)
-            except:
+                t_i = int(turn) if turn is not None else 3
+            except Exception:
                 t_i = 3
             t_i = max(1, min(t_i, max_t))
             b["turn"] = t_i
@@ -1272,19 +1297,64 @@ if __name__ == "__main__":
 # Plan assembly & validation
 # ============================================================================
 
-def _safe_int(v, default=None):
+@overload
+def _safe_int(v: Any, default: int) -> int: ...
+@overload
+def _safe_int(v: Any, default: None = ...) -> int | None: ...
+def _safe_int(v: Any, default: int | None = None) -> int | None:
     try:
         return int(v)
     except Exception:
         return default
 
 
+def _clamp(value: int, lo: int, hi: int) -> int:
+    """Clamp value into the inclusive [lo, hi] range."""
+    if value < lo:
+        return lo
+    if value > hi:
+        return hi
+    return value
+
+
+def normalize_timeline(raw: Any) -> list[dict[str, str]]:
+    """Normalize an LLM-proposed extrapolated timeline to plan schema entries."""
+    entries: list[dict[str, str]] = []
+    for item in raw if isinstance(raw, list) else []:
+        if not isinstance(item, dict):
+            continue
+        anchor = str(item.get("anchor", "")).strip()
+        event = str(item.get("event", "")).strip()
+        provenance = str(item.get("provenance", "untold")).strip().lower()
+        if not _ANCHOR_RE.match(anchor) or not event:
+            continue
+        if provenance not in ("told", "claim", "untold"):
+            provenance = "untold"
+        entries.append({"anchor": anchor, "event": event, "provenance": provenance})
+    entries.sort(key=lambda entry: _anchor_sort_key(entry["anchor"]))
+    return entries
+
+
+def fmt_transcript_digest(rows: list[dict[str, Any]]) -> str:
+    """Compact per-session digest of verified transcript rows for prompts."""
+    parts: list[str] = []
+    for row in rows:
+        sn = _safe_int(row.get("session_n"), _safe_int(row.get("n")))
+        if sn is None:
+            continue
+        turns = row.get("turns")
+        digest = excerpt_client_lines(turns if isinstance(turns, list) else [], max_lines=4, max_chars_per=160)
+        if digest:
+            parts.append(f"S{sn}: {digest}")
+    return "\n\n".join(parts)
+
+
 def build_final_plan(target_id: str,
-                     geo: dict | None,
-                     seed_entry: dict | None,
+                     geo: dict[str, Any] | None,
+                     seed_entry: dict[str, Any] | None,
                      want_sessions: list[int],
-                     llm_out: dict,
-                     existing_budgets: dict[int, int] | None = None) -> tuple[dict, list[str]]:
+                     llm_out: dict[str, Any],
+                     existing_budgets: dict[int, int] | None = None) -> tuple[dict[str, Any], list[str]]:
     """Merge LLM identity output with locked geometry into a complete plan."""
     problems: list[str] = []
     if not isinstance(llm_out, dict):
@@ -1292,7 +1362,7 @@ def build_final_plan(target_id: str,
 
     jitter_seed = 20000 + int(target_id.split("_")[1])
 
-    plan: dict = {
+    plan: dict[str, Any] = {
         "arc_id": target_id,
         "title": str(llm_out.get("title", "")).strip()[:60],
         "era_jitter": {"seed": jitter_seed},
@@ -1328,12 +1398,12 @@ def build_final_plan(target_id: str,
         active = geo["active_budgets"]
         sessions_arr = []
         gap_focus_src = llm_out.get("gap_focus")
-        gsrc = {}
+        gsrc: dict[int, Any] = {}
         for sid in want_list:
             snum = f"{sid}"
             val = (gsrc or {}).pop(sid, None) if gsrc else None
             gb = val.get("gap_before") if isinstance(val, dict) else None
-            fc = (val.get("focus") if isinstance(val, dict) else "").strip()
+            fc = (val.get("focus", "") if isinstance(val, dict) else "").strip()
             if sid == min(want_list):
                 gb = None
             elif not gb:
@@ -1349,7 +1419,7 @@ def build_final_plan(target_id: str,
         plan["sessions"] = sessions_arr
     else:
         sessions_in = llm_out.get("session_props") or []
-        arr = []
+        arr: list[dict[str, Any]] = []
         prev_max = max(existing_budgets.keys()) if existing_budgets else 0
         new_sid_base = prev_max + 1
         for item in sessions_in:
@@ -1370,15 +1440,16 @@ def build_final_plan(target_id: str,
             })
             if not focus_txt:
                 problems.append("some session lacks focus text")
-        total_after = sum(b for b in existing_budgets.values()) + sum(x['turns'] for x in arr)
-        if len(arr) != abs(len(want_sessions) - len(existing_budgets)) and new_sid_base <= 4:
+        existing_map = existing_budgets if isinstance(existing_budgets, dict) else {}
+        total_after = sum(b for b in existing_map.values()) + sum(x['turns'] for x in arr)
+        if len(arr) != abs(len(want_sessions) - len(existing_map)) and new_sid_base <= 4:
             pass
         plan["_temp_new_sessions_only"] = arr   # merged below by caller for Mode B
 
     rs_raw = llm_out.get("real_subject")
     src_sess_limit_fn = (lambda s: geo["active_budgets"].get(_safe_int(s), 99)) if geo else (lambda s: 40)
 
-    def check_rs(obj: dict, label: str):
+    def check_rs(obj: dict[str, Any], label: str) -> dict[str, Any]:
         content_s = str(obj.get("content", obj.get("description", obj.get("summary_text", "")))).strip()[:500]
         sat_t = _safe_int(obj.get("surfaces_around_turn"), 3)
         rsn = _safe_int(obj.get("session"))
@@ -1444,7 +1515,7 @@ def build_final_plan(target_id: str,
     return plan, problems
 
 
-def _normalize_b(bb: dict) -> dict:
+def _normalize_b(bb: dict[str, Any]) -> dict[str, Any]:
     out = dict(bb)
     t = out.get("type")
     if t == "misstatement":
@@ -1466,7 +1537,7 @@ def _normalize_b(bb: dict) -> dict:
 # Mode B-specific merger: derive existing-session plan skeleton from transcripts
 # ============================================================================
 
-def existing_geometry_from_transcripts(ck_rows: list[dict]) -> tuple[dict[int, int], str]:
+def existing_geometry_from_transcripts(ck_rows: list[dict[str, Any]]) -> tuple[dict[int, int], str]:
     """Return budgets per actual transcript session plus digest text."""
     budgets: dict[int, int] = {}
     rows_filtered = []
@@ -1502,15 +1573,47 @@ pre_authored_beats[](may-be-empty-if-nothing-clear-yet-but-USUALLY-supply-at-lea
 NEVER deviate schema-shape anywhere!!"""
 
 
+def clone_geometry(rec: dict[str, Any]) -> dict[str, Any]:
+    """Deep-copy a session's verified geometry block (beats/timeline/budgets)."""
+    return deepcopy(rec)
+
+
+def make_mode_a_user_prompt(
+    target_id: str,
+    geo: dict[str, Any],
+    digests: str,
+    seed_row: dict[str, Any] | None,
+) -> str:
+    """Mode A user prompt built from a geometry record plus transcript digests."""
+    budgets = geo.get("active_budgets")
+    pairs = (
+        [(k, v) for k, v in budgets.items() if isinstance(k, int) and isinstance(v, int)]
+        if isinstance(budgets, dict) else []
+    )
+    skeleton = [{"n": k, "turns": v} for k, v in sorted(pairs)]
+    seed = (seed_row or {}).get("seed")
+    return build_mode_a_user_prompt(
+        arc_id=target_id,
+        seed=seed if isinstance(seed, dict) else {},
+        jitter_seed=JITTER_SEED_BASE + int(target_id.split("_")[1]),
+        beats=geo.get("beats") or [],
+        timeline=geo.get("timeline") or [],
+        sessions_skeleton=skeleton,
+        transcript_excerpts=digests,
+    )
+
+
 async def generate_full(target_id: str,
                         mode: str,
-                        sess_meta: dict | None,
+                        sess_meta: dict[str, Any] | None,
                         jitter_seed_local: int,
-                        seed_row: dict | None,
-                        ck_row_subset: list[dict],
-                        llm_caller) -> tuple[str, dict]:
+                        seed_row: dict[str, Any] | None,
+                        ck_row_subset: list[dict[str, Any]],
+                        llm_caller: Callable[[str, str], Awaitable[str]]) -> tuple[str, dict[str, Any]]:
     """Compose appropriate prompts & obtain LLM identity (+possible extras)."""
     if mode == "A":
+        if sess_meta is None:
+            raise ValueError("mode A requires session metadata")
         geo_clone = clone_geometry(sess_meta["rec"])
         prompt_sys = MODE_A_SYSTEM + INSTRUCT_CONTRACT.replace(
             "PLUS ADDED FIELDS ONLY WHEN AUTHORIZING NEW SESSIONS",
@@ -1520,7 +1623,7 @@ async def generate_full(target_id: str,
             digests=sess_meta["digest"],
             seed_row=seed_row)
         raw_reply = await llm_caller(prompt_sys, user_prompt_txt)
-        return json.dumps({"reply_kind": "identity", **json.loads(_extract_json(raw_reply))}), {} # placeholder wrapper below
+        return json.dumps({"reply_kind": "identity", **_extract_json(raw_reply)}), {}  # placeholder wrapper below
 
     # -- Mode B flow --
     budgets_map, full_digest = existing_geometry_from_transcripts(ck_row_subset)
@@ -1541,14 +1644,22 @@ async def generate_full(target_id: str,
 
 
 # ---- globals needed by both generation paths ---------------------------------
-TARGETS_MODE_A = RECORD_ARCS
+TARGETS_MODE_A = MODE_A_ARCS
 WANT_SESSION_COUNT = {
     "arc_0266": 3,
     "arc_0326": 4,
 }
 
 
-def make_mode_b_prompts_v2(tgt, jitter, seed_entry, exist_budget, digest_tx, want_ids):
+SYSTEM_BASE = MODE_A_SYSTEM  # v2 prompts reuse the reconstruction system base
+
+
+def make_mode_b_prompts_v2(tgt: str,
+                           jitter: int,
+                           seed_entry: dict[str, Any] | None,
+                           exist_budget: dict[int, int],
+                           digest_tx: str,
+                           want_ids: list[int]) -> tuple[str, str]:
     """Two prompts for extending transcript-only arcs."""
     sid_line = ", ".join(f"S{s}({exist_budget.get(s,'NEW')} turns)" for s in want_ids)
     new_needed = [s for s in want_ids if s not in exist_budget]
@@ -1608,10 +1719,15 @@ def make_mode_b_prompts_v2(tgt, jitter, seed_entry, exist_budget, digest_tx, wan
     return sys_prompt, "\n".join(user_msg_parts)
 
 
-def assemble_from_modeb(obj, tbugets, wid_list, seed_entry, tid, jitval):
+def assemble_from_modeb(obj: dict[str, Any],
+                        tbugets: dict[int, int],
+                        wid_list: list[int],
+                        seed_entry: dict[str, Any] | None,
+                        tid: str,
+                        jitval: int) -> dict[str, Any]:
     """Merge model output into complete final plan validated against transcripts."""
     problems: list[str] = []
-    plan = {"arc_id": tid, "title": "", "era_jitter": {"seed": int(jitval)},
+    plan: dict[str, Any] = {"arc_id": tid, "title": "", "era_jitter": {"seed": int(jitval)},
             "client": {}, "sessions": [], "timeline": [],
             "surface_subject": "", "real_subject": {}, "beats": []}
 
@@ -1622,7 +1738,8 @@ def assemble_from_modeb(obj, tbugets, wid_list, seed_entry, tid, jitval):
         plan["seed"] = {"source": "edge_cases", "scenario_id": None,
                         "domain": parts_dom, "severity": "moderate"}
 
-    clt = obj.get("client") if isinstance(obj.get("client"), dict) else {}
+    clt_raw = obj.get("client")
+    clt = clt_raw if isinstance(clt_raw, dict) else {}
     age_iv = _safe_int(clt.get("age"))
     if age_iv is None or age_iv < 12 or age_iv > 89:
         age_iv = 34
@@ -1639,9 +1756,10 @@ def assemble_from_modeb(obj, tbugets, wid_list, seed_entry, tid, jitval):
 
     # sessions merge: transcribed budgets first...
     existing_sorted = sorted(tbugets.items())
-    gfa_src = obj.get("gap_focus_all") if isinstance(obj.get("gap_focus_all"), dict) else {}
+    gfa_raw = obj.get("gap_focus_all")
+    gfa_src = gfa_raw if isinstance(gfa_raw, dict) else {}
 
-    def gb_for(sid_in_question: int, prior_is_first: bool):
+    def gb_for(sid_in_question: int, prior_is_first: bool) -> str | None:
         e = gfa_src.pop(str(sid_in_question), None) or \
             gfa_src.pop(int(sid_in_question), None) if False else gfa_src.get(str(sid_in_question))
         if e and isinstance(e, dict):
@@ -1655,7 +1773,7 @@ def assemble_from_modeb(obj, tbugets, wid_list, seed_entry, tid, jitval):
             return "a few weeks"
         return None if prior_is_first else "two weeks apart"
 
-    sess_arr = []
+    sess_arr: list[dict[str, Any]] = []
     prev_sid = None
     new_focus_bank = {}
     nso = obj.get("new_sessions_in_order") or []
@@ -1704,7 +1822,8 @@ def assemble_from_modeb(obj, tbugets, wid_list, seed_entry, tid, jitval):
         ss_tmp = "ongoing tension around family expectations lately"
     plan["surface_subject"] = ss_tmp
 
-    rs_obj = obj.get("real_subject") if isinstance(obj.get("real_subject"), dict) else {}
+    rs_raw = obj.get("real_subject")
+    rs_obj = rs_raw if isinstance(rs_raw, dict) else {}
     rsn_cand = _safe_int(rs_obj.get("session"))
     valid_sids = [x["n"] for x in sess_arr]
     cap_lookup = {x["n"]: x["turns"] for x in sess_arr}
@@ -1729,7 +1848,8 @@ def assemble_from_modeb(obj, tbugets, wid_list, seed_entry, tid, jitval):
     # ending pinned to LAST session in assembled order per instructions!
     final_sid_here = sess_arr[-1]["n"]
     final_cap_endrange = cap_lookup[final_sid_here]
-    eobjd = obj.get("ending") if isinstance(obj.get("ending"), dict) else {}
+    ending_raw = obj.get("ending")
+    eobjd = ending_raw if isinstance(ending_raw, dict) else {}
     end_t_choice = _safe_int(eobjd.get("turn"))
     if end_t_choice is None or end_t_choice < 5:
         end_t_fixed_to = max(5, final_cap_endrange - 2)
@@ -1779,7 +1899,7 @@ def assemble_from_modeb(obj, tbugets, wid_list, seed_entry, tid, jitval):
             problems.append(f"beat '{t_typ}' session remapped {cand_b['_old_session']}->{sn_ok_remap}")
         cur_cap = cap_lookup[sn_now]
         if tn_now is None or tn_now<1:
-            tn_pick=max(2,min(cur_cap,cur_cap//2+1)); tn_now=tn_pick; problems.append(f"beat {t_typ}: turn default set {tn_now}"); bumps_tt=True;bumps_tt=None
+            tn_pick=max(2,min(cur_cap,cur_cap//2+1)); tn_now=tn_pick; problems.append(f"beat {t_typ}: turn default set {tn_now}")
         elif tn_now>cur_cap:
             tn_adjusted=min(cur_cap,max(3,cur_cap-1)); problems.append(f"beat {t_typ}@s{sn_now} turn {tn_now}>{cur_cap} adjusted->{tn_adjusted}"); tn_now=tn_adjusted; tt_loc_var=tt_loc_var if False else None
         rr_field="required_response"

@@ -14,7 +14,7 @@ class TestDataAugmentation(unittest.TestCase):
     Validates paraphrasing, contextual augmentation, noise injection, and safety guardrails.
     """
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test environment."""
         self.config = AugmentationConfig(
             paraphrase_enabled=True,
@@ -30,7 +30,7 @@ class TestDataAugmentation(unittest.TestCase):
         self.augmenter = DataAugmenter(self.config)
         self.guardrails = SafetyGuardrails()
 
-    def test_paraphrase_text(self):
+    def test_paraphrase_text(self) -> None:
         """Test paraphrasing of therapeutic phrases."""
         text = "I understand how you feel. That must be hard."
         augmented = self.augmenter.paraphrase_text(text)
@@ -39,7 +39,7 @@ class TestDataAugmentation(unittest.TestCase):
         # Template: ("That must be hard", "I imagine that's challenging")
         assert augmented != text or "difficult" in augmented or "challenging" in augmented
 
-    def test_noise_injection(self):
+    def test_noise_injection(self) -> None:
         """Test injection of filler words and spelling variations."""
         text = "I am a therapist. I want to help you."
 
@@ -57,7 +57,7 @@ class TestDataAugmentation(unittest.TestCase):
         has_noise = any(noise in lowered for noise in ["um", "uh", "you know", "like", "therapyst"])
         assert has_noise or any(punc in augmented for punc in ["...", "!", "?"])
 
-    def test_safety_guardrails_preservation(self):
+    def test_safety_guardrails_preservation(self) -> None:
         """Test that critical crisis keywords are preserved during augmentation."""
         critical_text = "I am feeling suicidal and need help."
 
@@ -69,7 +69,7 @@ class TestDataAugmentation(unittest.TestCase):
         assert any("CRITICAL" in issue for issue in issues)
         assert any("crisis" in issue.lower() for issue in issues)
 
-    def test_safety_guardrails_reversion(self):
+    def test_safety_guardrails_reversion(self) -> None:
         """Test that augmenter reverts to original content when critical keywords are lost."""
         # Create a conversation with a critical message
         conv = Conversation()
@@ -88,14 +88,14 @@ class TestDataAugmentation(unittest.TestCase):
         # Critical keywords should be present in the output.
         assert "kill myself" in augmented_conv.messages[0].content
 
-    def test_demographic_variation(self):
+    def test_demographic_variation(self) -> None:
         """Test swapping of gender-coded terms."""
         text = "He is a good man and he loves his father."
         augmented = self.augmenter.demographic_variation(text)
         # Check if gendered terms were swapped (e.g., he -> she, man -> woman, father -> mother)
         assert "she" in augmented.lower() or "woman" in augmented.lower() or "mother" in augmented.lower()
 
-    def test_batch_augmentation(self):
+    def test_batch_augmentation(self) -> None:
         """Test augmenting multiple conversations."""
         conv1 = Conversation()
         conv1.add_message("therapist", "How are you?")

@@ -228,30 +228,49 @@ def _load_internal_rows(manifest: dict[str, Any], root: Path) -> list[dict[str, 
 
 def _membership(
     rows: list[dict[str, Any]], split_key: str, label: str, group_key: str = "seed_group_sha256"
-) -> tuple[dict[str, set[str]], set[str]]:
+) -> tuple[dict[str, set[str]], dict[str, str]]:
     membership: dict[str, set[str]] = {name: set() for name in ("train", "validation", "test")}
-    row_ids: set[str] = set()
+    row_ids: dict[str, str] = {}
     for row in rows:
         split = row.get(split_key)
         row_id = row.get("candidate_row_sha256")
         group_id = row.get(group_key)
+        candidate_row_number = row.get("candidate_row_number_1based")
+        identity = (
+            f"row:{candidate_row_number}"
+            if isinstance(candidate_row_number, int) and not isinstance(candidate_row_number, bool)
+            else f"hash:{row_id}"
+        )
         valid_identity = (
             isinstance(row_id, str)
             and re.fullmatch(r"[0-9a-f]{64}", row_id)
             and isinstance(group_id, str)
             and re.fullmatch(r"[0-9a-f]{64}", group_id)
+            and (
+                candidate_row_number is None
+                or (
+                    isinstance(candidate_row_number, int)
+                    and not isinstance(candidate_row_number, bool)
+                    and candidate_row_number > 0
+                )
+            )
         )
-        if split not in membership or not valid_identity:
+        if (
+            split not in membership
+            or not isinstance(row_id, str)
+            or not isinstance(group_id, str)
+            or not valid_identity
+        ):
             raise QualificationError(f"G04 {label} has invalid row/group membership fields")
-        if row_id in row_ids:
+        if identity in row_ids:
             raise QualificationError(f"G04 {label} repeats a candidate row identity")
-        row_ids.add(row_id)
+        row_ids[identity] = row_id
         membership[split].add(group_id)
     return membership, row_ids
 
 
 def _verify_rowrefs(
-    evidence: dict[str, Any], root: Path, internal_membership: dict[str, set[str]], candidate_ids: set[str]
+    evidence: dict[str, Any], root: Path, internal_membership: dict[str, set[str]], candidate_ids: dict[str, str]
 ) -> None:
     path = _manifest_path(root, evidence["evidence_path"], "group-disjointness evidence")
     rows = _read_jsonl(path, "group-disjointness evidence")
@@ -359,13 +378,13 @@ def _validate_train_rows(payload_path: Path, expected_rows: Any) -> int:
                 raise QualificationError(f"train payload row {line_number} has no messages list")
             roles: list[str] = []
             for message in messages:
-                if not isinstance(message, dict) or message.get("role") not in {"user", "assistant"}:
-                    raise QualificationError(f"train payload row {line_number} has a non-rendered role")
+                if not isinstance(message, dict) or message.get("role") not in {"system", "user", "assistant"}:
+                    raise QualificationError(f"train payload row {line_number} has an unsupported role")
                 if not isinstance(message.get("content"), str) or not message["content"].strip():
                     raise QualificationError(f"train payload row {line_number} has empty/non-text content")
-                expected_weight = 0 if message["role"] == "user" else 1
+                expected_weight = 1 if message["role"] == "assistant" else 0
                 if message.get("weight") != expected_weight:
-                    raise QualificationError(f"train payload row {line_number} has an invalid assistant/user loss mask")
+                    raise QualificationError(f"train payload row {line_number} has an invalid assistant-only loss mask")
                 roles.append(message["role"])
             if roles[-1] != "assistant":
                 raise QualificationError(f"train payload row {line_number} does not end with assistant target")
@@ -451,7 +470,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except UnicodeDecodeError, json.JSONDecodeError:
+        except (UnicodeDecodeError, json.JSONDecodeError):
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")
@@ -480,7 +499,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except UnicodeDecodeError, json.JSONDecodeError:
+        except (UnicodeDecodeError, json.JSONDecodeError):
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")
@@ -610,7 +629,7 @@ def _load_state(path: Path, task_id: str, payload_sha256: str) -> dict[str, Any]
     if not path.exists():
         return {}
     try:
-        state = json.loads(path.read_text(encoding="utf-8"))
+        state: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise QualificationError("cannot read launcher state; refusing to create duplicate resources") from exc
     if state.get("task_id") != task_id or state.get("payload_sha256") != payload_sha256:
@@ -664,7 +683,7 @@ def _initial_state(request: ExecutionRequest, plan: TrainingPlan) -> dict[str, A
 
 def _upload_artifact(request: ExecutionRequest, state: dict[str, Any], plan: TrainingPlan) -> str:
     existing_uri = state.get("training_data_url")
-    if existing_uri is not None:
+    if isinstance(existing_uri, str):
         return existing_uri
     if request.artifact_upload is None:
         raise QualificationError("no W&B artifact uploader configured")
@@ -683,7 +702,7 @@ def _upload_artifact(request: ExecutionRequest, state: dict[str, Any], plan: Tra
 
 def _create_model(request: ExecutionRequest, state: dict[str, Any], task_id: str) -> str:
     model_id = state.get("model_id")
-    if model_id is not None:
+    if isinstance(model_id, str):
         return model_id
     state["phase"] = "model_creation_submitted_unknown"
     state_path = request.state_dir / f"wandb-sft-{task_id}.json"
@@ -699,6 +718,8 @@ def _create_model(request: ExecutionRequest, state: dict[str, Any], task_id: str
             "return_existing": True,
         },
     )
+    if not isinstance(model, dict):
+        raise QualificationError("W&B model creation response was not a JSON object")
     model_id = model.get("id")
     if not isinstance(model_id, str) or not re.fullmatch(r"[0-9a-fA-F-]{36}", model_id):
         raise QualificationError("W&B model creation response did not contain a model UUID")
@@ -715,7 +736,7 @@ def _create_job(
     artifact_uri: str,
 ) -> str:
     job_id = state.get("training_job_id")
-    if job_id is not None:
+    if isinstance(job_id, str):
         return job_id
     state["phase"] = "job_creation_submitted_unknown"
     state_path = request.state_dir / f"wandb-sft-{plan.task_id}.json"
@@ -725,6 +746,8 @@ def _create_job(
         "/preview/sft-training-jobs",
         {"model_id": model_id, "training_data_url": artifact_uri, "config": plan.config},
     )
+    if not isinstance(job, dict):
+        raise QualificationError("W&B SFT response was not a JSON object")
     job_id = job.get("id")
     if not isinstance(job_id, str) or not re.fullmatch(r"[0-9a-fA-F-]{36}", job_id):
         raise QualificationError("W&B SFT response did not contain a training job UUID")
@@ -742,6 +765,8 @@ def _poll_job(request: ExecutionRequest, state: dict[str, Any], job_id: str, tas
     safe_fields = ("id", "status", "state", "created_at", "updated_at", "completed_at", "step", "total_steps")
     for poll_index in range(request.max_polls):
         status = request.api.request("GET", f"/preview/training-jobs/{job_id}")
+        if not isinstance(status, dict):
+            raise QualificationError("W&B training job status response was not a JSON object")
         state["last_status"] = status.get("status", status.get("state", "unknown"))
         state["last_status_response"] = {key: status[key] for key in safe_fields if key in status}
         resolved = safe_config_capture(status)
@@ -816,8 +841,9 @@ def main(argv: list[str] | None = None) -> int:
                     "checkpoint bytes are not exposed by the checked read-only APIs."
                 ),
                 "training_price": (
-                    "$0 serverless adapter training during public preview; "
-                    "confirm preview eligibility on execution day."
+                    "Account-specific training coverage is unverified. The current CoreWeave Forge public pricing page "
+                    "lists Serverless SFT/RL at $2.70 per GPU-hour; older W&B public-preview terms or account "
+                    "entitlements may differ. Verify the account's applicable price before creating a job."
                 ),
                 "no_upload_or_job_created": True,
             }

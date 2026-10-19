@@ -18,7 +18,7 @@ class TestCleaningComponents(unittest.TestCase):
     Validates PII detection, text normalization, and deduplication.
     """
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up test data."""
         self.sample_df = pd.DataFrame(
             {
@@ -33,7 +33,7 @@ class TestCleaningComponents(unittest.TestCase):
         )
         self.logger = logging.getLogger("test_cleaning")
 
-    def test_find_pii_columns(self):
+    def test_find_pii_columns(self) -> None:
         """Test identification of PII columns based on names."""
         cols = ["id", "text", "user_email", "phone_number", "ssn_field"]
         pii_cols = find_pii_columns(cols)
@@ -42,14 +42,14 @@ class TestCleaningComponents(unittest.TestCase):
         assert "ssn_field" in pii_cols
         assert "text" not in pii_cols
 
-    def test_normalize_text(self):
+    def test_normalize_text(self) -> None:
         """Test whitespace stripping and lowercasing."""
         df = pd.DataFrame({"msg": ["  Mixed CASE  ", "\tTabs\nNewline  "]})
         normalized = normalize_text_columns(df, ["msg"])
         assert normalized["msg"][0] == "mixed case"
         assert normalized["msg"][1] == "tabs newline"
 
-    def test_pii_redaction(self):
+    def test_pii_redaction(self) -> None:
         """Test regex-based redaction of SSNs in text content."""
         df = pd.DataFrame({"content": ["My SSN is 123-45-6789", "Just a number 12345"]})
         redacted = redact_pii_in_text_fields(df, ["content"])
@@ -57,7 +57,7 @@ class TestCleaningComponents(unittest.TestCase):
         assert "123-45-6789" not in redacted["content"][0]
         assert redacted["content"][1] == "Just a number 12345"
 
-    def test_pii_removal(self):
+    def test_pii_removal(self) -> None:
         """Test dropping of identified PII columns."""
         df = pd.DataFrame({"id": [1], "name": ["Alice"], "ssn": ["secret"]})
         pii_cols = {"name", "ssn"}
@@ -66,7 +66,7 @@ class TestCleaningComponents(unittest.TestCase):
         assert "ssn" not in cleaned.columns
         assert "id" in cleaned.columns
 
-    def test_full_clean_and_deduplicate(self):
+    def test_full_clean_and_deduplicate(self) -> None:
         """Test end-to-end cleaning and deduplication logic."""
         df1 = pd.DataFrame({"text": ["hello", "world"], "email": ["a@b.com", "c@d.com"]})
         df2 = pd.DataFrame({"text": ["hello", "third"], "email": ["a@b.com", "e@f.com"]})

@@ -66,7 +66,7 @@ def prepare_run_manifest(
     path = manifest_path(output_path)
     has_records = output_path.exists() and output_path.stat().st_size > 0
     if path.exists():
-        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
         if manifest.get("compatibility_fingerprint") != fingerprint:
             raise ValueError(
                 "generation resume refused: provider/model, source, code, or generation config "

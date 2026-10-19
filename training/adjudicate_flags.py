@@ -31,6 +31,7 @@ import time
 import urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
+from typing import Any, TypedDict
 
 REPO = Path(__file__).resolve().parents[2]
 TRAINING_DIR = REPO / "ai" / "training"
@@ -47,8 +48,17 @@ CLASSES = ("confirmed_breakage", "audit_error", "plan_alignment_only")
 WIDE_CATEGORIES = {"ledger_contradiction", "tl_drift", "thread_death", "integrity_violation"}
 
 
-def _load_env_file(path: Path) -> dict:
-    env = {}
+class SessionRecord(TypedDict):
+    """One rendered transcript record: client turn, therapist reply, or ledger."""
+
+    kind: str
+    k: int
+    render: str
+    search: str
+
+
+def _load_env_file(path: Path) -> dict[str, str]:
+    env: dict[str, str] = {}
     try:
         text = path.read_text(encoding="utf-8")
     except OSError:
@@ -157,17 +167,17 @@ _QUOTE_MAP = str.maketrans({
 _THINK_RE = re.compile(r"<think\b.*?</think\s*>", re.DOTALL | re.IGNORECASE)
 
 
-def _norm_ws(text):
+def _norm_ws(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").translate(_QUOTE_MAP)).strip().lower()
 
 
-def _norm_loose(text):
+def _norm_loose(text: str) -> str:
     text = (text or "").translate(_QUOTE_MAP).lower()
     text = re.sub(r"\s+", " ", text)
     return re.sub(r"[^a-z0-9 ]", "", text)
 
 
-def locate_evidence(recs, evidence):
+def locate_evidence(recs: list[SessionRecord], evidence: str) -> tuple[int | None, str]:
     """Find the evidence quote in the session records. Returns (turn_k, rec_kind)."""
     if not evidence or len(evidence.strip()) < 8:
         return None, ""
@@ -184,14 +194,14 @@ def locate_evidence(recs, evidence):
     return None, ""
 
 
-def session_records(session):
+def session_records(session: dict[str, Any]) -> list[SessionRecord]:
     """Render one session the way audit_arc_corpus.render_transcript does.
 
     [C n] = client turn n (per-session client counter, increments only on
     client turns); [T n] = therapist reply after client turn n; [T n|LEDGER]
     = the therapist's private ledger JSON for that turn.
     """
-    recs = []
+    recs: list[SessionRecord] = []
     k = 0
     for turn in session.get("turns", []):
         role = str(turn.get("role") or "")
@@ -214,12 +224,12 @@ def session_records(session):
     return recs
 
 
-def build_window(recs, center, include_ledger):
+def build_window(recs: list[SessionRecord], center: int, include_ledger: bool) -> str:
     client_ks = [rec["k"] for rec in recs if rec["kind"] == "client"]
     hi = max(client_ks) if client_ks else center
     lo_w = max(1, center - WINDOW)
     hi_w = min(hi, center + WINDOW)
-    lines = []
+    lines: list[str] = []
     if lo_w > 1:
         lines.append(f"... [client turns 1..{lo_w - 1} omitted] ...")
     for rec in recs:
@@ -232,8 +242,8 @@ def build_window(recs, center, include_ledger):
     return "\n".join(lines)
 
 
-def build_full_transcript(sess_recs, order):
-    lines = []
+def build_full_transcript(sess_recs: dict[int, list[SessionRecord]], order: list[int]) -> str:
+    lines: list[str] = []
     for n in order:
         lines.append(f"SESSION {n}")
         for rec in sess_recs[n]:
@@ -241,9 +251,9 @@ def build_full_transcript(sess_recs, order):
     return "\n".join(lines)
 
 
-def session_beats_text(plan, session_n):
+def session_beats_text(plan: dict[str, Any], session_n: int) -> str:
     """Plan beats (and ending) that touch the flagged session, auditor-style."""
-    lines = []
+    lines: list[str] = []
     for beat in plan.get("beats", []):
         if beat.get("type") == "misstatement":
             plant_s = beat.get("plant_session", beat.get("session"))
@@ -270,7 +280,7 @@ def session_beats_text(plan, session_n):
     return "\n".join(lines)
 
 
-def build_prompt(job):
+def build_prompt(job: dict[str, Any]) -> str:
     category = job["category"]
     guidance = _CATEGORY_GUIDANCE.get(category, _DEFAULT_GUIDANCE)
     return "\n".join([
@@ -321,7 +331,7 @@ def build_prompt(job):
     ])
 
 
-def parse_verdict(content):
+def parse_verdict(content: Any) -> dict[str, Any]:
     text = (content or "").strip()
     if not text:
         raise ValueError("empty response")
@@ -348,7 +358,7 @@ def parse_verdict(content):
     }
 
 
-def _http_json(url, api_key, payload, timeout):
+def _http_json(url: str, api_key: str, payload: dict[str, Any], timeout: int | float) -> dict[str, Any]:
     body = json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(
         url,
@@ -362,10 +372,13 @@ def _http_json(url, api_key, payload, timeout):
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+        raw = response.read().decode("utf-8")
+    decoded = json.JSONDecoder().raw_decode(raw)
+    data: dict[str, Any] = decoded[0]
+    return data
 
 
-def judge_once(job):
+def judge_once(job: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
     payload = {
         "model": ADJ_MODEL,
         "messages": [
@@ -389,10 +402,10 @@ def judge_once(job):
     return None, f"{type(last_error).__name__}: {str(last_error)[:200]}"
 
 
-def load_wave(last_n):
+def load_wave(last_n: int) -> list[dict[str, Any]]:
     lines = [ln for ln in AUDIT_PATH.read_text(encoding="utf-8").splitlines() if ln.strip()]
     tail = lines[-last_n:] if last_n > 0 else lines
-    by_arc = {}
+    by_arc: dict[str, dict[str, Any]] = {}
     for line in tail:
         try:
             row = json.loads(line)
@@ -408,8 +421,8 @@ def load_wave(last_n):
     ]
 
 
-def load_records():
-    records = {}
+def load_records() -> dict[str, dict[str, Any]]:
+    records: dict[str, dict[str, Any]] = {}
     for line in RECORDS_PATH.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
@@ -424,8 +437,8 @@ def load_records():
     return records
 
 
-def load_plans(arc_ids):
-    plans = {}
+def load_plans(arc_ids: list[str]) -> dict[str, dict[str, Any]]:
+    plans: dict[str, dict[str, Any]] = {}
     for arc_id in arc_ids:
         path = PLANS_DIR / f"{arc_id}.json"
         try:
@@ -435,8 +448,8 @@ def load_plans(arc_ids):
     return plans
 
 
-def load_done_uids():
-    done = set()
+def load_done_uids() -> set[str]:
+    done: set[str] = set()
     if JUDGED_PATH.exists():
         for line in JUDGED_PATH.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -449,8 +462,12 @@ def load_done_uids():
     return done
 
 
-def build_jobs(hr_rows, records, plans):
-    jobs = []
+def build_jobs(
+    hr_rows: list[dict[str, Any]],
+    records: dict[str, dict[str, Any]],
+    plans: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    jobs: list[dict[str, Any]] = []
     for row in hr_rows:
         arc_id = row["arc_id"]
         record = records.get(arc_id)
@@ -461,7 +478,7 @@ def build_jobs(hr_rows, records, plans):
         if plan is None:
             print(f"[skip] {arc_id}: no plan", file=sys.stderr)
             continue
-        sessions = {}
+        sessions: dict[int, dict[str, Any]] = {}
         for session in record.get("sessions", []):
             try:
                 sessions[int(session.get("n"))] = session
@@ -525,8 +542,8 @@ def build_jobs(hr_rows, records, plans):
     return jobs
 
 
-def run_all(jobs):
-    results = []
+def run_all(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     with JUDGED_PATH.open("a", encoding="utf-8") as fh:
         for idx, job in enumerate(jobs, 1):
@@ -565,8 +582,8 @@ def run_all(jobs):
     return results
 
 
-def write_report():
-    rows = []
+def write_report() -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
     if JUDGED_PATH.exists():
         for line in JUDGED_PATH.read_text(encoding="utf-8").splitlines():
             line = line.strip()
@@ -576,16 +593,19 @@ def write_report():
                 rows.append(json.loads(line))
             except json.JSONDecodeError:
                 continue
-    latest = {}
+    latest: dict[str, dict[str, Any]] = {}
     for row in rows:
         uid = row.get("uid", "?")
         latest[uid] = row
     by_class = Counter(row.get("classification") for row in latest.values())
-    by_cat = defaultdict(Counter)
-    by_arc = defaultdict(Counter)
+    by_cat: defaultdict[str, Counter[str]] = defaultdict(Counter)
+    by_arc: defaultdict[str, Counter[str]] = defaultdict(Counter)
     for row in latest.values():
-        by_cat[row.get("category")][row.get("classification")] += 1
-        by_arc[row.get("arc_id")][row.get("classification")] += 1
+        category = str(row.get("category") or "unknown")
+        classification = str(row.get("classification") or "unknown")
+        arc_id = str(row.get("arc_id") or "unknown")
+        by_cat[category][classification] += 1
+        by_arc[arc_id][classification] += 1
     summary = {
         "total_judged": len(latest),
         "by_classification": {cls: by_class.get(cls, 0) for cls in CLASSES + ("error",)},

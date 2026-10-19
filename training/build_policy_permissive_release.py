@@ -150,7 +150,7 @@ def make_splits(
 
     split_payloads: dict[str, list[dict[str, Any]]] = {name: [] for name in ("train", "validation", "test")}
     internal_rows, rowrefs = [], []
-    group_sets = {name: set() for name in split_payloads}
+    group_sets: dict[str, set[str]] = {name: set() for name in split_payloads}
     for row in selected:
         split = split_by_row[row["candidate_row_number"]]
         split_payloads[split].append(row["payload"])

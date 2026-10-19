@@ -53,7 +53,7 @@ def update_persona_state(input_data: dict[str, Any]) -> dict[str, Any]:
     intent = input_data["intent"]
 
     # Load persona and session state
-    persona_def = PERSONA_STORE.get("default")  # Placeholder
+    persona_def = PERSONA_STORE["default"]  # Placeholder
     session_state = SESSION_STORE.get(
         session_id,
         {

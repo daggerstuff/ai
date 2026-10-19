@@ -1014,13 +1014,18 @@ def _wandb_metrics_loop(run, snapshot_fn, interval=60.0):
 # Main
 # ---------------------------------------------------------------------------
 
-async def generate_arc(plan: dict, checkpoint: dict, out_paths: dict,
-                       session_http: aiohttp.ClientSession, pool: KeyPool,
-                       semaphore: asyncio.Semaphore, counters: dict) -> dict | None:
+async def generate_arc(plan: dict[str, Any], checkpoint: dict[str, Any], recorded: set[str],
+                       out_paths: dict[str, Any], session_http: aiohttp.ClientSession,
+                       pool: KeyPool, semaphore: asyncio.Semaphore,
+                       counters: dict[str, Any]) -> dict[str, Any] | None:
     arc_id = plan["arc_id"]
     prior: dict[int, dict] = checkpoint.get(arc_id, {})
     if all(n in prior for n in [s["n"] for s in plan["sessions"]]):
-        return None  # already complete
+        if arc_id in recorded:
+            return None  # already complete and recorded
+        # all sessions pre-exist but no record was ever written (the run that
+        # finished them died before the record append) - fall through and
+        # assemble the record below without calling the writer.
 
     async with semaphore:
         audit_notes = load_audit_notes(arc_id)
@@ -1093,11 +1098,14 @@ async def generate_arc(plan: dict, checkpoint: dict, out_paths: dict,
                     break
             if final_tl:
                 break
+        session_models = sorted({prior[n].get("writer_model") or WRITER_MODEL
+                                 for n in prior})
         record = {
             "arc_id": arc_id,
             "spec_version": 1,
             "plan_path": f"training/arc_plans/{arc_id}.json",
-            "writer_model": WRITER_MODEL,
+            "writer_model": (session_models[0] if len(session_models) == 1
+                             else "+".join(session_models)),
             "auditor_model": None,
             "audit": None,
             "sessions": [
@@ -1145,6 +1153,13 @@ async def main_async(args) -> None:
         "records": OUT_DIR / (args.output or "arc_records.jsonl"),
     }
     checkpoint = load_checkpoint(out_paths["sessions"])
+    recorded: set[str] = set()
+    if out_paths["records"].exists():
+        with out_paths["records"].open(encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    recorded.add(json.loads(line)["arc_id"])
     counters = {"writer_calls": 0, "writer_retries": 0, "writer_tokens": 0,
                 "facts_calls": 0, "facts_tokens": 0,
                 "sessions_done": 0, "arcs_done": 0, "gate_failures": 0}
@@ -1167,7 +1182,8 @@ async def main_async(args) -> None:
     semaphore = asyncio.Semaphore(args.concurrency)
     async with aiohttp.ClientSession() as http:
         results = await asyncio.gather(
-            *(generate_arc(p, checkpoint, out_paths, http, pool, semaphore, counters)
+            *(generate_arc(p, checkpoint, recorded, out_paths, http, pool,
+                           semaphore, counters)
               for p in plans),
             return_exceptions=True,
         )

@@ -12,7 +12,7 @@ class TestQualityAssessment(unittest.TestCase):
     Validates hierarchical quality assessment framework.
     """
 
-    def setUp(self):
+    def setUp(self) -> None:
         """Set up the assessment framework."""
         self.framework = QualityAssessmentFramework()
 
@@ -46,7 +46,7 @@ class TestQualityAssessment(unittest.TestCase):
             ],
         }
 
-    def test_assess_therapeutic_relevance(self):
+    def test_assess_therapeutic_relevance(self) -> None:
         """Test detection of therapeutic keywords and relevance."""
         # Note: _assess_therapeutic_relevance takes content as string
         content = "I'm feeling depressed and anxious about my trauma history. It is affecting my mental health and relationships."
@@ -58,7 +58,7 @@ class TestQualityAssessment(unittest.TestCase):
         junk_score = self.framework._assess_therapeutic_relevance(junk_content)
         assert junk_score < 0.2
 
-    def test_assess_safety_compliance(self):
+    def test_assess_safety_compliance(self) -> None:
         """Test safety compliance scoring."""
         safe_content = "I had a good day going for a walk in the park."
         safe_score = self.framework._assess_safety_compliance(safe_content)
@@ -69,7 +69,7 @@ class TestQualityAssessment(unittest.TestCase):
         risk_score = self.framework._assess_safety_compliance(risk_content)
         assert risk_score < 1.0
 
-    def test_linguistic_quality(self):
+    def test_linguistic_quality(self) -> None:
         """Test linguistic quality assessment (grammar, length, repeated chars)."""
         good_text = (
             "This is a well-structured sentence with appropriate length. It communicates clearly and effectively."
@@ -81,7 +81,7 @@ class TestQualityAssessment(unittest.TestCase):
         bad_score = self.framework._assess_linguistic_quality(bad_text)
         assert bad_score < 0.5
 
-    def test_overall_assessment(self):
+    def test_overall_assessment(self) -> None:
         """Test end-to-end assessment of a conversation."""
         # Convert our sample to the format expected by the framework if necessary
         # The framework seems to expect 'messages' or 'conversations'
@@ -96,7 +96,7 @@ class TestQualityAssessment(unittest.TestCase):
         assert isinstance(assessment.assigned_tier, QualityTier)
         assert len(assessment.quality_strengths) > 0
 
-    def test_low_quality_tier_assignment(self):
+    def test_low_quality_tier_assignment(self) -> None:
         """Test that low-quality conversations are assigned to lower tiers."""
         assessment = self.framework.assess_conversation(self.low_quality_conv)
 
