@@ -11,6 +11,7 @@ import pytest
 from ai.pipelines.data_processing.dataset_adapters.bbrd_adapter import BBRDAdapter
 
 _CSV_FIELDS = ["user_id", "post_text", "label", "timestamp"]
+_EXPECTED_RECORD_COUNT = 3
 
 
 @pytest.fixture
@@ -58,13 +59,13 @@ class TestBBRDAdapter:
     def test_extract_returns_records(self, adapter, sample_csv_rows_raw):
         _write_csv(adapter._raw_dir / "bbrd_posts.csv", sample_csv_rows_raw)
         records = adapter.extract()
-        assert len(records) == 3
+        assert len(records) == _EXPECTED_RECORD_COUNT
         assert records[0]["user_id"] == "user1"
         assert records[0]["_source_file"] == "bbrd_posts"
 
     def test_convert_basic(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
-        assert len(records) == 3
+        assert len(records) == _EXPECTED_RECORD_COUNT
         rec = records[0]
         assert rec["source"] == "bbrd"
         assert rec["task_type"] == "symptom_classification"
@@ -96,6 +97,48 @@ class TestBBRDAdapter:
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 3
+        assert len(lines) == _EXPECTED_RECORD_COUNT
         record = json.loads(lines[0])
         assert record["source"] == "bbrd"
+
+    def test_lancaster_schema_and_legend_skip(self, adapter):
+        lancaster_rows = [
+            {
+                "id": "Unique post ID (edited from original Reddit ID to protect anonymity)",
+                "user": "User identifier (anonymised from Reddit usernames)",
+                "text": "Text of the post after language cleaning...",
+                "suicide": "Manual coding outcome",
+                "self-harm": "Manual coding outcome",
+                "age": "",
+                "gender": "",
+            },
+            {
+                "id": "101",
+                "user": "u456",
+                "text": "Feeling completely overwhelmed and want to hurt myself today.",
+                "suicide": "",
+                "self-harm": "Yes (recent)",
+                "age": "24",
+                "gender": "F",
+                "depression": "1",
+            },
+        ]
+        csv_file = adapter._raw_dir / "lancaster_sample.csv"
+        fieldnames = ["id", "user", "text", "suicide", "self-harm", "age", "gender", "depression"]
+        with open(csv_file, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(lancaster_rows)
+
+        records = adapter.extract()
+        assert len(records) == 1
+        assert records[0]["user"] == "u456"
+
+        chatml = adapter.convert_to_chatml(records)
+        assert len(chatml) == 1
+        rec = chatml[0]
+        assert rec["diagnostic_tag"] == "self_harm"
+        assert "self-harm: Yes (recent)" in rec["label"]
+        assert "age_24" in rec["demographic_tags"]
+        assert "gender_f" in rec["demographic_tags"]
+        assert "comorbid_depression" in rec["demographic_tags"]
