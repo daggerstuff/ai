@@ -16,7 +16,7 @@ Usage:
     python -m dataset_pipeline.scripts.s3_atomic_sync \
         --local_dir ai/data/prepared/v7_master \
         --s3_prefix ai/training_ready/v7_master \
-        --remote HetznerS3:pixeldata
+        --remote r2:training
 """
 
 from __future__ import annotations
@@ -25,6 +25,8 @@ import argparse
 import json
 import logging
 import subprocess
+import tempfile
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -33,7 +35,6 @@ logger = logging.getLogger("s3_atomic_sync")
 
 STAGING_DIR = "_staging"
 SYNC_MANIFEST = "_sync_manifest.json"
-
 
 
 @dataclass
@@ -94,12 +95,12 @@ class S3AtomicSync:
     Parameters
     ----------
     remote : str
-        rclone remote name (e.g. ``HetznerS3:pixeldata``).
+        rclone remote name (e.g. ``r2:training``).
     dry_run : bool
         If True, log actions without executing rclone commands.
     """
 
-    def __init__(self, remote: str = "HetznerS3:pixeldata", dry_run: bool = False) -> None:
+    def __init__(self, remote: str = "r2:training", dry_run: bool = False) -> None:
         self.remote = remote.rstrip("/")
         self.dry_run = dry_run
 
@@ -123,16 +124,34 @@ class S3AtomicSync:
         return "/".join([self.remote, *parts])
 
     def _list_remote(self, prefix: str) -> dict[str, int]:
-        """List files under a remote prefix, returning {name: size}."""
-        cmd = ["rclone", "lsf", self._remote_path(prefix)]
+        """List files under a remote prefix, returning {name: size}.
+
+        Uses ``rclone lsf --format sp`` so each line is "size path"; sizes are
+        required for the post-upload verification step. Directory entries
+        (trailing "/") carry no meaningful size and are skipped.
+        """
+        cmd = [
+            "rclone",
+            "lsf",
+            "--format",
+            "sp",
+            "--separator",
+            " ",
+            self._remote_path(prefix),
+        ]
         result = self._run(cmd)
         files: dict[str, int] = {}
         for raw_line in result.stdout.strip().splitlines():
             line = raw_line.strip()
             if not line:
                 continue
-            # lsf output: just paths (one per line)
-            files[line] = -1
+            size_str, sep, name = line.partition(" ")
+            if not sep or name.endswith("/"):
+                continue
+            try:
+                files[name] = int(size_str)
+            except ValueError:
+                logger.warning("Unparsable lsf line (skipped): %r", line)
         return files
 
     # ------------------------------------------------------------------
@@ -195,7 +214,10 @@ class S3AtomicSync:
 
         logger.info(
             "Phase 1: %d files to sync (%s → %s/%s)",
-            len(local_files), local_dir, self.remote, s3_prefix,
+            len(local_files),
+            local_dir,
+            self.remote,
+            s3_prefix,
         )
 
         # Phase 2: Upload to staging
@@ -224,14 +246,17 @@ class S3AtomicSync:
         if purge_stale:
             self._purge_stale_files(final_prefix, local_files, report)
 
-        # Phase 6: Write sync manifest
+        # Phase 6: Write sync manifest — after the success flag is set, so the
+        # manifest reflects the actual outcome.
+        report.success = not report.errors
         self._write_manifest(final_prefix, report)
 
-        report.success = not report.errors
         report.completed_at = datetime.now(UTC).isoformat()
         logger.info(
             "Sync complete: %d files promoted to %s/%s",
-            report.files_promoted, self.remote, final_prefix,
+            report.files_promoted,
+            self.remote,
+            final_prefix,
         )
         return report
 
@@ -274,7 +299,7 @@ class S3AtomicSync:
             if remote_size is None:
                 report.add_error(f"Missing on remote: {name}")
                 return False
-            if remote_size not in (planned_file.local_size, -1):
+            if remote_size != planned_file.local_size:
                 report.add_error(
                     f"Size mismatch: {name} (local={planned_file.local_size}, remote={remote_size})",
                 )
@@ -351,24 +376,32 @@ class S3AtomicSync:
         if self.dry_run:
             logger.info("[dry-run] Would write manifest to %s", key)
             return
-        # Write manifest via rclone rcat
-        cmd = ["rclone", "rcat", self._remote_path(key)]
-        proc = subprocess.run(
-            cmd,
-            input=json.dumps(manifest, indent=2),
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if proc.returncode != 0:
-            logger.warning("Failed to write sync manifest: %s", proc.stderr.strip())
-        else:
-            logger.info("Wrote sync manifest to %s", key)
+        # Write locally, then copy. rclone rcat is not used because its
+        # multipart streaming is rejected by some S3 backends (e.g. R2
+        # returns 501 NotImplemented); copyto works everywhere.
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            suffix=".json",
+            encoding="utf-8",
+            delete=False,
+        ) as tmp:
+            json.dump(manifest, tmp, indent=2)
+            tmp_path = tmp.name
+        try:
+            result = self._run(["rclone", "copyto", tmp_path, self._remote_path(key)])
+            if result.returncode != 0:
+                logger.warning("Failed to write sync manifest: %s", result.stderr.strip())
+            else:
+                logger.info("Wrote sync manifest to %s", key)
+        finally:
+            with suppress(OSError):
+                Path(tmp_path).unlink()
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="S3 atomic swap sync for V7 MASTER dataset")
@@ -384,8 +417,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--remote",
-        default="HetznerS3:pixeldata",
-        help="rclone remote name (default: HetznerS3:pixeldata)",
+        default="r2:training",
+        help="rclone remote name (default: r2:training)",
     )
     parser.add_argument(
         "--dry_run",
