@@ -250,6 +250,22 @@ ignore = []
 "training/benchmark.py" = [
     "T201",
 ]
+"training/audit_arc_corpus.py" = [
+    "T201",
+    "PLR0912",
+    "PLR0913",
+    "PLR0917",
+]
+"training/generate_arc_corpus.py" = [
+    "E501",
+    "T201",
+    "PLC0415",
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+    "PLR0917",
+]
 "training/eval_clef.py" = [
     "T201",
 ]

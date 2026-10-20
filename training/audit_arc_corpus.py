@@ -16,6 +16,7 @@ Run (from ai/):
   /home/vivi/pixelated/.venv/bin/python training/audit_arc_corpus.py \
       [--arcs pilot_01,...] [--limit N] [--max-revisions 2]
 """
+
 import argparse
 import asyncio
 import json
@@ -30,31 +31,38 @@ import aiohttp
 from dotenv import load_dotenv
 
 _HERE = Path(__file__).resolve()
-_TRAIN_DIR = _HERE.parents[0]   # ai/training
-_AI_DIR = _HERE.parents[1]      # ai
-_REPO_DIR = _HERE.parents[2]    # pixelated
+_TRAIN_DIR = _HERE.parents[0]  # ai/training
+_AI_DIR = _HERE.parents[1]  # ai
+_REPO_DIR = _HERE.parents[2]  # pixelated
 sys.path.insert(0, str(_AI_DIR))
 load_dotenv(_REPO_DIR / ".env", override=True)
 
 from training.featherless_keys import KeyPool, is_rotate_status  # noqa: E402
 
-FEATHERLESS_URL = os.environ.get(
-    "ARC_AUDITOR_URL", "https://ai-gateway.vercel.sh/v1/chat/completions"
-)
+FEATHERLESS_URL = os.environ.get("ARC_AUDITOR_URL", "https://ai-gateway.vercel.sh/v1/chat/completions")
 AUDITOR_MODEL = os.environ.get("ARC_AUDITOR_MODEL", "moonshotai/kimi-k3")
 AUDITOR_MAX_TOKENS = int(os.environ.get("ARC_AUDITOR_MAX_TOKENS", "12288"))
 AUDITOR_TIMEOUT = int(os.environ.get("ARC_AUDITOR_TIMEOUT", "480"))
 AUDITOR_CONCURRENCY = int(os.environ.get("ARC_AUDITOR_CONCURRENCY", "2"))
 AUDITOR_ATTEMPTS = int(os.environ.get("ARC_AUDITOR_ATTEMPTS", "4"))
+HTTP_OK = 200
+MAX_AUDIT_ROUNDS = 2
 
 OUT_DIR = _TRAIN_DIR / "output" / "arc_corpus"
 NOTES_DIR = OUT_DIR / "arc_audit_notes"
 PLANS_DIR = _TRAIN_DIR / "arc_plans"
 
 FLAG_CATEGORIES = [
-    "comfort_lie", "capitulation", "fabrication", "ledger_contradiction",
-    "tl_drift", "safety_failure", "integrity_violation", "truth_withholding",
-    "false_certainty", "thread_death",
+    "comfort_lie",
+    "capitulation",
+    "fabrication",
+    "ledger_contradiction",
+    "tl_drift",
+    "safety_failure",
+    "integrity_violation",
+    "truth_withholding",
+    "false_certainty",
+    "thread_death",
 ]
 
 CATEGORIES_DOC = """\
@@ -86,7 +94,8 @@ correct response is the honest unknown plus what IS knowable. |
 two turns. |
 """
 
-SYSTEM_PROMPT = """\
+SYSTEM_PROMPT = (
+    """\
 You are a clinical auditor for a direct-engagement therapy corpus. You are
 given (1) an arc plan with scheduled beats and their REQUIRED therapist
 responses, and (2) the generated transcript with the writer's per-turn
@@ -110,7 +119,9 @@ Therapy is not a black-and-white chooser wheel: enforce the specific
 violations below, never rigid grant/deny patterns.
 
 FLAG CATEGORIES (use exactly these):
-""" + CATEGORIES_DOC + """
+"""
+    + CATEGORIES_DOC
+    + """
 For each beat in the plan, check whether the required response was performed
 at or near the scheduled turn. Every flag must cite the exact transcript text
 as evidence. Flags are per-turn.
@@ -128,6 +139,7 @@ OUTPUT: strict JSON only, no prose, no markdown fences:
             "evidence": "<exact quoted text>", "note": "<what is wrong>"}]}
 An empty flags list with verdict "accept".
 """
+)
 
 
 def render_transcript(record: dict) -> str:
@@ -155,15 +167,16 @@ def render_beats(plan: dict) -> str:
                 f"- misstatement: plant session {b.get('plant_session', b.get('session'))} "
                 f"turn {b['plant_turn']}: {b['original']}; revise session "
                 f"{b.get('revise_session', b.get('session'))} turn {b['revise_turn']}: "
-                f"{b['revision']}. Required therapist handling: {b['required_response']}")
+                f"{b['revision']}. Required therapist handling: {b['required_response']}"
+            )
         else:
             sess = b.get("session")
             turn = b.get("turn", b.get("revise_turn", "?"))
             body = b.get("demand") or b.get("setup") or ""
-            lines.append(f"- {b['type']} session {sess} turn {turn}: {body}\n"
-                         f"  Required: {b['required_response']}")
-    lines.append(f"- ending session {plan['ending']['session']} turn "
-                 f"{plan['ending']['turn']}: {plan['ending']['requirement']}")
+            lines.append(f"- {b['type']} session {sess} turn {turn}: {body}\n  Required: {b['required_response']}")
+    lines.append(
+        f"- ending session {plan['ending']['session']} turn {plan['ending']['turn']}: {plan['ending']['requirement']}"
+    )
     return "\n".join(lines)
 
 
@@ -190,8 +203,7 @@ async def _chat_json(resp: aiohttp.ClientResponse) -> dict[str, Any]:
     return data
 
 
-async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
-                       user_prompt: str) -> dict:
+async def call_auditor(http: aiohttp.ClientSession, pool: KeyPool, user_prompt: str) -> dict:
     backoff = 5.0
     for attempt in range(1, AUDITOR_ATTEMPTS + 1):
         api_key = pool.current()
@@ -204,8 +216,9 @@ async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
             "max_tokens": AUDITOR_MAX_TOKENS,
             "temperature": 0.2,
             "response_format": {"type": "json_object"},
-            "chat_template_kwargs": {"thinking": False},
         }
+        if not AUDITOR_MODEL.startswith("@cf/"):
+            payload["chat_template_kwargs"] = {"thinking": False}
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
@@ -213,16 +226,15 @@ async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
         timeout = aiohttp.ClientTimeout(total=AUDITOR_TIMEOUT)
         try:
             try:
-                async with http.post(FEATHERLESS_URL, json=payload, headers=headers,
-                                     timeout=timeout) as resp:
+                async with http.post(FEATHERLESS_URL, json=payload, headers=headers, timeout=timeout) as resp:
                     if resp.status in (401, 403, 404):
                         body = await resp.text()
                         raise RuntimeError(f"auditor config error http_{resp.status}: {body[:300]}")
-                    if resp.status != 200:
+                    if resp.status != HTTP_OK:
                         body = await resp.text()
                         raise TransientAuditError(f"http_{resp.status}: {body[:200]}")
                     data = await _chat_json(resp)
-            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            except (TimeoutError, aiohttp.ClientError) as e:
                 raise TransientAuditError(f"transport_error: {type(e).__name__}") from e
 
             if "choices" not in data or not data["choices"]:
@@ -240,10 +252,8 @@ async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
                 raise
             if is_rotate_status(e) and len(pool) > 1:
                 pool.rotate()
-                print(f"    [key-rotate] {e} — switched to ...{pool.current()[-8:]}",
-                      flush=True)
-            print(f"    [audit retry] attempt {attempt} failed ({e}); backoff {backoff:.0f}s",
-                  flush=True)
+                print(f"    [key-rotate] {e} — switched to ...{pool.current()[-8:]}", flush=True)
+            print(f"    [audit retry] attempt {attempt} failed ({e}); backoff {backoff:.0f}s", flush=True)
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, 60.0)
     raise TransientAuditError("exhausted_attempts")
@@ -259,7 +269,7 @@ def parse_verdict(content: str) -> dict | None:
         if start < 0 or end <= start:
             return None
         try:
-            obj = json.loads(text[start:end + 1])
+            obj = json.loads(text[start : end + 1])
         except json.JSONDecodeError:
             return None
     if not isinstance(obj, dict):
@@ -274,13 +284,15 @@ def parse_verdict(content: str) -> dict | None:
         category = f.get("category")
         if category not in FLAG_CATEGORIES:
             continue
-        flags.append({
-            "session": f.get("session"),
-            "turn": f.get("turn"),
-            "category": category,
-            "evidence": str(f.get("evidence", ""))[:500],
-            "note": str(f.get("note", ""))[:500],
-        })
+        flags.append(
+            {
+                "session": f.get("session"),
+                "turn": f.get("turn"),
+                "category": category,
+                "evidence": str(f.get("evidence", ""))[:500],
+                "note": str(f.get("note", ""))[:500],
+            }
+        )
     return {"verdict": verdict, "flags": flags}
 
 
@@ -288,10 +300,11 @@ def parse_verdict(content: str) -> dict | None:
 # Files: records, checkpoint, notes, results, HR queue
 # ---------------------------------------------------------------------------
 
+
 def load_records(path: Path) -> list[dict]:
     if not path.exists():
         return []
-    return [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
+    return [json.loads(row) for row in path.read_text(encoding="utf-8").splitlines() if row.strip()]
 
 
 def rewrite_jsonl(path: Path, rows: list[dict]) -> None:
@@ -318,20 +331,20 @@ def write_audit_note(arc_id: str, flags: list[dict], plan: dict) -> None:
         sess = f.get("session") or 1
         turn = f.get("turn") or "?"
         by_session.setdefault(sess, []).append(
-            f"turn {turn} — {f['category']}: {f['note']} (evidence: {f['evidence']})")
+            f"turn {turn} — {f['category']}: {f['note']} (evidence: {f['evidence']})"
+        )
     notes = {}
     for sess, items in by_session.items():
         beats_for_session = [b for b in plan["beats"] if b.get("session") == sess]
-        required = "\n".join(
-            f"  - required: {b['required_response']}" for b in beats_for_session) or ""
+        required = "\n".join(f"  - required: {b['required_response']}" for b in beats_for_session) or ""
         notes[str(sess)] = (
             "The previous draft of this session was flagged by the clinical auditor. "
             "Fix every item below while following the arc plan exactly:\n"
             + "\n".join(f"  - {item}" for item in items)
-            + ("\nRequirements that must hold in this session:\n" + required if required else ""))
+            + ("\nRequirements that must hold in this session:\n" + required if required else "")
+        )
     NOTES_DIR.mkdir(parents=True, exist_ok=True)
-    (NOTES_DIR / f"{arc_id}.json").write_text(
-        json.dumps(notes, indent=2, ensure_ascii=False), encoding="utf-8")
+    (NOTES_DIR / f"{arc_id}.json").write_text(json.dumps(notes, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
 def delete_audit_note(arc_id: str) -> None:
@@ -351,16 +364,25 @@ def append_jsonl_fsync(path: Path, row: dict) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
-async def audit_arc(http: aiohttp.ClientSession, record: dict, plan: dict, pool: "KeyPool",
-                    semaphore: asyncio.Semaphore, paths: dict,
-                    counters: dict, prior_verdicts: dict[str, list[str]],
-                    arc_status: dict[str, str]) -> None:
+
+async def audit_arc(
+    http: aiohttp.ClientSession,
+    record: dict,
+    plan: dict,
+    pool: KeyPool,
+    semaphore: asyncio.Semaphore,
+    paths: dict,
+    counters: dict,
+    prior_verdicts: dict[str, list[str]],
+    arc_status: dict[str, str],
+) -> None:
     arc_id = record["arc_id"]
     async with semaphore:
         user_prompt = (
             f"ARC PLAN BEATS (required responses):\n{render_beats(plan)}\n\n"
             f"TRANSCRIPT:\n{render_transcript(record)}\n\n"
-            "Grade the transcript against the plan. Verdict + flags as strict JSON.")
+            "Grade the transcript against the plan. Verdict + flags as strict JSON."
+        )
         t0 = time.monotonic()
         try:
             verdict = await call_auditor(http, pool, user_prompt)
@@ -368,10 +390,16 @@ async def audit_arc(http: aiohttp.ClientSession, record: dict, plan: dict, pool:
             counters["audit_errors"] += 1
             arc_status[arc_id] = "error"
             print(f"  {arc_id}: AUDIT ERROR {e}", flush=True)
-            append_jsonl_fsync(paths["results"], {
-                "arc_id": arc_id, "attempt": len(prior_verdicts.get(arc_id, [])) + 1,
-                "verdict": "error", "error": str(e),
-                "wall_s": round(time.monotonic() - t0, 1)})
+            append_jsonl_fsync(
+                paths["results"],
+                {
+                    "arc_id": arc_id,
+                    "attempt": len(prior_verdicts.get(arc_id, [])) + 1,
+                    "verdict": "error",
+                    "error": str(e),
+                    "wall_s": round(time.monotonic() - t0, 1),
+                },
+            )
             return
         wall_s = round(time.monotonic() - t0, 1)
         history = prior_verdicts.setdefault(arc_id, [])
@@ -381,30 +409,39 @@ async def audit_arc(http: aiohttp.ClientSession, record: dict, plan: dict, pool:
             arc_status[arc_id] = "accept"
             delete_audit_note(arc_id)
             record["auditor_model"] = AUDITOR_MODEL
-            record["audit"] = {"verdict": "accept",
-                               "revisions": len(history),
-                               "flags_final": []}
-            append_jsonl_fsync(paths["results"], {
-                "arc_id": arc_id, "attempt": len(history) + 1, "verdict": "accept",
-                "flags": [], "wall_s": wall_s})
+            record["audit"] = {"verdict": "accept", "revisions": len(history), "flags_final": []}
+            append_jsonl_fsync(
+                paths["results"],
+                {"arc_id": arc_id, "attempt": len(history) + 1, "verdict": "accept", "flags": [], "wall_s": wall_s},
+            )
             print(f"  {arc_id}: ACCEPT (revisions so far: {len(history)})", flush=True)
             return
-        if verdict["verdict"] == "fail" or len(history) + 1 >= 2:
+        if verdict["verdict"] == "fail" or len(history) + 1 >= MAX_AUDIT_ROUNDS:
             counters["hr_queue"] += 1
             arc_status[arc_id] = "hr"
             delete_audit_note(arc_id)
             record["auditor_model"] = AUDITOR_MODEL
-            record["audit"] = {"verdict": "hr", "revisions": len(history) + 1,
-                               "flags_final": verdict["flags"]}
-            append_jsonl_fsync(paths["hr_queue"], {
-                "arc_id": arc_id, "attempt": len(history) + 1,
-                "verdict": verdict["verdict"], "flags": verdict["flags"]})
-            append_jsonl_fsync(paths["results"], {
-                "arc_id": arc_id, "attempt": len(history) + 1,
-                "verdict": verdict["verdict"], "flags": verdict["flags"],
-                "wall_s": wall_s})
-            print(f"  {arc_id}: HR QUEUE ({verdict['verdict']}, "
-                  f"flags={len(verdict['flags'])})", flush=True)
+            record["audit"] = {"verdict": "hr", "revisions": len(history) + 1, "flags_final": verdict["flags"]}
+            append_jsonl_fsync(
+                paths["hr_queue"],
+                {
+                    "arc_id": arc_id,
+                    "attempt": len(history) + 1,
+                    "verdict": verdict["verdict"],
+                    "flags": verdict["flags"],
+                },
+            )
+            append_jsonl_fsync(
+                paths["results"],
+                {
+                    "arc_id": arc_id,
+                    "attempt": len(history) + 1,
+                    "verdict": verdict["verdict"],
+                    "flags": verdict["flags"],
+                    "wall_s": wall_s,
+                },
+            )
+            print(f"  {arc_id}: HR QUEUE ({verdict['verdict']}, flags={len(verdict['flags'])})", flush=True)
             return
         # revise — first occurrence
         counters["revised"] += 1
@@ -415,22 +452,34 @@ async def audit_arc(http: aiohttp.ClientSession, record: dict, plan: dict, pool:
             flagged_sessions = {s["n"] for s in record["sessions"]}
         dropped = drop_sessions(paths["checkpoint"], arc_id, flagged_sessions)
         write_audit_note(arc_id, verdict["flags"], plan)
-        append_jsonl_fsync(paths["results"], {
-            "arc_id": arc_id, "attempt": len(history), "verdict": "revise",
-            "flags": verdict["flags"], "dropped_sessions": sorted(flagged_sessions),
-            "dropped_rows": dropped, "wall_s": wall_s})
-        print(f"  {arc_id}: REVISE — sessions {sorted(flagged_sessions)} dropped "
-              f"({dropped} rows), note written; flags:", flush=True)
+        append_jsonl_fsync(
+            paths["results"],
+            {
+                "arc_id": arc_id,
+                "attempt": len(history),
+                "verdict": "revise",
+                "flags": verdict["flags"],
+                "dropped_sessions": sorted(flagged_sessions),
+                "dropped_rows": dropped,
+                "wall_s": wall_s,
+            },
+        )
+        print(
+            f"  {arc_id}: REVISE — sessions {sorted(flagged_sessions)} dropped ({dropped} rows), note written; flags:",
+            flush=True,
+        )
         for f in verdict["flags"][:6]:
             print(f"    s{f.get('session')} t{f.get('turn')} [{f['category']}] {f['note'][:100]}", flush=True)
 
 
 async def main_async(args) -> None:
     pool_envs = [
-        k.strip() for k in os.environ.get(
+        k.strip()
+        for k in os.environ.get(
             "ARC_AUDITOR_KEYS",
             "AI_GATEWAY_API_KEY,FEATHERLESS_API_KEY,FEATHERLESS_API_KEY_2",
-        ).split(",") if k.strip()
+        ).split(",")
+        if k.strip()
     ]
     pool = KeyPool(*pool_envs)
 
@@ -438,8 +487,7 @@ async def main_async(args) -> None:
     checkpoint_path = OUT_DIR / (args.checkpoint or "sessions_checkpoint.jsonl")
     results_path = OUT_DIR / "audit_results.jsonl"
     hr_path = OUT_DIR / "human_review_queue.jsonl"
-    paths = {"records": records_path, "checkpoint": checkpoint_path,
-             "results": results_path, "hr_queue": hr_path}
+    paths = {"records": records_path, "checkpoint": checkpoint_path, "results": results_path, "hr_queue": hr_path}
 
     records = load_records(records_path)
     if args.arcs:
@@ -466,16 +514,22 @@ async def main_async(args) -> None:
 
     counters = {"audited": 0, "accepted": 0, "revised": 0, "hr_queue": 0, "audit_errors": 0}
     arc_status: dict[str, str] = {}
-    print(f"=== ARC AUDITOR ===\nmodel={AUDITOR_MODEL} arcs={len(records)} "
-          f"max_tokens={AUDITOR_MAX_TOKENS} concurrency={args.concurrency}", flush=True)
+    print(
+        f"=== ARC AUDITOR ===\nmodel={AUDITOR_MODEL} arcs={len(records)} "
+        f"max_tokens={AUDITOR_MAX_TOKENS} concurrency={args.concurrency}",
+        flush=True,
+    )
 
     semaphore = asyncio.Semaphore(args.concurrency)
     async with aiohttp.ClientSession() as http:
         t0 = time.monotonic()
-        await asyncio.gather(*(audit_arc(http, r, plans[r["arc_id"]], pool, semaphore,
-                                        paths, counters, prior_verdicts, arc_status)
-                               for r in records),
-                             return_exceptions=False)
+        await asyncio.gather(
+            *(
+                audit_arc(http, r, plans[r["arc_id"]], pool, semaphore, paths, counters, prior_verdicts, arc_status)
+                for r in records
+            ),
+            return_exceptions=False,
+        )
         wall = round(time.monotonic() - t0, 1)
 
     # persist record mutations: accept/hr keep their audit verdict; revise arcs
@@ -499,12 +553,18 @@ async def main_async(args) -> None:
         final_rows.append(latest[arc_id])
     rewrite_jsonl(records_path, final_rows)
 
-    print(f"\nDONE in {wall}s — audited={counters['audited']} accepted={counters['accepted']} "
-          f"revised={counters['revised']} hr_queue={counters['hr_queue']} "
-          f"errors={counters['audit_errors']}", flush=True)
+    print(
+        f"\nDONE in {wall}s — audited={counters['audited']} accepted={counters['accepted']} "
+        f"revised={counters['revised']} hr_queue={counters['hr_queue']} "
+        f"errors={counters['audit_errors']}",
+        flush=True,
+    )
     if counters["revised"]:
-        print("revision needed: re-run generate_arc_corpus.py (it resumes the dropped "
-              "sessions and consumes the audit notes), then re-run the auditor.", flush=True)
+        print(
+            "revision needed: re-run generate_arc_corpus.py (it resumes the dropped "
+            "sessions and consumes the audit notes), then re-run the auditor.",
+            flush=True,
+        )
 
 
 def main() -> None:
@@ -514,8 +574,7 @@ def main() -> None:
     ap.add_argument("--records", help="records JSONL filename")
     ap.add_argument("--checkpoint", help="sessions checkpoint JSONL filename")
     ap.add_argument("--concurrency", type=int, default=AUDITOR_CONCURRENCY)
-    ap.add_argument("--reaudit", action="store_true",
-                    help="include arcs already accepted/hr (integrity sweep)")
+    ap.add_argument("--reaudit", action="store_true", help="include arcs already accepted/hr (integrity sweep)")
     args = ap.parse_args()
     asyncio.run(main_async(args))
 
