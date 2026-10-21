@@ -98,7 +98,9 @@ class BBRDAdapter(BaseDatasetAdapter):
         records: list[dict[str, Any]] = []
 
         for row in raw_data:
-            post_text = (row.get("post_text") or row.get("text") or row.get("content") or row.get("body") or "").strip()
+            post_text = (
+                row.get("post_text") or row.get("text") or row.get("content") or row.get("body") or ""
+            ).strip()
             if not post_text:
                 continue
 

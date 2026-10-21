@@ -317,7 +317,10 @@ class NemotronBenchmark:
     def print_results(self, all_results: dict[str, dict[str, ModelResult]]):
         """Print formatted benchmark results"""
         if not all_results:
+            print("No results were returned.")
             return
+
+        print("NEMOTRON MODEL BENCHMARK RESULTS")
 
         model_scores = {}
         for model, task_results in all_results.items():
@@ -331,10 +334,18 @@ class NemotronBenchmark:
                 if result.avg_latency_ms > 0:
                     latencies.append(result.avg_latency_ms)
 
-                getattr(result.task_type, "name", str(result.task_type)).upper()
+                task_label = getattr(result.task_type, "name", str(result.task_type)).upper()
+                print(
+                    f"{model} | {task_label}: "
+                    f"success={result.success_rate:.1f}% "
+                    f"latency_p50={result.p50_latency_ms:.1f}ms "
+                    f"latency_p95={result.p95_latency_ms:.1f}ms "
+                    f"latency_p99={result.p99_latency_ms:.1f}ms "
+                    f"errors={result.error_count}"
+                )
                 if result.errors:
-                    for _error, _count in result.errors.items():
-                        pass
+                    for error, count in result.errors.items():
+                        print(f"  - {error}: {count}")
 
             model_scores[model] = {
                 "success_rate": (total_success / total_requests) * 100 if total_requests > 0 else 0,
@@ -347,8 +358,9 @@ class NemotronBenchmark:
             reverse=True,
         )
 
-        for _rank, (model, _scores) in enumerate(sorted_models, 1):
-            pass
+        print("\nMODEL LEADERBOARD")
+        for rank, (model, scores) in enumerate(sorted_models, 1):
+            print(f"{rank}. {model} | success={scores['success_rate']:.1f}% avg_latency={scores['avg_latency']:.1f}ms")
 
     def save_results(
         self,
