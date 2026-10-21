@@ -1015,7 +1015,7 @@ def load_audit_notes(arc_id: str) -> dict[str, str]:
         return {}
     try:
         return dict(json.loads(path.read_text(encoding="utf-8")))
-    except json.JSONDecodeError, OSError:
+    except (json.JSONDecodeError, OSError):
         return {}
 
 

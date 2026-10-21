@@ -203,7 +203,7 @@ async def _chat_json(resp: aiohttp.ClientResponse) -> dict[str, Any]:
     return data
 
 
-async def call_auditor(http: aiohttp.ClientSession, pool: KeyPool, user_prompt: str) -> dict:
+async def call_auditor(http: aiohttp.ClientSession, pool: KeyPool, user_prompt: str) -> dict[str, Any]:
     backoff = 5.0
     for attempt in range(1, AUDITOR_ATTEMPTS + 1):
         api_key = pool.current()

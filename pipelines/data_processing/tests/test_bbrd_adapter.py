@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 import pytest
+from typing import Any
 
 from ai.pipelines.data_processing.dataset_adapters.bbrd_adapter import BBRDAdapter
 
@@ -101,7 +102,7 @@ class TestBBRDAdapter:
         record = json.loads(lines[0])
         assert record["source"] == "bbrd"
 
-    def test_lancaster_schema_and_legend_skip(self, adapter):
+    def test_lancaster_schema_and_legend_skip(self, adapter: Any) -> None:
         lancaster_rows = [
             {
                 "id": "Unique post ID (edited from original Reddit ID to protect anonymity)",
