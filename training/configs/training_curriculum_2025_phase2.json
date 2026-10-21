@@ -32,7 +32,7 @@
   "datasets": [
     {
       "name": "final_canonical_dataset",
-      "path": "s3://pixel-data/final_dataset/",
+      "path": "s3://pixel-archive/pixel-data/final_dataset/",
       "weight": 1.0
     }
   ],

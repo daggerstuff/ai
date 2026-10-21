@@ -7,7 +7,7 @@ load_in_4bit: true
 strict: false
 
 datasets:
-  - path: s3://pixel-data/final_dataset/shards/curriculum/stage1/shard_000.jsonl
+  - path: s3://pixel-archive/pixel-data/final_dataset/shards/curriculum/stage1/shard_000.jsonl
     type: chat_template
     chat_template: chatml
 dataset_prepared_path: last_run_prepared

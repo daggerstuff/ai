@@ -14,7 +14,13 @@
       "properties": {
         "temperature": {"const": 0},
         "max_tokens": {"type": "integer", "minimum": 1, "maximum": 4096},
-        "stop": {"type": "array", "items": {"type": "string"}}
+        "stop": {"type": "array", "items": {"type": "string"}},
+        "chat_template_kwargs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enable_thinking"],
+          "properties": {"enable_thinking": {"type": "boolean"}}
+        }
       }
     },
     "pricing": {

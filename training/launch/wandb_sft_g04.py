@@ -33,8 +33,15 @@ except ImportError:
     wandb = None
 
 API_BASE = "https://api.training.wandb.ai/v1"
+TRAINING_API_USER_AGENT = "W&B-Training-API/1.0 (+https://docs.wandb.ai/)"
 HTTP_ERROR_THRESHOLD = 400
-MODEL_ID = "Qwen/Qwen3.6-35B-A3B"
+MODEL_ID = "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B"
+ALLOWED_MODEL_IDS = frozenset(
+    {
+        "google/gemma-4-26B-A4B-it",
+        "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B",
+    }
+)
 ENTITY = "wutang"
 PROJECT = "pixelated-empathy-kan28"
 TERMINAL_STATES = {"succeeded", "failed", "cancelled", "canceled"}
@@ -194,7 +201,11 @@ def _validate_group_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
         raise QualificationError("G04 group-disjointness evidence must be an object")
     expected_pairs = {"train_validation": 0, "train_test": 0, "validation_test": 0}
     group_key = evidence.get("group_key")
-    if evidence.get("status") != "verified" or group_key not in {"seed_group_sha256", "content_group_sha256"}:
+    if evidence.get("status") != "verified" or group_key not in {
+        "seed_group_sha256",
+        "content_group_sha256",
+        "prompt_group_sha256",
+    }:
         raise QualificationError("G04 manifest has no verified supported group-split evidence")
     if evidence.get("pairwise_intersections") != expected_pairs:
         raise QualificationError("G04 split evidence does not show pairwise group-disjoint partitions")
@@ -425,7 +436,7 @@ def resolve_train_payload(manifest_path: Path, arm: str = "baseline") -> tuple[d
 
 BASELINE_CONFIG: dict[str, Any] = {
     "batch_size": "auto",
-    "learning_rate": 0.0001,
+    "learning_rate": 0.00001,
     "assistant_turns": "all",
 }
 
@@ -433,7 +444,7 @@ BASELINE_CONFIG: dict[str, Any] = {
 # supplied by G04. It intentionally shares every training hyperparameter.
 DATA_ABLATION_CONFIG: dict[str, Any] = {
     "batch_size": "auto",
-    "learning_rate": 0.0001,
+    "learning_rate": 0.00001,
     "assistant_turns": "all",
 }
 
@@ -457,6 +468,7 @@ class TrainingAPI:
                 "Authorization": f"Bearer {self._token}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "User-Agent": TRAINING_API_USER_AGENT,
             },
         )
         try:
@@ -470,7 +482,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
+        except UnicodeDecodeError, json.JSONDecodeError:
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")
@@ -481,6 +493,7 @@ class TrainingAPI:
             "Authorization": f"Bearer {self._token}",
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "User-Agent": TRAINING_API_USER_AGENT,
         }
         try:
             timeout = aiohttp.ClientTimeout(total=60)
@@ -499,7 +512,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
+        except UnicodeDecodeError, json.JSONDecodeError:
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")
@@ -532,7 +545,12 @@ def safe_config_capture(response: dict[str, Any]) -> dict[str, Any]:
 
 
 def make_training_artifact(
-    payload: Payload, manifest: dict[str, Any], config: dict[str, Any], out_dir: Path
+    payload: Payload,
+    manifest: dict[str, Any],
+    config: dict[str, Any],
+    out_dir: Path,
+    *,
+    model_id: str = MODEL_ID,
 ) -> dict[str, Any]:
     out_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     trajectory_file = out_dir / "trajectories.jsonl"
@@ -550,7 +568,7 @@ def make_training_artifact(
         "total_len": payload.rows,
         "loss_mask": "assistant turns only",
         "assistant_turns_config": config["assistant_turns"],
-        "base_model": MODEL_ID,
+        "base_model": model_id,
         "training_config": config,
     }
     metadata_path = out_dir / "metadata.json"
@@ -610,6 +628,7 @@ class ExecutionRequest:
     work_dir: Path
     api: TrainingAPI
     api_key: str
+    model_id: str = MODEL_ID
     private_check: Callable[[str, str, str], None] = verify_private_project
     artifact_upload: Callable[[Path, str], str] | None = None
     poll_interval: float = 30
@@ -645,6 +664,8 @@ def _load_state(path: Path, task_id: str, payload_sha256: str) -> dict[str, Any]
 
 
 def _verify_remote_access(request: ExecutionRequest) -> None:
+    if request.model_id not in ALLOWED_MODEL_IDS:
+        raise QualificationError("selected base model is outside the approved Gemma 4/Nemotron 3.5 set")
     request.private_check(ENTITY, PROJECT, request.api_key)
     response = request.api.request("GET", "/preview/base-models")
     if isinstance(response, list):
@@ -656,7 +677,7 @@ def _verify_remote_access(request: ExecutionRequest) -> None:
         for item in catalog
         if isinstance(item, (str, dict))
     }
-    if MODEL_ID not in ids:
+    if request.model_id not in ids:
         raise QualificationError("selected base model is absent from current authenticated training catalog")
 
 
@@ -673,7 +694,7 @@ def _initial_state(request: ExecutionRequest, plan: TrainingPlan) -> dict[str, A
         "payload_sha256": payload.sha256,
         "row_count": payload.rows,
         "arm": request.arm,
-        "model": MODEL_ID,
+        "model": request.model_id,
         "config": config,
         "artifact_hashes": {"trajectories": artifact["trajectory_sha256"], "metadata": artifact["metadata_sha256"]},
         "artifact_bytes": artifact["artifact_bytes"],
@@ -691,7 +712,8 @@ def _upload_artifact(request: ExecutionRequest, state: dict[str, Any], plan: Tra
     state["phase_updated_unix"] = int(time.time())
     atomic_json(request.state_dir / f"wandb-sft-{plan.task_id}.json", state)
     artifact_name = f"g04-{plan.manifest['release_id']}-{request.arm}-{plan.task_id[:12]}"
-    artifact_uri = request.artifact_upload(request.work_dir / plan.manifest["release_id"] / request.arm, artifact_name)
+    artifact_dir = request.work_dir / plan.manifest["release_id"] / request.arm / request.model_id.replace("/", "-")
+    artifact_uri = request.artifact_upload(artifact_dir, artifact_name)
     if not artifact_uri.startswith("wandb-artifact:///"):
         raise QualificationError("artifact uploader returned an invalid W&B Training artifact URI")
     state["training_data_url"] = artifact_uri
@@ -714,7 +736,7 @@ def _create_model(request: ExecutionRequest, state: dict[str, Any], task_id: str
             "entity": ENTITY,
             "project": PROJECT,
             "name": f"arc-sft-{request.arm}-{task_id[:12]}",
-            "base_model": MODEL_ID,
+            "base_model": request.model_id,
             "return_existing": True,
         },
     )
@@ -786,10 +808,18 @@ def execute(request: ExecutionRequest) -> dict[str, Any]:
     config = BASELINE_CONFIG if request.arm == "baseline" else DATA_ABLATION_CONFIG
     manifest, payload = resolve_train_payload(request.manifest_path, request.arm)
     release_id = _safe_segment(manifest["release_id"])
-    work_path = request.work_dir / release_id / request.arm
-    artifact = make_training_artifact(payload, manifest, config, work_path)
+    work_path = request.work_dir / release_id / request.arm / request.model_id.replace("/", "-")
+    if request.model_id not in ALLOWED_MODEL_IDS:
+        raise QualificationError("selected base model is outside the approved Gemma 4/Nemotron 3.5 set")
+    artifact = make_training_artifact(payload, manifest, config, work_path, model_id=request.model_id)
     task_id = canonical_hash(
-        {"release": manifest["release_id"], "payload": payload.sha256, "arm": request.arm, "config": config}
+        {
+            "release": manifest["release_id"],
+            "payload": payload.sha256,
+            "arm": request.arm,
+            "model": request.model_id,
+            "config": config,
+        }
     )
     plan = TrainingPlan(manifest, payload, config, artifact, task_id)
     state_path = request.state_dir / f"wandb-sft-{task_id}.json"
@@ -809,6 +839,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--arm", choices=("baseline", "data-ablation"), default="baseline")
+    parser.add_argument("--model", choices=sorted(ALLOWED_MODEL_IDS), default=MODEL_ID)
     parser.add_argument("--output", type=Path, default=Path("docs/training/execution-2026-10-17/wandb-sft-artifacts"))
     parser.add_argument("--state-dir", type=Path, default=Path("docs/training/execution-2026-10-17/wandb-sft-state"))
     parser.add_argument("--execute", action="store_true", help="upload G04 data and create/monitor the SFT job")
@@ -819,11 +850,21 @@ def main(argv: list[str] | None = None) -> int:
         manifest, payload = resolve_train_payload(args.manifest, args.arm)
         config = BASELINE_CONFIG if args.arm == "baseline" else DATA_ABLATION_CONFIG
         task_id = canonical_hash(
-            {"release": manifest["release_id"], "payload": payload.sha256, "arm": args.arm, "config": config}
+            {
+                "release": manifest["release_id"],
+                "payload": payload.sha256,
+                "arm": args.arm,
+                "model": args.model,
+                "config": config,
+            }
         )
         if not args.execute:
             prepared = make_training_artifact(
-                payload, manifest, config, args.output / manifest["release_id"] / args.arm
+                payload,
+                manifest,
+                config,
+                args.output / manifest["release_id"] / args.arm / args.model.replace("/", "-"),
+                model_id=args.model,
             )
             report = {
                 "mode": "dry-run",
@@ -832,7 +873,7 @@ def main(argv: list[str] | None = None) -> int:
                 "payload_sha256": payload.sha256,
                 "rows": payload.rows,
                 "assistant_loss_mask": "assistant only; all assistant turns",
-                "model": MODEL_ID,
+                "model": args.model,
                 "config": config,
                 "artifact_bytes": prepared["artifact_bytes"],
                 "storage_estimate": (
@@ -841,9 +882,10 @@ def main(argv: list[str] | None = None) -> int:
                     "checkpoint bytes are not exposed by the checked read-only APIs."
                 ),
                 "training_price": (
-                    "Account-specific training coverage is unverified. The current CoreWeave Forge public pricing page "
-                    "lists Serverless SFT/RL at $2.70 per GPU-hour; older W&B public-preview terms or account "
-                    "entitlements may differ. Verify the account's applicable price before creating a job."
+                    "W&B's training-specific pricing page and Serverless Training docs say adapter training is free "
+                    "during public preview; inference usage and artifact storage are billable. A separate CoreWeave "
+                    "Forge Post-Training page lists $2.70 per GPU-hour, but that rate is not established as applying "
+                    "to W&B preview jobs. Verify whether the account remains covered by preview terms."
                 ),
                 "no_upload_or_job_created": True,
             }
@@ -891,6 +933,7 @@ def main(argv: list[str] | None = None) -> int:
                 work_dir=args.output,
                 api=api,
                 api_key=api_key,
+                model_id=args.model,
                 artifact_upload=upload,
                 max_polls=args.polls,
                 poll_interval=args.poll_interval,

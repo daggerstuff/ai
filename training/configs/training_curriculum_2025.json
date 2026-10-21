@@ -2,7 +2,7 @@
   "curriculum_version": "2025.12.29",
   "training_flow": "mental_health_specialization",
   "base_model": "deepseek-ai/DeepSeek-V4-Pro",
-  "canonical_bucket": "s3://pixel-data/",
+  "canonical_bucket": "s3://pixel-archive/pixel-data/",
   "dataset_size_gb": 52.20,
   "transcript_count": 913,
   "phases": [
@@ -10,8 +10,8 @@
       "name": "Phase A - Continued Pretraining",
       "description": "Domain-adaptive pretraining on mental health text and Tim Fletcher transcripts",
       "datasets": [
-        "s3://pixel-data/gdrive/processed/mental_health_text/",
-        "s3://pixel-data/voice/tim_fletcher_transcripts/"
+        "s3://pixel-archive/pixel-data/gdrive/processed/mental_health_text/",
+        "s3://pixel-archive/pixel-data/voice/tim_fletcher_transcripts/"
       ],
       "duration_hours": 4,
       "gpu_memory": "48GB",
@@ -26,7 +26,7 @@
           "stage": 1,
           "name": "Foundation Therapeutic Dialogue",
           "description": "High-quality therapeutic conversations from professional sources",
-          "datasets": ["s3://pixel-data/gdrive/processed/professional_therapeutic/"],
+          "datasets": ["s3://pixel-archive/pixel-data/gdrive/processed/professional_therapeutic/"],
           "weight": 0.25,
           "max_length": 2048,
           "dataset_size_gb": 15.2
@@ -35,7 +35,7 @@
           "stage": 2,
           "name": "Clinical Reasoning",
           "description": "Chain-of-thought clinical reasoning examples",
-          "datasets": ["s3://pixel-data/gdrive/processed/cot_reasoning/"],
+          "datasets": ["s3://pixel-archive/pixel-data/gdrive/processed/cot_reasoning/"],
           "weight": 0.20,
           "max_length": 4096,
           "dataset_size_gb": 8.5
@@ -44,7 +44,7 @@
           "stage": 3,
           "name": "Crisis Stress Test",
           "description": "Edge cases and crisis intervention scenarios",
-          "datasets": ["s3://pixel-data/gdrive/processed/edge_cases/"],
+          "datasets": ["s3://pixel-archive/pixel-data/gdrive/processed/edge_cases/"],
           "weight": 0.15,
           "safety_validation": true,
           "dataset_size_gb": 12.8
@@ -53,7 +53,7 @@
           "stage": 4,
           "name": "Tim Fletcher Persona",
           "description": "Voice training with Tim Fletcher therapeutic style (913 transcripts)",
-          "datasets": ["s3://pixel-data/voice/tim_fletcher_persona/"],
+          "datasets": ["s3://pixel-archive/pixel-data/voice/tim_fletcher_persona/"],
           "weight": 0.15,
           "voice_patterns": ["So...", "And so...", "Many people..."],
           "dataset_size_gb": 7.1
@@ -62,7 +62,7 @@
           "stage": 5,
           "name": "Long Running Therapy",
           "description": "Extended therapeutic sessions with continuity",
-          "datasets": ["s3://pixel-data/gdrive/processed/long_running_therapy/"],
+          "datasets": ["s3://pixel-archive/pixel-data/gdrive/processed/long_running_therapy/"],
           "weight": 0.10,
           "max_length": 8192,
           "dataset_size_gb": 5.4
@@ -72,9 +72,9 @@
           "name": "Specialized Domains",
           "description": "CPTSD, addiction, trauma, cultural competency",
           "datasets": [
-            "s3://pixel-data/gdrive/processed/cptsd/",
-            "s3://pixel-data/gdrive/processed/addiction/",
-            "s3://pixel-data/gdrive/processed/trauma/"
+            "s3://pixel-archive/pixel-data/gdrive/processed/cptsd/",
+            "s3://pixel-archive/pixel-data/gdrive/processed/addiction/",
+            "s3://pixel-archive/pixel-data/gdrive/processed/trauma/"
           ],
           "weight": 0.10,
           "cultural_validation": true,
@@ -84,7 +84,7 @@
           "stage": 7,
           "name": "Simulator Tasks",
           "description": "Roleplay and therapeutic simulation scenarios",
-          "datasets": ["s3://pixel-data/gdrive/processed/simulator/"],
+          "datasets": ["s3://pixel-archive/pixel-data/gdrive/processed/simulator/"],
           "weight": 0.05,
           "evaluation_metrics": ["helpfulness", "safety", "appropriateness"],
           "dataset_size_gb": 3.1
@@ -95,7 +95,7 @@
       "name": "Phase C - Preference Alignment",
       "description": "Preference optimization using human feedback",
       "algorithms": ["ORPO", "DPO", "KTO"],
-      "datasets": ["s3://pixel-data/gdrive/processed/preference_pairs/"],
+      "datasets": ["s3://pixel-archive/pixel-data/gdrive/processed/preference_pairs/"],
       "duration_hours": 2,
       "safety_constraints": true
     }

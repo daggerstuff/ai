@@ -18,6 +18,7 @@ from ai.qa.validation.therapy_bench.paired_eval import (
     OpenAIChatCompletions,
     RunnerOptions,
     RunRequest,
+    _run_mock_tool,
     build_dry_run_report,
     load_cases,
     run_paired,
@@ -34,6 +35,8 @@ MAX_SAFE_EXCERPT_CHARS = 1024
 TWO_COMPLETION_CALLS = 2
 AGGREGATED_TOOL_TOKENS = 34
 TWO_CASE_TOOL_ROUND_COST = 0.009216
+FAILED_TOOL_LOOP_COST = 0.000032
+MAX_ALLOWED_TOOL_ROUNDS = 8
 
 
 def write_inputs(tmp_path: Path, cases: list[dict[str, Any]] | None = None) -> tuple[Path, Path]:
@@ -178,6 +181,19 @@ def test_pairs_identical_cases_and_decoding_and_keeps_checks_private(tmp_path: P
     assert (results / "manifest.json").stat().st_mode & 0o077 == 0
 
 
+def test_chat_template_thinking_option_is_preserved_in_config_and_calls(tmp_path: Path) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["decoding"]["chat_template_kwargs"] = {"enable_thinking": False}
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    transport = FakeTransport()
+
+    result = run((cases_path, config_path, tmp_path / "results"), transport)
+
+    assert result["status"] == "complete"
+    assert all(call[4]["chat_template_kwargs"] == {"enable_thinking": False} for call in transport.calls)
+
+
 def test_resume_retries_only_failed_case_and_keeps_partial_success(tmp_path: Path) -> None:
     cases_path, config_path = write_inputs(tmp_path)
     results = tmp_path / "results"
@@ -232,6 +248,22 @@ def test_resume_rejects_changed_inputs_or_arm_selection(tmp_path: Path) -> None:
     cases_path.write_text(cases_path.read_text() + "\n", encoding="utf-8")
     with pytest.raises(EvaluationInputError, match="identity changed"):
         run((cases_path, config_path, results), FakeTransport(), RunnerOptions("base"))
+
+
+def test_tool_round_bound_allows_eight_and_rejects_nine(tmp_path: Path) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    accepted = RunRequest(
+        cases_path,
+        config_path,
+        tmp_path / "accepted",
+        RunnerOptions("base", max_tool_rounds=MAX_ALLOWED_TOOL_ROUNDS),
+    )
+    report = build_dry_run_report(accepted, token_counter=StaticTokenCounter(1))
+    assert report["max_tool_rounds"] == MAX_ALLOWED_TOOL_ROUNDS
+
+    rejected = RunRequest(cases_path, config_path, tmp_path / "rejected", RunnerOptions("base", max_tool_rounds=9))
+    with pytest.raises(EvaluationInputError, match=r"max_tool_rounds must be an integer in \[0, 8\]"):
+        build_dry_run_report(rejected, token_counter=StaticTokenCounter(1))
 
 
 def test_rendered_glimmer_prompt_is_rejected_for_chat_transport(tmp_path: Path) -> None:
@@ -289,6 +321,36 @@ def test_input_token_cap_rejects_before_any_transport_call(tmp_path: Path) -> No
             StaticTokenCounter(513),
         )
     assert not transport.calls
+
+
+def test_preflight_counts_null_content_assistant_tool_call_messages(tmp_path: Path) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    cases = [json.loads(line) for line in cases_path.read_text(encoding="utf-8").splitlines()]
+    cases_path.write_text(json.dumps(cases[1]) + "\n", encoding="utf-8")
+    tool_completion = {
+        "response": "",
+        "tool_calls": [{"id": "call-1", "name": "lookup_mock_catalog", "arguments": '{"query":"A-1"}'}],
+        "finish_reason": "tool_calls",
+        "usage": {"prompt_tokens": 12, "completion_tokens": 8, "total_tokens": 20},
+    }
+    final_completion = {
+        "response": "A-1 is available.",
+        "tool_calls": [],
+        "finish_reason": "stop",
+        "usage": {"prompt_tokens": 20, "completion_tokens": 8, "total_tokens": 28},
+    }
+    transport = ScriptedTransport([tool_completion, final_completion])
+
+    result = run(
+        (cases_path, config_path, tmp_path / "null-content-tool-results"),
+        transport,
+        RunnerOptions("base", max_cases=1, max_input_tokens=2048, max_tool_rounds=1),
+        ConservativeAsciiByteCounter(),
+    )
+
+    assert result["status"] == "complete"
+    assert len(transport.calls) == TWO_COMPLETION_CALLS
+    assert transport.calls[1][-2]["content"] is None
 
 
 def test_conservative_preflight_includes_chat_and_tool_framing(tmp_path: Path) -> None:
@@ -407,6 +469,7 @@ def test_openai_transport_keeps_bearer_secret_out_of_run_files(tmp_path: Path, m
     cases_path, config_path = write_inputs(tmp_path)
     config = json.loads(config_path.read_text(encoding="utf-8"))
     config["arms"][0]["project"] = "team/project"
+    config["decoding"]["chat_template_kwargs"] = {"enable_thinking": False}
     config_path.write_text(json.dumps(config), encoding="utf-8")
     observed: dict[str, Any] = {}
 
@@ -443,6 +506,7 @@ def test_openai_transport_keeps_bearer_secret_out_of_run_files(tmp_path: Path, m
     assert observed["url"] == "https://base.example/v1/chat/completions"
     assert observed["project"] == "team/project"
     assert observed["body"]["model"] == "base-model"
+    assert observed["body"]["chat_template_kwargs"] == {"enable_thinking": False}
     assert "stop" not in observed["body"]
     assert output["usage"]["total_tokens"] == OPENAI_RESPONSE_TOKENS
     transport.complete(
@@ -621,6 +685,27 @@ def test_tool_error_is_visible_in_trace_and_tool_round_limit_stops_loop(tmp_path
     assert limited_record["completion_calls"] == TWO_COMPLETION_CALLS
     assert limited_record["usage_by_completion"] == [call["usage"], call["usage"]]
 
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["pricing"].update(
+        {
+            "input_usd_per_million_tokens": 1.0,
+            "output_usd_per_million_tokens": 2.0,
+        }
+    )
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    priced = run(
+        (cases_path, config_path, tmp_path / "priced-round-limit-results"),
+        ScriptedTransport([call, call]),
+        RunnerOptions("base", max_tool_rounds=1),
+    )
+    assert priced["estimated_cost_usd"] == FAILED_TOOL_LOOP_COST
+    assert priced["usage_totals_by_arm"]["base"] == {
+        "cases_with_usage": 1,
+        "prompt_tokens": 16,
+        "completion_tokens": 8,
+        "total_tokens": 24,
+    }
+
 
 def test_sealed_split_requires_opt_in_and_manifest_splits_are_disjoint(tmp_path: Path) -> None:
     root = Path("docs/training/execution-2026-10-17")
@@ -751,3 +836,31 @@ def test_supported_citation_check_accepts_valid_alternative_wording() -> None:
     result = score_state_checks(case, response, {}, [])
 
     assert result[0]["passed"] is True
+
+
+def test_synthetic_memory_write_requires_fixture_consent() -> None:
+    state = {"memory": {}, "memory_write_allowed": False}
+
+    status, output = _run_mock_tool("memory_write", '{"key":"tone","value":"calm"}', state)
+
+    assert status == "consent_required"
+    assert output["saved"] is False
+    assert state["memory"] == {}
+
+
+def test_synthetic_booking_requires_fixture_consent_even_if_model_claims_it() -> None:
+    state = {
+        "user_consent_granted": False,
+        "navigator_slots": {"2031-06-01": [{"id": "S-1", "date": "2031-06-01", "time": "10:00"}]},
+        "appointments": [],
+    }
+
+    status, output = _run_mock_tool(
+        "book_navigator_slot",
+        '{"slot_id":"S-1","consent":true,"note":null}',
+        state,
+    )
+
+    assert status == "consent_required"
+    assert output["booked"] is False
+    assert state["appointments"] == []

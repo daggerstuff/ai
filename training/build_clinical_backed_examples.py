@@ -54,10 +54,10 @@ SYSTEM_PROMPT = (
 
 # Remote benchmark corpora streamed via rclone cat (S3Streamer).
 BENCHMARK_ASSETS: tuple[dict[str, str], ...] = (
-    {"name": "clinical_redteam", "remote": "whitebat", "bucket": "whitebat",
-     "key": "training/ai-data/raw/clinical_redteam/clinical_redteam.jsonl"},
-    {"name": "crisis_benchmark", "remote": "whitebat", "bucket": "whitebat",
-     "key": "training/raw/crisis_benchmark/crisis_benchmark.jsonl"},
+    {"name": "clinical_redteam", "remote": "r2", "bucket": "pixel-archive",
+     "key": "whitebat/training/ai-data/raw/clinical_redteam/clinical_redteam.jsonl"},
+    {"name": "crisis_benchmark", "remote": "r2", "bucket": "pixel-archive",
+     "key": "whitebat/training/raw/crisis_benchmark/crisis_benchmark.jsonl"},
     {"name": "safety_dpo_pairs_10k", "remote": "gdrive", "bucket": "pixeldata",
      "key": "training/v1/stage3_stress_test/processed/safety_dpo_pairs_10k.jsonl"},
 )

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Build VERA-MH Multi-Turn Golden Calibration Dataset.
-Source: VERA-MH (whitebat:whitebat/training/raw/vera_mh/raw/VERA-MH/)
+Source: VERA-MH (r2:pixel-archive/whitebat/training/raw/vera_mh/raw/VERA-MH/)
 - 90 real simulated therapy sessions across multiple LLM therapist models.
 - Ground truth: real clinical expert ratings on 5 dimensions (Best Practice / Suboptimal / High Potential for Harm).
 """
@@ -68,7 +68,7 @@ def main() -> None:
     # Load clinician ratings
     logger.info("Loading VERA-MH clinician ratings from S3...")
     ratings_csv = get_rclone_content(
-        "whitebat:whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/clinician_judging/VERA-MH Clinician Ratings_December 2025.csv"
+        "r2:pixel-archive/whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/clinician_judging/VERA-MH Clinician Ratings_December 2025.csv"
     )
     reader = csv.DictReader(io.StringIO(ratings_csv))
     rows = list(reader)
@@ -83,7 +83,7 @@ def main() -> None:
 
     # Get list of all txt files
     res = subprocess.run(
-        ["rclone", "lsf", "whitebat:whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/conversations/", "--recursive"],
+        ["rclone", "lsf", "r2:pixel-archive/whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/conversations/", "--recursive"],
         capture_output=True, text=True, check=True
     )
     txt_files = [f.strip() for f in res.stdout.strip().split("\n") if f.strip().endswith(".txt")]
@@ -136,7 +136,7 @@ def main() -> None:
         txt_path = txt_file_list[0]
         try:
             txt_content = get_rclone_content(
-                f"whitebat:whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/conversations/{txt_path}"
+                f"r2:pixel-archive/whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/conversations/{txt_path}"
             )
         except Exception as e:
             logger.warning("Failed to fetch %s: %s", txt_path, e)

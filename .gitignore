@@ -206,6 +206,7 @@ training/tests/*
 !training/tests/test_build_arc_dpo.py
 !training/tests/test_pal_persona_consistency_eval.py
 !training/tests/test_clinical_validity_judge_async.py
+!training/tests/test_wandb_checkpoint_backup.py
 !training/tests/test_llm_quality_judge.py
 !training/tests/test_iaa.py
 !training/tests/test_data_versioning.py

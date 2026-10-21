@@ -204,8 +204,9 @@ async def call_auditor(http: aiohttp.ClientSession, pool: "KeyPool",
             "max_tokens": AUDITOR_MAX_TOKENS,
             "temperature": 0.2,
             "response_format": {"type": "json_object"},
-            "chat_template_kwargs": {"thinking": False},
         }
+        if not AUDITOR_MODEL.startswith("@cf/"):
+            payload["chat_template_kwargs"] = {"thinking": False}
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
