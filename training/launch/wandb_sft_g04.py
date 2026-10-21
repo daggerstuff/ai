@@ -194,7 +194,11 @@ def _validate_group_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
         raise QualificationError("G04 group-disjointness evidence must be an object")
     expected_pairs = {"train_validation": 0, "train_test": 0, "validation_test": 0}
     group_key = evidence.get("group_key")
-    if evidence.get("status") != "verified" or group_key not in {"seed_group_sha256", "content_group_sha256"}:
+    if evidence.get("status") != "verified" or group_key not in {
+        "seed_group_sha256",
+        "content_group_sha256",
+        "prompt_group_sha256",
+    }:
         raise QualificationError("G04 manifest has no verified supported group-split evidence")
     if evidence.get("pairwise_intersections") != expected_pairs:
         raise QualificationError("G04 split evidence does not show pairwise group-disjoint partitions")
@@ -377,15 +381,49 @@ def _validate_train_rows(payload_path: Path, expected_rows: Any) -> int:
             if not isinstance(messages, list) or not messages:
                 raise QualificationError(f"train payload row {line_number} has no messages list")
             roles: list[str] = []
+            tool_call_ids: set[str] = set()
             for message in messages:
-                if not isinstance(message, dict) or message.get("role") not in {"system", "user", "assistant"}:
+                if not isinstance(message, dict):
+                    raise QualificationError(f"train payload row {line_number} has a non-object message")
+                role = message.get("role")
+                if role not in {"system", "user", "assistant", "tool"}:
                     raise QualificationError(f"train payload row {line_number} has an unsupported role")
-                if not isinstance(message.get("content"), str) or not message["content"].strip():
-                    raise QualificationError(f"train payload row {line_number} has empty/non-text content")
-                expected_weight = 1 if message["role"] == "assistant" else 0
+                tool_calls = message.get("tool_calls")
+                if tool_calls is not None:
+                    if not isinstance(tool_calls, list) or not tool_calls:
+                        raise QualificationError(f"train payload row {line_number} has invalid tool_calls")
+                    for call in tool_calls:
+                        call_id = call.get("id") if isinstance(call, dict) else None
+                        if not isinstance(call_id, str) or not call_id:
+                            raise QualificationError(f"train payload row {line_number} has a tool call without id")
+                        function = call.get("function") if isinstance(call, dict) else None
+                        arguments = function.get("arguments") if isinstance(function, dict) else None
+                        if not isinstance(arguments, str):
+                            raise QualificationError(
+                                f"train payload row {line_number} has invalid tool-call arguments"
+                            )
+                        try:
+                            json.loads(arguments)
+                        except json.JSONDecodeError as exc:
+                            raise QualificationError(
+                                f"train payload row {line_number} has invalid tool-call arguments"
+                            ) from exc
+                        tool_call_ids.add(call_id)
+                if role == "tool":
+                    if message.get("tool_call_id") not in tool_call_ids:
+                        raise QualificationError(
+                            f"train payload row {line_number} has an unmatched tool response"
+                        )
+                    if not isinstance(message.get("content"), str) or not message["content"]:
+                        raise QualificationError(f"train payload row {line_number} has empty/non-text content")
+                elif not tool_calls:
+                    content = message.get("content")
+                    if not isinstance(content, str) or not content.strip():
+                        raise QualificationError(f"train payload row {line_number} has empty/non-text content")
+                expected_weight = 1 if role == "assistant" else 0
                 if message.get("weight") != expected_weight:
                     raise QualificationError(f"train payload row {line_number} has an invalid assistant-only loss mask")
-                roles.append(message["role"])
+                roles.append(role)
             if roles[-1] != "assistant":
                 raise QualificationError(f"train payload row {line_number} does not end with assistant target")
             assistant_targets += sum(role == "assistant" for role in roles)
