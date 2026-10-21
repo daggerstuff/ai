@@ -182,10 +182,22 @@ data/curated/*
 data/curated/sft_chatml/*
 !data/curated/sft_chatml/*.dvc
 !data/curated/sft_chatml/.gitignore
+# Synthetic training-corpus source package (moved here from training_corpus/).
+!data/synthetic/
+data/synthetic/**
+!data/synthetic/*.py
+!data/synthetic/*.json
+!data/synthetic/*.jsonl
+!data/synthetic/assets/
+!data/synthetic/assets/**
+!data/synthetic/wrapper/
+!data/synthetic/wrapper/**
 # Training: track source code, ignore data/artifacts
 !training/
 training/*
 !training/utils/
+!training/forge/
+!training/scripts/
 !training/launch/
 !training/launch/*.py
 !training/launch/requirements.txt
@@ -206,6 +218,8 @@ training/tests/*
 !training/tests/test_build_arc_dpo.py
 !training/tests/test_pal_persona_consistency_eval.py
 !training/tests/test_clinical_validity_judge_async.py
+!training/tests/test_wandb_checkpoint_backup.py
+!training/tests/test_coreweave_forge.py
 !training/tests/test_llm_quality_judge.py
 !training/tests/test_iaa.py
 !training/tests/test_data_versioning.py
