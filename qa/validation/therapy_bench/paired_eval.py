@@ -27,7 +27,8 @@ from typing import Any, Protocol
 from urllib.parse import urlsplit
 
 _CONFIG_KEYS = {"schema_version", "run_id", "decoding", "pricing", "arms"}
-_DECODING_KEYS = {"temperature", "max_tokens", "stop"}
+_DECODING_REQUIRED_KEYS = {"temperature", "max_tokens", "stop"}
+_DECODING_OPTIONAL_KEYS = {"chat_template_kwargs", "response_format"}
 _PRICING_KEYS = {
     "input_usd_per_million_tokens",
     "output_usd_per_million_tokens",
@@ -55,8 +56,9 @@ _GLIMMER_MARKERS = ("<|begin_of_text|>", "<|start|>", "<|message|>", "<|eot|>")
 _MAX_OUTPUT_TOKENS = 4096
 _MAX_ERROR_EXCERPT_CHARS = 1024
 _MAX_TOOL_CALLS_PER_TURN = 4
-_MAX_TOOL_ROUNDS = 4
+_MAX_TOOL_ROUNDS = 8
 _ARM_COUNT = 2
+_TRANSIENT_HTTP_STATUSES = frozenset({500, 502, 503, 504})
 
 
 class EvaluationInputError(ValueError):
@@ -170,10 +172,8 @@ class ConservativeAsciiByteCounter:
     def __init__(self, framing_allowance: int = 128) -> None:
         self.framing_allowance = framing_allowance
 
-    def count(self, messages: list[dict[str, str]], tools: list[dict[str, Any]]) -> int:
-        message_bytes = sum(
-            len(message["role"].encode("utf-8")) + len(message["content"].encode("utf-8")) + 8 for message in messages
-        )
+    def count(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> int:
+        message_bytes = sum(len(canonical_json(message).encode("utf-8")) + 8 for message in messages)
         system_allowance = len(b"Synthetic test only.") + 12
         tool_bytes = len(canonical_json(tools).encode("utf-8")) if tools else 0
         return message_bytes + tool_bytes + system_allowance + self.framing_allowance
@@ -198,6 +198,7 @@ class RunnerOptions:
     max_input_tokens: int | None = None
     max_tool_rounds: int = 0
     allow_sealed: bool = False
+    continue_on_transient_http_errors: bool = False
 
 
 @dataclass(frozen=True)
@@ -258,8 +259,13 @@ def load_config(path: Path) -> dict[str, Any]:
 
 
 def _validate_decoding(decoding: Any) -> None:
-    if not isinstance(decoding, dict) or set(decoding) != _DECODING_KEYS:
-        raise EvaluationInputError(f"decoding keys must be exactly {sorted(_DECODING_KEYS)}")
+    if (
+        not isinstance(decoding, dict)
+        or not _DECODING_REQUIRED_KEYS.issubset(decoding)
+        or set(decoding) - (_DECODING_REQUIRED_KEYS | _DECODING_OPTIONAL_KEYS)
+    ):
+        allowed = _DECODING_REQUIRED_KEYS | _DECODING_OPTIONAL_KEYS
+        raise EvaluationInputError(f"decoding keys must be within {sorted(allowed)}")
     if isinstance(decoding["temperature"], bool) or decoding["temperature"] != 0:
         raise EvaluationInputError("paired diagnostic runner requires temperature 0")
     if (
@@ -270,6 +276,34 @@ def _validate_decoding(decoding: Any) -> None:
         raise EvaluationInputError(f"decoding.max_tokens must be an integer in [1, {_MAX_OUTPUT_TOKENS}]")
     if not isinstance(decoding["stop"], list) or not all(isinstance(item, str) for item in decoding["stop"]):
         raise EvaluationInputError("decoding.stop must be a list of strings")
+    if "chat_template_kwargs" in decoding:
+        template_kwargs = decoding["chat_template_kwargs"]
+        if (
+            not isinstance(template_kwargs, dict)
+            or set(template_kwargs) != {"enable_thinking"}
+            or not isinstance(template_kwargs["enable_thinking"], bool)
+        ):
+            raise EvaluationInputError("decoding.chat_template_kwargs may only set boolean enable_thinking")
+    if "response_format" in decoding:
+        _validate_response_format(decoding["response_format"])
+
+
+def _validate_response_format(value: Any) -> None:
+    if value == {"type": "json_object"}:
+        return
+    if not isinstance(value, dict) or set(value) != {"type", "json_schema"} or value["type"] != "json_schema":
+        raise EvaluationInputError("decoding.response_format requires json_object or a strict named JSON schema")
+    schema = value["json_schema"]
+    if (
+        not isinstance(schema, dict)
+        or set(schema) != {"name", "schema", "strict"}
+        or not isinstance(schema["name"], str)
+        or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", schema["name"])
+        or schema["strict"] is not True
+        or not isinstance(schema["schema"], dict)
+        or not schema["schema"]
+    ):
+        raise EvaluationInputError("decoding.response_format requires a strict named JSON schema")
 
 
 def _validate_arm(arm: Any) -> None:
@@ -437,6 +471,10 @@ class OpenAIChatCompletions:
             "temperature": decoding["temperature"],
             "max_tokens": decoding["max_tokens"],
         }
+        if "chat_template_kwargs" in decoding:
+            body["chat_template_kwargs"] = decoding["chat_template_kwargs"]
+        if "response_format" in decoding:
+            body["response_format"] = decoding["response_format"]
         if decoding["stop"]:
             body["stop"] = decoding["stop"]
         if tools:
@@ -691,6 +729,8 @@ def _tool_memory_read(args: dict[str, Any], state: dict[str, Any]) -> tuple[str,
 
 
 def _tool_memory_write(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    if "memory_write_allowed" in state and state["memory_write_allowed"] is not True:
+        return "consent_required", {"status": "consent_required", "saved": False}
     key, value = args.get("key"), args.get("value")
     if not isinstance(key, str) or not key or not isinstance(value, str):
         return "error", {"status": "error", "code": "invalid_arguments"}
@@ -705,6 +745,54 @@ def _tool_submit(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict
     return "ok", {"status": "ok", "change_applied": True}
 
 
+def _tool_search_resources(_args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    return "ok", {"results": state.get("resource_search", [])}
+
+
+def _tool_read_resource(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    resource_id = args.get("resource_id")
+    resource = state.get("resources", {}).get(resource_id)
+    return ("ok", resource) if resource else ("not_found", {"id": resource_id, "status": "not_found"})
+
+
+def _tool_list_navigator_slots(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    date = args.get("date")
+    slots = state.get("navigator_slots", {}).get(date, [])
+    return "ok", {"slots": slots}
+
+
+def _tool_book_navigator_slot(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    if args.get("consent") is not True or state.get("user_consent_granted") is not True:
+        return "consent_required", {"status": "consent_required", "booked": False}
+    slot_id = args.get("slot_id")
+    slots = [slot for values in state.get("navigator_slots", {}).values() for slot in values]
+    slot = next((candidate for candidate in slots if candidate.get("id") == slot_id), None)
+    if slot is None:
+        return "not_found", {"status": "not_found", "booked": False}
+    # An empty optional note has one stored representation. An empty string is
+    # permitted by the tool schema and satisfies "leave the note empty" just as
+    # null does; literal strings such as "None" remain nonempty notes.
+    note = args.get("note")
+    appointment = {"slot_id": slot_id, "note": None if note == "" else note}
+    state.setdefault("appointments", []).append(appointment)
+    return "ok", {"status": "booked", "slot": slot}
+
+
+def _tool_change_workspace_status(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    token = args.get("approval_token")
+    if not token or token != state.get("approval_token"):
+        return "approval_required", {"status": "approval_required", "change_applied": False}
+    change = {"record_id": args.get("record_id"), "status": args.get("status")}
+    state.setdefault("changes", []).append(change)
+    return "ok", {"status": "ok", "change_applied": True}
+
+
+def _tool_read_fictional_note(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    note_id = args.get("note_id")
+    note = state.get("notes", {}).get(note_id)
+    return ("ok", {"note_id": note_id, "text": note}) if note else ("not_found", {"note_id": note_id})
+
+
 _MOCK_TOOLS = {
     "lookup_mock_catalog": _tool_lookup,
     "search_mock_sources": _tool_search,
@@ -712,6 +800,12 @@ _MOCK_TOOLS = {
     "memory_read": _tool_memory_read,
     "memory_write": _tool_memory_write,
     "submit_mock_change": _tool_submit,
+    "search_resources": _tool_search_resources,
+    "read_resource": _tool_read_resource,
+    "list_navigator_slots": _tool_list_navigator_slots,
+    "book_navigator_slot": _tool_book_navigator_slot,
+    "change_workspace_status": _tool_change_workspace_status,
+    "read_fictional_note": _tool_read_fictional_note,
 }
 
 
@@ -814,6 +908,7 @@ def _make_manifest(context: ManifestContext) -> dict[str, Any]:
         "input_token_cap": options.max_input_tokens,
         "max_tool_rounds": options.max_tool_rounds,
         "allow_sealed": options.allow_sealed,
+        "continue_on_transient_http_errors": options.continue_on_transient_http_errors,
         "preflight_token_upper_bounds": context.token_counts,
         "arms": [
             {
@@ -839,6 +934,7 @@ def _check_resume(manifest_path: Path, manifest: dict[str, Any]) -> None:
         _atomic_json(manifest_path, manifest)
         return
     existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+    existing.setdefault("continue_on_transient_http_errors", False)
     previous = {key: existing.get(key) for key in manifest if key != "status"}
     current = {key: value for key, value in manifest.items() if key != "status"}
     if previous != current:
@@ -868,7 +964,8 @@ def _attach_summary(
         successful = [record for record in records if record and record.get("status") == "success"]
         estimates.extend(
             record["estimated_cost_usd"]
-            for record in successful
+            for record in records
+            if record
             if isinstance(record.get("estimated_cost_usd"), (int, float))
         )
         latencies = [
@@ -879,9 +976,14 @@ def _attach_summary(
             "p50_ms": _nearest_rank(latencies, 0.50),
             "p95_ms": _nearest_rank(latencies, 0.95),
         }
-        usage = [record.get("usage") for record in successful if isinstance(record.get("usage"), dict)]
+        usage_by_case = [
+            [item for item in record.get("usage_by_completion", []) if _complete_usage(item)]
+            for record in records
+            if record
+        ]
+        usage = [item for case_usage in usage_by_case for item in case_usage]
         usage_summary[arm["id"]] = {
-            "cases_with_usage": len(usage),
+            "cases_with_usage": sum(bool(case_usage) for case_usage in usage_by_case),
             "prompt_tokens": sum(item.get("prompt_tokens", 0) for item in usage),
             "completion_tokens": sum(item.get("completion_tokens", 0) for item in usage),
             "total_tokens": sum(item.get("total_tokens", 0) for item in usage),
@@ -1202,7 +1304,11 @@ def run_paired(
             record = _execute_case(case, arm, context)
             _append_jsonl(results_path, record)
             completed[key] = record
-            if record.get("fatal"):
+            transient_case_failure = (
+                options.continue_on_transient_http_errors
+                and record.get("provider_http_status") in _TRANSIENT_HTTP_STATUSES
+            )
+            if record.get("fatal") and not transient_case_failure:
                 stop_after_fatal = True
                 break
         if stop_after_fatal:
@@ -1245,6 +1351,7 @@ def build_dry_run_report(request: RunRequest, token_counter: PromptTokenCounter 
         "decoding": config["decoding"],
         "max_tool_rounds": options.max_tool_rounds,
         "input_token_cap": options.max_input_tokens,
+        "continue_on_transient_http_errors": options.continue_on_transient_http_errors,
         "preflight_token_upper_bounds": counts,
         "estimated_max_cost_usd": _estimate_max_cost(config, len(cases), len(selected), options),
         "metrics_validity": "diagnostic_unvalidated",
@@ -1262,6 +1369,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--max-input-tokens", type=int, default=None)
     parser.add_argument("--max-tool-rounds", type=int, default=0)
     parser.add_argument("--allow-sealed", action="store_true")
+    parser.add_argument("--continue-on-transient-http-errors", action="store_true")
     parser.add_argument("--dry-run", action="store_true", help="validate local inputs and budget without inference")
     parser.add_argument(
         "--tokenizer-path",
@@ -1274,7 +1382,14 @@ def main(argv: Iterable[str] | None = None) -> int:
         args.cases,
         args.config,
         args.results_dir,
-        RunnerOptions(args.arm, args.max_cases, args.max_input_tokens, args.max_tool_rounds, args.allow_sealed),
+        RunnerOptions(
+            args.arm,
+            args.max_cases,
+            args.max_input_tokens,
+            args.max_tool_rounds,
+            args.allow_sealed,
+            args.continue_on_transient_http_errors,
+        ),
     )
     if args.dry_run:
         sys.stdout.write(json.dumps(build_dry_run_report(request, token_counter), indent=2) + "\n")
