@@ -191,7 +191,13 @@ data/synthetic/**
 !data/synthetic/assets/
 !data/synthetic/assets/**
 !data/synthetic/wrapper/
-!data/synthetic/wrapper/**
+data/synthetic/wrapper/**
+!data/synthetic/wrapper/*.py
+!data/synthetic/wrapper/*.json
+!data/synthetic/wrapper/assets/**
+!data/synthetic/wrapper/pal_framework/
+data/synthetic/wrapper/pal_framework/**
+!data/synthetic/wrapper/pal_framework/*.py
 # Training: track source code, ignore data/artifacts
 !training/
 training/*
