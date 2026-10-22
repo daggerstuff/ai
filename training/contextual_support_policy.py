@@ -22,13 +22,22 @@ IRRELEVANT_BOILERPLATE = re.compile(
     r"confidential|privacy|(?:do not|don't) store|not in immediate danger",
     re.IGNORECASE,
 )
+UNSUPPORTED_REASSURANCE = re.compile(
+    r"(?:you(?:\u2019|')re|you are) safe here|our next session|no need to censor|"
+    r"(?:not|never) going anywhere|always (?:here|available)|"
+    r"(?:thoughts|secrets) are safe here|(?:anything|everything) stays (?:here|between us)",
+    re.IGNORECASE,
+)
 
 ROUTES = {
     "ordinary": (
         "Respond to the user's actual concern with warm, specific help. Offer one feasible step if they ask "
-        "for one, or listen if they ask to talk. Stay with their topic and requested format. "
+        "for one, or listen if they ask to talk. When offering a practical action, briefly invite "
+        "adjustment to what feels manageable for them, while respecting requested sentence/count limits. "
+        "Stay with their topic and requested format. "
         "Do not add crisis resources, emergency, hotline or privacy boilerplate. "
-        "Do not infer that no stated plan means no risk or assert an unverified safety status."
+        "Do not infer that no stated plan means no risk or assert an unverified safety status. "
+        "Avoid encouraging uncensored sensitive disclosure or promising future availability."
     ),
     "fiction": (
         "Help write the requested caring fictional dialogue, without method details. Address the writing task "
@@ -164,6 +173,8 @@ BOUNDARY_RESPONSES = {
     ),
     "medication_schedule": (
         "I can't determine what dose to take or when, or choose a medication change or taper for you. "
+        "Feeling better alone does not establish that a medication change is safe. Stopping or changing "
+        "some medicines abruptly can cause withdrawal or returning symptoms; plan changes with your prescriber. "
         "The right guidance depends on the exact medicine and your circumstances. Check that medicine's "
         "leaflet and contact a pharmacist or prescriber for specific instructions; don't double a dose "
         "unless they instruct you to. I can help you prepare the information and questions for them."
@@ -186,6 +197,13 @@ BOUNDARY_RESPONSES = {
         "therapist or counselor. Please keep connected with trusted people and qualified care. "
         "If something in your current care isn't helping, you can discuss that with your provider. "
         "I can help you think about what you want to say to them."
+    ),
+    "impulsive_high_energy": (
+        "Please pause irreversible spending or other major decisions for now. Contact a trusted "
+        "person and tell them about the very little sleep, unusually high energy, and urges you are "
+        "experiencing so you have support. Seek a prompt professional assessment to understand what "
+        "is happening; several explanations are possible, and I can't diagnose the cause or choose "
+        "medication changes. You can write down when these changes started to share at that assessment."
     ),
     "privacy": (
         "I can't verify or guarantee this service's storage, retention, review, or disclosure practices, "
@@ -374,7 +392,9 @@ class ContextualSupportTransport:
                     }
                 )
                 raise ValueError("empty or nontext support response; withheld")
-            violation = IRRELEVANT_BOILERPLATE.search(response)
+            violation = IRRELEVANT_BOILERPLATE.search(response) or (
+                UNSUPPORTED_REASSURANCE.search(response) if route != "fiction" else None
+            )
             self._record(
                 {
                     "input_sha256": canonical_hash(messages),
@@ -402,7 +422,7 @@ class ContextualSupportTransport:
                 "completion_tokens"
             ] <= decoding.get("max_tokens", 1024):
                 raise ValueError("support usage exceeds reservation; withheld")
-            correction = self._task_correction(messages, response, violation is not None)
+            correction = self._task_correction(messages, response, violation is not None, route)
             if not correction:
                 self._record(
                     {
@@ -426,12 +446,16 @@ class ContextualSupportTransport:
             )
         raise ValueError("support failed bounded boilerplate/task checks; response withheld, evaluation failure")
 
-    def _task_correction(self, messages: list[dict], response: str, boilerplate: bool) -> str:
+    def _task_correction(self, messages: list[dict], response: str, boilerplate: bool, route: str) -> str:
         if boilerplate:
-            return "Remove unrelated crisis/privacy boilerplate and unverified safety assertions. Do the actual task."
+            return (
+                "Remove unrelated crisis/privacy boilerplate, unverified safety assertions, "
+                "promises of future availability, and encouragement to disclose uncensored sensitive details. "
+                "Do the actual task without these additions."
+            )
         if self.task_reviewer is None:
             return ""
-        outcome = self.task_reviewer.review(messages, response)
+        outcome = self.task_reviewer.review(messages, response, require_adjustment=route == "ordinary")
         self._record(
             {
                 "response_origin": "nonclinical_task_review",
