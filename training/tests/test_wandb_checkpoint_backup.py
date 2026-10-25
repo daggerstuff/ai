@@ -4,6 +4,9 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+import wandb
+
 from training import (
     backup_wandb_full_corpus_lora as lora_backup,
     backup_wandb_full_corpus_train_state as train_state_backup,
@@ -37,7 +40,7 @@ def _seed_local_checkpoint(root: Path, label: str, version: str) -> dict[str, ob
 
 
 def test_lora_backup_preserves_verified_index_when_status_and_artifacts_are_unavailable(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     backup_root = tmp_path / "backups"
     backup_root.mkdir()
@@ -47,7 +50,7 @@ def test_lora_backup_preserves_verified_index_when_status_and_artifacts_are_unav
             json.dumps({"checkpoint_version": "v123"}), encoding="utf-8"
         )
     monkeypatch.setattr(lora_backup, "TrainingAPI", lambda _key: _StatusUnavailable())
-    monkeypatch.setattr(lora_backup.wandb, "Api", _NoArtifacts)
+    monkeypatch.setattr(wandb, "Api", _NoArtifacts)
     monkeypatch.setattr(lora_backup, "latest_artifact", lambda *_args: None)
     monkeypatch.setattr(sys, "argv", ["backup", "--backup-root", str(backup_root), "--max-polls", "1"])
     monkeypatch.setenv("WANDB_API_KEY", "test-key")
@@ -65,7 +68,7 @@ def test_lora_backup_preserves_verified_index_when_status_and_artifacts_are_unav
 
 
 def test_train_state_backup_preserves_verified_manifest_when_no_remote_versions_are_visible(
-    tmp_path: Path, monkeypatch: object
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     backup_root = tmp_path / "backups"
     backup_root.mkdir()
@@ -84,7 +87,7 @@ def test_train_state_backup_preserves_verified_manifest_when_no_remote_versions_
         json.dumps({"checkpoints": prior_checkpoints}), encoding="utf-8"
     )
     monkeypatch.setattr(train_state_backup, "TrainingAPI", lambda _key: _StatusUnavailable())
-    monkeypatch.setattr(train_state_backup.wandb, "Api", _NoArtifacts)
+    monkeypatch.setattr(wandb, "Api", _NoArtifacts)
     monkeypatch.setattr(train_state_backup, "latest_train_state_artifact", lambda *_args: None)
     monkeypatch.setattr(sys, "argv", ["backup", "--backup-root", str(backup_root), "--max-polls", "1"])
     monkeypatch.setenv("WANDB_API_KEY", "test-key")

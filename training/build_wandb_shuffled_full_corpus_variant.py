@@ -93,7 +93,7 @@ def load_aligned_rows(train_path: Path, row_count: int) -> list[tuple[bytes, dic
 
 def serialize_shuffled(
     aligned: list[tuple[bytes, dict[str, Any], dict[str, Any]]], seed: int
-) -> tuple[bytearray, bytearray, bytearray]:
+) -> tuple[bytes, bytes, bytes]:
     order = list(range(len(aligned)))
     random.Random(seed).shuffle(order)
     shuffled_payload = bytearray()
@@ -106,7 +106,7 @@ def serialize_shuffled(
         shuffled_payload.extend(payload_line)
         shuffled_rowrefs.extend(json.dumps(rowref, sort_keys=True, separators=(",", ":")).encode() + b"\n")
         shuffled_internal.extend(json.dumps(internal, sort_keys=True, separators=(",", ":")).encode() + b"\n")
-    return shuffled_payload, shuffled_rowrefs, shuffled_internal
+    return bytes(shuffled_payload), bytes(shuffled_rowrefs), bytes(shuffled_internal)
 
 
 def write_release(output: Path, payload: bytes, rowrefs: bytes, internal: bytes, metadata: dict[str, Any]) -> None:

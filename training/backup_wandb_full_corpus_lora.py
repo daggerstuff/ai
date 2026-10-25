@@ -82,6 +82,8 @@ def training_job_status(training_api: TrainingAPI, job_id: str) -> str:
     except Exception as exc:
         logging.warning("job status unavailable for %s (%s)", job_id, type(exc).__name__)
         return "UNKNOWN"
+    if not isinstance(job, dict):
+        return "UNKNOWN"
     return str(job.get("status", job.get("state", "unknown"))).upper()
 
 
@@ -94,7 +96,8 @@ def backup_artifact(artifact: Any, backup_root: Path, label: str, collection_nam
     if final.exists():
         manifest_path = final / "manifest.json"
         if manifest_path.exists():
-            return json.loads(manifest_path.read_text(encoding="utf-8"))
+            cached_manifest: dict[str, Any] = json.loads(manifest_path.read_text(encoding="utf-8"))
+            return cached_manifest
         raise RuntimeError(f"existing local backup lacks a manifest: {label}/{version}")
 
     temporary = job_root / f".{version}.{uuid.uuid4().hex}.tmp"

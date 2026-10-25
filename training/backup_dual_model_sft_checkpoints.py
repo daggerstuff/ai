@@ -57,7 +57,7 @@ def backup_checkpoint(
     destination = backup_root / label / f"step-{step:08d}-v{version}"
     manifest_path = destination / "manifest.json"
     if manifest_path.is_file():
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest: dict[str, Any] = json.loads(manifest_path.read_text(encoding="utf-8"))
         for entry in manifest["local_files"]:
             path = destination / entry["name"]
             if not path.is_file() or path.stat().st_size != entry["size_bytes"] or sha256_file(path) != entry["sha256"]:
@@ -188,7 +188,7 @@ def main() -> int:
     status_path = args.backup_root / "watch-status.json"
     for poll in range(args.max_polls):
         all_terminal = True
-        status = {
+        status: dict[str, Any] = {
             "campaign_id": campaign_id,
             "polled_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "models": {},

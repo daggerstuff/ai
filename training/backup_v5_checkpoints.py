@@ -10,8 +10,8 @@ env = {}
 for line in Path('/home/vivi/pixelated/.env').read_text().splitlines():
     s = line.strip()
     if s and not s.startswith('#') and '=' in s:
-        k, _, v = s.partition('=')
-        env[k.strip()] = v.strip().strip('"').strip("'")
+        k, _, value = s.partition('=')
+        env[k.strip()] = value.strip().strip('"').strip("'")
 
 ENTITY, PROJECT = 'wutang', 'pixelated-empathy-kan28'
 NAME = 'arc-sft-baseline-d20b7a4d5678-sft-resume'

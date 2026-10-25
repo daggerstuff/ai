@@ -3,6 +3,7 @@ import json
 import os
 import time
 from pathlib import Path
+from typing import Any
 
 import wandb
 
@@ -10,8 +11,8 @@ env = {}
 for line in Path('/home/vivi/pixelated/.env').read_text().splitlines():
     s = line.strip()
     if s and not s.startswith('#') and '=' in s:
-        k, _, v = s.partition('=')
-        env[k.strip()] = v.strip().strip('"').strip("'")
+        k, _, value = s.partition('=')
+        env[k.strip()] = value.strip().strip('"').strip("'")
 
 ENTITY, PROJECT = 'wutang', 'pixelated-empathy-kan28'
 NAME = 'arc-sft-baseline-6b73c3214483-sft-resume'
@@ -28,7 +29,7 @@ def sha256_file(p: Path) -> str:
     return h.hexdigest()
 
 
-def beat(status: str, extra: dict | None = None) -> None:
+def beat(status: str, extra: dict[str, Any] | None = None) -> None:
     OUT.mkdir(parents=True, exist_ok=True, mode=0o700)
     payload = {'ts': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'status': status}
     if extra:

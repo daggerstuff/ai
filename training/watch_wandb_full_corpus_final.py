@@ -24,7 +24,7 @@ POLL_SECONDS = 300
 TERMINAL_STATES = {"COMPLETED", "FAILED", "CANCELED", "CANCELLED", "ERROR"}
 CASES = ROOT / "docs/training/execution-2026-10-17/scenario-dev-v1.jsonl"
 RUNNER = ROOT / "ai/training/run_wandb_paired_eval.py"
-JOBS = {
+JOBS: dict[str, dict[str, Any]] = {
     "v1": {
         "job_id": "2087f223-a48f-45f7-9999-daece5743bba",
         "state": ROOT / "docs/training/execution-2026-10-18/wandb-full-corpus-state/"
@@ -140,7 +140,8 @@ def main() -> int:
         all_terminal = True
         terminal_without_artifact = False
         for label, task in JOBS.items():
-            job = training_api.request("GET", f"/preview/training-jobs/{task['job_id']}")
+            job_payload = training_api.request("GET", f"/preview/training-jobs/{task['job_id']}")
+            job = job_payload if isinstance(job_payload, dict) else {}
             status = str(job.get("status", job.get("state", "unknown"))).upper()
             artifact = latest_resume_artifact(public_api, task["resume_artifact"])
             snapshot = {
@@ -171,7 +172,7 @@ def main() -> int:
             manifest_path = task["results"] / "manifest.json"
             if manifest_path.exists():
                 prior = json.loads(manifest_path.read_text(encoding="utf-8"))
-                sft_arm = next((arm for arm in prior.get("arms", []) if arm.get("id") == "sft"), {})
+                sft_arm: dict[str, Any] = next((arm for arm in prior.get("arms", []) if arm.get("id") == "sft"), {})
                 if prior.get("status") == "complete" and sft_arm.get("model") == artifact["uri"]:
                     logger.info("%s final artifact already evaluated", label)
                     continue

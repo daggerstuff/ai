@@ -42,7 +42,7 @@ def atomic_write(path: Path, payload: dict[str, Any]) -> None:
 
 
 def load_state(path: Path) -> dict[str, Any]:
-    state = json.loads(path.read_text(encoding="utf-8"))
+    state: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
     if state.get("release_id") not in {
         "wandb-full-corpus-20261018-v1",
         "wandb-full-corpus-20261018-v2",
@@ -65,7 +65,8 @@ def main() -> int:
     state = load_state(args.state)
     api = TrainingAPI(api_key)
     for poll_index in range(args.max_polls):
-        job = api.request("GET", f"/preview/training-jobs/{state['training_job_id']}")
+        job_payload = api.request("GET", f"/preview/training-jobs/{state['training_job_id']}")
+        job = job_payload if isinstance(job_payload, dict) else {}
         checkpoint_payload = api.request("GET", f"/preview/models/{state['model_id']}/checkpoints")
         checkpoints = checkpoint_payload.get("data", []) if isinstance(checkpoint_payload, dict) else checkpoint_payload
         state["last_status"] = job.get("status", job.get("state", "unknown"))
