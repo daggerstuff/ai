@@ -27,6 +27,7 @@ import json
 import random
 import sys
 from pathlib import Path
+from typing import Any
 
 
 def _read_lines(path: Path) -> list[str]:
@@ -35,10 +36,10 @@ def _read_lines(path: Path) -> list[str]:
 
 def sample_slice(
     specs: list[tuple[Path, int]], seed: int, max_messages: int = 0
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Read each input, seeded-shuffle it, and take the requested count."""
     rng = random.Random(seed)
-    records: list[dict] = []
+    records: list[dict[str, Any]] = []
     for path, count in specs:
         lines = _read_lines(path)
         rng.shuffle(lines)
