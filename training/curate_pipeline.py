@@ -7,8 +7,14 @@ Converts raw desloped JSONL (849K records) into tiered, split, training-ready da
 Split mechanism (PIX-4584 reconciliation): the split step delegates to the
 canonical 8-axis stratified splitter (``training.dataset_splitter_stratified``)
 at the canonical 70/15/15 ratio. Converted records are staged per format
-during the streaming pass, then stratified with source-family grouping and
-integrity gates once the full stream has been seen.
+during the streaming pass; once the full stream has been seen each format is
+stratified with source-family grouping, and ``integrity_gates`` runs on the
+master ``sft_chatml`` split (derived formats share the same per-family
+assignment because family keys hash deterministically). Gate violations fail
+closed on production-scale runs (>= ``GATE_ENFORCEMENT_MIN_RECORDS`` master
+records); smaller runs record the verdict in ``PipelineStats.split_integrity``
+without failing, because the ±2pp statistical gates are unreliable below that
+size.
 
 Input:  ai/data/raw/deduped/all_desloped.jsonl
 Output: ai/data/curated/
@@ -40,7 +46,6 @@ import argparse
 import hashlib
 import json
 import logging
-import shutil
 import sys
 from collections import Counter
 from collections.abc import Iterable
@@ -121,6 +126,9 @@ SYSTEM_PROMPTS: dict[str, str] = {
     ),
 }
 
+# Output subdirectory formats, in write order
+FORMATS = ("sft_chatml", "sft_alpaca", "sft_alpaca_chatml", "safety")
+
 DEFAULT_SYSTEM_PROMPT = (
     "You are Pixelated Empathy, an evidence-based clinical AI assistant. "
     "Your responses must be empathetic, validating, and grounded in established "
@@ -137,6 +145,18 @@ SPLIT_RATIOS = {
     "val": DEFAULT_RATIO[1] / 100.0,
     "test": DEFAULT_RATIO[2] / 100.0,
 }
+
+# Integrity-gate enforcement threshold (PIX-4584). The ratio and domain
+# balance gates allow ±2 percentage points; below ~5k records the binomial
+# noise of the deterministic family hash makes a correct split fail those
+# statistical gates a sizable fraction of the time. Gate violations fail
+# closed only at or above this many master records; smaller runs record the
+# verdict in ``PipelineStats.split_integrity`` without failing. (The
+# structural gates — hash-disjoint, source-family disjoint,
+# evaluation-in-train — hold by construction of ``stratified_split``, so
+# they can only fire on a splitter bug, which a production-scale run would
+# catch.)
+GATE_ENFORCEMENT_MIN_RECORDS = 5000
 
 # Downsampling: source -> keep fraction (deterministic hash-based)
 DOWNSAMPLE_RATES: dict[str, float] = {
@@ -274,14 +294,31 @@ def content_hash(record: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def assign_split(hash_val: str) -> str:
-    """Deterministic split assignment based on content hash."""
-    bucket = int(hash_val[:8], 16) % 100
-    if bucket < 70:
-        return "train"
-    if bucket < 85:
-        return "val"
-    return "test"
+def _split_group_metadata(record: dict[str, Any], chash: str) -> dict[str, str]:
+    """Derive the (source_family, source_id) group for the stratified splitter.
+
+    Prefers explicit split metadata (the splitter's own convention), then
+    top-level fields, then the record's source plus a conversation-level
+    identifier (``user_id``/``conversation_id`` when present). Falls back to
+    the content hash so every conversation is its own leakage-prevention
+    group when no identifier exists.
+    """
+    record_meta = record.get("metadata")
+    meta = record_meta if isinstance(record_meta, dict) else {}
+    family = str(
+        meta.get("source_family")
+        or record.get("source_family")
+        or record.get("source")
+        or "unknown"
+    )
+    source_id = str(
+        meta.get("source_id")
+        or record.get("source_id")
+        or record.get("user_id")
+        or record.get("conversation_id")
+        or chash
+    )
+    return {"source_family": family, "source_id": source_id}
 
 
 # ---------------------------------------------------------------------------
@@ -436,6 +473,14 @@ def run_pipeline(
     stats = PipelineStats()
     seen_hashes: set[str] = set()
 
+    # Converted records staged per format (PIX-4584); the stratified split
+    # + integrity gates run once the full stream has been seen.
+    staged: dict[str, list[dict[str, Any]]] = {subdir: [] for subdir in FORMATS}
+
+    # Initialize split counters
+    for subdir in FORMATS:
+        stats.split_counts[subdir] = Counter()
+
     # Initialize Stage 1 filter chain (PIX-4342)
     stage1_chain: Any = None
     if stage1_filters and Stage1FilterChain is not None:
@@ -443,25 +488,6 @@ def run_pipeline(
         print("Stage 1 QA filters: ENABLED", file=sys.stderr)
     else:
         print("Stage 1 QA filters: DISABLED", file=sys.stderr)
-
-    # Prepare output directories
-    if not dry_run:
-        for subdir in ["sft_chatml", "sft_alpaca", "sft_alpaca_chatml", "safety"]:
-            d = Path(output_dir) / subdir
-            d.mkdir(parents=True, exist_ok=True)
-
-    # Open output file handles
-    handles: dict[str, dict[str, Any]] = {}
-    if not dry_run:
-        for subdir in ["sft_chatml", "sft_alpaca", "sft_alpaca_chatml", "safety"]:
-            handles[subdir] = {}
-            for split in ["train", "val", "test"]:
-                path = Path(output_dir) / subdir / f"{split}.jsonl"
-                handles[subdir][split] = open(path, "w", encoding="utf-8")
-
-    # Initialize split counters
-    for subdir in ["sft_chatml", "sft_alpaca", "sft_alpaca_chatml", "safety"]:
-        stats.split_counts[subdir] = Counter()
 
     print(f"Streaming {input_path}...", file=sys.stderr)
     if dry_run:
@@ -528,52 +554,34 @@ def run_pipeline(
             if "needs_human_review" in reason:
                 record["synthetic_qc_note"] = reason
 
-        # Determine split
-        split = assign_split(chash)
+        # Determine split group for the stratified splitter (PIX-4584).
+        # The actual stratified_split() + integrity_gates() pass happens
+        # after the full stream has been staged.
+        group_meta = _split_group_metadata(record, chash)
 
-        # Write to appropriate format(s)
         if dry_run:
             tier_stats.included += 1
             stats.total_included += 1
             continue
 
-        # T4_SAFETY → safety format
+        # Stage converted records per format; split assignment happens
+        # once the full stream has been seen.
         if tier == "T4_SAFETY":
-            safety_record = to_safety(record, tier)
-            handles["safety"][split].write(json.dumps(safety_record, ensure_ascii=False) + "\n")
-            stats.split_counts["safety"][split] += 1
-
-        # All non-safety tiers → ChatML SFT format (T4_SAFETY goes only to safety/)
-        if tier != "T4_SAFETY":
+            staged["safety"].append({**to_safety(record, tier), "metadata": group_meta})
+        else:
             task_type = record.get("task_type", "")
             sys_prompt = SYSTEM_PROMPTS.get(task_type, DEFAULT_SYSTEM_PROMPT)
             chatml_record = to_chatml(record, tier, sys_prompt)
             if not chatml_record:
                 continue
-            handles["sft_chatml"][split].write(json.dumps(chatml_record, ensure_ascii=False) + "\n")
-            stats.split_counts["sft_chatml"][split] += 1
-
-        # T3_BRONZE 3-msg records → Alpaca instruction + ChatML format
-        if tier == "T3_BRONZE":
+            staged["sft_chatml"].append({**chatml_record, "metadata": group_meta})
             alpaca_record = to_alpaca(record, tier)
             if alpaca_record:
-                handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
-                stats.split_counts["sft_alpaca"][split] += 1
-                # Also write ChatML version of the same record
-                alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
-                handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
-                stats.split_counts["sft_alpaca_chatml"][split] += 1
-
-        # T1_GOLD and T2_SILVER 3-msg records → Alpaca + ChatML
-        if tier in ("T1_GOLD", "T2_SILVER"):
-            alpaca_record = to_alpaca(record, tier)
-            if alpaca_record:
-                handles["sft_alpaca"][split].write(json.dumps(alpaca_record, ensure_ascii=False) + "\n")
-                stats.split_counts["sft_alpaca"][split] += 1
-                # Also write ChatML version of the same record
-                alpaca_chatml = to_chatml_from_alpaca(alpaca_record)
-                handles["sft_alpaca_chatml"][split].write(json.dumps(alpaca_chatml, ensure_ascii=False) + "\n")
-                stats.split_counts["sft_alpaca_chatml"][split] += 1
+                staged["sft_alpaca"].append({**alpaca_record, "metadata": group_meta})
+                # Also stage the ChatML version of the same record
+                staged["sft_alpaca_chatml"].append(
+                    {**to_chatml_from_alpaca(alpaca_record), "metadata": group_meta}
+                )
 
         tier_stats.included += 1
         stats.total_included += 1
@@ -591,11 +599,64 @@ def run_pipeline(
     # Capture total raw records read (before any Stage 1 filtering)
     stats.total_read = raw_count
 
-    # Close file handles
+    # --- Split phase (PIX-4584): delegate to the canonical stratified splitter
     if not dry_run:
-        for subdir in handles:
-            for split in handles[subdir]:
-                handles[subdir][split].close()
+        master = staged["sft_chatml"]
+        master_splits: dict[str, list[dict[str, Any]]] = {}
+        if master:
+            master_splits = stratified_split(master)
+            gates_passed, gate_issues = integrity_gates(master_splits)
+            stats.split_integrity["sft_chatml"] = {
+                "passed": gates_passed,
+                "issues": gate_issues,
+                "records": len(master),
+            }
+            enforce = len(master) >= GATE_ENFORCEMENT_MIN_RECORDS
+            if not gates_passed and enforce:
+                print(
+                    "ERROR: sft_chatml split failed integrity gates "
+                    f"({len(master)} master records, enforcement ON); "
+                    "refusing to write split outputs.",
+                    file=sys.stderr,
+                )
+                for issue in gate_issues:
+                    print(f"  - {issue}", file=sys.stderr)
+                raise RuntimeError(
+                    "sft_chatml split failed integrity gates on "
+                    f"{len(master)} master records: {gate_issues}"
+                )
+            if not gates_passed:
+                print(
+                    f"WARNING: sft_chatml split failed integrity gates on "
+                    f"{len(master)} master records; below the "
+                    f"{GATE_ENFORCEMENT_MIN_RECORDS}-record enforcement threshold, "
+                    "verdict recorded in stats.split_integrity.",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "Integrity gates PASSED on sft_chatml split "
+                    f"({len(master)} master records): hash-disjoint, "
+                    "source-family disjoint, eval-in-train, ratio ±2pp, "
+                    "domain balance ±2pp.",
+                    file=sys.stderr,
+                )
+
+        # Write every staged format through stratified_split
+        for subdir in FORMATS:
+            records = staged[subdir]
+            if not records:
+                continue
+            split_dir = Path(output_dir) / subdir
+            split_dir.mkdir(parents=True, exist_ok=True)
+            by_split = master_splits if subdir == "sft_chatml" else stratified_split(records)
+            for split_name in ("train", "val", "test"):
+                out_path = split_dir / f"{split_name}.jsonl"
+                with open(out_path, "w", encoding="utf-8") as f:
+                    for item in by_split.get(split_name, []):
+                        payload = {k: v for k, v in item.items() if k != "metadata"}
+                        f.write(json.dumps(payload, ensure_ascii=False) + "\n")
+                stats.split_counts[subdir][split_name] = len(by_split.get(split_name, []))
 
     if stage1_chain is not None:
         stage1_summary = stage1_chain.summary()

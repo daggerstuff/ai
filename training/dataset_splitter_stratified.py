@@ -12,14 +12,18 @@ Key features:
   - Preference-pair counterpart preservation: DPO preference pairs from the
     same source stay in the same partition via source-family grouping.
   - Extended integrity gates: hash-disjoint, source-family disjoint,
-    evaluation-in-train, ratio ±2pp, domain balance ±2pp.
+    evaluation-in-train, ratio ±2pp, domain balance (±2pp with a
+    noise-aware widening for strata too small for a 2pp check to be
+    statistically meaningful).
 
 Integrity gates (run after split, fail closed if violated):
   - hash-disjoint: no content hash appears in >1 split
   - source-family disjoint: no source_family appears in >1 split
   - evaluation-in-train: no evaluation/restricted material in train
   - ratio ±2pp: each split within 2pp of target ratio
-  - domain balance ±2pp: per-stratum split ratios within 2pp of global ratio
+  - domain balance: per-stratum split ratios within 2pp of the global
+    ratio, widened to 4 standard errors of the null binomial for strata
+    where 2pp is below the noise floor of the hash assignment
 
 Usage:
   python dataset_splitter_stratified.py <input_dir> <out_dir> [--ratio 70 15 15]
@@ -35,6 +39,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -279,7 +284,17 @@ def integrity_gates(
                 f"(tolerance ±{RATIO_TOLERANCE_PP}pp)"
             )
 
-    # 5. domain balance ±2pp: each stratum's split ratio within 2pp of global
+    # 5. domain balance: each stratum's split ratio within tolerance of global.
+    # The ±2pp contract is only statistically meaningful for strata large
+    # enough that 2pp exceeds the binomial noise of the hash-based family
+    # assignment (e.g. a 15-record stratum landing 12/1/2 is unremarkable
+    # noise, not imbalance). For smaller strata the tolerance widens to 4
+    # standard errors of the null (global-ratio) binomial, so noise in a
+    # correct split does not fail the gate while systematic imbalance — a
+    # stratum concentrated in one split — still deviates far beyond the
+    # band at every stratum size. The 4x multiplier keeps the family-wise
+    # false-failure rate low across the many stratum/split checks of a
+    # production run.
     by_stratum_split: dict[str, Counter] = defaultdict(Counter)
     for split_name, items in splits.items():
         for item in items:
@@ -291,12 +306,15 @@ def integrity_gates(
         if stratum_total < 10:
             continue  # too few samples in this stratum to demand balance
         for name in SPLIT_NAMES:
+            p_null = global_ratios[name] / 100
+            se_pp = 100.0 * math.sqrt(p_null * (1.0 - p_null) / stratum_total)
+            tolerance_pp = max(float(BALANCE_TOLERANCE_PP), 4.0 * se_pp)
             stratum_ratio = 100 * counts[name] / stratum_total
-            if abs(stratum_ratio - global_ratios[name]) > BALANCE_TOLERANCE_PP:
+            if abs(stratum_ratio - global_ratios[name]) > tolerance_pp:
                 issues.append(
                     f"domain balance FAILED: stratum '{stratum}' {name}="
                     f"{stratum_ratio:.1f}pp vs global {global_ratios[name]:.1f}pp "
-                    f"(tolerance ±{BALANCE_TOLERANCE_PP}pp)"
+                    f"(tolerance ±{tolerance_pp:.1f}pp)"
                 )
                 break
 

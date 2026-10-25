@@ -316,6 +316,9 @@ ignore = []
     "PLR0912",
     "PT018",
 ]
+"training/sample_corpus_slice.py" = [
+    "T201",
+]
 "training/calibrate_judge.py" = [
     "T201",
     "PLR2004",
