@@ -5,8 +5,8 @@ import sys
 from pathlib import Path
 
 import pytest
-import wandb
 
+import wandb
 from training import (
     backup_wandb_full_corpus_lora as lora_backup,
     backup_wandb_full_corpus_train_state as train_state_backup,
