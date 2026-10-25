@@ -213,7 +213,7 @@ BOUNDARY_RESPONSES = {
 }
 
 
-def route_format() -> dict:
+def route_format() -> dict[str, Any]:
     return {
         "type": "json_schema",
         "json_schema": {
@@ -229,7 +229,7 @@ def route_format() -> dict:
     }
 
 
-def routed_messages(messages: list[dict], route: str) -> list[dict]:
+def routed_messages(messages: list[dict[str, Any]], route: str) -> list[dict[str, Any]]:
     if route not in ROUTES or not messages or messages[0].get("role") != "system":
         raise ValueError("invalid contextual route or system context")
     result = copy.deepcopy(messages)
@@ -253,9 +253,10 @@ class SupportInputReservation:
     def __init__(self, tool_counter: Any, limit: int = ROUTER_INPUT_TOKEN_CAP):
         self.tool_counter, self.limit = tool_counter, limit
 
-    def count(self, messages: list[dict], tools: list[dict]) -> int:
+    def count(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> int:
         if tools:
-            return self.tool_counter.count(messages, tools)
+            tokens: int = self.tool_counter.count(messages, tools)
+            return tokens
         if len(json.dumps(messages).encode()) + 128 > self.limit:
             raise ValueError("raw support input exceeds middleware reservation")
         return self.limit
@@ -264,16 +265,22 @@ class SupportInputReservation:
 class ContextualSupportTransport:
     """Route using conversation only, preserve tool execution and retain routing usage."""
 
-    def __init__(self, transport: Any, router_arm: dict, max_input_bytes: int = 8192, audit_path: Path | None = None):
+    def __init__(
+        self,
+        transport: Any,
+        router_arm: dict[str, Any],
+        max_input_bytes: int = 8192,
+        audit_path: Path | None = None,
+    ):
         self.transport = transport
         self.router_arm = copy.deepcopy(router_arm)
         self.max_input_bytes = max_input_bytes
         self.task_reviewer: Any = None
-        self.task_fallback_arm: dict | None = None
-        self.audit: list[dict] = []
+        self.task_fallback_arm: dict[str, Any] | None = None
+        self.audit: list[dict[str, Any]] = []
         self.audit_path = audit_path
 
-    def _record(self, entry: dict) -> None:
+    def _record(self, entry: dict[str, Any]) -> None:
         self.audit.append(entry)
         if self.audit_path is not None:
             self.audit_path.parent.mkdir(parents=True, exist_ok=True)
@@ -281,11 +288,18 @@ class ContextualSupportTransport:
                 os.chmod(self.audit_path, 0o600)
                 stream.write(json.dumps(entry) + "\n")
 
-    def complete(self, arm: dict, messages: list[dict], tools: list[dict], decoding: dict) -> dict:
+    def complete(
+        self,
+        arm: dict[str, Any],
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        decoding: dict[str, Any],
+    ) -> dict[str, Any]:
         if tools:
             # This middleware must not rewrite the established tool policy.
             # Its authorization and safety checks belong to that existing path.
-            return self.transport.complete(arm, messages, tools, decoding)
+            forwarded: dict[str, Any] = self.transport.complete(arm, messages, tools, decoding)
+            return forwarded
         if self.task_reviewer is not None:
             self.task_reviewer.require_calibration()
         elif self.task_fallback_arm is not None:
@@ -329,7 +343,7 @@ class ContextualSupportTransport:
         entry["router_estimated_cost_usd"] = (usage["prompt_tokens"] * 0.1 + usage["completion_tokens"] * 0.3) / 1e6
         try:
             value = json.loads(result["response"])
-        except ValueError, KeyError, TypeError:
+        except (ValueError, KeyError, TypeError):
             self._record(entry)
             raise
         if (
@@ -368,7 +382,13 @@ class ContextualSupportTransport:
             }
         return self._complete_generated(arm, messages, value["route"], decoding)
 
-    def _complete_generated(self, arm: dict, messages: list[dict], route: str, decoding: dict) -> dict:
+    def _complete_generated(
+        self,
+        arm: dict[str, Any],
+        messages: list[dict[str, Any]],
+        route: str,
+        decoding: dict[str, Any],
+    ) -> dict[str, Any]:
         target = routed_messages(messages, route)
         attempt_limit = MAX_SUPPORT_DRAFTS + int(self.task_fallback_arm is not None)
         for attempt in range(attempt_limit):
@@ -380,7 +400,7 @@ class ContextualSupportTransport:
                 else arm
             )
             fallback_used = actual_arm["model"] != arm["model"]
-            result = self.transport.complete(actual_arm, target, [], decoding)
+            result: dict[str, Any] = self.transport.complete(actual_arm, target, [], decoding)
             response = result.get("response", "")
             if not isinstance(response, str) or not response.strip():
                 self._record(
@@ -446,7 +466,7 @@ class ContextualSupportTransport:
             )
         raise ValueError("support failed bounded boilerplate/task checks; response withheld, evaluation failure")
 
-    def _task_correction(self, messages: list[dict], response: str, boilerplate: bool, route: str) -> str:
+    def _task_correction(self, messages: list[dict[str, Any]], response: str, boilerplate: bool, route: str) -> str:
         if boilerplate:
             return (
                 "Remove unrelated crisis/privacy boilerplate, unverified safety assertions, "
@@ -464,4 +484,5 @@ class ContextualSupportTransport:
                 "outcome": outcome,
             }
         )
-        return outcome["correction"]
+        correction: str = outcome["correction"]
+        return correction
