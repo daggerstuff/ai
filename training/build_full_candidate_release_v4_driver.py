@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "ai" / "training"))
@@ -25,8 +26,12 @@ builder.CANDIDATE_SHA256 = "f56e10b52ed83645ec3eca1b468724644dcbf6f843da96d7e82b
 _original_create_manifest = builder.create_manifest
 
 
-def _create_manifest(stats, output, release_id, repairs_path):
+def _create_manifest(
+    stats: dict[str, Any], output: Path, release_id: str, repairs_path: Path | None
+) -> dict[str, Any]:
     manifest = _original_create_manifest(stats, output, release_id, repairs_path)
+    if not isinstance(manifest, dict):
+        raise ValueError("release manifest must be an object")
     hardcoded = manifest["source_candidate"]["row_count"]
     if hardcoded != 190139:
         raise ValueError(f"unexpected hardcoded source_candidate row_count {hardcoded}")

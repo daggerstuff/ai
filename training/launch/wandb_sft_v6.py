@@ -27,13 +27,16 @@ _CONFIG_PATH = (
 
 def _load_config() -> dict[str, object]:
     with _CONFIG_PATH.open() as f:
-        return json.load(f)["config"]
+        config = json.load(f)["config"]
+    if not isinstance(config, dict):
+        raise ValueError("v6 launch config must be a JSON object")
+    return config
 
 
 def main() -> int:
     g04.BASELINE_CONFIG.clear()
     g04.BASELINE_CONFIG.update(_load_config())
-    return g04.main()
+    return int(g04.main())
 
 
 if __name__ == "__main__":

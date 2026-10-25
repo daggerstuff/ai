@@ -26,6 +26,8 @@ def _read_state(path: Path, job_id: str) -> dict[str, Any]:
     if not path.exists():
         return {"job_id": job_id, "last_event_id": None, "latest_gradient_step": None}
     state = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(state, dict):
+        raise ValueError("progress state has an unexpected shape")
     if state.get("job_id") != job_id:
         raise ValueError("progress state belongs to another training job")
     if state.get("last_event_id") is not None and not isinstance(state["last_event_id"], str):

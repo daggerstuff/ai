@@ -26,7 +26,7 @@ V5_CONFIG: dict[str, object] = {
 def main() -> int:
     g04.BASELINE_CONFIG.clear()
     g04.BASELINE_CONFIG.update(V5_CONFIG)
-    return g04.main()
+    return int(g04.main())
 
 
 if __name__ == "__main__":

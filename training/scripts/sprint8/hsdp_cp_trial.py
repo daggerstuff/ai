@@ -110,19 +110,18 @@ def _check_gpu_env() -> tuple[bool, list[str]]:
         return False, notes
 
 
-def _make_selfattn_block_cls():
+def _make_selfattn_block_cls() -> type:
     from torch import nn
 
-    class SelfAttnBlock(nn.Module):
-        def __init__(self, embed_dim: int, num_heads: int) -> None:
-            super().__init__()
-            self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+    def _block_init(self: Any, embed_dim: int, num_heads: int) -> None:
+        nn.Module.__init__(self)
+        self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
 
-        def forward(self, x):
-            out, _ = self.attn(x, x, x, need_weights=False)
-            return out
+    def _block_forward(self: Any, x: Any) -> Any:
+        out, _ = self.attn(x, x, x, need_weights=False)
+        return out
 
-    return SelfAttnBlock
+    return type("SelfAttnBlock", (nn.Module,), {"__init__": _block_init, "forward": _block_forward})
 
 
 def build_mock_model(cfg: HSDPCPTrialConfig) -> Any:

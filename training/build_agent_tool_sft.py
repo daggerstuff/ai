@@ -599,7 +599,7 @@ def build(output: Path) -> dict[str, Any]:
     row_hashes: set[str] = set()
     payload_hashes: dict[str, str] = {}
     group_splits: dict[str, str] = {}
-    total_tool_calls = Counter()
+    total_tool_calls: Counter[str] = Counter()
     all_rows: dict[str, list[dict[str, Any]]] = {split: [] for split in FAMILY_SPLITS}
     for family, builder in BUILDERS.items():
         for index in range(EXAMPLES_PER_FAMILY):

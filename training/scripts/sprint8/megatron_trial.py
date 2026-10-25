@@ -116,26 +116,25 @@ class _SelfAttnBlock:
     pass
 
 
-def _make_selfattn_block_cls():
+def _make_selfattn_block_cls() -> type:
     from torch import nn
 
-    class SelfAttnBlock(nn.Module):
-        def __init__(self, embed_dim: int, num_heads: int) -> None:
-            super().__init__()
-            self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+    def _block_init(self: Any, embed_dim: int, num_heads: int) -> None:
+        nn.Module.__init__(self)
+        self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
 
-        def forward(self, x):
-            out, _ = self.attn(x, x, x, need_weights=False)
-            return out
+    def _block_forward(self: Any, x: Any) -> Any:
+        out, _ = self.attn(x, x, x, need_weights=False)
+        return out
 
-    return SelfAttnBlock
+    return type("SelfAttnBlock", (nn.Module,), {"__init__": _block_init, "forward": _block_forward})
 
 
 class _ColumnParallelLinear:
     pass
 
 
-def _make_col_parallel_linear_cls():
+def _make_col_parallel_linear_cls() -> type:
     """Megatron ColumnParallelLinear via plain torch.
 
     Splits weight rows across tp_size ranks; each rank holds 1/tp_size.
@@ -146,31 +145,32 @@ def _make_col_parallel_linear_cls():
     import torch
     from torch import nn
 
-    class ColumnParallelLinear(nn.Module):
-        def __init__(self, in_features: int, out_features: int, tp_size: int, bias: bool = False) -> None:
-            super().__init__()
-            self.tp_size = tp_size
-            assert out_features % tp_size == 0, f"out_features={out_features} must be divisible by tp_size={tp_size}"
-            self.local_out = out_features // tp_size
-            self.in_features = in_features
-            self.out_features = out_features
-            # Each "rank" slice stored as separate param (mocks tp_size shards)
-            self.weights = nn.ParameterList(
-                [nn.Parameter(torch.empty(self.local_out, in_features)) for _ in range(tp_size)]
-            )
-            for w in self.weights:
-                nn.init.normal_(w, std=0.02)
-            self.bias = bias
+    def _linear_init(
+        self: Any, in_features: int, out_features: int, tp_size: int, bias: bool = False
+    ) -> None:
+        nn.Module.__init__(self)
+        self.tp_size = tp_size
+        assert out_features % tp_size == 0, f"out_features={out_features} must be divisible by tp_size={tp_size}"
+        self.local_out = out_features // tp_size
+        self.in_features = in_features
+        self.out_features = out_features
+        # Each "rank" slice stored as separate param (mocks tp_size shards)
+        self.weights = nn.ParameterList(
+            [nn.Parameter(torch.empty(self.local_out, in_features)) for _ in range(tp_size)]
+        )
+        for w in self.weights:
+            nn.init.normal_(w, std=0.02)
+        self.bias = bias
 
-        def forward(self, x):
-            # Partial outputs per rank
-            partials = [torch.nn.functional.linear(x, self.weights[i]) for i in range(self.tp_size)]
-            # All-reduce: concatenate along feature dim (column-parallel sum
-            # semantics after the split). Megatron uses all-reduce on the
-            # summed output; column-parallel keeps full out_features via concat.
-            return torch.cat(partials, dim=-1)
+    def _linear_forward(self: Any, x: Any) -> Any:
+        # Partial outputs per rank
+        partials = [torch.nn.functional.linear(x, self.weights[i]) for i in range(self.tp_size)]
+        # All-reduce: concatenate along feature dim (column-parallel sum
+        # semantics after the split). Megatron uses all-reduce on the
+        # summed output; column-parallel keeps full out_features via concat.
+        return torch.cat(partials, dim=-1)
 
-    return ColumnParallelLinear
+    return type("ColumnParallelLinear", (nn.Module,), {"__init__": _linear_init, "forward": _linear_forward})
 
 
 def build_megatron_mock_model(cfg: MegatronTrialConfig) -> Any:
@@ -269,7 +269,7 @@ def init_wandb(cfg: MegatronTrialConfig) -> tuple[Any, str]:
         return None, f"wandb init failed: {e} (stdout fallback)"
 
 
-def _timed_train_steps(model_or_stages, cfg, is_pp: bool, optimizer) -> tuple[float, float]:
+def _timed_train_steps(model_or_stages: Any, cfg: MegatronTrialConfig, is_pp: bool, optimizer: Any) -> tuple[float, float]:
     """Run cfg.train_steps, return (total_time_s, last_loss)."""
     import torch
 

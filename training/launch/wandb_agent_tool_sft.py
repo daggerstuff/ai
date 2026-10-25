@@ -27,6 +27,10 @@ from training.launch import wandb_sft_g04 as g04
 DEFAULT_MANIFEST = ROOT / "docs/training/agent-tool-sft-2026-10-19/release-manifest.json"
 DEFAULT_PACKAGE = ROOT / "ai/training/output/wandb_agent_tool_sft_20261019_v1"
 DEFAULT_STATE_DIR = ROOT / "ai/training/output/wandb_agent_tool_sft_state"
+# The synthetic tool release pins the campaign's base model: the one approved
+# model in the g04 launcher. (g04 itself grew a per-execution override in the
+# v7 execute script; this launcher has no override path.)
+ALLOWED_MODEL_IDS = frozenset({g04.MODEL_ID})
 CONFIG = {"assistant_turns": "all", "batch_size": "auto", "learning_rate": 0.00001}
 UNCERTAIN_PHASES = {
     "artifact_upload_submitted_unknown",
@@ -125,7 +129,7 @@ def _load_manifest(manifest_path: Path, model_id: str) -> tuple[dict[str, Any], 
         raise ToolSFTError("release manifest SHA-256 does not match its sidecar")
     if manifest.get("status") != "local_synthetic_research_candidate_not_uploaded":
         raise ToolSFTError("release is not the expected local synthetic research candidate")
-    if model_id not in g04.ALLOWED_MODEL_IDS or manifest.get("base_model") != model_id:
+    if model_id not in ALLOWED_MODEL_IDS or manifest.get("base_model") != model_id:
         raise ToolSFTError("release base model must match an approved Gemma 4 or Nemotron 3.5 model")
     if manifest.get("real_person_data") is not False or manifest.get("external_content") is not False:
         raise ToolSFTError("release must explicitly exclude real-person and external content")
@@ -247,6 +251,8 @@ def _load_state(path: Path, task_id: str, payload_sha: str) -> dict[str, Any]:
         state = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise ToolSFTError("cannot parse launcher state; reconcile W&B before resuming") from exc
+    if not isinstance(state, dict):
+        raise ToolSFTError("launcher state is not an object; reconcile W&B before resuming")
     if state.get("task_id") != task_id or state.get("payload_sha256") != payload_sha:
         raise ToolSFTError("launcher state identity mismatch")
     if state.get("phase") in UNCERTAIN_PHASES:
@@ -349,10 +355,10 @@ def execute(
                 "return_existing": True,
             },
         )
-        model_id = model.get("id") if isinstance(model, dict) else None
-        if not isinstance(model_id, str) or not re.fullmatch(r"[0-9a-fA-F-]{36}", model_id):
+        created_model_id = model.get("id") if isinstance(model, dict) else None
+        if not isinstance(created_model_id, str) or not re.fullmatch(r"[0-9a-fA-F-]{36}", created_model_id):
             raise ToolSFTError("W&B model creation outcome requires reconciliation")
-        state.update(model_id=model_id, phase="model_ready")
+        state.update(model_id=created_model_id, phase="model_ready")
         _atomic_json(state_path, state)
 
     if not state.get("training_job_id"):
@@ -386,7 +392,7 @@ def execute(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model", choices=sorted(g04.ALLOWED_MODEL_IDS), required=True)
+    parser.add_argument("--model", choices=sorted(ALLOWED_MODEL_IDS), required=True)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--package", type=Path, default=DEFAULT_PACKAGE)
     parser.add_argument("--state-dir", type=Path, default=DEFAULT_STATE_DIR)

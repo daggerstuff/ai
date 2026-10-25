@@ -170,7 +170,9 @@ BOOKING_ASKS = [
 ]
 
 
-def row(family: str, index: int, user_text: str, tools: list, turns: list) -> dict[str, Any]:
+def row(
+    family: str, index: int, user_text: str, tools: list[dict[str, Any]], turns: list[dict[str, Any]]
+) -> dict[str, Any]:
     example_id = f"{family}-{index:03d}"
     system = SYSTEM_PROMPTS[(index + PROMPT_OFFSETS[family]) % len(SYSTEM_PROMPTS)]
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user_text}, *turns]

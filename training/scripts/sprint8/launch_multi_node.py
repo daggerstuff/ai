@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 
-def check_nccl():
+def check_nccl() -> bool:
     return (
         os.path.exists("/usr/lib/libnccl.so")
         or os.path.exists("/usr/lib/libnccl.so.2")
@@ -16,7 +16,7 @@ def check_nccl():
     )
 
 
-def check_ib():
+def check_ib() -> bool:
     return os.path.exists("/sys/class/infiniband") and any(
         "ib_" in line for line in subprocess.run(["lsmod"], capture_output=True, text=True).stdout.splitlines()
     )

@@ -26,6 +26,8 @@ MATRIX_DIMENSIONS = 2
 
 def verified_manifest(directory: Path) -> dict[str, Any]:
     manifest = json.loads((directory / "manifest.json").read_text())
+    if not isinstance(manifest, dict):
+        raise ValueError("manifest.json must be an object")
     names = set()
     for entry in manifest["local_files"]:
         path = directory / entry["name"]

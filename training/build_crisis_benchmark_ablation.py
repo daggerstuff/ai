@@ -96,6 +96,8 @@ def validate_inputs() -> dict[str, Any]:
     if hash_file(SOURCE_DIR / "train.jsonl") != EXPECTED_RELEASE_SHA:
         raise ValueError("pinned source training payload hash mismatch")
     release = json.loads(RELEASE_MANIFEST.read_text(encoding="utf-8"))
+    if not isinstance(release, dict):
+        raise ValueError("source release manifest must be an object")
     if release.get("release_id") != "wandb-full-corpus-20261018-v2":
         raise ValueError("unexpected source release id")
     if release.get("source_candidate", {}).get("sha256") != EXPECTED_CANDIDATE_SHA:

@@ -114,7 +114,7 @@ class _ExpertParallelLinear:
     pass
 
 
-def _make_ep_linear_cls():
+def _make_ep_linear_cls() -> type:
     """MoE ExpertParallelLinear via plain torch.
 
     num_experts experts; each expert = (W, b) Linear. EP shard mapping:
@@ -125,123 +125,129 @@ def _make_ep_linear_cls():
     import torch
     from torch import nn
 
-    class ExpertParallelLinear(nn.Module):
-        def __init__(
-            self, in_features: int, out_features: int, num_experts: int, ep_size: int, bias: bool = True
-        ) -> None:
-            super().__init__()
-            self.in_features = in_features
-            self.out_features = out_features
-            self.num_experts = num_experts
-            self.ep_size = ep_size
-            self.experts_per_rank = num_experts // ep_size
-            self.expert_weights = nn.ParameterList([nn.Parameter(torch.empty(num_experts, out_features, in_features))])
-            nn.init.normal_(self.expert_weights[0], std=0.02)
-            self.bias = bias
-            if bias:
-                self.expert_bias = nn.ParameterList([nn.Parameter(torch.zeros(num_experts, out_features))])
-            # ep_rank mapping (precomputed, for verification)
-            self.ep_rank_map = [expert_ep_rank(e, num_experts, ep_size) for e in range(num_experts)]
+    def _ep_init(
+        self: Any, in_features: int, out_features: int, num_experts: int, ep_size: int, *, bias: bool = True
+    ) -> None:
+        nn.Module.__init__(self)
+        self.in_features = in_features
+        self.out_features = out_features
+        self.num_experts = num_experts
+        self.ep_size = ep_size
+        self.experts_per_rank = num_experts // ep_size
+        self.expert_weights = nn.ParameterList([nn.Parameter(torch.empty(num_experts, out_features, in_features))])
+        nn.init.normal_(self.expert_weights[0], std=0.02)
+        self.bias = bias
+        if bias:
+            self.expert_bias = nn.ParameterList([nn.Parameter(torch.zeros(num_experts, out_features))])
+        # ep_rank mapping (precomputed, for verification)
+        self.ep_rank_map = [expert_ep_rank(e, num_experts, ep_size) for e in range(num_experts)]
 
-        def forward_single_expert(self, x: Any, expert_id: int) -> Any:
-            w = self.expert_weights[0][expert_id]
-            out = torch.nn.functional.linear(x, w)
-            if self.bias:
-                out = out + self.expert_bias[0][expert_id]
-            return out
+    def _forward_single_expert(self: Any, x: Any, expert_id: int) -> Any:
+        w = self.expert_weights[0][expert_id]
+        out = torch.nn.functional.linear(x, w)
+        if self.bias:
+            out = out + self.expert_bias[0][expert_id]
+        return out
 
-        def forward(self, x: Any, router_logits: Any, top_k: int):
-            """x: (B, S, D). router_logits: (B, S, num_experts). Returns
-            output tensor only (aux stored on self.last_aux for collection).
-            Routes each token to top_k experts, weighted sum.
-            """
-            B, S, D = x.shape
-            # Router softmax over experts
-            router_probs = torch.softmax(router_logits, dim=-1)  # (B,S,E)
-            topk_probs, topk_idx = torch.topk(router_probs, k=top_k, dim=-1)  # (B,S,k)
-            topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-9)
+    def _ep_forward(self: Any, x: Any, router_logits: Any, top_k: int) -> Any:
+        """x: (B, S, D). router_logits: (B, S, num_experts). Returns
+        output tensor only (aux stored on self.last_aux for collection).
+        Routes each token to top_k experts, weighted sum.
+        """
+        B, S, D = x.shape
+        # Router softmax over experts
+        router_probs = torch.softmax(router_logits, dim=-1)  # (B,S,E)
+        topk_probs, topk_idx = torch.topk(router_probs, k=top_k, dim=-1)  # (B,S,k)
+        topk_probs = topk_probs / (topk_probs.sum(dim=-1, keepdim=True) + 1e-9)
 
-            out = torch.zeros(B, S, D, dtype=x.dtype, device=x.device)
-            for k in range(top_k):
-                for e in range(self.num_experts):
-                    mask = topk_idx[..., k] == e  # (B,S) bool
-                    if not mask.any():
-                        continue
-                    expert_out = self.forward_single_expert(x, e)  # (B,S,D')
-                    weight = topk_probs[..., k : k + 1] * mask.unsqueeze(-1).float()  # (B,S,1)
-                    out = out + expert_out * weight
+        out = torch.zeros(B, S, D, dtype=x.dtype, device=x.device)
+        for k in range(top_k):
+            for e in range(self.num_experts):
+                mask = topk_idx[..., k] == e  # (B,S) bool
+                if not mask.any():
+                    continue
+                expert_out = self.forward_single_expert(x, e)  # (B,S,D')
+                weight = topk_probs[..., k : k + 1] * mask.unsqueeze(-1).float()  # (B,S,1)
+                out = out + expert_out * weight
 
-            # Load-balance aux loss (importance + load, per Switch Transformer)
-            self.last_aux = self._load_balance_loss(router_probs, topk_idx, topk_probs)
-            return out
+        # Load-balance aux loss (importance + load, per Switch Transformer)
+        self.last_aux = self._load_balance_loss(router_probs, topk_idx, topk_probs)
+        return out
 
-        def _load_balance_loss(self, router_probs: Any, topk_idx: Any, topk_probs: Any) -> Any:
-            """Switch-Transformer load-balance aux loss.
+    def _load_balance_loss(self: Any, router_probs: Any, topk_idx: Any, topk_probs: Any) -> Any:
+        """Switch-Transformer load-balance aux loss.
 
-            L = num_experts * sum_e (f_e * P_e)
-            f_e = fraction of tokens dispatched to expert e
-            P_e = mean router probability for expert e
-            """
-            B, S, E = router_probs.shape
-            n_tokens = B * S
-            # f_e: fraction routed to each expert (over all top-k dispatches)
-            one_hot = torch.zeros_like(router_probs)
-            src = torch.ones_like(topk_idx, dtype=router_probs.dtype)
-            for k in range(topk_idx.shape[-1]):
-                one_hot.scatter_add_(-1, topk_idx[..., k : k + 1], src[..., k : k + 1])
-            f = one_hot.sum(dim=(0, 1)) / (n_tokens * topk_idx.shape[-1] + 1e-9)  # (E,)
-            P = router_probs.mean(dim=(0, 1))  # (E,)
-            return E * (f * P).sum()
+        L = num_experts * sum_e (f_e * P_e)
+        f_e = fraction of tokens dispatched to expert e
+        P_e = mean router probability for expert e
+        """
+        B, S, E = router_probs.shape
+        n_tokens = B * S
+        # f_e: fraction routed to each expert (over all top-k dispatches)
+        one_hot = torch.zeros_like(router_probs)
+        src = torch.ones_like(topk_idx, dtype=router_probs.dtype)
+        for k in range(topk_idx.shape[-1]):
+            one_hot.scatter_add_(-1, topk_idx[..., k : k + 1], src[..., k : k + 1])
+        f = one_hot.sum(dim=(0, 1)) / (n_tokens * topk_idx.shape[-1] + 1e-9)  # (E,)
+        P = router_probs.mean(dim=(0, 1))  # (E,)
+        return E * (f * P).sum()
 
-    return ExpertParallelLinear
+    return type(
+        "ExpertParallelLinear",
+        (nn.Module,),
+        {
+            "__init__": _ep_init,
+            "forward_single_expert": _forward_single_expert,
+            "forward": _ep_forward,
+            "_load_balance_loss": _load_balance_loss,
+        },
+    )
 
 
 class _SelfAttnBlock:
     pass
 
 
-def _make_selfattn_block_cls():
+def _make_selfattn_block_cls() -> type:
     from torch import nn
 
-    class SelfAttnBlock(nn.Module):
-        def __init__(self, embed_dim: int, num_heads: int) -> None:
-            super().__init__()
-            self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
+    def _block_init(self: Any, embed_dim: int, num_heads: int) -> None:
+        nn.Module.__init__(self)
+        self.attn = nn.MultiheadAttention(embed_dim, num_heads, batch_first=True)
 
-        def forward(self, x):
-            out, _ = self.attn(x, x, x, need_weights=False)
-            return out
+    def _block_forward(self: Any, x: Any) -> Any:
+        out, _ = self.attn(x, x, x, need_weights=False)
+        return out
 
-    return SelfAttnBlock
+    return type("SelfAttnBlock", (nn.Module,), {"__init__": _block_init, "forward": _block_forward})
 
 
 class _MoELayer:
     pass
 
 
-def _make_moe_layer_cls():
+def _make_moe_layer_cls() -> type:
     """MoE layer: router (Linear D->num_experts) + ExpertParallelLinear + residual."""
     from torch import nn
 
-    class MoELayer(nn.Module):
-        def __init__(self, dim: int, num_experts: int, ep_size: int, top_k: int, aux_weight: float) -> None:
-            super().__init__()
-            self.dim = dim
-            self.num_experts = num_experts
-            self.ep_size = ep_size
-            self.top_k = top_k
-            self.aux_weight = aux_weight
-            self.router = nn.Linear(dim, num_experts, bias=False)
-            EPLinear = _make_ep_linear_cls()
-            self.expert_layer = EPLinear(dim, dim, num_experts, ep_size, bias=True)
+    def _moe_init(self: Any, *, dim: int, num_experts: int, ep_size: int, top_k: int, aux_weight: float) -> None:
+        nn.Module.__init__(self)
+        self.dim = dim
+        self.num_experts = num_experts
+        self.ep_size = ep_size
+        self.top_k = top_k
+        self.aux_weight = aux_weight
+        self.router = nn.Linear(dim, num_experts, bias=False)
+        EPLinear = _make_ep_linear_cls()
+        self.expert_layer = EPLinear(dim, dim, num_experts, ep_size, bias=True)
 
-        def forward(self, x):
-            router_logits = self.router(x)  # (B,S,E)
-            out = self.expert_layer(x, router_logits, self.top_k)
-            # aux stored on expert_layer.last_aux; collected by training loop
-            return x + out
+    def _moe_forward(self: Any, x: Any) -> Any:
+        router_logits = self.router(x)  # (B,S,E)
+        out = self.expert_layer(x, router_logits, self.top_k)
+        # aux stored on expert_layer.last_aux; collected by training loop
+        return x + out
 
-    return MoELayer
+    return type("MoELayer", (nn.Module,), {"__init__": _moe_init, "forward": _moe_forward})
 
 
 def build_moe_mock_model(cfg: MoEEPTrialConfig) -> Any:
@@ -254,7 +260,9 @@ def build_moe_mock_model(cfg: MoEEPTrialConfig) -> Any:
     layers = []
     for i in range(cfg.mock_layers):
         layers.append(SelfAttnBlock(cfg.mock_dim, cfg.mock_n_heads))
-        layers.append(MoELayer(cfg.mock_dim, cfg.num_experts, cfg.ep_size, cfg.top_k, cfg.aux_loss_weight))
+        layers.append(
+            MoELayer(dim=cfg.mock_dim, num_experts=cfg.num_experts, ep_size=cfg.ep_size, top_k=cfg.top_k, aux_weight=cfg.aux_loss_weight)
+        )
         layers.append(nn.GELU())
     return nn.Sequential(*layers)
 
@@ -277,7 +285,7 @@ def build_dense_baseline_model(cfg: MoEEPTrialConfig) -> Any:
     return nn.Sequential(*layers)
 
 
-def _timed_train_steps(model, cfg, optimizer, is_moe: bool) -> tuple[float, float, float]:
+def _timed_train_steps(model: Any, cfg: MoEEPTrialConfig, optimizer: Any, is_moe: bool) -> tuple[float, float, float]:
     """Run cfg.train_steps. Return (total_time_s, last_loss, last_aux_loss)."""
     import torch
 
@@ -319,8 +327,8 @@ def run_moe_ep_trial(cfg: MoEEPTrialConfig) -> int:
 
     errs = cfg.validate()
     if errs:
-        for e in errs:
-            print(f"[PIX-4352] CONFIG ERROR: {e}")
+        for err in errs:
+            print(f"[PIX-4352] CONFIG ERROR: {err}")
         return 2
 
     has_gpu, gpu_notes = _check_gpu_env()
@@ -358,7 +366,7 @@ def run_moe_ep_trial(cfg: MoEEPTrialConfig) -> int:
 
     # Direct MoE forward test (verify router + expert dispatch + aux loss)
     MoELayer = _make_moe_layer_cls()
-    test_moe = MoELayer(cfg.mock_dim, cfg.num_experts, cfg.ep_size, cfg.top_k, cfg.aux_loss_weight)
+    test_moe = MoELayer(dim=cfg.mock_dim, num_experts=cfg.num_experts, ep_size=cfg.ep_size, top_k=cfg.top_k, aux_weight=cfg.aux_loss_weight)
     test_x = __import__("torch").randn(2, 8, cfg.mock_dim)
     test_out = test_moe(test_x)
     test_aux = test_moe.expert_layer.last_aux
