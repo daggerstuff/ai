@@ -177,6 +177,45 @@ def test_curation_split_path_uses_stratification(tmp_path: Path) -> None:
     assert gate_result is not None, "split path must record integrity_gates verdict"
     assert gate_result["passed"] is True, gate_result["issues"]
 
+def test_split_path_emits_release_manifest(tmp_path: Path) -> None:
+    """The split path writes release_manifest.json next to the master shards.
+
+    Pins the P13 emission contract (PIX-4584): the pipeline emits the release
+    manifest through the canonical ``build_release_manifest`` builder, with
+    all eight evidence sections, human review left pending, and per-shard
+    file checksums matching the shards written by the same run.
+    """
+    records = _build_input_records()
+    input_path = _write_input(tmp_path, records)
+    output_dir = tmp_path / "out"
+
+    run_pipeline(str(input_path), str(output_dir), dry_run=False, stage1_filters=False)
+
+    manifest_path = output_dir / "sft_chatml" / "release_manifest.json"
+    assert manifest_path.exists(), "split path must emit release_manifest.json"
+    with open(manifest_path, encoding="utf-8") as f:
+        manifest: dict[str, Any] = json.load(f)
+
+    for section in (
+        "distribution",
+        "leakage",
+        "provenance",
+        "pii",
+        "hash",
+        "statistics",
+        "dvc_lineage",
+        "human_review",
+    ):
+        assert section in manifest, f"manifest missing evidence section: {section}"
+    assert manifest["human_review"]["status"] == "pending"
+    assert manifest["split_ratio"] == list(DEFAULT_RATIO)
+
+    # Per-shard checksums must describe the shards this run wrote.
+    for name in ("train", "val", "test"):
+        shard = output_dir / "sft_chatml" / f"{name}.jsonl"
+        digest = hashlib.md5(shard.read_bytes()).hexdigest()
+        assert manifest["hash"]["file_checksums"][name] == digest
+
 
 def test_leaky_split_fails_integrity_gates() -> None:
     """A split that shares a conversation across splits fails the gates."""

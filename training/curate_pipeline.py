@@ -58,6 +58,7 @@ from training.dataset_splitter_stratified import (
     integrity_gates,
     stratified_split,
 )
+from training.release_manifest import build_release_manifest
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -319,6 +320,35 @@ def _split_group_metadata(record: dict[str, Any], chash: str) -> dict[str, str]:
         or chash
     )
     return {"source_family": family, "source_id": source_id}
+
+def _emit_release_manifest(
+    splits: dict[str, list[dict[str, Any]]],
+    out_dir: Path,
+    gates_passed: bool,
+) -> None:
+    """Emit the P13 release manifest for the master ``sft_chatml`` split.
+
+    Reuses the canonical P13 builder that the standalone splitter's CLI wires
+    in (``training.release_manifest.build_release_manifest``), so pipeline
+    runs and standalone splitter runs emit the same evidence schema
+    (distribution, leakage, provenance, PII, hash, statistics, DVC lineage,
+    human-review status). Emission is non-fatal: the split data is already
+    written and valid at this point, so a failure only logs a warning.
+    """
+    try:
+        manifest = build_release_manifest(
+            splits=splits,
+            ratio=DEFAULT_RATIO,
+            out_dir=out_dir,
+            gates_passed=gates_passed,
+        )
+    except Exception as e:
+        logger.warning("could not build release manifest: %s", e)
+        return
+    manifest_path = out_dir / "release_manifest.json"
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    print(f"Wrote release manifest to {manifest_path}", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
@@ -657,6 +687,16 @@ def run_pipeline(
                         payload = {k: v for k, v in item.items() if k != "metadata"}
                         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
                 stats.split_counts[subdir][split_name] = len(by_split.get(split_name, []))
+
+            # P13 evidence (PIX-4584): the master split emits its release
+            # manifest next to the shards it describes, via the same builder
+            # the standalone splitter CLI uses.
+            if subdir == "sft_chatml" and master_splits:
+                _emit_release_manifest(
+                    master_splits,
+                    split_dir,
+                    gates_passed=bool(stats.split_integrity["sft_chatml"]["passed"]),
+                )
 
     if stage1_chain is not None:
         stage1_summary = stage1_chain.summary()
