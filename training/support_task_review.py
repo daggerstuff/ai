@@ -51,7 +51,7 @@ SENTENCE_REQUEST = re.compile(
 )
 
 
-def explicit_format_issue(messages: list[dict], response: str) -> str:
+def explicit_format_issue(messages: list[dict[str, Any]], response: str) -> str:
     users = [m.get("content", "") for m in messages if m.get("role") == "user"]
     match = SENTENCE_REQUEST.search(users[-1]) if users else None
     if match is None:
@@ -67,7 +67,7 @@ def explicit_format_issue(messages: list[dict], response: str) -> str:
     return ""
 
 
-def response_format() -> dict:
+def response_format() -> dict[str, Any]:
     return {
         "type": "json_schema",
         "json_schema": {
@@ -86,7 +86,7 @@ def response_format() -> dict:
     }
 
 
-def validate(value: object) -> dict:
+def validate(value: object) -> dict[str, Any]:
     if (
         not isinstance(value, dict)
         or set(value) != {"met", "correction"}
@@ -103,7 +103,7 @@ def adjustment_spans(response: str) -> dict[str, str]:
     return {f"s{i}": response[start : start + 160] for i, start in enumerate(range(0, len(response), 120))}
 
 
-def adjustment_format(response: str) -> dict:
+def adjustment_format(response: str) -> dict[str, Any]:
     return {
         "type": "json_schema",
         "json_schema": {
@@ -122,7 +122,7 @@ def adjustment_format(response: str) -> dict:
     }
 
 
-def validate_adjustment(value: object, response: str) -> dict:
+def validate_adjustment(value: object, response: str) -> dict[str, Any]:
     if (
         not isinstance(value, dict)
         or set(value) != {"offers_practical_action", "adjustment_evidence_id"}
@@ -145,9 +145,9 @@ def validate_adjustment(value: object, response: str) -> dict:
 
 
 class TaskResponseReviewer:
-    def __init__(self, transport: Any, arm: dict, certificate: dict | None = None):
+    def __init__(self, transport: Any, arm: dict[str, Any], certificate: dict[str, Any] | None = None):
         self.transport, self.arm, self.certificate = transport, arm.copy(), certificate
-        self.audit: list[dict] = []
+        self.audit: list[dict[str, Any]] = []
 
     def require_calibration(self) -> None:
         if (
@@ -160,7 +160,9 @@ class TaskResponseReviewer:
         ):
             raise ValueError("task reviewer calibration is absent or mismatched")
 
-    def review(self, messages: list[dict], response: str, *, require_adjustment: bool = False) -> dict:
+    def review(
+        self, messages: list[dict[str, Any]], response: str, *, require_adjustment: bool = False
+    ) -> dict[str, Any]:
         issue = explicit_format_issue(messages, response)
         if issue:
             value = {"met": False, "correction": issue}
@@ -211,12 +213,13 @@ class TaskResponseReviewer:
             or not 0 <= usage["completion_tokens"] <= OUTPUT_CAP
         ):
             raise ValueError("incomplete task review or invalid usage")
-        entry["result"] = validate(json.loads(result["response"]))
-        if require_adjustment and entry["result"]["met"]:
+        result_value = validate(json.loads(result["response"]))
+        entry["result"] = result_value
+        if require_adjustment and result_value["met"]:
             return self._adjustment_check(messages, response)
-        return entry["result"]
+        return result_value
 
-    def _adjustment_check(self, messages: list[dict], response: str) -> dict:
+    def _adjustment_check(self, messages: list[dict[str, Any]], response: str) -> dict[str, Any]:
         request = [
             {"role": "system", "content": ADJUSTMENT_INSTRUCTION},
             {
@@ -263,7 +266,9 @@ class TaskResponseReviewer:
             or not 0 <= usage["completion_tokens"] <= OUTPUT_CAP
         ):
             raise ValueError("incomplete adjustment quote review")
-        entry["raw_judgment"] = json.loads(result["response"])
-        entry["result"] = validate_adjustment(entry["raw_judgment"], response)
-        entry["evidence_excerpt"] = adjustment_spans(response).get(entry["raw_judgment"]["adjustment_evidence_id"])
-        return entry["result"]
+        raw_judgment = json.loads(result["response"])
+        entry["raw_judgment"] = raw_judgment
+        result_value = validate_adjustment(raw_judgment, response)
+        entry["result"] = result_value
+        entry["evidence_excerpt"] = adjustment_spans(response).get(raw_judgment["adjustment_evidence_id"])
+        return result_value

@@ -25,7 +25,10 @@ def _extract(pattern: str, case: dict[str, Any]) -> re.Match[str]:
 
 
 def _variant(case: dict[str, Any], templates: tuple[str, ...], **values: str) -> str:
-    case_index = int(re.search(r"-(\d+)$", case["id"]).group(1))
+    id_match = re.search(r"-(\d+)$", case["id"])
+    if not id_match:
+        raise ValueError(f"missing numeric id suffix in {case['id']}")
+    case_index = int(id_match.group(1))
     template = templates[case_index % len(templates)]
     return template.format(**values)
 
