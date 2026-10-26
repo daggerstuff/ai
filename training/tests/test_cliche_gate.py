@@ -1,8 +1,11 @@
 """Tests for the zero-tolerance cliché / sycophancy rejection gate."""
 
+import pytest
+
 from training.cliche_gate import (
     ASSISTANT_ROLES,
     BANNED_OPENERS,
+    CANNED_REFLECTIONS,
     CAVING_PHRASES,
     PARROTING_OPENERS,
     ROBOTIC_CRISIS_QUESTIONS,
@@ -31,6 +34,23 @@ def test_banned_opener_after_newline():
     is_bad, reason = is_sycophantic("I noticed you paused.\nThank you for sharing that.")
     assert is_bad is True
     assert "thank you for sharing" in reason
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "I'm glad you told me; let's work through it.",
+        "I\u2019m glad you\u2019re thinking about this.",
+        "It\u2019s helpful to know you feel overlooked.",
+        "It makes sense that you're upset.",
+        "The situation is difficult, and I hear that.",
+        "I understand wanting a clear answer.",
+    ],
+)
+def test_stock_reflections_are_rejected_anywhere(text):
+    rejected, reason = is_sycophantic(text)
+    assert rejected
+    assert reason.startswith(("banned_sycophantic_opener", "canned_reflection"))
 
 
 def test_caving_phrase_detected():
@@ -492,5 +512,6 @@ def test_policy_lists_are_nonempty():
     assert CAVING_PHRASES
     assert ROBOTIC_CRISIS_QUESTIONS
     assert PARROTING_OPENERS
+    assert CANNED_REFLECTIONS
     assert ROBOTIC_SOMATIC_PHRASES
     assert ASSISTANT_ROLES

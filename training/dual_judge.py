@@ -964,8 +964,14 @@ async def _run_live_calibration_async(
     url: str = DEFAULT_JUDGE_URL,
     primary_model: str = PRIMARY_MODEL,
     accept_threshold: float = ACCEPT_THRESHOLD,
-) -> dict[str, Any]:
-    """Execute live judge evaluation across all golden calibration samples."""
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Execute live judge evaluation across all golden calibration samples.
+
+    Returns ``(summary, detail)``: ``summary`` is the stdout report with its
+    existing shape; ``detail`` adds per-sample judge-vs-human rows,
+    per-dimension correlations, ``sample_count``, and the endpoint + primary
+    model ids actually used (written by ``--report-out``).
+    """
     golden_scores, samples = _load_golden_jsonl(golden_path)
     logger.info("Loaded %d golden samples from %s for live calibration", len(samples), golden_path)
 
@@ -979,6 +985,7 @@ async def _run_live_calibration_async(
 
     completed_count = 0
     total_count = len(samples)
+    sample_rows: dict[int, dict[str, Any]] = {}
 
     async with aiohttp.ClientSession() as session:
 
@@ -1006,6 +1013,16 @@ async def _run_live_calibration_async(
                     )
 
                 completed_count += 1
+                hs_dict = sample.get("human_scores", {})
+                sample_rows[idx] = {
+                    "id": sid,
+                    "judge_score": verdict.quality_score,
+                    "human_score": hs_mean,
+                    "judge_dim_scores": {
+                        d: float(verdict.dim_scores.get(d, 0.0)) for d in DIMENSIONS
+                    },
+                    "human_dim_scores": {d: float(hs_dict.get(d, 0.0)) for d in DIMENSIONS},
+                }
                 diff = verdict.quality_score - hs_mean
                 pct = (completed_count / total_count) * 100.0
                 print(
@@ -1026,7 +1043,15 @@ async def _run_live_calibration_async(
 
     passed_gate = stats["pearson_r"] >= CALIB_PEARSON_MIN and kappa >= CALIB_KAPPA_MIN
 
-    return {
+    ordered_rows = [sample_rows[i] for i in sorted(sample_rows)]
+    per_dim: dict[str, float] = {}
+    for dim in DIMENSIONS:
+        per_dim[dim] = _compute_stats(
+            [row["human_dim_scores"][dim] for row in ordered_rows],
+            [row["judge_dim_scores"][dim] for row in ordered_rows],
+        )["pearson_r"]
+
+    summary: dict[str, Any] = {
         "golden_samples": len(samples),
         "golden_score_mean": round(sum(golden_scores) / len(golden_scores), 4) if golden_scores else 0.0,
         "judge_score_mean": round(sum(judge_scores) / len(judge_scores), 4) if judge_scores else 0.0,
@@ -1044,6 +1069,15 @@ async def _run_live_calibration_async(
         },
         "verdict": "PASSED" if passed_gate else "FAILED",
     }
+    detail: dict[str, Any] = {
+        **summary,
+        "sample_count": len(samples),
+        "per_sample": ordered_rows,
+        "per_dim_correlations": per_dim,
+        "endpoint": url,
+        "primary_model": primary_model,
+    }
+    return summary, detail
 
 
 def _run_calibration(
@@ -1052,18 +1086,24 @@ def _run_calibration(
     live: bool = False,
     url: str = DEFAULT_JUDGE_URL,
     primary_model: str = PRIMARY_MODEL,
+    report_out: str | None = None,
 ) -> int:
     """Run calibration against golden set and print report. Returns exit code."""
     if live:
-        report = asyncio.run(
+        summary, detail = asyncio.run(
             _run_live_calibration_async(
                 golden_path,
                 url=url,
                 primary_model=primary_model,
             )
         )
-        print(json.dumps(report, indent=2))
-        return 0 if report.get("gate", {}).get("passed", False) else 1
+        if report_out:
+            out_path = Path(report_out)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(json.dumps(detail, indent=2) + "\n", encoding="utf-8")
+            logger.info("Calibration report written to %s", out_path)
+        print(json.dumps(summary, indent=2))
+        return 0 if summary.get("gate", {}).get("passed", False) else 1
 
     golden_scores, samples = _load_golden_jsonl(golden_path)
     logger.info("Loaded %d golden samples from %s (dry-run)", len(samples), golden_path)
@@ -1108,6 +1148,13 @@ def main() -> None:
     )
     parser.add_argument("--primary-model", type=str, default=PRIMARY_MODEL, help="Primary judge model id")
     parser.add_argument("--secondary-model", type=str, default=SECONDARY_MODEL, help="Secondary judge model id")
+    parser.add_argument(
+        "--report-out",
+        type=str,
+        default=os.environ.get("DUAL_JUDGE_REPORT_OUT"),
+        help="Write the live calibration report (per-sample scores, metrics, per-dim "
+        "correlations, thresholds, endpoint+models) to this JSON file (DUAL_JUDGE_REPORT_OUT)",
+    )
     args = parser.parse_args()
 
     # Calibration mode: --golden PATH runs calibration (live judging with
@@ -1119,6 +1166,7 @@ def main() -> None:
                 live=args.judge,
                 url=args.url,
                 primary_model=args.primary_model,
+                report_out=args.report_out,
             )
         )
 

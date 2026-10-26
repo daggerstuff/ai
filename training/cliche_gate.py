@@ -15,6 +15,8 @@ from typing import Any
 
 # Handoff constraint #2 — anti-sycophancy openers.
 BANNED_OPENERS: tuple[str, ...] = (
+    "i'm glad you told me",
+    "it makes sense that",
     "i hear how",
     "it makes sense that you feel",
     "i understand your frustration",
@@ -27,6 +29,20 @@ BANNED_OPENERS: tuple[str, ...] = (
     "i can imagine how",
     "i hear your",
     "it sounds like",
+)
+
+# Stock acknowledgment fragments are common mid-sentence as well as at turn
+# openings, so these are rejected anywhere in an assistant response.
+CANNED_REFLECTIONS: tuple[str, ...] = (
+    "i'm glad",
+    "i understand wanting",
+    "it makes sense that",
+    "it sounds like",
+    "i hear that",
+    "i hear you",
+    "it's helpful to know",
+    "i understand you're feeling",
+    "holding space",
 )
 
 # Caving / backtracking phrases that undercut the clinician's own position.
@@ -95,7 +111,14 @@ def is_sycophantic(text: str) -> tuple[bool, str]:
     otherwise ``(False, "")``."""
     if not text or not isinstance(text, str):
         return False, ""
-    t_lower = text.strip().lower()
+    t_lower = (
+        text.strip()
+        .replace("\u2018", "'")
+        .replace("\u2019", "'")
+        .replace("\u201c", '"')
+        .replace("\u201d", '"')
+        .lower()
+    )
 
     # Prefix checks (at string start or right after a newline)
     for prefix in BANNED_OPENERS:
@@ -104,6 +127,10 @@ def is_sycophantic(text: str) -> tuple[bool, str]:
     for prefix in PARROTING_OPENERS:
         if t_lower.startswith(prefix) or f"\n{prefix}" in t_lower:
             return True, f"banned_parroting_opener: '{prefix}'"
+
+    for phrase in CANNED_REFLECTIONS:
+        if phrase in t_lower:
+            return True, f"canned_reflection: '{phrase}'"
 
     # Substring checks anywhere in the utterance
     checks: tuple[tuple[tuple[str, ...], str], ...] = (
@@ -170,38 +197,31 @@ def correction_for_reason(reason: str, *, draft: str = "") -> str:
     text = f"CORRECTION: The draft was rejected ({reason})."
     if draft:
         text += f"\nRejected draft: {draft!r}\n"
-    if tag == "caving_phrase_detected":
-        return text + (
-            " Your previous draft CAVED: it apologized, agreed with the client, or backed off "
-            "your clinical position under pressure."
-            " Do NOT apologize. Do NOT say 'you're right' or agree with the client's framing."
-            " Do NOT soften, retract, or offer to drop the topic. Hold the therapist's frame:"
-            " stay steady, engage the client's pressure directly from clinical authority,"
-            " and keep the therapeutic stance."
-        )
-    if tag == "banned_sycophantic_opener":
-        return text + (
-            " The draft opened with agreement, praise, or a reflective cliché"
-            " ('I hear...', 'It sounds like...')."
-            " Rewrite the opening with direct clinical engagement in the therapist's own words."
-        )
-    if tag == "banned_parroting_opener":
-        return text + (
-            " The draft quoted or echoed the client's words back."
-            " Rewrite responding to the meaning underneath instead of repeating the phrasing."
-        )
-    if tag == "robotic_crisis_questionnaire":
-        return text + (
-            " The draft used a checklist-style liability questionnaire."
-            " Assess safety in one natural, human question woven into genuine engagement."
-        )
-    if tag == "robotic_somatic_cliche":
-        return text + (
-            " The draft deflected with a canned body-sensation line."
-            " Rewrite engaging the client's actual situation and dynamic."
-        )
-    return text + (
-        " Do NOT parrot the client's words, do NOT quote them back,"
-        " do NOT use reflective clichés, and do NOT apologize or cave under pressure."
-        " Respond directly and naturally to the client's actual situation and dynamic."
+    guidance = {
+        "caving_phrase_detected": (
+            " The draft reflexively agreed, apologized, or retreated. Don't agree just to appease or retract a "
+            "justified boundary. Respond to the concern directly and correct any actual mistake plainly."
+        ),
+        "banned_sycophantic_opener": (
+            " The draft opened with praise or a reflective cliché. Start with direct engagement in your own words."
+        ),
+        "banned_parroting_opener": (
+            " The draft quoted or echoed the user's words. Respond to the meaning instead of repeating the phrasing."
+        ),
+        "canned_reflection": (
+            " The draft relied on a stock empathy phrase. Remove it and address the specific situation or request "
+            "in direct, natural language. Do not repeat the user's wording."
+        ),
+        "robotic_crisis_questionnaire": (
+            " The draft used a checklist-style crisis question. Ask one natural, direct question that clarifies "
+            "the immediate risk."
+        ),
+        "robotic_somatic_cliche": (
+            " The draft deflected with a canned body-sensation question. Engage with the user's actual situation."
+        ),
+    }
+    generic = (
+        " Avoid parroting or quoting the user's words, stock reflections, and reflexive agreement. Respond directly "
+        "to the actual situation and request."
     )
+    return text + guidance.get(tag, generic)

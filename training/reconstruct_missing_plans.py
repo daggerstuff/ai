@@ -615,6 +615,15 @@ Return ONLY the complete JSON plan object.
 # ---------------------------------------------------------------------------
 # Per-arc reconstruction
 # ---------------------------------------------------------------------------
+def choose_mode(arc_id: str, records: dict[str, dict[str, Any]]) -> str:
+    """Record with beats_planned + timeline_final -> Mode A (mechanical ground truth),
+    otherwise Mode B (LLM redesign from checkpoint transcripts)."""
+    rec = records.get(arc_id)
+    if rec is not None and rec.get("beats_planned") and rec.get("timeline_final"):
+        return "A"
+    return "B"
+
+
 async def reconstruct_one(
     arc_id: str,
     mode: str,
@@ -1170,7 +1179,7 @@ async def main_async(args: argparse.Namespace) -> None:
             uniq.append(a)
     target_ids = uniq
 
-    print(f"[recon] targets: {target_ids} (mode A={len([x for x in target_ids if x in MODE_A_ARCS])} mode B={len([x for x in target_ids if x in MODE_B_ARCS])})", flush=True)
+    print(f"[recon] targets: {len(target_ids)}", flush=True)
     print(f"[recon] writer: {WRITER_MODEL} @ {WRITER_URL}", flush=True)
     print(f"[recon] seed_map: {SEED_MAP_PATH}  records: {RECORDS_PATH}  checkpoint: {CHECKPOINT_PATH}", flush=True)
 
@@ -1185,13 +1194,13 @@ async def main_async(args: argparse.Namespace) -> None:
     for aid in target_ids:
         if aid not in seed_map:
             print(f"[warn] {aid} not in seed_map — will attempt but may fail", flush=True)
-        if aid in MODE_A_ARCS and aid not in records:
+        if choose_mode(aid, records) == "A" and aid not in records:
             raise SystemExit(f"[fatal] Mode A target {aid} not in arc_records.jsonl")
 
     if args.dry_run:
         print("[recon] --dry-run: not calling LLM, verifying skeletons only", flush=True)
         for aid in target_ids:
-            if aid in MODE_A_ARCS:
+            if choose_mode(aid, records) == "A":
                 rec = records[aid]
                 tl = parse_timeline_final(rec.get("timeline_final", ""))
                 sk = clamp_sessions(rec.get("sessions", []))
@@ -1206,32 +1215,43 @@ async def main_async(args: argparse.Namespace) -> None:
 
     # Pre-flight single LLM probe
     print("[recon] probing writer route...", flush=True)
-    async with aiohttp.ClientSession() as probe_sess:
-        probe_payload = {
-            "model": WRITER_MODEL,
-            "messages": [{"role": "user", "content": "Reply with exactly: {\"ok\": true}"}],
-            "max_tokens": 16,
-            "temperature": 0.0,
-            "response_format": {"type": "json_object"},
-        }
-        if "cheaperinference" in WRITER_URL or "nvidia" in WRITER_URL.lower():
-            probe_payload["reasoning_effort"] = "none"
-        else:
-            probe_payload["chat_template_kwargs"] = {"thinking": False}
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-        async with probe_sess.post(WRITER_URL, headers=headers, json=probe_payload,
-                                    timeout=aiohttp.ClientTimeout(total=30)) as resp:
-            body = await resp.text()
-            if resp.status != 200:
-                raise SystemExit(f"[fatal] writer probe HTTP {resp.status}: {body[:800]}")
-            print(f"[recon] probe OK: {body[:200]!r}", flush=True)
+    probe_ok = False
+    probe_body = ""
+    for probe_attempt in range(5):
+        async with aiohttp.ClientSession() as probe_sess:
+            probe_payload = {
+                "model": WRITER_MODEL,
+                "messages": [{"role": "user", "content": "Reply with exactly: {\"ok\": true}"}],
+                "max_tokens": 16,
+                "temperature": 0.0,
+                "response_format": {"type": "json_object"},
+            }
+            if "cheaperinference" in WRITER_URL or "nvidia" in WRITER_URL.lower():
+                probe_payload["reasoning_effort"] = "none"
+            else:
+                probe_payload["chat_template_kwargs"] = {"thinking": False}
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            try:
+                async with probe_sess.post(WRITER_URL, headers=headers, json=probe_payload,
+                                            timeout=aiohttp.ClientTimeout(total=60)) as resp:
+                    probe_body = await resp.text()
+                    if resp.status == 200:
+                        probe_ok = True
+                        print(f"[recon] probe OK (attempt {probe_attempt + 1}): {probe_body[:200]!r}", flush=True)
+                        break
+            except (asyncio.TimeoutError, aiohttp.ClientError) as e:
+                probe_body = f"exception: {e}"
+        print(f"[recon] probe attempt {probe_attempt + 1} failed: {probe_body[:200]!r}; retrying...", flush=True)
+        await asyncio.sleep(10 * (probe_attempt + 1))
+    if not probe_ok:
+        raise SystemExit(f"[fatal] writer probe failed after 5 attempts: {probe_body[:800]}")
 
     sem = asyncio.Semaphore(args.concurrency)
     results: dict[str, str] = {}
 
     async def one(aid: str) -> None:
         async with sem:
-            mode = "A" if aid in MODE_A_ARCS else "B"
+            mode = choose_mode(aid, records)
             print(f"[recon] start {aid} (mode {mode})...", flush=True)
             try:
                 async with aiohttp.ClientSession() as sess:
