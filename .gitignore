@@ -233,6 +233,7 @@ training/tests/*
 !training/tests/test_orpo_trainer.py
 !training/tests/test_orpo_integration.py
 !training/tests/test_dual_judge_report_out.py
+!training/tests/test_dual_judge_checkpoint.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl

@@ -958,6 +958,88 @@ def _human_mean(sample: dict) -> float:
     return sum(dim_vals) / len(dim_vals) if dim_vals else 0.0
 
 
+def _load_checkpoint(path: str | None) -> dict[str, dict[str, Any]]:
+    """Load per-sample judge rows from a checkpoint JSONL, keyed by sample id.
+
+    The live calibration can run for hours; ``DUAL_JUDGE_CHECKPOINT`` makes
+    each completed sample durable so a crashed or killed run can resume
+    without re-paying the judge latency for samples already scored. Malformed
+    lines are skipped so a mid-write kill cannot poison the resume.
+    """
+
+    if not path:
+        return {}
+    p = Path(path)
+    if not p.exists():
+        return {}
+    rows: dict[str, dict[str, Any]] = {}
+    with p.open(encoding="utf-8") as f:
+        for line in f:
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(row, dict) and row.get("id"):
+                rows[str(row["id"])] = row
+    return rows
+
+def _append_checkpoint_row(path: str | None, row: dict[str, Any]) -> None:
+    """Append one completed sample row to the checkpoint JSONL (if enabled)."""
+
+    if not path:
+        return
+    with Path(path).open("a", encoding="utf-8") as f:
+        f.write(json.dumps(row) + "\n")
+
+def _checkpoint_resume_verdict(
+    checkpointed_row: dict[str, Any],
+    sid: str,
+    hs_mean: float,
+    *,
+    hs_dict: Mapping[str, Any],
+    sample_rows: dict[int, dict[str, Any]],
+    idx: int,
+) -> JudgeVerdict:
+    """Rebuild the judge verdict for a sample already durably checkpointed.
+
+    Records the resumed row into ``sample_rows`` so the final report keeps
+    the same per-sample shape as freshly judged samples.
+    """
+
+    cached_score = float(checkpointed_row.get("judge_score", 0.0))
+    cached_dims = {
+        d: float(checkpointed_row.get("judge_dim_scores", {}).get(d, 0.0)) for d in DIMENSIONS
+    }
+    sample_rows[idx] = {
+        "id": sid,
+        "judge_score": cached_score,
+        "human_score": hs_mean,
+        "judge_dim_scores": cached_dims,
+        "human_dim_scores": {d: float(hs_dict.get(d, 0.0)) for d in DIMENSIONS},
+    }
+    return JudgeVerdict(quality_score=cached_score, dim_scores=cached_dims, reasoning="checkpoint_resume")
+
+def _print_sample_progress(
+    completed: int,
+    total: int,
+    sid: str,
+    judge_score: float,
+    human_score: float,
+    *,
+    resumed: bool = False,
+) -> None:
+    """Print the per-sample calibration progress line (shared by both paths)."""
+
+    pct = (completed / total) * 100.0 if total else 0.0
+    suffix = " [resumed]" if resumed else ""
+    print(
+        f"  [{completed:3d}/{total}] ({pct:5.1f}%) id={sid:<16} judge={judge_score:.2f} "
+        f"human={human_score:.2f} (diff={judge_score - human_score:+.2f}){suffix}",
+        flush=True,
+    )
+
 async def _run_live_calibration_async(
     golden_path: str,
     *,
@@ -986,6 +1068,10 @@ async def _run_live_calibration_async(
     completed_count = 0
     total_count = len(samples)
     sample_rows: dict[int, dict[str, Any]] = {}
+    checkpoint_path = os.environ.get("DUAL_JUDGE_CHECKPOINT") or None
+    checkpointed = _load_checkpoint(checkpoint_path)
+    if checkpointed:
+        logger.info("Resuming calibration: %d samples already checkpointed", len(checkpointed))
 
     async with aiohttp.ClientSession() as session:
 
@@ -993,10 +1079,27 @@ async def _run_live_calibration_async(
             nonlocal completed_count
             sid = sample.get("id", f"sample-{idx + 1:04d}")
             hs_mean = _human_mean(sample)
+            hs_dict = sample.get("human_scores", {})
+
+            if sid in checkpointed:
+                resumed_verdict = _checkpoint_resume_verdict(
+                    checkpointed[sid],
+                    sid,
+                    hs_mean,
+                    hs_dict=hs_dict,
+                    sample_rows=sample_rows,
+                    idx=idx,
+                )
+                completed_count += 1
+                _print_sample_progress(
+                    completed_count, total_count, sid, resumed_verdict.quality_score, hs_mean, resumed=True
+                )
+                return resumed_verdict
+
             prompt, asst_for_eval, user_for_eval = _build_sample_prompt(sample)
 
             async with sem:
-                verdict = await _eval_sample_cf(
+                verdict: JudgeVerdict | None = await _eval_sample_cf(
                     session,
                     prompt=prompt,
                     primary_model=primary_model,
@@ -1013,7 +1116,6 @@ async def _run_live_calibration_async(
                     )
 
                 completed_count += 1
-                hs_dict = sample.get("human_scores", {})
                 sample_rows[idx] = {
                     "id": sid,
                     "judge_score": verdict.quality_score,
@@ -1023,12 +1125,8 @@ async def _run_live_calibration_async(
                     },
                     "human_dim_scores": {d: float(hs_dict.get(d, 0.0)) for d in DIMENSIONS},
                 }
-                diff = verdict.quality_score - hs_mean
-                pct = (completed_count / total_count) * 100.0
-                print(
-                    f"  [{completed_count:3d}/{total_count}] ({pct:5.1f}%) id={sid:<16} judge={verdict.quality_score:.2f} human={hs_mean:.2f} (diff={diff:+.2f})",
-                    flush=True,
-                )
+                _append_checkpoint_row(checkpoint_path, sample_rows[idx])
+                _print_sample_progress(completed_count, total_count, sid, verdict.quality_score, hs_mean)
                 return verdict
 
         tasks = [_eval_sample(s, i) for i, s in enumerate(samples)]
