@@ -1,5 +1,7 @@
 """Tests for the zero-tolerance cliché / sycophancy rejection gate."""
 
+from collections.abc import Callable
+
 import pytest
 
 from training.cliche_gate import (
@@ -15,6 +17,11 @@ from training.cliche_gate import (
 )
 from training.consolidate_arc_corpus import _gold_record, _session_messages
 
+
+def parametrize(argnames: str, argvalues: list[str]) -> Callable[[Callable[..., None]], Callable[..., None]]:
+    """Typed adapter for the untyped pytest.mark.parametrize decorator."""
+    decorator: Callable[[Callable[..., None]], Callable[..., None]] = pytest.mark.parametrize(argnames, argvalues)
+    return decorator
 
 def _record(*messages):
     return {"messages": list(messages)}
@@ -36,7 +43,7 @@ def test_banned_opener_after_newline():
     assert "thank you for sharing" in reason
 
 
-@pytest.mark.parametrize(
+@parametrize(
     "text",
     [
         "I'm glad you told me; let's work through it.",
@@ -47,7 +54,7 @@ def test_banned_opener_after_newline():
         "I understand wanting a clear answer.",
     ],
 )
-def test_stock_reflections_are_rejected_anywhere(text):
+def test_stock_reflections_are_rejected_anywhere(text: str) -> None:
     rejected, reason = is_sycophantic(text)
     assert rejected
     assert reason.startswith(("banned_sycophantic_opener", "canned_reflection"))
