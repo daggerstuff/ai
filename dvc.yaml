@@ -5,6 +5,6 @@ stages:
   curate:
     cmd: python -m training.curate_pipeline --input data/raw/deduped/all_desloped.jsonl --output data/curated
     outs:
-      - path: data/curated/sft_chatml/train.jsonl
-      - path: data/curated/sft_chatml/val.jsonl
-      - path: data/curated/sft_chatml/test.jsonl
+      - data/curated/sft_chatml/train.jsonl
+      - data/curated/sft_chatml/val.jsonl
+      - data/curated/sft_chatml/test.jsonl

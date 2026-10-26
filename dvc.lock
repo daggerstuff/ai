@@ -1,0 +1,18 @@
+# DVC pipeline lock file - generated
+schema: '2.0'
+stages:
+  curate:
+    cmd: python -m training.curate_pipeline --input data/raw/deduped/all_desloped.jsonl --output data/curated
+    outs:
+      - path: data/curated/sft_chatml/train.jsonl
+        md5: 206950962300150906569530e3a78438
+        hash: md5
+        size: 370849757
+      - path: data/curated/sft_chatml/val.jsonl
+        md5: 30f3fc7fdc98ad5563cf10009134cca7
+        hash: md5
+        size: 78985762
+      - path: data/curated/sft_chatml/test.jsonl
+        md5: 41a146c85458b662110051217039832d
+        hash: md5
+        size: 79452012

@@ -289,9 +289,6 @@ journal_dataset_research/sessions/
 # (registered in .gitmodules; initialize with: git submodule update --init DataDesigner)
 /DataDesigner/
 
-# Stale DVC lock generated from the wrong working directory
-# (paths start with ai/ but this repo's dvc.yaml outs are data/...)
-/dvc.lock
 
 # Vendored toolchain (ffmpeg/vmaf binaries, model shards, generated manpages)
 /bin/
