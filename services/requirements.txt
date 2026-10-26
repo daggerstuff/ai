@@ -1,6 +1,6 @@
 --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
 
 transformers==5.20.2
-sentence-transformers==5.6.0
+sentence-transformers==6.2.0
 scikit-learn==1.9.1
 fairlearn==0.14.0
