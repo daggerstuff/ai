@@ -39,7 +39,7 @@ coverage>=6.0.0
 pytest-timeout>=2.1.0      # For timeout testing
 
 # Code quality
-black>=22.0.0
+black>=26.10.1
 flake8>=5.0.0
 mypy>=0.991
 

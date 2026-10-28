@@ -4,7 +4,7 @@
 
 pydantic>=2.10.6,<3.0.0  # For schema validation; latest stable
 bleach>=6.2.0,<7.0.0     # For content sanitization; secure against XSS
-pymongo>=4.18.3,<5.0.0    # For MongoDB quarantine store; compatible with Mongoose ODM
+pymongo>=4.19.0,<5.0.0    # For MongoDB quarantine store; compatible with Mongoose ODM
 bitarray>=3.0.0,<4.0.0   # For bloom filter deduplication
 mmh3>=5.0.1,<6.0.0       # For murmurhash in bloom filter
 redis>=5.2.1,<6.0.0      # For async redis queue support
