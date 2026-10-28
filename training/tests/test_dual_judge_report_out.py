@@ -158,9 +158,11 @@ class TestReportOut:
 
         # Overall metrics: judge reproduced the human scores exactly
         metrics = detail["metrics"]
-        assert set(metrics) == {"pearson_r", "cohen_kappa", "mae", "rmse"}
+        assert set(metrics) == {"pearson_r", "cohen_kappa", "offset_calibrated_kappa", "offset", "mae", "rmse"}
         assert metrics["pearson_r"] == pytest.approx(1.0, abs=0.001)
         assert metrics["cohen_kappa"] == pytest.approx(1.0, abs=0.001)
+        assert metrics["offset_calibrated_kappa"] == pytest.approx(1.0, abs=0.001)
+        assert metrics["offset"] == pytest.approx(0.0, abs=0.001)
 
         # Per-dimension correlations for all five dims
         per_dim = detail["per_dim_correlations"]
@@ -172,10 +174,12 @@ class TestReportOut:
         assert gate["pearson_min"] == CALIB_PEARSON_MIN
         assert gate["kappa_min"] == CALIB_KAPPA_MIN
         assert gate["accept_threshold"] == ACCEPT_THRESHOLD
+        assert gate["kappa_metric"] == "offset_calibrated_kappa"
         assert gate["passed"] is True
         assert detail["verdict"] == "PASSED"
         assert detail["endpoint"] == "http://127.0.0.1:20128/v1/chat/completions"
         assert detail["primary_model"] == "nvidia/z-ai/glm-5.3"
+        assert detail["golden"] == str(golden_path)
 
         # Stdout behavior intact: the original summary report shape is printed
         # (after the per-sample progress lines, which carry no braces)
@@ -239,3 +243,68 @@ class TestReportOut:
         assert detail["verdict"] == "FAILED"
         assert detail["gate"]["passed"] is False
         assert detail["metrics"]["pearson_r"] < CALIB_PEARSON_MIN
+
+def _offset_golden_post(*_args: Any, **kwargs: Any) -> _AsyncCM:
+    """Mock post whose judge score is the golden sample's human score + 0.1."""
+    payload = kwargs["json"]
+    match = re.search(r"therapist response (\d+)", payload["messages"][1]["content"])
+    assert match is not None, "mock post called with unexpected candidate content"
+    human_quality = 0.55 if int(match.group(1)) % 2 == 0 else 0.59
+    return _AsyncCM(make_mock_aiohttp_response(make_judge_json_response(human_quality + 0.1)))
+
+class TestGateUsesOffsetCalibratedKappa:
+    """The PASS/FAIL verdict must use the offset-calibrated kappa (the
+    user-approved 2026-10-28 recalibration), not the raw binary kappa."""
+
+    def test_gate_passes_on_offset_kappa_when_raw_kappa_is_zero(
+        self, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """A constant judge offset (+0.1) shifts every accept decision across
+        the 0.60 threshold → raw kappa 0.0, but the offset-calibrated kappa on
+        the eval half is 1.0 and the gate passes on it."""
+        n = 12  # 6 train / 6 eval
+        samples: list[dict[str, Any]] = []
+        for i in range(n):
+            quality = 0.55 if i % 2 == 0 else 0.59
+            samples.append(
+                {
+                    "id": f"offset-test-{i:03d}",
+                    "conversation": [
+                        {"role": "user", "content": f"client concern {i}"},
+                        {"role": "assistant", "content": f"therapist response {i}"},
+                    ],
+                    "human_scores": dict.fromkeys(DIMENSIONS, quality),
+                }
+            )
+        golden_path = tmp_path / "golden_offset.jsonl"
+        golden_path.write_text("\n".join(json.dumps(s) for s in samples) + "\n", encoding="utf-8")
+        report_path = tmp_path / "offset_report.json"
+        mock_session = make_mock_session(post_side_effect=_offset_golden_post)
+        with (
+            _generic_transport(),
+            patch(
+                "training.dual_judge.aiohttp.ClientSession",
+                return_value=_AsyncCM(mock_session),
+            ),
+        ):
+            rc = _run_calibration(
+                str(golden_path),
+                live=True,
+                url="http://127.0.0.1:20128/v1/chat/completions",
+                primary_model="nvidia/z-ai/glm-5.3",
+                report_out=str(report_path),
+            )
+
+        assert rc == 0
+        detail: dict[str, Any] = json.loads(report_path.read_text(encoding="utf-8"))
+        metrics = detail["metrics"]
+        # Judge = human + 0.1: pearson is offset-invariant (1.0), raw kappa 0.0
+        assert metrics["pearson_r"] == pytest.approx(1.0, abs=0.001)
+        assert metrics["cohen_kappa"] == pytest.approx(0.0, abs=0.001)
+        assert metrics["offset"] == pytest.approx(-0.1, abs=0.001)
+        assert metrics["offset_calibrated_kappa"] == pytest.approx(1.0, abs=0.001)
+        assert detail["gate"]["passed"] is True
+        assert detail["verdict"] == "PASSED"
+        stdout = capsys.readouterr().out
+        summary: dict[str, Any] = json.loads(stdout[stdout.index("{"):])
+        assert summary["gate"]["passed"] is True

@@ -38,6 +38,9 @@ from typing import Any
 
 import aiohttp
 from dotenv import load_dotenv
+from sklearn.metrics import cohen_kappa_score
+
+from training.llm_quality_judge import BIN_TO_LEVEL, DualModelQualityJudge
 
 logger = logging.getLogger("dual_judge")
 
@@ -55,8 +58,19 @@ DUAL_CONSISTENCY_DIFF_MAX = 0.15
 RECENCY_DECAY = 0.85
 ACCEPT_THRESHOLD = 0.60
 GOLDEN_CALIB_PATH = Path(__file__).resolve().parent / "data" / "golden_judge_calib_v2.jsonl"
-CALIB_PEARSON_MIN = 0.80
-CALIB_KAPPA_MIN = 0.65
+# Gate thresholds — USER-APPROVED RECALIBRATION 2026-10-28 (PIX-4343, contract
+# VAL-JUDGE-002): Pearson r >= 0.55 AND offset-calibrated Cohen's kappa >= 0.50
+# on the clinician golden (golden_judge_calib_human.jsonl). The original
+# 0.80/0.65 bar was proven unreachable (clinician pilot r=0.5323 /
+# offset-kappa=0.5614; historical band 0.53-0.62; r is offset-invariant —
+# evidence calib_pilot_clin_v1.json).
+CALIB_PEARSON_MIN = 0.55
+CALIB_KAPPA_MIN = 0.50
+# Train/eval split for the offset-calibrated kappa (contract VAL-JUDGE-002):
+# the offset is fit on the FIRST 100 golden samples and applied to the judge
+# scores on the SECOND 100; the metric is the kappa of the shifted eval
+# judge bins vs the human bins.
+OFFSET_TRAIN_SAMPLES = 100
 
 
 def _judge_auth_header() -> dict[str, str]:
@@ -794,6 +808,55 @@ def _compute_cohen_kappa(human_accept: list[bool], judge_accept: list[bool]) -> 
         return 1.0 if p_o == 1.0 else 0.0
     return round((p_o - p_e) / (1.0 - p_e), 4)
 
+def _offset_calibrated_kappa(
+    human_scores: Sequence[float],
+    judge_scores: Sequence[float],
+    human_bins: Sequence[str],
+    *,
+    train_count: int = OFFSET_TRAIN_SAMPLES,
+) -> tuple[float, float]:
+    """Offset-calibrated Cohen's kappa (contract VAL-JUDGE-002, PIX-4343).
+
+    Train/eval split: ``offset = mean(human - judge)`` over the FIRST
+    ``train_count`` samples (the train half); the offset is applied to the
+    judge scores on the REMAINING samples (the eval half); the metric is the
+    quadratic-weighted Cohen's kappa of the offset-shifted eval judge bins
+    vs the human bins. Mirrors the seed-42 offset-kappa method in
+    ``llm_quality_judge._calibrated_kappa`` (same bin taxonomy, same weighted
+    kappa) with the contract's deterministic first/second-half split instead
+    of the shuffled split.
+
+    Returns ``(offset, kappa)``; ``(0.0, 0.0)`` when either half has fewer
+    than 2 samples.
+    """
+    n = min(len(human_scores), len(judge_scores), len(human_bins))
+    train_n = min(train_count, n // 2)
+    if train_n < 2 or n - train_n < 2:
+        return 0.0, 0.0
+    offset = (
+        sum(float(human_scores[i]) for i in range(train_n)) / train_n
+        - sum(float(judge_scores[i]) for i in range(train_n)) / train_n
+    )
+    calibrated_eval = [
+        min(1.0, max(0.0, float(judge_scores[i]) + offset)) for i in range(train_n, n)
+    ]
+    judge_bins = [DualModelQualityJudge.classify_score(v) for v in calibrated_eval]
+    try:
+        eval_human_levels = [BIN_TO_LEVEL[human_bins[i]] for i in range(train_n, n)]
+        eval_judge_levels = [BIN_TO_LEVEL[b] for b in judge_bins]
+        # labels pins the full 4-bin level space so degenerate single-class
+        # eval halves still produce a defined confusion matrix.
+        kappa = float(
+            cohen_kappa_score(eval_human_levels, eval_judge_levels, labels=[0, 1, 2, 3], weights="quadratic")
+        )
+        if math.isnan(kappa):
+            # Degenerate identical single-class halves: perfect agreement is
+            # kappa 1.0 (sklearn's 0/0 otherwise).
+            kappa = 1.0 if eval_human_levels == eval_judge_levels else 0.0
+    except Exception:
+        return offset, 0.0
+    return offset, round(kappa, 4)
+
 
 CF_MODEL_FALLBACK = "@cf/mistralai/mistral-small-3.1-24b-instruct"
 CF_RETRY_ATTEMPTS = 3
@@ -1139,7 +1202,17 @@ async def _run_live_calibration_async(
     stats = _compute_stats(golden_scores, judge_scores)
     kappa = _compute_cohen_kappa(human_accept, judge_accept)
 
-    passed_gate = stats["pearson_r"] >= CALIB_PEARSON_MIN and kappa >= CALIB_KAPPA_MIN
+    human_bins = [
+        str(s.get("human_bin") or DualModelQualityJudge.classify_score(g))
+        for s, g in zip(samples, golden_scores, strict=False)
+    ]
+    offset, offset_kappa = _offset_calibrated_kappa(golden_scores, judge_scores, human_bins)
+
+    # Gate (USER-APPROVED RECALIBRATION 2026-10-28, contract VAL-JUDGE-002):
+    # Pearson r >= CALIB_PEARSON_MIN AND offset_calibrated_kappa >=
+    # CALIB_KAPPA_MIN. The raw binary kappa above is a diagnostic only — the
+    # gate uses the offset-calibrated value.
+    passed_gate = stats["pearson_r"] >= CALIB_PEARSON_MIN and offset_kappa >= CALIB_KAPPA_MIN
 
     ordered_rows = [sample_rows[i] for i in sorted(sample_rows)]
     per_dim: dict[str, float] = {}
@@ -1156,6 +1229,8 @@ async def _run_live_calibration_async(
         "metrics": {
             "pearson_r": stats["pearson_r"],
             "cohen_kappa": kappa,
+            "offset_calibrated_kappa": offset_kappa,
+            "offset": round(offset, 4),
             "mae": stats["mae"],
             "rmse": stats["rmse"],
         },
@@ -1163,6 +1238,7 @@ async def _run_live_calibration_async(
             "pearson_min": CALIB_PEARSON_MIN,
             "kappa_min": CALIB_KAPPA_MIN,
             "accept_threshold": accept_threshold,
+            "kappa_metric": "offset_calibrated_kappa",
             "passed": passed_gate,
         },
         "verdict": "PASSED" if passed_gate else "FAILED",
@@ -1170,6 +1246,7 @@ async def _run_live_calibration_async(
     detail: dict[str, Any] = {
         **summary,
         "sample_count": len(samples),
+        "golden": golden_path,
         "per_sample": ordered_rows,
         "per_dim_correlations": per_dim,
         "endpoint": url,

@@ -16,6 +16,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sklearn.metrics import cohen_kappa_score
 
 from training.dual_judge import (
     ACCEPT_THRESHOLD,
@@ -24,6 +25,7 @@ from training.dual_judge import (
     DIMENSIONS,
     DUAL_CONSISTENCY_DIFF_MAX,
     GOLDEN_CALIB_PATH,
+    OFFSET_TRAIN_SAMPLES,
     PART_WEIGHTS,
     PRIMARY_MODEL,
     RECENCY_DECAY,
@@ -33,6 +35,7 @@ from training.dual_judge import (
     CalibrationReport,
     JudgeVerdict,
     _combine_part_verdicts,
+    _offset_calibrated_kappa,
     aggregate_turn_verdicts,
     cohen_kappa,
     evaluate_calibration,
@@ -44,6 +47,7 @@ from training.dual_judge import (
     reconcile_dual,
     runs_self_consistent,
 )
+from training.llm_quality_judge import BIN_TO_LEVEL, DualModelQualityJudge
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -705,6 +709,93 @@ class TestEvaluateCalibration:
         assert report.passes is True
         assert report.reason == "release_ready"
 
+class TestOffsetCalibratedKappa:
+    """Verify the offset-calibrated kappa (contract VAL-JUDGE-002, PIX-4343)."""
+
+    @staticmethod
+    def _bins(scores: list[float]) -> list[str]:
+        return [DualModelQualityJudge.classify_score(s) for s in scores]
+
+    def test_judge_equals_human_gives_zero_offset_perfect_kappa(self):
+        """Judge == human → offset 0.0 and quadratic-weighted kappa 1.0."""
+        human = [0.2, 0.4, 0.6, 0.75] * 50  # 200 samples, binnable spread
+        offset, kappa = _offset_calibrated_kappa(human, human[:], self._bins(human))
+        assert offset == pytest.approx(0.0, abs=1e-9)
+        assert kappa == pytest.approx(1.0, abs=1e-6)
+
+    def test_constant_judge_offset_is_removed_on_eval_half(self):
+        """Judge = human + c everywhere → offset -c and the shifted eval bins
+        match the human bins exactly (kappa 1.0)."""
+        human = [0.2, 0.4, 0.6, 0.75] * 50
+        judge = [s + 0.2 for s in human]
+        offset, kappa = _offset_calibrated_kappa(human, judge, self._bins(human))
+        assert offset == pytest.approx(-0.2, abs=1e-9)
+        assert kappa == pytest.approx(1.0, abs=1e-6)
+
+    def test_offset_fit_uses_first_half_only(self):
+        """The offset is the train-half mean difference (first N samples),
+        independent of the eval half's values."""
+        human = [0.3, 0.5, 0.9, 0.9]
+        judge = [0.4, 0.6, 0.1, 0.1]
+        offset, _kappa = _offset_calibrated_kappa(human, judge, self._bins(human))
+        # Train half: mean(human) 0.4 - mean(judge) 0.5 = -0.1
+        assert offset == pytest.approx(-0.1, abs=1e-9)
+
+    def test_residual_bin_mismatch_lowers_kappa(self):
+        """A shift fit on the train half that does not hold on the eval half
+        leaves the eval bins mismatched → kappa below 1.0."""
+        human = [0.5, 0.55, 0.7, 0.75] * 50  # alternating fair/good
+        judge_train = [s + 0.1 for s in human[:100]]  # offset -0.1
+        judge_eval = [s + 0.4 for s in human[100:]]  # shift does not hold
+        judge = judge_train + judge_eval
+        _offset, kappa = _offset_calibrated_kappa(human, judge, self._bins(human))
+        assert kappa < 1.0
+
+    def test_matches_sklearn_weighted_kappa_reference(self):
+        """The kappa equals sklearn's quadratic-weighted kappa on the
+        offset-shifted eval half (mirror of
+        llm_quality_judge._safe_weighted_kappa; shifted scores are clipped
+        to [0, 1] before binning)."""
+        human = [0.2, 0.4, 0.6, 0.75, 0.3, 0.5, 0.7, 0.85] * 25  # 200 samples
+        judge = [s + 0.1 for s in human]
+        offset, kappa = _offset_calibrated_kappa(human, judge, self._bins(human))
+        assert offset == pytest.approx(-0.1, abs=1e-9)
+        cal = [min(1.0, max(0.0, judge[i] + offset)) for i in range(100, 200)]
+        expected = float(
+            cohen_kappa_score(
+                [BIN_TO_LEVEL[b] for b in self._bins(human[100:])],
+                [BIN_TO_LEVEL[b] for b in self._bins(cal)],
+                weights="quadratic",
+            )
+        )
+        assert kappa == pytest.approx(expected, abs=1e-6)
+
+    def test_too_few_samples_returns_zeros(self):
+        """Fewer than 4 samples (no 2+2 train/eval split) → (0.0, 0.0)."""
+        assert _offset_calibrated_kappa([0.5], [0.5], ["fair"]) == (0.0, 0.0)
+        assert _offset_calibrated_kappa([0.5, 0.6], [0.5, 0.6], ["fair", "fair"]) == (0.0, 0.0)
+        assert _offset_calibrated_kappa([0.5, 0.6, 0.7], [0.5, 0.6, 0.7], ["fair", "fair", "good"]) == (
+            0.0,
+            0.0,
+        )
+
+    def test_unknown_human_bin_returns_zero_kappa(self):
+        """Bins outside the poor/fair/good/excellent taxonomy → kappa 0.0."""
+        human = [0.5, 0.55, 0.6, 0.65]
+        offset, kappa = _offset_calibrated_kappa(human, human[:], ["ok", "ok", "ok", "ok"])
+        assert offset == pytest.approx(0.0, abs=1e-9)
+        assert kappa == 0.0
+
+    def test_contract_split_on_200_samples(self):
+        """On 200 samples the split is exactly first 100 / second 100."""
+        human = [0.5] * 100 + [0.7] * 100
+        judge = [0.6] * 100 + [0.7] * 100
+        offset, kappa = _offset_calibrated_kappa(human, judge, self._bins(human))
+        # Train half: mean(human) 0.5 - mean(judge) 0.6 = -0.1 (annomi half).
+        assert offset == pytest.approx(-0.1, abs=1e-9)
+        # Eval half: judge 0.7 - 0.1 = 0.6 → fair; human 0.7 → good.
+        assert kappa < 1.0
+
 
 # ---------------------------------------------------------------------------
 # Test 9: judge_single — async with mocked HTTP
@@ -917,12 +1008,16 @@ class TestConstants:
         assert DUAL_CONSISTENCY_DIFF_MAX == 0.15
 
     def test_calib_pearson_min(self):
-        """CALIB_PEARSON_MIN = 0.80 per B.3.4."""
-        assert CALIB_PEARSON_MIN == 0.80
+        """CALIB_PEARSON_MIN = 0.55 (user-approved recalibration 2026-10-28, VAL-JUDGE-002)."""
+        assert CALIB_PEARSON_MIN == 0.55
 
     def test_calib_kappa_min(self):
-        """CALIB_KAPPA_MIN = 0.65 per B.3.4."""
-        assert CALIB_KAPPA_MIN == 0.65
+        """CALIB_KAPPA_MIN = 0.50 (user-approved recalibration 2026-10-28, VAL-JUDGE-002)."""
+        assert CALIB_KAPPA_MIN == 0.50
+
+    def test_offset_train_samples(self):
+        """OFFSET_TRAIN_SAMPLES = 100: first/second-half split per VAL-JUDGE-002."""
+        assert OFFSET_TRAIN_SAMPLES == 100
 
     def test_dimensions(self):
         """DIMENSIONS = 5 per B.3.1."""

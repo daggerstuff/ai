@@ -152,13 +152,16 @@ class TestCheckpoint:
         golden_path = _write_golden(tmp_path)
         ckpt_path = tmp_path / "calib_checkpoint_resume.jsonl"
 
-        # Pre-populate rows for the first two samples with distinctive scores.
+        # Pre-populate rows for the first two samples with distinctive scores
+        # (close enough to the human labels that the offset-calibrated gate on
+        # the resumed+fresh mix still passes: offset +0.025 keeps the eval
+        # bins aligned, kappa 1.0).
         pre_rows = [
             {
                 "id": f"ckpt-test-{i:03d}",
-                "judge_score": 0.55 + 0.01 * i,
+                "judge_score": 0.25 + 0.05 * i,
                 "human_score": 0.2 + 0.2 * i,
-                "judge_dim_scores": dict.fromkeys(DIMENSIONS, 0.55 + 0.01 * i),
+                "judge_dim_scores": dict.fromkeys(DIMENSIONS, 0.25 + 0.05 * i),
                 "human_dim_scores": dict.fromkeys(DIMENSIONS, 0.2 + 0.2 * i),
             }
             for i in range(2)
@@ -190,7 +193,7 @@ class TestCheckpoint:
         by_id = {row["id"]: row for row in report["per_sample"]}
         for i in range(2):
             row = by_id[f"ckpt-test-{i:03d}"]
-            assert row["judge_score"] == pytest.approx(0.55 + 0.01 * i)
+            assert row["judge_score"] == pytest.approx(0.25 + 0.05 * i)
         for i in range(2, SAMPLE_COUNT):
             row = by_id[f"ckpt-test-{i:03d}"]
             assert row["judge_score"] == pytest.approx(0.2 + 0.2 * i)
