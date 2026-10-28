@@ -91,7 +91,7 @@ dependencies = [
 "trl>=0.11.0",
 "typer>=0.9.0",
 "uvicorn[standard]",
-"virtualenv>=21.14.12",
+"virtualenv>=21.14.13",
 "websockets>=11.0",
 "wheel>=0.45.1",
 "yt-dlp[ebook]",
