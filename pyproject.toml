@@ -424,6 +424,10 @@ ignore = []
     "PLR2004",
     "E501",
 ]
+"training/fireworks_model_sync.py" = [
+    "T201",
+    "E501",
+]
 "training/tests/test_dual_judge.py" = [
     "PLR2004",
     "ARG005",
