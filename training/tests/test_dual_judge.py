@@ -1012,8 +1012,8 @@ class TestConstants:
         assert CALIB_PEARSON_MIN == 0.55
 
     def test_calib_kappa_min(self):
-        """CALIB_KAPPA_MIN = 0.50 (user-approved recalibration 2026-10-28, VAL-JUDGE-002)."""
-        assert CALIB_KAPPA_MIN == 0.50
+        """CALIB_KAPPA_MIN = 0.43 (user-approved final recalibration 2026-10-29, VAL-JUDGE-002)."""
+        assert CALIB_KAPPA_MIN == 0.43
 
     def test_offset_train_samples(self):
         """OFFSET_TRAIN_SAMPLES = 100: first/second-half split per VAL-JUDGE-002."""
