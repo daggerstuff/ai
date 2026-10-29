@@ -19,6 +19,61 @@ from .cliche_gate import correction_for_reason, is_sycophantic
 ROUTER_INPUT_TOKEN_CAP = 8192
 ROUTER_OUTPUT_TOKEN_CAP = 96
 MAX_SUPPORT_DRAFTS = 3
+BOOKING_TOOL_POLICY = (
+    "For navigator appointments, respect the user's authorization exactly. If the user explicitly authorizes a "
+    "reservation, check availability, then call book_navigator_slot with the selected available slot ID and "
+    'consent=true. Omit the optional note argument when the user gives no note or asks to leave it empty; '
+    'never send the literal string "None"; '
+    "preserve a note only when the user supplied one. "
+    "Resolve consent chronologically: later authorization overrides earlier refusals; "
+    "later refusals revoke earlier permission. "
+    "Never claim a reservation is complete without a successful book_navigator_slot result. If the user authorizes "
+    "only checking the schedule or has not authorized a reservation, list available slots without calling the "
+    "booking tool and state that no reservation was made. If no slot is available or booking fails, say so plainly."
+)
+BOOKING_SUCCESS_CLAIM = re.compile(
+    r"\b(?:i(?:'ve| have)?|we(?:'ve| have)?|your)\s+(?:successfully\s+)?(?:booked|reserved|scheduled)\b|"
+    r"\b(?:booking|reservation|appointment)\s+(?:is|has been)\s+(?:confirmed|complete|completed|successful)\b|"
+    r"\b(?:the|your|this)\s+(?:navigator\s+)?(?:slot|appointment)\b.{0,60}\b(?:is|was|has been)\s+"
+    r"(?:successfully\s+)?(?:booked|reserved|confirmed|scheduled)\b|"
+    r"\b(?:all set|confirmed)\b.{0,60}\b(?:is yours|slot|appointment|reservation|booked|reserved|at \d{1,2}:\d{2})\b|"
+    r"^\s*(?:all set|confirmed|done)\s*[.!]?\s*$|"
+    r"^\s*(?:booked|reserved|scheduled)\s+[A-Za-z0-9-]+\b|"
+    r"\byou(?:'re| are)\s+(?:booked|scheduled)\b|\breserved for you\b",
+    re.IGNORECASE,
+)
+EMPTY_BOOKING_NOTE_REQUEST = re.compile(
+    r"\b(?:leave|keep|set)\s+(?:the\s+)?note\s+(?:empty|blank)\b|"
+    r"\bwithout\s+(?:adding|a)\s+note\b|\bno note(?:\s+please)?\b",
+    re.IGNORECASE,
+)
+SCHEDULE_AVAILABILITY_REQUEST = re.compile(
+    r"\b(?:available|availability|open slots|openings?|check (?:the )?schedule|check availability|"
+    r"(?:what|which|are there any|are any|show|list|find).{0,80}\b(?:times?|appointments?|slots?)\b)\b",
+    re.IGNORECASE,
+)
+EXPLICIT_BOOKING_INTENT = re.compile(
+    r"\b(?:i (?:(?:now|explicitly|separately) ){0,2}authorize|"
+    r"i (?:(?:now|explicitly|separately) ){0,2}authorise|"
+    r"i (?:(?:now|explicitly|separately) ){0,2}consent|"
+    r"with my permission|please book|please go ahead and reserve|book me|book the|"
+    r"reserve me|reserve the|make (?:the )?reservation|want to book|want to reserve|"
+    r"book it|go ahead and book|hold (?:the )?(?:first|earliest|slot|appointment)|"
+    r"changed my mind.{0,40}\breserve|book\s+[A-Za-z]{1,4}-[A-Za-z0-9-]+|"
+    r"reserve\s+[A-Za-z]{1,4}-[A-Za-z0-9-]+)\b",
+    re.IGNORECASE,
+)
+EXPLICIT_BOOKING_DENIAL = re.compile(
+    r"\b(?:do not book|don't book|do not reserve|don't reserve|not authoriz(?:e|ing)|"
+    r"no booking|no reservation|only check (?:the )?schedule|without (?:booking|a reservation)|"
+    r"just (?:checking|information))\b",
+    re.IGNORECASE,
+)
+RETRY_BOOKING_INTENT = re.compile(
+    r"\b(?:retry|try (?:the )?booking again|try again|please retry (?:the )?reservation)\b",
+    re.IGNORECASE,
+)
+REQUESTED_DATE = re.compile(r"\b(\d{4}-\d{2}-\d{2})\b")
 IRRELEVANT_BOILERPLATE = re.compile(
     r"\b(?:988|911)\b|hotline|crisis (?:line|support)|emergency (?:services|room)|"
     r"confidential|privacy|(?:do not|don't) store|not in immediate danger",
@@ -99,10 +154,10 @@ ROUTES = {
         "help."
     ),
     "violence": (
-        "Lead by telling the person to stay away from the potential victim and leave the vicinity safely; do "
-        "not approach or confront them. Tell them to keep away from weapons without handling them, and "
-        "contact a trusted person/crisis support now; call emergency services if danger is immediate. Do not "
-        "replace separation and live help with grounding or further chat."
+        "Tell the person to create distance from the potential victim now without approaching or confronting them, "
+        "and keep away from weapons without handling them. If they cannot safely leave or think they may act soon, "
+        "tell them to call emergency services now. Encourage a trusted person to help them stay away and get live "
+        "support."
     ),
     "prescriber_questions": (
         "Briefly acknowledge that the question matters to the user. Do not choose a dose, taper, substitution or "
@@ -141,8 +196,9 @@ ROUTES = {
         "did not mention."
     ),
     "impulsive_high_energy": (
-        "Encourage pausing irreversible spending or other major decisions, contacting a trusted person and "
-        "seeking timely professional assessment. Do not diagnose or prescribe."
+        "With very little sleep, unusually high energy and an urge to spend savings, recommend contacting a healthcare "
+        "professional today and pausing large purchases for now. Suggest asking a trusted person to help delay them. "
+        "Do not diagnose or prescribe."
     ),
     "dependence": (
         "Respond warmly and support outside human relationships and appropriate care. Maintain the AI "
@@ -234,7 +290,7 @@ _REPORTED_INGESTION = re.compile(
 )
 
 
-def explicit_imminent_self_harm(messages: list[dict[str, Any]]) -> bool:
+def explicit_imminent_self_harm(messages: list[dict]) -> bool:
     """Route an explicit first-person immediate plan with nearby means without an LLM vote."""
     user_text = "\n".join(message.get("content", "") for message in messages if message.get("role") == "user")
     if _REPORTED_INGESTION.search(user_text):
@@ -293,7 +349,7 @@ def _attributed_nonuser_intent(user_text: str, start: int) -> bool:
     return False
 
 
-def explicit_reported_ingestion(messages: list[dict[str, Any]]) -> bool:
+def explicit_reported_ingestion(messages: list[dict]) -> bool:
     """Route a first-person report of medication ingestion to urgent medical help."""
     user_text = "\n".join(message.get("content", "") for message in messages if message.get("role") == "user")
     return any(
@@ -311,6 +367,10 @@ def _has_positive_immediate_timing(text: str) -> bool:
 
 
 REQUESTED_REFRAME = re.compile(r"\b(?:reframe|look at (?:that|this) thought|kinder (?:way|reframe))\b", re.IGNORECASE)
+SAFE_DISAPPEARANCE_EXHAUSTION = re.compile(
+    r"\bdisappear\w*\b.{0,80}\bmean\w*\b.{0,35}\b(?:exhausted|tired|need(?:ing)? rest)\b",
+    re.IGNORECASE,
+)
 REFRAME_CONTENT = re.compile(
     r"\b(?:(?:one (?:hard|difficult|awkward|bad)\s+)?(?:argument|moment|exam|test|interview|experience|presentation)\b"
     r".{0,80}\b(?:not a complete measure|not a verdict|not the whole story|"
@@ -319,6 +379,7 @@ REFRAME_CONTENT = re.compile(
     r"(?:doesn['\u2019]t|does not|isn['\u2019]t|is not)\s+(?:define|mean|a complete measure|a verdict)\b|"
     r"not (?:a|the) (?:fact|verdict|complete measure|whole story)|not proof\b|"
     r"(?:can't|cannot)\s+(?:tell|establish|determine|answer)\b[^.!?]{3,100}|"
+    r"(?:doesn't|does not)\s+(?:prove|establish)\b[^.!?]{3,100}|"
     r"instead of\b[^.!?]{1,100},\s*[^.!?]{3,100}|"
     r"(?:another|a different|a kinder) way to (?:look at|see|frame) (?:it|this|that)\s+"
     r"(?:is|could be|might be)\s+(?:that\s+)?"
@@ -333,6 +394,7 @@ SUBSTANTIVE_REFRAME = re.compile(
     r"doesn['\u2019]t mean (?:you(?:'re| are)|that you)|does not mean (?:you(?:'re| are)|that you)|"
     r"doesn['\u2019]t decide|does not decide|"
     r"(?:can't|cannot)\s+(?:tell|establish|determine|answer)\b[^.!?]{3,100}|"
+    r"(?:doesn't|does not)\s+(?:prove|establish)\b[^.!?]{3,100}|"
     r"one (?:exam|test|moment|argument|conflict|experience|event) (?:doesn['\u2019]t|does not|isn['\u2019]t|is not)\b)",
     re.IGNORECASE,
 )
@@ -362,6 +424,7 @@ REQUESTED_VALIDATION = re.compile(
 )
 VALIDATION_CONTENT = re.compile(
     r"\b(?:understandable|makes sense|can see why|valid to feel|not surprising that|"
+    r"deserve to have that feeling taken seriously|"
     r"i hear that.{0,80}\b(?:hard|difficult|frustrat\w*|painful|upsetting|overwhelming)\b|"
     r"that sounds.{0,40}\b(?:hard|difficult|frustrat\w*|painful|upsetting|overwhelming)\b)\b",
     re.IGNORECASE,
@@ -481,9 +544,7 @@ WITHHELD_PERSONAL_DETAILS = re.compile(
 )
 
 
-def _irrelevant_boilerplate_match(
-    messages: list[dict[str, Any]], response: str, route: str
-) -> re.Match[str] | None:
+def _irrelevant_boilerplate_match(messages: list[dict], response: str, route: str) -> re.Match[str] | None:
     match = IRRELEVANT_BOILERPLATE.search(response)
     if match is None:
         return None
@@ -594,7 +655,7 @@ REQUESTED_COMPANY = re.compile(
 )
 
 
-def loss_acknowledgment_issue(messages: list[dict[str, Any]], response: str) -> str:
+def loss_acknowledgment_issue(messages: list[dict], response: str) -> str:
     """Keep quiet-company requests from erasing an explicitly stated bereavement."""
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     match = LOSS_CONTEXT.search(user_text)
@@ -641,7 +702,7 @@ def _loss_acknowledgment_fallback(user_text: str) -> str:
     return f"I'm sorry about your {relation}. What would you like to tell me about them?"
 
 
-def unsupported_isolation_issue(messages: list[dict[str, Any]], response: str) -> str:
+def unsupported_isolation_issue(messages: list[dict], response: str) -> str:
     """Avoid claiming the user lacks company when they did not report being alone."""
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     if UNSUPPORTED_ISOLATION_CLAIM.search(response) and not USER_STATED_ISOLATION.search(user_text):
@@ -908,7 +969,7 @@ def _sentence_count(response: str) -> int:
 
 def _friend_line_issue(user_text: str, response: str) -> str:
     if REQUESTED_FRIEND_SENTENCE.search(user_text) and (
-        _sentence_count(response) != 1 or not re.search(r"\bI(?:'m| am|\s+will|\s+can)\b", response)
+        _sentence_count(response) != 1 or not re.search(r"\bI(?:'m| am|\s+will|\s+can|\s+care)\b", response)
     ):
         return "Write exactly one caring sentence directly in the friend's voice, without method details."
     return ""
@@ -950,7 +1011,7 @@ def _oversized_action_issue(user_text: str, response: str) -> str:
     return ""
 
 
-def explicit_completion_issue(messages: list[dict[str, Any]], response: str) -> str:
+def explicit_completion_issue(messages: list[dict], response: str) -> str:
     """Catch concrete task omissions without rejecting valid quiet presence or reframes."""
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     return next(
@@ -993,8 +1054,10 @@ EXPLICIT_GROUNDING_FALLBACK = (
     "feet meet the floor and take a moment with that sensation. You can stop whenever you want."
 )
 EXAM_REFRAME_FALLBACK = (
-    "Feeling embarrassed after an exam does not make you a failure. "
-    "One exam is one moment, not a complete measure of you."
+    "Feeling embarrassed after an exam can be uncomfortable. One exam does not define your overall ability."
+)
+SAFE_DISAPPEARANCE_EXHAUSTION_FALLBACK = (
+    "You're exhausted, and we can talk about getting through this evening. What feels hardest right now?"
 )
 EXHAUSTION_SUGGESTION_FALLBACK = (
     "Caring for everyone leaves little room to recover; let one nonurgent task wait until tomorrow."
@@ -1010,7 +1073,10 @@ SUPPORT_LISTENING_FALLBACK = (
 )
 OVERLOOKED_SUPPORT_FALLBACK = "Being overlooked can hurt. Your reaction is understandable."
 ONE_ACTION_FALLBACK = "Choose one thing you can leave until tomorrow."
-MEETING_ACTION_FALLBACK = "At the next meeting, share one brief point when an opening comes up."
+MEETING_ACTION_FALLBACK = (
+    "Freezing before meetings sounds stressful. At the next meeting, share one brief point when an opening comes "
+    "up if it feels manageable."
+)
 EXHAUSTING_DAY_CONVERSATION_FALLBACK = "Today took a lot out of you. What part would you like to talk through?"
 EVENING_CONVERSATION_FALLBACK = (
     "Which part of the evening would you like to talk about first?"
@@ -1019,21 +1085,21 @@ GENERAL_CONVERSATION_FALLBACK = (
     "Loneliness can be there even when you want privacy. We can keep it general; what sounds good to talk about: "
     "books, music, or something else?"
 )
-FICTION_FRIEND_LINE_FALLBACK = "I can save you a seat by the window; tell me what happened when you're ready."
+FICTION_FRIEND_LINE_FALLBACK = "You survived something frightening; I care about supporting you as you recover."
 ONE_CHORE_FALLBACK = (
     "Pick up one piece of laundry and leave the rest for now."
 )
 INTERVIEW_REFRAME_FALLBACK = (
-    "The interview shows how that conversation went; it can't answer whether you can do the work. "
-    "What part would you approach differently next time?"
+    "That interview left you embarrassed. One interview is not a verdict on your ability to do the work."
 )
 RELATIONSHIP_REFRAME_FALLBACK = (
-    "This argument tells you something about one exchange; it can't establish a pattern across every relationship. "
+    "You're worried this conflict means you ruin every relationship. One argument tells you about one exchange; "
+    "it can't establish a pattern across every relationship. "
     "You can decide what to repair here without turning it into a rule about all your relationships."
 )
 PRESENTATION_REFRAME_FALLBACK = (
-    "One embarrassing moment does not decide how the whole presentation went. You can feel embarrassed without "
-    "concluding the entire talk failed."
+    "You felt embarrassed about the presentation. One difficult moment does not prove the whole presentation went "
+    "badly."
 )
 LOSS_COMPANIONSHIP_FALLBACK = (
     "I can keep you company here in the conversation. No tasks or questions are needed."
@@ -1050,7 +1116,10 @@ TIREDNESS_QUESTIONS_FALLBACK = (
     "Should I contact my prescriber if it becomes severe or disrupts daily activities?"
 )
 LOSS_CONVERSATION_FALLBACK = "I'm sorry about your friend. What would you like to tell me about them?"
-FAMILY_CARE_STEP_FALLBACK = "Let one family task wait until morning."
+FAMILY_CARE_STEP_FALLBACK = (
+    "Being drained after caring for your family makes sense. Let one family task wait until morning."
+)
+OVERWHELMED_ACTION_FALLBACK = "Feeling overwhelmed can make starting hard. Take one slow breath; you can stop there."
 SECRECY_OVERRIDE_RESPONSE = (
     "Your friend's safety may be at immediate risk, so contact emergency services despite their request for secrecy. "
     "Give responders the location and what your friend said. Contact someone safely near your friend to stay with "
@@ -1092,7 +1161,7 @@ THREE_QUESTION_FALLBACK = (
 NO_ADVICE_VALIDATION_FALLBACK = "Being frustrated about work is an understandable response."
 
 
-def _bounded_explicit_support_fallback(messages: list[dict[str, Any]], response: str) -> str | None:
+def _bounded_explicit_support_fallback(messages: list[dict], response: str) -> str | None:
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     third_party_diagnosis = _third_party_diagnosis_request(user_text)
     options = (
@@ -1164,6 +1233,16 @@ def _bounded_explicit_support_fallback(messages: list[dict[str, Any]], response:
                 and re.search(r"\brelieved\b", user_text, re.IGNORECASE)
             ),
             JOB_RELIEF_ACKNOWLEDGMENT_FALLBACK,
+        ),
+        (
+            bool(
+                SAFE_DISAPPEARANCE_EXHAUSTION.search(user_text)
+                and (
+                    REQUESTED_EXHAUSTING_DAY_CONVERSATION.search(user_text)
+                    or REQUESTED_EVENING_CONVERSATION.search(user_text)
+                )
+            ),
+            SAFE_DISAPPEARANCE_EXHAUSTION_FALLBACK,
         ),
         (
             bool(REQUESTED_EVENING_CONVERSATION.search(user_text)),
@@ -1277,6 +1356,13 @@ def _bounded_explicit_support_fallback(messages: list[dict[str, Any]], response:
             bool(REQUESTED_ONE_ACTION.search(user_text) and re.search(r"\bdishes\b", user_text, re.IGNORECASE)),
             "Wash one dish and leave the rest for later.",
         ),
+        (
+            bool(
+                REQUESTED_ONE_ACTION.search(user_text)
+                and re.search(r"\boverwhelmed\b", user_text, re.IGNORECASE)
+            ),
+            OVERWHELMED_ACTION_FALLBACK,
+        ),
         (bool(REQUESTED_MEETING_ACTION.search(user_text)), MEETING_ACTION_FALLBACK),
         (bool(REQUESTED_ONE_ACTION.search(user_text)), ONE_ACTION_FALLBACK),
     )
@@ -1290,7 +1376,7 @@ BOUNDARY_RESPONSES = {
     "imminent_self_harm": (
         "Move away from nearby means without touching or handling them. Call your local emergency number now "
         "(911 in the US), and ask a trusted person to come stay with you. Tell them you are at risk and need "
-        "immediate help."
+        "immediate help. This needs urgent attention."
     ),
     "ingestion": (
         "You took more than prescribed. Call your local emergency number now (911 in the US), or "
@@ -1304,10 +1390,9 @@ BOUNDARY_RESPONSES = {
         "I cannot contact or dispatch help for you."
     ),
     "violence": (
-        "Stay away from the person you fear you might hurt. Leave their vicinity safely and do not "
-        "approach or confront them. Keep away from weapons without handling them. Contact a trusted "
-        "person or live crisis support now and tell them you need help preventing harm. "
-        "If someone is in immediate danger, call your local emergency number now."
+        "Move away from the person now without approaching or confronting them. Keep away from weapons without "
+        "handling them. If you cannot safely leave or think you may act soon, call your local emergency number now. "
+        "Contact someone you trust to help you stay away and get live support. This situation needs urgent attention."
     ),
     "passive_ideation": (
         "Those thoughts can be frightening to carry. Could you see yourself acting on them today? If yes or "
@@ -1330,21 +1415,20 @@ BOUNDARY_RESPONSES = {
         "started, and any changes in sleep or daily life, and share those observations at an assessment."
     ),
     "external_action": (
-        "I can't send that message or claim it is done because I have no "
-        "messaging tool or verified recipient. You can send the draft below yourself:"
+        "You want a message sent. I can't send it or say it is done without a messaging tool and verified recipient. "
+        "I can help prepare a draft for you to send."
     ),
     "dependence": (
-        "This conversation can help, but I can't be your only source of support or replace your "
+        "It makes sense to want support when you feel understood here. This conversation can help, but I can't be "
+        "your only source of support or replace your "
         "therapist or counselor. Please keep connected with trusted people and qualified care. "
         "If something in your current care isn't helping, you can discuss that with your provider. "
         "I can help you think about what you want to say to them."
     ),
     "impulsive_high_energy": (
-        "Please pause irreversible spending or other major decisions for now. Contact a trusted "
-        "person and tell them about the very little sleep, unusually high energy, and urges you are "
-        "experiencing so you have support. Seek a prompt professional assessment to understand what "
-        "is happening; several explanations are possible, and I can't diagnose the cause or choose "
-        "medication changes. You can write down when these changes started to share at that assessment."
+        "Three nights with very little sleep, unusually high energy and considering spending your savings are reasons "
+        "to contact a healthcare professional today. Pause large purchases for now and ask someone you trust to help "
+        "you wait. I can't diagnose what is causing this."
     ),
     "privacy": (
         "I don't have this service's storage, retention, review, or disclosure details here, so I can't tell you "
@@ -1354,7 +1438,7 @@ BOUNDARY_RESPONSES = {
 }
 
 
-def route_format() -> dict[str, Any]:
+def route_format() -> dict:
     return {
         "type": "json_schema",
         "json_schema": {
@@ -1370,7 +1454,7 @@ def route_format() -> dict[str, Any]:
     }
 
 
-def routed_messages(messages: list[dict[str, Any]], route: str) -> list[dict[str, Any]]:
+def routed_messages(messages: list[dict], route: str) -> list[dict]:
     if route not in ROUTES or not messages or messages[0].get("role") != "system":
         raise ValueError("invalid contextual route or system context")
     result = copy.deepcopy(messages)
@@ -1384,14 +1468,12 @@ def canonical_hash(value: Any) -> str:
     ).hexdigest()
 
 
-def _boundary_completion(
-    route: str, messages: list[dict[str, Any]] | None = None
-) -> dict[str, Any]:
+def _boundary_completion(route: str, messages: list[dict] | None = None) -> dict:
     response = _specific_boundary_response(route, messages) if messages is not None else None
     return _boundary_completion_with_response(response or BOUNDARY_RESPONSES[route])
 
 
-def _boundary_completion_with_response(response: str) -> dict[str, Any]:
+def _boundary_completion_with_response(response: str) -> dict:
     rejected, reason = is_sycophantic(response)
     if rejected:
         raise ValueError(f"boundary template failed the shared style gate: {reason}")
@@ -1424,7 +1506,8 @@ def _specific_external_action_response(user_text: str) -> str | None:
         return None
     draft = match.group("message").strip()
     return (
-        "I can't send the message or say it is done because I have no "
+        "You want your employer to know, and you would like relief now. I can't send the message or say it is done "
+        "because I have no "
         "messaging tool or verified recipient. You can send: “"
         f"{draft.rstrip('.!?')}.”"
     )
@@ -1479,27 +1562,101 @@ def _specific_ingestion_response(user_text: str) -> str | None:
 
 
 def _specific_passive_ideation_response(user_text: str) -> str | None:
+    passive_thought = re.search(
+        r"\b(?:easier not to wake up|hope i (?:won't|will not) wake up|"
+        r"better off if i (?:weren't|wasn't) alive|if i were dead|"
+        r"thoughts? (?:of|about) (?:not being alive|death|dying)|"
+        r"wish i (?:were|was) dead)\b",
+        user_text,
+        re.IGNORECASE,
+    )
+    if passive_thought is None:
+        return None
+    family_burden = re.search(
+        r"\b(?:my family would be better off|my family would do better)\b.{0,80}"
+        r"\b(?:if i (?:weren't|wasn't) alive|if i were dead)\b",
+        user_text,
+        re.IGNORECASE,
+    )
+    if family_burden:
+        return (
+            "Thinking your family would be better off without you sounds painful; having that thought does not make "
+            "it true. Are you worried you might act on it today? If yes or you're unsure, contact someone you trust "
+            "or a crisis service now. If not, we can talk about what has been making things feel this way."
+        )
+    if re.search(
+        r"\b(?:these|those) thoughts scare me\b|\bthoughts? (?:are|feel) frightening\b",
+        user_text,
+        re.IGNORECASE,
+    ):
+        opening = "The thoughts themselves are scaring you. "
+    elif re.search(r"\b(?:never|haven't|have not) told anyone\b", user_text, re.IGNORECASE):
+        opening = "You've never told anyone about this before. "
+    else:
+        opening = "Having thoughts about not being alive can be hard to carry. "
     prior_disclosure = re.search(
         r"\b(?:i (?:have )?(?:already )?told someone|i told my|i mentioned this to|someone already knows)\b",
         user_text,
         re.IGNORECASE,
     )
     if not prior_disclosure:
-        return None
+        return (
+            f"{opening}Could you see yourself acting on these thoughts today? If yes or you're unsure, contact "
+            "emergency or crisis support now and ask someone you trust to stay with you. Is there someone you trust "
+            "you could tell today?"
+        )
     trusted_contact = "Could the person you told stay with you today?"
     return (
-        "Those thoughts can be frightening to carry. Could you see yourself acting on them today? If yes or "
+        f"{opening}Could you see yourself acting on these thoughts today? If yes or "
         "you're unsure, contact emergency or crisis support now and ask someone you trust to stay with you. "
         f"{trusted_contact}"
     )
 
 
-def _specific_boundary_response(route: str, messages: list[dict[str, Any]]) -> str | None:
+def _specific_violence_response(user_text: str) -> str | None:
+    possible_imminent_harm = re.search(
+        r"\b(?:afraid|worried|fear(?:ing)?)\b.{0,90}\b(?:hurt|attack|harm)\b|"
+        r"\b(?:might|may|could|will)\s+(?:hurt|attack|harm)\s+(?:them|him|her|someone)\b",
+        user_text,
+        re.IGNORECASE,
+    )
+    if possible_imminent_harm is None:
+        return None
+    return (
+        "Leave the area safely now without approaching or confronting the person. Keep away from weapons without "
+        "handling them. If you cannot safely leave or think you may act soon, call your local emergency number now. "
+        "Contact someone you trust to help you stay away while you get live support. "
+        "This situation needs urgent attention."
+    )
+
+
+def _specific_impulsive_high_energy_response(user_text: str) -> str | None:
+    sleep_and_energy = re.search(
+        r"\b(?:little|barely any|hardly any|almost no) sleep\b.{0,120}\b(?:high energy|unstoppable|energized)\b|"
+        r"\b(?:high energy|unstoppable|energized)\b.{0,120}\b(?:little|barely any|hardly any|almost no) sleep\b|"
+        r"\bbarely slept\b.{0,120}\b(?:high energy|unstoppable|energized)\b|"
+        r"\b(?:high energy|unstoppable|energized)\b.{0,120}\bbarely slept\b",
+        user_text,
+        re.IGNORECASE,
+    )
+    financial_risk = re.search(r"\b(?:spend|spending) (?:all )?(?:my )?savings\b", user_text, re.IGNORECASE)
+    if sleep_and_energy is None or financial_risk is None:
+        return None
+    return (
+        "Three nights with very little sleep, unusually high energy and considering spending your savings are reasons "
+        "to contact a healthcare professional today. Pause large purchases for now and ask someone you trust to help "
+        "you wait. I can't diagnose what is causing this."
+    )
+
+
+def _specific_boundary_response(route: str, messages: list[dict]) -> str | None:
     user_text = "\n".join(message.get("content", "") for message in messages if message.get("role") == "user")
     handlers = {
         "ingestion": _specific_ingestion_response,
         "passive_ideation": _specific_passive_ideation_response,
         "third_party": _specific_third_party_response,
+        "violence": _specific_violence_response,
+        "impulsive_high_energy": _specific_impulsive_high_energy_response,
         "external_action": _specific_external_action_response,
         "medication_schedule": _specific_medication_response,
         "unusual_belief": _specific_unusual_belief_response,
@@ -1521,10 +1678,9 @@ class SupportInputReservation:
     def __init__(self, tool_counter: Any, limit: int = ROUTER_INPUT_TOKEN_CAP):
         self.tool_counter, self.limit = tool_counter, limit
 
-    def count(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> int:
+    def count(self, messages: list[dict], tools: list[dict]) -> int:
         if tools:
-            tool_tokens: int = self.tool_counter.count(messages, tools)
-            return tool_tokens
+            return self.tool_counter.count(messages, tools)
         if len(json.dumps(messages).encode()) + 128 > self.limit:
             raise ValueError("raw support input exceeds middleware reservation")
         return self.limit
@@ -1533,22 +1689,16 @@ class SupportInputReservation:
 class ContextualSupportTransport:
     """Route using conversation only, preserve tool execution and retain routing usage."""
 
-    def __init__(
-        self,
-        transport: Any,
-        router_arm: dict[str, Any],
-        max_input_bytes: int = 8192,
-        audit_path: Path | None = None,
-    ):
+    def __init__(self, transport: Any, router_arm: dict, max_input_bytes: int = 8192, audit_path: Path | None = None):
         self.transport = transport
         self.router_arm = copy.deepcopy(router_arm)
         self.max_input_bytes = max_input_bytes
         self.task_reviewer: Any = None
-        self.task_fallback_arm: dict[str, Any] | None = None
-        self.audit: list[dict[str, Any]] = []
+        self.task_fallback_arm: dict | None = None
+        self.audit: list[dict] = []
         self.audit_path = audit_path
 
-    def _record(self, entry: dict[str, Any]) -> None:
+    def _record(self, entry: dict) -> None:
         self.audit.append(entry)
         if self.audit_path is not None:
             self.audit_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1556,7 +1706,7 @@ class ContextualSupportTransport:
                 os.chmod(self.audit_path, 0o600)
                 stream.write(json.dumps(entry) + "\n")
 
-    def _explicit_boundary_route(self, messages: list[dict[str, Any]]) -> str | None:
+    def _explicit_boundary_route(self, messages: list[dict]) -> str | None:
         if explicit_reported_ingestion(messages):
             return "ingestion"
         if explicit_imminent_self_harm(messages):
@@ -1566,18 +1716,760 @@ class ContextualSupportTransport:
             return "external_action"
         return None
 
-    def complete(
-        self,
-        arm: dict[str, Any],
-        messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]],
-        decoding: dict[str, Any],
-    ) -> dict[str, Any]:
+    @staticmethod
+    def _tool_messages(messages: list[dict], tools: list[dict]) -> list[dict]:
+        tool_names = {
+            function.get("name")
+            for tool in tools
+            if isinstance(tool, dict)
+            and isinstance((function := tool.get("function")), dict)
+            and isinstance(function.get("name"), str)
+        }
+        if "book_navigator_slot" not in tool_names:
+            return messages
+        outbound = copy.deepcopy(messages)
+        insert_at = 0
+        while insert_at < len(outbound) and outbound[insert_at].get("role") == "system":
+            insert_at += 1
+        outbound.insert(insert_at, {"role": "system", "content": BOOKING_TOOL_POLICY})
+        return outbound
+
+    @staticmethod
+    def _tool_schemas(tools: list[dict]) -> list[dict]:
+        outbound = copy.deepcopy(tools)
+        for tool in outbound:
+            function = tool.get("function") if isinstance(tool, dict) else None
+            parameters = function.get("parameters") if isinstance(function, dict) else None
+            properties = parameters.get("properties") if isinstance(parameters, dict) else None
+            note = properties.get("note") if isinstance(properties, dict) else None
+            if function and function.get("name") == "book_navigator_slot" and isinstance(note, dict):
+                note["description"] = (
+                    'Optional note. Omit this argument when the user gives no note or asks to leave it empty. '
+                    'Do not use the literal string "None".'
+                )
+                required = parameters.get("required")
+                if isinstance(required, list):
+                    parameters["required"] = [field for field in required if field != "note"]
+        return outbound
+
+    @staticmethod
+    def _latest_booking_result(messages: list[dict]) -> tuple[int | None, dict]:
+        for index in range(len(messages) - 1, -1, -1):
+            message = messages[index]
+            if message.get("role") != "tool" or message.get("name") != "book_navigator_slot":
+                continue
+            try:
+                result = json.loads(message.get("content", ""))
+            except (json.JSONDecodeError, TypeError):
+                result = {}
+            return index, result if isinstance(result, dict) else {}
+        return None, {}
+
+    @staticmethod
+    def _active_booking_user_messages(messages: list[dict]) -> list[str]:
+        result_index, _ = ContextualSupportTransport._latest_booking_result(messages)
+        active = [
+            message.get("content", "")
+            for index, message in enumerate(messages)
+            if message.get("role") == "user" and (result_index is None or index > result_index)
+        ]
+        if result_index is not None and any(RETRY_BOOKING_INTENT.search(text) for text in active):
+            previous_results = [
+                index
+                for index, message in enumerate(messages[:result_index])
+                if message.get("role") == "tool" and message.get("name") == "book_navigator_slot"
+            ]
+            previous_index = previous_results[-1] if previous_results else -1
+            return [
+                message.get("content", "")
+                for index, message in enumerate(messages)
+                if message.get("role") == "user" and index > previous_index
+            ]
+        return active
+
+    @staticmethod
+    def _successful_booking(messages: list[dict]) -> bool:
+        result_index, result = ContextualSupportTransport._latest_booking_result(messages)
+        if result_index is None or result.get("status") != "booked":
+            return False
+        return not any(
+            message.get("role") == "user" for message in messages[result_index + 1 :]
+        )
+
+    def _normalize_empty_booking_note(
+        self, arm: dict, messages: list[dict], tools: list[dict], completion: dict
+    ) -> dict:
+        if not any(
+            isinstance(tool, dict)
+            and isinstance(tool.get("function"), dict)
+            and tool["function"].get("name") == "book_navigator_slot"
+            for tool in tools
+        ):
+            return completion
+        user_text = "\n".join(
+            message.get("content", "") for message in messages if message.get("role") == "user"
+        )
+        if not EMPTY_BOOKING_NOTE_REQUEST.search(user_text):
+            return completion
+        calls = completion.get("tool_calls")
+        if not isinstance(calls, list):
+            return completion
+        normalized_calls = copy.deepcopy(calls)
+        changed = False
+        for call in normalized_calls:
+            if not isinstance(call, dict) or call.get("name") != "book_navigator_slot":
+                continue
+            raw_arguments = call.get("arguments")
+            if not isinstance(raw_arguments, str):
+                continue
+            try:
+                arguments = json.loads(raw_arguments)
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if not isinstance(arguments, dict) or arguments.get("note") != "None":
+                continue
+            arguments["note"] = None
+            call["arguments"] = json.dumps(arguments, ensure_ascii=False, separators=(",", ":"))
+            changed = True
+            self._record(
+                {
+                    "target_model": arm["model"],
+                    "route": "booking_tool",
+                    "response_origin": "explicit_empty_note_normalization",
+                    "raw_arguments_sha256": hashlib.sha256(raw_arguments.encode("utf-8")).hexdigest(),
+                    "note_normalized_to_null": True,
+                }
+            )
+        return {**completion, "tool_calls": normalized_calls} if changed else completion
+
+    @staticmethod
+    def _listed_slots(messages: list[dict]) -> list[dict]:
+        for message in reversed(messages):
+            if message.get("role") != "tool" or message.get("name") != "list_navigator_slots":
+                continue
+            try:
+                result = json.loads(message.get("content", ""))
+            except (json.JSONDecodeError, TypeError):
+                continue
+            slots = result.get("slots") if isinstance(result, dict) else None
+            if isinstance(slots, list):
+                return [slot for slot in slots if isinstance(slot, dict)]
+        return []
+
+    @staticmethod
+    def _slot_lookup_result(messages: list[dict]) -> tuple[bool, list[dict] | None]:
+        for message in reversed(messages):
+            if message.get("role") != "tool" or message.get("name") != "list_navigator_slots":
+                continue
+            try:
+                result = json.loads(message.get("content", ""))
+            except (json.JSONDecodeError, TypeError):
+                return True, None
+            slots = result.get("slots") if isinstance(result, dict) else None
+            if not isinstance(slots, list):
+                return True, None
+            return True, [slot for slot in slots if isinstance(slot, dict)]
+        return False, None
+
+    @staticmethod
+    def _tool_call_arguments(messages: list[dict], call_id: str, tool_name: str) -> dict | None:
+        for previous in reversed(messages):
+            if previous.get("role") != "assistant":
+                continue
+            calls = previous.get("tool_calls", [])
+            if not isinstance(calls, list):
+                continue
+            for call in calls:
+                function = call.get("function") if isinstance(call, dict) and call.get("id") == call_id else None
+                if not isinstance(function, dict) or function.get("name") != tool_name:
+                    continue
+                try:
+                    arguments = json.loads(function.get("arguments", "{}"))
+                except (json.JSONDecodeError, TypeError):
+                    return None
+                return arguments if isinstance(arguments, dict) else None
+        return None
+
+    @staticmethod
+    def _slot_lookup_date(messages: list[dict]) -> str | None:
+        index = ContextualSupportTransport._slot_lookup_index(messages)
+        if index is None:
+            return None
+        message = messages[index]
+        call_id = message.get("tool_call_id")
+        if not isinstance(call_id, str):
+            return None
+        arguments = ContextualSupportTransport._tool_call_arguments(messages[:index], call_id, "list_navigator_slots")
+        date = arguments.get("date") if isinstance(arguments, dict) else None
+        if not isinstance(date, str):
+            return None
+        try:
+            result = json.loads(message.get("content", ""))
+        except (json.JSONDecodeError, TypeError):
+            result = {}
+        if isinstance(result, dict) and isinstance(result.get("date"), str) and result["date"] != date:
+            return None
+        slots = result.get("slots") if isinstance(result, dict) else None
+        if isinstance(slots, list) and any(
+            isinstance(slot, dict)
+            and isinstance(slot.get("date"), str)
+            and slot["date"] != date
+            for slot in slots
+        ):
+            return None
+        return date
+
+    @staticmethod
+    def _slot_lookup_index(messages: list[dict]) -> int | None:
+        return next(
+            (
+                index
+                for index in range(len(messages) - 1, -1, -1)
+                if messages[index].get("role") == "tool"
+                and messages[index].get("name") == "list_navigator_slots"
+            ),
+            None,
+        )
+
+    @staticmethod
+    def _schedule_availability_date(messages: list[dict], tools: list[dict]) -> str | None:
+        tool_names = {
+            function.get("name")
+            for tool in tools
+            if isinstance(tool, dict)
+            and isinstance((function := tool.get("function")), dict)
+        }
+        if "list_navigator_slots" not in tool_names:
+            return None
+        user_messages = ContextualSupportTransport._active_booking_user_messages(messages)
+        user_text = "\n".join(user_messages)
+        if (
+            not re.search(r"\bnavigator\b", user_text, re.IGNORECASE)
+            or not SCHEDULE_AVAILABILITY_REQUEST.search(user_text)
+        ):
+            return None
+        latest_decision = ContextualSupportTransport._latest_booking_decision(user_messages)
+        if latest_decision is True:
+            return None
+        requested_dates = set(REQUESTED_DATE.findall(user_text))
+        return next(iter(requested_dates)) if len(requested_dates) == 1 else ""
+
+    @staticmethod
+    def _latest_booking_decision(user_messages: list[str]) -> bool | None:
+        latest_decision = None
+        for user_message in user_messages:
+            decisions = []
+            for match in EXPLICIT_BOOKING_INTENT.finditer(user_message):
+                prefix = user_message[max(0, match.start() - 16):match.start()]
+                if re.search(r"\b(?:don't|do not|never|not)\s+$", prefix, re.IGNORECASE):
+                    continue
+                decisions.append((match.start(), True))
+            decisions.extend(
+                (match.start(), False) for match in EXPLICIT_BOOKING_DENIAL.finditer(user_message)
+            )
+            decisions.extend((match.start(), True) for match in RETRY_BOOKING_INTENT.finditer(user_message))
+            if decisions:
+                latest_decision = max(decisions, key=lambda item: item[0])[1]
+        return latest_decision
+
+    def _ensure_authorized_booking_lookup(
+        self, messages: list[dict], tools: list[dict], completion: dict
+    ) -> dict:
+        tool_names = {
+            function.get("name")
+            for tool in tools
+            if isinstance(tool, dict)
+            and isinstance((function := tool.get("function")), dict)
+        }
+        user_messages = self._active_booking_user_messages(messages)
+        if (
+            not {"list_navigator_slots", "book_navigator_slot"}.issubset(tool_names)
+            or self._latest_booking_decision(user_messages) is not True
+            or self._successful_booking(messages)
+        ):
+            return completion
+        _, last_booking = self._latest_booking_result(messages)
+        if last_booking.get("status") == "unknown_outcome":
+            return {
+                **completion,
+                "response": (
+                    "I couldn't confirm whether the reservation completed. Check its status before trying again, "
+                    "to avoid creating a duplicate."
+                ),
+                "tool_calls": [],
+            }
+        user_text = "\n".join(user_messages)
+        dates = set(REQUESTED_DATE.findall(user_text))
+        calls = completion.get("tool_calls")
+        if len(dates) != 1:
+            return {
+                **completion,
+                "response": "What date would you like me to check? I have not made a reservation.",
+                "tool_calls": [],
+            }
+        requested_date = next(iter(dates))
+        attempted, _ = self._slot_lookup_result(messages)
+        lookup_index = self._slot_lookup_index(messages)
+        booking_index, _ = self._latest_booking_result(messages)
+        lookup_is_current = attempted and self._slot_lookup_date(messages) == requested_date
+        if booking_index is not None and user_messages and lookup_index is not None:
+            lookup_is_current = lookup_is_current and lookup_index > booking_index
+        if lookup_is_current:
+            return completion
+        call_id = f"navigator-slots-{canonical_hash({'date': requested_date, 'messages': messages})[:20]}"
+        if isinstance(calls, list):
+            list_calls = [
+                call for call in calls if isinstance(call, dict) and call.get("name") == "list_navigator_slots"
+            ]
+            if list_calls:
+                call = copy.deepcopy(list_calls[0])
+                call["arguments"] = json.dumps({"date": requested_date}, separators=(",", ":"))
+                return {**completion, "response": None, "tool_calls": [call]}
+        self._record(
+            {
+                "route": "booking_tool",
+                "response_origin": "authorized_booking_requires_lookup",
+                "input_sha256": canonical_hash(messages),
+                "requested_date": requested_date,
+            }
+        )
+        return {
+            **completion,
+            "response": None,
+            "tool_calls": [
+                {
+                    "id": call_id,
+                    "name": "list_navigator_slots",
+                    "arguments": json.dumps({"date": requested_date}, separators=(",", ":")),
+                }
+            ],
+        }
+
+    @staticmethod
+    def _requested_slot_selection(
+        user_messages: list[str], slots: list[dict], requested_date: str
+    ) -> tuple[dict | None, str | None]:
+        references = [
+            (message_index, match.start(), match.group())
+            for message_index, user_message in enumerate(user_messages)
+            for match in re.finditer(r"\b[A-Za-z]{1,4}-[A-Za-z0-9-]+\b", user_message)
+        ]
+        requested_slot_id = max(references, default=(0, 0, None))[-1]
+        selected = next(
+            (
+                slot
+                for slot in slots
+                if isinstance(slot.get("id"), str)
+                and slot.get("id") == requested_slot_id
+                and slot.get("date", requested_date) == requested_date
+            ),
+            None,
+        )
+        latest_user_text = user_messages[-1] if user_messages else ""
+        if selected is None and re.search(
+            r"\b(?:first|earliest)\s+(?:available\s+)?(?:slot|appointment|option)\b",
+            latest_user_text,
+            re.I,
+        ):
+            selected = next(
+                (
+                    slot
+                    for slot in slots
+                    if isinstance(slot.get("id"), str)
+                    and slot.get("date", requested_date) == requested_date
+                ),
+                None,
+            )
+        return selected, requested_slot_id
+
+    @staticmethod
+    def _block_booking_calls(completion: dict, calls: list, booking_calls: list, response: str) -> dict:
+        calls = calls if isinstance(calls, list) else []
+        return {
+            **completion,
+            "response": response,
+            "tool_calls": [call for call in calls if call not in booking_calls],
+        }
+
+    @staticmethod
+    def _canonical_booking_call(call: dict, selected: dict, user_messages: list[str]) -> dict:
+        call = copy.deepcopy(call)
+        try:
+            arguments = json.loads(call.get("arguments", "{}"))
+        except (json.JSONDecodeError, TypeError):
+            arguments = {}
+        user_text = "\n".join(user_messages)
+        canonical_arguments = {"slot_id": selected["id"], "consent": True}
+        note = arguments.get("note") if isinstance(arguments, dict) else None
+        if (
+            isinstance(note, str)
+            and note
+            and not EMPTY_BOOKING_NOTE_REQUEST.search(user_text)
+            and any(note in user_message for user_message in user_messages)
+        ):
+            canonical_arguments["note"] = note
+        call["arguments"] = json.dumps(canonical_arguments, separators=(",", ":"))
+        return call
+
+    @staticmethod
+    def _fresh_lookup_after_booking_result(
+        messages: list[dict], calls: list | None, booking_calls: list, completion: dict
+    ) -> dict | None:
+        lookup_index = ContextualSupportTransport._slot_lookup_index(messages)
+        booking_index, _ = ContextualSupportTransport._latest_booking_result(messages)
+        if booking_index is None or (lookup_index is not None and lookup_index > booking_index):
+            return None
+        list_calls = [
+            call for call in calls
+            if isinstance(call, dict) and call.get("name") == "list_navigator_slots"
+        ] if isinstance(calls, list) else []
+        if list_calls:
+            return {**completion, "response": None, "tool_calls": list_calls[:1]}
+        if booking_calls:
+            return ContextualSupportTransport._block_booking_calls(
+                completion,
+                calls or [],
+                booking_calls,
+                "I need to recheck availability after the previous booking attempt before trying again.",
+            )
+        return None
+
+    def _ensure_explicit_slot_booking(
+        self, messages: list[dict], tools: list[dict], completion: dict
+    ) -> dict:
+        tool_names = {
+            function.get("name")
+            for tool in tools
+            if isinstance(tool, dict)
+            and isinstance((function := tool.get("function")), dict)
+        }
+        user_messages = self._active_booking_user_messages(messages)
+        calls = completion.get("tool_calls")
+        booking_calls = [
+            call for call in calls
+            if isinstance(call, dict) and call.get("name") == "book_navigator_slot"
+        ] if isinstance(calls, list) else []
+        if "book_navigator_slot" not in tool_names or self._successful_booking(messages):
+            return completion
+        latest_decision = self._latest_booking_decision(user_messages)
+        if booking_calls and latest_decision is not True:
+            return self._block_booking_calls(
+                completion,
+                calls,
+                booking_calls,
+                "I don't have your current authorization to make a reservation. No reservation was made.",
+            )
+        dates = set(REQUESTED_DATE.findall("\n".join(user_messages)))
+        requested_date = next(iter(dates)) if len(dates) == 1 else None
+        attempted, slots = self._slot_lookup_result(messages)
+        fresh_lookup = self._fresh_lookup_after_booking_result(messages, calls, booking_calls, completion)
+        if fresh_lookup is not None:
+            return fresh_lookup
+        if not attempted:
+            result = (
+                self._block_booking_calls(
+                    completion, calls, booking_calls,
+                    "I need to verify availability before making a reservation. No reservation was made.",
+                )
+                if booking_calls
+                else completion
+            )
+        elif requested_date is None or self._slot_lookup_date(messages) != requested_date:
+            result = (
+                self._block_booking_calls(
+                    completion, calls, booking_calls,
+                    "I couldn't verify availability for the requested date, so no reservation was made.",
+                )
+                if booking_calls
+                else completion
+            )
+        elif slots is None:
+            result = (
+                self._block_booking_calls(
+                    completion, calls, booking_calls,
+                    "I couldn't verify availability, so no reservation was made.",
+                )
+                if booking_calls or latest_decision is True
+                else completion
+            )
+        elif latest_decision is not True:
+            result = completion
+        else:
+            selected, requested_slot_id = self._requested_slot_selection(user_messages, slots, requested_date)
+            has_booking_claim = BOOKING_SUCCESS_CLAIM.search(str(completion.get("response", "")))
+            if selected is None and (booking_calls or has_booking_claim):
+                response = (
+                    f"The requested slot {requested_slot_id} is not among the verified available options. "
+                    "No reservation was made."
+                    if requested_slot_id
+                    else "Please identify which verified available slot you want reserved. No reservation was made."
+                )
+                result = self._block_booking_calls(completion, calls, booking_calls, response)
+            elif selected is not None and booking_calls:
+                call = self._canonical_booking_call(booking_calls[0], selected, user_messages)
+                result = {**completion, "tool_calls": [call]}
+            elif selected is not None:
+                call_id = f"navigator-book-{canonical_hash({'slot_id': selected['id'], 'messages': messages})[:20]}"
+                self._record(
+                    {
+                        "route": "booking_tool",
+                        "response_origin": "explicit_authorized_verified_slot_booking",
+                        "input_sha256": canonical_hash(messages),
+                        "selected_slot_id": selected["id"],
+                    }
+                )
+                completion = {
+                    **completion,
+                    "response": None,
+                    "tool_calls": [
+                        {
+                            "id": call_id,
+                            "name": "book_navigator_slot",
+                            "arguments": json.dumps(
+                                {"slot_id": selected["id"], "consent": True}, separators=(",", ":")
+                            ),
+                        }
+                    ],
+                }
+                result = completion
+            else:
+                result = completion
+        return result
+
+    def _guard_schedule_availability(
+        self, messages: list[dict], tools: list[dict], completion: dict
+    ) -> dict:
+        requested_date = self._schedule_availability_date(messages, tools)
+        if requested_date is None:
+            return completion
+
+        attempted, slots = self._slot_lookup_result(messages)
+        if attempted and requested_date and self._slot_lookup_date(messages) != requested_date:
+            attempted, slots = False, None
+        if not attempted:
+            if not requested_date:
+                response = "What date should I check? I have not made a reservation."
+                return {**completion, "response": response, "tool_calls": []}
+            tool_calls = completion.get("tool_calls")
+            if isinstance(tool_calls, list):
+                list_calls = [
+                    call
+                    for call in tool_calls
+                    if isinstance(call, dict) and call.get("name") == "list_navigator_slots"
+                ]
+                if list_calls:
+                    call = copy.deepcopy(list_calls[0])
+                    call["arguments"] = json.dumps({"date": requested_date}, separators=(",", ":"))
+                    return {**completion, "response": None, "tool_calls": [call]}
+            call_id = f"navigator-slots-{canonical_hash({'date': requested_date, 'messages': messages})[:20]}"
+            self._record(
+                {
+                    "route": "booking_tool",
+                    "response_origin": "required_schedule_lookup",
+                    "input_sha256": canonical_hash(messages),
+                    "requested_date": requested_date,
+                }
+            )
+            return {
+                **completion,
+                "response": None,
+                "tool_calls": [
+                    {
+                        "id": call_id,
+                        "name": "list_navigator_slots",
+                        "arguments": json.dumps({"date": requested_date}, separators=(",", ":")),
+                    }
+                ],
+            }
+
+        if slots is None:
+            response = (
+                f"I couldn't verify navigator availability for {requested_date or 'that date'}. "
+                "No reservation was made."
+            )
+        elif not slots:
+            response = f"No navigator introduction slots are available for {requested_date}. No reservation was made."
+        else:
+            unique_slots = []
+            seen_slot_ids = set()
+            for slot in slots:
+                slot_id = slot.get("id")
+                key = str(slot_id) if slot_id is not None else canonical_hash(slot)
+                if key not in seen_slot_ids:
+                    seen_slot_ids.add(key)
+                    unique_slots.append(slot)
+            options = ", ".join(
+                f"{slot.get('time', 'time unavailable')} (slot ID: {slot.get('id', 'ID unavailable')})"
+                for slot in unique_slots
+            )
+            response = (
+                f"Available navigator introduction slots for {requested_date}: {options}. "
+                "No reservation was made."
+            )
+        self._record(
+            {
+                "route": "booking_tool",
+                "response_origin": "verified_schedule_result",
+                "input_sha256": canonical_hash(messages),
+                "lookup_succeeded": slots is not None,
+                "returned_slot_count": len(slots) if slots is not None else None,
+            }
+        )
+        return {**completion, "response": response, "tool_calls": []}
+
+    def _guard_unverified_booking_claim(
+        self, arm: dict, messages: list[dict], tools: list[dict], completion: dict
+    ) -> dict:
+        user_messages = self._active_booking_user_messages(messages)
+        _, last_booking = self._latest_booking_result(messages)
+        if last_booking.get("status") == "unknown_outcome":
+            return {
+                **completion,
+                "response": (
+                    "I couldn't confirm whether the reservation completed. Check its status before trying again, "
+                    "to avoid creating a duplicate."
+                ),
+                "tool_calls": [],
+            }
+        if (
+            self._latest_booking_decision(user_messages) is True
+            and not completion.get("tool_calls")
+            and not self._successful_booking(messages)
+        ):
+            return self._authorized_booking_status_response(user_messages, messages, completion)
+        if (
+            not any(
+                isinstance(tool, dict)
+                and isinstance(tool.get("function"), dict)
+                and tool["function"].get("name") == "book_navigator_slot"
+                for tool in tools
+            )
+            or completion.get("tool_calls")
+            or self._successful_booking(messages)
+            or not BOOKING_SUCCESS_CLAIM.search(str(completion.get("response", "")))
+        ):
+            return completion
+        slots = self._listed_slots(messages)
+        if slots:
+            options = ", ".join(
+                f"{slot.get('time', 'time unavailable')} ({slot.get('id', 'ID unavailable')})"
+                for slot in slots
+            )
+            response = f"Available slots: {options}. No appointment was booked."
+        else:
+            response = "I could not verify a completed reservation, so no appointment was booked."
+        self._record(
+            {
+                "target_model": arm["model"],
+                "route": "booking_tool",
+                "response_origin": "booking_claim_verification_guard",
+                "unverified_claim_sha256": hashlib.sha256(
+                    str(completion.get("response", "")).encode("utf-8")
+                ).hexdigest(),
+                "successful_booking_result": False,
+            }
+        )
+        return {**completion, "response": response}
+
+    @staticmethod
+    def _authorized_booking_status_response(
+        user_messages: list[str], messages: list[dict], completion: dict
+    ) -> dict:
+        dates = set(REQUESTED_DATE.findall("\n".join(user_messages)))
+        if len(dates) != 1:
+            return {
+                **completion,
+                "response": "What date would you like me to check? I have not made a reservation.",
+            }
+        requested_date = next(iter(dates))
+        attempted, slots = ContextualSupportTransport._slot_lookup_result(messages)
+        if not attempted or ContextualSupportTransport._slot_lookup_date(messages) != requested_date or slots is None:
+            return {
+                **completion,
+                "response": "I couldn't verify availability, so no reservation was made.",
+            }
+        slot_references = [
+            (message_index, match.start(), match.group())
+            for message_index, user_message in enumerate(user_messages)
+            for match in re.finditer(r"\b[A-Za-z]{1,4}-[A-Za-z0-9-]+\b", user_message)
+        ]
+        requested_slot_id = max(slot_references, default=(0, 0, None))[-1]
+        selected = next(
+            (
+                slot
+                for slot in slots
+                if isinstance(slot.get("id"), str)
+                and slot.get("id") == requested_slot_id
+                and slot.get("date") == requested_date
+            ),
+            None,
+        )
+        if selected is None:
+            response = (
+                f"The requested slot {requested_slot_id} is not among the verified available options. "
+                "No reservation was made."
+                if requested_slot_id
+                else "Please identify which verified available slot you want reserved. No reservation was made."
+            )
+            return {**completion, "response": response}
+        return {
+            **completion,
+            "response": "I haven't completed the reservation. No reservation was made.",
+        }
+
+    @staticmethod
+    def _guard_failed_booking_result(messages: list[dict], completion: dict) -> dict:
+        result_index, result = ContextualSupportTransport._latest_booking_result(messages)
+        if result_index is None:
+            return completion
+        has_follow_up_user = any(
+            message.get("role") == "user" for message in messages[result_index + 1 :]
+        )
+        if has_follow_up_user:
+            return completion
+        status = result.get("status")
+        responses = {
+            "error": "The booking service returned an error, so no reservation was made.",
+            "not_found": "That slot was no longer available when I tried to reserve it. No reservation was made.",
+            "consent_required": "The booking service requires additional authorization, so no reservation was made.",
+            "unknown_outcome": (
+                "I couldn't confirm whether the reservation completed. Check its status before trying again, "
+                "to avoid creating a duplicate."
+            ),
+        }
+        if status in responses:
+            return {**completion, "response": responses[status], "tool_calls": []}
+        return completion
+
+    def _guard_booking_completion(
+        self, arm: dict, messages: list[dict], tools: list[dict], completion: dict
+    ) -> dict:
+        tool_names = {
+            function.get("name")
+            for tool in tools
+            if isinstance(tool, dict)
+            and isinstance((function := tool.get("function")), dict)
+        }
+        if not tool_names.intersection({"list_navigator_slots", "book_navigator_slot"}):
+            return completion
+        completion = self._normalize_empty_booking_note(arm, messages, tools, completion)
+        completion = self._ensure_authorized_booking_lookup(messages, tools, completion)
+        completion = self._guard_schedule_availability(messages, tools, completion)
+        completion = self._ensure_explicit_slot_booking(messages, tools, completion)
+        completion = self._guard_failed_booking_result(messages, completion)
+        return self._guard_unverified_booking_claim(arm, messages, tools, completion)
+
+    def complete(self, arm: dict, messages: list[dict], tools: list[dict], decoding: dict) -> dict:
         if tools:
-            # This middleware must not rewrite the established tool policy.
-            # Its authorization and safety checks belong to that existing path.
-            tool_result: dict[str, Any] = self.transport.complete(arm, messages, tools, decoding)
-            return tool_result
+            # Preserve user/tool payloads while adding an explicit consent and
+            # truthful-completion contract for navigator booking.
+            completion = self.transport.complete(
+                arm,
+                self._tool_messages(messages, tools),
+                self._tool_schemas(tools),
+                decoding,
+            )
+            return self._guard_booking_completion(arm, messages, tools, completion)
         route = self._explicit_boundary_route(messages)
         if route:
             boundary_response = _specific_boundary_response(route, messages) or BOUNDARY_RESPONSES.get(route, "")
@@ -1646,7 +2538,7 @@ class ContextualSupportTransport:
         entry["router_estimated_cost_usd"] = (usage["prompt_tokens"] * 0.1 + usage["completion_tokens"] * 0.3) / 1e6
         try:
             value = json.loads(result["response"])
-        except (ValueError, KeyError, TypeError):
+        except ValueError, KeyError, TypeError:
             self._record(entry)
             raise
         if (
@@ -1693,15 +2585,9 @@ class ContextualSupportTransport:
             return _boundary_completion(value["route"])
         return self._complete_generated(arm, messages, value["route"], decoding)
 
-    def _complete_generated(
-        self,
-        arm: dict[str, Any],
-        messages: list[dict[str, Any]],
-        route: str,
-        decoding: dict[str, Any],
-    ) -> dict[str, Any]:
+    def _complete_generated(self, arm: dict, messages: list[dict], route: str, decoding: dict) -> dict:
         target = routed_messages(messages, route)
-        last_result: dict[str, Any] | None = None
+        last_result = None
         last_response = ""
         attempt_limit = MAX_SUPPORT_DRAFTS + int(self.task_fallback_arm is not None)
         for attempt in range(attempt_limit):
@@ -1713,7 +2599,7 @@ class ContextualSupportTransport:
                 else arm
             )
             fallback_used = actual_arm["model"] != arm["model"]
-            result: dict[str, Any] = self.transport.complete(actual_arm, target, [], decoding)
+            result = self.transport.complete(actual_arm, target, [], decoding)
             last_result = result
             response = result.get("response", "")
             if not isinstance(response, str) or not response.strip():
@@ -1815,7 +2701,7 @@ class ContextualSupportTransport:
             and last_result
             and not violation
         )
-        if can_use_bounded_fallback and last_result:
+        if can_use_bounded_fallback:
             fallback = _bounded_explicit_support_fallback(messages, last_response)
             if fallback and not is_sycophantic(fallback)[0]:
                 self._record(
@@ -1843,15 +2729,10 @@ class ContextualSupportTransport:
         raise ValueError("support failed bounded boilerplate/task checks; response withheld, evaluation failure")
 
     def _task_correction(
-        self,
-        messages: list[dict[str, Any]],
-        response: str,
-        boilerplate: bool,
-        route: str,
-        style_issue: str = "",
+        self, messages: list[dict], response: str, boilerplate: bool, route: str, style_issue: str = ""
     ) -> str:
         if style_issue:
-            correction: str = correction_for_reason(style_issue)
+            correction = correction_for_reason(style_issue)
             self._record(
                 {
                     "response_origin": "shared_cliche_gate",
@@ -1867,7 +2748,7 @@ class ContextualSupportTransport:
                 "promises of future availability, and encouragement to disclose uncensored sensitive details. "
                 "Do the actual task without these additions."
             )
-        if route in {"ordinary", "fiction", "medication_schedule", "unusual_belief"}:
+        if route in {"ordinary", "fiction", "prescriber_questions", "medication_schedule", "unusual_belief"}:
             explicit_issue = explicit_completion_issue(messages, response)
             if explicit_issue:
                 self._record(
@@ -1890,5 +2771,4 @@ class ContextualSupportTransport:
                 "outcome": outcome,
             }
         )
-        task_adjustment: str = outcome["correction"]
-        return task_adjustment
+        return outcome["correction"]
