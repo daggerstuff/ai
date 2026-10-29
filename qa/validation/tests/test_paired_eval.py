@@ -37,6 +37,7 @@ AGGREGATED_TOOL_TOKENS = 34
 TWO_CASE_TOOL_ROUND_COST = 0.009216
 FAILED_TOOL_LOOP_COST = 0.000032
 MAX_ALLOWED_TOOL_ROUNDS = 8
+MULTI_TURN_COMPLETIONS = 2
 
 
 def write_inputs(tmp_path: Path, cases: list[dict[str, Any]] | None = None) -> tuple[Path, Path]:
@@ -494,6 +495,7 @@ def test_openai_transport_keeps_bearer_secret_out_of_run_files(tmp_path: Path, m
         observed["authorization"] = request.get_header("Authorization")
         observed["url"] = request.full_url
         observed["project"] = request.get_header("Openai-project")
+        observed["user_agent"] = request.get_header("User-agent")
         observed["body"] = json.loads(request.data)
         return FakeResponse()
 
@@ -507,6 +509,7 @@ def test_openai_transport_keeps_bearer_secret_out_of_run_files(tmp_path: Path, m
     assert observed["authorization"] == f"Bearer {secret}"
     assert observed["url"] == "https://base.example/v1/chat/completions"
     assert observed["project"] == "team/project"
+    assert observed["user_agent"] == "PixelatedEmpathyEval/1.0"
     assert observed["body"]["model"] == "base-model"
     assert observed["body"]["chat_template_kwargs"] == {"enable_thinking": False}
     assert observed["body"]["response_format"] == {"type": "json_object"}
@@ -904,6 +907,192 @@ def test_booking_omitted_optional_note_is_empty_without_changing_explicit_text()
     status, _ = _run_mock_tool("book_navigator_slot", '{"slot_id":"S-1","consent":true}', state)
     assert status == "ok"
     assert state["appointments"] == [{"slot_id": "S-1", "note": None}]
+
+
+def test_booking_race_can_report_a_slot_that_disappears_after_lookup() -> None:
+    state = {
+        "user_consent_granted": True,
+        "navigator_slots": {"2031-06-01": [{"id": "S-1", "date": "2031-06-01", "time": "10:00"}]},
+        "unavailable_slot_ids": ["S-1"],
+        "appointments": [],
+    }
+
+    status, output = _run_mock_tool("book_navigator_slot", '{"slot_id":"S-1","consent":true}', state)
+
+    assert status == "not_found"
+    assert output["booked"] is False
+    assert state["appointments"] == []
+
+
+def test_booking_is_idempotent_for_duplicate_tool_delivery() -> None:
+    state = {
+        "user_consent_granted": True,
+        "navigator_slots": {"2031-06-01": [{"id": "S-1", "date": "2031-06-01"}]},
+        "appointments": [],
+    }
+    arguments = '{"slot_id":"S-1","consent":true}'
+
+    first = _run_mock_tool("book_navigator_slot", arguments, state)
+    second = _run_mock_tool("book_navigator_slot", arguments, state)
+
+    assert first[0] == second[0] == "ok"
+    assert second[1]["duplicate"] is True
+    assert state["appointments"] == [{"slot_id": "S-1", "note": None}]
+
+
+@pytest.mark.parametrize(
+    ("state", "expected_code"),
+    [
+        ({"navigator_slots": []}, "invalid_navigator_state"),
+        (
+            {"navigator_slots": {"2031-06-01": [{"id": "S-1"}]}, "appointments": {}},
+            "invalid_appointment_state",
+        ),
+    ],
+)
+def test_booking_malformed_fixture_state_returns_structured_error(state, expected_code) -> None:
+    state["user_consent_granted"] = True
+    status, result = _run_mock_tool(
+        "book_navigator_slot", '{"slot_id":"S-1","consent":true}', state
+    )
+
+    assert status == "error"
+    assert result["code"] == expected_code
+
+
+def test_booking_unknown_commit_records_single_appointment_and_consumes_outcome() -> None:
+    state = {
+        "user_consent_granted": True,
+        "navigator_slots": {"2031-06-01": [{"id": "S-1", "date": "2031-06-01"}]},
+        "appointments": [],
+        "tool_outcomes": {
+            "book_navigator_slot": [
+                {"status": "unknown_outcome", "commit": True, "result": {"status": "unknown_outcome"}},
+                {"status": "handler"},
+            ]
+        },
+    }
+    arguments = '{"slot_id":"S-1","consent":true}'
+
+    uncertain = _run_mock_tool("book_navigator_slot", arguments, state)
+    replay = _run_mock_tool("book_navigator_slot", arguments, state)
+
+    assert uncertain[0] == "unknown_outcome"
+    assert uncertain[1]["slot_id"] == "S-1"
+    assert replay[1]["duplicate"] is True
+    assert len(state["appointments"]) == 1
+
+
+def test_tool_status_check_uses_latest_matching_result() -> None:
+    case = {
+        "state_checks": [
+            {"type": "tool_status", "tool_name": "book_navigator_slot", "status": "error"}
+        ]
+    }
+    trace = [
+        {"name": "book_navigator_slot", "status": "error"},
+        {"name": "book_navigator_slot", "status": "ok"},
+    ]
+
+    metric = score_state_checks(case, "", {}, trace)[0]
+
+    assert metric["passed"] is False
+
+
+def test_multi_turn_case_continues_after_final_assistant_response(tmp_path: Path) -> None:
+    cases_path, config_path = write_inputs(
+        tmp_path,
+        [
+            {
+                "id": "two-turn",
+                "scenario": "synthetic_multi_turn",
+                "messages": [{"role": "user", "content": "First request."}],
+                "follow_up_user_messages": ["Second request."],
+            }
+        ],
+    )
+
+    class MultiTurnTransport:
+        def __init__(self):
+            self.messages = []
+
+        def complete(self, _arm, messages, _tools, _decoding):
+            self.messages.append(messages)
+            response = "First response." if len(self.messages) == 1 else "Second response."
+            return {
+                "response": response,
+                "tool_calls": [],
+                "finish_reason": "stop",
+                "usage": {"prompt_tokens": 8, "completion_tokens": 3, "total_tokens": 11},
+            }
+
+    transport = MultiTurnTransport()
+    result = run(
+        (cases_path, config_path, tmp_path / "multi-turn-results"),
+        transport,
+        RunnerOptions("base"),
+    )
+
+    assert result["status"] == "complete"
+    assert len(transport.messages) == MULTI_TURN_COMPLETIONS
+    assert transport.messages[1][-2:] == [
+        {"role": "assistant", "content": "First response."},
+        {"role": "user", "content": "Second request."},
+    ]
+
+
+def test_tool_status_sequence_requires_exact_order() -> None:
+    case = {
+        "state_checks": [
+            {
+                "type": "tool_status_sequence",
+                "tool_name": "book_navigator_slot",
+                "statuses": ["error", "ok"],
+            }
+        ]
+    }
+
+    assert score_state_checks(
+        case,
+        "",
+        {},
+        [
+            {"name": "book_navigator_slot", "status": "error"},
+            {"name": "book_navigator_slot", "status": "ok"},
+        ],
+    )[0]["passed"]
+    assert not score_state_checks(
+        case,
+        "",
+        {},
+        [
+            {"name": "book_navigator_slot", "status": "ok"},
+            {"name": "book_navigator_slot", "status": "error"},
+        ],
+    )[0]["passed"]
+
+
+def test_tool_state_checks_verify_call_count_order_and_arguments() -> None:
+    case = {
+        "state_checks": [
+            {"type": "tool_sequence", "names": ["list_navigator_slots", "book_navigator_slot"]},
+            {"type": "tool_call_count", "tool_name": "book_navigator_slot", "count": 1},
+            {"type": "tool_not_called", "tool_name": "memory_write"},
+            {
+                "type": "tool_arguments",
+                "tool_name": "book_navigator_slot",
+                "arguments": [{"slot_id": "S-1", "consent": True}],
+            },
+        ]
+    }
+    trace = [
+        {"name": "list_navigator_slots", "arguments": '{"date":"2031-06-01"}'},
+        {"name": "book_navigator_slot", "arguments": '{"slot_id":"S-1","consent":true}'},
+    ]
+
+    metrics = score_state_checks(case, "", {}, trace)
+
+    assert all(metric["passed"] for metric in metrics)
 
 
 @pytest.mark.parametrize(

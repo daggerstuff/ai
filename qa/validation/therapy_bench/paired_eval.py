@@ -45,6 +45,7 @@ _CASE_KEYS = {
     "group_id",
     "split",
     "messages",
+    "follow_up_user_messages",
     "prompt",
     "tools",
     "tool_fixtures",
@@ -395,6 +396,11 @@ def _validate_case(case: dict[str, Any], line_number: int, seen: set[str]) -> st
         raise EvaluationInputError(f"case {case_id} needs a scenario name")
     case["messages"] = _case_messages(case, case_id)
     case.pop("prompt", None)
+    follow_ups = case.get("follow_up_user_messages", [])
+    if not isinstance(follow_ups, list) or any(
+        not isinstance(message, str) or not message.strip() for message in follow_ups
+    ):
+        raise EvaluationInputError(f"case {case_id} follow_up_user_messages must be nonempty text strings")
     tools = case.get("tools", [])
     if not isinstance(tools, list) or any(not isinstance(tool, dict) for tool in tools):
         raise EvaluationInputError(f"case {case_id} tools must be a list of objects")
@@ -482,7 +488,11 @@ class OpenAIChatCompletions:
         request = urllib.request.Request(
             _public_endpoint(arm["base_url"]),
             data=json.dumps(body).encode("utf-8"),
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+                "User-Agent": "PixelatedEmpathyEval/1.0",
+            },
             method="POST",
         )
         if arm.get("project"):
@@ -588,6 +598,11 @@ def _validate_check(check: dict[str, Any]) -> None:
 def _validate_state_check(check: dict[str, Any]) -> None:
     schemas = {
         "tool_status": {"type", "tool_name", "status"},
+        "tool_status_sequence": {"type", "tool_name", "statuses"},
+        "tool_not_called": {"type", "tool_name"},
+        "tool_call_count": {"type", "tool_name", "count"},
+        "tool_sequence": {"type", "names"},
+        "tool_arguments": {"type", "tool_name", "arguments"},
         "memory_value": {"type", "key", "value"},
         "state_value": {"type", "field", "value"},
         "supported_citations": {"type", "required_source_ids", "allowed_source_ids"},
@@ -606,6 +621,24 @@ def _validate_state_check(check: dict[str, Any]) -> None:
             not isinstance(check[field], list) or not all(isinstance(value, str) and value for value in check[field])
         ):
             raise EvaluationInputError(f"{field} must be a list of nonempty strings")
+    if check_type == "tool_sequence" and (
+        not isinstance(check["names"], list) or not all(isinstance(name, str) and name for name in check["names"])
+    ):
+        raise EvaluationInputError("tool_sequence names must be a list of nonempty strings")
+    if check_type == "tool_status_sequence" and (
+        not isinstance(check["statuses"], list)
+        or not all(isinstance(status, str) and status for status in check["statuses"])
+    ):
+        raise EvaluationInputError("tool_status_sequence statuses must be a list of nonempty strings")
+    if check_type == "tool_arguments" and (
+        not isinstance(check["arguments"], list)
+        or not all(isinstance(arguments, dict) for arguments in check["arguments"])
+    ):
+        raise EvaluationInputError("tool_arguments arguments must be a list of objects")
+    if check_type == "tool_call_count" and (
+        not isinstance(check["count"], int) or isinstance(check["count"], bool) or check["count"] < 0
+    ):
+        raise EvaluationInputError("tool_call_count count must be a nonnegative integer")
     if check_type == "supported_citations" and not set(check["required_source_ids"]).issubset(
         check["allowed_source_ids"]
     ):
@@ -623,7 +656,47 @@ def _json_object(response: str) -> dict[str, Any]:
 def _check_tool_status(
     check: dict[str, Any], _response: str, _state: dict[str, Any], trace: list[dict[str, Any]]
 ) -> bool:
-    return any(item["name"] == check["tool_name"] and item["status"] == check["status"] for item in trace)
+    latest = next((item for item in reversed(trace) if item["name"] == check["tool_name"]), None)
+    return latest is not None and latest["status"] == check["status"]
+
+
+def _check_tool_status_sequence(
+    check: dict[str, Any], _response: str, _state: dict[str, Any], trace: list[dict[str, Any]]
+) -> bool:
+    statuses = [item["status"] for item in trace if item["name"] == check["tool_name"]]
+    return statuses == check["statuses"]
+
+
+def _check_tool_not_called(
+    check: dict[str, Any], _response: str, _state: dict[str, Any], trace: list[dict[str, Any]]
+) -> bool:
+    return all(item["name"] != check["tool_name"] for item in trace)
+
+
+def _check_tool_call_count(
+    check: dict[str, Any], _response: str, _state: dict[str, Any], trace: list[dict[str, Any]]
+) -> bool:
+    return sum(item["name"] == check["tool_name"] for item in trace) == check["count"]
+
+
+def _check_tool_sequence(
+    check: dict[str, Any], _response: str, _state: dict[str, Any], trace: list[dict[str, Any]]
+) -> bool:
+    return [item["name"] for item in trace] == check["names"]
+
+
+def _check_tool_arguments(
+    check: dict[str, Any], _response: str, _state: dict[str, Any], trace: list[dict[str, Any]]
+) -> bool:
+    try:
+        arguments = [
+            json.loads(item["arguments"])
+            for item in trace
+            if item["name"] == check["tool_name"]
+        ]
+    except (json.JSONDecodeError, TypeError):
+        return False
+    return arguments == check["arguments"]
 
 
 def _check_memory(check: dict[str, Any], _response: str, state: dict[str, Any], _trace: list[dict[str, Any]]) -> bool:
@@ -666,6 +739,11 @@ def _check_response_omits(
 
 _STATE_CHECKERS = {
     "tool_status": _check_tool_status,
+    "tool_status_sequence": _check_tool_status_sequence,
+    "tool_not_called": _check_tool_not_called,
+    "tool_call_count": _check_tool_call_count,
+    "tool_sequence": _check_tool_sequence,
+    "tool_arguments": _check_tool_arguments,
     "memory_value": _check_memory,
     "state_value": _check_state,
     "supported_citations": _check_citations,
@@ -757,25 +835,49 @@ def _tool_read_resource(args: dict[str, Any], state: dict[str, Any]) -> tuple[st
 
 def _tool_list_navigator_slots(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     date = args.get("date")
-    slots = state.get("navigator_slots", {}).get(date, [])
-    return "ok", {"slots": slots}
+    navigator_slots = state.get("navigator_slots", {})
+    if not isinstance(navigator_slots, dict):
+        return "error", {"status": "error", "code": "invalid_navigator_state"}
+    slots = navigator_slots.get(date, [])
+    return "ok", {"date": date, "slots": slots}
 
 
 def _tool_book_navigator_slot(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     if args.get("consent") is not True or state.get("user_consent_granted") is not True:
-        return "consent_required", {"status": "consent_required", "booked": False}
-    slot_id = args.get("slot_id")
-    slots = [slot for values in state.get("navigator_slots", {}).values() for slot in values]
-    slot = next((candidate for candidate in slots if candidate.get("id") == slot_id), None)
-    if slot is None:
-        return "not_found", {"status": "not_found", "booked": False}
-    # An empty optional note has one stored representation. An empty string is
-    # permitted by the tool schema and satisfies "leave the note empty" just as
-    # null does; literal strings such as "None" remain nonempty notes.
-    note = args.get("note")
-    appointment = {"slot_id": slot_id, "note": None if note == "" else note}
-    state.setdefault("appointments", []).append(appointment)
-    return "ok", {"status": "booked", "slot": slot}
+        status, result = "consent_required", {"status": "consent_required", "booked": False}
+    else:
+        slot_id = args.get("slot_id")
+        unavailable = state.get("unavailable_slot_ids", [])
+        navigator_slots = state.get("navigator_slots", {})
+        if slot_id in unavailable:
+            status, result = "not_found", {"status": "not_found", "booked": False}
+        elif not isinstance(navigator_slots, dict):
+            status, result = "error", {"status": "error", "booked": False, "code": "invalid_navigator_state"}
+        else:
+            slots = [
+                slot
+                for values in navigator_slots.values()
+                if isinstance(values, list)
+                for slot in values
+                if isinstance(slot, dict)
+            ]
+            slot = next((candidate for candidate in slots if candidate.get("id") == slot_id), None)
+            appointments = state.setdefault("appointments", [])
+            if slot is None:
+                status, result = "not_found", {"status": "not_found", "booked": False}
+            elif not isinstance(appointments, list):
+                status, result = "error", {"status": "error", "booked": False, "code": "invalid_appointment_state"}
+            elif any(
+                isinstance(appointment, dict) and appointment.get("slot_id") == slot_id
+                for appointment in appointments
+            ):
+                status, result = "ok", {"status": "booked", "slot": slot, "duplicate": True}
+            else:
+                # Idempotency is by selected slot in this mock workspace.
+                note = args.get("note")
+                appointments.append({"slot_id": slot_id, "note": None if note == "" else note})
+                status, result = "ok", {"status": "booked", "slot": slot}
+    return status, result
 
 
 def _tool_change_workspace_status(args: dict[str, Any], state: dict[str, Any]) -> tuple[str, dict[str, Any]]:
@@ -816,6 +918,24 @@ def _run_mock_tool(name: str, arguments: str, state: dict[str, Any]) -> tuple[st
         return "error", {"status": "error", "code": "invalid_arguments"}
     if not isinstance(parsed, dict):
         return "error", {"status": "error", "code": "arguments_must_be_object"}
+    outcome_queues = state.get("tool_outcomes", {})
+    outcomes = outcome_queues.get(name) if isinstance(outcome_queues, dict) else None
+    if isinstance(outcomes, list) and outcomes:
+        outcome = outcomes.pop(0)
+        if isinstance(outcome, dict):
+            status = outcome.get("status")
+            if status == "handler":
+                handler = _MOCK_TOOLS.get(name)
+                return handler(parsed, state) if handler else ("error", {"status": "error"})
+            if status == "unknown_outcome" and outcome.get("commit") is True and name in _MOCK_TOOLS:
+                _MOCK_TOOLS[name](parsed, state)
+            result = outcome.get("result")
+            if status == "unknown_outcome" and isinstance(result, dict) and "slot_id" not in result:
+                result = {**result, "slot_id": parsed.get("slot_id")}
+            return (
+                status if isinstance(status, str) else "error",
+                result if isinstance(result, dict) else {"status": status or "error"},
+            )
     if name in state.get("fail_tools", []):
         return "error", {"status": "error", "code": "synthetic_tool_unavailable"}
     handler = _MOCK_TOOLS.get(name)
@@ -834,7 +954,17 @@ def _preflight_tokens(
     if maximum < 1:
         raise EvaluationInputError("max_input_tokens requires a positive cap")
     counter = counter or ConservativeAsciiByteCounter()
-    counts = {case["id"]: counter.count(case["messages"], case.get("tools", [])) for case in cases}
+    counts = {}
+    for case in cases:
+        messages = list(case["messages"])
+        for follow_up in case.get("follow_up_user_messages", []):
+            messages.extend(
+                [
+                    {"role": "assistant", "content": "Previous response."},
+                    {"role": "user", "content": follow_up},
+                ]
+            )
+        counts[case["id"]] = counter.count(messages, case.get("tools", []))
     oversized = {case_id: count for case_id, count in counts.items() if count > maximum}
     if oversized:
         raise EvaluationInputError(f"preflight token cap exceeded: {oversized}")
@@ -1053,7 +1183,14 @@ def _case_identity(case: dict[str, Any], arm: dict[str, str], context: RunContex
         "input_tokens_preflight": context.token_counts.get(case["id"]),
         "scenario": case["scenario"],
         "suite": case.get("suite"),
-        "prompt_sha256": sha256_bytes(canonical_json(case["messages"]).encode()),
+        "prompt_sha256": sha256_bytes(
+            canonical_json(
+                {
+                    "messages": case["messages"],
+                    "follow_up_user_messages": case.get("follow_up_user_messages", []),
+                }
+            ).encode()
+        ),
     }
 
 
@@ -1123,6 +1260,8 @@ def _validate_completion(
 def _run_completion_loop(
     case: dict[str, Any], arm: dict[str, str], context: RunContext, progress: CaseExecution
 ) -> dict[str, Any]:
+    follow_ups = case.get("follow_up_user_messages", [])
+    follow_up_index = 0
     while True:
         bound = (
             context.token_counter.count(progress.history, case.get("tools", []))
@@ -1142,6 +1281,13 @@ def _run_completion_loop(
         progress.completion_calls += 1
         calls = _validate_completion(completion, bound, context, progress)
         if not calls or context.max_tool_rounds == 0:
+            if follow_up_index < len(follow_ups):
+                response = completion.get("response")
+                if isinstance(response, str) and response:
+                    progress.history.append({"role": "assistant", "content": response})
+                progress.history.append({"role": "user", "content": follow_ups[follow_up_index]})
+                follow_up_index += 1
+                continue
             return completion
         if progress.tool_rounds >= context.max_tool_rounds:
             raise CaseExecutionError("ToolRoundLimitExceeded")
