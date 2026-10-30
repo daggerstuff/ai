@@ -24,7 +24,9 @@ BOOKING_TOOL_POLICY = (
     "reservation, check availability, then call book_navigator_slot with the selected available slot ID and "
     'consent=true. Omit the optional note argument when the user gives no note or asks to leave it empty; '
     'never send the literal string "None"; '
-    "preserve a note only when the user supplied one. "
+    "preserve a note only when the user supplied one. Treat note instructions as scoped to the specific "
+    "booking the user attached them to; do not carry a note instruction forward to a later booking unless "
+    "the user repeats it. "
     "Resolve consent chronologically: later authorization overrides earlier refusals; "
     "later refusals revoke earlier permission. "
     "Never claim a reservation is complete without a successful book_navigator_slot result. If the user authorizes "
@@ -43,9 +45,14 @@ BOOKING_SUCCESS_CLAIM = re.compile(
     re.IGNORECASE,
 )
 EMPTY_BOOKING_NOTE_REQUEST = re.compile(
-    r"\b(?:leave|keep|set)\s+(?:the\s+)?note\s+(?:empty|blank)\b|"
+    r"\b(?:leave|keep|set)\s+(?:(?:the|my|its|their)\s+)?note\s+(?:empty|blank)\b|"
     r"\bwithout\s+(?:adding|a)\s+note\b|\bno note(?:\s+please)?\b",
     re.IGNORECASE,
+)
+EMPTY_NOTE_ATTRIBUTION = re.compile(
+    r"(?i)(?P<claim>(?:\bno note was added\b|\bnote\s*:\s*none\b|\bno note\b))"
+    r"\s*(?:\([^)]*\bas you (?:specified|requested|instructed)\b[^)]*\)"
+    r"|,?\s+as (?:you )?(?:specified|requested|instructed))"
 )
 SCHEDULE_AVAILABILITY_REQUEST = re.compile(
     r"\b(?:available|availability|open slots|openings?|check (?:the )?schedule|check availability|"
@@ -1788,6 +1795,21 @@ class ContextualSupportTransport:
         return active
 
     @staticmethod
+    def _latest_booking_transaction_user_messages(messages: list[dict]) -> list[str]:
+        booking_results = [
+            index
+            for index, message in enumerate(messages)
+            if message.get("role") == "tool" and message.get("name") == "book_navigator_slot"
+        ]
+        previous_result_index = booking_results[-2] if len(booking_results) > 1 else -1
+        latest_result_index = booking_results[-1] if booking_results else len(messages)
+        return [
+            message.get("content", "")
+            for index, message in enumerate(messages)
+            if message.get("role") == "user" and previous_result_index < index < latest_result_index
+        ]
+
+    @staticmethod
     def _successful_booking(messages: list[dict]) -> bool:
         result_index, result = ContextualSupportTransport._latest_booking_result(messages)
         if result_index is None or result.get("status") != "booked":
@@ -1806,9 +1828,7 @@ class ContextualSupportTransport:
             for tool in tools
         ):
             return completion
-        user_text = "\n".join(
-            message.get("content", "") for message in messages if message.get("role") == "user"
-        )
+        user_text = "\n".join(self._latest_booking_transaction_user_messages(messages))
         if not EMPTY_BOOKING_NOTE_REQUEST.search(user_text):
             return completion
         calls = completion.get("tool_calls")
@@ -2457,7 +2477,19 @@ class ContextualSupportTransport:
         completion = self._guard_schedule_availability(messages, tools, completion)
         completion = self._ensure_explicit_slot_booking(messages, tools, completion)
         completion = self._guard_failed_booking_result(messages, completion)
-        return self._guard_unverified_booking_claim(arm, messages, tools, completion)
+        completion = self._guard_unverified_booking_claim(arm, messages, tools, completion)
+        active_user_text = "\n".join(self._latest_booking_transaction_user_messages(messages))
+        response = completion.get("response")
+        if (
+            isinstance(response, str)
+            and not EMPTY_BOOKING_NOTE_REQUEST.search(active_user_text)
+            and EMPTY_NOTE_ATTRIBUTION.search(response)
+        ):
+            completion = {
+                **completion,
+                "response": EMPTY_NOTE_ATTRIBUTION.sub(r"\g<claim>", response),
+            }
+        return completion
 
     def complete(self, arm: dict, messages: list[dict], tools: list[dict], decoding: dict) -> dict:
         if tools:
