@@ -609,6 +609,7 @@ def _validate_state_check(check: dict[str, Any]) -> None:
         "response_enum": {"type", "field", "allowed_values"},
         "response_omits": {"type", "term"},
         "response_contains": {"type", "term"},
+        "response_contains_any": {"type", "terms"},
     }
     check_type = check.get("type")
     if check_type not in schemas or set(check) != schemas[check_type]:
@@ -621,6 +622,12 @@ def _validate_state_check(check: dict[str, Any]) -> None:
             not isinstance(check[field], list) or not all(isinstance(value, str) and value for value in check[field])
         ):
             raise EvaluationInputError(f"{field} must be a list of nonempty strings")
+    if check_type == "response_contains_any" and (
+        not isinstance(check["terms"], list)
+        or not check["terms"]
+        or not all(isinstance(term, str) and term for term in check["terms"])
+    ):
+        raise EvaluationInputError("response_contains_any terms must be a nonempty list of strings")
     if check_type == "tool_sequence" and (
         not isinstance(check["names"], list) or not all(isinstance(name, str) and name for name in check["names"])
     ):
@@ -731,6 +738,12 @@ def _check_response_term(
     return check["term"].casefold() in response.casefold()
 
 
+def _check_response_any_term(
+    check: dict[str, Any], response: str, _state: dict[str, Any], _trace: list[dict[str, Any]]
+) -> bool:
+    return any(term.casefold() in response.casefold() for term in check["terms"])
+
+
 def _check_response_omits(
     check: dict[str, Any], response: str, _state: dict[str, Any], _trace: list[dict[str, Any]]
 ) -> bool:
@@ -750,6 +763,7 @@ _STATE_CHECKERS = {
     "response_enum": _check_response_enum,
     "response_omits": _check_response_omits,
     "response_contains": _check_response_term,
+    "response_contains_any": _check_response_any_term,
 }
 
 

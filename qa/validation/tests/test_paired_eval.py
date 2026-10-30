@@ -844,6 +844,24 @@ def test_supported_citation_check_accepts_valid_alternative_wording() -> None:
     assert result[0]["passed"] is True
 
 
+def test_response_contains_any_accepts_equivalent_success_wording() -> None:
+    case = {
+        "id": "booking-success",
+        "state_checks": [{"type": "response_contains_any", "terms": ["booked", "confirmed"]}],
+    }
+    result = score_state_checks(case, "Your reservation is confirmed.", {}, [])
+    assert result[0]["passed"] is True
+
+
+def test_response_contains_any_rejects_unrelated_wording() -> None:
+    case = {
+        "id": "booking-success",
+        "state_checks": [{"type": "response_contains_any", "terms": ["booked", "confirmed"]}],
+    }
+    result = score_state_checks(case, "I checked the calendar.", {}, [])
+    assert result[0]["passed"] is False
+
+
 def test_synthetic_memory_write_requires_fixture_consent() -> None:
     state = {"memory": {}, "memory_write_allowed": False}
 
