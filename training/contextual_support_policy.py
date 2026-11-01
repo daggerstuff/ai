@@ -56,6 +56,7 @@ EMPTY_NOTE_ATTRIBUTION = re.compile(
 )
 SCHEDULE_AVAILABILITY_REQUEST = re.compile(
     r"\b(?:available|availability|open slots|openings?|check (?:the )?schedule|check availability|"
+    r"list (?:the )?(?:navigator )?(?:options|times|openings)|"
     r"(?:what|which|are there any|are any|show|list|find).{0,80}\b(?:times?|appointments?|slots?)\b)\b",
     re.IGNORECASE,
 )
@@ -71,7 +72,8 @@ EXPLICIT_BOOKING_INTENT = re.compile(
     re.IGNORECASE,
 )
 EXPLICIT_BOOKING_DENIAL = re.compile(
-    r"\b(?:do not book|don't book|do not reserve|don't reserve|not authoriz(?:e|ing)|"
+    r"\b(?:do not book|don't book|do not reserve|don't reserve|do not make (?:a )?(?:booking|reservation)|"
+    r"don't make (?:a )?(?:booking|reservation)|not authoriz(?:e|ing)|"
     r"no booking|no reservation|only check (?:the )?schedule|without (?:booking|a reservation)|"
     r"just (?:checking|information))\b",
     re.IGNORECASE,
@@ -1964,7 +1966,10 @@ class ContextualSupportTransport:
         user_messages = ContextualSupportTransport._active_booking_user_messages(messages)
         user_text = "\n".join(user_messages)
         if (
-            not re.search(r"\bnavigator\b", user_text, re.IGNORECASE)
+            not (
+                re.search(r"\bnavigator\b", user_text, re.IGNORECASE)
+                or re.search(r"\b[A-Za-z]{1,4}-[A-Za-z0-9-]+\b", user_text)
+            )
             or not SCHEDULE_AVAILABILITY_REQUEST.search(user_text)
         ):
             return None
@@ -2031,10 +2036,29 @@ class ContextualSupportTransport:
         attempted, _ = self._slot_lookup_result(messages)
         lookup_index = self._slot_lookup_index(messages)
         booking_index, _ = self._latest_booking_result(messages)
-        lookup_is_current = attempted and self._slot_lookup_date(messages) == requested_date
+        latest_user_index = max(
+            (index for index, message in enumerate(messages) if message.get("role") == "user"),
+            default=-1,
+        )
+        lookup_is_current = (
+            attempted
+            and lookup_index is not None
+            and lookup_index > latest_user_index
+            and self._slot_lookup_date(messages) == requested_date
+        )
         if booking_index is not None and user_messages and lookup_index is not None:
             lookup_is_current = lookup_is_current and lookup_index > booking_index
         if lookup_is_current:
+            _, latest_slots = self._slot_lookup_result(messages)
+            if latest_slots is None:
+                completion = {
+                    **completion,
+                    "response": (
+                        f"I couldn't verify navigator availability for {requested_date}. "
+                        "No reservation was made."
+                    ),
+                    "tool_calls": [],
+                }
             return completion
         call_id = f"navigator-slots-{canonical_hash({'date': requested_date, 'messages': messages})[:20]}"
         if isinstance(calls, list):
@@ -2264,7 +2288,15 @@ class ContextualSupportTransport:
             return completion
 
         attempted, slots = self._slot_lookup_result(messages)
-        if attempted and requested_date and self._slot_lookup_date(messages) != requested_date:
+        lookup_index = self._slot_lookup_index(messages)
+        latest_user_index = max(
+            (index for index, message in enumerate(messages) if message.get("role") == "user"),
+            default=-1,
+        )
+        lookup_is_after_latest_user = lookup_index is not None and lookup_index > latest_user_index
+        if attempted and requested_date and (
+            self._slot_lookup_date(messages) != requested_date or not lookup_is_after_latest_user
+        ):
             attempted, slots = False, None
         if not attempted:
             if not requested_date:
