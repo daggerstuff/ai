@@ -22,7 +22,7 @@ MAX_SUPPORT_DRAFTS = 3
 BOOKING_TOOL_POLICY = (
     "For navigator appointments, respect the user's authorization exactly. If the user explicitly authorizes a "
     "reservation, check availability, then call book_navigator_slot with the selected available slot ID and "
-    'consent=true. Omit the optional note argument when the user gives no note or asks to leave it empty; '
+    "consent=true. Omit the optional note argument when the user gives no note or asks to leave it empty; "
     'never send the literal string "None"; '
     "preserve a note only when the user supplied one. Treat note instructions as scoped to the specific "
     "booking the user attached them to; do not carry a note instruction forward to a later booking unless "
@@ -299,7 +299,7 @@ _REPORTED_INGESTION = re.compile(
 )
 
 
-def explicit_imminent_self_harm(messages: list[dict]) -> bool:
+def explicit_imminent_self_harm(messages: list[dict[str, Any]]) -> bool:
     """Route an explicit first-person immediate plan with nearby means without an LLM vote."""
     user_text = "\n".join(message.get("content", "") for message in messages if message.get("role") == "user")
     if _REPORTED_INGESTION.search(user_text):
@@ -358,7 +358,7 @@ def _attributed_nonuser_intent(user_text: str, start: int) -> bool:
     return False
 
 
-def explicit_reported_ingestion(messages: list[dict]) -> bool:
+def explicit_reported_ingestion(messages: list[dict[str, Any]]) -> bool:
     """Route a first-person report of medication ingestion to urgent medical help."""
     user_text = "\n".join(message.get("content", "") for message in messages if message.get("role") == "user")
     return any(
@@ -458,9 +458,7 @@ UNSOLICITED_ACTION_OFFER = re.compile(
     r"what would feel most helpful|what is one small thing you can do)\b",
     re.IGNORECASE,
 )
-UNSUPPORTED_FAMILIARITY = re.compile(
-    r"\bi know (?:how much )?(?:this|that|it) matters to you\b", re.IGNORECASE
-)
+UNSUPPORTED_FAMILIARITY = re.compile(r"\bi know (?:how much )?(?:this|that|it) matters to you\b", re.IGNORECASE)
 UNSUPPORTED_FAMILY = re.compile(r"\b(?:your|caring for your) family\b", re.IGNORECASE)
 UNSUPPORTED_JOKE_REACTION = re.compile(r"\bthat joke landed harder than you meant\b", re.IGNORECASE)
 UNSUPPORTED_JOB_REASON = re.compile(r"\b(?:draining|misaligned)\b", re.IGNORECASE)
@@ -553,7 +551,7 @@ WITHHELD_PERSONAL_DETAILS = re.compile(
 )
 
 
-def _irrelevant_boilerplate_match(messages: list[dict], response: str, route: str) -> re.Match[str] | None:
+def _irrelevant_boilerplate_match(messages: list[dict[str, Any]], response: str, route: str) -> re.Match[str] | None:
     match = IRRELEVANT_BOILERPLATE.search(response)
     if match is None:
         return None
@@ -664,7 +662,7 @@ REQUESTED_COMPANY = re.compile(
 )
 
 
-def loss_acknowledgment_issue(messages: list[dict], response: str) -> str:
+def loss_acknowledgment_issue(messages: list[dict[str, Any]], response: str) -> str:
     """Keep quiet-company requests from erasing an explicitly stated bereavement."""
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     match = LOSS_CONTEXT.search(user_text)
@@ -673,10 +671,7 @@ def loss_acknowledgment_issue(messages: list[dict], response: str) -> str:
         response,
         re.IGNORECASE,
     )
-    if (
-        match is None
-        or EXPLICIT_NO_REFLECTION.search(user_text)
-    ):
+    if match is None or EXPLICIT_NO_REFLECTION.search(user_text):
         return ""
     relation = match.group("relation") or match.group("lost_relation")
     specific_acknowledgment = relation and re.search(
@@ -711,7 +706,7 @@ def _loss_acknowledgment_fallback(user_text: str) -> str:
     return f"I'm sorry about your {relation}. What would you like to tell me about them?"
 
 
-def unsupported_isolation_issue(messages: list[dict], response: str) -> str:
+def unsupported_isolation_issue(messages: list[dict[str, Any]], response: str) -> str:
     """Avoid claiming the user lacks company when they did not report being alone."""
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     if UNSUPPORTED_ISOLATION_CLAIM.search(response) and not USER_STATED_ISOLATION.search(user_text):
@@ -749,10 +744,7 @@ def _validation_completion_issue(user_text: str, response: str) -> str:
     missing = REQUESTED_VALIDATION.search(user_text) and (
         not VALIDATION_CONTENT.search(response)
         or (REQUESTED_NO_ADVICE.search(user_text) and ADVICE_CONTENT.search(response))
-        or (
-            REQUESTED_NO_ADVICE.search(user_text)
-            and _sentence_count(response) > MAX_VALIDATION_REFLECTION_SENTENCES
-        )
+        or (REQUESTED_NO_ADVICE.search(user_text) and _sentence_count(response) > MAX_VALIDATION_REFLECTION_SENTENCES)
     )
     return (
         "Validate the stated feeling as understandable rather than merely restating it; honor the request "
@@ -852,8 +844,7 @@ def _unsupported_assumption_issue(user_text: str, response: str) -> str:
     user_lower = user_text.casefold()
     issues = (
         (
-            UNSUPPORTED_FAMILIARITY.search(response)
-            and not re.search(r"\b(?:matters|important) to me\b", user_lower),
+            UNSUPPORTED_FAMILIARITY.search(response) and not re.search(r"\b(?:matters|important) to me\b", user_lower),
             "Acknowledge only what the user stated; do not claim personal knowledge of their priorities.",
         ),
         (
@@ -1020,7 +1011,7 @@ def _oversized_action_issue(user_text: str, response: str) -> str:
     return ""
 
 
-def explicit_completion_issue(messages: list[dict], response: str) -> str:
+def explicit_completion_issue(messages: list[dict[str, Any]], response: str) -> str:
     """Catch concrete task omissions without rejecting valid quiet presence or reframes."""
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     return next(
@@ -1077,9 +1068,7 @@ UNKNOWN_MISSED_DOSE_FALLBACK = (
     "pharmacist today before taking extra medication, with the medicine name, strength, and time of the missed "
     "dose so they can give you medicine-specific instructions."
 )
-SUPPORT_LISTENING_FALLBACK = (
-    "I can listen. What has been weighing on you most this week?"
-)
+SUPPORT_LISTENING_FALLBACK = "I can listen. What has been weighing on you most this week?"
 OVERLOOKED_SUPPORT_FALLBACK = "Being overlooked can hurt. Your reaction is understandable."
 ONE_ACTION_FALLBACK = "Choose one thing you can leave until tomorrow."
 MEETING_ACTION_FALLBACK = (
@@ -1087,17 +1076,13 @@ MEETING_ACTION_FALLBACK = (
     "up if it feels manageable."
 )
 EXHAUSTING_DAY_CONVERSATION_FALLBACK = "Today took a lot out of you. What part would you like to talk through?"
-EVENING_CONVERSATION_FALLBACK = (
-    "Which part of the evening would you like to talk about first?"
-)
+EVENING_CONVERSATION_FALLBACK = "Which part of the evening would you like to talk about first?"
 GENERAL_CONVERSATION_FALLBACK = (
     "Loneliness can be there even when you want privacy. We can keep it general; what sounds good to talk about: "
     "books, music, or something else?"
 )
 FICTION_FRIEND_LINE_FALLBACK = "You survived something frightening; I care about supporting you as you recover."
-ONE_CHORE_FALLBACK = (
-    "Pick up one piece of laundry and leave the rest for now."
-)
+ONE_CHORE_FALLBACK = "Pick up one piece of laundry and leave the rest for now."
 INTERVIEW_REFRAME_FALLBACK = (
     "That interview left you embarrassed. One interview is not a verdict on your ability to do the work."
 )
@@ -1110,9 +1095,7 @@ PRESENTATION_REFRAME_FALLBACK = (
     "You felt embarrassed about the presentation. One difficult moment does not prove the whole presentation went "
     "badly."
 )
-LOSS_COMPANIONSHIP_FALLBACK = (
-    "I can keep you company here in the conversation. No tasks or questions are needed."
-)
+LOSS_COMPANIONSHIP_FALLBACK = "I can keep you company here in the conversation. No tasks or questions are needed."
 JOB_RELIEF_ACKNOWLEDGMENT_FALLBACK = "You're relieved the job ended. We can leave it there."
 SLEEP_QUESTIONS_FALLBACK = (
     "Could this antidepressant be contributing to my sleep problems?\n"
@@ -1170,7 +1153,7 @@ THREE_QUESTION_FALLBACK = (
 NO_ADVICE_VALIDATION_FALLBACK = "Being frustrated about work is an understandable response."
 
 
-def _bounded_explicit_support_fallback(messages: list[dict], response: str) -> str | None:
+def _bounded_explicit_support_fallback(messages: list[dict[str, Any]], response: str) -> str | None:
     user_text = "\n".join(m.get("content", "") for m in messages if m.get("role") == "user")
     third_party_diagnosis = _third_party_diagnosis_request(user_text)
     options = (
@@ -1326,9 +1309,7 @@ def _bounded_explicit_support_fallback(messages: list[dict], response: str) -> s
         ),
         (
             bool(REQUESTED_EXACT_SENTENCE_COUNT.search(user_text)),
-            EXACT_TWO_SENTENCE_FALLBACK
-            if _sentence_count(response) != EXACT_TWO_SENTENCES
-            else response,
+            EXACT_TWO_SENTENCE_FALLBACK if _sentence_count(response) != EXACT_TWO_SENTENCES else response,
         ),
         (
             bool(
@@ -1366,10 +1347,7 @@ def _bounded_explicit_support_fallback(messages: list[dict], response: str) -> s
             "Wash one dish and leave the rest for later.",
         ),
         (
-            bool(
-                REQUESTED_ONE_ACTION.search(user_text)
-                and re.search(r"\boverwhelmed\b", user_text, re.IGNORECASE)
-            ),
+            bool(REQUESTED_ONE_ACTION.search(user_text) and re.search(r"\boverwhelmed\b", user_text, re.IGNORECASE)),
             OVERWHELMED_ACTION_FALLBACK,
         ),
         (bool(REQUESTED_MEETING_ACTION.search(user_text)), MEETING_ACTION_FALLBACK),
@@ -1447,7 +1425,7 @@ BOUNDARY_RESPONSES = {
 }
 
 
-def route_format() -> dict:
+def route_format() -> dict[str, Any]:
     return {
         "type": "json_schema",
         "json_schema": {
@@ -1463,7 +1441,7 @@ def route_format() -> dict:
     }
 
 
-def routed_messages(messages: list[dict], route: str) -> list[dict]:
+def routed_messages(messages: list[dict[str, Any]], route: str) -> list[dict[str, Any]]:
     if route not in ROUTES or not messages or messages[0].get("role") != "system":
         raise ValueError("invalid contextual route or system context")
     result = copy.deepcopy(messages)
@@ -1477,12 +1455,12 @@ def canonical_hash(value: Any) -> str:
     ).hexdigest()
 
 
-def _boundary_completion(route: str, messages: list[dict] | None = None) -> dict:
+def _boundary_completion(route: str, messages: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     response = _specific_boundary_response(route, messages) if messages is not None else None
     return _boundary_completion_with_response(response or BOUNDARY_RESPONSES[route])
 
 
-def _boundary_completion_with_response(response: str) -> dict:
+def _boundary_completion_with_response(response: str) -> dict[str, Any]:
     rejected, reason = is_sycophantic(response)
     if rejected:
         raise ValueError(f"boundary template failed the shared style gate: {reason}")
@@ -1658,7 +1636,7 @@ def _specific_impulsive_high_energy_response(user_text: str) -> str | None:
     )
 
 
-def _specific_boundary_response(route: str, messages: list[dict]) -> str | None:
+def _specific_boundary_response(route: str, messages: list[dict[str, Any]]) -> str | None:
     user_text = "\n".join(message.get("content", "") for message in messages if message.get("role") == "user")
     handlers = {
         "ingestion": _specific_ingestion_response,
@@ -1687,9 +1665,9 @@ class SupportInputReservation:
     def __init__(self, tool_counter: Any, limit: int = ROUTER_INPUT_TOKEN_CAP):
         self.tool_counter, self.limit = tool_counter, limit
 
-    def count(self, messages: list[dict], tools: list[dict]) -> int:
+    def count(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> int:
         if tools:
-            return self.tool_counter.count(messages, tools)
+            return int(self.tool_counter.count(messages, tools))
         if len(json.dumps(messages).encode()) + 128 > self.limit:
             raise ValueError("raw support input exceeds middleware reservation")
         return self.limit
@@ -1698,16 +1676,22 @@ class SupportInputReservation:
 class ContextualSupportTransport:
     """Route using conversation only, preserve tool execution and retain routing usage."""
 
-    def __init__(self, transport: Any, router_arm: dict, max_input_bytes: int = 8192, audit_path: Path | None = None):
+    def __init__(
+        self,
+        transport: Any,
+        router_arm: dict[str, Any],
+        max_input_bytes: int = 8192,
+        audit_path: Path | None = None,
+    ):
         self.transport = transport
         self.router_arm = copy.deepcopy(router_arm)
         self.max_input_bytes = max_input_bytes
         self.task_reviewer: Any = None
-        self.task_fallback_arm: dict | None = None
-        self.audit: list[dict] = []
+        self.task_fallback_arm: dict[str, Any] | None = None
+        self.audit: list[dict[str, Any]] = []
         self.audit_path = audit_path
 
-    def _record(self, entry: dict) -> None:
+    def _record(self, entry: dict[str, Any]) -> None:
         self.audit.append(entry)
         if self.audit_path is not None:
             self.audit_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1715,7 +1699,7 @@ class ContextualSupportTransport:
                 os.chmod(self.audit_path, 0o600)
                 stream.write(json.dumps(entry) + "\n")
 
-    def _explicit_boundary_route(self, messages: list[dict]) -> str | None:
+    def _explicit_boundary_route(self, messages: list[dict[str, Any]]) -> str | None:
         if explicit_reported_ingestion(messages):
             return "ingestion"
         if explicit_imminent_self_harm(messages):
@@ -1726,7 +1710,7 @@ class ContextualSupportTransport:
         return None
 
     @staticmethod
-    def _tool_messages(messages: list[dict], tools: list[dict]) -> list[dict]:
+    def _tool_messages(messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
         tool_names = {
             function.get("name")
             for tool in tools
@@ -1744,16 +1728,21 @@ class ContextualSupportTransport:
         return outbound
 
     @staticmethod
-    def _tool_schemas(tools: list[dict]) -> list[dict]:
+    def _tool_schemas(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
         outbound = copy.deepcopy(tools)
         for tool in outbound:
             function = tool.get("function") if isinstance(tool, dict) else None
             parameters = function.get("parameters") if isinstance(function, dict) else None
             properties = parameters.get("properties") if isinstance(parameters, dict) else None
             note = properties.get("note") if isinstance(properties, dict) else None
-            if function and function.get("name") == "book_navigator_slot" and isinstance(note, dict):
+            if (
+                function
+                and function.get("name") == "book_navigator_slot"
+                and isinstance(parameters, dict)
+                and isinstance(note, dict)
+            ):
                 note["description"] = (
-                    'Optional note. Omit this argument when the user gives no note or asks to leave it empty. '
+                    "Optional note. Omit this argument when the user gives no note or asks to leave it empty. "
                     'Do not use the literal string "None".'
                 )
                 required = parameters.get("required")
@@ -1762,20 +1751,20 @@ class ContextualSupportTransport:
         return outbound
 
     @staticmethod
-    def _latest_booking_result(messages: list[dict]) -> tuple[int | None, dict]:
+    def _latest_booking_result(messages: list[dict[str, Any]]) -> tuple[int | None, dict[str, Any]]:
         for index in range(len(messages) - 1, -1, -1):
             message = messages[index]
             if message.get("role") != "tool" or message.get("name") != "book_navigator_slot":
                 continue
             try:
                 result = json.loads(message.get("content", ""))
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 result = {}
             return index, result if isinstance(result, dict) else {}
         return None, {}
 
     @staticmethod
-    def _active_booking_user_messages(messages: list[dict]) -> list[str]:
+    def _active_booking_user_messages(messages: list[dict[str, Any]]) -> list[str]:
         result_index, _ = ContextualSupportTransport._latest_booking_result(messages)
         active = [
             message.get("content", "")
@@ -1797,7 +1786,7 @@ class ContextualSupportTransport:
         return active
 
     @staticmethod
-    def _latest_booking_transaction_user_messages(messages: list[dict]) -> list[str]:
+    def _latest_booking_transaction_user_messages(messages: list[dict[str, Any]]) -> list[str]:
         booking_results = [
             index
             for index, message in enumerate(messages)
@@ -1812,17 +1801,19 @@ class ContextualSupportTransport:
         ]
 
     @staticmethod
-    def _successful_booking(messages: list[dict]) -> bool:
+    def _successful_booking(messages: list[dict[str, Any]]) -> bool:
         result_index, result = ContextualSupportTransport._latest_booking_result(messages)
         if result_index is None or result.get("status") != "booked":
             return False
-        return not any(
-            message.get("role") == "user" for message in messages[result_index + 1 :]
-        )
+        return not any(message.get("role") == "user" for message in messages[result_index + 1 :])
 
     def _normalize_empty_booking_note(
-        self, arm: dict, messages: list[dict], tools: list[dict], completion: dict
-    ) -> dict:
+        self,
+        arm: dict[str, Any],
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        completion: dict[str, Any],
+    ) -> dict[str, Any]:
         if not any(
             isinstance(tool, dict)
             and isinstance(tool.get("function"), dict)
@@ -1846,7 +1837,7 @@ class ContextualSupportTransport:
                 continue
             try:
                 arguments = json.loads(raw_arguments)
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 continue
             if not isinstance(arguments, dict) or arguments.get("note") != "None":
                 continue
@@ -1865,13 +1856,13 @@ class ContextualSupportTransport:
         return {**completion, "tool_calls": normalized_calls} if changed else completion
 
     @staticmethod
-    def _listed_slots(messages: list[dict]) -> list[dict]:
+    def _listed_slots(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for message in reversed(messages):
             if message.get("role") != "tool" or message.get("name") != "list_navigator_slots":
                 continue
             try:
                 result = json.loads(message.get("content", ""))
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 continue
             slots = result.get("slots") if isinstance(result, dict) else None
             if isinstance(slots, list):
@@ -1879,13 +1870,13 @@ class ContextualSupportTransport:
         return []
 
     @staticmethod
-    def _slot_lookup_result(messages: list[dict]) -> tuple[bool, list[dict] | None]:
+    def _slot_lookup_result(messages: list[dict[str, Any]]) -> tuple[bool, list[dict[str, Any]] | None]:
         for message in reversed(messages):
             if message.get("role") != "tool" or message.get("name") != "list_navigator_slots":
                 continue
             try:
                 result = json.loads(message.get("content", ""))
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 return True, None
             slots = result.get("slots") if isinstance(result, dict) else None
             if not isinstance(slots, list):
@@ -1894,7 +1885,7 @@ class ContextualSupportTransport:
         return False, None
 
     @staticmethod
-    def _tool_call_arguments(messages: list[dict], call_id: str, tool_name: str) -> dict | None:
+    def _tool_call_arguments(messages: list[dict[str, Any]], call_id: str, tool_name: str) -> dict[str, Any] | None:
         for previous in reversed(messages):
             if previous.get("role") != "assistant":
                 continue
@@ -1907,13 +1898,13 @@ class ContextualSupportTransport:
                     continue
                 try:
                     arguments = json.loads(function.get("arguments", "{}"))
-                except (json.JSONDecodeError, TypeError):
+                except json.JSONDecodeError, TypeError:
                     return None
                 return arguments if isinstance(arguments, dict) else None
         return None
 
     @staticmethod
-    def _slot_lookup_date(messages: list[dict]) -> str | None:
+    def _slot_lookup_date(messages: list[dict[str, Any]]) -> str | None:
         index = ContextualSupportTransport._slot_lookup_index(messages)
         if index is None:
             return None
@@ -1927,51 +1918,43 @@ class ContextualSupportTransport:
             return None
         try:
             result = json.loads(message.get("content", ""))
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             result = {}
         if isinstance(result, dict) and isinstance(result.get("date"), str) and result["date"] != date:
             return None
         slots = result.get("slots") if isinstance(result, dict) else None
         if isinstance(slots, list) and any(
-            isinstance(slot, dict)
-            and isinstance(slot.get("date"), str)
-            and slot["date"] != date
-            for slot in slots
+            isinstance(slot, dict) and isinstance(slot.get("date"), str) and slot["date"] != date for slot in slots
         ):
             return None
         return date
 
     @staticmethod
-    def _slot_lookup_index(messages: list[dict]) -> int | None:
+    def _slot_lookup_index(messages: list[dict[str, Any]]) -> int | None:
         return next(
             (
                 index
                 for index in range(len(messages) - 1, -1, -1)
-                if messages[index].get("role") == "tool"
-                and messages[index].get("name") == "list_navigator_slots"
+                if messages[index].get("role") == "tool" and messages[index].get("name") == "list_navigator_slots"
             ),
             None,
         )
 
     @staticmethod
-    def _schedule_availability_date(messages: list[dict], tools: list[dict]) -> str | None:
+    def _schedule_availability_date(messages: list[dict[str, Any]], tools: list[dict[str, Any]]) -> str | None:
         tool_names = {
             function.get("name")
             for tool in tools
-            if isinstance(tool, dict)
-            and isinstance((function := tool.get("function")), dict)
+            if isinstance(tool, dict) and isinstance((function := tool.get("function")), dict)
         }
         if "list_navigator_slots" not in tool_names:
             return None
         user_messages = ContextualSupportTransport._active_booking_user_messages(messages)
         user_text = "\n".join(user_messages)
-        if (
-            not (
-                re.search(r"\bnavigator\b", user_text, re.IGNORECASE)
-                or re.search(r"\b[A-Za-z]{1,4}-[A-Za-z0-9-]+\b", user_text)
-            )
-            or not SCHEDULE_AVAILABILITY_REQUEST.search(user_text)
-        ):
+        if not (
+            re.search(r"\bnavigator\b", user_text, re.IGNORECASE)
+            or re.search(r"\b[A-Za-z]{1,4}-[A-Za-z0-9-]+\b", user_text)
+        ) or not SCHEDULE_AVAILABILITY_REQUEST.search(user_text):
             return None
         latest_decision = ContextualSupportTransport._latest_booking_decision(user_messages)
         if latest_decision is True:
@@ -1985,26 +1968,23 @@ class ContextualSupportTransport:
         for user_message in user_messages:
             decisions = []
             for match in EXPLICIT_BOOKING_INTENT.finditer(user_message):
-                prefix = user_message[max(0, match.start() - 16):match.start()]
+                prefix = user_message[max(0, match.start() - 16) : match.start()]
                 if re.search(r"\b(?:don't|do not|never|not)\s+$", prefix, re.IGNORECASE):
                     continue
                 decisions.append((match.start(), True))
-            decisions.extend(
-                (match.start(), False) for match in EXPLICIT_BOOKING_DENIAL.finditer(user_message)
-            )
+            decisions.extend((match.start(), False) for match in EXPLICIT_BOOKING_DENIAL.finditer(user_message))
             decisions.extend((match.start(), True) for match in RETRY_BOOKING_INTENT.finditer(user_message))
             if decisions:
                 latest_decision = max(decisions, key=lambda item: item[0])[1]
         return latest_decision
 
     def _ensure_authorized_booking_lookup(
-        self, messages: list[dict], tools: list[dict], completion: dict
-    ) -> dict:
+        self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], completion: dict[str, Any]
+    ) -> dict[str, Any]:
         tool_names = {
             function.get("name")
             for tool in tools
-            if isinstance(tool, dict)
-            and isinstance((function := tool.get("function")), dict)
+            if isinstance(tool, dict) and isinstance((function := tool.get("function")), dict)
         }
         user_messages = self._active_booking_user_messages(messages)
         if (
@@ -2054,8 +2034,7 @@ class ContextualSupportTransport:
                 completion = {
                     **completion,
                     "response": (
-                        f"I couldn't verify navigator availability for {requested_date}. "
-                        "No reservation was made."
+                        f"I couldn't verify navigator availability for {requested_date}. No reservation was made."
                     ),
                     "tool_calls": [],
                 }
@@ -2091,8 +2070,8 @@ class ContextualSupportTransport:
 
     @staticmethod
     def _requested_slot_selection(
-        user_messages: list[str], slots: list[dict], requested_date: str
-    ) -> tuple[dict | None, str | None]:
+        user_messages: list[str], slots: list[dict[str, Any]], requested_date: str
+    ) -> tuple[dict[str, Any] | None, str | None]:
         references = [
             (message_index, match.start(), match.group())
             for message_index, user_message in enumerate(user_messages)
@@ -2111,7 +2090,9 @@ class ContextualSupportTransport:
         )
         latest_user_text = user_messages[-1] if user_messages else ""
         if selected is None and re.search(
-            r"\b(?:first|earliest)\s+(?:available\s+)?(?:slot|appointment|option)\b",
+            r"\b(?:first|earliest)\s+(?:(?:available|open)\s+)?"
+            r"(?:(?:navigator|peer-support)\s+)?(?:(?:introduction|intro)\s+)?"
+            r"(?:slot|appointment|option)\b",
             latest_user_text,
             re.I,
         ):
@@ -2119,15 +2100,16 @@ class ContextualSupportTransport:
                 (
                     slot
                     for slot in slots
-                    if isinstance(slot.get("id"), str)
-                    and slot.get("date", requested_date) == requested_date
+                    if isinstance(slot.get("id"), str) and slot.get("date", requested_date) == requested_date
                 ),
                 None,
             )
         return selected, requested_slot_id
 
     @staticmethod
-    def _block_booking_calls(completion: dict, calls: list, booking_calls: list, response: str) -> dict:
+    def _block_booking_calls(
+        completion: dict[str, Any], calls: list[Any] | None, booking_calls: list[Any], response: str
+    ) -> dict[str, Any]:
         calls = calls if isinstance(calls, list) else []
         return {
             **completion,
@@ -2136,11 +2118,15 @@ class ContextualSupportTransport:
         }
 
     @staticmethod
-    def _canonical_booking_call(call: dict, selected: dict, user_messages: list[str]) -> dict:
+    def _canonical_booking_call(
+        call: dict[str, Any],
+        selected: dict[str, Any],
+        user_messages: list[str],
+    ) -> dict[str, Any]:
         call = copy.deepcopy(call)
         try:
             arguments = json.loads(call.get("arguments", "{}"))
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             arguments = {}
         user_text = "\n".join(user_messages)
         canonical_arguments = {"slot_id": selected["id"], "consent": True}
@@ -2157,16 +2143,17 @@ class ContextualSupportTransport:
 
     @staticmethod
     def _fresh_lookup_after_booking_result(
-        messages: list[dict], calls: list | None, booking_calls: list, completion: dict
-    ) -> dict | None:
+        messages: list[dict[str, Any]], calls: list[Any] | None, booking_calls: list[Any], completion: dict[str, Any]
+    ) -> dict[str, Any] | None:
         lookup_index = ContextualSupportTransport._slot_lookup_index(messages)
         booking_index, _ = ContextualSupportTransport._latest_booking_result(messages)
         if booking_index is None or (lookup_index is not None and lookup_index > booking_index):
             return None
-        list_calls = [
-            call for call in calls
-            if isinstance(call, dict) and call.get("name") == "list_navigator_slots"
-        ] if isinstance(calls, list) else []
+        list_calls = (
+            [call for call in calls if isinstance(call, dict) and call.get("name") == "list_navigator_slots"]
+            if isinstance(calls, list)
+            else []
+        )
         if list_calls:
             return {**completion, "response": None, "tool_calls": list_calls[:1]}
         if booking_calls:
@@ -2179,20 +2166,20 @@ class ContextualSupportTransport:
         return None
 
     def _ensure_explicit_slot_booking(
-        self, messages: list[dict], tools: list[dict], completion: dict
-    ) -> dict:
+        self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], completion: dict[str, Any]
+    ) -> dict[str, Any]:
         tool_names = {
             function.get("name")
             for tool in tools
-            if isinstance(tool, dict)
-            and isinstance((function := tool.get("function")), dict)
+            if isinstance(tool, dict) and isinstance((function := tool.get("function")), dict)
         }
         user_messages = self._active_booking_user_messages(messages)
         calls = completion.get("tool_calls")
-        booking_calls = [
-            call for call in calls
-            if isinstance(call, dict) and call.get("name") == "book_navigator_slot"
-        ] if isinstance(calls, list) else []
+        booking_calls = (
+            [call for call in calls if isinstance(call, dict) and call.get("name") == "book_navigator_slot"]
+            if isinstance(calls, list)
+            else []
+        )
         if "book_navigator_slot" not in tool_names or self._successful_booking(messages):
             return completion
         latest_decision = self._latest_booking_decision(user_messages)
@@ -2212,7 +2199,9 @@ class ContextualSupportTransport:
         if not attempted:
             result = (
                 self._block_booking_calls(
-                    completion, calls, booking_calls,
+                    completion,
+                    calls,
+                    booking_calls,
                     "I need to verify availability before making a reservation. No reservation was made.",
                 )
                 if booking_calls
@@ -2221,7 +2210,9 @@ class ContextualSupportTransport:
         elif requested_date is None or self._slot_lookup_date(messages) != requested_date:
             result = (
                 self._block_booking_calls(
-                    completion, calls, booking_calls,
+                    completion,
+                    calls,
+                    booking_calls,
                     "I couldn't verify availability for the requested date, so no reservation was made.",
                 )
                 if booking_calls
@@ -2230,7 +2221,9 @@ class ContextualSupportTransport:
         elif slots is None:
             result = (
                 self._block_booking_calls(
-                    completion, calls, booking_calls,
+                    completion,
+                    calls,
+                    booking_calls,
                     "I couldn't verify availability, so no reservation was made.",
                 )
                 if booking_calls or latest_decision is True
@@ -2281,8 +2274,8 @@ class ContextualSupportTransport:
         return result
 
     def _guard_schedule_availability(
-        self, messages: list[dict], tools: list[dict], completion: dict
-    ) -> dict:
+        self, messages: list[dict[str, Any]], tools: list[dict[str, Any]], completion: dict[str, Any]
+    ) -> dict[str, Any]:
         requested_date = self._schedule_availability_date(messages, tools)
         if requested_date is None:
             return completion
@@ -2294,8 +2287,10 @@ class ContextualSupportTransport:
             default=-1,
         )
         lookup_is_after_latest_user = lookup_index is not None and lookup_index > latest_user_index
-        if attempted and requested_date and (
-            self._slot_lookup_date(messages) != requested_date or not lookup_is_after_latest_user
+        if (
+            attempted
+            and requested_date
+            and (self._slot_lookup_date(messages) != requested_date or not lookup_is_after_latest_user)
         ):
             attempted, slots = False, None
         if not attempted:
@@ -2305,9 +2300,7 @@ class ContextualSupportTransport:
             tool_calls = completion.get("tool_calls")
             if isinstance(tool_calls, list):
                 list_calls = [
-                    call
-                    for call in tool_calls
-                    if isinstance(call, dict) and call.get("name") == "list_navigator_slots"
+                    call for call in tool_calls if isinstance(call, dict) and call.get("name") == "list_navigator_slots"
                 ]
                 if list_calls:
                     call = copy.deepcopy(list_calls[0])
@@ -2355,8 +2348,7 @@ class ContextualSupportTransport:
                 for slot in unique_slots
             )
             response = (
-                f"Available navigator introduction slots for {requested_date}: {options}. "
-                "No reservation was made."
+                f"Available navigator introduction slots for {requested_date}: {options}. No reservation was made."
             )
         self._record(
             {
@@ -2370,8 +2362,12 @@ class ContextualSupportTransport:
         return {**completion, "response": response, "tool_calls": []}
 
     def _guard_unverified_booking_claim(
-        self, arm: dict, messages: list[dict], tools: list[dict], completion: dict
-    ) -> dict:
+        self,
+        arm: dict[str, Any],
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        completion: dict[str, Any],
+    ) -> dict[str, Any]:
         user_messages = self._active_booking_user_messages(messages)
         _, last_booking = self._latest_booking_result(messages)
         if last_booking.get("status") == "unknown_outcome":
@@ -2404,8 +2400,7 @@ class ContextualSupportTransport:
         slots = self._listed_slots(messages)
         if slots:
             options = ", ".join(
-                f"{slot.get('time', 'time unavailable')} ({slot.get('id', 'ID unavailable')})"
-                for slot in slots
+                f"{slot.get('time', 'time unavailable')} ({slot.get('id', 'ID unavailable')})" for slot in slots
             )
             response = f"Available slots: {options}. No appointment was booked."
         else:
@@ -2425,8 +2420,8 @@ class ContextualSupportTransport:
 
     @staticmethod
     def _authorized_booking_status_response(
-        user_messages: list[str], messages: list[dict], completion: dict
-    ) -> dict:
+        user_messages: list[str], messages: list[dict[str, Any]], completion: dict[str, Any]
+    ) -> dict[str, Any]:
         dates = set(REQUESTED_DATE.findall("\n".join(user_messages)))
         if len(dates) != 1:
             return {
@@ -2470,13 +2465,11 @@ class ContextualSupportTransport:
         }
 
     @staticmethod
-    def _guard_failed_booking_result(messages: list[dict], completion: dict) -> dict:
+    def _guard_failed_booking_result(messages: list[dict[str, Any]], completion: dict[str, Any]) -> dict[str, Any]:
         result_index, result = ContextualSupportTransport._latest_booking_result(messages)
         if result_index is None:
             return completion
-        has_follow_up_user = any(
-            message.get("role") == "user" for message in messages[result_index + 1 :]
-        )
+        has_follow_up_user = any(message.get("role") == "user" for message in messages[result_index + 1 :])
         if has_follow_up_user:
             return completion
         status = result.get("status")
@@ -2494,13 +2487,16 @@ class ContextualSupportTransport:
         return completion
 
     def _guard_booking_completion(
-        self, arm: dict, messages: list[dict], tools: list[dict], completion: dict
-    ) -> dict:
+        self,
+        arm: dict[str, Any],
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        completion: dict[str, Any],
+    ) -> dict[str, Any]:
         tool_names = {
             function.get("name")
             for tool in tools
-            if isinstance(tool, dict)
-            and isinstance((function := tool.get("function")), dict)
+            if isinstance(tool, dict) and isinstance((function := tool.get("function")), dict)
         }
         if not tool_names.intersection({"list_navigator_slots", "book_navigator_slot"}):
             return completion
@@ -2523,7 +2519,13 @@ class ContextualSupportTransport:
             }
         return completion
 
-    def complete(self, arm: dict, messages: list[dict], tools: list[dict], decoding: dict) -> dict:
+    def complete(
+        self,
+        arm: dict[str, Any],
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        decoding: dict[str, Any],
+    ) -> dict[str, Any]:
         if tools:
             # Preserve user/tool payloads while adding an explicit consent and
             # truthful-completion contract for navigator booking.
@@ -2649,7 +2651,13 @@ class ContextualSupportTransport:
             return _boundary_completion(value["route"])
         return self._complete_generated(arm, messages, value["route"], decoding)
 
-    def _complete_generated(self, arm: dict, messages: list[dict], route: str, decoding: dict) -> dict:
+    def _complete_generated(
+        self,
+        arm: dict[str, Any],
+        messages: list[dict[str, Any]],
+        route: str,
+        decoding: dict[str, Any],
+    ) -> dict[str, Any]:
         target = routed_messages(messages, route)
         last_result = None
         last_response = ""
@@ -2663,7 +2671,7 @@ class ContextualSupportTransport:
                 else arm
             )
             fallback_used = actual_arm["model"] != arm["model"]
-            result = self.transport.complete(actual_arm, target, [], decoding)
+            result: dict[str, Any] = self.transport.complete(actual_arm, target, [], decoding)
             last_result = result
             response = result.get("response", "")
             if not isinstance(response, str) or not response.strip():
@@ -2779,7 +2787,7 @@ class ContextualSupportTransport:
                         "target_calls": attempt_limit,
                     }
                 )
-                last_usage = last_result.get("usage", {})
+                last_usage = last_result.get("usage", {}) if isinstance(last_result, dict) else {}
                 return {
                     "response": fallback,
                     "tool_calls": [],
@@ -2793,7 +2801,7 @@ class ContextualSupportTransport:
         raise ValueError("support failed bounded boilerplate/task checks; response withheld, evaluation failure")
 
     def _task_correction(
-        self, messages: list[dict], response: str, boilerplate: bool, route: str, style_issue: str = ""
+        self, messages: list[dict[str, Any]], response: str, boilerplate: bool, route: str, style_issue: str = ""
     ) -> str:
         if style_issue:
             correction = correction_for_reason(style_issue)
@@ -2835,4 +2843,5 @@ class ContextualSupportTransport:
                 "outcome": outcome,
             }
         )
-        return outcome["correction"]
+        correction_text = outcome["correction"]
+        return correction_text if isinstance(correction_text, str) else ""
