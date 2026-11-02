@@ -38,6 +38,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -89,7 +90,10 @@ def api_get(path: str) -> dict[str, Any]:
     req = urllib.request.Request(API_BASE + path)
     req.add_header("Authorization", "Bearer " + api_key())
     with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(r.read().decode())
+        payload = json.loads(r.read().decode())
+    if not isinstance(payload, dict):
+        raise SystemExit(f"unexpected API payload for {path}")
+    return payload
 
 
 def account() -> str:
@@ -99,7 +103,10 @@ def account() -> str:
     accounts = api_get("/accounts").get("accounts") or []
     if not accounts:
         raise SystemExit("no Fireworks accounts visible to this API key")
-    return accounts[0]["name"]
+    name = accounts[0]["name"]
+    if not isinstance(name, str):
+        raise SystemExit("Fireworks account record has no name")
+    return name
 
 
 def list_models() -> list[dict[str, Any]]:
@@ -311,7 +318,10 @@ def verify(name: str) -> dict[str, Any]:
 
 def load_ledger() -> dict[str, Any]:
     if LEDGER.exists():
-        return json.loads(LEDGER.read_text())
+        payload = json.loads(LEDGER.read_text())
+        if not isinstance(payload, dict):
+            raise SystemExit("ledger is not a JSON object")
+        return payload
     return {"models": {}}
 
 
@@ -508,7 +518,8 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("check-auth", help="report the firectl session state").set_defaults(func=cmd_check_auth)
 
     args = parser.parse_args(argv)
-    return args.func(args)
+    handler: Callable[[argparse.Namespace], int] = args.func
+    return handler(args)
 
 
 if __name__ == "__main__":

@@ -709,6 +709,7 @@ class TestEvaluateCalibration:
         assert report.passes is True
         assert report.reason == "release_ready"
 
+
 class TestOffsetCalibratedKappa:
     """Verify the offset-calibrated kappa (contract VAL-JUDGE-002, PIX-4343)."""
 
@@ -716,14 +717,14 @@ class TestOffsetCalibratedKappa:
     def _bins(scores: list[float]) -> list[str]:
         return [DualModelQualityJudge.classify_score(s) for s in scores]
 
-    def test_judge_equals_human_gives_zero_offset_perfect_kappa(self):
+    def test_judge_equals_human_gives_zero_offset_perfect_kappa(self) -> None:
         """Judge == human → offset 0.0 and quadratic-weighted kappa 1.0."""
         human = [0.2, 0.4, 0.6, 0.75] * 50  # 200 samples, binnable spread
         offset, kappa = _offset_calibrated_kappa(human, human[:], self._bins(human))
         assert offset == pytest.approx(0.0, abs=1e-9)
         assert kappa == pytest.approx(1.0, abs=1e-6)
 
-    def test_constant_judge_offset_is_removed_on_eval_half(self):
+    def test_constant_judge_offset_is_removed_on_eval_half(self) -> None:
         """Judge = human + c everywhere → offset -c and the shifted eval bins
         match the human bins exactly (kappa 1.0)."""
         human = [0.2, 0.4, 0.6, 0.75] * 50
@@ -732,7 +733,7 @@ class TestOffsetCalibratedKappa:
         assert offset == pytest.approx(-0.2, abs=1e-9)
         assert kappa == pytest.approx(1.0, abs=1e-6)
 
-    def test_offset_fit_uses_first_half_only(self):
+    def test_offset_fit_uses_first_half_only(self) -> None:
         """The offset is the train-half mean difference (first N samples),
         independent of the eval half's values."""
         human = [0.3, 0.5, 0.9, 0.9]
@@ -741,7 +742,7 @@ class TestOffsetCalibratedKappa:
         # Train half: mean(human) 0.4 - mean(judge) 0.5 = -0.1
         assert offset == pytest.approx(-0.1, abs=1e-9)
 
-    def test_residual_bin_mismatch_lowers_kappa(self):
+    def test_residual_bin_mismatch_lowers_kappa(self) -> None:
         """A shift fit on the train half that does not hold on the eval half
         leaves the eval bins mismatched → kappa below 1.0."""
         human = [0.5, 0.55, 0.7, 0.75] * 50  # alternating fair/good
@@ -751,7 +752,7 @@ class TestOffsetCalibratedKappa:
         _offset, kappa = _offset_calibrated_kappa(human, judge, self._bins(human))
         assert kappa < 1.0
 
-    def test_matches_sklearn_weighted_kappa_reference(self):
+    def test_matches_sklearn_weighted_kappa_reference(self) -> None:
         """The kappa equals sklearn's quadratic-weighted kappa on the
         offset-shifted eval half (mirror of
         llm_quality_judge._safe_weighted_kappa; shifted scores are clipped
@@ -770,7 +771,7 @@ class TestOffsetCalibratedKappa:
         )
         assert kappa == pytest.approx(expected, abs=1e-6)
 
-    def test_too_few_samples_returns_zeros(self):
+    def test_too_few_samples_returns_zeros(self) -> None:
         """Fewer than 4 samples (no 2+2 train/eval split) → (0.0, 0.0)."""
         assert _offset_calibrated_kappa([0.5], [0.5], ["fair"]) == (0.0, 0.0)
         assert _offset_calibrated_kappa([0.5, 0.6], [0.5, 0.6], ["fair", "fair"]) == (0.0, 0.0)
@@ -779,14 +780,14 @@ class TestOffsetCalibratedKappa:
             0.0,
         )
 
-    def test_unknown_human_bin_returns_zero_kappa(self):
+    def test_unknown_human_bin_returns_zero_kappa(self) -> None:
         """Bins outside the poor/fair/good/excellent taxonomy → kappa 0.0."""
         human = [0.5, 0.55, 0.6, 0.65]
         offset, kappa = _offset_calibrated_kappa(human, human[:], ["ok", "ok", "ok", "ok"])
         assert offset == pytest.approx(0.0, abs=1e-9)
         assert kappa == 0.0
 
-    def test_contract_split_on_200_samples(self):
+    def test_contract_split_on_200_samples(self) -> None:
         """On 200 samples the split is exactly first 100 / second 100."""
         human = [0.5] * 100 + [0.7] * 100
         judge = [0.6] * 100 + [0.7] * 100
@@ -823,9 +824,7 @@ class TestJudgeSingle:
     @pytest.mark.asyncio
     async def test_models_disagree_human_review(self):
         """Models disagree → needs_human_review."""
-        responses = [
-            make_mock_aiohttp_response(make_judge_json_response(0.9)) for _ in range(3)
-        ] + [
+        responses = [make_mock_aiohttp_response(make_judge_json_response(0.9)) for _ in range(3)] + [
             make_mock_aiohttp_response(make_judge_json_response(0.3)) for _ in range(3)
         ]
         mock_session = make_mock_session(post_side_effect=lambda *a, **kw: _async_cm(responses.pop(0)))
@@ -983,6 +982,7 @@ class TestJudgeRecordTurns:
         assert result.accepted is False
         assert result.needs_human_review is True
 
+
 # ---------------------------------------------------------------------------
 # Test 11: Constants and module-level configuration
 # ===========================================================================
@@ -1015,7 +1015,7 @@ class TestConstants:
         """CALIB_KAPPA_MIN = 0.43 (user-approved final recalibration 2026-10-29, VAL-JUDGE-002)."""
         assert CALIB_KAPPA_MIN == 0.43
 
-    def test_offset_train_samples(self):
+    def test_offset_train_samples(self) -> None:
         """OFFSET_TRAIN_SAMPLES = 100: first/second-half split per VAL-JUDGE-002."""
         assert OFFSET_TRAIN_SAMPLES == 100
 
