@@ -3,4 +3,4 @@
 transformers==5.22.1
 sentence-transformers==6.2.0
 scikit-learn==1.9.1
-fairlearn==0.14.0
+fairlearn==0.15.0
