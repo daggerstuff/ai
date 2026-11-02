@@ -14,7 +14,7 @@ nltk>=3.9.3  # Fixes GHSA-pg7x-xvh5-64q5 (Zip Slip vulnerability)
 textstat>=0.7.13
 
 # Utilities
-tqdm>=4.67.1
+tqdm>=4.70.1
 loguru>=0.7.3
 python-dateutil>=2.9.0
 pydantic>=2.10.6
