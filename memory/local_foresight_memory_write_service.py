@@ -1,14 +1,32 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Protocol
 
 from .gates import GateDecision, GateResult, GatingReport
 from .gates.consent_gate import ConsentGateChecker
 from .gates.crisis_detector import CrisisDetector
 from .gates.pii_redactor import PiiRedactionResult, PiiRedactor
 from .gates.trauma_filter import TraumaFilter
-from .local_foresight_protocol_adapter import LocalForesightProtocolAdapter
+
+
+class MemoryWriteProtocol(Protocol):
+    """Structural surface this service needs from a Foresight protocol client."""
+
+    def retain_items(self, bank_id: str, items: list[dict[str, Any]]) -> dict[str, Any]: ...
+
+    def build_add_memory_item(self, *, user_id: str, content: str, metadata: dict[str, Any]) -> dict[str, Any]: ...
+
+
+@dataclass(frozen=True)
+class WriteGates:
+    """Optional safety gates injected into a memory write."""
+
+    pii_redactor: PiiRedactor | None = None
+    crisis_detector: CrisisDetector | None = None
+    trauma_filter: TraumaFilter | None = None
+    consent_gate: ConsentGateChecker | None = None
 
 
 class LocalForesightMemoryWriteService:
@@ -17,19 +35,17 @@ class LocalForesightMemoryWriteService:
     def __init__(
         self,
         *,
-        protocol: LocalForesightProtocolAdapter,
+        protocol: MemoryWriteProtocol,
         default_bank_id: str,
-        pii_redactor: PiiRedactor | None = None,
-        crisis_detector: CrisisDetector | None = None,
-        trauma_filter: TraumaFilter | None = None,
-        consent_gate: ConsentGateChecker | None = None,
+        gates: WriteGates | None = None,
     ) -> None:
+        injected = gates or WriteGates()
         self.protocol = protocol
         self.default_bank_id = default_bank_id
-        self.pii_redactor = pii_redactor or PiiRedactor()
-        self.crisis_detector = crisis_detector or CrisisDetector()
-        self.trauma_filter = trauma_filter or TraumaFilter()
-        self.consent_gate = consent_gate or ConsentGateChecker()
+        self.pii_redactor = injected.pii_redactor or PiiRedactor()
+        self.crisis_detector = injected.crisis_detector or CrisisDetector()
+        self.trauma_filter = injected.trauma_filter or TraumaFilter()
+        self.consent_gate = injected.consent_gate or ConsentGateChecker()
 
     @staticmethod
     def _metadata_dict(metadata: Any | None) -> dict[str, Any]:
