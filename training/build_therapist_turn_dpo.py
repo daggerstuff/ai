@@ -482,8 +482,8 @@ def build_pairs(
             bucket = tag.split(":", 1)[0]
             stats.defect_counts[bucket] = stats.defect_counts.get(bucket, 0) + 1
 
-        bucket = int(hashlib.sha256(prefix.arc_id.encode()).hexdigest(), 16) % SPLIT_MODULUS
-        split = "train" if bucket < TRAIN_SPLIT_PERCENT else "validation"
+        split_bucket = int(hashlib.sha256(prefix.arc_id.encode()).hexdigest(), 16) % SPLIT_MODULUS
+        split_name = "train" if split_bucket < TRAIN_SPLIT_PERCENT else "validation"
         rows.append(
             {
                 "prompt": prefix.messages,
@@ -500,7 +500,7 @@ def build_pairs(
                     "sampler_temperature": run.temperature,
                     "samples_per_prefix": run.samples,
                     "sampler_seed": run.seed,
-                    "split": split,
+                    "split": split_name,
                     "pair_hash": dedupe_key,
                 },
             }
