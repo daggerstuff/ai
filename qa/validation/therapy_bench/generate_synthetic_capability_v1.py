@@ -129,6 +129,11 @@ def cases_for(split: str) -> list[dict[str, Any]]:
                 "checks": [
                     {"type": "tool_status", "tool_name": "submit_mock_change", "status": "approval_required"},
                     {"type": "state_value", "field": "changes", "value": []},
+                    {
+                        "type": "tool_arguments",
+                        "tool_name": "submit_mock_change",
+                        "arguments": [{"change": "Meeting moved"}],
+                    },
                 ],
             },
         ),
@@ -138,7 +143,7 @@ def cases_for(split: str) -> list[dict[str, Any]]:
                 "family": "memory",
                 "variant": "write",
                 "user": (
-                    'Save my preferred report format as a short bullet list using the memory key '
+                    "Save my preferred report format as a short bullet list using the memory key "
                     '"report_format", then confirm briefly.'
                 ),
                 "tools": [memory_write],
