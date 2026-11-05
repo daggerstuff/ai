@@ -33,13 +33,10 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import random
 import re
 import sys
 import time
-import urllib.error
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -47,9 +44,11 @@ from typing import Any
 
 try:
     from ai.training.cliche_gate import is_sycophantic
+    from ai.training.wandb_inference import Sampler, api_key
 except ModuleNotFoundError:  # direct script execution
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
     from ai.training.cliche_gate import is_sycophantic
+    from ai.training.wandb_inference import Sampler, api_key
 
 ROOT = Path(__file__).resolve().parents[2]
 CORPUS = ROOT / "ai" / "training" / "output" / "arc_corpus"
@@ -59,7 +58,6 @@ RELEASE_DIR = (
 )
 OUT_DIR = CORPUS
 DEFAULT_MODEL = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-ecf35d5e5384:v1"
-ENDPOINT = "https://api.inference.wandb.ai/v1/chat/completions"
 EXCLUSION_CACHE = CORPUS / "therapist_turn_dpo_excluded_arcs.json"
 
 # Thresholds sit at the corpus's own outlier tail, measured over the 17,853
@@ -78,13 +76,6 @@ EXCLUDED_SPLITS = ("validation", "test", "heldout")
 BUCKET_OPEN_MAX = 0.34
 BUCKET_MIDDLE_MAX = 0.67
 BUCKETS = ("open", "middle", "close")
-
-# Sampling transport.
-MAX_TOKENS = 1400
-RETRYABLE_STATUSES = (408, 429)
-SERVER_ERROR_MIN = 500
-SERVER_ERROR_MAX = 600
-MAX_BACKOFF_SECONDS = 30
 
 # Deterministic arc-level split: sha256(arc_id) % 100 < 90 -> train.
 SPLIT_MODULUS = 100
@@ -329,62 +320,6 @@ def score_reply(reply: str | None, client_text: str) -> list[str]:
 # --------------------------------------------------------------------------- #
 # sampling
 # --------------------------------------------------------------------------- #
-def _api_key() -> str:
-    key = os.environ.get("WANDB_API_KEY")
-    if key:
-        return key
-    env_path = ROOT / ".env"
-    if env_path.exists():
-        for line in env_path.read_text(encoding="utf-8").splitlines():
-            if line.startswith("WANDB_API_KEY="):
-                return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise SystemExit("WANDB_API_KEY not found in environment or .env")
-
-
-@dataclass(slots=True)
-class Sampler:
-    """Served-adapter client: which model, how hot, and how hard to retry."""
-
-    model: str
-    api_key: str
-    temperature: float = 0.9
-    timeout: float = 180.0
-    attempts: int = 4
-
-    def sample(self, prefix: Prefix, samples: int) -> list[str | None]:
-        body = {
-            "model": self.model,
-            "messages": prefix.messages,
-            # Ledgers run 600-900 chars and occasionally much longer; a tight cap
-            # truncates mid-JSON and loses the spoken reply with it.
-            "max_tokens": MAX_TOKENS,
-            "temperature": self.temperature,
-            "n": samples,
-            "chat_template_kwargs": {"enable_thinking": False},
-        }
-        payload = json.dumps(body).encode()
-        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
-
-        last_error = ""
-        for attempt in range(self.attempts):
-            request = urllib.request.Request(ENDPOINT, data=payload, headers=headers, method="POST")
-            try:
-                with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                    data = json.loads(response.read())
-                return [choice.get("message", {}).get("content") for choice in data.get("choices", [])]
-            except urllib.error.HTTPError as exc:
-                last_error = f"HTTP {exc.code}: {exc.read()[:300].decode(errors='replace')}"
-                if exc.code in RETRYABLE_STATUSES or SERVER_ERROR_MIN <= exc.code < SERVER_ERROR_MAX:
-                    time.sleep(min(2**attempt * 2, MAX_BACKOFF_SECONDS))
-                    continue
-                break
-            except Exception as exc:  # transport failure: retried with backoff below
-                last_error = f"{type(exc).__name__}: {exc}"
-                time.sleep(min(2**attempt * 2, MAX_BACKOFF_SECONDS))
-        print(f"  ! sampling failed for {prefix.arc_id} s{prefix.session_n}: {last_error}", file=sys.stderr)
-        return []
-
-
 # --------------------------------------------------------------------------- #
 # pair assembly
 # --------------------------------------------------------------------------- #
@@ -576,7 +511,9 @@ def _sample_all(
     replies_by_prefix: dict[int, list[str | None]] = {}
     started = time.time()
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
-        futures = {pool.submit(sampler.sample, prefix, samples): index for index, prefix in enumerate(prefixes)}
+        futures = {
+            pool.submit(sampler.sample, prefix.messages, samples): index for index, prefix in enumerate(prefixes)
+        }
         total = len(futures)
         for done, future in enumerate(as_completed(futures), start=1):
             replies = future.result()
@@ -663,7 +600,7 @@ def main(argv: list[str] | None = None) -> None:
         print("dry run: no sampling performed")
         return
 
-    sampler = Sampler(model=args.model, api_key=_api_key(), temperature=args.temperature)
+    sampler = Sampler(model=args.model, api_key=api_key(), temperature=args.temperature)
     run = SamplingRun(
         model=args.model,
         temperature=args.temperature,
