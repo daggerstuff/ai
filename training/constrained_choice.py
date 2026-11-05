@@ -209,7 +209,10 @@ class ChoiceProbe:
             method="POST",
         )
         with urllib.request.urlopen(request, timeout=self.timeout) as response:
-            return json.loads(response.read().decode("utf-8"))
+            body: object = json.loads(response.read().decode("utf-8"))
+        if not isinstance(body, dict):
+            raise ValueError("probe response must be a JSON object")
+        return body
 
 
 def _retryable(status: int) -> bool:

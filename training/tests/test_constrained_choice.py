@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import io
 import math
+from unittest.mock import patch
 
 import pytest
 
 from training.constrained_choice import (
+    ChoiceProbe,
     ChoiceReadout,
     normalize_label_token,
     read_choice_distribution,
@@ -18,9 +21,8 @@ def _entries(**logprobs: float) -> list[dict[str, object]]:
 
 
 class TestNormalizeLabelToken:
-    @pytest.mark.parametrize(
-        ("raw", "expected"),
-        [
+    def test_folds_case_whitespace_and_punctuation(self) -> None:
+        cases: list[tuple[str, str]] = [
             ("A", "a"),
             (" A", "a"),
             ("a", "a"),
@@ -29,10 +31,28 @@ class TestNormalizeLabelToken:
             ("**C**", "c"),
             ("D.", "d"),
             ("\n A \n", "a"),
-        ],
-    )
-    def test_folds_case_whitespace_and_punctuation(self, raw: str, expected: str) -> None:
-        assert normalize_label_token(raw) == expected
+        ]
+        for raw, expected in cases:
+            assert normalize_label_token(raw) == expected, raw
+
+
+class TestChoiceProbe:
+    def test_post_returns_json_object(self) -> None:
+        probe = ChoiceProbe(model="test-model", api_key="")
+        with patch(
+            "training.constrained_choice.urllib.request.urlopen",
+            return_value=io.BytesIO(b'{"choices": []}'),
+        ):
+            assert probe._post({}) == {"choices": []}
+
+    def test_post_rejects_non_object_json(self) -> None:
+        probe = ChoiceProbe(model="test-model", api_key="")
+        for body in (b"[]", b"null", b'"text"', b"1", b"true"):
+            with (
+                patch("training.constrained_choice.urllib.request.urlopen", return_value=io.BytesIO(body)),
+                pytest.raises(ValueError, match="probe response must be a JSON object"),
+            ):
+                probe._post({})
 
 
 class TestReadChoiceDistribution:
