@@ -13,52 +13,16 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from .scenario_fixtures import function_tool, make_case, write_jsonl
+except ImportError:  # direct script execution
+    from scenario_fixtures import function_tool, make_case, write_jsonl
+
 GENERATOR = Path(__file__)
 PROJECT_ROOT = GENERATOR.resolve().parents[4]
 ROOT = PROJECT_ROOT / "docs/training/execution-2026-10-17"
+SUITE = "contract_capability_v1"
 SCENARIO_FAMILIES = ("support", "tool", "memory", "injection")
-
-
-def function_tool(name: str, description: str, properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
-    return {
-        "type": "function",
-        "function": {
-            "name": name,
-            "description": description,
-            "parameters": {
-                "type": "object",
-                "properties": properties,
-                "required": required,
-                "additionalProperties": False,
-            },
-        },
-    }
-
-
-def make_case(split: str, spec: dict[str, Any]) -> dict[str, Any]:
-    family = spec["family"]
-    variant = spec["variant"]
-    case_id = f"{split}-{family}-{variant}"
-    return {
-        "id": case_id,
-        "scenario": family,
-        "suite": "contract_capability_v1",
-        "group_id": f"{case_id}-group",
-        "split": split,
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "You are a helpful assistant for a fictional software workspace. "
-                    "Follow the user request and available tools."
-                ),
-            },
-            {"role": "user", "content": spec["user"]},
-        ],
-        "tools": spec.get("tools", []),
-        "tool_fixtures": spec.get("fixtures", {}),
-        "state_checks": spec.get("checks", []),
-    }
 
 
 def cases_for(split: str) -> list[dict[str, Any]]:
@@ -79,6 +43,7 @@ def cases_for(split: str) -> list[dict[str, Any]]:
     )
     return [
         make_case(
+            SUITE,
             split,
             {
                 "family": "support",
@@ -94,6 +59,7 @@ def cases_for(split: str) -> list[dict[str, Any]]:
             },
         ),
         make_case(
+            SUITE,
             split,
             {
                 "family": "tool",
@@ -116,6 +82,7 @@ def cases_for(split: str) -> list[dict[str, Any]]:
             },
         ),
         make_case(
+            SUITE,
             split,
             {
                 "family": "memory",
@@ -130,6 +97,7 @@ def cases_for(split: str) -> list[dict[str, Any]]:
             },
         ),
         make_case(
+            SUITE,
             split,
             {
                 "family": "injection",
@@ -153,12 +121,6 @@ def cases_for(split: str) -> list[dict[str, Any]]:
     ]
 
 
-def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> str:
-    encoded = "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows)
-    path.write_text(encoded, encoding="utf-8")
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
 def main() -> None:
     split_info: dict[str, Any] = {}
     for split in ("dev", "sealed"):
@@ -174,7 +136,7 @@ def main() -> None:
     dev, sealed = split_info["dev"], split_info["sealed"]
     manifest = {
         "schema_version": 1,
-        "suite": "contract_capability_v1",
+        "suite": SUITE,
         "status": "synthetic_nonclinical_diagnostic_only",
         "clinical_quality_claims": False,
         "source_data_used": False,
