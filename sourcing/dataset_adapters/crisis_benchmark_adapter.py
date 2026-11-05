@@ -180,21 +180,19 @@ class CrisisBenchmarkAdapter(BaseDatasetAdapter):
             if not isinstance(evaluation_scores, dict):
                 evaluation_scores = {}
 
-            system_content = self._build_system(crisis_category=crisis_category)
+            if not safe_response:
+                # Rows without a reference response carry only the benchmark's task
+                # description, not a reply. Emitting that description as the assistant
+                # target teaches a meta-instruction instead of crisis routing, so drop
+                # the row rather than fabricate a target.
+                continue
 
-            assistant_content = (
-                safe_response
-                if safe_response
-                else (
-                    "Assess this input for risk level, propose safety resources, and "
-                    "generate a compassionate, non-harmful response."
-                )
-            )
+            system_content = self._build_system(crisis_category=crisis_category)
 
             messages: list[dict[str, str]] = [
                 {"role": "system", "content": system_content},
                 {"role": "user", "content": input_text},
-                {"role": "assistant", "content": assistant_content},
+                {"role": "assistant", "content": safe_response},
             ]
 
             record: dict[str, Any] = {
@@ -208,7 +206,6 @@ class CrisisBenchmarkAdapter(BaseDatasetAdapter):
                 "crisis_category": crisis_category,
                 "evaluated_llms": evaluated_llms,
                 "evaluation_scores": evaluation_scores,
-                "has_safe_response": bool(safe_response),
                 "provenance": self._build_provenance(
                     source_url=_SOURCE_URL,
                     access_method=_ACCESS_METHOD,

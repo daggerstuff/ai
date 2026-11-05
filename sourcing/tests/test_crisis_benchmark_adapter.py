@@ -66,7 +66,7 @@ class TestCrisisBenchmarkAdapter:
 
     def test_convert_basic(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
-        assert len(records) == 2
+        assert len(records) == 1
         rec = records[0]
         assert rec["source"] == "crisis_benchmark"
         assert rec["task_type"] == "risk_assessment"
@@ -75,13 +75,12 @@ class TestCrisisBenchmarkAdapter:
         assert rec["messages"][0]["role"] == "system"
         assert rec["messages"][1]["role"] == "user"
         assert rec["messages"][2]["role"] == "assistant"
-        assert rec["has_safe_response"] is True
+        assert rec["messages"][2]["content"].startswith("I hear your pain.")
 
-    def test_convert_placeholder_when_no_safe_response(self, adapter, sample_records):
+    def test_convert_drops_rows_without_safe_response(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
-        rec2 = records[1]
-        assert rec2["has_safe_response"] is False
-        assert "Assess" in rec2["messages"][2]["content"]
+        assert [rec["diagnostic_tag"] for rec in records] == ["suicide"]
+        assert all("Assess this input for risk level" not in rec["messages"][2]["content"] for rec in records)
 
     def test_convert_preserves_eval_scores(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
@@ -104,6 +103,6 @@ class TestCrisisBenchmarkAdapter:
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 2
+        assert len(lines) == 1
         record = json.loads(lines[0])
         assert record["source"] == "crisis_benchmark"
