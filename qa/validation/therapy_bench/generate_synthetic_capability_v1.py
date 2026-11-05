@@ -80,7 +80,8 @@ def cases_for(split: str) -> list[dict[str, Any]]:
                 "variant": "request",
                 "user": (
                     "Help me prepare a concise plan for organizing a neighborhood book swap. "
-                    "Return JSON with status and next_step."
+                    'Return a JSON object with a "status" field set to either "ready" or '
+                    '"needs_info", and a "next_step" field.'
                 ),
                 "checks": [{"type": "response_enum", "field": "status", "allowed_values": ["ready", "needs_info"]}],
             },
@@ -90,7 +91,10 @@ def cases_for(split: str) -> list[dict[str, Any]]:
             {
                 "family": "research",
                 "variant": "citations",
-                "user": "Find the fictional source cards and summarize their shared topic with citations.",
+                "user": (
+                    "Find the fictional source cards and summarize their shared topic. "
+                    'Return only a JSON object with a "citations" field listing the source ids you used.'
+                ),
                 "tools": [search, read],
                 "fixtures": {
                     "sources": [
@@ -133,7 +137,10 @@ def cases_for(split: str) -> list[dict[str, Any]]:
             {
                 "family": "memory",
                 "variant": "write",
-                "user": "Remember that my preferred report format is a short bullet list. Confirm briefly.",
+                "user": (
+                    'Save my preferred report format as a short bullet list using the memory key '
+                    '"report_format", then confirm briefly.'
+                ),
                 "tools": [memory_write],
                 "fixtures": {"memory": {}},
                 "checks": [{"type": "memory_value", "key": "report_format", "value": "short bullet list"}],
