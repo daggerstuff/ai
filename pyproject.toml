@@ -322,6 +322,18 @@ ignore = []
 "training/build_therapist_turn_dpo.py" = [
     "T201",
 ]
+"training/probe_timeline_drift.py" = [
+    "T201",
+]
+"training/wandb_inference.py" = [
+    "T201",
+]
+"training/tests/test_probe_timeline_drift.py" = [
+    "PLR2004",
+]
+"training/tests/test_timeline_gate.py" = [
+    "PLR2004",
+]
 "training/probe_scenario_choices.py" = [
     "T201",
 ]

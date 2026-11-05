@@ -237,6 +237,8 @@ training/tests/*
 !training/tests/test_constrained_choice.py
 !training/tests/test_confidence_calibration.py
 !training/tests/test_probe_scenario_choices.py
+!training/tests/test_timeline_gate.py
+!training/tests/test_probe_timeline_drift.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
