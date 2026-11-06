@@ -396,16 +396,18 @@ class _Release:
         row_sha: str,
         reference: dict[str, Any],
     ) -> None:
-        messages = row.get("messages")
+        raw_messages = row.get("messages")
         repair = self.indexes.repairs.get(old_number)
         if repair is not None:
             if repair.get("candidate_row_sha256") != row_sha:
                 raise ValueError(f"repair source hash mismatch at row {old_number}")
-            messages = repair["messages"]
+            raw_messages = repair["messages"]
         if row_sha != reference["candidate_row_sha256"]:
             raise ValueError(f"candidate provenance mismatch at row {old_number}")
+        if not isinstance(raw_messages, list):
+            raise ValueError(f"retained row {old_number} has no message list to project")
         agent_tool = is_agent_tool(row)
-        payload = project_agent(messages) if agent_tool else project_chat(messages, self.redaction_counts)
+        payload = project_agent(raw_messages) if agent_tool else project_chat(raw_messages, self.redaction_counts)
         if payload is None:
             raise ValueError(f"retained row {old_number} projects to no assistant target")
         group_hash = canonical_hash(payload)
@@ -469,7 +471,7 @@ class _Release:
 
     def manifest(self) -> dict[str, Any]:
         candidate_sha = sha256_file(self.output / "candidate.jsonl")
-        membership = {name: set() for name in SPLITS}
+        membership: dict[str, set[str]] = {name: set() for name in SPLITS}
         for record in self.internal_records:
             membership[record["split"]].add(record["content_group_sha256"])
         heldout_groups = {r["content_group_sha256"] for r in self.heldout_records}

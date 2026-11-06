@@ -104,7 +104,10 @@ class TimelinePrefix:
     @property
     def reference_holds(self) -> bool:
         """True when the accepted next turn kept every inherited anchor."""
-        return check_drift(self.inherited, self.reference).holds
+        # bool(): under the dependency-light ratchet mypy the timeline_gate
+        # import root is unresolved (Any); the wrapper keeps the declared
+        # return type honest in every environment.
+        return bool(check_drift(self.inherited, self.reference).holds)
 
 
 def build_messages(head: list[dict[str, Any]]) -> list[dict[str, str]] | None:

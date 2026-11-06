@@ -133,7 +133,7 @@ class TestEnumeratePrefixes:
 
 class TestCap:
     def test_prefers_distinct_arcs_then_fills_the_remainder(self) -> None:
-        grouped = {bucket: [] for bucket in BUCKETS}
+        grouped: dict[str, list[TimelinePrefix]] = {bucket: [] for bucket in BUCKETS}
         grouped["short"] = [
             _prefix(arc_id="arc_1", turn_ordinal=2),
             _prefix(arc_id="arc_1", turn_ordinal=6),
