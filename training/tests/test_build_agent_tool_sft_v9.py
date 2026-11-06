@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -14,14 +15,15 @@ sys.path.insert(0, str(TRAINING_DIR))
 import build_agent_tool_sft_v9 as v9  # noqa: E402
 
 
-def tool_arguments(item: dict) -> dict[str, str]:
+def tool_arguments(item: dict[str, Any]) -> dict[str, str]:
     call = next(
         message for message in item["messages"] if message.get("role") == "assistant" and message.get("tool_calls")
     )
-    return json.loads(call["tool_calls"][0]["function"]["arguments"])
+    arguments: dict[str, str] = json.loads(call["tool_calls"][0]["function"]["arguments"])
+    return arguments
 
 
-def test_literal_family_puts_only_the_value_in_the_argument():
+def test_literal_family_puts_only_the_value_in_the_argument() -> None:
     for index in range(v9.LITERAL_EXAMPLES):
         item = v9.make_literal(index)
         label, literal = v9.CHANGES[index % len(v9.CHANGES)]
@@ -32,7 +34,7 @@ def test_literal_family_puts_only_the_value_in_the_argument():
         assert f"{label} to" not in arguments["change"], item["id"]
 
 
-def test_literal_request_still_names_the_field_label():
+def test_literal_request_still_names_the_field_label() -> None:
     for index in range(0, v9.LITERAL_EXAMPLES, 7):
         item = v9.make_literal(index)
         label, literal = v9.CHANGES[index % len(v9.CHANGES)]
@@ -41,7 +43,7 @@ def test_literal_request_still_names_the_field_label():
         assert literal in request, item["id"]
 
 
-def test_literal_family_uses_the_granted_harness_reply():
+def test_literal_family_uses_the_granted_harness_reply() -> None:
     expected = '{"change_applied":true,"status":"ok"}'
     for index in range(0, v9.LITERAL_EXAMPLES, 5):
         replies = [message for message in v9.make_literal(index)["messages"] if message.get("role") == "tool"]
@@ -49,7 +51,7 @@ def test_literal_family_uses_the_granted_harness_reply():
         assert replies[0]["name"] == v9.TOOL_NAME
 
 
-def test_crisis_rows_are_plain_user_assistant():
+def test_crisis_rows_are_plain_user_assistant() -> None:
     for index in range(v9.CRISIS_EXAMPLES):
         item = v9.make_crisis(index, index) if index % v9.CONTROL_STRIDE != v9.CONTROL_OFFSET else None
         if item is None:
@@ -57,7 +59,7 @@ def test_crisis_rows_are_plain_user_assistant():
         assert [message["role"] for message in item["messages"]] == ["user", "assistant"]
 
 
-def test_acute_rows_name_an_escalation_and_hotline_rows_name_a_referral():
+def test_acute_rows_name_an_escalation_and_hotline_rows_name_a_referral() -> None:
     for crisis_index in range(0, 480, 3):
         item = v9.make_crisis(crisis_index, crisis_index)
         reply = item["messages"][1]["content"].lower()
@@ -66,21 +68,21 @@ def test_acute_rows_name_an_escalation_and_hotline_rows_name_a_referral():
         assert not any(term in reply for term in v9.DISMISSAL), item["id"]
 
 
-def test_control_rows_never_use_crisis_vocabulary():
+def test_control_rows_never_use_crisis_vocabulary() -> None:
     for control_index in range(60):
         item = v9.make_control(control_index, control_index)
         reply = item["messages"][1]["content"].lower()
         assert not any(term in reply for term in v9.HOTLINE_TERMS), item["id"]
 
 
-def test_every_crisis_row_passes_the_rubric_validator():
+def test_every_crisis_row_passes_the_rubric_validator() -> None:
     for index in range(v9.CRISIS_EXAMPLES):
         if index % v9.CONTROL_STRIDE == v9.CONTROL_OFFSET:
             continue
         v9.validate_crisis_row(v9.make_crisis(index, index))
 
 
-def test_build_writes_both_families_with_no_group_crossing_splits(tmp_path):
+def test_build_writes_both_families_with_no_group_crossing_splits(tmp_path: Path) -> None:
     manifest = v9.build(tmp_path)
     assert manifest["scenario_families"] == {v9.LITERAL_FAMILY: 240, v9.CRISIS_FAMILY: 540}
     assert manifest["crisis_severity_counts"] == {"acute": 384, "none": 60, "hotline": 96}
@@ -100,7 +102,7 @@ def test_build_writes_both_families_with_no_group_crossing_splits(tmp_path):
                 assert seen.setdefault(group, split) == split
 
 
-def test_build_refuses_to_overwrite_a_non_empty_directory(tmp_path):
+def test_build_refuses_to_overwrite_a_non_empty_directory(tmp_path: Path) -> None:
     (tmp_path / "leftover.jsonl").write_text("{}", encoding="utf-8")
     with pytest.raises(FileExistsError):
         v9.build(tmp_path)

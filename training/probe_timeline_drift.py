@@ -244,7 +244,7 @@ class SampleResult:
 def score_sample(arm: str, prefix: TimelinePrefix, reply: str | None) -> SampleResult:
     """Measure one sampled continuation against the prefix's inherited anchors."""
     ledger = parse_ledger(reply)
-    base = {
+    base: dict[str, Any] = {
         "arm": arm,
         "bucket": prefix.bucket,
         "arc_id": prefix.arc_id,
@@ -442,7 +442,7 @@ def _write_outputs(
     summaries: list[BucketSummary],
 ) -> Path:
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-    out_dir = args.out_dir / stamp
+    out_dir: Path = args.out_dir / stamp
     out_dir.mkdir(parents=True, exist_ok=True)
 
     samples_path = out_dir / "samples.jsonl"
