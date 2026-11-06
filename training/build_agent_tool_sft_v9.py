@@ -469,10 +469,8 @@ def audit_literal_shape(rows: list[dict[str, Any]]) -> None:
                 raise ValueError(f"{item['id']}: tool reply is not the harness granted payload")
 
 
-def build(output: Path) -> dict[str, Any]:
-    if output.exists() and any(output.iterdir()):
-        raise FileExistsError(f"refusing to overwrite non-empty output directory: {output}")
-
+def collect_rows() -> dict[str, list[dict[str, Any]]]:
+    """Build and validate every v9 example in memory, keyed by split."""
     all_rows: dict[str, list[dict[str, Any]]] = {split: [] for split in LITERAL_SPLITS}
     payload_hashes: set[str] = set()
     literal_rows: list[dict[str, Any]] = []
@@ -531,12 +529,21 @@ def build(output: Path) -> dict[str, Any]:
         raise ValueError(f"v9 payloads overlap prior train payloads: {len(overlap)}")
 
     base.verify_evaluation_separation(all_rows)
+    return all_rows
 
+
+def build(output: Path) -> dict[str, Any]:
+    if output.exists() and any(output.iterdir()):
+        raise FileExistsError(f"refusing to overwrite non-empty output directory: {output}")
+
+    all_rows = collect_rows()
     output.mkdir(parents=True, exist_ok=True)
     files = {split: base.write_split(output, split, rows) for split, rows in all_rows.items()}
 
-    counts: Counter[str] = Counter(item["family"] for item in literal_rows + crisis_rows)
-    severities: Counter[str] = Counter(item["severity"] for item in crisis_rows)
+    counts: Counter[str] = Counter(item["family"] for rows in all_rows.values() for item in rows)
+    severities: Counter[str] = Counter(
+        item["severity"] for rows in all_rows.values() for item in rows if "severity" in item
+    )
     manifest = {
         "schema_version": 1,
         "release_id": RELEASE_ID,
@@ -558,7 +565,7 @@ def build(output: Path) -> dict[str, Any]:
             "10% test; no group crosses split"
         ),
         "splits": {name: files[name] for name in files},
-        "tools": {TOOL_NAME: sum(1 for item in literal_rows)},
+        "tools": {TOOL_NAME: counts[LITERAL_FAMILY]},
         "design_notes": {
             "tool_reply_shape": "exact harness form: role tool, tool_call_id, name, canonical_json content",
             "literal_arguments": (
