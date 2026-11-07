@@ -75,7 +75,10 @@ def resolve_v14_uri(run_name: str = V14_RUN_NAME) -> str:
     if not lora:
         raise RuntimeError(f"run {run_name} logged no {LORA_ARTIFACT_TYPE} artifact")
     newest = max(lora, key=lambda artifact: int(artifact.version.lstrip("v")))
-    return f"wandb-artifact:///{ENTITY}/{PROJECT}/{newest.name}:{newest.version}"
+    # artifact.name is "collection:version" in current SDKs, so the version must
+    # not be appended to the whole name or the URI ends up with ":v1:v1".
+    collection = newest.name.split(":", 1)[0]
+    return f"wandb-artifact:///{ENTITY}/{PROJECT}/{collection}:{newest.version}"
 
 
 def _arm(arm_id: str, model: str, provider: str) -> dict[str, str]:

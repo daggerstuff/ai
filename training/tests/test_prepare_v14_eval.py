@@ -137,3 +137,58 @@ def test_write_configs_rejects_a_suite_that_outgrows_its_cap(tmp_path: Path) -> 
 
     with pytest.raises(ValueError, match="contract-dev-v14-vs-base worst case"):
         prep.write_configs(cases_dir, tmp_path / "out", V14_URI)
+
+
+class _FakeArtifact:
+    def __init__(self, name: str, version: str, artifact_type: str = "lora") -> None:
+        self.name = name
+        self.version = version
+        self.type = artifact_type
+
+
+class _FakeRun:
+    def __init__(self, state: str, artifacts: list[_FakeArtifact]) -> None:
+        self.state = state
+        self._artifacts = artifacts
+
+    def logged_artifacts(self) -> list[_FakeArtifact]:
+        return self._artifacts
+
+
+def fake_wandb(monkeypatch: pytest.MonkeyPatch, run: _FakeRun) -> None:
+    class _Api:
+        def run(self, _ref: str) -> _FakeRun:
+            return run
+
+    monkeypatch.setattr(prep, "wandb", type("W", (), {"Api": _Api}))
+
+
+def test_resolve_picks_the_newest_lora_and_keeps_one_version_suffix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    collection = prep.V14_RUN_NAME
+    run = _FakeRun(
+        "finished",
+        [
+            _FakeArtifact(f"{collection}:v0", "v0"),
+            _FakeArtifact(f"{collection}:v1", "v1"),
+            _FakeArtifact(f"{collection}-train-state:v0", "v0", artifact_type="train-state"),
+        ],
+    )
+    fake_wandb(monkeypatch, run)
+
+    assert prep.resolve_v14_uri() == f"wandb-artifact:///{prep.ENTITY}/{prep.PROJECT}/{collection}:v1"
+
+
+def test_resolve_refuses_an_unfinished_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_wandb(monkeypatch, _FakeRun("running", []))
+
+    with pytest.raises(RuntimeError, match="only final once it finishes"):
+        prep.resolve_v14_uri()
+
+
+def test_resolve_refuses_a_run_with_no_lora_artifact(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_wandb(monkeypatch, _FakeRun("finished", [_FakeArtifact("state:v0", "v0", "train-state")]))
+
+    with pytest.raises(RuntimeError, match="logged no lora artifact"):
+        prep.resolve_v14_uri()
