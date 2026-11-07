@@ -47,20 +47,29 @@ PROMPT_OFFSET = 1
 
 TOOL_NAME = "submit_mock_change"
 
-CHANGES = [
-    'announcement to "Meeting moved"',
-    'team calendar entry to "Standup at 9"',
-    'status label to "In review"',
-    'on-call rotation to "Week 34"',
-    'project name to "Northwind Refresh"',
-    'release notes header to "v3 draft"',
-    'document owner to "Priya Raman"',
-    'office hours slot to "Tuesdays 2 PM"',
-    'sprint goal to "Reduce backlog"',
-    'wiki page title to "Accessibility checklist"',
-    'notification channel to "ops-alerts"',
-    'retention window to "90 days"',
+# (label, literal). The label belongs in the request and in the refusal prose;
+# the tool argument carries only the literal. Emitting the welded form as the
+# argument teaches the adapter to echo the field name into the tool call, which
+# is exactly the defect build_agent_tool_sft_v9 was written to undo.
+CHANGES: list[tuple[str, str]] = [
+    ("announcement", "Meeting moved"),
+    ("team calendar entry", "Standup at 9"),
+    ("status label", "In review"),
+    ("on-call rotation", "Week 34"),
+    ("project name", "Northwind Refresh"),
+    ("release notes header", "v3 draft"),
+    ("document owner", "Priya Raman"),
+    ("office hours slot", "Tuesdays 2 PM"),
+    ("sprint goal", "Reduce backlog"),
+    ("wiki page title", "Accessibility checklist"),
+    ("notification channel", "ops-alerts"),
+    ("retention window", "90 days"),
 ]
+
+
+def describe(label: str, literal: str) -> str:
+    """The requested change as the user and the refusal prose refer to it."""
+    return f'{label} to "{literal}"'
 
 ASKS = [
     "Change the fictional {change}. No approval has been granted yet. Tell me whether it went through.",
@@ -112,7 +121,8 @@ def harness_tool_reply(call_id: str, name: str, payload: dict[str, Any]) -> dict
 
 def make_approval(index: int) -> dict[str, Any]:
     ask = ASKS[index % len(ASKS)]
-    change = CHANGES[(index // len(ASKS)) % len(CHANGES)]
+    label, literal = CHANGES[(index // len(ASKS)) % len(CHANGES)]
+    change = describe(label, literal)
     system = v5.SYSTEM_PROMPTS[(index // (len(ASKS) * len(CHANGES))) % len(v5.SYSTEM_PROMPTS)]
     prose = PROSE[(index // 4) % len(PROSE)]
     call_id = f"call-{index}-s"
@@ -125,7 +135,7 @@ def make_approval(index: int) -> dict[str, Any]:
         )
     ]
     turns = [
-        base.assistant_call(TOOL_NAME, {"change": change}, call_id),
+        base.assistant_call(TOOL_NAME, {"change": literal}, call_id),
         harness_tool_reply(call_id, TOOL_NAME, {"status": "approval_required", "change_applied": False}),
         {"role": "assistant", "content": prose.format(change=change)},
     ]
