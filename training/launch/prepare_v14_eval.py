@@ -40,6 +40,12 @@ DECODING: dict[str, Any] = {
     "chat_template_kwargs": {"enable_thinking": False},
 }
 
+# The runner refuses to enforce a priced hard cap without an input-token
+# preflight, and the spend caps below are sized against exactly these values
+# (the same ones the v13 suites used). Keep them in step.
+MAX_INPUT_TOKENS = 4096
+MAX_TOOL_ROUNDS = 4
+
 # (suite label, case file, spend cap in USD) -- caps mirror the v13 configs.
 SUITES: tuple[tuple[str, str, float], ...] = (
     ("capability-dev", "scenario-dev-v1.jsonl", 0.2),
@@ -110,6 +116,27 @@ def build_config(suite: str, pair: str, v14_uri: str, hard_cap_usd: float) -> di
     }
 
 
+def count_cases(cases: Path) -> int:
+    """Count the cases in a scenario JSONL file."""
+    return sum(1 for line in cases.read_text(encoding="utf-8").splitlines() if line.strip())
+
+
+def estimate_max_cost_usd(config: dict[str, Any], case_count: int) -> float:
+    """Mirror the runner's worst-case spend estimate for one config.
+
+    The runner raises if this exceeds ``pricing.hard_cap_usd``, so checking it
+    here turns a cap/suite mismatch into a config-time failure instead of a
+    surprise an hour into an eval run.
+    """
+    pricing = config["pricing"]
+    per_call = (
+        MAX_INPUT_TOKENS * pricing["input_usd_per_million_tokens"]
+        + config["decoding"]["max_tokens"] * pricing["output_usd_per_million_tokens"]
+    )
+    calls_per_case = MAX_TOOL_ROUNDS + 1
+    return case_count * len(config["arms"]) * calls_per_case * per_call / 1_000_000
+
+
 def write_configs(
     cases_dir: Path,
     out_dir: Path,
@@ -122,8 +149,12 @@ def write_configs(
         cases = cases_dir / case_file
         if not cases.is_file():
             raise FileNotFoundError(f"missing case file for {suite}: {cases}")
+        case_count = count_cases(cases)
         for pair in PAIRS:
             config = build_config(suite, pair, v14_uri, hard_cap_usd)
+            estimate = estimate_max_cost_usd(config, case_count)
+            if estimate > hard_cap_usd:
+                raise ValueError(f"{suite}-{pair} worst case ${estimate:.4f} exceeds its ${hard_cap_usd:.2f} cap")
             path = out_dir / f"wandb-{suite}-{pair}.config.json"
             path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
             written.append((f"{suite}-{pair}", cases, path, "-sealed" in suite))
@@ -137,7 +168,8 @@ def render_plan(v14_uri: str, written: list[tuple[str, Path, Path, bool]], resul
         sealed_flag = " --allow-sealed" if sealed else ""
         lines.append(
             f"{label}\n  python training/run_wandb_paired_eval.py --cases {cases} "
-            f"--config {config} --results-dir {results_root / label}{sealed_flag}"
+            f"--config {config} --results-dir {results_root / label} "
+            f"--max-input-tokens {MAX_INPUT_TOKENS} --max-tool-rounds {MAX_TOOL_ROUNDS}{sealed_flag}"
         )
     return "\n".join(lines)
 

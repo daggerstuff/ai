@@ -106,4 +106,34 @@ def test_render_plan_marks_sealed_suites_and_uses_the_results_root(tmp_path: Pat
 
     assert f"v14 artifact: {V14_URI}" in plan
     assert f"--results-dir {tmp_path / 'results' / 'crisis-dev-v14-vs-base'}" in plan
-    assert f"--results-dir {tmp_path / 'results' / 'crisis-sealed-v14-vs-base'} --allow-sealed" in plan
+    assert f"--results-dir {tmp_path / 'results' / 'crisis-sealed-v14-vs-base'}" in plan
+    assert "--max-input-tokens 4096 --max-tool-rounds 4 --allow-sealed" in plan
+    assert plan.count("--allow-sealed") == len([row for row in written if row[3]])
+
+
+def test_render_plan_carries_the_preflight_flags_the_cap_depends_on(tmp_path: Path) -> None:
+    cases_dir = make_cases_dir(tmp_path)
+    written = prep.write_configs(cases_dir, tmp_path / "out", V14_URI)
+
+    plan = prep.render_plan(V14_URI, written, tmp_path / "results")
+
+    for _, _, config, _ in written:
+        assert f"--config {config} --results-dir" in plan
+    assert plan.count("--max-input-tokens 4096 --max-tool-rounds 4") == len(written)
+
+
+def test_estimate_matches_the_runner_formula() -> None:
+    config = prep.build_config("capability-dev", "v14-vs-base", V14_URI, 0.2)
+
+    estimate = prep.estimate_max_cost_usd(config, 5)
+
+    # 5 cases * 2 arms * 5 calls * (4096 * $0.25/M + 2048 * $1.25/M)
+    assert estimate == pytest.approx(0.1792)
+
+
+def test_write_configs_rejects_a_suite_that_outgrows_its_cap(tmp_path: Path) -> None:
+    cases_dir = make_cases_dir(tmp_path)
+    (cases_dir / "scenario-contract-dev-v1.jsonl").write_text('{"id": "case"}\n' * 6, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="contract-dev-v14-vs-base worst case"):
+        prep.write_configs(cases_dir, tmp_path / "out", V14_URI)
