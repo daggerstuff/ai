@@ -104,19 +104,21 @@ def render_single(run_dir: Path) -> str:
     for arm in arm_ids:
         passed = sum(1 for case_id in manifest["case_ids"] if _verdict(rows.get((case_id, arm))) == "PASS")
         lines.append(f"{arm_label(models[arm])}: {passed}/{len(manifest['case_ids'])} pass")
+    lines.extend(["", _delta_section(run_dir.name, manifest, models, rows)])
     return "\n".join(lines)
 
 
-def render_diff(left_dir: Path, right_dir: Path) -> str:
-    left_manifest, right_manifest = load_manifest(left_dir), load_manifest(right_dir)
-    left_models, right_models = arm_models(left_manifest), arm_models(right_manifest)
-    left_rows, right_rows = load_rows(left_dir), load_rows(right_dir)
-    left_arm, right_arm = left_manifest["arm_ids"][-1], right_manifest["arm_ids"][-1]
-    left_label = arm_label(left_models[left_arm])
-    right_label = arm_label(right_models[right_arm])
-    cases = [case for case in left_manifest["case_ids"] if case in right_manifest["case_ids"]]
+def _delta_table(
+    title: str,
+    cases: list[str],
+    left: tuple[str, dict[tuple[str, str], ArmRow], str],
+    right: tuple[str, dict[tuple[str, str], ArmRow], str],
+) -> str:
+    """Render a case-by-case delta between two (arm_id, rows, label) arms."""
+    left_arm, left_rows, left_label = left
+    right_arm, right_rows, right_label = right
     lines = [
-        f"# {left_label} ({left_dir.name}) vs {right_label} ({right_dir.name})",
+        f"# {title}",
         "",
         f"| case | {left_label} | {right_label} | delta |",
         "|---|---|---|---|",
@@ -132,6 +134,48 @@ def render_diff(left_dir: Path, right_dir: Path) -> str:
         lines.append(f"| {case_id} | {_verdict(left_row)} | {_verdict(right_row)} | {delta} |")
     lines.extend(["", f"{changed} of {len(cases)} cases changed"])
     return "\n".join(lines)
+
+
+def _delta_section(
+    name: str,
+    manifest: dict[str, Any],
+    models: dict[str, str],
+    rows: dict[tuple[str, str], ArmRow],
+) -> str:
+    """Compare the two arms of a paired run against each other.
+
+    A paired run already holds both models, so the interesting comparison for a
+    ``v14-vs-v13`` suite is inside one directory: the v13 adapter occupies the
+    base slot and v14 the sft slot.
+    """
+    first_arm, second_arm = manifest["arm_ids"]
+    return _delta_table(
+        f"{name}: {arm_label(models[first_arm])} vs {arm_label(models[second_arm])}",
+        list(manifest["case_ids"]),
+        (first_arm, rows, arm_label(models[first_arm])),
+        (second_arm, rows, arm_label(models[second_arm])),
+    )
+
+
+def render_diff(left_dir: Path, right_dir: Path) -> str:
+    left_manifest, right_manifest = load_manifest(left_dir), load_manifest(right_dir)
+    left_models, right_models = arm_models(left_manifest), arm_models(right_manifest)
+    left_rows, right_rows = load_rows(left_dir), load_rows(right_dir)
+    left_arm, right_arm = left_manifest["arm_ids"][-1], right_manifest["arm_ids"][-1]
+    left_label = arm_label(left_models[left_arm])
+    right_label = arm_label(right_models[right_arm])
+    if left_label == right_label:
+        raise ValueError(
+            f"both run dirs supervise {left_label}; comparing a model against itself is not a diff. "
+            "For two arms inside one paired run, summarize that run dir on its own."
+        )
+    cases = [case for case in left_manifest["case_ids"] if case in right_manifest["case_ids"]]
+    return _delta_table(
+        f"{left_label} ({left_dir.name}) vs {right_label} ({right_dir.name})",
+        cases,
+        (left_arm, left_rows, left_label),
+        (right_arm, right_rows, right_label),
+    )
 
 
 def main() -> int:
