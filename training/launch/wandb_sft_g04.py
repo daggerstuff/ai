@@ -35,6 +35,11 @@ except ImportError:
 API_BASE = "https://api.training.wandb.ai/v1"
 HTTP_ERROR_THRESHOLD = 400
 MODEL_ID = "Qwen/Qwen3.6-35B-A3B"
+# Base models this launcher may train. Callers narrow the choice with
+# ``--model``; the allowlist keeps an unexpected catalog entry unusable.
+ALLOWED_MODEL_IDS: frozenset[str] = frozenset({MODEL_ID})
+# Sent on every Training API request so W&B can attribute launcher traffic.
+TRAINING_API_USER_AGENT = "pixelated-empathy-training-launcher/1.0"
 ENTITY = "wutang"
 PROJECT = "pixelated-empathy-kan28"
 TERMINAL_STATES = {"succeeded", "failed", "cancelled", "canceled"}
@@ -495,6 +500,7 @@ class TrainingAPI:
                 "Authorization": f"Bearer {self._token}",
                 "Content-Type": "application/json",
                 "Accept": "application/json",
+                "User-Agent": TRAINING_API_USER_AGENT,
             },
         )
         try:
@@ -519,6 +525,7 @@ class TrainingAPI:
             "Authorization": f"Bearer {self._token}",
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "User-Agent": TRAINING_API_USER_AGENT,
         }
         try:
             timeout = aiohttp.ClientTimeout(total=60)
@@ -570,8 +577,17 @@ def safe_config_capture(response: dict[str, Any]) -> dict[str, Any]:
 
 
 def make_training_artifact(
-    payload: Payload, manifest: dict[str, Any], config: dict[str, Any], out_dir: Path
+    payload: Payload,
+    manifest: dict[str, Any],
+    config: dict[str, Any],
+    out_dir: Path,
+    model_id: str = MODEL_ID,
 ) -> dict[str, Any]:
+    """Package the approved bytes as a W&B artifact directory.
+
+    ``model_id`` is recorded as the artifact's base model. Callers gate the
+    choice against ``ALLOWED_MODEL_IDS`` before reaching here.
+    """
     out_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     trajectory_file = out_dir / "trajectories.jsonl"
     shutil.copyfile(payload.path, trajectory_file)
@@ -588,7 +604,7 @@ def make_training_artifact(
         "total_len": payload.rows,
         "loss_mask": "assistant turns only",
         "assistant_turns_config": config["assistant_turns"],
-        "base_model": MODEL_ID,
+        "base_model": model_id,
         "training_config": config,
     }
     metadata_path = out_dir / "metadata.json"
@@ -648,6 +664,7 @@ class ExecutionRequest:
     work_dir: Path
     api: TrainingAPI
     api_key: str
+    model_id: str = MODEL_ID
     private_check: Callable[[str, str, str], None] = verify_private_project
     artifact_upload: Callable[[Path, str], str] | None = None
     poll_interval: float = 30
@@ -694,7 +711,7 @@ def _verify_remote_access(request: ExecutionRequest) -> None:
         for item in catalog
         if isinstance(item, (str, dict))
     }
-    if MODEL_ID not in ids:
+    if request.model_id not in ids:
         raise QualificationError("selected base model is absent from current authenticated training catalog")
 
 
@@ -711,7 +728,7 @@ def _initial_state(request: ExecutionRequest, plan: TrainingPlan) -> dict[str, A
         "payload_sha256": payload.sha256,
         "row_count": payload.rows,
         "arm": request.arm,
-        "model": MODEL_ID,
+        "model": request.model_id,
         "config": config,
         "artifact_hashes": {"trajectories": artifact["trajectory_sha256"], "metadata": artifact["metadata_sha256"]},
         "artifact_bytes": artifact["artifact_bytes"],
@@ -752,7 +769,7 @@ def _create_model(request: ExecutionRequest, state: dict[str, Any], task_id: str
             "entity": ENTITY,
             "project": PROJECT,
             "name": f"arc-sft-{request.arm}-{task_id[:12]}",
-            "base_model": MODEL_ID,
+            "base_model": request.model_id,
             "return_existing": True,
         },
     )
