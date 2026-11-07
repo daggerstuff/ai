@@ -181,3 +181,101 @@ def test_write_jsonl_is_compact_and_round_trips(tmp_path: Path) -> None:
     raw = path.read_text(encoding="utf-8")
     assert raw.endswith("\n")
     assert json.loads(raw)["messages"][0]["content"] == "héllo"
+
+
+def payload(targets: list[str], tools: list[object] | None = None) -> str:
+    body: dict[str, object] = {
+        "messages": [{"role": "assistant", "content": target, "weight": 1} for target in targets]
+    }
+    if tools is not None:
+        body["tools"] = tools
+    return json.dumps(body)
+
+
+CAP = v14.DUPLICATE_TARGET_CAP
+OVER_CAP = CAP + 1
+
+
+def test_duplicate_profile_counts_the_final_target_per_row() -> None:
+    lines = [payload(["first", "shared"]), payload(["shared"]), payload(["shared", "other"])]
+    profile = v14.duplicate_target_profile(lines)
+    assert profile["rows"] == len(lines)
+    assert profile["assistant_turns"] == sum(len(json.loads(line)["messages"]) for line in lines)
+    finals = {json.loads(line)["messages"][-1]["content"] for line in lines}
+    assert profile["final_target"]["distinct"] == len(finals)
+    assert profile["final_target"]["max_rows_per_target"] == len(lines) - 1
+
+
+def test_duplicate_profile_ignores_mid_session_repeats_for_the_cap() -> None:
+    """A line repeated mid-session never counts toward the final-target cap."""
+    lines = [payload(["checklist item", f"reply {index}"]) for index in range(OVER_CAP)]
+    profile = v14.duplicate_target_profile(lines)
+    assert profile["final_target"]["targets_over_cap"] == 0
+    assert profile["all_targets"]["targets_over_cap"] == 1
+    assert profile["all_targets"]["rows_containing_over_cap_target"] == len(lines)
+
+
+def test_duplicate_profile_flags_over_cap_final_targets() -> None:
+    lines = [payload(["same"]) for _ in range(OVER_CAP)]
+    profile = v14.duplicate_target_profile(lines)
+    assert profile["final_target"]["targets_over_cap"] == 1
+    assert profile["final_target"]["rows_in_over_cap_target"] == len(lines)
+    assert profile["final_target"]["max_rows_per_target"] == len(lines)
+
+
+def test_duplicate_profile_separates_chat_from_agent_rows() -> None:
+    chat = [payload(["same"]) for _ in range(OVER_CAP)]
+    agent = [payload(["same"], tools=[]) for _ in range(OVER_CAP)]
+    profile = v14.duplicate_target_profile(chat + agent)
+    final = profile["final_target"]
+    assert final["chat_rows"] == len(chat)
+    assert final["chat_targets_over_cap"] == 1
+    assert final["agent_rows"] == len(agent)
+    assert final["agent_targets_over_cap"] == 1
+    assert final["max_rows_per_target"] == len(chat) + len(agent)
+
+
+def test_train_duplicate_policy_accepts_a_payload_at_the_cap() -> None:
+    v14.verify_train_duplicate_policy(v14.duplicate_target_profile([payload(["same"]) for _ in range(CAP)]))
+
+
+def test_train_duplicate_policy_rejects_an_over_cap_chat_target() -> None:
+    profile = v14.duplicate_target_profile([payload(["same"]) for _ in range(OVER_CAP)])
+    with pytest.raises(ValueError, match=f"{CAP}-row cap"):
+        v14.verify_train_duplicate_policy(profile)
+
+
+def test_train_duplicate_policy_exempts_agent_tool_rows() -> None:
+    """Agent rows were appended after the cap ran, so they report but do not fail."""
+    v14.verify_train_duplicate_policy(
+        v14.duplicate_target_profile([payload(["same"], tools=[]) for _ in range(OVER_CAP)])
+    )
+
+
+def test_limitations_no_longer_claim_a_corpus_wide_target_cap() -> None:
+    """The old wording claimed a cap on every assistant target; only the final one is capped."""
+    text = " ".join(v14.LIMITATIONS)
+    assert "caps exact duplicate assistant targets at 50 per target" not in text
+    assert "final assistant target" in text
+
+
+def test_limitations_disclose_the_uncapped_held_out_partitions() -> None:
+    assert "Validation and test were never duplicate-filtered" in " ".join(v14.LIMITATIONS)
+
+
+def test_limitations_disclose_the_agent_tool_exemption() -> None:
+    assert "never subject to it" in " ".join(v14.LIMITATIONS)
+
+
+def test_release_summary_reports_the_measured_duplicate_profile() -> None:
+    empty = v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
+    release = v14._Release(empty, Path("/tmp/v14-manifest-probe"), dry_run=True)
+    release.payload_lines["train"] = [payload(["shared"]), payload(["shared"])]
+    release.payload_lines["validation"] = [payload(["label"])]
+    release.payload_lines["test"] = [payload(["label"])]
+    release.audit_duplicate_targets()
+    summary = release.summary()
+    assert summary["duplicate_max_rows_per_final_target"] == len(release.payload_lines["train"])
+    assert summary["duplicate_final_targets_over_cap"] == 0
+    validation = release.duplicate_profiles["validation"]["final_target"]
+    assert validation["max_rows_per_target"] == len(release.payload_lines["validation"])

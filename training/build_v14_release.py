@@ -58,6 +58,38 @@ SHUFFLE_SEED = 20261106
 BATCH_SIZE = 16
 SPLITS = ("train", "validation", "test")
 
+# The v5 hygiene pass admits at most this many rows that share the same exact
+# final assistant target. It keys on the row's supervision target only, so a
+# line that recurs mid-session is not counted, and the agent-tool rows added
+# from v6 on were never subject to it.
+DUPLICATE_TARGET_CAP = 50
+
+# Limitations travel with every manifest the builder emits, so the claims a
+# release makes about its own data stay reviewable in one place.
+LIMITATIONS: tuple[str, ...] = (
+    "Research-only SFT experiment; not clinical or production readiness.",
+    "The automated identifier screen does not certify de-identification.",
+    "Exact-message group split; semantic near-duplicate certification was not run.",
+    "Existing source policy dispositions are preserved in the internal row membership manifest.",
+    "Fifty generated Psy-Insight continuations are research data and have not received human clinical review.",
+    "v5 train excludes placeholder/prompt-echo assistant targets and admits at most 50 rows "
+    "sharing the same exact final assistant target; excluded rows are held out, not deleted.",
+    "That duplicate-target cap is a train-admission rule and keys on the row's final assistant "
+    "target only, so a line that recurs mid-session is never counted: assessment-instrument "
+    "wording (PHQ-9 and GAD-7 items) repeats across thousands of otherwise distinct sessions, "
+    "and the agent-tool rows introduced in v6 were appended after the cap ran and were never "
+    "subject to it. Per-target concentration over all assistant turns is therefore far higher "
+    "than 50; evidence.duplicate_target_concentration reports the measured values per partition.",
+    "Validation and test were never duplicate-filtered, so their final assistant targets are "
+    "dominated by single-token diagnosis labels (over a thousand rows each for 'BPD' and "
+    "'Anxiety'); held-out loss is weighted toward those rows rather than toward full replies.",
+    "v14 purges all 1,522 crisis_benchmark rows whose assistant target was the benchmark task "
+    "description rather than a response; those rows carry no supervision and were never usable.",
+    "v14 crisis-routing and bare-literal tool rows are first-party synthetic and have not "
+    "received human clinical review.",
+)
+
+
 # The one assistant target that identifies a fabricated crisis row: the
 # benchmark task description, byte-identical on all 1,522 rows.
 CRISIS_PLACEHOLDER = (
@@ -307,6 +339,93 @@ def payload_line(payload: list[dict[str, Any]], tools: list[Any] | None) -> str:
     return json.dumps(body, ensure_ascii=False, separators=(",", ":"))
 
 
+def assistant_turns(row: dict[str, Any]) -> list[str]:
+    """The row's assistant targets, in order, ignoring empty and tool-only turns."""
+    return [
+        message["content"]
+        for message in row.get("messages", [])
+        if message.get("role") == "assistant" and isinstance(message.get("content"), str) and message["content"].strip()
+    ]
+
+
+def duplicate_target_profile(lines: list[str], cap: int = DUPLICATE_TARGET_CAP) -> dict[str, Any]:
+    """Measure how often exact assistant targets recur across one payload.
+
+    Two views matter, because the v5 cap only ever covered one of them: the
+    *final* assistant target is the row's supervision target and is capped at
+    ``cap`` rows per target, while targets that recur mid-session are not
+    counted at all. Reporting both keeps the manifest honest about which part
+    of the corpus the policy actually constrains.
+    """
+    final_targets: Counter[str] = Counter()
+    final_chat: Counter[str] = Counter()
+    final_agent: Counter[str] = Counter()
+    all_targets: Counter[str] = Counter()
+    row_target_sets: list[set[str]] = []
+    row_turns: list[list[str]] = []
+    chat_rows = agent_rows = 0
+    for line in lines:
+        row = json.loads(line)
+        agent = "tools" in row
+        chat_rows += 0 if agent else 1
+        agent_rows += 1 if agent else 0
+        turns = assistant_turns(row)
+        if not turns:
+            continue
+        final = turns[-1]
+        final_targets[final] += 1
+        (final_agent if agent else final_chat)[final] += 1
+        all_targets.update(set(turns))
+        row_target_sets.append(set(turns))
+        row_turns.append(turns)
+    over_final = {target for target, rows in final_targets.items() if rows > cap}
+    over_all = {target for target, rows in all_targets.items() if rows > cap}
+    return {
+        "cap": cap,
+        "rows": len(lines),
+        "assistant_turns": sum(len(turns) for turns in row_turns),
+        "final_target": {
+            "distinct": len(final_targets),
+            "max_rows_per_target": max(final_targets.values(), default=0),
+            "targets_over_cap": len(over_final),
+            "rows_in_over_cap_target": sum(final_targets[target] for target in over_final),
+            "chat_rows": chat_rows,
+            "chat_max_rows_per_target": max(final_chat.values(), default=0),
+            "chat_targets_over_cap": sum(1 for rows in final_chat.values() if rows > cap),
+            "agent_rows": agent_rows,
+            "agent_max_rows_per_target": max(final_agent.values(), default=0),
+            "agent_targets_over_cap": sum(1 for rows in final_agent.values() if rows > cap),
+        },
+        "all_targets": {
+            "distinct": len(all_targets),
+            "targets_over_cap": len(over_all),
+            "rows_containing_over_cap_target": sum(1 for targets in row_target_sets if targets & over_all),
+            "turns_in_over_cap_target": sum(1 for turns in row_turns for target in turns if target in over_all),
+        },
+        "most_repeated_final_targets": [
+            {"rows": rows, "target": target[:120]} for target, rows in final_targets.most_common(3)
+        ],
+    }
+
+
+def verify_train_duplicate_policy(profile: dict[str, Any]) -> None:
+    """Fail the build if a carried train chat row breaks the v5 duplicate-target cap.
+
+    The cap is a train-admission rule: v5 filtered duplicates out of train only,
+    so validation and test inherit uncapped concentration from their sources.
+    Chat rows are what the cap was written for, so a violation there means the
+    v13 lineage drifted from its own hygiene policy. Agent-tool rows are exempt
+    by provenance -- they were added in v6, after the cap ran -- and are
+    reported in the profile instead.
+    """
+    final = profile["final_target"]
+    if final["chat_targets_over_cap"]:
+        raise ValueError(
+            f"train: {final['chat_targets_over_cap']} exact final assistant targets exceed the "
+            f"{profile['cap']}-row cap that v5 enforces on train chat rows"
+        )
+
+
 class _Release:
     """One v14 build: purge, carry, append, then write payloads and the manifest."""
 
@@ -322,6 +441,7 @@ class _Release:
         self.group_sets: dict[str, set[str]] = {name: set() for name in SPLITS}
         self.source_counts: Counter[str] = Counter()
         self.v9_rows: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
+        self.duplicate_profiles: dict[str, dict[str, Any]] = {}
         self.carried = 0
         self.purged = 0
         self.next_number = 0
@@ -345,6 +465,12 @@ class _Release:
             raise ValueError("row numbering drifted")
         # Deterministic train shuffle; validation and test keep candidate order.
         random.Random(SHUFFLE_SEED).shuffle(self.payload_lines["train"])
+        self.audit_duplicate_targets()
+
+    def audit_duplicate_targets(self) -> None:
+        """Measure duplicate-target concentration and enforce the cap on train."""
+        self.duplicate_profiles = {name: duplicate_target_profile(self.payload_lines[name]) for name in SPLITS}
+        verify_train_duplicate_policy(self.duplicate_profiles["train"])
 
     def carry(self, old_number: int, raw: bytes) -> None:
         row = json.loads(raw)
@@ -450,6 +576,7 @@ class _Release:
             self.rowref_records.append({**identity, "provisional_split": "train"})
 
     def summary(self) -> dict[str, Any]:
+        train_profile = self.duplicate_profiles.get("train", {})
         return {
             "release_id": RELEASE_ID,
             "candidate_rows": self.next_number,
@@ -459,6 +586,8 @@ class _Release:
             "partitions": {name: len(self.payload_lines[name]) for name in SPLITS},
             "source_groups": {name: len(self.group_sets[name]) for name in SPLITS},
             "total_batch": math.ceil(len(self.payload_lines["train"]) / BATCH_SIZE),
+            "duplicate_final_targets_over_cap": train_profile.get("final_target", {}).get("targets_over_cap"),
+            "duplicate_max_rows_per_final_target": train_profile.get("final_target", {}).get("max_rows_per_target"),
             "dry_run": self.dry_run,
         }
 
@@ -547,6 +676,7 @@ class _Release:
                     "source_label_count": len(self.source_counts),
                     "source_counts": dict(sorted(self.source_counts.items())),
                 },
+                "duplicate_target_concentration": self.duplicate_profiles,
             },
             "scope": scope,
             "repairs": {
@@ -570,20 +700,7 @@ class _Release:
                 ),
                 "shuffle": {"train": True, "validation": False, "test": False, "seed": SHUFFLE_SEED},
             },
-            "limitations": [
-                "Research-only SFT experiment; not clinical or production readiness.",
-                "The automated identifier screen does not certify de-identification.",
-                "Exact-message group split; semantic near-duplicate certification was not run.",
-                "Existing source policy dispositions are preserved in the internal row membership manifest.",
-                "Fifty generated Psy-Insight continuations are research data and have not received human "
-                "clinical review.",
-                "v5 train excludes placeholder/prompt-echo assistant targets and caps exact duplicate "
-                "assistant targets at 50 per target; excluded rows are held out, not deleted.",
-                "v14 purges all 1,522 crisis_benchmark rows whose assistant target was the benchmark task "
-                "description rather than a response; those rows carry no supervision and were never usable.",
-                "v14 crisis-routing and bare-literal tool rows are first-party synthetic and have not "
-                "received human clinical review.",
-            ],
+            "limitations": list(LIMITATIONS),
             "owner_direction": (
                 "User-directed v14 after the v13 defect sweep. v13 inherits 1,522 crisis_benchmark rows whose "
                 "assistant target is the benchmark task description, so the release carries no crisis-routing "
