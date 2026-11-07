@@ -244,6 +244,7 @@ training/tests/*
 !training/tests/test_prepare_v14_eval.py
 !training/tests/test_summarize_eval_run.py
 !training/tests/test_build_agent_tool_sft_v7.py
+!training/tests/test_build_agent_tool_sft_v10.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
