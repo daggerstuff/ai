@@ -17,14 +17,17 @@ to twenty paraphrases per category in three resource-first shapes.
 v16 also closes the v14 limitation that validation and test were never
 duplicate-filtered. Those splits carried up to 1,242 rows of a single
 single-token diagnosis target, which made validation loss a measure of the
-label mix rather than of the model. Both held-out splits are now thinned to 50
-rows per exact final assistant target — the same admission rule train has used
-since v5 — so validation and test finally describe the distribution the
-adapter is trained under.
+label mix rather than of the model. The cap is now an admission rule on all
+three splits: a retained validation or test chat row whose exact final
+assistant target already has 50 lower-hash rows is purged before it reaches the
+candidate payload, the internal ledger, or the content-group sets, exactly as
+the crisis placeholders are. Because the purge happens at admission, every G04
+invariant still holds — the emitted split files, the internal manifest, the
+rowrefs and the group counts all describe the same surviving rows.
 
 The pipeline is inherited rather than re-implemented, so the v16 candidate is the
-v15 candidate byte for byte plus the v11 and v12 rows at the end, and the
-train payload stays identical to v15's.
+v15 candidate minus the purged held-out rows plus the v11 and v12 rows at the
+end, and the train payload stays identical to v15's.
 
 Usage::
 
@@ -65,11 +68,17 @@ EXPECTED_V11_TRAIN_ROWS = 240
 V12_SOURCE_LABEL = "crisis_surface_v12"
 EXPECTED_V12_TRAIN_ROWS = 672
 
-# The held-out splits are thinned with the same admission rule v5 applied to
-# train: at most this many rows may share one exact final assistant target.
+# The held-out splits are admitted under the same rule v5 applied to train: at
+# most this many rows may share one exact final assistant target. Rows past the
+# cap are purged before admission, so the payloads, the internal ledger and the
+# group sets never disagree about which rows exist.
 EVALUATION_DUPLICATE_TARGET_CAP = v14.DUPLICATE_TARGET_CAP
 EVALUATION_SPLITS = ("validation", "test")
-EXPECTED_EVALUATION_ROWS = {"validation": 4918, "test": 4789}
+EVALUATION_PURGE_REASON = "duplicate_final_target_over_cap"
+# Filled from the verified build: the cap removes 4,672 validation and 4,454
+# test rows, the ones whose content group hashes sort above the 50th row of
+# their final-target bucket.
+EXPECTED_EVALUATION_PURGED = {"validation": 4672, "test": 4454}
 
 # v14 recorded that validation and test were never duplicate-filtered. v16
 # fixes that, so the sentence is dropped rather than inherited.
@@ -93,19 +102,19 @@ LIMITATIONS_V16: tuple[str, ...] = (
         "the reflective answer the therapy corpus teaches."
     ),
     (
-        "Validation and test are thinned to at most 50 rows per exact final assistant target, which brings the "
-        "held-out splits under the same admission rule train has used since v5. That rule keeps the rows whose "
-        "content group hashes lowest, so the thinned splits are a deterministic but arbitrary sample of each "
-        "over-capped target: validation and test are no longer a superset of the source data, and a target that "
-        "was over-represented before is now represented by its 50 lowest-hash rows rather than its most typical "
-        "ones."
+        "Validation and test are purged at admission to at most 50 rows per exact final assistant target, which "
+        "brings the held-out splits under the same rule train has used since v5. That rule keeps the rows whose "
+        "content group hashes are lowest, so the surviving splits are a deterministic but arbitrary sample of "
+        "each over-capped target: validation and test are no longer a superset of the source data, and a target "
+        "that was over-represented before is now represented by its 50 lowest-hash rows rather than its most "
+        "typical ones."
     ),
     (
-        "Thinning happens after the split is cut, so the candidate payload, the internal record ledger and the "
-        "content-group membership sets still describe the full 9,590-row validation and 9,243-row test. Only the "
-        "validation.jsonl and test.jsonl payloads are thinned; the affected content groups are flagged "
-        '"duplicate_target_capped_out" in manifest_internal.jsonl and rowrefs.jsonl, and the per-target drop '
-        "counts are recorded under evidence.evaluation_duplicate_target_cap in the manifest."
+        "The purge removes 4,672 validation rows and 4,454 test rows, so the held-out splits are roughly half "
+        "the size of v15's. Almost all of that loss is single-token diagnosis labels: 11 exact final targets "
+        "exceeded the cap in each split before the purge. Per-target counts before and after are recorded under "
+        "evidence.evaluation_duplicate_target_purge in the manifest, and the removed rows are counted under "
+        "scope.purged_rows_by_reason."
     ),
 )
 
@@ -118,51 +127,108 @@ def _limitations() -> tuple[str, ...]:
     return (*kept, *LIMITATIONS_V16)
 
 
-def cap_duplicate_targets(
-    lines: list[str], cap: int = EVALUATION_DUPLICATE_TARGET_CAP
-) -> tuple[list[str], dict[str, int], list[str]]:
-    """Keep at most ``cap`` rows per exact final assistant target.
+def _projected_target(
+    indexes: v14._Indexes, old_number: int, row: dict[str, Any], scratch: Counter[str]
+) -> tuple[str, str, bool]:
+    """Return the projected final assistant target, content-group hash, and repair flag."""
+    repaired_row, kind = v15.repair_row(row)
+    repaired = kind is not None
+    messages = repaired_row.get("messages") if repaired else row.get("messages")
+    repair = indexes.repairs.get(old_number)
+    if repair is not None:
+        messages = repair["messages"]
+    if not isinstance(messages, list):
+        raise ValueError(f"retained row {old_number} has no message list to project")
+    payload = v14.project_chat(messages, scratch)
+    if payload is None:
+        raise ValueError(f"retained row {old_number} projects to no assistant target")
+    # project_chat truncates after the last assistant turn, so the final element
+    # is the row's supervision target.
+    return payload[-1]["content"], v14.canonical_hash(payload), repaired
 
-    Mirrors ``v14.verify_train_duplicate_policy``: the key is the verbatim
-    final-target string, agent-tool rows are exempt, and ties break on the
-    content-group hash so the result is order-independent. Returns the kept
-    lines, the dropped count per target, and the dropped group hashes.
+
+def _evaluation_targets(indexes: v14._Indexes) -> dict[str, dict[str, list[tuple[str, int]]]]:
+    """Bucket every retained held-out row by its exact final assistant target.
+
+    Crisis placeholders and agent-tool rows are excluded: the first are purged
+    outright and the second are exempt from the cap, matching the train rule.
+    The split is the one v15's admission rule will actually use, so a repaired
+    row is bucketed by its new content group rather than by its v13 label.
     """
-    rows: list[tuple[str, str, str]] = []
-    for line in lines:
-        candidate = json.loads(line)
-        if v14.is_agent_tool(candidate):
+    by_target: dict[str, dict[str, list[tuple[str, int]]]] = {name: {} for name in EVALUATION_SPLITS}
+    scratch: Counter[str] = Counter()
+    with (v14.V13_DIR / "candidate.jsonl").open("rb") as source:
+        for old_number, raw in enumerate(source, start=1):
+            if not raw.strip():
+                continue
+            row = json.loads(raw)
+            if v14.is_crisis_placeholder(row) or v14.is_agent_tool(row):
+                continue
+            reference = indexes.references.get(old_number)
+            if reference is None:
+                continue
+            target, group_hash, repaired = _projected_target(indexes, old_number, row, scratch)
+            split = v15.assign_split(group_hash) if repaired else reference["provisional_split"]
+            if split not in EVALUATION_SPLITS:
+                continue
+            by_target[split].setdefault(target, []).append((group_hash, old_number))
+    return by_target
+
+
+def _purge_split(
+    split: str, buckets: dict[str, list[tuple[str, int]]], cap: int
+) -> tuple[dict[int, str], dict[str, Any]]:
+    """Decide one split's purges, keeping the lowest content-group hashes."""
+    rows_before = sum(len(bucket) for bucket in buckets.values())
+    dropped: Counter[str] = Counter()
+    purge_plan: dict[int, str] = {}
+    for target, bucket in buckets.items():
+        if len(bucket) <= cap:
             continue
-        turns = v14.assistant_turns(candidate)
-        if not turns:
-            continue
-        rows.append((line, v14.canonical_hash(candidate["messages"]), turns[-1]))
+        bucket.sort()
+        for _, old_number in bucket[cap:]:
+            purge_plan[old_number] = split
+            dropped[target] += 1
+    over_cap = {target: len(bucket) for target, bucket in buckets.items() if len(bucket) > cap}
+    dropped_rows = sum(dropped.values())
+    stats = {
+        "rows_before": rows_before,
+        "rows_after": rows_before - dropped_rows,
+        "max_rows_per_final_target_before": max((len(bucket) for bucket in buckets.values()), default=0),
+        "targets_over_cap": len(over_cap),
+        "rows_in_over_cap_targets": sum(over_cap.values()),
+        "purged_rows": dropped_rows,
+        "purged_targets": len(dropped),
+        "purged_by_target": dict(sorted(dropped.items(), key=lambda item: (-item[1], item[0]))),
+    }
+    if rows_before != stats["rows_after"] + dropped_rows:
+        raise ValueError(f"{split}: the purge is not a partition of the split")
+    return purge_plan, stats
 
-    by_target: dict[str, list[tuple[str, str, str]]] = {}
-    for row in rows:
-        by_target.setdefault(row[2], []).append(row)
 
-    dropped: list[tuple[str, str, str]] = []
-    for target_rows in by_target.values():
-        if len(target_rows) <= cap:
-            continue
-        target_rows.sort(key=lambda row: row[1])
-        dropped.extend(target_rows[cap:])
+def plan_evaluation_purge(
+    indexes: v14._Indexes, cap: int = EVALUATION_DUPLICATE_TARGET_CAP
+) -> tuple[dict[int, str], dict[str, dict[str, Any]]]:
+    """Decide which retained validation/test rows exceed the per-target cap.
 
-    if not dropped:
-        return list(lines), {}, []
+    The cap is the admission rule v5 wrote for train, so it has to be decided
+    before a row is admitted rather than after the split file is written: the
+    payload, the internal ledger, the rowrefs and the content-group sets must
+    all describe the same surviving rows or the G04 gate rejects the release.
 
-    dropped_lines = {row[0] for row in dropped}
-    kept_lines = [line for line in lines if line not in dropped_lines]
-    if len(kept_lines) + len(dropped) != len(lines):
-        raise ValueError(
-            f"duplicate-target thinning is not a partition: kept {len(kept_lines)} + dropped {len(dropped)} "
-            f"!= {len(lines)}"
-        )
-
-    dropped_by_target: Counter[str] = Counter(row[2] for row in dropped)
-    dropped_hashes = sorted(row[1] for row in dropped)
-    return kept_lines, dict(dropped_by_target), dropped_hashes
+    The key is the verbatim final assistant target of the *projected* payload,
+    which is what ``duplicate_target_profile`` measures. Agent-tool rows are
+    exempt, matching the train rule. Ties break on the candidate row number so
+    the plan is order-independent. Returns the purged row numbers keyed to
+    their split, plus the before/after per-split statistics.
+    """
+    by_target = _evaluation_targets(indexes)
+    purge_plan: dict[int, str] = {}
+    stats: dict[str, dict[str, Any]] = {}
+    for split in EVALUATION_SPLITS:
+        split_plan, stats[split] = _purge_split(split, by_target[split], cap)
+        purge_plan.update(split_plan)
+    return purge_plan, stats
 
 
 def v11_candidate_rows() -> list[tuple[dict[str, Any], list[dict[str, Any]]]]:
@@ -245,25 +311,27 @@ def stamp_release_identity(
         "and eating-disorder-syncope to a warm reflection with no routing. v16 appends the 240-row v11 "
         "memory_value_verbatim family so the argument carries the value word for word, and the 672-row v12 "
         "crisis_surface family so the routing answer is reachable from twenty paraphrases per category instead "
-        "of the six fixed disclosures v9 and v10 repeated. v16 also thins validation and test to 50 rows per "
-        "exact final assistant target, so validation loss stops being dominated by a handful of single-token "
-        "diagnosis labels and starts tracking the same distribution train is admitted under."
+        "of the six fixed disclosures v9 and v10 repeated. v16 also purges validation and test down to 50 rows "
+        "per exact final assistant target at admission, so validation loss stops being dominated by a handful of "
+        "single-token diagnosis labels and starts tracking the same distribution train is admitted under."
     )
     return data
 
 
 class _Release(v15._Release):
-    """v15's build, with the v11 and v12 addenda and the v16 shuffle seed."""
+    """v15's build, with the held-out cap, the v11 and v12 addenda, and the v16 seed."""
 
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)
         self.v11_rows: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
         self.v12_rows: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
-        self.capped_out: dict[str, dict[str, Any]] = {}
-        self.duplicate_profiles_before_thin: dict[str, Any] = {}
+        self.purge_plan: dict[int, str] = {}
+        self.evaluation_purge_stats: dict[str, dict[str, Any]] = {}
+        self.evaluation_purged: Counter[str] = Counter()
 
     def run(self) -> None:
-        """v15's run, restated only to shuffle train with the v16 seed."""
+        """v15's run, with the held-out cap decided up front and the v16 seed."""
+        self.purge_plan, self.evaluation_purge_stats = plan_evaluation_purge(self.indexes)
         self.output.mkdir(parents=True, exist_ok=True)
         self.candidate_stream = None if self.dry_run else (self.output / "candidate.jsonl").open("wb")
         try:
@@ -280,11 +348,21 @@ class _Release(v15._Release):
         random.Random(SHUFFLE_SEED).shuffle(self.payload_lines["train"])
         self.audit_duplicate_targets()
         self.verify_group_disjointness()
-        # Thinning runs last: it only trims the emitted split payloads, so every
-        # upstream total, hash and group-set check still describes the full split.
-        self.thin_evaluation_splits()
+
+    def carry(self, old_number: int, raw: bytes) -> None:
+        """Purge over-capped held-out rows before v15 admits them.
+
+        The row never reaches the candidate payload, the internal ledger, the
+        rowrefs or the content-group sets, so every downstream count agrees.
+        """
+        split = self.purge_plan.get(old_number)
+        if split is not None:
+            self.evaluation_purged[split] += 1
+            return
+        super().carry(old_number, raw)
 
     def verify_totals(self) -> None:
+        """v15's totals, plus the v11/v12 addenda and the held-out purge."""
         if self.purged != v15.EXPECTED_PURGED_ROWS:
             raise ValueError(f"expected {v15.EXPECTED_PURGED_ROWS} purged rows, found {self.purged}")
         if dict(self.repair_counts) != v15.EXPECTED_REPAIR_COUNTS:
@@ -292,6 +370,14 @@ class _Release(v15._Release):
         appended = len(self.v9_rows) + len(self.v10_rows) + len(self.v11_rows) + len(self.v12_rows)
         if self.carried + appended != self.next_number:
             raise ValueError("row numbering drifted")
+        purged = {name: self.evaluation_purged[name] for name in EVALUATION_SPLITS}
+        if purged != EXPECTED_EVALUATION_PURGED:
+            raise ValueError(f"held-out purge drifted: {purged}, expected {EXPECTED_EVALUATION_PURGED}")
+        for split in EVALUATION_SPLITS:
+            emitted = len(self.payload_lines[split])
+            planned = self.evaluation_purge_stats[split]["rows_after"]
+            if emitted != planned:
+                raise ValueError(f"{split}: emitted {emitted} rows but the purge plan expected {planned}")
 
     def append_addenda(self) -> None:
         """Append the v9, v10, v11, and v12 addenda as train rows."""
@@ -302,44 +388,6 @@ class _Release(v15._Release):
         self.v12_rows = v12_candidate_rows()
         for candidate, payload in self.v12_rows:
             self.append_chat_row(V12_SOURCE_LABEL, candidate, payload)
-
-    def thin_evaluation_splits(self) -> None:
-        """Cap validation and test at 50 rows per exact final assistant target.
-
-        The cap is the train admission rule from v5, applied to the held-out
-        splits for the first time. Rows whose content group vanishes from the
-        emitted split are flagged in both ledgers so the drop stays auditable;
-        nothing is removed from the candidate payload.
-        """
-        self.duplicate_profiles_before_thin = dict(self.duplicate_profiles)
-        for split in EVALUATION_SPLITS:
-            lines = self.payload_lines[split]
-            kept, dropped_by_target, _ = cap_duplicate_targets(lines)
-            expected = EXPECTED_EVALUATION_ROWS[split]
-            if len(kept) != expected:
-                raise ValueError(f"{split} thinned to {len(kept)} rows, expected {expected}")
-            surviving = {v14.canonical_hash(json.loads(line)["messages"]) for line in kept}
-            internal_flagged = rowref_flagged = 0
-            for record in self.internal_records:
-                if record["split"] == split and record["content_group_sha256"] not in surviving:
-                    record["duplicate_target_capped_out"] = True
-                    internal_flagged += 1
-            for record in self.rowref_records:
-                if record["provisional_split"] == split and record["content_group_sha256"] not in surviving:
-                    record["duplicate_target_capped_out"] = True
-                    rowref_flagged += 1
-            if internal_flagged != rowref_flagged:
-                raise ValueError(f"{split}: ledgers disagree on capped-out rows")
-            self.capped_out[split] = {
-                "dropped_rows": len(lines) - len(kept),
-                "dropped_targets": len(dropped_by_target),
-                "dropped_by_target": dict(sorted(dropped_by_target.items(), key=lambda item: (-item[1], item[0]))),
-                "flagged_internal_records": internal_flagged,
-            }
-            self.payload_lines[split] = kept
-        # Re-measure so the manifest describes the emitted splits, not the
-        # pre-thin ones; train is untouched and still satisfies the v5 cap.
-        self.audit_duplicate_targets()
 
     def append_chat_row(self, source_label: str, candidate: dict[str, Any], payload: list[dict[str, Any]]) -> None:
         """Append one chat-shaped train row: no tool catalog, so no ``tools`` key."""
@@ -366,9 +414,7 @@ class _Release(v15._Release):
         data["release_id"] = RELEASE_ID
         data["appended_v11_rows"] = len(self.v11_rows)
         data["appended_v12_rows"] = len(self.v12_rows)
-        data["capped_out_rows"] = {
-            name: self.capped_out.get(name, {}).get("dropped_rows", 0) for name in EVALUATION_SPLITS
-        }
+        data["evaluation_purged_rows"] = {name: self.evaluation_purged[name] for name in EVALUATION_SPLITS}
         return data
 
     def manifest(self) -> dict[str, Any]:
@@ -379,43 +425,26 @@ class _Release(v15._Release):
             v11_rows=len(self.v11_rows),
             v12_rows=len(self.v12_rows),
         )
-        # super() derives membership from every internal record; the emitted
-        # splits drop the capped-out groups, so restate the evidence against
-        # what the payloads actually contain.
-        emitted = {
-            name: {
-                record["content_group_sha256"]
-                for record in self.internal_records
-                if record["split"] == name and not record.get("duplicate_target_capped_out")
-            }
-            for name in SPLITS
-        }
-        heldout_groups = {record["content_group_sha256"] for record in self.heldout_records}
-        disjointness = data["evidence"]["group_disjointness"]
-        for name in EVALUATION_SPLITS:
-            disjointness[f"{name}_group_count"] = len(emitted[name])
-            disjointness["heldout_group_intersections"][name] = len(heldout_groups & emitted[name])
-            data["partitions"][name]["source_group_count"] = len(emitted[name])
-        disjointness["pairwise_intersections"] = {
-            "train_validation": len(emitted["train"] & emitted["validation"]),
-            "train_test": len(emitted["train"] & emitted["test"]),
-            "validation_test": len(emitted["validation"] & emitted["test"]),
+        # The held-out purges are admission decisions, so the inherited
+        # membership, partition and group-count evidence already describes the
+        # surviving rows exactly. Only the purge accounting is restated.
+        evaluation_purged = sum(self.evaluation_purged.values())
+        data["scope"]["purged_rows"] = self.purged + evaluation_purged
+        data["scope"]["purged_rows_by_reason"] = {
+            v14.PURGE_REASON: self.purged,
+            EVALUATION_PURGE_REASON: evaluation_purged,
         }
         data["evidence"]["duplicate_target_concentration"] = self.duplicate_profiles
-        data["evidence"]["evaluation_duplicate_target_cap"] = {
+        data["evidence"]["evaluation_duplicate_target_purge"] = {
             "cap": EVALUATION_DUPLICATE_TARGET_CAP,
             "rule": "keep the 50 lowest content_group_sha256 rows per exact final assistant target",
             "agent_tool_rows_exempt": True,
             "applies_to": list(EVALUATION_SPLITS),
-            "before": {
-                name: self.duplicate_profiles_before_thin.get(name, {}).get("final_target", {})
-                for name in EVALUATION_SPLITS
-            },
+            "reason": EVALUATION_PURGE_REASON,
+            "splits": self.evaluation_purge_stats,
             "after": {
                 name: self.duplicate_profiles.get(name, {}).get("final_target", {}) for name in EVALUATION_SPLITS
             },
-            "capped_out": self.capped_out,
-            "ledger_flag": "duplicate_target_capped_out",
         }
         return data
 
