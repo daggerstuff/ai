@@ -34,8 +34,8 @@ LORA_ARTIFACT_TYPE = "lora"
 API_KEY_ENV = "WANDB_API_KEY"
 
 # The release this script compares against by default: the previous adapter.
-DEFAULT_COMPARE_LABEL = "v14"
-DEFAULT_COMPARE_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-8ccb925b683e:v1"
+DEFAULT_COMPARE_LABEL = "v15"
+DEFAULT_COMPARE_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-73504a99ed05:v1"
 
 DECODING: dict[str, Any] = {
     "temperature": 0,
@@ -218,6 +218,10 @@ def main() -> int:
 
     if args.release_uri is None and args.run_name is None:
         parser.error("pass --release-uri or --run-name")
+    if args.compare_label == args.release_label:
+        parser.error(
+            "--compare-label must differ from --release-label or the direct reading compares an adapter to itself"
+        )
     release = Release(args.release_label, args.release_uri or resolve_release_uri(args.run_name))
     compare = Release(args.compare_label, args.compare_uri)
 
