@@ -592,7 +592,7 @@ Please acknowledge this alert in the monitoring system.
             ],
         }
 
-        response = requests.post(webhook_url, json=payload, timeout=30)
+        response = requests.post(webhook_url, json=payload)
         response.raise_for_status()
 
         logger.info(f"Sent Slack notification for alert {alert.alert_id}")

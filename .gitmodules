@@ -1,0 +1,3 @@
+[submodule "DataDesigner"]
+	path = DataDesigner
+	url = https://github.com/NVIDIA-NeMo/DataDesigner.git
