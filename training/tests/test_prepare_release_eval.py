@@ -1,4 +1,4 @@
-"""Tests for the v14 paired-eval config generator."""
+"""Tests for the release paired-eval config generator."""
 
 from __future__ import annotations
 
@@ -8,10 +8,15 @@ from pathlib import Path
 
 import pytest
 
-from training.launch import prepare_v14_eval as prep
+from training.launch import prepare_release_eval as prep
 
-V14_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-8ccb925b683e:v1"
+V15_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-73504a99ed05:v1"
+RELEASE = prep.Release("v15", V15_URI)
+COMPARE = prep.Release(prep.DEFAULT_COMPARE_LABEL, prep.DEFAULT_COMPARE_URI)
+VERSUS_BASE, VERSUS_COMPARE = prep.pairs(RELEASE, COMPARE)
+CAPABILITY_CAP_USD = 0.2
 CRISIS_CAP_USD = 0.5
+CONTRACT_CAP_USD = 0.2
 LITERAL_CAP_USD = 0.3
 
 
@@ -29,63 +34,65 @@ def make_cases_dir(root: Path) -> Path:
     return cases_dir
 
 
-def test_v14_vs_base_pairs_the_base_model_against_the_adapter() -> None:
-    config = prep.build_config("crisis-dev", "v14-vs-base", V14_URI, CRISIS_CAP_USD)
+def test_pairs_name_the_release_and_its_predecessor() -> None:
+    assert VERSUS_BASE == "v15-vs-base"
+    assert VERSUS_COMPARE == "v15-vs-v14"
+
+
+def test_vs_base_pairs_the_base_model_against_the_adapter() -> None:
+    config = prep.build_config("crisis-dev", VERSUS_BASE, RELEASE, COMPARE, CRISIS_CAP_USD)
 
     assert arm_by_id(config, "base")["model"] == prep.BASE_MODEL
-    assert arm_by_id(config, "sft")["model"] == V14_URI
+    assert arm_by_id(config, "sft")["model"] == V15_URI
     assert config["pricing"]["hard_cap_usd"] == CRISIS_CAP_USD
 
 
-def test_v14_vs_v13_puts_the_v13_adapter_in_the_base_slot() -> None:
-    config = prep.build_config("literal-dev", "v14-vs-v13", V14_URI, LITERAL_CAP_USD)
+def test_vs_compare_puts_the_previous_adapter_in_the_base_slot() -> None:
+    config = prep.build_config("literal-dev", VERSUS_COMPARE, RELEASE, COMPARE, LITERAL_CAP_USD)
 
-    assert arm_by_id(config, "base")["model"] == prep.V13_URI
-    assert arm_by_id(config, "sft")["model"] == V14_URI
+    assert arm_by_id(config, "base")["model"] == COMPARE.uri
+    assert arm_by_id(config, "sft")["model"] == V15_URI
     assert config["decoding"]["chat_template_kwargs"] == {"enable_thinking": False}
 
 
 def test_run_id_is_stable_per_artifact_and_changes_with_it() -> None:
-    first = prep.build_config("crisis-dev", "v14-vs-v13", V14_URI, CRISIS_CAP_USD)["run_id"]
-    repeat = prep.build_config("crisis-dev", "v14-vs-v13", V14_URI, CRISIS_CAP_USD)["run_id"]
-    other = prep.build_config("crisis-dev", "v14-vs-v13", V14_URI.replace(":v1", ":v2"), CRISIS_CAP_USD)["run_id"]
+    first = prep.build_config("crisis-dev", VERSUS_COMPARE, RELEASE, COMPARE, CRISIS_CAP_USD)["run_id"]
+    repeat = prep.build_config("crisis-dev", VERSUS_COMPARE, RELEASE, COMPARE, CRISIS_CAP_USD)["run_id"]
+    other_release = prep.Release(RELEASE.label, V15_URI.replace(":v1", ":v2"))
+    other = prep.build_config("crisis-dev", VERSUS_COMPARE, other_release, COMPARE, CRISIS_CAP_USD)["run_id"]
 
     assert first == repeat
     assert first != other
-    assert first.startswith("wandb-crisis-dev-v14-vs-v13-")
+    assert first.startswith(f"wandb-crisis-dev-{VERSUS_COMPARE}-")
 
 
 def test_run_id_differs_between_comparison_pairs() -> None:
-    versus_base = prep.build_config("crisis-dev", "v14-vs-base", V14_URI, CRISIS_CAP_USD)["run_id"]
-    versus_v13 = prep.build_config("crisis-dev", "v14-vs-v13", V14_URI, CRISIS_CAP_USD)["run_id"]
+    versus_base = prep.build_config("crisis-dev", VERSUS_BASE, RELEASE, COMPARE, CRISIS_CAP_USD)["run_id"]
+    versus_compare = prep.build_config("crisis-dev", VERSUS_COMPARE, RELEASE, COMPARE, CRISIS_CAP_USD)["run_id"]
 
-    assert versus_base != versus_v13
+    assert versus_base != versus_compare
 
 
 def test_unknown_pair_is_rejected() -> None:
     with pytest.raises(ValueError, match="unknown comparison pair"):
-        prep.build_config("crisis-dev", "v14-vs-v12", V14_URI, CRISIS_CAP_USD)
+        prep.build_config("crisis-dev", "v15-vs-v13", RELEASE, COMPARE, CRISIS_CAP_USD)
 
 
 def test_write_configs_covers_every_suite_and_pair(tmp_path: Path) -> None:
     cases_dir = make_cases_dir(tmp_path)
     out_dir = tmp_path / "out"
 
-    written = prep.write_configs(cases_dir, out_dir, V14_URI)
+    written = prep.write_configs(cases_dir, out_dir, RELEASE, COMPARE)
 
-    assert len(written) == len(prep.SUITES) * len(prep.PAIRS)
+    assert len(written) == len(prep.SUITES) * len(prep.pairs(RELEASE, COMPARE))
     sealed = {label for label, _, _, is_sealed in written if is_sealed}
     assert sealed == {
-        "capability-sealed-v14-vs-base",
-        "capability-sealed-v14-vs-v13",
-        "crisis-sealed-v14-vs-base",
-        "crisis-sealed-v14-vs-v13",
-        "literal-sealed-v14-vs-base",
-        "literal-sealed-v14-vs-v13",
-        "contract-sealed-v14-vs-base",
-        "contract-sealed-v14-vs-v13",
+        f"{suite}-{pair}"
+        for suite, _, _ in prep.SUITES
+        if suite.endswith("-sealed")
+        for pair in prep.pairs(RELEASE, COMPARE)
     }
-    config = json.loads((out_dir / "wandb-crisis-dev-v14-vs-base.config.json").read_text(encoding="utf-8"))
+    config = json.loads((out_dir / f"wandb-crisis-dev-{VERSUS_BASE}.config.json").read_text(encoding="utf-8"))
     assert [arm["id"] for arm in config["arms"]] == ["base", "sft"]
     assert config["schema_version"] == 1
 
@@ -95,35 +102,36 @@ def test_write_configs_refuses_a_missing_case_file(tmp_path: Path) -> None:
     (cases_dir / "scenario-crisis-dev-v1.jsonl").unlink()
 
     with pytest.raises(FileNotFoundError, match=re.escape("scenario-crisis-dev-v1.jsonl")):
-        prep.write_configs(cases_dir, tmp_path / "out", V14_URI)
+        prep.write_configs(cases_dir, tmp_path / "out", RELEASE, COMPARE)
 
 
 def test_render_plan_marks_sealed_suites_and_uses_the_results_root(tmp_path: Path) -> None:
     cases_dir = make_cases_dir(tmp_path)
-    written = prep.write_configs(cases_dir, tmp_path / "out", V14_URI)
+    written = prep.write_configs(cases_dir, tmp_path / "out", RELEASE, COMPARE)
 
-    plan = prep.render_plan(V14_URI, written, tmp_path / "results")
+    plan = prep.render_plan(RELEASE, written, tmp_path / "results")
 
-    assert f"v14 artifact: {V14_URI}" in plan
-    assert f"--results-dir {tmp_path / 'results' / 'crisis-dev-v14-vs-base'}" in plan
-    assert f"--results-dir {tmp_path / 'results' / 'crisis-sealed-v14-vs-base'}" in plan
-    assert "--max-input-tokens 4096 --max-tool-rounds 4 --allow-sealed" in plan
+    assert f"{RELEASE.label} artifact: {V15_URI}" in plan
+    assert f"--results-dir {tmp_path / 'results' / f'crisis-dev-{VERSUS_BASE}'}" in plan
+    assert f"--results-dir {tmp_path / 'results' / f'crisis-sealed-{VERSUS_BASE}'}" in plan
+    assert f"--max-input-tokens {prep.MAX_INPUT_TOKENS} --max-tool-rounds {prep.MAX_TOOL_ROUNDS} --allow-sealed" in plan
     assert plan.count("--allow-sealed") == len([row for row in written if row[3]])
 
 
 def test_render_plan_carries_the_preflight_flags_the_cap_depends_on(tmp_path: Path) -> None:
     cases_dir = make_cases_dir(tmp_path)
-    written = prep.write_configs(cases_dir, tmp_path / "out", V14_URI)
+    written = prep.write_configs(cases_dir, tmp_path / "out", RELEASE, COMPARE)
 
-    plan = prep.render_plan(V14_URI, written, tmp_path / "results")
+    plan = prep.render_plan(RELEASE, written, tmp_path / "results")
 
     for _, _, config, _ in written:
         assert f"--config {config} --results-dir" in plan
-    assert plan.count("--max-input-tokens 4096 --max-tool-rounds 4") == len(written)
+    preflight = f"--max-input-tokens {prep.MAX_INPUT_TOKENS} --max-tool-rounds {prep.MAX_TOOL_ROUNDS}"
+    assert plan.count(preflight) == len(written)
 
 
 def test_estimate_matches_the_runner_formula() -> None:
-    config = prep.build_config("capability-dev", "v14-vs-base", V14_URI, 0.2)
+    config = prep.build_config("capability-dev", VERSUS_BASE, RELEASE, COMPARE, CAPABILITY_CAP_USD)
 
     estimate = prep.estimate_max_cost_usd(config, 5)
 
@@ -135,8 +143,8 @@ def test_write_configs_rejects_a_suite_that_outgrows_its_cap(tmp_path: Path) -> 
     cases_dir = make_cases_dir(tmp_path)
     (cases_dir / "scenario-contract-dev-v1.jsonl").write_text('{"id": "case"}\n' * 6, encoding="utf-8")
 
-    with pytest.raises(ValueError, match="contract-dev-v14-vs-base worst case"):
-        prep.write_configs(cases_dir, tmp_path / "out", V14_URI)
+    with pytest.raises(ValueError, match=f"contract-dev-{VERSUS_BASE} worst case"):
+        prep.write_configs(cases_dir, tmp_path / "out", RELEASE, COMPARE)
 
 
 class _FakeArtifact:
@@ -166,7 +174,7 @@ def fake_wandb(monkeypatch: pytest.MonkeyPatch, run: _FakeRun) -> None:
 def test_resolve_picks_the_newest_lora_and_keeps_one_version_suffix(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    collection = prep.V14_RUN_NAME
+    collection = "arc-sft-baseline-73504a99ed05"
     run = _FakeRun(
         "finished",
         [
@@ -177,18 +185,18 @@ def test_resolve_picks_the_newest_lora_and_keeps_one_version_suffix(
     )
     fake_wandb(monkeypatch, run)
 
-    assert prep.resolve_v14_uri() == f"wandb-artifact:///{prep.ENTITY}/{prep.PROJECT}/{collection}:v1"
+    assert prep.resolve_release_uri(collection) == f"wandb-artifact:///{prep.ENTITY}/{prep.PROJECT}/{collection}:v1"
 
 
 def test_resolve_refuses_an_unfinished_run(monkeypatch: pytest.MonkeyPatch) -> None:
     fake_wandb(monkeypatch, _FakeRun("running", []))
 
     with pytest.raises(RuntimeError, match="only final once it finishes"):
-        prep.resolve_v14_uri()
+        prep.resolve_release_uri("arc-sft-baseline-73504a99ed05")
 
 
 def test_resolve_refuses_a_run_with_no_lora_artifact(monkeypatch: pytest.MonkeyPatch) -> None:
     fake_wandb(monkeypatch, _FakeRun("finished", [_FakeArtifact("state:v0", "v0", "train-state")]))
 
     with pytest.raises(RuntimeError, match="logged no lora artifact"):
-        prep.resolve_v14_uri()
+        prep.resolve_release_uri("arc-sft-baseline-73504a99ed05")

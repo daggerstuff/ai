@@ -1,13 +1,14 @@
-"""Prepare the paired-eval configs for the v14 release.
+"""Prepare the paired-eval configs for a training release.
 
-Resolves the v14 LoRA artifact URI from its W&B run and writes one config per
-held-out suite for two comparisons:
+Resolves a release's LoRA artifact URI from its W&B run and writes one config
+per held-out suite for two comparisons:
 
-* ``v14-vs-base`` -- the absolute reading (base model vs v14 adapter).
-* ``v14-vs-v13``  -- the direct reading (v13 adapter vs v14 adapter).
+* ``<release>-vs-base``     -- the absolute reading (base model vs the adapter).
+* ``<release>-vs-<prev>``   -- the direct reading (previous adapter vs this one).
 
 The runner schema hard-codes exactly two arms named ``base`` and ``sft``, so the
-direct comparison puts v13 in the ``base`` slot and v14 in the ``sft`` slot.
+direct comparison puts the previous release in the ``base`` slot and the new
+release in the ``sft`` slot.
 
 Run ids embed a digest of the compared artifact URIs, so re-running the same
 artifact resumes cleanly while a new adapter gets a fresh identity.
@@ -19,6 +20,7 @@ import argparse
 import hashlib
 import json
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -27,11 +29,13 @@ import wandb
 ENTITY = "wutang"
 PROJECT = "pixelated-empathy-kan28"
 BASE_MODEL = "Qwen/Qwen3.6-35B-A3B"
-V13_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-ecf35d5e5384:v1"
-V14_RUN_NAME = "arc-sft-baseline-8ccb925b683e"
 INFERENCE_BASE_URL = "https://api.inference.wandb.ai/v1"
 LORA_ARTIFACT_TYPE = "lora"
 API_KEY_ENV = "WANDB_API_KEY"
+
+# The release this script compares against by default: the previous adapter.
+DEFAULT_COMPARE_LABEL = "v14"
+DEFAULT_COMPARE_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-8ccb925b683e:v1"
 
 DECODING: dict[str, Any] = {
     "temperature": 0,
@@ -58,7 +62,18 @@ SUITES: tuple[tuple[str, str, float], ...] = (
     ("contract-sealed", "scenario-contract-sealed-v1.jsonl", 0.2),
 )
 
-PAIRS: tuple[str, ...] = ("v14-vs-base", "v14-vs-v13")
+
+@dataclass(frozen=True)
+class Release:
+    """A labelled adapter artifact."""
+
+    label: str
+    uri: str
+
+
+def pairs(release: Release, compare: Release) -> tuple[str, str]:
+    """Return the two comparison labels for a release."""
+    return f"{release.label}-vs-base", f"{release.label}-vs-{compare.label}"
 
 
 def default_cases_dir() -> Path:
@@ -66,8 +81,8 @@ def default_cases_dir() -> Path:
     return Path(__file__).resolve().parents[3] / "docs" / "training" / "execution-2026-10-17"
 
 
-def resolve_v14_uri(run_name: str = V14_RUN_NAME) -> str:
-    """Return the newest lora artifact URI logged by the v14 training run."""
+def resolve_release_uri(run_name: str) -> str:
+    """Return the newest lora artifact URI logged by a finished training run."""
     run = wandb.Api().run(f"{ENTITY}/{PROJECT}/runs/{run_name}")
     if run.state != "finished":
         raise RuntimeError(f"run {run_name} is {run.state}; the artifact is only final once it finishes")
@@ -92,15 +107,22 @@ def _arm(arm_id: str, model: str, provider: str) -> dict[str, str]:
     }
 
 
-def build_config(suite: str, pair: str, v14_uri: str, hard_cap_usd: float) -> dict[str, Any]:
+def build_config(
+    suite: str,
+    pair: str,
+    release: Release,
+    compare: Release,
+    hard_cap_usd: float,
+) -> dict[str, Any]:
     """Build one paired-eval config for a suite/comparison pair."""
-    if pair == "v14-vs-base":
+    versus_base, versus_compare = pairs(release, compare)
+    if pair == versus_base:
         base_arm = _arm("base", BASE_MODEL, "wandb-inference")
-    elif pair == "v14-vs-v13":
-        base_arm = _arm("base", V13_URI, "wandb-serverless-training")
+    elif pair == versus_compare:
+        base_arm = _arm("base", compare.uri, "wandb-serverless-training")
     else:
         raise ValueError(f"unknown comparison pair: {pair}")
-    digest = hashlib.sha256(f"{suite}:{pair}:{v14_uri}".encode()).hexdigest()[:8]
+    digest = hashlib.sha256(f"{suite}:{pair}:{release.uri}".encode()).hexdigest()[:8]
     return {
         "schema_version": 1,
         "run_id": f"wandb-{suite}-{pair}-{digest}",
@@ -114,7 +136,7 @@ def build_config(suite: str, pair: str, v14_uri: str, hard_cap_usd: float) -> di
         },
         "arms": [
             base_arm,
-            _arm("sft", v14_uri, "wandb-serverless-training"),
+            _arm("sft", release.uri, "wandb-serverless-training"),
         ],
     }
 
@@ -143,7 +165,8 @@ def estimate_max_cost_usd(config: dict[str, Any], case_count: int) -> float:
 def write_configs(
     cases_dir: Path,
     out_dir: Path,
-    v14_uri: str,
+    release: Release,
+    compare: Release,
 ) -> list[tuple[str, Path, Path, bool]]:
     """Write every suite/pair config; return (suite, cases, config, sealed) rows."""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -153,8 +176,8 @@ def write_configs(
         if not cases.is_file():
             raise FileNotFoundError(f"missing case file for {suite}: {cases}")
         case_count = count_cases(cases)
-        for pair in PAIRS:
-            config = build_config(suite, pair, v14_uri, hard_cap_usd)
+        for pair in pairs(release, compare):
+            config = build_config(suite, pair, release, compare, hard_cap_usd)
             estimate = estimate_max_cost_usd(config, case_count)
             if estimate > hard_cap_usd:
                 raise ValueError(f"{suite}-{pair} worst case ${estimate:.4f} exceeds its ${hard_cap_usd:.2f} cap")
@@ -164,9 +187,9 @@ def write_configs(
     return written
 
 
-def render_plan(v14_uri: str, written: list[tuple[str, Path, Path, bool]], results_root: Path) -> str:
+def render_plan(release: Release, written: list[tuple[str, Path, Path, bool]], results_root: Path) -> str:
     """Render the artifact line plus the exact runner command per config."""
-    lines = [f"v14 artifact: {v14_uri}"]
+    lines = [f"{release.label} artifact: {release.uri}"]
     for label, cases, config, sealed in written:
         sealed_flag = " --allow-sealed" if sealed else ""
         lines.append(
@@ -179,16 +202,23 @@ def render_plan(v14_uri: str, written: list[tuple[str, Path, Path, bool]], resul
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--v14-uri", default=None, help="skip W&B resolution and use this artifact URI")
-    parser.add_argument("--run-name", default=V14_RUN_NAME)
+    parser.add_argument("--release-label", required=True, help="label for the new adapter, e.g. v15")
+    parser.add_argument("--release-uri", default=None, help="skip W&B resolution and use this artifact URI")
+    parser.add_argument("--run-name", default=None, help="W&B run name to resolve the release artifact from")
+    parser.add_argument("--compare-label", default=DEFAULT_COMPARE_LABEL)
+    parser.add_argument("--compare-uri", default=DEFAULT_COMPARE_URI)
     parser.add_argument("--cases-dir", type=Path, default=default_cases_dir())
     parser.add_argument("--out-dir", type=Path, default=None)
     args = parser.parse_args()
 
-    out_dir = args.out_dir or args.cases_dir.parent / "execution-2026-11-06"
-    v14_uri = args.v14_uri or resolve_v14_uri(args.run_name)
-    written = write_configs(args.cases_dir, out_dir, v14_uri)
-    sys.stdout.write(render_plan(v14_uri, written, out_dir / "results") + "\n")
+    if args.release_uri is None and args.run_name is None:
+        parser.error("pass --release-uri or --run-name")
+    release = Release(args.release_label, args.release_uri or resolve_release_uri(args.run_name))
+    compare = Release(args.compare_label, args.compare_uri)
+
+    out_dir = args.out_dir or args.cases_dir.parent / f"execution-{release.label}"
+    written = write_configs(args.cases_dir, out_dir, release, compare)
+    sys.stdout.write(render_plan(release, written, out_dir / "results") + "\n")
     return 0
 
 
