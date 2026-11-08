@@ -208,7 +208,12 @@ def main() -> int:
     parser.add_argument("--compare-label", default=DEFAULT_COMPARE_LABEL)
     parser.add_argument("--compare-uri", default=DEFAULT_COMPARE_URI)
     parser.add_argument("--cases-dir", type=Path, default=default_cases_dir())
-    parser.add_argument("--out-dir", type=Path, default=None)
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        required=True,
+        help="release execution directory for the configs and results",
+    )
     args = parser.parse_args()
 
     if args.release_uri is None and args.run_name is None:
@@ -216,9 +221,8 @@ def main() -> int:
     release = Release(args.release_label, args.release_uri or resolve_release_uri(args.run_name))
     compare = Release(args.compare_label, args.compare_uri)
 
-    out_dir = args.out_dir or args.cases_dir.parent / f"execution-{release.label}"
-    written = write_configs(args.cases_dir, out_dir, release, compare)
-    sys.stdout.write(render_plan(release, written, out_dir / "results") + "\n")
+    written = write_configs(args.cases_dir, args.out_dir, release, compare)
+    sys.stdout.write(render_plan(release, written, args.out_dir / "results") + "\n")
     return 0
 
 

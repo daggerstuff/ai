@@ -3,7 +3,12 @@
 One ``--run-dir`` renders a per-case pass table for the two arms in that run.
 Two ``--run-dir`` arguments render a case-by-case comparison, labelling each arm
 by the model its manifest recorded -- so ``v13`` and ``v14`` are read from the
-evidence rather than assumed from the arm slot.
+evidence rather than assumed from the arm slot. ``--results-root`` renders a
+matrix over every finished run under a results directory.
+
+Arm labels come from the run id (``wandb-{suite}-{release}-vs-{compare}-{digest}``)
+which records which model sat in which slot, so no per-release constants need
+editing when a new release is evaluated.
 
 Pass/fail comes from the harness itself: a case passes when the row succeeded
 and every recorded ``state_metrics`` check passed.
@@ -13,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -21,10 +27,9 @@ from typing import Any
 MODEL_LABELS = {
     "Qwen/Qwen3.6-35B-A3B": "base",
 }
-LABEL_PREFIX = "wandb-artifact:///wutang/pixelated-empathy-kan28/"
-V13_SUFFIX = "arc-sft-baseline-ecf35d5e5384"
-V14_SUFFIX = "arc-sft-baseline-8ccb925b683e"
+PAIR_RUN_ID = re.compile(r"^wandb-(?P<suite>.+)-(?P<release>v\d+)-vs-(?P<compare>base|v\d+)-[0-9a-f]{8}$")
 DIFF_ARG_COUNT = 2
+COMPLETE_STATUS = "complete"
 
 
 @dataclass(frozen=True)
@@ -37,14 +42,48 @@ class ArmRow:
     finish_reason: str | None
 
 
+@dataclass(frozen=True)
+class RunSummary:
+    """Everything the matrix needs about one run directory."""
+
+    name: str
+    suite: str
+    pair: str
+    status: str
+    labels: dict[str, str]
+    arm_ids: tuple[str, ...]
+    passes: dict[str, int]
+    case_count: int
+
+
 def arm_label(model: str) -> str:
     """Map a model URI to a short human label."""
     if model in MODEL_LABELS:
         return MODEL_LABELS[model]
-    for suffix, label in ((V13_SUFFIX, "v13"), (V14_SUFFIX, "v14")):
-        if model.startswith(LABEL_PREFIX) and model.removeprefix(LABEL_PREFIX).startswith(suffix):
-            return label
     return model.rsplit("/", 1)[-1]
+
+
+def run_labels(manifest: dict[str, Any]) -> dict[str, str]:
+    """Name each arm from the run id, falling back to the recorded models.
+
+    A paired run records ``v{release}-vs-{compare}`` in its run id, with the
+    compared model in the base slot and the release under test in the sft slot.
+    Deriving the labels here keeps the summarizer release-agnostic.
+    """
+    match = PAIR_RUN_ID.match(manifest.get("run_id", ""))
+    models = arm_models(manifest)
+    if match:
+        labels = {"base": match["compare"], "sft": match["release"]}
+        if set(labels) == set(models):
+            return {arm: labels[arm] for arm in models}
+    return {arm: arm_label(model) for arm, model in models.items()}
+
+
+def run_suite_and_pair(manifest: dict[str, Any], fallback: str) -> tuple[str, str]:
+    match = PAIR_RUN_ID.match(manifest.get("run_id", ""))
+    if match:
+        return match["suite"], f"{match['release']}-vs-{match['compare']}"
+    return fallback, "unknown"
 
 
 def load_manifest(run_dir: Path) -> dict[str, Any]:
@@ -85,26 +124,29 @@ def _verdict(row: ArmRow | None) -> str:
     return f"FAIL({detail})"
 
 
+def _pass_count(rows: dict[tuple[str, str], ArmRow], cases: list[str], arm: str) -> int:
+    return sum(1 for case_id in cases if (row := rows.get((case_id, arm))) is not None and row.passed)
+
+
 def render_single(run_dir: Path) -> str:
     manifest = load_manifest(run_dir)
-    models = arm_models(manifest)
+    labels = run_labels(manifest)
     rows = load_rows(run_dir)
     arm_ids = manifest["arm_ids"]
-    labels = [arm_label(models[arm]) for arm in arm_ids]
+    case_ids = list(manifest["case_ids"])
     lines = [
         f"# {run_dir.name}  run_id={manifest['run_id']}  status={manifest['status']}",
         "",
-        "| case | " + " | ".join(labels) + " |",
+        "| case | " + " | ".join(labels[arm] for arm in arm_ids) + " |",
         "|---|" + "---|" * len(arm_ids),
     ]
-    for case_id in manifest["case_ids"]:
+    for case_id in case_ids:
         cells = [_verdict(rows.get((case_id, arm))) for arm in arm_ids]
         lines.append(f"| {case_id} | " + " | ".join(cells) + " |")
     lines.append("")
     for arm in arm_ids:
-        passed = sum(1 for case_id in manifest["case_ids"] if _verdict(rows.get((case_id, arm))) == "PASS")
-        lines.append(f"{arm_label(models[arm])}: {passed}/{len(manifest['case_ids'])} pass")
-    lines.extend(["", _delta_section(run_dir.name, manifest, models, rows)])
+        lines.append(f"{labels[arm]}: {_pass_count(rows, case_ids, arm)}/{len(case_ids)} pass")
+    lines.extend(["", _delta_section(run_dir.name, manifest, rows)])
     return "\n".join(lines)
 
 
@@ -139,31 +181,31 @@ def _delta_table(
 def _delta_section(
     name: str,
     manifest: dict[str, Any],
-    models: dict[str, str],
     rows: dict[tuple[str, str], ArmRow],
 ) -> str:
     """Compare the two arms of a paired run against each other.
 
     A paired run already holds both models, so the interesting comparison for a
-    ``v14-vs-v13`` suite is inside one directory: the v13 adapter occupies the
-    base slot and v14 the sft slot.
+    ``v14-vs-v13`` suite is inside one directory: the compared model occupies the
+    base slot and the release under test the sft slot.
     """
     first_arm, second_arm = manifest["arm_ids"]
+    labels = run_labels(manifest)
     return _delta_table(
-        f"{name}: {arm_label(models[first_arm])} vs {arm_label(models[second_arm])}",
+        f"{name}: {labels[first_arm]} vs {labels[second_arm]}",
         list(manifest["case_ids"]),
-        (first_arm, rows, arm_label(models[first_arm])),
-        (second_arm, rows, arm_label(models[second_arm])),
+        (first_arm, rows, labels[first_arm]),
+        (second_arm, rows, labels[second_arm]),
     )
 
 
 def render_diff(left_dir: Path, right_dir: Path) -> str:
     left_manifest, right_manifest = load_manifest(left_dir), load_manifest(right_dir)
-    left_models, right_models = arm_models(left_manifest), arm_models(right_manifest)
+    left_labels, right_labels = run_labels(left_manifest), run_labels(right_manifest)
     left_rows, right_rows = load_rows(left_dir), load_rows(right_dir)
     left_arm, right_arm = left_manifest["arm_ids"][-1], right_manifest["arm_ids"][-1]
-    left_label = arm_label(left_models[left_arm])
-    right_label = arm_label(right_models[right_arm])
+    left_label = left_labels[left_arm]
+    right_label = right_labels[right_arm]
     if left_label == right_label:
         raise ValueError(
             f"both run dirs supervise {left_label}; comparing a model against itself is not a diff. "
@@ -178,16 +220,72 @@ def render_diff(left_dir: Path, right_dir: Path) -> str:
     )
 
 
+def summarize_run(run_dir: Path) -> RunSummary:
+    manifest = load_manifest(run_dir)
+    rows = load_rows(run_dir)
+    arm_ids = tuple(manifest["arm_ids"])
+    case_ids = list(manifest["case_ids"])
+    suite, pair = run_suite_and_pair(manifest, run_dir.name)
+    return RunSummary(
+        name=run_dir.name,
+        suite=suite,
+        pair=pair,
+        status=manifest["status"],
+        labels=run_labels(manifest),
+        arm_ids=arm_ids,
+        passes={arm: _pass_count(rows, case_ids, arm) for arm in arm_ids},
+        case_count=len(case_ids),
+    )
+
+
+def collect_runs(root: Path) -> list[RunSummary]:
+    """Summarize every run directory under ``root`` that has a manifest."""
+    run_dirs = sorted(path for path in root.iterdir() if (path / "manifest.json").is_file())
+    return [summarize_run(run_dir) for run_dir in run_dirs]
+
+
+def render_matrix(root: Path) -> str:
+    """Render every paired run under ``root`` as a suite-by-suite matrix."""
+    runs = collect_runs(root)
+    if not runs:
+        raise ValueError(f"no run directories with a manifest under {root}")
+    lines = [f"# {root}", "", "| pair | suite | arm | pass | arm | pass |", "|---|---|---|---|---|---|"]
+    for run in sorted(runs, key=lambda item: (item.pair, item.suite)):
+        first, second = run.arm_ids
+        note = "" if run.status == COMPLETE_STATUS else f" ({run.status})"
+        lines.append(
+            f"| {run.pair} | {run.suite}{note} "
+            f"| {run.labels[first]} | {run.passes[first]}/{run.case_count} "
+            f"| {run.labels[second]} | {run.passes[second]}/{run.case_count} |"
+        )
+    lines.extend(["", "## totals by pair and arm", "", "| pair | arm | suites | pass |", "|---|---|---|---|"])
+    totals: dict[tuple[str, str], list[int]] = {}
+    for run in runs:
+        for arm in run.arm_ids:
+            entry = totals.setdefault((run.pair, run.labels[arm]), [0, 0, 0])
+            entry[0] += run.passes[arm]
+            entry[1] += run.case_count
+            entry[2] += 1
+    for (pair, label), (passed, total, suites) in sorted(totals.items()):
+        lines.append(f"| {pair} | {label} | {suites} | {passed}/{total} |")
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", type=Path, action="append", required=True)
+    parser.add_argument("--run-dir", type=Path, action="append", default=[])
+    parser.add_argument("--results-root", type=Path, help="render a matrix over every run under this directory")
     args = parser.parse_args()
-    if len(args.run_dir) == 1:
+    if args.results_root is not None:
+        if args.run_dir:
+            parser.error("--results-root and --run-dir are mutually exclusive")
+        report = render_matrix(args.results_root)
+    elif len(args.run_dir) == 1:
         report = render_single(args.run_dir[0])
     elif len(args.run_dir) == DIFF_ARG_COUNT:
         report = render_diff(args.run_dir[0], args.run_dir[1])
     else:
-        parser.error("pass one run dir to summarize, or two to diff")
+        parser.error("pass one run dir to summarize, two to diff, or --results-root for a matrix")
     sys.stdout.write(report + "\n")
     return 0
 
