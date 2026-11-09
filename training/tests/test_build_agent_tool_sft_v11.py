@@ -16,7 +16,8 @@ import build_agent_tool_sft_v11 as v11  # noqa: E402
 
 
 def rows() -> dict[str, list[dict[str, Any]]]:
-    return v11.collect_rows()
+    collected: dict[str, list[dict[str, Any]]] = v11.collect_rows()
+    return collected
 
 
 def all_rows() -> list[dict[str, Any]]:
@@ -27,7 +28,8 @@ def tool_arguments(item: dict[str, Any]) -> dict[str, str]:
     call = next(
         message for message in item["messages"] if message.get("role") == "assistant" and message.get("tool_calls")
     )
-    return json.loads(call["tool_calls"][0]["function"]["arguments"])
+    parsed: dict[str, str] = json.loads(call["tool_calls"][0]["function"]["arguments"])
+    return parsed
 
 
 def test_every_value_is_a_multi_word_phrase() -> None:

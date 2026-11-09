@@ -25,7 +25,8 @@ EXPECTED_ROWS = sum(len(disclosures) for _, _, disclosures, _ in v10.v9.CRISIS_G
 
 
 def rows() -> list[dict[str, Any]]:
-    return v10.collect_rows()["train"]
+    rows: list[dict[str, Any]] = v10.collect_rows()["train"]
+    return rows
 
 
 def test_every_reply_opens_with_its_resource_action() -> None:

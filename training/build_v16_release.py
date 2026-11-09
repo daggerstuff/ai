@@ -191,7 +191,7 @@ def _purge_split(
             dropped[target] += 1
     over_cap = {target: len(bucket) for target, bucket in buckets.items() if len(bucket) > cap}
     dropped_rows = sum(dropped.values())
-    stats = {
+    stats: dict[str, Any] = {
         "rows_before": rows_before,
         "rows_after": rows_before - dropped_rows,
         "max_rows_per_final_target_before": max((len(bucket) for bucket in buckets.values()), default=0),

@@ -22,7 +22,8 @@ EXPECTED_ROWS = CRISIS_ROWS + CONTROL_ROWS
 
 
 def rows() -> list[dict[str, Any]]:
-    return v12.collect_rows()["train"]
+    rows: list[dict[str, Any]] = v12.collect_rows()["train"]
+    return rows
 
 
 def crisis_rows() -> list[dict[str, Any]]:
@@ -37,7 +38,8 @@ def action_of(item: dict[str, Any]) -> str:
     reply = item["messages"][1]["content"]
     matches = [action for action in v12.ACTIONS[item["category"]] if reply.startswith(action)]
     assert len(matches) == 1, item["id"]
-    return matches[0]
+    action: str = matches[0]
+    return action
 
 
 def test_every_crisis_reply_opens_with_one_of_its_category_actions() -> None:

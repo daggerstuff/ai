@@ -214,7 +214,7 @@ def paraphrases() -> dict[str, tuple[str, ...]]:
 
 def prior_replies() -> set[str]:
     """Every crisis reply the v9, v10 and v12 families already train."""
-    return (
+    replies: set[str] = (
         v12.prior_replies()
         | {shape.format(action=action) for _, _, _, action in v9.CRISIS_GROUPS for shape in v12.SURFACE_SHAPES}
         | {
@@ -224,6 +224,7 @@ def prior_replies() -> set[str]:
             for shape in v12.SURFACE_SHAPES
         }
     )
+    return replies
 
 
 def v9_disclosures() -> set[str]:

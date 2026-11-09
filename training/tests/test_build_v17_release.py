@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Any
 
 import training.build_agent_tool_sft_v13 as v13
+import training.build_v14_release as v14
+import training.build_v15_release as v15
+import training.build_v16_release as v16
 import training.build_v17_release as v17
 
 V9_ROWS = 624
@@ -24,11 +27,11 @@ def test_the_v13_addendum_is_the_v13_train_split() -> None:
 
 def test_v13_candidate_rows_are_chat_rows() -> None:
     for candidate, payload in v17.v13_candidate_rows():
-        assert not v17.v14.is_agent_tool(candidate)
+        assert not v14.is_agent_tool(candidate)
         assert "tools" not in candidate
         assert candidate["source"] == v17.V13_SOURCE_LABEL
         assert payload[-1]["role"] == "assistant"
-        assert payload == v17.v14.project_chat(candidate["messages"], Counter())
+        assert payload == v14.project_chat(candidate["messages"], Counter())
 
 
 def test_v13_rows_project_without_redaction() -> None:
@@ -42,10 +45,10 @@ def test_v13_rows_project_without_redaction() -> None:
 
 def test_the_addendum_labels_are_distinct() -> None:
     assert v17.V13_SOURCE_LABEL not in {
-        v17.v14.V9_SOURCE_LABEL,
-        v17.v15.V10_SOURCE_LABEL,
-        v17.v16.V11_SOURCE_LABEL,
-        v17.v16.V12_SOURCE_LABEL,
+        v14.V9_SOURCE_LABEL,
+        v15.V10_SOURCE_LABEL,
+        v16.V11_SOURCE_LABEL,
+        v16.V12_SOURCE_LABEL,
     }
 
 
@@ -54,15 +57,15 @@ def test_the_release_identity_names_v17() -> None:
     assert v17.RELEASE_ID in str(v17.OUTPUT)
     assert v17.RELEASE_ID in str(v17.MANIFEST)
     assert v17.SHUFFLE_SEED not in {
-        v17.v16.SHUFFLE_SEED,
-        v17.v15.SHUFFLE_SEED,
-        v17.v14.SHUFFLE_SEED,
+        v16.SHUFFLE_SEED,
+        v15.SHUFFLE_SEED,
+        v14.SHUFFLE_SEED,
     }
 
 
 def test_limitations_drop_the_stale_v12_claim() -> None:
     """v17 replaces the v12 family, so v16's sentence about it must go."""
-    inherited = v17.v16._limitations()
+    inherited = v16._limitations()
     assert any(text.startswith(v17._STALE_V12_LIMITATION) for text in inherited)
     limitations = v17._limitations()
     assert not any(text.startswith(v17._STALE_V12_LIMITATION) for text in limitations)
@@ -70,7 +73,7 @@ def test_limitations_drop_the_stale_v12_claim() -> None:
 
 
 def test_limitations_keep_every_other_v16_entry() -> None:
-    inherited = v17.v16._limitations()
+    inherited = v16._limitations()
     kept = tuple(text for text in inherited if not text.startswith(v17._STALE_V12_LIMITATION))
     assert v17._limitations()[: len(kept)] == kept
     added = " ".join(v17.LIMITATIONS_V17)
@@ -82,22 +85,22 @@ def test_limitations_keep_every_other_v16_entry() -> None:
 def sample_manifest() -> dict[str, Any]:
     """The v16-shaped manifest the v17 stamping has to correct."""
     return {
-        "release_id": v17.v16.RELEASE_ID,
-        "created_at_utc": v17.v16.CREATED_AT_UTC,
+        "release_id": v16.RELEASE_ID,
+        "created_at_utc": v16.CREATED_AT_UTC,
         "scope": {
             "appended_rows": 1_776,
             "appended_rows_by_source": {
-                v17.v14.V9_SOURCE_LABEL: V9_ROWS,
-                v17.v15.V10_SOURCE_LABEL: V10_ROWS,
-                v17.v16.V11_SOURCE_LABEL: V11_ROWS,
-                v17.v16.V12_SOURCE_LABEL: 672,
+                v14.V9_SOURCE_LABEL: V9_ROWS,
+                v15.V10_SOURCE_LABEL: V10_ROWS,
+                v16.V11_SOURCE_LABEL: V11_ROWS,
+                v16.V12_SOURCE_LABEL: 672,
             },
         },
         "payload_contract": {
-            "shuffle": {"train": True, "validation": False, "test": False, "seed": v17.v16.SHUFFLE_SEED},
+            "shuffle": {"train": True, "validation": False, "test": False, "seed": v16.SHUFFLE_SEED},
             "agent_tool_note": "2,807 v13 agent_tool rows plus 624 v9 rows plus 480 v10 rows",
         },
-        "limitations": list(v17.v16._limitations()),
+        "limitations": list(v16._limitations()),
         "owner_direction": "User-directed v16 after the v15 paired eval.",
     }
 
@@ -109,9 +112,9 @@ def test_stamping_rewrites_every_addenda_dependent_field() -> None:
     assert stamped["release_id"] == v17.RELEASE_ID
     assert stamped["created_at_utc"] == v17.CREATED_AT_UTC
     assert stamped["scope"]["appended_rows_by_source"] == {
-        v17.v14.V9_SOURCE_LABEL: V9_ROWS,
-        v17.v15.V10_SOURCE_LABEL: V10_ROWS,
-        v17.v16.V11_SOURCE_LABEL: V11_ROWS,
+        v14.V9_SOURCE_LABEL: V9_ROWS,
+        v15.V10_SOURCE_LABEL: V10_ROWS,
+        v16.V11_SOURCE_LABEL: V11_ROWS,
         v17.V13_SOURCE_LABEL: V13_ROWS,
     }
     assert stamped["scope"]["appended_rows"] == sum(stamped["scope"]["appended_rows_by_source"].values())
@@ -125,9 +128,9 @@ def test_stamping_rewrites_every_addenda_dependent_field() -> None:
 
 def test_stamping_keeps_the_counts_it_is_given() -> None:
     counts = {
-        v17.v14.V9_SOURCE_LABEL: 1,
-        v17.v15.V10_SOURCE_LABEL: 2,
-        v17.v16.V11_SOURCE_LABEL: 3,
+        v14.V9_SOURCE_LABEL: 1,
+        v15.V10_SOURCE_LABEL: 2,
+        v16.V11_SOURCE_LABEL: 3,
         v17.V13_SOURCE_LABEL: 4,
     }
     stamped = v17.stamp_release_identity(sample_manifest(), v9_rows=1, v10_rows=2, v11_rows=3, v13_rows=4)
@@ -147,7 +150,7 @@ def test_stamping_replaces_the_limitations_rather_than_extending_them() -> None:
 
 def release_fixture(tmp_path: Path) -> v17._Release:
     """A dry-run release with no candidate to carry: only the addenda are exercised."""
-    indexes = v17.v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
+    indexes = v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
     return v17._Release(indexes, tmp_path, dry_run=True)
 
 
@@ -155,8 +158,8 @@ def test_append_addenda_appends_v13_and_never_v12(monkeypatch: Any, tmp_path: Pa
     release = release_fixture(tmp_path)
     # The v9 and v10 addenda read the built corpus and have their own suites; stub
     # them so this test measures only the family the swap changes.
-    monkeypatch.setattr(v17.v15._Release, "append_addenda", lambda _self: None)
-    monkeypatch.setattr(v17.v16, "v11_candidate_rows", list)
+    monkeypatch.setattr(v15._Release, "append_addenda", lambda _self: None)
+    monkeypatch.setattr(v16, "v11_candidate_rows", list)
 
     release.append_addenda()
 
@@ -169,10 +172,10 @@ def test_append_addenda_appends_v13_and_never_v12(monkeypatch: Any, tmp_path: Pa
 
 def test_the_swap_leaves_admission_untouched() -> None:
     """Only the addenda change: carry, run and the held-out cap stay v16's."""
-    assert issubclass(v17._Release, v17.v16._Release)
-    assert v17._Release.carry is v17.v16._Release.carry
-    assert v17._Release.run is v17.v16._Release.run
-    assert v17._Release.append_chat_row is v17.v16._Release.append_chat_row
+    assert issubclass(v17._Release, v16._Release)
+    assert v17._Release.carry is v16._Release.carry
+    assert v17._Release.run is v16._Release.run
+    assert v17._Release.append_chat_row is v16._Release.append_chat_row
 
 
 def test_summary_reports_the_v13_family_and_drops_the_v12_counter(tmp_path: Path) -> None:
