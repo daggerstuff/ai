@@ -20,7 +20,7 @@ python-dateutil>=2.9.0
 pydantic>=2.10.6
 
 # Optional: For advanced processing
-spacy>=3.8.3
+spacy>=3.8.18
 sentence-transformers>=3.3.1
 accelerate>=1.2.1
 
