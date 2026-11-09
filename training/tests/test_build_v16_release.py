@@ -9,8 +9,11 @@ from typing import Any
 
 import pytest
 
+import training.build_agent_tool_sft_v4 as v4
 import training.build_agent_tool_sft_v11 as v11
 import training.build_agent_tool_sft_v12 as v12
+import training.build_v14_release as v14
+import training.build_v15_release as v15
 import training.build_v16_release as v16
 
 
@@ -31,9 +34,9 @@ def test_the_addendum_is_the_v11_train_split() -> None:
 
 def test_v11_candidate_rows_are_agent_tool_rows() -> None:
     for candidate, payload in v16.v11_candidate_rows():
-        assert v16.v14.is_agent_tool(candidate)
+        assert v14.is_agent_tool(candidate)
         assert candidate["tools"] == v11.TOOLS
-        assert payload == v16.v14.project_agent(candidate["messages"])
+        assert payload == v14.project_agent(candidate["messages"])
         assert payload[-1]["role"] == "assistant"
 
 
@@ -50,7 +53,7 @@ def test_the_tool_argument_carries_the_bare_value() -> None:
 def test_the_key_is_the_snake_case_label_the_ask_names() -> None:
     for candidate, _ in v16.v11_candidate_rows():
         arguments = arguments_of(candidate)
-        assert arguments["key"] in {v11.v4.snake(label) for label in v11.KEYS}
+        assert arguments["key"] in {v4.snake(label) for label in v11.KEYS}
         ask = candidate["messages"][1]["content"]
         assert arguments["value"] in ask
         assert arguments["key"] in ask
@@ -72,11 +75,11 @@ def test_the_v12_addendum_is_the_v12_train_split() -> None:
 
 def test_v12_candidate_rows_are_chat_rows() -> None:
     for candidate, payload in v16.v12_candidate_rows():
-        assert not v16.v14.is_agent_tool(candidate)
+        assert not v14.is_agent_tool(candidate)
         assert "tools" not in candidate
         assert candidate["source"] == v16.V12_SOURCE_LABEL
         assert payload[-1]["role"] == "assistant"
-        assert payload == v16.v14.project_chat(candidate["messages"], Counter())
+        assert payload == v14.project_chat(candidate["messages"], Counter())
 
 
 def test_v12_rows_project_without_redaction() -> None:
@@ -91,8 +94,8 @@ def test_v12_rows_project_without_redaction() -> None:
 def test_the_two_addenda_are_labelled_apart() -> None:
     assert v16.V11_SOURCE_LABEL != v16.V12_SOURCE_LABEL
     assert v16.V12_SOURCE_LABEL not in {
-        v16.v14.V9_SOURCE_LABEL,
-        v16.v15.V10_SOURCE_LABEL,
+        v14.V9_SOURCE_LABEL,
+        v15.V10_SOURCE_LABEL,
         v16.V11_SOURCE_LABEL,
     }
 
@@ -101,19 +104,19 @@ def test_the_release_identity_names_v16() -> None:
     assert v16.RELEASE_ID.endswith("-v16")
     assert v16.RELEASE_ID in str(v16.OUTPUT)
     assert v16.RELEASE_ID in str(v16.MANIFEST)
-    assert v16.SHUFFLE_SEED not in {v16.v15.SHUFFLE_SEED, v16.v14.SHUFFLE_SEED}
+    assert v16.SHUFFLE_SEED not in {v15.SHUFFLE_SEED, v14.SHUFFLE_SEED}
 
 
 def test_limitations_drop_the_stale_v14_evaluation_claim() -> None:
     """v16 caps validation and test, so v14's "never filtered" sentence must go."""
-    assert any(text.startswith(v16._STALE_EVALUATION_LIMITATION) for text in v16.v15.LIMITATIONS)
+    assert any(text.startswith(v16._STALE_EVALUATION_LIMITATION) for text in v15.LIMITATIONS)
     limitations = v16._limitations()
     assert not any(text.startswith(v16._STALE_EVALUATION_LIMITATION) for text in limitations)
-    assert len(limitations) == len(v16.v15.LIMITATIONS) - 1 + len(v16.LIMITATIONS_V16)
+    assert len(limitations) == len(v15.LIMITATIONS) - 1 + len(v16.LIMITATIONS_V16)
 
 
 def test_limitations_keep_every_other_v15_entry() -> None:
-    kept = tuple(text for text in v16.v15.LIMITATIONS if not text.startswith(v16._STALE_EVALUATION_LIMITATION))
+    kept = tuple(text for text in v15.LIMITATIONS if not text.startswith(v16._STALE_EVALUATION_LIMITATION))
     assert v16._limitations()[: len(kept)] == kept
     added = " ".join(v16.LIMITATIONS_V16)
     assert "v11" in added
@@ -124,20 +127,20 @@ def test_limitations_keep_every_other_v15_entry() -> None:
 def sample_manifest() -> dict[str, Any]:
     """The v15-shaped manifest the v16 stamping has to correct."""
     return {
-        "release_id": v16.v15.RELEASE_ID,
-        "created_at_utc": v16.v15.CREATED_AT_UTC,
+        "release_id": v15.RELEASE_ID,
+        "created_at_utc": v15.CREATED_AT_UTC,
         "scope": {
             "appended_rows": 1_104,
             "appended_rows_by_source": {
-                v16.v14.V9_SOURCE_LABEL: 624,
-                v16.v15.V10_SOURCE_LABEL: 480,
+                v14.V9_SOURCE_LABEL: 624,
+                v15.V10_SOURCE_LABEL: 480,
             },
         },
         "payload_contract": {
-            "shuffle": {"train": True, "validation": False, "test": False, "seed": v16.v15.SHUFFLE_SEED},
+            "shuffle": {"train": True, "validation": False, "test": False, "seed": v15.SHUFFLE_SEED},
             "agent_tool_note": "2,807 v13 agent_tool rows plus 624 v9 rows plus 480 v10 rows",
         },
-        "limitations": list(v16.v15.LIMITATIONS),
+        "limitations": list(v15.LIMITATIONS),
         "owner_direction": "User-directed v15 after the v14 paired eval.",
     }
 
@@ -147,8 +150,8 @@ def test_stamping_rewrites_every_addenda_dependent_field() -> None:
     assert stamped["release_id"] == v16.RELEASE_ID
     assert stamped["created_at_utc"] == v16.CREATED_AT_UTC
     assert stamped["scope"]["appended_rows_by_source"] == {
-        v16.v14.V9_SOURCE_LABEL: 624,
-        v16.v15.V10_SOURCE_LABEL: 480,
+        v14.V9_SOURCE_LABEL: 624,
+        v15.V10_SOURCE_LABEL: 480,
         v16.V11_SOURCE_LABEL: 240,
         v16.V12_SOURCE_LABEL: 672,
     }
@@ -163,8 +166,8 @@ def test_stamping_rewrites_every_addenda_dependent_field() -> None:
 
 def test_stamping_keeps_the_counts_it_is_given() -> None:
     counts = {
-        v16.v14.V9_SOURCE_LABEL: 1,
-        v16.v15.V10_SOURCE_LABEL: 2,
+        v14.V9_SOURCE_LABEL: 1,
+        v15.V10_SOURCE_LABEL: 2,
         v16.V11_SOURCE_LABEL: 3,
         v16.V12_SOURCE_LABEL: 4,
     }
@@ -199,7 +202,9 @@ def candidate_row(
 
 def project(row: dict[str, Any]) -> list[dict[str, Any]]:
     """The payload messages the purge keys its buckets on."""
-    return v16.v14.project_chat(row["messages"], Counter())
+    projected = v14.project_chat(row["messages"], Counter())
+    assert projected is not None
+    return projected
 
 
 def plan_purge(
@@ -212,9 +217,9 @@ def plan_purge(
     """Run the purge planner against a throwaway candidate directory."""
     with (tmp_path / "candidate.jsonl").open("wb") as stream:
         for row in rows:
-            stream.write(v16.v15.json_bytes(row))
-    monkeypatch.setattr(v16.v14, "V13_DIR", tmp_path)
-    indexes = v16.v14._Indexes(
+            stream.write(v15.json_bytes(row))
+    monkeypatch.setattr(v14, "V13_DIR", tmp_path)
+    indexes = v14._Indexes(
         references={number: {"provisional_split": split} for number, split in splits.items()},
         internal_source={},
         heldout_source={},
@@ -227,10 +232,10 @@ CAP = v16.EVALUATION_DUPLICATE_TARGET_CAP
 
 
 def test_the_evaluation_cap_is_the_train_admission_rule() -> None:
-    assert CAP == v16.v14.DUPLICATE_TARGET_CAP
+    assert CAP == v14.DUPLICATE_TARGET_CAP
     assert set(v16.EVALUATION_SPLITS) == {"validation", "test"}
     assert set(v16.EXPECTED_EVALUATION_PURGED) == set(v16.EVALUATION_SPLITS)
-    assert v16.EVALUATION_PURGE_REASON not in {v16.v14.PURGE_REASON}
+    assert v16.EVALUATION_PURGE_REASON not in {v14.PURGE_REASON}
 
 
 def test_purge_keeps_the_lowest_hash_rows_per_target(monkeypatch: Any, tmp_path: Path) -> None:
@@ -240,7 +245,7 @@ def test_purge_keeps_the_lowest_hash_rows_per_target(monkeypatch: Any, tmp_path:
 
     purge_plan, stats = plan_purge(monkeypatch, tmp_path, rows, splits)
 
-    hashes = {number: v16.v14.canonical_hash(project(rows[number - 1])) for number in range(1, over + 1)}
+    hashes = {number: v14.canonical_hash(project(rows[number - 1])) for number in range(1, over + 1)}
     ordered = sorted(hashes, key=hashes.__getitem__)
     assert set(purge_plan) == set(ordered[CAP:])
     assert set(purge_plan.values()) == {"validation"}
@@ -281,8 +286,8 @@ def test_a_repaired_row_is_bucketed_by_its_new_content_group(monkeypatch: Any, t
     """v15 re-buckets repaired chat rows, so the purge must follow the new split."""
     rows = [candidate_row(f"client {index}", "BPD") for index in range(3)]
     splits = dict.fromkeys(range(1, 4), "train")
-    monkeypatch.setattr(v16.v15, "repair_row", lambda row: (row, "reasoning_preamble_stripped"))
-    monkeypatch.setattr(v16.v15, "assign_split", lambda _group_hash: "validation")
+    monkeypatch.setattr(v15, "repair_row", lambda row: (row, "reasoning_preamble_stripped"))
+    monkeypatch.setattr(v15, "assign_split", lambda _group_hash: "validation")
 
     _, stats = plan_purge(monkeypatch, tmp_path, rows, splits)
 
@@ -341,7 +346,7 @@ def test_the_purge_does_not_depend_on_row_order(monkeypatch: Any, tmp_path: Path
 
     def surviving(lines: list[dict[str, Any]], purged: dict[int, str]) -> set[str]:
         return {
-            v16.v14.canonical_hash(project(row)) for number, row in enumerate(lines, start=1) if number not in purged
+            v14.canonical_hash(project(row)) for number, row in enumerate(lines, start=1) if number not in purged
         }
 
     assert surviving(rows, purged_forward) == surviving(list(reversed(rows)), purged_reversed)
@@ -350,12 +355,12 @@ def test_the_purge_does_not_depend_on_row_order(monkeypatch: Any, tmp_path: Path
 
 def test_carry_drops_a_purged_row_from_every_ledger(tmp_path: Path) -> None:
     """A purged row must not reach the payload, the ledgers, or the group sets."""
-    empty = v16.v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
+    empty = v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
     release = v16._Release(empty, tmp_path, dry_run=True)
     release.purge_plan = {7: "validation"}
     row = candidate_row("client 7", "BPD")
 
-    release.carry(7, v16.v15.json_bytes(row))
+    release.carry(7, v15.json_bytes(row))
 
     assert release.payload_lines == {name: [] for name in v16.SPLITS}
     assert release.internal_records == []
@@ -368,10 +373,10 @@ def test_carry_drops_a_purged_row_from_every_ledger(tmp_path: Path) -> None:
 
 def _totals_ready_release(tmp_path: Path) -> v16._Release:
     """A release whose inherited totals all match, so only the purge can drift."""
-    empty = v16.v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
+    empty = v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
     release = v16._Release(empty, tmp_path, dry_run=True)
-    release.purged = v16.v15.EXPECTED_PURGED_ROWS
-    release.repair_counts = Counter(v16.v15.EXPECTED_REPAIR_COUNTS)
+    release.purged = v15.EXPECTED_PURGED_ROWS
+    release.repair_counts = Counter(v15.EXPECTED_REPAIR_COUNTS)
     return release
 
 

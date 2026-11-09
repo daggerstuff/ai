@@ -11,6 +11,7 @@ these rows, which is why adding 192 correct rows in v9 did not move the eval.
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 
@@ -33,12 +34,13 @@ LEGACY_DESCRIPTIONS = [
 ]
 
 
-def _arguments(row: dict) -> dict:
+def _arguments(row: dict[str, Any]) -> dict[str, Any]:
     call = next(message for message in row["messages"] if message.get("tool_calls"))
-    return json.loads(call["tool_calls"][0]["function"]["arguments"])
+    parsed: dict[str, Any] = json.loads(call["tool_calls"][0]["function"]["arguments"])
+    return parsed
 
 
-def test_change_pool_is_label_literal_pairs():
+def test_change_pool_is_label_literal_pairs() -> None:
     for label, literal in v7.CHANGES:
         assert label
         assert literal
@@ -46,17 +48,17 @@ def test_change_pool_is_label_literal_pairs():
         assert literal not in label
 
 
-def test_describe_reproduces_the_legacy_request_wording():
+def test_describe_reproduces_the_legacy_request_wording() -> None:
     assert [v7.describe(label, literal) for label, literal in v7.CHANGES] == LEGACY_DESCRIPTIONS
 
 
-def test_tool_argument_carries_only_the_literal():
+def test_tool_argument_carries_only_the_literal() -> None:
     for index in range(v7.EXAMPLES_PER_FAMILY):
         literal = v7.CHANGES[(index // len(v7.ASKS)) % len(v7.CHANGES)][1]
         assert _arguments(v7.make_approval(index)) == {"change": literal}
 
 
-def test_request_and_refusal_prose_still_name_the_field():
+def test_request_and_refusal_prose_still_name_the_field() -> None:
     row = v7.make_approval(0)
     label, literal = v7.CHANGES[0]
     request = row["messages"][1]["content"]
@@ -65,8 +67,8 @@ def test_request_and_refusal_prose_still_name_the_field():
     assert label in prose
 
 
-@pytest.mark.parametrize("index", [0, 11, 12, 137, v7.EXAMPLES_PER_FAMILY - 1])
-def test_every_row_calls_the_tool_exactly_once(index: int):
-    calls = [m for m in v7.make_approval(index)["messages"] if m.get("tool_calls")]
-    assert len(calls) == 1
-    assert calls[0]["tool_calls"][0]["function"]["name"] == v7.TOOL_NAME
+def test_every_row_calls_the_tool_exactly_once() -> None:
+    for index in [0, 11, 12, 137, v7.EXAMPLES_PER_FAMILY - 1]:
+        calls = [m for m in v7.make_approval(index)["messages"] if m.get("tool_calls")]
+        assert len(calls) == 1
+        assert calls[0]["tool_calls"][0]["function"]["name"] == v7.TOOL_NAME

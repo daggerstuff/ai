@@ -159,7 +159,8 @@ def estimate_max_cost_usd(config: dict[str, Any], case_count: int) -> float:
         + config["decoding"]["max_tokens"] * pricing["output_usd_per_million_tokens"]
     )
     calls_per_case = MAX_TOOL_ROUNDS + 1
-    return case_count * len(config["arms"]) * calls_per_case * per_call / 1_000_000
+    total = case_count * len(config["arms"]) * calls_per_case * per_call / 1_000_000
+    return float(total)
 
 
 def write_configs(

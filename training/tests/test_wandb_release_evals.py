@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -28,10 +29,10 @@ def test_parse_compare_reads_a_label_and_artifact_uri() -> None:
     assert pipeline.parse_compare(f"v16={PREVIOUS_URI}") == ("v16", PREVIOUS_URI)
 
 
-@pytest.mark.parametrize("value", ["v16", f"={PREVIOUS_URI}", "v16=/tmp/model", ""])
-def test_parse_compare_rejects_anything_that_is_not_a_label_and_artifact(value: str) -> None:
-    with pytest.raises(Exception, match="label=wandb-artifact"):
-        pipeline.parse_compare(value)
+def test_parse_compare_rejects_anything_that_is_not_a_label_and_artifact() -> None:
+    for value in ["v16", f"={PREVIOUS_URI}", "v16=/tmp/model", ""]:
+        with pytest.raises(Exception, match="label=wandb-artifact"):
+            pipeline.parse_compare(value)
 
 
 def test_build_commands_dedupes_the_vs_base_reading(tmp_path: Path) -> None:
@@ -73,7 +74,7 @@ def test_a_transient_provider_error_gets_one_clean_retry(tmp_path: Path, monkeyp
     argv = ["runner", "--results-dir", str(results_dir)]
     calls: list[list[str]] = []
 
-    def fake_run(command, **_kwargs):
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
         calls.append(list(command))
         if len(calls) == 1:
             return _Completed(1, stderr="ProviderHTTPError: http_502 bad gateway")
@@ -95,7 +96,7 @@ def test_a_real_failure_is_not_retried(tmp_path: Path, monkeypatch: pytest.Monke
     argv = ["runner", "--results-dir", str(tmp_path / "results")]
     calls: list[list[str]] = []
 
-    def fake_run(command, **_kwargs):
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
         calls.append(list(command))
         return _Completed(2, stderr="EvaluationInputError: case identity changed")
 
