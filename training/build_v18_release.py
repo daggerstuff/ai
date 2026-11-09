@@ -78,7 +78,7 @@ EVALUATION_PURGE_REASON = v17.v16.EVALUATION_PURGE_REASON
 # v17's: a rewritten row changes content group, and the cap keeps the 50 lowest
 # hashes per final target, so rows move in and out of the split as the payloads
 # change.
-EXPECTED_EVALUATION_PURGED: dict[str, int] = {"validation": 0, "test": 0}
+EXPECTED_EVALUATION_PURGED: dict[str, int] = {"validation": 4_613, "test": 4_401}
 
 LIMITATIONS_V18: tuple[str, ...] = (
     (
@@ -89,10 +89,12 @@ LIMITATIONS_V18: tuple[str, ...] = (
         "build."
     ),
     (
-        "The rewrite covers 1,125 turns across 541 arc sessions — the first risk engagement, each escalation, "
-        "and a closing turn with live risk. A therapist turn that carries risk without being one of those three "
-        "positions keeps its original reflective answer, and non-arc rows with acute risk in the ledger are "
-        "untouched, so the corpus still contains reflective answers to live risk."
+        "The rewrite covers 1,125 selected turns across 541 arc sessions — the first risk engagement, each "
+        "escalation, and a closing turn with live risk. A turn the writer rejected or that failed the contract is "
+        "routed by the deterministic header instead, which keeps the original answer verbatim under a fixed "
+        "routing sentence; a therapist turn that carries risk without being one of those three positions keeps "
+        "its original reflective answer, and non-arc rows with acute risk in the ledger are untouched, so the "
+        "corpus still contains reflective answers to live risk."
     ),
     (
         "Rewritten rows are re-bucketed by their new content group, so the rewrite moves rows between train, "
@@ -101,10 +103,12 @@ LIMITATIONS_V18: tuple[str, ...] = (
         "teaches — but their loss is no longer comparable to a previous release's."
     ),
     (
-        "The acute-reply headers are a fixed set of eight sentences chosen by row hash, not generated text: each "
-        "is prepended to an existing reply that names no resource after an acute disclosure. They are mechanically "
-        "checked (a routing term leads, no question, no added softener) but not reviewed, and the same eight "
-        "sentences recur, so the model may learn them as a template rather than as phrasing."
+        "The routing headers are fixed sets of eight sentences chosen by row hash — hotline sentences for passive "
+        "risk, acute-care sentences for active risk — not generated text: each is prepended to an existing reply "
+        "that names no resource after an acute disclosure. They are mechanically checked (a routing term leads, "
+        "the band matches the ledger, no question, no added softener) but not reviewed, and the same sixteen "
+        "sentences recur, so the model may learn them as a template rather than as phrasing. Where the writer did "
+        "rewrite a turn, its rewrite is used and the header is dropped."
     ),
     (
         "The headers only cover replies that follow an acute disclosure the disclosure lexicon recognises. A "
@@ -199,8 +203,8 @@ def _validate_header(record: dict[str, Any], row: dict[str, Any], old_number: in
     if record.get("kind") != hdr.KIND:
         raise ValueError(f"header for row {old_number} is not marked as a header")
     _prefix, ledger, _spoken = _validate_turn(record, row, old_number)
-    if ledger is not None:
-        raise ValueError(f"header for row {old_number} targets a ledger turn")
+    if ledger is not None and record.get("ledger_sha256") != hdr.ledger_digest(ledger):
+        raise ValueError(f"header for row {old_number} was written against a different ledger")
     original = record["original_spoken"]
     new_spoken = record["new_spoken"]
     if not new_spoken.endswith(original):
@@ -208,7 +212,7 @@ def _validate_header(record: dict[str, Any], row: dict[str, Any], old_number: in
     prefix = new_spoken[: len(new_spoken) - len(original)].strip()
     if not prefix:
         raise ValueError(f"header for row {old_number} adds no prefix")
-    hdr.validate_header(prefix, original)
+    hdr.validate_header(prefix, original, record.get("level"))
 
 
 def _validate(record: dict[str, Any], row: dict[str, Any], old_number: int) -> None:
@@ -222,6 +226,18 @@ def _ledger_digest(ledger: dict[str, Any]) -> str:
     """The digest the rewrite file records: sha256 of the canonical ledger JSON."""
     canonical = json.dumps(ledger, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def _drop_shadowed_headers(records: list[dict[str, Any]], headers: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """A model rewrite outranks the deterministic header for the same turn."""
+    rewritten = {(record["row_sha256"], int(record["msg_index"])) for record in records}
+    kept: list[dict[str, Any]] = []
+    for record in headers:
+        key = (record["row_sha256"], int(record["msg_index"]))
+        if key in rewritten:
+            continue
+        kept.append(record)
+    return kept
 
 
 def build_overlay(
@@ -238,7 +254,9 @@ def build_overlay(
     if records is None and headers is None:
         records = load_rewrite_records()
         headers = load_rewrite_records(HEADER_PATH) if HEADER_PATH.exists() else []
-    all_records = [*(records or []), *(headers or [])]
+    model_records = list(records or [])
+    headers = _drop_shadowed_headers(model_records, list(headers or []))
+    all_records = [*model_records, *headers]
     by_sha: dict[str, list[dict[str, Any]]] = {}
     for record in all_records:
         by_sha.setdefault(record["row_sha256"], []).append(record)
@@ -271,7 +289,6 @@ def build_overlay(
     if missing:
         raise ValueError(f"{len(missing)} rewrites do not match any row in {candidate}")
     turns = sum(len(turns) for turns in overlay.values())
-    model_records = records or []
     return overlay, {
         "rows": len(overlay),
         "turns": turns,
@@ -433,6 +450,8 @@ class _Release(v17._Release):
         self.seen_rewrite_rows: set[str] = set()
         self.rewritten_hashes: set[str] = set()
         self._admitting_rewrite = False
+        self._model_shas: set[str] = set()
+        self._header_shas: set[str] = set()
 
     def run(self) -> None:
         """v17's run, with the purge planned against the rewritten payloads."""
@@ -440,22 +459,31 @@ class _Release(v17._Release):
         headers = load_rewrite_records(HEADER_PATH) if HEADER_PATH.exists() else []
         self.header_keys = {(record["row_sha256"], int(record["msg_index"])) for record in headers}
         self.overlay, _counts = build_overlay(records=records, headers=headers)
-        self.purge_plan, self.evaluation_purge_stats, purged_shas = plan_evaluation_purge(self.indexes, self.overlay)
+        self._model_shas = {record["row_sha256"] for record in records}
+        self._header_shas = {record["row_sha256"] for record in headers}
+        super().run()
+
+    def _plan_purge(self) -> tuple[dict[int, str], dict[str, dict[str, Any]]]:
+        """v16's up-front purge, planned against the rows as the rewrites leave them.
+
+        A rewrite changes the final target and the content group, so the row can
+        move between splits; planning on the original bytes would purge the wrong
+        rows and report a split size the build cannot emit.
+        """
+        purge_plan, stats, purged_shas = plan_evaluation_purge(self.indexes, self.overlay)
         # A held-out row the cap drops is never emitted, so its overlay cannot
         # reach the build either; dropping it here keeps the counters honest
         # instead of failing on rows that were never going to ship.
         dropped = {sha for sha in self.overlay if sha in purged_shas}
         for sha in dropped:
             del self.overlay[sha]
-        model_shas = {record["row_sha256"] for record in records}
-        header_shas = {record["row_sha256"] for record in headers}
         self.purged_overlay_rows = {
             "rows": len(dropped),
-            "model_rows": len(dropped & model_shas),
-            "header_rows": len(dropped & header_shas),
+            "model_rows": len(dropped & self._model_shas),
+            "header_rows": len(dropped & self._header_shas),
         }
         self.overlay_counts = self._recount_overlay()
-        super().run()
+        return purge_plan, stats
 
     def _recount_overlay(self) -> dict[str, int]:
         """How many rows and turns the surviving overlay actually replaces."""

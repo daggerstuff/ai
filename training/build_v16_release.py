@@ -331,7 +331,7 @@ class _Release(v15._Release):
 
     def run(self) -> None:
         """v15's run, with the held-out cap decided up front and the v16 seed."""
-        self.purge_plan, self.evaluation_purge_stats = plan_evaluation_purge(self.indexes)
+        self.purge_plan, self.evaluation_purge_stats = self._plan_purge()
         self.output.mkdir(parents=True, exist_ok=True)
         self.candidate_stream = None if self.dry_run else (self.output / "candidate.jsonl").open("wb")
         try:
@@ -348,6 +348,10 @@ class _Release(v15._Release):
         random.Random(SHUFFLE_SEED).shuffle(self.payload_lines["train"])
         self.audit_duplicate_targets()
         self.verify_group_disjointness()
+
+    def _plan_purge(self) -> tuple[dict[int, str], dict[str, dict[str, Any]]]:
+        """Plan the held-out duplicate-target purge before any row is admitted."""
+        return plan_evaluation_purge(self.indexes)
 
     def carry(self, old_number: int, raw: bytes) -> None:
         """Purge over-capped held-out rows before v15 admits them.

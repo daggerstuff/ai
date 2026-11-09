@@ -15,6 +15,12 @@ far loses.
 The prefix is chosen by the row hash, so the output is reproducible, and every
 record carries the original text so the builder can fail the build if the row it
 targets has moved.
+
+The same mechanism is the floor under the arc rewrite pass: a ledger turn that
+carries live risk and still names no resource gets a banded prefix (acute care
+for an active ledger, the hotline otherwise), keeping the ledger bytes intact.
+Where the writer did rewrite that turn, the rewrite wins and the header is
+dropped.
 """
 
 from __future__ import annotations
@@ -45,6 +51,7 @@ DEFAULT_LEDGER = DEFAULT_INPUT.parent / "manifest_internal.jsonl"
 
 KIND = "header"
 RISK_LABEL = "acute disclosure without a resource"
+LEVEL_ACTIVE_NAME = "active"
 MIN_TOKEN_LENGTH = 3
 MAX_HEADER_WORDS = 25
 
@@ -67,6 +74,17 @@ ACUTE_DISCLOSURE = re.compile(
 )
 ROUTING_TERMS: tuple[str, ...] = rw.ACUTE_TERMS + rw.HOTLINE_TERMS + ("call your", "trusted person")
 FORBIDDEN_FILLER: tuple[str, ...] = rw.FORBIDDEN_FILLER
+
+# Ledger turns carry the risk band in the ledger itself, so the prefix is chosen
+# by band: an active-risk turn gets acute care in the first sentence, a passive
+# one gets the hotline. The model rewrite pass is preferred where it landed; this
+# is the deterministic floor under it.
+ACUTE_HEADERS: tuple[str, ...] = (
+    "Call 911 now.",
+    "Call 911 now and stay on the line until help is there.",
+    "Call 911 now; if it is not an emergency, get to an emergency department tonight.",
+    "Go to an emergency department now and call 911 on the way if it gets worse.",
+)
 
 # Every prefix names a resource in its first sentence, none of them asks the
 # client a question, and none adds a softener the corpus has to unlearn.
@@ -92,17 +110,24 @@ def has_routing_term(text: str) -> bool:
     return any(term in lowered for term in ROUTING_TERMS)
 
 
-def header_for(row_sha256: str, msg_index: int) -> str:
+def header_for(row_sha256: str, msg_index: int, level: str | None = None) -> str:
     """Deterministic prefix, stable across runs and machines."""
+    pool = ACUTE_HEADERS if level == LEVEL_ACTIVE_NAME else HEADERS
     digest = sha256(f"{row_sha256}#{msg_index}".encode()).hexdigest()
-    return HEADERS[int(digest[:8], 16) % len(HEADERS)]
+    return pool[int(digest[:8], 16) % len(pool)]
+
+
+def ledger_digest(ledger: dict[str, Any]) -> str:
+    """The digest the builder records and re-checks: sha256 of the canonical ledger."""
+    canonical = json.dumps(ledger, sort_keys=True, ensure_ascii=False)
+    return sha256(canonical.encode()).hexdigest()
 
 
 def _words(text: str) -> int:
     return len(text.split())
 
 
-def validate_header(header: str, original: str) -> str:
+def validate_header(header: str, original: str, level: str | None = None) -> str:
     """Fail unless the prefix routes on its own and adds nothing soft."""
     if not header or not original:
         raise ValueError("empty header or original reply")
@@ -113,6 +138,11 @@ def validate_header(header: str, original: str) -> str:
     first_sentence = re.split(r"(?<=[.!?;])\s", header)[0]
     if not has_routing_term(first_sentence):
         raise ValueError(f"header does not route in its first sentence: {header!r}")
+    if level == LEVEL_ACTIVE_NAME:
+        if not any(term in header.lower() for term in rw.ACUTE_TERMS):
+            raise ValueError(f"active-risk header names no acute care: {header!r}")
+    elif not any(term in header.lower() for term in rw.HOTLINE_TERMS):
+        raise ValueError(f"passive-risk header names no crisis line: {header!r}")
     if "?" in header:
         raise ValueError(f"header asks a question: {header!r}")
     if _words(header) > MAX_HEADER_WORDS:
@@ -122,6 +152,47 @@ def validate_header(header: str, original: str) -> str:
     if added:
         raise ValueError(f"header adds softening filler {sorted(added)}")
     return header
+
+
+def _record(
+    row_sha256: str,
+    msg_index: int,
+    body: str,
+    level: str | None,
+    ledger_sha256: str,
+) -> dict[str, Any]:
+    header = header_for(row_sha256, msg_index, level)
+    validate_header(header, body, level)
+    return {
+        "kind": KIND,
+        "generator": "deterministic",
+        "row_sha256": row_sha256,
+        "msg_index": msg_index,
+        "level": level,
+        "risk": RISK_LABEL,
+        "original_spoken": body,
+        "new_spoken": f"{header} {body}",
+        "ledger_sha256": ledger_sha256,
+    }
+
+
+def select_ledger_headers(row: dict[str, Any], row_sha256: str) -> list[dict[str, Any]]:
+    """The floor under the writer: every selected risk turn the ledger flags.
+
+    The writer's own selection is reused so the two mechanisms cover the same
+    turns; where a rewrite landed, the builder drops this header in its favour.
+    """
+    messages = row.get("messages")
+    if not isinstance(messages, list) or "tools" in row:
+        return []
+    records: list[dict[str, Any]] = []
+    for selection in rw.select_risk_turns(messages, row_sha256):
+        body = selection.original_spoken
+        if not body.strip() or has_routing_term(body):
+            continue
+        level = LEVEL_ACTIVE_NAME if selection.level == rw.LEVEL_ACTIVE else None
+        records.append(_record(row_sha256, selection.msg_index, body, level, selection.ledger_sha256))
+    return records
 
 
 def select_headers(row: dict[str, Any], row_sha256: str) -> list[dict[str, Any]]:
@@ -143,25 +214,20 @@ def select_headers(row: dict[str, Any], row_sha256: str) -> list[dict[str, Any]]
         if not ACUTE_DISCLOSURE.search(said):
             continue
         _prefix, ledger, spoken = rw.split_content(content)
-        if ledger is not None:
-            continue  # ledger turns belong to the arc rewrite pass
         body = rw.spoken_body(spoken)
         if not body.strip() or has_routing_term(body):
             continue
-        header = header_for(row_sha256, index)
-        validate_header(header, body)
+        level = None
+        if ledger is not None and rw.risk_level(ledger.get("risk")) == rw.LEVEL_ACTIVE:
+            level = LEVEL_ACTIVE_NAME
         records.append(
-            {
-                "kind": KIND,
-                "generator": "deterministic",
-                "row_sha256": row_sha256,
-                "msg_index": index,
-                "level": None,
-                "risk": RISK_LABEL,
-                "original_spoken": body,
-                "new_spoken": f"{header} {body}",
-                "ledger_sha256": "",
-            }
+            _record(
+                row_sha256,
+                index,
+                body,
+                level,
+                ledger_digest(ledger) if ledger is not None else "",
+            )
         )
     return records
 
@@ -179,10 +245,8 @@ def retained_row_shas(ledger: Path = DEFAULT_LEDGER) -> set[str]:
     return shas
 
 
-def collect_records(
-    candidate: Path = DEFAULT_INPUT, retained: set[str] | None = None
-) -> list[dict[str, Any]]:
-    records: list[dict[str, Any]] = []
+def collect_records(candidate: Path = DEFAULT_INPUT, retained: set[str] | None = None) -> list[dict[str, Any]]:
+    records: dict[tuple[str, int], dict[str, Any]] = {}
     with candidate.open("rb") as handle:
         for raw in handle:
             if not raw.strip():
@@ -190,8 +254,10 @@ def collect_records(
             row_sha256 = sha256(raw[:-1] if raw.endswith(b"\n") else raw).hexdigest()
             if retained is not None and row_sha256 not in retained:
                 continue
-            records.extend(select_headers(json.loads(raw), row_sha256))
-    return records
+            row = json.loads(raw)
+            for record in (*select_ledger_headers(row, row_sha256), *select_headers(row, row_sha256)):
+                records[(row_sha256, record["msg_index"])] = record
+    return list(records.values())
 
 
 def write_records(records: list[dict[str, Any]], output: Path = DEFAULT_OUTPUT) -> dict[str, Any]:

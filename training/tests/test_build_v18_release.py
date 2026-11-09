@@ -183,10 +183,19 @@ def test_validate_header_accepts_a_routing_prefix_on_a_plain_reply() -> None:
     v18._validate_header(header_record(), plain_row(), 2)
 
 
-def test_validate_header_rejects_a_ledger_turn() -> None:
-    """Ledger turns belong to the rewrite pass, which has to keep routing itself."""
-    record = header_record(original_spoken=rw.spoken_body(SPOKEN))
-    with pytest.raises(ValueError, match="targets a ledger turn"):
+def test_validate_header_accepts_a_ledger_turn_with_its_digest() -> None:
+    """A ledger turn the writer never rewrote is routed by the deterministic floor."""
+    record = header_record(
+        content=rw.spoken_body(SPOKEN),
+        ledger_sha256=v18._ledger_digest(LEDGER),
+    )
+
+    v18._validate_header(record, row_with_turn(), 1)
+
+
+def test_validate_header_rejects_a_ledger_turn_written_against_another_ledger() -> None:
+    record = header_record(content=rw.spoken_body(SPOKEN), ledger_sha256="f" * 64)
+    with pytest.raises(ValueError, match="written against a different ledger"):
         v18._validate_header(record, row_with_turn(), 1)
 
 
@@ -278,6 +287,26 @@ def test_build_overlay_counts_headers_apart_from_rewrites(tmp_path: Path) -> Non
         "header_rows": 1,
         "header_turns": 1,
     }
+
+
+def test_a_model_rewrite_outranks_the_header_for_the_same_turn(tmp_path: Path) -> None:
+    """The header is the floor: where the writer succeeded, its sentence is the one kept."""
+    candidate = tmp_path / "candidate.jsonl"
+    raw = _json_bytes(row_with_turn())
+    with candidate.open("wb") as stream:
+        stream.write(raw)
+    row_sha = v14.line_sha(raw)
+    header = header_record(
+        content=rw.spoken_body(SPOKEN),
+        row_sha256=row_sha,
+        ledger_sha256=v18._ledger_digest(LEDGER),
+    )
+
+    overlay, counts = v18.build_overlay(candidate, [rewrite_record(row_sha256=row_sha)], [header])
+
+    assert overlay[row_sha] == {1: REWRITE}
+    assert counts["model_turns"] == 1
+    assert counts["header_turns"] == 0
 
 
 def test_build_overlay_fails_when_a_rewrite_matches_nothing(tmp_path: Path) -> None:
