@@ -328,3 +328,11 @@ monitoring/**/*.png
 /ai/
 /pixelated_v2/
 !training/tests/test_export_fireworks_release.py
+
+# Provisioned review-bot / agent configs (environment tooling, not source)
+.coderabbit.yaml
+.cursor/
+.greptile/
+.pr_agent.toml
+.sourcery.yaml
+cubic.yaml
