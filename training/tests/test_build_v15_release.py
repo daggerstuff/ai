@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from collections.abc import Callable
+from typing import Any, TypeVar, cast
 
 import pytest
 
 import training.build_agent_tool_sft_v7 as v7
 import training.build_v14_release as v14
 import training.build_v15_release as v15
+
+F = TypeVar("F", bound=Callable[..., Any])
+parametrize = cast("Callable[..., Callable[[F], F]]", pytest.mark.parametrize)
 
 # Built by concatenation so the tag survives any tooling that rewrites angle
 # brackets in source listings.
@@ -84,14 +88,14 @@ def test_welded_repair_is_a_no_op_on_bare_arguments() -> None:
     assert repaired == messages
 
 
-def test_welded_repair_tolerates_arguments_it_cannot_unwrap() -> None:
-    for arguments in ["not json", "[1, 2]", "null"]:
-        messages = [message("assistant", None, tool_calls=[tool_call(arguments)])]
+@parametrize("arguments", ["not json", "[1, 2]", "null"])
+def test_welded_repair_tolerates_arguments_it_cannot_unwrap(arguments: str) -> None:
+    messages = [message("assistant", None, tool_calls=[tool_call(arguments)])]
 
-        repaired, changed = v15.repair_welded_arguments(messages)
+    repaired, changed = v15.repair_welded_arguments(messages)
 
-        assert not changed
-        assert repaired[0]["tool_calls"][0]["function"]["arguments"] == arguments
+    assert not changed
+    assert repaired[0]["tool_calls"][0]["function"]["arguments"] == arguments
 
 
 def test_reasoning_preamble_is_stripped_and_the_answer_kept() -> None:

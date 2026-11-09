@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar, cast
 
 import pytest
 
 from training.launch import wandb_release_evals as pipeline
+
+F = TypeVar("F", bound=Callable[..., Any])
+parametrize = cast("Callable[..., Callable[[F], F]]", pytest.mark.parametrize)
 
 RELEASE_LABEL = "v17"
 RELEASE_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-b6886c9f8dde:v1"
@@ -29,10 +33,10 @@ def test_parse_compare_reads_a_label_and_artifact_uri() -> None:
     assert pipeline.parse_compare(f"v16={PREVIOUS_URI}") == ("v16", PREVIOUS_URI)
 
 
-def test_parse_compare_rejects_anything_that_is_not_a_label_and_artifact() -> None:
-    for value in ["v16", f"={PREVIOUS_URI}", "v16=/tmp/model", ""]:
-        with pytest.raises(Exception, match="label=wandb-artifact"):
-            pipeline.parse_compare(value)
+@parametrize("value", ["v16", f"={PREVIOUS_URI}", "v16=/tmp/model", ""])
+def test_parse_compare_rejects_anything_that_is_not_a_label_and_artifact(value: str) -> None:
+    with pytest.raises(Exception, match="label=wandb-artifact"):
+        pipeline.parse_compare(value)
 
 
 def test_build_commands_dedupes_the_vs_base_reading(tmp_path: Path) -> None:

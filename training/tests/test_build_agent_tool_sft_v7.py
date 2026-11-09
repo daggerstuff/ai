@@ -11,11 +11,15 @@ these rows, which is why adding 192 correct rows in v9 did not move the eval.
 from __future__ import annotations
 
 import json
-from typing import Any
+from collections.abc import Callable
+from typing import Any, TypeVar, cast
 
 import pytest
 
 from training import build_agent_tool_sft_v7 as v7
+
+F = TypeVar("F", bound=Callable[..., Any])
+parametrize = cast("Callable[..., Callable[[F], F]]", pytest.mark.parametrize)
 
 # The strings the family emitted before the argument was separated from the prose.
 LEGACY_DESCRIPTIONS = [
@@ -36,8 +40,7 @@ LEGACY_DESCRIPTIONS = [
 
 def _arguments(row: dict[str, Any]) -> dict[str, Any]:
     call = next(message for message in row["messages"] if message.get("tool_calls"))
-    parsed: dict[str, Any] = json.loads(call["tool_calls"][0]["function"]["arguments"])
-    return parsed
+    return cast("dict[str, Any]", json.loads(call["tool_calls"][0]["function"]["arguments"]))
 
 
 def test_change_pool_is_label_literal_pairs() -> None:
@@ -67,8 +70,8 @@ def test_request_and_refusal_prose_still_name_the_field() -> None:
     assert label in prose
 
 
-def test_every_row_calls_the_tool_exactly_once() -> None:
-    for index in [0, 11, 12, 137, v7.EXAMPLES_PER_FAMILY - 1]:
-        calls = [m for m in v7.make_approval(index)["messages"] if m.get("tool_calls")]
-        assert len(calls) == 1
-        assert calls[0]["tool_calls"][0]["function"]["name"] == v7.TOOL_NAME
+@parametrize("index", [0, 11, 12, 137, v7.EXAMPLES_PER_FAMILY - 1])
+def test_every_row_calls_the_tool_exactly_once(index: int) -> None:
+    calls = [m for m in v7.make_approval(index)["messages"] if m.get("tool_calls")]
+    assert len(calls) == 1
+    assert calls[0]["tool_calls"][0]["function"]["name"] == v7.TOOL_NAME
