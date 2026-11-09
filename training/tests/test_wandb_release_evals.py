@@ -105,3 +105,54 @@ def test_a_real_failure_is_not_retried(tmp_path: Path, monkeypatch: pytest.Monke
 
     assert (label, rc) == ("literal-sealed-v17-vs-base", 2)
     assert len(calls) == 1
+
+
+def test_resolve_compares_keeps_the_default_predecessor() -> None:
+    """An explicit --compare must not drop the reading against the default prior adapter."""
+    default = ("v16", PREVIOUS_URI)
+    compares = pipeline.resolve_compares([("v15", OLDER_URI)], default, RELEASE_LABEL)
+
+    assert [label for label, _ in compares] == ["v15", "v16"]
+
+
+def test_resolve_compares_does_not_repeat_a_requested_default() -> None:
+    default = ("v16", PREVIOUS_URI)
+    compares = pipeline.resolve_compares([("v16", PREVIOUS_URI)], default, RELEASE_LABEL)
+
+    assert compares == [("v16", PREVIOUS_URI)]
+
+
+def test_resolve_compares_never_compares_a_release_with_itself() -> None:
+    default = (RELEASE_LABEL, RELEASE_URI)
+    compares = pipeline.resolve_compares([(RELEASE_LABEL, RELEASE_URI), ("v16", PREVIOUS_URI)], default, RELEASE_LABEL)
+
+    assert compares == [("v16", PREVIOUS_URI)]
+
+
+def test_resolve_compares_can_opt_out_of_the_default() -> None:
+    default = ("v16", PREVIOUS_URI)
+    compares = pipeline.resolve_compares([("v15", OLDER_URI)], default, RELEASE_LABEL, include_default=False)
+
+    assert compares == [("v15", OLDER_URI)]
+
+
+def test_resolve_compares_refuses_a_set_with_nothing_to_run() -> None:
+    with pytest.raises(SystemExit, match="no comparisons to run"):
+        pipeline.resolve_compares([(RELEASE_LABEL, RELEASE_URI)], (RELEASE_LABEL, RELEASE_URI), RELEASE_LABEL)
+
+
+def test_build_commands_runs_the_resolved_set(tmp_path: Path) -> None:
+    """The pipeline's default run is the requested compare plus the default prior adapter."""
+    exec_dir = tmp_path / "exec"
+    exec_dir.mkdir()
+    compares = pipeline.resolve_compares(
+        [("v15", OLDER_URI)],
+        ("v16", PREVIOUS_URI),
+        RELEASE_LABEL,
+    )
+
+    commands = pipeline.build_commands(RELEASE_LABEL, RELEASE_URI, compares, exec_dir)
+
+    labels = [label for label, _ in commands]
+    assert len(commands) == SUITE_COUNT * 3
+    assert sum("-vs-v16" in label for label in labels) == SUITE_COUNT

@@ -98,6 +98,29 @@ def parse_compare(value: str) -> tuple[str, str]:
     return label, uri
 
 
+def resolve_compares(
+    requested: list[tuple[str, str]],
+    default: tuple[str, str],
+    release_label: str,
+    include_default: bool = True,
+) -> list[tuple[str, str]]:
+    """Return the comparisons to run, keeping the default predecessor in the set.
+
+    ``--compare`` used to replace the default outright, so a release launched
+    with an explicit predecessor silently lost its reading against the adapter
+    the prep defaults point at -- the one the last scoreboard called the best.
+    The requested comparisons come first so their runs are scheduled ahead of
+    the default, and a label is never compared against itself.
+    """
+    compares = [(label, uri) for label, uri in requested if label != release_label]
+    labels = {label for label, _ in compares}
+    if include_default and default[0] != release_label and default[0] not in labels:
+        compares.append(default)
+    if not compares:
+        raise SystemExit("no comparisons to run: every label named matches the release itself")
+    return compares
+
+
 def build_commands(
     release_label: str,
     release_uri: str,
@@ -202,7 +225,12 @@ def main(argv: list[str] | None = None) -> int:
         action="append",
         default=[],
         metavar="LABEL=URI",
-        help="repeatable; defaults to prepare_release_eval's DEFAULT_COMPARE",
+        help="repeatable; the default predecessor from prepare_release_eval is always added",
+    )
+    parser.add_argument(
+        "--no-default-compare",
+        action="store_true",
+        help="drop the default predecessor comparison; only the --compare set runs",
     )
     parser.add_argument("--parallel", type=int, default=4)
     parser.add_argument("--poll-seconds", type=int, default=120)
@@ -213,7 +241,12 @@ def main(argv: list[str] | None = None) -> int:
     exec_dir = args.exec_dir if args.exec_dir.is_absolute() else REPO / args.exec_dir
     if not exec_dir.is_dir():
         parser.error(f"--exec-dir does not exist: {exec_dir}")
-    compares = args.compare or [(prep.DEFAULT_COMPARE_LABEL, prep.DEFAULT_COMPARE_URI)]
+    compares = resolve_compares(
+        args.compare,
+        (prep.DEFAULT_COMPARE_LABEL, prep.DEFAULT_COMPARE_URI),
+        args.release_label,
+        include_default=not args.no_default_compare,
+    )
     run_name = f"{RUN_PREFIX}{args.task_id[:RUN_HASH_LENGTH]}"
 
     key = api_key()
