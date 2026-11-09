@@ -30,6 +30,7 @@ MODEL_LABELS = {
 PAIR_RUN_ID = re.compile(r"^wandb-(?P<suite>.+)-(?P<release>v\d+)-vs-(?P<compare>base|v\d+)-[0-9a-f]{8}$")
 DIFF_ARG_COUNT = 2
 COMPLETE_STATUS = "complete"
+QUOTE_LIMIT = 360
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ class ArmRow:
     status: str
     failed_checks: tuple[str, ...]
     finish_reason: str | None
+    response: str | None = None
 
 
 @dataclass(frozen=True)
@@ -105,6 +107,7 @@ def load_rows(run_dir: Path) -> dict[tuple[str, str], ArmRow]:
                 status=row.get("status", "unknown"),
                 failed_checks=failed,
                 finish_reason=row.get("finish_reason"),
+                response=row.get("response"),
             )
     return rows
 
@@ -166,6 +169,7 @@ def _delta_table(
         "|---|---|---|---|",
     ]
     changed = 0
+    regressions: list[tuple[str, ArmRow]] = []
     for case_id in cases:
         left_row = left_rows.get((case_id, left_arm))
         right_row = right_rows.get((case_id, right_arm))
@@ -173,9 +177,33 @@ def _delta_table(
         right_ok = bool(right_row and right_row.passed)
         delta = "same" if left_ok == right_ok else ("improved" if right_ok else "regressed")
         changed += left_ok != right_ok
+        if left_ok and not right_ok and right_row is not None:
+            regressions.append((case_id, right_row))
         lines.append(f"| {case_id} | {_verdict(left_row)} | {_verdict(right_row)} | {delta} |")
     lines.extend(["", f"{changed} of {len(cases)} cases changed"])
+    lines.extend(_regression_block(regressions, right_label))
     return "\n".join(lines)
+
+
+def _quote(text: str, limit: int = QUOTE_LIMIT) -> str:
+    """Flatten a model reply to one readable line for the scoreboard."""
+    flat = " ".join(text.split())
+    return flat if len(flat) <= limit else flat[: limit - 1].rstrip() + "…"
+
+
+def _regression_block(regressions: list[tuple[str, ArmRow]], label: str) -> list[str]:
+    """Show what the regressed arm actually said, so the failure is inspectable."""
+    if not regressions:
+        return []
+    lines = ["", "## regressed cases", ""]
+    for case_id, row in regressions:
+        detail = ",".join(row.failed_checks) or row.status
+        lines.append(f"### {case_id}")
+        lines.append(f"- failed: {detail}")
+        if row.response:
+            lines.append(f"- {label} said: {_quote(row.response)}")
+        lines.append("")
+    return lines[:-1] if lines[-1] == "" else lines
 
 
 def _delta_section(
@@ -238,17 +266,32 @@ def summarize_run(run_dir: Path) -> RunSummary:
     )
 
 
-def collect_runs(root: Path) -> list[RunSummary]:
+def collect_runs(root: Path) -> list[tuple[Path, RunSummary]]:
     """Summarize every run directory under ``root`` that has a manifest."""
     run_dirs = sorted(path for path in root.iterdir() if (path / "manifest.json").is_file())
-    return [summarize_run(run_dir) for run_dir in run_dirs]
+    return [(run_dir, summarize_run(run_dir)) for run_dir in run_dirs]
+
+
+def regressed_cases(run_dir: Path) -> list[tuple[str, ArmRow]]:
+    """Cases the release arm fails while the arm it is compared to passes."""
+    manifest = load_manifest(run_dir)
+    rows = load_rows(run_dir)
+    reference_arm, release_arm = manifest["arm_ids"]
+    found: list[tuple[str, ArmRow]] = []
+    for case_id in manifest["case_ids"]:
+        reference = rows.get((case_id, reference_arm))
+        release = rows.get((case_id, release_arm))
+        if reference is not None and release is not None and reference.passed and not release.passed:
+            found.append((case_id, release))
+    return found
 
 
 def render_matrix(root: Path) -> str:
     """Render every paired run under ``root`` as a suite-by-suite matrix."""
-    runs = collect_runs(root)
-    if not runs:
+    collected = collect_runs(root)
+    if not collected:
         raise ValueError(f"no run directories with a manifest under {root}")
+    runs = [summary for _, summary in collected]
     lines = [f"# {root}", "", "| pair | suite | arm | pass | arm | pass |", "|---|---|---|---|---|---|"]
     for run in sorted(runs, key=lambda item: (item.pair, item.suite)):
         first, second = run.arm_ids
@@ -268,7 +311,27 @@ def render_matrix(root: Path) -> str:
             entry[2] += 1
     for (pair, label), (passed, total, suites) in sorted(totals.items()):
         lines.append(f"| {pair} | {label} | {suites} | {passed}/{total} |")
+    lines.extend(_matrix_regressions(collected))
     return "\n".join(lines)
+
+
+def _matrix_regressions(collected: list[tuple[Path, RunSummary]]) -> list[str]:
+    """Surface every case the release loses to the model it is measured against."""
+    lines: list[str] = []
+    for run_dir, summary in sorted(collected, key=lambda item: (item[1].pair, item[1].suite)):
+        lost = regressed_cases(run_dir)
+        if not lost:
+            continue
+        release = summary.labels[summary.arm_ids[1]]
+        lines.extend(["", f"### {summary.pair} / {summary.suite} — {release} loses {len(lost)}"])
+        for case_id, row in lost:
+            detail = ",".join(row.failed_checks) or row.status
+            lines.append(f"- {case_id}: failed {detail}")
+            if row.response:
+                lines.append(f"  - {release} said: {_quote(row.response)}")
+    if not lines:
+        return []
+    return ["", "## cases the release loses against the compared arm", *lines]
 
 
 def main() -> int:

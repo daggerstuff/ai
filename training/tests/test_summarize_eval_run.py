@@ -54,6 +54,16 @@ def write_run(
     return run_dir
 
 
+def set_response(run_dir: Path, case_id: str, arm_id: str, text: str) -> None:
+    """Attach the reply a model produced, as the harness records it."""
+    path = run_dir / "results.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    for row in rows:
+        if row["case_id"] == case_id and row["arm_id"] == arm_id:
+            row["response"] = text
+    path.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+
+
 def pair_run_id(suite: str, release: str, compare: str) -> str:
     return f"wandb-{suite}-{release}-vs-{compare}-{DIGEST}"
 
@@ -218,3 +228,54 @@ def test_render_matrix_marks_runs_that_have_not_finished(tmp_path: Path) -> None
 def test_render_matrix_rejects_an_empty_root(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="no run directories"):
         summary.render_matrix(tmp_path)
+
+
+LOST_REPLY = "That's a lot to carry. Let's get you settled first."
+
+
+def test_matrix_shows_the_reply_of_a_case_the_release_loses(tmp_path: Path) -> None:
+    write_run(
+        tmp_path / "crisis-dev-v15-vs-base",
+        ["case-a", "case-b"],
+        {"base": BASE_MODEL, "sft": V15_URI},
+        {("case-a", "sft"): False},
+        manifest_extra={"run_id": pair_run_id("crisis-dev", "v15", "base")},
+    )
+    set_response(tmp_path / "crisis-dev-v15-vs-base", "case-a", "sft", LOST_REPLY)
+
+    output = summary.render_matrix(tmp_path)
+
+    assert "## cases the release loses against the compared arm" in output
+    assert "### v15-vs-base / crisis-dev — v15 loses 1" in output
+    assert "- case-a: failed response_enum" in output
+    assert f"  - v15 said: {LOST_REPLY}" in output
+
+
+def test_matrix_stays_quiet_when_the_release_loses_nothing(tmp_path: Path) -> None:
+    write_run(
+        tmp_path / "contract-dev-v15-vs-base",
+        ["case-a"],
+        {"base": BASE_MODEL, "sft": V15_URI},
+        {},
+        manifest_extra={"run_id": pair_run_id("contract-dev", "v15", "base")},
+    )
+
+    output = summary.render_matrix(tmp_path)
+
+    assert "cases the release loses" not in output
+
+
+def test_single_run_lists_a_regressed_case_with_its_reply(tmp_path: Path) -> None:
+    write_run(
+        tmp_path / "crisis-dev-v15-vs-base",
+        ["case-a"],
+        {"base": BASE_MODEL, "sft": V15_URI},
+        {("case-a", "sft"): False},
+        manifest_extra={"run_id": pair_run_id("crisis-dev", "v15", "base")},
+    )
+    set_response(tmp_path / "crisis-dev-v15-vs-base", "case-a", "sft", LOST_REPLY)
+
+    output = summary.render_single(tmp_path / "crisis-dev-v15-vs-base")
+
+    assert "## regressed cases" in output
+    assert f"- v15 said: {LOST_REPLY}" in output
