@@ -1,0 +1,243 @@
+"""Run every paired eval for a release once its SFT job finishes.
+
+Each release needs the same three readings -- the adapter against the base
+model and against the two adapters before it -- across eight suites, and the
+adapter URI only exists after the training job logs its lora artifact. Doing
+that by hand means babysitting a two-hour job and then transcribing 24 commands
+from the prep plan, which is how the v16 batch ended up with one run that never
+finished and a stale scoreboard.
+
+This script owns the whole sequence: poll the job, resolve the artifact from the
+run that produced it, write the configs, run them in parallel, and render the
+scoreboard. A run that dies on a provider 5xx is retried once from a clean
+results directory -- the harness records its own flag set in the run manifest,
+so resuming a partially written directory is rejected as an identity change.
+
+Usage:
+
+    python -m training.launch.wandb_release_evals \
+        --release-label v17 \
+        --task-id b6886c9f8dde3c9bcd9b9cd4fd5e81d0637ecd783cb3d1521fa7f1bc7c94bd68 \
+        --job-id 10019e23-9f44-46f2-afbc-b65eb3dc0f1b \
+        --exec-dir docs/training/execution-2026-11-09 \
+        --compare v15=wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-73504a99ed05:v1
+
+The default comparison is whatever ``prepare_release_eval`` points at, so the
+common case is just ``--release-label``/``--task-id``/``--job-id``/``--exec-dir``.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+from training.launch import prepare_release_eval as prep
+
+REPO = Path(__file__).resolve().parents[3]
+AI = REPO / "ai"
+TRAINING_API = "https://api.training.wandb.ai/v1/preview/training-jobs"
+PYTHON = sys.executable
+RUN_PREFIX = "arc-sft-baseline-"
+RUN_HASH_LENGTH = 12
+JOB_ACTIVE_STATES = {"RUNNING", "PENDING", "UNKNOWN", "QUEUED", "CREATING"}
+JOB_SUCCESS_STATES = {"FINISHED", "SUCCEEDED", "COMPLETED"}
+# A provider hiccup is worth one clean retry; anything else is a real failure.
+TRANSIENT_MARKERS = ("http_502", "http_503", "http_504", "http_500", "ProviderHTTPError", "ReadTimeout")
+
+
+def log(message: str) -> None:
+    stamp = time.strftime("%H:%M:%S", time.gmtime())
+    sys.stdout.write(f"{stamp} {message}\n")
+    sys.stdout.flush()
+
+
+def api_key() -> str:
+    for line in (REPO / ".env").read_text(encoding="utf-8").splitlines():
+        if line.startswith("WANDB_API_KEY="):
+            return line.split("=", 1)[1].strip()
+    raise SystemExit("WANDB_API_KEY missing from .env")
+
+
+def job_status(key: str, job_id: str) -> dict:
+    request = urllib.request.Request(
+        f"{TRAINING_API}/{job_id}",
+        headers={"Authorization": f"Bearer {key}", "User-Agent": "curl/8.5.0"},
+    )
+    with urllib.request.urlopen(request, timeout=60) as response:
+        return json.load(response)
+
+
+def wait_for_job(key: str, job_id: str, poll_seconds: int, max_polls: int) -> str:
+    for poll in range(max_polls):
+        try:
+            status = str(job_status(key, job_id).get("status", "unknown")).upper()
+        except Exception as error:  # transient network blips must not end the poll loop
+            log(f"poll {poll} failed: {error}")
+            status = "UNKNOWN"
+        if poll % 5 == 0:
+            log(f"poll {poll}: {status}")
+        if status not in JOB_ACTIVE_STATES:
+            log(f"job reached terminal status: {status}")
+            return status
+        time.sleep(poll_seconds)
+    raise SystemExit("job never left the active states")
+
+
+def parse_compare(value: str) -> tuple[str, str]:
+    label, _, uri = value.partition("=")
+    if not label or not uri.startswith("wandb-artifact:///"):
+        raise argparse.ArgumentTypeError(f"expected label=wandb-artifact:///... , got {value!r}")
+    return label, uri
+
+
+def build_commands(
+    release_label: str,
+    release_uri: str,
+    compares: list[tuple[str, str]],
+    exec_dir: Path,
+) -> list[tuple[str, list[str]]]:
+    cases_dir = prep.default_cases_dir()
+    release = prep.Release(release_label, release_uri)
+    log(f"release artifact: {release.uri}")
+
+    commands: list[tuple[str, list[str]]] = []
+    seen: set[str] = set()
+    for label, uri in compares:
+        written = prep.write_configs(cases_dir, exec_dir / "evals", release, prep.Release(label, uri))
+        for run_label, cases, config, sealed in written:
+            if run_label in seen:
+                # the vs-base reading is identical for every compare; keep one.
+                continue
+            seen.add(run_label)
+            argv = [
+                PYTHON,
+                "training/run_wandb_paired_eval.py",
+                "--cases",
+                str(cases),
+                "--config",
+                str(config),
+                "--results-dir",
+                str(exec_dir / "evals" / "results" / run_label),
+                "--max-input-tokens",
+                str(prep.MAX_INPUT_TOKENS),
+                "--max-tool-rounds",
+                str(prep.MAX_TOOL_ROUNDS),
+            ]
+            if sealed:
+                argv.append("--allow-sealed")
+            commands.append((run_label, argv))
+    log(f"prepared {len(commands)} eval runs")
+    return commands
+
+
+def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
+    env = dict(os.environ, PYTHONPATH=str(AI), WANDB_API_KEY=key)
+    log(f"start {label}")
+    completed = subprocess.run(
+        argv,
+        cwd=AI,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    tail = (completed.stdout or "").strip().splitlines()[-3:]
+    log(f"done {label} rc={completed.returncode} {' | '.join(tail)}")
+    if completed.returncode != 0:
+        stderr = (completed.stderr or "").strip()
+        log(f"stderr {label}: {stderr[-800:]}")
+        if any(marker in stderr or marker in (completed.stdout or "") for marker in TRANSIENT_MARKERS):
+            results_dir = Path(argv[argv.index("--results-dir") + 1])
+            log(f"retrying {label} from a clean results directory")
+            shutil.rmtree(results_dir, ignore_errors=True)
+            retry = [*argv, "--continue-on-transient-http-errors"]
+            retried = subprocess.run(
+                retry,
+                cwd=AI,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            log(f"retry {label} rc={retried.returncode}")
+            return label, retried.returncode
+    return label, completed.returncode
+
+
+def render_scoreboard(exec_dir: Path, release_label: str) -> int:
+    completed = subprocess.run(
+        [PYTHON, "training/launch/summarize_eval_run.py", "--results-root", str(exec_dir / "evals" / "results")],
+        cwd=AI,
+        env=dict(os.environ, PYTHONPATH=str(AI)),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        log(f"scoreboard failed rc={completed.returncode}: {completed.stderr.strip()[-800:]}")
+        return completed.returncode
+    target = exec_dir / f"{release_label}-scoreboard.md"
+    target.write_text(completed.stdout, encoding="utf-8")
+    log(f"scoreboard written to {target} ({len(completed.stdout.splitlines())} lines)")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--release-label", required=True, help="e.g. v17")
+    parser.add_argument("--task-id", required=True, help="g04 task id the launch printed")
+    parser.add_argument("--job-id", required=True, help="W&B training job id the launch printed")
+    parser.add_argument("--exec-dir", type=Path, required=True, help="docs/training/execution-YYYY-MM-DD")
+    parser.add_argument(
+        "--compare",
+        type=parse_compare,
+        action="append",
+        default=[],
+        metavar="LABEL=URI",
+        help="repeatable; defaults to prepare_release_eval's DEFAULT_COMPARE",
+    )
+    parser.add_argument("--parallel", type=int, default=4)
+    parser.add_argument("--poll-seconds", type=int, default=120)
+    parser.add_argument("--max-polls", type=int, default=240)
+    parser.add_argument("--skip-wait", action="store_true", help="assume the job already finished")
+    args = parser.parse_args(argv)
+
+    exec_dir = args.exec_dir if args.exec_dir.is_absolute() else REPO / args.exec_dir
+    if not exec_dir.is_dir():
+        parser.error(f"--exec-dir does not exist: {exec_dir}")
+    compares = args.compare or [(prep.DEFAULT_COMPARE_LABEL, prep.DEFAULT_COMPARE_URI)]
+    run_name = f"{RUN_PREFIX}{args.task_id[:RUN_HASH_LENGTH]}"
+
+    key = api_key()
+    if not args.skip_wait:
+        status = wait_for_job(key, args.job_id, args.poll_seconds, args.max_polls)
+        if status not in JOB_SUCCESS_STATES:
+            log(f"job did not finish successfully ({status}); stopping")
+            return 1
+
+    release_uri = prep.resolve_release_uri(run_name)
+    commands = build_commands(args.release_label, release_uri, compares, exec_dir)
+
+    failures = 0
+    with ThreadPoolExecutor(max_workers=args.parallel) as pool:
+        futures = [pool.submit(run_one, label, argv, key) for label, argv in commands]
+        for future in futures:
+            _, rc = future.result()
+            if rc != 0:
+                failures += 1
+
+    failures += 1 if render_scoreboard(exec_dir, args.release_label) != 0 else 0
+    log(f"PIPELINE DONE failures={failures}")
+    return 0 if failures == 0 else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

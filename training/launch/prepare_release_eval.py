@@ -34,8 +34,8 @@ LORA_ARTIFACT_TYPE = "lora"
 API_KEY_ENV = "WANDB_API_KEY"
 
 # The release this script compares against by default: the previous adapter.
-DEFAULT_COMPARE_LABEL = "v15"
-DEFAULT_COMPARE_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-73504a99ed05:v1"
+DEFAULT_COMPARE_LABEL = "v16"
+DEFAULT_COMPARE_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-562d43347133:v1"
 
 DECODING: dict[str, Any] = {
     "temperature": 0,

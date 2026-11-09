@@ -10,9 +10,9 @@ import pytest
 
 from training.launch import prepare_release_eval as prep
 
-V15_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-73504a99ed05:v1"
 V16_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-562d43347133:v1"
-RELEASE = prep.Release("v16", V16_URI)
+V17_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-b6886c9f8dde:v1"
+RELEASE = prep.Release("v17", V17_URI)
 COMPARE = prep.Release(prep.DEFAULT_COMPARE_LABEL, prep.DEFAULT_COMPARE_URI)
 VERSUS_BASE, VERSUS_COMPARE = prep.pairs(RELEASE, COMPARE)
 CAPABILITY_CAP_USD = 0.2
@@ -36,15 +36,15 @@ def make_cases_dir(root: Path) -> Path:
 
 
 def test_pairs_name_the_release_and_its_predecessor() -> None:
-    assert VERSUS_BASE == "v16-vs-base"
-    assert VERSUS_COMPARE == "v16-vs-v15"
+    assert VERSUS_BASE == "v17-vs-base"
+    assert VERSUS_COMPARE == "v17-vs-v16"
 
 
 def test_vs_base_pairs_the_base_model_against_the_adapter() -> None:
     config = prep.build_config("crisis-dev", VERSUS_BASE, RELEASE, COMPARE, CRISIS_CAP_USD)
 
     assert arm_by_id(config, "base")["model"] == prep.BASE_MODEL
-    assert arm_by_id(config, "sft")["model"] == V16_URI
+    assert arm_by_id(config, "sft")["model"] == V17_URI
     assert config["pricing"]["hard_cap_usd"] == CRISIS_CAP_USD
 
 
@@ -52,14 +52,14 @@ def test_vs_compare_puts_the_previous_adapter_in_the_base_slot() -> None:
     config = prep.build_config("literal-dev", VERSUS_COMPARE, RELEASE, COMPARE, LITERAL_CAP_USD)
 
     assert arm_by_id(config, "base")["model"] == COMPARE.uri
-    assert arm_by_id(config, "sft")["model"] == V16_URI
+    assert arm_by_id(config, "sft")["model"] == V17_URI
     assert config["decoding"]["chat_template_kwargs"] == {"enable_thinking": False}
 
 
 def test_run_id_is_stable_per_artifact_and_changes_with_it() -> None:
     first = prep.build_config("crisis-dev", VERSUS_COMPARE, RELEASE, COMPARE, CRISIS_CAP_USD)["run_id"]
     repeat = prep.build_config("crisis-dev", VERSUS_COMPARE, RELEASE, COMPARE, CRISIS_CAP_USD)["run_id"]
-    other_release = prep.Release(RELEASE.label, V16_URI.replace(":v1", ":v2"))
+    other_release = prep.Release(RELEASE.label, V17_URI.replace(":v1", ":v2"))
     other = prep.build_config("crisis-dev", VERSUS_COMPARE, other_release, COMPARE, CRISIS_CAP_USD)["run_id"]
 
     assert first == repeat
@@ -76,7 +76,7 @@ def test_run_id_differs_between_comparison_pairs() -> None:
 
 def test_unknown_pair_is_rejected() -> None:
     with pytest.raises(ValueError, match="unknown comparison pair"):
-        prep.build_config("crisis-dev", "v16-vs-v14", RELEASE, COMPARE, CRISIS_CAP_USD)
+        prep.build_config("crisis-dev", "v17-vs-v14", RELEASE, COMPARE, CRISIS_CAP_USD)
 
 
 def test_write_configs_covers_every_suite_and_pair(tmp_path: Path) -> None:
@@ -112,7 +112,7 @@ def test_render_plan_marks_sealed_suites_and_uses_the_results_root(tmp_path: Pat
 
     plan = prep.render_plan(RELEASE, written, tmp_path / "results")
 
-    assert f"{RELEASE.label} artifact: {V16_URI}" in plan
+    assert f"{RELEASE.label} artifact: {V17_URI}" in plan
     assert f"--results-dir {tmp_path / 'results' / f'crisis-dev-{VERSUS_BASE}'}" in plan
     assert f"--results-dir {tmp_path / 'results' / f'crisis-sealed-{VERSUS_BASE}'}" in plan
     assert f"--max-input-tokens {prep.MAX_INPUT_TOKENS} --max-tool-rounds {prep.MAX_TOOL_ROUNDS} --allow-sealed" in plan
@@ -204,8 +204,8 @@ def test_resolve_refuses_a_run_with_no_lora_artifact(monkeypatch: pytest.MonkeyP
 
 
 def test_default_compare_is_the_previous_release() -> None:
-    assert prep.DEFAULT_COMPARE_LABEL == "v15"
-    assert prep.DEFAULT_COMPARE_URI == V15_URI
+    assert prep.DEFAULT_COMPARE_LABEL == "v16"
+    assert prep.DEFAULT_COMPARE_URI == V16_URI
     assert RELEASE.label != prep.DEFAULT_COMPARE_LABEL
 
 
@@ -218,11 +218,11 @@ def test_main_refuses_to_compare_a_release_against_itself(
     argv = [
         "prepare_release_eval",
         "--release-label",
-        "v16",
+        "v17",
         "--release-uri",
-        V16_URI,
+        V17_URI,
         "--compare-label",
-        "v16",
+        "v17",
         "--cases-dir",
         str(cases_dir),
         "--out-dir",
