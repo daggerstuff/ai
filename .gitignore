@@ -327,3 +327,4 @@ monitoring/**/*.png
 # Nested scratch copy (transient working dir; contains duplicates of tracked trees)
 /ai/
 /pixelated_v2/
+!training/tests/test_export_fireworks_release.py
