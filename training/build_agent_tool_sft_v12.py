@@ -429,9 +429,10 @@ for _category, _paraphrases in PARAPHRASES.items():
 
 def prior_replies() -> set[str]:
     """Every reply the v9 and v10 families already train."""
-    return v10.v9_replies() | {
+    replies: set[str] = v10.v9_replies() | {
         shape.format(action=action) for _, _, _, action in v9.CRISIS_GROUPS for shape in v10.RESOURCE_FIRST_SHAPES
     }
+    return replies
 
 
 def v9_disclosures() -> set[str]:

@@ -36,7 +36,8 @@ AMBIVALENCE_MARKERS = (
 
 
 def rows() -> list[dict[str, Any]]:
-    return v13.collect_rows()["train"]
+    rows: list[dict[str, Any]] = v13.collect_rows()["train"]
+    return rows
 
 
 def crisis_rows() -> list[dict[str, Any]]:
@@ -51,7 +52,8 @@ def action_of(item: dict[str, Any]) -> str:
     reply = item["messages"][1]["content"]
     matches = [action for action in v13.ACTIONS[item["category"]] if reply.startswith(action)]
     assert len(matches) == 1, item["id"]
-    return matches[0]
+    action: str = matches[0]
+    return action
 
 
 def test_the_family_has_the_expected_shape() -> None:

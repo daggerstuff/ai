@@ -36,6 +36,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+from typing import Any
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -66,13 +67,14 @@ def api_key() -> str:
     raise SystemExit("WANDB_API_KEY missing from .env")
 
 
-def job_status(key: str, job_id: str) -> dict:
+def job_status(key: str, job_id: str) -> dict[str, Any]:
     request = urllib.request.Request(
         f"{TRAINING_API}/{job_id}",
         headers={"Authorization": f"Bearer {key}", "User-Agent": "curl/8.5.0"},
     )
     with urllib.request.urlopen(request, timeout=60) as response:
-        return json.load(response)
+        payload: dict[str, Any] = json.load(response)
+    return payload
 
 
 def wait_for_job(key: str, job_id: str, poll_seconds: int, max_polls: int) -> str:

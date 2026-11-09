@@ -139,9 +139,12 @@ def repair_welded_arguments(messages: list[Any]) -> tuple[list[Any], bool]:
         for call in message["tool_calls"]:
             function = call.get("function") or {}
             arguments = function.get("arguments")
+            if not isinstance(arguments, (str, bytes, bytearray)):
+                calls.append(call)
+                continue
             try:
                 values = json.loads(arguments)
-            except TypeError, ValueError:
+            except ValueError:
                 calls.append(call)
                 continue
             if not isinstance(values, dict):
@@ -311,6 +314,7 @@ class _Release:
         if held is not None:
             self.record_heldout(old_number, row_sha, held)
             return
+        assert reference is not None
         self.record_retained(old_number, repaired, row_sha, reference)
 
     def admit(self, line: bytes) -> str:

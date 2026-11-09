@@ -89,7 +89,8 @@ def run_suite_and_pair(manifest: dict[str, Any], fallback: str) -> tuple[str, st
 
 
 def load_manifest(run_dir: Path) -> dict[str, Any]:
-    return json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    manifest: dict[str, Any] = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    return manifest
 
 
 def load_rows(run_dir: Path) -> dict[tuple[str, str], ArmRow]:

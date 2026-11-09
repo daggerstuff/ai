@@ -7,6 +7,8 @@ from typing import Any
 
 import pytest
 
+import training.build_agent_tool_sft_v7 as v7
+import training.build_v14_release as v14
 import training.build_v15_release as v15
 
 # Built by concatenation so the tag survives any tooling that rewrites angle
@@ -31,14 +33,14 @@ def test_assign_split_matches_the_v13_bucket_recipe() -> None:
 
 
 def test_welded_map_covers_every_v7_change() -> None:
-    assert len(v15.WELDED_TO_LITERAL) == len(v15.v7.CHANGES)
-    for label, literal in v15.v7.CHANGES:
-        assert v15.WELDED_TO_LITERAL[v15.v7.describe(label, literal)] == literal
+    assert len(v15.WELDED_TO_LITERAL) == len(v7.CHANGES)
+    for label, literal in v7.CHANGES:
+        assert v15.WELDED_TO_LITERAL[v7.describe(label, literal)] == literal
 
 
 def test_welded_repair_keeps_only_the_literal_in_the_argument() -> None:
-    label, literal = v15.v7.CHANGES[0]
-    welded = json.dumps({"change": v15.v7.describe(label, literal)})
+    label, literal = v7.CHANGES[0]
+    welded = json.dumps({"change": v7.describe(label, literal)})
     messages = [
         message("system", "you can change one field"),
         message("user", f"please set the {label}"),
@@ -57,8 +59,8 @@ def test_welded_repair_keeps_only_the_literal_in_the_argument() -> None:
 
 
 def test_welded_repair_leaves_prose_and_untouched_turns_alone() -> None:
-    label, literal = v15.v7.CHANGES[0]
-    welded = json.dumps({"change": v15.v7.describe(label, literal)})
+    label, literal = v7.CHANGES[0]
+    welded = json.dumps({"change": v7.describe(label, literal)})
     messages = [
         message("user", f"please set the {label}"),
         message("assistant", None, tool_calls=[tool_call(welded)]),
@@ -73,7 +75,7 @@ def test_welded_repair_leaves_prose_and_untouched_turns_alone() -> None:
 
 
 def test_welded_repair_is_a_no_op_on_bare_arguments() -> None:
-    _, literal = v15.v7.CHANGES[0]
+    _, literal = v7.CHANGES[0]
     messages = [message("assistant", None, tool_calls=[tool_call(json.dumps({"change": literal}))])]
 
     repaired, changed = v15.repair_welded_arguments(messages)
@@ -82,14 +84,14 @@ def test_welded_repair_is_a_no_op_on_bare_arguments() -> None:
     assert repaired == messages
 
 
-@pytest.mark.parametrize("arguments", ["not json", "[1, 2]", "null"])
-def test_welded_repair_tolerates_arguments_it_cannot_unwrap(arguments: str) -> None:
-    messages = [message("assistant", None, tool_calls=[tool_call(arguments)])]
+def test_welded_repair_tolerates_arguments_it_cannot_unwrap() -> None:
+    for arguments in ["not json", "[1, 2]", "null"]:
+        messages = [message("assistant", None, tool_calls=[tool_call(arguments)])]
 
-    repaired, changed = v15.repair_welded_arguments(messages)
+        repaired, changed = v15.repair_welded_arguments(messages)
 
-    assert not changed
-    assert repaired[0]["tool_calls"][0]["function"]["arguments"] == arguments
+        assert not changed
+        assert repaired[0]["tool_calls"][0]["function"]["arguments"] == arguments
 
 
 def test_reasoning_preamble_is_stripped_and_the_answer_kept() -> None:
@@ -159,10 +161,10 @@ def test_dropping_the_exchange_rejects_a_row_that_does_not_end_in_an_exchange() 
 
 
 def test_repair_row_unwraps_agent_tool_arguments() -> None:
-    label, literal = v15.v7.CHANGES[0]
+    label, literal = v7.CHANGES[0]
     row = {
         "messages": [
-            message("assistant", None, tool_calls=[tool_call(json.dumps({"change": v15.v7.describe(label, literal)}))])
+            message("assistant", None, tool_calls=[tool_call(json.dumps({"change": v7.describe(label, literal)}))])
         ],
         "tools": [{"type": "function", "function": {"name": "submit_mock_change"}}],
     }
@@ -197,7 +199,7 @@ def test_v10_rows_land_as_agent_tool_candidates() -> None:
 
     assert len(rows) == v15.EXPECTED_V10_TRAIN_ROWS
     for candidate, payload in rows:
-        assert v15.v14.is_agent_tool(candidate)
+        assert v14.is_agent_tool(candidate)
         assert payload[-1]["role"] == "assistant"
 
 
