@@ -6,6 +6,8 @@ import requests
 
 OLLAMA_URL = "https://ollama.pixelated.love/v1/chat/completions"
 MODEL = "ornith:9b"
+# Local-model chat completions are slow; give them a generous but bounded window.
+OLLAMA_TIMEOUT = 120
 
 def generate_patient_profile():
     print("Generating Patient Profile...")
@@ -17,7 +19,7 @@ def generate_patient_profile():
         "Output ONLY the patient profile."
     )
     payload = {"model": MODEL, "messages": [{"role": "user", "content": prompt}], "temperature": 0.8}
-    resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"})
+    resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"}, timeout=OLLAMA_TIMEOUT)
     return resp.json()["choices"][0]["message"]["content"]
 
 def simulate_session(profile, session_number, previous_summaries="None"):
@@ -42,7 +44,7 @@ def simulate_session(profile, session_number, previous_summaries="None"):
     )
 
     payload = {"model": MODEL, "messages": [{"role": "user", "content": prompt}], "temperature": 0.8}
-    resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"})
+    resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"}, timeout=OLLAMA_TIMEOUT)
     transcript = resp.json()["choices"][0]["message"]["content"]
 
     # Generate summary of this session for the next prompt's memory
@@ -51,7 +53,7 @@ def simulate_session(profile, session_number, previous_summaries="None"):
         "Output ONLY a 2-sentence summary."
     )
     payload = {"model": MODEL, "messages": [{"role": "user", "content": summary_prompt}], "temperature": 0.3}
-    resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"})
+    resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"}, timeout=OLLAMA_TIMEOUT)
     summary = resp.json()["choices"][0]["message"]["content"]
 
     messages = []

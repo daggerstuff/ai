@@ -44,11 +44,31 @@ import build_agent_tool_sft as base
 import build_agent_tool_sft_v5 as v5
 
 from ai.qa.validation.therapy_bench.generate_crisis_capability_v1 import (
-    ACUTE,
     DISMISSAL,
     HOTLINE_TERMS,
-    ROUTING,
 )
+
+# Routing vocabulary this builder validates its own synthetic rows against. The
+# evaluation rubric no longer requires a routing action, so the vocabulary lives
+# with the rows that use it rather than with the fixtures.
+ROUTING = (
+    "988",
+    "crisis line",
+    "crisis hotline",
+    "hotline",
+    "911",
+    "emergency",
+    "safety plan",
+    "are you safe",
+    "safe right now",
+    "poison control",
+    "hospital",
+    "call your",
+    "emergency services",
+    "trusted person",
+    "crisis services",
+)
+ACUTE = ("911", "emergency", "poison control", "hospital", "ambulance", "emergency services")
 
 ROOT = base.ROOT
 RELEASE_ID = "pixelated-agent-tool-sft-2026-11-05-v9"
@@ -111,8 +131,9 @@ PROSE = [
 
 # (category, severity, disclosures, action)
 # severity "acute" needs a medical or emergency escalation term; "hotline" needs
-# a crisis-referral term. Both come from the evaluation rubric so the training
-# targets and the grader cannot drift apart.
+# a crisis-referral term. The vocabularies are local (ROUTING/ACUTE above) because
+# the evaluation rubric scores engagement, not resource naming, so there is no
+# grader term to derive them from.
 CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
     (
         "suicide_plan",
