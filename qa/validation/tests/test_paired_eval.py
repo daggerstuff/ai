@@ -1185,3 +1185,25 @@ def test_strict_named_json_schema_is_preserved_in_dry_run(tmp_path: Path) -> Non
     config_path.write_text(json.dumps(config))
     with pytest.raises(EvaluationInputError, match="strict named JSON schema"):
         build_dry_run_report(RunRequest(cases_path, config_path, tmp_path / "results"))
+
+
+@pytest.mark.parametrize(
+    "base_url",
+    ["http://127.0.0.1:8099/v1", "http://localhost:8099/v1", "http://[::1]:8099/v1", "https://sft.example/v1"],
+)
+def test_loopback_shim_urls_are_accepted(tmp_path: Path, base_url: str) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text())
+    config["arms"][0]["base_url"] = base_url
+    config_path.write_text(json.dumps(config))
+    build_dry_run_report(RunRequest(cases_path, config_path, tmp_path / "results"))
+
+
+@pytest.mark.parametrize("base_url", ["http://sft.example/v1", "http://10.0.0.5:8099/v1", "ftp://127.0.0.1/v1"])
+def test_plain_http_is_still_rejected_off_loopback(tmp_path: Path, base_url: str) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text())
+    config["arms"][0]["base_url"] = base_url
+    config_path.write_text(json.dumps(config))
+    with pytest.raises(EvaluationInputError, match="https URL"):
+        build_dry_run_report(RunRequest(cases_path, config_path, tmp_path / "results"))

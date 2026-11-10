@@ -338,9 +338,14 @@ def _validate_pricing(pricing: Any) -> None:
         raise EvaluationInputError("required usage needs both token rates")
 
 
+_LOOPBACK_HOSTS = {"127.0.0.1", "::1", "localhost"}
+
+
 def _validate_base_url(value: str) -> None:
     parsed = urlsplit(value)
-    if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+    if not parsed.netloc or parsed.username or parsed.password:
+        raise EvaluationInputError("base_url must be an https URL without user info")
+    if parsed.scheme != "https" and not (parsed.scheme == "http" and parsed.hostname in _LOOPBACK_HOSTS):
         raise EvaluationInputError("base_url must be an https URL without user info")
     if parsed.query or parsed.fragment:
         raise EvaluationInputError("base_url cannot contain query parameters or fragments")

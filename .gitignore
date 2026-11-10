@@ -334,6 +334,9 @@ monitoring/**/*.png
 /ai/
 /pixelated_v2/
 !training/tests/test_export_fireworks_release.py
+!training/tests/test_export_tinker_release.py
+!training/tests/test_tinker_sft_release.py
+!training/tests/test_tinker_eval_shim.py
 
 # Provisioned review-bot / agent configs (environment tooling, not source)
 .coderabbit.yaml
