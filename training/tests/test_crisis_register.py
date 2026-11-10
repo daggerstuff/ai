@@ -26,6 +26,7 @@ BUILDERS = (
     "training.build_agent_tool_sft_v10",
     "training.build_agent_tool_sft_v12",
     "training.build_agent_tool_sft_v13",
+    "training.build_agent_tool_sft_v20",
 )
 
 # Which evaluated crisis case each training category is scored against. The
