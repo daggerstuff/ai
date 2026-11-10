@@ -341,6 +341,7 @@ monitoring/**/*.png
 !training/tests/test_export_tinker_release.py
 !training/tests/test_tinker_sft_release.py
 !training/tests/test_tinker_eval_shim.py
+!training/tests/test_wandb_sft_release_status.py
 
 # Provisioned review-bot / agent configs (environment tooling, not source)
 .coderabbit.yaml

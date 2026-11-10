@@ -12,6 +12,7 @@ import argparse
 import asyncio
 import base64
 import hashlib
+import itertools
 import json
 import os
 import re
@@ -42,7 +43,17 @@ ALLOWED_MODEL_IDS: frozenset[str] = frozenset({MODEL_ID})
 TRAINING_API_USER_AGENT = "pixelated-empathy-training-launcher/1.0"
 ENTITY = "wutang"
 PROJECT = "pixelated-empathy-kan28"
-TERMINAL_STATES = {"succeeded", "failed", "cancelled", "canceled"}
+TERMINAL_STATES = frozenset({"succeeded", "completed", "failed", "error", "cancelled", "canceled"})
+
+
+def is_terminal_status(status: Any) -> bool:
+    """Return whether a provider status is terminal.
+
+    W&B reports upper-case statuses (``COMPLETED``), and the launcher records
+    them verbatim, so the comparison must be case-insensitive.
+    """
+    return isinstance(status, str) and status.strip().lower() in TERMINAL_STATES
+
 AUDIT_CONFIG_FIELDS = {
     "assistant_turns",
     "batch_size",
@@ -668,7 +679,7 @@ class ExecutionRequest:
     private_check: Callable[[str, str, str], None] = verify_private_project
     artifact_upload: Callable[[Path, str], str] | None = None
     poll_interval: float = 30
-    max_polls: int = 1
+    max_polls: int | None = 1
 
 
 @dataclass(frozen=True)
@@ -816,9 +827,16 @@ def _create_job(
 
 
 def _poll_job(request: ExecutionRequest, state: dict[str, Any], job_id: str, task_id: str) -> None:
+    """Poll the job and keep the state file honest.
+
+    ``max_polls=None`` follows the job until it reaches a terminal state; an
+    integer stops after that many polls. A single poll straight after creation
+    always reports ``PENDING``, which is why the default is to follow.
+    """
     state_path = request.state_dir / f"wandb-sft-{task_id}.json"
     safe_fields = ("id", "status", "state", "created_at", "updated_at", "completed_at", "step", "total_steps")
-    for poll_index in range(request.max_polls):
+    polls = itertools.count() if request.max_polls is None else range(request.max_polls)
+    for poll_index in polls:
         status = request.api.request("GET", f"/preview/training-jobs/{job_id}")
         if not isinstance(status, dict):
             raise QualificationError("W&B training job status response was not a JSON object")
@@ -828,12 +846,15 @@ def _poll_job(request: ExecutionRequest, state: dict[str, Any], job_id: str, tas
         if resolved:
             state["provider_reported_config"] = resolved
         state["phase_updated_unix"] = int(time.time())
-        if state["last_status"] in TERMINAL_STATES:
-            state["phase"] = state["last_status"]
+        terminal = is_terminal_status(state["last_status"])
+        if terminal:
+            state["phase"] = str(state["last_status"]).strip().lower()
+        elif state["phase"] == "job_created":
+            state["phase"] = "job_running"
         atomic_json(state_path, state)
-        if state["last_status"] in TERMINAL_STATES:
+        if terminal:
             return
-        if request.poll_interval and poll_index + 1 < request.max_polls:
+        if request.poll_interval and (request.max_polls is None or poll_index + 1 < request.max_polls):
             time.sleep(request.poll_interval)
 
 
