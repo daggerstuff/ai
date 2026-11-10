@@ -31,14 +31,15 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
 import time
 import urllib.request
-from typing import Any
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 
 from training.launch import prepare_release_eval as prep
 
@@ -52,6 +53,17 @@ JOB_ACTIVE_STATES = {"RUNNING", "PENDING", "UNKNOWN", "QUEUED", "CREATING"}
 JOB_SUCCESS_STATES = {"FINISHED", "SUCCEEDED", "COMPLETED"}
 # A provider hiccup is worth one clean retry; anything else is a real failure.
 TRANSIENT_MARKERS = ("http_502", "http_503", "http_504", "http_500", "ProviderHTTPError", "ReadTimeout")
+
+# Labels flow into child-process argv (results dirs, config names) and W&B run
+# names. Restrict them to a safe token alphabet so a crafted value cannot smuggle
+# flags or path traversal into the eval subprocesses.
+_SAFE_TOKEN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}")
+
+
+def _validate_token(value: str, flag: str) -> str:
+    if not _SAFE_TOKEN.fullmatch(value):
+        raise argparse.ArgumentTypeError(f"{flag} must match {_SAFE_TOKEN.pattern}, got {value!r}")
+    return value
 
 
 def log(message: str) -> None:
@@ -97,7 +109,7 @@ def parse_compare(value: str) -> tuple[str, str]:
     label, _, uri = value.partition("=")
     if not label or not uri.startswith("wandb-artifact:///"):
         raise argparse.ArgumentTypeError(f"expected label=wandb-artifact:///... , got {value!r}")
-    return label, uri
+    return _validate_token(label, "--compare label"), uri
 
 
 def resolve_compares(
@@ -141,6 +153,8 @@ def build_commands(
             if run_label in seen:
                 # the vs-base reading is identical for every compare; keep one.
                 continue
+            if not _SAFE_TOKEN.fullmatch(run_label):
+                raise ValueError(f"unsafe run_label from prepare_release_eval: {run_label!r}")
             seen.add(run_label)
             argv = [
                 PYTHON,
@@ -239,6 +253,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-polls", type=int, default=240)
     parser.add_argument("--skip-wait", action="store_true", help="assume the job already finished")
     args = parser.parse_args(argv)
+    try:
+        release_label = _validate_token(args.release_label, "--release-label")
+    except argparse.ArgumentTypeError as exc:
+        parser.error(str(exc))
 
     exec_dir = args.exec_dir if args.exec_dir.is_absolute() else REPO / args.exec_dir
     if not exec_dir.is_dir():
@@ -246,7 +264,7 @@ def main(argv: list[str] | None = None) -> int:
     compares = resolve_compares(
         args.compare,
         (prep.DEFAULT_COMPARE_LABEL, prep.DEFAULT_COMPARE_URI),
-        args.release_label,
+        release_label,
         include_default=not args.no_default_compare,
     )
     run_name = f"{RUN_PREFIX}{args.task_id[:RUN_HASH_LENGTH]}"
@@ -259,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     release_uri = prep.resolve_release_uri(run_name)
-    commands = build_commands(args.release_label, release_uri, compares, exec_dir)
+    commands = build_commands(release_label, release_uri, compares, exec_dir)
 
     failures = 0
     with ThreadPoolExecutor(max_workers=args.parallel) as pool:
@@ -269,7 +287,7 @@ def main(argv: list[str] | None = None) -> int:
             if rc != 0:
                 failures += 1
 
-    failures += 1 if render_scoreboard(exec_dir, args.release_label) != 0 else 0
+    failures += 1 if render_scoreboard(exec_dir, release_label) != 0 else 0
     log(f"PIPELINE DONE failures={failures}")
     return 0 if failures == 0 else 1
 
