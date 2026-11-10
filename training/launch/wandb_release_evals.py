@@ -8,10 +8,11 @@ from the prep plan, which is how the v16 batch ended up with one run that never
 finished and a stale scoreboard.
 
 This script owns the whole sequence: poll the job, resolve the artifact from the
-run that produced it, write the configs, run them in parallel, and render the
-scoreboard. A run that dies on a provider 5xx is retried once from a clean
-results directory -- the harness records its own flag set in the run manifest,
-so resuming a partially written directory is rejected as an identity change.
+run that produced it, write the configs, run them in parallel, render the
+scoreboard, and publish the results root to W&B. A run that dies on a provider
+5xx is retried once from a clean results directory -- the harness records its
+own flag set in the run manifest, so resuming a partially written directory is
+rejected as an identity change.
 
 Usage:
 
@@ -37,9 +38,9 @@ import subprocess
 import sys
 import time
 import urllib.request
-from typing import Any
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 
 from training.launch import prepare_release_eval as prep
 
@@ -229,6 +230,41 @@ def render_scoreboard(exec_dir: Path, release_label: str) -> int:
     return 0
 
 
+def track_eval_run(exec_dir: Path, release_label: str) -> int:
+    """Publish the finished results root to W&B (metrics + artifact)."""
+    completed = subprocess.run(
+        [
+            PYTHON,
+            "training/launch/log_eval_tracking.py",
+            "--results-root",
+            str(exec_dir / "evals" / "results"),
+            "--release-label",
+            release_label,
+            "--exec-dir",
+            str(exec_dir),
+        ],
+        cwd=AI,
+        env=dict(os.environ, PYTHONPATH=str(AI)),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        log(f"eval tracking failed rc={completed.returncode}: {completed.stderr.strip()[-800:]}")
+        return completed.returncode
+    try:
+        report = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        log(f"eval tracking: {completed.stdout.strip()[-400:]}")
+        return 0
+    log(
+        f"eval tracking: run {report.get('run_id')} "
+        f"({report.get('scalar_count')} scalars, {report.get('case_rows')} case rows, "
+        f"artifact {report.get('artifact')})"
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--release-label", required=True, help="e.g. v17")
@@ -252,6 +288,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--poll-seconds", type=int, default=120)
     parser.add_argument("--max-polls", type=int, default=240)
     parser.add_argument("--skip-wait", action="store_true", help="assume the job already finished")
+    parser.add_argument(
+        "--skip-track",
+        action="store_true",
+        help="do not publish the results root to W&B (offline runs)",
+    )
     args = parser.parse_args(argv)
     try:
         release_label = _validate_token(args.release_label, "--release-label")
@@ -288,6 +329,8 @@ def main(argv: list[str] | None = None) -> int:
                 failures += 1
 
     failures += 1 if render_scoreboard(exec_dir, release_label) != 0 else 0
+    if not args.skip_track:
+        failures += 1 if track_eval_run(exec_dir, release_label) != 0 else 0
     log(f"PIPELINE DONE failures={failures}")
     return 0 if failures == 0 else 1
 

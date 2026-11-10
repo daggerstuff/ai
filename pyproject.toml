@@ -477,6 +477,10 @@ ignore = []
     "PLR2004",
     "SIM117",
 ]
+"training/tests/test_log_eval_tracking.py" = ["PLR2004", "PLR0913"]
+# wandb is imported inside log_to_wandb so the dry-run path (and every test)
+# never pays for it; the module is only needed once we actually publish.
+"training/launch/log_eval_tracking.py" = ["PLC0415"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
