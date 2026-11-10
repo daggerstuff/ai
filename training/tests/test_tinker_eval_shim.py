@@ -209,7 +209,7 @@ def test_config_from_run_record_reads_the_sampler_weights(tmp_path: Path) -> Non
         json.dumps(
             {
                 "run_name": "tinker-v19",
-                "base_model": "Qwen/Qwen3-8B",
+                "base_model": shim.DEFAULT_BASE_MODEL,
                 "sampling_path": "sampler://tinker-v19",
             }
         ),
@@ -220,7 +220,7 @@ def test_config_from_run_record_reads_the_sampler_weights(tmp_path: Path) -> Non
 
     assert cfg.weights == "sampler://tinker-v19"
     assert cfg.model_name == "tinker-v19"
-    assert cfg.base_model == "Qwen/Qwen3-8B"
+    assert cfg.base_model == shim.DEFAULT_BASE_MODEL
     assert cfg.max_tokens == 128
 
 

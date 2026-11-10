@@ -136,13 +136,17 @@ def load_datums(dataset_dir: Path, limit: int | None = None) -> list[dict[str, A
 def plan_run(
     dataset_dir: Path = DEFAULT_OUT_DIR,
     *,
-    base_model: str = DEFAULT_BASE_MODEL,
+    base_model: str | None = None,
     batch_size: int = BATCH_SIZE,
     rank: int = DEFAULT_RANK,
     seed: int = DEFAULT_SEED,
     limit: int | None = None,
 ) -> Plan:
-    """Return the plan for this export, verifying the export against its record."""
+    """Return the plan for this export, verifying the export against its record.
+
+    ``base_model=None`` trusts the model named in the export record; passing a
+    model explicitly only asserts it matches.
+    """
     record_path = dataset_dir / RECORD_NAME
     if not record_path.exists():
         raise PlanError(f"{record_path} is missing; run export_tinker_release.py first")
@@ -174,9 +178,14 @@ def plan_run(
     except ValueError:
         schedule = [PEAK_LR] * steps
         degenerate = True
+    record_model = record.get("base_model")
+    if base_model is not None and record_model and record_model != base_model:
+        # The datum token ids only mean anything to the tokenizer that produced
+        # them, so training them on a different base silently destroys the run.
+        raise PlanError(f"{datum_path} was tokenized for {record_model}, not {base_model}")
     return Plan(
         dataset_dir=dataset_dir,
-        base_model=record.get("base_model", base_model),
+        base_model=record_model or base_model or DEFAULT_BASE_MODEL,
         datums=len(rows),
         trained_tokens=trained,
         batch_size=batch_size,
@@ -349,7 +358,11 @@ def _wandb_run(plan: Plan, name: str) -> Any:
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--dataset-dir", type=Path, default=DEFAULT_OUT_DIR)
-    parser.add_argument("--base-model", default=DEFAULT_BASE_MODEL)
+    parser.add_argument(
+        "--base-model",
+        default=None,
+        help=f"assert the export was tokenized for this model (default: the export record, {DEFAULT_BASE_MODEL})",
+    )
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     parser.add_argument("--rank", type=int, default=DEFAULT_RANK)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
@@ -367,7 +380,7 @@ def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
 
     if args.check:
-        report = check_api(base_model=args.base_model)
+        report = check_api(base_model=args.base_model or DEFAULT_BASE_MODEL)
         print(json.dumps(report, indent=2, sort_keys=True))
         return 1 if report.get("blocked") or not report.get("model_supported", False) else 0
 

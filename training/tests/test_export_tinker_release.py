@@ -74,6 +74,26 @@ class StubTokenizer:
         return " ".join(reverse.get(token, "?") for token in ids)
 
 
+class TrimmingTokenizer(StubTokenizer):
+    """A ChatML render that trims content, like Qwen3.5's ``|trim``.
+
+    The release tokenizer's template trims every message, so a mask measured
+    against untrimmed text would not line up with what the model actually sees.
+    """
+
+    name_or_path = "stub-chatml-trim"
+
+    def render(
+        self,
+        messages: list[dict[str, Any]],
+        add_generation_prompt: bool = False,
+    ) -> str:
+        parts = [f"<|{message['role']}|>\n{message['content'].strip()}\n<|im_end|>\n" for message in messages]
+        if add_generation_prompt:
+            parts.append("<|assistant|>\n")
+        return "".join(parts)
+
+
 def messages(*turns: tuple[str, str]) -> list[dict[str, Any]]:
     """Build a release payload, weighting assistant turns for training."""
     payload: list[dict[str, Any]] = []
@@ -141,6 +161,18 @@ def test_leaked_reasoning_is_stripped_from_the_trained_text() -> None:
 
     assert trained_text(tokenizer, ids, weights) == ["Call", "988", "now.", "<|im_end|>"]
     assert "draft" not in tokenizer.decode(ids)
+
+
+def test_whitespace_is_trimmed_the_way_the_template_trims_it() -> None:
+    tokenizer = TrimmingTokenizer()
+    payload = messages(
+        ("user", CLIENT_PROMPT),
+        ("assistant", "  Call 988 now.  "),
+    )
+
+    ids, weights = tinker.build_tokens(tokenizer, payload)
+
+    assert trained_text(tokenizer, ids, weights) == ["Call", "988", "now.", "<|im_end|>"]
 
 
 def test_datum_shifts_targets_against_the_mask() -> None:

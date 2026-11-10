@@ -125,7 +125,13 @@ def datum(input_ids: list[int], weights: list[int]) -> dict[str, Any]:
     }
 
 
-def write_export(tmp_path: Path, rows: list[dict[str, Any]], *, datums: int | None = None) -> Path:
+def write_export(
+    tmp_path: Path,
+    rows: list[dict[str, Any]],
+    *,
+    datums: int | None = None,
+    base_model: str | None = None,
+) -> Path:
     """Write an export dir with a record that matches the datum file."""
     path = tmp_path / trainer.DATUM_NAME
     with path.open("w", encoding="utf-8") as handle:
@@ -134,7 +140,7 @@ def write_export(tmp_path: Path, rows: list[dict[str, Any]], *, datums: int | No
     sha = hashlib.sha256(path.read_bytes()).hexdigest()
     record = {
         "schema": "tinker-tokenized-datums-v1",
-        "base_model": "Qwen/Qwen3-8B",
+        "base_model": base_model or trainer.DEFAULT_BASE_MODEL,
         "sha256": sha,
         "datums": datums if datums is not None else len(rows),
         "source_release_id": "stub-release",
@@ -190,6 +196,21 @@ def test_plan_rejects_a_missing_export(tmp_path: Path) -> None:
         trainer.plan_run(tmp_path)
 
 
+def test_plan_rejects_datums_tokenized_for_a_different_base_model(tmp_path: Path) -> None:
+    dataset = write_export(tmp_path, many_rows(4), base_model="Qwen/Qwen3-8B")
+
+    with pytest.raises(trainer.PlanError, match="tokenized for"):
+        trainer.plan_run(dataset, base_model=trainer.DEFAULT_BASE_MODEL)
+
+
+def test_plan_trusts_the_record_base_model_when_none_is_requested(tmp_path: Path) -> None:
+    dataset = write_export(tmp_path, many_rows(4), base_model="Qwen/Qwen3.6-35B-A3B")
+
+    plan = trainer.plan_run(dataset, base_model=None)
+
+    assert plan.base_model == "Qwen/Qwen3.6-35B-A3B"
+
+
 def test_limit_skips_the_full_export_verification(tmp_path: Path) -> None:
     dataset = write_export(tmp_path, many_rows(64))
 
@@ -223,7 +244,7 @@ def test_train_replays_the_schedule_and_saves_weights(tmp_path: Path) -> None:
         log=lambda *_: None,
     )
 
-    assert service.requests == [{"base_model": "Qwen/Qwen3-8B", "rank": 32, "seed": 20261110}]
+    assert service.requests == [{"base_model": trainer.DEFAULT_BASE_MODEL, "rank": 32, "seed": 20261110}]
     assert service.client.learning_rates == plan.schedule
     assert [len(batch) for batch in service.client.batches] == [16, 16, 16]
     assert service.client.sampled == ["tinker-stub-release"]
@@ -274,7 +295,7 @@ def test_check_api_reports_whether_the_base_model_is_offered(
 ) -> None:
     capabilities = {
         "supported_models": [
-            {"model_name": "Qwen/Qwen3-8B"},
+            {"model_name": trainer.DEFAULT_BASE_MODEL},
             {"model_name": "meta-llama/Llama-3.1-8B"},
         ]
     }
@@ -286,7 +307,7 @@ def test_check_api_reports_whether_the_base_model_is_offered(
 
     monkeypatch.setattr(trainer, "_get", fake_get)
 
-    report = trainer.check_api(base_model="Qwen/Qwen3-8B")
+    report = trainer.check_api(base_model=trainer.DEFAULT_BASE_MODEL)
 
     assert report["blocked"] is False
     assert report["model_supported"] is True

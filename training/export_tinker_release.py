@@ -57,10 +57,14 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MANIFEST = ROOT / "docs/training/execution-2026-11-10/wandb-full-corpus-current-master-20261110-v19.json"
 DEFAULT_OUT_DIR = ROOT / "ai/training/output/tinker"
 
-# The base the SDK's own tests use, so it is certainly a deployable Tinker
-# model. Every other model name has to be confirmed against
-# ``get_server_capabilities`` (see ``tinker_sft_release.py --check``).
-DEFAULT_BASE_MODEL = "Qwen/Qwen3-8B"
+# Must be the release's own base model: the token ids in these datums are only
+# meaningful to the tokenizer that produced them, and the v19 release trains
+# ``Qwen/Qwen3.6-35B-A3B`` (``Qwen3_5Tokenizer``, 248,077 entries) whose
+# vocabulary and chat template both differ from ``Qwen/Qwen3-8B``
+# (``Qwen2Tokenizer``, 151,669 entries). Whether Tinker hosts that model is
+# confirmed against ``get_server_capabilities`` (see
+# ``tinker_sft_release.py --check``).
+DEFAULT_BASE_MODEL = "Qwen/Qwen3.6-35B-A3B"
 
 # Tinker bills per training token, and a datum longer than the model's context
 # is rejected at forward time rather than at upload time.
@@ -111,18 +115,22 @@ class Export:
 def _plain(messages: list[dict[str, Any]]) -> list[dict[str, str]]:
     """Return the messages as the template will see them.
 
-    Drops the release's per-message ``weight`` and removes leaked reasoning
-    from assistant turns. Qwen3's template splits an assistant turn that
-    contains ``</think>`` into a thinking block plus an answer, so the rendered
-    text would stop matching the release text the mask was measured against.
-    Stripping the reasoning keeps mask and training text identical, and it is
-    what the release repair already does for reasoning preambles.
+    Drops the release's per-message ``weight`` and reproduces the template's two
+    content rewrites, because the mask is measured against the rendered text:
+
+    * the template renders every content with ``|trim``, so leading and trailing
+      whitespace is not part of what the model sees;
+    * an assistant turn containing ``</think>`` is split into a thinking block
+      plus an answer, so the rendered text would stop matching the release text.
+      Stripping the reasoning keeps mask and training text identical, and it is
+      what the release repair already does for reasoning preambles. The tail is
+      trimmed too, because the template trims whatever content it is given.
     """
     plain: list[dict[str, str]] = []
     for message in messages:
-        content = message["content"]
+        content = message["content"].strip()
         if message["role"] == "assistant" and "</think>" in content:
-            content = content.split("</think>")[-1].lstrip("\n")
+            content = content.split("</think>")[-1].strip()
         plain.append({"role": message["role"], "content": content})
     return plain
 
