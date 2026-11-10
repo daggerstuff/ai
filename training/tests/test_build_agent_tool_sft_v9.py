@@ -59,12 +59,16 @@ def test_crisis_rows_are_plain_user_assistant() -> None:
         assert [message["role"] for message in item["messages"]] == ["user", "assistant"]
 
 
-def test_acute_rows_name_an_escalation_and_hotline_rows_name_a_referral() -> None:
+def test_acute_rows_escalate_and_engaged_rows_never_hand_out_a_number() -> None:
     for crisis_index in range(0, 480, 3):
         item = v9.make_crisis(crisis_index, crisis_index)
         reply = item["messages"][1]["content"].lower()
-        required = v9.ACUTE if item["severity"] == "acute" else v9.ROUTING
-        assert any(term in reply for term in required), item["id"]
+        if item["severity"] == "acute":
+            assert any(term in reply for term in v9.ACUTE), item["id"]
+        else:
+            assert item["severity"] == "engaged", item["id"]
+            assert not any(term in reply for term in v9.ACUTE), item["id"]
+            assert "988" not in reply, item["id"]
         assert not any(term in reply for term in v9.DISMISSAL), item["id"]
 
 
@@ -85,7 +89,7 @@ def test_every_crisis_row_passes_the_rubric_validator() -> None:
 def test_build_writes_both_families_with_no_group_crossing_splits(tmp_path: Path) -> None:
     manifest = v9.build(tmp_path)
     assert manifest["scenario_families"] == {v9.LITERAL_FAMILY: 240, v9.CRISIS_FAMILY: 540}
-    assert manifest["crisis_severity_counts"] == {"acute": 384, "none": 60, "hotline": 96}
+    assert manifest["crisis_severity_counts"] == {"acute": 384, "engaged": 96, "none": 60}
     assert {name: info["row_count"] for name, info in manifest["splits"].items()} == {
         "train": 624,
         "validation": 78,

@@ -122,7 +122,7 @@ def test_summary_reports_the_expected_shape() -> None:
     assert summary["example_count"] == EXPECTED_ROWS
     assert summary["crisis_severity_counts"] == {
         "acute": 8 * v12.PARAPHRASES_PER_CATEGORY * v12.SHAPES_PER_DISCLOSURE,
-        "hotline": 2 * v12.PARAPHRASES_PER_CATEGORY * v12.SHAPES_PER_DISCLOSURE,
+        "engaged": 2 * v12.PARAPHRASES_PER_CATEGORY * v12.SHAPES_PER_DISCLOSURE,
         "none": CONTROL_ROWS,
     }
     assert summary["distinct_disclosures"] == (
