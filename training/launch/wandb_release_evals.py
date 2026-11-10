@@ -37,9 +37,9 @@ import subprocess
 import sys
 import time
 import urllib.request
-from typing import Any
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 
 from training.launch import prepare_release_eval as prep
 
