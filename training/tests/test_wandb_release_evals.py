@@ -142,6 +142,14 @@ def test_transient_failures_tolerates_a_missing_results_file(tmp_path: Path) -> 
     assert pipeline.transient_failures(tmp_path / "nothing-here") == []
 
 
+def test_transient_failures_ignores_a_timeout_that_was_later_answered(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="TimeoutError")
+    _write_result(results_dir, status="success", error_type=None, retry_count=1)
+
+    assert pipeline.transient_failures(results_dir) == []
+
+
 def test_a_read_timeout_resumes_in_place_without_wiping(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     results_dir = tmp_path / "results"
     _write_result(results_dir, status="failed", error_type="TimeoutError")

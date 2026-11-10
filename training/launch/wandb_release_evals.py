@@ -185,23 +185,31 @@ def build_commands(
 
 
 def transient_failures(results_dir: Path) -> list[str]:
-    """Failed records caused by the transport rather than by the model."""
+    """Failed records caused by the transport rather than by the model.
+
+    A resumed run appends its retry to the same file, so the last record for a
+    case is the one that counts; an earlier timeout that was later answered
+    must not trigger another pass.
+    """
     path = results_dir / "results.jsonl"
     if not path.is_file():
         return []
-    names: list[str] = []
+    latest: dict[tuple[Any, Any], dict[str, Any]] = {}
     with path.open(encoding="utf-8") as stream:
         for line in stream:
             if not line.strip():
                 continue
             record = json.loads(line)
-            if record.get("status") == "success":
-                continue
-            if (
-                record.get("error_type") in TRANSIENT_ERROR_TYPES
-                or record.get("provider_http_status") in TRANSIENT_HTTP_STATUSES
-            ):
-                names.append(f"{record.get('arm_id')}/{record.get('case_id')}={record.get('error_type')}")
+            latest[(record.get("arm_id"), record.get("case_id"))] = record
+    names: list[str] = []
+    for record in latest.values():
+        if record.get("status") == "success":
+            continue
+        if (
+            record.get("error_type") in TRANSIENT_ERROR_TYPES
+            or record.get("provider_http_status") in TRANSIENT_HTTP_STATUSES
+        ):
+            names.append(f"{record.get('arm_id')}/{record.get('case_id')}={record.get('error_type')}")
     return names
 
 
