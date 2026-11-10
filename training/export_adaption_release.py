@@ -39,11 +39,10 @@ from training.export_fireworks_release import (
 )
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MANIFEST = (
-    ROOT / "docs/training/execution-2026-11-10/wandb-full-corpus-current-master-20261110-v19.json"
-)
+DEFAULT_MANIFEST = ROOT / "docs/training/execution-2026-11-10/wandb-full-corpus-current-master-20261110-v19.json"
 DEFAULT_OUT_DIR = ROOT / "ai/training/output/adaption"
 DATUM_FLOOR = 10_000  # Adaption effective-row floor for Qwen3.6-35B-A3B
+PLAN_ROW_LIMIT = 50_000  # account plan ceiling per launch (observed 2026-11-10)
 CHAR_PER_TOKEN = 4
 
 
@@ -62,9 +61,7 @@ def unroll(messages: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
         if index == 0 or messages[index - 1].get("role") != "user":
             skipped += 1
             continue
-        prompt = [
-            {"role": prior["role"], "content": prior["content"]} for prior in messages[:index]
-        ]
+        prompt = [{"role": prior["role"], "content": prior["content"]} for prior in messages[:index]]
         datums.append(
             {
                 "prompt": prompt,
@@ -132,6 +129,10 @@ def export(
         "chars": chars,
         "estimated_tokens": round(chars / CHAR_PER_TOKEN),
         "meets_adaption_floor": len(datums) >= DATUM_FLOOR,
+        # Ingest is free but any adaptation launch is rejected above the plan ceiling,
+        # so an over-limit export is reported rather than silently trimmed.
+        "exceeds_plan_row_limit": len(datums) > PLAN_ROW_LIMIT,
+        "plan_row_limit": PLAN_ROW_LIMIT,
         "format": "adaption_prompt_completion_unrolled_v1",
     }
     if dry_run:
@@ -172,9 +173,11 @@ def main(argv: list[str] | None = None) -> int:
     summary = export(args.manifest, args.out_dir, dry_run=args.dry_run)
     print(json.dumps(summary, indent=1))
     if not summary["meets_adaption_floor"]:
+        print(f"WARNING: {summary['datums']} datums is below the {DATUM_FLOOR} Adaption floor for Qwen3.6-35B-A3B")
+    if summary["exceeds_plan_row_limit"]:
         print(
-            f"WARNING: {summary['datums']} datums is below the {DATUM_FLOOR} Adaption floor "
-            "for Qwen3.6-35B-A3B"
+            f"WARNING: {summary['datums']} datums exceeds the {PLAN_ROW_LIMIT:,}-row plan ceiling; "
+            "AutoScientist trains on the dataset directly, but datasets.adapt launches will be rejected"
         )
     return 0
 
