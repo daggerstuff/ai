@@ -10,6 +10,8 @@ answer a disclosure with a generic routing sentence.
 from __future__ import annotations
 
 import importlib
+import re
+from pathlib import Path
 
 import pytest
 
@@ -156,3 +158,25 @@ def test_control_rows_stay_off_crisis_language(module_name: str) -> None:
         if leaked:
             hits.append(f"{row.get('id', '?')}: {leaked}")
     assert not hits, f"{module_name} teaches hotline language on controls:\n" + "\n".join(hits[:10])
+
+
+GUARD_MODULE = Path(__file__).resolve().parents[3] / "apps/web/src/lib/ai/safety/registerGuard.ts"
+
+
+def _guard_phrases(name: str) -> list[str]:
+    """Pull a `const NAME = [...] as const` string array out of the app guard."""
+    source = GUARD_MODULE.read_text()
+    start = source.index(f"const {name} = [")
+    end = source.index("] as const", start)
+    quoted = re.findall(r'"([^"]*)"|\'([^\']*)\'', source[start:end])
+    return [double or single for double, single in quoted]
+
+
+def test_the_app_guard_uses_the_rubric_register_vocabulary() -> None:
+    """A guard list that drifts from the rubric silently stops matching failures."""
+    assert set(_guard_phrases("REGISTER_BANNED_PHRASES")) == set(CODDLING)
+
+
+def test_the_app_guard_never_drops_a_sentence_that_escalates() -> None:
+    escalations = {term.casefold() for term in _guard_phrases("ESCALATION_TERMS")}
+    assert {term.casefold() for term in MEDICAL_ESCALATION} <= escalations
