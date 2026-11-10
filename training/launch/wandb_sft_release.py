@@ -236,20 +236,20 @@ def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
     model_id = g04._create_model(request, state, campaign.task_id)
     job_id = g04._create_job(request, state, plan, model_id, artifact_uri)
     g04._poll_job(request, state, job_id, campaign.task_id)
-    sys.stdout.write(
-        json.dumps(
-            {
-                "task_id": campaign.task_id,
-                "phase": state["phase"],
-                "training_job_id": job_id,
-                "model_id": model_id,
-                "artifact_uri": artifact_uri,
-                "state_path": str(state_path),
-            },
-            indent=2,
-        )
-        + "\n"
-    )
+    report = {
+        "task_id": campaign.task_id,
+        "phase": state["phase"],
+        "last_status": state.get("last_status"),
+        "terminal": g04.is_terminal_status(state.get("last_status")),
+        "training_job_id": job_id,
+        "model_id": model_id,
+        "artifact_uri": artifact_uri,
+        "state_path": str(state_path),
+    }
+    if not report["terminal"]:
+        release_id = campaign.manifest["release_id"]
+        report["next"] = f"--release {release_id} --status reconciles this run against the provider"
+    sys.stdout.write(json.dumps(report, indent=2) + "\n")
     return 0
 
 
