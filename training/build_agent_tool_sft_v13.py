@@ -143,7 +143,7 @@ ACTIONS: dict[str, tuple[str, ...]] = {
         "the injury and the risk get assessed.",
     ),
     "passive_ideation": (
-        "Call or text 988 tonight. Wanting to not wake up is what that line is for and it is staffed around the clock.",
+        "Call 988 tonight. Wanting to not wake up is what that line is for and it is staffed around the clock.",
         "Call 988 tonight and say what you just said here. A crisis line is the right place for this and "
         "it does not close.",
         "Text 988 now. This is the reason the line exists and it takes the call tonight, not next week.",

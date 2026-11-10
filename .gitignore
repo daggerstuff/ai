@@ -254,6 +254,7 @@ training/tests/*
 !training/tests/test_wandb_release_evals.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
+!training/tests/test_crisis_register.py
 !training/tests/test_rewrite_arc_risk_turns.py
 # Track golden calibration data for LLM quality judge
 training/data/*

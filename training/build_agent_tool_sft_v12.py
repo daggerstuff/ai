@@ -78,14 +78,13 @@ ACTIONS: dict[str, tuple[str, ...]] = {
         "a chosen method has to be assessed today, not talked through.",
         "Call 911 now. A set plan and a chosen method is a medical emergency, not something to talk "
         "through over the next few days.",
-        "Please call 911 or get to an emergency department tonight and tell them you have a plan and "
+        "Call 911 or get to an emergency department tonight and tell them you have a plan and "
         "the means — this needs to be assessed today.",
     ),
     "overdose_taken": (
         "Call 911 right now — what you swallowed keeps working in your body for hours, and this needs "
         "an emergency department tonight.",
-        "Please call 911 now and say what you took and when; poison control can stay on the line with "
-        "you until help arrives.",
+        "Call 911 now and say what you took and when; poison control can stay on the line with you until help arrives.",
         "Call 911 or get to an emergency department immediately — an overdose can worsen over hours "
         "even if you feel steady right now.",
     ),
@@ -100,7 +99,7 @@ ACTIONS: dict[str, tuple[str, ...]] = {
     "psychosis_risk_other": (
         "Call 911 right now and stay on the line with them — a command you are afraid you will follow "
         "is an emergency, and they need to come to you.",
-        "Please call 911 now and say that you are afraid you will act on what the voices are telling "
+        "Call 911 now and say that you are afraid you will act on what the voices are telling "
         "you; they need to come to you.",
         "Call 911 right now and tell them someone may get hurt tonight — an emergency team needs to be "
         "with you before this goes further.",
@@ -108,7 +107,7 @@ ACTIONS: dict[str, tuple[str, ...]] = {
     "assault_strangulation": (
         "Call 911 now. Hands around your throat is a medical emergency and a police matter at the same "
         "time, and both need to happen tonight.",
-        "Please call 911 now; being choked can cause damage that only shows up hours later, and they "
+        "Call 911 now; being choked can cause damage that only shows up hours later, and they "
         "can send officers at the same time.",
         "Call 911 and ask for both an ambulance and the police — strangulation needs to be checked "
         "tonight and you should not be alone with him.",
@@ -116,7 +115,7 @@ ACTIONS: dict[str, tuple[str, ...]] = {
     "medical_collapse": (
         "Get an ambulance now — collapsing after days of not keeping food down means your heart and "
         "electrolytes need checking at a hospital tonight, not tomorrow.",
-        "Please call 911 now; passing out and an irregular heartbeat after days of purging or "
+        "Call 911 now; passing out and an irregular heartbeat after days of purging or "
         "restricting is a medical emergency.",
         "Call 911 or have someone drive you to an emergency department immediately — collapse and "
         "heart symptoms at this point are not something to watch at home.",
@@ -124,7 +123,7 @@ ACTIONS: dict[str, tuple[str, ...]] = {
     "withdrawal": (
         "Call 911 or get to an emergency department — the first days of alcohol or sedative withdrawal "
         "are when seizures happen, and that needs monitoring you cannot do at home.",
-        "Please call 911 now; withdrawal from alcohol or sedatives can cause seizures, and that needs a "
+        "Call 911 now; withdrawal from alcohol or sedatives can cause seizures, and that needs a "
         "medical team rather than a quiet room.",
         "Call 911 or get to an emergency department tonight — this is the stage of withdrawal where seizures happen.",
     ),
@@ -133,24 +132,23 @@ ACTIONS: dict[str, tuple[str, ...]] = {
         "the injury looked at and a crisis assessment before you go home.",
         "Call 911 now, or get to an emergency department — an injury from an attempt needs looking at "
         "even if you think it is not serious.",
-        "Please call 911 tonight; after an attempt, the medical check and the crisis assessment both "
+        "Call 911 tonight; after an attempt, the medical check and the crisis assessment both "
         "happen at the emergency department.",
     ),
     "passive_ideation": (
-        "Call or text 988 tonight — thinking you would be better off dead is exactly what that line is "
+        "Call 988 tonight — thinking you would be better off dead is exactly what that line is "
         "for, and they will stay on the phone with you.",
-        "Call or text 988 tonight and say what you have just said to me; they will stay with you, and "
+        "Call 988 tonight and say what you have just said to me; they will stay with you, and "
         "we can build a safety plan for the bad hours.",
-        "Please call 988 now and tell them you have been thinking you would be better off dead; a "
+        "Call 988 now and tell them you have been thinking you would be better off dead; a "
         "crisis line is the right place for this tonight.",
     ),
     "means_access": (
         "Call 988 now, and while you are on the phone with them let us arrange for the means to leave "
         "your home tonight.",
-        "Call or text 988 tonight, and give the means to someone you trust or lock them away — having "
+        "Call 988 tonight, and give the means to someone you trust or lock them away — having "
         "the method within reach is what turns thinking into acting.",
-        "Please call 988 now and tell them what you have been keeping close; then let us get it out of "
-        "the house tonight.",
+        "Call 988 now and tell them what you have been keeping close; then let us get it out of the house tonight.",
     ),
 }
 

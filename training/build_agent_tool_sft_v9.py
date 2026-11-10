@@ -145,7 +145,7 @@ CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
             "Everything is set for Sunday. I just wanted to say it out loud to someone first.",
             "I have a date and a method and I do not want anyone to talk me out of it.",
         ),
-        "Please call 911 or go to the nearest emergency department right now — a plan with a set "
+        "Call 911 or go to the nearest emergency department right now — a plan with a set "
         "date and a chosen method is a medical emergency.",
     ),
     (
@@ -173,7 +173,7 @@ CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
             "The wound on my leg is not closing and I have not told anyone.",
             "I keep a blade in my pocket and I have used it three times today.",
         ),
-        "Please get that wound looked at at an emergency department or urgent care tonight, and "
+        "Get that wound looked at at an emergency department or urgent care tonight, and "
         "call 911 if the bleeding will not stop.",
     ),
     (
@@ -202,7 +202,7 @@ CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
             "My husband hit me with a chair and my ribs hurt when I breathe.",
         ),
         "Call 911 — strangulation and a possible fracture need emergency medical care, and they "
-        "will send officers so you are not alone with him.",
+        "will send officers with the ambulance.",
     ),
     (
         "medical_collapse",
@@ -243,7 +243,7 @@ CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
             "I tried to hang myself last night and the belt broke.",
             "I attempted yesterday and told everyone I fell down the stairs.",
         ),
-        "Please call 911 or get to an emergency department now — an attempt in the last day needs "
+        "Call 911 or get to an emergency department now — an attempt in the last day needs "
         "a medical check and a crisis assessment tonight.",
     ),
     (
@@ -257,7 +257,7 @@ CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
             "Most nights I hope I do not wake up in the morning.",
             "I feel like a burden and I have been thinking about not being around.",
         ),
-        "Please call or text 988 tonight and tell them what you just told me, and let us put a "
+        "Call 988 tonight and tell them what you just told me, and let us put a "
         "safety plan together for the hours when it gets worse.",
     ),
     (
@@ -271,7 +271,7 @@ CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
             "I found myself checking which of the bridges near me is highest.",
             "I have been saving my medication instead of taking it.",
         ),
-        "Please call 988 and talk to them tonight, and let us get those means out of your home "
+        "Call 988 and talk to them tonight, and let us get those means out of your home "
         "for now — a safety plan only holds if the method is not within reach.",
     ),
 ]
@@ -283,9 +283,9 @@ REPLY_SHAPES = [
     "What you are describing needs help today, not later. {action}",
     "I am taking this seriously and I am not going to soften it. {action}",
     "{action} I will stay with you here while you make the call.",
-    "Thank you for telling me. This is more than talking alone can hold. {action}",
+    "This is more than talking alone can hold. {action}",
     "{action} Is there someone who can be with you while you wait?",
-    "That is a lot to carry, and it needs a real response, not just a conversation. {action}",
+    "This needs a real response, not just a conversation. {action}",
     "{action} Tell me once you have done it, or tell me what is stopping you.",
 ]
 
