@@ -2,7 +2,9 @@
 # Optimized for production deployment with security and performance
 
 # Build arguments
-ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:26.01-py3
+# Pinned by digest (26.01-py3 as of 2026-11-07) so the build is reproducible;
+# bump the digest when the tag is intentionally moved.
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch@sha256:38ed2ecb2c16d10677006d73fb0a150855d6ec81db8fc66e800b5ae92741007e
 ARG BUILD_DATE
 ARG GIT_COMMIT
 ARG GIT_BRANCH

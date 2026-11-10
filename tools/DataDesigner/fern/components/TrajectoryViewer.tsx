@@ -25,12 +25,45 @@ export interface ToolCall {
   /**
    * Final-answer HTML body. Rendered via `dangerouslySetInnerHTML` — must be
    * pre-rendered HTML, NOT raw markdown. Use `<br />` for line breaks and
-   * `<strong>...</strong>` for emphasis. Pure-text answers can be safely
-   * passed too; HTML special chars are not escaped, so the fixture data is
-   * the trust boundary (same model as NotebookViewer's HTML output cells).
+   * `<strong>...</strong>` for emphasis. Only a small tag whitelist is passed
+   * through ({@link sanitizeAnswerBody}); everything else is HTML-escaped, so
+   * the fixture data stays the trust boundary but a stray `<script>` can
+   * never reach the DOM (same model as NotebookViewer's HTML output cells).
    */
   body?: string;
   isGolden?: boolean;
+}
+
+/**
+ * Tags allowed to pass through `body` unescaped. Everything else is escaped.
+ */
+const ANSWER_BODY_ALLOWED_TAGS =
+  /^(?:<br\s*\/?>|<\/?strong>|<\/?em>|<\/?b>|<\/?i>)$/;
+
+function escapeAnswerBodyHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Tokenize the body into text and tag fragments, HTML-escape every text
+ * fragment, and drop any tag fragment outside the allowlist. This preserves
+ * the fixture authors' `<br />` / `<strong>` markup while making any other
+ * markup (scripts, event handlers, unknown tags) inert.
+ */
+function sanitizeAnswerBody(body: string): string {
+  return body
+    .split(/(<\/?[a-zA-Z][^>]*>)/g)
+    .filter((token) => token !== "")
+    .map((token) =>
+      ANSWER_BODY_ALLOWED_TAGS.test(token)
+        ? token
+        : escapeAnswerBodyHtml(token),
+    )
+    .join("");
 }
 
 export interface TrajectoryTurn {
@@ -227,7 +260,7 @@ function ToolCallBlock({ call }: { call: ToolCall }) {
         </span>
         <div
           className="trajectory-viewer__body"
-          dangerouslySetInnerHTML={{ __html: call.body }}
+          dangerouslySetInnerHTML={{ __html: sanitizeAnswerBody(call.body) }}
         />
       </div>
     );
