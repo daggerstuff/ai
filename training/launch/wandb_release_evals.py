@@ -54,6 +54,12 @@ JOB_ACTIVE_STATES = {"RUNNING", "PENDING", "UNKNOWN", "QUEUED", "CREATING"}
 JOB_SUCCESS_STATES = {"FINISHED", "SUCCEEDED", "COMPLETED"}
 # A provider hiccup is worth one clean retry; anything else is a real failure.
 TRANSIENT_MARKERS = ("http_502", "http_503", "http_504", "http_500", "ProviderHTTPError", "ReadTimeout")
+# Transport failures are not model behaviour, so they are re-asked instead of
+# being scored. The eval subprocess records them in results.jsonl, which is the
+# only reliable signal: the manifest it prints carries counts, not error types.
+TRANSIENT_ERROR_TYPES = frozenset({"TimeoutError", "URLError", "RemoteDisconnected", "ConnectionResetError"})
+TRANSIENT_HTTP_STATUSES = frozenset({500, 502, 503, 504})
+MAX_TRANSIENT_RETRIES = 2
 
 # Labels flow into child-process argv (results dirs, config names) and W&B run
 # names. Restrict them to a safe token alphabet so a crafted value cannot smuggle
@@ -178,8 +184,30 @@ def build_commands(
     return commands
 
 
+def transient_failures(results_dir: Path) -> list[str]:
+    """Failed records caused by the transport rather than by the model."""
+    path = results_dir / "results.jsonl"
+    if not path.is_file():
+        return []
+    names: list[str] = []
+    with path.open(encoding="utf-8") as stream:
+        for line in stream:
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            if record.get("status") == "success":
+                continue
+            if (
+                record.get("error_type") in TRANSIENT_ERROR_TYPES
+                or record.get("provider_http_status") in TRANSIENT_HTTP_STATUSES
+            ):
+                names.append(f"{record.get('arm_id')}/{record.get('case_id')}={record.get('error_type')}")
+    return names
+
+
 def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
     env = dict(os.environ, PYTHONPATH=str(AI), WANDB_API_KEY=key)
+    results_dir = Path(argv[argv.index("--results-dir") + 1])
     log(f"start {label}")
     completed = subprocess.run(
         argv,
@@ -191,24 +219,41 @@ def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
     )
     tail = (completed.stdout or "").strip().splitlines()[-3:]
     log(f"done {label} rc={completed.returncode} {' | '.join(tail)}")
-    if completed.returncode != 0:
-        stderr = (completed.stderr or "").strip()
+    stderr = (completed.stderr or "").strip()
+    if completed.returncode != 0 and stderr:
         log(f"stderr {label}: {stderr[-800:]}")
-        if any(marker in stderr or marker in (completed.stdout or "") for marker in TRANSIENT_MARKERS):
-            results_dir = Path(argv[argv.index("--results-dir") + 1])
-            log(f"retrying {label} from a clean results directory")
-            shutil.rmtree(results_dir, ignore_errors=True)
-            retry = [*argv, "--continue-on-transient-http-errors"]
-            retried = subprocess.run(
-                retry,
+    for attempt in range(1, MAX_TRANSIENT_RETRIES + 1):
+        if completed.returncode == 0:
+            return label, completed.returncode
+        hiccups = transient_failures(results_dir)
+        if hiccups:
+            # Non-fatal: the harness resumes, so only the failed cases are re-asked.
+            log(f"retry {label} {attempt} for {len(hiccups)} transport failure(s): {'; '.join(hiccups[:6])}")
+            completed = subprocess.run(
+                argv,
                 cwd=AI,
                 env=env,
                 capture_output=True,
                 text=True,
                 check=False,
             )
-            log(f"retry {label} rc={retried.returncode}")
-            return label, retried.returncode
+            log(f"retry {label} {attempt} rc={completed.returncode}")
+            continue
+        if any(marker in stderr or marker in (completed.stdout or "") for marker in TRANSIENT_MARKERS):
+            # Fatal provider metadata failure blocks resume, so start clean.
+            log(f"retrying {label} from a clean results directory")
+            shutil.rmtree(results_dir, ignore_errors=True)
+            completed = subprocess.run(
+                [*argv, "--continue-on-transient-http-errors"],
+                cwd=AI,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            log(f"retry {label} rc={completed.returncode}")
+            continue
+        return label, completed.returncode
     return label, completed.returncode
 
 

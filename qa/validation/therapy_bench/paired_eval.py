@@ -1176,6 +1176,24 @@ class CaseExecution:
     input_bounds: list[int | None]
     completion_calls: int = 0
     tool_rounds: int = 0
+    retry_count: int = 0
+
+
+# A cold or queued serverless worker answers slowly enough to hit the read
+# timeout without anything being wrong with the model. Re-asking the same
+# question once the worker is warm is the difference between measuring the
+# adapter and measuring provider queueing, so transport hiccups are retried.
+_TRANSIENT_ERROR_TYPES = frozenset({"TimeoutError", "URLError", "RemoteDisconnected", "ConnectionResetError"})
+_TRANSIENT_HTTP_CODES = frozenset({"http_500", "http_502", "http_503", "http_504"})
+_TRANSIENT_ATTEMPTS = 2
+_TRANSIENT_BACKOFF_SECONDS = 5.0
+
+
+def _is_transient_failure(exc: Exception) -> bool:
+    code = getattr(exc, "code", None)
+    if isinstance(code, str) and code in _TRANSIENT_HTTP_CODES:
+        return True
+    return type(exc).__name__ in _TRANSIENT_ERROR_TYPES
 
 
 class CaseExecutionError(RuntimeError):
@@ -1290,13 +1308,21 @@ def _run_completion_loop(
         if bound is not None and context.input_token_cap is not None and bound > context.input_token_cap:
             raise CaseExecutionError("ToolContextExceededPreflight")
         progress.input_bounds.append(bound)
-        try:
-            completion = context.transport.complete(
-                arm, progress.history, case.get("tools", []), context.config["decoding"]
-            )
-        except Exception as exc:
-            exc.case_progress = progress
-            raise
+        attempt = 0
+        while True:
+            try:
+                completion = context.transport.complete(
+                    arm, progress.history, case.get("tools", []), context.config["decoding"]
+                )
+            except Exception as exc:
+                if attempt >= _TRANSIENT_ATTEMPTS or not _is_transient_failure(exc):
+                    exc.case_progress = progress
+                    raise
+                attempt += 1
+                progress.retry_count += 1
+                time.sleep(_TRANSIENT_BACKOFF_SECONDS * attempt)
+                continue
+            break
         progress.completion_calls += 1
         calls = _validate_completion(completion, bound, context, progress)
         if not calls or context.max_tool_rounds == 0:
@@ -1326,7 +1352,7 @@ def _failure_record(
         "missing_metadata": getattr(exc, "missing", []),
         "fatal": isinstance(exc, ProviderHTTPError) or http_code is not None or bool(getattr(exc, "fatal", False)),
         "latency_ms": round((time.monotonic() - start) * 1000, 3),
-        "retry_count": 0,
+        "retry_count": progress.retry_count if progress else 0,
         "estimated_cost_usd": None,
         "actual_billed_usd": None,
     }
@@ -1386,7 +1412,7 @@ def _success_record(
         "tool_trace": progress.tool_trace,
         "final_state_sha256": sha256_bytes(canonical_json(progress.state).encode()),
         "latency_ms": round((time.monotonic() - start) * 1000, 3),
-        "retry_count": 0,
+        "retry_count": progress.retry_count,
         "estimated_cost_usd": estimate,
         "actual_billed_usd": None,
         "diagnostic_metrics": [asdict(metric) for metric in score_diagnostics(case, completion)],

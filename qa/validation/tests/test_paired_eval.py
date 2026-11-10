@@ -12,6 +12,7 @@ from urllib.error import HTTPError
 
 import pytest
 
+from ai.qa.validation.therapy_bench import paired_eval
 from ai.qa.validation.therapy_bench.paired_eval import (
     ConservativeAsciiByteCounter,
     EvaluationInputError,
@@ -970,9 +971,7 @@ def test_booking_is_idempotent_for_duplicate_tool_delivery() -> None:
 )
 def test_booking_malformed_fixture_state_returns_structured_error(state, expected_code) -> None:
     state["user_consent_granted"] = True
-    status, result = _run_mock_tool(
-        "book_navigator_slot", '{"slot_id":"S-1","consent":true}', state
-    )
+    status, result = _run_mock_tool("book_navigator_slot", '{"slot_id":"S-1","consent":true}', state)
 
     assert status == "error"
     assert result["code"] == expected_code
@@ -1002,11 +1001,7 @@ def test_booking_unknown_commit_records_single_appointment_and_consumes_outcome(
 
 
 def test_tool_status_check_uses_latest_matching_result() -> None:
-    case = {
-        "state_checks": [
-            {"type": "tool_status", "tool_name": "book_navigator_slot", "status": "error"}
-        ]
-    }
+    case = {"state_checks": [{"type": "tool_status", "tool_name": "book_navigator_slot", "status": "error"}]}
     trace = [
         {"name": "book_navigator_slot", "status": "error"},
         {"name": "book_navigator_slot", "status": "ok"},
@@ -1153,6 +1148,61 @@ def test_transient_http_policy_preserves_errors_without_retrying(
     with pytest.raises(EvaluationInputError, match="resume blocked after fatal"):
         run_paired(request)
     assert len(calls) == expected_calls
+
+
+class _FlakyTransport(FakeTransport):
+    """Fail a bounded number of completions with a read timeout, then answer."""
+
+    def __init__(self, failures: int) -> None:
+        super().__init__()
+        self.remaining = failures
+        self.attempts = 0
+
+    def complete(
+        self,
+        arm: dict[str, str],
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]],
+        decoding: dict[str, Any],
+    ) -> dict[str, Any]:
+        self.attempts += 1
+        if self.remaining:
+            self.remaining -= 1
+            raise TimeoutError("read timed out")
+        return super().complete(arm, messages, tools, decoding)
+
+
+def test_a_read_timeout_is_reasked_instead_of_scored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(paired_eval, "_TRANSIENT_BACKOFF_SECONDS", 0.0)
+    cases_path, config_path = write_inputs(tmp_path)
+    transport = _FlakyTransport(failures=1)
+
+    result = run((cases_path, config_path, tmp_path / "results"), transport)
+
+    assert result["status"] == "complete"
+    assert result["error_count"] == 0
+    # the timed-out completion was asked again rather than recorded as a failure
+    assert transport.attempts == EXPECTED_CALLS + 1
+    rows = [json.loads(line) for line in (tmp_path / "results" / "results.jsonl").read_text().splitlines()]
+    assert sum(row["retry_count"] for row in rows) == 1
+    assert all(row["status"] == "success" for row in rows)
+
+
+def test_a_persistent_read_timeout_is_bounded_and_not_fatal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(paired_eval, "_TRANSIENT_BACKOFF_SECONDS", 0.0)
+    cases_path, config_path = write_inputs(tmp_path)
+    transport = _FlakyTransport(failures=1000)
+    attempts_per_completion = 1 + paired_eval._TRANSIENT_ATTEMPTS
+
+    result = run((cases_path, config_path, tmp_path / "results"), transport)
+
+    assert result["status"] == "incomplete"
+    assert transport.attempts == EXPECTED_CALLS * attempts_per_completion
+    rows = [json.loads(line) for line in (tmp_path / "results" / "results.jsonl").read_text().splitlines()]
+    assert all(row["status"] == "error" and row["error_type"] == "TimeoutError" for row in rows)
+    assert all(row["retry_count"] == paired_eval._TRANSIENT_ATTEMPTS for row in rows)
+    # a timeout is not a provider metadata failure, so a resume is still allowed
+    assert all(row["fatal"] is False for row in rows)
 
 
 @pytest.mark.parametrize("response_format", [{"type": "text"}, {"type": "json_object", "unknown": True}, None])
