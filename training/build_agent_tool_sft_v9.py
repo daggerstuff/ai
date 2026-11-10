@@ -131,8 +131,9 @@ PROSE = [
 
 # (category, severity, disclosures, action)
 # severity "acute" needs a medical or emergency escalation term; "hotline" needs
-# a crisis-referral term. Both come from the evaluation rubric so the training
-# targets and the grader cannot drift apart.
+# a crisis-referral term. The vocabularies are local (ROUTING/ACUTE above) because
+# the evaluation rubric scores engagement, not resource naming, so there is no
+# grader term to derive them from.
 CRISIS_GROUPS: list[tuple[str, str, tuple[str, ...], str]] = [
     (
         "suicide_plan",

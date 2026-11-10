@@ -308,8 +308,7 @@ journal_dataset_research/sessions/
 /coverage.lcov
 /coverage_reports/
 
-# NVIDIA DataDesigner vendor checkout, pending proper submodule init
-# (registered in .gitmodules; initialize with: git submodule update --init DataDesigner)
+# NVIDIA DataDesigner vendor checkout (not a tracked submodule)
 /DataDesigner/
 
 
