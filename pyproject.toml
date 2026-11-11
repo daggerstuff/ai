@@ -501,6 +501,8 @@ ignore = []
 # wandb is imported inside log_to_wandb so the dry-run path (and every test)
 # never pays for it; the module is only needed once we actually publish.
 "training/launch/log_eval_tracking.py" = ["PLC0415"]
+# ovh-api is a terminal command; printing is its entire output surface.
+"infrastructure/ovh/cli.py" = ["T201"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
