@@ -162,6 +162,14 @@ def test_control_rows_stay_off_crisis_language(module_name: str) -> None:
 
 GUARD_MODULE = Path(__file__).resolve().parents[3] / "apps/web/src/lib/ai/safety/registerGuard.ts"
 
+# The app guard ships from the pixelated checkout, where this repository is a
+# submodule. The ai suite on its own cannot see it, so the drift check skips
+# instead of failing on a path that does not exist in this repository.
+APP_GUARD_PRESENT = pytest.mark.skipif(
+    not GUARD_MODULE.exists(),
+    reason="app guard lives in the pixelated checkout, not in this repository",
+)
+
 
 def _guard_phrases(name: str) -> list[str]:
     """Pull a `const NAME = [...] as const` string array out of the app guard."""
@@ -172,11 +180,13 @@ def _guard_phrases(name: str) -> list[str]:
     return [double or single for double, single in quoted]
 
 
+@APP_GUARD_PRESENT
 def test_the_app_guard_uses_the_rubric_register_vocabulary() -> None:
     """A guard list that drifts from the rubric silently stops matching failures."""
     assert set(_guard_phrases("REGISTER_BANNED_PHRASES")) == set(CODDLING)
 
 
+@APP_GUARD_PRESENT
 def test_the_app_guard_never_drops_a_sentence_that_escalates() -> None:
     escalations = {term.casefold() for term in _guard_phrases("ESCALATION_TERMS")}
     assert {term.casefold() for term in MEDICAL_ESCALATION} <= escalations
