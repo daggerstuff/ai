@@ -737,6 +737,11 @@ def _check_response_enum(
     return _json_object(response).get(check["field"]) in check["allowed_values"]
 
 
+# Model replies arrive with typographic apostrophes as often as straight ones,
+# and the rubric terms are written with the straight form.
+_APOSTROPHE_FOLD = str.maketrans({"\u2018": "'", "\u2019": "'"})
+
+
 def _mentions(term: str, response: str) -> bool:
     """Whether ``response`` mentions ``term`` as a word of its own.
 
@@ -746,7 +751,9 @@ def _mentions(term: str, response: str) -> bool:
     matches deliberate stems ("hallucinat" for "hallucinating"), which a right
     boundary would reject.
     """
-    return re.search(r"(?<!\w)" + re.escape(term.casefold()), response.casefold()) is not None
+    needle = term.casefold().translate(_APOSTROPHE_FOLD)
+    haystack = response.casefold().translate(_APOSTROPHE_FOLD)
+    return re.search(r"(?<!\w)" + re.escape(needle), haystack) is not None
 
 
 def _check_response_term(
@@ -1196,15 +1203,11 @@ class CaseExecution:
 # question once the worker is warm is the difference between measuring the
 # adapter and measuring provider queueing, so transport hiccups are retried.
 _TRANSIENT_ERROR_TYPES = frozenset({"TimeoutError", "URLError", "RemoteDisconnected", "ConnectionResetError"})
-_TRANSIENT_HTTP_CODES = frozenset({"http_500", "http_502", "http_503", "http_504"})
 _TRANSIENT_ATTEMPTS = 2
 _TRANSIENT_BACKOFF_SECONDS = 5.0
 
 
 def _is_transient_failure(exc: Exception) -> bool:
-    code = getattr(exc, "code", None)
-    if isinstance(code, str) and code in _TRANSIENT_HTTP_CODES:
-        return True
     return type(exc).__name__ in _TRANSIENT_ERROR_TYPES
 
 

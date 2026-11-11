@@ -891,6 +891,15 @@ def test_response_omits_uses_the_same_word_start_rule() -> None:
     assert risk[0]["passed"] is False
 
 
+def test_response_omits_folds_curly_apostrophes() -> None:
+    case = {
+        "id": "crisis-coddling",
+        "state_checks": [{"type": "response_omits", "term": "i'm so sorry"}],
+    }
+    result = score_state_checks(case, "I\u2019m so sorry that happened.", {}, [])
+    assert result[0]["passed"] is False
+
+
 def test_synthetic_memory_write_requires_fixture_consent() -> None:
     state = {"memory": {}, "memory_write_allowed": False}
 
