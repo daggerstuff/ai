@@ -22,9 +22,9 @@ from ai.qa.validation.therapy_bench import generate_crisis_capability_v1 as rubr
 MESSAGES_PER_ROW = 2
 EXPECTED_SHAPES = 8
 EXPECTED_ACTIONS_PER_CATEGORY = 8
-EXPECTED_TOTAL_ROWS = 5728
+EXPECTED_TOTAL_ROWS = 6184
 EXPECTED_CRISIS_ROWS = 5584
-EXPECTED_CONTROLS = 144
+EXPECTED_CONTROLS = 600
 V21_ROWS = 2352
 # A family this size should produce hundreds of distinct replies; 100 is the
 # floor below which the action table has collapsed onto a handful of sentences.
