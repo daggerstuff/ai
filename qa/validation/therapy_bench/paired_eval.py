@@ -523,8 +523,10 @@ class OpenAIChatCompletions:
                     excerpt,
                 )
             ) from None
-        except (urllib.error.URLError, TimeoutError) as exc:
-            raise RuntimeError(type(exc).__name__) from None
+        except (urllib.error.URLError, TimeoutError):
+            # Re-raised untouched: the retry classifier keys on the transport
+            # exception type, which a RuntimeError wrapper would hide.
+            raise
         choice = payload["choices"][0]
         message = choice["message"]
         usage = payload.get("usage") or {}

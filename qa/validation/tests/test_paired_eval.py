@@ -8,7 +8,7 @@ from email.message import Message
 from io import BytesIO
 from pathlib import Path
 from typing import Any
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 import pytest
 
@@ -1185,6 +1185,26 @@ def test_transient_http_policy_preserves_errors_without_retrying(
     with pytest.raises(EvaluationInputError, match="resume blocked after fatal"):
         run_paired(request)
     assert len(calls) == expected_calls
+
+
+def test_a_transport_url_error_reaches_the_retry_classifier(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # The classifier keys on the exception type, so wrapping a URLError in a
+    # RuntimeError silently disabled every retry against a live provider.
+    _cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text())
+    arm = config["arms"][0]
+    monkeypatch.setenv(arm["api_key_env"], "offline-base")
+
+    def fail(_request: Any, **_kwargs: Any) -> None:
+        raise URLError(TimeoutError("read timed out"))
+
+    monkeypatch.setattr("urllib.request.urlopen", fail)
+    transport = paired_eval.OpenAIChatCompletions()
+
+    with pytest.raises(URLError) as raised:
+        transport.complete(arm, [{"role": "user", "content": "hello"}], [], config["decoding"])
+
+    assert paired_eval._is_transient_failure(raised.value)
 
 
 class _FlakyTransport(FakeTransport):

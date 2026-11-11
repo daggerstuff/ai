@@ -72,7 +72,7 @@ def cmd_me(args: argparse.Namespace) -> int:
 
 
 def cmd_refresh(args: argparse.Namespace) -> int:
-    versions = args.version or list(API_VERSIONS)
+    versions = [args.version] if args.version else list(API_VERSIONS)
     summary = download_catalog(
         cache_dir_from(args),
         base_url=args.base_url,
@@ -160,7 +160,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     sub.add_parser("token", help="report where the bearer token comes from").set_defaults(func=cmd_token)
-    sub.add_parser("me", help="GET /me to verify the token").set_defaults(func=cmd_me)
+    me = sub.add_parser("me", help="GET /me to verify the token")
+    me.add_argument("--api-version", default=DEFAULT_API_VERSION, help="1.0 (default) or v2")
+    me.set_defaults(func=cmd_me)
 
     refresh = sub.add_parser("refresh", help="download navigation trees and section specs")
     refresh.add_argument("--workers", type=int, default=8, help="parallel downloads")

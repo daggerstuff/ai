@@ -202,11 +202,12 @@ def render(scores: list[RunScore]) -> str:
             before = sum(case.before for case in rows)
             reconciled = [case for case in rows if case.after is not None]
             after = sum(bool(case.after) for case in reconciled)
+            before_reconciled = sum(case.before for case in reconciled)
             resources = sum(case.names_resource for case in rows)
             coddles = sum(case.coddles for case in rows)
             pamphlet = sum(case.pamphlet for case in rows)
             unreconciled = len(rows) - len(reconciled)
-            delta = f"{after - before:+d}" if reconciled else "n/a"
+            delta = f"{after - before_reconciled:+d}" if reconciled else "n/a"
             lines.append(
                 f"| {score.pair}/{score.suite} | {score.labels.get(arm_id, arm_id)} | {len(rows)} "
                 f"| {before} | {after} | {delta} | {unreconciled} | {resources} | {coddles} | {pamphlet} |"
