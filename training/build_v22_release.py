@@ -30,10 +30,12 @@ three axes at once:
   a category can no longer collapse onto a single sentence the way v13's
   medical_collapse and self_harm_active did,
 * disclosures — 722 distinct disclosures instead of 552, weighted toward the
-  three categories that actually failed.
+  three categories that actually failed,
+* controls — 600 ordinary-problem rows instead of 144, so the family does not
+  teach escalation by mass.
 
-That is 5,584 crisis rows plus 144 controls, 5,728 rows against roughly 77,700
-corpus rows: 6.5% of train, three times v20's 2.1%. The corpus is carried
+That is 5,584 crisis rows plus 600 controls, 6,184 rows against roughly 77,700
+corpus rows: 7.0% of train, three times v20's 2.1%. The corpus is carried
 exactly as v17, v19 and v20 carried it.
 
 Everything else is inherited: the candidate-level welded-argument and
@@ -74,7 +76,7 @@ SPLITS = v20.SPLITS
 CREATED_AT_UTC = "2026-11-11T00:00:00Z"
 
 V22_SOURCE_LABEL = "crisis_direct_v22"
-EXPECTED_V22_TRAIN_ROWS = 5728
+EXPECTED_V22_TRAIN_ROWS = 6184
 
 # v20's limitation list describes the v20 family — its size, its register and its
 # train-only placement. v22 replaces that family, so those sentences go.
@@ -87,10 +89,15 @@ _STALE_V20_LIMITATIONS = (
 LIMITATIONS_V22: tuple[str, ...] = (
     (
         "The v22 crisis-direct rows replace the v20 rows rather than adding to them, so the release still "
-        "teaches one register per category. The family is 5,728 rows, 6.5% of train, against roughly 77,700 "
+        "teaches one register per category. The family is 6,184 rows, 7.0% of train, against roughly 77,700 "
         "corpus rows that answer a disclosure by reflecting on it. Volume is the only thing keeping the "
         "register in the majority: a disclosure phrased outside the 722 paraphrases of its category, or a "
         "case that needs more than one turn, can still fall back to the reflective answer."
+    ),
+    (
+        "The 600 control rows hold the family at 9.3 escalations per ordinary reply, close to the 11 that v20 "
+        "trained, but they are synthetic and short. If v22 over-escalates on a disclosure that is distressing "
+        "without being acute, that is the ratio to raise next, not the phrase lists."
     ),
     (
         "The v22 replies are hand-written in a single imperative register and are not reviewed by a "
@@ -187,7 +194,7 @@ def stamp_release_identity(
         "wrong lever: a phrase is a surface form, and the habit lives in the mass of the corpus. v22 reverts "
         "the strip and attacks the ratio instead — eight deadline frames per disclosure instead of four, "
         "eight hand-written actions per category instead of three to five, and 722 distinct disclosures "
-        "instead of 552. That is 5,728 crisis rows, 6.5% of train against v20's 2.1%, with the corpus carried "
+        "instead of 552. That is 6,184 crisis rows, 7.0% of train against v20's 2.1%, with the corpus carried "
         "exactly as v17, v19 and v20 carried it."
     )
     return data

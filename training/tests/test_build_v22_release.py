@@ -25,7 +25,7 @@ V9_ROWS = 624
 V10_ROWS = 480
 V11_ROWS = 240
 V20_ROWS = 1760
-V22_ROWS = 5728
+V22_ROWS = 6184
 MESSAGES_PER_ROW = 2
 # Eight frames is the v22 lever; v20 and v21 both used four.
 EXPECTED_SHAPES = 8
@@ -63,9 +63,9 @@ def test_limitations_keep_every_other_v20_entry() -> None:
 
 def test_limitations_record_the_size_the_register_and_the_reverted_strip() -> None:
     added = " ".join(release.LIMITATIONS_V22)
-    assert "5,728 rows" in added
+    assert "6,184 rows" in added
     assert "722" in added
-    assert "6.5% of train" in added
+    assert "7.0% of train" in added
     assert "not reviewed by a clinician" in added
     assert "carries no corpus repair" in added
 
@@ -158,7 +158,7 @@ def test_the_owner_direction_records_the_v21_loss_and_the_new_lever() -> None:
     assert "84/88" in direction
     assert "73/88" in direction
     assert "not going to jump" in direction
-    assert "6.5% of train" in direction
+    assert "7.0% of train" in direction
 
 
 def release_fixture(tmp_path) -> release._Release:

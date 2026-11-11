@@ -255,6 +255,7 @@ training/tests/*
 !training/tests/test_wandb_sft_g04.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
+<<<<<<< HEAD
 !training/tests/test_crisis_register.py
 !training/tests/test_build_v19_release.py
 !training/tests/test_build_v20_release.py
@@ -266,6 +267,8 @@ training/tests/*
 !training/tests/test_log_eval_tracking.py
 !training/tests/test_export_adaption_release.py
 !training/tests/test_adaption_dataset_upload.py
+=======
+>>>>>>> origin/staging
 !training/tests/test_rewrite_arc_risk_turns.py
 # Track golden calibration data for LLM quality judge
 training/data/*
@@ -320,8 +323,7 @@ journal_dataset_research/sessions/
 /coverage.lcov
 /coverage_reports/
 
-# NVIDIA DataDesigner vendor checkout, pending proper submodule init
-# (registered in .gitmodules; initialize with: git submodule update --init DataDesigner)
+# NVIDIA DataDesigner vendor checkout (not a tracked submodule)
 /DataDesigner/
 
 
