@@ -114,7 +114,10 @@ class SelectionOptions:
 
 def _read_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+        payload: Any = json.load(handle)
+    if not isinstance(payload, dict):
+        raise ValueError(f"{path} does not contain a JSON object")
+    return payload
 
 
 def _weighted_messages(row: dict[str, Any]) -> list[dict[str, Any]]:

@@ -42,11 +42,18 @@ from pathlib import Path
 from typing import Any
 
 from training import (
-    build_agent_tool_sft_v13 as v13,
-    build_v14_release as v14,
-    build_v15_release as v15,
-    build_v16_release as v16,
+    build_agent_tool_sft_v13,
+    build_v14_release,
+    build_v15_release,
+    build_v16_release,
 )
+
+# Bound to module-level names so callers that import this module can reach them;
+# `from training import x as y` is not a re-export under --strict.
+v13 = build_agent_tool_sft_v13
+v14 = build_v14_release
+v15 = build_v15_release
+v16 = build_v16_release
 
 ROOT = v16.ROOT
 

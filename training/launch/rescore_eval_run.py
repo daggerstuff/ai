@@ -100,6 +100,18 @@ def _passed(status: str, metrics: list[dict[str, Any]]) -> bool:
     return status == "success" and bool(metrics) and all(metric["passed"] for metric in metrics)
 
 
+def _carried_metric(check: dict[str, Any], recorded: list[dict[str, Any]], index: int) -> dict[str, Any]:
+    """The recorded verdict for a check that cannot be recomputed.
+
+    Failure records omit ``state_metrics``, so a row that errored has no verdict
+    to carry over. Report the check as failed instead of aborting the report for
+    every other row in the results root.
+    """
+    if index < len(recorded):
+        return recorded[index]
+    return {"type": check["type"], "passed": False}
+
+
 def rescore_case(case: dict[str, Any], row: dict[str, Any]) -> tuple[list[dict[str, Any]], bool, list[str]] | None:
     """Re-run the response checks and carry the state-dependent ones over.
 
@@ -110,13 +122,13 @@ def rescore_case(case: dict[str, Any], row: dict[str, Any]) -> tuple[list[dict[s
     """
     checks = case["state_checks"]
     recorded = row.get("state_metrics") or []
-    if len(checks) != len(recorded):
+    if recorded and len(checks) != len(recorded):
         return None
     response = row.get("response") or ""
     response_only = {**case, "state_checks": [c for c in checks if c["type"] in RESPONSE_CHECK_TYPES]}
     rescored = iter(score_state_checks(response_only, response, {}, []))
     merged = [
-        next(rescored) if check["type"] in RESPONSE_CHECK_TYPES else recorded[index]
+        next(rescored) if check["type"] in RESPONSE_CHECK_TYPES else _carried_metric(check, recorded, index)
         for index, check in enumerate(checks)
     ]
     failed = [metric["type"] for metric in merged if not metric["passed"]]
@@ -134,32 +146,37 @@ def score_run(run_dir: Path, fixtures: dict[str, dict[str, Any]]) -> RunScore:
         labels=run_labels(manifest),
         cases=[],
     )
+    rows: dict[tuple[str, str], dict[str, Any]] = {}
     with (run_dir / "results.jsonl").open(encoding="utf-8") as stream:
         for line in stream:
             if not line.strip():
                 continue
             row = json.loads(line)
-            case = fixtures[row["case_id"]]
-            result = rescore_case(case, row)
-            recorded = row.get("state_metrics") or []
-            response = row.get("response") or ""
-            folded = response.casefold()
-            score.cases.append(
-                CaseScore(
-                    case_id=row["case_id"],
-                    arm_id=row["arm_id"],
-                    scenario=case["scenario"],
-                    status=row.get("status", "unknown"),
-                    before=_passed(row.get("status", "unknown"), recorded),
-                    after=None if result is None else result[1],
-                    before_failed=tuple(m["type"] for m in recorded if not m["passed"]),
-                    after_failed=() if result is None else tuple(result[2]),
-                    names_resource=any(term in folded for term in RESOURCE_TERMS),
-                    coddles=any(term in folded for term in CODDLING),
-                    pamphlet=any(term in folded for term in PAMPHLET),
-                    response=response,
-                )
+            # A resumed run appends a second row for a case; the later verdict is
+            # the one that stands, and counting both would inflate the totals.
+            rows[(row["case_id"], row["arm_id"])] = row
+    for row in rows.values():
+        case = fixtures[row["case_id"]]
+        result = rescore_case(case, row)
+        recorded = row.get("state_metrics") or []
+        response = row.get("response") or ""
+        folded = response.casefold()
+        score.cases.append(
+            CaseScore(
+                case_id=row["case_id"],
+                arm_id=row["arm_id"],
+                scenario=case["scenario"],
+                status=row.get("status", "unknown"),
+                before=_passed(row.get("status", "unknown"), recorded),
+                after=None if result is None else result[1],
+                before_failed=tuple(m["type"] for m in recorded if not m["passed"]),
+                after_failed=() if result is None else tuple(result[2]),
+                names_resource=any(term in folded for term in RESOURCE_TERMS),
+                coddles=any(term in folded for term in CODDLING),
+                pamphlet=any(term in folded for term in PAMPHLET),
+                response=response,
             )
+        )
     return score
 
 
