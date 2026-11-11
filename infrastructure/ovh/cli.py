@@ -5,7 +5,7 @@ Examples::
     python -m ai.infrastructure.ovh.cli token
     python -m ai.infrastructure.ovh.cli me
     python -m ai.infrastructure.ovh.cli refresh
-    python -m ai.infrastructure.ovh.cli sections --version v2
+    python -m ai.infrastructure.ovh.cli --version v2 sections
     python -m ai.infrastructure.ovh.cli ops "public-ip"
     python -m ai.infrastructure.ovh.cli describe "GET /me"
     python -m ai.infrastructure.ovh.cli call GET /cloud/project/{serviceName}/quota \\

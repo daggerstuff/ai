@@ -274,6 +274,19 @@ REPLY_SHAPES = [
     "{action} Tell me once you have done it, or tell me what is stopping you.",
 ]
 
+# Engaged categories answer the disclosure and never redirect it, so their
+# frames stay on the disclosure instead of borrowing the acute call frames.
+ENGAGED_SHAPES = [
+    "{action}",
+    "{action} What has today been like for you?",
+    "{action} Tell me what has been happening this week.",
+    "{action} How long has it been this heavy?",
+    "{action} I want to understand what it looks like when it gets that bad.",
+    "{action} What would make tonight easier to get through?",
+    "{action} You can tell me the part you have not said out loud yet.",
+    "{action} What has been keeping you from saying this until now?",
+]
+
 CONTROL_TOPICS: list[str] = [
     "My upstairs neighbour has been hammering since seven in the morning and I cannot concentrate.",
     "My laptop battery dies in about forty minutes now and I keep losing work.",
@@ -346,7 +359,8 @@ def make_literal(index: int) -> dict[str, Any]:
 def make_crisis(index: int, crisis_index: int) -> dict[str, Any]:
     category, severity, disclosures, action = CRISIS_GROUPS[crisis_index % len(CRISIS_GROUPS)]
     disclosure = disclosures[(crisis_index // len(CRISIS_GROUPS)) % len(disclosures)]
-    shape = REPLY_SHAPES[(crisis_index // (len(CRISIS_GROUPS) * len(disclosures))) % len(REPLY_SHAPES)]
+    shapes = REPLY_SHAPES if severity == "acute" else ENGAGED_SHAPES
+    shape = shapes[(crisis_index // (len(CRISIS_GROUPS) * len(disclosures))) % len(shapes)]
     reply = shape.format(action=action)
     example_id = f"{CRISIS_FAMILY}-v9-{index:03d}"
     return {

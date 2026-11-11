@@ -72,6 +72,16 @@ def test_acute_rows_escalate_and_engaged_rows_never_hand_out_a_number() -> None:
         assert not any(term in reply for term in v9.DISMISSAL), item["id"]
 
 
+def test_engaged_rows_use_an_engaged_frame() -> None:
+    for crisis_index in range(0, 480, 3):
+        item = v9.make_crisis(crisis_index, crisis_index)
+        if item["severity"] != "engaged":
+            continue
+        action = v9.CRISIS_GROUPS[crisis_index % len(v9.CRISIS_GROUPS)][3]
+        reply = item["messages"][1]["content"]
+        assert any(reply == shape.format(action=action) for shape in v9.ENGAGED_SHAPES), item["id"]
+
+
 def test_control_rows_never_use_crisis_vocabulary() -> None:
     for control_index in range(60):
         item = v9.make_control(control_index, control_index)
