@@ -43,7 +43,24 @@ ALLOWED_MODEL_IDS: frozenset[str] = frozenset({MODEL_ID})
 TRAINING_API_USER_AGENT = "pixelated-empathy-training-launcher/1.0"
 ENTITY = "wutang"
 PROJECT = "pixelated-empathy-kan28"
-TERMINAL_STATES = frozenset({"succeeded", "completed", "failed", "error", "cancelled", "canceled"})
+# The W&B job surface reports run states as well as job states, so a job that
+# ends as finished, stopped, killed or crashed is terminal too; leaving them out
+# makes an unbounded poll wait forever.
+TERMINAL_STATES = frozenset(
+    {
+        "succeeded",
+        "completed",
+        "finished",
+        "failed",
+        "error",
+        "crashed",
+        "killed",
+        "stopped",
+        "timed_out",
+        "cancelled",
+        "canceled",
+    }
+)
 # A phase is "uncertain" while a create/upload request is in flight: the call
 # may have landed even though the launcher never saw the response, so resuming
 # blindly could duplicate a model, an artifact, or a paid training job.

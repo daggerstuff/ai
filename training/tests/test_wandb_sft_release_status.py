@@ -120,7 +120,17 @@ def test_following_polls_until_the_job_is_terminal(tmp_path: Path) -> None:
 
 def test_terminal_detection_is_case_insensitive() -> None:
     """W&B reports upper-case statuses; a lower-case set never matched them."""
-    for status in ("COMPLETED", "Succeeded", "FAILED", "canceled", "CANCELLED", "error"):
+    for status in (
+        "COMPLETED",
+        "Succeeded",
+        "FAILED",
+        "canceled",
+        "CANCELLED",
+        "error",
+        "FINISHED",
+        "stopped",
+        "timed_out",
+    ):
         assert g04.is_terminal_status(status), status
     for status in ("PENDING", "RUNNING", "queued", "", None, 0):
         assert not g04.is_terminal_status(status), status
