@@ -83,10 +83,39 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--model", default=_MODEL)
     parser.add_argument("--output", type=Path, help="artifact work directory (default: beside the config)")
     parser.add_argument("--state-dir", type=Path, help="run state directory (default: beside the config)")
-    parser.add_argument("--execute", action="store_true")
-    parser.add_argument("--polls", type=int, default=1)
-    parser.add_argument("--poll-interval", type=float, default=30)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--execute", action="store_true")
+    mode.add_argument(
+        "--status",
+        action="store_true",
+        help="report and record the state of an existing run; creates no resources",
+    )
+    mode.add_argument(
+        "--reconcile",
+        action="store_true",
+        help=(
+            "resolve an interrupted create/upload (a *_submitted_unknown phase) against the provider, "
+            "then continue the run; adopts existing resources instead of duplicating them"
+        ),
+    )
+    parser.add_argument(
+        "--polls",
+        type=int,
+        default=None,
+        help=(
+            "number of status polls; omit to follow the job until it is terminal "
+            "(one snapshot when used with --status), 0 for none"
+        ),
+    )
+    parser.add_argument("--poll-interval", type=float, default=60)
     return parser.parse_args(argv)
+
+
+def _poll_budget(args: argparse.Namespace, *, follow_by_default: bool) -> int | None:
+    """Return the poll budget: ``None`` follows the job until it is terminal."""
+    if args.polls is None:
+        return None if follow_by_default else 1
+    return args.polls
 
 
 def _load_campaign(args: argparse.Namespace) -> Campaign:
@@ -186,7 +215,7 @@ def _state_dir(args: argparse.Namespace, campaign: Campaign) -> Path:
     return args.state_dir or campaign.config_path.parent / "wandb-sft-state"
 
 
-def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
+def _execute(args: argparse.Namespace, campaign: Campaign, *, reconcile: bool = False) -> int:
     api_key = _ensure_api_key()
     state_dir = _state_dir(args, campaign)
     request = g04.ExecutionRequest(
@@ -197,7 +226,7 @@ def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
         api=g04.TrainingAPI(api_key),
         api_key=api_key,
         artifact_upload=_artifact_uploader(campaign.manifest, campaign.payload, api_key),
-        max_polls=args.polls,
+        max_polls=_poll_budget(args, follow_by_default=True),
         poll_interval=args.poll_interval,
     )
 
@@ -206,23 +235,87 @@ def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
     plan = g04.TrainingPlan(campaign.manifest, campaign.payload, campaign.config, artifact, campaign.task_id)
 
     state_path = state_dir / f"wandb-sft-{campaign.task_id}.json"
-    state = g04._load_state(state_path, campaign.task_id, campaign.payload.sha256)
+    state = g04._load_state(state_path, campaign.task_id, campaign.payload.sha256, allow_uncertain=reconcile)
     g04._verify_remote_access(request)
     if not state:
+        if reconcile:
+            raise g04.QualificationError(f"nothing to reconcile: no launcher state at {state_path}")
         state = g04._initial_state(request, plan)
         g04.atomic_json(state_path, state)
+    resolved = g04.reconcile(request, plan, state, state_path) if reconcile else {"resolved": []}
     artifact_uri = g04._upload_artifact(request, state, plan)
     model_id = g04._create_model(request, state, campaign.task_id)
     job_id = g04._create_job(request, state, plan, model_id, artifact_uri)
     g04._poll_job(request, state, job_id, campaign.task_id)
+    report = {
+        "mode": "reconcile" if reconcile else "execute",
+        "task_id": campaign.task_id,
+        "phase": state["phase"],
+        "last_status": state.get("last_status"),
+        "terminal": g04.is_terminal_status(state.get("last_status")),
+        "training_job_id": job_id,
+        "model_id": model_id,
+        "artifact_uri": artifact_uri,
+        "state_path": str(state_path),
+    }
+    if resolved.get("resolved"):
+        report["reconciled"] = resolved["resolved"]
+    if not report["terminal"]:
+        release_id = campaign.manifest["release_id"]
+        report["next"] = f"--release {release_id} --status reconciles this run against the provider"
+    sys.stdout.write(json.dumps(report, indent=2) + "\n")
+    return 0
+
+
+def _status(args: argparse.Namespace) -> int:
+    """Reconcile the recorded run state with the provider without creating anything."""
+    config_path = args.config or find_config(args.release)
+    with config_path.open() as stream:
+        launch = json.load(stream)
+    manifest_path = Path(launch["manifest"])
+    with manifest_path.open() as stream:
+        release_id = json.load(stream)["release_id"]
+    state_dir = args.state_dir or config_path.parent / "wandb-sft-state"
+    matches: list[tuple[Path, dict[str, Any]]] = []
+    for path in sorted(state_dir.glob("wandb-sft-*.json")):
+        try:
+            state = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise g04.QualificationError(f"cannot read launcher state {path}") from exc
+        if state.get("release_id") == release_id and state.get("arm") == args.arm:
+            matches.append((path, state))
+    if not matches:
+        raise g04.QualificationError(f"no launcher state for {release_id} ({args.arm}) under {state_dir}")
+    if len(matches) > 1:
+        found = ", ".join(path.name for path, _ in matches)
+        raise g04.QualificationError(f"{release_id} has more than one launcher state: {found}")
+    state_path, state = matches[0]
+    job_id = state.get("training_job_id")
+    if not isinstance(job_id, str):
+        raise g04.QualificationError(f"{state_path.name} has no training job id yet")
+    api_key = _ensure_api_key()
+    request = g04.ExecutionRequest(
+        manifest_path=manifest_path,
+        arm=args.arm,
+        state_dir=state_dir,
+        work_dir=args.output or config_path.parent / "wandb-sft-artifacts",
+        api=g04.TrainingAPI(api_key),
+        api_key=api_key,
+        poll_interval=args.poll_interval,
+        max_polls=_poll_budget(args, follow_by_default=False),
+    )
+    g04._poll_job(request, state, job_id, state["task_id"])
     sys.stdout.write(
         json.dumps(
             {
-                "task_id": campaign.task_id,
-                "phase": state["phase"],
+                "mode": "status",
+                "task_id": state["task_id"],
+                "release_id": release_id,
+                "phase": state.get("phase"),
+                "last_status": state.get("last_status"),
+                "terminal": g04.is_terminal_status(state.get("last_status")),
                 "training_job_id": job_id,
-                "model_id": model_id,
-                "artifact_uri": artifact_uri,
+                "model_id": state.get("model_id"),
                 "state_path": str(state_path),
             },
             indent=2,
@@ -234,7 +327,11 @@ def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
+    if args.status:
+        return _status(args)
     campaign = _load_campaign(args)
+    if args.reconcile:
+        return _execute(args, campaign, reconcile=True)
     if not args.execute:
         return _dry_run(args, campaign)
     return _execute(args, campaign)

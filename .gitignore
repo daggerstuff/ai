@@ -252,8 +252,20 @@ training/tests/*
 !training/tests/test_build_agent_tool_sft_v13.py
 !training/tests/test_build_v17_release.py
 !training/tests/test_wandb_release_evals.py
+!training/tests/test_wandb_sft_g04.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
+!training/tests/test_crisis_register.py
+!training/tests/test_build_v19_release.py
+!training/tests/test_build_v20_release.py
+!training/tests/test_build_agent_tool_sft_v20.py
+!training/tests/test_build_v21_release.py
+!training/tests/test_build_agent_tool_sft_v21.py
+!training/tests/test_build_v22_release.py
+!training/tests/test_build_agent_tool_sft_v22.py
+!training/tests/test_log_eval_tracking.py
+!training/tests/test_export_adaption_release.py
+!training/tests/test_adaption_dataset_upload.py
 !training/tests/test_rewrite_arc_risk_turns.py
 # Track golden calibration data for LLM quality judge
 training/data/*
@@ -328,6 +340,10 @@ monitoring/**/*.png
 /ai/
 /pixelated_v2/
 !training/tests/test_export_fireworks_release.py
+!training/tests/test_export_tinker_release.py
+!training/tests/test_tinker_sft_release.py
+!training/tests/test_tinker_eval_shim.py
+!training/tests/test_wandb_sft_release_status.py
 
 # Provisioned review-bot / agent configs (environment tooling, not source)
 .coderabbit.yaml

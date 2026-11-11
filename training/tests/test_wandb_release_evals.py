@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,7 @@ PREVIOUS_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baselin
 OLDER_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-73504a99ed05:v1"
 SUITE_COUNT = 8
 ONE_ATTEMPT_PLUS_RETRY = 2
+CLEAN_RESTART_CALL = 2
 
 
 class _Completed:
@@ -106,6 +108,148 @@ def test_a_real_failure_is_not_retried(tmp_path: Path, monkeypatch: pytest.Monke
 
     assert (label, rc) == ("literal-sealed-v17-vs-base", 2)
     assert len(calls) == 1
+
+
+def _write_result(results_dir: Path, **record: Any) -> None:
+    results_dir.mkdir(parents=True, exist_ok=True)
+    line = json.dumps({"arm_id": "release", "case_id": "self_harm", **record})
+    with (results_dir / "results.jsonl").open("a", encoding="utf-8") as stream:
+        stream.write(line + "\n")
+
+
+def test_transient_failures_ignores_successful_records(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="success", error_type=None)
+    _write_result(results_dir, status="failed", error_type="ValueError")
+
+    assert pipeline.transient_failures(results_dir) == []
+
+
+def test_transient_failures_reports_a_read_timeout(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="failed", error_type="TimeoutError")
+
+    assert pipeline.transient_failures(results_dir) == ["release/self_harm=TimeoutError"]
+
+
+def test_transient_failures_reports_a_provider_5xx(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="failed", error_type="ProviderHTTPError", provider_http_status=503)
+
+    assert pipeline.transient_failures(results_dir) == ["release/self_harm=ProviderHTTPError"]
+
+
+def test_transient_failures_tolerates_a_missing_results_file(tmp_path: Path) -> None:
+    assert pipeline.transient_failures(tmp_path / "nothing-here") == []
+
+
+def test_transient_failures_ignores_a_timeout_that_was_later_answered(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="TimeoutError")
+    _write_result(results_dir, status="success", error_type=None, retry_count=1)
+
+    assert pipeline.transient_failures(results_dir) == []
+
+
+def test_a_read_timeout_resumes_in_place_without_wiping(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="failed", error_type="TimeoutError")
+    argv = ["runner", "--results-dir", str(results_dir)]
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
+        calls.append(list(command))
+        if len(calls) == 1:
+            return _Completed(1, stdout="case failed")
+        return _Completed(0, stdout="ok")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    label, rc = pipeline.run_one("crisis-dev-v21-vs-base", argv, "key")
+
+    assert (label, rc) == ("crisis-dev-v21-vs-base", 0)
+    assert len(calls) == ONE_ATTEMPT_PLUS_RETRY
+    # a timeout is not fatal, so the harness resumes and only the failed cases
+    # are re-asked: the directory and its completed records must survive.
+    assert "--continue-on-transient-http-errors" not in calls[1]
+    assert results_dir.exists()
+
+
+def test_a_read_timeout_retry_is_bounded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="failed", error_type="TimeoutError")
+    argv = ["runner", "--results-dir", str(results_dir)]
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
+        calls.append(list(command))
+        return _Completed(1, stdout="still timing out")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    label, rc = pipeline.run_one("crisis-dev-v21-vs-base", argv, "key")
+
+    assert (label, rc) == ("crisis-dev-v21-vs-base", 1)
+    assert len(calls) == 1 + pipeline.MAX_TRANSIENT_RETRIES
+
+
+def test_resume_blocked_reads_the_fatal_flag(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="ProviderHTTPError", provider_http_status=503, fatal=True)
+
+    assert pipeline.resume_blocked(results_dir) is True
+
+
+def test_resume_blocked_is_false_for_a_transport_timeout(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="failed", error_type="TimeoutError", fatal=False)
+
+    assert pipeline.resume_blocked(results_dir) is False
+
+
+def test_a_fatal_provider_5xx_restarts_clean_instead_of_resuming(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The harness refuses to resume a run whose record is fatal, so re-asking the
+    # same directory cannot help; the launcher has to start from a clean one.
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="ProviderHTTPError", provider_http_status=503, fatal=True)
+    argv = ["runner", "--results-dir", str(results_dir)]
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
+        calls.append(list(command))
+        return _Completed(1, stdout="resume blocked after fatal provider metadata failure: ProviderHTTPError")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    label, rc = pipeline.run_one("crisis-dev-v21-vs-base", argv, "key")
+
+    assert (label, rc) == ("crisis-dev-v21-vs-base", 1)
+    assert "--continue-on-transient-http-errors" in calls[1]
+    assert not results_dir.exists()
+
+
+def test_a_resume_after_a_clean_restart_keeps_the_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # The resume manifest is compared against the recorded options, so the flag the
+    # clean restart added has to stay on every later invocation.
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="ProviderHTTPError", provider_http_status=503, fatal=True)
+    argv = ["runner", "--results-dir", str(results_dir)]
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
+        calls.append(list(command))
+        if len(calls) == CLEAN_RESTART_CALL:
+            _write_result(results_dir, status="failed", error_type="TimeoutError", fatal=False)
+        return _Completed(1, stdout="ProviderHTTPError")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    pipeline.run_one("crisis-dev-v21-vs-base", argv, "key")
+
+    assert "--continue-on-transient-http-errors" in calls[1]
+    assert "--continue-on-transient-http-errors" in calls[2]
 
 
 def test_resolve_compares_keeps_the_default_predecessor() -> None:

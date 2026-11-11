@@ -12,6 +12,7 @@ import argparse
 import asyncio
 import base64
 import hashlib
+import itertools
 import json
 import os
 import re
@@ -42,7 +43,45 @@ ALLOWED_MODEL_IDS: frozenset[str] = frozenset({MODEL_ID})
 TRAINING_API_USER_AGENT = "pixelated-empathy-training-launcher/1.0"
 ENTITY = "wutang"
 PROJECT = "pixelated-empathy-kan28"
-TERMINAL_STATES = {"succeeded", "failed", "cancelled", "canceled"}
+# The W&B job surface reports run states as well as job states, so a job that
+# ends as finished, stopped, killed or crashed is terminal too; leaving them out
+# makes an unbounded poll wait forever.
+TERMINAL_STATES = frozenset(
+    {
+        "succeeded",
+        "completed",
+        "finished",
+        "failed",
+        "error",
+        "crashed",
+        "killed",
+        "stopped",
+        "timed_out",
+        "cancelled",
+        "canceled",
+    }
+)
+# A phase is "uncertain" while a create/upload request is in flight: the call
+# may have landed even though the launcher never saw the response, so resuming
+# blindly could duplicate a model, an artifact, or a paid training job.
+UNCERTAIN_PHASES = frozenset(
+    {
+        "artifact_upload_submitted_unknown",
+        "model_creation_submitted_unknown",
+        "job_creation_submitted_unknown",
+    }
+)
+
+
+def is_terminal_status(status: Any) -> bool:
+    """Return whether a provider status is terminal.
+
+    W&B reports upper-case statuses (``COMPLETED``), and the launcher records
+    them verbatim, so the comparison must be case-insensitive.
+    """
+    return isinstance(status, str) and status.strip().lower() in TERMINAL_STATES
+
+
 AUDIT_CONFIG_FIELDS = {
     "assistant_turns",
     "batch_size",
@@ -404,9 +443,7 @@ def _validate_train_rows(payload_path: Path, expected_rows: Any) -> int:
                         function = call.get("function") if isinstance(call, dict) else None
                         arguments = function.get("arguments") if isinstance(function, dict) else None
                         if not isinstance(arguments, str):
-                            raise QualificationError(
-                                f"train payload row {line_number} has invalid tool-call arguments"
-                            )
+                            raise QualificationError(f"train payload row {line_number} has invalid tool-call arguments")
                         try:
                             json.loads(arguments)
                         except json.JSONDecodeError as exc:
@@ -416,9 +453,7 @@ def _validate_train_rows(payload_path: Path, expected_rows: Any) -> int:
                         tool_call_ids.add(call_id)
                 if role == "tool":
                     if message.get("tool_call_id") not in tool_call_ids:
-                        raise QualificationError(
-                            f"train payload row {line_number} has an unmatched tool response"
-                        )
+                        raise QualificationError(f"train payload row {line_number} has an unmatched tool response")
                     if not isinstance(message.get("content"), str) or not message["content"]:
                         raise QualificationError(f"train payload row {line_number} has empty/non-text content")
                 elif not tool_calls:
@@ -514,7 +549,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
+        except UnicodeDecodeError, json.JSONDecodeError:
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")
@@ -544,7 +579,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError):
+        except UnicodeDecodeError, json.JSONDecodeError:
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")
@@ -668,7 +703,7 @@ class ExecutionRequest:
     private_check: Callable[[str, str, str], None] = verify_private_project
     artifact_upload: Callable[[Path, str], str] | None = None
     poll_interval: float = 30
-    max_polls: int = 1
+    max_polls: int | None = 1
 
 
 @dataclass(frozen=True)
@@ -680,7 +715,13 @@ class TrainingPlan:
     task_id: str
 
 
-def _load_state(path: Path, task_id: str, payload_sha256: str) -> dict[str, Any]:
+def _load_state(
+    path: Path,
+    task_id: str,
+    payload_sha256: str,
+    *,
+    allow_uncertain: bool = False,
+) -> dict[str, Any]:
     if not path.exists():
         return {}
     try:
@@ -689,12 +730,7 @@ def _load_state(path: Path, task_id: str, payload_sha256: str) -> dict[str, Any]
         raise QualificationError("cannot read launcher state; refusing to create duplicate resources") from exc
     if state.get("task_id") != task_id or state.get("payload_sha256") != payload_sha256:
         raise QualificationError("launcher state identity mismatch")
-    uncertain_phases = {
-        "job_creation_submitted_unknown",
-        "model_creation_submitted_unknown",
-        "artifact_upload_submitted_unknown",
-    }
-    if state.get("phase") in uncertain_phases:
+    if not allow_uncertain and state.get("phase") in UNCERTAIN_PHASES:
         raise QualificationError("previous create/upload outcome is unknown; reconcile W&B before resuming")
     return state
 
@@ -755,6 +791,16 @@ def _upload_artifact(request: ExecutionRequest, state: dict[str, Any], plan: Tra
     return artifact_uri
 
 
+def _model_name(request: ExecutionRequest, task_id: str) -> str:
+    """Return the deterministic W&B model name for this release/arm pair.
+
+    The name is the idempotency key: ``POST /preview/models`` with
+    ``return_existing`` adopts whatever a previous attempt created under the
+    same name instead of creating a second model.
+    """
+    return f"arc-sft-{request.arm}-{task_id[:12]}"
+
+
 def _create_model(request: ExecutionRequest, state: dict[str, Any], task_id: str) -> str:
     model_id = state.get("model_id")
     if isinstance(model_id, str):
@@ -768,7 +814,7 @@ def _create_model(request: ExecutionRequest, state: dict[str, Any], task_id: str
         {
             "entity": ENTITY,
             "project": PROJECT,
-            "name": f"arc-sft-{request.arm}-{task_id[:12]}",
+            "name": _model_name(request, task_id),
             "base_model": request.model_id,
             "return_existing": True,
         },
@@ -815,10 +861,128 @@ def _create_job(
     return job_id
 
 
+def _list_sft_jobs(request: ExecutionRequest) -> list[dict[str, Any]] | None:
+    """Return the provider's SFT jobs, or ``None`` when it cannot enumerate them."""
+    try:
+        response = request.api.request("GET", "/preview/sft-training-jobs")
+    except QualificationError:
+        return None
+    if isinstance(response, list):
+        items: Any = response
+    elif isinstance(response, dict):
+        items = response.get("jobs", response.get("data", response.get("items", [])))
+        if isinstance(items, dict):
+            items = items.get("jobs", [])
+    else:
+        return None
+    if not isinstance(items, list):
+        return None
+    return [item for item in items if isinstance(item, dict)]
+
+
+def _job_matches(job: dict[str, Any], model_id: str, artifact_uri: str) -> bool:
+    if job.get("model_id") != model_id:
+        return False
+    recorded = job.get("training_data_url", job.get("dataset_url"))
+    return recorded in (None, artifact_uri)
+
+
+def _reconcile_job(
+    request: ExecutionRequest,
+    state: dict[str, Any],
+    state_path: Path,
+    model_id: str,
+    artifact_uri: str,
+) -> str:
+    """Adopt the job an earlier attempt created, or clear the phase for a retry."""
+    jobs = _list_sft_jobs(request)
+    if jobs is None:
+        raise QualificationError(
+            "job creation outcome is unknown and the Training API returned no usable job list; "
+            f"check the W&B console for a job on model {model_id}, then stamp training_job_id into "
+            f"{state_path.name}"
+        )
+    matches = [job for job in jobs if _job_matches(job, model_id, artifact_uri)]
+    if len(matches) > 1:
+        ids = ", ".join(str(job.get("id")) for job in matches)
+        raise QualificationError(
+            f"job creation outcome is unknown and {len(matches)} jobs match this release ({ids}); "
+            "refusing to guess which one to adopt"
+        )
+    if matches:
+        found = matches[0].get("id")
+        if not isinstance(found, str) or not re.fullmatch(r"[0-9a-fA-F-]{36}", found):
+            raise QualificationError("matching training job carries no usable id")
+        state["training_job_id"] = found
+        state["phase"] = "job_created"
+        return "job_adopted"
+    state["phase"] = "job_creation_retried"
+    return "job_creation_retried"
+
+
+def reconcile(
+    request: ExecutionRequest,
+    plan: TrainingPlan,
+    state: dict[str, Any],
+    state_path: Path,
+) -> dict[str, Any]:
+    """Resolve an uncertain create/upload phase without duplicating resources.
+
+    Every create/upload the launcher makes is preceded by a ``*_submitted_unknown``
+    phase marker, so a crash or provider outage mid-call leaves durable evidence
+    that an outcome is unverified. This turns that marker back into a known state:
+
+    * an artifact upload whose URI was recorded is confirmed; one without a URI
+      is repeated, because the uploader names the artifact deterministically and
+      a second version of identical bytes is harmless;
+    * model creation is repeated, because the request carries
+      ``return_existing`` and the model name is the idempotency key;
+    * job creation is adopted from the provider's job list, and only retried
+      when the list proves nothing was created.
+    """
+    phase = state.get("phase")
+    if phase not in UNCERTAIN_PHASES:
+        return {"resolved": [], "phase": phase}
+    resolved: list[str] = []
+    history = state.setdefault("reconciled_phases", [])
+    if isinstance(history, list):
+        history.append(phase)
+    state["reconciled_unix"] = int(time.time())
+    if phase == "artifact_upload_submitted_unknown":
+        if isinstance(state.get("training_data_url"), str):
+            state["phase"] = "artifact_uploaded"
+            resolved.append("artifact_upload_confirmed")
+        else:
+            _upload_artifact(request, state, plan)
+            resolved.append("artifact_upload_repeated")
+    elif phase == "model_creation_submitted_unknown":
+        _create_model(request, state, plan.task_id)
+        resolved.append("model_adopted")
+    else:
+        model_id = state.get("model_id")
+        artifact_uri = state.get("training_data_url")
+        if not isinstance(model_id, str) or not isinstance(artifact_uri, str):
+            raise QualificationError(
+                "job creation outcome is unknown and the state records no model/artifact to match on; "
+                f"check the W&B console before resuming {state_path.name}"
+            )
+        resolved.append(_reconcile_job(request, state, state_path, model_id, artifact_uri))
+    state["phase_updated_unix"] = int(time.time())
+    atomic_json(state_path, state)
+    return {"resolved": resolved, "phase": state.get("phase")}
+
+
 def _poll_job(request: ExecutionRequest, state: dict[str, Any], job_id: str, task_id: str) -> None:
+    """Poll the job and keep the state file honest.
+
+    ``max_polls=None`` follows the job until it reaches a terminal state; an
+    integer stops after that many polls. A single poll straight after creation
+    always reports ``PENDING``, which is why the default is to follow.
+    """
     state_path = request.state_dir / f"wandb-sft-{task_id}.json"
     safe_fields = ("id", "status", "state", "created_at", "updated_at", "completed_at", "step", "total_steps")
-    for poll_index in range(request.max_polls):
+    polls = itertools.count() if request.max_polls is None else range(request.max_polls)
+    for poll_index in polls:
         status = request.api.request("GET", f"/preview/training-jobs/{job_id}")
         if not isinstance(status, dict):
             raise QualificationError("W&B training job status response was not a JSON object")
@@ -828,12 +992,15 @@ def _poll_job(request: ExecutionRequest, state: dict[str, Any], job_id: str, tas
         if resolved:
             state["provider_reported_config"] = resolved
         state["phase_updated_unix"] = int(time.time())
-        if state["last_status"] in TERMINAL_STATES:
-            state["phase"] = state["last_status"]
+        terminal = is_terminal_status(state["last_status"])
+        if terminal:
+            state["phase"] = str(state["last_status"]).strip().lower()
+        elif state["phase"] == "job_created":
+            state["phase"] = "job_running"
         atomic_json(state_path, state)
-        if state["last_status"] in TERMINAL_STATES:
+        if terminal:
             return
-        if request.poll_interval and poll_index + 1 < request.max_polls:
+        if request.poll_interval and (request.max_polls is None or poll_index + 1 < request.max_polls):
             time.sleep(request.poll_interval)
 
 

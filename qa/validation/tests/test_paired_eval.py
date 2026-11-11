@@ -8,10 +8,11 @@ from email.message import Message
 from io import BytesIO
 from pathlib import Path
 from typing import Any
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 
 import pytest
 
+from ai.qa.validation.therapy_bench import paired_eval
 from ai.qa.validation.therapy_bench.paired_eval import (
     ConservativeAsciiByteCounter,
     EvaluationInputError,
@@ -890,6 +891,15 @@ def test_response_omits_uses_the_same_word_start_rule() -> None:
     assert risk[0]["passed"] is False
 
 
+def test_response_omits_folds_curly_apostrophes() -> None:
+    case = {
+        "id": "crisis-coddling",
+        "state_checks": [{"type": "response_omits", "term": "i'm so sorry"}],
+    }
+    result = score_state_checks(case, "I\u2019m so sorry that happened.", {}, [])
+    assert result[0]["passed"] is False
+
+
 def test_synthetic_memory_write_requires_fixture_consent() -> None:
     state = {"memory": {}, "memory_write_allowed": False}
 
@@ -998,9 +1008,7 @@ def test_booking_is_idempotent_for_duplicate_tool_delivery() -> None:
 )
 def test_booking_malformed_fixture_state_returns_structured_error(state, expected_code) -> None:
     state["user_consent_granted"] = True
-    status, result = _run_mock_tool(
-        "book_navigator_slot", '{"slot_id":"S-1","consent":true}', state
-    )
+    status, result = _run_mock_tool("book_navigator_slot", '{"slot_id":"S-1","consent":true}', state)
 
     assert status == "error"
     assert result["code"] == expected_code
@@ -1030,11 +1038,7 @@ def test_booking_unknown_commit_records_single_appointment_and_consumes_outcome(
 
 
 def test_tool_status_check_uses_latest_matching_result() -> None:
-    case = {
-        "state_checks": [
-            {"type": "tool_status", "tool_name": "book_navigator_slot", "status": "error"}
-        ]
-    }
+    case = {"state_checks": [{"type": "tool_status", "tool_name": "book_navigator_slot", "status": "error"}]}
     trace = [
         {"name": "book_navigator_slot", "status": "error"},
         {"name": "book_navigator_slot", "status": "ok"},
@@ -1183,6 +1187,81 @@ def test_transient_http_policy_preserves_errors_without_retrying(
     assert len(calls) == expected_calls
 
 
+def test_a_transport_url_error_reaches_the_retry_classifier(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # The classifier keys on the exception type, so wrapping a URLError in a
+    # RuntimeError silently disabled every retry against a live provider.
+    _cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text())
+    arm = config["arms"][0]
+    monkeypatch.setenv(arm["api_key_env"], "offline-base")
+
+    def fail(_request: Any, **_kwargs: Any) -> None:
+        raise URLError(TimeoutError("read timed out"))
+
+    monkeypatch.setattr("urllib.request.urlopen", fail)
+    transport = paired_eval.OpenAIChatCompletions()
+
+    with pytest.raises(URLError) as raised:
+        transport.complete(arm, [{"role": "user", "content": "hello"}], [], config["decoding"])
+
+    assert paired_eval._is_transient_failure(raised.value)
+
+
+class _FlakyTransport(FakeTransport):
+    """Fail a bounded number of completions with a read timeout, then answer."""
+
+    def __init__(self, failures: int) -> None:
+        super().__init__()
+        self.remaining = failures
+        self.attempts = 0
+
+    def complete(
+        self,
+        arm: dict[str, str],
+        messages: list[dict[str, str]],
+        tools: list[dict[str, Any]],
+        decoding: dict[str, Any],
+    ) -> dict[str, Any]:
+        self.attempts += 1
+        if self.remaining:
+            self.remaining -= 1
+            raise TimeoutError("read timed out")
+        return super().complete(arm, messages, tools, decoding)
+
+
+def test_a_read_timeout_is_reasked_instead_of_scored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(paired_eval, "_TRANSIENT_BACKOFF_SECONDS", 0.0)
+    cases_path, config_path = write_inputs(tmp_path)
+    transport = _FlakyTransport(failures=1)
+
+    result = run((cases_path, config_path, tmp_path / "results"), transport)
+
+    assert result["status"] == "complete"
+    assert result["error_count"] == 0
+    # the timed-out completion was asked again rather than recorded as a failure
+    assert transport.attempts == EXPECTED_CALLS + 1
+    rows = [json.loads(line) for line in (tmp_path / "results" / "results.jsonl").read_text().splitlines()]
+    assert sum(row["retry_count"] for row in rows) == 1
+    assert all(row["status"] == "success" for row in rows)
+
+
+def test_a_persistent_read_timeout_is_bounded_and_not_fatal(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(paired_eval, "_TRANSIENT_BACKOFF_SECONDS", 0.0)
+    cases_path, config_path = write_inputs(tmp_path)
+    transport = _FlakyTransport(failures=1000)
+    attempts_per_completion = 1 + paired_eval._TRANSIENT_ATTEMPTS
+
+    result = run((cases_path, config_path, tmp_path / "results"), transport)
+
+    assert result["status"] == "incomplete"
+    assert transport.attempts == EXPECTED_CALLS * attempts_per_completion
+    rows = [json.loads(line) for line in (tmp_path / "results" / "results.jsonl").read_text().splitlines()]
+    assert all(row["status"] == "error" and row["error_type"] == "TimeoutError" for row in rows)
+    assert all(row["retry_count"] == paired_eval._TRANSIENT_ATTEMPTS for row in rows)
+    # a timeout is not a provider metadata failure, so a resume is still allowed
+    assert all(row["fatal"] is False for row in rows)
+
+
 @pytest.mark.parametrize("response_format", [{"type": "text"}, {"type": "json_object", "unknown": True}, None])
 def test_response_format_rejects_untracked_decoding_controls(tmp_path: Path, response_format: Any) -> None:
     cases_path, config_path = write_inputs(tmp_path)
@@ -1212,4 +1291,26 @@ def test_strict_named_json_schema_is_preserved_in_dry_run(tmp_path: Path) -> Non
     config["decoding"]["response_format"]["json_schema"]["strict"] = False
     config_path.write_text(json.dumps(config))
     with pytest.raises(EvaluationInputError, match="strict named JSON schema"):
+        build_dry_run_report(RunRequest(cases_path, config_path, tmp_path / "results"))
+
+
+@pytest.mark.parametrize(
+    "base_url",
+    ["http://127.0.0.1:8099/v1", "http://localhost:8099/v1", "http://[::1]:8099/v1", "https://sft.example/v1"],
+)
+def test_loopback_shim_urls_are_accepted(tmp_path: Path, base_url: str) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text())
+    config["arms"][0]["base_url"] = base_url
+    config_path.write_text(json.dumps(config))
+    build_dry_run_report(RunRequest(cases_path, config_path, tmp_path / "results"))
+
+
+@pytest.mark.parametrize("base_url", ["http://sft.example/v1", "http://10.0.0.5:8099/v1", "ftp://127.0.0.1/v1"])
+def test_plain_http_is_still_rejected_off_loopback(tmp_path: Path, base_url: str) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text())
+    config["arms"][0]["base_url"] = base_url
+    config_path.write_text(json.dumps(config))
+    with pytest.raises(EvaluationInputError, match="https URL"):
         build_dry_run_report(RunRequest(cases_path, config_path, tmp_path / "results"))

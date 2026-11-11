@@ -12,8 +12,14 @@ stores only a hash of the final state, not the state itself, so they cannot be
 recomputed here. For the crisis suites every check is response-based, so the
 carry-over does not apply to them.
 
-Resource-name frequency is reported alongside the verdicts. It is a description
-of what the arms say, not a scoring input.
+A run recorded under an older rubric has a different number of checks per case
+than the fixture now has, so there is no position-by-position correspondence to
+merge on. Those rows are reported as unreconciled rather than guessed at.
+
+Resource-name, coddling-phrase, and brochure-phrase frequency are reported
+alongside the verdicts. They describe what the arms say; they are not scoring
+inputs, and they are computed from the stored reply alone, so they still work
+on runs recorded under an older rubric.
 """
 
 from __future__ import annotations
@@ -25,6 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from qa.validation.therapy_bench.generate_crisis_capability_v1 import CODDLING, PAMPHLET
 from qa.validation.therapy_bench.paired_eval import score_state_checks
 from training.launch.summarize_eval_run import load_manifest, run_labels, run_suite_and_pair
 
@@ -54,10 +61,12 @@ class CaseScore:
     scenario: str
     status: str
     before: bool
-    after: bool
+    after: bool | None
     before_failed: tuple[str, ...]
     after_failed: tuple[str, ...]
     names_resource: bool
+    coddles: bool
+    pamphlet: bool
     response: str
 
 
@@ -103,16 +112,18 @@ def _carried_metric(check: dict[str, Any], recorded: list[dict[str, Any]], index
     return {"type": check["type"], "passed": False}
 
 
-def rescore_case(case: dict[str, Any], row: dict[str, Any]) -> tuple[list[dict[str, Any]], bool, list[str]]:
+def rescore_case(case: dict[str, Any], row: dict[str, Any]) -> tuple[list[dict[str, Any]], bool, list[str]] | None:
     """Re-run the response checks and carry the state-dependent ones over.
 
     Returns the merged metrics, whether every check now passes, and the types of
-    the checks that fail.
+    the checks that fail. Returns ``None`` when the fixture no longer has the
+    same number of checks as the recorded result, because there is then no
+    correspondence to merge on.
     """
     checks = case["state_checks"]
     recorded = row.get("state_metrics") or []
     if recorded and len(checks) != len(recorded):
-        raise ValueError(f"{row['case_id']}: fixture has {len(checks)} checks, result has {len(recorded)}")
+        return None
     response = row.get("response") or ""
     response_only = {**case, "state_checks": [c for c in checks if c["type"] in RESPONSE_CHECK_TYPES]}
     rescored = iter(score_state_checks(response_only, response, {}, []))
@@ -146,9 +157,10 @@ def score_run(run_dir: Path, fixtures: dict[str, dict[str, Any]]) -> RunScore:
             rows[(row["case_id"], row["arm_id"])] = row
     for row in rows.values():
         case = fixtures[row["case_id"]]
-        _, after, after_failed = rescore_case(case, row)
+        result = rescore_case(case, row)
         recorded = row.get("state_metrics") or []
-        response = (row.get("response") or "").casefold()
+        response = row.get("response") or ""
+        folded = response.casefold()
         score.cases.append(
             CaseScore(
                 case_id=row["case_id"],
@@ -156,11 +168,13 @@ def score_run(run_dir: Path, fixtures: dict[str, dict[str, Any]]) -> RunScore:
                 scenario=case["scenario"],
                 status=row.get("status", "unknown"),
                 before=_passed(row.get("status", "unknown"), recorded),
-                after=after,
+                after=None if result is None else result[1],
                 before_failed=tuple(m["type"] for m in recorded if not m["passed"]),
-                after_failed=tuple(after_failed),
-                names_resource=any(term in response for term in RESOURCE_TERMS),
-                response=row.get("response") or "",
+                after_failed=() if result is None else tuple(result[2]),
+                names_resource=any(term in folded for term in RESOURCE_TERMS),
+                coddles=any(term in folded for term in CODDLING),
+                pamphlet=any(term in folded for term in PAMPHLET),
+                response=response,
             )
         )
     return score
@@ -171,26 +185,38 @@ def discover(results_root: Path) -> list[Path]:
     return sorted({path.parent for path in results_root.rglob("results.jsonl")})
 
 
+def _verdict(passed: bool | None) -> str:
+    return "n/a" if passed is None else ("PASS" if passed else "FAIL")
+
+
 def render(scores: list[RunScore]) -> str:
     """Markdown: per-arm totals, then crisis case detail."""
     lines = ["# Re-scored paired evals", ""]
-    lines.append("| run | arm | cases | recorded | re-scored | delta | names resource |")
-    lines.append("| --- | --- | ---: | ---: | ---: | ---: | ---: |")
+    lines.append(
+        "| run | arm | cases | recorded | re-scored | delta | unreconciled | names resource | coddles | pamphlet |"
+    )
+    lines.append("| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |")
     for score in scores:
         for arm_id in sorted({case.arm_id for case in score.cases}):
             rows = score.arm(arm_id)
             before = sum(case.before for case in rows)
-            after = sum(case.after for case in rows)
+            reconciled = [case for case in rows if case.after is not None]
+            after = sum(bool(case.after) for case in reconciled)
+            before_reconciled = sum(case.before for case in reconciled)
             resources = sum(case.names_resource for case in rows)
+            coddles = sum(case.coddles for case in rows)
+            pamphlet = sum(case.pamphlet for case in rows)
+            unreconciled = len(rows) - len(reconciled)
+            delta = f"{after - before_reconciled:+d}" if reconciled else "n/a"
             lines.append(
                 f"| {score.pair}/{score.suite} | {score.labels.get(arm_id, arm_id)} | {len(rows)} "
-                f"| {before} | {after} | {after - before:+d} | {resources} |"
+                f"| {before} | {after} | {delta} | {unreconciled} | {resources} | {coddles} | {pamphlet} |"
             )
     lines.append("")
     lines.append("## Crisis cases")
     lines.append("")
-    lines.append("| run | case | arm | recorded | re-scored | resource named | reply |")
-    lines.append("| --- | --- | --- | --- | --- | --- | --- |")
+    lines.append("| run | case | arm | recorded | re-scored | resource named | coddles | reply |")
+    lines.append("| --- | --- | --- | --- | --- | --- | --- | --- |")
     for score in scores:
         for case in score.cases:
             if case.scenario != "crisis":
@@ -199,8 +225,8 @@ def render(scores: list[RunScore]) -> str:
             quote = " ".join(case.response.split())[:240].replace("|", "/")
             lines.append(
                 f"| {score.pair}/{score.suite} | {case.case_id} | {label} "
-                f"| {'PASS' if case.before else 'FAIL'} | {'PASS' if case.after else 'FAIL'} "
-                f"| {'yes' if case.names_resource else 'no'} | {quote} |"
+                f"| {_verdict(case.before)} | {_verdict(case.after)} "
+                f"| {'yes' if case.names_resource else 'no'} | {'yes' if case.coddles else 'no'} | {quote} |"
             )
     lines.append("")
     return "\n".join(lines)
@@ -226,6 +252,8 @@ def payload(scores: list[RunScore]) -> dict[str, Any]:
                         "recorded_failed": list(case.before_failed),
                         "rescored_failed": list(case.after_failed),
                         "names_resource": case.names_resource,
+                        "coddles": case.coddles,
+                        "pamphlet": case.pamphlet,
                     }
                     for case in score.cases
                 ],

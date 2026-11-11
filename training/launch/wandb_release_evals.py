@@ -8,10 +8,11 @@ from the prep plan, which is how the v16 batch ended up with one run that never
 finished and a stale scoreboard.
 
 This script owns the whole sequence: poll the job, resolve the artifact from the
-run that produced it, write the configs, run them in parallel, and render the
-scoreboard. A run that dies on a provider 5xx is retried once from a clean
-results directory -- the harness records its own flag set in the run manifest,
-so resuming a partially written directory is rejected as an identity change.
+run that produced it, write the configs, run them in parallel, render the
+scoreboard, and publish the results root to W&B. A run that dies on a provider
+5xx is retried once from a clean results directory -- the harness records its
+own flag set in the run manifest, so resuming a partially written directory is
+rejected as an identity change.
 
 Usage:
 
@@ -53,6 +54,12 @@ JOB_ACTIVE_STATES = {"RUNNING", "PENDING", "UNKNOWN", "QUEUED", "CREATING"}
 JOB_SUCCESS_STATES = {"FINISHED", "SUCCEEDED", "COMPLETED"}
 # A provider hiccup is worth one clean retry; anything else is a real failure.
 TRANSIENT_MARKERS = ("http_502", "http_503", "http_504", "http_500", "ProviderHTTPError", "ReadTimeout")
+# Transport failures are not model behaviour, so they are re-asked instead of
+# being scored. The eval subprocess records them in results.jsonl, which is the
+# only reliable signal: the manifest it prints carries counts, not error types.
+TRANSIENT_ERROR_TYPES = frozenset({"TimeoutError", "URLError", "RemoteDisconnected", "ConnectionResetError"})
+TRANSIENT_HTTP_STATUSES = frozenset({500, 502, 503, 504})
+MAX_TRANSIENT_RETRIES = 2
 
 # Labels flow into child-process argv (results dirs, config names) and W&B run
 # names. Restrict them to a safe token alphabet so a crafted value cannot smuggle
@@ -177,8 +184,48 @@ def build_commands(
     return commands
 
 
+def _latest_records(results_dir: Path) -> dict[tuple[Any, Any], dict[str, Any]]:
+    path = results_dir / "results.jsonl"
+    if not path.is_file():
+        return {}
+    latest: dict[tuple[Any, Any], dict[str, Any]] = {}
+    with path.open(encoding="utf-8") as stream:
+        for line in stream:
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            latest[(record.get("arm_id"), record.get("case_id"))] = record
+    return latest
+
+
+def resume_blocked(results_dir: Path) -> bool:
+    # A fatal record makes the harness refuse to resume, so a retry has to start
+    # from a clean results directory instead of re-asking the failed cases.
+    return any(bool(record.get("fatal")) for record in _latest_records(results_dir).values())
+
+
+def transient_failures(results_dir: Path) -> list[str]:
+    """Failed records caused by the transport rather than by the model.
+
+    A resumed run appends its retry to the same file, so the last record for a
+    case is the one that counts; an earlier timeout that was later answered
+    must not trigger another pass.
+    """
+    names: list[str] = []
+    for record in _latest_records(results_dir).values():
+        if record.get("status") == "success":
+            continue
+        if (
+            record.get("error_type") in TRANSIENT_ERROR_TYPES
+            or record.get("provider_http_status") in TRANSIENT_HTTP_STATUSES
+        ):
+            names.append(f"{record.get('arm_id')}/{record.get('case_id')}={record.get('error_type')}")
+    return names
+
+
 def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
     env = dict(os.environ, PYTHONPATH=str(AI), WANDB_API_KEY=key)
+    results_dir = Path(argv[argv.index("--results-dir") + 1])
     log(f"start {label}")
     completed = subprocess.run(
         argv,
@@ -190,24 +237,45 @@ def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
     )
     tail = (completed.stdout or "").strip().splitlines()[-3:]
     log(f"done {label} rc={completed.returncode} {' | '.join(tail)}")
-    if completed.returncode != 0:
-        stderr = (completed.stderr or "").strip()
+    stderr = (completed.stderr or "").strip()
+    if completed.returncode != 0 and stderr:
         log(f"stderr {label}: {stderr[-800:]}")
-        if any(marker in stderr or marker in (completed.stdout or "") for marker in TRANSIENT_MARKERS):
-            results_dir = Path(argv[argv.index("--results-dir") + 1])
-            log(f"retrying {label} from a clean results directory")
-            shutil.rmtree(results_dir, ignore_errors=True)
-            retry = [*argv, "--continue-on-transient-http-errors"]
-            retried = subprocess.run(
-                retry,
+    retry_argv = argv
+    for attempt in range(1, MAX_TRANSIENT_RETRIES + 1):
+        if completed.returncode == 0:
+            return label, completed.returncode
+        hiccups = transient_failures(results_dir)
+        if hiccups and not resume_blocked(results_dir):
+            # Non-fatal: the harness resumes, so only the failed cases are re-asked.
+            log(f"retry {label} {attempt} for {len(hiccups)} transport failure(s): {'; '.join(hiccups[:6])}")
+            completed = subprocess.run(
+                retry_argv,
                 cwd=AI,
                 env=env,
                 capture_output=True,
                 text=True,
                 check=False,
             )
-            log(f"retry {label} rc={retried.returncode}")
-            return label, retried.returncode
+            log(f"retry {label} {attempt} rc={completed.returncode}")
+            continue
+        if any(marker in stderr or marker in (completed.stdout or "") for marker in TRANSIENT_MARKERS):
+            # Fatal provider metadata failure blocks resume, so start clean.
+            log(f"retrying {label} from a clean results directory")
+            shutil.rmtree(results_dir, ignore_errors=True)
+            # The harness compares the resume manifest against the recorded options,
+            # so every later invocation has to carry the same flag.
+            retry_argv = [*argv, "--continue-on-transient-http-errors"]
+            completed = subprocess.run(
+                retry_argv,
+                cwd=AI,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            log(f"retry {label} rc={completed.returncode}")
+            continue
+        return label, completed.returncode
     return label, completed.returncode
 
 
@@ -226,6 +294,41 @@ def render_scoreboard(exec_dir: Path, release_label: str) -> int:
     target = exec_dir / f"{release_label}-scoreboard.md"
     target.write_text(completed.stdout, encoding="utf-8")
     log(f"scoreboard written to {target} ({len(completed.stdout.splitlines())} lines)")
+    return 0
+
+
+def track_eval_run(exec_dir: Path, release_label: str) -> int:
+    """Publish the finished results root to W&B (metrics + artifact)."""
+    completed = subprocess.run(
+        [
+            PYTHON,
+            "training/launch/log_eval_tracking.py",
+            "--results-root",
+            str(exec_dir / "evals" / "results"),
+            "--release-label",
+            release_label,
+            "--exec-dir",
+            str(exec_dir),
+        ],
+        cwd=AI,
+        env=dict(os.environ, PYTHONPATH=str(AI)),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        log(f"eval tracking failed rc={completed.returncode}: {completed.stderr.strip()[-800:]}")
+        return completed.returncode
+    try:
+        report = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        log(f"eval tracking: {completed.stdout.strip()[-400:]}")
+        return 0
+    log(
+        f"eval tracking: run {report.get('run_id')} "
+        f"({report.get('scalar_count')} scalars, {report.get('case_rows')} case rows, "
+        f"artifact {report.get('artifact')})"
+    )
     return 0
 
 
@@ -252,6 +355,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--poll-seconds", type=int, default=120)
     parser.add_argument("--max-polls", type=int, default=240)
     parser.add_argument("--skip-wait", action="store_true", help="assume the job already finished")
+    parser.add_argument(
+        "--skip-track",
+        action="store_true",
+        help="do not publish the results root to W&B (offline runs)",
+    )
     args = parser.parse_args(argv)
     try:
         release_label = _validate_token(args.release_label, "--release-label")
@@ -288,6 +396,8 @@ def main(argv: list[str] | None = None) -> int:
                 failures += 1
 
     failures += 1 if render_scoreboard(exec_dir, release_label) != 0 else 0
+    if not args.skip_track:
+        failures += 1 if track_eval_run(exec_dir, release_label) != 0 else 0
     log(f"PIPELINE DONE failures={failures}")
     return 0 if failures == 0 else 1
 

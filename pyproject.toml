@@ -276,6 +276,17 @@ ignore = []
     "T201",
     "PLR2004",
     "PLR0911",
+    # the Adaption SDK is an ephemeral dependency (uv run --with adaption), so it is
+    # imported inside the client factory to keep the module importable for tests
+    "PLC0415",
+]
+"training/export_adaption_release.py" = [
+    "T201",
+]
+"training/export_tinker_release.py" = [
+    "T201",
+    "PLC0415",
+    "PLR0913",
 ]
 "training/curate_pipeline.py" = [
     "T201",
@@ -474,6 +485,21 @@ ignore = []
     "PLR2004",
     "SIM117",
 ]
+"training/tests/test_log_eval_tracking.py" = ["PLR2004", "PLR0913"]
+# The CLI prints progress, tinker/wandb are optional deps imported lazily, and
+# plan/train take keyword-only knobs rather than a params object.
+"training/tinker_sft_release.py" = ["T201", "PLC0415", "PLR0913"]
+"training/tests/test_tinker_sft_release.py" = ["PLR2004", "ARG001", "RUF005"]
+# The shim prints its bind address and access log to stderr, BaseHTTPRequestHandler
+# requires the do_GET/do_POST names, the broad except is the 502 boundary for the
+# eval client, and a request handler naturally has many early returns.
+"training/tinker_eval_shim.py" = ["T201", "PLC0415", "N802", "BLE001", "PLR0911"]
+"training/tests/test_tinker_eval_shim.py" = ["PLR2004", "ARG002"]
+# wandb is imported inside log_to_wandb so the dry-run path (and every test)
+# never pays for it; the module is only needed once we actually publish.
+"training/launch/log_eval_tracking.py" = ["PLC0415"]
+# ovh-api is a terminal command; printing is its entire output surface.
+"infrastructure/ovh/cli.py" = ["T201"]
 
 [tool.ruff.lint.isort]
 known-first-party = [

@@ -4,15 +4,15 @@
 The v14 paired evaluation moved crisis routing from 3/11 to 7/11 on the dev
 split and from 5/11 to 7/11 on sealed, and every remaining failure fails the
 same check: the reply is a warm reflection plus a safety question with no
-resource named. The v9 family does name 988, 911 and poison control, but in
-most of its eight shapes the action clause sits second, behind a frame
+resource named. The v9 family does open with a direct action in some shapes, but
+in most of its eight shapes the action clause sits second, behind a frame
 ("What you are describing needs help today, not later. {action}"). The adapter
 reproduces the frame and drops the clause.
 
 v10 keeps v9's disclosures and action lines exactly and changes one thing:
-every reply opens with the action. Eight shapes, all resource-first, so the
-family teaches "name the resource" as the invariant rather than as one option
-among several.
+every reply opens with the action. Eight shapes, all action-first, so the
+family teaches "say the direct thing first" as the invariant rather than as one
+option among several.
 
 480 rows: every crisis group and disclosure v9 trains, crossed with 8 shapes,
 train only, matching the v3..v9 addendum convention. No controls are added; the
@@ -168,8 +168,8 @@ def build(output: Path) -> dict[str, Any]:
         "release_id": RELEASE_ID,
         "purpose": (
             "v15 addendum: v14 crisis replies reflect the disclosure and ask a safety question but "
-            "omit the resource, failing the response_contains_any check on 4 of 11 dev cases and 3 of "
-            "11 sealed cases; every v10 reply opens with the resource action"
+            "answer reflectively without engaging the disclosure, failing the response_contains_any "
+            "check on 4 of 11 dev cases and 3 of 11 sealed cases; every v10 reply opens with the action"
         ),
         "source": "first-party deterministic synthetic trajectories; no external or clinical records",
         "base_model": BASE_MODEL,
@@ -193,7 +193,8 @@ def build(output: Path) -> dict[str, Any]:
             ),
             "crisis_shape": "user then assistant, no system message, matching the arc corpus",
             "crisis_rubric": (
-                "acute disclosures name a medical or emergency escalation; non-acute disclosures name a crisis referral"
+                "acute disclosures name a medical or emergency escalation; engaged disclosures answer the "
+                "disclosure directly and never redirect the person to a number"
             ),
             "no_controls": "the 60 v9 control rows stay in train and cover the non-escalation direction",
         },

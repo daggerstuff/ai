@@ -338,9 +338,14 @@ def _validate_pricing(pricing: Any) -> None:
         raise EvaluationInputError("required usage needs both token rates")
 
 
+_LOOPBACK_HOSTS = {"127.0.0.1", "::1", "localhost"}
+
+
 def _validate_base_url(value: str) -> None:
     parsed = urlsplit(value)
-    if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+    if not parsed.netloc or parsed.username or parsed.password:
+        raise EvaluationInputError("base_url must be an https URL without user info")
+    if parsed.scheme != "https" and not (parsed.scheme == "http" and parsed.hostname in _LOOPBACK_HOSTS):
         raise EvaluationInputError("base_url must be an https URL without user info")
     if parsed.query or parsed.fragment:
         raise EvaluationInputError("base_url cannot contain query parameters or fragments")
@@ -518,8 +523,10 @@ class OpenAIChatCompletions:
                     excerpt,
                 )
             ) from None
-        except (urllib.error.URLError, TimeoutError) as exc:
-            raise RuntimeError(type(exc).__name__) from None
+        except (urllib.error.URLError, TimeoutError):
+            # Re-raised untouched: the retry classifier keys on the transport
+            # exception type, which a RuntimeError wrapper would hide.
+            raise
         choice = payload["choices"][0]
         message = choice["message"]
         usage = payload.get("usage") or {}
@@ -732,6 +739,11 @@ def _check_response_enum(
     return _json_object(response).get(check["field"]) in check["allowed_values"]
 
 
+# Model replies arrive with typographic apostrophes as often as straight ones,
+# and the rubric terms are written with the straight form.
+_APOSTROPHE_FOLD = str.maketrans({"\u2018": "'", "\u2019": "'"})
+
+
 def _mentions(term: str, response: str) -> bool:
     """Whether ``response`` mentions ``term`` as a word of its own.
 
@@ -741,7 +753,9 @@ def _mentions(term: str, response: str) -> bool:
     matches deliberate stems ("hallucinat" for "hallucinating"), which a right
     boundary would reject.
     """
-    return re.search(r"(?<!\w)" + re.escape(term.casefold()), response.casefold()) is not None
+    needle = term.casefold().translate(_APOSTROPHE_FOLD)
+    haystack = response.casefold().translate(_APOSTROPHE_FOLD)
+    return re.search(r"(?<!\w)" + re.escape(needle), haystack) is not None
 
 
 def _check_response_term(
@@ -1183,6 +1197,20 @@ class CaseExecution:
     input_bounds: list[int | None]
     completion_calls: int = 0
     tool_rounds: int = 0
+    retry_count: int = 0
+
+
+# A cold or queued serverless worker answers slowly enough to hit the read
+# timeout without anything being wrong with the model. Re-asking the same
+# question once the worker is warm is the difference between measuring the
+# adapter and measuring provider queueing, so transport hiccups are retried.
+_TRANSIENT_ERROR_TYPES = frozenset({"TimeoutError", "URLError", "RemoteDisconnected", "ConnectionResetError"})
+_TRANSIENT_ATTEMPTS = 2
+_TRANSIENT_BACKOFF_SECONDS = 5.0
+
+
+def _is_transient_failure(exc: Exception) -> bool:
+    return type(exc).__name__ in _TRANSIENT_ERROR_TYPES
 
 
 class CaseExecutionError(RuntimeError):
@@ -1297,13 +1325,21 @@ def _run_completion_loop(
         if bound is not None and context.input_token_cap is not None and bound > context.input_token_cap:
             raise CaseExecutionError("ToolContextExceededPreflight")
         progress.input_bounds.append(bound)
-        try:
-            completion = context.transport.complete(
-                arm, progress.history, case.get("tools", []), context.config["decoding"]
-            )
-        except Exception as exc:
-            exc.case_progress = progress
-            raise
+        attempt = 0
+        while True:
+            try:
+                completion = context.transport.complete(
+                    arm, progress.history, case.get("tools", []), context.config["decoding"]
+                )
+            except Exception as exc:
+                if attempt >= _TRANSIENT_ATTEMPTS or not _is_transient_failure(exc):
+                    exc.case_progress = progress
+                    raise
+                attempt += 1
+                progress.retry_count += 1
+                time.sleep(_TRANSIENT_BACKOFF_SECONDS * attempt)
+                continue
+            break
         progress.completion_calls += 1
         calls = _validate_completion(completion, bound, context, progress)
         if not calls or context.max_tool_rounds == 0:
@@ -1333,7 +1369,7 @@ def _failure_record(
         "missing_metadata": getattr(exc, "missing", []),
         "fatal": isinstance(exc, ProviderHTTPError) or http_code is not None or bool(getattr(exc, "fatal", False)),
         "latency_ms": round((time.monotonic() - start) * 1000, 3),
-        "retry_count": 0,
+        "retry_count": progress.retry_count if progress else 0,
         "estimated_cost_usd": None,
         "actual_billed_usd": None,
     }
@@ -1393,7 +1429,7 @@ def _success_record(
         "tool_trace": progress.tool_trace,
         "final_state_sha256": sha256_bytes(canonical_json(progress.state).encode()),
         "latency_ms": round((time.monotonic() - start) * 1000, 3),
-        "retry_count": 0,
+        "retry_count": progress.retry_count,
         "estimated_cost_usd": estimate,
         "actual_billed_usd": None,
         "diagnostic_metrics": [asdict(metric) for metric in score_diagnostics(case, completion)],

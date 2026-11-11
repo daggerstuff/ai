@@ -91,14 +91,16 @@ FORBIDDEN_FILLER: tuple[str, ...] = (
 ACTIONS: dict[str, tuple[str, ...]] = {
     "suicide_plan": (
         "Call 911 now. A set date and a chosen method is a medical emergency and it gets assessed today.",
-        "Call 911 and tell them you have a plan and the means. This does not wait for an appointment.",
+        "Call 911 and tell them you have worked out a method and have the means. This does not wait "
+        "for an appointment.",
         "Get to an emergency department now, or call 911 if you cannot get there safely. A dated plan "
         "with a method is a medical emergency.",
     ),
     "overdose_taken": (
-        "Call 911 now and say what you took and how long ago. What you swallowed keeps working for hours.",
+        "Call 911 now and say what you swallowed and how long ago. What you took keeps working for hours.",
         "Call 911 now. An overdose gets worse before it gets better, whatever it feels like yet.",
-        "Call poison control and 911 now and stay on the line. This needs an emergency department tonight.",
+        "Call poison control and 911 now and stay on the line. A swallowed overdose needs an "
+        "emergency department tonight.",
     ),
     "self_harm_active": (
         "Get that wound assessed at an emergency department tonight. Deep cuts and bleeding that will "
@@ -111,7 +113,7 @@ ACTIONS: dict[str, tuple[str, ...]] = {
     "psychosis_risk_other": (
         "Call 911 now and say you are afraid you will act on what the voices tell you. They need to come "
         "to you tonight.",
-        "Call 911 now. A command you are afraid to follow is an emergency and it gets a team at your door.",
+        "Call 911 now. Voices telling you to hurt someone are an emergency and it gets a team at your door.",
         "Call 911 now and tell them someone may be hurt tonight. Stay on the line until they arrive.",
     ),
     "assault_strangulation": (
@@ -121,12 +123,12 @@ ACTIONS: dict[str, tuple[str, ...]] = {
         "assessment tonight.",
     ),
     "medical_collapse": (
-        "Call an ambulance now. Days without keeping food down plus a collapse means your heart and "
-        "electrolytes get checked tonight.",
+        "Call an ambulance now. Blackouts after days of not eating mean your heart and electrolytes "
+        "get checked tonight.",
         "Call 911 now. Collapse and an irregular heartbeat after purging or restricting is a medical "
         "emergency, not a rest problem.",
-        "Get to an emergency department now, by ambulance if you cannot walk steadily. This is not "
-        "something to watch overnight at home.",
+        "Get to an emergency department now, by ambulance if you cannot walk steadily. Fainting after "
+        "days of not eating is not something to watch overnight at home.",
     ),
     "withdrawal": (
         "Call 911 now. Alcohol and sedative withdrawal causes seizures in the first days and that needs a "
@@ -139,20 +141,24 @@ ACTIONS: dict[str, tuple[str, ...]] = {
         "Call 911 now. An attempt in the last day needs the injury assessed and a crisis assessment "
         "before you go home.",
         "Get to an emergency department now. Yesterday's attempt is an open medical risk, not a past event.",
-        "Call 911 or get to an emergency department tonight and tell them what you did and when. Both "
-        "the injury and the risk get assessed.",
+        "Call 911 or get to an emergency department tonight and tell them about the attempt and when "
+        "it happened. Both the injury and the risk get assessed.",
     ),
     "passive_ideation": (
-        "Call or text 988 tonight. Wanting to not wake up is what that line is for and it is staffed around the clock.",
-        "Call 988 tonight and say what you just said here. A crisis line is the right place for this and "
-        "it does not close.",
-        "Text 988 now. This is the reason the line exists and it takes the call tonight, not next week.",
+        "You have been hoping you do not wake up. Say out loud what the night looks like when it "
+        "gets that bad, and name the person in the house with you.",
+        "You have been thinking people would be better off without you. Say that out loud to me "
+        "instead of keeping it for the small hours, and name who is with you tonight.",
+        "Wanting to not wake up is the thing we deal with now, not later. Say when it is worst and "
+        "who is in the house with you.",
     ),
     "means_access": (
-        "Call 988 now and get the means out of the house tonight — give it to someone or lock it away.",
-        "Call 988 tonight, then hand the means to someone you trust. Having the method within reach is "
-        "what turns thinking into acting.",
-        "Call 988 now and tell them what you have been keeping close. Then the means leaves the house tonight.",
+        "The means leave the house tonight — the pills, the gun, whatever you have been keeping "
+        "close. Name who is taking it.",
+        "Having the method within reach is what turns thinking into acting. Hand it to someone else "
+        "before you sleep and tell me who.",
+        "You have been keeping a method within reach. That changes tonight: it leaves the house, "
+        "and you tell me who has it.",
     ),
 }
 
