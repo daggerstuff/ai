@@ -6,9 +6,16 @@ import json
 from pathlib import Path
 from typing import Any
 
+from collections.abc import Callable
+
 import pytest
 
 from training.launch import rescore_eval_run as rescore
+
+# pytest resolves to Any under the ratchet's --no-site-packages run, which makes
+# every @pytest.fixture an untyped decorator. Bind it to a typed signature so
+# this file passes strict without an exemption.
+_fixture: Callable[[Callable[..., Any]], Callable[..., Any]] = pytest.fixture
 
 DIGEST = "0123abcd"
 RUN_ID = f"wandb-crisis-dev-v18-vs-base-{DIGEST}"
@@ -73,7 +80,7 @@ def row(
     }
 
 
-@pytest.fixture
+@_fixture
 def fixtures(tmp_path: Path) -> Path:
     path = tmp_path / "fixtures"
     path.mkdir()

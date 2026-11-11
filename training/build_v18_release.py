@@ -44,12 +44,19 @@ from pathlib import Path
 from typing import Any
 
 from training import (
-    add_risk_reply_headers as hdr,
-    build_v14_release as v14,
-    build_v15_release as v15,
-    build_v17_release as v17,
+    add_risk_reply_headers,
+    build_v14_release,
+    build_v15_release,
+    build_v17_release,
     rewrite_arc_risk_turns as rw,
 )
+
+# Bound to module-level names so callers that import this module can reach them;
+# `from training import x as y` is not a re-export under --strict.
+hdr = add_risk_reply_headers
+v14 = build_v14_release
+v15 = build_v15_release
+v17 = build_v17_release
 
 ROOT = v17.ROOT
 
@@ -169,7 +176,7 @@ def load_rewrite_records(path: Path = REWRITE_PATH) -> list[dict[str, Any]]:
     return list(records.values())
 
 
-def _validate_turn(record: dict[str, Any], row: dict[str, Any], old_number: int) -> tuple[str, str | None, str]:
+def _validate_turn(record: dict[str, Any], row: dict[str, Any], old_number: int) -> tuple[str, dict[str, Any] | None, str]:
     """Check the record describes an assistant turn of the row; return its split content."""
     messages = row.get("messages")
     if not isinstance(messages, list):
@@ -288,10 +295,10 @@ def build_overlay(
     missing = set(by_sha) - matched
     if missing:
         raise ValueError(f"{len(missing)} rewrites do not match any row in {candidate}")
-    turns = sum(len(turns) for turns in overlay.values())
+    turn_count = sum(len(index_map) for index_map in overlay.values())
     return overlay, {
         "rows": len(overlay),
-        "turns": turns,
+        "turns": turn_count,
         "model_rows": len({record["row_sha256"] for record in model_records}),
         "model_turns": len(model_records),
         "header_rows": len({record["row_sha256"] for record in headers or []}),
