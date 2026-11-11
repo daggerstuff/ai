@@ -60,7 +60,7 @@ DEFAULT_BASE_URL = "https://tinker.thinkingmachines.dev/services/tinker-prod"
 
 # ``learning_rate_schedule`` refuses a degenerate schedule, which is the right
 # call for a release run and the wrong one for a two-step smoke test.
-LOSS_KEYS = ("loss:mean", "loss", "cross_entropy:mean")
+LOSS_KEYS = ("loss:mean", "loss", "cross_entropy:mean", "loss:sum")
 
 # Tinker answers every call with this when the organisation has no billing set up.
 HTTP_PAYMENT_REQUIRED = 402
@@ -210,7 +210,11 @@ def datum_from_row(tinker: Any, row: dict[str, Any]) -> Any:
 
 
 def _loss(fb_result: Any) -> float | None:
-    """Return the batch loss from a forward/backward result, if it reported one."""
+    """Return the batch loss from a forward/backward result, if it reported one.
+
+    The trainer reports the token sum as loss:sum and no mean, so the sum is
+    the last key consulted rather than being dropped entirely.
+    """
     metrics = getattr(fb_result, "metrics", None) or {}
     for key in LOSS_KEYS:
         value = metrics.get(key)

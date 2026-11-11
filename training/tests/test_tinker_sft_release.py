@@ -155,6 +155,13 @@ def many_rows(count: int) -> list[dict[str, Any]]:
     return [datum([10, 11, 12], [0, 1, 0]) for _ in range(count)]
 
 
+def test_loss_reads_the_sum_metric_the_trainer_reports() -> None:
+    # The SDK pops loss:sum out of the trainer metrics; it never emits a mean.
+    result = SimpleNamespace(metrics={"loss:sum": 4.5})
+
+    assert trainer._loss(result) == 4.5
+
+
 def test_plan_reuses_the_release_lr_recipe(tmp_path: Path) -> None:
     dataset = write_export(tmp_path, many_rows(48))
 

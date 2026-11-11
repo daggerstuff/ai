@@ -203,6 +203,26 @@ def test_unknown_routes_are_rejected() -> None:
     assert "unknown route" in payload["error"]["message"]
 
 
+def test_check_redacts_the_bearer_token(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    record = tmp_path / shim.RUN_NAME
+    record.write_text(
+        json.dumps(
+            {
+                "run_name": "tinker-v19",
+                "base_model": shim.DEFAULT_BASE_MODEL,
+                "sampling_path": "sampler://tinker-v19",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert shim.main(["--run-record", str(record), "--check", "--token", "super-secret"]) == 0
+
+    printed = capsys.readouterr().out
+    assert "super-secret" not in printed
+    assert json.loads(printed)["token"] == shim.REDACTED
+
+
 def test_config_from_run_record_reads_the_sampler_weights(tmp_path: Path) -> None:
     record = tmp_path / shim.RUN_NAME
     record.write_text(

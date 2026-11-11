@@ -40,6 +40,9 @@ from training.tinker_sft_release import (
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8099
 DEFAULT_MAX_TOKENS = 2048
+
+# --check output is pasted into logs, so the bearer token never leaves the process.
+REDACTED = "[redacted]"
 DEFAULT_MODEL_NAME = "tinker-sft"
 SHIM_TOKEN_ENV = "TINKER_SHIM_TOKEN"
 CHAT_PATH_SUFFIX = "/chat/completions"
@@ -385,7 +388,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {error}", file=sys.stderr)
         return 1
     if args.check:
-        print(json.dumps(config.__dict__, indent=2, sort_keys=True))
+        resolved = dict(config.__dict__)
+        if resolved.get("token"):
+            resolved["token"] = REDACTED
+        print(json.dumps(resolved, indent=2, sort_keys=True))
         return 0
     serve(config, host=args.host, port=args.port)
     return 0
