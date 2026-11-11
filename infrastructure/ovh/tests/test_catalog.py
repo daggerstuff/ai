@@ -91,6 +91,16 @@ def _transport(fail: set[str] | None = None) -> httpx.MockTransport:
 
 
 # -- url construction ------------------------------------------------------
+def test_a_navigation_failure_is_recorded_not_raised(tmp_path: Path) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("no route to host", request=request)
+
+    summary = download_catalog(tmp_path, transport=httpx.MockTransport(handler), versions=("v2",))
+
+    assert summary["failures"] == ["v2 navigation: no route to host"]
+    assert summary["versions"] == {}
+
+
 def test_navigation_url_shape() -> None:
     assert navigation_url(BASE_URL, "v2") == (f"{BASE_URL}/v2/__schemas/developer-hub-navigation.json")
 

@@ -212,7 +212,12 @@ def download_catalog(
     summary: dict[str, Any] = {"cache_dir": str(cache_dir), "versions": {}, "failures": []}
 
     for version in versions:
-        navigation = fetch_json(navigation_url(base_url, version), transport=transport)
+        try:
+            navigation = fetch_json(navigation_url(base_url, version), transport=transport)
+        except (httpx.HTTPError, ValueError, OSError) as exc:
+            # A dead host or a bad payload is a recorded failure, not a traceback.
+            summary["failures"].append(f"{version} navigation: {exc}")
+            continue
         _write_json(cache_dir / NAVIGATION_FILE.format(version=version), navigation)
         sections = list(iter_sections(navigation, version))
 
