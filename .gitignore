@@ -260,6 +260,8 @@ training/tests/*
 !training/tests/test_build_agent_tool_sft_v20.py
 !training/tests/test_build_v21_release.py
 !training/tests/test_build_agent_tool_sft_v21.py
+!training/tests/test_build_v22_release.py
+!training/tests/test_build_agent_tool_sft_v22.py
 !training/tests/test_log_eval_tracking.py
 !training/tests/test_export_adaption_release.py
 !training/tests/test_adaption_dataset_upload.py
