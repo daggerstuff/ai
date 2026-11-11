@@ -160,6 +160,35 @@ def test_status_reports_a_completed_job_as_terminal(
     assert report["phase"] == "completed"
 
 
+def test_reconcile_is_mutually_exclusive_with_the_other_modes() -> None:
+    with pytest.raises(SystemExit):
+        release._parse_args(["--release", "v21", "--reconcile", "--execute"])
+    with pytest.raises(SystemExit):
+        release._parse_args(["--release", "v21", "--reconcile", "--status"])
+
+
+def test_reconcile_refuses_a_run_that_never_started(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    config_path, manifest_path = make_campaign_files(tmp_path)
+    state_dir = tmp_path / "empty-state"
+    state_dir.mkdir()
+    monkeypatch.setattr(release, "_ensure_api_key", lambda: "fake-key-for-test")
+    monkeypatch.setattr(g04, "make_training_artifact", lambda *_args, **_kwargs: {"artifact_bytes": 1})
+    monkeypatch.setattr(g04, "_verify_remote_access", lambda _request: None)
+    monkeypatch.setattr(release, "_artifact_uploader", lambda *_args, **_kwargs: None)
+    campaign = release.Campaign(
+        config_path=config_path,
+        manifest_path=manifest_path,
+        manifest={"release_id": RELEASE_ID},
+        payload=g04.Payload(path=manifest_path, sha256="c" * 64, rows=1, split="train"),
+        config={},
+        task_id=TASK_ID,
+    )
+    args = release._parse_args(["--config", str(config_path), "--reconcile", "--state-dir", str(state_dir)])
+
+    with pytest.raises(g04.QualificationError, match="nothing to reconcile"):
+        release._execute(args, campaign, reconcile=True)
+
+
 def test_status_refuses_a_release_with_no_recorded_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     config_path, _ = make_campaign_files(tmp_path)
     state_dir = make_state_dir(tmp_path, release_id="some-other-release")

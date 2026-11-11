@@ -90,6 +90,14 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="report and record the state of an existing run; creates no resources",
     )
+    mode.add_argument(
+        "--reconcile",
+        action="store_true",
+        help=(
+            "resolve an interrupted create/upload (a *_submitted_unknown phase) against the provider, "
+            "then continue the run; adopts existing resources instead of duplicating them"
+        ),
+    )
     parser.add_argument(
         "--polls",
         type=int,
@@ -207,7 +215,7 @@ def _state_dir(args: argparse.Namespace, campaign: Campaign) -> Path:
     return args.state_dir or campaign.config_path.parent / "wandb-sft-state"
 
 
-def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
+def _execute(args: argparse.Namespace, campaign: Campaign, *, reconcile: bool = False) -> int:
     api_key = _ensure_api_key()
     state_dir = _state_dir(args, campaign)
     request = g04.ExecutionRequest(
@@ -227,16 +235,20 @@ def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
     plan = g04.TrainingPlan(campaign.manifest, campaign.payload, campaign.config, artifact, campaign.task_id)
 
     state_path = state_dir / f"wandb-sft-{campaign.task_id}.json"
-    state = g04._load_state(state_path, campaign.task_id, campaign.payload.sha256)
+    state = g04._load_state(state_path, campaign.task_id, campaign.payload.sha256, allow_uncertain=reconcile)
     g04._verify_remote_access(request)
     if not state:
+        if reconcile:
+            raise g04.QualificationError(f"nothing to reconcile: no launcher state at {state_path}")
         state = g04._initial_state(request, plan)
         g04.atomic_json(state_path, state)
+    resolved = g04.reconcile(request, plan, state, state_path) if reconcile else {"resolved": []}
     artifact_uri = g04._upload_artifact(request, state, plan)
     model_id = g04._create_model(request, state, campaign.task_id)
     job_id = g04._create_job(request, state, plan, model_id, artifact_uri)
     g04._poll_job(request, state, job_id, campaign.task_id)
     report = {
+        "mode": "reconcile" if reconcile else "execute",
         "task_id": campaign.task_id,
         "phase": state["phase"],
         "last_status": state.get("last_status"),
@@ -246,6 +258,8 @@ def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
         "artifact_uri": artifact_uri,
         "state_path": str(state_path),
     }
+    if resolved.get("resolved"):
+        report["reconciled"] = resolved["resolved"]
     if not report["terminal"]:
         release_id = campaign.manifest["release_id"]
         report["next"] = f"--release {release_id} --status reconciles this run against the provider"
@@ -316,6 +330,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.status:
         return _status(args)
     campaign = _load_campaign(args)
+    if args.reconcile:
+        return _execute(args, campaign, reconcile=True)
     if not args.execute:
         return _dry_run(args, campaign)
     return _execute(args, campaign)
