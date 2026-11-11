@@ -184,16 +184,10 @@ def build_commands(
     return commands
 
 
-def transient_failures(results_dir: Path) -> list[str]:
-    """Failed records caused by the transport rather than by the model.
-
-    A resumed run appends its retry to the same file, so the last record for a
-    case is the one that counts; an earlier timeout that was later answered
-    must not trigger another pass.
-    """
+def _latest_records(results_dir: Path) -> dict[tuple[Any, Any], dict[str, Any]]:
     path = results_dir / "results.jsonl"
     if not path.is_file():
-        return []
+        return {}
     latest: dict[tuple[Any, Any], dict[str, Any]] = {}
     with path.open(encoding="utf-8") as stream:
         for line in stream:
@@ -201,8 +195,24 @@ def transient_failures(results_dir: Path) -> list[str]:
                 continue
             record = json.loads(line)
             latest[(record.get("arm_id"), record.get("case_id"))] = record
+    return latest
+
+
+def resume_blocked(results_dir: Path) -> bool:
+    # A fatal record makes the harness refuse to resume, so a retry has to start
+    # from a clean results directory instead of re-asking the failed cases.
+    return any(bool(record.get("fatal")) for record in _latest_records(results_dir).values())
+
+
+def transient_failures(results_dir: Path) -> list[str]:
+    """Failed records caused by the transport rather than by the model.
+
+    A resumed run appends its retry to the same file, so the last record for a
+    case is the one that counts; an earlier timeout that was later answered
+    must not trigger another pass.
+    """
     names: list[str] = []
-    for record in latest.values():
+    for record in _latest_records(results_dir).values():
         if record.get("status") == "success":
             continue
         if (
@@ -234,7 +244,7 @@ def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
         if completed.returncode == 0:
             return label, completed.returncode
         hiccups = transient_failures(results_dir)
-        if hiccups:
+        if hiccups and not resume_blocked(results_dir):
             # Non-fatal: the harness resumes, so only the failed cases are re-asked.
             log(f"retry {label} {attempt} for {len(hiccups)} transport failure(s): {'; '.join(hiccups[:6])}")
             completed = subprocess.run(

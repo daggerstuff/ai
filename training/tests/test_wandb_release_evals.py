@@ -192,6 +192,43 @@ def test_a_read_timeout_retry_is_bounded(tmp_path: Path, monkeypatch: pytest.Mon
     assert len(calls) == 1 + pipeline.MAX_TRANSIENT_RETRIES
 
 
+def test_resume_blocked_reads_the_fatal_flag(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="ProviderHTTPError", provider_http_status=503, fatal=True)
+
+    assert pipeline.resume_blocked(results_dir) is True
+
+
+def test_resume_blocked_is_false_for_a_transport_timeout(tmp_path: Path) -> None:
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="failed", error_type="TimeoutError", fatal=False)
+
+    assert pipeline.resume_blocked(results_dir) is False
+
+
+def test_a_fatal_provider_5xx_restarts_clean_instead_of_resuming(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The harness refuses to resume a run whose record is fatal, so re-asking the
+    # same directory cannot help; the launcher has to start from a clean one.
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="ProviderHTTPError", provider_http_status=503, fatal=True)
+    argv = ["runner", "--results-dir", str(results_dir)]
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
+        calls.append(list(command))
+        return _Completed(1, stdout="resume blocked after fatal provider metadata failure: ProviderHTTPError")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    label, rc = pipeline.run_one("crisis-dev-v21-vs-base", argv, "key")
+
+    assert (label, rc) == ("crisis-dev-v21-vs-base", 1)
+    assert "--continue-on-transient-http-errors" in calls[1]
+    assert not results_dir.exists()
+
+
 def test_resolve_compares_keeps_the_default_predecessor() -> None:
     """An explicit --compare must not drop the reading against the default prior adapter."""
     default = ("v16", PREVIOUS_URI)

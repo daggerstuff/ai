@@ -19,9 +19,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from ai.infrastructure.ovh.catalog import (
     API_VERSIONS,
@@ -105,10 +107,12 @@ def cmd_sections(args: argparse.Namespace) -> int:
 
 def cmd_ops(args: argparse.Namespace) -> int:
     catalog = _catalog(args)
-    hits = catalog.find(args.pattern or "", limit=args.limit)
+    # The version filter runs first: applying the limit to the unfiltered hits
+    # silently drops matches that the filter would have kept.
+    hits = catalog.find(args.pattern or "", limit=len(catalog.operations))
     if args.version:
         hits = [op for op in hits if op.version == args.version]
-    emit([op.as_dict() for op in hits])
+    emit([op.as_dict() for op in hits[: args.limit]])
     return 0
 
 
@@ -137,14 +141,26 @@ def parse_params(raw: list[str]) -> dict[str, str]:
     return params
 
 
+def substitute_path_params(path: str, params: dict[str, str]) -> tuple[str, dict[str, str]]:
+    # Fill {name} placeholders from --param; whatever is left becomes a query arg.
+    remaining = dict(params)
+    for name in re.findall(r"\{([^{}]+)\}", path):
+        value = remaining.pop(name, None)
+        if value is None:
+            raise SystemExit(f"--param {name}=... is required by the path {path}")
+        path = path.replace("{" + name + "}", quote(value, safe=""))
+    return path, remaining
+
+
 def cmd_call(args: argparse.Namespace) -> int:
     body: Any = None
     if args.json is not None:
         body = json.loads(args.json)
     elif args.json_file:
         body = json.loads(Path(args.json_file).read_text(encoding="utf-8"))
+    path, query = substitute_path_params(args.path, parse_params(args.param))
     with OvhClient(api_version=args.api_version, base_url=args.base_url) as client:
-        emit(client.request(args.method, args.path, params=parse_params(args.param), body=body))
+        emit(client.request(args.method, path, params=query, body=body))
     return 0
 
 

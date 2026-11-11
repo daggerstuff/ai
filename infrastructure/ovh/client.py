@@ -30,6 +30,8 @@ TOKEN_ENV = "OVH_TOKEN"
 DEFAULT_REGION = "US-EAST-VA"
 
 TRANSIENT_STATUS = frozenset({429, 500, 502, 503, 504})
+# A retried POST can create the resource twice, so only these methods are re-sent.
+IDEMPOTENT_METHODS = frozenset({"GET", "HEAD", "PUT", "DELETE"})
 MAX_ATTEMPTS = 3
 BACKOFF_SECONDS = 1.5
 ERROR_STATUS_FLOOR = 400
@@ -232,7 +234,7 @@ class OvhClient:
         clean_params = {k: v for k, v in (params or {}).items() if v is not None}
 
         last_error: Exception | None = None
-        attempts = max(1, self.max_attempts)
+        attempts = max(1, self.max_attempts) if method in IDEMPOTENT_METHODS else 1
         for attempt in range(1, attempts + 1):
             try:
                 response = self._client.request(method, url, params=clean_params or None, json=body, headers=headers)

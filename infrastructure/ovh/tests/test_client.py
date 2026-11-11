@@ -167,6 +167,14 @@ def test_server_error_is_retried_then_succeeds() -> None:
     assert recorder.calls == BACKOFF_CALLS
 
 
+def test_a_post_is_not_retried_after_a_5xx() -> None:
+    # Re-sending a POST can create the resource twice, so a 5xx surfaces at once.
+    recorder = _Recorder([httpx.Response(503)])
+    with _client(recorder) as client, pytest.raises(OvhApiError):
+        client.post("/cloud/project/x/instance", {"flavor": "b3-8"})
+    assert recorder.calls == 1
+
+
 def test_retries_are_bounded() -> None:
     recorder = _Recorder([httpx.Response(502) for _ in range(MAX_ATTEMPTS)])
     with _client(recorder) as client, pytest.raises(OvhApiError) as caught:
