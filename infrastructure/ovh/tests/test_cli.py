@@ -33,6 +33,29 @@ def test_me_accepts_an_explicit_api_version() -> None:
     assert args.api_version == "v2"
 
 
+def test_me_passes_the_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen: dict[str, Any] = {}
+
+    class FakeClient:
+        def __init__(self, **kwargs: Any) -> None:
+            seen.update(kwargs)
+
+        def __enter__(self) -> FakeClient:
+            return self
+
+        def __exit__(self, *args: Any) -> None:
+            return None
+
+        def get(self, path: str) -> dict[str, Any]:
+            return {"path": path}
+
+    monkeypatch.setattr(cli, "OvhClient", FakeClient)
+    args = cli.build_parser().parse_args(["--base-url", "https://eu.example", "me"])
+
+    assert cli.cmd_me(args) == 0
+    assert seen["base_url"] == "https://eu.example"
+
+
 def test_refresh_sends_one_version_not_its_characters(monkeypatch: pytest.MonkeyPatch) -> None:
     seen: dict[str, Any] = {}
     monkeypatch.setattr(cli, "download_catalog", _fake_download(seen))

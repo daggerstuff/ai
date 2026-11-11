@@ -68,7 +68,7 @@ def cmd_token(_args: argparse.Namespace) -> int:
 
 
 def cmd_me(args: argparse.Namespace) -> int:
-    with OvhClient(api_version=args.api_version) as client:
+    with OvhClient(api_version=args.api_version, base_url=args.base_url) as client:
         emit(client.get("/me"))
     return 0
 

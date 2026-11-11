@@ -244,6 +244,24 @@ def test_config_from_run_record_reads_the_sampler_weights(tmp_path: Path) -> Non
     assert cfg.max_tokens == 128
 
 
+def test_config_from_run_record_reads_the_plan_base_model(tmp_path: Path) -> None:
+    record = tmp_path / shim.RUN_NAME
+    record.write_text(
+        json.dumps(
+            {
+                "run_name": "tinker-v22",
+                "plan": {"base_model": "Qwen/Qwen3.6-35B-A3B"},
+                "sampling_path": "sampler://tinker-v22",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    cfg = shim.config_from_run_record(record)
+
+    assert cfg.base_model == "Qwen/Qwen3.6-35B-A3B"
+
+
 def test_config_from_run_record_rejects_a_run_without_weights(tmp_path: Path) -> None:
     record = tmp_path / shim.RUN_NAME
     record.write_text(json.dumps({"run_name": "tinker-v19"}), encoding="utf-8")

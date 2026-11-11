@@ -17,6 +17,7 @@ PREVIOUS_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baselin
 OLDER_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-73504a99ed05:v1"
 SUITE_COUNT = 8
 ONE_ATTEMPT_PLUS_RETRY = 2
+CLEAN_RESTART_CALL = 2
 
 
 class _Completed:
@@ -227,6 +228,28 @@ def test_a_fatal_provider_5xx_restarts_clean_instead_of_resuming(
     assert (label, rc) == ("crisis-dev-v21-vs-base", 1)
     assert "--continue-on-transient-http-errors" in calls[1]
     assert not results_dir.exists()
+
+
+def test_a_resume_after_a_clean_restart_keeps_the_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # The resume manifest is compared against the recorded options, so the flag the
+    # clean restart added has to stay on every later invocation.
+    results_dir = tmp_path / "results"
+    _write_result(results_dir, status="error", error_type="ProviderHTTPError", provider_http_status=503, fatal=True)
+    argv = ["runner", "--results-dir", str(results_dir)]
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **_kwargs: Any) -> _Completed:
+        calls.append(list(command))
+        if len(calls) == CLEAN_RESTART_CALL:
+            _write_result(results_dir, status="failed", error_type="TimeoutError", fatal=False)
+        return _Completed(1, stdout="ProviderHTTPError")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    pipeline.run_one("crisis-dev-v21-vs-base", argv, "key")
+
+    assert "--continue-on-transient-http-errors" in calls[1]
+    assert "--continue-on-transient-http-errors" in calls[2]
 
 
 def test_resolve_compares_keeps_the_default_predecessor() -> None:

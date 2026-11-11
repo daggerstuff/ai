@@ -240,6 +240,7 @@ def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
     stderr = (completed.stderr or "").strip()
     if completed.returncode != 0 and stderr:
         log(f"stderr {label}: {stderr[-800:]}")
+    retry_argv = argv
     for attempt in range(1, MAX_TRANSIENT_RETRIES + 1):
         if completed.returncode == 0:
             return label, completed.returncode
@@ -248,7 +249,7 @@ def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
             # Non-fatal: the harness resumes, so only the failed cases are re-asked.
             log(f"retry {label} {attempt} for {len(hiccups)} transport failure(s): {'; '.join(hiccups[:6])}")
             completed = subprocess.run(
-                argv,
+                retry_argv,
                 cwd=AI,
                 env=env,
                 capture_output=True,
@@ -261,8 +262,11 @@ def run_one(label: str, argv: list[str], key: str) -> tuple[str, int]:
             # Fatal provider metadata failure blocks resume, so start clean.
             log(f"retrying {label} from a clean results directory")
             shutil.rmtree(results_dir, ignore_errors=True)
+            # The harness compares the resume manifest against the recorded options,
+            # so every later invocation has to carry the same flag.
+            retry_argv = [*argv, "--continue-on-transient-http-errors"]
             completed = subprocess.run(
-                [*argv, "--continue-on-transient-http-errors"],
+                retry_argv,
                 cwd=AI,
                 env=env,
                 capture_output=True,

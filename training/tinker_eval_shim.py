@@ -98,7 +98,7 @@ def config_from_run_record(
     record = load_run_record(path)
     return ShimConfig(
         weights=record["sampling_path"],
-        base_model=record.get("base_model") or DEFAULT_BASE_MODEL,
+        base_model=record.get("base_model") or (record.get("plan") or {}).get("base_model") or DEFAULT_BASE_MODEL,
         model_name=record.get("run_name") or DEFAULT_MODEL_NAME,
         max_tokens=max_tokens,
         tokenizer_path=tokenizer_path,
