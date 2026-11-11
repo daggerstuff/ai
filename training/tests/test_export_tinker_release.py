@@ -251,6 +251,32 @@ def test_export_trims_a_therapist_opening_turn_instead_of_dropping_the_row(
     assert (tmp_path / "out" / "tinker-sft-train.jsonl").exists()
 
 
+def test_a_dry_run_leaves_existing_export_files_alone(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        [
+            {
+                "messages": [
+                    {"role": "user", "content": CLIENT_PROMPT},
+                    {"role": "assistant", "content": ASSISTANT_REPLY},
+                ]
+            }
+        ],
+    )
+    out = tmp_path / "out"
+    out.mkdir()
+    dataset = out / "tinker-sft-train.jsonl"
+    record = out / "tinker-dataset.json"
+    dataset.write_text("previous dataset\n", encoding="utf-8")
+    record.write_text('{"previous": true}\n', encoding="utf-8")
+
+    result = tinker.export(manifest_path, out, tokenizer=StubTokenizer(), dry_run=True)
+
+    assert result.counts["datums"] == 1
+    assert dataset.read_text(encoding="utf-8") == "previous dataset\n"
+    assert record.read_text(encoding="utf-8") == '{"previous": true}\n'
+
+
 def test_export_writes_one_jsonl_line_per_datum(tmp_path: Path) -> None:
     manifest_path = write_manifest(
         tmp_path,

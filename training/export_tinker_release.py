@@ -218,6 +218,7 @@ def export(
     options: SelectionOptions | None = None,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     tokenizer: Any | None = None,
+    dry_run: bool = False,
 ) -> Export:
     """Tokenize the selected train rows and write the datum file."""
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -266,33 +267,36 @@ def export(
     result.counts["trained_tokens"] = sum(datum.trained_tokens for datum in result.rows)
     result.counts["total_tokens"] = sum(len(datum.input_ids) for datum in result.rows)
 
-    out_dir.mkdir(parents=True, exist_ok=True)
-    path = out_dir / "tinker-sft-train.jsonl"
-    tmp = path.with_name(path.name + ".tmp")
-    with tmp.open("w", encoding="utf-8") as handle:
-        for datum in result.rows:
-            handle.write(datum.line())
-            handle.write("\n")
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(tmp, path)
+    if not dry_run:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        path = out_dir / "tinker-sft-train.jsonl"
+        tmp = path.with_name(path.name + ".tmp")
+        with tmp.open("w", encoding="utf-8") as handle:
+            for datum in result.rows:
+                handle.write(datum.line())
+                handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp, path)
 
-    record = {
-        "schema": DATASET_SCHEMA,
-        "base_model": base_model,
-        "tokenizer": getattr(tokenizer, "name_or_path", base_model),
-        "source_manifest": str(manifest_path),
-        "source_release_id": manifest.get("release_id"),
-        "source_train_sha256": train.get("sha256"),
-        "path": str(path),
-        "sha256": _sha256(path),
-        "bytes": path.stat().st_size,
-        "datums": len(result.rows),
-        "source_rows": result.source_rows,
-        "counts": dict(result.counts),
-        "max_tokens": max_tokens,
-    }
-    (out_dir / "tinker-dataset.json").write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        record = {
+            "schema": DATASET_SCHEMA,
+            "base_model": base_model,
+            "tokenizer": getattr(tokenizer, "name_or_path", base_model),
+            "source_manifest": str(manifest_path),
+            "source_release_id": manifest.get("release_id"),
+            "source_train_sha256": train.get("sha256"),
+            "path": str(path),
+            "sha256": _sha256(path),
+            "bytes": path.stat().st_size,
+            "datums": len(result.rows),
+            "source_rows": result.source_rows,
+            "counts": dict(result.counts),
+            "max_tokens": max_tokens,
+        }
+        (out_dir / "tinker-dataset.json").write_text(
+            json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
     return result
 
 
@@ -353,10 +357,8 @@ def main(argv: list[str] | None = None) -> int:
             options=options,
             max_tokens=args.max_tokens,
             tokenizer=tokenizer,
+            dry_run=True,
         )
-        # A dry run must not leave a dataset file behind.
-        for name in ("tinker-sft-train.jsonl", "tinker-dataset.json"):
-            (args.out_dir / name).unlink(missing_ok=True)
         print(_summary(result))
         return 0
 
