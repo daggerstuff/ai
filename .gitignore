@@ -349,7 +349,16 @@ monitoring/**/*.png
 # Provisioned review-bot / agent configs (environment tooling, not source)
 .coderabbit.yaml
 .cursor/
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.opencode/
+.superpowers/
+.squad/
 .greptile/
 .pr_agent.toml
 .sourcery.yaml
 cubic.yaml
+.DS_Store
