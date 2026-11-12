@@ -253,6 +253,7 @@ training/tests/*
 !training/tests/test_wandb_release_evals.py
 !training/tests/test_wandb_sft_g04.py
 !training/tests/test_fireworks_sft_release.py
+!training/tests/test_cpu_sft_release.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
 !training/tests/test_crisis_register.py
