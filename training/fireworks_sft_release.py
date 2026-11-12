@@ -7,11 +7,19 @@ and the Batch-Inference dataset path. The Training API is what is left: it
 reads datums out of this process and streams batches at a trainer, so no
 dataset file is ever stored on Fireworks.
 
-The trainer behind it (``rlorTrainerJobs``) is algorithm-agnostic, so the
-release recipe replays unchanged — ``training.tinker_sft_release.train`` owns
-the loop, the LR trapezoid and the checkpoint saves. This module swaps the
-transport for ``FiretitanServiceClient``, defaults to the Muse-Glimmer base,
-and adds the Fireworks reporting and promotion steps.
+The trainer is reachable two ways, and only one of them is free. The managed
+path (``managed_config``) provisions a dedicated ``rlorTrainerJobs`` trainer and
+lets the backend pick the accelerator — it chose ``NVIDIA_B200_180GB``, which
+bills against the account. The serverless gateway at
+``/training/v1/serverless`` runs the same trainer pooled and is free through
+2026-11-30, so every run goes through it and ``assert_serverless`` refuses
+anything else.
+
+The trainer itself is algorithm-agnostic, so the release recipe replays
+unchanged — ``training.tinker_sft_release.train`` owns the loop, the LR trapezoid
+and the checkpoint saves. This module swaps the transport for
+``FiretitanServiceClient``, defaults to the Muse-Glimmer base, and adds the
+Fireworks reporting and promotion steps.
 
 The base model is not on the Hub, so the export has to be made with
 ``--base-model accounts/fireworks/models/muse-glimmer-30b
@@ -46,12 +54,12 @@ FIREWORKS_BASE_MODEL = "accounts/fireworks/models/muse-glimmer-30b"
 TOKENIZER_MODEL = "meta-models/Muse-Glimmer-30B"
 BASE_URL = "https://api.fireworks.ai"
 
-# The API rejects US_OHIO_1 outright: it is retired for training.
-DEFAULT_REGION = "US_OHIO_3"
-
-# The exporter caps a datum at 8192 tokens and the base trains to 131072, so
-# this is headroom rather than a constraint the data can reach.
-DEFAULT_MAX_CONTEXT_LENGTH = 32768
+# Serverless training is the free route (through 2026-11-30). The managed path
+# builds a dedicated rlorTrainerJobs trainer, and with no pinned shape the
+# backend picks the accelerator itself -- it chose NVIDIA_B200_180GB, which
+# bills against the account. Every run goes through the gateway instead.
+SERVERLESS_ROUTE = "/training/v1/serverless"
+SERVERLESS_BASE_URL = f"{BASE_URL}{SERVERLESS_ROUTE}"
 
 RUN_PREFIX = "fireworks"
 RUN_SCHEMA = "fireworks-sft-run-v1"
@@ -125,38 +133,41 @@ def describe_model(api_key: str | None, *, base_url: str = BASE_URL) -> dict[str
     return report
 
 
-def build_service(
-    plan: Plan,
-    *,
-    api_key: str,
-    region: str,
-    max_context_length: int,
-) -> Any:
-    """Return a Firetitan service provisioned for this plan.
+def assert_serverless(service: Any) -> None:
+    """Fail closed if this service would provision a dedicated, billed trainer.
 
-    Provisioning waits for the trainer pod, so this blocks for a couple of
-    minutes before ``train`` sees a client.
+    A managed config is what routes ``create_training_client`` through
+    ``rlorTrainerJobs``, where the backend auto-selects an accelerator.
+    """
+    if getattr(service, "_managed_config", None) is not None:
+        raise RuntimeError(
+            "refusing to train on the managed path: it provisions a dedicated "
+            "trainer (NVIDIA_B200_180GB) and bills the account. Use the "
+            f"serverless gateway at {SERVERLESS_BASE_URL}"
+        )
+    base_url = str(getattr(service, "_managed_base_url", "") or "").rstrip("/")
+    if not base_url.endswith(SERVERLESS_ROUTE):
+        raise RuntimeError(
+            f"refusing to train against {base_url or '<no base url>'}: only the "
+            f"serverless gateway at {SERVERLESS_BASE_URL} is free to run"
+        )
+
+
+def build_service(*, api_key: str) -> Any:
+    """Return a serverless Firetitan service.
+
+    With no managed config there is no dedicated trainer job: the gateway mints
+    a training session (``ts-...``) and the run bills as serverless training.
     """
     from fireworks.training.sdk import FiretitanServiceClient
 
-    return FiretitanServiceClient.from_firetitan_config(
-        api_key=api_key,
-        base_model=plan.base_model,
-        tokenizer_model=TOKENIZER_MODEL,
-        lora_rank=plan.rank,
-        # The account-proven recipe is r=32 / alpha=32. Keeping alpha tied to
-        # the rank means a --rank change does not silently rescale the adapter.
-        lora_alpha=plan.rank,
-        max_context_length=max_context_length,
-        # SFT never samples mid-run and a deployment bills for an idle GPU.
-        create_deployment=False,
-        # A finished run that leaves its trainer job up keeps billing GPUs; the
-        # SDK only tears the job down when told to. Promotion has to happen
-        # before close(), which main() does.
-        cleanup_trainer_on_close=True,
-        region=region,
-        seed=plan.seed,
-    )
+    service = FiretitanServiceClient(api_key=api_key, base_url=SERVERLESS_BASE_URL)
+    assert_serverless(service)
+    # Supervised runs on a shared trainer can lose their capacity to another
+    # tenant mid-run; this is the seam the SDK's own SFT examples call so those
+    # 409s are retried instead of killing the run.
+    service._enable_serverless_supervised_409_retry()
+    return service
 
 
 def check_promote_target(model_id: str) -> list[str]:
@@ -175,20 +186,27 @@ def promote(
     service: Any,
     model_id: str,
     *,
+    api_key: str,
     base_model: str = FIREWORKS_BASE_MODEL,
 ) -> dict[str, Any]:
     """Promote this session's newest promotable checkpoint to a model.
 
-    Has to run before the service closes: the trainer job is not kept alive
-    after the session ends.
+    A serverless run has no trainer job: its checkpoints live under
+    ``accounts/<acct>/trainingSessions/<ts>/checkpoints`` and promote through the
+    session-scoped endpoint. The session is gone once the service closes.
     """
-    job_id = service.trainer_job_id
-    rows = [row for row in service.list_checkpoints(job_id) if row.get("promotable")]
+    from fireworks.training.sdk.fireworks_client import FireworksClient
+
+    session = service.training_session_name
+    if not session:
+        raise RuntimeError("no serverless training session is bound to this service")
+    client = FireworksClient(api_key=api_key, base_url=BASE_URL)
+    rows = [row for row in client.list_training_session_checkpoints(session) if row.get("promotable")]
     if not rows:
-        raise RuntimeError(f"trainer job {job_id} has no promotable checkpoints")
-    # list_checkpoints returns oldest first, so the newest is the max.
+        raise RuntimeError(f"training session {session} has no promotable checkpoints")
+    # Both list endpoints return oldest first, so the newest is the max.
     newest = max(rows, key=lambda row: row.get("createTime") or "")
-    return service.promote_checkpoint(
+    return client.promote_session_checkpoint(
         name=newest["name"],
         output_model_id=model_id,
         base_model=base_model,
@@ -225,8 +243,6 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--limit", type=int, default=None, help="train on the first N datums only")
     parser.add_argument("--save-every", type=int, default=0, help="checkpoint every N steps")
-    parser.add_argument("--region", default=DEFAULT_REGION)
-    parser.add_argument("--max-context-length", type=int, default=DEFAULT_MAX_CONTEXT_LENGTH)
     parser.add_argument(
         "--promote",
         metavar="MODEL_ID",
@@ -279,12 +295,7 @@ def main(argv: list[str] | None = None) -> int:
 
     name = f"{RUN_PREFIX}-{plan.release_id or plan.dataset_dir.name}"
     run = None if args.no_wandb else _wandb_run(plan, name)
-    service = build_service(
-        plan,
-        api_key=api_key,
-        region=args.region,
-        max_context_length=args.max_context_length,
-    )
+    service = build_service(api_key=api_key)
     try:
         record = train(
             plan,
@@ -296,7 +307,12 @@ def main(argv: list[str] | None = None) -> int:
             run_name=checkpoint_name(plan),
         )
         if args.promote:
-            record["promoted"] = promote(service, args.promote, base_model=plan.base_model)
+            record["promoted"] = promote(
+                service,
+                args.promote,
+                api_key=api_key,
+                base_model=plan.base_model,
+            )
     finally:
         service.close()
         if run is not None:
