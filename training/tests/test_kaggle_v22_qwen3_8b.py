@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 import torch
@@ -46,13 +46,15 @@ def test_the_scheduler_survives_a_transformers_without_a_lambda_name() -> None:
 
     class Stub:
         lr_scheduler = None
+        optimizer: torch.optim.Optimizer
 
     stub = Stub()
     stub.optimizer = torch.optim.SGD([torch.nn.Parameter(torch.zeros(1))], lr=kernel.LR)
-    scheduler = kernel.TrapezoidTrainer.create_scheduler(stub, 10, stub.optimizer)
+    trainer = cast(kernel.TrapezoidTrainer, stub)
+    scheduler = kernel.TrapezoidTrainer.create_scheduler(trainer, 10, stub.optimizer)
 
     assert isinstance(scheduler, torch.optim.lr_scheduler.LambdaLR)
-    assert kernel.TrapezoidTrainer.create_scheduler(stub, 10, stub.optimizer) is scheduler
+    assert kernel.TrapezoidTrainer.create_scheduler(trainer, 10, stub.optimizer) is scheduler
 
 
 def test_locate_export_finds_a_nested_mount(tmp_path: Path) -> None:

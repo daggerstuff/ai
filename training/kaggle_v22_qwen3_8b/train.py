@@ -19,8 +19,9 @@ import math
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 INPUT_ROOT = Path("/kaggle/input")
 OUTPUT_DIR = Path("/kaggle/working")
@@ -79,9 +80,23 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
-    Trainer,
     TrainingArguments,
 )
+
+if TYPE_CHECKING:
+    # transformers resolves to Any under the strict ratchet's --no-site-packages
+    # run, and strict mode refuses to subclass Any; model the surface used here.
+    class _TrainerBase:
+        lr_scheduler: torch.optim.lr_scheduler.LRScheduler | None
+        optimizer: torch.optim.Optimizer
+        state: Any
+
+        def __init__(self, *args: Any, **kwargs: Any) -> None: ...
+
+        def train(self) -> Any: ...
+
+else:
+    from transformers import Trainer as _TrainerBase
 
 
 def locate_export(root: Path) -> Path:
@@ -108,7 +123,7 @@ def verify_export(input_dir: Path) -> dict[str, Any]:
     return {"record": record, "rows": rows, "sha256": digest}
 
 
-def lr_lambda(steps: int):
+def lr_lambda(steps: int) -> Callable[[float], float]:
     """Trapezoid: linear warmup, hold, then cosine down to the floor."""
     floor = MIN_LR / LR
 
@@ -125,7 +140,7 @@ def lr_lambda(steps: int):
     return schedule
 
 
-def build_collator(pad_id: int):
+def build_collator(pad_id: int) -> Callable[[list[dict[str, Any]]], dict[str, torch.Tensor]]:
     """The export is already shifted for a raw cross-entropy, but Trainer shifts again.
 
     ``target_ids[i]`` is ``input_ids[i + 1]``, so the label at position ``i`` is
@@ -152,10 +167,12 @@ def build_collator(pad_id: int):
     return collate
 
 
-class TrapezoidTrainer(Trainer):
+class TrapezoidTrainer(_TrainerBase):
     """transformers 5 dropped the "lambda" scheduler name, so own the schedule."""
 
-    def create_scheduler(self, num_training_steps: int, optimizer: torch.optim.Optimizer | None = None):
+    def create_scheduler(
+        self, num_training_steps: int, optimizer: torch.optim.Optimizer | None = None
+    ) -> torch.optim.lr_scheduler.LRScheduler:
         if self.lr_scheduler is None:
             self.lr_scheduler = torch.optim.lr_scheduler.LambdaLR(
                 optimizer or self.optimizer,
@@ -164,7 +181,7 @@ class TrapezoidTrainer(Trainer):
         return self.lr_scheduler
 
 
-def build_model():
+def build_model() -> Any:
     quantisation = BitsAndBytesConfig(
         load_in_4bit=True,
         bnb_4bit_quant_type="nf4",
