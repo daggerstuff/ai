@@ -490,11 +490,17 @@ ignore = []
 # plan/train take keyword-only knobs rather than a params object.
 "training/tinker_sft_release.py" = ["T201", "PLC0415", "PLR0913"]
 "training/tests/test_tinker_sft_release.py" = ["PLR2004", "ARG001", "RUF005"]
+# Same shape as the Tinker launcher: a CLI that prints progress and imports the
+# Fireworks SDK lazily so --dry-run and the tests never pay for it.
+"training/fireworks_sft_release.py" = ["T201", "PLC0415"]
 # The shim prints its bind address and access log to stderr, BaseHTTPRequestHandler
 # requires the do_GET/do_POST names, the broad except is the 502 boundary for the
 # eval client, and a request handler naturally has many early returns.
 "training/tinker_eval_shim.py" = ["T201", "PLC0415", "N802", "BLE001", "PLR0911"]
 "training/tests/test_tinker_eval_shim.py" = ["PLR2004", "ARG002"]
+# The fake http_get has to keep http_get's signature for monkeypatch, and the
+# assertions compare literal model facts (HTTP codes, context length, rank).
+"training/tests/test_fireworks_sft_release.py" = ["PLR2004", "ARG001"]
 # wandb is imported inside log_to_wandb so the dry-run path (and every test)
 # never pays for it; the module is only needed once we actually publish.
 "training/launch/log_eval_tracking.py" = ["PLC0415"]

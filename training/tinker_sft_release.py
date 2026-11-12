@@ -223,7 +223,7 @@ def _loss(fb_result: Any) -> float | None:
     return None
 
 
-def _get(url: str, api_key: str | None, timeout: float = 30.0) -> tuple[int, str]:
+def http_get(url: str, api_key: str | None, timeout: float = 30.0) -> tuple[int, str]:
     """Return ``(status, body)`` for a GET, keeping HTTP errors as data."""
     if urllib.parse.urlparse(url).scheme not in {"http", "https"}:
         raise ValueError(f"refusing to open a non-HTTP URL: {url}")
@@ -254,10 +254,10 @@ def check_api(
         "base_model": base_model,
     }
 
-    status, _ = _get(f"{base_url}/api/v1/healthz", api_key)
+    status, _ = http_get(f"{base_url}/api/v1/healthz", api_key)
     report["health_status"] = status
 
-    status, body = _get(f"{base_url}/api/v1/get_server_capabilities", api_key)
+    status, body = http_get(f"{base_url}/api/v1/get_server_capabilities", api_key)
     report["capabilities_status"] = status
     if status == HTTP_PAYMENT_REQUIRED:
         report["blocked"] = True
@@ -283,8 +283,17 @@ def train(
     run: Any | None = None,
     log: Any = print,
     save_every: int = 0,
+    run_prefix: str = "tinker",
+    schema: str = RUN_SCHEMA,
+    run_name: str | None = None,
 ) -> dict[str, Any]:
-    """Run the plan against Tinker and return the run record."""
+    """Run the plan against Tinker and return the run record.
+
+    ``run_prefix`` and ``schema`` name the run and stamp the record, so a
+    transport that reuses this loop (Fireworks) can label its own provenance
+    instead of inheriting Tinker's. ``run_name`` overrides the derived name
+    when the backend constrains checkpoint names.
+    """
     tinker = tinker or importlib.import_module("tinker")
     if service is None:
         service = tinker.ServiceClient(
@@ -293,7 +302,7 @@ def train(
         )
 
     rows = load_datums(plan.dataset_dir, plan.datums)
-    run_name = f"tinker-{plan.release_id or plan.dataset_dir.name}"
+    run_name = run_name or f"{run_prefix}-{plan.release_id or plan.dataset_dir.name}"
     client = service.create_lora_training_client(
         base_model=plan.base_model,
         rank=plan.rank,
@@ -327,7 +336,7 @@ def train(
     sampling = client.save_weights_for_sampler(name=run_name).result()
     state = client.save_state(name=f"{run_name}-final").result()
     record = {
-        "schema": RUN_SCHEMA,
+        "schema": schema,
         "run_name": run_name,
         "plan": plan.to_dict(),
         "losses": losses,
