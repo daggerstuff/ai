@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import torch
 
 from training.kaggle_v22_qwen3_8b import train as kernel
 
@@ -34,12 +35,36 @@ def write_export(tmp_path: Path, rows: list[dict[str, Any]], *, tokenizer: str =
 
 
 def datum(length: int, *, trained: int = 3) -> dict[str, Any]:
-    """The export trains the assistant tail and masks the prompt, so mirror that."""
-    return {
-        "input_ids": list(range(length)),
-        "target_ids": list(range(1, length + 1)),
-        "weights": [0] * (length - trained) + [1] * trained,
-    }
+    """The export trains the assistant tail: weights[i] marks input_ids[i + 1]."""
+    ids = list(range(length))
+    weights = [1 if index >= length - trained - 1 else 0 for index in range(length)]
+    return {"input_ids": ids, "target_ids": [*ids[1:], length], "weights": weights}
+
+
+def test_the_scheduler_survives_a_transformers_without_a_lambda_name() -> None:
+    """transformers 5 removed SchedulerType.LAMBDA, so the trainer owns the schedule."""
+
+    class Stub:
+        lr_scheduler = None
+
+    stub = Stub()
+    stub.optimizer = torch.optim.SGD([torch.nn.Parameter(torch.zeros(1))], lr=kernel.LR)
+    scheduler = kernel.TrapezoidTrainer.create_scheduler(stub, 10, stub.optimizer)
+
+    assert isinstance(scheduler, torch.optim.lr_scheduler.LambdaLR)
+    assert kernel.TrapezoidTrainer.create_scheduler(stub, 10, stub.optimizer) is scheduler
+
+
+def test_locate_export_finds_a_nested_mount(tmp_path: Path) -> None:
+    dataset_dir = write_export(tmp_path, [datum(6)])
+    mount = tmp_path / "input" / "datasets" / "chadisfaction13" / "pixelated-v22-export"
+    mount.parent.mkdir(parents=True)
+    dataset_dir.rename(mount)
+
+    assert kernel.locate_export(tmp_path / "input") == mount
+
+    with pytest.raises(FileNotFoundError, match="no export under"):
+        kernel.locate_export(tmp_path / "elsewhere")
 
 
 def test_verify_export_refuses_a_tampered_file(tmp_path: Path) -> None:
@@ -59,15 +84,25 @@ def test_verify_export_refuses_a_foreign_tokenizer(tmp_path: Path) -> None:
 
 
 def test_collator_masks_the_prompt_and_pads_with_ignore_index() -> None:
-    rows = [datum(5, trained=2), datum(3, trained=1)]
+    rows = [datum(5, trained=2), datum(4, trained=1)]
     batch = kernel.build_collator(pad_id=0)(rows)
 
     assert batch["input_ids"].shape == (2, 5)
-    assert batch["attention_mask"].tolist() == [[1, 1, 1, 1, 1], [1, 1, 1, 0, 0]]
+    assert batch["attention_mask"].tolist() == [[1, 1, 1, 1, 1], [1, 1, 1, 1, 0]]
     assert batch["labels"].tolist() == [
-        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 4, 5],
-        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 3, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX],
+        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 3, 4],
+        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 3, kernel.IGNORE_INDEX],
     ]
+
+
+def test_labels_predict_the_token_at_their_own_position() -> None:
+    """Trainer shifts labels left, so a pre-shifted export would train one token ahead."""
+    row = datum(6, trained=2)
+    labels = kernel.build_collator(pad_id=0)([row])["labels"][0].tolist()
+
+    trained = [index for index, value in enumerate(labels) if value != kernel.IGNORE_INDEX]
+    assert trained == [4, 5]
+    assert [labels[index] for index in trained] == [row["input_ids"][index] for index in trained]
 
 
 def test_lr_schedule_peaks_at_warmup_and_lands_on_the_floor() -> None:

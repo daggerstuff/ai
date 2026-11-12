@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-INPUT_DIR = Path("/kaggle/input/pixelated-v22-export")
+INPUT_ROOT = Path("/kaggle/input")
 OUTPUT_DIR = Path("/kaggle/working")
 DATASET_FILE = "tinker-sft-train.jsonl"
 RECORD_FILE = "tinker-dataset.json"
@@ -36,9 +36,9 @@ RUN_NAME = "kaggle-wandb-full-corpus-current-master-20261110-v22"
 # None trains the whole export. Set to a small number to prove the plumbing.
 LIMIT: int | None = None
 
-EPOCHS = 2
-BATCH_SIZE = 2
-GRAD_ACCUM = 8
+EPOCHS = 1
+BATCH_SIZE = 1
+GRAD_ACCUM = 16
 LR = 1e-4
 MIN_LR = 1e-6
 WARMUP_FRACTION = 0.05
@@ -84,6 +84,15 @@ from transformers import (
 )
 
 
+def locate_export(root: Path) -> Path:
+    """Kaggle's mount layout shifts between image generations, so find the files."""
+    for candidate in sorted(root.rglob(RECORD_FILE)):
+        if (candidate.parent / DATASET_FILE).exists():
+            return candidate.parent
+    listing = "\n".join(str(path) for path in sorted(root.rglob("*"))[:40])
+    raise FileNotFoundError(f"no export under {root}; found:\n{listing}")
+
+
 def verify_export(input_dir: Path) -> dict[str, Any]:
     """Refuse to train on a file that is not the one the record describes."""
     record = json.loads((input_dir / RECORD_FILE).read_text())
@@ -117,18 +126,22 @@ def lr_lambda(steps: int):
 
 
 def build_collator(pad_id: int):
+    """The export is already shifted for a raw cross-entropy, but Trainer shifts again.
+
+    ``target_ids[i]`` is ``input_ids[i + 1]``, so the label at position ``i`` is
+    ``input_ids[i]`` masked by ``weights[i - 1]``. Passing ``target_ids`` straight
+    through would make the model predict one token too far ahead.
+    """
+
     def collate(batch: list[dict[str, Any]]) -> dict[str, torch.Tensor]:
         width = max(len(row["input_ids"]) for row in batch)
         input_ids, labels, attention = [], [], []
         for row in batch:
             ids = list(row["input_ids"])
-            targets = list(row["target_ids"])
-            weights = list(row["weights"])
+            weights = [0, *list(row["weights"])[:-1]]
             pad = width - len(ids)
             input_ids.append(ids + [pad_id] * pad)
-            labels.append(
-                [t if w else IGNORE_INDEX for t, w in zip(targets, weights, strict=True)] + [IGNORE_INDEX] * pad
-            )
+            labels.append([t if w else IGNORE_INDEX for t, w in zip(ids, weights, strict=True)] + [IGNORE_INDEX] * pad)
             attention.append([1] * len(ids) + [0] * pad)
         return {
             "input_ids": torch.tensor(input_ids, dtype=torch.long),
@@ -137,6 +150,18 @@ def build_collator(pad_id: int):
         }
 
     return collate
+
+
+class TrapezoidTrainer(Trainer):
+    """transformers 5 dropped the "lambda" scheduler name, so own the schedule."""
+
+    def create_scheduler(self, num_training_steps: int, optimizer: torch.optim.Optimizer | None = None):
+        if self.lr_scheduler is None:
+            self.lr_scheduler = torch.optim.lr_scheduler.LambdaLR(
+                optimizer or self.optimizer,
+                lr_lambda(num_training_steps),
+            )
+        return self.lr_scheduler
 
 
 def build_model():
@@ -173,7 +198,7 @@ def main() -> None:
     started = time.time()
     print(f"torch {torch.__version__}, cuda {torch.cuda.is_available()}, gpus {torch.cuda.device_count()}", flush=True)
 
-    verified = verify_export(INPUT_DIR)
+    verified = verify_export(locate_export(INPUT_ROOT))
     record = verified["record"]
     rows = verified["rows"]
     if LIMIT is not None:
@@ -201,11 +226,10 @@ def main() -> None:
         gradient_accumulation_steps=GRAD_ACCUM,
         auto_find_batch_size=True,
         learning_rate=LR,
-        lr_scheduler_type="lambda",
-        lr_scheduler_kwargs={"lr_lambda": lr_lambda(total_steps)},
+        lr_scheduler_type="constant",
         logging_steps=10,
         save_strategy="steps",
-        save_steps=max(steps_per_epoch // 2, 1),
+        save_steps=max(steps_per_epoch // 4, 1),
         save_total_limit=2,
         gradient_checkpointing=True,
         gradient_checkpointing_kwargs={"use_reentrant": False},
@@ -219,7 +243,7 @@ def main() -> None:
         dataloader_num_workers=2,
     )
 
-    trainer = Trainer(
+    trainer = TrapezoidTrainer(
         model=model,
         args=arguments,
         train_dataset=dataset,
@@ -231,7 +255,8 @@ def main() -> None:
     model.save_pretrained(str(adapter_dir))
     tokenizer.save_pretrained(str(adapter_dir))
 
-    losses = [entry["loss"] for entry in result.log_history if "loss" in entry]
+    log_history = trainer.state.log_history
+    losses = [entry["loss"] for entry in log_history if "loss" in entry]
     tail = losses[-10:]
     run = {
         "schema": SCHEMA,
@@ -255,7 +280,7 @@ def main() -> None:
         "mean_loss_last_10": sum(tail) / len(tail) if tail else None,
         "elapsed_seconds": round(time.time() - started, 1),
         "adapter": str(adapter_dir),
-        "log_history": result.log_history[-40:],
+        "log_history": log_history[-40:],
     }
     (OUTPUT_DIR / "kaggle-run.json").write_text(json.dumps(run, indent=2, sort_keys=True))
     print(json.dumps(run, indent=2, sort_keys=True), flush=True)
