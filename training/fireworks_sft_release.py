@@ -179,7 +179,8 @@ def check_promote_target(model_id: str) -> list[str]:
     """
     from fireworks.training.sdk.fireworks_client import validate_output_model_id
 
-    return validate_output_model_id(model_id)
+    problems: list[str] = list(validate_output_model_id(model_id))
+    return problems
 
 
 def promote(
@@ -206,11 +207,14 @@ def promote(
         raise RuntimeError(f"training session {session} has no promotable checkpoints")
     # Both list endpoints return oldest first, so the newest is the max.
     newest = max(rows, key=lambda row: row.get("createTime") or "")
-    return client.promote_session_checkpoint(
-        name=newest["name"],
-        output_model_id=model_id,
-        base_model=base_model,
+    promoted: dict[str, Any] = dict(
+        client.promote_session_checkpoint(
+            name=newest["name"],
+            output_model_id=model_id,
+            base_model=base_model,
+        )
     )
+    return promoted
 
 
 def _wandb_run(plan: Plan, name: str) -> Any:
