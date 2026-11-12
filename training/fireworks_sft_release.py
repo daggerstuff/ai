@@ -159,6 +159,18 @@ def build_service(
     )
 
 
+def check_promote_target(model_id: str) -> list[str]:
+    """Reject a bad promotion id before a run spends GPU time on it.
+
+    The SDK wants the bare model name (``pixelated-glimmer-v22``), not a
+    resource path; passing ``accounts/<acct>/models/<name>`` fails validation
+    only after training has already finished.
+    """
+    from fireworks.training.sdk.fireworks_client import validate_output_model_id
+
+    return validate_output_model_id(model_id)
+
+
 def promote(
     service: Any,
     model_id: str,
@@ -219,7 +231,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--promote",
         metavar="MODEL_ID",
         default=None,
-        help="promote the final checkpoint to this model id",
+        help="promote the final checkpoint to this bare model name (no account prefix)",
     )
     parser.add_argument("--no-wandb", action="store_true")
     parser.add_argument("--check", action="store_true", help="report the base model's flags and exit")
@@ -259,6 +271,11 @@ def main(argv: list[str] | None = None) -> int:
     if not api_key:
         print("FIREWORKS_API_KEY is not set", file=sys.stderr)
         return 1
+    if args.promote:
+        problems = check_promote_target(args.promote)
+        if problems:
+            print("\n".join(problems), file=sys.stderr)
+            return 1
 
     name = f"{RUN_PREFIX}-{plan.release_id or plan.dataset_dir.name}"
     run = None if args.no_wandb else _wandb_run(plan, name)
