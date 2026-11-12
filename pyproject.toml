@@ -493,6 +493,10 @@ ignore = []
 # Same shape as the Tinker launcher: a CLI that prints progress and imports the
 # Fireworks SDK lazily so --dry-run and the tests never pay for it.
 "training/fireworks_sft_release.py" = ["T201", "PLC0415"]
+# Same reasoning: the CPU launcher prints progress, and torch, transformers, peft and
+# wandb are imported where they are used so --dry-run and the tests stay instant.
+"training/cpu_sft_release.py" = ["T201", "PLC0415"]
+"training/tests/test_cpu_sft_release.py" = ["PLR2004"]
 # The shim prints its bind address and access log to stderr, BaseHTTPRequestHandler
 # requires the do_GET/do_POST names, the broad except is the 502 boundary for the
 # eval client, and a request handler naturally has many early returns.
