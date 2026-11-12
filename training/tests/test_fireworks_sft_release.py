@@ -130,3 +130,13 @@ def test_build_service_turns_on_trainer_cleanup(tmp_path: Path) -> None:
     assert captured["tokenizer_model"] == launcher.TOKENIZER_MODEL
     assert captured["lora_rank"] == 32
     assert captured["lora_alpha"] == 32
+
+
+def test_promote_target_must_be_a_bare_model_name() -> None:
+    """The SDK rejects a resource path only after training has finished."""
+    assert launcher.check_promote_target("pixelated-glimmer-v22") == []
+
+    problems = launcher.check_promote_target("accounts/linencloset/models/pixelated-glimmer-v22")
+
+    assert problems
+    assert "invalid characters" in problems[0]
