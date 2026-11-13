@@ -208,6 +208,8 @@ training/*
 !training/launch/requirements.txt
 !training/kaggle_v22_qwen3_8b/
 !training/kaggle_v22_qwen3_8b/*.json
+!training/ovh_v22_qwen3_8b/
+!training/ovh_v22_qwen3_8b/*.sh
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/
