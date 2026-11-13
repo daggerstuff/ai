@@ -501,6 +501,9 @@ ignore = []
 # The Kaggle kernel has to pip-install a transformers new enough for Qwen3 before it
 # can import it, so the third-party imports necessarily sit below a call.
 "training/kaggle_v22_qwen3_8b/train.py" = ["E402", "PLC0415", "T201"]
+# The OVH job is a batch script: its whole output surface is the log, and it imports
+# the Kaggle kernel's helpers from the working directory the container mounts.
+"training/ovh_v22_qwen3_8b/run_ovh.py" = ["T201"]
 # The shim prints its bind address and access log to stderr, BaseHTTPRequestHandler
 # requires the do_GET/do_POST names, the broad except is the 502 boundary for the
 # eval client, and a request handler naturally has many early returns.
