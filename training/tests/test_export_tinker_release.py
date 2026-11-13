@@ -299,3 +299,24 @@ def test_export_writes_one_jsonl_line_per_datum(tmp_path: Path) -> None:
     record = json.loads((tmp_path / "out" / "tinker-dataset.json").read_text())
     assert record["datums"] == 1
     assert record["counts"]["trained_tokens"] == result.counts["trained_tokens"]
+
+
+def test_export_limit_keeps_only_the_first_n_selected_rows(tmp_path: Path) -> None:
+    """Smoke exports need a handful of real rows, not the whole release."""
+    rows = [
+        {
+            "messages": [
+                {"role": "user", "content": f"{CLIENT_PROMPT} ({index})"},
+                {"role": "assistant", "content": ASSISTANT_REPLY},
+            ]
+        }
+        for index in range(3)
+    ]
+    manifest_path = write_manifest(tmp_path, rows)
+    limit = 2
+
+    whole = tinker.export(manifest_path, tmp_path / "all", tokenizer=StubTokenizer())
+    limited = tinker.export(manifest_path, tmp_path / "some", tokenizer=StubTokenizer(), limit=limit)
+
+    assert whole.counts["datums"] == len(rows)
+    assert limited.counts["datums"] == limited.source_rows == limit

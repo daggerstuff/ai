@@ -282,13 +282,33 @@ def test_train_saves_intermediate_state_when_asked(tmp_path: Path) -> None:
     ]
 
 
+def test_train_uses_a_caller_supplied_run_name(tmp_path: Path) -> None:
+    # Fireworks rejects checkpoint names over 63 characters, so the transport
+    # has to be able to shorten the derived name without patching the loop.
+    dataset = write_export(tmp_path, many_rows(16))
+    plan = trainer.plan_run(dataset, batch_size=16)
+    service = FakeService()
+
+    record = trainer.train(
+        plan,
+        service=service,
+        tinker=FAKE_TINKER,
+        log=lambda *_: None,
+        run_name="fw-stub-release",
+    )
+
+    assert service.client.sampled == ["fw-stub-release"]
+    assert service.client.saved_states == ["fw-stub-release-final"]
+    assert record["run_name"] == "fw-stub-release"
+
+
 def test_check_api_reports_a_billing_block(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_get(url: str, api_key: str | None, timeout: float = 30.0) -> tuple[int, str]:
         if url.endswith("/healthz"):
             return 200, "ok"
         return 402, "Access is blocked due to billing status."
 
-    monkeypatch.setattr(trainer, "_get", fake_get)
+    monkeypatch.setattr(trainer, "http_get", fake_get)
 
     report = trainer.check_api(api_key="tml-test")
 
@@ -312,7 +332,7 @@ def test_check_api_reports_whether_the_base_model_is_offered(
             return 200, "ok"
         return 200, json.dumps(capabilities)
 
-    monkeypatch.setattr(trainer, "_get", fake_get)
+    monkeypatch.setattr(trainer, "http_get", fake_get)
 
     report = trainer.check_api(base_model=trainer.DEFAULT_BASE_MODEL)
 

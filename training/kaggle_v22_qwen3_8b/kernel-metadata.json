@@ -1,0 +1,15 @@
+{
+  "id": "chadisfaction13/pixelated-v22-qwen3-8b-qlora",
+  "title": "pixelated v22 qwen3 8b qlora",
+  "code_file": "train.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["chadisfaction13/pixelated-v22-export"],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

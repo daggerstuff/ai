@@ -206,6 +206,8 @@ training/*
 !training/launch/
 !training/launch/*.py
 !training/launch/requirements.txt
+!training/kaggle_v22_qwen3_8b/
+!training/kaggle_v22_qwen3_8b/*.json
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/
@@ -252,6 +254,9 @@ training/tests/*
 !training/tests/test_build_v17_release.py
 !training/tests/test_wandb_release_evals.py
 !training/tests/test_wandb_sft_g04.py
+!training/tests/test_fireworks_sft_release.py
+!training/tests/test_cpu_sft_release.py
+!training/tests/test_kaggle_v22_qwen3_8b.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
 !training/tests/test_crisis_register.py
