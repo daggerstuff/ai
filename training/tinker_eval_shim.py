@@ -37,6 +37,8 @@ from training.tinker_sft_release import (
     RUN_NAME,
 )
 
+__all__ = ["RUN_NAME"]
+
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8099
 DEFAULT_MAX_TOKENS = 2048
