@@ -147,8 +147,10 @@ def build_commands(
     release_uri: str,
     compares: list[tuple[str, str]],
     exec_dir: Path,
+    cases_dir: Path | None = None,
 ) -> list[tuple[str, list[str]]]:
-    cases_dir = prep.default_cases_dir()
+    if cases_dir is None:
+        cases_dir = prep.default_cases_dir()
     release = prep.Release(release_label, release_uri)
     log(f"release artifact: {release.uri}")
 

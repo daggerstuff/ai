@@ -698,7 +698,11 @@ def verify_evaluation_separation(splits: dict[str, list[dict[str, Any]]]) -> Non
     evaluation_text: set[str] = set()
     for path in (dev_path, sealed_path):
         if not path.is_file():
-            continue
+            raise FileNotFoundError(
+                f"evaluation separation check needs {path}; the scenario suites live in the "
+                f"daggerstuff/docs repository, which must be checked out beside this one "
+                f"(git clone https://github.com/daggerstuff/docs.git {ROOT / 'docs'})"
+            )
         with path.open(encoding="utf-8") as stream:
             for line in stream:
                 case = json.loads(line)

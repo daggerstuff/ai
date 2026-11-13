@@ -30,6 +30,10 @@ jobs:
         run: |
           uv sync --frozen
 
+      - name: Check out the shared eval corpus
+        run: |
+          git clone --depth 1 https://github.com/daggerstuff/docs.git "$(dirname "$GITHUB_WORKSPACE")/docs"
+
       - name: Run unit tests
         run: |
           uv run pytest training/tests/ qa/testing/ \

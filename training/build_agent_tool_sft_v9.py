@@ -434,7 +434,11 @@ def evaluation_texts() -> set[str]:
     ):
         path = ROOT / "docs/training/execution-2026-10-17" / name
         if not path.is_file():
-            continue
+            raise FileNotFoundError(
+                f"evaluation separation check needs {path}; the scenario suites live in the "
+                f"daggerstuff/docs repository, which must be checked out beside this one "
+                f"(git clone https://github.com/daggerstuff/docs.git {ROOT / 'docs'})"
+            )
         with path.open(encoding="utf-8") as stream:
             for line in stream:
                 if not line.strip():

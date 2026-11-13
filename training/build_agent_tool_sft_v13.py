@@ -250,8 +250,15 @@ def _shingles(text: str) -> set[str]:
 
 def evaluation_prompts() -> list[str]:
     """Every user turn the evaluation suites already use."""
+    paths = sorted(EVALUATION_DIR.glob("scenario-*.jsonl"))
+    if not paths:
+        raise FileNotFoundError(
+            f"evaluation separation check needs the scenario suites under {EVALUATION_DIR}; "
+            f"they live in the daggerstuff/docs repository, which must be checked out beside "
+            f"this one (git clone https://github.com/daggerstuff/docs.git {ROOT / 'docs'})"
+        )
     prompts: list[str] = []
-    for path in sorted(EVALUATION_DIR.glob("scenario-*.jsonl")):
+    for path in paths:
         for line in path.read_text(encoding="utf-8").splitlines():
             if line.strip():
                 prompts.append(json.loads(line)["messages"][0]["content"])

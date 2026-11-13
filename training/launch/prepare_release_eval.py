@@ -77,8 +77,20 @@ def pairs(release: Release, compare: Release) -> tuple[str, str]:
 
 
 def default_cases_dir() -> Path:
-    """Locate the shared scenario suites in the docs submodule."""
-    return Path(__file__).resolve().parents[3] / "docs" / "training" / "execution-2026-10-17"
+    """Locate the shared scenario suites in the docs submodule.
+
+    The suites live in the ``daggerstuff/docs`` repository, which must be
+    checked out beside this one: the path is resolved as ``parents[3]/docs``,
+    i.e. a sibling ``docs`` directory next to the repository root.
+    """
+    cases_dir = Path(__file__).resolve().parents[3] / "docs" / "training" / "execution-2026-10-17"
+    if not cases_dir.is_dir():
+        raise FileNotFoundError(
+            f"eval corpus not found at {cases_dir}; the scenario suites live in the "
+            f"daggerstuff/docs repository, which must be checked out beside this one "
+            f"(git clone https://github.com/daggerstuff/docs.git {cases_dir.parents[1]})"
+        )
+    return cases_dir
 
 
 def resolve_release_uri(run_name: str) -> str:
