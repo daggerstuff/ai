@@ -38,8 +38,14 @@ RUN_NAME = "kaggle-wandb-full-corpus-current-master-20261110-v22"
 LIMIT: int | None = None
 
 EPOCHS = 1
+# Kaggle's image exposes two T4s and `TrainingArguments.train_batch_size` is
+# `per_device_train_batch_size * n_gpu`, so Trainer doubles the per-step batch
+# even though `device_map` pins the model to GPU 0. `TrapezoidTrainer` pins it
+# back; the effective batch below is the honest one. The first run inherited the
+# doubling (effective 32) and stalled at loss 3.6 with the 1e-4 peak that suits a
+# batch of 4, so the accumulation now targets 8 and 713 updates.
 BATCH_SIZE = 1
-GRAD_ACCUM = 16
+GRAD_ACCUM = 8
 LR = 1e-4
 MIN_LR = 1e-6
 WARMUP_FRACTION = 0.05
@@ -87,6 +93,8 @@ if TYPE_CHECKING:
     # transformers resolves to Any under the strict ratchet's --no-site-packages
     # run, and strict mode refuses to subclass Any; model the surface used here.
     class _TrainerBase:
+        args: Any
+        _train_batch_size: int
         lr_scheduler: torch.optim.lr_scheduler.LRScheduler | None
         optimizer: torch.optim.Optimizer
         state: Any
@@ -170,6 +178,19 @@ def build_collator(pad_id: int) -> Callable[[list[dict[str, Any]]], dict[str, to
 class TrapezoidTrainer(_TrainerBase):
     """transformers 5 dropped the "lambda" scheduler name, so own the schedule."""
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        # Trainer derives its per-step batch from `per_device_train_batch_size *
+        # n_gpu`. Kaggle reports two T4s even though the model sits on GPU 0, so
+        # that product is 2 while only one device ever sees a sample. Pin it, or
+        # the accumulation count silently means half of what it says.
+        self._train_batch_size = self.args.per_device_train_batch_size
+
+    @property
+    def per_step_batch(self) -> int:
+        """The batch each optimizer step actually consumed on the one device."""
+        return self._train_batch_size
+
     def create_scheduler(
         self, num_training_steps: int, optimizer: torch.optim.Optimizer | None = None
     ) -> torch.optim.lr_scheduler.LRScheduler:
@@ -233,7 +254,11 @@ def main() -> None:
 
     steps_per_epoch = math.ceil(len(rows) / (BATCH_SIZE * GRAD_ACCUM))
     total_steps = steps_per_epoch * EPOCHS
-    print(f"{total_steps} optimisation steps ({steps_per_epoch}/epoch, {EPOCHS} epochs)", flush=True)
+    print(
+        f"{total_steps} optimisation steps ({steps_per_epoch}/epoch, {EPOCHS} epochs) "
+        f"at effective batch {BATCH_SIZE * GRAD_ACCUM}",
+        flush=True,
+    )
 
     arguments = TrainingArguments(
         output_dir=str(OUTPUT_DIR / "checkpoints"),
@@ -266,6 +291,11 @@ def main() -> None:
         train_dataset=dataset,
         data_collator=build_collator(tokenizer.pad_token_id or tokenizer.eos_token_id),
     )
+    if arguments.train_batch_size != trainer.per_step_batch:
+        print(
+            f"pinned per-step batch {arguments.train_batch_size} -> {trainer.per_step_batch} (n_gpu={arguments.n_gpu})",
+            flush=True,
+        )
     result = trainer.train()
 
     adapter_dir = OUTPUT_DIR / "adapter-final"
@@ -286,6 +316,8 @@ def main() -> None:
         "epochs": EPOCHS,
         "batch_size": BATCH_SIZE,
         "grad_accum": GRAD_ACCUM,
+        "effective_batch": BATCH_SIZE * GRAD_ACCUM,
+        "per_step_batch": trainer.per_step_batch,
         "lora_r": RANK,
         "lora_alpha": ALPHA,
         "lr": LR,
@@ -294,6 +326,7 @@ def main() -> None:
         "steps": int(result.global_step),
         "first_loss": losses[0] if losses else None,
         "final_loss": losses[-1] if losses else None,
+        "mean_loss": sum(losses) / len(losses) if losses else None,
         "mean_loss_last_10": sum(tail) / len(tail) if tail else None,
         "elapsed_seconds": round(time.time() - started, 1),
         "adapter": str(adapter_dir),
