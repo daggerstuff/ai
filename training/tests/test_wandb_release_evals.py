@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-from training.launch import wandb_release_evals as pipeline
+from training.launch import prepare_release_eval as prep, wandb_release_evals as pipeline
 
 RELEASE_LABEL = "v17"
 RELEASE_URI = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline-b6886c9f8dde:v1"
@@ -25,6 +25,14 @@ class _Completed:
         self.returncode = returncode
         self.stdout = stdout
         self.stderr = stderr
+
+
+def make_cases_dir(root: Path) -> Path:
+    cases_dir = root / "cases"
+    cases_dir.mkdir()
+    for _, case_file, _ in prep.SUITES:
+        (cases_dir / case_file).write_text('{"id": "case-1"}\n', encoding="utf-8")
+    return cases_dir
 
 
 def test_parse_compare_reads_a_label_and_artifact_uri() -> None:
@@ -47,6 +55,7 @@ def test_build_commands_dedupes_the_vs_base_reading(tmp_path: Path) -> None:
         RELEASE_URI,
         [("v16", PREVIOUS_URI), ("v15", OLDER_URI)],
         exec_dir,
+        cases_dir=make_cases_dir(tmp_path),
     )
 
     labels = [label for label, _ in commands]
@@ -61,7 +70,13 @@ def test_build_commands_points_every_run_at_its_own_results_directory(tmp_path: 
     exec_dir = tmp_path / "exec"
     exec_dir.mkdir()
 
-    commands = pipeline.build_commands(RELEASE_LABEL, RELEASE_URI, [("v16", PREVIOUS_URI)], exec_dir)
+    commands = pipeline.build_commands(
+        RELEASE_LABEL,
+        RELEASE_URI,
+        [("v16", PREVIOUS_URI)],
+        exec_dir,
+        cases_dir=make_cases_dir(tmp_path),
+    )
 
     for label, argv in commands:
         results_dir = Path(argv[argv.index("--results-dir") + 1])
@@ -296,7 +311,13 @@ def test_build_commands_runs_the_resolved_set(tmp_path: Path) -> None:
         RELEASE_LABEL,
     )
 
-    commands = pipeline.build_commands(RELEASE_LABEL, RELEASE_URI, compares, exec_dir)
+    commands = pipeline.build_commands(
+        RELEASE_LABEL,
+        RELEASE_URI,
+        compares,
+        exec_dir,
+        cases_dir=make_cases_dir(tmp_path),
+    )
 
     labels = [label for label, _ in commands]
     assert len(commands) == SUITE_COUNT * 3

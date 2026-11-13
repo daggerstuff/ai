@@ -31,6 +31,10 @@ jobs:
           uv sync --project . --all-extras
           mkdir -p coverage
 
+      - name: Check out the shared eval corpus
+        run: |
+          git clone --depth 1 https://github.com/daggerstuff/docs.git "$(dirname "$GITHUB_WORKSPACE")/docs"
+
       - name: safety-critical-coverage
         run: |
           uv run pytest training/tests/test_shared_config.py training/tests/test_multilingual_safety_checker.py training/tests/test_clinical_safety_checker.py training/tests/test_reward_score.py \
