@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any, cast
 
@@ -113,6 +114,12 @@ def test_lr_schedule_peaks_at_warmup_and_lands_on_the_floor() -> None:
     assert schedule(int(1000 * kernel.WARMUP_FRACTION) + 1) == pytest.approx(1.0)
     assert schedule(int(1000 * kernel.HOLD_FRACTION) - 1) == pytest.approx(1.0)
     assert schedule(1000) == pytest.approx(kernel.MIN_LR / kernel.LR)
+
+
+def test_the_recipe_asks_for_the_updates_the_lr_was_tuned_for() -> None:
+    """The first run inherited n_gpu=2, so the effective batch was 32 and the 1e-4 peak under-drove it."""
+    assert (kernel.BATCH_SIZE, kernel.GRAD_ACCUM) == (1, 8)
+    assert math.ceil(5702 / (kernel.BATCH_SIZE * kernel.GRAD_ACCUM)) == 713
 
 
 def test_the_real_export_still_matches_its_record() -> None:
