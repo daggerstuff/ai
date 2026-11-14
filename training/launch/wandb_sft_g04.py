@@ -532,7 +532,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except UnicodeDecodeError, json.JSONDecodeError:
+        except (UnicodeDecodeError, json.JSONDecodeError):
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")
@@ -562,7 +562,7 @@ class TrainingAPI:
             ) from None
         try:
             parsed = json.loads(raw.decode("utf-8"))
-        except UnicodeDecodeError, json.JSONDecodeError:
+        except (UnicodeDecodeError, json.JSONDecodeError):
             raise QualificationError(f"W&B Training API returned invalid JSON for {method} {path}") from None
         if not isinstance(parsed, (dict, list)):
             raise QualificationError(f"W&B Training API returned an unexpected response for {method} {path}")

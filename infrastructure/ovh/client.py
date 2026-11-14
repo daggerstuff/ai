@@ -105,7 +105,7 @@ def _ovhai_context_path() -> Path:
 def _read_ovhai_token(context_path: Path, region: str) -> str | None:
     try:
         payload = json.loads(context_path.read_text(encoding="utf-8"))
-    except OSError, json.JSONDecodeError:
+    except (OSError, json.JSONDecodeError):
         return None
     tokens = payload.get("access_tokens")
     if not isinstance(tokens, dict):
