@@ -120,12 +120,13 @@ class LocalChatTransport:
 
     def _render(self, messages: list[dict[str, Any]], decoding: dict[str, Any]) -> str:
         kwargs = decoding.get("chat_template_kwargs", {})
-        return self.tokenizer.apply_chat_template(
+        rendered: str = self.tokenizer.apply_chat_template(
             messages,
             add_generation_prompt=True,
             tokenize=False,
             **kwargs,
         )
+        return rendered
 
     def complete(
         self,
