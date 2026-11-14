@@ -211,6 +211,8 @@ training/*
 !training/kaggle_v22_qwen3_8b/*.json
 !training/ovh_v22_qwen3_8b/
 !training/ovh_v22_qwen3_8b/*.sh
+!training/ovh_v22_eval/
+!training/ovh_v22_eval/*.sh
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/
@@ -260,6 +262,7 @@ training/tests/*
 !training/tests/test_fireworks_sft_release.py
 !training/tests/test_cpu_sft_release.py
 !training/tests/test_kaggle_v22_qwen3_8b.py
+!training/tests/test_local_paired_eval.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
 !training/tests/test_crisis_register.py
