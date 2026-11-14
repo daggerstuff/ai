@@ -91,6 +91,23 @@ for line in results.read_text().splitlines():
     )
     arm["total"] += 1
     arm["passed"] += int(passed)
+    # The whole reply goes to stdout: the volume push at job teardown has
+    # already lost two full result sets, and the log is the only durable copy.
+    print(
+        "RECORD "
+        + json.dumps(
+            {
+                "case_id": record.get("case_id"),
+                "arm_id": record.get("arm_id"),
+                "status": record.get("status"),
+                "passed": passed,
+                "failed_checks": failed,
+                "response": record.get("response") or "",
+            },
+            ensure_ascii=False,
+        ),
+        flush=True,
+    )
     if not passed:
         arm["failures"].append(
             {
