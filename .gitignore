@@ -263,6 +263,7 @@ training/tests/*
 !training/tests/test_cpu_sft_release.py
 !training/tests/test_kaggle_v22_qwen3_8b.py
 !training/tests/test_local_paired_eval.py
+!training/tests/test_strict_crisis_gate.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
 !training/tests/test_crisis_register.py

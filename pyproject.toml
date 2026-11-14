@@ -510,6 +510,11 @@ ignore = []
 # torch, transformers and peft are imported inside the transport so the CLI's
 # --help, config building and the tests stay instant without a model.
 "training/local_paired_eval.py" = ["PLC0415"]
+# The gate is a CLI: its output surface is the terminal. The fake judges in the
+# tests must keep the (disclosure, response) signature, and the assertions compare
+# the dev split's fixed case count.
+"training/strict_crisis_gate.py" = ["T201"]
+"training/tests/test_strict_crisis_gate.py" = ["PLR2004", "ARG001"]
 # The shim prints its bind address and access log to stderr, BaseHTTPRequestHandler
 # requires the do_GET/do_POST names, the broad except is the 502 boundary for the
 # eval client, and a request handler naturally has many early returns.
