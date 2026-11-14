@@ -87,7 +87,7 @@ ai/
 ### Environment
 
 ```bash
-# Sync dependencies (Python 3.13 via uv)
+# Sync dependencies (Python 3.14 via uv)
 uv sync
 ```
 
@@ -118,6 +118,17 @@ Run all training tests (excluding legacy book PDF converter tests):
 ```bash
 uv run pytest training/tests/ --ignore=training/tests/test_book_pdf_converter.py -q
 ```
+
+These tests also need the `daggerstuff/docs` repository checked out as a
+**sibling** directory of this repository. From the repository root:
+
+```bash
+git clone https://github.com/daggerstuff/docs.git ../docs
+```
+
+The destination is load-bearing: the scenario suites are resolved as
+`parents[3]/docs`, so a checkout inside this repository will not be found.
+Without it the eval-separation guards fail closed by design.
 
 ### Coverage
 
