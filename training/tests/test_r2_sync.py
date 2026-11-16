@@ -228,6 +228,42 @@ def test_credentials_strip_the_quotes_a_dotenv_file_keeps(tmp_path: Path, monkey
     assert settings["R2_BUCKET"] == "training"
 
 
+def test_client_builds_the_s3_client_from_the_module_level_sdk(monkeypatch: pytest.MonkeyPatch) -> None:
+    """boto3 is a core dependency, so ``client()`` reads the eager import.
+
+    Patching the module attributes is the assertion: an ``importlib`` lookup
+    inside ``client()`` would ignore these fakes and reach for the real SDK.
+    """
+    calls: list[dict[str, Any]] = []
+    configs: list[dict[str, Any]] = []
+
+    class FakeBoto3:
+        def client(self, service: str, **kwargs: Any) -> str:
+            calls.append({"service": service, **kwargs})
+            return "s3-client"
+
+    class FakeConfig:
+        def __init__(self, **kwargs: Any) -> None:
+            configs.append(kwargs)
+
+    monkeypatch.setattr(r2_sync, "boto3", FakeBoto3())
+    monkeypatch.setattr(r2_sync, "Config", FakeConfig)
+    monkeypatch.setenv("R2_ACCESS_KEY_ID", "be4c9f")
+    monkeypatch.setenv("R2_SECRET_ACCESS_KEY", "b4289e")
+    monkeypatch.setenv("R2_ENDPOINT", "https://account.r2.cloudflarestorage.com")
+
+    assert r2_sync.client() == "s3-client"
+
+    assert calls[0]["service"] == "s3"
+    assert calls[0]["endpoint_url"] == "https://account.r2.cloudflarestorage.com"
+    assert calls[0]["aws_access_key_id"] == "be4c9f"
+    # R2 has no regions; "auto" is the placeholder the client must send.
+    assert calls[0]["region_name"] == "auto"
+    # The signature version is what R2 accepts, and the retry budget is the contract.
+    assert configs[0]["signature_version"] == "s3v4"
+    assert configs[0]["retries"] == {"max_attempts": 5, "mode": "standard"}
+
+
 def test_the_upload_run_command_needs_no_credential(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The job side of the contract: a map in the environment is all it takes."""
     run = tmp_path / "eval-bf16-dev"

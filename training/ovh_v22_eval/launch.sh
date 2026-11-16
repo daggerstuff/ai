@@ -27,10 +27,13 @@ OUT_ROOT="${OUT_ROOT:-/tmp/out}"
 OUT_PREFIX="${OUT_PREFIX:-}"
 mkdir -p "$OUT_ROOT"
 
+# r2_sync imports boto3 eagerly; pyproject.toml already declares its floor, so
+# this entry is unpinned on purpose.
 pip install --no-cache-dir --quiet --break-system-packages \
   "transformers==5.22.2" \
   "peft==0.21.3" \
-  "accelerate==1.15.0"
+  "accelerate==1.15.0" \
+  "boto3"
 
 python - <<'PY'
 import torch, transformers, peft, accelerate
