@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import time
 from pathlib import Path
 from typing import Any
@@ -25,10 +26,10 @@ from peft import LoraConfig, get_peft_model
 from train import TrapezoidTrainer, build_collator, verify_export
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 
-DATA_DIR = Path("/workspace/data")
-OUT_DIR = Path("/workspace/out")
+DATA_DIR = Path(os.environ.get("DATA_DIR", "/workspace/data"))
+OUT_DIR = Path(os.environ.get("OUT_DIR", "/workspace/out"))
 SCHEMA = "ovh-sft-run-v1"
-RUN_NAME = "ovh-wandb-full-corpus-current-master-20261110-v22-fp16"
+RUN_NAME = os.environ.get("RUN_NAME", "ovh-wandb-full-corpus-current-master-20261110-v22-fp16")
 
 EPOCHS = 1
 BATCH_SIZE = 4

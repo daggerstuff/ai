@@ -213,6 +213,8 @@ training/*
 !training/ovh_v22_qwen3_8b/*.sh
 !training/ovh_v22_eval/
 !training/ovh_v22_eval/*.sh
+!training/ovh_v23_qwen3_8b/
+!training/ovh_v23_qwen3_8b/*.sh
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/

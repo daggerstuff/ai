@@ -549,6 +549,10 @@ ignore = []
 # keyword per knob, and the ovhai argv builder takes one per flag. S603 is the
 # fixed-argv ovhai call: no shell, no interpolation.
 "training/ovh_v22_eval/submit.py" = ["PLR0913", "S603"]
+# Same shape as the eval submitter: a training run has to be reproducible from
+# the command line, so submit() takes one keyword per knob and the ovhai argv
+# builder takes one per flag. Printing is this module's entire output surface.
+"training/ovh_v23_qwen3_8b/submit.py" = ["PLR0913", "S603", "T201"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
