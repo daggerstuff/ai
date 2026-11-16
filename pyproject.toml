@@ -532,8 +532,23 @@ ignore = []
 # fixed number of records the fixture writes.
 "training/launch/recover_eval_records.py" = ["T201"]
 "training/tests/test_recover_eval_records.py" = ["PLR2004"]
+# boto3 is imported inside client() so the GPU image (which has no SDK) and every
+# test that does not touch the network never pay for it. presign takes one
+# keyword per signing knob so a caller never relies on a hidden default, and
+# main() is a subcommand dispatcher whose every branch returns an exit code. The
+# fake S3 in the tests has to keep the S3 API's keyword casing and the
+# http_get/http_put signatures, and the assertions compare literal byte counts,
+# HTTP codes and page counts.
+"training/launch/r2_sync.py" = ["PLC0415", "PLR0913", "PLR0911"]
+"training/tests/test_r2_sync.py" = ["PLR2004", "ARG001", "ARG002", "N803"]
+# The fake S3 has to keep boto3's keyword casing on Params/ExpiresIn.
+"training/tests/test_ovh_eval_submit.py" = ["N803"]
 # ovh-api is a terminal command; printing is its entire output surface.
 "infrastructure/ovh/cli.py" = ["T201"]
+# A submit run must be reproducible from the command line, so submit() takes one
+# keyword per knob, and the ovhai argv builder takes one per flag. S603 is the
+# fixed-argv ovhai call: no shell, no interpolation.
+"training/ovh_v22_eval/submit.py" = ["PLR0913", "S603"]
 
 [tool.ruff.lint.isort]
 known-first-party = [

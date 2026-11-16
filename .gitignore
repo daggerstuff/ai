@@ -279,6 +279,8 @@ training/tests/*
 !training/tests/test_export_adaption_release.py
 !training/tests/test_adaption_dataset_upload.py
 !training/tests/test_rewrite_arc_risk_turns.py
+!training/tests/test_r2_sync.py
+!training/tests/test_ovh_eval_submit.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
