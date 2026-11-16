@@ -69,7 +69,7 @@ run_split() {
     --adapter "$adapter" \
     --cases "$ROOT/data/scenario-crisis-${split}-v1.jsonl" \
     --results-dir "$OUT_ROOT/${OUT_PREFIX}eval-${label}-${split}" \
-    --run-id "ovh-v22-${label}-${split}" \
+    --run-id "${RUN_LABEL}-${label}-${split}" \
     --device cuda \
     --dtype bfloat16 \
     --max-new-tokens 512 \
@@ -145,8 +145,11 @@ push_results() {
 }
 
 # The nf4 adapter was fitted against a 4-bit base, so it is scored on one:
-# serving it on bf16 measures transfer, not the model that was trained.
-for label in bf16 nf4; do
+# serving it on bf16 measures transfer, not the model that was trained. LABELS
+# lets a submission score a different adapter set without editing this file.
+LABELS="${LABELS:-bf16 nf4}"
+RUN_LABEL="${RUN_LABEL:-ovh-v22}"
+for label in $LABELS; do
   quant=""
   if [ "$label" = nf4 ]; then
     quant="--load-in-4bit"

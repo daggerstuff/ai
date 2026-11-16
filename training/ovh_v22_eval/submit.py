@@ -41,6 +41,9 @@ DEFAULT_ADAPTERS = {
 }
 DEFAULT_LABELS = ("bf16", "nf4")
 DEFAULT_SPLITS = ("dev", "sealed")
+# Prefix on every run id inside a job, so a stored result says which adapter set
+# produced it.
+DEFAULT_RUN_LABEL = "ovh-v22"
 # What local_paired_eval writes into a results directory. Nothing else is signed,
 # so nothing else can be lost.
 RESULT_FILES = ("manifest.json", "results.jsonl")
@@ -80,13 +83,14 @@ raise SystemExit(subprocess.call(["bash", str(root / "code" / "launch.sh")]))
 """
 
 
-def stage(destination: Path = DEFAULT_STAGE_DIR) -> list[str]:
-    """Copy the runner bundle, the crisis cases and both adapters into one tree.
+def stage(destination: Path = DEFAULT_STAGE_DIR, *, adapters: dict[str, Path] | None = None) -> list[str]:
+    """Copy the runner bundle, the crisis cases and the adapters into one tree.
 
     Staging from the repo instead of hand-copying is the difference between a
     job that scores the code under review and a job that scores whatever was in
     /tmp last time.
     """
+    adapters = DEFAULT_ADAPTERS if adapters is None else adapters
     if destination.exists():
         shutil.rmtree(destination)
     copied: list[str] = []
@@ -109,7 +113,7 @@ def stage(destination: Path = DEFAULT_STAGE_DIR) -> list[str]:
         shutil.copy2(CASES_DIR / name, target)
         copied.append(f"data/{name}")
 
-    for label, source in DEFAULT_ADAPTERS.items():
+    for label, source in adapters.items():
         if not source.is_dir():
             raise SystemExit(f"adapter for {label} is missing: {source}")
         shutil.copytree(source, destination / "adapters" / label)
@@ -134,16 +138,29 @@ def staged_files(stage_dir: Path) -> list[str]:
     return sorted(path.relative_to(stage_dir).as_posix() for path in stage_dir.rglob("*") if path.is_file())
 
 
-def build_job_env(*, tag: str, plan: dict[str, object], out_prefix: str, flavor: str) -> list[str]:
-    return [
+def build_job_env(
+    *,
+    tag: str,
+    plan: dict[str, object],
+    out_prefix: str,
+    flavor: str,
+    labels: tuple[str, ...] = DEFAULT_LABELS,
+    run_label: str = DEFAULT_RUN_LABEL,
+) -> list[str]:
+    env = [
         f"R2_MAP_B64={r2_sync.encode_map(plan)}",
         f"BOOTSTRAP={BOOTSTRAP}",
         "ROOT=/tmp/work",
         "OUT_ROOT=/tmp/out",
-        f"OUT_PREFIX={out_prefix}",
+        f"LABELS={' '.join(labels)}",
+        f"RUN_LABEL={run_label}",
         f"EVAL_TAG={tag}",
         f"EVAL_FLAVOR={flavor}",
     ]
+    if out_prefix:
+        # ovhai rejects empty env values; the launcher already defaults to no prefix.
+        env.append(f"OUT_PREFIX={out_prefix}")
+    return env
 
 
 def build_command(*, image: str, name: str, flavor: str, gpu: int, timeout: str, env: list[str]) -> list[str]:
@@ -180,9 +197,13 @@ def submit(
     name: str | None = None,
     execute: bool = False,
     restage: bool = True,
+    adapters: dict[str, Path] | None = None,
+    labels: tuple[str, ...] = DEFAULT_LABELS,
+    run_label: str = DEFAULT_RUN_LABEL,
 ) -> dict[str, object]:
     """Upload the bundle, sign the map, and launch (or print) the job."""
-    staged = stage(stage_dir) if restage else staged_files(stage_dir)
+    adapters = DEFAULT_ADAPTERS if adapters is None else adapters
+    staged = stage(stage_dir, adapters=adapters) if restage else staged_files(stage_dir)
 
     s3 = r2_sync.client()
     bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
@@ -193,7 +214,7 @@ def submit(
     )
     download = {relative: download_urls[f"{inputs_prefix}/{relative}"] for relative in staged}
 
-    names = run_names(out_prefix=out_prefix)
+    names = run_names(labels=labels, out_prefix=out_prefix)
     keys = result_keys(tag, names=names)
     upload = {
         relative: r2_sync.presign([key], bucket=bucket, method="put", s3_client=s3)[key]
@@ -202,7 +223,7 @@ def submit(
 
     job_name = name or f"v22-eval-{tag}"
     plan: dict[str, object] = {"tag": tag, "bucket": bucket, "download": download, "upload": upload}
-    env = build_job_env(tag=tag, plan=plan, out_prefix=out_prefix, flavor=flavor)
+    env = build_job_env(tag=tag, plan=plan, out_prefix=out_prefix, flavor=flavor, labels=labels, run_label=run_label)
     argv = build_command(image=image, name=job_name, flavor=flavor, gpu=gpu, timeout=timeout, env=env)
 
     result: dict[str, object] = {
@@ -216,6 +237,7 @@ def submit(
         "upload_objects": len(upload),
         "map_bytes": len(r2_sync.encode_map(plan)),
         "runs": names,
+        "labels": list(labels),
         "command": argv,
         "executed": False,
     }
@@ -235,6 +257,25 @@ def collect(*, tag: str, destination: Path | None = None) -> list[Path]:
     return r2_sync.download_prefix(bucket=bucket, prefix=f"evals/{tag}", destination=target)
 
 
+def _selected_adapters(parser: argparse.ArgumentParser, args: argparse.Namespace) -> dict[str, Path]:
+    """The adapter staged per label, after ``--adapter LABEL=PATH`` overrides.
+
+    Only the labels the job will score are staged: copying an adapter the
+    launcher never opens costs 344 MB of upload for nothing.
+    """
+    labels = tuple(item.strip() for item in args.labels.split(",") if item.strip())
+    adapters = dict(DEFAULT_ADAPTERS)
+    for pair in args.adapter:
+        label, separator, path = pair.partition("=")
+        if not separator or not label.strip() or not path.strip():
+            parser.error(f"--adapter wants LABEL=PATH, got {pair!r}")
+        adapters[label.strip()] = Path(path.strip())
+    missing = [label for label in labels if label not in adapters]
+    if missing:
+        parser.error(f"no adapter staged for {', '.join(missing)}; pass --adapter LABEL=PATH")
+    return {label: adapters[label] for label in labels}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -252,6 +293,19 @@ def main(argv: list[str] | None = None) -> int:
     run_parser.add_argument("--gpu", type=int, default=1)
     run_parser.add_argument("--timeout", default=DEFAULT_TIMEOUT)
     run_parser.add_argument("--name", default=None)
+    run_parser.add_argument(
+        "--labels",
+        default=",".join(DEFAULT_LABELS),
+        help="comma-separated adapter labels to score, each needing a staged adapters/<label> directory",
+    )
+    run_parser.add_argument(
+        "--adapter",
+        action="append",
+        default=[],
+        metavar="LABEL=PATH",
+        help="override the adapter staged for a label (repeatable); defaults are the two v22 adapters",
+    )
+    run_parser.add_argument("--run-label", default=DEFAULT_RUN_LABEL)
     run_parser.add_argument("--no-restage", action="store_true")
     run_parser.add_argument("--execute", action="store_true")
 
@@ -287,6 +341,9 @@ def main(argv: list[str] | None = None) -> int:
         name=args.name,
         execute=args.execute,
         restage=not args.no_restage,
+        adapters=_selected_adapters(parser, args),
+        labels=tuple(item.strip() for item in args.labels.split(",") if item.strip()),
+        run_label=args.run_label,
     )
     sys.stdout.write(json.dumps({key: value for key, value in report.items() if key != "command"}, indent=2) + "\n")
     sys.stdout.write("\novhai job run ... " + " ".join(report["command"][-3:]) + "\n")

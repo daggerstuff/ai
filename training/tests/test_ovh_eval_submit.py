@@ -8,6 +8,7 @@ control to launch.sh, the job fails before it scores anything).
 
 from __future__ import annotations
 
+import argparse
 import os
 import subprocess
 import sys
@@ -166,3 +167,68 @@ def test_stage_refuses_to_run_without_an_adapter(tmp_path: Path, monkeypatch: py
 
     with pytest.raises(SystemExit, match="adapter for bf16 is missing"):
         submit.stage(tmp_path / "stage")
+
+
+def test_stage_copies_only_the_adapters_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    cases, adapters = _fake_repo(tmp_path)
+    monkeypatch.setattr(submit, "AI_ROOT", tmp_path / "ai")
+    monkeypatch.setattr(submit, "CASES_DIR", cases)
+
+    submit.stage(tmp_path / "stage", adapters={"v23": adapters["bf16"]})
+
+    assert (tmp_path / "stage" / "adapters" / "v23" / "adapter_config.json").is_file()
+    assert not (tmp_path / "stage" / "adapters" / "nf4").exists()
+
+
+def _run_args(labels: str, adapters: list[str]) -> tuple[argparse.ArgumentParser, argparse.Namespace]:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--labels", default=labels)
+    parser.add_argument("--adapter", action="append", default=adapters)
+    return parser, parser.parse_args([])
+
+
+def test_selected_adapters_stages_only_the_labels_being_scored() -> None:
+    parser, args = _run_args("nf4", [])
+
+    selected = submit._selected_adapters(parser, args)
+
+    assert selected == {"nf4": submit.DEFAULT_ADAPTERS["nf4"]}
+
+
+def test_selected_adapters_takes_a_label_path_override(tmp_path: Path) -> None:
+    adapter = tmp_path / "v23-adapter"
+    parser, args = _run_args("v23", [f"v23={adapter}"])
+
+    selected = submit._selected_adapters(parser, args)
+
+    assert selected == {"v23": adapter}
+
+
+def test_selected_adapters_rejects_a_label_with_no_adapter() -> None:
+    parser, args = _run_args("v23", [])
+
+    with pytest.raises(SystemExit):
+        submit._selected_adapters(parser, args)
+
+
+def test_job_env_carries_the_labels_the_launcher_will_score() -> None:
+    plan = {"tag": "v23", "bucket": "training", "download": {}}
+
+    env = dict(
+        entry.split("=", 1)
+        for entry in submit.build_job_env(
+            tag="v23", plan=plan, out_prefix="", flavor="l4", labels=("v23",), run_label="v23"
+        )
+    )
+
+    assert env["LABELS"] == "v23"
+    assert env["RUN_LABEL"] == "v23"
+
+
+def test_job_env_never_emits_an_empty_value() -> None:
+    plan = {"tag": "v23", "bucket": "training", "download": {}}
+
+    env = submit.build_job_env(tag="v23", plan=plan, out_prefix="", flavor="l4")
+
+    assert all(entry.split("=", 1)[1] for entry in env)
+    assert "OUT_PREFIX" not in dict(entry.split("=", 1) for entry in env)
