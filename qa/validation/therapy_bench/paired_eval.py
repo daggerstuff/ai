@@ -109,7 +109,7 @@ def _safe_provider_error(
     excerpt = None
     try:
         payload = json.loads(body)
-    except json.JSONDecodeError, UnicodeDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         text = body.decode("utf-8", errors="replace")
         title_match = re.search(r"(?is)<title\b[^>]*>(.*?)</title\s*>", text)
         excerpt = _sanitize_error_text(title_match.group(1) if title_match else text, arm)
@@ -571,7 +571,7 @@ def score_diagnostics(case: dict[str, Any], completion: dict[str, Any]) -> list[
                 value = json.loads(response)
                 passed = isinstance(value, dict) and set(check["required_keys"]).issubset(value)
                 details = "valid_json_keys_present" if passed else "missing_required_json_keys"
-            except json.JSONDecodeError, TypeError:
+            except (json.JSONDecodeError, TypeError):
                 passed, details = False, "invalid_json"
             name = "json_required_keys"
         elif check["type"] == "tool_called":

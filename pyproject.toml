@@ -498,12 +498,23 @@ ignore = []
 "training/cpu_sft_release.py" = ["T201", "PLC0415"]
 "training/tests/test_cpu_sft_release.py" = ["PLR2004"]
 "training/tests/test_kaggle_v22_qwen3_8b.py" = ["PLR2004"]
+# The fake transport has to keep the real signature, and the assertions compare the
+# dev split's fixed case and arm counts.
+"training/tests/test_local_paired_eval.py" = ["PLR2004", "ARG002"]
 # The Kaggle kernel has to pip-install a transformers new enough for Qwen3 before it
 # can import it, so the third-party imports necessarily sit below a call.
 "training/kaggle_v22_qwen3_8b/train.py" = ["E402", "PLC0415", "T201"]
 # The OVH job is a batch script: its whole output surface is the log, and it imports
 # the Kaggle kernel's helpers from the working directory the container mounts.
 "training/ovh_v22_qwen3_8b/run_ovh.py" = ["T201"]
+# torch, transformers and peft are imported inside the transport so the CLI's
+# --help, config building and the tests stay instant without a model.
+"training/local_paired_eval.py" = ["PLC0415"]
+# The gate is a CLI: its output surface is the terminal. The fake judges in the
+# tests must keep the (disclosure, response) signature, and the assertions compare
+# the dev split's fixed case count.
+"training/strict_crisis_gate.py" = ["T201"]
+"training/tests/test_strict_crisis_gate.py" = ["PLR2004", "ARG001"]
 # The shim prints its bind address and access log to stderr, BaseHTTPRequestHandler
 # requires the do_GET/do_POST names, the broad except is the 502 boundary for the
 # eval client, and a request handler naturally has many early returns.
