@@ -15,7 +15,7 @@ textstat>=0.7.3
 
 # Utilities
 tqdm>=4.70.1
-loguru>=0.7.3
+loguru>=0.8.0
 python-dateutil>=2.9.0
 pydantic>=2.10.6
 
