@@ -21,13 +21,14 @@ OUT_PREFIX="${OUT_PREFIX:-}"
 pip install --no-cache-dir --quiet --break-system-packages \
   "transformers==5.22.2" \
   "peft==0.21.3" \
-  "accelerate==1.15.0"
+  "accelerate==1.15.0" \
+  "bitsandbytes>=0.45"
 
 python - <<'PY'
-import torch, transformers, peft, accelerate
+import torch, transformers, peft, accelerate, bitsandbytes
 
 print(f"torch {torch.__version__} transformers {transformers.__version__} peft {peft.__version__}", flush=True)
-print(f"cuda available {torch.cuda.is_available()}", flush=True)
+print(f"bitsandbytes {bitsandbytes.__version__} cuda available {torch.cuda.is_available()}", flush=True)
 PY
 
 cd /workspace/code
@@ -123,10 +124,16 @@ for arm in arms.values():
 PY
 }
 
+# The nf4 adapter was fitted against a 4-bit base, so it is scored on one:
+# serving it on bf16 measures transfer, not the model that was trained.
 for label in bf16 nf4; do
-  run_split "/workspace/adapters/${label}" "$label" dev
+  quant=""
+  if [ "$label" = nf4 ]; then
+    quant="--load-in-4bit"
+  fi
+  run_split "/workspace/adapters/${label}" "$label" dev "$quant"
   summarize "/workspace/out/${OUT_PREFIX}eval-${label}-dev"
-  run_split "/workspace/adapters/${label}" "$label" sealed --allow-sealed
+  run_split "/workspace/adapters/${label}" "$label" sealed "$quant --allow-sealed"
   summarize "/workspace/out/${OUT_PREFIX}eval-${label}-sealed"
 done
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -63,6 +64,45 @@ def test_strip_stops_cuts_at_the_first_marker_and_trims() -> None:
     assert local.strip_stops("  a reply <|im_end|> trailing  ", ["<|im_end|>", "<|endoftext|>"]) == "a reply"
     assert local.strip_stops("a reply <|endoftext|><|im_end|>", ["<|im_end|>", "<|endoftext|>"]) == "a reply"
     assert local.strip_stops("a reply", ["<|im_end|>"]) == "a reply"
+
+
+def test_the_cli_can_score_an_adapter_on_the_base_it_was_trained_on(tmp_path: Path, monkeypatch: Any) -> None:
+    seen: list[bool] = []
+
+    class Recorder(EchoTransport):
+        def __init__(self, *args: Any, load_in_4bit: bool = False) -> None:
+            seen.append(load_in_4bit)
+            super().__init__()
+
+    monkeypatch.setattr(local, "LocalChatTransport", Recorder)
+
+    def run(extra: list[str]) -> int:
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "local_paired_eval",
+                "--base-model",
+                "Qwen/Qwen3-8B",
+                "--adapter",
+                "/adapters/nf4",
+                "--cases",
+                str(DEV_CASES),
+                "--results-dir",
+                str(tmp_path / f"results-{len(seen)}"),
+                "--arm",
+                "base",
+                *extra,
+            ],
+        )
+        return local.main()
+
+    assert run([]) == 0
+    assert run(["--load-in-4bit"]) == 0
+
+    # The NF4 adapter was fitted against a 4-bit base, so the flag has to reach
+    # the loader instead of being accepted and dropped on the floor.
+    assert seen == [False, True]
 
 
 def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> None:

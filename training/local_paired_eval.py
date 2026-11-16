@@ -92,6 +92,8 @@ class LocalChatTransport:
         device: str,
         dtype: str,
         enable_thinking: bool,
+        *,
+        load_in_4bit: bool = False,
     ) -> None:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -102,14 +104,35 @@ class LocalChatTransport:
             self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.padding_side = "left"
         self.enable_thinking = enable_thinking
-        self.model = AutoModelForCausalLM.from_pretrained(
-            base_model,
-            device_map=None if device == "cpu" else {"": device},
-            dtype=getattr(torch, dtype),
-            attn_implementation="sdpa",
-        )
-        if device == "cpu":
-            self.model.to("cpu")
+        self.load_in_4bit = load_in_4bit
+        if load_in_4bit:
+            # An adapter trained against a 4-bit base was never fitted to the
+            # full-precision weights, so serving it on bf16 measures transfer
+            # rather than the model that was actually trained.
+            if device == "cpu":
+                raise ValueError("--load-in-4bit needs a CUDA device")
+            from transformers import BitsAndBytesConfig
+
+            self.model = AutoModelForCausalLM.from_pretrained(
+                base_model,
+                device_map={"": device},
+                quantization_config=BitsAndBytesConfig(
+                    load_in_4bit=True,
+                    bnb_4bit_quant_type="nf4",
+                    bnb_4bit_use_double_quant=True,
+                    bnb_4bit_compute_dtype=getattr(torch, dtype),
+                ),
+                attn_implementation="sdpa",
+            )
+        else:
+            self.model = AutoModelForCausalLM.from_pretrained(
+                base_model,
+                device_map=None if device == "cpu" else {"": device},
+                dtype=getattr(torch, dtype),
+                attn_implementation="sdpa",
+            )
+            if device == "cpu":
+                self.model.to("cpu")
         self.model.eval()
         self.has_adapter = adapter is not None
         if adapter is not None:
@@ -172,6 +195,11 @@ def main() -> int:
     parser.add_argument("--max-new-tokens", type=int, default=DEFAULT_MAX_NEW_TOKENS)
     parser.add_argument("--max-cases", type=int, default=None)
     parser.add_argument("--enable-thinking", action="store_true")
+    parser.add_argument(
+        "--load-in-4bit",
+        action="store_true",
+        help="serve the base in NF4 so an adapter trained on a 4-bit base is scored on that base",
+    )
     parser.add_argument("--allow-sealed", action="store_true")
     parser.add_argument("--arm", choices=("base", "sft", "both"), default="both")
     args = parser.parse_args()
@@ -195,6 +223,7 @@ def main() -> int:
         args.device,
         args.dtype,
         args.enable_thinking,
+        load_in_4bit=args.load_in_4bit,
     )
     request = paired_eval.RunRequest(
         args.cases,

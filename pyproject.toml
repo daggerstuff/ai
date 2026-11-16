@@ -508,8 +508,10 @@ ignore = []
 # the Kaggle kernel's helpers from the working directory the container mounts.
 "training/ovh_v22_qwen3_8b/run_ovh.py" = ["T201"]
 # torch, transformers and peft are imported inside the transport so the CLI's
-# --help, config building and the tests stay instant without a model.
-"training/local_paired_eval.py" = ["PLC0415"]
+# --help, config building and the tests stay instant without a model. The
+# constructor takes one argument per loader flag so a run is reproducible from
+# the command line alone.
+"training/local_paired_eval.py" = ["PLC0415", "PLR0913"]
 # The gate is a CLI: its output surface is the terminal. The fake judges in the
 # tests must keep the (disclosure, response) signature, and the assertions compare
 # the dev split's fixed case count.
@@ -526,6 +528,10 @@ ignore = []
 # wandb is imported inside log_to_wandb so the dry-run path (and every test)
 # never pays for it; the module is only needed once we actually publish.
 "training/launch/log_eval_tracking.py" = ["PLC0415"]
+# Recovery is a terminal command over a saved job log; the assertions compare the
+# fixed number of records the fixture writes.
+"training/launch/recover_eval_records.py" = ["T201"]
+"training/tests/test_recover_eval_records.py" = ["PLR2004"]
 # ovh-api is a terminal command; printing is its entire output surface.
 "infrastructure/ovh/cli.py" = ["T201"]
 
