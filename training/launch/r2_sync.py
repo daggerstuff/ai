@@ -8,7 +8,7 @@ volume stops mattering.
 
 Credentials never go into a job spec. The submitter signs a presigned URL per
 object and hands the job a compact map of ``key -> url``; the job then does a
-plain HTTP ``PUT`` with :func:`put_file`, which needs no SDK and no secret.
+plain HTTP ``PUT`` with :func:`put_file`, which needs no credentials.
 Presigned URLs are scoped to one object and expire, so a leaked job spec leaks
 nothing but the ability to overwrite one result file before it expires.
 
@@ -26,7 +26,6 @@ from __future__ import annotations
 import argparse
 import base64
 import gzip
-import importlib
 import json
 import mimetypes
 import os
@@ -37,6 +36,12 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+
+# boto3 is a declared core dependency (pyproject.toml, [project].dependencies),
+# not an optional extra, so it is imported eagerly: the module either imports or
+# it fails immediately, never halfway through a job.
+import boto3
+from botocore.config import Config
 
 REQUIRED_ENV = ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT")
 DEFAULT_BUCKET_ENV = "R2_BUCKET"
@@ -89,22 +94,8 @@ def credentials(*, env_file: Path | None = None) -> dict[str, str]:
     return settings
 
 
-def _aws_sdk() -> tuple[Any, Any]:
-    """The boto3 module and botocore's ``Config``, imported on first use.
-
-    The eval image carries no AWS SDK: the job writes through presigned URLs
-    with urllib and never builds a client, and only the submitter signs. So the
-    SDK is an optional dependency here and is resolved through ``importlib``
-    rather than an ``import`` statement, the same way the other optional
-    dependencies in ``training/`` are loaded.
-    """
-    return importlib.import_module("boto3"), importlib.import_module("botocore.config").Config
-
-
 def client(*, env_file: Path | None = None) -> Any:
     """A boto3 S3 client pointed at R2."""
-    boto3, config_class = _aws_sdk()
-
     settings = credentials(env_file=env_file)
     return boto3.client(
         "s3",
@@ -113,7 +104,7 @@ def client(*, env_file: Path | None = None) -> Any:
         aws_secret_access_key=settings["R2_SECRET_ACCESS_KEY"],
         # R2 has no regions; "auto" is the documented placeholder.
         region_name="auto",
-        config=config_class(
+        config=Config(
             signature_version="s3v4",
             retries={"max_attempts": 5, "mode": "standard"},
             connect_timeout=15,
