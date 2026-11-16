@@ -5,18 +5,27 @@
 # transport instead of a chat-completions endpoint: one copy of the base weights
 # serves both arms and the LoRA is toggled between them.
 #
+# Inputs come from either the OVH volume mount at /workspace (ROOT=/workspace) or
+# from R2 through the bootstrap that sets ROOT=/tmp/work. Results always land in
+# /tmp/out and are pushed to R2 with the presigned PUTs in R2_MAP_B64, because
+# the volume's write-back failed on every eval job so far
+# (SYNC_FAILED : DATASYNC_RETRY_ERROR), taking the whole result set with it.
+#
 # HOME is pinned away from /workspace because pip's --break-system-packages
 # installs land in the user site directory, and /workspace is the NFS bucket.
 set -euo pipefail
 
 export HOME=/tmp
-export PYTHONPATH=/workspace/code
-# Keep bytecode out of the NFS mount: a stale .pyc from another interpreter
-# version must never shadow the source that is actually mounted here.
+# Keep bytecode out of any mounted filesystem: a stale .pyc from another
+# interpreter version must never shadow the source that is actually mounted here.
 export PYTHONDONTWRITEBYTECODE=1
+ROOT="${ROOT:-/workspace}"
+export PYTHONPATH="$ROOT/code"
+OUT_ROOT="${OUT_ROOT:-/tmp/out}"
 # Lets a second flavor run against the same bucket without overwriting the
 # first job's results.
 OUT_PREFIX="${OUT_PREFIX:-}"
+mkdir -p "$OUT_ROOT"
 
 pip install --no-cache-dir --quiet --break-system-packages \
   "transformers==5.22.2" \
@@ -30,15 +39,16 @@ print(f"torch {torch.__version__} transformers {transformers.__version__} peft {
 print(f"cuda available {torch.cuda.is_available()}", flush=True)
 PY
 
-cd /workspace/code
+cd "$ROOT/code"
 
 # Fail fast, with a readable message, if any mounted module needs a newer
 # interpreter than the one in this image.
-python - <<'PY'
+python - "$ROOT/code" <<'PY'
 import ast, pathlib, sys
 
+root = pathlib.Path(sys.argv[1])
 bad = []
-for path in sorted(pathlib.Path("/workspace/code").rglob("*.py")):
+for path in sorted(root.rglob("*.py")):
     try:
         ast.parse(path.read_text(), filename=str(path), feature_version=sys.version_info[:2])
     except SyntaxError as error:
@@ -56,8 +66,8 @@ run_split() {
   python -m training.local_paired_eval \
     --base-model Qwen/Qwen3-8B \
     --adapter "$adapter" \
-    --cases "/workspace/data/scenario-crisis-${split}-v1.jsonl" \
-    --results-dir "/workspace/out/${OUT_PREFIX}eval-${label}-${split}" \
+    --cases "$ROOT/data/scenario-crisis-${split}-v1.jsonl" \
+    --results-dir "$OUT_ROOT/${OUT_PREFIX}eval-${label}-${split}" \
     --run-id "ovh-v22-${label}-${split}" \
     --device cuda \
     --dtype bfloat16 \
@@ -66,8 +76,7 @@ run_split() {
 }
 
 # Print a compact, machine-readable summary of a finished run to stdout so the
-# scores can be recovered from `ovhai job logs` even when the volume push at
-# job teardown fails.
+# scores survive even if both the volume push and the R2 upload fail.
 summarize() {
   python - "$1" <<'PY'
 import json, pathlib, sys
@@ -123,11 +132,24 @@ for arm in arms.values():
 PY
 }
 
+# Push the run directory to R2. A failure here is not fatal: the RECORD lines
+# that summarize() already printed are a complete copy of every reply.
+push_results() {
+  local run_dir="$1"
+  if python -m training.launch.r2_sync upload-run --run-dir "$run_dir"; then
+    return 0
+  fi
+  echo "WARN R2 upload failed for $run_dir; the stdout RECORD lines are the only copy" >&2
+  return 0
+}
+
 for label in bf16 nf4; do
-  run_split "/workspace/adapters/${label}" "$label" dev
-  summarize "/workspace/out/${OUT_PREFIX}eval-${label}-dev"
-  run_split "/workspace/adapters/${label}" "$label" sealed --allow-sealed
-  summarize "/workspace/out/${OUT_PREFIX}eval-${label}-sealed"
+  run_split "$ROOT/adapters/${label}" "$label" dev
+  summarize "$OUT_ROOT/${OUT_PREFIX}eval-${label}-dev"
+  push_results "$OUT_ROOT/${OUT_PREFIX}eval-${label}-dev"
+  run_split "$ROOT/adapters/${label}" "$label" sealed --allow-sealed
+  summarize "$OUT_ROOT/${OUT_PREFIX}eval-${label}-sealed"
+  push_results "$OUT_ROOT/${OUT_PREFIX}eval-${label}-sealed"
 done
 
-echo "eval complete" > /workspace/out/DONE
+echo "eval complete"
