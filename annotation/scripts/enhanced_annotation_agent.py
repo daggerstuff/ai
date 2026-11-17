@@ -118,7 +118,7 @@ class EnhancedAnnotationAgent:
     def __init__(
         self,
         persona_name: str,
-        model: str = "nvidia/llama-3.3-nemotron-super-49b-v1",
+        model: str = "nvidia/nemotron-3-super",
         role: AgentRole = AgentRole.PRIMARY_ANNOTATOR,
         guardrail_config: GuardrailConfig | None = None,
     ):
@@ -476,7 +476,7 @@ if __name__ == "__main__":
     parser.add_argument("--persona", choices=["Dr. A", "Dr. B"], required=True, help="Agent persona")
     parser.add_argument(
         "--model",
-        default="nvidia/llama-3.3-nemotron-super-49b-v1",
+        default="nvidia/nemotron-3-super",
         help="LLM model to use (default: Llama Nemotron)",
     )
     parser.add_argument(

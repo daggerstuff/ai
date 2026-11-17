@@ -119,7 +119,7 @@ def test_limiter_concurrency_cap_rejects(monkeypatch: pytest.MonkeyPatch) -> Non
 
 def test_limiter_initializes_bucket_lazily() -> None:
     limiter = TierAwareRateLimiter()
-    assert limiter.acquire(provider="nvidia", model="meta/llama-3.1-405b-instruct") is True
+    assert limiter.acquire(provider="nvidia", model="mistralai/mistral-medium-3.5-128b") is True
 
 
 def test_default_singleton_reset_replaces_instance() -> None:

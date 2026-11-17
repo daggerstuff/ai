@@ -45,7 +45,7 @@ class TimFletcherVoiceExtractor:
         model_from_env = self._resolve_env("TIM_FLETCHER_NIM_MODEL") or self._resolve_env("NVIDIA_NIM_MODEL")
         self.openai_model = model_from_env or os.getenv(
             "OPENAI_MODEL",
-            "meta/llama-3.1-8b-instruct",
+            "qwen/qwen2.5-7b-instruct",
         )
         self.openai_client = self._init_openai_client()
 

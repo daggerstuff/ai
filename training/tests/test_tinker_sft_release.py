@@ -323,7 +323,7 @@ def test_check_api_reports_whether_the_base_model_is_offered(
     capabilities = {
         "supported_models": [
             {"model_name": trainer.DEFAULT_BASE_MODEL},
-            {"model_name": "meta-llama/Llama-3.1-8B"},
+            {"model_name": "Qwen/Qwen2.5-7B-Instruct"},
         ]
     }
 

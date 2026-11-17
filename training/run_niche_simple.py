@@ -26,7 +26,7 @@ CATEGORIES = [
     "cultural_religious_contexts",
 ]
 
-NEMO_MODEL = "meta/llama-3.1-8b-instruct"
+NEMO_MODEL = "qwen/qwen2.5-7b-instruct"
 NEMO_TIMEOUT = 25
 NEMO_MIN_CALL_INTERVAL = 1.5
 TARGET = 500

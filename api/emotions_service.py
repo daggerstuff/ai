@@ -1,7 +1,7 @@
 """
 Emotion Analysis API Endpoint
 
-FastAPI endpoint for LLaMA-based emotion analysis with FHE encryption support.
+FastAPI endpoint for LLM-based emotion analysis with FHE encryption support.
 Wires the FHE ciphertext hash through to the R1 receipt system.
 """
 
@@ -32,7 +32,7 @@ class EmotionAnalysisRequest(BaseModel):
         description="SHA-256 hash of the FHE-encrypted ciphertext (optional, for R1 receipt binding)",
     )
     model: str = Field(
-        default="llama-emotion-v1.0",
+        default="emotion-analysis-v1.0",
         description="Model version identifier",
     )
     analysis_type: str = Field(
@@ -86,12 +86,12 @@ async def analyze_emotions(request: EmotionAnalysisRequest) -> EmotionAnalysisRe
     Analyze emotions in the provided text.
 
     This endpoint:
-    1. Performs emotion analysis (placeholder for actual LLaMA model)
+    1. Performs emotion analysis (placeholder for the actual emotion model)
     2. Runs safety checks via InferenceSafetyFilter
     3. Emits R1 cryptographic receipt with FHE ciphertext hash binding
     """
     try:
-        # Placeholder: In production, this would call the actual LLaMA emotion model
+        # Placeholder: In production, this would call the actual emotion model
         # For now, return a mock analysis result
         emotions = [
             {"type": "joy", "intensity": 0.7, "confidence": 0.85},

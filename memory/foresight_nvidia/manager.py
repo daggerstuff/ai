@@ -29,7 +29,7 @@ class NvidiaForesightConfig(BaseModel):
     """Configuration for NVIDIA NIM with shared local memory."""
 
     nvidia_api_key: str = Field(..., description="NVIDIA API key")
-    model_name: str = Field("meta/llama-3.1-405b-instruct", description="NVIDIA NIM model to use")
+    model_name: str = Field("mistralai/mistral-medium-3.5-128b", description="NVIDIA NIM model to use")
     base_url: str = Field("https://integrate.api.nvidia.com/v1", description="NVIDIA NIM Base URL")
     user_id: str = Field("default_user", description="Default user ID for memory")
     db_path: str = Field(..., description="Path to the shared local memory database")

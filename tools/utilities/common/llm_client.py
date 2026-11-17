@@ -102,7 +102,7 @@ class OpenAIDriver(LLMDriver):
             if base_url is not None
             else os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
         )
-        self.model = model or os.environ.get("LLM_MODEL", "meta/llama-3.1-405b-instruct")
+        self.model = model or os.environ.get("LLM_MODEL", "mistralai/mistral-medium-3.5-128b")
 
         if not self.api_key:
             logger.warning("No LLM_API_KEY found. OpenAIDriver may fail.")
@@ -188,7 +188,7 @@ class FireworksDriver(OpenAIDriver):
     """
 
     _DEFAULT_BASE_URL = "https://api.fireworks.ai/inference/v1"
-    _DEFAULT_MODEL = "accounts/fireworks/models/llama-v3p1-8b-instruct"
+    _DEFAULT_MODEL = "accounts/fireworks/models/deepseek-v4-flash"
 
     def __init__(self, model: str | None = None):
         self.api_key = os.environ.get(

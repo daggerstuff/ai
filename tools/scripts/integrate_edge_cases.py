@@ -34,7 +34,7 @@ class EdgeCaseIntegrator:
         # Setup generators
         self.edge_generator = EdgeCaseGenerator(
             api_provider="ollama",
-            model_name="artifish/llama3.2-uncensored",
+            model_name="qwen/qwen2.5-7b-instruct",
             output_dir=self.output_dir / "edge_cases" / "generated",
         )
 

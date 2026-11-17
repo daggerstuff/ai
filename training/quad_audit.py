@@ -164,7 +164,7 @@ def query_llm(system_prompt, user_content):
     3. NIM -- deepseek-ai/deepseek-r1 (671B, fallback)
     4. NIM -- deepseek-ai/deepseek-v3 (685B MoE, fallback)
     5. NIM -- moonshotai/kimi-k2-instruct (1T MoE, fallback)
-    6. NIM -- meta/llama-3.3-70b-instruct (fallback)
+    6. NIM -- mistralai/mistral-medium-3.5-128b (fallback)
     """
 
     # 1-2. Gemini (working from this host)
@@ -203,7 +203,7 @@ def query_llm(system_prompt, user_content):
             ("deepseek-ai/deepseek-r1", "DeepSeek R1 (671B)"),
             ("deepseek-ai/deepseek-v3", "DeepSeek V3 (685B MoE)"),
             ("moonshotai/kimi-k2-instruct", "Kimi K2 Instruct (1T MoE)"),
-            ("meta/llama-3.3-70b-instruct", "Llama 3.3 70B Instruct"),
+            ("mistralai/mistral-medium-3.5-128b", "Mistral Medium 3.5"),
         ]
         for model_id, label in nim_models:
             try:

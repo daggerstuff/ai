@@ -16,7 +16,7 @@ import openai
 class TherapeuticParaphraser:
     """Generate paraphrased variations of therapeutic conversations"""
 
-    def __init__(self, model: str = "nvidia/llama-3.3-nemotron-super-49b-v1"):
+    def __init__(self, model: str = "nvidia/nemotron-3-super"):
         self.model = model
         self.client = openai.OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
@@ -237,7 +237,7 @@ def main():
     )
     parser.add_argument(
         "--model",
-        default="nvidia/llama-3.3-nemotron-super-49b-v1",
+        default="nvidia/nemotron-3-super",
         help="NVIDIA model to use for paraphrasing",
     )
 

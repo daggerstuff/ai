@@ -34,7 +34,7 @@ NEMO_ENDPOINT = os.environ.get("NVIDIA_BASE_URL", "")
 if not NEMO_ENDPOINT:
     sys.exit(1)
 
-NEMO_MODEL = "meta/llama-3.1-8b-instruct"
+NEMO_MODEL = "qwen/qwen2.5-7b-instruct"
 NEMO_TIMEOUT = 25
 TARGET = 500
 MAX_ITER = 2500

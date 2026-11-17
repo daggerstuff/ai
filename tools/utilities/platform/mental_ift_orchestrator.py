@@ -134,7 +134,7 @@ class MentalHealthIFTOrchestrator:
             return {"skipped": True}, {}
 
         ift_config = IFTConfig(
-            base_model=self.config.get("base_model", "meta-llama/Llama-2-7b-chat-hf"),
+            base_model=self.config.get("base_model", "Qwen/Qwen2.5-7B-Instruct"),
             output_dir=str(self.output_dir / "ift_model"),
             dataset_path=str(train_path),
             use_qlora=self.config.get("use_qlora", True),
