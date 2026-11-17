@@ -127,7 +127,7 @@ THERAPEUTIC_KNOWLEDGE_BASE = {
 }
 
 # NVIDIA NIM model identifiers for therapeutic RAG pipeline
-NIM_EMBEDDING_MODEL = "nvidia/nv-embed-v2"
+NIM_EMBEDDING_MODEL = "nvidia/nemotron-3.5-embed-8b"
 NIM_RERANK_MODEL = "nvidia/nv-rerank-v2"
 NIM_GENERATION_MODEL = "nvidia/nemotron-3-super"
 NIM_FAST_MODEL = "qwen/qwen2.5-7b-instruct"
@@ -139,7 +139,7 @@ NIM_MULTILINGUAL_MODEL = "qwen/qwen-2.5-72b-instruct"
 NIM_SAFETY_MODEL = "nvidia/nemotron-guard-0.5"
 
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
-EMBEDDING_DIMENSION = 4096  # nv-embed-v2 produces 4096-dim vectors
+EMBEDDING_DIMENSION = 2048  # nemotron-3.5-embed-8b native dimension
 
 
 # =============================================================================
