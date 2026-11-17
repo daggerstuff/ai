@@ -59,7 +59,7 @@ import re
 import sys
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -965,7 +965,7 @@ def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> 
     return v26.paraphrases_too_close_to_evaluation(surface)
 
 
-CrisisCase: TypeAlias = v26.CrisisCase
+CrisisCase = v26.CrisisCase
 
 
 def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str, Any]:

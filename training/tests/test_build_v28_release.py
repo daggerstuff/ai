@@ -218,7 +218,7 @@ def test_every_surface_is_v27s_except_the_one_action_v28_rewrites() -> None:
         assert len(v28.ACTIONS[category]) == expected, category
     differing = [
         (before, after)
-        for before, after in zip(v27.ACTIONS["passive_ideation"], v28.ACTIONS["passive_ideation"])
+        for before, after in zip(v27.ACTIONS["passive_ideation"], v28.ACTIONS["passive_ideation"], strict=True)
         if before != after
     ]
     assert len(differing) == 1
