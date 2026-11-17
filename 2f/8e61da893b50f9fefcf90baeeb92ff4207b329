@@ -1,0 +1,46 @@
+training/build_agent_tool_sft_v27.py
+  s_e984af3c07c4e5::t_047061c7ba6554 1039
+  s_7d4811cf1b0ba7::t_58832fdc5318d7 665-672,684-974,1176
+  s_7d4811cf1b0ba7::t_252e4e6b573a6e 1-664,673-683,975-1038,1040-1175,1177-1220
+training/tests/test_build_v27_release.py
+  s_7d4811cf1b0ba7::t_58832fdc5318d7 188-200
+  s_7d4811cf1b0ba7::t_2eff3f3219bf0b 1-187,201-336
+training/tests/test_build_agent_tool_sft_v27.py
+  s_7d4811cf1b0ba7::t_58832fdc5318d7 279-349
+  s_7d4811cf1b0ba7::t_2c46c3becda34e 59-62
+  s_7d4811cf1b0ba7::t_a4d16cb9d9adba 1-58,63-278,350-465
+.gitignore
+  s_59c83024c29646::t_97b06ccc0bb9eb 296-297
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2f8e61da893b50f9fefcf90baeeb92ff4207b329",
+  "prompts": {},
+  "sessions": {
+    "s_59c83024c29646": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "a2951143-e825-4eec-b17c-e7f98e73f3c2",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_e984af3c07c4e5": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "074c2a78-5ab6-4620-afb7-6deed35d55a5",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
