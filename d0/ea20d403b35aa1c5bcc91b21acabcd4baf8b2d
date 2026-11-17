@@ -1,0 +1,43 @@
+training/build_v28_release.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 1-298
+training/tests/test_build_v27_release.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 22,315,321
+training/tests/test_build_agent_tool_sft_v27.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 45,97,102,106,110,115
+training/build_agent_tool_sft_v28.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 62-968
+  s_7d4811cf1b0ba7::t_1f55cd4a8aa4ac 1-31,34-51
+  s_7d4811cf1b0ba7::t_ef9715929ccd90 32-33
+  s_7d4811cf1b0ba7::t_4d7b1741a44f00 52-54,59-61
+  s_7d4811cf1b0ba7::t_13e0b622dfe858 969-971
+training/tests/test_build_agent_tool_sft_v28.py
+  s_7d4811cf1b0ba7::t_7dbaa22b62f385 290-299
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 18-110
+  s_7d4811cf1b0ba7::t_14814fc2fd2645 1-17,111-289,300-553
+training/build_v26_release.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 56,63-66
+  s_7d4811cf1b0ba7::t_e0a139f83bb5ad 67
+training/build_v27_release.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 65,72-75
+  s_7d4811cf1b0ba7::t_acbddc5f98fbde 76
+training/tests/test_build_v28_release.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 1-363
+training/build_agent_tool_sft_v27.py
+  s_7d4811cf1b0ba7::t_f4ff13c56fb177 86,92-99,907,951,958
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d0ea20d403b35aa1c5bcc91b21acabcd4baf8b2d",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
