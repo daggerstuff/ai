@@ -1,0 +1,16 @@
+training/build_agent_tool_sft_v28.py
+  h_07d84030f79d30 62,968
+training/tests/test_build_v28_release.py
+  h_07d84030f79d30 221
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "403370bfb30f65ee8d1d2e2c6f3344551cba13cb",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
