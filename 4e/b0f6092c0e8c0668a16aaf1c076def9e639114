@@ -1,0 +1,22 @@
+.gitignore
+  h_07d84030f79d30 294-295
+training/build_agent_tool_sft_v26.py
+  h_07d84030f79d30 1-720
+training/build_v26_release.py
+  h_07d84030f79d30 1-298
+training/tests/test_build_agent_tool_sft_v26.py
+  h_07d84030f79d30 1-300
+training/tests/test_build_v26_release.py
+  h_07d84030f79d30 1-265
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4eb0f6092c0e8c0668a16aaf1c076def9e639114",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
