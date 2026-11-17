@@ -208,6 +208,13 @@ def submit(
     s3 = r2_sync.client()
     bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
     uploaded = r2_sync.upload_dir(stage_dir, bucket=bucket, prefix=inputs_prefix, s3_client=s3, skip_unchanged=True)
+    # A presigned GET signs a key whether or not the object exists, so a bundle
+    # that is one upload short only fails once the job is already running. List
+    # the prefix and refuse to launch until every staged file is really there.
+    present = {entry["key"] for entry in r2_sync.list_prefix(bucket=bucket, prefix=inputs_prefix, s3_client=s3)}
+    missing = [relative for relative in staged if f"{inputs_prefix}/{relative}" not in present]
+    if missing:
+        raise SystemExit(f"inputs missing from r2 after upload: {', '.join(missing)}")
 
     download_urls = r2_sync.presign(
         [f"{inputs_prefix}/{relative}" for relative in staged], bucket=bucket, method="get", s3_client=s3

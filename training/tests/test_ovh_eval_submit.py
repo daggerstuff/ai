@@ -86,10 +86,18 @@ def test_bootstrap_fetches_inputs_and_hands_off_to_the_launcher(tmp_path: Path) 
 
 
 class FakeS3:
-    """Signs URLs offline and records nothing else; submit() is the unit here."""
+    """Signs URLs offline and reports the objects the test says are stored."""
+
+    def __init__(self, keys: tuple[str, ...] = ()) -> None:
+        self.keys = keys
 
     def generate_presigned_url(self, operation: str, Params: dict[str, str], ExpiresIn: int) -> str:
         return f"https://r2.test/{operation}/{Params['Key']}?expires={ExpiresIn}"
+
+    def list_objects_v2(self, **request: str) -> dict[str, object]:
+        prefix = request.get("Prefix", "")
+        contents = [{"Key": key, "Size": 1} for key in self.keys if key.startswith(prefix)]
+        return {"Contents": contents, "IsTruncated": False}
 
 
 def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -99,7 +107,11 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
     (stage_dir / "data").mkdir()
     (stage_dir / "data" / "scenario-crisis-dev-v1.jsonl").write_text("{}\n")
 
-    monkeypatch.setattr(submit.r2_sync, "client", lambda **_: FakeS3())
+    monkeypatch.setattr(
+        submit.r2_sync,
+        "client",
+        lambda **_: FakeS3(("inputs/v22/code/launch.sh", "inputs/v22/data/scenario-crisis-dev-v1.jsonl")),
+    )
     monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
     monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
 
@@ -121,6 +133,27 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
     assert plan["download"]["code/launch.sh"].startswith("https://r2.test/get_object/inputs/v22/")
     assert plan["upload"]["eval-nf4-sealed/results.jsonl"].startswith("https://r2.test/put_object/evals/v23/")
     assert plan["bucket"] == "training"
+
+
+def test_submit_refuses_to_launch_when_an_input_did_not_land(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A presigned GET signs a key whether or not the object exists.
+
+    v28's eval job spent its whole life on a 404 because the upload was one file
+    short and the signature did not care. The submitter now lists the prefix
+    back and stops before the job is created.
+    """
+    stage_dir = tmp_path / "stage"
+    (stage_dir / "code").mkdir(parents=True)
+    (stage_dir / "code" / "launch.sh").write_text("#!/bin/sh\n")
+    (stage_dir / "adapters" / "sft").mkdir(parents=True)
+    (stage_dir / "adapters" / "sft" / "adapter_config.json").write_text("{}\n")
+
+    monkeypatch.setattr(submit.r2_sync, "client", lambda **_: FakeS3(("inputs/v22/code/launch.sh",)))
+    monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
+    monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
+
+    with pytest.raises(SystemExit, match=r"adapters/sft/adapter_config\.json"):
+        submit.submit(tag="v28", stage_dir=stage_dir, restage=False)
 
 
 def _fake_repo(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
