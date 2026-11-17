@@ -1,0 +1,19 @@
+training/curate_pipeline.py
+  s_55527696957aa3::t_89f9e1a42441db 61,67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "72728604f4df64a809c168766c398af0a537e437",
+  "prompts": {},
+  "sessions": {
+    "s_55527696957aa3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7996626c-66af-4689-bae3-1eebcd61a4ca",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}

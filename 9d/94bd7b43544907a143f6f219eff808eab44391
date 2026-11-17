@@ -1,0 +1,55 @@
+training/tests/test_ingest_router.py
+  s_fcc5d887d26157::t_edc179882c3dbc 1-487,490-493,495-552,554-560,562-568,570-576,578-607,615-623,696-725
+  s_716c494122f8ae::t_80e08f60308ece 488
+  s_716c494122f8ae::t_a9c1cb20f9034a 489,494
+  s_fcc5d887d26157::t_9f24a71ae4d391 553,561,569,577
+  s_fcc5d887d26157::t_3aed41a9ee119d 608-614
+  s_716c494122f8ae::t_609d790984ce69 624-695
+training/ingest_router.py
+  s_fcc5d887d26157::t_73d53d654f6fd6 1-37,39-45,47-72,74-94,98,103-158,160-177,179-241,243-359,366-472,474,476,478-480,482-483,485-487,489-569,573-638,640-644,649-673,684-709,711,713,715-763,771-786,788,814-963,965-995,997-1050,1057-1062
+  s_fcc5d887d26157::t_3774a5a504dc8f 46
+  s_fcc5d887d26157::t_528ce2c09b0a1e 159
+  s_fcc5d887d26157::t_dee6df7f412d62 178
+  s_35e45b977c3503::t_4bf3703710f5e9 360-365
+  s_716c494122f8ae::t_e86b32c7731d2c 473,475,477,481,484,488
+  s_716c494122f8ae::t_f8cc1cd1a2f061 570-572
+  s_716c494122f8ae::t_f61ec0c0285944 639,645-648,674,676-683
+  s_35e45b977c3503::t_617cf5f9f36757 764-770
+  s_716c494122f8ae::t_a78833505cf9a1 787,789-810,812
+  s_35e45b977c3503::t_4bd6616280f1c5 1051-1056
+training/book_pdf_converter.py
+  s_716c494122f8ae::t_f6b1b18ee544d6 223-224
+  s_716c494122f8ae::t_5648d11935d271 226
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9d94bd7b43544907a143f6f219eff808eab44391",
+  "prompts": {},
+  "sessions": {
+    "s_35e45b977c3503": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_716c494122f8ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0044b6a1affeGZ7KfotGzCakCP",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_fcc5d887d26157": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_005c24d2bffeGYtRNhJUosWae6",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

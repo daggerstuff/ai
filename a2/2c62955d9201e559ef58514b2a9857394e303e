@@ -1,0 +1,24 @@
+training/ingest_router.py
+  s_c6b71477c08a56::t_19696b36da6434 95
+  s_c6b71477c08a56::t_972c0056f05569 821-825,827
+  s_c6b71477c08a56::t_05c199efd53368 683-685
+  s_c6b71477c08a56::t_a09e9c761ede12 407-413
+  s_c6b71477c08a56::t_c438c19546ccf3 627-628
+  s_c6b71477c08a56::t_fe020ce5bf481e 578
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a22c62955d9201e559ef58514b2a9857394e303e",
+  "prompts": {},
+  "sessions": {
+    "s_c6b71477c08a56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

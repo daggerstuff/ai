@@ -1,0 +1,19 @@
+.gitignore
+  s_c0e1f8f945eb1d::t_9eea36cd38087d 178-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "015362049099903d8bc8f70d418fc4b101e48b0b",
+  "prompts": {},
+  "sessions": {
+    "s_c0e1f8f945eb1d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02e32481effe2cQLDrZBMynuKr",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

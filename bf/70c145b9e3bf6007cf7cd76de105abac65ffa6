@@ -1,0 +1,26 @@
+lab/evals/therapy_bench/therapy_bench.py
+  s_074527b93405dd::t_7c2ba6916da7f1 1-14,19-22,24-25,27-196,198-280,285-291,302-303,306-313,315-318,320-334,336-338,340-343,345-352,354,356-359,365,368-375,377-380,382-387,389
+  s_074527b93405dd::t_e404d16d01399d 197
+  s_074527b93405dd::t_c6742497b61b26 15-18
+  s_074527b93405dd::t_0c6605bdb5739b 294
+  s_074527b93405dd::t_f2b87a9931a386 335
+  s_074527b93405dd::t_eb6b1280607795 361-364,366
+evals/therapy_bench/therapy_bench.py
+  s_074527b93405dd::t_21a78843ed0084 1-22,24-25,27-280,285-291,294-295,302-303,306-313,315-318,320-338,340-343,345-352,354,356-359,361-366,368-375,377-380,382-387,389
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bf70c145b9e3bf6007cf7cd76de105abac65ffa6",
+  "prompts": {},
+  "sessions": {
+    "s_074527b93405dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e908ccef-534a-4b04-83e5-b6fdd20a6b3b",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

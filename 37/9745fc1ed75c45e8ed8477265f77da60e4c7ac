@@ -1,0 +1,232 @@
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/be1af6ac-d978-446e-a33f-7cb7af5b0132.json
+  ai_agent 1-328
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/result.json
+  ai_agent 1-4
+.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/mission-state.json
+  ai_agent 3-9,11,13,15-17,19-144,147,151-152,155,157,167-168,171,173
+.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/pre-tool-advisory-throttle.json
+  s_514a08504643ea::t_99d049d1666f6b 4,6
+  s_514a08504643ea::t_dc23e961fd21ca 11
+  s_514a08504643ea::t_d946a266977fa9 23
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/5cfddcbc-ef6a-4e89-87f8-f844aabc648f.json
+  ai_agent 6,8,77,104-105,110,137-138,143,170-171,176,203-204,209,236-237,242,269-270,274-279
+.omc/sessions/be1af6ac-d978-446e-a33f-7cb7af5b0132.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/arm.json
+  ai_agent 1-5
+.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/subagent-tracking-state.json
+  ai_agent 24-32,42-44,48-50
+.omc/state/session-end-jobs/5bc127a1-4a24-411a-9346-d03c94dfad68.json
+  ai_agent 1-5,7,9-328
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/control.json
+  ai_agent 1-13
+.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/subagent-tracking-state.json
+  ai_agent 1-17
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/control.json
+  ai_agent 1-13
+.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/pre-tool-advisory-throttle.json
+  ai_agent 4-7,41
+  s_c6b71477c08a56::t_18da4e7cc5178a 8-11
+  s_c6b71477c08a56::t_fd218cb25096f8 15
+  s_c6b71477c08a56::t_01c5c112d199fa 16-23
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/46cb9167-c91d-4f11-8356-1b1e3092c604.json
+  ai_agent 1-351
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/control.json
+  ai_agent 1-13
+.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/mission-state.json
+  ai_agent 1-53
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/arm.json
+  ai_agent 1-5
+.omc/state/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604/pre-tool-advisory-throttle.json
+  ai_agent 1-14
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/reply-cleanup/1/fb063048-bf51-4cbc-997f-f7169b0749af/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/notification/1/e088a86b-bec4-4d8a-9aed-093189e68629/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/callback/1/3ce26dbc-d70c-4456-8322-5f4eeabef36a/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/callback/1/1935f756-3bfc-4ed1-98d1-3fe06c31c1fa/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/callback/1/a76000c9-617d-41c5-bc55-1868c1deb7f9/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/openclaw/1/f155683b-8287-418a-8ed9-507f66f2ca73/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/python-cleanup/1/4d21f419-5ddc-42f9-b2a2-6366720584e4/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/reply-cleanup/1/9b72d136-ac25-46bd-bcce-e44881aaa3cd/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/discovery.json
+  ai_agent 14-20,22-37
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/openclaw/1/81ed8c8c-7bd7-4003-8547-bb763d353c85/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/team-cleanup/1/33ccb568-1dce-49ac-bb2f-4d4678373c62/control.json
+  ai_agent 1-13
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/notification/1/ad6c2cef-b9bb-4c07-8d02-70a577697b61/control.json
+  ai_agent 1-13
+.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/last-tool-error-state.json
+  ai_agent 3-6
+.omc/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68.json
+  ai_agent 1-2,4-8
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/notification/1/e3e3e166-ed1c-4c28-aba8-4b9691f27ea0/watchdog.json
+  ai_agent 1-8
+.omc/sessions/46cb9167-c91d-4f11-8356-1b1e3092c604.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/team-cleanup/1/96e56147-5af8-4d52-998b-d0a3da3baaf1/arm.json
+  ai_agent 1-5
+.omc/state/session-end-jobs/runs/71269150-0b0f-4b38-b0af-47abb8c6779d/python-cleanup/1/c38606aa-23d5-436a-9b74-6e450f437cd2/result.json
+  ai_agent 1-4
+.omc/state/session-end-jobs/runs/a294a314-91c8-4d90-ab3f-a5a5ead418a0/team-cleanup/1/dc2bc428-573a-410e-a452-4afbe2b31251/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/result.json
+  ai_agent 1-4
+.omc/state/sessions/5bc127a1-4a24-411a-9346-d03c94dfad68/subagent-tracking-state.json
+  ai_agent 105-109,112
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/python-cleanup/1/90b1b335-5c50-46fd-aafd-13ceff19ae1e/control.json
+  ai_agent 1-13
+.omc/state/sessions/6a56e497-fd1a-4b1a-a4fb-507cbadbda3b/mission-state.json
+  ai_agent 2-10,17-55,66-82,85,87,89-90,93,97-104
+.omc/project-memory.json
+  s_529b878f190499::t_9c1a2a874a7561 705-706,737,740,747-748
+  ai_agent 707,731,733
+  s_529b878f190499::t_6449d6245da0eb 741-745,710-712,716-718,722-724,728-730
+  s_7ddb1c7de26f4a::t_d79e763ea61133 713,719
+  s_514a08504643ea::t_0a327dc9b304bd 732
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/reply-cleanup/1/85e196f1-cfae-4e5f-9d72-5ae105bf74c7/watchdog.json
+  ai_agent 1-8
+.omc/state/session-end-jobs/runs/48952280-4e06-46f1-8ada-6ce110d7eedd/openclaw/1/afa9c06b-db97-4cd6-9065-813561b720dc/watchdog.json
+  ai_agent 1-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "379745fc1ed75c45e8ed8477265f77da60e4c7ac",
+  "prompts": {},
+  "sessions": {
+    "s_514a08504643ea": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5bc127a1-4a24-411a-9346-d03c94dfad68",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_529b878f190499": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3caa895e-5b92-4977-afe7-759d0db0f888",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_7ddb1c7de26f4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_c6b71477c08a56": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a56e497-fd1a-4b1a-a4fb-507cbadbda3b",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

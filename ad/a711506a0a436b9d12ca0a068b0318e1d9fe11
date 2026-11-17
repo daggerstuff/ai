@@ -1,0 +1,19 @@
+sourcing/scripts/run_deslop.py
+  s_8966adf124d5a9::t_5ac2b82c63850d 1-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "ada711506a0a436b9d12ca0a068b0318e1d9fe11",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

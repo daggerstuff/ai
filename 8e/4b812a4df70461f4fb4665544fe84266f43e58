@@ -1,0 +1,25 @@
+training/ingest_router.py
+  s_761e1b75e3b91f::t_59459a9dcd10b6 780,782-784,797,808,822-824,832,834,864
+  s_761e1b75e3b91f::t_faba780480d28f 790-793
+  s_761e1b75e3b91f::t_4160c856a9cede 62
+  s_761e1b75e3b91f::t_060318147034cd 981-984
+  s_761e1b75e3b91f::t_33054e4810cd56 809-811
+training/book_pdf_converter.py
+  s_761e1b75e3b91f::t_794bef135ed7e7 252-255
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8e4b812a4df70461f4fb4665544fe84266f43e58",
+  "prompts": {},
+  "sessions": {
+    "s_761e1b75e3b91f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_0067ab0b8ffeFHuOIACc0o74y9",
+        "model": "unknown"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}

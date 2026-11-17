@@ -1,0 +1,76 @@
+sourcing/dataset_adapters/addiction_stories_adapter.py
+  s_8288eca51e6a35::t_f4e5dd87922814 54-56
+  s_8288eca51e6a35::t_9687090c940923 1-53,57-136
+sourcing/dataset_adapters/ucl_psych_abuse_adapter.py
+  s_8288eca51e6a35::t_e626a694d6c97c 92-93,96-102,108
+  s_8288eca51e6a35::t_e9256c079b46a6 1-32,44-91,94-95,103-107,109-189
+  s_8288eca51e6a35::t_45b1077e3c346e 33-43
+sourcing/journal/compliance/privacy_verifier.py
+  s_dd6187f491e4ff::t_4d95e33f15940c 119
+sourcing/journal/models/dataset_models.py
+  s_dd6187f491e4ff::t_21f0fd520df3f1 62-67
+  s_dd6187f491e4ff::t_4d30f8c4745466 1-18,20,22-27,29-61,68-103,118-148,153-175,187-223,231-250,253-256,259-260,262,266-284,286-287,291-300
+  s_dd6187f491e4ff::t_64b01a4efb0ab2 285,288-290
+  s_dd6187f491e4ff::t_91f97e36882e0e 149-152
+  s_dd6187f491e4ff::t_4a2a6489756b16 104-108,110-117
+  s_dd6187f491e4ff::t_57562623c74fbc 109
+  s_dd6187f491e4ff::t_8249219fe532ba 224-230
+  s_dd6187f491e4ff::t_4988ce430cda5b 251-252,257-258,261,263-265
+  s_dd6187f491e4ff::t_4f35a401fbac2e 176-186
+  s_dd6187f491e4ff::t_94f2e26986a604 19,21,28
+journal_dataset_research/sessions/6247e839-b8e0-4946-ae07-9c761cba91eb.json
+  s_8288eca51e6a35::t_cc499569a0dc9e 1-51
+sourcing/scripts/extract_burnout.py
+  s_8288eca51e6a35::t_9298a6f625e39c 1-179,189-192,194-251
+  s_8288eca51e6a35::t_c6fda5653c4bf3 180-188,193
+api/techdeck_integration/error_handling/custom_errors.py
+  s_8288eca51e6a35::t_fc3581334b298a 10,49,109-110,519-525
+sourcing/scripts/download_all.py
+  s_8288eca51e6a35::t_63281b5a0cf68f 60-62
+training_corpus/assets/empathy_nightmare_fuel/adversarial_schema.py
+  s_8288eca51e6a35::t_0b0b71f0356c3a 54-55,57,63-65,78
+dataset_pipeline/extractors/s3_streamer.py
+  s_8288eca51e6a35::t_fc3581334b298a 4,9-27,30-39,41-52,54-55,59,61,64-65,67-69,79,81,90,92,95-99,101,118-119
+sourcing/academic/academic_sourcing.py
+  s_dd6187f491e4ff::t_1285fc38888684 89
+  s_dd6187f491e4ff::t_95d5a2ee5e4574 197-200
+  s_dd6187f491e4ff::t_c4e4d94ad9ac1b 1034-1038,1040
+  s_dd6187f491e4ff::t_3642865f3f2828 1099-1101
+sourcing/journal/cli/cli.py
+  s_dd6187f491e4ff::t_de42c6ad241356 197
+journal_dataset_research/sessions/session_c05d51c1.json
+  s_8288eca51e6a35::t_cc499569a0dc9e 1-122
+sourcing/dataset_adapters/ace_nlp_adapter.py
+  s_8288eca51e6a35::t_232d6a22880ad1 1-77,81,83-161
+  s_8288eca51e6a35::t_5f6ccf7db2e9d3 78-80,82
+journal_dataset_research/sessions/session_2d0a2e97.json
+  s_8288eca51e6a35::t_cc499569a0dc9e 1-117
+journal_dataset_research/sessions/session_a4df826e.json
+  s_8288eca51e6a35::t_cc499569a0dc9e 1-100
+journal_dataset_research/sessions/session_7e8c5875.json
+  s_8288eca51e6a35::t_cc499569a0dc9e 1-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "566e43f2c67bb3f89b444566c2d689afadca43f7",
+  "prompts": {},
+  "sessions": {
+    "s_8288eca51e6a35": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_fff0b5bc3ffeLskW3zsQ6eo5Y1",
+        "model": "unknown"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    },
+    "s_dd6187f491e4ff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_ffc499840ffeU7UGNxokXq2YqQ",
+        "model": "unknown"
+      },
+      "human_author": "PR Churn Bot <bot@composio.dev>"
+    }
+  }
+}

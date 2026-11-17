@@ -1,0 +1,19 @@
+training/curate_pipeline.py
+  s_8966adf124d5a9::t_9810f11f4a06b2 1-500
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7d1b3fc89e5faaa8d3cb173ff064f107fd28bb60",
+  "prompts": {},
+  "sessions": {
+    "s_8966adf124d5a9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_035434806ffetTxCxcj37tW03D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

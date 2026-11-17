@@ -1,0 +1,40 @@
+.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/mission-state.json
+  ai_agent 2-104
+.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/pre-tool-advisory-throttle.json
+  s_529b878f190499::t_14223035eac531 4-7,33
+  s_529b878f190499::t_9c1a2a874a7561 16-18
+  s_529b878f190499::t_8c0850315e39b0 19
+  s_529b878f190499::t_9432d1db6fa468 27
+.omc/state/sessions/5cfddcbc-ef6a-4e89-87f8-f844aabc648f/pre-tool-advisory-throttle.json
+  s_35e45b977c3503::t_7b62ebf332f6cd 1-28,30
+.omc/project-memory.json
+  s_529b878f190499::t_9c1a2a874a7561 705-706,713,716,723-724
+  ai_agent 707
+  s_529b878f190499::t_6449d6245da0eb 717-721
+.omc/state/sessions/3caa895e-5b92-4977-afe7-759d0db0f888/subagent-tracking-state.json
+  ai_agent 44-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "6bf404142ffb57960311e5aee455a3bb6904f790",
+  "prompts": {},
+  "sessions": {
+    "s_35e45b977c3503": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5cfddcbc-ef6a-4e89-87f8-f844aabc648f",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_529b878f190499": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3caa895e-5b92-4977-afe7-759d0db0f888",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

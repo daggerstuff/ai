@@ -1,0 +1,24 @@
+training/llm_quality_judge.py
+  s_8908f5d19e9464::t_4f6e6ae098cf4c 514-516
+  s_8908f5d19e9464::t_65410532af0ec6 687-690
+  s_8908f5d19e9464::t_cadce38fa805dc 438-442,447,451,455-456,458-460
+  s_8908f5d19e9464::t_78e15751ab4adc 537
+  s_8908f5d19e9464::t_59f6cb281ff67d 151
+  s_8908f5d19e9464::t_244e3d63016896 473
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8eef20fdc51d1196b040d6f3ac12089f5b4210f1",
+  "prompts": {},
+  "sessions": {
+    "s_8908f5d19e9464": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bb9e5100-dea9-4a03-b078-7bf20a31fa3d",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

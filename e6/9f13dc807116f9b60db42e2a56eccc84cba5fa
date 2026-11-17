@@ -1,0 +1,9 @@
+.omc/state/session-end-jobs/discovery.json
+  ai_agent 14-20,22-37,40-41,43,46-49,52-53,55,58-59,61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e69f13dc807116f9b60db42e2a56eccc84cba5fa",
+  "prompts": {}
+}

@@ -1,0 +1,24 @@
+training/nightmare_fuel_generator.py
+  s_f585dfbec3c7fa::t_19e8db49a4ef38 791-809,870-895,897-904,913-927,1039-1040
+  s_f585dfbec3c7fa::t_b36e04f463bea7 896,905-912
+training/clinical_validity_judge.py
+  s_f585dfbec3c7fa::t_19e8db49a4ef38 123,128-130,150-164,332-334
+dataset_pipeline/scripts/s3_atomic_sync.py
+  s_f585dfbec3c7fa::t_19e8db49a4ef38 127,134-135
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "365765f9c68a03a40342c5bdfba7920bc18163ec",
+  "prompts": {},
+  "sessions": {
+    "s_f585dfbec3c7fa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_016083955ffe6jZeI3SW8ViAgI",
+        "model": "unknown"
+      },
+      "human_author": null
+    }
+  }
+}

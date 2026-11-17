@@ -1,0 +1,29 @@
+training/nightmare_fuel_generator.py
+  s_83405de49d06cc::t_e0b55f8cdb49c0 214,216-232,238-278,289-295
+  s_83405de49d06cc::t_1c3460c7a142c7 215,233-237
+.gitignore
+  s_83405de49d06cc::t_e14e678d5bda27 181
+training/clinical_validity_judge_async.py
+  s_83405de49d06cc::t_3ba4255c92d065 104-109,111,114
+  s_83405de49d06cc::t_5ee53a98273c61 1-103,110,112-113,115-282
+training/tests/test_clinical_validity_judge_async.py
+  s_83405de49d06cc::t_557ebaf671f995 196-197
+  s_83405de49d06cc::t_9c4cfff022958d 240-241
+  s_83405de49d06cc::t_85ac2bcc9a8e63 1-195,198-239,242-307
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e3cc5bfbf1a2de5c9900902d60cbf356afeea8b8",
+  "prompts": {},
+  "sessions": {
+    "s_83405de49d06cc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02e32482bffe4FfKXRMIKqUmAM",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

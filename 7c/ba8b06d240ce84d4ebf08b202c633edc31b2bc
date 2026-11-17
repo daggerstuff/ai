@@ -1,0 +1,19 @@
+training/book_pdf_converter.py
+  s_983f40978c6000::t_4887565a6011dd 228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7cba8b06d240ce84d4ebf08b202c633edc31b2bc",
+  "prompts": {},
+  "sessions": {
+    "s_983f40978c6000": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a6d61547-325a-4e1f-825b-4746743b7b37",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

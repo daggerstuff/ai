@@ -1,0 +1,19 @@
+training/ingest_router.py
+  s_7ddb1c7de26f4a::t_b9597825233dd6 97-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "cdb682271292dd0d02cda3118862cc0d6cb90784",
+  "prompts": {},
+  "sessions": {
+    "s_7ddb1c7de26f4a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cc87fa3e-6631-4bd8-b9c8-03a839f3cd41",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

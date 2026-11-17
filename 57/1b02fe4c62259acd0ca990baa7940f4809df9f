@@ -1,0 +1,45 @@
+training/curate_pipeline.py
+  s_8fca87a706a722::t_ea5ed074883d85 51-52
+  s_8fca87a706a722::t_013172115cba7a 370,376,378-382
+  s_8fca87a706a722::t_0188b58dbbf6fd 36,42
+  s_8fca87a706a722::t_8446ed500dfcf2 53-58
+  s_8fca87a706a722::t_3a91b8d11450c7 515-519,523-526
+  s_8fca87a706a722::t_a3f8560a49e8b2 500,502
+  s_8fca87a706a722::t_ea9fbaf15ef057 407-414,417-446,449-450,452-453,456-499,501,503-507
+  s_8fca87a706a722::t_a4edcde65b3c4a 377
+  s_8fca87a706a722::t_994d02032521f5 541-546,552,555
+training/tests/test_stage1_filters.py
+  s_8fca87a706a722::t_7afb10d43891f6 86
+  s_8fca87a706a722::t_effb0cec92fd11 1-85,87-188,191-246,248-251,253-260,262-265,267-276,278-287,289-299,301-304,306-338
+  s_8fca87a706a722::t_00bb4e705387bb 261,266
+  s_8fca87a706a722::t_267d26fa4a6df5 189-190
+  s_8fca87a706a722::t_ec5f8d859870ae 247,252
+  s_8fca87a706a722::t_eb6005294fc733 300,305
+  s_8fca87a706a722::t_7475446c53afac 277,288
+pyproject.toml
+  s_8fca87a706a722::t_a4d20d862cbee3 95-100
+training/stage1_filters.py
+  s_8fca87a706a722::t_e3f7b2919d101d 600-603
+  s_8fca87a706a722::t_9f856fb00bac46 1-599,604-852,856-872
+  s_8fca87a706a722::t_6b7fb1e2af05ce 853-855
+.gitignore
+  s_8fca87a706a722::t_e205d75f0f4d58 184
+uv.lock
+  ai_agent 554-577,681-689,946-954,964-972,1223-1262,1288-1300,1310-1323,1574-1618,2912-2951,3472-3480,3617-3618,3626,3648-3649,3715-3716,3724,3746-3747,3868-3930,4900-4911,5296-5307,5335-5388,5423-5457,5539-5576,5611-5625,6072-6083,6177-6196,6290-6340
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "571b02fe4c62259acd0ca990baa7940f4809df9f",
+  "prompts": {},
+  "sessions": {
+    "s_8fca87a706a722": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_005c13556ffeyep4lgzemcFVaw",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

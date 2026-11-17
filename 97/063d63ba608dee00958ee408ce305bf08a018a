@@ -1,0 +1,35 @@
+training/ingest_router.py
+  s_9198d01c470fc1::t_792e2fb200bf63 486
+  s_9198d01c470fc1::t_5d251440c862d8 1063-1065
+  s_9198d01c470fc1::t_7aca9d00a92126 296-299
+  s_9198d01c470fc1::t_fb612a7e706c70 1024-1026,1036-1038
+  s_9198d01c470fc1::t_2eb3197bff3edf 501-502
+  s_9198d01c470fc1::t_540d589d30fcdf 72
+  s_9198d01c470fc1::t_d91e3ce39eb005 275
+  s_9198d01c470fc1::t_e09b5dd84587cc 779,781-783
+  s_9198d01c470fc1::t_95fc497b27e715 738-741
+  s_9198d01c470fc1::t_c1aa3ef19ec289 427
+  s_9198d01c470fc1::t_836cbd6e7e1ccf 386,388-389,399
+  s_9198d01c470fc1::t_8e1f612594acee 150
+  s_9198d01c470fc1::t_7613c112db1d5f 528-546
+  s_9198d01c470fc1::t_cb3f48b005a2eb 1151-1156,1163-1164,1166
+  s_9198d01c470fc1::t_091c36f28aadf7 115
+data/licenses/source_manifest.yaml
+  s_9198d01c470fc1::t_981cd28a0ce9d4 20,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "97063d63ba608dee00958ee408ce305bf08a018a",
+  "prompts": {},
+  "sessions": {
+    "s_9198d01c470fc1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_002db05edffeUbQKxvF0BJslCK",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

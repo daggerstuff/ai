@@ -1,0 +1,31 @@
+.omc/state/sessions/6a77097e-b709-4ab0-b834-e4c04512e7a4/pre-tool-advisory-throttle.json
+  s_9327dd8d1c946b::t_e75866c16f9057 12-15
+.omc/state/sessions/60b93162-e82a-4fed-9268-cdd1a93d82b8/pre-tool-advisory-throttle.json
+  s_a95004cc6d2056::t_93722b5dae48ce 31
+  s_a95004cc6d2056::t_97fb20c173c69c 4-7,37
+  s_a95004cc6d2056::t_35189315847f0c 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "9d01310b9ba5365b531929f9dc448c537da6c6c4",
+  "prompts": {},
+  "sessions": {
+    "s_9327dd8d1c946b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a77097e-b709-4ab0-b834-e4c04512e7a4",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_a95004cc6d2056": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "60b93162-e82a-4fed-9268-cdd1a93d82b8",
+        "model": "z-ai/glm-5.2"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

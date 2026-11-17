@@ -1,0 +1,27 @@
+pyproject.toml
+  s_ce8b3c0a296613::t_7e03a9498348e7 221-227
+sourcing/tests/test_safety_processors.py
+  s_ce8b3c0a296613::t_7e03a9498348e7 1-451
+sourcing/scripts/download_all.py
+  s_ce8b3c0a296613::t_7e03a9498348e7 57
+sourcing/dataset_adapters/adapter_factory.py
+  s_ce8b3c0a296613::t_7e03a9498348e7 13,17-18,33
+sourcing/dataset_adapters/__init__.py
+  s_ce8b3c0a296613::t_7e03a9498348e7 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "520d4d60aa0e52f53ee478528291412ce6a53052",
+  "prompts": {},
+  "sessions": {
+    "s_ce8b3c0a296613": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02c9f2812ffeSODtiG0fbTpJ1D",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}

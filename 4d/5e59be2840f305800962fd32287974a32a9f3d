@@ -1,0 +1,24 @@
+training/tests/test_nightmare_fuel_generator.py
+  s_509b83edc2294a::t_051bcaa6398dd6 211,230
+  s_509b83edc2294a::t_0628d19c6c8c85 289-348
+training/nightmare_fuel_generator.py
+  s_509b83edc2294a::t_d76815711bc43d 479,482,484-486,492
+  s_509b83edc2294a::t_0afd6a26672fdd 344,350-353,359-361,368-369,371-374,381
+  s_509b83edc2294a::t_f4ac7709b8e736 370
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "4d5e59be2840f305800962fd32287974a32a9f3d",
+  "prompts": {},
+  "sessions": {
+    "s_509b83edc2294a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ses_02e324174ffem88eZXltY6GH0K",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
