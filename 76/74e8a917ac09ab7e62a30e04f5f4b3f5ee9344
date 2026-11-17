@@ -1,0 +1,40 @@
+training/build_agent_tool_sft_v29.py
+  s_7d4811cf1b0ba7::t_fc71672f2c4786 826-827
+  s_7d4811cf1b0ba7::t_d57de81f35c709 1-825,828-1364
+training/export_fireworks_release.py
+  s_7d4811cf1b0ba7::t_d30525afff359c 167
+  s_7d4811cf1b0ba7::t_f930c9c4024ab9 105-111,120,164-166,168-170,176,189-198,210-212,217
+training/tests/test_build_v29_release.py
+  s_7d4811cf1b0ba7::t_fc71672f2c4786 1-242,244-399
+  s_7d4811cf1b0ba7::t_d30525afff359c 243
+training/export_tinker_release.py
+  s_7d4811cf1b0ba7::t_d30525afff359c 55,58,246-304,326
+  s_7d4811cf1b0ba7::t_bb27a3609001a4 45,51
+training/tests/test_export_tinker_release.py
+  s_7d4811cf1b0ba7::t_d30525afff359c 10-11,325-351,403-439
+  s_7d4811cf1b0ba7::t_0219ec0f6e4a82 366,372-375,391
+  s_7d4811cf1b0ba7::t_600446cbdd224a 352-365,367-371,376-390,392-402
+training/tests/test_build_agent_tool_sft_v29.py
+  s_7d4811cf1b0ba7::t_d30525afff359c 554-555,574,597
+  s_7d4811cf1b0ba7::t_fc71672f2c4786 1-553,556-573,575-596,598-628
+.gitignore
+  s_7d4811cf1b0ba7::t_fc71672f2c4786 300-301
+training/ovh_v22_qwen3_8b/run_ovh.py
+  s_7d4811cf1b0ba7::t_3d543daaef2ff2 34-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7674e8a917ac09ab7e62a30e04f5f4b3f5ee9344",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
