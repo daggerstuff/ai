@@ -31,7 +31,10 @@ OUT_DIR = Path(os.environ.get("OUT_DIR", "/workspace/out"))
 SCHEMA = "ovh-sft-run-v1"
 RUN_NAME = os.environ.get("RUN_NAME", "ovh-wandb-full-corpus-current-master-20261110-v22-fp16")
 
-EPOCHS = 1
+# One epoch over the full export is the recipe every release since v22 used; the
+# knob is read from the environment so a longer run is a submission parameter
+# rather than a forked copy of this file.
+EPOCHS = int(os.environ.get("SFT_EPOCHS", "1"))
 # Micro-batch and accumulation are separate knobs because an L40S (46 GB) fits
 # four sequences and an L4 (24 GB) fits one. Their product is the effective
 # batch the LR schedule is built around, so shrinking the micro-batch keeps the

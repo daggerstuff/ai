@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from training import export_tinker_release as tinker
 
 TOKEN_RE = re.compile(r"\S+")
@@ -320,3 +322,118 @@ def test_export_limit_keeps_only_the_first_n_selected_rows(tmp_path: Path) -> No
 
     assert whole.counts["datums"] == len(rows)
     assert limited.counts["datums"] == limited.source_rows == limit
+
+
+CRISIS_ROWS = 4
+CRISIS_REPLY = "Call 911 now and say your head was banged against the wall. That needs a doctor tonight."
+
+
+class StubCrisisBuilder:
+    """A stand-in for ``training.build_agent_tool_sft_vNN``."""
+
+    def __init__(self, replies: list[str]) -> None:
+        self._replies = replies
+
+    def collect_rows(self) -> dict[str, list[dict[str, Any]]]:
+        return {
+            "train": [
+                {
+                    "messages": [
+                        {"role": "user", "content": f"disclosure {index}"},
+                        {"role": "assistant", "content": reply},
+                    ]
+                }
+                for index, reply in enumerate(self._replies)
+            ]
+        }
+
+
+def write_manifest_with_sources(tmp_path: Path, rows: list[dict[str, Any]], sources: dict[str, int]) -> Path:
+    train_path = tmp_path / "train.jsonl"
+    with train_path.open("w", encoding="utf-8") as handle:
+        for row in rows:
+            handle.write(json.dumps(row, ensure_ascii=False) + "\n")
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "release_id": "stub-release",
+                "partitions": {"train": {"path": str(train_path), "sha256": "0" * 64}},
+                "scope": {"appended_rows_by_source": sources},
+            }
+        ),
+        encoding="utf-8",
+    )
+    return manifest_path
+
+
+def test_crisis_reply_surface_is_empty_before_the_family_exists() -> None:
+    """A v19-era manifest appended no crisis rows, so nothing needs keeping."""
+    assert (
+        tinker.crisis_reply_surface({"scope": {"appended_rows_by_source": {"agent_tool_synthetic_v9": 624}}})
+        == frozenset()
+    )
+    assert tinker.crisis_reply_surface({"scope": {"appended_rows_by_source": {}}}) == frozenset()
+    assert tinker.crisis_reply_surface({}) == frozenset()
+
+
+def test_crisis_reply_surface_reads_the_builder_the_manifest_names(monkeypatch: Any) -> None:
+    seen: list[str] = []
+
+    def fake_import(name: str) -> StubCrisisBuilder:
+        seen.append(name)
+        return StubCrisisBuilder([CRISIS_REPLY, ASSISTANT_REPLY])
+
+    monkeypatch.setattr(tinker.importlib, "import_module", fake_import)
+
+    surface = tinker.crisis_reply_surface(
+        {"scope": {"appended_rows_by_source": {"crisis_direct_v29": 6504, "agent_tool_synthetic_v9": 624}}}
+    )
+
+    assert seen == ["training.build_agent_tool_sft_v29"]
+    assert surface == frozenset({CRISIS_REPLY, ASSISTANT_REPLY})
+
+
+def test_crisis_reply_surface_fails_loudly_on_a_missing_builder(monkeypatch: Any) -> None:
+    def fake_import(name: str) -> StubCrisisBuilder:
+        raise ImportError(f"no module named {name}")
+
+    monkeypatch.setattr(tinker.importlib, "import_module", fake_import)
+
+    with pytest.raises(ValueError, match=r"training\.build_agent_tool_sft_v99 is not importable"):
+        tinker.crisis_reply_surface({"scope": {"appended_rows_by_source": {"crisis_direct_v99": 1}}})
+
+
+def test_export_keeps_the_crisis_family_whole_under_a_routing_cap(tmp_path: Path, monkeypatch: Any) -> None:
+    """The regression: the family used to compete for the capped routing pool."""
+    rows = [
+        {
+            "messages": [
+                {"role": "user", "content": f"disclosure {index}"},
+                {"role": "assistant", "content": CRISIS_REPLY},
+            ]
+        }
+        for index in range(4)
+    ]
+    rows.append(
+        {
+            "messages": [
+                {"role": "user", "content": "an ordinary routing row"},
+                {"role": "assistant", "content": ASSISTANT_REPLY},
+            ]
+        }
+    )
+    manifest_path = write_manifest_with_sources(tmp_path, rows, {"crisis_direct_v29": len(rows) - 1})
+    monkeypatch.setattr(tinker, "crisis_reply_surface", lambda _manifest: frozenset({CRISIS_REPLY}))
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        options=tinker.SelectionOptions(routing_cap=0),
+    )
+
+    assert result.counts["crisis_rows"] == CRISIS_ROWS
+    assert result.counts["routing_rows"] == 1
+    assert result.counts["routing_kept"] == 0
+    assert result.counts["datums"] == CRISIS_ROWS
