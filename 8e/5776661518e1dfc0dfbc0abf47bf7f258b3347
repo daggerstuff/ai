@@ -1,0 +1,23 @@
+training/tests/test_ovh_eval_submit.py
+  s_e96f85d720e925::t_fd4156cc8b9042 89-92,97-101,110-114
+  s_e96f85d720e925::t_8fdb3948cc0817 138-154,156-158
+  s_e96f85d720e925::t_144535e3492eaf 155
+training/ovh_v22_eval/submit.py
+  s_e96f85d720e925::t_ffdf3cf6bee6bd 211-217
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e5776661518e1dfc0dfbc0abf47bf7f258b3347",
+  "prompts": {},
+  "sessions": {
+    "s_e96f85d720e925": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "spiffy-seagull",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
