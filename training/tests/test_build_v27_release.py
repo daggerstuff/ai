@@ -19,6 +19,7 @@ remain.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 import training.build_agent_tool_sft_v23 as v23
@@ -311,13 +312,13 @@ def test_the_owner_direction_records_the_measured_cause_and_the_fix() -> None:
     assert "7.9% of train" in direction
 
 
-def release_fixture(tmp_path) -> release._Release:
+def release_fixture(tmp_path: Path) -> release._Release:
     """A dry-run release with no candidate to carry: only the addenda are exercised."""
     indexes = v14._Indexes(references={}, internal_source={}, heldout_source={}, repairs={})
     return release._Release(indexes, tmp_path, dry_run=True)
 
 
-def test_summary_reports_the_v27_release(tmp_path) -> None:
+def test_summary_reports_the_v27_release(tmp_path: Path) -> None:
     fixture = release_fixture(tmp_path)
     fixture.v27_rows = release.v27_candidate_rows()
 

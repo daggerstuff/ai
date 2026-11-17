@@ -83,13 +83,20 @@ import re
 import sys
 from collections import Counter
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import build_agent_tool_sft_v9 as v9
-import build_agent_tool_sft_v26 as v26
+
+# The script runs as a file (`python training/build_agent_tool_sft_v27.py`), so it imports its
+# sibling by bare name; mypy can only type that sibling through the package path. Same module,
+# one import per audience.
+if TYPE_CHECKING:
+    import training.build_agent_tool_sft_v26 as v26
+else:
+    import build_agent_tool_sft_v26 as v26
 
 RELEASE_ID = "pixelated-agent-tool-sft-2026-11-10-v27"
 FAMILY = v26.FAMILY
@@ -897,7 +904,7 @@ def concrete_anchors(disclosure: str, category: str) -> frozenset[str]:
     """The concrete things or signs a disclosure names."""
     if category in CLUSTERED_CATEGORIES:
         return concrete_clusters(disclosure, category)
-    return v26.concrete_anchors(disclosure, category)
+    return frozenset(v26.concrete_anchors(disclosure, category))
 
 
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
@@ -941,14 +948,14 @@ def paraphrases() -> dict[str, tuple[str, ...]]:
 
 
 def v9_disclosures() -> frozenset[str]:
-    return v26.v9_disclosures()
+    return frozenset(v26.v9_disclosures())
 
 
 def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> list[str]:
     return v26.paraphrases_too_close_to_evaluation(surface)
 
 
-CrisisCase = v26.CrisisCase
+CrisisCase: TypeAlias = v26.CrisisCase
 
 
 def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str, Any]:

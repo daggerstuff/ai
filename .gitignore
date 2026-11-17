@@ -295,6 +295,8 @@ training/tests/*
 !training/tests/test_build_v26_release.py
 !training/tests/test_build_agent_tool_sft_v27.py
 !training/tests/test_build_v27_release.py
+!training/tests/test_build_agent_tool_sft_v28.py
+!training/tests/test_build_v28_release.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl

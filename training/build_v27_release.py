@@ -62,12 +62,17 @@ from pathlib import Path
 from typing import Any
 
 from training import (
-    build_agent_tool_sft_v27 as v27,
+    build_agent_tool_sft_v27,
     build_v14_release as v14,
     build_v15_release as v15,
     build_v16_release as v16,
     build_v26_release as prev,
 )
+
+# Bound as a plain attribute rather than imported under an alias: mypy --strict treats
+# `from ... import x as v27` as private, so `release.v27` would not be readable by the
+# release tests.
+v27 = build_agent_tool_sft_v27
 
 ROOT = prev.ROOT
 

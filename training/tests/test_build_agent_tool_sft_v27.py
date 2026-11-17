@@ -42,6 +42,7 @@ from __future__ import annotations
 import json
 from functools import cache
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -93,25 +94,25 @@ EVAL_CATEGORY_OF = {
 
 
 @cache
-def rows() -> list[dict]:
+def rows() -> list[dict[str, Any]]:
     return v27.collect_rows()["train"]
 
 
 @cache
-def summary() -> dict:
+def summary() -> dict[str, Any]:
     return v27.summarize(v27.collect_rows())
 
 
-def crisis_rows(items: list[dict]) -> list[dict]:
+def crisis_rows(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [item for item in items if item["category"] != "control"]
 
 
-def category_rows(category: str, items: list[dict] | None = None) -> list[dict]:
+def category_rows(category: str, items: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
     items = rows() if items is None else items
     return [item for item in items if item["category"] == category]
 
 
-def eval_cases() -> list[dict]:
+def eval_cases() -> list[dict[str, Any]]:
     return [json.loads(line) for line in EVAL_CASES.read_text().splitlines() if line.strip()]
 
 
