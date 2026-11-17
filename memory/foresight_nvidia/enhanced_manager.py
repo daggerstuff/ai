@@ -48,25 +48,25 @@ class ModelTier(Enum):
     NEMOTRON_SUPER = "nvidia/nemotron-3-super"  # NVIDIA's flagship
     DEEPSEEK_V3 = "deepseek-ai/deepseek-v3.2"  # Advanced reasoning
     MISTRAL_MEDIUM = "mistralai/mistral-medium-3.5-128b"  # Balanced reasoning
-    MISTRAL_MEDIUM_ALT = "mistralai/mistral-medium-3.5-128b"  # Alternate route
+    MISTRAL_MEDIUM_ALT = "moonshotai/kimi-k2-instruct"  # Alternate route
     QWEN3_NEXT = "qwen/qwen3-next-80b-a3b-instruct"  # Multilingual reasoning
     MISTRAL_LARGE = "mistralai/mistral-large-3-675b-instruct-2512"  # Massive model
 
     # === BALANCED TIER (General therapeutic interactions) ===
-    NEMOTRON_NANO = "qwen/qwen2.5-7b-instruct"  # NVIDIA optimized
-    MISTRAL_MEDIUM_BALANCED = "mistralai/mistral-medium-3.5-128b"  # Proven performer
+    NEMOTRON_NANO = "nvidia/nemotron-3-nano"  # NVIDIA optimized
+    MISTRAL_MEDIUM_BALANCED = "qwen/qwen2.5-72b-instruct"  # Proven performer
     QWEN_25_CODER = "qwen/qwen2.5-coder-32b-instruct"  # Good for structured output
 
     # === FAST TIER (Quick responses, high throughput) ===
     PHI4_MINI = "microsoft/phi-4-mini-instruct"  # Ultra-fast, excellent quality
-    GEMMA_FAST = "google/gemma-3-1b-it"  # Lightweight
+    GEMMA_FAST = "google/gemma-3-4b-it"  # Lightweight
     GEMMA_3_1B = "google/gemma-3-1b-it"  # Google's lightweight
     NEMOTRON_NANO_4B = "qwen/qwen2.5-7b-instruct"  # Smaller NVIDIA model
 
     # === SAFETY TIER (Crisis detection, content moderation) ===
     NEMOTRON_SAFETY = "nvidia/nemotron-3-guard"  # Safety-focused
     NEMOGUARD_CONTENT = "nvidia/nemotron-content-safety"  # Content safety
-    MISTRAL_GUARD = "mistralai/mistral-medium-3.5-128b"  # Safety route
+    MISTRAL_GUARD = "mistralai/ministral-8b-instruct-2410"  # Safety route
 
     # === MULTILINGUAL TIER (Diverse populations) ===
     QWEN_35_LARGE = "qwen/qwen3.5-397b-a17b"  # Excellent multilingual

@@ -383,8 +383,8 @@ def cancel_training_job(job_id):
 def list_training_models():
     """List available fine-tunable models."""
     models = [
-        {"id": "Qwen/Qwen2.5-7B-Instruct", "owned_by": "meta", "fine_tunable": True},
-        {"id": "Qwen/Qwen2.5-14B-Instruct", "owned_by": "meta", "fine_tunable": True},
+        {"id": "Qwen/Qwen2.5-7B-Instruct", "owned_by": "qwen", "fine_tunable": True},
+        {"id": "Qwen/Qwen2.5-14B-Instruct", "owned_by": "qwen", "fine_tunable": True},
         {"id": "mistralai/Mistral-7B-v0.1", "owned_by": "mistralai", "fine_tunable": True},
         {"id": "google/gemma-2b", "owned_by": "google", "fine_tunable": True},
     ]
