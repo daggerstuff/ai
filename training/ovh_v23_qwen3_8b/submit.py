@@ -153,14 +153,20 @@ def result_keys(tag: str) -> dict[str, str]:
     return {relative: f"runs/{tag}/{relative}" for relative in RESULT_FILES}
 
 
-def build_job_env(*, plan: dict[str, object], run_name: str, flavor: str) -> list[str]:
-    return [
+def build_job_env(
+    *, plan: dict[str, object], run_name: str, flavor: str, overrides: dict[str, str] | None = None
+) -> list[str]:
+    env = [
         f"R2_MAP_B64={r2_sync.encode_map(plan)}",
         f"BOOTSTRAP={BOOTSTRAP}",
         "ROOT=/tmp/work",
         f"RUN_NAME={run_name}",
         f"TRAIN_FLAVOR={flavor}",
     ]
+    # A flavor with less memory needs a smaller micro-batch, and ovhai rejects an
+    # empty value, so only the keys the caller set are forwarded.
+    env += [f"{key}={value}" for key, value in (overrides or {}).items() if value]
+    return env
 
 
 def build_command(*, image: str, name: str, flavor: str, gpu: int, timeout: str, env: list[str]) -> list[str]:
@@ -198,6 +204,7 @@ def submit(
     name: str | None = None,
     execute: bool = False,
     restage: bool = True,
+    overrides: dict[str, str] | None = None,
 ) -> dict[str, object]:
     """Upload the bundle, sign the map, and launch (or print) the job."""
     staged = stage(stage_dir, export_dir=export_dir) if restage else staged_files(stage_dir)
@@ -220,7 +227,7 @@ def submit(
 
     job_name = name or f"v23-train-{tag}"
     plan: dict[str, object] = {"tag": tag, "bucket": bucket, "download": download, "sizes": sizes, "upload": upload}
-    env = build_job_env(plan=plan, run_name=run_name, flavor=flavor)
+    env = build_job_env(plan=plan, run_name=run_name, flavor=flavor, overrides=overrides)
     argv = build_command(image=image, name=job_name, flavor=flavor, gpu=gpu, timeout=timeout, env=env)
 
     result: dict[str, object] = {
@@ -252,6 +259,17 @@ def collect(*, tag: str, destination: Path | None = None) -> list[Path]:
     return r2_sync.download_prefix(bucket=bucket, prefix=f"runs/{tag}", destination=target)
 
 
+def parse_overrides(entries: list[str]) -> dict[str, str]:
+    """Turn ``KEY=VALUE`` argv entries into the mapping the job env carries."""
+    overrides: dict[str, str] = {}
+    for entry in entries:
+        key, _, value = entry.partition("=")
+        if not key or not _:
+            raise SystemExit(f"--set-env wants KEY=VALUE, got {entry!r}")
+        overrides[key] = value
+    return overrides
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -271,6 +289,13 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--gpu", type=int, default=1)
     run_parser.add_argument("--timeout", default=DEFAULT_TIMEOUT)
     run_parser.add_argument("--name", default=None)
+    run_parser.add_argument(
+        "--set-env",
+        action="append",
+        default=[],
+        metavar="KEY=VALUE",
+        help="forward an extra container variable, e.g. PER_DEVICE_BATCH=1",
+    )
     run_parser.add_argument("--no-restage", action="store_true")
     run_parser.add_argument("--execute", action="store_true")
 
@@ -305,6 +330,7 @@ def main(argv: list[str] | None = None) -> int:
             name=args.name,
             execute=args.execute,
             restage=not args.no_restage,
+            overrides=parse_overrides(args.set_env),
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         if result.get("executed") and result.get("returncode") != 0:

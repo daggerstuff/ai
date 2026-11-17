@@ -32,8 +32,12 @@ SCHEMA = "ovh-sft-run-v1"
 RUN_NAME = os.environ.get("RUN_NAME", "ovh-wandb-full-corpus-current-master-20261110-v22-fp16")
 
 EPOCHS = 1
-BATCH_SIZE = 4
-GRAD_ACCUM = 2
+# Micro-batch and accumulation are separate knobs because an L40S (46 GB) fits
+# four sequences and an L4 (24 GB) fits one. Their product is the effective
+# batch the LR schedule is built around, so shrinking the micro-batch keeps the
+# step count and the curve comparable across flavors.
+BATCH_SIZE = int(os.environ.get("PER_DEVICE_BATCH", "4"))
+GRAD_ACCUM = int(os.environ.get("GRAD_ACCUM", "2"))
 LR = 1e-4
 MIN_LR = 1e-6
 RANK = 32
