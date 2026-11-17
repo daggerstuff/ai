@@ -16,7 +16,7 @@ from tqdm import tqdm
 load_dotenv()
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
-DEFAULT_MODEL = os.getenv("OLLAMA_MODEL", "qwen/qwen2.5-7b-instruct")
+DEFAULT_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b-instruct")
 
 
 def log(msg, log_file=None):
