@@ -127,14 +127,14 @@ THERAPEUTIC_KNOWLEDGE_BASE = {
 }
 
 # NVIDIA NIM model identifiers for therapeutic RAG pipeline
-NIM_EMBEDDING_MODEL = "nvidia/llama-nemotron-embed-vl-1b-v2"
-NIM_RERANK_MODEL = "nvidia/llama-nemotron-rerank-vl-1b-v2"
-NIM_GENERATION_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1.5"
-NIM_FAST_MODEL = "nvidia/llama-3.1-nemotron-nano-4b-v1.1"
+NIM_EMBEDDING_MODEL = "nvidia/nv-embed-v2"
+NIM_RERANK_MODEL = "nvidia/nv-rerank-v2"
+NIM_GENERATION_MODEL = "nvidia/nemotron-3-super"
+NIM_FAST_MODEL = "qwen/qwen2.5-7b-instruct"
 
 # Alternative models for different use cases
 NIM_REASONING_MODEL = "nvidia/deepseek-v3"
-NIM_BALANCED_MODEL = "meta/llama-3.1-70b-instruct"
+NIM_BALANCED_MODEL = "mistralai/mistral-medium-3.5-128b"
 NIM_MULTILINGUAL_MODEL = "qwen/qwen-2.5-72b-instruct"
 NIM_SAFETY_MODEL = "nvidia/nemotron-guard-0.5"
 
@@ -651,7 +651,7 @@ class TherapeuticRAGPipeline:
 
         Uses intelligent model selection based on query complexity:
         - SIMPLE queries → Fast model (Nemotron-Nano-4B)
-        - MODERATE queries → Balanced model (Llama-3.1-70B)
+        - MODERATE queries → Balanced model (Mistral Medium)
         - COMPLEX queries → Generation model (Nemotron-Super-49B)
         - CRISIS queries → Safety model (Nemotron-Safety-Guard)
 

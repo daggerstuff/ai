@@ -29,7 +29,7 @@ from .rate_limiter import NvidiaRateLimiter, SemanticCache
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("enhanced_nvidia_nim")
 
-DEFAULT_ROUTING_MODEL = "nvidia/llama-3.1-nemotron-nano-8b-v1"
+DEFAULT_ROUTING_MODEL = "qwen/qwen2.5-7b-instruct"
 
 
 class TaskComplexity(Enum):
@@ -45,35 +45,35 @@ class ModelTier(Enum):
     """Available model tiers from NVIDIA NIM - curated selection from 187 available models."""
 
     # === REASONING TIER (Complex therapeutic conversations) ===
-    NEMOTRON_SUPER = "nvidia/llama-3.3-nemotron-super-49b-v1.5"  # NVIDIA's flagship
+    NEMOTRON_SUPER = "nvidia/nemotron-3-super"  # NVIDIA's flagship
     DEEPSEEK_V3 = "deepseek-ai/deepseek-v3.2"  # Advanced reasoning
-    LLAMA_33_70B = "meta/llama-3.3-70b-instruct"  # Meta's latest
-    LLAMA4_MAVERICK = "meta/llama-4-maverick-17b-128e-instruct"  # Llama 4
+    MISTRAL_MEDIUM = "mistralai/mistral-medium-3.5-128b"  # Balanced reasoning
+    MISTRAL_MEDIUM_ALT = "mistralai/mistral-medium-3.5-128b"  # Alternate route
     QWEN3_NEXT = "qwen/qwen3-next-80b-a3b-instruct"  # Multilingual reasoning
     MISTRAL_LARGE = "mistralai/mistral-large-3-675b-instruct-2512"  # Massive model
 
     # === BALANCED TIER (General therapeutic interactions) ===
-    NEMOTRON_NANO = "nvidia/llama-3.1-nemotron-nano-8b-v1"  # NVIDIA optimized
-    LLAMA_31_70B = "meta/llama-3.1-70b-instruct"  # Proven performer
+    NEMOTRON_NANO = "qwen/qwen2.5-7b-instruct"  # NVIDIA optimized
+    MISTRAL_MEDIUM_BALANCED = "mistralai/mistral-medium-3.5-128b"  # Proven performer
     QWEN_25_CODER = "qwen/qwen2.5-coder-32b-instruct"  # Good for structured output
 
     # === FAST TIER (Quick responses, high throughput) ===
     PHI4_MINI = "microsoft/phi-4-mini-instruct"  # Ultra-fast, excellent quality
-    LLAMA_32_1B = "meta/llama-3.2-1b-instruct"  # Smallest Llama
+    GEMMA_FAST = "google/gemma-3-1b-it"  # Lightweight
     GEMMA_3_1B = "google/gemma-3-1b-it"  # Google's lightweight
-    NEMOTRON_NANO_4B = "nvidia/llama-3.1-nemotron-nano-4b-v1.1"  # Smaller NVIDIA model
+    NEMOTRON_NANO_4B = "qwen/qwen2.5-7b-instruct"  # Smaller NVIDIA model
 
     # === SAFETY TIER (Crisis detection, content moderation) ===
-    NEMOTRON_SAFETY = "nvidia/llama-3.1-nemotron-safety-guard-8b-v3"  # Safety-focused
-    NEMOGUARD_CONTENT = "nvidia/llama-3.1-nemoguard-8b-content-safety"  # Content safety
-    LLAMA_GUARD_4 = "meta/llama-guard-4-12b"  # Meta's safety model
+    NEMOTRON_SAFETY = "nvidia/nemotron-3-guard"  # Safety-focused
+    NEMOGUARD_CONTENT = "nvidia/nemotron-content-safety"  # Content safety
+    MISTRAL_GUARD = "mistralai/mistral-medium-3.5-128b"  # Safety route
 
     # === MULTILINGUAL TIER (Diverse populations) ===
     QWEN_35_LARGE = "qwen/qwen3.5-397b-a17b"  # Excellent multilingual
     MISTRAL_SMALL = "mistralai/mistral-small-4-119b-2603"  # Multilingual
 
     # === EMBEDDING TIER ===
-    NEMOTRON_EMBED = "nvidia/llama-nemotron-embed-vl-1b-v2"  # Multimodal embeddings
+    NEMOTRON_EMBED = "nvidia/nv-embed-v2"  # Multimodal embeddings
     BGE_M3 = "baai/bge-m3"  # Multilingual embeddings
 
 
@@ -128,16 +128,16 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0003,
         best_for=["advanced_reasoning", "problem_solving", "therapeutic_insights"],
     ),
-    ModelTier.LLAMA_33_70B.value: ModelCapabilities(
-        model_id=ModelTier.LLAMA_33_70B.value,
+    ModelTier.MISTRAL_MEDIUM.value: ModelCapabilities(
+        model_id=ModelTier.MISTRAL_MEDIUM.value,
         context_window=131072,
         typical_latency_ms=1000,
         supports_streaming=True,
         cost_per_1k_tokens=0.0004,
         best_for=["general_reasoning", "multilingual_support", "balanced_performance"],
     ),
-    ModelTier.LLAMA4_MAVERICK.value: ModelCapabilities(
-        model_id=ModelTier.LLAMA4_MAVERICK.value,
+    ModelTier.MISTRAL_MEDIUM_ALT.value: ModelCapabilities(
+        model_id=ModelTier.MISTRAL_MEDIUM_ALT.value,
         context_window=262144,
         typical_latency_ms=1800,
         supports_streaming=True,
@@ -170,8 +170,8 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0001,
         best_for=["quick_responses", "real_time_chat", "simple_queries", "follow_ups"],
     ),
-    ModelTier.LLAMA_31_70B.value: ModelCapabilities(
-        model_id=ModelTier.LLAMA_31_70B.value,
+    ModelTier.MISTRAL_MEDIUM_BALANCED.value: ModelCapabilities(
+        model_id=ModelTier.MISTRAL_MEDIUM_BALANCED.value,
         context_window=131072,
         typical_latency_ms=800,
         supports_streaming=True,
@@ -195,8 +195,8 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.00005,
         best_for=["ultra_fast_responses", "high_throughput", "acknowledgments"],
     ),
-    ModelTier.LLAMA_32_1B.value: ModelCapabilities(
-        model_id=ModelTier.LLAMA_32_1B.value,
+    ModelTier.GEMMA_FAST.value: ModelCapabilities(
+        model_id=ModelTier.GEMMA_FAST.value,
         context_window=131072,
         typical_latency_ms=100,
         supports_streaming=True,
@@ -236,8 +236,8 @@ MODEL_REGISTRY: dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0001,
         best_for=["content_safety", "inappropriate_content", "boundary_enforcement"],
     ),
-    ModelTier.LLAMA_GUARD_4.value: ModelCapabilities(
-        model_id=ModelTier.LLAMA_GUARD_4.value,
+    ModelTier.MISTRAL_GUARD.value: ModelCapabilities(
+        model_id=ModelTier.MISTRAL_GUARD.value,
         context_window=131072,
         typical_latency_ms=500,
         supports_streaming=True,

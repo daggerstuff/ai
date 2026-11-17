@@ -9,7 +9,7 @@ Benchmarks different NVIDIA NIM models on therapeutic conversation tasks:
 - Latency metrics
 
 Usage:
-    python ai/rag/nemotron_benchmark.py --models nvidia/llama-3.3-nemotron-super-49b-v1.5 nvidia/llama-3.1-nemotron-51b-instruct
+    python ai/rag/nemotron_benchmark.py --models nvidia/nemotron-3-super nvidia/nemotron-3-super
 """
 
 import argparse
@@ -393,8 +393,8 @@ async def main():
         "--models",
         nargs="+",
         default=[
-            "nvidia/llama-3.3-nemotron-super-49b-v1.5",
-            "nvidia/llama-3.1-nemotron-51b-instruct",
+            "nvidia/nemotron-3-super",
+            "nvidia/nemotron-3-super",
         ],
         help="Models to benchmark",
     )

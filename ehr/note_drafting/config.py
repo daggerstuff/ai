@@ -34,7 +34,7 @@ class NoteDraftingSettings(BaseSettings):
         description="API key for NIM endpoint authentication.",
     )
     nim_model: str = Field(
-        default="meta/llama-3.3-70b-instruct",
+        default="mistralai/mistral-medium-3.5-128b",
         description="Model identifier to use at the NIM endpoint.",
     )
     nim_timeout_seconds: float = Field(

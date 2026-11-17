@@ -132,8 +132,8 @@ def _sanitize_dataset_dir(dataset_path: str) -> str:
 
 # Allowed models for fine-tuning (allowlist)
 _ALLOWED_MODELS = {
-    "meta-llama/Llama-2-7b-hf",
-    "meta-llama/Llama-2-13b-hf",
+    "Qwen/Qwen2.5-7B-Instruct",
+    "Qwen/Qwen2.5-14B-Instruct",
     "mistralai/Mistral-7B-v0.1",
     "google/gemma-2b",
 }
@@ -150,7 +150,7 @@ def _validate_training_payload(payload: dict) -> None:
 
     Raises ValueError with a descriptive message if any field is invalid.
     """
-    model = payload.get("model", "meta-llama/Llama-2-7b-hf")
+    model = payload.get("model", "Qwen/Qwen2.5-7B-Instruct")
     if model not in _ALLOWED_MODELS:
         raise ValueError(f"Model '{model}' is not in the allowed allowlist.")
 
@@ -198,7 +198,7 @@ def _spawn_training_job(job_id: str, payload: dict) -> subprocess.Popen:
         "--output-dir",
         f"./models/fine-tuned/{job_id}",
         "--base-model",
-        payload.get("model", "meta-llama/Llama-2-7b-hf"),
+        payload.get("model", "Qwen/Qwen2.5-7B-Instruct"),
         "--epochs",
         str(payload.get("epochs", 3)),
         "--batch-size",
@@ -276,7 +276,7 @@ def create_training_job():
         with _training_lock:
             _training_jobs[job_id] = {
                 "id": job_id,
-                "model": data.get("model", "meta-llama/Llama-2-7b-hf"),
+                "model": data.get("model", "Qwen/Qwen2.5-7B-Instruct"),
                 "status": "queued",
                 "created_at": time.time(),
                 "proc": proc,
@@ -383,8 +383,8 @@ def cancel_training_job(job_id):
 def list_training_models():
     """List available fine-tunable models."""
     models = [
-        {"id": "meta-llama/Llama-2-7b-hf", "owned_by": "meta", "fine_tunable": True},
-        {"id": "meta-llama/Llama-2-13b-hf", "owned_by": "meta", "fine_tunable": True},
+        {"id": "Qwen/Qwen2.5-7B-Instruct", "owned_by": "meta", "fine_tunable": True},
+        {"id": "Qwen/Qwen2.5-14B-Instruct", "owned_by": "meta", "fine_tunable": True},
         {"id": "mistralai/Mistral-7B-v0.1", "owned_by": "mistralai", "fine_tunable": True},
         {"id": "google/gemma-2b", "owned_by": "google", "fine_tunable": True},
     ]

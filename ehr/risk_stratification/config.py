@@ -30,7 +30,7 @@ class RiskStratificationSettings(BaseSettings):
 
     nim_url: str = ""
     nim_api_key: str = ""
-    nim_model: str = "meta/llama-3.1-70b-instruct"
+    nim_model: str = "mistralai/mistral-medium-3.5-128b"
     baa_confirmed: bool = False
     nim_timeout_seconds: float = 30.0
     nim_max_retries: int = 3
