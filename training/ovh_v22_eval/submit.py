@@ -41,6 +41,10 @@ DEFAULT_ADAPTERS = {
 }
 DEFAULT_LABELS = ("bf16", "nf4")
 DEFAULT_SPLITS = ("dev", "sealed")
+# Suite revision of the graded case files. v1's sealed split is a byte-identical
+# copy of dev, so a v1 run measures one twelve-case set twice; v2 keeps the dev
+# prompts and gives sealed its own held-out prompts.
+DEFAULT_SUITE = "v1"
 # Prefix on every run id inside a job, so a stored result says which adapter set
 # produced it.
 DEFAULT_RUN_LABEL = "ovh-v22"
@@ -83,7 +87,9 @@ raise SystemExit(subprocess.call(["bash", str(root / "code" / "launch.sh")]))
 """
 
 
-def stage(destination: Path = DEFAULT_STAGE_DIR, *, adapters: dict[str, Path] | None = None) -> list[str]:
+def stage(
+    destination: Path = DEFAULT_STAGE_DIR, *, adapters: dict[str, Path] | None = None, suite: str = DEFAULT_SUITE
+) -> list[str]:
     """Copy the runner bundle, the crisis cases and the adapters into one tree.
 
     Staging from the repo instead of hand-copying is the difference between a
@@ -107,7 +113,7 @@ def stage(destination: Path = DEFAULT_STAGE_DIR, *, adapters: dict[str, Path] | 
     copied.append("code/launch.sh")
 
     for split in DEFAULT_SPLITS:
-        name = f"scenario-crisis-{split}-v1.jsonl"
+        name = f"scenario-crisis-{split}-{suite}.jsonl"
         target = destination / "data" / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(CASES_DIR / name, target)
@@ -146,6 +152,7 @@ def build_job_env(
     flavor: str,
     labels: tuple[str, ...] = DEFAULT_LABELS,
     run_label: str = DEFAULT_RUN_LABEL,
+    suite: str = DEFAULT_SUITE,
 ) -> list[str]:
     env = [
         f"R2_MAP_B64={r2_sync.encode_map(plan)}",
@@ -156,6 +163,7 @@ def build_job_env(
         f"RUN_LABEL={run_label}",
         f"EVAL_TAG={tag}",
         f"EVAL_FLAVOR={flavor}",
+        f"CRISIS_SUITE_VERSION={suite}",
     ]
     if out_prefix:
         # ovhai rejects empty env values; the launcher already defaults to no prefix.
@@ -200,10 +208,11 @@ def submit(
     adapters: dict[str, Path] | None = None,
     labels: tuple[str, ...] = DEFAULT_LABELS,
     run_label: str = DEFAULT_RUN_LABEL,
+    suite: str = DEFAULT_SUITE,
 ) -> dict[str, object]:
     """Upload the bundle, sign the map, and launch (or print) the job."""
     adapters = DEFAULT_ADAPTERS if adapters is None else adapters
-    staged = stage(stage_dir, adapters=adapters) if restage else staged_files(stage_dir)
+    staged = stage(stage_dir, adapters=adapters, suite=suite) if restage else staged_files(stage_dir)
 
     s3 = r2_sync.client()
     bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
@@ -230,7 +239,9 @@ def submit(
 
     job_name = name or f"v22-eval-{tag}"
     plan: dict[str, object] = {"tag": tag, "bucket": bucket, "download": download, "upload": upload}
-    env = build_job_env(tag=tag, plan=plan, out_prefix=out_prefix, flavor=flavor, labels=labels, run_label=run_label)
+    env = build_job_env(
+        tag=tag, plan=plan, out_prefix=out_prefix, flavor=flavor, labels=labels, run_label=run_label, suite=suite
+    )
     argv = build_command(image=image, name=job_name, flavor=flavor, gpu=gpu, timeout=timeout, env=env)
 
     result: dict[str, object] = {
@@ -289,6 +300,7 @@ def main(argv: list[str] | None = None) -> int:
 
     stage_parser = sub.add_parser("stage", help="copy the runner bundle, cases and adapters into one tree")
     stage_parser.add_argument("--stage-dir", type=Path, default=DEFAULT_STAGE_DIR)
+    stage_parser.add_argument("--suite", default=DEFAULT_SUITE, help="graded case suite revision to stage (v1, v2)")
 
     run_parser = sub.add_parser("run", help="upload the bundle, sign the map and launch the job")
     run_parser.add_argument("--tag", required=True)
@@ -313,6 +325,9 @@ def main(argv: list[str] | None = None) -> int:
         help="override the adapter staged for a label (repeatable); defaults are the two v22 adapters",
     )
     run_parser.add_argument("--run-label", default=DEFAULT_RUN_LABEL)
+    run_parser.add_argument(
+        "--suite", default=DEFAULT_SUITE, help="graded case suite revision to stage and run (v1, v2)"
+    )
     run_parser.add_argument("--no-restage", action="store_true")
     run_parser.add_argument("--execute", action="store_true")
 
@@ -323,7 +338,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "stage":
-        copied = stage(args.stage_dir)
+        copied = stage(args.stage_dir, suite=args.suite)
         sys.stdout.write(f"staged {len(copied)} files into {args.stage_dir}\n")
         for relative in copied:
             sys.stdout.write(f"  {relative}\n")
@@ -351,6 +366,7 @@ def main(argv: list[str] | None = None) -> int:
         adapters=_selected_adapters(parser, args),
         labels=tuple(item.strip() for item in args.labels.split(",") if item.strip()),
         run_label=args.run_label,
+        suite=args.suite,
     )
     sys.stdout.write(json.dumps({key: value for key, value in report.items() if key != "command"}, indent=2) + "\n")
     sys.stdout.write("\novhai job run ... " + " ".join(report["command"][-3:]) + "\n")

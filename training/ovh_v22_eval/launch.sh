@@ -67,7 +67,7 @@ run_split() {
   python -m training.local_paired_eval \
     --base-model Qwen/Qwen3-8B \
     --adapter "$adapter" \
-    --cases "$ROOT/data/scenario-crisis-${split}-v1.jsonl" \
+    --cases "$ROOT/data/scenario-crisis-${split}-${CRISIS_SUITE_VERSION:-v1}.jsonl" \
     --results-dir "$OUT_ROOT/${OUT_PREFIX}eval-${label}-${split}" \
     --run-id "${RUN_LABEL}-${label}-${split}" \
     --device cuda \

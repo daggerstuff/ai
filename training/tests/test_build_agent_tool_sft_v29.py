@@ -39,6 +39,7 @@ import training.build_agent_tool_sft_v26 as v26
 import training.build_agent_tool_sft_v28 as v28
 import training.build_agent_tool_sft_v29 as v29
 import training.strict_crisis_gate as gate
+from qa.validation.therapy_bench import generate_crisis_capability_v2 as rubric_v2
 
 MESSAGES_PER_ROW = 2
 EXPECTED_TOTAL_ROWS = 6504
@@ -80,6 +81,11 @@ EVAL_CATEGORY_OF = {
     "dev-crisis-passive-ideation": "passive_ideation",
     "dev-crisis-means-access": "means_access",
 }
+# The v2 suite keeps the nine v1 dev prompts and replaces the sealed split with
+# nine held-out prompts for the same categories, so the pools are checked against
+# prompts the surfaces were never written for.
+SUITE_ROOT = Path(__file__).resolve().parents[3] / "docs/training/execution-2026-10-17"
+EVAL_CATEGORY_BY_VARIANT = {case_id.split("-", 1)[1]: category for case_id, category in EVAL_CATEGORY_OF.items()}
 
 
 @cache
@@ -103,6 +109,14 @@ def category_rows(category: str, items: list[dict[str, Any]] | None = None) -> l
 
 def eval_cases() -> list[dict[str, Any]]:
     return [json.loads(line) for line in EVAL_CASES.read_text().splitlines() if line.strip()]
+
+
+def v2_cases() -> list[dict[str, Any]]:
+    cases: list[dict[str, Any]] = []
+    for split in ("dev", "sealed"):
+        path = SUITE_ROOT / f"scenario-crisis-{split}-v2.jsonl"
+        cases.extend(json.loads(line) for line in path.read_text().splitlines() if line.strip())
+    return cases
 
 
 def test_the_release_identity_moves_past_v28() -> None:
@@ -626,3 +640,53 @@ def test_the_firearm_prompt_no_longer_draws_an_eating_disorder_line() -> None:
         first = v29.first_clause(action).lower()
         assert "purging" not in first
         assert "not eating" not in first
+
+
+def test_every_v2_graded_prompt_is_answered_by_a_reply_that_carries_its_content() -> None:
+    # The v2 sealed split is the first held-out prompt set in this line. If a pool
+    # only carries terms for the prompts it was written against, sealed fails and
+    # that is exactly what it is for — so this has to pass on both splits.
+    seen: set[str] = set()
+    for case in v2_cases():
+        category = EVAL_CATEGORY_BY_VARIANT.get(case["id"].split("-", 1)[1])
+        if category is None:
+            continue
+        seen.add(case["id"])
+        prompt = case["messages"][0]["content"]
+        checked = next(check for check in case["state_checks"] if check["type"] == "response_contains_any")
+        terms = [term.lower() for term in checked["terms"]]
+        pool = v29.action_pool(prompt, category)
+        assert pool, case["id"]
+        for action in pool:
+            assert any(term in action.lower() for term in terms), (case["id"], action)
+        assert len(pool) <= MAX_EVAL_POOL, (case["id"], len(pool))
+    assert len(seen) == 2 * len(EVAL_CATEGORY_BY_VARIANT)
+
+
+def test_no_graded_prompt_is_a_paraphrase_of_a_training_disclosure() -> None:
+    # The builder already refuses to build when this happens, but that failure
+    # arrives as eight opaque row-collection errors from deep inside
+    # collect_rows(). Asserting the guard here names the offending disclosure: a
+    # training row within four shared six-word shingles of a graded prompt
+    # measures recall, not capability. The first v2 sealed eating-disorder prompt
+    # was written from the v29 paraphrase "I have been throwing up everything I
+    # eat for a week and I fainted on the stairs." and tripped exactly this.
+    #
+    # The guard reads every scenario-*.jsonl in the evaluation directory, so it
+    # covers v1 dev, v2 dev and v2 sealed in one call.
+    assert v29.paraphrases_too_close_to_evaluation(v29.paraphrases()) == []
+
+
+def test_no_v2_graded_prompt_pool_names_a_means_the_person_never_did() -> None:
+    # The v28 failure this suite exists to catch: a firearm disclosure answered
+    # with "a seizure from purging or not eating". The banned words come from the
+    # v2 rubric, so the surface and the harness agree on one vocabulary.
+    for case in v2_cases():
+        category = EVAL_CATEGORY_BY_VARIANT.get(case["id"].split("-", 1)[1])
+        if category is None:
+            continue
+        prompt = case["messages"][0]["content"]
+        banned = rubric_v2.invented_means(prompt)
+        for action in v29.action_pool(prompt, category):
+            hits = [word for word in banned if rubric_v2._names(action.casefold(), word)]
+            assert not hits, (case["id"], hits, action)
