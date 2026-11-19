@@ -1,0 +1,33 @@
+training/tests/test_build_agent_tool_sft_v30.py
+  s_7d4811cf1b0ba7::t_d7a66b7b693bb5 109-110,115-116,119-120,124-135
+training/tests/test_export_tinker_release.py
+  s_7d4811cf1b0ba7::t_5d137edd765f9b 435
+  s_7d4811cf1b0ba7::t_652aa15cf6e271 5,14
+  s_7d4811cf1b0ba7::t_b269e7370e8eaf 403
+  s_7d4811cf1b0ba7::t_4aaccccef382a2 389
+qa/validation/therapy_bench/generate_crisis_capability_v2.py
+  s_7d4811cf1b0ba7::t_8659b9e659d590 73-85
+training/tests/test_crisis_suite_v2.py
+  s_7d4811cf1b0ba7::t_4484652806916f 30
+  s_7d4811cf1b0ba7::t_a4125014b3ed42 47,52,56-57,60,64,68-69
+  s_7d4811cf1b0ba7::t_d7011908c56960 125-132,135,137-158
+training/tests/test_ovh_eval_submit.py
+  s_7d4811cf1b0ba7::t_0acfd38e20fed9 111,115-116,120-121,124
+  s_7d4811cf1b0ba7::t_54e2e51b9173a1 153-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c197ca467412fc582618ffec87680c0759abd735",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
