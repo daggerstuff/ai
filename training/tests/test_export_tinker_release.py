@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib
 import json
 import re
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any
 import pytest
 
 from training import export_tinker_release as tinker
+from training.export_fireworks_release import SelectionOptions
 
 TOKEN_RE = re.compile(r"\S+")
 ASSISTANT_REPLY = "Call 988 now."
@@ -384,7 +386,7 @@ def test_crisis_reply_surface_reads_the_builder_the_manifest_names(monkeypatch: 
         seen.append(name)
         return StubCrisisBuilder([CRISIS_REPLY, ASSISTANT_REPLY])
 
-    monkeypatch.setattr(tinker.importlib, "import_module", fake_import)
+    monkeypatch.setattr(importlib, "import_module", fake_import)
 
     surface = tinker.crisis_reply_surface(
         {"scope": {"appended_rows_by_source": {"crisis_direct_v29": 6504, "agent_tool_synthetic_v9": 624}}}
@@ -398,7 +400,7 @@ def test_crisis_reply_surface_fails_loudly_on_a_missing_builder(monkeypatch: Any
     def fake_import(name: str) -> StubCrisisBuilder:
         raise ImportError(f"no module named {name}")
 
-    monkeypatch.setattr(tinker.importlib, "import_module", fake_import)
+    monkeypatch.setattr(importlib, "import_module", fake_import)
 
     with pytest.raises(ValueError, match=r"training\.build_agent_tool_sft_v99 is not importable"):
         tinker.crisis_reply_surface({"scope": {"appended_rows_by_source": {"crisis_direct_v99": 1}}})
@@ -430,7 +432,7 @@ def test_export_keeps_the_crisis_family_whole_under_a_routing_cap(tmp_path: Path
         manifest_path,
         tmp_path / "out",
         tokenizer=StubTokenizer(),
-        options=tinker.SelectionOptions(routing_cap=0),
+        options=SelectionOptions(routing_cap=0),
     )
 
     assert result.counts["crisis_rows"] == CRISIS_ROWS
