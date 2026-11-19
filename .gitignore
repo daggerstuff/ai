@@ -215,6 +215,9 @@ training/*
 !training/ovh_v22_eval/*.sh
 !training/ovh_v23_qwen3_8b/
 !training/ovh_v23_qwen3_8b/*.sh
+!training/mcp/
+training/mcp/state/
+!training/mcp/*.yaml
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/
@@ -302,6 +305,13 @@ training/tests/*
 !training/tests/test_build_agent_tool_sft_v30.py
 !training/tests/test_build_v30_release.py
 !training/tests/test_crisis_suite_v2.py
+!training/tests/test_crisis_target_audit.py
+!training/tests/test_crisis_eval_diagnostics.py
+!training/tests/test_nightmare_final_export.py
+!training/tests/test_apply_research_target_repairs.py
+!training/tests/test_export_research_target_repairs.py
+!training/tests/test_nightmare_recovery.py
+!training/tests/test_nightmare_judge_receipts.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
