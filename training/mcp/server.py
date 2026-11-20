@@ -688,20 +688,33 @@ def list_eval_tags() -> dict[str, Any]:
 
 
 @mcp.tool
-def eval_gate(tag: str, min_delta: float = 0.0, min_pass_rate: float = 0.0) -> dict[str, Any]:
+def eval_gate(tag: str, min_delta: float | None = None, min_pass_rate: float | None = None) -> dict[str, Any]:
     """Decide whether the eval results under ``tag`` clear the promotion gate.
 
     Fails closed: missing grades, missing arms, or a backend error all block
     promotion. Promotion tools must consult this before moving a release.
+
+    ``min_delta`` / ``min_pass_rate`` default to the operator policy in
+    ``TRAINING_MCP_GATE_MIN_DELTA`` / ``TRAINING_MCP_GATE_MIN_PASS_RATE``
+    (0.05 / 0.5). They are not zero, so a caller that omits them cannot turn the
+    gate into a rubber stamp.
     """
     s = settings()
+    resolved_delta = s.gate_min_delta if min_delta is None else min_delta
+    resolved_rate = s.gate_min_pass_rate if min_pass_rate is None else min_pass_rate
     summary = _guard(backends.r2_eval_summary, s, tag)
-    verdict = backends.evaluate_gate(summary, min_delta=min_delta, min_pass_rate=min_pass_rate)
+    verdict = backends.evaluate_gate(summary, min_delta=resolved_delta, min_pass_rate=resolved_rate)
     audit(
         "eval.gate",
         actor="gate",
         recipe_id=None,
-        detail={"tag": tag, "passed": verdict["passed"], "reasons": verdict["reasons"][:5]},
+        detail={
+            "tag": tag,
+            "passed": verdict["passed"],
+            "min_delta": resolved_delta,
+            "min_pass_rate": resolved_rate,
+            "reasons": verdict["reasons"][:5],
+        },
     )
     return {"ok": True, "tag": tag, **verdict}
 

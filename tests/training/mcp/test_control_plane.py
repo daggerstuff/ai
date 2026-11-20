@@ -405,6 +405,30 @@ def test_gate_fails_when_any_run_fails():
     assert verdict["runs"]["run-bad"]["passed"] is False
 
 
+def test_gate_thresholds_default_to_a_non_zero_operator_policy():
+    """A caller that omits thresholds must not get a rubber stamp.
+
+    With 0/0 defaults, any graded run passes -- including one where the
+    fine-tune is no better than the base model -- so the promotion gate would
+    be decorative for every caller that forgets the arguments.
+    """
+    s = Settings(host="127.0.0.1", port=8766, db_path=Path("/tmp/x.db"), env={})
+    assert s.gate_min_delta > 0
+    assert s.gate_min_pass_rate > 0
+    want_delta, want_rate = 0.5, 0.8
+    overridden = Settings(
+        host="127.0.0.1",
+        port=8766,
+        db_path=Path("/tmp/x.db"),
+        env={
+            "TRAINING_MCP_GATE_MIN_DELTA": str(want_delta),
+            "TRAINING_MCP_GATE_MIN_PASS_RATE": str(want_rate),
+        },
+    )
+    assert overridden.gate_min_delta == want_delta
+    assert overridden.gate_min_pass_rate == want_rate
+
+
 def test_gate_unwraps_the_guard_envelope_from_the_server_tool():
     """``server.eval_gate`` passes ``_guard``'s envelope straight through.
 

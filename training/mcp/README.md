@@ -62,8 +62,9 @@ Jobs: `plan_job`, `submit_job`, `cancel_job`, `list_jobs`, `get_job`,
 `get_job_logs` (captured subprocess log or live ovhai), `sync_jobs`,
 `import_history`.
 Registry: `list_recipes`, `get_recipe`, `validate_recipe`.
-Evals: `eval_results`, `list_eval_tags`, `eval_gate`, `job_metrics` (accepts a
-registry `job_id`), `list_wandb_runs`.
+Evals: `eval_results`, `list_eval_tags`, `eval_gate` (grades real
+`state_metrics`; thresholds default to the operator policy, not zero),
+`job_metrics` (accepts a registry `job_id`), `list_wandb_runs`.
 Ops: `health`, `security_status`, `list_audit`.
 
 ## Development

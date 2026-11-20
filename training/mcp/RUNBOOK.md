@@ -112,7 +112,8 @@ spec (recipe, inputs, overrides, command, cost) that a human or agent saw.
 | Job logs                    | `get_job_logs(job_id, tail=200)` — captured subprocess log, else live OVH logs       |
 | Job metrics                 | `job_metrics(job_id)` — accepts a registry id; queued jobs report no metrics yet     |
 | Cancel a job                | `cancel_job(job_id)` — terminates the subprocess and best-effort stops the OVH job   |
-| Eval results for a tag      | `eval_results(tag)` / `list_eval_tags()` / `eval_gate(tag, min_delta, min_pass_rate)` |
+| Eval results for a tag      | `eval_results(tag)` / `list_eval_tags()`                                             |
+| Promotion gate              | `eval_gate(tag)` — reads real `state_metrics` grades; see "Promotion gate" below      |
 | Who asked for what          | `list_audit(action="submit", limit=50)` — actor, spec_hash, plan_hash, remote_addr   |
 | Provenance lookup           | Foresight `search_memories` for tags `training_job_outcome` / `job:<id>`             |
 
@@ -200,3 +201,37 @@ reason. Read it with `list_audit(action="submit.rejected")`:
 | `TRAINING_MCP_MONTHLY_COST_CAP_USD`     | `100.0` | Reject when committed cost would exceed it |
 
 Caps are read from `.env` at service start; changing them requires a restart.
+Imported history (`requested_by: import`) does not count against the daily cap.
+
+## 8. Promotion gate
+
+`eval_gate(tag, min_delta, min_pass_rate)` decides whether a release may be
+promoted. Omit the thresholds to use the operator policy:
+
+| Variable                            | Default | Effect                                        |
+| ----------------------------------- | ------- | --------------------------------------------- |
+| `TRAINING_MCP_GATE_MIN_DELTA`       | `0.05`  | Minimum `sft - base` pass-rate delta to pass  |
+| `TRAINING_MCP_GATE_MIN_PASS_RATE`   | `0.5`   | Minimum absolute `sft` pass rate to pass      |
+
+The defaults are deliberately non-zero: sending `0` (or omitting the older
+zero-valued defaults) made the gate a rubber stamp, passing runs where the
+fine-tune was no better than the base model. Every verdict is audited with the
+thresholds actually applied:
+
+```bash
+list_audit(action="eval.gate", limit=10)
+# detail: {"tag": "v29-l4e-v2", "passed": true, "min_delta": 0.05,
+#          "min_pass_rate": 0.5, "reasons": []}
+```
+
+Grading reads `state_metrics` from each `results.jsonl` row: a case passes only
+when it carries checks and **all** of them passed. Rows with no metrics are
+ungraded; a tag with no graded runs fails closed. Inspect the raw signal with:
+
+```bash
+eval_results("v29-l4e-v2")   # runs -> manifest, results_preview, arm_pass_rates
+```
+
+Real verdicts as of this writing: `v29-l4e-v2` sft **0.917** vs base **0.250**
+(delta 0.667) on both runs — passes; `v28-l4e` **0.833** vs **0.250** — passes;
+`v22` carries no graded metrics — fails closed.

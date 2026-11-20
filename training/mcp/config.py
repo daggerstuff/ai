@@ -95,6 +95,21 @@ class Settings:
         return float(self.env.get("TRAINING_MCP_MONTHLY_COST_CAP_USD", "100.0"))
 
     @property
+    def gate_min_delta(self) -> float:
+        """Default sft-minus-base pass-rate delta required to promote.
+
+        Applied when a caller omits ``min_delta``. Without a non-zero default a
+        promotion tool that forgets the argument would accept any graded run,
+        including one where the fine-tune is no better than the base model.
+        """
+        return float(self.env.get("TRAINING_MCP_GATE_MIN_DELTA", "0.05"))
+
+    @property
+    def gate_min_pass_rate(self) -> float:
+        """Default absolute sft-arm pass rate required to promote."""
+        return float(self.env.get("TRAINING_MCP_GATE_MIN_PASS_RATE", "0.5"))
+
+    @property
     def allow_remote(self) -> bool:
         """Explicit opt-in required before binding to a non-loopback address."""
         return self.env.get("TRAINING_MCP_ALLOW_REMOTE", "").lower() in {"1", "true", "yes"}
