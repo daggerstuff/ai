@@ -83,9 +83,9 @@ def iter_raw_records(input_path: Path) -> Iterator[dict[str, Any]]:
                 return
         if isinstance(data, list):
             for item in data:
-                yield _normalize(item, input_path, converter)
+                yield _normalize(item, input_path, None)
         elif isinstance(data, dict):
-            yield _normalize(data, input_path, converter)
+            yield _normalize(data, input_path, None)
     elif suffix == ".csv":
         # Lightweight CSV handling: read with csv.DictReader, treat each row
         # as a raw record. Real hackathon CSVs vary; this is a best-effort path.

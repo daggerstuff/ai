@@ -309,9 +309,12 @@ training/tests/*
 !training/tests/test_crisis_target_audit.py
 !training/tests/test_verify_crisis_survival.py
 !training/tests/test_crisis_eval_diagnostics.py
+!training/tests/test_crisis_dimension_report.py
+!training/tests/test_crisis_adjudication_packet.py
 !training/tests/test_nightmare_final_export.py
 !training/tests/test_apply_research_target_repairs.py
 !training/tests/test_export_research_target_repairs.py
+!training/tests/test_restore_classification_context.py
 !training/tests/test_nightmare_recovery.py
 !training/tests/test_nightmare_judge_receipts.py
 !training/tests/test_adapter_target_roles.py

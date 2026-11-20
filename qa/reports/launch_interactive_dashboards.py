@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import sys
+from pathlib import Path
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 sys.path.append(str(_PROJECT_ROOT / "ai"))
 
-from monitoring.interactive_dashboard_system import InteractiveDashboardSystem
 from pathlib import Path
+
+from monitoring.interactive_dashboard_system import InteractiveDashboardSystem
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

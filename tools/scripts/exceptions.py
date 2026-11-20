@@ -1,10 +1,6 @@
 """Custom exceptions for CLI operations."""
 
 
-class CLIAuthError(CLIBaseError):
-    """Alias for authentication errors."""
-
-
 class CLIBaseError(Exception):
     """Base exception for CLI errors."""
 
@@ -18,6 +14,10 @@ class CLIBaseError(Exception):
             detail_str = ", ".join(f"{k}={v!r}" for k, v in self.details.items())
             return f"{self.message} ({detail_str})"
         return self.message
+
+
+class CLIAuthError(CLIBaseError):
+    """Alias for authentication errors."""
 
 
 class CLIConfigError(CLIBaseError):

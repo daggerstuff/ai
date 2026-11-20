@@ -14,6 +14,8 @@ import yaml
 from cryptography.fernet import Fernet
 from pydantic import BaseModel, Field, validator
 
+from tools.scripts.exceptions import CLIConfigError
+
 
 # Register custom YAML tags used by NVIDIA NeMo Microservices Platform
 def override_constructor(loader, node):

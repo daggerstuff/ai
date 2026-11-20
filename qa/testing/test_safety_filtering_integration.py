@@ -15,6 +15,7 @@ from unittest.mock import patch
 from ai.inference.inference_api import UserTier, api_key_manager, app, safety_filtered_endpoint
 from ai.qa.validation.enhanced_safety_filter import (
     CrisisDetectionResult,
+    CrisisInterventionSystem,
     EnhancedSafetyFilter,
     SafetyCheckResult,
     SafetyLevel,
@@ -374,6 +375,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         assert crisis_result.urgency_level in ["low", "medium", "high", "immediate"]
 
         # Test crisis handling
+        crisis_intervention_system = CrisisInterventionSystem(self.safety_filter)
         crisis_response = crisis_intervention_system.handle_crisis_detection(
             crisis_result, user_context={"user_id": "test_user"}, content=crisis_content
         )

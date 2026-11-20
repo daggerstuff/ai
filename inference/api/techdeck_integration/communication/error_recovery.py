@@ -11,7 +11,7 @@ import time
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
     PipelineExecutionError,
@@ -21,6 +21,10 @@ from ai.inference.api.techdeck_integration.utils.logger import get_request_logge
 from ai.inference.api.techdeck_integration.utils.validation import sanitize_input
 
 from .event_bus import EventMessage, EventType
+
+if TYPE_CHECKING:
+    from ai.inference.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext
+
 
 
 class RecoveryStrategy(Enum):

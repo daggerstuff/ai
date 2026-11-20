@@ -13,6 +13,7 @@ from .types import (
     OrganSystem,
     RareDisease,
     Symptom,
+    SymptomSeverity,
 )
 
 

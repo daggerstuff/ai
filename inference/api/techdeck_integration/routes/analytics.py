@@ -11,7 +11,7 @@ from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
-from ai.inference.api.techdeck_integration.auth.decorators import require_auth
+from ai.inference.api.techdeck_integration.auth.middleware import require_auth
 from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
     AnalyticsError,
     ResourceNotFoundError,

@@ -229,6 +229,10 @@ class PipelineExecutionError(PipelineError):
     pass
 
 
+class ProgressTrackingError(PipelineError):
+    pass
+
+
 # Backwards-compatible State Management error expected by state manager
 class StateManagementError(TechDeckBaseError):
     """Errors related to state management and persistence."""

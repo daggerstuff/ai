@@ -13,7 +13,7 @@ from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
-from ai.api.techdeck_integration.auth.decorators import require_auth, require_role
+from ai.api.techdeck_integration.auth.middleware import require_auth, require_role
 from ai.api.techdeck_integration.error_handling.custom_errors import AnalyticsError, SystemError, ValidationError
 from ai.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.api.techdeck_integration.utils.logger import get_request_logger

@@ -15,9 +15,12 @@ import json
 import os
 import sqlite3
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pandas as pd
 from flask import Flask, jsonify, render_template
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 class InteractiveDashboardSystem:

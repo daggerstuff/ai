@@ -2039,7 +2039,6 @@ def assemble_from_modeb(
             tn_adjusted = min(cur_cap, max(3, cur_cap - 1))
             problems.append(f"beat {t_typ}@s{sn_now} turn {tn_now}>{cur_cap} adjusted->{tn_adjusted}")
             tn_now = tn_adjusted
-            tt_loc_var = tt_loc_var if False else None
         rr_field = "required_response"
         if t_typ == "misstatement":
             ps_keycheck = ["original", "revision"]
