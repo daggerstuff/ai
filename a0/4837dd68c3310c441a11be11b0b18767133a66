@@ -1,0 +1,24 @@
+research/experiments/tests/test_safety_filtering_integration.py
+  s_7d4811cf1b0ba7::t_13324ad426b478 12,31-34
+  s_7d4811cf1b0ba7::t_715f443857e8d0 35
+pipelines/data_processing/scripts/run_safety_pass.py
+  s_7d4811cf1b0ba7::t_13324ad426b478 77,86,88,106
+dataset_pipeline/scripts/run_safety_pass.py
+  s_7d4811cf1b0ba7::t_13324ad426b478 77,86,88,106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a04837dd68c3310c441a11be11b0b18767133a66",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
