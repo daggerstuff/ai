@@ -37,7 +37,6 @@ __all__ = [
     "Channel",
     "ChannelAnalyzer",
     "ChannelMonitor",
-    "ChannelQuality",
     "ChannelQualityThresholds",
     "ChannelStatus",
     "ContentCategory",

@@ -29,6 +29,7 @@ __all__ = [
     "SessionMetricsResource",
     "SessionStateResource",
     "fnmatch",
+    "logger",
     "logging",
 ]
 

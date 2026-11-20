@@ -20,6 +20,7 @@ __all__ = [
     "Optional",
     "PromptRegistry",
     "fnmatch",
+    "logger",
     "logging",
 ]
 

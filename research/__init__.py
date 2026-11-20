@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 from importlib import import_module
-from typing import TYPE_CHECKING, Dict, Tuple
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ai.research.base import BaseMemoryManager
@@ -45,16 +45,11 @@ _EXPORTS: dict[str, tuple[str, str]] = {
 
 __all__ = [
     "BaseMemoryManager",
-    "Dict",
     "LocalForesightMemoryManager",
     "LocalForesightRepository",
     "LocalForesightSchemaManager",
     "MemoryManagerFactory",
-    "TYPE_CHECKING",
-    "Tuple",
-    "annotations",
     "get_required_memory_manager",
-    "import_module",
 ]
 
 
