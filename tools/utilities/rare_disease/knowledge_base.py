@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
-from typing import Any
 
 from .state import RareDiseaseState  # noqa: F401 — re-exported by __init__
 from .types import (
-    DiseaseRarity,
     KnowledgeMatch,
     OrganSystem,
     RareDisease,

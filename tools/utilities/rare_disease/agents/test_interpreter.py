@@ -3,16 +3,12 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from ..types import (
     Evidence,
-    KnowledgeMatch,
     OrganSystem,
     PatientCase,
-    TestFinding,
-    TestResult,
 )
 
 logger = logging.getLogger(__name__)

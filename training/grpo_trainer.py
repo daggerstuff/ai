@@ -17,7 +17,6 @@ try:
     from .shared_config import (
         add_lora_args,
         build_lora_config,
-        log_token_length_distribution,
         shared_qlora_config,
     )
 except ModuleNotFoundError:
@@ -25,7 +24,6 @@ except ModuleNotFoundError:
         from ai.training.shared_config import (
             add_lora_args,
             build_lora_config,
-            log_token_length_distribution,
             shared_qlora_config,
         )
     except ModuleNotFoundError:

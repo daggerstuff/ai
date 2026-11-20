@@ -13,6 +13,7 @@ existing callers keep working unchanged.
 
 from __future__ import annotations
 
+import importlib.util
 import logging
 import os
 import sqlite3
@@ -120,19 +121,15 @@ class PostgresReceiptStore:
         self._dsn = dsn or os.environ.get("RECEIPT_LEDGER_POSTGRES_URL") or os.environ.get("DATABASE_URL")
         if not self._dsn:
             raise ValueError("PostgresReceiptStore requires RECEIPT_LEDGER_POSTGRES_URL or DATABASE_URL")
-        try:
-            import psycopg  # type: ignore[import-not-found]
-        except ImportError:
-            try:
-                import psycopg2  # type: ignore[import-not-found]
-            except ImportError as exc:  # pragma: no cover - env-dependent
-                raise ImportError(
-                    "PostgresReceiptStore requires 'psycopg' or 'psycopg2'; install one or use "
-                    "SQLiteReceiptStore (RECEIPT_LEDGER_DB_PATH)"
-                ) from exc
+        if importlib.util.find_spec("psycopg") is not None:
+            self._driver = "psycopg"
+        elif importlib.util.find_spec("psycopg2") is not None:
             self._driver = "psycopg2"
         else:
-            self._driver = "psycopg"
+            raise ImportError(
+                "PostgresReceiptStore requires 'psycopg' or 'psycopg2'; install one or use "
+                "SQLiteReceiptStore (RECEIPT_LEDGER_DB_PATH)"
+            )
         self._lock = threading.Lock()
         self._init_schema()
 

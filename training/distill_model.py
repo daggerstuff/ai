@@ -48,7 +48,7 @@ import argparse
 import json
 import logging
 import sys
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -218,7 +218,6 @@ def kd_loss(
     -------
     (total_loss, kd_loss_value, ce_loss_value)
     """
-    import torch
     import torch.nn.functional as F
 
     # KD loss: MSE between softened distributions.

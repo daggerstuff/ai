@@ -31,8 +31,7 @@ except ImportError:
 
 # Celery for distributed task processing
 try:
-    from celery import Celery, Task
-    from celery.result import AsyncResult
+    from celery import Celery
 
     CELERY_AVAILABLE = True
 except ImportError:

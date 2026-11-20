@@ -45,11 +45,16 @@ _EXPORTS: dict[str, tuple[str, str]] = {
 
 __all__ = [
     "BaseMemoryManager",
+    "Dict",
     "LocalForesightMemoryManager",
     "LocalForesightRepository",
     "LocalForesightSchemaManager",
     "MemoryManagerFactory",
+    "TYPE_CHECKING",
+    "Tuple",
+    "annotations",
     "get_required_memory_manager",
+    "import_module",
 ]
 
 

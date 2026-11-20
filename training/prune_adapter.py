@@ -115,7 +115,6 @@ def prune_lora_adapter(
     -------
     PruningStats with total/pruned param counts and sparsity.
     """
-    import torch.nn.utils.prune as prune
 
     lora_modules = _iter_lora_linear_modules(model)
     if target_modules:

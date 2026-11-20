@@ -10,8 +10,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from path_utils import AI_DIR
 from s3_client_helper import get_s3_client
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
 
 
 class DatasetQualityScorer:

@@ -4,8 +4,7 @@ Security Configuration Validator
 Validates security configurations for production readiness
 """
 
-from pathlib import Path
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
+from path_utils import AI_DIR
 
 
 def validate_security_configurations():

@@ -4,16 +4,13 @@ Therapeutic Progress Tracking System
 Long-term, journal-style tracking of client therapeutic progress
 """
 
-from datetime import datetime, timedelta, timezone
-
-
 import json
 import sqlite3
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-from pathlib import Path
 import statistics
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class EmotionalState(Enum):

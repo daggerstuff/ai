@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import math
 import sys
 from collections import Counter
 from dataclasses import dataclass, field

@@ -12,7 +12,6 @@ estimate -> TrainingArguments) is stable and unit-testable without a GPU.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 
 from transformers import TrainingArguments

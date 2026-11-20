@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
 from typing import Any
 
 from .differential import DifferentialDiagnosisManager
-from .state import ConvergenceStatus, RareDiseaseState
+from .state import ConvergenceStatus
 from .types import (
     DifferentialEntry,
     DiseaseRarity,

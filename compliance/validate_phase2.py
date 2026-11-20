@@ -71,10 +71,8 @@ class Phase2Validator:
                     HIPAAEncryption,
                     HIPAAStorage,
                     HIPAAValidator,
-                    HIPAAViolationType,
                     PHIDetector,
                     PHIType,
-                    hipaa_validator,
                 )
 
                 score += 10
@@ -212,12 +210,9 @@ class Phase2Validator:
             try:
                 from soc2_validator import (
                     ComplianceStatus,
-                    ControlCategory,
-                    SOC2Principle,
                     SOC2Storage,
                     SOC2Validator,
                     SystemMonitor,
-                    soc2_validator,
                 )
 
                 score += 10
@@ -354,7 +349,6 @@ class Phase2Validator:
                     GDPRValidator,
                     LegalBasis,
                     PersonalDataDetector,
-                    gdpr_validator,
                 )
 
                 score += 10

@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
+from .state import RareDiseaseState
 from .types import (
     DifferentialEntry,
-    DiseaseRarity,
     Evidence,
-    OrganSystem,
     PatientCase,
 )
-from .state import RareDiseaseState
 
 logger = logging.getLogger(__name__)
 

@@ -3,12 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
-
-from .types import (
-    DiseaseRarity,
-    OrganSystem,
-)
 
 
 @dataclass(frozen=True)

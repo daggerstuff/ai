@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from datasets import Dataset, load_dataset
+from datasets import Dataset
 from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
 from transformers import (
     AutoModelForCausalLM,

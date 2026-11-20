@@ -17,7 +17,7 @@ import numpy as np
 
 from ai.memory.therapeutic_concept_hierarchy import TherapeuticConceptHierarchy
 
-from .candidate_retrieval import CandidateDiagnosis, RetrievalEvidence
+from .candidate_retrieval import CandidateDiagnosis
 
 
 @dataclass
