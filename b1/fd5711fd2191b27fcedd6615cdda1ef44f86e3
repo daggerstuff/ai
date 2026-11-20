@@ -1,0 +1,26 @@
+training/mcp/server.py
+  s_7d4811cf1b0ba7::t_07c49395fe62b8 54
+  s_7d4811cf1b0ba7::t_dce23955861bd4 48
+  s_7d4811cf1b0ba7::t_615fe864514202 13
+  s_7d4811cf1b0ba7::t_8bfe132ff4ef0c 70
+  s_7d4811cf1b0ba7::t_ebb2864d799373 38
+  s_7d4811cf1b0ba7::t_2b70cb5d6ac4a3 134-140
+training/mcp/recipes.yaml
+  s_7d4811cf1b0ba7::t_6ddeaf6e6bcb3f 73-92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1fd5711fd2191b27fcedd6615cdda1ef44f86e3",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
