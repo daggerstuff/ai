@@ -1,0 +1,34 @@
+training/mcp/.env.example
+  h_07d84030f79d30 1-22
+training/mcp/__main__.py
+  h_07d84030f79d30 1-2,5-6
+training/mcp/backends.py
+  h_07d84030f79d30 102,104,220-258,291
+training/mcp/config.py
+  h_07d84030f79d30 70-85
+training/mcp/db.py
+  h_07d84030f79d30 25-26,29,31-32,34,36,46-51,57-76,86,107-111,117-118,121,123-124,126,128,140-141,144,146-147,149,151,196-223,226-229
+training/mcp/deploy/training-infra-mcp.service
+  h_07d84030f79d30 1-15
+training/mcp/plan.py
+  h_07d84030f79d30 1-134
+training/mcp/recipes.py
+  h_07d84030f79d30 37-38,53-54,79-86,103-104
+training/mcp/recipes.yaml
+  h_07d84030f79d30 26-28,47-49,67-69
+training/mcp/runner.py
+  h_07d84030f79d30 1-166
+training/mcp/server.py
+  h_07d84030f79d30 9-10,12-14,18,20,22,26,37-68,205-328,343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b04c06951f4898b593854b97835dc5e4784be727",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
