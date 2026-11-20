@@ -1,0 +1,18 @@
+training/mcp/backends.py
+  h_07d84030f79d30 3-7
+training/mcp/plan.py
+  h_07d84030f79d30 1
+training/mcp/runner.py
+  h_07d84030f79d30 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ac2d65474dcd2eb30d0734993a1768662b0e6da1",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
