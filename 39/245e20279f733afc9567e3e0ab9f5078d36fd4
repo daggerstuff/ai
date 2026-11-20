@@ -1,0 +1,128 @@
+qa/testing/test_processing_components.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 25
+qa/reports/alert_fatigue_prevention.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 18
+qa/testing/test_inference_integration.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 29
+qa/testing/legacy_tests/dataset_pipeline/quality/test_quality_validator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 4
+research/experiments/test_defense_endpoint.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 2
+infrastructure/distributed/result_aggregator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 14
+qa/reports/conversation_recommendation_optimizer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 22
+qa/reports/quality_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 15
+training/launch/arc_sft_launch.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 8
+  s_7d4811cf1b0ba7::t_9024d509af9635 9
+inference/services/ingestion/gate.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 22
+prompts/patient_psi/test_patient_psi_prompt.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 8
+research/reflection_analysis.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 9
+qa/reports/dashboard_web_launcher.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 16
+qa/reports/conversation_quality_pattern_analyzer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 21
+pipelines/data_processing/processors/safety_processors.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 41-43
+  s_7d4811cf1b0ba7::t_ccdc159e26570f 44
+qa/reports/clinical_validity_dashboard.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 11
+archive/legacy_tests/research/dataset_pipeline/quality/test_quality_validator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 4
+qa/testing/test_integration_end_to_end.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 23
+research/experiments/tests/test_processing_components.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 25
+pkg_mera/core/pipelines/quality/conversation_quality_pattern_analyzer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 53
+qa/testing/test_vertical_fidelity_stack.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 15
+qa/testing/validation_quality_assurance_system.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 23
+research/experiments/tests/validation_quality_assurance_system.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 23
+tools/DataDesigner/packages/data-designer-engine/tests/engine/models/clients/test_anthropic.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 11
+research/experiments/tests/safety/test_hackathon_safety_processor.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 20-23
+qa/reports/conversation_effectiveness_predictor.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 21
+research/experiments/tests/test_defense_mechanisms.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 13
+tests/dataset_pipeline/quality/test_quality_validator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 4
+core/pipelines/quality/conversation_quality_pattern_analyzer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 53
+research/experiments/tests/test_integration_end_to_end.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 24
+lab/tests/dataset_pipeline/quality/test_quality_validator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 4
+models/moe_architecture.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 7-9,13
+qa/testing/test_defense_endpoint.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 2
+inference/deployment/distributed/result_aggregator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 14
+inference/deployment/qa/validation_quality_assurance/validation_quality_assurance_system.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 14
+research/experiments/tests/dataset_pipeline/quality/test_quality_validator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 4
+tools/DataDesigner/packages/data-designer-engine/tests/engine/models/clients/test_openai_compatible.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 10
+tools/scripts/auth.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 597-598
+tools/DataDesigner/packages/data-designer-engine/tests/engine/models/clients/test_native_http_clients.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 11
+tools/utilities/pipelines/quality/conversation_quality_pattern_analyzer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 53
+tools/utilities/platform/mental_ift_orchestrator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 27
+training/train_enhanced.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 24
+  s_7d4811cf1b0ba7::t_b2f9e237ea4eb1 25
+pipelines/data_processing/journal/api/services/training_pipeline_service.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 22-23
+  s_7d4811cf1b0ba7::t_27233af05ae5fc 24
+training/train_moe_h100.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 19
+  s_7d4811cf1b0ba7::t_9a0c15c697fde9 20
+training/train_optimized.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 17-18,27,35-37
+qa/testing/test_defense_mechanisms.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 13
+qa/reports/api_monitor.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 32
+qa/reports/conversation_diversity_coverage_analyzer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 22
+pipelines/data_processing/orchestration/extract_everything.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 10
+qa/reports/dataset_performance_impact_analyzer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 21
+qa/reports/quality_comparator.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 14
+qa/testing/test_input_guard_integration.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 12
+tools/utilities/core/pipelines/quality/conversation_quality_pattern_analyzer.py
+  s_7d4811cf1b0ba7::t_4f561b18922dd7 53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "39245e20279f733afc9567e3e0ab9f5078d36fd4",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
