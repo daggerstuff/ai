@@ -26,7 +26,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("youtube_stealth_fetcher")
 
@@ -85,7 +85,7 @@ def extract_video_id(url: str) -> str | None:
 def sanitize_filename(text: str) -> str:
     """Sanitize text for use as filename."""
     # Remove or replace problematic characters
-    text = re.sub(r'[<>:\"/\\\\|?*\\x00-\\x1f]', "_", text)
+    text = re.sub(r"[<>:\"/\\\\|?*\\x00-\\x1f]", "_", text)
     # Remove leading/trailing spaces and dots
     text = text.strip(" .")
     # Limit length
@@ -117,7 +117,9 @@ def fetch_transcript_with_stealth(video_id: str, language_code: str = "en") -> s
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option("useAutomationExtension", False)
-        chrome_options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.116 Safari/537.36")
+        chrome_options.add_argument(
+            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.116 Safari/537.36"
+        )
 
         # Set up the driver with webdriver-manager
         service = Service(ChromeDriverManager().install())
@@ -163,9 +165,7 @@ def fetch_transcript_with_stealth(video_id: str, language_code: str = "en") -> s
 
         # Wait for the transcript panel to load
         try:
-            wait.until(
-                EC.presence_of_element_located((By.ID, "body"))
-            )
+            wait.until(EC.presence_of_element_located((By.ID, "body")))
             time.sleep(1)
         except TimeoutException:
             logger.warning(f"Transcript panel did not load for video {video_id}")
@@ -187,7 +187,9 @@ def fetch_transcript_with_stealth(video_id: str, language_code: str = "en") -> s
             return None
 
         full_text = " ".join(transcript_texts)
-        logger.info(f"Successfully fetched transcript for {video_id} via stealth Selenium ({len(full_text)} characters)")
+        logger.info(
+            f"Successfully fetched transcript for {video_id} via stealth Selenium ({len(full_text)} characters)"
+        )
         return full_text
 
     except Exception as e:
@@ -225,37 +227,20 @@ def main():
         "--playlists-file",
         type=str,
         default="ai/docs/youtube_playlists.txt",
-        help="Path to YouTube playlists file containing URLs"
+        help="Path to YouTube playlists file containing URLs",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
         default="training/data/transcripts",
-        help="Base directory for storing transcripts (will create channel subdirs)"
+        help="Base directory for storing transcripts (will create channel subdirs)",
     )
     parser.add_argument(
-        "--channel-name",
-        type=str,
-        default="YouTube_Mix",
-        help="Channel name to use for organizing transcripts"
+        "--channel-name", type=str, default="YouTube_Mix", help="Channel name to use for organizing transcripts"
     )
-    parser.add_argument(
-        "--language",
-        type=str,
-        default="en",
-        help="Language code for transcripts (default: en)"
-    )
-    parser.add_argument(
-        "--max-videos",
-        type=int,
-        default=0,
-        help="Maximum number of videos to process (0 for all)"
-    )
-    parser.add_argument(
-        "--skip-existing",
-        action="store_true",
-        help="Skip videos that already have transcript files"
-    )
+    parser.add_argument("--language", type=str, default="en", help="Language code for transcripts (default: en)")
+    parser.add_argument("--max-videos", type=int, default=0, help="Maximum number of videos to process (0 for all)")
+    parser.add_argument("--skip-existing", action="store_true", help="Skip videos that already have transcript files")
 
     args = parser.parse_args()
 
@@ -331,7 +316,7 @@ def main():
         "skipped_existing": skipped,
         "output_directory": str(output_dir),
         "languages_attempted": [language_code],
-        "method": "stealth-selenium-webdriver-manager"
+        "method": "stealth-selenium-webdriver-manager",
     }
 
     manifest_path = output_dir / "manifest.json"

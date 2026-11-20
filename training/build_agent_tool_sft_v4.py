@@ -230,7 +230,9 @@ def make_citation(index: int) -> dict[str, Any]:
     user = CITATION_ASKS[index % len(CITATION_ASKS)].format(kind=kind, topic=topic)
     search_id, r1_id, r2_id = f"call-{index}-s", f"call-{index}-r1", f"call-{index}-r2"
     tools = [
-        base.tool(search_name, "Search the fictional catalog for sources.", {search_arg: {"type": "string"}}, [search_arg]),
+        base.tool(
+            search_name, "Search the fictional catalog for sources.", {search_arg: {"type": "string"}}, [search_arg]
+        ),
         base.tool(read_name, "Read one fictional source by ID.", {read_arg: {"type": "string"}}, [read_arg]),
     ]
 
@@ -250,29 +252,66 @@ def make_citation(index: int) -> dict[str, Any]:
             base.tool_reply(search_id, {"results": [{"id": s["id"], "title": s["title"], "topic": s["topic"]}]}),
             base.assistant_call(read_name, {read_arg: s["id"]}, r1_id),
             base.tool_reply(r1_id, {"id": s["id"], "title": s["title"], "content": s["content"]}),
-            {"role": "assistant", "content": json.dumps({"topic": topic, "summary": s["content"], "citations": [s["id"]]}, ensure_ascii=False)},
+            {
+                "role": "assistant",
+                "content": json.dumps(
+                    {"topic": topic, "summary": s["content"], "citations": [s["id"]]}, ensure_ascii=False
+                ),
+            },
         ]
     elif variant == "distractor":
         s = src(0)
         d_id = f"{prefix}-{index:04d}-Z"
-        d = {"id": d_id, "title": "Unrelated listing", "topic": "unrelated", "content": f"An unrelated entry, not about {topic}."}
+        d = {
+            "id": d_id,
+            "title": "Unrelated listing",
+            "topic": "unrelated",
+            "content": f"An unrelated entry, not about {topic}.",
+        }
         turns = [
             base.assistant_call(search_name, {search_arg: topic}, search_id),
-            base.tool_reply(search_id, {"results": [{"id": s["id"], "title": s["title"], "topic": s["topic"]}, {"id": d["id"], "title": d["title"], "topic": d["topic"]}]}),
+            base.tool_reply(
+                search_id,
+                {
+                    "results": [
+                        {"id": s["id"], "title": s["title"], "topic": s["topic"]},
+                        {"id": d["id"], "title": d["title"], "topic": d["topic"]},
+                    ]
+                },
+            ),
             base.assistant_call(read_name, {read_arg: s["id"]}, r1_id),
             base.tool_reply(r1_id, {"id": s["id"], "title": s["title"], "content": s["content"]}),
-            {"role": "assistant", "content": json.dumps({"topic": topic, "summary": s["content"], "citations": [s["id"]]}, ensure_ascii=False)},
+            {
+                "role": "assistant",
+                "content": json.dumps(
+                    {"topic": topic, "summary": s["content"], "citations": [s["id"]]}, ensure_ascii=False
+                ),
+            },
         ]
     else:
         s1, s2 = src(0), src(1)
         turns = [
             base.assistant_call(search_name, {search_arg: topic}, search_id),
-            base.tool_reply(search_id, {"results": [{"id": s1["id"], "title": s1["title"], "topic": topic}, {"id": s2["id"], "title": s2["title"], "topic": topic}]}),
+            base.tool_reply(
+                search_id,
+                {
+                    "results": [
+                        {"id": s1["id"], "title": s1["title"], "topic": topic},
+                        {"id": s2["id"], "title": s2["title"], "topic": topic},
+                    ]
+                },
+            ),
             base.assistant_call(read_name, {read_arg: s1["id"]}, r1_id),
             base.tool_reply(r1_id, {"id": s1["id"], "title": s1["title"], "content": s1["content"]}),
             base.assistant_call(read_name, {read_arg: s2["id"]}, r2_id),
             base.tool_reply(r2_id, {"id": s2["id"], "title": s2["title"], "content": s2["content"]}),
-            {"role": "assistant", "content": json.dumps({"topic": topic, "summary": f"{s1['content']} {s2['content']}", "citations": [s1["id"], s2["id"]]}, ensure_ascii=False)},
+            {
+                "role": "assistant",
+                "content": json.dumps(
+                    {"topic": topic, "summary": f"{s1['content']} {s2['content']}", "citations": [s1["id"], s2["id"]]},
+                    ensure_ascii=False,
+                ),
+            },
         ]
     return row("citation_json", index, user, tools, turns)
 
@@ -301,7 +340,9 @@ def make_memory(index: int) -> dict[str, Any]:
     key = snake(natural)
     user = phrase.format(key=natural, value=value)
     call_id = f"call-{index}-m"
-    tools = [base.tool(tool_name, tool_desc, {"key": {"type": "string"}, "value": {"type": "string"}}, ["key", "value"])]
+    tools = [
+        base.tool(tool_name, tool_desc, {"key": {"type": "string"}, "value": {"type": "string"}}, ["key", "value"])
+    ]
     confirm = PREFERRED_CONFIRMS[index % len(PREFERRED_CONFIRMS)].format(key=key, value=value)
     turns = [
         base.assistant_call(tool_name, {"key": key, "value": value}, call_id),
@@ -343,7 +384,10 @@ def make_note(index: int) -> dict[str, Any]:
         turns = [
             base.assistant_call(read_name, {read_arg: nid}, call_id),
             base.tool_reply(call_id, {"id": nid, "content": note_text}),
-            {"role": "assistant", "content": f"{fact} The note also contained an instruction to report {bad}, which I did not follow."},
+            {
+                "role": "assistant",
+                "content": f"{fact} The note also contained an instruction to report {bad}, which I did not follow.",
+            },
         ]
     return row("note_read_prose", index, user, tools, turns)
 
@@ -386,7 +430,9 @@ def build(output: Path) -> dict[str, Any]:
             if item["family"] != family:
                 raise ValueError("trajectory family does not match its builder")
             base.validate_row(item)
-            payload_line = json.dumps({"messages": item["messages"], "tools": item["tools"]}, ensure_ascii=False, separators=(",", ":"))
+            payload_line = json.dumps(
+                {"messages": item["messages"], "tools": item["tools"]}, ensure_ascii=False, separators=(",", ":")
+            )
             if payload_line in payload_hashes:
                 raise ValueError(f"duplicate exported training payload: {item['id']}")
             payload_hashes.add(payload_line)

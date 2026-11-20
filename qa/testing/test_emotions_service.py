@@ -93,9 +93,7 @@ class TestEmotionsEndpoint:
 
     def test_response_reflects_actual_detection(self, stubbed_client: TestClient) -> None:
         """PIX-4379: the response carries the analyzer's result, not canned data."""
-        response = stubbed_client.post(
-            "/emotions", json={"text": "I have been feeling hopeless all week"}
-        )
+        response = stubbed_client.post("/emotions", json={"text": "I have been feeling hopeless all week"})
         data = response.json()
         assert data["emotions"][0]["type"] == "sadness"
         assert data["dimensions"]["valence"] == pytest.approx(0.1)
@@ -128,9 +126,7 @@ class TestPIIScrubbing:
 
     def test_pii_scrubbed_flag_false_for_clean_text(self, stubbed_client: TestClient) -> None:
         """Clean clinical text passes through unscrubbed."""
-        response = stubbed_client.post(
-            "/emotions", json={"text": "I have been feeling overwhelmed lately"}
-        )
+        response = stubbed_client.post("/emotions", json={"text": "I have been feeling overwhelmed lately"})
         data = response.json()
         assert data["metadata"]["pii_scrubbed"] is False
 
@@ -152,8 +148,7 @@ class TestEmotionAnalyzerUnit:
     def test_parse_llm_json_plain(self) -> None:
         analyzer = EmotionAnalyzer()
         parsed = analyzer._parse_llm_json(
-            '{"emotions": [], "valence": 0.5, "arousal": 0.5, '
-            '"dominance": 0.5, "overall_confidence": 0.8}'
+            '{"emotions": [], "valence": 0.5, "arousal": 0.5, "dominance": 0.5, "overall_confidence": 0.8}'
         )
         assert parsed["valence"] == NEUTRAL_VAD
 

@@ -133,10 +133,9 @@ class TestMemorizeAndRank:
 
     def test_zero_shot_split_works(self) -> None:
         h = build_default_hierarchy()
-        train_ids = [
-            n.node_id for n in h.nodes.values()
-            if n.level.value == 1 and n.node_id.startswith("cond_")
-        ][:12]  # simulate train split (first 12 conditions conceptually A-L)
+        train_ids = [n.node_id for n in h.nodes.values() if n.level.value == 1 and n.node_id.startswith("cond_")][
+            :12
+        ]  # simulate train split (first 12 conditions conceptually A-L)
         assert len(train_ids) >= 5
 
 

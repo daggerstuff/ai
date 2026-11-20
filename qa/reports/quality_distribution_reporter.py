@@ -21,7 +21,6 @@ from jinja2 import Environment, select_autoescape
 
 # Import our distribution components
 from quality_distribution_analyzer import (
-
     DistributionStatistics,
     QualityDistributionAnalysis,
     QualityDistributionAnalyzer,

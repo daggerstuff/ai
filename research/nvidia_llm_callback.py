@@ -78,11 +78,14 @@ class NvidiaNIMCallback:
             )
             content = response.choices[0].message.content
             if isinstance(content, list):
-                return "\n".join(
-                    block.get("text", "")
-                    for block in content
-                    if isinstance(block, dict) and block.get("type") == "text"
-                ) or ""
+                return (
+                    "\n".join(
+                        block.get("text", "")
+                        for block in content
+                        if isinstance(block, dict) and block.get("type") == "text"
+                    )
+                    or ""
+                )
             return content or ""
         except Exception as e:
             logger.error(f"Nvidia NIM API call failed: {e}")
@@ -101,7 +104,11 @@ def create_nvidia_callback(
     - LLM_BASE_URL (fallback SUBCONSCIOUS_BASE_URL, then NVIDIA NIM)
     """
     model = model or os.environ.get("LLM_MODEL") or os.environ.get("SUBCONSCIOUS_MODEL", "qwen/qwen3.5-397b-a17b")
-    base_url = base_url or os.environ.get("LLM_BASE_URL") or os.environ.get("SUBCONSCIOUS_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    base_url = (
+        base_url
+        or os.environ.get("LLM_BASE_URL")
+        or os.environ.get("SUBCONSCIOUS_BASE_URL", "https://integrate.api.nvidia.com/v1")
+    )
     return NvidiaNIMCallback(model=model, base_url=base_url)
 
 

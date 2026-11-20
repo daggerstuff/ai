@@ -106,7 +106,7 @@ def _has_json_leakage(text: str) -> bool:
     Flags curly braces and double quotes but NOT single quotes, which are
     legitimate natural-language punctuation (apostrophes, possessives).
     """
-    return any(ch in text for ch in "{}\"")
+    return any(ch in text for ch in '{}"')
 
 
 def _response_has_json_leakage(response: str) -> bool:

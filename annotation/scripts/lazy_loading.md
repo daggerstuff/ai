@@ -15,18 +15,20 @@ I have implemented a truly zero-setup lazy loading system in:
 # Agent code - ABSOLUTELY ZERO SETUP REQUIRED
 from ai.annotation.scripts.truly_lazy_loader import crisis_expert, safety_first_rule
 
+
 def agent_process():
     # Resources are available as direct variables
     # They load automatically when first accessed - NO FUNCTION CALLS
-    name = crisis_expert['name']           # AUTO-LOADS HERE
-    constraint = safety_first_rule['constraint']  # AUTO-LOADS HERE
-    temp = crisis_expert['temperature']    # FROM CACHE
-    
+    name = crisis_expert["name"]  # AUTO-LOADS HERE
+    constraint = safety_first_rule["constraint"]  # AUTO-LOADS HERE
+    temp = crisis_expert["temperature"]  # FROM CACHE
+
     return f"Using {name} with constraint: {constraint}"
+
 
 # The agent did NOT need to:
 # ❌ Create lazy_agent() calls
-# ❌ Call get_agent() functions  
+# ❌ Call get_agent() functions
 # ❌ Plan which resources it would need
 # ❌ Think about lazy loading at all
 ```
@@ -66,24 +68,20 @@ safety_first_rule = LazyResourceProxy("rules", "safety_first")
 
 ```python
 # Agent file - no setup, just direct usage
-from .truly_lazy_loader import (
-    crisis_expert, 
-    emotion_analyst,
-    crisis_detection_skill,
-    safety_first_rule
-)
+from .truly_lazy_loader import crisis_expert, emotion_analyst, crisis_detection_skill, safety_first_rule
+
 
 class CrisisDetectionAgent:
     def process_patient(self, patient_data):
         # Resources available directly - zero setup
-        agent_name = crisis_expert['name']
-        agent_temp = crisis_expert['temperature']
-        skill_name = crisis_detection_skill['name']
-        safety_rule = safety_first_rule['constraint']
-        
+        agent_name = crisis_expert["name"]
+        agent_temp = crisis_expert["temperature"]
+        skill_name = crisis_detection_skill["name"]
+        safety_rule = safety_first_rule["constraint"]
+
         # Process using all resources
         return self.detect_crisis(patient_data, agent_temp, skill_name, safety_rule)
-        
+
     # Agent author did ZERO resource management
     # Resources just available as module variables
 ```

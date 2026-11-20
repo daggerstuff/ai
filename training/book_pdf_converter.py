@@ -89,9 +89,7 @@ def _retry_request(
             if attempt == max_retries:
                 raise
             delay = base_delay * 2 ** (attempt - 1)
-            logger.warning(
-                f"  {C_YELLOW}Attempt {attempt}/{max_retries} failed: {e}. Retrying in {delay}s...{C_RESET}"
-            )
+            logger.warning(f"  {C_YELLOW}Attempt {attempt}/{max_retries} failed: {e}. Retrying in {delay}s...{C_RESET}")
             time.sleep(delay)
         except RuntimeError as e:
             if "429" in str(e):
@@ -230,9 +228,7 @@ def query_llm(system_prompt: str, user_content: str) -> str:
 
     if NVIDIA_API_KEY:
         model_id = os.environ.get("NVIDIA_MODEL_ID", "mistralai/mistral-small-4-119b-2603")
-        nim_response = _try_provider(
-            "NIM", lambda: _call_nim(system_prompt, user_content, model_id), use_retry=True
-        )
+        nim_response = _try_provider("NIM", lambda: _call_nim(system_prompt, user_content, model_id), use_retry=True)
         if nim_response:
             return nim_response
 
@@ -346,15 +342,11 @@ def _append_yaml_pairs(raw_line: str, pairs: list[dict[str, str]]) -> None:
     elif isinstance(data, list):
         for item in data:
             if isinstance(item, dict) and "instruction" in item and "output" in item:
-                pairs.append(
-                    {"instruction": str(item["instruction"]), "output": str(item["output"])}
-                )
+                pairs.append({"instruction": str(item["instruction"]), "output": str(item["output"])})
 
 
 def _parse_inline_instruction_output(raw_line: str) -> dict[str, str] | None:
-    inst_match = re.search(
-        r"instruction:\s*([^,]+?)(?:\s*,\s*\"?output\"?\s*:|$)", raw_line, re.IGNORECASE
-    )
+    inst_match = re.search(r"instruction:\s*([^,]+?)(?:\s*,\s*\"?output\"?\s*:|$)", raw_line, re.IGNORECASE)
     out_match = re.search(r"output:\s*(.+)$", raw_line, re.IGNORECASE)
     if inst_match and out_match:
         instruction = inst_match.group(1).strip().strip("\"'")
@@ -365,9 +357,7 @@ def _parse_inline_instruction_output(raw_line: str) -> dict[str, str] | None:
 
 
 def _parse_numbered_instruction_output(raw_line: str) -> dict[str, str] | None:
-    inst_match = re.search(
-        r"instruction:\s*(.+?)(?:output:|$)", raw_line, re.DOTALL | re.IGNORECASE
-    )
+    inst_match = re.search(r"instruction:\s*(.+?)(?:output:|$)", raw_line, re.DOTALL | re.IGNORECASE)
     out_match = re.search(r"output:\s*(.+)$", raw_line, re.DOTALL | re.IGNORECASE)
     if inst_match and out_match:
         instruction = inst_match.group(1).strip()
@@ -393,7 +383,7 @@ def _extract_json_pair(raw_line: str) -> dict[str, str] | None:
 def _parse_distilled_pair(stripped_line: str, pairs: list[dict[str, Any]]) -> None:
     try:
         pair = json.loads(stripped_line)
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         pair = None
     if isinstance(pair, dict):
         if "messages" in pair and isinstance(pair["messages"], list):
@@ -435,7 +425,7 @@ def distill_chunk(chunk: str, title: str) -> list[dict[str, Any]]:
         "4. ADAPTIVE SAFETY TRANSITIONS & NO PANIC CHECKLISTS: If a client is actively bleeding/in immediate physical danger, triage safety first. BUT when a client discloses a past or survived impulse ('I thought about driving into a wall last night, but I didn't do it'), DO NOT derail the room with defensive liability scripts or interrogate them with 'Are you safe right now?'. Hold the weight of the disclosure, acknowledge that they endured the wave and chose to speak it, and stay present.\n"
         "5. ZERO THERAPY CLICHES: Never say 'It sounds like', 'I hear that', 'That must be hard', 'Thank you for sharing', 'Let's unpack that'.\n\n"
         "Generate 3-5 QA pairs based on this excerpt.\n"
-        "Output strictly JSON lines: {\"instruction\": \"<client words>\", \"output\": \"<therapist response>\"}\n"
+        'Output strictly JSON lines: {"instruction": "<client words>", "output": "<therapist response>"}\n'
         "Output ONLY valid JSON lines. No markdown codeblocks, no explanations."
     )
     user_content = f"Book Title: {title}\n\nExcerpt:\n{chunk}"
@@ -700,18 +690,14 @@ def run_conversion(args: argparse.Namespace) -> None:
             )
             continue
 
-        result = convert_book(
-            book_file, output_dir, max_chunks=args.max_chunks, use_llm=args.use_llm
-        )
+        result = convert_book(book_file, output_dir, max_chunks=args.max_chunks, use_llm=args.use_llm)
         results.append(result)
 
         if result["status"] == "converted":
             total_pairs += result["pairs"]
             logger.info(f"{C_GREEN}Converted {result['title']}: {result['pairs']} pairs.{C_RESET}")
         else:
-            logger.warning(
-                f"{C_RED}Failed/Skipped {book_file.name}: {result.get('reason', 'unknown')}{C_RESET}"
-            )
+            logger.warning(f"{C_RED}Failed/Skipped {book_file.name}: {result.get('reason', 'unknown')}{C_RESET}")
 
     report = {
         "generated_at": datetime.now(UTC).isoformat(),

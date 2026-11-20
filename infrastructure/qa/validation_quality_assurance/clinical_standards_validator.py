@@ -196,7 +196,7 @@ class ClinicalStandardsValidator:
             cultural_score,
             safety_score,
         ]
-        overall_score = (sum(scores) / len(scores))
+        overall_score = sum(scores) / len(scores)
 
         # Identify violations and recommendations
         violations = self._identify_violations(full_text)

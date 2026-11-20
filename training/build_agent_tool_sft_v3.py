@@ -212,7 +212,12 @@ def make_lookup(index: int) -> dict[str, Any]:
             base.assistant_call(search_name, {search_arg: topic}, search_id),
             base.tool_reply(
                 search_id,
-                {"results": [{"id": rid, "title": title, "summary": summary}, {"id": rid2, "title": title2, "summary": summary}]},
+                {
+                    "results": [
+                        {"id": rid, "title": title, "summary": summary},
+                        {"id": rid2, "title": title2, "summary": summary},
+                    ]
+                },
             ),
             base.assistant_call(read_name, {read_arg: rid}, read_id),
             base.tool_reply(read_id, {"id": rid, "title": title, "content": content}),
@@ -235,7 +240,9 @@ def make_memory_save(index: int) -> dict[str, Any]:
     key, value = MEMORY_PREFS[(index // 2) % len(MEMORY_PREFS)]
     key2, value2 = MEMORY_PREFS[(index // 2 + 5) % len(MEMORY_PREFS)]
     ask = MEMORY_ASKS[(index // 4) % len(MEMORY_ASKS)].format(key=label(key), value=value)
-    tools = [base.tool(tool_name, tool_desc, {"key": {"type": "string"}, "value": {"type": "string"}}, ["key", "value"])]
+    tools = [
+        base.tool(tool_name, tool_desc, {"key": {"type": "string"}, "value": {"type": "string"}}, ["key", "value"])
+    ]
     if index % 2 == 0:
         call_id = f"call-{index}-m"
         confirm = MEMORY_CONFIRM[index % len(MEMORY_CONFIRM)].format(key=label(key), value=value)
@@ -275,7 +282,12 @@ def make_multi(index: int) -> dict[str, Any]:
         tools = [
             base.tool(search_name, "Search the fictional catalog.", {search_arg: {"type": "string"}}, [search_arg]),
             base.tool(read_name, "Read one fictional item by ID.", {read_arg: {"type": "string"}}, [read_arg]),
-            base.tool(save_name, "Save an explicit user preference.", {"key": {"type": "string"}, "value": {"type": "string"}}, ["key", "value"]),
+            base.tool(
+                save_name,
+                "Save an explicit user preference.",
+                {"key": {"type": "string"}, "value": {"type": "string"}},
+                ["key", "value"],
+            ),
             base.tool(
                 sub_name,
                 "Submit an approved change to the fictional workspace.",
@@ -302,7 +314,12 @@ def make_multi(index: int) -> dict[str, Any]:
         tools = [
             base.tool(search_name, "Search the fictional catalog.", {search_arg: {"type": "string"}}, [search_arg]),
             base.tool(read_name, "Read one fictional item by ID.", {read_arg: {"type": "string"}}, [read_arg]),
-            base.tool(save_name, "Save an explicit user preference.", {"key": {"type": "string"}, "value": {"type": "string"}}, ["key", "value"]),
+            base.tool(
+                save_name,
+                "Save an explicit user preference.",
+                {"key": {"type": "string"}, "value": {"type": "string"}},
+                ["key", "value"],
+            ),
             base.tool(
                 sub_name,
                 "Submit an approved change to the fictional workspace.",
@@ -351,10 +368,24 @@ def make_multi(index: int) -> dict[str, Any]:
         title = f"Fictional mock source {index:03d}"
         content = f"Fictional notes about {topic}; general information only."
         tools = [
-            base.tool("search_resources", "Search the shared resource catalog.", {"query": {"type": "string"}}, ["query"]),
-            base.tool("search_mock_sources", "Search the mock sources collection.", {"query": {"type": "string"}}, ["query"]),
-            base.tool("read_mock_document", "Read a mock document by ID.", {"document_id": {"type": "string"}}, ["document_id"]),
-            base.tool(save_name, "Save an explicit user preference.", {"key": {"type": "string"}, "value": {"type": "string"}}, ["key", "value"]),
+            base.tool(
+                "search_resources", "Search the shared resource catalog.", {"query": {"type": "string"}}, ["query"]
+            ),
+            base.tool(
+                "search_mock_sources", "Search the mock sources collection.", {"query": {"type": "string"}}, ["query"]
+            ),
+            base.tool(
+                "read_mock_document",
+                "Read a mock document by ID.",
+                {"document_id": {"type": "string"}},
+                ["document_id"],
+            ),
+            base.tool(
+                save_name,
+                "Save an explicit user preference.",
+                {"key": {"type": "string"}, "value": {"type": "string"}},
+                ["key", "value"],
+            ),
         ]
         call_id = f"call-{index}-q"
         collection = "mock sources" if use_mock else "shared resource catalog"
@@ -460,7 +491,9 @@ def build(output: Path) -> dict[str, Any]:
             if item["family"] != family:
                 raise ValueError("trajectory family does not match its builder")
             base.validate_row(item)
-            payload_line = json.dumps({"messages": item["messages"], "tools": item["tools"]}, ensure_ascii=False, separators=(",", ":"))
+            payload_line = json.dumps(
+                {"messages": item["messages"], "tools": item["tools"]}, ensure_ascii=False, separators=(",", ":")
+            )
             if payload_line in payload_hashes:
                 raise ValueError(f"duplicate exported training payload: {item['id']}")
             payload_hashes.add(payload_line)

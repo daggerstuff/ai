@@ -46,9 +46,7 @@ def test_lora_backup_preserves_verified_index_when_status_and_artifacts_are_unav
     backup_root.mkdir()
     for label in lora_backup.JOBS:
         _seed_local_checkpoint(backup_root, label, "v123")
-        (backup_root / f"{label}-latest.json").write_text(
-            json.dumps({"checkpoint_version": "v123"}), encoding="utf-8"
-        )
+        (backup_root / f"{label}-latest.json").write_text(json.dumps({"checkpoint_version": "v123"}), encoding="utf-8")
     monkeypatch.setattr(lora_backup, "TrainingAPI", lambda _key: _StatusUnavailable())
     monkeypatch.setattr(wandb, "Api", _NoArtifacts)
     monkeypatch.setattr(lora_backup, "latest_artifact", lambda *_args: None)
@@ -97,8 +95,6 @@ def test_train_state_backup_preserves_verified_manifest_when_no_remote_versions_
     saved = json.loads((backup_root / "train-state-manifest.json").read_text(encoding="utf-8"))
     assert saved["checkpoints"] == prior_checkpoints
     for label in train_state_backup.JOBS:
-        observation = json.loads(
-            (backup_root / f"{label}-train-state-observation.json").read_text(encoding="utf-8")
-        )
+        observation = json.loads((backup_root / f"{label}-train-state-observation.json").read_text(encoding="utf-8"))
         assert observation["status"] == "UNKNOWN"
         assert observation["checkpoint_version"] is None

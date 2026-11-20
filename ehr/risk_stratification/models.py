@@ -24,9 +24,7 @@ class RiskLevel(StrEnum):
 class PHQ9Scores(BaseModel):
     """PHQ-9 depression screening — 9 items scored 0-3 each (total 0-27)."""
 
-    responses: list[int] = Field(
-        ..., min_length=9, max_length=9, description="Nine PHQ-9 item scores (0-3 each)."
-    )
+    responses: list[int] = Field(..., min_length=9, max_length=9, description="Nine PHQ-9 item scores (0-3 each).")
 
     @field_validator("responses")
     @classmethod
@@ -40,9 +38,7 @@ class PHQ9Scores(BaseModel):
 class GAD7Scores(BaseModel):
     """GAD-7 anxiety screening — 7 items scored 0-3 each (total 0-21)."""
 
-    responses: list[int] = Field(
-        ..., min_length=7, max_length=7, description="Seven GAD-7 item scores (0-3 each)."
-    )
+    responses: list[int] = Field(..., min_length=7, max_length=7, description="Seven GAD-7 item scores (0-3 each).")
 
     @field_validator("responses")
     @classmethod
@@ -82,12 +78,8 @@ class ClinicalContext(BaseModel):
         max_length=5000,
         description="Clinical note excerpt for NIM context (max 5000 chars).",
     )
-    session_id: str = Field(
-        ..., min_length=1, description="Session identifier (required for audit)."
-    )
-    patient_id: str = Field(
-        ..., min_length=1, description="Patient identifier (required for audit)."
-    )
+    session_id: str = Field(..., min_length=1, description="Session identifier (required for audit).")
+    patient_id: str = Field(..., min_length=1, description="Patient identifier (required for audit).")
 
 
 class RiskStratificationRequest(BaseModel):
@@ -121,26 +113,14 @@ class RiskStratificationResponse(BaseModel):
     patient_id: str = Field(..., description="Redacted patient ID for correlation.")
     session_id: str = Field(..., description="Redacted session ID for correlation.")
     risk_level: RiskLevel
-    confidence_score: float = Field(
-        ..., ge=0.0, le=1.0, description="Model confidence (0.0-1.0)."
-    )
+    confidence_score: float = Field(..., ge=0.0, le=1.0, description="Model confidence (0.0-1.0).")
     score_breakdown: RiskScoreBreakdown
-    recommended_actions: list[str] = Field(
-        ..., min_length=1, description="Recommended clinical actions."
-    )
-    requires_supervisor_review: bool = Field(
-        ..., description="True if high/crisis (triggers supervisor queue)."
-    )
-    requires_crisis_protocol: bool = Field(
-        ..., description="True if crisis level (triggers emergency protocol)."
-    )
+    recommended_actions: list[str] = Field(..., min_length=1, description="Recommended clinical actions.")
+    requires_supervisor_review: bool = Field(..., description="True if high/crisis (triggers supervisor queue).")
+    requires_crisis_protocol: bool = Field(..., description="True if crisis level (triggers emergency protocol).")
     model_source: str = Field(..., description="Model used: 'nim-hetzner' or 'mock'.")
-    warnings: list[str] = Field(
-        default_factory=list, description="Non-fatal warnings (e.g., mock mode)."
-    )
-    audit_entry_id: str = Field(
-        ..., min_length=1, description="Audit trail entry identifier."
-    )
+    warnings: list[str] = Field(default_factory=list, description="Non-fatal warnings (e.g., mock mode).")
+    audit_entry_id: str = Field(..., min_length=1, description="Audit trail entry identifier.")
 
 
 class HealthResponse(BaseModel):

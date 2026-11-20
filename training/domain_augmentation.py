@@ -6,6 +6,7 @@ scenarios. Outputs pass full Stage 1 + Stage 2 QA.
 
 Blueprint ref: docs/training-pipeline-blueprint-2026-08-10.md §B.5.4
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -283,9 +284,7 @@ def expand_seeds(
 def build_parser() -> Any:
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Domain-specific augmentation SDG expansion (PIX-4345 §B.5.4)"
-    )
+    parser = argparse.ArgumentParser(description="Domain-specific augmentation SDG expansion (PIX-4345 §B.5.4)")
     parser.add_argument(
         "--output-dir",
         type=str,

@@ -258,7 +258,9 @@ class PerformanceAnalyzer:
     def __init__(self, metrics_collector: MetricsCollector):
         self.collector = metrics_collector
 
-    def get_response_time_percentiles(self, endpoint: str | None = None, time_window_minutes: int = 60) -> dict[str, float]:
+    def get_response_time_percentiles(
+        self, endpoint: str | None = None, time_window_minutes: int = 60
+    ) -> dict[str, float]:
         """Calculate response time percentiles"""
         cutoff_time = datetime.now(UTC) - timedelta(minutes=time_window_minutes)
 

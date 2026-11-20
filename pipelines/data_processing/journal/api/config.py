@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     @classmethod
     def parse_cors_origins(cls, v):
         import json
+
         if isinstance(v, str):
             v = v.strip()
             if v.startswith("["):

@@ -310,12 +310,7 @@ def _split_group_metadata(record: dict[str, Any], chash: str) -> dict[str, str]:
     """
     record_meta = record.get("metadata")
     meta = record_meta if isinstance(record_meta, dict) else {}
-    family = str(
-        meta.get("source_family")
-        or record.get("source_family")
-        or record.get("source")
-        or "unknown"
-    )
+    family = str(meta.get("source_family") or record.get("source_family") or record.get("source") or "unknown")
     source_id = str(
         meta.get("source_id")
         or record.get("source_id")
@@ -324,6 +319,7 @@ def _split_group_metadata(record: dict[str, Any], chash: str) -> dict[str, str]:
         or chash
     )
     return {"source_family": family, "source_id": source_id}
+
 
 def _emit_release_manifest(
     splits: dict[str, list[dict[str, Any]]],
@@ -631,9 +627,7 @@ def run_pipeline(
             if alpaca_record:
                 staged["sft_alpaca"].append({**alpaca_record, "metadata": group_meta})
                 # Also stage the ChatML version of the same record
-                staged["sft_alpaca_chatml"].append(
-                    {**to_chatml_from_alpaca(alpaca_record), "metadata": group_meta}
-                )
+                staged["sft_alpaca_chatml"].append({**to_chatml_from_alpaca(alpaca_record), "metadata": group_meta})
 
         tier_stats.included += 1
         stats.total_included += 1
@@ -674,8 +668,7 @@ def run_pipeline(
                 for issue in gate_issues:
                     print(f"  - {issue}", file=sys.stderr)
                 raise RuntimeError(
-                    "sft_chatml split failed integrity gates on "
-                    f"{len(master)} master records: {gate_issues}"
+                    f"sft_chatml split failed integrity gates on {len(master)} master records: {gate_issues}"
                 )
             if not gates_passed:
                 print(

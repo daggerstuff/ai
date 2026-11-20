@@ -27,26 +27,27 @@ from transformers import (
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("llama3_1_training.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("llama3_1_training.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
 # Global shutdown flag
 shutdown_requested = False
 
+
 def signal_handler(signum, frame):
     global shutdown_requested
     logger.info("\n🛑 Shutdown requested")
     shutdown_requested = True
 
+
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
+
 class TimeConstraintCallback(TrainerCallback):
     """Callback to enforce training window and handle graceful shutdown"""
+
     def __init__(self, max_hours: int = 12):
         self.max_hours = max_hours
         self.start_time = None
@@ -83,9 +84,11 @@ class TimeConstraintCallback(TrainerCallback):
 
         return control
 
+
 def load_training_config(config_path: str) -> dict:
     with open(config_path) as f:
         return json.load(f)
+
 
 def load_tokenizer(model_name: str) -> AutoTokenizer:
     logger.info(f"Loading tokenizer: {model_name}")
@@ -93,6 +96,7 @@ def load_tokenizer(model_name: str) -> AutoTokenizer:
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side = "right"
     return tokenizer
+
 
 def preprocess_function(examples, tokenizer, max_seq_length: int):
     inputs = []
@@ -114,6 +118,7 @@ def preprocess_function(examples, tokenizer, max_seq_length: int):
         padding=False,
     )
 
+
 def main(config_path: str):
     try:
         config = load_training_config(config_path)
@@ -132,7 +137,10 @@ def main(config_path: str):
         logger.info("Loading datasets...")
         dataset_args = {}
         if config["data"]["train_file"].endswith(".jsonl"):
-            dataset_args["data_files"] = {"train": config["data"]["train_file"], "validation": config["data"]["validation_file"]}
+            dataset_args["data_files"] = {
+                "train": config["data"]["train_file"],
+                "validation": config["data"]["validation_file"],
+            }
             dataset = load_dataset("json", **dataset_args)
         else:
             # Assume local folder or other format
@@ -140,10 +148,12 @@ def main(config_path: str):
 
         logger.info("Preprocessing datasets...")
         tokenized_dataset = dataset.map(
-            lambda x: preprocess_function(examples=x, tokenizer=tokenizer, max_seq_length=config["data"]["max_seq_length"]),
+            lambda x: preprocess_function(
+                examples=x, tokenizer=tokenizer, max_seq_length=config["data"]["max_seq_length"]
+            ),
             batched=True,
             remove_columns=dataset["train"].column_names,
-            num_proc=config["data"]["preprocessing_num_workers"]
+            num_proc=config["data"]["preprocessing_num_workers"],
         )
 
         # Quantization Config
@@ -151,7 +161,7 @@ def main(config_path: str):
             load_in_4bit=config["model"]["load_in_4bit"],
             bnb_4bit_use_double_quant=True,
             bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16 if config["model"]["torch_dtype"] == "bfloat16" else torch.float16
+            bnb_4bit_compute_dtype=torch.bfloat16 if config["model"]["torch_dtype"] == "bfloat16" else torch.float16,
         )
 
         # Load Model
@@ -162,7 +172,7 @@ def main(config_path: str):
             device_map="auto",
             torch_dtype=torch.bfloat16 if config["model"]["torch_dtype"] == "bfloat16" else torch.float16,
             trust_remote_code=True,
-            use_flash_attention_2=torch.cuda.get_device_capability()[0] >= 8
+            use_flash_attention_2=torch.cuda.get_device_capability()[0] >= 8,
         )
 
         # Prepare for k-bit training
@@ -175,7 +185,7 @@ def main(config_path: str):
             target_modules=config["lora"]["target_modules"],
             lora_dropout=config["lora"]["lora_dropout"],
             bias=config["lora"]["bias"],
-            task_type=config["lora"]["task_type"]
+            task_type=config["lora"]["task_type"],
         )
         model = get_peft_model(model, lora_config)
         model.print_trainable_parameters()
@@ -217,7 +227,7 @@ def main(config_path: str):
             eval_dataset=tokenized_dataset["validation"],
             tokenizer=tokenizer,
             data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
-            callbacks=[TimeConstraintCallback(max_hours=12)]
+            callbacks=[TimeConstraintCallback(max_hours=12)],
         )
 
         # Start Training
@@ -235,8 +245,10 @@ def main(config_path: str):
         logger.error(f"❌ Training failed: {e!s}", exc_info=True)
         raise
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Llama 3.1 8B QLoRA Training Script")
     parser.add_argument("--config", type=str, default="ai/configs/llama3_1_qlora_h100.json", help="Path to config file")
     args = parser.parse_args()

@@ -20,9 +20,7 @@ logger = logging.getLogger(__name__)
 
 HTTP_ERROR_THRESHOLD = 400
 USER_AGENT = "CoreWeave-Forge-Client/1.0 (+https://docs.coreweave.com/forge-home)"
-TERMINAL_JOB_STATES = frozenset(
-    {"succeeded", "completed", "failed", "cancelled", "canceled", "error"}
-)
+TERMINAL_JOB_STATES = frozenset({"succeeded", "completed", "failed", "cancelled", "canceled", "error"})
 
 
 class ForgeAPIError(RuntimeError):
@@ -111,9 +109,7 @@ class CoreWeaveForgeClient:
         try:
             parsed = json.loads(raw.decode("utf-8"))
         except Exception as exc:
-            raise ForgeAPIError(
-                f"CoreWeave Forge API returned invalid JSON from {url}"
-            ) from exc
+            raise ForgeAPIError(f"CoreWeave Forge API returned invalid JSON from {url}") from exc
 
         if not isinstance(parsed, (dict, list)):
             raise ForgeAPIError(f"Unexpected response structure from {url}")
@@ -136,9 +132,7 @@ class CoreWeaveForgeClient:
         try:
             async with (
                 aiohttp.ClientSession(timeout=client_timeout) as session,
-                session.request(
-                    method, url, json=body, headers=headers
-                ) as response,
+                session.request(method, url, json=body, headers=headers) as response,
             ):
                 if response.status >= HTTP_ERROR_THRESHOLD:
                     raise ForgeAPIError(
@@ -156,9 +150,7 @@ class CoreWeaveForgeClient:
         try:
             parsed = json.loads(raw.decode("utf-8"))
         except Exception as exc:
-            raise ForgeAPIError(
-                f"CoreWeave Forge API returned invalid JSON from {url}"
-            ) from exc
+            raise ForgeAPIError(f"CoreWeave Forge API returned invalid JSON from {url}") from exc
 
         if not isinstance(parsed, (dict, list)):
             raise ForgeAPIError(f"Unexpected response structure from {url}")
@@ -172,18 +164,14 @@ class CoreWeaveForgeClient:
         if isinstance(resp, list):
             return [m for m in resp if isinstance(m, dict)]
         if isinstance(resp, dict):
-            catalog = resp.get(
-                "models", resp.get("data", {}).get("models", [])
-            )
+            catalog = resp.get("models", resp.get("data", {}).get("models", []))
             if isinstance(catalog, list):
                 return [m for m in catalog if isinstance(m, dict)]
         return []
 
     def get_inference_models(self) -> list[dict[str, Any]]:
         """List foundation models available on Serverless Inference."""
-        resp = self.request(
-            "GET", "/models", base_url=self.config.inference_api_base
-        )
+        resp = self.request("GET", "/models", base_url=self.config.inference_api_base)
         if isinstance(resp, dict) and "data" in resp:
             data = resp["data"]
             if isinstance(data, list):
@@ -216,9 +204,7 @@ class CoreWeaveForgeClient:
         }
         resp = self.request("POST", "/preview/models", body=payload)
         if not isinstance(resp, dict):
-            raise ForgeAPIError(
-                "Model creation response is not a valid JSON object"
-            )
+            raise ForgeAPIError("Model creation response is not a valid JSON object")
         return resp
 
     def create_sft_job(
@@ -277,16 +263,12 @@ class CoreWeaveForgeClient:
             status = self.get_job_status(job_id)
             if on_poll:
                 on_poll(status)
-            state = str(
-                status.get("status", status.get("state", "unknown"))
-            ).lower()
+            state = str(status.get("status", status.get("state", "unknown"))).lower()
             if state in TERMINAL_JOB_STATES:
                 return status
             time.sleep(poll_interval)
 
-        raise TimeoutError(
-            f"Job {job_id} did not complete within {max_timeout}s"
-        )
+        raise TimeoutError(f"Job {job_id} did not complete within {max_timeout}s")
 
     # ─── Smart Inference Router ────────────────────────────────────────
 
@@ -330,6 +312,4 @@ class CoreWeaveForgeClient:
             resp["_routed_endpoint"] = endpoint
             return resp
 
-        raise ForgeAPIError(
-            f"Unexpected non-object response from completion endpoint: {resp}"
-        )
+        raise ForgeAPIError(f"Unexpected non-object response from completion endpoint: {resp}")

@@ -519,7 +519,9 @@ def evaluation_fixture(item: dict[str, Any]) -> dict[str, Any]:
 
     if item["family"] == "appointment_explicit_consent":
         book_call = next(
-            call for message in item["messages"] for call in message.get("tool_calls", [])
+            call
+            for message in item["messages"]
+            for call in message.get("tool_calls", [])
             if call["function"]["name"] == "book_navigator_slot"
         )
         args = json.loads(book_call["function"]["arguments"])

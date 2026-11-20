@@ -135,8 +135,7 @@ _RATE_LIMIT_STATE = {"last_api_call": 0.0}
 _NONCANONICAL_KEYS = [key for key in PERSONA_PROFILES if key != key.strip()]
 if _NONCANONICAL_KEYS:
     raise ValueError(
-        "Non-canonical PERSONA_PROFILES keys detected "
-        f"(leading/trailing whitespace): {_NONCANONICAL_KEYS!r}"
+        f"Non-canonical PERSONA_PROFILES keys detected (leading/trailing whitespace): {_NONCANONICAL_KEYS!r}"
     )
 
 
@@ -239,9 +238,7 @@ def _chunk_transcript(text: str, chunk_size: int = 4000) -> list[str]:
     return chunks
 
 
-def distill_persona_chunk(
-    chunk: str, channel_name: str, persona_info: dict[str, str]
-) -> list[dict[str, Any]]:
+def distill_persona_chunk(chunk: str, channel_name: str, persona_info: dict[str, str]) -> list[dict[str, Any]]:
     system_prompt = (
         "You are an expert clinical training data generator specializing in distilling expert clinical transcripts "
         "into realistic in-session therapy dialogues.\n\n"

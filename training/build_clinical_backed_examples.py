@@ -54,19 +54,43 @@ SYSTEM_PROMPT = (
 
 # Remote benchmark corpora streamed via rclone cat (S3Streamer).
 BENCHMARK_ASSETS: tuple[dict[str, str], ...] = (
-    {"name": "clinical_redteam", "remote": "whitebat", "bucket": "whitebat",
-     "key": "training/ai-data/raw/clinical_redteam/clinical_redteam.jsonl"},
-    {"name": "crisis_benchmark", "remote": "whitebat", "bucket": "whitebat",
-     "key": "training/raw/crisis_benchmark/crisis_benchmark.jsonl"},
-    {"name": "safety_dpo_pairs_10k", "remote": "gdrive", "bucket": "pixeldata",
-     "key": "training/v1/stage3_stress_test/processed/safety_dpo_pairs_10k.jsonl"},
+    {
+        "name": "clinical_redteam",
+        "remote": "whitebat",
+        "bucket": "whitebat",
+        "key": "training/ai-data/raw/clinical_redteam/clinical_redteam.jsonl",
+    },
+    {
+        "name": "crisis_benchmark",
+        "remote": "whitebat",
+        "bucket": "whitebat",
+        "key": "training/raw/crisis_benchmark/crisis_benchmark.jsonl",
+    },
+    {
+        "name": "safety_dpo_pairs_10k",
+        "remote": "gdrive",
+        "bucket": "pixeldata",
+        "key": "training/v1/stage3_stress_test/processed/safety_dpo_pairs_10k.jsonl",
+    },
 )
 
 # Book-title keywords marking deep clinical/therapeutic content (-> Stage 2).
 CLINICAL_BOOK_KEYWORDS: tuple[str, ...] = (
-    "cptsd", "ptsd", "trauma", "internal family systems", "dialectical",
-    "dbt", "cbt", "dsm", "treating", "therapy", "clinical", "brain energy",
-    "psycho logical", "high conflict couple", "addiction",
+    "cptsd",
+    "ptsd",
+    "trauma",
+    "internal family systems",
+    "dialectical",
+    "dbt",
+    "cbt",
+    "dsm",
+    "treating",
+    "therapy",
+    "clinical",
+    "brain energy",
+    "psycho logical",
+    "high conflict couple",
+    "addiction",
 )
 
 # Stage routing for benchmark sources. safety_dpo's ``chosen`` response is SFT
@@ -189,11 +213,18 @@ def _emit(path: Path, record: dict) -> None:
 
 def _emit_rejection(path: Path, reason: str, record: dict) -> None:
     with path.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(
-            {"reason": reason, "sha256": record.get("sha256"),
-             "source": record.get("source"), "stage": record.get("stage")},
-            ensure_ascii=False,
-        ) + "\n")
+        f.write(
+            json.dumps(
+                {
+                    "reason": reason,
+                    "sha256": record.get("sha256"),
+                    "source": record.get("source"),
+                    "stage": record.get("stage"),
+                },
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
 
 
 def _load_existing_hashes(path: Path) -> set[str]:
@@ -265,8 +296,16 @@ def build(
     reject_path: Path = DEFAULT_REJECT,
 ) -> dict[str, int]:
     """Build the staging file; return a per-source/per-outcome summary."""
-    summary = {"books": 0, "benchmark": 0, "emitted": 0, "rejected": 0,
-               "duplicates": 0, "placeholders": 0, "stage1": 0, "stage2": 0}
+    summary = {
+        "books": 0,
+        "benchmark": 0,
+        "emitted": 0,
+        "rejected": 0,
+        "duplicates": 0,
+        "placeholders": 0,
+        "stage1": 0,
+        "stage2": 0,
+    }
     out_path.parent.mkdir(parents=True, exist_ok=True)
     reject_path.parent.mkdir(parents=True, exist_ok=True)
 

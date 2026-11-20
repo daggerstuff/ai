@@ -66,7 +66,7 @@ class KokoroChatAdapter(BaseDatasetAdapter):
                         "dialogue": dialogue,
                     }
                 )
-            except (json.JSONDecodeError, OSError):
+            except json.JSONDecodeError, OSError:
                 continue
         return records
 

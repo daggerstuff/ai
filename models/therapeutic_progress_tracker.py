@@ -7,15 +7,6 @@ Long-term, journal-style tracking of client therapeutic progress
 from datetime import datetime, timedelta, timezone
 
 
-
-
-
-
-
-
-
-
-
 import json
 import sqlite3
 from typing import Dict, List, Optional, Any, Tuple
@@ -27,6 +18,7 @@ import statistics
 
 class EmotionalState(Enum):
     """Client emotional states"""
+
     VERY_NEGATIVE = "very_negative"
     NEGATIVE = "negative"
     NEUTRAL = "neutral"
@@ -36,6 +28,7 @@ class EmotionalState(Enum):
 
 class ProgressTrajectory(Enum):
     """Overall progress trajectory"""
+
     IMPROVING = "improving"
     STABLE = "stable"
     REGRESSING = "regressing"
@@ -45,6 +38,7 @@ class ProgressTrajectory(Enum):
 @dataclass
 class TherapeuticGoal:
     """Individual therapeutic goal"""
+
     goal_id: str
     description: str
     target_date: Optional[datetime] = None
@@ -58,6 +52,7 @@ class TherapeuticGoal:
 @dataclass
 class SessionLog:
     """Individual therapy session log"""
+
     session_id: str
     client_id: str
     timestamp: datetime
@@ -77,6 +72,7 @@ class SessionLog:
 @dataclass
 class EmotionalTrend:
     """Emotional state trend over time"""
+
     start_date: datetime
     end_date: datetime
     avg_emotional_score: float  # -2 to +2
@@ -88,6 +84,7 @@ class EmotionalTrend:
 @dataclass
 class Milestone:
     """Therapeutic milestone"""
+
     milestone_id: str
     goal_id: str
     description: str
@@ -98,6 +95,7 @@ class Milestone:
 @dataclass
 class ProgressReport:
     """Comprehensive progress report"""
+
     client_id: str
     report_date: datetime
     timeframe_start: datetime
@@ -127,7 +125,7 @@ class TherapeuticProgressTracker:
         cursor = conn.cursor()
 
         # Sessions table
-        cursor.execute('''
+        cursor.execute("""
                        CREATE TABLE IF NOT EXISTS sessions (
                 session_id TEXT PRIMARY KEY,
                 client_id TEXT NOT NULL,
@@ -145,10 +143,10 @@ class TherapeuticProgressTracker:
                 metadata TEXT,
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
-                       ''')
+                       """)
 
         # Goals table
-        cursor.execute('''
+        cursor.execute("""
                        CREATE TABLE IF NOT EXISTS goals (
                 goal_id TEXT PRIMARY KEY,
                 client_id TEXT NOT NULL,
@@ -160,10 +158,10 @@ class TherapeuticProgressTracker:
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 updated_at TEXT DEFAULT CURRENT_TIMESTAMP
             )
-                       ''')
+                       """)
 
         # Milestones table
-        cursor.execute('''
+        cursor.execute("""
                        CREATE TABLE IF NOT EXISTS milestones (
                 milestone_id TEXT PRIMARY KEY,
                 goal_id TEXT NOT NULL,
@@ -174,13 +172,13 @@ class TherapeuticProgressTracker:
                 created_at TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (goal_id) REFERENCES goals(goal_id)
             )
-                       ''')
+                       """)
 
         # Create indexes
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_client ON sessions(client_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_sessions_timestamp ON sessions(timestamp)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_goals_client ON goals(client_id)')
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_milestones_client ON milestones(client_id)')
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_client ON sessions(client_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_sessions_timestamp ON sessions(timestamp)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_goals_client ON goals(client_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_milestones_client ON milestones(client_id)")
 
         conn.commit()
         conn.close()
@@ -190,29 +188,32 @@ class TherapeuticProgressTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute(
+            """
                        INSERT INTO sessions (
                 session_id, client_id, timestamp, conversation_summary,
                 emotional_state, therapeutic_goals, progress_notes,
                 therapist_observations, next_session_focus, session_duration_minutes,
                 techniques_used, homework_assigned, crisis_flags, metadata
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                       ''', (
-                           session.session_id,
-                           session.client_id,
-                           session.timestamp.isoformat(),
-                           session.conversation_summary,
-                           session.emotional_state.value,
-                           json.dumps(session.therapeutic_goals),
-                           session.progress_notes,
-                           session.therapist_observations,
-                           session.next_session_focus,
-                           session.session_duration_minutes,
-                           json.dumps(session.techniques_used),
-                           session.homework_assigned,
-                           json.dumps(session.crisis_flags),
-                           json.dumps(session.metadata)
-                       ))
+                       """,
+            (
+                session.session_id,
+                session.client_id,
+                session.timestamp.isoformat(),
+                session.conversation_summary,
+                session.emotional_state.value,
+                json.dumps(session.therapeutic_goals),
+                session.progress_notes,
+                session.therapist_observations,
+                session.next_session_focus,
+                session.session_duration_minutes,
+                json.dumps(session.techniques_used),
+                session.homework_assigned,
+                json.dumps(session.crisis_flags),
+                json.dumps(session.metadata),
+            ),
+        )
 
         conn.commit()
         conn.close()
@@ -222,20 +223,23 @@ class TherapeuticProgressTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute(
+            """
                        INSERT INTO goals (
                 goal_id, client_id, description, target_date,
                 completion_percentage, milestones, notes
             ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                       ''', (
-                           goal.goal_id,
-                           client_id,
-                           goal.description,
-                           goal.target_date.isoformat() if goal.target_date else None,
-                           goal.completion_percentage,
-                           json.dumps(goal.milestones),
-                           goal.notes
-                       ))
+                       """,
+            (
+                goal.goal_id,
+                client_id,
+                goal.description,
+                goal.target_date.isoformat() if goal.target_date else None,
+                goal.completion_percentage,
+                json.dumps(goal.milestones),
+                goal.notes,
+            ),
+        )
 
         conn.commit()
         conn.close()
@@ -245,13 +249,16 @@ class TherapeuticProgressTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute(
+            """
                        UPDATE goals
             SET completion_percentage = ?,
                 notes = ?,
                 updated_at = ?
             WHERE goal_id = ?
-                       ''', (completion_percentage, notes, datetime.now(timezone.utc).isoformat(), goal_id))
+                       """,
+            (completion_percentage, notes, datetime.now(timezone.utc).isoformat(), goal_id),
+        )
 
         conn.commit()
         conn.close()
@@ -261,49 +268,52 @@ class TherapeuticProgressTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute(
+            """
                        INSERT INTO milestones (
                 milestone_id, goal_id, client_id, description,
                 achieved_date, significance
             ) VALUES (?, ?, ?, ?, ?, ?)
-                       ''', (
-                           milestone.milestone_id,
-                           milestone.goal_id,
-                           client_id,
-                           milestone.description,
-                           milestone.achieved_date.isoformat() if milestone.achieved_date else None,
-                           milestone.significance
-                       ))
+                       """,
+            (
+                milestone.milestone_id,
+                milestone.goal_id,
+                client_id,
+                milestone.description,
+                milestone.achieved_date.isoformat() if milestone.achieved_date else None,
+                milestone.significance,
+            ),
+        )
 
         conn.commit()
         conn.close()
 
     def get_sessions(
-            self,
-            client_id: str,
-            start_date: Optional[datetime] = None,
-            end_date: Optional[datetime] = None,
-            limit: Optional[int] = None
+        self,
+        client_id: str,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+        limit: Optional[int] = None,
     ) -> List[SessionLog]:
         """Retrieve sessions for a client"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        query = 'SELECT * FROM sessions WHERE client_id = ?'
+        query = "SELECT * FROM sessions WHERE client_id = ?"
         params = [client_id]
 
         if start_date:
-            query += ' AND timestamp >= ?'
+            query += " AND timestamp >= ?"
             params.append(start_date.isoformat())
 
         if end_date:
-            query += ' AND timestamp <= ?'
+            query += " AND timestamp <= ?"
             params.append(end_date.isoformat())
 
-        query += ' ORDER BY timestamp DESC'
+        query += " ORDER BY timestamp DESC"
 
         if limit:
-            query += ' LIMIT ?'
+            query += " LIMIT ?"
             params.append(limit)
 
         cursor.execute(query, params)
@@ -312,22 +322,24 @@ class TherapeuticProgressTracker:
 
         sessions = []
         for row in rows:
-            sessions.append(SessionLog(
-                session_id=row[0],
-                client_id=row[1],
-                timestamp=datetime.fromisoformat(row[2]),
-                conversation_summary=row[3],
-                emotional_state=EmotionalState(row[4]),
-                therapeutic_goals=json.loads(row[5]),
-                progress_notes=row[6],
-                therapist_observations=row[7],
-                next_session_focus=row[8],
-                session_duration_minutes=row[9],
-                techniques_used=json.loads(row[10]),
-                homework_assigned=row[11],
-                crisis_flags=json.loads(row[12]),
-                metadata=json.loads(row[13])
-            ))
+            sessions.append(
+                SessionLog(
+                    session_id=row[0],
+                    client_id=row[1],
+                    timestamp=datetime.fromisoformat(row[2]),
+                    conversation_summary=row[3],
+                    emotional_state=EmotionalState(row[4]),
+                    therapeutic_goals=json.loads(row[5]),
+                    progress_notes=row[6],
+                    therapist_observations=row[7],
+                    next_session_focus=row[8],
+                    session_duration_minutes=row[9],
+                    techniques_used=json.loads(row[10]),
+                    homework_assigned=row[11],
+                    crisis_flags=json.loads(row[12]),
+                    metadata=json.loads(row[13]),
+                )
+            )
 
         return sessions
 
@@ -336,13 +348,13 @@ class TherapeuticProgressTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        query = 'SELECT * FROM goals WHERE client_id = ?'
+        query = "SELECT * FROM goals WHERE client_id = ?"
         params = [client_id]
 
         if active_only:
-            query += ' AND completion_percentage < 100.0'
+            query += " AND completion_percentage < 100.0"
 
-        query += ' ORDER BY created_at DESC'
+        query += " ORDER BY created_at DESC"
 
         cursor.execute(query, params)
         rows = cursor.fetchall()
@@ -350,24 +362,23 @@ class TherapeuticProgressTracker:
 
         goals = []
         for row in rows:
-            goals.append(TherapeuticGoal(
-                goal_id=row[0],
-                description=row[2],
-                target_date=datetime.fromisoformat(row[3]) if row[3] else None,
-                completion_percentage=row[4],
-                milestones=json.loads(row[5]),
-                notes=row[6],
-                created_at=datetime.fromisoformat(row[7]),
-                updated_at=datetime.fromisoformat(row[8])
-            ))
+            goals.append(
+                TherapeuticGoal(
+                    goal_id=row[0],
+                    description=row[2],
+                    target_date=datetime.fromisoformat(row[3]) if row[3] else None,
+                    completion_percentage=row[4],
+                    milestones=json.loads(row[5]),
+                    notes=row[6],
+                    created_at=datetime.fromisoformat(row[7]),
+                    updated_at=datetime.fromisoformat(row[8]),
+                )
+            )
 
         return goals
 
     def analyze_emotional_trends(
-            self,
-            client_id: str,
-            start_date: datetime,
-            end_date: datetime
+        self, client_id: str, start_date: datetime, end_date: datetime
     ) -> List[EmotionalTrend]:
         """Analyze emotional trends over time"""
         sessions = self.get_sessions(client_id, start_date, end_date)
@@ -381,7 +392,7 @@ class TherapeuticProgressTracker:
             EmotionalState.NEGATIVE: -1,
             EmotionalState.NEUTRAL: 0,
             EmotionalState.POSITIVE: 1,
-            EmotionalState.VERY_POSITIVE: 2
+            EmotionalState.VERY_POSITIVE: 2,
         }
 
         scores = [emotion_scores[s.emotional_state] for s in sessions]
@@ -392,8 +403,8 @@ class TherapeuticProgressTracker:
 
         # Determine trend direction
         if len(scores) >= 3:
-            first_half = scores[:len(scores) // 2]
-            second_half = scores[len(scores) // 2:]
+            first_half = scores[: len(scores) // 2]
+            second_half = scores[len(scores) // 2 :]
             first_avg = statistics.mean(first_half)
             second_avg = statistics.mean(second_half)
 
@@ -406,20 +417,18 @@ class TherapeuticProgressTracker:
         else:
             trend_direction = "insufficient_data"
 
-        return [EmotionalTrend(
-            start_date=start_date,
-            end_date=end_date,
-            avg_emotional_score=avg_score,
-            trend_direction=trend_direction,
-            volatility=volatility,
-            data_points=len(scores)
-        )]
+        return [
+            EmotionalTrend(
+                start_date=start_date,
+                end_date=end_date,
+                avg_emotional_score=avg_score,
+                trend_direction=trend_direction,
+                volatility=volatility,
+                data_points=len(scores),
+            )
+        ]
 
-    def generate_progress_report(
-            self,
-            client_id: str,
-            timeframe_days: int = 30
-    ) -> ProgressReport:
+    def generate_progress_report(self, client_id: str, timeframe_days: int = 30) -> ProgressReport:
         """Generate comprehensive progress report"""
         end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=timeframe_days)
@@ -457,48 +466,45 @@ class TherapeuticProgressTracker:
             key_milestones=milestones,
             overall_trajectory=trajectory,
             recommendations=recommendations,
-            summary=summary
+            summary=summary,
         )
 
-    def _get_milestones(
-            self,
-            client_id: str,
-            start_date: datetime,
-            end_date: datetime
-    ) -> List[Milestone]:
+    def _get_milestones(self, client_id: str, start_date: datetime, end_date: datetime) -> List[Milestone]:
         """Get milestones achieved in timeframe"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute('''
+        cursor.execute(
+            """
                        SELECT *
                        FROM milestones
                        WHERE client_id = ?
                          AND achieved_date >= ?
                          AND achieved_date <= ?
                        ORDER BY achieved_date DESC
-                       ''', (client_id, start_date.isoformat(), end_date.isoformat()))
+                       """,
+            (client_id, start_date.isoformat(), end_date.isoformat()),
+        )
 
         rows = cursor.fetchall()
         conn.close()
 
         milestones = []
         for row in rows:
-            milestones.append(Milestone(
-                milestone_id=row[0],
-                goal_id=row[1],
-                description=row[3],
-                achieved_date=datetime.fromisoformat(row[4]) if row[4] else None,
-                significance=row[5]
-            ))
+            milestones.append(
+                Milestone(
+                    milestone_id=row[0],
+                    goal_id=row[1],
+                    description=row[3],
+                    achieved_date=datetime.fromisoformat(row[4]) if row[4] else None,
+                    significance=row[5],
+                )
+            )
 
         return milestones
 
     def _determine_trajectory(
-            self,
-            sessions: List[SessionLog],
-            goals: List[TherapeuticGoal],
-            emotional_trends: List[EmotionalTrend]
+        self, sessions: List[SessionLog], goals: List[TherapeuticGoal], emotional_trends: List[EmotionalTrend]
     ) -> ProgressTrajectory:
         """Determine overall progress trajectory"""
         if not sessions or not emotional_trends:
@@ -525,10 +531,7 @@ class TherapeuticProgressTracker:
             return ProgressTrajectory.STABLE
 
     def _generate_recommendations(
-            self,
-            sessions: List[SessionLog],
-            goals: List[TherapeuticGoal],
-            emotional_trends: List[EmotionalTrend]
+        self, sessions: List[SessionLog], goals: List[TherapeuticGoal], emotional_trends: List[EmotionalTrend]
     ) -> List[str]:
         """Generate recommendations based on progress"""
         recommendations = []
@@ -547,8 +550,9 @@ class TherapeuticProgressTracker:
             recommendations.append("Consider crisis intervention protocols")
 
         # Check goal progress
-        stalled_goals = [g for g in goals if g.completion_percentage < 20 and
-                         (datetime.now(timezone.utc) - g.created_at).days > 30]
+        stalled_goals = [
+            g for g in goals if g.completion_percentage < 20 and (datetime.now(timezone.utc) - g.created_at).days > 30
+        ]
         if stalled_goals:
             recommendations.append("Re-evaluate stalled therapeutic goals")
 
@@ -564,11 +568,11 @@ class TherapeuticProgressTracker:
         return recommendations
 
     def _generate_summary(
-            self,
-            sessions: List[SessionLog],
-            goals: List[TherapeuticGoal],
-            emotional_trends: List[EmotionalTrend],
-            trajectory: ProgressTrajectory
+        self,
+        sessions: List[SessionLog],
+        goals: List[TherapeuticGoal],
+        emotional_trends: List[EmotionalTrend],
+        trajectory: ProgressTrajectory,
     ) -> str:
         """Generate progress summary"""
         if not sessions:
@@ -596,30 +600,23 @@ class TherapeuticProgressTracker:
 
         if active_goals:
             avg_progress = statistics.mean([g.completion_percentage for g in active_goals])
-            summary_parts.append(
-                f"Active goals showing {avg_progress:.1f}% average progress."
-            )
+            summary_parts.append(f"Active goals showing {avg_progress:.1f}% average progress.")
 
         # Overall trajectory
         summary_parts.append(f"Overall trajectory: {trajectory.value}.")
 
         return " ".join(summary_parts)
 
-    def export_client_history(
-            self,
-            client_id: str,
-            output_path: str,
-            format: str = "json"
-    ):
+    def export_client_history(self, client_id: str, output_path: str, format: str = "json"):
         """Export complete client history"""
         sessions = self.get_sessions(client_id)
         goals = self.get_goals(client_id, active_only=False)
 
         data = {
-            'client_id': client_id,
-            'export_date': datetime.now(timezone.utc).isoformat(),
-            'sessions': [asdict(s) for s in sessions],
-            'goals': [asdict(g) for g in goals]
+            "client_id": client_id,
+            "export_date": datetime.now(timezone.utc).isoformat(),
+            "sessions": [asdict(s) for s in sessions],
+            "goals": [asdict(g) for g in goals],
         }
 
         # Convert datetime objects to strings
@@ -636,7 +633,7 @@ class TherapeuticProgressTracker:
 
         data = convert_datetimes(data)
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(data, f, indent=2)
 
 
@@ -657,7 +654,7 @@ if __name__ == "__main__":
         therapeutic_goals=["goal_001"],
         progress_notes="Client showing improved coping skills",
         therapist_observations="Engaged and receptive",
-        next_session_focus="Practice mindfulness exercises"
+        next_session_focus="Practice mindfulness exercises",
     )
 
     tracker.log_session(session)
@@ -668,7 +665,7 @@ if __name__ == "__main__":
         goal_id="goal_001",
         description="Reduce anxiety symptoms",
         target_date=datetime.now(timezone.utc) + timedelta(days=90),
-        completion_percentage=25.0
+        completion_percentage=25.0,
     )
 
     tracker.create_goal("client_123", goal)

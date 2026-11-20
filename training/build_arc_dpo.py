@@ -136,7 +136,7 @@ def _load_plan(arc_id: str) -> dict[str, Any] | None:
         if isinstance(data, dict):
             return cast(dict[str, Any], data)
         return None
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return None
 
 

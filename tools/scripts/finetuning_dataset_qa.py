@@ -655,7 +655,6 @@ class QualityAssurance:
         }
 
 
-
 def main():
     """CLI entry point for QA checks."""
     import argparse
@@ -685,7 +684,6 @@ def main():
     report = qa.run_full_check(args.dataset_path)
 
     # Print summary
-
 
     if report.recommendations:
         for _rec in report.recommendations:

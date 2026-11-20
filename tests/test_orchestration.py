@@ -4,11 +4,8 @@ from orchestration.safety.guards import InputGuard, OutputGuard
 
 def test_state_machine_transitions():
     persona_def = {
-        "clinical_profile": {
-            "symptoms": [{"name": "pain", "severity": 7}],
-            "medical_history": "None"
-        },
-        "emotional_state": {"volatility": 5}
+        "clinical_profile": {"symptoms": [{"name": "pain", "severity": 7}], "medical_history": "None"},
+        "emotional_state": {"volatility": 5},
     }
     sm = PersonaStateMachine("test_session", persona_def)
 
@@ -23,12 +20,11 @@ def test_state_machine_transitions():
     sm.transition("perform_intervention")
     assert sm.current_state == State.ASSESSMENT
 
+
 def test_state_machine_escalation():
     persona_def = {
-        "clinical_profile": {
-            "symptoms": [{"name": "pain", "severity": 7}]
-        },
-        "emotional_state": {"volatility": 5}
+        "clinical_profile": {"symptoms": [{"name": "pain", "severity": 7}]},
+        "emotional_state": {"volatility": 5},
     }
     sm = PersonaStateMachine("test_session", persona_def)
 
@@ -45,6 +41,7 @@ def test_state_machine_escalation():
     assert sm.current_state == State.PRESENTATION
     assert sm.neglect_count == 0
 
+
 def test_input_guard_phi_sanitization():
     guard = InputGuard()
     user_input = "My SSN is 123-45-6789 and my email is test@example.com"
@@ -54,12 +51,14 @@ def test_input_guard_phi_sanitization():
     assert "[EMAIL]" in result.sanitized_text
     assert "123-45-6789" not in result.sanitized_text
 
+
 def test_input_guard_intent_detection():
     guard = InputGuard()
 
     assert guard.run("What is your medical history?").metadata["intent"] == "ask_history"
     assert guard.run("I will give you some medicine").metadata["intent"] == "perform_intervention"
     assert guard.run("Are you in pain?").metadata["intent"] == "address_pain"
+
 
 def test_output_guard_medical_accuracy():
     persona_def = {"metadata": {"name": "John"}}

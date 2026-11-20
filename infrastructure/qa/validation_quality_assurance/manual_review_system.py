@@ -499,7 +499,9 @@ class ManualReviewSystem:
         pending.sort(key=lambda x: (priority_order[x.priority], x.due_date))
         return pending
 
-    def get_review_results(self, conversation_id: str | None = None, reviewer_id: str | None = None) -> list[ReviewResult]:
+    def get_review_results(
+        self, conversation_id: str | None = None, reviewer_id: str | None = None
+    ) -> list[ReviewResult]:
         """Get review results with optional filtering"""
         results = list(self.reviews.values())
 

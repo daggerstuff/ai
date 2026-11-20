@@ -555,6 +555,7 @@ class TokenManager:
 
     def set_tokens(self, access_token, refresh_token, expires_in):
         import time
+
         self._access_token = access_token
         self._refresh_token = refresh_token
         self._token_expiry = time.time() + expires_in
@@ -567,6 +568,7 @@ class TokenManager:
 
     def is_token_expired(self):
         import time
+
         return self._token_expiry is None or time.time() > self._token_expiry
 
     def clear_tokens(self):
@@ -576,12 +578,14 @@ class TokenManager:
 
     def get_token_age(self):
         import time
+
         if self._token_expiry:
             return time.time() - (self._token_expiry - 3600)
         return 0
 
     def get_time_until_expiry(self):
         import time
+
         if self._token_expiry:
             return self._token_expiry - time.time()
         return 0
@@ -591,6 +595,7 @@ class TokenManager:
 
     def decode_token_payload(self, token):
         import json, base64
+
         try:
             parts = token.split(".")
             payload = parts[1]

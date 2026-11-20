@@ -16,6 +16,7 @@ Run (from ai/):
       [--seed-file PATH]... [--count 50] [--out-dir arc_plans] [--prefix arc]
       [--concurrency 2] [--retries 2] [--variation 1] [--dry-run]
 """
+
 import argparse
 import asyncio
 import json
@@ -32,9 +33,9 @@ import aiohttp
 from dotenv import load_dotenv
 
 _HERE = Path(__file__).resolve()
-_TRAIN_DIR = _HERE.parents[0]   # ai/training
-_AI_DIR = _HERE.parents[1]      # ai
-_REPO_DIR = _HERE.parents[2]    # pixelated
+_TRAIN_DIR = _HERE.parents[0]  # ai/training
+_AI_DIR = _HERE.parents[1]  # ai
+_REPO_DIR = _HERE.parents[2]  # pixelated
 sys.path.insert(0, str(_AI_DIR))
 load_dotenv(_REPO_DIR / ".env", override=True)
 
@@ -42,8 +43,7 @@ from training.featherless_keys import KeyPool, is_rotate_status  # noqa: E402
 from training.judge_edge_and_nightmare import record_key  # noqa: E402
 from training.lint_arc_plans import lint_batch, lint_plan  # noqa: E402
 
-PLAN_URL = os.environ.get(
-    "ARC_PLAN_URL", "https://api.cheaperinference.com/v1/chat/completions")
+PLAN_URL = os.environ.get("ARC_PLAN_URL", "https://api.cheaperinference.com/v1/chat/completions")
 PLAN_MODEL = os.environ.get("ARC_PLAN_MODEL", "deepseek-v4.1-flash")
 PLAN_KEY_ENV = os.environ.get("ARC_PLAN_KEY_ENV", "CHEAPERINFERENCE_API_KEY")
 PLAN_REASONING = (
@@ -138,7 +138,7 @@ Return ONLY the plan JSON object - no markdown fences, no commentary.
 class Job:
     arc_id: str
     jitter_seed: int
-    seed: dict       # seed descriptor from _make_seed
+    seed: dict  # seed descriptor from _make_seed
     out_dir: Path
     max_attempts: int
     system_prompt: str
@@ -152,6 +152,7 @@ class TransientPlanError(Exception):
 # ---------------------------------------------------------------------------
 # Seeds
 # ---------------------------------------------------------------------------
+
 
 def _format_transcript(messages: list[dict]) -> str:
     lines = []
@@ -167,18 +168,23 @@ def _format_transcript(messages: list[dict]) -> str:
 def _make_seed(r: dict, source_file: str) -> dict:
     prov = r.get("provenance") or {}
     if "scenario_id" in prov:
-        seed = {"source": "nightmare_scenarios",
-                "scenario_id": prov["scenario_id"],
-                "domain": "nightmare_fuel", "severity": "severe"}
+        seed = {
+            "source": "nightmare_scenarios",
+            "scenario_id": prov["scenario_id"],
+            "domain": "nightmare_fuel",
+            "severity": "severe",
+        }
         case = prov.get("title", "")
         extra = f"failure_mode: {prov.get('failure_mode', '?')}"
     else:
-        seed = {"source": "edge_cases", "scenario_id": None,
-                "domain": prov.get("domain", "unknown"),
-                "severity": prov.get("difficulty", "severe")}
+        seed = {
+            "source": "edge_cases",
+            "scenario_id": None,
+            "domain": prov.get("domain", "unknown"),
+            "severity": prov.get("difficulty", "severe"),
+        }
         case = prov.get("family", "")
-        extra = (f"difficulty: {prov.get('difficulty', '?')}, "
-                 f"ambiguity: {prov.get('ambiguity', '?')}")
+        extra = f"difficulty: {prov.get('difficulty', '?')}, ambiguity: {prov.get('ambiguity', '?')}"
     return {
         "key": record_key(r),
         "family": r.get("family", "unknown"),
@@ -228,11 +234,14 @@ def _pick_seeds(seeds: list[dict], count: int) -> list[dict]:
 # Prompts
 # ---------------------------------------------------------------------------
 
+
 def _system_prompt() -> str:
     example = json.loads(PILOT_EXAMPLE.read_text(encoding="utf-8"))
-    return (SYSTEM_PROMPT
-            + "\nWORKED EXAMPLE - a complete plan that passes lint:\n"
-            + json.dumps(example, indent=2, ensure_ascii=False))
+    return (
+        SYSTEM_PROMPT
+        + "\nWORKED EXAMPLE - a complete plan that passes lint:\n"
+        + json.dumps(example, indent=2, ensure_ascii=False)
+    )
 
 
 def _user_prompt(job: Job, s: dict) -> str:
@@ -244,11 +253,14 @@ def _user_prompt(job: Job, s: dict) -> str:
             "the same case - different client persona, different surface "
             "subject, different beat mix, different session shape. Keep the "
             "case's central conflict and failure mode; do not reuse the "
-            "earlier arc's treatment. Return ONLY the plan JSON object.")
+            "earlier arc's treatment. Return ONLY the plan JSON object."
+        )
     else:
-        closing = ("Build the arc around THIS case: its conflict, its "
-                   "failure mode, its voice. Do not invent a different "
-                   "central problem. Return ONLY the plan JSON object.")
+        closing = (
+            "Build the arc around THIS case: its conflict, its "
+            "failure mode, its voice. Do not invent a different "
+            "central problem. Return ONLY the plan JSON object."
+        )
     return (
         "WRITE ONE ARC PLAN.\n\n"
         f"arc_id (use exactly): {job.arc_id}\n"
@@ -270,9 +282,11 @@ def _user_prompt(job: Job, s: dict) -> str:
 
 def _feedback(errors: list[str]) -> str:
     lines = "\n".join(f"- {e}" for e in errors)
-    return ("Your previous plan failed validation:\n"
-            f"{lines}\n\nFix every issue and return the corrected plan "
-            "JSON object only.")
+    return (
+        "Your previous plan failed validation:\n"
+        f"{lines}\n\nFix every issue and return the corrected plan "
+        "JSON object only."
+    )
 
 
 def _extract_json(content: str) -> dict:
@@ -283,7 +297,7 @@ def _extract_json(content: str) -> dict:
     start, end = content.find("{"), content.rfind("}")
     if start == -1 or end <= start:
         raise ValueError("no JSON object in response")
-    return json.loads(content[start:end + 1])
+    return json.loads(content[start : end + 1])
 
 
 def _canonize(plan: dict, job: Job) -> None:
@@ -303,9 +317,10 @@ def _write_plan(path: Path, plan: dict) -> None:
 # Planner call
 # ---------------------------------------------------------------------------
 
-async def call_planner(session: aiohttp.ClientSession, api_key: str,
-                       system_prompt: str,
-                       user_prompt: str) -> tuple[str, dict]:
+
+async def call_planner(
+    session: aiohttp.ClientSession, api_key: str, system_prompt: str, user_prompt: str
+) -> tuple[str, dict]:
     """Single attempt. Raises TransientPlanError on retryable failures,
     RuntimeError on fatal config problems."""
     payload = {
@@ -319,23 +334,19 @@ async def call_planner(session: aiohttp.ClientSession, api_key: str,
         "response_format": {"type": "json_object"},
         **PLAN_REASONING,
     }
-    headers = {"Authorization": f"Bearer {api_key}",
-               "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     timeout = aiohttp.ClientTimeout(total=CALL_TIMEOUT)
     try:
-        async with session.post(PLAN_URL, json=payload, headers=headers,
-                                timeout=timeout) as resp:
+        async with session.post(PLAN_URL, json=payload, headers=headers, timeout=timeout) as resp:
             status = resp.status
             if status in (401, 403, 404):
                 body = await resp.text()
-                raise RuntimeError(f"planner config error http_{status}: "
-                                   f"{body[:300]}")
+                raise RuntimeError(f"planner config error http_{status}: {body[:300]}")
             if status != HTTP_OK:
                 raise TransientPlanError(f"http_{status}")
             data = await resp.json(content_type=None)
     except (aiohttp.ClientError, TimeoutError) as e:
-        raise TransientPlanError(f"transport_error: {type(e).__name__}") \
-            from e
+        raise TransientPlanError(f"transport_error: {type(e).__name__}") from e
     if "choices" not in data or not data["choices"]:
         raise TransientPlanError("empty_response_no_choices")
     choice = data["choices"][0]
@@ -347,20 +358,19 @@ async def call_planner(session: aiohttp.ClientSession, api_key: str,
     return content, data.get("usage", {})
 
 
-async def _call_with_retry(session: aiohttp.ClientSession, pool: "KeyPool",
-                           job: Job, user_prompt: str) -> tuple[str, dict]:
+async def _call_with_retry(
+    session: aiohttp.ClientSession, pool: "KeyPool", job: Job, user_prompt: str
+) -> tuple[str, dict]:
     backoff = 5.0
     for attempt in range(1, TRANSPORT_ATTEMPTS + 1):
         try:
-            return await call_planner(session, pool.current(),
-                                      job.system_prompt, user_prompt)
+            return await call_planner(session, pool.current(), job.system_prompt, user_prompt)
         except TransientPlanError as e:
             if attempt == TRANSPORT_ATTEMPTS:
                 raise
             if is_rotate_status(str(e)) and len(pool) > 1:
                 pool.rotate()
-                print(f"    [key-rotate] {e} - switched to "
-                      f"...{pool.current()[-8:]}", flush=True)
+                print(f"    [key-rotate] {e} - switched to ...{pool.current()[-8:]}", flush=True)
             await asyncio.sleep(backoff)
             backoff = min(backoff * 2, 40.0)
     raise TransientPlanError("unreachable")
@@ -370,12 +380,13 @@ async def _call_with_retry(session: aiohttp.ClientSession, pool: "KeyPool",
 # Per-plan build
 # ---------------------------------------------------------------------------
 
+
 def _exists_clean(path: Path) -> bool:
     if not path.exists():
         return False
     try:
         existing = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except OSError, json.JSONDecodeError:
         return False
     return not lint_plan(existing)[0]
 
@@ -400,27 +411,27 @@ def _load_claimed_keys(out_dir: Path) -> set[str]:
     return keys
 
 
-def _scope_variation_keys(seeds: list[dict[str, Any]], claimed: set[str],
-                          variation: int) -> list[dict[str, Any]]:
+def _scope_variation_keys(seeds: list[dict[str, Any]], claimed: set[str], variation: int) -> list[dict[str, Any]]:
     """Annotate seeds with their variation-scoped seed_map key and drop
     seeds already claimed on this pass (variation 1 blocks base keys;
     pass N blocks only keys claimed by pass N)."""
     for s in seeds:
-        s["map_key"] = (s["key"] if variation == 1
-                        else f"{s['key']}:v{variation}")
-    blocked = claimed if variation == 1 else {
-        k for k in claimed if k.endswith(f":v{variation}")}
+        s["map_key"] = s["key"] if variation == 1 else f"{s['key']}:v{variation}"
+    blocked = claimed if variation == 1 else {k for k in claimed if k.endswith(f":v{variation}")}
     return [s for s in seeds if s["map_key"] not in blocked]
 
 
-async def _attempt_plan(session: aiohttp.ClientSession, pool: "KeyPool",
-                        job: Job, user_prompt: str, counters: dict[str, int],
-                        ) -> tuple[dict[str, Any] | None, list[str]]:
+async def _attempt_plan(
+    session: aiohttp.ClientSession,
+    pool: "KeyPool",
+    job: Job,
+    user_prompt: str,
+    counters: dict[str, int],
+) -> tuple[dict[str, Any] | None, list[str]]:
     """One generation attempt. Returns (plan, lint_errors); plan is None on
     API failure (errors then describe the failure)."""
     try:
-        content, usage = await _call_with_retry(session, pool, job,
-                                                user_prompt)
+        content, usage = await _call_with_retry(session, pool, job, user_prompt)
     except TransientPlanError as e:
         return None, [f"api failure after transport retries: {e}"]
     except RuntimeError as e:
@@ -434,28 +445,25 @@ async def _attempt_plan(session: aiohttp.ClientSession, pool: "KeyPool",
     return plan, lint_plan(plan)[0]
 
 
-async def build_one(session: aiohttp.ClientSession, pool: "KeyPool",
-                    semaphore: asyncio.Semaphore, job: Job,
-                    counters: dict[str, int]) -> str:
+async def build_one(
+    session: aiohttp.ClientSession, pool: "KeyPool", semaphore: asyncio.Semaphore, job: Job, counters: dict[str, int]
+) -> str:
     path = job.out_dir / f"{job.arc_id}.json"
     async with semaphore:
         if _exists_clean(path):
             counters["skipped"] += 1
-            print(f"  {job.arc_id}: SKIP (already on disk, lint-clean)",
-                  flush=True)
+            print(f"  {job.arc_id}: SKIP (already on disk, lint-clean)", flush=True)
             return "skipped"
         user_prompt = _user_prompt(job, job.seed)
         for attempt in range(1, job.max_attempts + 1):
-            plan, errors = await _attempt_plan(session, pool, job,
-                                               user_prompt, counters)
+            plan, errors = await _attempt_plan(session, pool, job, user_prompt, counters)
             if plan is None:
                 counters["failed"] += 1
                 print(f"  {job.arc_id}: FAILED ({errors[0]})", flush=True)
                 return "failed"
             if errors:
                 counters["lint_retries"] += 1
-                print(f"  {job.arc_id}: lint attempt {attempt} failed "
-                      f"({len(errors)} errors)", flush=True)
+                print(f"  {job.arc_id}: lint attempt {attempt} failed ({len(errors)} errors)", flush=True)
                 user_prompt += _feedback(errors)
                 continue
             _write_plan(path, plan)
@@ -463,24 +471,24 @@ async def build_one(session: aiohttp.ClientSession, pool: "KeyPool",
             print(f"  {job.arc_id}: OK (attempt {attempt})", flush=True)
             return "written"
         counters["failed"] += 1
-        print(f"  {job.arc_id}: FAILED (lint after {job.max_attempts} "
-              f"attempts)", flush=True)
+        print(f"  {job.arc_id}: FAILED (lint after {job.max_attempts} attempts)", flush=True)
         return "failed"
 
 
-async def _generate(jobs: list[Job], pool: "KeyPool", counters: dict[str, int],
-                    concurrency: int) -> list[str]:
+async def _generate(jobs: list[Job], pool: "KeyPool", counters: dict[str, int], concurrency: int) -> list[str]:
     semaphore = asyncio.Semaphore(concurrency)
     async with aiohttp.ClientSession() as session:
-        return list(await asyncio.gather(
-            *(build_one(session, pool, semaphore, job, counters)
-              for job in jobs),
-            return_exceptions=False))
+        return list(
+            await asyncio.gather(
+                *(build_one(session, pool, semaphore, job, counters) for job in jobs), return_exceptions=False
+            )
+        )
 
 
 # ---------------------------------------------------------------------------
 # W&B (guarded)
 # ---------------------------------------------------------------------------
+
 
 def _maybe_init_wandb(config: dict[str, Any]) -> Any:
     try:
@@ -489,24 +497,32 @@ def _maybe_init_wandb(config: dict[str, Any]) -> Any:
         return None
     if not os.environ.get("WANDB_API_KEY", ""):
         return None
-    return wandb.init(project="pixelated-empathy-kan28",
-                      name=f"arc-plan-build-{time.strftime('%Y%m%d-%H%M%S')}",
-                      job_type="arc_plan_build", config=config)
+    return wandb.init(
+        project="pixelated-empathy-kan28",
+        name=f"arc-plan-build-{time.strftime('%Y%m%d-%H%M%S')}",
+        job_type="arc_plan_build",
+        config=config,
+    )
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
+
 def _write_seed_map(out_dir: Path, jobs: list[Job], statuses: list[str]) -> None:
     path = out_dir / "seed_map.jsonl"
     with path.open("a", encoding="utf-8") as f:
         for job, status in zip(jobs, statuses, strict=True):
-            row = {"arc_id": job.arc_id,
-                   "key": job.seed.get("map_key", job.seed["key"]),
-                   "family": job.seed["family"], "seed": job.seed["seed"],
-                   "source_file": job.seed["source_file"],
-                   "jitter_seed": job.jitter_seed, "status": status}
+            row = {
+                "arc_id": job.arc_id,
+                "key": job.seed.get("map_key", job.seed["key"]),
+                "family": job.seed["family"],
+                "seed": job.seed["seed"],
+                "source_file": job.seed["source_file"],
+                "jitter_seed": job.jitter_seed,
+                "status": status,
+            }
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
         f.flush()
         os.fsync(f.fileno())
@@ -526,33 +542,40 @@ def _lint_directory(out_dir: Path) -> int:
         print(f"  ERROR: {m}")
     for m in warnings:
         print(f"  WARN:  {m}")
-    print(f"\n{out_dir.name}: {len(plans)} plans, {len(errors)} errors, "
-          f"{len(warnings)} warnings")
+    print(f"\n{out_dir.name}: {len(plans)} plans, {len(errors)} errors, {len(warnings)} warnings")
     return 1 if errors else 0
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(
-        description="Generate arc plans from approved NF/edge seed cases.")
-    ap.add_argument("--seed-file", action="append", default=None,
-                    help="approved record .jsonl (repeatable; default: the "
-                         "two approved staging files)")
+    ap = argparse.ArgumentParser(description="Generate arc plans from approved NF/edge seed cases.")
+    ap.add_argument(
+        "--seed-file",
+        action="append",
+        default=None,
+        help="approved record .jsonl (repeatable; default: the two approved staging files)",
+    )
     ap.add_argument("--count", type=int, default=50)
     ap.add_argument("--out-dir", default=str(PLANS_DIR))
     ap.add_argument("--prefix", default="arc")
     ap.add_argument("--concurrency", type=int, default=CONCURRENCY)
-    ap.add_argument("--retries", type=int, default=2,
-                    help="lint-feedback retries per plan (default 2)")
-    ap.add_argument("--start", type=int, default=1,
-                    help="1-based starting index for arc_id / era_jitter "
-                         "numbering (resume: after arc_0001..arc_0003, "
-                         "run --count 47 --start 4)")
-    ap.add_argument("--variation", type=int, default=1,
-                    help="seed-reuse pass (1 = fresh seeds only; N>=2 "
-                         "reuses seeds claimed by earlier passes under a "
-                         "distinctly suffixed seed_map key)")
-    ap.add_argument("--dry-run", action="store_true",
-                    help="print the seed selection; no API calls, no writes")
+    ap.add_argument("--retries", type=int, default=2, help="lint-feedback retries per plan (default 2)")
+    ap.add_argument(
+        "--start",
+        type=int,
+        default=1,
+        help="1-based starting index for arc_id / era_jitter "
+        "numbering (resume: after arc_0001..arc_0003, "
+        "run --count 47 --start 4)",
+    )
+    ap.add_argument(
+        "--variation",
+        type=int,
+        default=1,
+        help="seed-reuse pass (1 = fresh seeds only; N>=2 "
+        "reuses seeds claimed by earlier passes under a "
+        "distinctly suffixed seed_map key)",
+    )
+    ap.add_argument("--dry-run", action="store_true", help="print the seed selection; no API calls, no writes")
     args = ap.parse_args(argv)
 
     seed_files = [Path(x) for x in (args.seed_file or DEFAULT_SEED_FILES)]
@@ -560,76 +583,89 @@ def main(argv: list[str] | None = None) -> int:
         if not f.is_file():
             print(f"error: seed file not found: {f}", file=sys.stderr)
             return 2
-    if args.count < 1 or args.concurrency < 1 or args.retries < 0 \
-            or args.start < 1 or args.variation < 1:
-        print("error: invalid --count/--concurrency/--retries/--start/"
-              "--variation",
-              file=sys.stderr)
+    if args.count < 1 or args.concurrency < 1 or args.retries < 0 or args.start < 1 or args.variation < 1:
+        print("error: invalid --count/--concurrency/--retries/--start/--variation", file=sys.stderr)
         return 2
 
     out_dir = Path(args.out_dir)
     claimed = _load_claimed_keys(out_dir)
-    seeds = _scope_variation_keys(_load_seeds(seed_files), claimed,
-                                  args.variation)
+    seeds = _scope_variation_keys(_load_seeds(seed_files), claimed, args.variation)
     if claimed:
-        print(f"resume: {len(claimed)} claimed rows on disk, {len(seeds)} "
-              f"seeds available on variation pass {args.variation}",
-              flush=True)
+        print(
+            f"resume: {len(claimed)} claimed rows on disk, {len(seeds)} "
+            f"seeds available on variation pass {args.variation}",
+            flush=True,
+        )
     if args.count > len(seeds):
-        print(f"error: --count {args.count} > {len(seeds)} available seeds",
-              file=sys.stderr)
+        print(f"error: --count {args.count} > {len(seeds)} available seeds", file=sys.stderr)
         return 2
     picked = _pick_seeds(seeds, args.count)
 
     if args.dry_run:
         system = _system_prompt()
-        prompt_chars = sum(len(_user_prompt(
-            Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir,
-                0, system, args.variation), s))
-            for i, s in enumerate(picked, start=args.start))
-        print(f"dry-run: {len(picked)} seeds (variation {args.variation}), "
-              f"model={PLAN_MODEL}, "
-              f"system={len(system)} chars, user total={prompt_chars} chars")
+        prompt_chars = sum(
+            len(
+                _user_prompt(
+                    Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir, 0, system, args.variation), s
+                )
+            )
+            for i, s in enumerate(picked, start=args.start)
+        )
+        print(
+            f"dry-run: {len(picked)} seeds (variation {args.variation}), "
+            f"model={PLAN_MODEL}, "
+            f"system={len(system)} chars, user total={prompt_chars} chars"
+        )
         for i, s in enumerate(picked, start=args.start):
-            print(f"  {args.prefix}_{i:04d}  {s['family'][:30]:30}  "
-                  f"{s['map_key']}")
+            print(f"  {args.prefix}_{i:04d}  {s['family'][:30]:30}  {s['map_key']}")
         return 0
 
     out_dir.mkdir(parents=True, exist_ok=True)
     pool = KeyPool(PLAN_KEY_ENV)
     system = _system_prompt()
-    jobs = [Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir,
-                args.retries + 1, system, args.variation)
-            for i, s in enumerate(picked, start=args.start)]
-    counters = {"written": 0, "skipped": 0, "failed": 0,
-                "lint_retries": 0, "tokens": 0}
+    jobs = [
+        Job(f"{args.prefix}_{i:04d}", JITTER_SEED_BASE + i, s, out_dir, args.retries + 1, system, args.variation)
+        for i, s in enumerate(picked, start=args.start)
+    ]
+    counters = {"written": 0, "skipped": 0, "failed": 0, "lint_retries": 0, "tokens": 0}
 
     print("=== ARC PLAN BUILDER ===", flush=True)
-    print(f"seeds={len(picked)} model={PLAN_MODEL} temp={TEMPERATURE} "
-          f"max_tokens={MAX_TOKENS} concurrency={args.concurrency} "
-          f"attempts={args.retries + 1}", flush=True)
+    print(
+        f"seeds={len(picked)} model={PLAN_MODEL} temp={TEMPERATURE} "
+        f"max_tokens={MAX_TOKENS} concurrency={args.concurrency} "
+        f"attempts={args.retries + 1}",
+        flush=True,
+    )
     print(f"gateway: {pool.describe()}", flush=True)
 
-    run = _maybe_init_wandb({
-        "model": PLAN_MODEL, "temperature": TEMPERATURE,
-        "max_tokens": MAX_TOKENS, "count": len(picked),
-        "prefix": args.prefix, "concurrency": args.concurrency,
-        "retries": args.retries, "variation": args.variation,
-        "seed_files": [str(p) for p in seed_files],
-    })
+    run = _maybe_init_wandb(
+        {
+            "model": PLAN_MODEL,
+            "temperature": TEMPERATURE,
+            "max_tokens": MAX_TOKENS,
+            "count": len(picked),
+            "prefix": args.prefix,
+            "concurrency": args.concurrency,
+            "retries": args.retries,
+            "variation": args.variation,
+            "seed_files": [str(p) for p in seed_files],
+        }
+    )
     t0 = time.monotonic()
     try:
-        statuses = asyncio.run(_generate(jobs, pool, counters,
-                                         args.concurrency))
+        statuses = asyncio.run(_generate(jobs, pool, counters, args.concurrency))
     finally:
         if run:
             run.log({**counters, "wall_s": round(time.monotonic() - t0, 1)})
             run.finish()
 
-    print(f"\ndone in {round(time.monotonic() - t0, 1)}s - "
-          f"written={counters['written']} skipped={counters['skipped']} "
-          f"failed={counters['failed']} lint_retries={counters['lint_retries']} "
-          f"tokens={counters['tokens']}", flush=True)
+    print(
+        f"\ndone in {round(time.monotonic() - t0, 1)}s - "
+        f"written={counters['written']} skipped={counters['skipped']} "
+        f"failed={counters['failed']} lint_retries={counters['lint_retries']} "
+        f"tokens={counters['tokens']}",
+        flush=True,
+    )
     _write_seed_map(out_dir, jobs, statuses)
     return _lint_directory(out_dir)
 

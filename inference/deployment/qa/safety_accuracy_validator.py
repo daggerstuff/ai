@@ -30,7 +30,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from sklearn.metrics import (
-
     accuracy_score,
     confusion_matrix,
     f1_score,
@@ -148,7 +147,7 @@ class ClinicalValidationDataset:
     def __init__(self, config: SafetyValidationConfig):
         self.config = config
         self.scenarios: list[ValidationScenario] = []
-        self.data_path = (_PROJECT_ROOT / "ai" / "data" / "clinical_validation")
+        self.data_path = _PROJECT_ROOT / "ai" / "data" / "clinical_validation"
         self.data_path.mkdir(parents=True, exist_ok=True)
 
     async def load_clinical_scenarios(self) -> list[ValidationScenario]:
@@ -504,7 +503,7 @@ class SafetyAccuracyValidator:
         """Generate comprehensive validation report"""
         logger.info("Generating safety validation report...")
 
-        report_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/reports")
+        report_path = _PROJECT_ROOT / "ai" / "inference/deployment/qa/reports"
         report_path.mkdir(parents=True, exist_ok=True)
 
         # Generate detailed report
@@ -561,7 +560,7 @@ class SafetyAccuracyValidator:
 
     async def _generate_validation_visualizations(self):
         """Generate validation visualizations"""
-        viz_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/reports/visualizations")
+        viz_path = _PROJECT_ROOT / "ai" / "inference/deployment/qa/reports/visualizations"
         viz_path.mkdir(parents=True, exist_ok=True)
 
         # Accuracy by demographic group

@@ -175,9 +175,7 @@ def _coerce_content(content) -> str:
 def _extract_text(record: dict) -> str:
     messages = record.get("messages", [])
     if messages:
-        return " ".join(
-            _coerce_content(m.get("content", "")) for m in messages if isinstance(m, dict)
-        )
+        return " ".join(_coerce_content(m.get("content", "")) for m in messages if isinstance(m, dict))
     if record.get("prompt") and record.get("chosen") and record.get("rejected"):
         return f"{record['prompt']} {record['chosen']} {record['rejected']}"
     return f"{record.get('instruction', '')} {record.get('output', '')}"
@@ -362,7 +360,7 @@ class V7Deduplicator:
             self.stats.lsh_comparisons += result.candidates_checked
             return result.is_duplicate
 
-        window = self._token_sets[-self.near_dedup_window:] if self.near_dedup_window > 0 else self._token_sets
+        window = self._token_sets[-self.near_dedup_window :] if self.near_dedup_window > 0 else self._token_sets
 
         for seen_tokens, seen_hash in window:
             if seen_hash == content_hash:

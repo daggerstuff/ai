@@ -208,25 +208,15 @@ class ModelEvaluator:
         predicted_text = self._generate_response(input_text, memories)
 
         # Compute metrics
-        memory_precision, memory_recall = self._compute_memory_metrics(
-            predicted_text, memories
-        )
+        memory_precision, memory_recall = self._compute_memory_metrics(predicted_text, memories)
 
-        relevance_score = self._compute_relevance_score(
-            predicted_text, target_text
-        )
+        relevance_score = self._compute_relevance_score(predicted_text, target_text)
 
-        generation_quality = self._compute_generation_quality(
-            predicted_text, target_text
-        )
+        generation_quality = self._compute_generation_quality(predicted_text, target_text)
 
-        context_relevance = self._compute_context_relevance(
-            predicted_text, input_text
-        )
+        context_relevance = self._compute_context_relevance(predicted_text, input_text)
 
-        reflection_quality = self._compute_reflection_quality(
-            predicted_text, example_type
-        )
+        reflection_quality = self._compute_reflection_quality(predicted_text, example_type)
 
         return EvaluationResult(
             example_id=example_id,
@@ -250,10 +240,7 @@ class ModelEvaluator:
         """Generate response from model."""
         # Format input with memory context
         if memories:
-            memory_context = "\n".join(
-                f"[{m.get('category', 'general')}] {m.get('content', '')}"
-                for m in memories[:5]
-            )
+            memory_context = "\n".join(f"[{m.get('category', 'general')}] {m.get('content', '')}" for m in memories[:5])
             full_input = f"Relevant memories:\n{memory_context}\n\n{input_text}"
         else:
             full_input = input_text
@@ -281,7 +268,7 @@ class ModelEvaluator:
 
         # Decode
         response = self.tokenizer.decode(
-            outputs[0][inputs["input_ids"].shape[1]:],
+            outputs[0][inputs["input_ids"].shape[1] :],
             skip_special_tokens=True,
         )
 
@@ -378,13 +365,18 @@ class ModelEvaluator:
 
         # Check for reflection indicators
         reflection_indicators = [
-            "insight", "reflect", "understand", "learned",
-            "pattern", "awareness", "realize", "growth"
+            "insight",
+            "reflect",
+            "understand",
+            "learned",
+            "pattern",
+            "awareness",
+            "realize",
+            "growth",
         ]
 
         predicted_lower = predicted_text.lower()
-        matches = sum(1 for indicator in reflection_indicators
-                     if indicator in predicted_lower)
+        matches = sum(1 for indicator in reflection_indicators if indicator in predicted_lower)
 
         quality = matches / len(reflection_indicators)
 
@@ -408,31 +400,19 @@ class ModelEvaluator:
             )
 
         # Compute averages
-        avg_memory_precision = statistics.mean(
-            r.memory_recall_precision for r in results
-        )
-        avg_memory_recall = statistics.mean(
-            r.memory_recall_recall for r in results
-        )
-        avg_memory_relevance = statistics.mean(
-            r.memory_relevance_score for r in results
-        )
-        avg_generation_quality = statistics.mean(
-            r.generation_quality for r in results
-        )
-        avg_context_relevance = statistics.mean(
-            r.context_relevance for r in results
-        )
-        avg_reflection_quality = statistics.mean(
-            r.reflection_quality for r in results
-        )
+        avg_memory_precision = statistics.mean(r.memory_recall_precision for r in results)
+        avg_memory_recall = statistics.mean(r.memory_recall_recall for r in results)
+        avg_memory_relevance = statistics.mean(r.memory_relevance_score for r in results)
+        avg_generation_quality = statistics.mean(r.generation_quality for r in results)
+        avg_context_relevance = statistics.mean(r.context_relevance for r in results)
+        avg_reflection_quality = statistics.mean(r.reflection_quality for r in results)
 
         # Overall score (weighted average)
         overall_score = (
-            avg_memory_precision * 0.25 +
-            avg_memory_recall * 0.25 +
-            avg_generation_quality * 0.25 +
-            avg_context_relevance * 0.25
+            avg_memory_precision * 0.25
+            + avg_memory_recall * 0.25
+            + avg_generation_quality * 0.25
+            + avg_context_relevance * 0.25
         )
 
         return EvaluationReport(
@@ -450,14 +430,11 @@ class ModelEvaluator:
         )
 
 
-
 def main():
     """CLI entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Evaluate fine-tuned model"
-    )
+    parser = argparse.ArgumentParser(description="Evaluate fine-tuned model")
 
     parser.add_argument(
         "--model-path",

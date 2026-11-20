@@ -176,7 +176,9 @@ def load_rewrite_records(path: Path = REWRITE_PATH) -> list[dict[str, Any]]:
     return list(records.values())
 
 
-def _validate_turn(record: dict[str, Any], row: dict[str, Any], old_number: int) -> tuple[str, dict[str, Any] | None, str]:
+def _validate_turn(
+    record: dict[str, Any], row: dict[str, Any], old_number: int
+) -> tuple[str, dict[str, Any] | None, str]:
     """Check the record describes an assistant turn of the row; return its split content."""
     messages = row.get("messages")
     if not isinstance(messages, list):

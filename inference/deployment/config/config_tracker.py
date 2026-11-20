@@ -92,7 +92,12 @@ class ConfigTracker:
             self._save_snapshots([])
 
     def track_change(
-        self, file_path: str, change_type: str, description: str = "", user: str | None = None, environment: str | None = None
+        self,
+        file_path: str,
+        change_type: str,
+        description: str = "",
+        user: str | None = None,
+        environment: str | None = None,
     ) -> str:
         """Track a configuration change"""
         file_path = str(Path(file_path).resolve())
@@ -524,7 +529,7 @@ class ConfigTracker:
         try:
             with open(self.changes_file) as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except FileNotFoundError, json.JSONDecodeError:
             return []
 
     def _save_changes(self, changes: list[dict[str, Any]]):
@@ -543,7 +548,7 @@ class ConfigTracker:
         try:
             with open(self.snapshots_file) as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except FileNotFoundError, json.JSONDecodeError:
             return []
 
     def _save_snapshots(self, snapshots: list[dict[str, Any]]):

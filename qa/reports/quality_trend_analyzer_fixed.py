@@ -291,7 +291,6 @@ class QualityTrendAnalyzer:
                 statistical_tests=statistical_tests,
             )
 
-
         except Exception:
             return TrendReport(
                 period=period,

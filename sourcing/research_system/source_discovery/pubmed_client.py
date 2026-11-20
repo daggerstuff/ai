@@ -375,7 +375,7 @@ class PubMedClient(BaseAPIClient):
 
             return datetime(year, month, day)
 
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return datetime.now(UTC)
 
     def convert_to_dataset_source(self, article: dict) -> DatasetSource:

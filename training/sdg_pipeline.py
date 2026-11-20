@@ -1046,8 +1046,7 @@ def _post_to_annotation_queue(
             return True
 
         logger.warning(
-            "Failed to post borderline sample to annotation queue. "
-            "Status: %d, Response: %s",
+            "Failed to post borderline sample to annotation queue. Status: %d, Response: %s",
             response.status_code,
             response.text[:200],
         )
@@ -1075,11 +1074,7 @@ def _build_clinical_validity_reason(score: float, classification: str) -> str:
             f"({ClinicalValidityScorer.EXCLUDE_THRESHOLD} - {ClinicalValidityScorer.ACCEPT_THRESHOLD}). "
             f"Expert review recommended."
         )
-    return (
-        f"Score {score:.3f} exceeds accept threshold "
-        f"({ClinicalValidityScorer.ACCEPT_THRESHOLD}). "
-        f"Clinically valid."
-    )
+    return f"Score {score:.3f} exceeds accept threshold ({ClinicalValidityScorer.ACCEPT_THRESHOLD}). Clinically valid."
 
 
 def _validate_clinical_validity(
@@ -1953,9 +1948,7 @@ def _clinical_validity_stats(existing_samples: list[dict]) -> dict:
     total = len(cv_scores)
     accepted = sum(1 for s in cv_scores if s >= ClinicalValidityScorer.ACCEPT_THRESHOLD)
     borderline = sum(
-        1
-        for s in cv_scores
-        if ClinicalValidityScorer.EXCLUDE_THRESHOLD <= s < ClinicalValidityScorer.ACCEPT_THRESHOLD
+        1 for s in cv_scores if ClinicalValidityScorer.EXCLUDE_THRESHOLD <= s < ClinicalValidityScorer.ACCEPT_THRESHOLD
     )
 
     # Per-modality breakdown by scenario type

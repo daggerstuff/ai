@@ -70,4 +70,3 @@ def test_safe_execute_query_complex_valid_where(safe_execute_query):
     query_template = "SELECT * FROM {table} WHERE {where}"
     safe_execute_query(cursor, query_template, table="users", where="name = 'Alice' AND age = 30 OR role = \"admin\"")
     cursor.execute.assert_called_once_with("SELECT * FROM users WHERE name = 'Alice' AND age = 30 OR role = \"admin\"")
-

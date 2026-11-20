@@ -6,7 +6,6 @@ import logging
 import os
 
 
-
 logger = logging.getLogger(__name__)
 import subprocess
 
@@ -17,6 +16,7 @@ from pipelines.data_processing.processors.chatml_converter import ChatMLConverte
 from pipelines.data_processing.processors.quality_filter import QualityFilter
 from pipelines.data_processing.processors.safety_processors import HackathonSafetyProcessor
 from pathlib import Path
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 GDRIVE_REMOTES = ["gdrive:", "drive:"]

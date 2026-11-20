@@ -301,7 +301,11 @@ class SafetyMonitoringSystem:
         return IncidentSeverity.LOW
 
     async def _create_incident(
-        self, user_input: str, crisis_assessment: dict[str, Any], severity: IncidentSeverity, _user_id: str | None = None
+        self,
+        user_input: str,
+        crisis_assessment: dict[str, Any],
+        severity: IncidentSeverity,
+        _user_id: str | None = None,
     ) -> SafetyIncident:
         """Create safety incident record"""
 

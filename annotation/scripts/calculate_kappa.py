@@ -123,7 +123,6 @@ def calculate_kappa(
     if not common_tasks:
         raise ValueError("No overlapping tasks found for the selected annotator pair.")
 
-
     if crisis_y1:
         cohen_kappa_score(crisis_y1, crisis_y2, weights="quadratic")
         accuracy_score(crisis_y1, crisis_y2)
@@ -131,7 +130,6 @@ def calculate_kappa(
     if emotion_y1:
         cohen_kappa_score(emotion_y1, emotion_y2)
         accuracy_score(emotion_y1, emotion_y2)
-
 
 
 if __name__ == "__main__":

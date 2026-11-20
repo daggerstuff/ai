@@ -114,7 +114,7 @@ class DryadClient(BaseAPIClient):
             pub_date_str = dataset.get("publicationDate", "")
             try:
                 pub_date = datetime.fromisoformat(pub_date_str.replace("Z", "+00:00"))
-            except (ValueError, AttributeError):
+            except ValueError, AttributeError:
                 pub_date = datetime.now(UTC)
 
             # Extract identifiers
@@ -275,7 +275,7 @@ class ZenodoClient(BaseAPIClient):
             pub_date_str = metadata.get("publication_date", "")
             try:
                 pub_date = datetime.fromisoformat(pub_date_str)
-            except (ValueError, AttributeError):
+            except ValueError, AttributeError:
                 pub_date = datetime.now(UTC)
 
             # Extract identifiers
@@ -453,7 +453,7 @@ class ClinicalTrialsClient(BaseAPIClient):
                 month = int(parts[1]) if len(parts) > 1 else 1
                 day = int(parts[2]) if len(parts) > 2 else 1
                 pub_date = datetime(year, month, day)
-            except (ValueError, IndexError):
+            except ValueError, IndexError:
                 pub_date = datetime.now(UTC)
 
             # Extract keywords/conditions

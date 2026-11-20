@@ -46,9 +46,7 @@ _LOAD_STRATEGIES = ("remap", "mm")
 class ChatTemplateRenderer(Protocol):
     """The minimal tokenizer surface the thinking-marker helpers need."""
 
-    def apply_chat_template(
-        self, messages: list[dict[str, str]], **kwargs: Any
-    ) -> str: ...
+    def apply_chat_template(self, messages: list[dict[str, str]], **kwargs: Any) -> str: ...
 
 
 @dataclass(frozen=True)
@@ -84,9 +82,7 @@ def derive_thinking_markers(renderer: ChatTemplateRenderer) -> tuple[str, str]:
     thinking block.
     """
     messages = [{"role": "user", "content": "probe"}]
-    thinking = renderer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True, enable_thinking=True
-    )
+    thinking = renderer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True, enable_thinking=True)
     no_thinking = renderer.apply_chat_template(
         messages, tokenize=False, add_generation_prompt=True, enable_thinking=False
     )
@@ -95,7 +91,7 @@ def derive_thinking_markers(renderer: ChatTemplateRenderer) -> tuple[str, str]:
         open_marker = open_marker[:-1]
     close_marker = ""
     if no_thinking.startswith(thinking) and len(no_thinking) > len(thinking):
-        close_marker = no_thinking[len(thinking):].strip("\n")
+        close_marker = no_thinking[len(thinking) :].strip("\n")
     return open_marker, close_marker
 
 
@@ -187,9 +183,7 @@ class AdaptionLoraModel:
             torch.set_default_dtype(previous_dtype)
 
         index_path = hf_hub_download(base_model_id, "model.safetensors.index.json")
-        weight_map: dict[str, str] = json.loads(
-            Path(index_path).read_text(encoding="utf-8")
-        )["weight_map"]
+        weight_map: dict[str, str] = json.loads(Path(index_path).read_text(encoding="utf-8"))["weight_map"]
         loaded: set[str] = set()
         for shard in sorted(set(weight_map.values())):
             shard_state = load_file(hf_hub_download(base_model_id, shard))
@@ -204,10 +198,7 @@ class AdaptionLoraModel:
                 continue
             result = model.load_state_dict(remapped, strict=False)
             if result.unexpected_keys:
-                msg = (
-                    f"unexpected text-backbone keys in shard {shard}: "
-                    f"{result.unexpected_keys[:3]}"
-                )
+                msg = f"unexpected text-backbone keys in shard {shard}: {result.unexpected_keys[:3]}"
                 raise RuntimeError(msg)
             loaded.update(remapped)
         missing = set(dict(model.state_dict()).keys()) - loaded
@@ -247,14 +238,12 @@ class AdaptionLoraModel:
             from transformers import AutoModelForImageTextToText
 
             return AutoModelForImageTextToText.from_pretrained(base_model_id, **kwargs)
-        except (ImportError, ValueError):
+        except ImportError, ValueError:
             import importlib
 
             from transformers import AutoConfig
 
-            architectures = getattr(
-                AutoConfig.from_pretrained(base_model_id), "architectures", None
-            )
+            architectures = getattr(AutoConfig.from_pretrained(base_model_id), "architectures", None)
             if not architectures:
                 raise
             model_cls = getattr(importlib.import_module("transformers"), architectures[0])
@@ -279,9 +268,7 @@ class AdaptionLoraModel:
 
         adapter_state = load_file(str(Path(adapter_path) / "adapter_model.safetensors"))
         suffixes = sorted({key.rsplit(".", 3)[1] for key in adapter_state})
-        expected_modules = len(
-            {key.rsplit(".lora_A", 1)[0].rsplit(".lora_B", 1)[0] for key in adapter_state}
-        )
+        expected_modules = len({key.rsplit(".lora_A", 1)[0].rsplit(".lora_B", 1)[0] for key in adapter_state})
 
         saved = LoraConfig.from_pretrained(adapter_path)
         saved.target_modules = rf".*language_model.*\.(?:{'|'.join(suffixes)})$"
@@ -289,10 +276,7 @@ class AdaptionLoraModel:
 
         adapted = [n for n, _ in model.named_modules() if n.endswith("lora_A.default")]
         if len(adapted) != expected_modules:
-            msg = (
-                f"expected {expected_modules} adapted modules (suffixes: {suffixes}), "
-                f"injected {len(adapted)}"
-            )
+            msg = f"expected {expected_modules} adapted modules (suffixes: {suffixes}), injected {len(adapted)}"
             raise RuntimeError(msg)
         escaped = [n for n in adapted if "language_model" not in n]
         if escaped:
@@ -304,7 +288,7 @@ class AdaptionLoraModel:
             if not key.startswith(_ADAPTER_TEXT_PREFIX):
                 msg = f"adapter key outside the expected prefix: {key}"
                 raise ValueError(msg)
-            remapped[_ADAPTER_MM_PREFIX + key[len(_ADAPTER_TEXT_PREFIX):]] = tensor
+            remapped[_ADAPTER_MM_PREFIX + key[len(_ADAPTER_TEXT_PREFIX) :]] = tensor
         result = set_peft_model_state_dict(model, remapped)
         lost = [k for k in result.missing_keys if "lora" in k]
         stray = [k for k in result.unexpected_keys if "lora" in k]
@@ -334,6 +318,6 @@ class AdaptionLoraModel:
                 do_sample=False,
                 pad_token_id=self._tokenizer.pad_token_id,
             )
-        new_tokens = output[0][inputs["input_ids"].shape[-1]:]
+        new_tokens = output[0][inputs["input_ids"].shape[-1] :]
         raw = self._tokenizer.decode(new_tokens, skip_special_tokens=True)
         return strip_thinking(raw, self._open_marker, self._close_marker)

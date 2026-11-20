@@ -257,7 +257,7 @@ class CheckpointManager:
                 if not isinstance(data, dict):
                     raise TypeError(f"state.json must be a JSON object, got {type(data).__name__}")
                 return GenerationState.from_dict(data)
-            except (json.JSONDecodeError, OSError, TypeError):
+            except json.JSONDecodeError, OSError, TypeError:
                 pass
         recovered = 0
         if self.records_path.exists():

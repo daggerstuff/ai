@@ -118,13 +118,9 @@ def fleiss_kappa(n: int, N: int, k: int, n_i: list[int]) -> float:
     if n == 0 or N == 0:
         return 0.0
     if len(n_i) % k != 0:
-        raise ValueError(
-            f"n_i length {len(n_i)} is not divisible by k = {k}"
-        )
+        raise ValueError(f"n_i length {len(n_i)} is not divisible by k = {k}")
     if len(n_i) < N * k:
-        raise ValueError(
-            f"n_i length {len(n_i)} is less than N*k = {N}*{k} = {N * k}"
-        )
+        raise ValueError(f"n_i length {len(n_i)} is less than N*k = {N}*{k} = {N * k}")
 
     # Derive actual N from the data (may exceed the passed N)
     N_actual = len(n_i) // k
@@ -154,7 +150,7 @@ def fleiss_kappa(n: int, N: int, k: int, n_i: list[int]) -> float:
     mean_P = sum(P_i) / N_actual
 
     # Expected agreement Pe
-    Pe = sum(pj ** 2 for pj in p_j)
+    Pe = sum(pj**2 for pj in p_j)
 
     if abs(1.0 - Pe) < 1e-12:
         # All annotators agree perfectly → kappa = 1
@@ -200,9 +196,7 @@ def cohen_kappa_simple(a: list[Any], b: list[Any]) -> float:
     # Expected agreement
     a_counts = Counter(a)
     b_counts = Counter(b)
-    P_e = sum(
-        (a_counts.get(c, 0) / n) * (b_counts.get(c, 0) / n) for c in categories
-    )
+    P_e = sum((a_counts.get(c, 0) / n) * (b_counts.get(c, 0) / n) for c in categories)
 
     if abs(1.0 - P_e) < 1e-12:
         return 1.0 if P_o == 1.0 else 0.0
@@ -325,7 +319,7 @@ def generate_label_studio_rubric(
     lines.append("<View>")
 
     if description:
-        lines.append(f"  <Text name=\"description\" value=\"{description}\"/>")
+        lines.append(f'  <Text name="description" value="{description}"/>')
     else:
         lines.append('  <Text name="description" value="Label the sample"/>')
 
@@ -333,7 +327,7 @@ def generate_label_studio_rubric(
     lines.append("")
 
     # Category choices
-    lines.append('  <View>')
+    lines.append("  <View>")
 
     # Use Choices for categories
     lines.append('    <Choices name="category" toName="text" choice="single">')
@@ -344,7 +338,7 @@ def generate_label_studio_rubric(
     lines.append("")
 
     # Domain dropdown
-    lines.append('  <View>')
+    lines.append("  <View>")
     lines.append('    <Dropdown name="domain" toName="text" placeholder="Select domain">')
     lines.append('      <Option value="clinical"/>')
     lines.append('      <Option value="behavioral"/>')
@@ -355,7 +349,7 @@ def generate_label_studio_rubric(
     lines.append("")
 
     # Difficulty dropdown
-    lines.append('  <View>')
+    lines.append("  <View>")
     lines.append('    <Dropdown name="difficulty" toName="text" placeholder="Select difficulty">')
     lines.append('      <Option value="easy"/>')
     lines.append('      <Option value="medium"/>')
@@ -365,25 +359,18 @@ def generate_label_studio_rubric(
     lines.append("")
 
     # Quality score input
-    lines.append('  <View>')
+    lines.append("  <View>")
     if quality_scale is not None:
         qmin, qmax = quality_scale
-        lines.append(
-            f'    <Number name="quality_score" toName="text" '
-            f'min="{qmin}" max="{qmax}" step="0.01"/>'
-        )
+        lines.append(f'    <Number name="quality_score" toName="text" min="{qmin}" max="{qmax}" step="0.01"/>')
     else:
-        lines.append(
-            '    <Number name="quality_score" toName="text" '
-            'min="0" max="1" step="0.01"/>'
-        )
+        lines.append('    <Number name="quality_score" toName="text" min="0" max="1" step="0.01"/>')
     lines.append("  </View>")
     lines.append("")
 
     # Reject reason (optional)
-    lines.append('  <View>')
-    lines.append('    <TextArea name="reject_reason" toName="text" '
-                 'placeholder="Reason for rejection (optional)"/>')
+    lines.append("  <View>")
+    lines.append('    <TextArea name="reject_reason" toName="text" placeholder="Reason for rejection (optional)"/>')
     lines.append("  </View>")
     lines.append("")
 
@@ -428,26 +415,19 @@ def evaluate_agreement(
     if fleiss_kappa >= FLEISS_KAPPA_GOLD:
         result["fleiss_classification"] = "T1_GOLD final release"
         result["fleiss_recommendation"] = (
-            "Agreement exceeds gold standard threshold; "
-            "suitable for gold standard release."
+            "Agreement exceeds gold standard threshold; suitable for gold standard release."
         )
     elif fleiss_kappa >= FLEISS_KAPPA_MINIMUM:
         result["fleiss_classification"] = "fair quality release"
-        result["fleiss_recommendation"] = (
-            "Agreement is above minimum threshold; "
-            "acceptable for release with review."
-        )
+        result["fleiss_recommendation"] = "Agreement is above minimum threshold; acceptable for release with review."
     elif fleiss_kappa >= 0.40:
         result["fleiss_classification"] = "moderate quality release"
         result["fleiss_recommendation"] = (
-            "Agreement is moderate; consider retraining annotators "
-            "and reviewing ambiguous samples."
+            "Agreement is moderate; consider retraining annotators and reviewing ambiguous samples."
         )
     else:
         result["fleiss_classification"] = "poor quality release"
-        result["fleiss_recommendation"] = (
-            "Agreement is poor; quarantine samples and restart annotation."
-        )
+        result["fleiss_recommendation"] = "Agreement is poor; quarantine samples and restart annotation."
 
     # Cohen classification
     if cohen_kappa is not None:
@@ -534,9 +514,7 @@ def compute_iaa_from_labels(
     num_samples = len(sample_ids)
 
     # Collect all categories across labels
-    all_categories = sorted(
-        {label.metadata.get("category", "unknown") for label in labels}
-    )
+    all_categories = sorted({label.metadata.get("category", "unknown") for label in labels})
 
     # Per-sample kappa and quality
     per_sample_kappas: dict[str, float] = {}
@@ -573,9 +551,7 @@ def compute_iaa_from_labels(
         flat_n_i: list[int] = []
         for sid in sample_ids:
             sample_labels = by_sample[sid]
-            cat_counts = Counter(
-                l.metadata.get("category", "unknown") for l in sample_labels
-            )
+            cat_counts = Counter(l.metadata.get("category", "unknown") for l in sample_labels)
             for cat in all_categories:
                 flat_n_i.append(cat_counts.get(cat, 0))
         overall_kappa = fleiss_kappa(n, N, k, flat_n_i)
@@ -584,9 +560,7 @@ def compute_iaa_from_labels(
 
     # Reviewer overrides
     reviewer_overrides = sum(
-        1
-        for l in labels
-        if l.metadata.get("annotation_stage") == AnnotationStage.ADJUDICATED.value
+        1 for l in labels if l.metadata.get("annotation_stage") == AnnotationStage.ADJUDICATED.value
     )
 
     # Stages distribution
@@ -624,9 +598,7 @@ def compute_iaa_from_labels(
 
 def main() -> int:
     """CLI entry point for IAA computation."""
-    parser = argparse.ArgumentParser(
-        description="Compute inter-annotator agreement from Label Studio exports."
-    )
+    parser = argparse.ArgumentParser(description="Compute inter-annotator agreement from Label Studio exports.")
     parser.add_argument(
         "--ls-jsonl",
         type=str,

@@ -26,9 +26,7 @@ builder.CANDIDATE_SHA256 = "f56e10b52ed83645ec3eca1b468724644dcbf6f843da96d7e82b
 _original_create_manifest = builder.create_manifest
 
 
-def _create_manifest(
-    stats: dict[str, Any], output: Path, release_id: str, repairs_path: Path | None
-) -> dict[str, Any]:
+def _create_manifest(stats: dict[str, Any], output: Path, release_id: str, repairs_path: Path | None) -> dict[str, Any]:
     manifest = _original_create_manifest(stats, output, release_id, repairs_path)
     if not isinstance(manifest, dict):
         raise ValueError("release manifest must be an object")
@@ -47,10 +45,14 @@ builder.create_manifest = _create_manifest
 
 sys.argv = [
     "build_full_candidate_release.py",
-    "--release-id", "wandb-full-corpus-current-master-20261019-v4",
-    "--output", "ai/data/curated/recovery/gold-20261017/wandb-full-corpus-current-master-20261019-v4",
-    "--manifest", "docs/training/execution-2026-10-19/wandb-full-corpus-current-master-20261019-v4.json",
-    "--repairs", "ai/data/curated/recovery/gold-20261017/wandb-full-corpus-repairs-20261019-v3/row_repairs.jsonl",
+    "--release-id",
+    "wandb-full-corpus-current-master-20261019-v4",
+    "--output",
+    "ai/data/curated/recovery/gold-20261017/wandb-full-corpus-current-master-20261019-v4",
+    "--manifest",
+    "docs/training/execution-2026-10-19/wandb-full-corpus-current-master-20261019-v4.json",
+    "--repairs",
+    "ai/data/curated/recovery/gold-20261017/wandb-full-corpus-repairs-20261019-v3/row_repairs.jsonl",
 ]
 
 builder.main()

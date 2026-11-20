@@ -20,8 +20,6 @@ import pandas as pd
 from flask import Flask, jsonify, render_template
 
 
-
-
 class InteractiveDashboardSystem:
     def __init__(self):
         self.base_dir = str(_PROJECT_ROOT / "ai")

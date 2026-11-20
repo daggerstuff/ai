@@ -68,7 +68,7 @@ class DsmVectorSpaceAdapter(BaseDatasetAdapter):
                             records.append({"_category_file": json_path.stem, **item})
                 elif isinstance(data, dict):
                     records.append({"_category_file": json_path.stem, **data})
-            except (json.JSONDecodeError, OSError):
+            except json.JSONDecodeError, OSError:
                 continue
         return records
 

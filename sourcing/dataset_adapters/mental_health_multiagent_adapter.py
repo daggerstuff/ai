@@ -63,7 +63,7 @@ class MentalHealthMultiagentAdapter(BaseDatasetAdapter):
                             "questionnaire": data.get("questionnaire", ""),
                         }
                     )
-            except (json.JSONDecodeError, OSError):
+            except json.JSONDecodeError, OSError:
                 continue
         return records
 

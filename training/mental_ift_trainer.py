@@ -243,9 +243,13 @@ class MentalHealthIFTTrainer:
                     try:
                         formatted = self.tokenizer.apply_chat_template(msgs, tokenize=False)
                     except Exception:
-                        formatted = "\n".join(f"<|im_start|>{m.get('role', 'user')}\n{m.get('content', '')}<|im_end|>" for m in msgs)
+                        formatted = "\n".join(
+                            f"<|im_start|>{m.get('role', 'user')}\n{m.get('content', '')}<|im_end|>" for m in msgs
+                        )
                 else:
-                    formatted = "\n".join(f"<|im_start|>{m.get('role', 'user')}\n{m.get('content', '')}<|im_end|>" for m in msgs)
+                    formatted = "\n".join(
+                        f"<|im_start|>{m.get('role', 'user')}\n{m.get('content', '')}<|im_end|>" for m in msgs
+                    )
                 prompts.append(formatted)
         elif "instruction" in examples and "output" in examples:
             inputs = examples.get("input", [""] * len(examples["instruction"]))

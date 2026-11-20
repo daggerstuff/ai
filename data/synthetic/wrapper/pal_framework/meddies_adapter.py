@@ -55,6 +55,7 @@ _HEALTH_SEEKING_VI_TO_EN: dict[str, str] = {
 # Adapters
 # --------------------------------------------------------------------------- #
 
+
 def _translate(value: Any, table: dict[str, str], default: str) -> str:
     """Translate a Vietnamese enum value to English, falling through to default."""
     if value is None:

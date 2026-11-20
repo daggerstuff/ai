@@ -620,9 +620,7 @@ def list_active_users():
                 "success": True,
                 "users": whitelist,
                 "source": "whitelist",
-                "message": (
-                    f"Whitelisted {len(whitelist)} users via DREAM_USER_WHITELIST."
-                ),
+                "message": (f"Whitelisted {len(whitelist)} users via DREAM_USER_WHITELIST."),
             }
         )
 
@@ -638,9 +636,7 @@ def list_active_users():
                     "success": True,
                     "users": users_list,
                     "source": "redis",
-                    "message": (
-                        f"Found {len(users_list)} users with dream records in Redis."
-                    ),
+                    "message": (f"Found {len(users_list)} users with dream records in Redis."),
                 }
             )
         except Exception as e:

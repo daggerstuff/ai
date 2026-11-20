@@ -54,9 +54,7 @@ class LiteratureMatcherAgent:
         return " ".join(parts)
 
     @staticmethod
-    def _compute_transparency(
-        matches: list[dict[str, Any]], top_k: int
-    ) -> float:
+    def _compute_transparency(matches: list[dict[str, Any]], top_k: int) -> float:
         if not matches:
             return 0.0
         seen = matches[:top_k]

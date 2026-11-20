@@ -35,6 +35,7 @@ sys.path.insert(0, str(_AI_DIR))
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv(_REPO_DIR / ".env", override=True)
 except Exception:
     pass
@@ -71,10 +72,22 @@ TOTAL_TURNS_MAX = 120
 
 # Mode A: 16 record arcs (have beats_planned + timeline_final in arc_records.jsonl)
 MODE_A_ARCS = [
-    "arc_0231", "arc_0238", "arc_0248", "arc_0251",
-    "arc_0261", "arc_0262", "arc_0264", "arc_0274",
-    "arc_0278", "arc_0287", "arc_0302", "arc_0305",
-    "arc_0312", "arc_0313", "arc_0335", "arc_0338",
+    "arc_0231",
+    "arc_0238",
+    "arc_0248",
+    "arc_0251",
+    "arc_0261",
+    "arc_0262",
+    "arc_0264",
+    "arc_0274",
+    "arc_0278",
+    "arc_0287",
+    "arc_0302",
+    "arc_0305",
+    "arc_0312",
+    "arc_0313",
+    "arc_0335",
+    "arc_0338",
 ]
 # Mode B: regen arcs (no record, mine checkpoint)
 MODE_B_ARCS = ["arc_0266", "arc_0326"]
@@ -466,6 +479,7 @@ RULES:
 Return ONLY a JSON object matching the plan schema.
 """
 
+
 def build_mode_a_user_prompt(
     arc_id: str,
     seed: dict[str, Any],
@@ -553,6 +567,7 @@ in a new session.
 
 Return ONLY a JSON plan object.
 """
+
 
 def build_mode_b_user_prompt(
     arc_id: str,
@@ -652,7 +667,7 @@ async def reconstruct_one(
             raise RuntimeError(f"Mode A: no beats_planned for {arc_id}")
         timeline = parse_timeline_final(rec.get("timeline_final", ""))
         if not timeline:
-            raise RuntimeError(f"Mode A: empty timeline for {arc_id} (raw={rec.get('timeline_final','')[:200]!r})")
+            raise RuntimeError(f"Mode A: empty timeline for {arc_id} (raw={rec.get('timeline_final', '')[:200]!r})")
 
         # Sessions skeleton: clamped turns
         rec_sessions = rec.get("sessions", [])
@@ -674,13 +689,23 @@ async def reconstruct_one(
         last_feedback = ""
         for attempt in range(1 + LINT_RETRIES):
             user_prompt = build_mode_a_user_prompt(
-                arc_id, seed, jitter_seed, beats, timeline, sessions_skeleton,
-                transcript_excerpts, failed_attempt_feedback=last_feedback,
+                arc_id,
+                seed,
+                jitter_seed,
+                beats,
+                timeline,
+                sessions_skeleton,
+                transcript_excerpts,
+                failed_attempt_feedback=last_feedback,
             )
-            plan = await call_llm(session, [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user_prompt},
-            ], api_key)
+            plan = await call_llm(
+                session,
+                [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_prompt},
+                ],
+                api_key,
+            )
 
             # Canonize: force mechanical fields to exact values (belt + suspenders)
             plan["arc_id"] = arc_id
@@ -696,12 +721,14 @@ async def reconstruct_one(
             for sk in sessions_skeleton:
                 n = sk["n"]
                 llm_s = by_n.get(n, {})
-                fixed_sessions.append({
-                    "n": n,
-                    "turns": sk["turns"],
-                    "gap_before": llm_s.get("gap_before"),
-                    "focus": llm_s.get("focus", f"Session {n} focus"),
-                })
+                fixed_sessions.append(
+                    {
+                        "n": n,
+                        "turns": sk["turns"],
+                        "gap_before": llm_s.get("gap_before"),
+                        "focus": llm_s.get("focus", f"Session {n} focus"),
+                    }
+                )
                 # Ensure gap_before null for s1
                 if n == 1:
                     fixed_sessions[-1]["gap_before"] = None
@@ -719,11 +746,11 @@ async def reconstruct_one(
             errors, warnings = lint_plan(plan)
             if not errors:
                 return plan
-            print(f"  [{arc_id}] attempt {attempt+1}/{1+LINT_RETRIES} lint errors: {errors[:3]}", flush=True)
+            print(f"  [{arc_id}] attempt {attempt + 1}/{1 + LINT_RETRIES} lint errors: {errors[:3]}", flush=True)
             last_feedback = _lint_feedback_suffix(errors, warnings)
 
         # Exhausted retries
-        raise RuntimeError(f"[{arc_id}] lint still failing after {1+LINT_RETRIES} attempts: {errors} / {warnings}")
+        raise RuntimeError(f"[{arc_id}] lint still failing after {1 + LINT_RETRIES} attempts: {errors} / {warnings}")
 
     elif mode == "B":
         # Collect checkpoint rows for this arc
@@ -738,7 +765,7 @@ async def reconstruct_one(
         for n in sorted(ckpt_by_n):
             row_ck = ckpt_by_n[n]
             turns = row_ck.get("turns", [])
-            parts.append(f"--- Session {n} ({len(turns)} turns, {row_ck.get('writer_model','?')}) ---")
+            parts.append(f"--- Session {n} ({len(turns)} turns, {row_ck.get('writer_model', '?')}) ---")
             parts.append(excerpt_full_turns(turns, max_turns=20))
             parts.append(excerpt_client_lines(turns, max_lines=6))
             tls_parts.append(f"Session {n} ledger.tl:\n{collect_ledger_tls(row_ck)}")
@@ -760,13 +787,23 @@ async def reconstruct_one(
         last_feedback = ""
         for attempt in range(1 + LINT_RETRIES):
             user_prompt = build_mode_b_user_prompt(
-                arc_id, seed, jitter_seed, existing_excerpt, ledger_tls,
-                facts_excerpt, regen_spec, failed_attempt_feedback=last_feedback,
+                arc_id,
+                seed,
+                jitter_seed,
+                existing_excerpt,
+                ledger_tls,
+                facts_excerpt,
+                regen_spec,
+                failed_attempt_feedback=last_feedback,
             )
-            plan = await call_llm(session, [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user_prompt},
-            ], api_key)
+            plan = await call_llm(
+                session,
+                [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user_prompt},
+                ],
+                api_key,
+            )
 
             # Canonize arc_id/seed/era_jitter
             plan["arc_id"] = arc_id
@@ -788,14 +825,13 @@ async def reconstruct_one(
             errors, warnings = lint_plan(plan)
             if not errors:
                 return plan
-            print(f"  [{arc_id}] attempt {attempt+1}/{1+LINT_RETRIES} lint errors: {errors[:3]}", flush=True)
+            print(f"  [{arc_id}] attempt {attempt + 1}/{1 + LINT_RETRIES} lint errors: {errors[:3]}", flush=True)
             last_feedback = _lint_feedback_suffix(errors, warnings)
 
-        raise RuntimeError(f"[{arc_id}] lint still failing after {1+LINT_RETRIES} attempts: {errors} / {warnings}")
+        raise RuntimeError(f"[{arc_id}] lint still failing after {1 + LINT_RETRIES} attempts: {errors} / {warnings}")
 
     else:
         raise ValueError(f"Unknown mode {mode}")
-
 
 
 # --- Mode B session/timeline canonizers (fix LLM n=None and invalid anchors) ---
@@ -889,6 +925,7 @@ def _canonize_mode_b_sessions(plan: dict[str, Any], ckpt_by_n: dict[int, dict[st
                 excess -= dec
     plan["sessions"] = normalized
 
+
 def _canonize_timeline_anchors(plan: dict[str, Any]) -> None:
     """Fix invalid anchors like -2h -> -2w, ensure ends at now and chronological."""
     tl = plan.get("timeline")
@@ -966,16 +1003,23 @@ def _canonize_timeline_anchors(plan: dict[str, Any]) -> None:
             now_entries = [x for x in fixed if x["anchor"] == "now"]
             non_now = [x for x in fixed if x["anchor"] != "now"]
             # Sort non_now chronologically
-            non_now.sort(key=lambda e: (float("inf") if e["anchor"]=="now" else -int(e["anchor"][1:-1]) * {"y":52,"m":4,"w":1,"d":1/7}[e["anchor"][-1]]))
+            non_now.sort(
+                key=lambda e: (
+                    float("inf")
+                    if e["anchor"] == "now"
+                    else -int(e["anchor"][1:-1]) * {"y": 52, "m": 4, "w": 1, "d": 1 / 7}[e["anchor"][-1]]
+                )
+            )
             fixed = non_now + now_entries
     # Sort chronologically (oldest first) except keep now last
     non_now = [x for x in fixed if x["anchor"] != "now"]
     now_entries = [x for x in fixed if x["anchor"] == "now"]
     try:
-        non_now.sort(key=lambda e: -int(e["anchor"][1:-1]) * {"y":52,"m":4,"w":1,"d":1/7}[e["anchor"][-1]])
+        non_now.sort(key=lambda e: -int(e["anchor"][1:-1]) * {"y": 52, "m": 4, "w": 1, "d": 1 / 7}[e["anchor"][-1]])
     except Exception:
         pass
     plan["timeline"] = non_now + now_entries
+
 
 def _sanitize_client_notes(plan: dict[str, Any]) -> None:
     """Ensure client.notes doesn't assert diagnosis as plain fact."""
@@ -996,7 +1040,6 @@ def _sanitize_client_notes(plan: dict[str, Any]) -> None:
             client["notes"] = "client reports " + notes[0].lower() + notes[1:] if notes else notes
 
 
-
 def _canonize_subjects(plan: dict[str, Any]) -> None:
     """Ensure surface_subject and real_subject pass lint."""
     surface_val = plan.get("surface_subject")
@@ -1007,7 +1050,11 @@ def _canonize_subjects(plan: dict[str, Any]) -> None:
         rs = {}
         plan["real_subject"] = rs
     if not isinstance(rs.get("content"), str) or not rs["content"].strip():
-        rs["content"] = plan["surface_subject"][:120] if isinstance(plan.get("surface_subject"), str) else "underlying worry the client avoids naming directly"
+        rs["content"] = (
+            plan["surface_subject"][:120]
+            if isinstance(plan.get("surface_subject"), str)
+            else "underlying worry the client avoids naming directly"
+        )
     # Ensure session is valid int within sessions range
     sessions = plan.get("sessions")
     valid_ns: list[int] = []
@@ -1016,7 +1063,7 @@ def _canonize_subjects(plan: dict[str, Any]) -> None:
             if isinstance(entry, dict) and isinstance(entry.get("n"), int):
                 valid_ns.append(entry["n"])
     if not valid_ns:
-        valid_ns = [1,2,3]
+        valid_ns = [1, 2, 3]
     sess_raw = rs.get("session")
     sess: int | None = None
     try:
@@ -1107,12 +1154,13 @@ def _canonize_ending_and_beats(plan: dict[str, Any]) -> None:
             t_i = max(1, min(t_i, max_t))
             b["turn"] = t_i
             # Also handle misstatement plant/revise positions
-            for pk, rk in [("plant_session","plant_turn"),("revise_session","revise_turn")]:
+            for pk, rk in [("plant_session", "plant_turn"), ("revise_session", "revise_turn")]:
                 ps = b.get(pk)
                 pt = b.get(rk)
                 if ps is not None and pt is not None:
                     try:
-                        ps_i = int(ps); pt_i = int(pt)
+                        ps_i = int(ps)
+                        pt_i = int(pt)
                     except:
                         continue
                     if ps_i not in valid_ns:
@@ -1122,10 +1170,20 @@ def _canonize_ending_and_beats(plan: dict[str, Any]) -> None:
                     pt_i = max(1, min(pt_i, max_pt))
                     b[rk] = pt_i
 
+
 CALENDAR_REPLACEMENTS = {
-    "January": "winter", "February": "winter", "March": "spring", "April": "spring",
-    "May": "spring", "June": "summer", "July": "summer", "August": "summer",
-    "September": "fall", "October": "fall", "November": "fall", "December": "winter",
+    "January": "winter",
+    "February": "winter",
+    "March": "spring",
+    "April": "spring",
+    "May": "spring",
+    "June": "summer",
+    "July": "summer",
+    "August": "summer",
+    "September": "fall",
+    "October": "fall",
+    "November": "fall",
+    "December": "winter",
 }
 
 
@@ -1204,7 +1262,10 @@ async def main_async(args: argparse.Namespace) -> None:
                 rec = records[aid]
                 tl = parse_timeline_final(rec.get("timeline_final", ""))
                 sk = clamp_sessions(rec.get("sessions", []))
-                print(f"  {aid} A: {len(tl)} tl events, skeleton {sk}, {len(rec.get('beats_planned',[]))} beats", flush=True)
+                print(
+                    f"  {aid} A: {len(tl)} tl events, skeleton {sk}, {len(rec.get('beats_planned', []))} beats",
+                    flush=True,
+                )
             else:
                 ck = checkpoints.get(aid, {})
                 print(f"  {aid} B: checkpoint sessions {sorted(ck.keys())}", flush=True)
@@ -1221,7 +1282,7 @@ async def main_async(args: argparse.Namespace) -> None:
         async with aiohttp.ClientSession() as probe_sess:
             probe_payload = {
                 "model": WRITER_MODEL,
-                "messages": [{"role": "user", "content": "Reply with exactly: {\"ok\": true}"}],
+                "messages": [{"role": "user", "content": 'Reply with exactly: {"ok": true}'}],
                 "max_tokens": 16,
                 "temperature": 0.0,
                 "response_format": {"type": "json_object"},
@@ -1232,8 +1293,9 @@ async def main_async(args: argparse.Namespace) -> None:
                 probe_payload["chat_template_kwargs"] = {"thinking": False}
             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
             try:
-                async with probe_sess.post(WRITER_URL, headers=headers, json=probe_payload,
-                                            timeout=aiohttp.ClientTimeout(total=60)) as resp:
+                async with probe_sess.post(
+                    WRITER_URL, headers=headers, json=probe_payload, timeout=aiohttp.ClientTimeout(total=60)
+                ) as resp:
                     probe_body = await resp.text()
                     if resp.status == 200:
                         probe_ok = True
@@ -1281,7 +1343,7 @@ async def main_async(args: argparse.Namespace) -> None:
                 results[aid] = f"DISK_LINT_FAIL: {e2}"
                 print(f"[recon] {aid} disk lint fail: {e2}", flush=True)
                 return
-            msg = f"OK ({len(plan.get('beats',[]))} beats, {len(plan.get('timeline',[]))} tl, sessions {[(s['n'], s['turns']) for s in plan.get('sessions',[])]})"
+            msg = f"OK ({len(plan.get('beats', []))} beats, {len(plan.get('timeline', []))} tl, sessions {[(s['n'], s['turns']) for s in plan.get('sessions', [])]})"
             if w2:
                 msg += f" warnings={w2[:2]}"
             results[aid] = msg
@@ -1301,8 +1363,12 @@ async def main_async(args: argparse.Namespace) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Reconstruct 18 zero-byte arc plans")
-    ap.add_argument("--arcs", type=lambda s: [x.strip() for x in s.split(",") if x.strip()], default=None,
-                    help="comma-separated arc_ids (default: all 18)")
+    ap.add_argument(
+        "--arcs",
+        type=lambda s: [x.strip() for x in s.split(",") if x.strip()],
+        default=None,
+        help="comma-separated arc_ids (default: all 18)",
+    )
     ap.add_argument("--concurrency", type=int, default=CONCURRENCY)
     ap.add_argument("--dry-run", action="store_true", help="verify skeletons only, no LLM calls")
     args = ap.parse_args()
@@ -1316,6 +1382,7 @@ if __name__ == "__main__":
 # ============================================================================
 # Plan assembly & validation
 # ============================================================================
+
 
 @overload
 def _safe_int(v: Any, default: int) -> int: ...
@@ -1369,12 +1436,14 @@ def fmt_transcript_digest(rows: list[dict[str, Any]]) -> str:
     return "\n\n".join(parts)
 
 
-def build_final_plan(target_id: str,
-                     geo: dict[str, Any] | None,
-                     seed_entry: dict[str, Any] | None,
-                     want_sessions: list[int],
-                     llm_out: dict[str, Any],
-                     existing_budgets: dict[int, int] | None = None) -> tuple[dict[str, Any], list[str]]:
+def build_final_plan(
+    target_id: str,
+    geo: dict[str, Any] | None,
+    seed_entry: dict[str, Any] | None,
+    want_sessions: list[int],
+    llm_out: dict[str, Any],
+    existing_budgets: dict[int, int] | None = None,
+) -> tuple[dict[str, Any], list[str]]:
     """Merge LLM identity output with locked geometry into a complete plan."""
     problems: list[str] = []
     if not isinstance(llm_out, dict):
@@ -1394,9 +1463,12 @@ def build_final_plan(target_id: str,
         # best-effort fallback matching historical conventions
         fam = (seed_entry or {}).get("family") or ""
         parts = [p for p in fam.lower().replace("-", "_").split() if p.isidentifier()]
-        plan["seed"] = {"source": "edge_cases", "scenario_id": None,
-                        "domain": parts[-1] if parts else "unknown",
-                        "severity": "moderate"}
+        plan["seed"] = {
+            "source": "edge_cases",
+            "scenario_id": None,
+            "domain": parts[-1] if parts else "unknown",
+            "severity": "moderate",
+        }
 
     client_raw = llm_out.get("client")
     if not isinstance(client_raw, dict):
@@ -1430,10 +1502,7 @@ def build_final_plan(target_id: str,
                 gb = "two weeks"
             elif not isinstance(gb, str):
                 gb = "one week"
-            sessions_arr.append({"n": sid,
-                                 "turns": active[sid],
-                                 "gap_before": gb,
-                                 "focus": fc})
+            sessions_arr.append({"n": sid, "turns": active[sid], "gap_before": gb, "focus": fc})
             if not fc:
                 problems.append(f"sessions[{sid}].focus empty")
         plan["sessions"] = sessions_arr
@@ -1451,20 +1520,27 @@ def build_final_plan(target_id: str,
                 problems.append("a session missing planned_turn_count/budget")
                 continue
             turns_ = _clamp(turns_, 8, 40)
-            arr.append({
-                "n": (_safe_int(sn) if sn is not None else len(arr)+prev_max+1),
-                "turns": turns_,
-                "gap_before": ("one month" if gb is True else "" if gb is False else
-                               (gb.strip() if isinstance(gb,str) and gb.strip() else "a few weeks")),
-                "focus": focus_txt,
-            })
+            arr.append(
+                {
+                    "n": (_safe_int(sn) if sn is not None else len(arr) + prev_max + 1),
+                    "turns": turns_,
+                    "gap_before": (
+                        "one month"
+                        if gb is True
+                        else ""
+                        if gb is False
+                        else (gb.strip() if isinstance(gb, str) and gb.strip() else "a few weeks")
+                    ),
+                    "focus": focus_txt,
+                }
+            )
             if not focus_txt:
                 problems.append("some session lacks focus text")
         existing_map = existing_budgets if isinstance(existing_budgets, dict) else {}
-        total_after = sum(b for b in existing_map.values()) + sum(x['turns'] for x in arr)
+        total_after = sum(b for b in existing_map.values()) + sum(x["turns"] for x in arr)
         if len(arr) != abs(len(want_sessions) - len(existing_map)) and new_sid_base <= 4:
             pass
-        plan["_temp_new_sessions_only"] = arr   # merged below by caller for Mode B
+        plan["_temp_new_sessions_only"] = arr  # merged below by caller for Mode B
 
     rs_raw = llm_out.get("real_subject")
     src_sess_limit_fn = (lambda s: geo["active_budgets"].get(_safe_int(s), 99)) if geo else (lambda s: 40)
@@ -1486,12 +1562,9 @@ def build_final_plan(target_id: str,
         elif sat_t > limit_now:
             problems.append(f"{label}.surface turn {sat_t} exceeds budget of sess {rsn} ({limit_now}); clamped")
             sat_t = limit_now
-        return {"content": content_s,
-                "surfaces_around_turn": sat_t,
-                "session": rsn}
+        return {"content": content_s, "surfaces_around_turn": sat_t, "session": rsn}
 
-    base_rsn = check_rs(rs_raw if isinstance(rs_raw, dict) else {},
-                        "real_subject")
+    base_rsn = check_rs(rs_raw if isinstance(rs_raw, dict) else {}, "real_subject")
     plan["real_subject"] = base_rsn
     ss_val = str(llm_out.get("surface_subject", llm_out.get("opening_topic", ""))).strip()
     if not ss_val:
@@ -1502,25 +1575,31 @@ def build_final_plan(target_id: str,
     e_raw = llm_out.get("ending")
     end_n = _safe_int(e_raw.get("session")) if isinstance(e_raw, dict) else None
     end_t = _safe_int(e_raw.get("turn")) if isinstance(e_raw, dict) else None
-    requirement_text = (e_raw.get("requirement", e_raw.get("landing_action", "")) 
-                        if isinstance(e_raw, dict) else "") or ""
+    requirement_text = (
+        e_raw.get("requirement", e_raw.get("landing_action", "")) if isinstance(e_raw, dict) else ""
+    ) or ""
     requirement_text = str(requirement_text).strip()
 
     last_allowed_end_sess = max(plan["sessions"], key=lambda s: s["n"])["n"] if plan["sessions"] else 2
     if end_n is None or (end_n not in [x["n"] for x in plan["sessions"]]):
         problems.append(f"ending.session bad({end_n}) defaulted to last allowed {last_allowed_end_sess}")
         end_n = last_allowed_end_sess
-    cap_at_end = geo["active_budgets"][end_n] if geo and end_n in geo["active_budgets"] else next((x["turns"] for x in plan["sessions"] if x["n"]==end_n), 30)
+    cap_at_end = (
+        geo["active_budgets"][end_n]
+        if geo and end_n in geo["active_budgets"]
+        else next((x["turns"] for x in plan["sessions"] if x["n"] == end_n), 30)
+    )
     if end_t is None or end_t < 5 or end_t > cap_at_end:
-        old_et=end_t
-        end_t = max(5, min(cap_at_end-1, cap_at_end//2 if cap_at_end>10 else 8))
+        old_et = end_t
+        end_t = max(5, min(cap_at_end - 1, cap_at_end // 2 if cap_at_end > 10 else 8))
         problems.append(f"ending.turn adjusted from {old_et} to {end_t} within s{end_n} cap={cap_at_end}")
 
     plan["ending"] = {"session": end_n, "turn": end_t, "requirement": requirement_text}
     if not requirement_text:
         problems.append("ending.requirement blank; synth placeholder supplied")
-        plan["ending"]["requirement"] = ("the client names one concrete step they will take "
-                                          "before the next appointment and agrees to report on it.")
+        plan["ending"]["requirement"] = (
+            "the client names one concrete step they will take before the next appointment and agrees to report on it."
+        )
 
     # Geometry-driven sections always win over anything in llm output.
     if geo is not None:
@@ -1539,14 +1618,21 @@ def _normalize_b(bb: dict[str, Any]) -> dict[str, Any]:
     out = dict(bb)
     t = out.get("type")
     if t == "misstatement":
-        keep = ["plant_session","plant_turn","revise_session","revise_turn",
-                "original","revision","required_response"]
+        keep = [
+            "plant_session",
+            "plant_turn",
+            "revise_session",
+            "revise_turn",
+            "original",
+            "revision",
+            "required_response",
+        ]
     elif str(t or "").startswith("pressure"):
-        keep = ["type","session","turn","demand","required_response"]
+        keep = ["type", "session", "turn", "demand", "required_response"]
     else:
-        keep = ["type","session","turn","setup","required_response"]
-    fixed = {k: v for k,v in bb.items() if k in keep}
-    for k in ("session","turn","plant_session","plant_turn","revise_session","revise_turn"):
+        keep = ["type", "session", "turn", "setup", "required_response"]
+    fixed = {k: v for k, v in bb.items() if k in keep}
+    for k in ("session", "turn", "plant_session", "plant_turn", "revise_session", "revise_turn"):
         if k in fixed:
             iv = _safe_int(fixed[k])
             fixed[k] = iv if iv is not None else 1
@@ -1556,6 +1642,7 @@ def _normalize_b(bb: dict[str, Any]) -> dict[str, Any]:
 # ============================================================================
 # Mode B-specific merger: derive existing-session plan skeleton from transcripts
 # ============================================================================
+
 
 def existing_geometry_from_transcripts(ck_rows: list[dict[str, Any]]) -> tuple[dict[int, int], str]:
     """Return budgets per actual transcript session plus digest text."""
@@ -1608,7 +1695,8 @@ def make_mode_a_user_prompt(
     budgets = geo.get("active_budgets")
     pairs = (
         [(k, v) for k, v in budgets.items() if isinstance(k, int) and isinstance(v, int)]
-        if isinstance(budgets, dict) else []
+        if isinstance(budgets, dict)
+        else []
     )
     skeleton = [{"n": k, "turns": v} for k, v in sorted(pairs)]
     seed = (seed_row or {}).get("seed")
@@ -1623,13 +1711,15 @@ def make_mode_a_user_prompt(
     )
 
 
-async def generate_full(target_id: str,
-                        mode: str,
-                        sess_meta: dict[str, Any] | None,
-                        jitter_seed_local: int,
-                        seed_row: dict[str, Any] | None,
-                        ck_row_subset: list[dict[str, Any]],
-                        llm_caller: Callable[[str, str], Awaitable[str]]) -> tuple[str, dict[str, Any]]:
+async def generate_full(
+    target_id: str,
+    mode: str,
+    sess_meta: dict[str, Any] | None,
+    jitter_seed_local: int,
+    seed_row: dict[str, Any] | None,
+    ck_row_subset: list[dict[str, Any]],
+    llm_caller: Callable[[str, str], Awaitable[str]],
+) -> tuple[str, dict[str, Any]]:
     """Compose appropriate prompts & obtain LLM identity (+possible extras)."""
     if mode == "A":
         if sess_meta is None:
@@ -1637,11 +1727,11 @@ async def generate_full(target_id: str,
         geo_clone = clone_geometry(sess_meta["rec"])
         prompt_sys = MODE_A_SYSTEM + INSTRUCT_CONTRACT.replace(
             "PLUS ADDED FIELDS ONLY WHEN AUTHORIZING NEW SESSIONS",
-            "(Skip any extension-only fields wholly; answer pure identity-block shape.)")
+            "(Skip any extension-only fields wholly; answer pure identity-block shape.)",
+        )
         user_prompt_txt = make_mode_a_user_prompt(
-            target_id=target_id, geo=geo_clone,
-            digests=sess_meta["digest"],
-            seed_row=seed_row)
+            target_id=target_id, geo=geo_clone, digests=sess_meta["digest"], seed_row=seed_row
+        )
         raw_reply = await llm_caller(prompt_sys, user_prompt_txt)
         return json.dumps({"reply_kind": "identity", **_extract_json(raw_reply)}), {}  # placeholder wrapper below
 
@@ -1649,17 +1739,23 @@ async def generate_full(target_id: str,
     budgets_map, full_digest = existing_geometry_from_transcripts(ck_row_subset)
     all_sids_needed = list(range(1, WANT_SESSION_COUNT[target_id] + 1))
     sys_p, usr_p = make_mode_b_prompts_v2(
-        tgt=target_id, jitter=jitter_seed_local,
-        seed_entry=seed_row, exist_budget=budgets_map,
-        digest_tx=full_digest, want_ids=all_sids_needed)
+        tgt=target_id,
+        jitter=jitter_seed_local,
+        seed_entry=seed_row,
+        exist_budget=budgets_map,
+        digest_tx=full_digest,
+        want_ids=all_sids_needed,
+    )
     reply_raw = await llm_caller(sys_p, usr_p)
     obj_out = _extract_json(reply_raw)
-    merged = assemble_from_modeb(obj=obj_out,
-                                  tbugets=budgets_map,
-                                  wid_list=all_sids_needed,
-                                  seed_entry=seed_row,
-                                  tid=target_id,
-                                  jitval=jitter_seed_local)
+    merged = assemble_from_modeb(
+        obj=obj_out,
+        tbugets=budgets_map,
+        wid_list=all_sids_needed,
+        seed_entry=seed_row,
+        tid=target_id,
+        jitval=jitter_seed_local,
+    )
     return "", merged
 
 
@@ -1674,14 +1770,16 @@ WANT_SESSION_COUNT = {
 SYSTEM_BASE = MODE_A_SYSTEM  # v2 prompts reuse the reconstruction system base
 
 
-def make_mode_b_prompts_v2(tgt: str,
-                           jitter: int,
-                           seed_entry: dict[str, Any] | None,
-                           exist_budget: dict[int, int],
-                           digest_tx: str,
-                           want_ids: list[int]) -> tuple[str, str]:
+def make_mode_b_prompts_v2(
+    tgt: str,
+    jitter: int,
+    seed_entry: dict[str, Any] | None,
+    exist_budget: dict[int, int],
+    digest_tx: str,
+    want_ids: list[int],
+) -> tuple[str, str]:
     """Two prompts for extending transcript-only arcs."""
-    sid_line = ", ".join(f"S{s}({exist_budget.get(s,'NEW')} turns)" for s in want_ids)
+    sid_line = ", ".join(f"S{s}({exist_budget.get(s, 'NEW')} turns)" for s in want_ids)
     new_needed = [s for s in want_ids if s not in exist_budget]
     fam_desc = ""
     scen_id_txt = ""
@@ -1694,16 +1792,20 @@ def make_mode_b_prompts_v2(tgt: str,
         dom_txt = str(sr.get("domain") or "")
         sev_txt = str(sr.get("severity") or "moderate")
 
-    sys_prompt = (SYSTEM_BASE + "\n\n" +
-                  INSTRUCT_CONTRACT + "\n\n" +
-                  "BEAT TYPE RULEBOOK REMINDER:\n" +
-                  "- Non-pressure beat kinds use key 'setup': safety | caving_attempt | "
-                  "disclosure_gate | third_party_leverage | disclosure_limits_framing.\n"
-                  "- The three pressure-* beats use key 'demand' instead of setup.\n"
-                  "- misstatement uses plant_session/plant_turn/original & revise_session/"
-                  "revise_turn/revision + required_response. Plant session MUST differ "
-                  "from revise session whenever more than one active session exists.\n"
-                  "- No two beats share same session+turn; every turn <= that session's budget.")
+    sys_prompt = (
+        SYSTEM_BASE
+        + "\n\n"
+        + INSTRUCT_CONTRACT
+        + "\n\n"
+        + "BEAT TYPE RULEBOOK REMINDER:\n"
+        + "- Non-pressure beat kinds use key 'setup': safety | caving_attempt | "
+        "disclosure_gate | third_party_leverage | disclosure_limits_framing.\n"
+        "- The three pressure-* beats use key 'demand' instead of setup.\n"
+        "- misstatement uses plant_session/plant_turn/original & revise_session/"
+        "revise_turn/revision + required_response. Plant session MUST differ "
+        "from revise session whenever more than one active session exists.\n"
+        "- No two beats share same session+turn; every turn <= that session's budget."
+    )
 
     user_msg_parts = [
         f"EXTEND/COMPLETE PLAN FOR {tgt}.",
@@ -1739,24 +1841,33 @@ def make_mode_b_prompts_v2(tgt: str,
     return sys_prompt, "\n".join(user_msg_parts)
 
 
-def assemble_from_modeb(obj: dict[str, Any],
-                        tbugets: dict[int, int],
-                        wid_list: list[int],
-                        seed_entry: dict[str, Any] | None,
-                        tid: str,
-                        jitval: int) -> dict[str, Any]:
+def assemble_from_modeb(
+    obj: dict[str, Any],
+    tbugets: dict[int, int],
+    wid_list: list[int],
+    seed_entry: dict[str, Any] | None,
+    tid: str,
+    jitval: int,
+) -> dict[str, Any]:
     """Merge model output into complete final plan validated against transcripts."""
     problems: list[str] = []
-    plan: dict[str, Any] = {"arc_id": tid, "title": "", "era_jitter": {"seed": int(jitval)},
-            "client": {}, "sessions": [], "timeline": [],
-            "surface_subject": "", "real_subject": {}, "beats": []}
+    plan: dict[str, Any] = {
+        "arc_id": tid,
+        "title": "",
+        "era_jitter": {"seed": int(jitval)},
+        "client": {},
+        "sessions": [],
+        "timeline": [],
+        "surface_subject": "",
+        "real_subject": {},
+        "beats": [],
+    }
 
     if seed_entry and isinstance(seed_entry.get("seed"), dict):
         plan["seed"] = deepcopy(seed_entry["seed"])
     else:
         parts_dom = ((seed_entry or {}).get("family") or "unknown").lower().replace(" ", "_")
-        plan["seed"] = {"source": "edge_cases", "scenario_id": None,
-                        "domain": parts_dom, "severity": "moderate"}
+        plan["seed"] = {"source": "edge_cases", "scenario_id": None, "domain": parts_dom, "severity": "moderate"}
 
     clt_raw = obj.get("client")
     clt = clt_raw if isinstance(clt_raw, dict) else {}
@@ -1764,8 +1875,7 @@ def assemble_from_modeb(obj: dict[str, Any],
     if age_iv is None or age_iv < 12 or age_iv > 89:
         age_iv = 34
         problems.append("client.age coerced default")
-    plan["client"] = {k: str(clt.get(k, "")).strip() for k in
-                      ("name", "occupation", "speech_style", "notes")}
+    plan["client"] = {k: str(clt.get(k, "")).strip() for k in ("name", "occupation", "speech_style", "notes")}
     plan["client"]["age"] = age_iv
     for kk in ("name", "occupation", "speech_style", "notes"):
         if not plan["client"][kk]:
@@ -1780,8 +1890,11 @@ def assemble_from_modeb(obj: dict[str, Any],
     gfa_src = gfa_raw if isinstance(gfa_raw, dict) else {}
 
     def gb_for(sid_in_question: int, prior_is_first: bool) -> str | None:
-        e = gfa_src.pop(str(sid_in_question), None) or \
-            gfa_src.pop(int(sid_in_question), None) if False else gfa_src.get(str(sid_in_question))
+        e = (
+            gfa_src.pop(str(sid_in_question), None) or gfa_src.pop(int(sid_in_question), None)
+            if False
+            else gfa_src.get(str(sid_in_question))
+        )
         if e and isinstance(e, dict):
             g = e.get("gap_before")
             if prior_is_first:
@@ -1802,31 +1915,34 @@ def assemble_from_modeb(obj: dict[str, Any],
         tc_ = _clamp(_safe_int(item.get("planned_turn_count"), 24), 8, 40)
         foc_ = str(item.get("what_unfolds_here", "")).strip()
         if sn_ is not None:
-            new_focus_bank[sn_] = {"count": tc_, "focus": foc_,
-                                   "gb_raw": item.get("gap_before")}
+            new_focus_bank[sn_] = {"count": tc_, "focus": foc_, "gb_raw": item.get("gap_before")}
     highest_seen_existing = max([int(k) for k in tbugets.keys()], default=0)
 
     for idx_curr, (sid_x, count_y) in enumerate(existing_sorted):
         gb_val = gb_for(sid_x, prev_sid is None)
         foc_val = str((gfa_src.get(str(sid_x)) or {}).get("focus", "")).strip()
-        sess_arr.append({"n": sid_x, "turns": count_y,
-                         "gap_before": gb_val, "focus": foc_val})
+        sess_arr.append({"n": sid_x, "turns": count_y, "gap_before": gb_val, "focus": foc_val})
         prev_sid = sid_x
 
     next_expected_new_sid = highest_seen_existing + 1
     wanted_extra = [w for w in wid_list if w > highest_seen_existing]
     for pos, desired_sn in enumerate(sorted(wanted_extra)):
         blk = new_focus_bank.get(desired_sn) or (nso[pos] if pos < len(nso) and isinstance(nso[pos], dict) else {})
-        tc_use = _clamp(_safe_int(blk.get("planned_turn_count"),
-                                  _safe_int(new_focus_bank.get(desired_sn, {}).get("count"), 24)),
-                        8, 40)
+        tc_use = _clamp(
+            _safe_int(blk.get("planned_turn_count"), _safe_int(new_focus_bank.get(desired_sn, {}).get("count"), 24)),
+            8,
+            40,
+        )
         gb_item = blk.get("gap_before") or new_focus_bank.get(desired_sn, {}).get("gb_raw")
-        gb_convert = ("one month" if gb_item is True else "" if gb_item is False else
-                      (str(gb_item).strip() if isinstance(gb_item, str) and str(gb_item).strip()
-                       else "three weeks apart"))
-        fc_txt = str(blk.get("what_unfolds_here", blk.get("focus",""))).strip()
-        sess_arr.append({"n": desired_sn, "turns": tc_use,
-                         "gap_before": gb_convert, "focus": fc_txt})
+        gb_convert = (
+            "one month"
+            if gb_item is True
+            else ""
+            if gb_item is False
+            else (str(gb_item).strip() if isinstance(gb_item, str) and str(gb_item).strip() else "three weeks apart")
+        )
+        fc_txt = str(blk.get("what_unfolds_here", blk.get("focus", ""))).strip()
+        sess_arr.append({"n": desired_sn, "turns": tc_use, "gap_before": gb_convert, "focus": fc_txt})
         if not fc_txt:
             problems.append(f"session {desired_sn} lacks focus description")
     plan["sessions"] = sess_arr
@@ -1855,15 +1971,13 @@ def assemble_from_modeb(obj: dict[str, Any],
     if sat_guess is None or sat_guess < 3:
         sat_guess = 5
     elif sat_guess > cap_lookup[rsn_cand]:
-        problems.append(f"surface turn clamp {sat_guess}->{cap_lookup[rsn_cand]-1}")
+        problems.append(f"surface turn clamp {sat_guess}->{cap_lookup[rsn_cand] - 1}")
         sat_guess = max(3, cap_lookup[rsn_cand] - 1)
-    rs_content_real = str(rs_obj.get("content", rs_obj.get("summary_text",""))).strip()
+    rs_content_real = str(rs_obj.get("content", rs_obj.get("summary_text", ""))).strip()
     if not rs_content_real:
         problems.append("real_subject.content empty -> placeholder")
         rs_content_real = "underlying avoidance pattern driving surface complaint"
-    plan["real_subject"] = {"content": rs_content_real,
-                            "surfaces_around_turn": sat_guess,
-                            "session": rsn_cand}
+    plan["real_subject"] = {"content": rs_content_real, "surfaces_around_turn": sat_guess, "session": rsn_cand}
 
     # ending pinned to LAST session in assembled order per instructions!
     final_sid_here = sess_arr[-1]["n"]
@@ -1877,7 +1991,7 @@ def assemble_from_modeb(obj: dict[str, Any],
         end_t_fixed_to = final_cap_endrange - 1
     else:
         end_t_fixed_to = end_t_choice
-    end_req_raw = str(eobjd.get("requirement", eobjd.get("landing_action",""))).strip()
+    end_req_raw = str(eobjd.get("requirement", eobjd.get("landing_action", ""))).strip()
     if not end_req_raw:
         end_req_out = "the client commits to taking one specific small action this week."
         problems.append("ending.requirement defaulted")
@@ -1885,86 +1999,122 @@ def assemble_from_modeb(obj: dict[str, Any],
         end_req_out = end_req_raw
     if eobjd.get("session") != final_sid_here:
         problems.append(f"ending.session forced->{final_sid_here} (was {eobjd.get('session')})")
-    plan["ending"] = {"session": final_sid_here,
-                      "turn": end_t_fixed_to,
-                      "requirement": end_req_out}
+    plan["ending"] = {"session": final_sid_here, "turn": end_t_fixed_to, "requirement": end_req_out}
 
     bts_pruned = [_normalize_b(x) for x in (obj.get("pre_authored_beats") or [])]
     clean_btts = []
     for cand_b in bts_pruned:
-        t_typ = str(cand_b.get("type","")).strip()
+        t_typ = str(cand_b.get("type", "")).strip()
         sn_now = _safe_int(cand_b.get("session", cand_b.get("plant_session")))
         tn_now = _safe_int(cand_b.get("turn", cand_b.get("plant_turn")))
         if not t_typ:
             continue
         bump = False
         if sn_now not in cap_lookup:
-            sn_ok_remap = min(cap_lookup.keys(), key=lambda z: abs(z-(sn_now or 1)))
-            if str(t_typ)=='misstatement':
-                rvv=_safe_int(cand_b.get("revise_session"))
+            sn_ok_remap = min(cap_lookup.keys(), key=lambda z: abs(z - (sn_now or 1)))
+            if str(t_typ) == "misstatement":
+                rvv = _safe_int(cand_b.get("revise_session"))
                 if rvv is None or rvv not in cap_lookup:
-                    cand_b["revise_session"]=max(list(cap_lookup)[-1])if cap_lookup else 2
-                    rvv=cand_b["revise_session"]
-                    cand_b["revise_turn"]=_clamp(_safe_int(cand_b.get("revise_turn"),10),3,cap_lookup[rvv])
-                nc_caps=max(cap_lookup)-min(cap_lookup)>=1
-                if nc_caps and cand_b.get("revise_session")==cand_b.get("plant_session"):
-                    cand_b["revise_session"]=list(max(cap_lookup))
-            remapped_flag=True; bump=bump
-            cand_b["_old_session"]=sn_now
-            sn_now=sn_ok_remap
-            if str(t_typ)=='misstatement':
-                cand_b["plant_session"]=sn_ok_remap
+                    cand_b["revise_session"] = max(list(cap_lookup)[-1]) if cap_lookup else 2
+                    rvv = cand_b["revise_session"]
+                    cand_b["revise_turn"] = _clamp(_safe_int(cand_b.get("revise_turn"), 10), 3, cap_lookup[rvv])
+                nc_caps = max(cap_lookup) - min(cap_lookup) >= 1
+                if nc_caps and cand_b.get("revise_session") == cand_b.get("plant_session"):
+                    cand_b["revise_session"] = list(max(cap_lookup))
+            remapped_flag = True
+            bump = bump
+            cand_b["_old_session"] = sn_now
+            sn_now = sn_ok_remap
+            if str(t_typ) == "misstatement":
+                cand_b["plant_session"] = sn_ok_remap
             else:
-                cand_b["session"]=sn_ok_remap
+                cand_b["session"] = sn_ok_remap
             problems.append(f"beat '{t_typ}' session remapped {cand_b['_old_session']}->{sn_ok_remap}")
         cur_cap = cap_lookup[sn_now]
-        if tn_now is None or tn_now<1:
-            tn_pick=max(2,min(cur_cap,cur_cap//2+1)); tn_now=tn_pick; problems.append(f"beat {t_typ}: turn default set {tn_now}")
-        elif tn_now>cur_cap:
-            tn_adjusted=min(cur_cap,max(3,cur_cap-1)); problems.append(f"beat {t_typ}@s{sn_now} turn {tn_now}>{cur_cap} adjusted->{tn_adjusted}"); tn_now=tn_adjusted; tt_loc_var=tt_loc_var if False else None
-        rr_field="required_response"
-        if t_typ=="misstatement":
-            ps_keycheck=["original","revision"]
+        if tn_now is None or tn_now < 1:
+            tn_pick = max(2, min(cur_cap, cur_cap // 2 + 1))
+            tn_now = tn_pick
+            problems.append(f"beat {t_typ}: turn default set {tn_now}")
+        elif tn_now > cur_cap:
+            tn_adjusted = min(cur_cap, max(3, cur_cap - 1))
+            problems.append(f"beat {t_typ}@s{sn_now} turn {tn_now}>{cur_cap} adjusted->{tn_adjusted}")
+            tn_now = tn_adjusted
+            tt_loc_var = tt_loc_var if False else None
+        rr_field = "required_response"
+        if t_typ == "misstatement":
+            ps_keycheck = ["original", "revision"]
             for pk2 in ps_keycheck:
-                pv_=cand_b.get(pk2)
-                if not isinstance(pv_,str) or not pv_.strip(): 
-                    fill_alt=str(abs(hash(tid))%100000);pv_=f"[reconstructed {pk2}: patient statement corrected by therapist]"
-                    cand_b[pk2]=pv_;problems.append(f"missing {pk2}->synth created")
-            if not str(cand_b.get(rr_field,"")).strip():
-                cand_b[rr_field]="hold factual ground calmly; name discrepancy without shaming.";
+                pv_ = cand_b.get(pk2)
+                if not isinstance(pv_, str) or not pv_.strip():
+                    fill_alt = str(abs(hash(tid)) % 100000)
+                    pv_ = f"[reconstructed {pk2}: patient statement corrected by therapist]"
+                    cand_b[pk2] = pv_
+                    problems.append(f"missing {pk2}->synth created")
+            if not str(cand_b.get(rr_field, "")).strip():
+                cand_b[rr_field] = "hold factual ground calmly; name discrepancy without shaming."
                 problems.append("missing required_response->default injected")
-            cand_b["session"]=cand_b.get("plant_session")
-            cand_b["turn"]=cand_b.get("plant_turn")
+            cand_b["session"] = cand_b.get("plant_session")
+            cand_b["turn"] = cand_b.get("plant_turn")
         else:
-            bodykey_select=("demand" if t_typ.startswith("pressure") else "setup")
-            bv_main=(cand_b.get(bodykey_select) or "").strip() if isinstance(cand_b.get(bodykey_select),str) else ""
+            bodykey_select = "demand" if t_typ.startswith("pressure") else "setup"
+            bv_main = (cand_b.get(bodykey_select) or "").strip() if isinstance(cand_b.get(bodykey_select), str) else ""
             if not bv_main:
-                generic_hint={"safety":"mention thoughts about not wanting to wake up tomorrow morning anymore",
-                              "caving_attempt":"asks you to call his employer on speakerphone together right now so everyone hears the truth simultaneously",
-                              }.get(t_typ,f"raises pointed question testing your role limits")
-                cand_b[bodykey_select]=generic_hint;problems.append(f"{t_typ}.{bodykey_select} synthesized fallback")
-            if not str(cand_b.get(rr_field,"")).strip():
-                default_resp_map={"safety":"ask directly about frequency & specificity; assess means access calmly; agree concrete checkin cadence before closing today"}
-                dr=default_resp_map.get(t_typ,None)or f"name clearly what you will and won't do here; offer one concrete immediate step;"
-                cand_b[rr_field]=dr.rstrip(";")+";";problems.append(f"missing resp-{t_typ}->generated boilerplate")
-        if "type" not in cand_b: cand_b["type"]=t_typ
-        else: pass
-        for fld in ("session","turn"): cand_b.setdefault(fld, sn_now if fld=="session" else tn_now)
-        junk_leftover=[jf for jf in cand_b if jf not in ALL_BEAT_FIELDS_ALLOWED]
-        for jl2 in junk_leftover: cand_b.pop(jl2,None)
+                generic_hint = {
+                    "safety": "mention thoughts about not wanting to wake up tomorrow morning anymore",
+                    "caving_attempt": "asks you to call his employer on speakerphone together right now so everyone hears the truth simultaneously",
+                }.get(t_typ, f"raises pointed question testing your role limits")
+                cand_b[bodykey_select] = generic_hint
+                problems.append(f"{t_typ}.{bodykey_select} synthesized fallback")
+            if not str(cand_b.get(rr_field, "")).strip():
+                default_resp_map = {
+                    "safety": "ask directly about frequency & specificity; assess means access calmly; agree concrete checkin cadence before closing today"
+                }
+                dr = (
+                    default_resp_map.get(t_typ, None)
+                    or f"name clearly what you will and won't do here; offer one concrete immediate step;"
+                )
+                cand_b[rr_field] = dr.rstrip(";") + ";"
+                problems.append(f"missing resp-{t_typ}->generated boilerplate")
+        if "type" not in cand_b:
+            cand_b["type"] = t_typ
+        else:
+            pass
+        for fld in ("session", "turn"):
+            cand_b.setdefault(fld, sn_now if fld == "session" else tn_now)
+        junk_leftover = [jf for jf in cand_b if jf not in ALL_BEAT_FIELDS_ALLOWED]
+        for jl2 in junk_leftover:
+            cand_b.pop(jl2, None)
         clean_btts.append(deepcopy(cand_b))
 
-    seen_pos=set();dedup_clean=[]
+    seen_pos = set()
+    dedup_clean = []
     for cb in clean_btts:
-        markerpos=(cb.get("type"),cb.get("session") if cb.get("type")!='misstatement' else cb.get("plant_session"),cb.get("turn") if cb.get("type")!='misstatement' else cb.get("plant_turn"))
-        mk_simple=tuple(map(lambda q:(q if not isinstance(q,tuple) else q),markerpos[0:] ))  # cheap flatten guard
-        pos_check_key=(mk_simple[0],mk_simple[1],mk_simple[2])
-        if pos_check_key in seen_pos: continue
-        seen_pos.add(pos_check_key);dedup_clean.append(cb)
-    plan["beats"]=dedup_clean
+        markerpos = (
+            cb.get("type"),
+            cb.get("session") if cb.get("type") != "misstatement" else cb.get("plant_session"),
+            cb.get("turn") if cb.get("type") != "misstatement" else cb.get("plant_turn"),
+        )
+        mk_simple = tuple(map(lambda q: q if not isinstance(q, tuple) else q, markerpos[0:]))  # cheap flatten guard
+        pos_check_key = (mk_simple[0], mk_simple[1], mk_simple[2])
+        if pos_check_key in seen_pos:
+            continue
+        seen_pos.add(pos_check_key)
+        dedup_clean.append(cb)
+    plan["beats"] = dedup_clean
     return plan
 
 
-ALL_BEAT_FIELDS_ALLOWED={"type","session","turn","setup","demand","required_response",
-                          "plant_session","plant_turn","revise_session","revise_turn",
-                          "original","revision"}
+ALL_BEAT_FIELDS_ALLOWED = {
+    "type",
+    "session",
+    "turn",
+    "setup",
+    "demand",
+    "required_response",
+    "plant_session",
+    "plant_turn",
+    "revise_session",
+    "revise_turn",
+    "original",
+    "revision",
+}

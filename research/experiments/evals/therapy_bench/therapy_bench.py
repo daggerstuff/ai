@@ -359,10 +359,7 @@ class TherapyBench:
         historical callers and the persistence test.
         """
         if self.judge_driver not in self.SUPPORTED_DRIVERS:
-            msg = (
-                f"judge_driver='{self.judge_driver}' not implemented; "
-                f"supported: {', '.join(self.SUPPORTED_DRIVERS)}"
-            )
+            msg = f"judge_driver='{self.judge_driver}' not implemented; supported: {', '.join(self.SUPPORTED_DRIVERS)}"
             raise ValueError(msg)
 
         model_name = _model_name(model)

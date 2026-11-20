@@ -14,17 +14,14 @@ FILE_TO_STAGE = {
     "psychology-6k": "stage1_foundation",
     "mental_health_clean": "stage1_foundation",
     "ultimate_final_dataset": "stage1_foundation",
-
     # Stage 2
     "cot_reasoning": "stage2_therapeutic_expertise",
     "clinical_diagnosis_mental_health": "stage2_therapeutic_expertise",
     "cultural_nuances": "stage2_therapeutic_expertise",
-
     # Stage 3
     "edge_cases_training_format": "stage3_edge_stress_test",
     "nightmare_fuel": "stage3_edge_stress_test",
-    "example_prompts": "stage3_edge_stress_test", # inside ULTIMATE
-
+    "example_prompts": "stage3_edge_stress_test",  # inside ULTIMATE
     # Stage 4
     "tim_fletcher": "stage4_voice_persona",
     "heidi_priebe": "stage4_voice_persona",
@@ -34,6 +31,7 @@ FILE_TO_STAGE = {
     "crappy_childhood_fairy": "stage4_voice_persona",
     "doc_snipes": "stage4_voice_persona",
 }
+
 
 def determine_stage(record: dict) -> str:
     metadata = record.get("metadata", {})
@@ -57,7 +55,8 @@ def determine_stage(record: dict) -> str:
         if match in file_key:
             return stage
 
-    return "stage1_foundation" # Default everything else to foundation
+    return "stage1_foundation"  # Default everything else to foundation
+
 
 def run_slicer():
 
@@ -65,7 +64,7 @@ def run_slicer():
         "stage1_foundation": 0,
         "stage2_therapeutic_expertise": 0,
         "stage3_edge_stress_test": 0,
-        "stage4_voice_persona": 0
+        "stage4_voice_persona": 0,
     }
 
     out_files = {}
@@ -112,10 +111,11 @@ def run_slicer():
         "stage_details": {
             k: {"stage_id": k, "records_processed": v, "records_written": v} for k, v in stage_counts.items()
         },
-        "downstream_ready": True
+        "downstream_ready": True,
     }
     with open(out_dir / "dact06_enhanced_metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
+
 
 if __name__ == "__main__":
     run_slicer()

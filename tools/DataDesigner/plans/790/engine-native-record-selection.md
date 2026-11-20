@@ -180,8 +180,7 @@ Add a builder method:
 def with_record_selection(
     self,
     config: RecordSelectionConfig,
-) -> DataDesignerConfigBuilder:
-    ...
+) -> DataDesignerConfigBuilder: ...
 ```
 
 `RecordSelectionConfig` belongs in the config package because it changes the meaning and identity of the output

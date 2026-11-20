@@ -44,15 +44,21 @@ _PII_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     # Medical record number: MRN:XXXX or similar
     ("mrn", re.compile(r"\b(?:MRN|mrn|medical record)[:\s]*\d{5,12}\b", re.IGNORECASE)),
     # Street address (US pattern): number + street name + st/ave/rd/blvd/ln/dr
-    ("address", re.compile(
-        r"\b\d{1,6}\s+[A-Za-z0-9]+\s+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl)\b",
-        re.IGNORECASE,
-    )),
+    (
+        "address",
+        re.compile(
+            r"\b\d{1,6}\s+[A-Za-z0-9]+\s+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl)\b",
+            re.IGNORECASE,
+        ),
+    ),
     # URLs that might contain user identifiers (e.g., /user/12345, /profile/john)
-    ("url_user_id", re.compile(
-        r"https?://\S*/(?:user|profile|u|member)s?/\d{3,}\b\S*",
-        re.IGNORECASE,
-    )),
+    (
+        "url_user_id",
+        re.compile(
+            r"https?://\S*/(?:user|profile|u|member)s?/\d{3,}\b\S*",
+            re.IGNORECASE,
+        ),
+    ),
 ]
 
 _REDACTION_PLACEHOLDER = "[REDACTED]"
@@ -105,11 +111,13 @@ def strip_pii_from_text(text: str) -> tuple[str, list[dict[str, Any]]]:
 
     for pii_type, pattern in _PII_PATTERNS:
         for match in pattern.finditer(text):
-            redactions.append({
-                "type": pii_type,
-                "match": match.group(),
-                "position": match.start(),
-            })
+            redactions.append(
+                {
+                    "type": pii_type,
+                    "match": match.group(),
+                    "position": match.start(),
+                }
+            )
         redacted = pattern.sub(_REDACTION_PLACEHOLDER, redacted)
 
     return redacted, redactions

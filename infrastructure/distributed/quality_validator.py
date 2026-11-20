@@ -131,7 +131,6 @@ class ValidationResult:
         return cls(**data)
 
 
-
 class QualityValidator:
     """Base quality validator class"""
 

@@ -31,11 +31,30 @@ def therapist_score(text: str) -> float:
     s = 0.0
 
     for pat in [
-        r"^so\b", r"^why\b", r"^what\b", r"^where\b", r"^how\b",
-        r"^did\b", r"^do\b", r"^tell\b", r"^when\b", r"^who\b",
-        r"^let\'s\b", r"^let\b", r"^would\b", r"^could\b",
-        r"^have\b", r"^are\b", r"^is\b", r"^was\b", r"^were\b", r"^can\b",
-        r"^well,?\b", r"^that'?s\b", r"^you\b", r"^we\b",
+        r"^so\b",
+        r"^why\b",
+        r"^what\b",
+        r"^where\b",
+        r"^how\b",
+        r"^did\b",
+        r"^do\b",
+        r"^tell\b",
+        r"^when\b",
+        r"^who\b",
+        r"^let\'s\b",
+        r"^let\b",
+        r"^would\b",
+        r"^could\b",
+        r"^have\b",
+        r"^are\b",
+        r"^is\b",
+        r"^was\b",
+        r"^were\b",
+        r"^can\b",
+        r"^well,?\b",
+        r"^that'?s\b",
+        r"^you\b",
+        r"^we\b",
     ]:
         if re.search(pat, t):
             s += 0.35
@@ -44,20 +63,58 @@ def therapist_score(text: str) -> float:
         s += 0.25
 
     for w in [
-        "experience", "therapy", "therapeutic", "session", "feelings",
-        "emotion", "understand", "understanding", "awareness", "recognize",
-        "pattern", "dynamic", "behavior", "unconscious", "conscious",
-        "vulnerable", "vulnerability", "pain", "trauma", "relationship",
-        "attachment", "boundary", "boundaries", "perspective", "reflect",
-        "childhood", "family", "parent", "anxiety", "depression",
-        "shame", "guilt", "heal", "healing", "validate", "empath",
-        "insight", "realize", "connection", "connected", "disconnected",
-        "comfortable", "uncomfortable", "honest", "authentic",
+        "experience",
+        "therapy",
+        "therapeutic",
+        "session",
+        "feelings",
+        "emotion",
+        "understand",
+        "understanding",
+        "awareness",
+        "recognize",
+        "pattern",
+        "dynamic",
+        "behavior",
+        "unconscious",
+        "conscious",
+        "vulnerable",
+        "vulnerability",
+        "pain",
+        "trauma",
+        "relationship",
+        "attachment",
+        "boundary",
+        "boundaries",
+        "perspective",
+        "reflect",
+        "childhood",
+        "family",
+        "parent",
+        "anxiety",
+        "depression",
+        "shame",
+        "guilt",
+        "heal",
+        "healing",
+        "validate",
+        "empath",
+        "insight",
+        "realize",
+        "connection",
+        "connected",
+        "disconnected",
+        "comfortable",
+        "uncomfortable",
+        "honest",
+        "authentic",
     ]:
         if w in t:
             s += 0.06
 
-    if re.search(r"^(so you|so it|so that|what i hear|what i\'m hearing|it sounds like|i hear that|i understand that)", t):
+    if re.search(
+        r"^(so you|so it|so that|what i hear|what i\'m hearing|it sounds like|i hear that|i understand that)", t
+    ):
         s += 0.4
 
     # Penalties
@@ -65,7 +122,10 @@ def therapist_score(text: str) -> float:
         s -= 0.4
     if re.search(r"\b(i'm|i am|i don|i can|i have|i was|i think|i feel|i want|i need)\b", t):
         s -= 0.12
-    if re.search(r"^(yeah|yes|no|nah|nope|mm\b|hmm\b|uh\b|uhhuh|okay|ok\b|right|sure|true|exactly|definitely|absolutely|totally|literally|like,|um,)", t):
+    if re.search(
+        r"^(yeah|yes|no|nah|nope|mm\b|hmm\b|uh\b|uhhuh|okay|ok\b|right|sure|true|exactly|definitely|absolutely|totally|literally|like,|um,)",
+        t,
+    ):
         s -= 0.55
 
     return s
@@ -76,16 +136,31 @@ def is_intro_segment(text: str) -> bool:
     return any(
         m in t
         for m in [
-            "my name is dr. siri", "my name is dr.siri",
-            "this week i'm sitting down with", "sitting down with",
-            "but today he is pushing", "but today she is pushing",
-            "he's cozart", "also known as rapper",
-            "17 year old rapper", "was arrested for", "sentenced to",
-            "pointed a gun", "possession of marijuana",
-            "watch more", "subscribe to", "follow us",
-            "next time on", "this episode", "remember to", "check out our",
-            "i'm jay shetty", "this podcast", "on this episode",
-            "today on the podcast", "welcome to the",
+            "my name is dr. siri",
+            "my name is dr.siri",
+            "this week i'm sitting down with",
+            "sitting down with",
+            "but today he is pushing",
+            "but today she is pushing",
+            "he's cozart",
+            "also known as rapper",
+            "17 year old rapper",
+            "was arrested for",
+            "sentenced to",
+            "pointed a gun",
+            "possession of marijuana",
+            "watch more",
+            "subscribe to",
+            "follow us",
+            "next time on",
+            "this episode",
+            "remember to",
+            "check out our",
+            "i'm jay shetty",
+            "this podcast",
+            "on this episode",
+            "today on the podcast",
+            "welcome to the",
         ]
     )
 
@@ -237,7 +312,6 @@ def main():
     total_t = sum(s.get("therapist_turns", 0) for s in stats if s["status"] == "ok")
     total_c = sum(s.get("client_turns", 0) for s in stats if s["status"] == "ok")
     total = sum(s.get("total_turns", 0) for s in stats if s["status"] == "ok")
-
 
     stats_path = MERGED_OUT.replace(".jsonl", "_stats.json")
     with open(stats_path, "w") as f:

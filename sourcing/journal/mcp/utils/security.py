@@ -267,7 +267,7 @@ def validate_json_safe(data: Any) -> bool:
     try:
         json.dumps(data)
         return True
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return False
 
 

@@ -13,9 +13,7 @@ class TestDatabaseSchemaDesigner:
             (1000000000, 1000000000, 10.0),  # Much larger than base overhead
         ],
     )
-    def test_estimate_storage_requirements_edge_cases(
-        self, conversation_count, expected_count, expected_size_min
-    ):
+    def test_estimate_storage_requirements_edge_cases(self, conversation_count, expected_count, expected_size_min):
         designer = DatabaseSchemaDesigner()
         result = designer.estimate_storage_requirements(conversation_count)
 

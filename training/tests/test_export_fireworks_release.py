@@ -168,9 +168,7 @@ def test_select_rows_keep_set_survives_the_route_that_would_have_dropped_it(tmp_
 def test_select_rows_keep_set_does_not_exempt_a_row_from_the_context_cap(tmp_path: Path) -> None:
     long_row = chat("x" * 500, CRISIS_REPLY)
     train = write_train(tmp_path / "train.jsonl", [long_row])
-    kept, counts = fw.select_rows(
-        train, fw.SelectionOptions(max_chars=100, keep_replies=frozenset({CRISIS_REPLY}))
-    )
+    kept, counts = fw.select_rows(train, fw.SelectionOptions(max_chars=100, keep_replies=frozenset({CRISIS_REPLY})))
     assert kept == []
     assert counts["crisis_too_long_excluded"] == 1
     assert counts["crisis_rows"] == 0

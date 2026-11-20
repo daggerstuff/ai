@@ -450,5 +450,7 @@ class LicenseChecker:
             True if license should be flagged for review
         """
         return (
-            LicenseCompatibility.INCOMPATIBLE in (result.ai_training_compatible, result.commercial_use_compatible) or LicenseCompatibility.REQUIRES_REVIEW in (result.ai_training_compatible, result.commercial_use_compatible) or result.confidence < 0.5
+            LicenseCompatibility.INCOMPATIBLE in (result.ai_training_compatible, result.commercial_use_compatible)
+            or LicenseCompatibility.REQUIRES_REVIEW in (result.ai_training_compatible, result.commercial_use_compatible)
+            or result.confidence < 0.5
         )

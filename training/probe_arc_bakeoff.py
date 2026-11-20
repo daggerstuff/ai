@@ -10,6 +10,7 @@ marker adherence, ledger JSON validity, cliche-gate hits.
 
 Run (from ai/):  /home/vivi/pixelated/.venv/bin/python training/probe_arc_bakeoff.py
 """
+
 import asyncio
 import json
 import os
@@ -22,9 +23,9 @@ import aiohttp
 from dotenv import load_dotenv
 
 _HERE = Path(__file__).resolve()
-_TRAIN_DIR = _HERE.parents[0]   # ai/training
-_AI_DIR = _HERE.parents[1]      # ai
-_REPO_DIR = _HERE.parents[2]    # pixelated
+_TRAIN_DIR = _HERE.parents[0]  # ai/training
+_AI_DIR = _HERE.parents[1]  # ai
+_REPO_DIR = _HERE.parents[2]  # pixelated
 sys.path.insert(0, str(_AI_DIR))
 load_dotenv(_REPO_DIR / ".env", override=True)
 
@@ -44,13 +45,14 @@ def _banned_lines() -> str:
         ("Never use these quote-parroting openers", PARROTING_OPENERS),
         ("Never use these robotic somatic deflections", ROBOTIC_SOMATIC_PHRASES),
         ("Never say these caving/backtracking phrases", CAVING_PHRASES),
-        ("Never use these robotic crisis-questionnaire forms — assess safety in the "
-         "client's own concrete language instead", ROBOTIC_CRISIS_QUESTIONS),
+        (
+            "Never use these robotic crisis-questionnaire forms — assess safety in the "
+            "client's own concrete language instead",
+            ROBOTIC_CRISIS_QUESTIONS,
+        ),
     ]
-    return "\n".join(
-        f"- {intro}: " + "; ".join(f'"{p}"' for p in phrases) + "."
-        for intro, phrases in groups
-    )
+    return "\n".join(f"- {intro}: " + "; ".join(f'"{p}"' for p in phrases) + "." for intro, phrases in groups)
+
 
 FEATHERLESS_URL = "https://api.featherless.ai/v1/chat/completions"
 OUT_DIR = _TRAIN_DIR / "output" / "nightmare_fuel" / "checkpoints"
@@ -58,7 +60,8 @@ MAX_TOKENS = 8192
 CALL_TIMEOUT = int(os.environ.get("ARC_BAKEOFF_TIMEOUT", "180"))
 LEDGER_KEYS = ["dx", "def", "soma", "risk", "hx", "onset", "track", "tx", "tl"]
 
-SYSTEM_PROMPT = """\
+SYSTEM_PROMPT = (
+    """\
 You author training transcripts for a direct-engagement therapy model. You write the
 full conversation, both voices, following an arc plan exactly.
 
@@ -97,13 +100,16 @@ LEDGER: every therapist turn is preceded by ONE compact single-line JSON think b
 All time references are RELATIVE ("six weeks ago", "two years back"). No calendar dates.
 
 BANNED EXACT PHRASES (zero tolerance — the transcript is machine-scanned for these):
-""" + _banned_lines() + """
+"""
+    + _banned_lines()
+    + """
 OUTPUT FORMAT (exactly this, nothing else — no headers, no commentary, no scene direction):
 [C] client line
 [T|THINK] {one-line JSON ledger}
 [T] therapist spoken reply
 Alternating, starting with [C].
 """
+)
 
 MINI_ARC = """\
 ARC: "The garage in winter" (opening slice) — 6 turns total: 3 [C] + 3 [T] + 3 [T|THINK], first speaker [C].
@@ -122,10 +128,16 @@ Write all 6 turns now."""
 
 CANDIDATES = [
     {"label": "V4.1-Flash plain", "model": "deepseek-ai/DeepSeek-V4.1-Flash", "extra": {}},
-    {"label": "V4.1-Flash ctk-thinking-off", "model": "deepseek-ai/DeepSeek-V4.1-Flash",
-     "extra": {"chat_template_kwargs": {"thinking": False}}},
-    {"label": "V4.1-Flash reasoning-effort-low", "model": "deepseek-ai/DeepSeek-V4.1-Flash",
-     "extra": {"reasoning_effort": "low"}},
+    {
+        "label": "V4.1-Flash ctk-thinking-off",
+        "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+        "extra": {"chat_template_kwargs": {"thinking": False}},
+    },
+    {
+        "label": "V4.1-Flash reasoning-effort-low",
+        "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+        "extra": {"reasoning_effort": "low"},
+    },
     {"label": "V4-Flash-0731 plain", "model": "deepseek-ai/DeepSeek-V4-Flash-0731", "extra": {}},
     {"label": "V4-Flash plain", "model": "deepseek-ai/DeepSeek-V4-Flash", "extra": {}},
     {"label": "Kimi-K2.6 plain", "model": "moonshotai/Kimi-K2.6", "extra": {}},
@@ -144,7 +156,7 @@ def parse_transcript(text: str) -> dict:
         if stripped.startswith("[C]"):
             client_lines.append(stripped[3:].strip())
         elif stripped.startswith("[T|THINK]"):
-            raw = stripped[len("[T|THINK]"):].strip()
+            raw = stripped[len("[T|THINK]") :].strip()
             try:
                 ledger = json.loads(raw)
                 missing = [k for k in LEDGER_KEYS if k not in ledger]
@@ -156,7 +168,9 @@ def parse_transcript(text: str) -> dict:
         else:
             unmarked += 1
     return {
-        "C": len(client_lines), "T": len(therapist_lines), "THINK": len(think_blocks),
+        "C": len(client_lines),
+        "T": len(therapist_lines),
+        "THINK": len(think_blocks),
         "ledger_fail": sum(1 for b in think_blocks if not b["ok"]),
         "missing_fields": sum(len(b["missing"]) for b in think_blocks if b["ok"]),
         "unmarked": unmarked,
@@ -232,12 +246,21 @@ async def main() -> None:
                     gate_hits.append((t, reason))
 
             row = {
-                "label": label, "model": model, "status": status, "wall_s": wall_s,
-                "finish": finish, "content_chars": len(content), "reasoning_chars": len(reasoning),
+                "label": label,
+                "model": model,
+                "status": status,
+                "wall_s": wall_s,
+                "finish": finish,
+                "content_chars": len(content),
+                "reasoning_chars": len(reasoning),
                 "usage": {k: usage.get(k) for k in ("prompt_tokens", "completion_tokens")},
-                "C": parsed["C"], "T": parsed["T"], "THINK": parsed["THINK"],
-                "ledger_fail": parsed["ledger_fail"], "missing_fields": parsed["missing_fields"],
-                "unmarked": parsed["unmarked"], "gate_hits": len(gate_hits),
+                "C": parsed["C"],
+                "T": parsed["T"],
+                "THINK": parsed["THINK"],
+                "ledger_fail": parsed["ledger_fail"],
+                "missing_fields": parsed["missing_fields"],
+                "unmarked": parsed["unmarked"],
+                "gate_hits": len(gate_hits),
                 "gate_examples": gate_hits[:3],
             }
             results.append(row)

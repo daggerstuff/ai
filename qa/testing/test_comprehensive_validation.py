@@ -11,13 +11,12 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
-
 class TestComprehensiveValidation(unittest.TestCase):
     """Comprehensive validation test suite"""
 
     def test_group_i_audit_results(self):
         """Test Group I audit results"""
-        audit_file = (_PROJECT_ROOT / "ai" / "group_i_comprehensive_audit_results.json")
+        audit_file = _PROJECT_ROOT / "ai" / "group_i_comprehensive_audit_results.json"
         if audit_file.exists():
             with open(audit_file) as f:
                 results = json.load(f)

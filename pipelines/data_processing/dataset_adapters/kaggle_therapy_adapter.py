@@ -32,9 +32,10 @@ def _parse_python_list(s: str) -> list[dict[str, str]] | None:
         result = ast.literal_eval(s)
         if isinstance(result, list):
             return result
-    except (ValueError, SyntaxError):
+    except ValueError, SyntaxError:
         pass
     return None
+
 
 _SYSTEM_PROMPT = (
     "You are a compassionate mental health counselor providing supportive, "

@@ -114,7 +114,6 @@ class CCDIntegration:
             de_escalation_responses=CCDIntegration._generate_de_escalation_responses(personality_type),
         )
 
-
     @staticmethod
     def update_ccd_formulation_from_simulation(
         ccd_conceptualization: CCDConceptualization,

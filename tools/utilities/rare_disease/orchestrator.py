@@ -114,12 +114,16 @@ class ControllerOrchestrator:
                     posterior_probability=score,
                 )
             )
-        return differential if differential else [
-            DifferentialEntry(
-                disease_id="unknown",
-                disease_name="Undifferentiated rare disease",
-                organ_systems=[],
-                rarity=DiseaseRarity.ULTRA_RARE,
-                posterior_probability=1.0,
-            )
-        ]
+        return (
+            differential
+            if differential
+            else [
+                DifferentialEntry(
+                    disease_id="unknown",
+                    disease_name="Undifferentiated rare disease",
+                    organ_systems=[],
+                    rarity=DiseaseRarity.ULTRA_RARE,
+                    posterior_probability=1.0,
+                )
+            ]
+        )

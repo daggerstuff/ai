@@ -8,7 +8,6 @@ from pathlib import Path
 from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
 
 
-
 def validate_security_configurations():
     """Validate all security configurations"""
     AI_DIR / "security"

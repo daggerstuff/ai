@@ -84,9 +84,7 @@ def _load_campaign(args: argparse.Namespace) -> Campaign:
 
 def _dry_run(args: argparse.Namespace, campaign: Campaign) -> int:
     work_path = args.output / campaign.manifest["release_id"] / args.arm
-    artifact = g04.make_training_artifact(
-        campaign.payload, campaign.manifest, campaign.config, work_path
-    )
+    artifact = g04.make_training_artifact(campaign.payload, campaign.manifest, campaign.config, work_path)
     lr = campaign.config["learning_rate"]
     report = {
         "mode": "dry-run",
@@ -109,18 +107,14 @@ def _dry_run(args: argparse.Namespace, campaign: Campaign) -> int:
     return 0
 
 
-def _artifact_uploader(
-    manifest: dict[str, Any], payload: g04.Payload, api_key: str
-) -> Callable[[Path, str], str]:
+def _artifact_uploader(manifest: dict[str, Any], payload: g04.Payload, api_key: str) -> Callable[[Path, str], str]:
     wandb = importlib.import_module("wandb")
     os.environ["WANDB_API_KEY"] = api_key
 
     def upload(directory: Path, artifact_name: str) -> str:
         run = None
         try:
-            run = wandb.init(
-                entity=g04.ENTITY, project=g04.PROJECT, job_type="sft-data-upload", mode="online"
-            )
+            run = wandb.init(entity=g04.ENTITY, project=g04.PROJECT, job_type="sft-data-upload", mode="online")
             artifact = wandb.Artifact(
                 artifact_name,
                 type="dataset",
@@ -143,6 +137,7 @@ def _artifact_uploader(
         finally:
             if run is not None:
                 run.finish()
+
     return upload
 
 
@@ -161,9 +156,7 @@ def _execute(args: argparse.Namespace, campaign: Campaign) -> int:
     )
 
     work_path = args.output / campaign.manifest["release_id"] / args.arm
-    artifact = g04.make_training_artifact(
-        campaign.payload, campaign.manifest, campaign.config, work_path
-    )
+    artifact = g04.make_training_artifact(campaign.payload, campaign.manifest, campaign.config, work_path)
     plan = g04.TrainingPlan(campaign.manifest, campaign.payload, campaign.config, artifact, campaign.task_id)
 
     state_path = args.state_dir / f"wandb-sft-{campaign.task_id}.json"

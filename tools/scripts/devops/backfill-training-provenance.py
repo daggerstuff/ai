@@ -43,6 +43,5 @@ def main():
     os.replace(tmp_path, args.file)
 
 
-
 if __name__ == "__main__":
     main()

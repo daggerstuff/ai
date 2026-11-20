@@ -113,9 +113,7 @@ def _lineage_for(metadata: dict) -> dict | None:
     specific path stamps for records that carry both fields.
     """
     file_key = metadata.get("file_key", "")
-    for prefix, lineage in sorted(
-        STAGE_LINEAGE_BY_PREFIX.items(), key=lambda item: len(item[0]), reverse=True
-    ):
+    for prefix, lineage in sorted(STAGE_LINEAGE_BY_PREFIX.items(), key=lambda item: len(item[0]), reverse=True):
         if file_key.startswith(prefix):
             return lineage
 
@@ -138,7 +136,6 @@ def _stamp_lineage(chatml: dict, metadata: dict) -> dict:
     if lineage["source"] in EDGE_CASE_SOURCES:
         chatml["is_training_edge_case"] = True
     return chatml
-
 
 
 def _convert_and_stamp(
@@ -176,7 +173,6 @@ def _sample_dataset(
         final_dataset.extend(sampled)
     random.shuffle(final_dataset)
     return final_dataset
-
 
 
 def main():
@@ -247,16 +243,12 @@ def _collect_buckets(
         if chatml:
             buckets["personality_balancing"].append(chatml)
 
-    for record in data_ext.load_jsonl(
-        "datasets/consolidated/edge_cases/edge_case_output/", "edge_cases", "edge_case"
-    ):
+    for record in data_ext.load_jsonl("datasets/consolidated/edge_cases/edge_case_output/", "edge_cases", "edge_case"):
         chatml = _convert_and_stamp(record, converter, quality)
         if chatml:
             buckets["edge_cases"].append(chatml)
 
-    for record in data_ext.load_jsonl(
-        "archive/gdrive/tier3_edge_crisis/", "crisis_intervention", "crisis"
-    ):
+    for record in data_ext.load_jsonl("archive/gdrive/tier3_edge_crisis/", "crisis_intervention", "crisis"):
         chatml = _convert_and_stamp(record, converter, quality)
         if chatml:
             buckets["crisis_intervention"].append(chatml)

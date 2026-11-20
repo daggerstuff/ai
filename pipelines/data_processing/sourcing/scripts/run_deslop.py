@@ -17,9 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "packages" / "deslo
 from deslop.engine import CleanOptions, clean_record
 from deslop.rules.core import load_rule_set
 
-INPUT = (_PROJECT_ROOT / "ai" / "data" / "raw/deduped/all_deduped.jsonl")
-OUTPUT = (_PROJECT_ROOT / "ai" / "data" / "raw/deduped/all_desloped.jsonl")
-REPORT = (_PROJECT_ROOT / "ai" / "data" / "raw/deduped/deslop_report.txt")
+INPUT = _PROJECT_ROOT / "ai" / "data" / "raw/deduped/all_deduped.jsonl"
+OUTPUT = _PROJECT_ROOT / "ai" / "data" / "raw/deduped/all_desloped.jsonl"
+REPORT = _PROJECT_ROOT / "ai" / "data" / "raw/deduped/deslop_report.txt"
 
 PACKS = ["generic-ai", "sycophancy", "chatbot-assistant", "fabrication-signal", "synthetic-evals"]
 

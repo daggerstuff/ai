@@ -522,9 +522,7 @@ class ResumeOrchestrator:
 
         # Find dependencies
         dependencies = [
-            dep
-            for dep in self.process_dependencies
-            if process_id in (dep.dependent_process, dep.dependency_process)
+            dep for dep in self.process_dependencies if process_id in (dep.dependent_process, dep.dependency_process)
         ]
 
         return {

@@ -7,6 +7,7 @@
 ```python
 from enterprise_config.enterprise_wrapper_template import enterprise_wrapper
 
+
 @enterprise_wrapper("my_component", enable_retry=True)
 def my_existing_function(data):
     # Your existing code
@@ -21,10 +22,12 @@ from enterprise_config import get_config
 from enterprise_logging import get_logger
 from enterprise_error_handling import handle_error, with_retry
 
+
 # Add to class __init__
 def __init__(self):
     self.config = get_config()
     self.logger = get_logger(self.__class__.__name__.lower())
+
 
 # Add error handling to critical methods
 @with_retry(component="my_component")
@@ -50,7 +53,7 @@ quality_threshold = config.quality_threshold
 ```python
 logger = get_logger("my_component")
 logger.info("Processing started")
-logger.error("Error occurred", extra={'context': 'additional_info'})
+logger.error("Error occurred", extra={"context": "additional_info"})
 ```
 
 ### 5. Performance Monitoring
@@ -94,6 +97,7 @@ Python path:
 ```python
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).parent.parent / "enterprise_config"))
 ```
 

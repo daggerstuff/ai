@@ -290,8 +290,7 @@ def _assert_no_json_leakage(text: str, context: str = "") -> None:
     """
     for char in ("{", "}", '"'):
         assert char not in text, (
-            f"JSON leakage detected{(' (' + context + ')' if context else '')}: "
-            f"char {char!r} found in {text[:80]!r}"
+            f"JSON leakage detected{(' (' + context + ')' if context else '')}: char {char!r} found in {text[:80]!r}"
         )
 
 
@@ -651,8 +650,11 @@ class TestPhase2_3UnifiedSft:
                 pytest.skip(f"Required input not found: {p}")
         out_path = tmp_output_dir / "phase_2_3_unified_sft.jsonl"
         stats = unified_builder.build_unified_dataset(
-            sel_path, dia_path, out_path,
-            target_records=20, seed=7,
+            sel_path,
+            dia_path,
+            out_path,
+            target_records=20,
+            seed=7,
         )
         assert stats.total > 0
         return out_path
@@ -807,7 +809,15 @@ class TestPhase3_2DpoLint:
         """Linting a record missing 'prompt' should report an issue."""
         bad_path = tmp_output_dir / "bad_dpo.jsonl"
         with bad_path.open("w") as f:
-            f.write(json.dumps({"chosen": [{"role": "assistant", "content": "a"}], "rejected": [{"role": "assistant", "content": "b"}]}) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "chosen": [{"role": "assistant", "content": "a"}],
+                        "rejected": [{"role": "assistant", "content": "b"}],
+                    }
+                )
+                + "\n"
+            )
         report = dpo_linter.lint_file(bad_path)
         assert not report.ok
         issue_fields = [i.field for i in report.issues]
@@ -818,11 +828,14 @@ class TestPhase3_2DpoLint:
         bad_path = tmp_output_dir / "bad_dpo_identical.jsonl"
         with bad_path.open("w") as f:
             f.write(
-                json.dumps({
-                    "prompt": "test",
-                    "chosen": [{"role": "assistant", "content": "same"}],
-                    "rejected": [{"role": "assistant", "content": "same"}],
-                }) + "\n"
+                json.dumps(
+                    {
+                        "prompt": "test",
+                        "chosen": [{"role": "assistant", "content": "same"}],
+                        "rejected": [{"role": "assistant", "content": "same"}],
+                    }
+                )
+                + "\n"
             )
         report = dpo_linter.lint_file(bad_path)
         assert not report.ok
@@ -853,10 +866,7 @@ class TestPhase5Inference:
         # Stub generator: returns a canned persona-aligned response
         class _StubGenerator:
             def __call__(self, messages: list[dict[str, str]]) -> str:
-                return (
-                    "I have been feeling this way for a while now. "
-                    "Thank you for explaining things clearly, doctor."
-                )
+                return "I have been feeling this way for a while now. Thank you for explaining things clearly, doctor."
 
         return PalInferenceWrapper(
             selector_client=_StubSelector(),
@@ -1026,9 +1036,7 @@ class TestCrossStageDataFlow:
         for i, (inp, out) in enumerate(zip(input_records, output_records)):
             expected_persona = format_persona(inp["persona"])
             user_msg = out["messages"][1]["content"]
-            assert expected_persona[:30] in user_msg, (
-                f"record {i}: persona not found in user message"
-            )
+            assert expected_persona[:30] in user_msg, f"record {i}: persona not found in user message"
 
     def test_dpo_pair_chosen_response_matches_dialogue_response(self, tmp_output_dir) -> None:
         """The chosen response in the DPO output should differ from the
@@ -1090,10 +1098,7 @@ class _StubGenerator:
     """Canonical stub generator reused across inference tests."""
 
     def __call__(self, messages: list[dict[str, str]]) -> str:
-        return (
-            "I have been feeling this way for a while now. "
-            "Thank you for explaining things clearly, doctor."
-        )
+        return "I have been feeling this way for a while now. Thank you for explaining things clearly, doctor."
 
 
 # ---------------------------------------------------------------------------

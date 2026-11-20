@@ -107,16 +107,10 @@ def _extract_axes(pair: dict) -> dict[str, str]:
         or "unknown"
     )
     culture_context = str(
-        meta.get("culture_context")
-        or meta.get("culture")
-        or pair.get("culture_context")
-        or "unknown"
+        meta.get("culture_context") or meta.get("culture") or pair.get("culture_context") or "unknown"
     )
     safety_severity = str(
-        meta.get("safety_severity")
-        or meta.get("severity")
-        or pair.get("safety_severity")
-        or "unknown"
+        meta.get("safety_severity") or meta.get("severity") or pair.get("safety_severity") or "unknown"
     )
 
     # Conversation length bucketing from message count
@@ -155,9 +149,7 @@ def _source_family_key(pair: dict) -> str:
     source-level data leakage between train/val/test.
     """
     meta = pair.get("metadata") or pair.get("attributes") or {}
-    source_family = str(
-        meta.get("source_family") or pair.get("source_family") or "unknown"
-    )
+    source_family = str(meta.get("source_family") or pair.get("source_family") or "unknown")
     source_id = str(meta.get("source_id") or pair.get("source_id") or "unknown")
     return f"{source_family}::{source_id}"
 
@@ -259,20 +251,12 @@ def integrity_gates(
             family_to_splits[_source_family_key(item)].add(split_name)
     family_leaks = [f for f, names in family_to_splits.items() if len(names) > 1]
     if family_leaks:
-        issues.append(
-            f"source-family disjoint FAILED: {len(family_leaks)} source families in >1 split"
-        )
+        issues.append(f"source-family disjoint FAILED: {len(family_leaks)} source families in >1 split")
 
     # 3. evaluation-in-train: no evaluation/restricted material in train (PIX-4584)
-    eval_in_train = [
-        get_convo_hash(item)
-        for item in splits.get("train", [])
-        if _is_evaluation_material(item)
-    ]
+    eval_in_train = [get_convo_hash(item) for item in splits.get("train", []) if _is_evaluation_material(item)]
     if eval_in_train:
-        issues.append(
-            f"evaluation-in-train FAILED: {len(eval_in_train)} eval/restricted records in train"
-        )
+        issues.append(f"evaluation-in-train FAILED: {len(eval_in_train)} eval/restricted records in train")
 
     # 4. ratio ±2pp
     for i, name in enumerate(SPLIT_NAMES):
@@ -280,8 +264,7 @@ def integrity_gates(
         target_pp = ratio[i]
         if abs(actual_pp - target_pp) > RATIO_TOLERANCE_PP:
             issues.append(
-                f"ratio FAILED: {name}={actual_pp}pp vs target {target_pp}pp "
-                f"(tolerance ±{RATIO_TOLERANCE_PP}pp)"
+                f"ratio FAILED: {name}={actual_pp}pp vs target {target_pp}pp (tolerance ±{RATIO_TOLERANCE_PP}pp)"
             )
 
     # 5. domain balance: each stratum's split ratio within tolerance of global.
@@ -324,21 +307,11 @@ def integrity_gates(
 def main() -> int:  # noqa: PLR0915
     from training.release_manifest import build_release_manifest  # noqa: PLC0415  (lazy import avoids circular dep)
 
-    parser = argparse.ArgumentParser(
-        description="Stratified dataset splitter (PIX-4345 §B.4, PIX-4584)"
-    )
-    parser.add_argument(
-        "input_dir", nargs="?", default="ai/training/output/books/chatml"
-    )
-    parser.add_argument(
-        "out_dir", nargs="?", default="ai/training/output/dataset"
-    )
-    parser.add_argument(
-        "--ratio", type=int, nargs=3, default=list(DEFAULT_RATIO)
-    )
-    parser.add_argument(
-        "--no-gates", action="store_true", help="skip integrity gates"
-    )
+    parser = argparse.ArgumentParser(description="Stratified dataset splitter (PIX-4345 §B.4, PIX-4584)")
+    parser.add_argument("input_dir", nargs="?", default="ai/training/output/books/chatml")
+    parser.add_argument("out_dir", nargs="?", default="ai/training/output/dataset")
+    parser.add_argument("--ratio", type=int, nargs=3, default=list(DEFAULT_RATIO))
+    parser.add_argument("--no-gates", action="store_true", help="skip integrity gates")
     args = parser.parse_args()
 
     if sum(args.ratio) != 100:
@@ -370,9 +343,7 @@ def main() -> int:  # noqa: PLR0915
                 try:
                     pair = json.loads(line)
                     if pair.get("messages") and pair["messages"][0].get("role") != "system":
-                        pair["messages"].insert(
-                            0, {"role": "system", "content": SYSTEM_PROMPT}
-                        )
+                        pair["messages"].insert(0, {"role": "system", "content": SYSTEM_PROMPT})
                     records.append(pair)
                 except Exception as e:
                     print(f"Error parsing line: {e}")
@@ -382,9 +353,7 @@ def main() -> int:  # noqa: PLR0915
     splits = stratified_split(records, ratio=tuple(args.ratio))
 
     counts = {name: len(items) for name, items in splits.items()}
-    print(
-        f"Split sizes -> Train: {counts['train']}, Val: {counts['val']}, Test: {counts['test']}"
-    )
+    print(f"Split sizes -> Train: {counts['train']}, Val: {counts['val']}, Test: {counts['test']}")
 
     if not args.no_gates:
         passed, gate_issues = integrity_gates(splits, ratio=tuple(args.ratio))

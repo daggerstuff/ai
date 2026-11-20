@@ -20,11 +20,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MANIFEST = ROOT / "docs/training/execution-2026-10-19/wandb-full-corpus-current-master-20261019-v4.json"
 DEFAULT_OUTPUT = ROOT / "ai/training/output/wandb_full_corpus_v4_shuffled_20261020"
-SOURCE_LINEAGE_DIR = (
-    ROOT
-    / "ai/data/curated/recovery/gold-20261017/"
-    "wandb-full-corpus-current-master-20261019-v4"
-)
+SOURCE_LINEAGE_DIR = ROOT / "ai/data/curated/recovery/gold-20261017/wandb-full-corpus-current-master-20261019-v4"
 ROWREFS_PATH = SOURCE_LINEAGE_DIR / "rowrefs.jsonl"
 INTERNAL_PATH = SOURCE_LINEAGE_DIR / "manifest_internal.jsonl"
 

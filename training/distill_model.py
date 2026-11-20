@@ -88,6 +88,7 @@ class DistillationStats:
 # Stage 1: Generate teacher outputs
 # ---------------------------------------------------------------------------
 
+
 def generate_teacher_outputs(
     teacher_model: str,
     data_path: Path,
@@ -131,18 +132,22 @@ def generate_teacher_outputs(
         for i, record in enumerate(records):
             messages = record.get("messages", [])
             # Build prompt from all messages except the last assistant response.
-            prompt_messages = [m for m in messages if m.get("role") != "assistant" or messages.index(m) != len(messages) - 1]
+            prompt_messages = [
+                m for m in messages if m.get("role") != "assistant" or messages.index(m) != len(messages) - 1
+            ]
             # Simpler: take all non-assistant messages + the last user message.
             prompt_messages = [m for m in messages if m["role"] != "assistant"]
             if not prompt_messages:
                 continue
 
-            prompt_text = tokenizer.apply_chat_template(
-                prompt_messages,
-                tokenize=False,
-                add_generation_prompt=True,
-            ) if hasattr(tokenizer, "apply_chat_template") else "\n".join(
-                f"{m['role']}: {m['content']}" for m in prompt_messages
+            prompt_text = (
+                tokenizer.apply_chat_template(
+                    prompt_messages,
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
+                if hasattr(tokenizer, "apply_chat_template")
+                else "\n".join(f"{m['role']}: {m['content']}" for m in prompt_messages)
             )
 
             inputs = tokenizer(prompt_text, return_tensors="pt").to(model.device)
@@ -156,7 +161,7 @@ def generate_teacher_outputs(
                 )
 
             generated = tokenizer.decode(
-                out[0, inputs["input_ids"].shape[-1]:],
+                out[0, inputs["input_ids"].shape[-1] :],
                 skip_special_tokens=True,
             )
 
@@ -182,6 +187,7 @@ def generate_teacher_outputs(
 # ---------------------------------------------------------------------------
 # Stage 2: KD loss
 # ---------------------------------------------------------------------------
+
 
 def kd_loss(
     student_logits: Any,
@@ -237,6 +243,7 @@ def kd_loss(
 # ---------------------------------------------------------------------------
 # Stage 3: Train student with KD
 # ---------------------------------------------------------------------------
+
 
 def train_student(
     teacher_outputs_path: Path,
@@ -310,10 +317,14 @@ def train_student(
         def __getitem__(self, idx: int) -> dict[str, torch.Tensor]:
             sample = self.samples[idx]
             messages = sample.get("teacher_messages", sample.get("messages", []))
-            text = self.tok.apply_chat_template(
-                messages,
-                tokenize=False,
-            ) if hasattr(self.tok, "apply_chat_template") else json.dumps(messages)
+            text = (
+                self.tok.apply_chat_template(
+                    messages,
+                    tokenize=False,
+                )
+                if hasattr(self.tok, "apply_chat_template")
+                else json.dumps(messages)
+            )
             enc = self.tok(
                 text,
                 truncation=True,
@@ -331,8 +342,14 @@ def train_student(
 
     # Custom trainer with KD loss.
     class _KDTrainer(Trainer):
-        def __init__(self, *args: Any, kd_alpha: float = alpha, kd_beta: float = beta,
-                     kd_temp: float = temperature, **kwargs: Any) -> None:
+        def __init__(
+            self,
+            *args: Any,
+            kd_alpha: float = alpha,
+            kd_beta: float = beta,
+            kd_temp: float = temperature,
+            **kwargs: Any,
+        ) -> None:
             super().__init__(*args, **kwargs)
             self.kd_alpha = kd_alpha
             self.kd_beta = kd_beta
@@ -368,8 +385,12 @@ def train_student(
             teacher_logits = inputs.pop("teacher_logits", None)
             if teacher_logits is not None:
                 total, kd, ce = kd_loss(
-                    student_logits, teacher_logits, labels,
-                    self.kd_alpha, self.kd_beta, self.kd_temp,
+                    student_logits,
+                    teacher_logits,
+                    labels,
+                    self.kd_alpha,
+                    self.kd_beta,
+                    self.kd_temp,
                 )
             else:
                 # Sequence-level KD: CE on teacher-generated tokens is the
@@ -438,6 +459,7 @@ def train_student(
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Knowledge distillation pipeline (PIX-4345 §2, Appendix E)",
@@ -470,7 +492,9 @@ def main() -> int:
     train_parser.add_argument("--lr", type=float, default=2e-5, help="Learning rate")
     train_parser.add_argument("--alpha", type=float, default=DEFAULT_KD_ALPHA, help="KD loss weight (logit MSE)")
     train_parser.add_argument("--beta", type=float, default=DEFAULT_KD_BETA, help="CE loss weight (token)")
-    train_parser.add_argument("--temperature", type=float, default=DEFAULT_TEMPERATURE, help="Softmax temperature for KD")
+    train_parser.add_argument(
+        "--temperature", type=float, default=DEFAULT_TEMPERATURE, help="Softmax temperature for KD"
+    )
     train_parser.add_argument("--deepspeed-config", type=str, default=None, help="Path to DeepSpeed config JSON")
     train_parser.add_argument("--max-length", type=int, default=2048, help="Max sequence length")
     train_parser.add_argument("--dry-run", action="store_true", help="Skip training; emit plan only")

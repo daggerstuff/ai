@@ -518,7 +518,6 @@ def run_safety_filtering_tests():
     return result.wasSuccessful()
 
 
-
 if __name__ == "__main__":
     success = run_safety_filtering_tests()
     sys.exit(0 if success else 1)

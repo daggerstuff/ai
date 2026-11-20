@@ -382,7 +382,7 @@ def validate_stage_slice(records: list[dict[str, Any]], stage_config: StageConfi
         try:
             clinical_result = validator.process(record.get("text", ""))
             clinical_validity_scores.append(clinical_result.score)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             clinical_validity_scores.append(0.0)
             metadata.setdefault("validation_warnings", []).append("clinical_validator_failed")
         result.clinical_validity_record_scores[record_id] = clinical_validity_scores[-1]

@@ -160,18 +160,12 @@ from ai.pipelines.data_processing.journal.models.dataset_models import AcquiredD
 engine = IntegrationPlanningEngine()
 
 # Create integration plan
-plan = engine.create_integration_plan(
-    dataset=acquired_dataset,
-    target_format="chatml"
-)
+plan = engine.create_integration_plan(dataset=acquired_dataset, target_format="chatml")
 
 # Check feasibility
 if engine.validate_integration_feasibility(plan):
     # Generate preprocessing script
-    script_path = engine.generate_preprocessing_script(
-        plan,
-        output_path="scripts/preprocess_dataset.py"
-    )
+    script_path = engine.generate_preprocessing_script(plan, output_path="scripts/preprocess_dataset.py")
     print(f"Integration plan created: {plan.complexity} complexity, {plan.estimated_effort_hours}h")
 else:
     print("Integration not feasible")

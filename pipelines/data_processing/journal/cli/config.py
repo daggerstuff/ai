@@ -84,7 +84,7 @@ class ConfigManager:
         # Only create parent directory if it's writable
         try:
             self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        except (PermissionError, OSError):
+        except PermissionError, OSError:
             # If we can't create the directory, that's okay - we'll handle it in load/save
             pass
 

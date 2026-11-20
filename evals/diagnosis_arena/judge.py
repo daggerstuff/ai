@@ -220,15 +220,18 @@ class ClinicalDiagnosisJudge(Judge):
     def judge(self, case: ClinicalCase, response: ModelResponse) -> Judgment:
         if isinstance(response, GeneratedDiagnosis):
             return self._deterministic_judge(case, response)
-        return self._deterministic_judge(case, GeneratedDiagnosis(
-            response_id=response.response_id,
-            case_id=response.case_id,
-            format=response.format,
-            final_diagnosis=response.final_diagnosis,
-            differential_list=response.differential_list,
-            evidence_cited=response.evidence_cited,
-            reasoning=getattr(response, "reasoning", ""),
-        ))
+        return self._deterministic_judge(
+            case,
+            GeneratedDiagnosis(
+                response_id=response.response_id,
+                case_id=response.case_id,
+                format=response.format,
+                final_diagnosis=response.final_diagnosis,
+                differential_list=response.differential_list,
+                evidence_cited=response.evidence_cited,
+                reasoning=getattr(response, "reasoning", ""),
+            ),
+        )
 
     @staticmethod
     def _token_overlap_ratio(a: tuple[str, ...], b: tuple[str, ...]) -> float:

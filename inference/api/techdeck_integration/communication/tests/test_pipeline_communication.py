@@ -24,11 +24,18 @@ from ai.inference.api.techdeck_integration.communication.error_recovery import (
 from ai.inference.api.techdeck_integration.communication.event_bus import EventBus, EventMessage, EventType
 from ai.inference.api.techdeck_integration.communication.graceful_degradation import GracefulDegradationManager
 from ai.inference.api.techdeck_integration.communication.performance_monitor import PerformanceMonitor
-from ai.inference.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext, PipelineCoordinator
+from ai.inference.api.techdeck_integration.communication.pipeline_coordinator import (
+    PipelineContext,
+    PipelineCoordinator,
+)
 from ai.inference.api.techdeck_integration.communication.progress_tracker import ProgressTracker
 from ai.inference.api.techdeck_integration.communication.state_manager import StateManager
 from ai.inference.api.techdeck_integration.communication.utils.validation import sanitize_input
-from ai.inference.api.techdeck_integration.error_handling.custom_errors import BiasDetectionError, TimeoutError, ValidationError
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
+    BiasDetectionError,
+    TimeoutError,
+    ValidationError,
+)
 from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
 
 

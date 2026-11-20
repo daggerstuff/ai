@@ -103,9 +103,7 @@ class EvidenceScoringEngine:
             findings: list[EvidenceFinding] = []
 
             # 1. Symptom match score
-            symptom_score, symptom_findings = self._score_symptom_match(
-                candidate.condition_id, patient_presentation
-            )
+            symptom_score, symptom_findings = self._score_symptom_match(candidate.condition_id, patient_presentation)
             findings.extend(symptom_findings)
 
             # 2. Typical presentation score
@@ -115,9 +113,7 @@ class EvidenceScoringEngine:
             findings.extend(typical_findings)
 
             # 3. Test result score
-            test_score, test_findings = self._score_test_results(
-                candidate.condition_id, test_results or []
-            )
+            test_score, test_findings = self._score_test_results(candidate.condition_id, test_results or [])
             findings.extend(test_findings)
 
             # 4. Progression pattern score
@@ -139,11 +135,7 @@ class EvidenceScoringEngine:
 
             # Confidence based on number and strength of supporting findings
             support_findings = [f for f in findings if f.direction == "support"]
-            confidence = (
-                np.mean([f.confidence for f in support_findings])
-                if support_findings
-                else 0.0
-            )
+            confidence = np.mean([f.confidence for f in support_findings]) if support_findings else 0.0
 
             scored.append(
                 ScoredDiagnosis(
@@ -166,9 +158,7 @@ class EvidenceScoringEngine:
         scored.sort(key=lambda s: s.final_score, reverse=True)
         return scored
 
-    def _score_symptom_match(
-        self, condition_id: str, patient_text: str
-    ) -> tuple[float, list[EvidenceFinding]]:
+    def _score_symptom_match(self, condition_id: str, patient_text: str) -> tuple[float, list[EvidenceFinding]]:
         """Score how many of the condition's symptoms appear in the patient text."""
         findings: list[EvidenceFinding] = []
         leaves = self.hierarchy.get_leaves(condition_id)
@@ -232,9 +222,7 @@ class EvidenceScoringEngine:
         score = matched / max(total_weight, 1e-6)
         return min(score, 1.0), findings
 
-    def _score_typical_presentation(
-        self, condition_id: str, patient_text: str
-    ) -> tuple[float, list[EvidenceFinding]]:
+    def _score_typical_presentation(self, condition_id: str, patient_text: str) -> tuple[float, list[EvidenceFinding]]:
         """Score alignment with typical presentation patterns."""
         findings: list[EvidenceFinding] = []
         typical = self.typical_presentations.get(condition_id, [])
@@ -304,9 +292,7 @@ class EvidenceScoringEngine:
         score = matched / max(len(profile), 1)
         return score, findings
 
-    def _score_progression(
-        self, condition_id: str, progression_notes: str
-    ) -> tuple[float, list[EvidenceFinding]]:
+    def _score_progression(self, condition_id: str, progression_notes: str) -> tuple[float, list[EvidenceFinding]]:
         """Score consistency with expected progression patterns."""
         findings: list[EvidenceFinding] = []
         patterns = self.progression_profiles.get(condition_id, [])

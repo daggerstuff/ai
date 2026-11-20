@@ -84,12 +84,9 @@ def _build_distribution_evidence(
                 axis_distributions[axis_name][split_name][axes[axis_name]] += 1
 
     # Convert Counters to plain dicts for JSON serialization
-    stratum_counts_serializable = {
-        stratum: dict(counts) for stratum, counts in stratum_counts.items()
-    }
+    stratum_counts_serializable = {stratum: dict(counts) for stratum, counts in stratum_counts.items()}
     axis_distributions_serializable = {
-        axis: {split: dict(counter) for split, counter in dist.items()}
-        for axis, dist in axis_distributions.items()
+        axis: {split: dict(counter) for split, counter in dist.items()} for axis, dist in axis_distributions.items()
     }
 
     return {
@@ -119,11 +116,7 @@ def _build_leakage_evidence(
     family_leaks = [f for f, names in family_to_splits.items() if len(names) > 1]
 
     # Evaluation-in-train check
-    eval_in_train = [
-        get_convo_hash(item)
-        for item in splits.get("train", [])
-        if _is_evaluation_material(item)
-    ]
+    eval_in_train = [get_convo_hash(item) for item in splits.get("train", []) if _is_evaluation_material(item)]
 
     return {
         "hash_disjoint": {
@@ -267,12 +260,8 @@ def _build_statistics_evidence(
     return {
         "total_records": total,
         "total_strata": len(all_strata),
-        "axis_cardinalities": {
-            name: len(values) for name, values in axis_cardinalities.items()
-        },
-        "axis_unique_values": {
-            name: sorted(values) for name, values in axis_cardinalities.items()
-        },
+        "axis_cardinalities": {name: len(values) for name, values in axis_cardinalities.items()},
+        "axis_unique_values": {name: sorted(values) for name, values in axis_cardinalities.items()},
         "conversation_length_distribution": dict(conv_lengths),
     }
 

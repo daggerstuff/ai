@@ -178,8 +178,8 @@ class MoETrainingCallback(TrainerCallback):
                     "training/best_loss": self.best_loss,
                     "training/patience_counter": self.patience_counter,
                     "system/shutdown_requested": shutdown_requested,
-                "safety/edge_case_count": self.edge_case_count,
-                "safety/edge_case_bypass_count": self.edge_case_bypass_count,
+                    "safety/edge_case_count": self.edge_case_count,
+                    "safety/edge_case_bypass_count": self.edge_case_bypass_count,
                 }
             )
 
@@ -294,9 +294,7 @@ def load_training_data(
             if teacher_count >= nemotron_teacher_max_samples:
                 break
 
-
     dataset = Dataset.from_dict({"text": texts})
-
 
     return dataset, texts
 
@@ -366,7 +364,6 @@ def create_h100_training_args(
 def main():
     global shutdown_requested, training_start_time
 
-
     training_start_time = datetime.now(UTC)
     wandb_run = None
 
@@ -402,20 +399,16 @@ def main():
         wandb.log(
             {
                 "dataset/total_conversations": len(texts),
-                "dataset/avg_length": sum(len(text.split()) for text in texts)
-                / len(texts),
+                "dataset/avg_length": sum(len(text.split()) for text in texts) / len(texts),
             }
         )
 
         # Setup model
-        BASE_MODEL_NAME = training_config.get(
-            "base_model", "deepseek-ai/DeepSeek-V4-Pro"
-        )
+        BASE_MODEL_NAME = training_config.get("base_model", "deepseek-ai/DeepSeek-V4-Pro")
         device_available = torch.cuda.is_available()
 
         if not device_available:
             return
-
 
         # Create MoE configuration
         moe_config = MoEConfig(
@@ -435,10 +428,7 @@ def main():
         )
 
         # Create therapeutic MoE model
-        model = create_therapeutic_moe_model(
-            BASE_MODEL_NAME, moe_config=moe_config, device="auto"
-        )
-
+        model = create_therapeutic_moe_model(BASE_MODEL_NAME, moe_config=moe_config, device="auto")
 
         # Log model info
         total_params = sum(p.numel() for p in model.parameters())
@@ -473,10 +463,7 @@ def main():
             result["labels"] = result["input_ids"].copy()
             return result
 
-        tokenized_dataset = dataset.map(
-            tokenize_function, batched=True, remove_columns=["text"], desc="Tokenizing"
-        )
-
+        tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=["text"], desc="Tokenizing")
 
         if len(tokenized_dataset) == 0:
             raise ValueError("Empty dataset after tokenization!")
@@ -486,17 +473,12 @@ def main():
         train_dataset = split_dataset["train"]
         eval_dataset = split_dataset["test"]
 
-
         # Create H100-optimized training arguments
         training_args = create_h100_training_args(
             output_dir="./therapeutic_moe_model",
             num_train_epochs=training_config.get("num_train_epochs", 3),
-            per_device_train_batch_size=training_config.get(
-                "per_device_train_batch_size", 4
-            ),
-            gradient_accumulation_steps=training_config.get(
-                "gradient_accumulation_steps", 8
-            ),
+            per_device_train_batch_size=training_config.get("per_device_train_batch_size", 4),
+            gradient_accumulation_steps=training_config.get("gradient_accumulation_steps", 8),
             learning_rate=training_config.get("learning_rate", 3e-4),
             warmup_steps=training_config.get("warmup_steps", 1000),
         )
@@ -518,10 +500,7 @@ def main():
         if not shutdown_requested:
             wandb.log({"training/status": "started"})
 
-            (
-                training_args.per_device_train_batch_size
-                * training_args.gradient_accumulation_steps
-            )
+            (training_args.per_device_train_batch_size * training_args.gradient_accumulation_steps)
 
             trainer.train()
 
@@ -533,9 +512,7 @@ def main():
 
             wandb.log({"training/status": "completed"})
 
-            (
-                datetime.now(UTC) - training_start_time
-            ).total_seconds() / 3600
+            (datetime.now(UTC) - training_start_time).total_seconds() / 3600
 
     except KeyboardInterrupt:
         if wandb_run:
@@ -552,10 +529,7 @@ def main():
             with contextlib.suppress(Exception):
                 wandb.finish()
         if training_start_time:
-            (
-                datetime.now(UTC) - training_start_time
-            ).total_seconds() / 3600
-
+            (datetime.now(UTC) - training_start_time).total_seconds() / 3600
 
 
 if __name__ == "__main__":

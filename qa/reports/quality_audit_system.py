@@ -80,12 +80,8 @@ class DataLineageTracker:
                 )
                 """
             )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_lineage_source ON data_lineage(source)"
-            )
-            conn.execute(
-                "CREATE INDEX IF NOT EXISTS idx_lineage_type ON data_lineage(artifact_type)"
-            )
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_lineage_source ON data_lineage(source)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_lineage_type ON data_lineage(artifact_type)")
 
     def record(self, artifact: LineageRecord) -> LineageRecord:
         """Register lineage for an artifact (upsert by artifact_id).
@@ -140,9 +136,7 @@ class DataLineageTracker:
     def get_lineage_for_artifact(self, artifact_id: str) -> LineageRecord | None:
         """Retrieve the lineage record for a data artifact."""
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM data_lineage WHERE artifact_id = ?", (artifact_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM data_lineage WHERE artifact_id = ?", (artifact_id,)).fetchone()
         return self._row_to_record(row) if row else None
 
     def get_upstream(self, artifact_id: str) -> list[LineageRecord]:
@@ -199,9 +193,7 @@ class DataLineageTracker:
         """
         with self._connect() as conn:
             total_tracked = conn.execute("SELECT COUNT(*) FROM data_lineage").fetchone()[0]
-            with_source = conn.execute(
-                "SELECT COUNT(*) FROM data_lineage WHERE source != ''"
-            ).fetchone()[0]
+            with_source = conn.execute("SELECT COUNT(*) FROM data_lineage WHERE source != ''").fetchone()[0]
             with_transformations = conn.execute(
                 "SELECT COUNT(*) FROM data_lineage WHERE transformation_steps != '[]'"
             ).fetchone()[0]
@@ -209,10 +201,7 @@ class DataLineageTracker:
                 "SELECT COUNT(*) FROM data_lineage WHERE downstream_consumers != '[]'"
             ).fetchone()[0]
             sources = [
-                row[0]
-                for row in conn.execute(
-                    "SELECT DISTINCT source FROM data_lineage WHERE source != ''"
-                ).fetchall()
+                row[0] for row in conn.execute("SELECT DISTINCT source FROM data_lineage WHERE source != ''").fetchall()
             ]
 
         population = len(tracked_artifact_ids) if tracked_artifact_ids is not None else total_tracked
@@ -264,14 +253,10 @@ class QualityAuditSystem:
     """Enterprise-grade quality audit and compliance system"""
 
     def __init__(self, db_path: str | None = None):
-        self.db_path = (
-            Path(db_path) if db_path else _PROJECT_ROOT / "ai" / "database" / "conversations.db"
-        )
+        self.db_path = Path(db_path) if db_path else _PROJECT_ROOT / "ai" / "database" / "conversations.db"
         self.output_dir = _PROJECT_ROOT / "ai" / "monitoring" / "quality_audits"
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.lineage_tracker = DataLineageTracker(
-            db_path=str(self.output_dir / "data_lineage.db")
-        )
+        self.lineage_tracker = DataLineageTracker(db_path=str(self.output_dir / "data_lineage.db"))
 
         # Compliance frameworks
         self.compliance_frameworks = {
@@ -438,9 +423,7 @@ class QualityAuditSystem:
 
             conversation_rows = [
                 (row[0], row[1])
-                for row in conn.execute(
-                    "SELECT conversation_id, dataset_source FROM conversations"
-                ).fetchall()
+                for row in conn.execute("SELECT conversation_id, dataset_source FROM conversations").fetchall()
             ]
             sources = [
                 row[0]
@@ -480,9 +463,7 @@ class QualityAuditSystem:
             logger.exception("Error getting audit data from database")
             return {}
 
-    def _stamp_dataset_lineage(
-        self, conversation_rows: list[tuple[str, str]], sources: list[str]
-    ) -> None:
+    def _stamp_dataset_lineage(self, conversation_rows: list[tuple[str, str]], sources: list[str]) -> None:
         """Register lineage for the audited conversation rows.
 
         Each conversation row is an artifact whose provenance is its

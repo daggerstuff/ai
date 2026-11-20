@@ -54,6 +54,7 @@ def analyze_dataset(dataset_path: str | None = None, s3_path: str | None = None)
     # Prefer S3 if provided
     if s3_path:
         from ai.training.utils.s3_dataset_loader import S3DatasetLoader
+
         loader = S3DatasetLoader()
         data = loader.load_json(s3_path)
     elif dataset_path:
@@ -63,6 +64,7 @@ def analyze_dataset(dataset_path: str | None = None, s3_path: str | None = None)
     else:
         # Try to find dataset in S3
         from ai.training.utils.s3_dataset_loader import get_s3_dataset_path, load_dataset_from_s3
+
         try:
             s3_path = get_s3_dataset_path("training_dataset.json")
             data = load_dataset_from_s3("training_dataset.json")
@@ -81,19 +83,17 @@ def analyze_dataset(dataset_path: str | None = None, s3_path: str | None = None)
     max_tokens = max(token_counts)
     min_tokens = min(token_counts)
 
-
     return {
         "num_samples": num_samples,
         "avg_tokens": avg_tokens,
         "max_tokens": max_tokens,
         "min_tokens": min_tokens,
-        "texts": texts
+        "texts": texts,
     }
 
 
 def main():
     global shutdown_requested, training_start_time
-
 
     training_start_time = datetime.now(UTC)
     wandb_run = None
@@ -120,7 +120,7 @@ def main():
             avg_tokens_per_sample=int(dataset_info["avg_tokens"]),
             num_epochs=desired_epochs,
             priority=priority,
-            max_hours=max_hours
+            max_hours=max_hours,
         )
 
         if not estimate.fits_in_window and estimate.recommended_adjustments:
@@ -134,23 +134,25 @@ def main():
                     avg_tokens_per_sample=int(dataset_info["avg_tokens"]),
                     num_epochs=desired_epochs,
                     priority="fast",
-                    max_hours=max_hours
+                    max_hours=max_hours,
                 )
 
         # Setup WandB
         wandb_run = setup_wandb()
 
         # Log optimization info
-        wandb.log({
-            "optimization/profile": profile.__class__.__name__,
-            "optimization/batch_size": profile.batch_size,
-            "optimization/gradient_accumulation": profile.gradient_accumulation_steps,
-            "optimization/effective_batch_size": profile.batch_size * profile.gradient_accumulation_steps,
-            "optimization/estimated_hours": estimate.estimated_hours,
-            "optimization/fits_in_window": estimate.fits_in_window,
-            "dataset/num_samples": dataset_info["num_samples"],
-            "dataset/avg_tokens": dataset_info["avg_tokens"]
-        })
+        wandb.log(
+            {
+                "optimization/profile": profile.__class__.__name__,
+                "optimization/batch_size": profile.batch_size,
+                "optimization/gradient_accumulation": profile.gradient_accumulation_steps,
+                "optimization/effective_batch_size": profile.batch_size * profile.gradient_accumulation_steps,
+                "optimization/estimated_hours": estimate.estimated_hours,
+                "optimization/fits_in_window": estimate.fits_in_window,
+                "dataset/num_samples": dataset_info["num_samples"],
+                "dataset/avg_tokens": dataset_info["avg_tokens"],
+            }
+        )
 
         # Check CUDA
         if not torch.cuda.is_available():
@@ -158,7 +160,6 @@ def main():
 
         # Create model
         BASE_MODEL_NAME = training_config.get("base_model", "deepseek-ai/DeepSeek-V4-Pro")
-
 
         moe_config = MoEConfig(
             num_experts=4,
@@ -168,26 +169,22 @@ def main():
             lora_dropout=0.1,
             max_position_embeddings=8192,
             expert_capacity=2,
-            load_balancing_weight=0.01
+            load_balancing_weight=0.01,
         )
 
-        model = create_therapeutic_moe_model(
-            BASE_MODEL_NAME,
-            moe_config=moe_config,
-            device="auto"
-        )
-
+        model = create_therapeutic_moe_model(BASE_MODEL_NAME, moe_config=moe_config, device="auto")
 
         # Log model info
         total_params = sum(p.numel() for p in model.parameters())
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-        wandb.log({
-            "model/total_parameters": total_params,
-            "model/trainable_parameters": trainable_params,
-            "model/trainable_percent": (trainable_params / total_params) * 100
-        })
-
+        wandb.log(
+            {
+                "model/total_parameters": total_params,
+                "model/trainable_parameters": trainable_params,
+                "model/trainable_percent": (trainable_params / total_params) * 100,
+            }
+        )
 
         # Setup tokenizer
         tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
@@ -199,27 +196,16 @@ def main():
 
         # Tokenize
         def tokenize_function(examples):
-            result = tokenizer(
-                examples["text"],
-                truncation=True,
-                padding="max_length",
-                max_length=profile.max_length
-            )
+            result = tokenizer(examples["text"], truncation=True, padding="max_length", max_length=profile.max_length)
             result["labels"] = result["input_ids"].copy()
             return result
 
-        tokenized_dataset = dataset.map(
-            tokenize_function,
-            batched=True,
-            remove_columns=["text"],
-            desc="Tokenizing"
-        )
+        tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=["text"], desc="Tokenizing")
 
         # Split train/eval
         split_dataset = tokenized_dataset.train_test_split(test_size=0.1, seed=42)
         train_dataset = split_dataset["train"]
         eval_dataset = split_dataset["test"]
-
 
         # Create trainer
         trainer = Trainer(
@@ -228,16 +214,12 @@ def main():
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             tokenizer=tokenizer,
-            callbacks=[
-                TimeConstraintCallback(max_hours=max_hours),
-                MoETrainingCallback(safety_config)
-            ]
+            callbacks=[TimeConstraintCallback(max_hours=max_hours), MoETrainingCallback(safety_config)],
         )
 
         # Train
         if not shutdown_requested:
             wandb.log({"training/status": "started"})
-
 
             # Start time tracking
             start_time = time.time()
@@ -252,13 +234,14 @@ def main():
             tokenizer.save_pretrained(training_args.output_dir)
             model.save_pretrained(training_args.output_dir)
 
-            wandb.log({
-                "training/status": "completed",
-                "training/actual_hours": actual_duration,
-                "training/estimated_hours": estimate.estimated_hours,
-                "training/time_accuracy": (estimate.estimated_hours / actual_duration) * 100
-            })
-
+            wandb.log(
+                {
+                    "training/status": "completed",
+                    "training/actual_hours": actual_duration,
+                    "training/estimated_hours": estimate.estimated_hours,
+                    "training/time_accuracy": (estimate.estimated_hours / actual_duration) * 100,
+                }
+            )
 
     except KeyboardInterrupt:
         if wandb_run:
@@ -277,7 +260,6 @@ def main():
 
         if training_start_time:
             (datetime.now(UTC) - training_start_time).total_seconds() / 3600
-
 
 
 if __name__ == "__main__":

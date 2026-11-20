@@ -30,9 +30,7 @@ class KeyPool:
             if value and value not in keys:
                 keys.append(value)
         if not keys:
-            raise SystemExit(
-                f"no Featherless API keys found (expected one of: {', '.join(env_names)})"
-            )
+            raise SystemExit(f"no Featherless API keys found (expected one of: {', '.join(env_names)})")
         self.keys = keys
         self.idx = 0
 

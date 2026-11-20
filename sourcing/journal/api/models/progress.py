@@ -45,9 +45,7 @@ class ProgressResponse(BaseModel):
     current_phase: str
     progress_metrics: dict[str, int]
     weekly_targets: dict[str, int]
-    progress_percentage: float = Field(
-        default=0.0, ge=0, le=100, description="Overall progress percentage"
-    )
+    progress_percentage: float = Field(default=0.0, ge=0, le=100, description="Overall progress percentage")
 
     model_config = {
         "json_schema_extra": {

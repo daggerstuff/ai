@@ -515,7 +515,7 @@ class PipelineOrchestrator:
 
             return True
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             self.logger.error(f"Error cancelling pipeline execution: {e}")
@@ -560,7 +560,7 @@ class PipelineOrchestrator:
 
             return results_data
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             self.logger.error(f"Error getting execution results: {e}")

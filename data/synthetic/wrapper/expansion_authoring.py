@@ -13,9 +13,7 @@ from .expansion_drafts import (
     ensure_default_expansion_draft_pack_materialized,
 )
 
-DEFAULT_WAVE5_AUTHORING_LEDGER_PATH = (
-    Path(__file__).resolve().parent / "assets" / "wave5_authoring_ledger.json"
-)
+DEFAULT_WAVE5_AUTHORING_LEDGER_PATH = Path(__file__).resolve().parent / "assets" / "wave5_authoring_ledger.json"
 _ARTIFACT_PRIORITY = {
     "scenario_archetypes": 0,
     "client_state_profiles": 1,
@@ -211,9 +209,7 @@ def build_authoring_target(
         selected_entries = selected_entries[:max_entries]
 
     target_rows = sum(
-        int(entry.get("target_count", 0))
-        for entry in selected_entries
-        if isinstance(entry.get("target_count"), int)
+        int(entry.get("target_count", 0)) for entry in selected_entries if isinstance(entry.get("target_count"), int)
     )
     source_title = next(
         (
@@ -476,9 +472,7 @@ def _normalize_batch_rows(entry: dict[str, Any], rows: list[Any]) -> list[dict[s
             )
         normalized_id = row_id.strip()
         if normalized_id in seen_ids:
-            raise ValueError(
-                f"Duplicate authored row id in batch for artifact_type={artifact_type}: {normalized_id}"
-            )
+            raise ValueError(f"Duplicate authored row id in batch for artifact_type={artifact_type}: {normalized_id}")
         seen_ids.add(normalized_id)
         normalized_row[primary_id_field] = normalized_id
         normalized_rows.append(normalized_row)
@@ -563,12 +557,16 @@ def _progress_summary(entries: Any) -> dict[str, Any]:
         artifact_type = str(entry.get("artifact_type"))
         drafted_rows += drafted_count
         remaining_rows += remaining_count
-        by_source = by_source_key.setdefault(source_key, {"entry_count": 0, "target_rows": 0, "drafted_rows": 0, "remaining_rows": 0})
+        by_source = by_source_key.setdefault(
+            source_key, {"entry_count": 0, "target_rows": 0, "drafted_rows": 0, "remaining_rows": 0}
+        )
         by_source["entry_count"] += 1
         by_source["target_rows"] += target_count
         by_source["drafted_rows"] += drafted_count
         by_source["remaining_rows"] += remaining_count
-        by_artifact = by_artifact_type.setdefault(artifact_type, {"entry_count": 0, "target_rows": 0, "drafted_rows": 0, "remaining_rows": 0})
+        by_artifact = by_artifact_type.setdefault(
+            artifact_type, {"entry_count": 0, "target_rows": 0, "drafted_rows": 0, "remaining_rows": 0}
+        )
         by_artifact["entry_count"] += 1
         by_artifact["target_rows"] += target_count
         by_artifact["drafted_rows"] += drafted_count
@@ -676,8 +674,7 @@ def _authoring_target_markdown(target: dict[str, Any]) -> str:
             if not isinstance(entry, dict):
                 continue
             lines.append(
-                f"- `{entry['ledger_entry_id']}` | `{entry['artifact_type']}` | "
-                f"target=`{entry['target_count']}`"
+                f"- `{entry['ledger_entry_id']}` | `{entry['artifact_type']}` | target=`{entry['target_count']}`"
             )
     lines.append("")
     return "\n".join(lines)

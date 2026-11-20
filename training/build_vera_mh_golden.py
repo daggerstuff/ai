@@ -83,8 +83,15 @@ def main() -> None:
 
     # Get list of all txt files
     res = subprocess.run(
-        ["rclone", "lsf", "whitebat:whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/conversations/", "--recursive"],
-        capture_output=True, text=True, check=True
+        [
+            "rclone",
+            "lsf",
+            "whitebat:whitebat/training/raw/vera_mh/raw/VERA-MH/publication_data/human_validation/conversations/",
+            "--recursive",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
     )
     txt_files = [f.strip() for f in res.stdout.strip().split("\n") if f.strip().endswith(".txt")]
 
@@ -148,26 +155,28 @@ def main() -> None:
             continue
 
         meta = rating_rows[0]
-        records.append({
-            "id": f"vera-mh-{conv_id}",
-            "source": "vera_mh_clinician_rated",
-            "turn_count": len(conv_messages),
-            "conversation": conv_messages,
-            "human_scores": dim_scores,
-            "overall_quality": overall_quality,
-            "human_bin": human_bin,
-            "clinical_reasoning": f"VERA-MH: {len(rating_rows)} clinician(s) rated. Provider: {meta.get('provider_llm', '?')}. Risk: {meta.get('user_prompt_risk_level', '?')}.",
-            "metadata": {
-                "conversation_id": conv_id,
-                "provider_llm": meta.get("provider_llm", ""),
-                "user_llm": meta.get("user_llm", ""),
-                "user_profile": meta.get("user_profile", ""),
-                "risk_level": meta.get("user_prompt_risk_level", ""),
-                "disclosure_level": meta.get("user_prompt_disclosure_level", ""),
-                "n_clinicians": len(rating_rows),
-                "dataset": "VERA-MH (Real Clinician Expert Ratings, December 2025)",
-            },
-        })
+        records.append(
+            {
+                "id": f"vera-mh-{conv_id}",
+                "source": "vera_mh_clinician_rated",
+                "turn_count": len(conv_messages),
+                "conversation": conv_messages,
+                "human_scores": dim_scores,
+                "overall_quality": overall_quality,
+                "human_bin": human_bin,
+                "clinical_reasoning": f"VERA-MH: {len(rating_rows)} clinician(s) rated. Provider: {meta.get('provider_llm', '?')}. Risk: {meta.get('user_prompt_risk_level', '?')}.",
+                "metadata": {
+                    "conversation_id": conv_id,
+                    "provider_llm": meta.get("provider_llm", ""),
+                    "user_llm": meta.get("user_llm", ""),
+                    "user_profile": meta.get("user_profile", ""),
+                    "risk_level": meta.get("user_prompt_risk_level", ""),
+                    "disclosure_level": meta.get("user_prompt_disclosure_level", ""),
+                    "n_clinicians": len(rating_rows),
+                    "dataset": "VERA-MH (Real Clinician Expert Ratings, December 2025)",
+                },
+            }
+        )
 
     logger.info("Built %d VERA-MH calibration records.", len(records))
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

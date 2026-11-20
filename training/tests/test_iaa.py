@@ -184,9 +184,7 @@ class TestLabelStudioExport:
             },
         ]
         path = self._write_ls_jsonl(tmp_path, records)
-        all_labels, labels_by_sample = label_studio_export_to_iaa(
-            str(path), annotator_ids=["a1", "a2", "a3"]
-        )
+        all_labels, labels_by_sample = label_studio_export_to_iaa(str(path), annotator_ids=["a1", "a2", "a3"])
         assert len(all_labels) == LS_EXPORT_TOTAL_LABELS
         assert len(labels_by_sample) == LS_EXPORT_SAMPLES
         assert len(labels_by_sample["sample-1"]) == LS_EXPORT_SAMPLE1_LABELS
@@ -402,9 +400,7 @@ class TestReviewerOverrides:
 
 
 class TestComputeIAA:
-    def _make_labels(
-        self, n_samples: int = 5, scores: list[float] | None = None
-    ) -> list[AnnotatorLabel]:
+    def _make_labels(self, n_samples: int = 5, scores: list[float] | None = None) -> list[AnnotatorLabel]:
         labels = []
         for i in range(n_samples):
             s = scores[i] if scores and i < len(scores) else 0.8
@@ -432,8 +428,10 @@ class TestComputeIAA:
         )
         result = compute_iaa_from_labels(labels, num_annotators=NUM_ANNOTATORS)
         # With mixed scores, some samples should be quarantined (kappa < 0.40)
-        assert len(result.quarantine_samples) + len(result.retraining_samples) + \
-               len(result.gold_standard_samples) == MIXED_QUALITY_SAMPLES
+        assert (
+            len(result.quarantine_samples) + len(result.retraining_samples) + len(result.gold_standard_samples)
+            == MIXED_QUALITY_SAMPLES
+        )
 
     def test_empty_labels(self) -> None:
         result = compute_iaa_from_labels([], num_annotators=3)
@@ -459,12 +457,9 @@ class TestComputeIAA:
 
     def test_stages_distribution(self) -> None:
         labels = [
-            AnnotatorLabel("a1", "s1", quality_score=0.9,
-                           metadata={"annotation_stage": "v1_initial"}),
-            AnnotatorLabel("a2", "s1", quality_score=0.9,
-                           metadata={"annotation_stage": "v2_secondary"}),
-            AnnotatorLabel("a3", "s1", quality_score=0.9,
-                           metadata={"annotation_stage": "v3_final"}),
+            AnnotatorLabel("a1", "s1", quality_score=0.9, metadata={"annotation_stage": "v1_initial"}),
+            AnnotatorLabel("a2", "s1", quality_score=0.9, metadata={"annotation_stage": "v2_secondary"}),
+            AnnotatorLabel("a3", "s1", quality_score=0.9, metadata={"annotation_stage": "v3_final"}),
         ]
         result = compute_iaa_from_labels(labels, num_annotators=3)
         assert result.stages_distribution["v1_initial"] == 1
@@ -601,9 +596,12 @@ class TestCLI:
         old_argv = sys.argv
         sys.argv = [
             "iaa",
-            "--ls-jsonl", str(ls_path),
-            "--output", str(output_path),
-            "--num-annotators", "3",
+            "--ls-jsonl",
+            str(ls_path),
+            "--output",
+            str(output_path),
+            "--num-annotators",
+            "3",
         ]
         try:
             ret = iaa_main()
@@ -638,11 +636,18 @@ class TestCLI:
         old_argv = sys.argv
         sys.argv = [
             "iaa",
-            "--ls-jsonl", str(ls_path),
-            "--output", str(output_path),
-            "--num-annotators", "3",
-            "--categories", "depression", "anxiety", "bipolar",
-            "--rubric-xml", str(rubric_path),
+            "--ls-jsonl",
+            str(ls_path),
+            "--output",
+            str(output_path),
+            "--num-annotators",
+            "3",
+            "--categories",
+            "depression",
+            "anxiety",
+            "bipolar",
+            "--rubric-xml",
+            str(rubric_path),
         ]
         try:
             ret = iaa_main()

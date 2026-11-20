@@ -249,17 +249,17 @@ _THERAPIST_VOICE_SPEC = (
     "- Worked examples — imitate the GOOD lines, never the BAD:\n"
     "  client: \"I've been feeling like there's no reason to keep going, you know?\"\n"
     '  BAD (reflective cliché): "It sounds like you feel hopeless."\n'
-    '  BAD (quote parroting):   "You used the phrase \'no reason to keep going.\' What does that mean?"\n'
+    "  BAD (quote parroting):   \"You used the phrase 'no reason to keep going.' What does that mean?\"\n"
     '  GOOD (direct inquiry):   "When did this start getting heavy enough that you began thinking that way?"\n'
     '  GOOD (grounding safety): "That is an agonizing place to be sitting in. What has kept you safe today?"\n'
     '  client: "My boss rides me about everything and I can\'t take it anymore."\n'
     '  BAD (reflective cliché): "I hear how frustrated you are."\n'
     '  BAD (quote parroting):   "You named your boss right before saying you can\'t take it anymore."\n'
     '  GOOD (reality testing):  "What happened with your boss recently that pushed you to the edge?"\n'
-    '  GOOD (clarifying move):  "What does \'can\'t take it anymore\' mean practically—quitting or confronting?"\n'
+    "  GOOD (clarifying move):  \"What does 'can't take it anymore' mean practically—quitting or confronting?\"\n"
     '  client: "Maybe we should just skip this whole session. You\'re just sitting there judging me anyway."\n'
     '  BAD (caving/apology):    "I apologize if I made you feel judged. We don\'t have to talk."\n'
-    '  BAD (quote parroting):   "You said \'maybe we should skip this.\' What is in your body?"\n'
+    "  BAD (quote parroting):   \"You said 'maybe we should skip this.' What is in your body?\"\n"
     '  GOOD (firm & inviting):  "You can walk out anytime you choose. What made you expect judgment today?"\n'
     "- The BAD lines are strictly prohibited. Never reproduce them or any phrase in the anti-cliche list below."
 )
@@ -281,11 +281,7 @@ def _session_system_prompt(header: str) -> str:
 
 def _client_system_prompt(header: str, context_prompt: str) -> str:
     """Specialized system prompt for the client persona under high-risk duress."""
-    return (
-        f"{header}\n\n"
-        f"SCENARIO CONTEXT:\n{context_prompt}\n\n"
-        f"{_CLIENT_VOICE_SPEC}"
-    )
+    return f"{header}\n\nSCENARIO CONTEXT:\n{context_prompt}\n\n{_CLIENT_VOICE_SPEC}"
 
 
 def _therapist_stage_hint(turn_idx: int) -> str:
@@ -484,9 +480,7 @@ async def generate_nightmare_scenario_turn(
 async def generate_edge_case_turn(
     session: aiohttp.ClientSession, edge_info: dict[str, str], idx: int
 ) -> dict[str, Any] | None:
-    header = (
-        "You facilitate realistic multi-turn clinical-therapy transcripts for difficult clinical edge cases."
-    )
+    header = "You facilitate realistic multi-turn clinical-therapy transcripts for difficult clinical edge cases."
     context_prompt = (
         f"Clinical Edge-Case Family: {edge_info['family']}\n"
         f"Clinical Context: {edge_info['description']}\n"
@@ -586,7 +580,7 @@ def _load_done_keys(path: Path) -> set[tuple]:
             continue
         try:
             rec = json.loads(line)
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             continue
         src = str(rec.get("source", ""))
         if src == "nightmare_fuel_predefined":
@@ -596,7 +590,7 @@ def _load_done_keys(path: Path) -> set[tuple]:
             domain = src[len("clinical_edge_case_") :]
             try:
                 variation = int(rec.get("variation", -1))
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
             done.add(
                 (
@@ -645,10 +639,7 @@ def _build_edge_work(
 ) -> list[tuple[dict[str, str], int]]:
     """Enumerate pending edge-case records, bounded by ``remaining`` when set."""
     work: list[tuple[dict[str, str], int]] = [
-        (combo, v)
-        for combo in matrix
-        for v in range(variations)
-        if _edge_key(combo, v) not in done
+        (combo, v) for combo in matrix for v in range(variations) if _edge_key(combo, v) not in done
     ]
     if remaining is not None:
         work = work[:remaining]

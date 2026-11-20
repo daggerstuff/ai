@@ -110,6 +110,7 @@ path can never drift:
 ```python
 # data_designer/engine/readiness.py
 
+
 def run_readiness_check(
     column_configs: Sequence[ColumnConfig],
     resource_provider: ResourceProvider,
@@ -126,15 +127,13 @@ def run_readiness_check(
 def _run_model_health_check(
     column_configs: Sequence[ColumnConfig],
     resource_provider: ResourceProvider,
-) -> None:
-    ...  # body lifted from DatasetBuilder._run_model_health_check_if_needed
+) -> None: ...  # body lifted from DatasetBuilder._run_model_health_check_if_needed
 
 
 def _run_mcp_tool_health_check(
     column_configs: Sequence[ColumnConfig],
     resource_provider: ResourceProvider,
-) -> None:
-    ...  # body lifted from DatasetBuilder._run_mcp_tool_check_if_needed
+) -> None: ...  # body lifted from DatasetBuilder._run_mcp_tool_check_if_needed
 ```
 
 The bodies are essentially the existing

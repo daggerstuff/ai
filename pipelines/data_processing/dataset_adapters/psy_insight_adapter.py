@@ -65,7 +65,7 @@ class PsyInsightAdapter(BaseDatasetAdapter):
                     for entry in data:
                         entry["_language"] = lang
                         records.append(entry)
-            except (json.JSONDecodeError, OSError):
+            except json.JSONDecodeError, OSError:
                 continue
         return records
 

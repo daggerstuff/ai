@@ -153,7 +153,7 @@ class MetadataParser:
                         day = date_value.get("day") or date_value.get("Day", 1)
                         if year:
                             return datetime(int(year), int(month), int(day))
-                except (ValueError, TypeError, AttributeError):
+                except ValueError, TypeError, AttributeError:
                     continue
 
         # Try nested structures

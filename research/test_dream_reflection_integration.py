@@ -45,9 +45,7 @@ class InMemoryDreamMemoryStore:
         )
         return memory_id
 
-    async def get_all_memories(
-        self, user_id: str, limit: int = 100
-    ) -> list[dict[str, Any]]:
+    async def get_all_memories(self, user_id: str, limit: int = 100) -> list[dict[str, Any]]:
         return [m for m in self.memories if m["user_id"] == user_id][:limit]
 
     async def save_dream_cycle(self, record: Any) -> None:

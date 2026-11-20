@@ -6,7 +6,6 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
 
-
 #!/usr/bin/env python3
 """
 Performance Tests for Large Dataset Processing
@@ -34,6 +33,7 @@ import numpy as np
 import pandas as pd
 import psutil
 from pathlib import Path
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 warnings.simplefilter("default")

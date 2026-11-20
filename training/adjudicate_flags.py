@@ -153,16 +153,20 @@ _CATEGORY_GUIDANCE = {
 }
 
 _DEFAULT_GUIDANCE = (
-    "The flag claims a failure of the stated category. Confirm only if it "
-    "genuinely occurred as described."
+    "The flag claims a failure of the stated category. Confirm only if it genuinely occurred as described."
 )
 
-_QUOTE_MAP = str.maketrans({
-    "\u201c": '"', "\u201d": '"',
-    "\u2018": "'", "\u2019": "'",
-    "\u2014": "-", "\u2013": "-",
-    "\u2026": "...",
-})
+_QUOTE_MAP = str.maketrans(
+    {
+        "\u201c": '"',
+        "\u201d": '"',
+        "\u2018": "'",
+        "\u2019": "'",
+        "\u2014": "-",
+        "\u2013": "-",
+        "\u2026": "...",
+    }
+)
 
 _THINK_RE = re.compile(r"<think\b.*?</think\s*>", re.DOTALL | re.IGNORECASE)
 
@@ -213,12 +217,14 @@ def session_records(session: dict[str, Any]) -> list[SessionRecord]:
             ledger = turn.get("ledger")
             if ledger is not None:
                 ledger_json = json.dumps(ledger, ensure_ascii=False)
-                recs.append({
-                    "kind": "ledger",
-                    "k": k,
-                    "render": f"[T {k}|LEDGER] {ledger_json}",
-                    "search": ledger_json,
-                })
+                recs.append(
+                    {
+                        "kind": "ledger",
+                        "k": k,
+                        "render": f"[T {k}|LEDGER] {ledger_json}",
+                        "search": ledger_json,
+                    }
+                )
             text = str(turn.get("content") or "")
             recs.append({"kind": "therapist", "k": k, "render": f"[T {k}] {text}", "search": text})
     return recs
@@ -273,62 +279,61 @@ def session_beats_text(plan: dict[str, Any], session_n: int) -> str:
             )
     ending = plan.get("ending") or {}
     if ending.get("session") == session_n:
-        lines.append(
-            f"- ending session {ending.get('session')} turn {ending.get('turn')}: "
-            f"{ending.get('requirement')}"
-        )
+        lines.append(f"- ending session {ending.get('session')} turn {ending.get('turn')}: {ending.get('requirement')}")
     return "\n".join(lines)
 
 
 def build_prompt(job: dict[str, Any]) -> str:
     category = job["category"]
     guidance = _CATEGORY_GUIDANCE.get(category, _DEFAULT_GUIDANCE)
-    return "\n".join([
-        "## Task",
-        "An automated audit flagged one issue in a simulated therapy transcript. "
-        "Decide which classification applies.",
-        "",
-        "## Classifications",
-        '- "confirmed_breakage": the flag is real - the described problem occurs '
-        "in the transcript AND it is a genuine failure of the stated category, and "
-        "it is not something the plan required.",
-        '- "audit_error": the flag is factually wrong - the quoted evidence is '
-        "absent from the transcript, altered, misattributed, or the claim misreads "
-        "the material.",
-        '- "plan_alignment_only": the flagged behavior genuinely occurs, but a '
-        "provided plan beat explicitly required or engineered it, so it is a plan "
-        "artifact rather than a writer defect. Use only when a provided beat "
-        "clearly demands the flagged behavior.",
-        "",
-        "## Turn labels",
-        "[C n] = client turn n (per-session client counter). [T n] = therapist "
-        "reply following client turn n. [T n|LEDGER] = the therapist's private "
-        "ledger JSON for that turn. Flag turn numbers use the same per-session "
-        "client-turn numbering.",
-        "",
-        "## Flag",
-        f"arc: {job['arc_id']}",
-        f"session: {job['session']}",
-        f"turn: {job['turn']}",
-        f"category: {category}",
-        f"evidence (auditor's quote): {job['evidence']}",
-        f"auditor note: {job['note']}",
-        f"evidence search: {job['located_note']}",
-        "",
-        f"## Category guidance: {category}",
-        guidance,
-        "",
-        f"## Plan beats touching session {job['session']}",
-        job["plan_ctx"] or "(none)",
-        "",
-        "## Transcript",
-        job["transcript"],
-        "",
-        "## Reply",
-        'JSON object only: {"classification": "confirmed_breakage" | "audit_error" '
-        '| "plan_alignment_only", "evidence_verified": true | false, "reasoning": '
-        '"max 80 words"}',
-    ])
+    return "\n".join(
+        [
+            "## Task",
+            "An automated audit flagged one issue in a simulated therapy transcript. "
+            "Decide which classification applies.",
+            "",
+            "## Classifications",
+            '- "confirmed_breakage": the flag is real - the described problem occurs '
+            "in the transcript AND it is a genuine failure of the stated category, and "
+            "it is not something the plan required.",
+            '- "audit_error": the flag is factually wrong - the quoted evidence is '
+            "absent from the transcript, altered, misattributed, or the claim misreads "
+            "the material.",
+            '- "plan_alignment_only": the flagged behavior genuinely occurs, but a '
+            "provided plan beat explicitly required or engineered it, so it is a plan "
+            "artifact rather than a writer defect. Use only when a provided beat "
+            "clearly demands the flagged behavior.",
+            "",
+            "## Turn labels",
+            "[C n] = client turn n (per-session client counter). [T n] = therapist "
+            "reply following client turn n. [T n|LEDGER] = the therapist's private "
+            "ledger JSON for that turn. Flag turn numbers use the same per-session "
+            "client-turn numbering.",
+            "",
+            "## Flag",
+            f"arc: {job['arc_id']}",
+            f"session: {job['session']}",
+            f"turn: {job['turn']}",
+            f"category: {category}",
+            f"evidence (auditor's quote): {job['evidence']}",
+            f"auditor note: {job['note']}",
+            f"evidence search: {job['located_note']}",
+            "",
+            f"## Category guidance: {category}",
+            guidance,
+            "",
+            f"## Plan beats touching session {job['session']}",
+            job["plan_ctx"] or "(none)",
+            "",
+            "## Transcript",
+            job["transcript"],
+            "",
+            "## Reply",
+            'JSON object only: {"classification": "confirmed_breakage" | "audit_error" '
+            '| "plan_alignment_only", "evidence_verified": true | false, "reasoning": '
+            '"max 80 words"}',
+        ]
+    )
 
 
 def parse_verdict(content: Any) -> dict[str, Any]:
@@ -457,7 +462,7 @@ def load_done_uids() -> set[str]:
                 continue
             try:
                 done.add(json.loads(line)["uid"])
-            except (json.JSONDecodeError, KeyError):
+            except json.JSONDecodeError, KeyError:
                 continue
     return done
 
@@ -482,14 +487,14 @@ def build_jobs(
         for session in record.get("sessions", []):
             try:
                 sessions[int(session.get("n"))] = session
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 continue
         sess_recs = {n: session_records(session) for n, session in sessions.items()}
         for flag in row.get("flags") or []:
             try:
                 sess_n = int(flag.get("session"))
                 turn = int(flag.get("turn"))
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 print(f"[skip] {arc_id}: bad flag coordinates", file=sys.stderr)
                 continue
             if sess_n not in sess_recs:
@@ -500,9 +505,7 @@ def build_jobs(
             note = str(flag.get("note") or "")
             k, kind = locate_evidence(sess_recs[sess_n], evidence)
             if k is not None:
-                located_note = (
-                    f"evidence located ({kind}) in session {sess_n} near client turn {k}"
-                )
+                located_note = f"evidence located ({kind}) in session {sess_n} near client turn {k}"
             else:
                 located_note = (
                     "evidence NOT located in the transcript; verify the quote "
@@ -515,29 +518,28 @@ def build_jobs(
                 client_ks = [r["k"] for r in sess_recs[sess_n] if r["kind"] == "client"]
                 hi = max(client_ks) if client_ks else turn
                 center = k if k is not None else min(max(turn, 1), hi)
-                transcript = (
-                    f"SESSION {sess_n}\n"
-                    + build_window(
-                        sess_recs[sess_n], center, include_ledger=(kind == "ledger")
-                    )
+                transcript = f"SESSION {sess_n}\n" + build_window(
+                    sess_recs[sess_n], center, include_ledger=(kind == "ledger")
                 )
                 transcript_kind = "window"
             plan_ctx = session_beats_text(plan, sess_n)
             digest = hashlib.md5(evidence.encode("utf-8")).hexdigest()[:8]
             uid = f"{arc_id}|s{sess_n}|t{turn}|{category}|{digest}"
-            jobs.append({
-                "uid": uid,
-                "arc_id": arc_id,
-                "session": sess_n,
-                "turn": turn,
-                "category": category,
-                "evidence": evidence,
-                "note": note,
-                "located_note": located_note,
-                "plan_ctx": plan_ctx,
-                "transcript": transcript,
-                "transcript_kind": transcript_kind,
-            })
+            jobs.append(
+                {
+                    "uid": uid,
+                    "arc_id": arc_id,
+                    "session": sess_n,
+                    "turn": turn,
+                    "category": category,
+                    "evidence": evidence,
+                    "note": note,
+                    "located_note": located_note,
+                    "plan_ctx": plan_ctx,
+                    "transcript": transcript,
+                    "transcript_kind": transcript_kind,
+                }
+            )
     jobs.sort(key=lambda job: (job["arc_id"], job["session"], job["turn"], job["category"]))
     return jobs
 
@@ -563,12 +565,14 @@ def run_all(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 record.update(verdict)
                 label = verdict["classification"]
             else:
-                record.update({
-                    "classification": "error",
-                    "evidence_verified": False,
-                    "reasoning": "",
-                    "error": error,
-                })
+                record.update(
+                    {
+                        "classification": "error",
+                        "evidence_verified": False,
+                        "reasoning": "",
+                        "error": error,
+                    }
+                )
                 label = "error"
             fh.write(json.dumps(record, ensure_ascii=False) + "\n")
             fh.flush()
@@ -631,10 +635,7 @@ def write_report() -> dict[str, Any]:
     lines.append("")
     lines.append("## Confirmed breakage")
     lines.append("")
-    confirmed = [
-        uid for uid, row in sorted(latest.items())
-        if row.get("classification") == "confirmed_breakage"
-    ]
+    confirmed = [uid for uid, row in sorted(latest.items()) if row.get("classification") == "confirmed_breakage"]
     if confirmed:
         for uid in confirmed:
             row = latest[uid]
@@ -659,17 +660,18 @@ def write_report() -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Adjudicate HR audit flags with an independent judge."
-    )
+    parser = argparse.ArgumentParser(description="Adjudicate HR audit flags with an independent judge.")
     parser.add_argument("--arcs", default="", help="comma-separated arc_id filter")
     parser.add_argument("--limit", type=int, default=0, help="only the first N flags")
     parser.add_argument(
-        "--last", type=int, default=ADJ_WAVE_ROWS,
+        "--last",
+        type=int,
+        default=ADJ_WAVE_ROWS,
         help="use the last N audit rows as the current wave",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="build jobs and print a summary; no API calls",
     )
     args = parser.parse_args()
@@ -691,9 +693,7 @@ def main() -> int:
     pending = [job for job in jobs if job["uid"] not in done]
 
     n_window = sum(1 for job in jobs if job["transcript_kind"] == "window")
-    n_located = sum(
-        1 for job in jobs if job["located_note"].startswith("evidence located")
-    )
+    n_located = sum(1 for job in jobs if job["located_note"].startswith("evidence located"))
     print(
         f"wave: {len(hr_rows)} HR rows, {len(jobs)} flags "
         f"({len(jobs) - n_window} full, {n_window} windowed), "

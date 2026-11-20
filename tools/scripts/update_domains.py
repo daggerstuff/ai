@@ -7,7 +7,6 @@ import os
 from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
 
 
-
 def update_domains_in_file(file_path):
     """Update domain references in a single file."""
 

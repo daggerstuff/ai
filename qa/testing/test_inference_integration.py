@@ -17,7 +17,11 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.inference.deployment.autoscaling.gpu_autoscaler import InstanceType, ScalingPolicy, register_model_for_autoscaling
+from ai.inference.deployment.autoscaling.gpu_autoscaler import (
+    InstanceType,
+    ScalingPolicy,
+    register_model_for_autoscaling,
+)
 from ai.qa.reports.explainability.model_explainability import explainability_engine, get_limited_explanation
 
 # Import our modules
@@ -718,7 +722,6 @@ def run_all_tests():
             pass
 
     return result.wasSuccessful()
-
 
 
 if __name__ == "__main__":

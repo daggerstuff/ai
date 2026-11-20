@@ -15,6 +15,7 @@ class Base(DeclarativeBase):
 
 class QueueItemStatus(StrEnum):
     """Status of a queue item."""
+
     PENDING = "pending"
     REVIEWED = "reviewed"
     VALIDATED = "validated"

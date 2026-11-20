@@ -478,9 +478,7 @@ class CrisisExpansion:
             result = [
                 expansion
                 for expansion in result
-                if not (
-                    expansion.startswith(("not ", "don't ", "do not ", "never ")) or " not " in expansion
-                )
+                if not (expansion.startswith(("not ", "don't ", "do not ", "never ")) or " not " in expansion)
             ]
         result = [term_lower, *sorted(expansions for expansions in result if expansions != term_lower)]
         if len(result) > self.config.max_expansion_terms:
@@ -653,7 +651,7 @@ class CrisisExpansion:
                     synonyms=set(synonyms) if synonyms else None,
                     language=language,
                 )
-            except (ValueError, KeyError):
+            except ValueError, KeyError:
                 # Skip invalid entries
                 continue
 

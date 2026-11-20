@@ -87,7 +87,7 @@ class FileHandler:
 
             return storage_path
 
-        except (ValidationError, FileProcessingError):
+        except ValidationError, FileProcessingError:
             raise
         except Exception as e:
             self.logger.error(f"Error storing file: {e}")

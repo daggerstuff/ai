@@ -20,8 +20,10 @@ def raw_dir(tmp_path: Path) -> Path:
     # combined_dataset.json
     combined = tmp_path / "combined_dataset.json"
     combined.write_text(
-        json.dumps({"Context": "I feel sad.", "Response": "I hear you."}) + "\n"
-        + json.dumps({"Context": "", "Response": "skip me"}) + "\n",
+        json.dumps({"Context": "I feel sad.", "Response": "I hear you."})
+        + "\n"
+        + json.dumps({"Context": "", "Response": "skip me"})
+        + "\n",
         encoding="utf-8",
     )
 
@@ -38,9 +40,7 @@ def raw_dir(tmp_path: Path) -> Path:
     archive.mkdir()
     counsel = archive / "counsel_chat2.csv"
     counsel.write_text(
-        "questionText,answerText\n"
-        '"How do I cope?","Try breathing exercises."\n'
-        '"","Skip this one"\n',
+        'questionText,answerText\n"How do I cope?","Try breathing exercises."\n"","Skip this one"\n',
         encoding="utf-8",
     )
     return tmp_path
@@ -136,10 +136,12 @@ class TestKaggleTherapyAdapter:
             writer = csv_mod.writer(f)
             writer.writerow(["conversations"])
             writer.writerow(
-                ["[{'from': 'human', 'value': 'I am sad.'}\n"
-                " {'from': 'gpt', 'value': 'Tell me more.'}\n"
-                " {'from': 'human', 'value': 'I lost my job.'}\n"
-                " {'from': 'gpt', 'value': 'That sounds really hard.'}]"]
+                [
+                    "[{'from': 'human', 'value': 'I am sad.'}\n"
+                    " {'from': 'gpt', 'value': 'Tell me more.'}\n"
+                    " {'from': 'human', 'value': 'I lost my job.'}\n"
+                    " {'from': 'gpt', 'value': 'That sounds really hard.'}]"
+                ]
             )
         adapter = KaggleTherapyAdapter(
             dataset_name="kaggle_therapy",

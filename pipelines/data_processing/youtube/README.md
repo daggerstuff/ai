@@ -147,8 +147,8 @@ from ai.pipelines.data_processing.youtube.models import ChannelHunterConfig
 
 config = ChannelHunterConfig(
     min_subscribers=1000,  # Minimum 1K subscribers
-    min_videos=20,         # At least 20 videos
-    target_channels=50,    # Find 50 channels total
+    min_videos=20,  # At least 20 videos
+    target_channels=50,  # Find 50 channels total
     target_languages={"en", "es", "fr", "de"},  # Supported languages
     require_professional=True,  # Must be professional source
     quality_threshold=0.8,  # 80% minimum quality
