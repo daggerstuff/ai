@@ -127,7 +127,7 @@ class Plugin(BaseModel):
         module_name, object_name = _get_module_and_object_names(value)
         try:
             spec = importlib.util.find_spec(module_name)
-        except:
+        except Exception:
             raise PluginLoadError(f"Could not find module {module_name!r}")
 
         if spec is None or spec.origin is None:

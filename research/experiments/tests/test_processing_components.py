@@ -196,7 +196,7 @@ class TestDataProcessingFunctions(unittest.TestCase):
                                 text_parts.append(f"{role}: {content}")
                     return "\n".join(text_parts)
                 return str(conversations)
-            except:
+            except Exception:
                 return json_str
 
         # Test valid JSON
@@ -424,7 +424,7 @@ class TestUtilityFunctions(unittest.TestCase):
         def parse_datetime(date_string):
             try:
                 return datetime.fromisoformat(date_string.replace("Z", "+00:00"))
-            except:
+            except Exception:
                 return None
 
         # Test valid datetime

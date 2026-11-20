@@ -122,7 +122,7 @@ class AuthManager:
                     error_msg += f" - {error_data['error']}"
                 if "error_description" in error_data:
                     error_msg += f": {error_data['error_description']}"
-            except:
+            except Exception:
                 pass
 
             raise AuthenticationError(error_msg)

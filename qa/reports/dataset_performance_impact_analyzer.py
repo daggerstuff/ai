@@ -140,7 +140,7 @@ class DatasetPerformanceImpactAnalyzer:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str
 
     def _calculate_quality_score(self, row: pd.Series) -> float:
@@ -154,7 +154,7 @@ class DatasetPerformanceImpactAnalyzer:
         # Quality components
         try:
             readability = max(0, min(100, flesch_reading_ease(text))) / 100
-        except:
+        except Exception:
             readability = 0.5
 
         # Engagement indicators

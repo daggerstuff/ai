@@ -124,7 +124,7 @@ class ConversationRecommendationOptimizer:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str
 
     def _establish_quality_benchmarks(self, conversations: pd.DataFrame) -> dict[str, Any]:
@@ -177,7 +177,7 @@ class ConversationRecommendationOptimizer:
             # Calculate content metrics
             try:
                 flesch_score = flesch_reading_ease(text)
-            except:
+            except Exception:
                 flesch_score = 50
 
             questions = text.count("?")
@@ -232,7 +232,7 @@ class ConversationRecommendationOptimizer:
         try:
             flesch_score = flesch_reading_ease(text)
             readability_component = max(0, min(100, flesch_score)) / 100
-        except:
+        except Exception:
             readability_component = 0.5
 
         # Engagement component
@@ -279,7 +279,7 @@ class ConversationRecommendationOptimizer:
 
             try:
                 flesch_score = flesch_reading_ease(text)
-            except:
+            except Exception:
                 flesch_score = 50
 
             questions = text.count("?")
@@ -355,7 +355,7 @@ class ConversationRecommendationOptimizer:
                 flesch_score = flesch_reading_ease(conv["conversation_text"])
                 if flesch_score < benchmarks["readability"]["acceptable_range"][0]:
                     low_readability_count += 1
-            except:
+            except Exception:
                 continue
 
         if low_readability_count > len(conversations) * 0.3:

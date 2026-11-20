@@ -1161,7 +1161,7 @@ def _canonize_ending_and_beats(plan: dict[str, Any]) -> None:
                     try:
                         ps_i = int(ps)
                         pt_i = int(pt)
-                    except:
+                    except Exception:
                         continue
                     if ps_i not in valid_ns:
                         b[pk] = sess_i

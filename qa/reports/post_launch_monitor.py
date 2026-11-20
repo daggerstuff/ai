@@ -644,7 +644,7 @@ class PostLaunchMonitor:
                 return "warning"
             return "healthy"
 
-        except:
+        except Exception:
             return "unknown"
 
     def generate_operational_report(self) -> dict[str, Any]:

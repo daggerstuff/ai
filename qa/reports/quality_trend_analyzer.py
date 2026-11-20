@@ -413,7 +413,7 @@ class QualityTrendAnalyzer:
                     "p_value": shapiro_p,
                     "is_normal": shapiro_p > 0.05,
                 }
-            except:
+            except Exception:
                 pass
 
             # Trend test (Mann-Kendall)
@@ -425,7 +425,7 @@ class QualityTrendAnalyzer:
                     "p_value": p_value,
                     "has_trend": p_value < 0.05,
                 }
-            except:
+            except Exception:
                 pass
 
         return tests

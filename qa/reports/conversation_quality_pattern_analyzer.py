@@ -124,7 +124,7 @@ class ConversationQualityPatternAnalyzer:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str  # Return original if parsing fails
 
     def _analyze_response_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
@@ -140,7 +140,7 @@ class ConversationQualityPatternAnalyzer:
             try:
                 flesch_score = flesch_reading_ease(text)
                 fk_grade = flesch_kincaid_grade(text)
-            except:
+            except Exception:
                 flesch_score = 50  # Default moderate score
                 fk_grade = 8
 

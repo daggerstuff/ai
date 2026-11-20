@@ -124,7 +124,7 @@ class ConversationEffectivenessPredictor:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str
 
     def _extract_effectiveness_features(self, conversations: pd.DataFrame) -> pd.DataFrame:
@@ -144,7 +144,7 @@ class ConversationEffectivenessPredictor:
             try:
                 flesch_score = flesch_reading_ease(text)
                 fk_grade = flesch_kincaid_grade(text)
-            except:
+            except Exception:
                 flesch_score = 50
                 fk_grade = 8
 
@@ -272,7 +272,7 @@ class ConversationEffectivenessPredictor:
             try:
                 flesch_score = flesch_reading_ease(text)
                 clarity_score = max(0, min(100, flesch_score))
-            except:
+            except Exception:
                 clarity_score = 50
 
             # 3. Empathy score

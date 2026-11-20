@@ -178,7 +178,7 @@ class TestDataIntegrityValidation(unittest.TestCase):
                         )
                         if abs(actual_words - row["word_count"]) > 5:  # Allow small variance
                             inconsistent_count += 1
-                    except:
+                    except Exception:
                         inconsistent_count += 1
 
                 if inconsistent_count > 0:

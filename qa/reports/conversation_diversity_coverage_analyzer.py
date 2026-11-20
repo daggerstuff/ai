@@ -114,7 +114,7 @@ class ConversationDiversityCoverageAnalyzer:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str
 
     def _analyze_vocabulary_diversity(self, conversations: pd.DataFrame) -> dict[str, Any]:

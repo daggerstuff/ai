@@ -48,7 +48,7 @@ def determine_stage(record: dict) -> str:
                         # lightweight check
                         if "example_prompts.jsonl" in content:
                             return "stage3_edge_stress_test"
-                    except:
+                    except Exception:
                         pass
 
     for match, stage in FILE_TO_STAGE.items():
@@ -88,7 +88,7 @@ def run_slicer():
 
             try:
                 record = json.loads(line)
-            except:
+            except Exception:
                 continue
 
             stage_id = determine_stage(record)

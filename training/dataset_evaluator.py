@@ -70,7 +70,7 @@ def main():
     for i, line in enumerate(lines):
         try:
             pair = json.loads(line)
-        except:
+        except Exception:
             continue
 
         inst = pair.get("instruction", "")
