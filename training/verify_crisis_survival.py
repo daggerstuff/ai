@@ -173,7 +173,7 @@ def audit(
             expected[hashlib.sha256(datum.line().encode()).hexdigest()] += 1
             supervised_tokens += int(sum(datum.weights))
 
-    missing: list[int] = []
+    missing: list[str] = []
     for digest, needed in expected.items():
         available = export_hashes.get(digest, 0)
         if available < needed:
