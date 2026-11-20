@@ -307,6 +307,7 @@ training/tests/*
 !training/tests/test_build_v30_release.py
 !training/tests/test_crisis_suite_v2.py
 !training/tests/test_crisis_target_audit.py
+!training/tests/test_verify_crisis_survival.py
 !training/tests/test_crisis_eval_diagnostics.py
 !training/tests/test_nightmare_final_export.py
 !training/tests/test_apply_research_target_repairs.py
