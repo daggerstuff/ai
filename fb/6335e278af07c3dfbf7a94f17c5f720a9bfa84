@@ -1,0 +1,27 @@
+training/mcp/runner.py
+  s_7d4811cf1b0ba7::t_bdc6b98a4d9fff 15,180-198,202,240,242-268,270-273
+tests/training/mcp/test_control_plane.py
+  s_7d4811cf1b0ba7::t_857412f244aa73 11-12,22-23,249-280,500-576
+training/mcp/backends.py
+  s_7d4811cf1b0ba7::t_58c0580b050104 17,192
+training/mcp/recipes.yaml
+  s_7d4811cf1b0ba7::t_12fd844574413b 84,91-92,103,110-111,121,129-130
+training/mcp/server.py
+  s_7d4811cf1b0ba7::t_a0053bce787ee2 358-376,457-460,462
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fb6335e278af07c3dfbf7a94f17c5f720a9bfa84",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
