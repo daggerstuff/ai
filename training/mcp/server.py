@@ -10,6 +10,7 @@ import asyncio
 import contextlib
 import time
 import uuid
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
@@ -34,7 +35,7 @@ def settings() -> Settings:
     return cached
 
 
-def _build_auth():
+def _build_auth() -> StaticTokenVerifier | None:
     token = settings().mcp_token
     if not token:
         return None
@@ -44,13 +45,13 @@ def _build_auth():
 
 
 @asynccontextmanager
-async def lifespan(_app):
+async def lifespan(_app: Any) -> AsyncIterator[None]:
     s = settings()
     # Reconcile on startup.
     with contextlib.suppress(Exception):
         sync.sync_all(s)
     # Periodic reconciler.
-    async def _loop():
+    async def _loop() -> None:
         while True:
             await asyncio.sleep(_RECONCILE_INTERVAL_S)
             with contextlib.suppress(Exception):
@@ -66,7 +67,7 @@ mcp = FastMCP("pixelated-training-infra", auth=_build_auth(), lifespan=lifespan)
 _STATE.setdefault("settings", load_settings())
 
 
-def _guard(fn, *args, **kwargs) -> dict[str, Any]:
+def _guard(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> dict[str, Any]:
     """Run a backend call and normalize failures into tool-friendly errors."""
     try:
         return {"ok": True, "result": fn(*args, **kwargs)}
@@ -130,8 +131,13 @@ def _health_probe() -> dict[str, Any]:
 
     return {
         "service": "pixelated-training-infra",
-        "phase": 0,
-        "read_only": True,
+        "phase": 2,
+        "read_only": False,
+        "budget_caps": {
+            "max_concurrent_jobs": s.max_concurrent_jobs,
+            "daily_job_cap": s.daily_job_cap,
+            "monthly_cost_cap_usd": s.monthly_cost_cap_usd,
+        },
         "latency_ms": round((time.monotonic() - started) * 1000, 1),
         "checks": {
             "ovhai": ovhai_detail,

@@ -70,6 +70,26 @@ recipes:
     outputs:
       wandb_run: "serverless training job id"
       state_dir: "docs/training/execution-*/wandb-sft-state/"
+    invariants:
+      recipe_derived_lr: true
+      make_launch_config_verify: true
+
+  - id: curate-sft-v29
+    kind: curate_dataset
+    description: >-
+      Build the v29 agent-tool SFT dataset from the curated corpus.
+      Local CPU; writes versioned dataset artifacts consumed by
+      train-sft-latest.
+    backend: local
+    entrypoint: "python -m training.build_agent_tool_sft_v29"
+    cost_class: cpu-hour
+    est_cost_usd: 0.0
+    gpu: none
+    timeout: 4h
+    inputs:
+      corpus: "hackathon corpus root (HACKATHON_ROOT)"
+    outputs:
+      dataset: "versioned SFT jsonl under training/output/"
 
   - id: curate-sft-v30
     kind: curate_dataset
