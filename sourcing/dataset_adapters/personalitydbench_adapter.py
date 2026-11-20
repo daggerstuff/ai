@@ -111,7 +111,10 @@ class PersonalityDBenchAdapter(BaseDatasetAdapter):
         messages: list[dict[str, str]] = [
             {
                 "role": "system",
-                "content": "You are a clinical assessor evaluating social media text for personality disorder criteria using DSM-5 guidelines.",
+                "content": (
+                    "You are a clinical assessor evaluating social media text "
+                    "for personality disorder criteria using DSM-5 guidelines."
+                ),
             },
             {"role": "user", "content": text},
         ]
@@ -126,7 +129,7 @@ class PersonalityDBenchAdapter(BaseDatasetAdapter):
             "diagnostic_tag": diagnostic_tag,
             "demographic_tags": [],
             "linguistic_style": "informal",
-            "clinical_reviewed": True,
+            "clinical_reviewed": False,
             "component": "prisma",
             "pd_label": entry.get("pd_label", ""),
             "provenance": PersonalityDBenchAdapter._build_provenance_static(),
@@ -139,7 +142,10 @@ class PersonalityDBenchAdapter(BaseDatasetAdapter):
         persona = entry.get("persona", "").strip()
         if not prompt or not response:
             return None
-        system_content = f"You are simulating a persona with {diagnostic_tag or 'a personality disorder'} traits. Respond consistently with the persona profile."
+        system_content = (
+            f"You are simulating a persona with {diagnostic_tag or 'a personality disorder'} traits."
+            " Respond consistently with the persona profile."
+        )
         if persona:
             system_content += f" Persona: {persona}"
         messages: list[dict[str, str]] = [

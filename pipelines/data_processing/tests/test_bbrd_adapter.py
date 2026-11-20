@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from typing import Any
 
 from ai.pipelines.data_processing.dataset_adapters.bbrd_adapter import BBRDAdapter
 
@@ -76,7 +75,7 @@ class TestBBRDAdapter:
         assert rec["messages"][1]["role"] == "user"
         assert rec["messages"][2]["role"] == "assistant"
         assert rec["linguistic_style"] == "informal"
-        assert rec["clinical_reviewed"] is True
+        assert rec["clinical_reviewed"] is False
 
     def test_convert_maps_labels(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)

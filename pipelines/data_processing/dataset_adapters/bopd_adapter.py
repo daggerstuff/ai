@@ -11,6 +11,7 @@ Output task_type: symptom_classification
 from __future__ import annotations
 
 import csv
+import json
 import subprocess
 from typing import Any
 
@@ -20,6 +21,9 @@ from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatas
 _SOURCE_URL = (
     "https://github.com/BoPDdiseasescreening/Borderline-Personality-Disorder-BoPD-automatic-disease-screening-tool"
 )
+
+_AGE_YOUNG_ADULT_MAX = 25
+_AGE_ADULT_MAX = 45
 
 
 @register_adapter("bopd")
@@ -77,8 +81,6 @@ class BoPDAdapter(BaseDatasetAdapter):
                 if jf.name in ("package.json", "tsconfig.json", "manifest.json"):
                     continue
                 try:
-                    import json
-
                     with open(jf, encoding="utf-8") as f:
                         data = json.load(f)
                     if isinstance(data, list):
@@ -141,7 +143,10 @@ class BoPDAdapter(BaseDatasetAdapter):
             messages: list[dict[str, str]] = [
                 {
                     "role": "system",
-                    "content": "You are a clinical screening assistant evaluating EHR data for Borderline Personality Disorder using ICD-10-CM codes.",
+                    "content": (
+                        "You are a clinical screening assistant evaluating EHR data "
+                        "for Borderline Personality Disorder using ICD-10-CM codes."
+                    ),
                 },
                 {"role": "user", "content": description},
                 {"role": "assistant", "content": label},
@@ -154,7 +159,7 @@ class BoPDAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": "borderline_personality_disorder",
                 "demographic_tags": self._extract_demographics(row),
                 "linguistic_style": "formal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "icd10_codes": row.get("icd10_code", row.get("icd_code", "")),
                 "screening_score": row.get("screening_score", row.get("bpd_score", "")),
                 "provenance": self._build_provenance(
@@ -174,9 +179,9 @@ class BoPDAdapter(BaseDatasetAdapter):
         if age:
             try:
                 a = int(age)
-                if a <= 25:
+                if a <= _AGE_YOUNG_ADULT_MAX:
                     tags.append("age_18_25")
-                elif a <= 45:
+                elif a <= _AGE_ADULT_MAX:
                     tags.append("age_26_45")
                 else:
                     tags.append("age_46_plus")
