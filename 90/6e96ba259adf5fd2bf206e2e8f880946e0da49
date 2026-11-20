@@ -1,0 +1,21 @@
+training/export_tinker_release.py
+  s_7d4811cf1b0ba7::t_b967eba01c381c 228,230-231,236,238-240,249-250,351-442,477-485,491-504
+  s_7d4811cf1b0ba7::t_a53e03d8d6cdca 443
+  s_7d4811cf1b0ba7::t_54e084ac7e1967 224-227,229,232-235,237,241-248,251-254,444-445
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "906e96ba259adf5fd2bf206e2e8f880946e0da49",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
