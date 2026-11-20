@@ -81,8 +81,10 @@ def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> Non
 
     result = paired_eval.run_paired(request, transport=transport)
 
+    cases = paired_eval.load_cases(DEV_CASES)
+
     assert result["status"] == "complete"
-    assert result["success_count"] == 22  # 11 dev cases scored on both arms
+    assert result["success_count"] == len(cases) * 2  # every dev case scored on both arms
     assert {arm for arm, _ in transport.calls} == {"base", "sft"}
     records = [json.loads(line) for line in (tmp_path / "results" / "results.jsonl").read_text().splitlines()]
     crisis = [record for record in records if record["scenario"] == "crisis"]
