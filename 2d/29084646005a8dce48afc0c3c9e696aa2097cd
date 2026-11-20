@@ -1,0 +1,49 @@
+training/mcp/recipes.py
+  s_7d4811cf1b0ba7::t_f3fec1b47e584a 14,28-32,68-127
+  s_7d4811cf1b0ba7::t_a1e5ea9169bff9 128-130
+training/mcp/db.py
+  s_7d4811cf1b0ba7::t_35321578046837 52-66,214,228,231-305
+training/mcp/config.py
+  s_7d4811cf1b0ba7::t_dcd933be0c3f6c 86-94
+training/mcp/server.py
+  s_7d4811cf1b0ba7::t_35321578046837 1-9,25,44-78,177,179-181,229-256,290,300-308,400,416,443,450-451,471,578
+  s_7d4811cf1b0ba7::t_dcd933be0c3f6c 309,475,480,488-528,569
+  s_7d4811cf1b0ba7::t_dc8943f1db5ec5 310
+  s_7d4811cf1b0ba7::t_ca599c2f890adc 399
+  s_7d4811cf1b0ba7::t_d2ae4060cccae8 401-403
+  s_7d4811cf1b0ba7::t_f567dbfc6ff552 413-415
+  s_7d4811cf1b0ba7::t_aaddd0cb9c60e1 417-419
+  s_7d4811cf1b0ba7::t_e8073bb266ee09 441-442
+  s_7d4811cf1b0ba7::t_68d7738c717b80 444-449
+  s_7d4811cf1b0ba7::t_ca59ba9c34ca48 452-454
+  s_7d4811cf1b0ba7::t_cba02be4e1c450 469-470
+  s_7d4811cf1b0ba7::t_d67a819bd8e902 472-474
+  s_7d4811cf1b0ba7::t_3a1326d846b211 476
+  s_7d4811cf1b0ba7::t_8982a6bc4304d3 481-483,485-487
+  s_7d4811cf1b0ba7::t_584770ccd9c708 529-531
+  s_7d4811cf1b0ba7::t_d97fc148f89158 568
+  s_7d4811cf1b0ba7::t_2f6544935c79d7 570-572,575-577
+  s_7d4811cf1b0ba7::t_9613da539c03e1 579-581
+training/mcp/README.md
+  s_7d4811cf1b0ba7::t_319d12740169b6 1-58
+training/mcp/backends.py
+  s_7d4811cf1b0ba7::t_acaa883d307d49 293-362
+training/mcp/runner.py
+  s_7d4811cf1b0ba7::t_6deec78028265c 36-67,69-79,81-82,86-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2d29084646005a8dce48afc0c3c9e696aa2097cd",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
