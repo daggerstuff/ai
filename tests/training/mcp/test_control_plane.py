@@ -73,6 +73,45 @@ def test_override_needs_type_unless_locked():
     assert good == []
 
 
+def test_launching_recipe_without_execute_flag_is_rejected():
+    """A launching recipe must carry --execute (P4.14).
+
+    Both remote entrypoints default to a dry run, so a recipe missing the flag
+    would submit, report success, and launch nothing.
+    """
+    for kind, entrypoint in (
+        ("train_sft", "python -m training.launch.wandb_sft_v15_execute"),
+        ("eval_paired", "python -m training.ovh_v22_eval.submit run --tag <tag>"),
+    ):
+        entry = {**VALID_ENTRY, "id": "x", "kind": kind, "entrypoint": entrypoint}
+        errors = recipes.validate_recipe_entry(entry)
+        assert any("--execute" in error for error in errors), (kind, errors)
+
+    ok = {
+        **VALID_ENTRY,
+        "id": "x",
+        "kind": "train_sft",
+        "entrypoint": "python -m training.launch.wandb_sft_v15_execute --execute",
+    }
+    assert recipes.validate_recipe_entry(ok) == []
+
+    local = {
+        **VALID_ENTRY,
+        "id": "x",
+        "kind": "curate_dataset",
+        "backend": "local",
+        "entrypoint": "python -m training.build_agent_tool_sft_v30",
+    }
+    assert recipes.validate_recipe_entry(local) == []
+
+
+def test_every_bundled_launching_recipe_has_execute():
+    for recipe in recipes.load_recipes():
+        if recipe.kind not in recipes.LAUNCH_KINDS:
+            continue
+        assert "--execute" in recipe.entrypoint, f"{recipe.id} cannot launch"
+
+
 def test_multi_node_shapes_are_rejected():
     for patch in (
         {"nodes": 2},
@@ -108,15 +147,17 @@ def test_bad_registry_file_fails_fast(tmp_path):
 
 
 def test_duplicate_registry_id_fails_fast(tmp_path):
-    good = VALID_ENTRY
     bad = tmp_path / "recipes.yaml"
+    # Both entries must otherwise be valid, or the loader fails on the first
+    # one's unrelated problem before it ever reaches the duplicate check.
     bad.write_text(
         "recipes:\n"
-        "  - id: same\n    kind: eval_paired\n    description: d\n    backend: local\n    entrypoint: python -m x\n"
-        "  - id: same\n    kind: eval_paired\n    description: d\n    backend: local\n    entrypoint: python -m x\n",
+        "  - id: same\n    kind: eval_paired\n    description: d\n    backend: local\n"
+        "    entrypoint: python -m x --execute\n"
+        "  - id: same\n    kind: eval_paired\n    description: d\n    backend: local\n"
+        "    entrypoint: python -m x --execute\n",
         encoding="utf-8",
     )
-    del good
     with pytest.raises(ValueError, match="duplicate recipe id"):
         recipes.load_recipes(bad)
 
@@ -201,31 +242,32 @@ def test_plan_job_is_deterministic_and_bound_to_recipe(db_path: Path):
     first = plan.plan_job(
         settings,
         "eval-crisis-v2",
-        {"tag": "v30-eval-v2", "suite": "v2"},
+        {"tag": "v30-eval-v2"},
         None,
     )
     second = plan.plan_job(
         settings,
         "eval-crisis-v2",
-        {"tag": "v30-eval-v2", "suite": "v2"},
+        {"tag": "v30-eval-v2"},
         None,
     )
     assert first["plan_hash"] == second["plan_hash"]
     assert first["spec_hash"] == second["spec_hash"]
     assert first["command"].startswith("python -m training.ovh_v22_eval.submit")
     assert "v30-eval-v2" in first["command"]
-    assert (
-        first["plan_hash"]
-        != plan.plan_job(settings, "eval-crisis-v2", {"tag": "other-tag", "suite": "v2"}, None)["plan_hash"]
-    )
+    assert first["plan_hash"] != plan.plan_job(settings, "eval-crisis-v2", {"tag": "other-tag"}, None)["plan_hash"]
 
 
 def test_plan_job_rejects_missing_inputs_and_unknown_recipe(db_path: Path):
     settings = _FakeSettings(db_path)
     with pytest.raises(plan.PlanError, match="missing required input"):
-        plan.plan_job(settings, "eval-crisis-v2", {"tag": "t"}, None)
+        plan.plan_job(settings, "eval-crisis-v2", {}, None)
     with pytest.raises(plan.PlanError, match="unknown recipe"):
         plan.plan_job(settings, "no-such-recipe", {}, None)
+    # An input the recipe does not declare is rejected: ignoring it would let a
+    # caller believe it changed the outcome (the wrong-suite bug class).
+    with pytest.raises(plan.PlanError, match="unknown input 'suite'"):
+        plan.plan_job(settings, "eval-crisis-v2", {"tag": "t", "suite": "v1"}, None)
 
 
 def test_plan_job_rejects_locked_and_badly_typed_overrides(db_path: Path):
@@ -234,14 +276,14 @@ def test_plan_job_rejects_locked_and_badly_typed_overrides(db_path: Path):
         plan.plan_job(
             settings,
             "train-sft-latest",
-            {"manifest": "m", "launch_config": "c"},
+            {"launch_config": "c"},
             {"learning_rate": 1e-4},
         )
     with pytest.raises(plan.PlanError, match="epochs"):
         plan.plan_job(
             settings,
             "train-sft-latest",
-            {"manifest": "m", "launch_config": "c"},
+            {"launch_config": "c"},
             {"epochs": 99},
         )
 
@@ -251,7 +293,9 @@ def test_dry_run_override_adds_and_omits_a_flag(db_path: Path):
     settings = _FakeSettings(db_path)
     off = plan.plan_job(settings, "curate-sft-v30", {"corpus": "/data/corpus"}, {})
     assert off["command"] == "python -m training.build_agent_tool_sft_v30"
-    assert off["warnings"] == []
+    # `corpus` is recorded in the spec but the builder reads its own ROOT, so
+    # the plan must say so rather than implying the path was passed through.
+    assert any("input 'corpus' is recorded in the spec" in w for w in off["warnings"])
     on = plan.plan_job(settings, "curate-sft-v30", {"corpus": "/data/corpus"}, {"dry_run": True})
     assert on["command"] == "python -m training.build_agent_tool_sft_v30 --dry-run"
     explicit_off = plan.plan_job(
@@ -261,6 +305,30 @@ def test_dry_run_override_adds_and_omits_a_flag(db_path: Path):
         {"dry_run": False},
     )
     assert explicit_off["command"] == "python -m training.build_v30_release"
+
+
+def test_unconsumed_recipe_inputs_are_warned_about(db_path: Path):
+    """An input the command never receives must be visible, not silently dropped."""
+    settings = _FakeSettings(db_path)
+    planned = plan.plan_job(settings, "curate-sft-v30", {"corpus": "/data/corpus"}, {})
+    assert any("input 'corpus' is recorded in the spec" in w for w in planned["warnings"])
+    # Every recipe must report accurately: an input is either substituted into
+    # the command or warned about. None may vanish silently.
+    for recipe in recipes.load_recipes():
+        inputs = dict.fromkeys(recipe.inputs, "x")
+        overrides = {}
+        for name, spec in recipe.overrides.items():
+            if not spec.get("locked") and "default" in spec:
+                overrides[name] = spec["default"]
+        resolved = plan.plan_job(settings, recipe.id, inputs, overrides)
+        for name in recipe.inputs:
+            if f"<{name}>" in recipe.entrypoint:
+                continue
+            assert any(name in w and "recorded in the spec" in w for w in resolved["warnings"]), (
+                recipe.id,
+                name,
+                resolved["warnings"],
+            )
 
 
 def test_dry_run_override_rejects_non_boolean(db_path: Path):

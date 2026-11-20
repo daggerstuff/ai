@@ -25,6 +25,13 @@ BACKENDS = {"local", "ovhai", "wandb-serverless", "wandb", "r2"}
 COST_CLASSES = {"cpu-minute", "cpu-hour", "gpu-hour", "gpu-day"}
 REQUIRED_FIELDS = ("id", "kind", "description", "backend", "entrypoint")
 
+# Kinds that launch real, billable remote work. Their entrypoints take an
+# ``--execute`` flag and default to a self-check/dry run when it is absent, so
+# a recipe that omits it would silently "succeed" without launching anything
+# while spending the operator's trust (and a daily-cap slot). The registry
+# refuses such a recipe rather than letting a submit report a fake success.
+LAUNCH_KINDS = frozenset({"train_sft", "eval_paired"})
+
 # P3.4: multi-node / multi-GPU training is deliberately deferred. The decision
 # and its rationale live in ``docs/MULTI_NODE_DECISION.md``; the registry
 # enforces it so a recipe cannot quietly reintroduce an unsupported shape.
@@ -103,7 +110,29 @@ def validate_recipe_entry(entry: Any, known_ids: set[str] | None = None) -> list
             elif not spec.get("locked") and "type" not in spec:
                 errors.append(f"override {name!r} must declare a type unless locked")
     errors.extend(_multi_node_errors(entry))
+    errors.extend(_launch_flag_errors(entry))
     return errors
+
+
+def _launch_flag_errors(entry: dict[str, Any]) -> list[str]:
+    """Refuse a launching recipe whose entrypoint forgot its ``--execute``.
+
+    ``wandb_sft_v15_execute`` and ``ovh_v22_eval.submit run`` both default to a
+    dry run when ``--execute`` is absent. A recipe missing that flag would
+    submit successfully, report ``succeeded``, and never launch anything — the
+    exact fabricated-success failure this control plane exists to prevent.
+    """
+    if entry.get("kind") not in LAUNCH_KINDS:
+        return []
+    entrypoint = entry.get("entrypoint")
+    if not isinstance(entrypoint, str):
+        return []
+    if "--execute" in entrypoint:
+        return []
+    return [
+        f"kind {entry['kind']!r} launches remote work but entrypoint omits --execute "
+        "(it would silently dry-run and never start a job)"
+    ]
 
 
 def _multi_node_errors(entry: dict[str, Any]) -> list[str]:

@@ -44,14 +44,14 @@ authed). State in `state/jobs.db` (SQLite/WAL), logs in `state/logs/`.
 
 The registry is fed from four directions and stays authoritative:
 
-* `sync_jobs` imports recent ovhai jobs, W&B runs, and R2 eval tags, then
+- `sync_jobs` imports recent ovhai jobs, W&B runs, and R2 eval tags, then
   **reconciles**: an active row whose backend job is no longer listed becomes
   `failed` with `error: backend_lost` (PIX-5012). A backend that is
   unconfigured or whose listing failed is skipped, so an unreachable backend is
   never mistaken for a vanished job.
-* `import_history(rows=[...])` seeds operator-supplied historical rows for runs
+- `import_history(rows=[...])` seeds operator-supplied historical rows for runs
   no backend can enumerate; `include_backends=true` also imports W&B/R2 history.
-* Terminal transitions set `finished_at` and write a Foresight memory
+- Terminal transitions set `finished_at` and write a Foresight memory
   (`training_job_outcome`, tagged `job:<id>` / `status:<status>`) so
   `searchMemories(training_job_id:...)` returns real data even for jobs no agent
   polled. Set `TRAINING_MCP_FORESIGHT=0` to disable.

@@ -27,7 +27,11 @@ def _validate_inputs(recipe: recipes.Recipe, inputs: dict[str, Any]) -> list[str
             raise PlanError(f"missing required input: {name}")
     for name in inputs:
         if name not in recipe.inputs:
-            warnings.append(f"unknown input '{name}' ignored by recipe")
+            # Fail closed: a caller that passes an input the recipe does not
+            # declare believes it changed the outcome. Ignoring it silently
+            # would launch work under a wrong assumption (the suite-version bug
+            # class), so the plan is rejected instead.
+            raise PlanError(f"unknown input '{name}' is not accepted by recipe {recipe.id}")
     return warnings
 
 
@@ -114,6 +118,12 @@ def plan_job(
     command = _resolve_command(recipe, inputs, overrides)
     if "<" in command and ">" in command:
         warnings.append("entrypoint still contains unresolved placeholders")
+    for name in recipe.inputs:
+        if f"<{name}>" not in recipe.entrypoint:
+            warnings.append(
+                f"input '{name}' is recorded in the spec but not passed to the entrypoint; "
+                "the recipe reads it from its own defaults"
+            )
     if recipe.kind == "eval_paired" and not recipe.invariants.get("r2_only"):
         warnings.append("eval recipe missing r2_only invariant")
 

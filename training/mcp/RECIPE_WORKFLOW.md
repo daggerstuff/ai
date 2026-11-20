@@ -32,7 +32,7 @@ entry = {
     "est_cost_usd": 2.0,
     "gpu": "l4-1-gpu",
     "timeout": "2h",
-    "inputs": {"tag": "result tag", "suite": "v3"},
+    "inputs": {"tag": "result tag"},
     "outputs": {"r2_prefix": "evals/<tag>/", "result_files": ["manifest.json", "results.jsonl"]},
     "invariants": {"r2_only": True, "no_volume_mounts": True},
 }
@@ -69,6 +69,16 @@ error before opening the PR.
 - `est_cost_usd` must be numeric.
 - Every override must declare a `type` unless it is `locked: true`.
 - The `id` must not already exist in the registry.
+- **Launching recipes must pass `--execute`.** Both remote entrypoints
+  (`wandb_sft_v15_execute`, `ovh_v22_eval.submit run`) default to a dry run
+  without it, so a `train_sft` or `eval_paired` recipe that omits the flag
+  would submit, report `succeeded`, and never launch anything.
+- **Every declared input must be substituted somewhere in the entrypoint.**
+  A required input the command never receives is a lie about what the plan
+  controls: callers now get a warning, so wire it in as `<name>` or drop it.
+- **Never accept an input that duplicates recipe identity.** `eval-crisis-v2`
+  pins `--suite v2`; a caller passing `suite=v1` is rejected as an unknown
+  input rather than silently evaluating the wrong suite under the right label.
 - **No multi-node / multi-GPU shapes** (`nodes`, `num_nodes`, `multi_node`,
   `world_size`, or a GPU flavour requesting more than one GPU). Multi-node is
   deliberately deferred — see `MULTI_NODE_DECISION.md`.
