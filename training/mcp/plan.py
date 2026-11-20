@@ -1,4 +1,4 @@
-"""Plan resolution for training jobs (Phase 1).
+"""Plan resolution for training jobs.
 
 ``plan_job`` is side-effect free: it validates inputs/overrides against a
 registered recipe and returns the exact resolved spec (commands, cost, artifact

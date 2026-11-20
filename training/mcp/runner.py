@@ -1,4 +1,4 @@
-"""Subprocess runner + single-flight for training jobs (Phase 1).
+"""Subprocess runner + single-flight for training jobs.
 
 The MCP never runs training in-process. ``submit_job`` resolves a plan,
 writes a job row, and spawns the recipe's CLI entrypoint as a managed

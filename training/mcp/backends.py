@@ -1,7 +1,10 @@
 """Backend clients: OVH AI Jobs, W&B, and R2 result storage.
 
-All functions are read-only in Phase 0. They return plain dicts so the MCP
-tools stay thin and testable without live credentials.
+Read-only helpers the MCP tools call to observe backend state: list jobs, fetch
+logs, read run metrics, and summarise eval results. They return plain dicts so
+the tools stay thin and testable without live credentials, and they raise
+rather than returning fake data when a backend is unconfigured. Writes to a
+backend go through ``runner.py``, not here.
 """
 
 from __future__ import annotations
