@@ -22,11 +22,18 @@ CREATE TABLE IF NOT EXISTS jobs (
     source TEXT NOT NULL,
     name TEXT,
     status TEXT NOT NULL,
+    stage TEXT,
+    idempotency_key TEXT,
     backend_id TEXT,
     backend_state TEXT,
+    backend_ids TEXT,
     spec_json TEXT,
+    spec_hash TEXT,
+    plan_hash TEXT,
     artifacts_json TEXT,
+    artifact_refs TEXT,
     cost_class TEXT,
+    cost_estimate TEXT,
     requested_by TEXT,
     error TEXT,
     created_at TEXT NOT NULL,
@@ -36,9 +43,35 @@ CREATE TABLE IF NOT EXISTS jobs (
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_kind ON jobs(kind);
 CREATE INDEX IF NOT EXISTS idx_jobs_backend ON jobs(source, backend_id);
+CREATE TABLE IF NOT EXISTS plan_cache (
+    plan_hash TEXT PRIMARY KEY,
+    recipe_id TEXT NOT NULL,
+    spec_json TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
 """
 
 _local = threading.local()
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Add columns introduced after the initial schema (idempotent)."""
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(jobs)").fetchall()}
+    additions = {
+        "stage": "TEXT",
+        "idempotency_key": "TEXT",
+        "backend_ids": "TEXT",
+        "spec_hash": "TEXT",
+        "plan_hash": "TEXT",
+        "artifact_refs": "TEXT",
+        "cost_estimate": "TEXT",
+    }
+    for column, decl in additions.items():
+        if column not in existing:
+            conn.execute(f"ALTER TABLE jobs ADD COLUMN {column} {decl}")
+    conn.commit()
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_idempotency ON jobs(idempotency_key)")
+    conn.commit()
 
 
 def _conn(db_path: Path) -> sqlite3.Connection:
@@ -50,6 +83,7 @@ def _conn(db_path: Path) -> sqlite3.Connection:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA foreign_keys=ON")
         conn.executescript(SCHEMA)
+        _migrate(conn)
         _local.conn = conn
         _local.path = str(db_path)
     return conn
@@ -70,20 +104,28 @@ def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
     conn.execute(
         """
         INSERT INTO jobs (
-            job_id, kind, source, name, status, backend_id, backend_state,
-            spec_json, artifacts_json, cost_class, requested_by, error,
-            created_at, updated_at, finished_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            job_id, kind, source, name, status, stage, idempotency_key, backend_id,
+            backend_state, backend_ids, spec_json, spec_hash, plan_hash,
+            artifacts_json, artifact_refs, cost_class, cost_estimate, requested_by,
+            error, created_at, updated_at, finished_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(job_id) DO UPDATE SET
             kind=excluded.kind,
             source=excluded.source,
             name=COALESCE(excluded.name, jobs.name),
             status=excluded.status,
+            stage=COALESCE(excluded.stage, jobs.stage),
+            idempotency_key=COALESCE(excluded.idempotency_key, jobs.idempotency_key),
             backend_id=COALESCE(excluded.backend_id, jobs.backend_id),
             backend_state=COALESCE(excluded.backend_state, jobs.backend_state),
+            backend_ids=COALESCE(excluded.backend_ids, jobs.backend_ids),
             spec_json=COALESCE(excluded.spec_json, jobs.spec_json),
+            spec_hash=COALESCE(excluded.spec_hash, jobs.spec_hash),
+            plan_hash=COALESCE(excluded.plan_hash, jobs.plan_hash),
             artifacts_json=COALESCE(excluded.artifacts_json, jobs.artifacts_json),
+            artifact_refs=COALESCE(excluded.artifact_refs, jobs.artifact_refs),
             cost_class=COALESCE(excluded.cost_class, jobs.cost_class),
+            cost_estimate=COALESCE(excluded.cost_estimate, jobs.cost_estimate),
             requested_by=COALESCE(excluded.requested_by, jobs.requested_by),
             error=excluded.error,
             updated_at=excluded.updated_at,
@@ -95,11 +137,18 @@ def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
             job["source"],
             job.get("name"),
             job["status"],
+            job.get("stage"),
+            job.get("idempotency_key"),
             job.get("backend_id"),
             job.get("backend_state"),
+            json.dumps(job["backend_ids"]) if job.get("backend_ids") is not None else None,
             json.dumps(job["spec"]) if job.get("spec") is not None else None,
+            job.get("spec_hash"),
+            job.get("plan_hash"),
             json.dumps(job["artifacts"]) if job.get("artifacts") is not None else None,
+            json.dumps(job["artifact_refs"]) if job.get("artifact_refs") is not None else None,
             job.get("cost_class"),
+            job.get("cost_estimate"),
             job.get("requested_by"),
             job.get("error"),
             job.get("created_at") or now,
@@ -144,9 +193,38 @@ def find_by_backend(db_path: Path, source: str, backend_id: str) -> dict[str, An
     return _row_to_dict(row) if row else None
 
 
+
+
+def find_by_idempotency(db_path: Path, key: str) -> dict[str, Any] | None:
+    if not key:
+        return None
+    row = _conn(db_path).execute(
+        "SELECT * FROM jobs WHERE idempotency_key = ?", (key,)
+    ).fetchone()
+    return _row_to_dict(row) if row else None
+
+
+def cache_plan(db_path: Path, plan_hash: str, recipe_id: str, spec: dict[str, Any]) -> None:
+    conn = _conn(db_path)
+    conn.execute(
+        "INSERT OR REPLACE INTO plan_cache (plan_hash, recipe_id, spec_json, created_at) VALUES (?, ?, ?, ?)",
+        (plan_hash, recipe_id, json.dumps(spec), _now()),
+    )
+    conn.commit()
+
+
+def get_cached_plan(db_path: Path, plan_hash: str) -> dict[str, Any] | None:
+    row = _conn(db_path).execute(
+        "SELECT * FROM plan_cache WHERE plan_hash = ?", (plan_hash,)
+    ).fetchone()
+    if not row:
+        return None
+    return {"plan_hash": row["plan_hash"], "recipe_id": row["recipe_id"],
+            "spec": json.loads(row["spec_json"]), "created_at": row["created_at"]}
 def _row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     data = dict(row)
-    for key in ("spec_json", "artifacts_json"):
-        raw = data.pop(key)
-        data[key.removesuffix("_json")] = json.loads(raw) if raw else None
+    for key in ("spec_json", "artifacts_json", "backend_ids", "artifact_refs"):
+        raw = data.pop(key, None)
+        out_key = key.removesuffix("_json") if key.endswith("_json") else key
+        data[out_key] = json.loads(raw) if raw else None
     return data

@@ -99,7 +99,9 @@ def normalize_ovhai_job(entry: dict[str, Any]) -> dict[str, Any]:
         "source": "ovhai",
         "name": name,
         "status": registry_status,
+        "stage": registry_status,
         "backend_id": job_uuid,
+        "backend_ids": [job_uuid],
         "backend_state": backend_state,
         "spec": {
             "image": spec.get("image"),
@@ -215,6 +217,45 @@ def r2_list_eval_tags(settings: Settings) -> list[str]:
     return sorted(tags)
 
 
+def _parse_results_body(body: bytes) -> dict[str, Any]:
+    """Parse a results.jsonl body into preview + per-arm pass rates."""
+    lines = [ln for ln in body.decode("utf-8", "replace").splitlines() if ln.strip()]
+    parsed: list[dict[str, Any]] = []
+    for line in lines:
+        try:
+            parsed.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    out: dict[str, Any] = {
+        "results_preview": parsed[:RESULT_PREVIEW_ROWS],
+        "results_rows": len(parsed),
+    }
+    by_arm: dict[str, dict[str, int]] = {}
+    has_passed = False
+    for row in parsed:
+        if "passed" not in row:
+            continue
+        has_passed = True
+        arm = str(row.get("arm_id", "unknown"))
+        slot = by_arm.setdefault(arm, {"total": 0, "passed": 0})
+        arm_slot = slot
+        arm_slot["total"] += 1
+        if row.get("passed") is True:
+            arm_slot["passed"] += 1
+    if has_passed and by_arm:
+        rates = {arm: (s["passed"] / s["total"] if s["total"] else 0.0) for arm, s in by_arm.items()}
+        out["arm_pass_rates"] = {
+            arm: {"passed": by_arm[arm]["passed"], "total": by_arm[arm]["total"], "rate": rates[arm]}
+            for arm in by_arm
+        }
+        if "base" in rates and "sft" in rates:
+            out["delta_sft_minus_base"] = rates["sft"] - rates["base"]
+    else:
+        out["arm_pass_rates"] = None
+        out["note"] = "no pass/fail grades in results.jsonl (raw outputs only)"
+    return out
+
+
 def r2_eval_summary(settings: Settings, tag: str) -> dict[str, Any]:
     """Fetch manifest.json + first results.jsonl rows for each run under a tag."""
     if not r2_configured(settings):
@@ -247,8 +288,6 @@ def r2_eval_summary(settings: Settings, tag: str) -> dict[str, Any]:
                 except json.JSONDecodeError:
                     run_out["manifest_raw"] = body[:2000].decode("utf-8", "replace")
             else:
-                lines = [ln for ln in body.decode("utf-8", "replace").splitlines() if ln.strip()]
-                run_out["results_preview"] = [json.loads(line) for line in lines[:RESULT_PREVIEW_ROWS]]
-                run_out["results_rows"] = len(lines)
+                run_out.update(_parse_results_body(body))
         result["runs"][run_name] = run_out
     return result

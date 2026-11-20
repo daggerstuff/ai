@@ -68,6 +68,22 @@ class Settings:
         return self.env.get("WANDB_ENTITY", "wutang")
 
     @property
+    def mcp_token(self) -> str:
+        return self.env.get("TRAINING_INFRA_MCP_TOKEN", self.env.get("TRAINING_MCP_TOKEN", ""))
+
+    @property
+    def max_concurrent_jobs(self) -> int:
+        return int(self.env.get("TRAINING_MCP_MAX_CONCURRENT_JOBS", "1"))
+
+    @property
+    def daily_job_cap(self) -> int:
+        return int(self.env.get("TRAINING_MCP_DAILY_JOB_CAP", "5"))
+
+    @property
+    def monthly_cost_cap_usd(self) -> float:
+        return float(self.env.get("TRAINING_MCP_MONTHLY_COST_CAP_USD", "100.0"))
+
+    @property
     def r2_configured(self) -> bool:
         return all(self.env.get(name) for name in ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT"))
 

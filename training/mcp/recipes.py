@@ -34,6 +34,8 @@ class Recipe:
     timeout: str = ""
     inputs: dict[str, str] = field(default_factory=dict)
     outputs: dict[str, Any] = field(default_factory=dict)
+    overrides: dict[str, Any] = field(default_factory=dict)
+    invariants: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -48,6 +50,8 @@ class Recipe:
             "timeout": self.timeout,
             "inputs": self.inputs,
             "outputs": self.outputs,
+            "overrides": self.overrides,
+            "invariants": self.invariants,
         }
 
 
@@ -72,6 +76,14 @@ def load_recipes(path: Path | None = None) -> list[Recipe]:
         cost_class = entry.get("cost_class", "cpu-minute")
         if cost_class not in COST_CLASSES:
             raise ValueError(f"recipe {entry['id']!r}: unknown cost_class {cost_class!r}")
+        overrides = entry.get("overrides") or {}
+        if not isinstance(overrides, dict):
+            raise ValueError(f"recipe {entry['id']!r}: overrides must be a mapping")
+        for name, spec in overrides.items():
+            if not isinstance(spec, dict):
+                raise ValueError(f"recipe {entry['id']!r}: override {name!r} must be a mapping")
+            if not spec.get("locked") and "type" not in spec:
+                raise ValueError(f"recipe {entry['id']!r}: override {name!r} must declare a type unless locked")
         if entry["id"] in seen:
             raise ValueError(f"duplicate recipe id {entry['id']!r}")
         seen.add(entry["id"])
@@ -88,6 +100,8 @@ def load_recipes(path: Path | None = None) -> list[Recipe]:
                 timeout=str(entry.get("timeout", "")),
                 inputs=dict(entry.get("inputs") or {}),
                 outputs=dict(entry.get("outputs") or {}),
+                overrides=dict(entry.get("overrides") or {}),
+                invariants=dict(entry.get("invariants") or {}),
             )
         )
     return recipes
