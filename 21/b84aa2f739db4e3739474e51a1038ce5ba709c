@@ -1,0 +1,31 @@
+training/mcp/.env.example
+  s_7d4811cf1b0ba7::t_55aea7136c191a 7-12,16,19-47
+training/mcp/config.py
+  s_7d4811cf1b0ba7::t_9d058c6c203b80 112-122
+training/mcp/deploy/training-infra-mcp.service
+  s_7d4811cf1b0ba7::t_acfc69da076f70 4-7
+training/mcp/plan.py
+  s_7d4811cf1b0ba7::t_fcfd30ce91a4e6 70-85,89-93,106
+training/mcp/recipes.py
+  s_7d4811cf1b0ba7::t_d91331da7c3823 9,36,158
+training/mcp/runner.py
+  s_7d4811cf1b0ba7::t_afa00ba63741ec 18,22,29-32,78-99,111-114,116-118,211-225,265,268,271-279,304-306,350,357-361,375,378-381
+training/mcp/README.md
+  s_7d4811cf1b0ba7::t_9966417ae1a83c 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "21b84aa2f739db4e3739474e51a1038ce5ba709c",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
