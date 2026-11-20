@@ -1,0 +1,16 @@
+tests/training/mcp/test_control_plane.py
+  h_07d84030f79d30 10,408-473
+training/mcp/backends.py
+  h_07d84030f79d30 257-277,292,294-295,297,300-303,368-383,386,397-403
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b4c80be60c8b93594dc6f4bf2311d66147e8bb6",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
