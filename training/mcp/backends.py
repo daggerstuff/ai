@@ -10,7 +10,7 @@ import itertools
 import json
 import os
 import subprocess
-from typing import Any
+from typing import Any, cast
 
 import wandb
 from training.launch import r2_sync
@@ -48,7 +48,7 @@ def ovhai_job_detail(job_id: str) -> dict[str, Any] | None:
     if proc.returncode != 0:
         return None
     try:
-        return json.loads(proc.stdout)
+        return cast("dict[str, Any]", json.loads(proc.stdout))
     except json.JSONDecodeError:
         return None
 
@@ -127,7 +127,7 @@ def wandb_configured(settings: Settings) -> bool:
 _STATE: dict[str, Any] = {}
 
 
-def _wandb_api(settings: Settings):
+def _wandb_api(settings: Settings) -> Any:
     """Lazy singleton — wandb.Api() init is slow enough to amortize."""
     api = _STATE.get("wandb_api")
     if api is None:

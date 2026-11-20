@@ -143,13 +143,13 @@ def diagnose(results_path: Path, cases_path: Path, arms: tuple[str, ...] = ("bas
             raise DiagnosticInputError("crisis fixtures require disclosure and resource vocabulary checks")
         groups = [dimension(case, index) for index in range(len(case.state_checks))]
         for arm in arms:
-            record = results.get((case.id, arm))
-            status = record.status if record is not None else "missing"
-            if record is not None and status == "success" and not (record.response or "").strip():
+            matched = results.get((case.id, arm))
+            status = matched.status if matched is not None else "missing"
+            if matched is not None and status == "success" and not (matched.response or "").strip():
                 status = "empty_response"
             dimensions: dict[Dimension, bool] = {}
-            if record is not None and status == "success":
-                metrics = paired_eval.score_state_checks(case.model_dump(), record.response or "", {}, [])
+            if matched is not None and status == "success":
+                metrics = paired_eval.score_state_checks(case.model_dump(), matched.response or "", {}, [])
                 for group, metric in zip(groups, metrics, strict=True):
                     dimensions[group] = dimensions.get(group, True) and bool(metric["passed"])
                 for group, passed in dimensions.items():

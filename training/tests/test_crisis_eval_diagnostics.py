@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
 from training.launch.crisis_eval_diagnostics import (
     Case,
     ContainsAny,
@@ -11,7 +12,6 @@ from training.launch.crisis_eval_diagnostics import (
     Omits,
     Result,
     diagnose,
-    rubric,
 )
 
 

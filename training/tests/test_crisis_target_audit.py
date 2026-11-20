@@ -3,6 +3,7 @@
 import hashlib
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from transformers import AutoTokenizer
@@ -81,7 +82,7 @@ def test_export_review_checks_actual_datum_membership(
 ) -> None:
     included, max_tokens, present, excluded, unmatched = case
     source = tmp_path / "selected.jsonl"
-    messages = [
+    messages: list[dict[str, Any]] = [
         {"role": "user", "content": "I want to die."},
         {"role": "assistant", "weight": 1, "content": "Tell me more."},
     ]

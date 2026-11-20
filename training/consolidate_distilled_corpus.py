@@ -5,6 +5,7 @@ import glob
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
@@ -17,8 +18,8 @@ PERSONAS_DIR = (_PROJECT_ROOT / "ai" / "data" / "curated/youtube_distilled_perso
 MASTER_TRAIN = (_PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train.jsonl")
 CONSOLIDATED_OUT = (_PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train_master_gold.jsonl")
 
-def main():
-    gold_records = []
+def main() -> None:
+    gold_records: list[dict[str, Any]] = []
 
     # 1. Ingest YouTube Distilled Personas
     persona_files = glob.glob(str(PERSONAS_DIR / "*.jsonl"))

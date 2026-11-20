@@ -1,5 +1,5 @@
 import importlib
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -11,7 +11,7 @@ def convert(namespace: str, format_name: str, turns: list[dict[str, Any]], **opt
         rows = [{"dialog": turns}]
     else:
         rows = [{"conversations": [{"from": t.get("speaker"), "value": t["utterance"]} for t in turns]}]
-    return converter(rows, source="synthetic_role_boundary", **options)
+    return cast("list[dict[str, Any]]", converter(rows, source="synthetic_role_boundary", **options))
 
 
 @pytest.fixture(params=["ai.sourcing", "ai.pipelines.data_processing"])

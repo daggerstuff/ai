@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from unittest.mock import AsyncMock
 
+import pandas as pd
 import pytest
 
 from training import nightmare_fuel_generator as generator, run_nightmare_fuel_distillation as exporter
@@ -34,7 +35,7 @@ async def test_export_uses_final_judge_survivors_and_clears_stale_artifacts(
     monkeypatch.setattr(exporter, "CHECKPOINT_DIR", str(checkpoint))
     monkeypatch.setattr(exporter, "OUT_MASTER", str(master))
     monkeypatch.setattr(generator, "generate_cases_async", AsyncMock(return_value=[checkpoint_only, final_accepted]))
-    frame = generator.pd.DataFrame([final_accepted] if accept else [])
+    frame = pd.DataFrame([final_accepted] if accept else [])
     monkeypatch.setattr(generator, "_run_clinical_gate_async", AsyncMock(return_value=frame))
 
     await exporter.run()
@@ -102,7 +103,7 @@ async def test_completed_checkpoint_candidates_reach_final_judge_on_resume(
     (checkpoint / "records.jsonl").write_text(json.dumps(record) + "\n")
     remote_generation = AsyncMock(side_effect=AssertionError("completed generation must not repeat"))
     monkeypatch.setattr(generator, "_generate_case", remote_generation)
-    final_judge = AsyncMock(return_value=generator.pd.DataFrame([record]))
+    final_judge = AsyncMock(return_value=pd.DataFrame([record]))
     judge_name = "_judge_cases_async" if async_judge else "_run_clinical_gate_async"
     monkeypatch.setattr(generator, judge_name, final_judge)
 

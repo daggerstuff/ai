@@ -5,9 +5,10 @@ import json
 from pathlib import Path
 
 import pytest
+from transformers import AutoTokenizer
 
 from training.apply_research_target_repairs import Plan, Repair, RepairInputError, apply
-from training.export_research_target_repairs import AutoTokenizer, Experiment, export
+from training.export_research_target_repairs import Experiment, export
 from training.export_tinker_release import Datum, build_tokens
 from training.tests.test_export_tinker_release import StubTokenizer
 

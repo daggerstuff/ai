@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -81,7 +82,9 @@ async def test_fully_completed_generation_makes_no_remote_calls(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     checkpoint = generator.CheckpointManager(tmp_path)
-    records = [{"id": f"finished-{index}", "case_index": index, "requested_cases": 3} for index in range(3)]
+    records: list[dict[str, Any]] = [
+        {"id": f"finished-{index}", "case_index": index, "requested_cases": 3} for index in range(3)
+    ]
     checkpoint.records_path.write_text("\n".join(json.dumps(row) for row in records) + "\n")
     remote = AsyncMock(side_effect=AssertionError("completed slots must not be regenerated"))
     monkeypatch.setattr(generator, "_generate_case", remote)

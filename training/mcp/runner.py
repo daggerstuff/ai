@@ -22,7 +22,7 @@ from training.mcp.config import Settings
 # Single-flight locks per backend kind.
 _LOCKS: dict[str, threading.Lock] = {}
 _LOCKS_GUARD = threading.Lock()
-_PROCESSES: dict[str, subprocess.Popen] = {}
+_PROCESSES: dict[str, subprocess.Popen[bytes]] = {}
 _PROCESSES_GUARD = threading.Lock()
 
 
@@ -44,7 +44,7 @@ def _build_env(settings: Settings) -> dict[str, str]:
     return env
 
 
-def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen, _log_path: str) -> None:
+def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _log_path: str) -> None:
     with contextlib.suppress(Exception):
         proc.wait()
     # Collect tail of stdout/stderr into log file (already redirected).
@@ -92,7 +92,7 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
     """Spawn the subprocess for a queued job, respecting single-flight."""
     lock = _lock_for(backend)
 
-    def _run():
+    def _run() -> None:
         # Wait for single-flight slot.
         acquired = lock.acquire(timeout=300)
         if not acquired:

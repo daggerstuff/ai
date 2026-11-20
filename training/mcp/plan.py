@@ -63,7 +63,7 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
 def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any]) -> str:
     cmd = recipe.entrypoint
 
-    def repl(match):
+    def repl(match: re.Match[str]) -> str:
         key = match.group(1).strip()
         if key in inputs and inputs.get(key) not in (None, ""):
             return str(inputs[key])
@@ -72,7 +72,9 @@ def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any]) -> str:
     return re.sub(r"<([A-Za-z0-9_\-]+)>", repl, cmd)
 
 
-def plan_job(settings: Settings, recipe_id: str, inputs: dict[str, Any] | None, overrides: dict[str, Any] | None):
+def plan_job(
+    settings: Settings, recipe_id: str, inputs: dict[str, Any] | None, overrides: dict[str, Any] | None
+) -> dict[str, Any]:
     inputs = dict(inputs or {})
     overrides = dict(overrides or {})
     recipe = None
