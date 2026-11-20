@@ -1,0 +1,50 @@
+training/tests/test_crisis_eval_diagnostics.py
+  s_7d4811cf1b0ba7::t_7decf27f61344c 7
+training/mcp/backends.py
+  s_7d4811cf1b0ba7::t_9ccc4dfd67ac79 51
+  s_7d4811cf1b0ba7::t_ac3483a312d01f 130
+  s_7d4811cf1b0ba7::t_15a59f384b94e1 13
+training/tests/test_nightmare_final_export.py
+  s_7d4811cf1b0ba7::t_e34250d056a4b9 7
+  s_7d4811cf1b0ba7::t_62b16c28162702 38,106
+training/launch/crisis_eval_diagnostics.py
+  s_7d4811cf1b0ba7::t_fcc67d015ae461 146-148,151-152
+training/consolidate_distilled_corpus.py
+  s_7d4811cf1b0ba7::t_4091b2f8db4b5e 8
+  s_7d4811cf1b0ba7::t_5c26ded0ca594d 21-22
+training/tests/test_converter_role_boundaries.py
+  s_7d4811cf1b0ba7::t_47560cab0bbb35 2
+  s_7d4811cf1b0ba7::t_062a983d6f13c8 14
+training/mcp/runner.py
+  s_7d4811cf1b0ba7::t_2527e4b8eed376 95
+  s_7d4811cf1b0ba7::t_8e826a9c6ee0d5 25
+  s_7d4811cf1b0ba7::t_97cd91681645c5 47
+training/tests/test_crisis_target_audit.py
+  s_7d4811cf1b0ba7::t_3e527505657186 85
+  s_7d4811cf1b0ba7::t_d5dd4102fb571b 6
+training/tests/test_nightmare_recovery.py
+  s_7d4811cf1b0ba7::t_6e18324703bd03 5
+  s_7d4811cf1b0ba7::t_a36945395a265e 85-87
+training/mcp/plan.py
+  s_7d4811cf1b0ba7::t_78bb78a27602bf 66
+  s_7d4811cf1b0ba7::t_230500c0b243ca 75-77
+training/tests/test_export_research_target_repairs.py
+  s_7d4811cf1b0ba7::t_87b00815032373 11
+  s_7d4811cf1b0ba7::t_f943fecb898a75 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d12940359b724c62d5566da3b3f9ddcb159cd69c",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
