@@ -49,6 +49,21 @@ CREATE TABLE IF NOT EXISTS plan_cache (
     spec_json TEXT NOT NULL,
     created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts TEXT NOT NULL,
+    actor TEXT,
+    action TEXT NOT NULL,
+    job_id TEXT,
+    recipe_id TEXT,
+    spec_hash TEXT,
+    plan_hash TEXT,
+    detail_json TEXT,
+    remote_addr TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_audit_job ON audit_log(job_id);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_log(action);
+CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log(ts);
 """
 
 _local = threading.local()
@@ -193,14 +208,10 @@ def find_by_backend(db_path: Path, source: str, backend_id: str) -> dict[str, An
     return _row_to_dict(row) if row else None
 
 
-
-
 def find_by_idempotency(db_path: Path, key: str) -> dict[str, Any] | None:
     if not key:
         return None
-    row = _conn(db_path).execute(
-        "SELECT * FROM jobs WHERE idempotency_key = ?", (key,)
-    ).fetchone()
+    row = _conn(db_path).execute("SELECT * FROM jobs WHERE idempotency_key = ?", (key,)).fetchone()
     return _row_to_dict(row) if row else None
 
 
@@ -214,13 +225,84 @@ def cache_plan(db_path: Path, plan_hash: str, recipe_id: str, spec: dict[str, An
 
 
 def get_cached_plan(db_path: Path, plan_hash: str) -> dict[str, Any] | None:
-    row = _conn(db_path).execute(
-        "SELECT * FROM plan_cache WHERE plan_hash = ?", (plan_hash,)
-    ).fetchone()
+    row = _conn(db_path).execute("SELECT * FROM plan_cache WHERE plan_hash = ?", (plan_hash,)).fetchone()
     if not row:
         return None
-    return {"plan_hash": row["plan_hash"], "recipe_id": row["recipe_id"],
-            "spec": json.loads(row["spec_json"]), "created_at": row["created_at"]}
+    return {
+        "plan_hash": row["plan_hash"],
+        "recipe_id": row["recipe_id"],
+        "spec": json.loads(row["spec_json"]),
+        "created_at": row["created_at"],
+    }
+
+
+def write_audit(
+    db_path: Path,
+    *,
+    action: str,
+    actor: str | None = None,
+    job_id: str | None = None,
+    recipe_id: str | None = None,
+    spec_hash: str | None = None,
+    plan_hash: str | None = None,
+    detail: dict[str, Any] | None = None,
+    remote_addr: str | None = None,
+) -> int:
+    """Append one immutable audit row. Returns the new row id.
+
+    Every mutating control-plane action (plan, submit, cancel) is recorded
+    with its actor, the recipe/hashes it acted on, and a JSON detail blob so
+    a run trace can be reconstructed from the registry alone.
+    """
+    conn = _conn(db_path)
+    cursor = conn.execute(
+        """
+        INSERT INTO audit_log (
+            ts, actor, action, job_id, recipe_id, spec_hash, plan_hash,
+            detail_json, remote_addr
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            _now(),
+            actor,
+            action,
+            job_id,
+            recipe_id,
+            spec_hash,
+            plan_hash,
+            json.dumps(detail) if detail is not None else None,
+            remote_addr,
+        ),
+    )
+    conn.commit()
+    return int(cursor.lastrowid or 0)
+
+
+def list_audit(
+    db_path: Path,
+    *,
+    job_id: str | None = None,
+    action: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    clauses: list[str] = []
+    params: list[Any] = []
+    for column, value in (("job_id", job_id), ("action", action)):
+        if value:
+            clauses.append(f"{column} = ?")
+            params.append(value)
+    where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+    params.append(max(1, min(limit, 500)))
+    rows = _conn(db_path).execute(f"SELECT * FROM audit_log {where} ORDER BY id DESC LIMIT ?", params).fetchall()
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        data = dict(row)
+        raw = data.pop("detail_json", None)
+        data["detail"] = json.loads(raw) if raw else None
+        out.append(data)
+    return out
+
+
 def _row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     data = dict(row)
     for key in ("spec_json", "artifacts_json", "backend_ids", "artifact_refs"):

@@ -33,15 +33,59 @@ def _lock_for(backend: str) -> threading.Lock:
         return _LOCKS[backend]
 
 
+# Environment variables a launched job legitimately needs. Anything not
+# listed here is NOT inherited from the service process — this is the
+# credential-isolation boundary: the MCP holds fleet secrets (Linear, Slack,
+# GitHub, Cloudflare) that a training subprocess has no business seeing.
+_ENV_ALLOWLIST = (
+    "HOME",
+    "PATH",
+    "LANG",
+    "LC_ALL",
+    "TMPDIR",
+    "VIRTUAL_ENV",
+    "PYTHONPATH",
+    "PYTHONUNBUFFERED",
+    "PYTHONHASHSEED",
+    "TRAINING_MCP_ENV_FILE",
+)
+
+# Dotenv keys the training pipeline genuinely needs (W&B + R2 + OVH).
+_JOB_SECRET_ALLOWLIST = (
+    "WANDB_API_KEY",
+    "WANDB_PROJECT",
+    "WANDB_ENTITY",
+    "WANDB_BASE_URL",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "R2_ENDPOINT",
+    "R2_BUCKET",
+    "OVHAI_AI_APP_TOKEN",
+    "HF_TOKEN",
+)
+
+
 def _build_env(settings: Settings) -> dict[str, str]:
-    env = dict(os.environ)
-    env.update(settings.env)
-    # Ensure python can import training module from ai root.
+    """Build a minimal, credential-scoped env for a job subprocess.
+
+    Only the allow-listed process vars and the pipeline's own dotenv secrets
+    are passed through; unrelated fleet secrets never reach the child.
+    """
+    env: dict[str, str] = {name: os.environ[name] for name in _ENV_ALLOWLIST if name in os.environ}
+    for name in _JOB_SECRET_ALLOWLIST:
+        value = settings.env.get(name)
+        if value:
+            env[name] = value
+    # Ensure python can import the training module from the ai root.
     ai_root = str(settings.db_path.parents[2])  # ai/training/mcp/state -> ai
-    env.setdefault("PYTHONPATH", ai_root)
-    if ai_root not in env.get("PYTHONPATH", ""):
-        env["PYTHONPATH"] = ai_root + os.pathsep + env.get("PYTHONPATH", "")
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = ai_root if not existing else ai_root + os.pathsep + existing
     return env
+
+
+#: Every key a job subprocess may legitimately carry. Used by the security
+#: review to prove no unrelated secret leaked into the child environment.
+JOB_ENV_ALLOWLIST = frozenset(_ENV_ALLOWLIST) | frozenset(_JOB_SECRET_ALLOWLIST)
 
 
 def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _log_path: str) -> None:

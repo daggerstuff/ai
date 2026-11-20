@@ -290,3 +290,73 @@ def r2_eval_summary(settings: Settings, tag: str) -> dict[str, Any]:
                 run_out.update(_parse_results_body(body))
         result["runs"][run_name] = run_out
     return result
+
+
+def evaluate_gate(
+    summary: dict[str, Any],
+    *,
+    min_delta: float = 0.0,
+    min_pass_rate: float = 0.0,
+) -> dict[str, Any]:
+    """Decide whether an eval summary passes the promotion gate.
+
+    The gate is deliberately conservative: a run passes only when the
+    ``sft`` arm's pass rate is at or above ``min_pass_rate`` AND its delta
+    over the ``base`` arm is at or above ``min_delta``. Missing grades,
+    missing arms, and backend errors all fail closed.
+    """
+    reasons: list[str] = []
+    per_run: dict[str, Any] = {}
+    if not summary or summary.get("error"):
+        return {
+            "passed": False,
+            "reasons": [f"eval summary unavailable: {(summary or {}).get('error', 'no data')}"],
+            "runs": {},
+            "min_delta": min_delta,
+            "min_pass_rate": min_pass_rate,
+        }
+    runs = summary.get("runs") or {}
+    if not runs:
+        reasons.append("no eval runs found under the tag")
+    for run_name, run in runs.items():
+        rates = run.get("arm_pass_rates")
+        if not rates:
+            per_run[run_name] = {"passed": False, "reason": "no graded results (arm_pass_rates null)"}
+            reasons.append(f"{run_name}: no graded results")
+            continue
+        sft = (rates.get("sft") or {}).get("rate")
+        base = (rates.get("base") or {}).get("rate")
+        run_ok = True
+        run_reasons: list[str] = []
+        if sft is None:
+            run_ok = False
+            run_reasons.append("sft arm missing")
+        else:
+            if sft < min_pass_rate:
+                run_ok = False
+                run_reasons.append(f"sft pass rate {sft:.4f} < min {min_pass_rate:.4f}")
+            if base is not None:
+                delta = sft - base
+                if delta < min_delta:
+                    run_ok = False
+                    run_reasons.append(f"delta sft-base {delta:.4f} < min {min_delta:.4f}")
+            elif min_delta > 0:
+                run_ok = False
+                run_reasons.append("base arm missing; cannot verify delta")
+        per_run[run_name] = {
+            "passed": run_ok,
+            "sft_rate": sft,
+            "base_rate": base,
+            "delta": (sft - base) if (sft is not None and base is not None) else run.get("delta_sft_minus_base"),
+            "reasons": run_reasons,
+        }
+        if not run_ok:
+            reasons.extend(f"{run_name}: {r}" for r in run_reasons)
+    passed = bool(per_run) and all(v["passed"] for v in per_run.values()) and not reasons
+    return {
+        "passed": passed,
+        "reasons": reasons,
+        "runs": per_run,
+        "min_delta": min_delta,
+        "min_pass_rate": min_pass_rate,
+    }

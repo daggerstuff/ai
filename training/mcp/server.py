@@ -1,7 +1,12 @@
-"""FastMCP server for the training-infra control plane (PIX-5000, Phase 0).
+"""FastMCP server for the training-infra control plane (PIX-5000).
 
-Read-only observability: health, recipe catalog, job registry queries,
-eval results, and W&B metrics. Submit/plan tools arrive in Phase 1+.
+Read-only observability (health, recipe catalog, job registry, eval results,
+W&B metrics) plus the control plane: ``plan_job`` resolves a reviewed recipe
+into an exact costed spec, ``submit_job`` binds to that plan and launches it
+under budget caps, and ``cancel_job`` stops it. ``validate_recipe`` checks a
+draft recipe before a human lands it by PR, and ``eval_gate`` decides whether
+eval results clear the promotion gate. Every mutating action is recorded in the
+registry's ``audit_log`` table.
 """
 
 from __future__ import annotations
@@ -17,6 +22,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.jwt import StaticTokenVerifier
+from fastmcp.server.dependencies import get_http_request
 
 from training.mcp import backends, db, plan, recipes, runner, sync
 from training.mcp.config import Settings, load_settings
@@ -33,6 +39,41 @@ def settings() -> Settings:
         cached = load_settings()
         _STATE["settings"] = cached
     return cached
+
+
+def _remote_addr() -> str | None:
+    """Best-effort caller address for the audit trail (HTTP transport only)."""
+    try:
+        request = get_http_request()
+        client = getattr(request, "client", None)
+        return getattr(client, "host", None)
+    except Exception:
+        return None
+
+
+def audit(
+    action: str,
+    *,
+    actor: str | None = None,
+    job_id: str | None = None,
+    recipe_id: str | None = None,
+    spec_hash: str | None = None,
+    plan_hash: str | None = None,
+    detail: dict[str, Any] | None = None,
+) -> None:
+    """Append an audit row, never letting an audit failure break the action."""
+    with contextlib.suppress(Exception):
+        db.write_audit(
+            settings().db_path,
+            action=action,
+            actor=actor,
+            job_id=job_id,
+            recipe_id=recipe_id,
+            spec_hash=spec_hash,
+            plan_hash=plan_hash,
+            detail=detail,
+            remote_addr=_remote_addr(),
+        )
 
 
 def _build_auth() -> StaticTokenVerifier | None:
@@ -133,8 +174,11 @@ def _health_probe() -> dict[str, Any]:
 
     return {
         "service": "pixelated-training-infra",
-        "phase": 2,
+        "phase": 3,
         "read_only": False,
+        "audit": True,
+        "eval_gate": True,
+        "recipe_validation": True,
         "budget_caps": {
             "max_concurrent_jobs": s.max_concurrent_jobs,
             "daily_job_cap": s.daily_job_cap,
@@ -183,6 +227,34 @@ def get_recipe(recipe_id: str) -> dict[str, Any]:
 
 
 @mcp.tool
+def validate_recipe(entry: dict[str, Any]) -> dict[str, Any]:
+    """Validate a *draft* recipe entry against the registry rules (P3.3).
+
+    This is the proposal half of the recipe-addition workflow: an advisor can
+    draft an entry and have it checked before a human opens the PR that lands
+    it in ``recipes.yaml``. The MCP never writes the registry itself.
+    """
+    try:
+        known = {r.id for r in recipes.load_recipes()}
+    except Exception as exc:
+        return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+    errors = recipes.validate_recipe_entry(entry, known_ids=known)
+    if errors:
+        return {
+            "ok": True,
+            "valid": False,
+            "errors": errors,
+            "note": "Fix the errors, then land the entry via a reviewed PR to training/mcp/recipes.yaml.",
+        }
+    return {
+        "ok": True,
+        "valid": True,
+        "errors": [],
+        "note": "Entry is valid; land it via a reviewed PR to training/mcp/recipes.yaml. See docs/RECIPE_WORKFLOW.md.",
+    }
+
+
+@mcp.tool
 def sync_jobs() -> dict[str, Any]:
     """Reconcile live backends (ovhai job list) into the job registry."""
     return {"ok": True, "result": sync.sync_all(settings())}
@@ -215,6 +287,7 @@ def plan_job(
     recipe: str,
     inputs: dict[str, Any] | None = None,
     overrides: dict[str, Any] | None = None,
+    requested_by: str = "agent",
 ) -> dict[str, Any]:
     """Resolve a recipe into an exact, costed, runnable spec (no side effects)."""
     s = settings()
@@ -224,6 +297,17 @@ def plan_job(
         return {"ok": False, "error": str(exc)}
     except Exception as exc:
         return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
+    audit(
+        "plan",
+        actor=requested_by,
+        recipe_id=recipe,
+        spec_hash=str(result.get("spec_hash") or ""),
+        plan_hash=str(result.get("plan_hash") or ""),
+        detail={
+            "est_cost_usd": result.get("est_cost_usd"),
+            "cost_class": result.get("cost_class"),
+        },
+    )
     return {"ok": True, **result}
 
 
@@ -243,12 +327,27 @@ def submit_job(
     if idempotency_key:
         existing = db.find_by_idempotency(s.db_path, idempotency_key)
         if existing is not None:
+            audit(
+                "submit.idempotent",
+                actor=requested_by,
+                job_id=existing["job_id"],
+                recipe_id=existing.get("name"),
+                plan_hash=existing.get("plan_hash"),
+                detail={"idempotency_key": idempotency_key},
+            )
             return {"ok": True, "job_id": existing["job_id"], "status": existing["status"], "idempotent": True}
     # Plan binding.
     cached = None
     if plan_hash:
         cached = db.get_cached_plan(s.db_path, plan_hash)
         if cached is None and not force:
+            audit(
+                "submit.rejected",
+                actor=requested_by,
+                recipe_id=recipe,
+                plan_hash=plan_hash,
+                detail={"reason": "plan_hash not found or expired"},
+            )
             return {"ok": False, "error": "plan_hash not found or expired; re-run plan_job"}
     if cached is not None:
         if recipe is None:
@@ -258,17 +357,28 @@ def submit_job(
         if overrides is None:
             overrides = cached["spec"].get("overrides", {})
         if not force and recipe != cached["recipe_id"]:
+            audit(
+                "submit.rejected",
+                actor=requested_by,
+                recipe_id=recipe,
+                plan_hash=plan_hash,
+                detail={"reason": "plan_hash does not match recipe", "cached_recipe": cached["recipe_id"]},
+            )
             return {"ok": False, "error": "plan_hash does not match recipe"}
     if recipe is None:
+        audit("submit.rejected", actor=requested_by, detail={"reason": "recipe required"})
         return {"ok": False, "error": "recipe required (or a valid plan_hash)"}
     if not force and not plan_hash:
+        audit("submit.rejected", actor=requested_by, recipe_id=recipe, detail={"reason": "plan_hash required"})
         return {"ok": False, "error": "plan_hash required (run plan_job first) unless force=true"}
     # Resolve plan (recompute spec) for cost/command.
     try:
         planned = plan.plan_job(s, recipe, inputs, overrides)
     except PlanError as exc:
+        audit("submit.rejected", actor=requested_by, recipe_id=recipe, detail={"reason": str(exc)})
         return {"ok": False, "error": str(exc)}
     except Exception as exc:
+        audit("submit.rejected", actor=requested_by, recipe_id=recipe, detail={"reason": str(exc)})
         return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
     spec = planned["spec"]
     cost = float(planned["est_cost_usd"] or 0.0)
@@ -277,17 +387,38 @@ def submit_job(
     queued = db.list_jobs(s.db_path, status="queued")
     active_count = len(running) + len(queued)
     if active_count >= s.max_concurrent_jobs and s.max_concurrent_jobs > 0:
-        # Allow queueing but refuse if already at cap for queued? We still queue; but cap daily.
+        # Single-flight per backend (runner.py) already serializes execution;
+        # the job is queued rather than rejected so a burst still runs, one
+        # at a time. The daily/monthly caps below are the hard stop.
         pass
     # daily job cap
     today = datetime.now(UTC).date().isoformat()
     all_jobs = db.list_jobs(s.db_path, limit=500)
     today_count = sum(1 for j in all_jobs if (j.get("created_at") or "").startswith(today) and j.get("requested_by"))
     if today_count >= s.daily_job_cap:
+        audit(
+            "submit.rejected",
+            actor=requested_by,
+            recipe_id=recipe,
+            plan_hash=planned["plan_hash"],
+            detail={"reason": "daily job cap reached", "cap": s.daily_job_cap, "today_count": today_count},
+        )
         return {"ok": False, "error": f"daily job cap reached ({s.daily_job_cap})"}
     # monthly cost cap
     active_cost = sum(float(j.get("cost_estimate") or 0) for j in running + queued)
     if active_cost + cost > s.monthly_cost_cap_usd:
+        audit(
+            "submit.rejected",
+            actor=requested_by,
+            recipe_id=recipe,
+            plan_hash=planned["plan_hash"],
+            detail={
+                "reason": "monthly cost cap would be exceeded",
+                "cap": s.monthly_cost_cap_usd,
+                "active_cost": active_cost,
+                "new_cost": cost,
+            },
+        )
         return {"ok": False, "error": (f"monthly cost cap would be exceeded ({s.monthly_cost_cap_usd})")}
     # Single-flight handled in runner; create job row.
     job_id = f"job-{uuid.uuid4().hex[:12]}"
@@ -307,6 +438,22 @@ def submit_job(
         "requested_by": requested_by,
     }
     db.upsert_job(s.db_path, job_row)
+    audit(
+        "submit",
+        actor=requested_by,
+        job_id=job_id,
+        recipe_id=spec["recipe_id"],
+        spec_hash=planned["spec_hash"],
+        plan_hash=planned["plan_hash"],
+        detail={
+            "kind": spec["kind"],
+            "backend": spec["backend"],
+            "cost_class": spec["cost_class"],
+            "est_cost_usd": cost,
+            "gpu": spec.get("gpu"),
+            "idempotency_key": idempotency_key,
+        },
+    )
     # Spawn.
     runner.submit(s, job_id, job_row, spec["command"], spec["backend"])
     return {"ok": True, "job_id": job_id, "status": "queued", "plan_hash": planned["plan_hash"]}
@@ -319,7 +466,68 @@ def cancel_job(job_id: str) -> dict[str, Any]:
     if job is None:
         return {"ok": False, "error": f"unknown job: {job_id}"}
     ok = runner.cancel(settings(), job_id)
+    audit(
+        "cancel",
+        job_id=job_id,
+        recipe_id=job.get("name"),
+        spec_hash=job.get("spec_hash"),
+        plan_hash=job.get("plan_hash"),
+        detail={"ok": ok, "previous_status": job.get("status")},
+    )
     return {"ok": ok, "job_id": job_id}
+
+
+@mcp.tool
+def list_audit(job_id: str | None = None, action: str | None = None, limit: int = 100) -> dict[str, Any]:
+    """Query the append-only audit log (actor, action, recipe, hashes, ts).
+
+    Filter by ``job_id`` and/or ``action``. Newest rows first.
+    """
+    rows = db.list_audit(settings().db_path, job_id=job_id, action=action, limit=limit)
+    return {"ok": True, "count": len(rows), "entries": rows}
+
+
+# --- Security posture (PIX-5037) -------------------------------------------
+
+
+def security_report() -> dict[str, Any]:
+    """Assess credential isolation, bind scope, and token enforcement."""
+    s = settings()
+    job_env = runner._build_env(s)
+    unexpected = sorted(set(job_env) - runner.JOB_ENV_ALLOWLIST)
+    issues: list[str] = []
+    if not s.binding_is_loopback and not s.allow_remote:
+        issues.append("service bound to non-loopback without TRAINING_MCP_ALLOW_REMOTE=1")
+    if not s.mcp_token:
+        issues.append("no bearer token configured; unauthenticated clients can submit jobs")
+    if unexpected:
+        issues.append(f"job subprocess env carries non-allowlisted keys: {', '.join(unexpected)}")
+    return {
+        "ok": True,
+        "bind_host": s.host,
+        "loopback_only": s.binding_is_loopback,
+        "allow_remote": s.allow_remote,
+        "auth_enabled": bool(s.mcp_token),
+        "credential_isolation": {
+            "job_env_source": "allowlisted process env + pipeline dotenv secrets (runner._build_env)",
+            "allowlisted_keys": sorted(runner.JOB_ENV_ALLOWLIST),
+            "non_allowlisted_keys_in_job_env": unexpected,
+            "isolated": not unexpected,
+        },
+        "issues": issues,
+        "secure": not issues,
+    }
+
+
+@mcp.tool
+def security_status() -> dict[str, Any]:
+    """Report the security posture: credential isolation, bind scope, token auth.
+
+    Read-only. ``secure`` is true when the service is loopback-bound (or
+    explicitly opted into remote), a bearer token is enforced, and the
+    subprocess environment exposes no unrelated secrets.
+    """
+    return security_report()
 
 
 @mcp.tool
@@ -357,8 +565,29 @@ def list_eval_tags() -> dict[str, Any]:
     return _guard(backends.r2_list_eval_tags, settings())
 
 
+@mcp.tool
+def eval_gate(tag: str, min_delta: float = 0.0, min_pass_rate: float = 0.0) -> dict[str, Any]:
+    """Decide whether the eval results under ``tag`` clear the promotion gate.
+
+    Fails closed: missing grades, missing arms, or a backend error all block
+    promotion. Promotion tools must consult this before moving a release.
+    """
+    s = settings()
+    summary = _guard(backends.r2_eval_summary, s, tag)
+    verdict = backends.evaluate_gate(summary, min_delta=min_delta, min_pass_rate=min_pass_rate)
+    audit(
+        "eval.gate",
+        actor="gate",
+        recipe_id=None,
+        detail={"tag": tag, "passed": verdict["passed"], "reasons": verdict["reasons"][:5]},
+    )
+    return {"ok": True, "tag": tag, **verdict}
+
+
 def main() -> None:
     s = settings()
+    if not s.binding_is_loopback and not s.allow_remote:
+        raise SystemExit(f"refusing to bind to non-loopback host {s.host!r} without TRAINING_MCP_ALLOW_REMOTE=1")
     mcp.run(transport="streamable-http", host=s.host, port=s.port, path="/mcp")
 
 

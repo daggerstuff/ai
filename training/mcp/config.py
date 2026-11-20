@@ -84,6 +84,15 @@ class Settings:
         return float(self.env.get("TRAINING_MCP_MONTHLY_COST_CAP_USD", "100.0"))
 
     @property
+    def allow_remote(self) -> bool:
+        """Explicit opt-in required before binding to a non-loopback address."""
+        return self.env.get("TRAINING_MCP_ALLOW_REMOTE", "").lower() in {"1", "true", "yes"}
+
+    @property
+    def binding_is_loopback(self) -> bool:
+        return self.host in {"127.0.0.1", "localhost", "::1", "0:0:0:0:0:0:0:1"}
+
+    @property
     def r2_configured(self) -> bool:
         return all(self.env.get(name) for name in ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT"))
 
