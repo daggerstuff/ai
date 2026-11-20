@@ -1,0 +1,14 @@
+.github/workflows/ci.yml
+  h_07d84030f79d30 49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "19fbb61dca677216902c5347e4f296f28115f8e8",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
