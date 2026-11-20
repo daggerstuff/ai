@@ -1,0 +1,79 @@
+training/evaluate_finetuned_model.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 23
+api/techdeck_integration/communication/progress_tracker.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 10
+training/book_pdf_converter.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 33-34
+qa/reports/test_quality_trend_analysis.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 10
+monitoring/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+evals/conversation_eval_metrics.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 275-276
+inference/api/techdeck_integration/routes/system.py
+  s_7d4811cf1b0ba7::t_fcca30f6ab96b9 17-21
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+inference/deployment/distributed/test_auto_resume.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 15
+tools/scripts/commands/auth.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 9
+api/test_pixel_inference.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 29-30
+lab/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+tools/scripts/fixed_refined_agent.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11-12
+inference/api/techdeck_integration/communication/progress_tracker.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 10
+infrastructure/distributed/test_auto_resume.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 15
+pipelines/data_processing/journal/api/services/command_handler_service.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 8
+research/local_foresight_memory_update.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 3-4
+tools/scripts/test_docker_postgres.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 8
+qa/reports/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+api/techdeck_integration/routes/system.py
+  s_7d4811cf1b0ba7::t_c6a5f9b3518e7d 17
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+qa/validation/conversation_eval_metrics.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 275-276
+monitoring/test_quality_trend_analysis.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 10
+tools/utilities/pixelated_empathy_platform.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+inference/api/test_pixel_inference.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 29-30
+pipelines/data_processing/journal/api/config.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 9-10,12
+memory/local_foresight_memory_update.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 3-4
+tools/utilities/ui/conversation_interface_components.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+sourcing/journal/api/services/command_handler_service.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 8
+qa/reports/monitoring_notification_bridge.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 15
+research/experiments/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 11
+cli/commands/auth.py
+  s_7d4811cf1b0ba7::t_262609bccfcdd9 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76be103edd06c3dfc06e582d1b089cc26512b70a",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
