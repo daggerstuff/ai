@@ -1,0 +1,110 @@
+training/distill_model.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 51
+research/reverie/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 17-34
+core/pipelines/inference/evidence_scoring.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 20
+tools/scripts/dataset_validation_rclone.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 14
+tools/scripts/update_registry_paths.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 10
+pipelines/data_processing/youtube/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 41,43
+tools/scripts/tests/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 158-171
+tools/scripts/dataset_quality_scorer.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 13
+infrastructure/distributed/quality_validator.py
+  s_7d4811cf1b0ba7::t_aeeb09ce592b63 34
+tools/scripts/update_domains.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 8
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 7
+tools/scripts/dataset_quality_scorer_rclone.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 14
+cli/tests/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 158-171
+tools/scripts/dataset_sync_verification.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 14
+models/therapeutic_progress_tracker.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 10-13
+tools/scripts/dataset_sync_verification_rclone.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 14
+research/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 48,53-55,57
+tools/utilities/rare_disease/differential.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 8
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 6
+tools/utilities/rare_disease/orchestrator.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 10
+inference/deployment/distributed/quality_validator.py
+  s_7d4811cf1b0ba7::t_aeeb09ce592b63 34
+tools/scripts/security_config_validator.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 7
+pipelines/data_processing/journal/mcp/resources/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 22-23,25,31-32
+tools/scripts/dataset_validation.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 16
+memory/reverie/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 17-34
+tools/utilities/rare_disease/pipeline.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 50,53
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 6
+tools/scripts/emergency_s3_migration.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 6
+tools/scripts/orchestrate_registry_enhancements.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 15
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 14
+research/fine_tuning/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 11-28
+research/reflection/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 13-37
+training/quantize_model.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 52
+memory/reflection/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 13-37
+tools/scripts/monitor_sweep.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 8
+training/mental_ift_trainer.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 23
+tools/scripts/enhance_dataset_registry.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 12
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 13
+memory/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 48,53-55,57
+tools/scripts/dataset_deduplication_rclone.py
+  s_7d4811cf1b0ba7::t_b4ce903f1656d8 16
+memory/fine_tuning/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 11-28
+tools/scripts/full_ai_sweep_s3.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 7
+pipelines/data_processing/journal/mcp/prompts/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 16-18,20,22-23
+receipts/persistence.py
+  s_7d4811cf1b0ba7::t_aeeb09ce592b63 16,124-126,129-132
+tools/scripts/dataset_deduplication.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 15
+sourcing/journal/mcp/prompts/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 16-18,20,22-23
+tools/utilities/pipelines/inference/evidence_scoring.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 20
+tools/scripts/dataset_usage_tracker.py
+  s_7d4811cf1b0ba7::t_ea5c25ea62dacf 15
+sourcing/journal/mcp/resources/__init__.py
+  s_7d4811cf1b0ba7::t_09904f5bb75b3a 22-23,25,31-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b76c1c5e4b9a50df8b15ef4967d39d3649b9bc2d",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
