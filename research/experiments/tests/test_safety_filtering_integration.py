@@ -9,6 +9,7 @@ import logging
 import sys
 import time
 import unittest
+from typing import Any
 from unittest.mock import patch
 
 # Import our modules
@@ -26,6 +27,11 @@ logger = logging.getLogger(__name__)
 
 class TestSafetyFilteredInferenceAPI(unittest.TestCase):
     """Integration tests for safety-filtered inference API endpoints"""
+
+    test_client: Any
+    test_api_key: str
+    headers: dict[str, str]
+    safety_filter: EnhancedSafetyFilter
 
     @classmethod
     def setUpClass(cls):
