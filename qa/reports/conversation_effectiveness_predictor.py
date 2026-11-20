@@ -18,6 +18,7 @@ import traceback
 import warnings
 from collections import Counter
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -29,7 +30,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import StandardScaler
 from textstat import flesch_kincaid_grade, flesch_reading_ease
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

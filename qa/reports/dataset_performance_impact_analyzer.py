@@ -18,6 +18,7 @@ import sqlite3
 import traceback
 import warnings
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -28,7 +29,6 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import StandardScaler
 from textstat import flesch_reading_ease
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

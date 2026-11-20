@@ -13,9 +13,10 @@ from datetime import UTC, datetime
 from typing import Any
 
 import torch
-import wandb
 from datasets import Dataset
 from tqdm import tqdm
+
+import wandb
 
 try:
     from ai.models.moe_architecture import MoEConfig, create_therapeutic_moe_model

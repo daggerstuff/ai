@@ -594,7 +594,8 @@ class TokenManager:
         return "." in token
 
     def decode_token_payload(self, token):
-        import json, base64
+        import base64
+        import json
 
         try:
             parts = token.split(".")

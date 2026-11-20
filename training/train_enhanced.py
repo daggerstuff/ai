@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any
 
 import torch
-import wandb
 from datasets import Dataset
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import (
@@ -21,6 +20,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+import wandb
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

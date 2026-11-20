@@ -8,6 +8,7 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
+from qa.testing.engine.models.clients.conftest import make_mock_async_client, make_mock_sync_client
 
 from data_designer.engine.mcp.registry import MCPToolDefinition
 from data_designer.engine.models.clients.adapters.anthropic import AnthropicClient
@@ -19,7 +20,6 @@ from data_designer.engine.models.clients.types import (
     ImageGenerationRequest,
 )
 from data_designer.engine.models.utils import ChatMessage
-from qa.testing.engine.models.clients.conftest import make_mock_async_client, make_mock_sync_client
 
 PROVIDER = "anthropic-prod"
 MODEL = "claude-test"

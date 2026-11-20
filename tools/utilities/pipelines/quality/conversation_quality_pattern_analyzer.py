@@ -49,8 +49,8 @@ from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ai.tools.utilities.pipelines.schemas.conversation_schema import Conversation, Message
 from ai.tools.utilities.pipelines.quality.quality_assessment_framework import InquiryType
+from ai.tools.utilities.pipelines.schemas.conversation_schema import Conversation, Message
 
 logger = logging.getLogger(__name__)
 

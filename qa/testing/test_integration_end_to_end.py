@@ -20,9 +20,9 @@ import tempfile
 import unittest
 import warnings
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pandas as pd
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

@@ -5,9 +5,9 @@ import json
 import logging
 import os
 
-
 logger = logging.getLogger(__name__)
 import subprocess
+from pathlib import Path
 
 from pipelines.data_processing.extractors.book_extractor import BookExtractor
 from pipelines.data_processing.extractors.dataset_loader import DatasetLoader
@@ -15,7 +15,6 @@ from pipelines.data_processing.extractors.s3_streamer import S3Streamer
 from pipelines.data_processing.processors.chatml_converter import ChatMLConverter
 from pipelines.data_processing.processors.quality_filter import QualityFilter
 from pipelines.data_processing.processors.safety_processors import HackathonSafetyProcessor
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 

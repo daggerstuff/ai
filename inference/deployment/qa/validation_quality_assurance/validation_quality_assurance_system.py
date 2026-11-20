@@ -11,6 +11,7 @@ import re
 import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -19,7 +20,6 @@ import numpy as np
 from clinical_standards_validator import ClinicalStandardsValidator
 from manual_review_system import ManualReviewSystem
 from quality_assurance_workflows import QualityAssuranceWorkflow
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[5]
 

@@ -20,10 +20,10 @@ import json
 import re
 import warnings
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import numpy as np
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 

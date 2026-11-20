@@ -11,28 +11,30 @@ import time
 from datetime import UTC, datetime
 
 import torch
-import wandb
 from datasets import Dataset
 from transformers import AutoTokenizer, Trainer
 
+import wandb
+
 try:
     from ai.models.moe_architecture import MoEConfig, create_therapeutic_moe_model
-    from ai.training.training_optimizer import optimize_for_dataset
     from ai.training.train_moe_h100 import (
         MoETrainingCallback,
         TimeConstraintCallback,
         setup_wandb,
         signal_handler,
     )
+    from ai.training.training_optimizer import optimize_for_dataset
 except ImportError:  # pragma: no cover - run as a plain script
-    from models.moe_architecture import MoEConfig, create_therapeutic_moe_model
-    from training_optimizer import optimize_for_dataset
     from train_moe_h100 import (
         MoETrainingCallback,
         TimeConstraintCallback,
         setup_wandb,
         signal_handler,
     )
+    from training_optimizer import optimize_for_dataset
+
+    from models.moe_architecture import MoEConfig, create_therapeutic_moe_model
 
 # Global state
 shutdown_requested = False

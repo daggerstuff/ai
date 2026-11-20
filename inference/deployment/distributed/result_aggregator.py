@@ -11,9 +11,9 @@ import sqlite3
 import statistics
 import threading
 from collections import Counter, defaultdict
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from collections.abc import Mapping
 from typing import Any
 
 # Configure logging
