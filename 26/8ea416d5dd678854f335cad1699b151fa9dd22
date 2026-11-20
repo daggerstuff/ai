@@ -1,0 +1,27 @@
+pipelines/data_processing/dataset_adapters/mhsafeeval_adapter.py
+  s_7d4811cf1b0ba7::t_8d66d95d52fadd 81,152
+pipelines/data_processing/dataset_adapters/bbrd_adapter.py
+  s_7d4811cf1b0ba7::t_8d66d95d52fadd 101,129
+sourcing/dataset_adapters/mhsafeeval_adapter.py
+  s_7d4811cf1b0ba7::t_8d66d95d52fadd 81,152
+sourcing/dataset_adapters/daic_woz_adapter.py
+  s_7d4811cf1b0ba7::t_8d66d95d52fadd 19-20,25-30,96-97,189,234,236-239
+pipelines/data_processing/dataset_adapters/daic_woz_adapter.py
+  s_7d4811cf1b0ba7::t_8d66d95d52fadd 19-20,25-30,96-97,189,234,236-239
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "268ea416d5dd678854f335cad1699b151fa9dd22",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
