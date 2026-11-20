@@ -1,0 +1,33 @@
+training/mcp/README.md
+  s_7d4811cf1b0ba7::t_b0b5c62d10a628 47,52,54
+training/mcp/RECIPE_WORKFLOW.md
+  s_7d4811cf1b0ba7::t_b0b5c62d10a628 35,72-81
+tests/training/mcp/test_control_plane.py
+  s_7d4811cf1b0ba7::t_b0b5c62d10a628 109,245,251,258,264,267-270,279,286,296-298,310-331
+  s_7d4811cf1b0ba7::t_f6e1252984a02f 76-108,110-114,151-152,155-158,332-333
+training/mcp/plan.py
+  s_7d4811cf1b0ba7::t_b0b5c62d10a628 30-34
+  s_7d4811cf1b0ba7::t_f23ea8117fb642 121-126
+training/mcp/recipes.yaml
+  s_7d4811cf1b0ba7::t_b0b5c62d10a628 63-66
+  s_7d4811cf1b0ba7::t_0fa15b68b44f36 57
+training/mcp/recipes.py
+  s_7d4811cf1b0ba7::t_0fa15b68b44f36 28-34,113,117-135
+  s_7d4811cf1b0ba7::t_e9a56bab973555 136-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2aa7c5000e538b10cc4856eaae73dd1cd36cc2fc",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
