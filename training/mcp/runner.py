@@ -63,27 +63,33 @@ def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _lo
         new_status = "failed"
         error = f"process exited with code {rc}"
     # Collecting phase: briefly mark collecting then terminal.
-    db.upsert_job(settings.db_path, {
-        "job_id": job_id,
-        "kind": job["kind"],
-        "source": job["source"],
-        "name": job.get("name"),
-        "status": "collecting",
-        "stage": "collecting",
-        "backend_id": job.get("backend_id"),
-    })
+    db.upsert_job(
+        settings.db_path,
+        {
+            "job_id": job_id,
+            "kind": job["kind"],
+            "source": job["source"],
+            "name": job.get("name"),
+            "status": "collecting",
+            "stage": "collecting",
+            "backend_id": job.get("backend_id"),
+        },
+    )
     time.sleep(0.5)
-    db.upsert_job(settings.db_path, {
-        "job_id": job_id,
-        "kind": job["kind"],
-        "source": job["source"],
-        "name": job.get("name"),
-        "status": new_status,
-        "stage": new_status,
-        "backend_id": job.get("backend_id"),
-        "error": error,
-        "finished_at": None,
-    })
+    db.upsert_job(
+        settings.db_path,
+        {
+            "job_id": job_id,
+            "kind": job["kind"],
+            "source": job["source"],
+            "name": job.get("name"),
+            "status": new_status,
+            "stage": new_status,
+            "backend_id": job.get("backend_id"),
+            "error": error,
+            "finished_at": None,
+        },
+    )
     with _PROCESSES_GUARD:
         _PROCESSES.pop(job_id, None)
 
@@ -96,18 +102,33 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
         # Wait for single-flight slot.
         acquired = lock.acquire(timeout=300)
         if not acquired:
-            db.upsert_job(settings.db_path, {
-                "job_id": job_id, "kind": job_row["kind"], "source": job_row["source"],
-                "name": job_row.get("name"), "status": "failed", "stage": "failed",
-                "backend_id": job_row.get("backend_id"), "error": "single-flight timeout",
-            })
+            db.upsert_job(
+                settings.db_path,
+                {
+                    "job_id": job_id,
+                    "kind": job_row["kind"],
+                    "source": job_row["source"],
+                    "name": job_row.get("name"),
+                    "status": "failed",
+                    "stage": "failed",
+                    "backend_id": job_row.get("backend_id"),
+                    "error": "single-flight timeout",
+                },
+            )
             return
         try:
-            db.upsert_job(settings.db_path, {
-                "job_id": job_id, "kind": job_row["kind"], "source": job_row["source"],
-                "name": job_row.get("name"), "status": "submitted", "stage": "submitted",
-                "backend_id": job_row.get("backend_id"),
-            })
+            db.upsert_job(
+                settings.db_path,
+                {
+                    "job_id": job_id,
+                    "kind": job_row["kind"],
+                    "source": job_row["source"],
+                    "name": job_row.get("name"),
+                    "status": "submitted",
+                    "stage": "submitted",
+                    "backend_id": job_row.get("backend_id"),
+                },
+            )
             env = _build_env(settings)
             log_dir = settings.db_path.parent / "logs"
             log_dir.mkdir(parents=True, exist_ok=True)
@@ -126,12 +147,19 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                 )
             with _PROCESSES_GUARD:
                 _PROCESSES[job_id] = proc
-            db.upsert_job(settings.db_path, {
-                "job_id": job_id, "kind": job_row["kind"], "source": job_row["source"],
-                "name": job_row.get("name"), "status": "running", "stage": "running",
-                "backend_id": job_row.get("backend_id"),
-                "artifacts": {"log_path": log_path},
-            })
+            db.upsert_job(
+                settings.db_path,
+                {
+                    "job_id": job_id,
+                    "kind": job_row["kind"],
+                    "source": job_row["source"],
+                    "name": job_row.get("name"),
+                    "status": "running",
+                    "stage": "running",
+                    "backend_id": job_row.get("backend_id"),
+                    "artifacts": {"log_path": log_path},
+                },
+            )
             _monitor(settings, job_id, proc, log_path)
         finally:
             lock.release()
@@ -154,11 +182,19 @@ def cancel(settings: Settings, job_id: str) -> bool:
     job = db.get_job(settings.db_path, job_id)
     if job is None:
         return False
-    db.upsert_job(settings.db_path, {
-        "job_id": job_id, "kind": job["kind"], "source": job["source"],
-        "name": job.get("name"), "status": "cancelled", "stage": "cancelled",
-        "backend_id": job.get("backend_id"), "error": "cancelled by operator",
-    })
+    db.upsert_job(
+        settings.db_path,
+        {
+            "job_id": job_id,
+            "kind": job["kind"],
+            "source": job["source"],
+            "name": job.get("name"),
+            "status": "cancelled",
+            "stage": "cancelled",
+            "backend_id": job.get("backend_id"),
+            "error": "cancelled by operator",
+        },
+    )
     # Best-effort backend cancel for ovhai.
     if job.get("source") == "ovhai" and job.get("backend_id"):
         with contextlib.suppress(Exception):

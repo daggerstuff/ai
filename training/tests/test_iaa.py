@@ -582,7 +582,7 @@ class TestCLI:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
         return p
 
-    def test_cli_basic_run(self, tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+    def test_cli_basic_run(self, tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
         records = [
             {
                 "id": f"s{i}",

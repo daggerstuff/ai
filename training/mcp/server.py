@@ -50,12 +50,14 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     # Reconcile on startup.
     with contextlib.suppress(Exception):
         sync.sync_all(s)
+
     # Periodic reconciler.
     async def _loop() -> None:
         while True:
             await asyncio.sleep(_RECONCILE_INTERVAL_S)
             with contextlib.suppress(Exception):
                 sync.sync_all(settings())
+
     task = asyncio.create_task(_loop())
     try:
         yield
@@ -286,9 +288,7 @@ def submit_job(
     # monthly cost cap
     active_cost = sum(float(j.get("cost_estimate") or 0) for j in running + queued)
     if active_cost + cost > s.monthly_cost_cap_usd:
-        return {"ok": False, "error": (
-            f"monthly cost cap would be exceeded ({s.monthly_cost_cap_usd})"
-        )}
+        return {"ok": False, "error": (f"monthly cost cap would be exceeded ({s.monthly_cost_cap_usd})")}
     # Single-flight handled in runner; create job row.
     job_id = f"job-{uuid.uuid4().hex[:12]}"
     job_row = {
@@ -320,6 +320,7 @@ def cancel_job(job_id: str) -> dict[str, Any]:
         return {"ok": False, "error": f"unknown job: {job_id}"}
     ok = runner.cancel(settings(), job_id)
     return {"ok": ok, "job_id": job_id}
+
 
 @mcp.tool
 def get_job_logs(job_id: str, tail: int = 200) -> dict[str, Any]:

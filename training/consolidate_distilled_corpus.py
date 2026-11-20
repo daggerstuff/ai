@@ -13,10 +13,11 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("consolidate_corpus")
 
-BOOKS_DIR = (_PROJECT_ROOT / "ai" / "data" / "curated/books_distilled")
-PERSONAS_DIR = (_PROJECT_ROOT / "ai" / "data" / "curated/youtube_distilled_personas")
-MASTER_TRAIN = (_PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train.jsonl")
-CONSOLIDATED_OUT = (_PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train_master_gold.jsonl")
+BOOKS_DIR = _PROJECT_ROOT / "ai" / "data" / "curated/books_distilled"
+PERSONAS_DIR = _PROJECT_ROOT / "ai" / "data" / "curated/youtube_distilled_personas"
+MASTER_TRAIN = _PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train.jsonl"
+CONSOLIDATED_OUT = _PROJECT_ROOT / "ai" / "data" / "curated/sft_chatml/train_master_gold.jsonl"
+
 
 def main() -> None:
     gold_records: list[dict[str, Any]] = []
@@ -103,6 +104,7 @@ def main() -> None:
     logger.info("  - Gold Proprietary Assets: %d", len(gold_records))
     logger.info("  - Base Curated Corpus: %d", base_count)
     logger.info("  - Final Master Dataset: %d -> %s", total, CONSOLIDATED_OUT)
+
 
 if __name__ == "__main__":
     main()

@@ -245,8 +245,7 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
     if has_passed and by_arm:
         rates = {arm: (s["passed"] / s["total"] if s["total"] else 0.0) for arm, s in by_arm.items()}
         out["arm_pass_rates"] = {
-            arm: {"passed": by_arm[arm]["passed"], "total": by_arm[arm]["total"], "rate": rates[arm]}
-            for arm in by_arm
+            arm: {"passed": by_arm[arm]["passed"], "total": by_arm[arm]["total"], "rate": rates[arm]} for arm in by_arm
         }
         if "base" in rates and "sft" in rates:
             out["delta_sft_minus_base"] = rates["sft"] - rates["base"]

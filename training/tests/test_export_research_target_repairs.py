@@ -102,7 +102,7 @@ def test_export_keeps_the_original_population_and_untouched_bytes(
     assert untouched == preserved
     assert receipt.datums == len(original.splitlines())
     assert receipt.source_train_sha256 == hashlib.sha256(experiment.repaired_train.read_bytes()).hexdigest()
-    assert receipt.model_extra["selection_mode"] == "exact_original_export_population"
+    assert (receipt.model_extra or {})["selection_mode"] == "exact_original_export_population"
     assert receipt.counts["trained_tokens"] == sum(
         sum(json.loads(line)["weights"]) for line in receipt.path.read_bytes().splitlines()
     )
