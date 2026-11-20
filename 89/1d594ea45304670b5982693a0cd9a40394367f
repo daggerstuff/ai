@@ -1,0 +1,41 @@
+training/verify_crisis_survival.py
+  s_7d4811cf1b0ba7::t_107b90f436e4c7 131-133
+  s_7d4811cf1b0ba7::t_da575783f09d89 139-143
+  s_7d4811cf1b0ba7::t_323a329094cb1c 115
+  s_7d4811cf1b0ba7::t_1275e2943d2979 227
+  s_7d4811cf1b0ba7::t_88ab73476be253 101
+  s_7d4811cf1b0ba7::t_8d66d95d52fadd 73,121
+  s_7d4811cf1b0ba7::t_2222b6d9fd239e 34-44
+  s_7d4811cf1b0ba7::t_cd448aa4541ab9 1-33,45-72,74-100,102-114,116-120,122-130,134-138,144-226,228-232
+training/tests/test_verify_crisis_survival.py
+  s_7d4811cf1b0ba7::t_2055bbc8e2aada 46-47
+  s_7d4811cf1b0ba7::t_1aeaa5a16febcd 80
+  s_7d4811cf1b0ba7::t_f8b78cbba16fab 91
+  s_7d4811cf1b0ba7::t_568bbb885b8dd4 117
+  s_7d4811cf1b0ba7::t_93ffa13777b6d5 1-7,13-44,49-79,81-90,93-105,107-115,118-133
+  s_7d4811cf1b0ba7::t_81f488b4ed288c 11-12
+  s_7d4811cf1b0ba7::t_f9b8a170d8239e 106
+  s_7d4811cf1b0ba7::t_8b6a4104f6f94e 8-10
+  s_7d4811cf1b0ba7::t_83ead74c4b9f57 45
+  s_7d4811cf1b0ba7::t_6ede3e4572c7aa 48
+  s_7d4811cf1b0ba7::t_2c4444371b2632 92
+  s_7d4811cf1b0ba7::t_ffa4fc818bf052 116
+.gitignore
+  s_7d4811cf1b0ba7::t_c6e2ede1b2cb7c 310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "891d594ea45304670b5982693a0cd9a40394367f",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
