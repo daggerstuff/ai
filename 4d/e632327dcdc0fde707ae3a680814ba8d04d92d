@@ -1,0 +1,223 @@
+training/nightmare_fuel_generator.py
+  s_2d5856da696824::t_7807bf45ac823c 945
+  s_2d5856da696824::t_75262b404ecb20 57,918
+  s_2d5856da696824::t_c1803eb96ae884 683
+  s_2d5856da696824::t_7778668a2353f5 58,605-606,639-641
+  s_2d5856da696824::t_88ade5ab63b347 50-56,810,812-815,883-884,955-958,960-964,966
+  s_2d5856da696824::t_88982883542a65 968
+  s_2d5856da696824::t_7c39117fe738be 952
+  s_2d5856da696824::t_eb00c2fcecca3b 959,965
+pipelines/data_processing/tests/test_personalitydbench_adapter.py
+  s_2d5856da696824::t_ed98dc20af39a9 104
+training/export_research_target_repairs.py
+  s_2d5856da696824::t_9cbcb6b48a47fb 18,73
+  s_2d5856da696824::t_c7a741444593ca 43-57,68-72,112-117,133-144,154,158
+  s_2d5856da696824::t_5b4ade3db37fa0 168
+  s_2d5856da696824::t_d742fea65416c6 161-165
+  s_2d5856da696824::t_ec133cbd55c59c 94-96,146-153,155-157,159-160,166-167
+  s_2d5856da696824::t_62e7f9f412c84f 1-17,19-42,58-67,74-93,97-111,118-132,145,169-181
+training/tests/test_crisis_target_audit.py
+  s_2d5856da696824::t_5fc9b64e4439eb 68-69
+  s_2d5856da696824::t_564ee8f29b8034 8,12,73,75-76,78-79,95-105,124-134
+  s_2d5856da696824::t_ced79e77f4e911 10-11,71-72,77,81,83,88-94,106,108-123,135-137
+  s_2d5856da696824::t_3096dd81263b4a 26,35-36,47-51,53,55-57,59-63
+  s_2d5856da696824::t_eef88cf722ed0c 74,80,82,107
+  s_2d5856da696824::t_c62f4fd074f16a 27-34,52,54,58,84-87
+  s_2d5856da696824::t_d40233aba3729b 1-7,9,13-25,37-46,64-67,70
+training/apply_research_target_repairs.py
+  s_2d5856da696824::t_1c33ec45492dc4 1-10,12-62,82-104,107-138,145-151,153-157
+  s_2d5856da696824::t_9cbcb6b48a47fb 63-81,105-106,143
+  s_2d5856da696824::t_bc6b109a3c99e0 11,152
+  s_2d5856da696824::t_90f03620b1c2c9 139-142,144
+training/tests/test_youtube_persona_distiller.py
+  s_2d5856da696824::t_8a705dcd2e4efe 5-7,10,20-37
+  s_2d5856da696824::t_10257c2a2139f4 38-41,90,94
+training/tests/test_adapter_target_roles.py
+  s_2d5856da696824::t_f5b0092995ed25 123-138
+  s_2d5856da696824::t_dfb0fff89c600a 38,65,69,88-100
+  s_2d5856da696824::t_c9db7ecc4d9d13 1-37,39-64,66-68,70-87
+  s_2d5856da696824::t_cbf0f55145856b 101-122
+training/ovh_v22_eval/submit.py
+  s_2d5856da696824::t_429d08f113d8c3 47
+training/nightmare_records.py
+  s_2d5856da696824::t_75262b404ecb20 1-17
+pipelines/data_processing/utils/converters.py
+  s_2d5856da696824::t_ed98dc20af39a9 12-13
+  s_2d5856da696824::t_d8db542eba5f29 121-125,137,141-144,147,201-205,217,221-224,227
+training/build_clinical_backed_examples.py
+  s_2d5856da696824::t_e362f647794d5a 119,124,128
+training/tests/test_ovh_eval_submit.py
+  s_2d5856da696824::t_14afe16abe3e11 170-171,191
+training/consolidate_distilled_corpus.py
+  s_2d5856da696824::t_440adfdfdfa421 28,43,96
+  s_2d5856da696824::t_98bad3610051d7 22,27,34,36,42,82,85,92,95,99
+  s_2d5856da696824::t_e362f647794d5a 66,70-71,75
+training/tests/test_r2_sync.py
+  s_2d5856da696824::t_7542e4046ee4c4 79-102
+  s_2d5856da696824::t_78f1782e23e7cf 10,29,34,37-38
+  s_2d5856da696824::t_470ea2503afa63 210-224
+  s_2d5856da696824::t_c2d2f5e27e1b25 250-253,255-257,264,269
+  s_2d5856da696824::t_a6cb4e5b8fa3f8 39
+training/launch/crisis_eval_diagnostics.py
+  s_2d5856da696824::t_9bcd9394a42c47 11,31-33,137-138
+  s_2d5856da696824::t_03293b893b3fcf 43,97-108,110-113,136,139-140,145-146,148
+  s_2d5856da696824::t_a7870ea132414f 20-27,157-165,173-175
+  s_2d5856da696824::t_10ac3b48f9be0d 1-10,12-15,18-19,28-30,34-42,44-83,86-96,114-135,141-144,147,149-156,166-170,176-189
+  s_2d5856da696824::t_e037a7f3b7fc30 16
+  s_2d5856da696824::t_fe3e1d7f4e8038 17,84-85,109,171-172
+  s_2d5856da696824::t_1a207a23479f75 190-192
+training/launch/r2_sync.py
+  s_2d5856da696824::t_a09e3a3f80cf53 29,133-134,147-155
+  s_2d5856da696824::t_892e90b98192c5 292,296-297,300,304,321,323-326,332,382,405
+  s_2d5856da696824::t_d62bf4be77e43a 37,310-318,327-328,330
+  s_2d5856da696824::t_5e9a0412e38013 319-320
+sourcing/utils/converters.py
+  s_2d5856da696824::t_ed98dc20af39a9 12-13
+  s_2d5856da696824::t_8262ec0c52e262 121-125,137,141-144,147,201-205,217,221-224,227
+training/tests/test_converter_role_boundaries.py
+  s_2d5856da696824::t_cecc0dc07ee608 72
+  s_2d5856da696824::t_a4998fa1ffe89a 1-71,73-77
+  s_2d5856da696824::t_149f8aa78900f1 78-82
+training/tests/test_crisis_eval_diagnostics.py
+  s_2d5856da696824::t_9f0a75a2556f93 1-82
+  s_2d5856da696824::t_eb5ac911ea0d5a 83-106
+sourcing/tests/test_personalitydbench_adapter.py
+  s_2d5856da696824::t_ed98dc20af39a9 104
+training/build_edge_and_nightmare_dataset.py
+  s_2d5856da696824::t_c4d30f0e03bd93 468,473-474,477,505,513-514,521
+sourcing/dataset_adapters/addiction_stories_adapter.py
+  s_2d5856da696824::t_ed98dc20af39a9 9,37,79,101,110-112,123,127
+training/ovh_v22_eval/launch.sh
+  s_2d5856da696824::t_892e90b98192c5 140
+  s_2d5856da696824::t_429d08f113d8c3 70
+training/nightmare_recovery.py
+  s_2d5856da696824::t_7778668a2353f5 1-75
+training/tests/test_nightmare_judge_receipts.py
+  s_2d5856da696824::t_b7e6a8ab04de7b 131
+  s_2d5856da696824::t_9dc877ef928eb5 4,18,28-29,71,96
+  s_2d5856da696824::t_dfe3690ddab2f4 1,3,5-9,11-17,19-27,30-54,57-70,72-95,97-130,146-160
+  s_e96f85d720e925::t_2a8a7cdec5e0fd 145
+  s_2d5856da696824::t_eb00c2fcecca3b 2,10,55-56
+  s_2d5856da696824::t_cb6d10c4acd48c 132-144
+training/youtube_persona_distiller.py
+  s_2d5856da696824::t_98bad3610051d7 270
+  s_2d5856da696824::t_8a705dcd2e4efe 337-338,367
+  s_2d5856da696824::t_cf078e5e38d491 19,183,210-211,246-249,283-284,339,376-378
+  s_2d5856da696824::t_440adfdfdfa421 60-61,98-99,252-268
+  s_2d5856da696824::t_e362f647794d5a 348,352-353,358
+training/tests/test_export_tinker_release.py
+  s_2d5856da696824::t_8815a8425031e0 226-228,239-241,260-262,273-275,421-423
+  s_2d5856da696824::t_d594170c83be55 253,287
+  s_2d5856da696824::t_9fa66e44f33aee 270-272,276-286,288-290
+  s_2d5856da696824::t_65e793b0b332d7 5
+  s_2d5856da696824::t_41caaa8fba1926 236-238,242-252,254-259,263-264,266-269,291-292
+  s_2d5856da696824::t_386fb40c70ec3c 265
+sourcing/dataset_adapters/personalitydbench_adapter.py
+  s_2d5856da696824::t_ed98dc20af39a9 16,140,154,158
+training/tests/test_nightmare_final_export.py
+  s_2d5856da696824::t_61d4818d679cbd 1-8,11-51
+  s_2d5856da696824::t_9597ca013d79c7 10,52-60,70-79
+  s_2d5856da696824::t_b2a28812133a4c 61-69
+  s_2d5856da696824::t_dfe3690ddab2f4 110,116
+  s_2d5856da696824::t_7c39117fe738be 80-109,111-115
+  s_2d5856da696824::t_8c61ae6c50b194 9
+training/tests/test_nightmare_recovery.py
+  s_2d5856da696824::t_9597ca013d79c7 36,56,60,76-93
+  s_2d5856da696824::t_c1803eb96ae884 1-35,37-40,48-55,57-59,61-75,94
+  s_2d5856da696824::t_b2a28812133a4c 41-47
+training/run_nightmare_fuel_distillation.py
+  s_2d5856da696824::t_7778668a2353f5 12,24-25,39,42-44,67-69
+  s_2d5856da696824::t_ce40935cc23c45 2,9-10,21-23,26,33,35-38,41,45-61,70,73
+  s_2d5856da696824::t_c1803eb96ae884 6,40,62-66
+training/nightmare_judge_receipts.py
+  s_2d5856da696824::t_3b19bd5efa4620 1-82,86-157
+  s_e96f85d720e925::t_2a8a7cdec5e0fd 83-85
+training/tests/test_apply_research_target_repairs.py
+  s_2d5856da696824::t_0cea9e2de35a1b 14-20,25-39
+  s_2d5856da696824::t_8600e47c22a158 6,61-63,80-81
+  s_2d5856da696824::t_bc6b109a3c99e0 1-5,7-13,21-24,40-60,64-79,82-98
+training/tests/test_kaggle_v22_qwen3_8b.py
+  s_2d5856da696824::t_df34d7a6a55208 111-119
+  s_2d5856da696824::t_63bf0697776982 93-94,96-97,126-128
+  s_2d5856da696824::t_18b3fcfc7bdcb5 101-110
+.gitignore
+  s_2d5856da696824::t_ed98dc20af39a9 316
+  s_2d5856da696824::t_e11257dbd0aa6f 235
+training/kaggle_v22_qwen3_8b/train.py
+  s_2d5856da696824::t_38879fde219224 156
+  s_2d5856da696824::t_df34d7a6a55208 157-158,162,166-169
+training/tests/test_build_edge_and_nightmare_dataset.py
+  s_2d5856da696824::t_a299c6de457bce 44-46,49-60
+  s_2d5856da696824::t_9fdf4ec194af40 42-43,47-48
+  s_2d5856da696824::t_2ef95d4704d985 9
+training/crisis_target_audit.py
+  s_2d5856da696824::t_0896585694f527 52,54,59,176,178,181,185
+  s_2d5856da696824::t_9f4645346e9b76 83-130,133,136-156,205,211-217
+  s_2d5856da696824::t_eb5af4baf3da29 36
+  s_2d5856da696824::t_68ac0a192c2a8e 20,22,131-132,134-135
+  s_2d5856da696824::t_5fc9b64e4439eb 3
+  s_2d5856da696824::t_f0a46a39c363de 55
+  s_2d5856da696824::t_3096dd81263b4a 1-2,4-19,21,23-35,37-51,53,56-58,60-82,157-175,177,179-180,182-184,186-204,206-210,218-221
+training/tests/test_build_clinical_backed_examples.py
+  s_2d5856da696824::t_038c79b6fee4e2 80-84
+  s_2d5856da696824::t_63065a34879c52 1,3,6-8,13,51-52,59-71,85-86,88-93,119-120,126-140,161-175
+  s_2d5856da696824::t_a6b5f4238fb9c9 46-48,197
+  s_2d5856da696824::t_aa662285f81d5a 72-79
+configs/dataset_registry.json
+  s_e96f85d720e925::t_05870ea1e6400c 453,455,457-458,460,462
+  s_7d4811cf1b0ba7::t_fc71672f2c4786 4,55,3232-3233,3235,3532-3533,3535,3796-3797,3799,3960
+  s_e96f85d720e925::t_f45d91da2256d3 463
+pipelines/data_processing/dataset_adapters/personalitydbench_adapter.py
+  s_2d5856da696824::t_ed98dc20af39a9 16,140,154,158
+training/tests/test_export_research_target_repairs.py
+  s_2d5856da696824::t_4b6793cbdfa204 16-24,28-42,56-79,90-92,134-136,143-145,150-152
+  s_2d5856da696824::t_6c89089cf4f50f 101-133,137-142,146-149,153-156
+  s_2d5856da696824::t_0fc9f0e13c191c 1-15,25-27,43-55,80-89,93-100
+qa/validation/therapy_bench/generate_crisis_capability_v1.py
+  s_e96f85d720e925::t_45d8a6a6429d51 125-131
+  s_e96f85d720e925::t_0482e569e3e4e2 115-124
+training/export_tinker_release.py
+  s_2d5856da696824::t_bdb02bbef1279e 335-336,409,411
+  s_2d5856da696824::t_d594170c83be55 305-319,341
+  s_2d5856da696824::t_a046a5ddbccaae 355-356,454
+pipelines/data_processing/dataset_adapters/addiction_stories_adapter.py
+  s_2d5856da696824::t_ed98dc20af39a9 9,37,79,101,110-112,123,127
+training/curate_pipeline.py
+  s_2d5856da696824::t_69f5279c3a3eb0 411-412
+  s_2d5856da696824::t_5fa7e4e694c8d9 113-115,407-410,413,453-458
+  s_2d5856da696824::t_ed98dc20af39a9 103-106
+  s_2d5856da696824::t_dfb0fff89c600a 403,429,444-445,468,488
+  s_2d5856da696824::t_b8313a8800298b 404
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4de632327dcdc0fde707ae3a680814ba8d04d92d",
+  "prompts": {},
+  "sessions": {
+    "s_2d5856da696824": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f291-fcb0-7ec0-bd62-b77d02388594",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_e96f85d720e925": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "spiffy-seagull",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
