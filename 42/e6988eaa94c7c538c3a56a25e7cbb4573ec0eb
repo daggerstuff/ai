@@ -1,0 +1,27 @@
+training/tests/test_crisis_suite_v2.py
+  s_7d4811cf1b0ba7::t_ecdf77e038503e 30,47,52,56-57,60,64,68-69,125-132,135,137-158
+training/tests/test_build_agent_tool_sft_v30.py
+  s_7d4811cf1b0ba7::t_ecdf77e038503e 109-110,115-116,119-120,124-135
+training/tests/test_export_tinker_release.py
+  s_7d4811cf1b0ba7::t_ecdf77e038503e 6,15,451,465,497
+training/tests/test_ovh_eval_submit.py
+  s_7d4811cf1b0ba7::t_ecdf77e038503e 111,115-116,120-121,124,153-155
+qa/validation/therapy_bench/generate_crisis_capability_v2.py
+  s_7d4811cf1b0ba7::t_ecdf77e038503e 73-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "42e6988eaa94c7c538c3a56a25e7cbb4573ec0eb",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
