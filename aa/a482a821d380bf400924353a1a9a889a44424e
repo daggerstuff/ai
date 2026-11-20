@@ -1,0 +1,99 @@
+tools/DataDesigner/packages/data-designer-config/src/data_designer/plugins/plugin.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 130
+qa/reports/conversation_quality_pattern_analyzer.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 127,143
+research/experiments/tests/test_processing_components.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 199,427
+research/experiments/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 722
+qa/testing/comprehensive_test_suite.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 181
+qa/testing/test_processing_components.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 199,427
+tests/validation_quality_assurance_system.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 475,517,534,553
+qa/reports/quality_distribution_analyzer.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 261,269,475
+lab/tests/test_processing_components.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 195,423
+qa/reports/health_check.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 1031,1098
+cli/auth.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 125
+inference/services/dream/consolidation.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 272,311
+qa/reports/conversation_recommendation_optimizer.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 127,180,235,282,358
+tests/test_processing_components.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 195,423
+lab/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 722
+qa/reports/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 722
+qa/reports/post_launch_monitor.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 647
+tests/comprehensive_test_suite.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 181
+core/pipelines/processing/slicer_s3_streaming.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 51,91
+qa/reports/quality_trend_analyzer.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 416,428
+qa/reports/conversation_diversity_coverage_analyzer.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 117
+qa/reports/quality_trend_analyzer_fixed.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 459,471
+research/experiments/tests/validation_quality_assurance_system.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 479,521,538,557
+training/dataset_evaluator.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 73
+tools/scripts/auth.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 125
+tools/scripts/lightning_studio_setup.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 62,70,78,85
+qa/reports/quality_distribution_analyzer_fixed.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 232,245
+infrastructure/qa/safety_accuracy_validator_simple.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 481,505,531
+lab/tests/validation_quality_assurance_system.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 475,517,534,553
+qa/reports/conversation_effectiveness_predictor.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 127,147,275
+tools/scripts/monitor_processing.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 23,44
+research/experiments/tests/comprehensive_test_suite.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 181
+services/dream/consolidation.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 259,298
+lab/tests/comprehensive_test_suite.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 181
+monitoring/explainability/model_explainability.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 722
+qa/reports/dataset_performance_impact_analyzer.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 143,157
+training/reconstruct_missing_plans.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 1164
+qa/reports/quality_comparison_system.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 173,183
+qa/testing/validation_quality_assurance_system.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 479,521,538,557
+pkg_mera/core/pipelines/processing/slicer_s3_streaming.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 51,91
+inference/deployment/qa/safety_accuracy_validator_simple.py
+  s_7d4811cf1b0ba7::t_8bd6b5d6699f37 481,505,531
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aaa482a821d380bf400924353a1a9a889a44424e",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
