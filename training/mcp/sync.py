@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import Any
 
 from training.mcp import backends, db
-from training.mcp.config import Settings
+from training.mcp.config import IMPORT_ACTOR, NON_REQUESTING_ACTORS, Settings
 
 #: Statuses a registry row can still leave. Anything else is terminal and is
 #: never rewritten by the reconciler.
@@ -29,6 +29,18 @@ ACTIVE_STATUSES = frozenset({"planned", "queued", "staging", "submitted", "runni
 #: Terminal statuses, mirrored from runner.TERMINAL_STATUSES without importing
 #: runner (which would create a module cycle risk for a constant).
 _BACKEND_LOST = "backend_lost"
+
+__all__ = [
+    "ACTIVE_STATUSES",
+    "IMPORT_ACTOR",
+    "NON_REQUESTING_ACTORS",
+    "import_manual_rows",
+    "reconcile_lost_backends",
+    "sync_all",
+    "sync_ovhai",
+    "sync_r2_evals",
+    "sync_wandb",
+]
 
 
 def _import_rows(settings: Settings, rows: list[dict[str, Any]]) -> int:
@@ -87,7 +99,7 @@ def sync_r2_evals(settings: Settings) -> dict[str, Any]:
             "name": tag,
             "status": "succeeded",
             "stage": "succeeded",
-            "requested_by": "import",
+            "requested_by": IMPORT_ACTOR,
             "spec": {"tag": tag, "imported_from": "r2:evals/"},
             "artifact_refs": {"r2_prefix": f"evals/{tag}/"},
             "cost_class": "gpu-hour",
@@ -126,7 +138,7 @@ def import_manual_rows(settings: Settings, rows: list[dict[str, Any]]) -> dict[s
                 **row,
                 "source": row.get("source") or "manual",
                 "stage": row.get("stage") or row["status"],
-                "requested_by": row.get("requested_by") or "import",
+                "requested_by": row.get("requested_by") or IMPORT_ACTOR,
             }
         )
     return {

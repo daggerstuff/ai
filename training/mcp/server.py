@@ -355,6 +355,25 @@ def plan_job(
     return {"ok": True, **result}
 
 
+def count_toward_daily_cap(jobs: list[dict[str, Any]]) -> int:
+    """Count jobs that consume the daily launch cap.
+
+    Rows created before this date or by an actor that did not request a launch
+    through the control plane (``import``) must not count: a single
+    ``import_history(include_backends=True)`` sweep can mirror dozens of
+    historical runs, and counting them would block every real submit until
+    midnight.
+    """
+    today = datetime.now(UTC).date().isoformat()
+    return sum(
+        1
+        for j in jobs
+        if (j.get("created_at") or "").startswith(today)
+        and j.get("requested_by")
+        and j.get("requested_by") not in sync.NON_REQUESTING_ACTORS
+    )
+
+
 @mcp.tool
 def submit_job(
     plan_hash: str | None = None,
@@ -435,10 +454,12 @@ def submit_job(
         # the job is queued rather than rejected so a burst still runs, one
         # at a time. The daily/monthly caps below are the hard stop.
         pass
-    # daily job cap
-    today = datetime.now(UTC).date().isoformat()
+    # daily job cap — counts jobs a human or agent actually asked the control
+    # plane to launch. Rows discovered by `import_history`/`sync_jobs` carry the
+    # `import` actor and are excluded: a single backfill sweep would otherwise
+    # consume the whole cap and block every real submit until midnight.
     all_jobs = db.list_jobs(s.db_path, limit=500)
-    today_count = sum(1 for j in all_jobs if (j.get("created_at") or "").startswith(today) and j.get("requested_by"))
+    today_count = count_toward_daily_cap(all_jobs)
     if today_count >= s.daily_job_cap:
         audit(
             "submit.rejected",

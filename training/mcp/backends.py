@@ -14,7 +14,7 @@ from typing import Any, cast
 
 import wandb
 from training.launch import r2_sync
-from training.mcp.config import Settings
+from training.mcp.config import IMPORT_ACTOR, Settings
 
 
 def _run(cmd: list[str], *, timeout: int = 60) -> subprocess.CompletedProcess[str]:
@@ -189,7 +189,7 @@ def normalize_wandb_run(run: dict[str, Any]) -> dict[str, Any]:
         "spec": {"url": run.get("url"), "tags": run.get("tags") or []},
         "artifacts": {"wandb_url": run.get("url")},
         "cost_class": "gpu-day",
-        "requested_by": "import",
+        "requested_by": IMPORT_ACTOR,
         "error": None,
     }
 

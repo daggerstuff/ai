@@ -8,6 +8,8 @@ plan/submit binding, the audit log, and the eval gate's fail-closed behaviour.
 from __future__ import annotations
 
 import sys
+import threading
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -17,7 +19,8 @@ if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
 from training.mcp import backends, db, foresight, plan, recipes, runner, sync  # noqa: E402
-from training.mcp.config import Settings  # noqa: E402
+from training.mcp.config import IMPORT_ACTOR, Settings  # noqa: E402
+from training.mcp.server import count_toward_daily_cap  # noqa: E402
 
 VALID_ENTRY = {
     "id": "eval-draft-v1",
@@ -243,6 +246,38 @@ def test_plan_job_rejects_locked_and_badly_typed_overrides(db_path: Path):
         )
 
 
+def test_dry_run_override_adds_and_omits_a_flag(db_path: Path):
+    """A boolean override substitutes as a CLI flag, and vanishes when false."""
+    settings = _FakeSettings(db_path)
+    off = plan.plan_job(settings, "curate-sft-v30", {"corpus": "/data/corpus"}, {})
+    assert off["command"] == "python -m training.build_agent_tool_sft_v30"
+    assert off["warnings"] == []
+    on = plan.plan_job(settings, "curate-sft-v30", {"corpus": "/data/corpus"}, {"dry_run": True})
+    assert on["command"] == "python -m training.build_agent_tool_sft_v30 --dry-run"
+    explicit_off = plan.plan_job(
+        settings,
+        "build-release-v30",
+        {"train_payload": "sha256:x", "eval_tag": "v30"},
+        {"dry_run": False},
+    )
+    assert explicit_off["command"] == "python -m training.build_v30_release"
+
+
+def test_dry_run_override_rejects_non_boolean(db_path: Path):
+    settings = _FakeSettings(db_path)
+    with pytest.raises(plan.PlanError, match="must be a boolean"):
+        plan.plan_job(settings, "curate-sft-v30", {"corpus": "/c"}, {"dry_run": "yes"})
+
+
+def test_local_recipes_support_dry_run_and_validate():
+    """Every local recipe must be verifiable without writing artifacts."""
+    local = [r for r in recipes.load_recipes() if r.backend == "local"]
+    assert local, "expected at least one local recipe"
+    for recipe in local:
+        assert "dry_run" in recipe.overrides, f"{recipe.id} cannot be dry-run"
+        assert recipe.overrides["dry_run"].get("type") == "bool"
+
+
 # --- backends.evaluate_gate (P3.2) -----------------------------------------
 
 
@@ -462,3 +497,80 @@ def test_foresight_payload_is_best_effort_on_bad_url(db_path):
 def test_foresight_disabled_by_config(db_path):
     assert _settings(db_path, {"TRAINING_MCP_FORESIGHT": "0"}).foresight_enabled is False
     assert _settings(db_path).foresight_enabled is True
+
+
+def test_daily_cap_counting_ignores_imported_rows():
+    """A backfill sweep must not burn the day's launch budget.
+
+    Imported rows carry the ``import`` actor; the daily cap must ignore them or
+    one ``include_backends=True`` sweep blocks every real submit until midnight.
+    """
+    today = datetime.now(UTC).date().isoformat()
+    yesterday = (datetime.now(UTC).date() - timedelta(days=1)).isoformat()
+
+    def row(actor, when=today):
+        return {"requested_by": actor, "created_at": f"{when}T09:00:00+00:00"}
+
+    imported = [row(IMPORT_ACTOR) for _ in range(30)]
+    real = [row("pipeline-agent"), row("schedule:weekly-train")]
+    anonymous = [row(None)]
+    stale = [row("pipeline-agent", yesterday)]
+
+    assert count_toward_daily_cap(imported) == 0
+    assert count_toward_daily_cap(imported + anonymous) == 0
+    assert count_toward_daily_cap(imported + stale) == 0
+    assert count_toward_daily_cap(imported + real) == len(real)
+
+
+def test_command_interpreter_is_rewritten_to_the_service_venv():
+    """Recipes say ``python -m ...``; systemd's PATH has only ``python3``.
+
+    Without the rewrite the spawn raises FileNotFoundError on a daemon thread.
+    """
+    rewritten = runner._resolve_interpreter("python -m training.build_v30_release --dry-run")
+    assert rewritten.startswith(sys.executable)
+    assert rewritten.endswith("-m training.build_v30_release --dry-run")
+    assert runner._resolve_interpreter("python3 -m x") == f"{sys.executable} -m x"
+    # Non-python entrypoints are untouched.
+    assert runner._resolve_interpreter("ovhai job list") == "ovhai job list"
+
+
+def test_spawn_failure_lands_in_a_terminal_state(db_path, monkeypatch):
+    """A Popen OSError must fail the job, not strand it at `submitted`."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {
+            "job_id": "job-spawnfail",
+            "kind": "build_release",
+            "source": "local",
+            "name": "spawnfail",
+            "status": "queued",
+            "requested_by": "test",
+        },
+    )
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+
+    def boom(*_a, **_k):
+        raise FileNotFoundError("no such file: python")
+
+    monkeypatch.setattr(runner.subprocess, "Popen", boom)
+    # Run the job body synchronously instead of on the daemon thread.
+    row = db.get_job(db_path, "job-spawnfail")
+    started = threading.Event()
+
+    class Immediate:
+        def __init__(self, target=None, **_kw):
+            self._target = target
+
+        def start(self):
+            started.set()
+            self._target()
+
+    monkeypatch.setattr(runner.threading, "Thread", Immediate)
+    runner.submit(settings, "job-spawnfail", row, "python -m training.build_v30_release", "local")
+    assert started.is_set()
+    final = db.get_job(db_path, "job-spawnfail")
+    assert final["status"] == "failed"
+    assert "spawn failed" in (final["error"] or "")
+    assert final["finished_at"] is not None

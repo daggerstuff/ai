@@ -12,6 +12,7 @@ import contextlib
 import os
 import shlex
 import subprocess
+import sys
 import threading
 import time
 from typing import Any
@@ -176,9 +177,29 @@ def _record_terminal_outcome(settings: Settings, job_id: str) -> None:
         )
 
 
+def _resolve_interpreter(command: str) -> str:
+    """Run recipe commands in the MCP's own interpreter.
+
+    Recipes spell entrypoints as ``python -m training...``, but the systemd unit
+    runs with a PATH that has only ``python3`` (no ``python``), so a bare
+    ``python`` raised FileNotFoundError. Rather than depend on the caller's
+    PATH, rewrite a leading ``python``/``python3`` token to ``sys.executable`` —
+    the venv the service itself runs in, which is also where the training
+    package and its dependencies live.
+    """
+    try:
+        parts = shlex.split(command)
+    except ValueError:
+        return command
+    if parts and os.path.basename(parts[0]) in {"python", "python3", "python3.14"}:
+        parts[0] = sys.executable
+    return shlex.join(parts)
+
+
 def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: str, backend: str) -> None:
     """Spawn the subprocess for a queued job, respecting single-flight."""
     lock = _lock_for(backend)
+    resolved_command = _resolve_interpreter(command)
 
     def _run() -> None:
         # Wait for single-flight slot.
@@ -216,17 +237,40 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
             log_dir.mkdir(parents=True, exist_ok=True)
             log_path = str(log_dir / f"{job_id}.log")
             try:
-                cmd_list = shlex.split(command)
+                cmd_list = shlex.split(resolved_command)
             except ValueError:
-                cmd_list = command.split()
-            with open(log_path, "w") as lf:
-                proc = subprocess.Popen(
-                    cmd_list,
-                    cwd=str(settings.db_path.parents[2]),  # ai root
-                    env=env,
-                    stdout=lf,
-                    stderr=subprocess.STDOUT,
+                cmd_list = resolved_command.split()
+            try:
+                with open(log_path, "w") as lf:
+                    proc = subprocess.Popen(
+                        cmd_list,
+                        cwd=str(settings.db_path.parents[2]),  # ai root
+                        env=env,
+                        stdout=lf,
+                        stderr=subprocess.STDOUT,
+                    )
+            except OSError as exc:
+                # A spawn failure must land the job in a terminal state: this
+                # runs on a daemon thread, so an escaping exception would leave
+                # the row stuck at `submitted` forever with no operator signal.
+                db.upsert_job(
+                    settings.db_path,
+                    {
+                        "job_id": job_id,
+                        "kind": job_row["kind"],
+                        "source": job_row["source"],
+                        "name": job_row.get("name"),
+                        "status": "failed",
+                        "stage": "failed",
+                        "backend_id": job_row.get("backend_id"),
+                        "error": f"spawn failed: {type(exc).__name__}: {exc}",
+                        "finished_at": db.now(),
+                    },
                 )
+                with open(log_path, "a") as lf:
+                    lf.write(f"[runner] spawn failed: {type(exc).__name__}: {exc}\n")
+                _record_terminal_outcome(settings, job_id)
+                return
             with _PROCESSES_GUARD:
                 _PROCESSES[job_id] = proc
             db.upsert_job(

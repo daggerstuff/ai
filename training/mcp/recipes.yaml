@@ -81,13 +81,15 @@ recipes:
       Local CPU; writes versioned dataset artifacts consumed by
       train-sft-latest.
     backend: local
-    entrypoint: "python -m training.build_agent_tool_sft_v29"
+    entrypoint: "python -m training.build_agent_tool_sft_v29 <dry_run>"
     cost_class: cpu-hour
     est_cost_usd: 0.0
     gpu: none
     timeout: 4h
     inputs:
       corpus: "hackathon corpus root (HACKATHON_ROOT)"
+    overrides:
+      dry_run: { type: bool, default: false, locked: false }
     outputs:
       dataset: "versioned SFT jsonl under training/output/"
 
@@ -98,13 +100,15 @@ recipes:
       Local CPU; writes versioned dataset artifacts consumed by
       train-sft-latest.
     backend: local
-    entrypoint: "python -m training.build_agent_tool_sft_v30"
+    entrypoint: "python -m training.build_agent_tool_sft_v30 <dry_run>"
     cost_class: cpu-hour
     est_cost_usd: 0.0
     gpu: none
     timeout: 4h
     inputs:
       corpus: "hackathon corpus root (HACKATHON_ROOT)"
+    overrides:
+      dry_run: { type: bool, default: false, locked: false }
     outputs:
       dataset: "versioned SFT jsonl under training/output/"
 
@@ -114,7 +118,7 @@ recipes:
       Assemble the v30 release manifest + payload (sha256-pinned) from
       train outputs and eval results.
     backend: local
-    entrypoint: "python -m training.build_v30_release"
+    entrypoint: "python -m training.build_v30_release <dry_run>"
     cost_class: cpu-minute
     est_cost_usd: 0.0
     gpu: none
@@ -122,5 +126,7 @@ recipes:
     inputs:
       train_payload: "sha256 + rows from the SFT run"
       eval_tag: "R2 eval tag to bind into the manifest"
+    overrides:
+      dry_run: { type: bool, default: false, locked: false }
     outputs:
       manifest: "docs/training/execution-*/release manifest"

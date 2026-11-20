@@ -53,6 +53,9 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
         elif otype == "str":
             if not isinstance(value, str):
                 raise PlanError(f"override '{name}' must be string")
+        elif otype == "bool":
+            if not isinstance(value, bool):
+                raise PlanError(f"override '{name}' must be a boolean")
     # Defaults for missing non-locked overrides.
     for name, spec in recipe.overrides.items():
         if name not in (overrides or {}) and "default" in spec and not spec.get("locked"):
@@ -60,16 +63,31 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
     return warnings
 
 
-def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any]) -> str:
+def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any], overrides: dict[str, Any]) -> str:
+    """Substitute ``<name>`` placeholders from inputs, then overrides.
+
+    A boolean value substitutes as a CLI flag: ``True`` becomes
+    ``--dry-run`` and ``False`` becomes an empty string, so a boolean
+    override can add or omit a flag without leaving a stray placeholder.
+    A placeholder with no value is left intact so the caller can warn
+    about it rather than silently dropping an argument.
+    """
     cmd = recipe.entrypoint
+    values = {**overrides, **inputs}
 
     def repl(match: re.Match[str]) -> str:
         key = match.group(1).strip()
-        if key in inputs and inputs.get(key) not in (None, ""):
-            return str(inputs[key])
-        return match.group(0)
+        if key not in values:
+            return match.group(0)
+        value = values[key]
+        if value in (None, ""):
+            return ""
+        if isinstance(value, bool):
+            return "--dry-run" if value else ""
+        return str(value)
 
-    return re.sub(r"<([A-Za-z0-9_\-]+)>", repl, cmd)
+    resolved = re.sub(r"<([A-Za-z0-9_\-]+)>", repl, cmd)
+    return " ".join(resolved.split())
 
 
 def plan_job(
@@ -93,7 +111,7 @@ def plan_job(
         if spec.get("locked") and "default" in spec and name not in overrides:
             overrides[name] = spec["default"]
 
-    command = _resolve_command(recipe, inputs)
+    command = _resolve_command(recipe, inputs, overrides)
     if "<" in command and ">" in command:
         warnings.append("entrypoint still contains unresolved placeholders")
     if recipe.kind == "eval_paired" and not recipe.invariants.get("r2_only"):

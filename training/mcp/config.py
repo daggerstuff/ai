@@ -11,6 +11,17 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
+#: ``requested_by`` value stamped on rows discovered by import rather than
+#: requested through the control plane (W&B/R2 backfill, operator-seeded
+#: history). The daily job cap counts ``requested_by`` rows, so imported
+#: history must not consume the day's launch budget — one sweep can import
+#: dozens of runs and would otherwise block every real submit until midnight.
+IMPORT_ACTOR = "import"
+
+#: Actors whose rows were not requested through the control plane and so must
+#: never count against the daily launch cap.
+NON_REQUESTING_ACTORS = frozenset({IMPORT_ACTOR})
+
 PKG_DIR = Path(__file__).resolve().parent
 AI_ROOT = PKG_DIR.parents[1]
 WORKSPACE_ROOT = AI_ROOT.parent
