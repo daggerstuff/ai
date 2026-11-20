@@ -91,8 +91,9 @@ error before opening the PR.
 3. CI and review run as usual. A reviewer checks that the entrypoint exists
    under `training/`, that the cost estimate is honest, and that the outputs
    land somewhere a promotion gate can read.
-4. On merge, restart the service so the new registry is loaded:
-   `systemctl --user restart training-infra-mcp.service`.
+4. No restart is needed: `recipes.yaml` is re-read on every tool call
+   (`recipes.load_recipes()`), so the new entry is live as soon as the file
+   lands on the service host. (Restart only for `.env` changes.)
 5. Verify: `list_recipes()` includes the new id and `get_recipe(id)` returns it.
 
 ## 5. Optional advisor proposal path

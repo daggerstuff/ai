@@ -67,14 +67,30 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
     return warnings
 
 
+def _bool_flag(recipe: recipes.Recipe, name: str) -> str:
+    """The CLI flag a boolean override named ``name`` substitutes to.
+
+    Derived from the override name (``dry_run`` -> ``--dry-run``) rather than
+    hardcoded: the old code turned *every* truthy bool into the literal
+    ``--dry-run``, so a recipe with two boolean overrides rendered the same
+    flag twice and silently dropped the other. A recipe can still name its
+    flag explicitly with ``flag: --verbose``.
+    """
+    spec = recipe.overrides.get(name) or {}
+    declared = spec.get("flag")
+    if isinstance(declared, str) and declared.strip():
+        return declared.strip()
+    return "--" + name.replace("_", "-")
+
+
 def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any], overrides: dict[str, Any]) -> str:
     """Substitute ``<name>`` placeholders from inputs, then overrides.
 
-    A boolean value substitutes as a CLI flag: ``True`` becomes
-    ``--dry-run`` and ``False`` becomes an empty string, so a boolean
-    override can add or omit a flag without leaving a stray placeholder.
-    A placeholder with no value is left intact so the caller can warn
-    about it rather than silently dropping an argument.
+    A boolean value substitutes as a CLI flag named after the override:
+    ``dry_run: True`` becomes ``--dry-run`` and ``False`` becomes an empty
+    string, so a boolean override can add or omit a flag without leaving a
+    stray placeholder. A placeholder with no value is left intact so the
+    caller can warn about it rather than silently dropping an argument.
     """
     cmd = recipe.entrypoint
     values = {**overrides, **inputs}
@@ -87,7 +103,7 @@ def _resolve_command(recipe: recipes.Recipe, inputs: dict[str, Any], overrides: 
         if value in (None, ""):
             return ""
         if isinstance(value, bool):
-            return "--dry-run" if value else ""
+            return _bool_flag(recipe, key) if value else ""
         return str(value)
 
     resolved = re.sub(r"<([A-Za-z0-9_\-]+)>", repl, cmd)

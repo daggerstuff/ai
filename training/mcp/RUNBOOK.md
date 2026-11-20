@@ -16,7 +16,7 @@ every request against a reviewed recipe registry, and records an audit trail.
 | Concern        | Where                                                                               |
 | -------------- | ----------------------------------------------------------------------------------- |
 | Service code   | `ai/training/mcp/server.py` (tools), `plan.py`, `runner.py`, `sync.py`              |
-| Recipes        | `ai/training/mcp/recipes.yaml` (reviewed PRs only — see `docs/RECIPE_WORKFLOW.md`)   |
+| Recipes        | `ai/training/mcp/recipes.yaml` (reviewed PRs only — see `ai/training/mcp/RECIPE_WORKFLOW.md`)   |
 | Secrets        | `ai/training/mcp/.env` (mode 600, gitignored) — W&B, R2, OVH, `TRAINING_INFRA_MCP_TOKEN` |
 | Budget caps    | same `.env`: `TRAINING_MCP_MAX_CONCURRENT_JOBS`, `TRAINING_MCP_DAILY_JOB_CAP`, `TRAINING_MCP_MONTHLY_COST_CAP_USD` |
 | systemd unit   | `ai/training/mcp/deploy/training-infra-mcp.service` (installed at `~/.config/systemd/user/training-infra-mcp.service`) |
@@ -25,8 +25,12 @@ every request against a reviewed recipe registry, and records an audit trail.
 | Per-job logs   | `ai/training/mcp/state/logs/<job_id>.log`                                           |
 | Backends       | `ai/training/mcp/backends.py` (ovhai CLI, W&B API, R2 S3)                            |
 
-Agents **never** hold these credentials. They hold only
-`TRAINING_INFRA_MCP_URL` and `TRAINING_INFRA_MCP_TOKEN`.
+Agents **never** hold the backend credentials in the rows above
+(`WANDB_API_KEY`, `R2_*`, OVH/HF tokens). Of the control plane they hold only
+`TRAINING_INFRA_MCP_URL` and `TRAINING_INFRA_MCP_TOKEN`. An agent's own `.env`
+does carry its unrelated runtime secrets (Cloudflare Workers AI key, Slack
+tokens, MongoDB URI), so the isolation rule is about **backend** secrets — the
+ones that can launch or pay for training — not about every value in the file.
 
 ---
 
@@ -91,8 +95,11 @@ spec (recipe, inputs, overrides, command, cost) that a human or agent saw.
    `est_cost_usd`, `warnings`. No side effects; audited as `plan`.
 2. Show the plan to the approver.
 3. `submit_job(plan_hash, requested_by, idempotency_key)` → launches and audits
-   `submit`. A stale, missing, or mismatched `plan_hash` is rejected and audited
-   as `submit.rejected` unless `force=true`.
+   `submit`. The plan is bound to its approval: the submitted `recipe`, `inputs`
+   and `overrides` must match the planned spec exactly, and a missing or expired
+   `plan_hash` is rejected and audited as `submit.rejected` unless `force=true`.
+   `TRAINING_MCP_PLAN_TTL_SECONDS` (default 86400) bounds how long an approval
+   stays submittable.
 
 `submit_job` also enforces `max_concurrent_jobs`, `daily_job_cap`, and
 `monthly_cost_cap_usd`, and returns the existing job for a repeated
@@ -134,9 +141,13 @@ spec (recipe, inputs, overrides, command, cost) that a human or agent saw.
 Every rejection is an `audit_log` row with `action='submit.rejected'` and a
 reason. Read it with `list_audit(action="submit.rejected")`:
 
-- `plan_hash required` / `not found` / `expired` → re-run `plan_job`.
-- `plan_hash does not match recipe` → the caller edited inputs after planning;
-  re-plan and re-approve.
+- `plan_hash required` / `plan_hash not found or expired` → re-run `plan_job`
+  (a plan older than `TRAINING_MCP_PLAN_TTL_SECONDS` is expired).
+- `submitted spec differs from the approved plan` → the caller edited recipe,
+  inputs or overrides after planning; re-plan and re-approve. The audit
+  `detail.fields` names which of the three differed.
+- `max concurrent jobs reached` → wait for a running job to finish, or
+  `cancel_job` one; raise `TRAINING_MCP_MAX_CONCURRENT_JOBS` only deliberately.
 - `daily job cap reached` → raise `TRAINING_MCP_DAILY_JOB_CAP` or wait for UTC
   midnight.
 - `monthly cost cap would be exceeded` → raise
@@ -156,12 +167,14 @@ reason. Read it with `list_audit(action="submit.rejected")`:
 
 ### Agents cannot reach the MCP
 
-1. Confirm the token matches on both sides:
-   `ai/training/mcp/.env` and `agents/pipeline-agent/.env`
-   (`TRAINING_INFRA_MCP_TOKEN`).
+1. Confirm the token matches everywhere: `ai/training/mcp/.env` and **every**
+   agent that calls the MCP — today `agents/pipeline-agent/.env` and
+   `agents/advisor-agent/.env` (`TRAINING_INFRA_MCP_TOKEN`). A token present in
+   only one of them fails per-agent, not globally.
 2. Confirm the URL: `http://127.0.0.1:8766/mcp` for a host process,
-   `http://host.docker.internal:8766/mcp` from a Compose container (the
-   pipeline-agent service declares `extra_hosts: host.docker.internal:host-gateway`).
+   `http://host.docker.internal:8766/mcp` from a Compose container. Both the
+   pipeline-agent and advisor-agent services declare
+   `extra_hosts: host.docker.internal:host-gateway`.
 3. A 401 means the token is wrong or unset; a connection refused means the unit
    is not running.
 

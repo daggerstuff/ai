@@ -42,7 +42,7 @@ authed). State in `state/jobs.db` (SQLite/WAL), logs in `state/logs/`.
 
 ## Registry truth
 
-The registry is fed from four directions and stays authoritative:
+The registry is fed from three sources and stays authoritative:
 
 - `sync_jobs` imports recent ovhai jobs, W&B runs, and R2 eval tags, then
   **reconciles**: an active row whose backend job is no longer listed becomes

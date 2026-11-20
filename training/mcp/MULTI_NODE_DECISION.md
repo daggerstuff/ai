@@ -15,11 +15,14 @@ The repo contains a multi-node launcher
 (`ai/training/scripts/sprint8/launch_multi_node.py`) from PIX-4348, but it is a
 **preflight script**, not a production path:
 
-- `check_nccl()` fails on this host: torch is `2.13.0+cpu` and the script's own
-  comment records "NCCL for GPU multi-node only. IB drivers present. NCCL
-  missing." Its `main()` returns exit code 1 before launching whenever NCCL or
-  IB is absent — so on the current host it cannot launch a distributed job at
-  all.
+- `check_nccl()` and `check_ib()` both return **False** on this host, and
+  `main()` returns exit code 1 before launching a distributed job. The failure
+  is the **host**, not the torch build: the installed interpreter has
+  `torch 2.13.0+cu130` with `torch.distributed.is_nccl_available()` True, but
+  there is no `libnccl` in `ldconfig -p` and no `/sys/class/infiniband`, so
+  there is no NCCL to link and no InfiniBand device to rendezvous over. (The
+  launcher's own header comment still says "torch 2.13.0+cpu" — that comment is
+  stale, and `main()` fails on the missing host libraries regardless.)
 - It shells out to `torchrun` with no rank/rendezvous management, no OVH job
   topology, and no artifact contract. Our backends (`backends.py`) launch
   single-container OVH jobs and W&B Serverless runs; neither models a
@@ -39,7 +42,8 @@ cost the caps understand.
 
 `validate_recipe_entry` / the `validate_recipe` MCP tool reject:
 
-- `nodes`, `num_nodes`, `world_size`, or `multi_node: true` above 1;
+- `nodes`, `num_nodes`, `world_size` above `1`, **or any truthy
+  `multi_node`** (the boolean rejects `true`, not just values above 1);
 - a GPU flavour requesting more than one GPU (e.g. `l4-4-gpu`);
 - any `gpu` value containing `multi`.
 

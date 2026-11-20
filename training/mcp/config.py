@@ -110,6 +110,17 @@ class Settings:
         return float(self.env.get("TRAINING_MCP_GATE_MIN_PASS_RATE", "0.5"))
 
     @property
+    def plan_ttl_seconds(self) -> int:
+        """How long a ``plan_hash`` stays submittable after ``plan_job``.
+
+        The rejection message always said "not found or expired", but nothing
+        implemented expiry: the cache grew forever and an approval from weeks
+        ago still bound. Default 24h — long enough for a human approval round
+        trip, short enough that a stale plan cannot be submitted unnoticed.
+        """
+        return int(self.env.get("TRAINING_MCP_PLAN_TTL_SECONDS", "86400"))
+
+    @property
     def allow_remote(self) -> bool:
         """Explicit opt-in required before binding to a non-loopback address."""
         return self.env.get("TRAINING_MCP_ALLOW_REMOTE", "").lower() in {"1", "true", "yes"}

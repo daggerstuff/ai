@@ -69,6 +69,12 @@ CREATE INDEX IF NOT EXISTS idx_audit_ts ON audit_log(ts);
 _local = threading.local()
 
 
+#: Bumped whenever ``_migrate`` gains a step. Recorded in ``PRAGMA user_version``
+#: so an operator can tell which schema a registry file is at, and so a future
+#: migration can branch on the version instead of probing columns forever.
+SCHEMA_VERSION = 1
+
+
 def _migrate(conn: sqlite3.Connection) -> None:
     """Add columns introduced after the initial schema (idempotent)."""
     existing = {row[1] for row in conn.execute("PRAGMA table_info(jobs)").fetchall()}
@@ -86,7 +92,25 @@ def _migrate(conn: sqlite3.Connection) -> None:
             conn.execute(f"ALTER TABLE jobs ADD COLUMN {column} {decl}")
     conn.commit()
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_idempotency ON jobs(idempotency_key)")
+    conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
     conn.commit()
+
+
+#: Registry files are owner-only. The registry holds no credentials today, but
+#: it does hold job specs, actor names and the audit trail; leaving it 644 made
+#: all of that readable by every local user. SQLite recreates -wal/-shm on each
+#: connection, so the mode has to be re-applied rather than set once.
+_REGISTRY_MODE = 0o600
+_REGISTRY_DIR_MODE = 0o700
+
+
+def _harden(path: Path) -> None:
+    """Best-effort chmod of a registry file/dir; never fail the caller."""
+    try:
+        if path.exists():
+            path.chmod(_REGISTRY_MODE if path.is_file() else _REGISTRY_DIR_MODE)
+    except OSError:
+        pass
 
 
 def _conn(db_path: Path) -> sqlite3.Connection:
@@ -101,6 +125,10 @@ def _conn(db_path: Path) -> sqlite3.Connection:
         _migrate(conn)
         _local.conn = conn
         _local.path = str(db_path)
+        _harden(db_path)
+        _harden(db_path.parent)
+        for sidecar in (db_path.with_name(db_path.name + "-wal"), db_path.with_name(db_path.name + "-shm")):
+            _harden(sidecar)
     return conn
 
 
@@ -204,6 +232,24 @@ def list_jobs(
     return [_row_to_dict(row) for row in rows]
 
 
+def cap_rows(db_path: Path, *, since: str | None = None) -> list[dict[str, Any]]:
+    """Every job row created at or after ``since``, unpaged.
+
+    ``list_jobs`` clamps to 500 rows, which is right for a UI listing but wrong
+    for a budget check: silently dropping rows would let the daily/monthly caps
+    be exceeded once the registry grows past one page.
+
+    ``since`` is compared lexicographically, which is correct for the
+    registry's ISO-8601 ``created_at`` format — a bare date (``2026-11-20``)
+    matches that whole day, and a full timestamp matches from that instant.
+    """
+    if since:
+        rows = _conn(db_path).execute("SELECT * FROM jobs WHERE created_at >= ?", (since,)).fetchall()
+    else:
+        rows = _conn(db_path).execute("SELECT * FROM jobs").fetchall()
+    return [_row_to_dict(row) for row in rows]
+
+
 def find_by_backend(db_path: Path, source: str, backend_id: str) -> dict[str, Any] | None:
     row = (
         _conn(db_path)
@@ -229,16 +275,53 @@ def cache_plan(db_path: Path, plan_hash: str, recipe_id: str, spec: dict[str, An
     conn.commit()
 
 
-def get_cached_plan(db_path: Path, plan_hash: str) -> dict[str, Any] | None:
+def get_cached_plan(db_path: Path, plan_hash: str, *, max_age_seconds: int | None = None) -> dict[str, Any] | None:
+    """Return the cached plan, or None when absent or older than ``max_age``.
+
+    The rejection message has always said "not found or expired", but nothing
+    implemented expiry: the cache grew forever and an approval from weeks ago
+    still bound. Plans are cheap to recompute, so an age bound is safe.
+    """
     row = _conn(db_path).execute("SELECT * FROM plan_cache WHERE plan_hash = ?", (plan_hash,)).fetchone()
     if not row:
+        return None
+    created_at = row["created_at"]
+    if max_age_seconds is not None and _age_seconds(created_at) > max_age_seconds:
         return None
     return {
         "plan_hash": row["plan_hash"],
         "recipe_id": row["recipe_id"],
         "spec": json.loads(row["spec_json"]),
-        "created_at": row["created_at"],
+        "created_at": created_at,
     }
+
+
+def _age_seconds(created_at: str | None) -> float:
+    """Seconds since an ISO-8601 ``created_at``; ``inf`` when unparseable.
+
+    Fail closed: a row whose timestamp cannot be read is treated as ancient, so
+    a corrupt cache entry cannot resurrect an unbounded approval window.
+    """
+    if not created_at:
+        return float("inf")
+    try:
+        parsed = datetime.fromisoformat(created_at)
+    except ValueError:
+        return float("inf")
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return max(0.0, (datetime.now(UTC) - parsed).total_seconds())
+
+
+def prune_plans(db_path: Path, *, max_age_seconds: int) -> int:
+    """Delete plan_cache rows older than ``max_age_seconds``; return the count."""
+    conn = _conn(db_path)
+    rows = conn.execute("SELECT plan_hash, created_at FROM plan_cache").fetchall()
+    stale = [row["plan_hash"] for row in rows if _age_seconds(row["created_at"]) > max_age_seconds]
+    if stale:
+        conn.executemany("DELETE FROM plan_cache WHERE plan_hash = ?", [(h,) for h in stale])
+        conn.commit()
+    return len(stale)
 
 
 def write_audit(

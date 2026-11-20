@@ -91,6 +91,9 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
     # Reconcile on startup.
     with contextlib.suppress(Exception):
         sync.sync_all(s)
+    # Expire plans left over from previous runs.
+    with contextlib.suppress(Exception):
+        db.prune_plans(s.db_path, max_age_seconds=s.plan_ttl_seconds)
 
     # Periodic reconciler.
     async def _loop() -> None:
@@ -98,6 +101,11 @@ async def lifespan(_app: Any) -> AsyncIterator[None]:
             await asyncio.sleep(_RECONCILE_INTERVAL_S)
             with contextlib.suppress(Exception):
                 sync.sync_all(settings())
+            # Drop plan_cache rows past their TTL so the table does not grow
+            # without bound and an expired approval cannot be resubmitted.
+            with contextlib.suppress(Exception):
+                current = settings()
+                db.prune_plans(current.db_path, max_age_seconds=current.plan_ttl_seconds)
 
     task = asyncio.create_task(_loop())
     try:
@@ -253,7 +261,10 @@ def validate_recipe(entry: dict[str, Any]) -> dict[str, Any]:
         "ok": True,
         "valid": True,
         "errors": [],
-        "note": "Entry is valid; land it via a reviewed PR to training/mcp/recipes.yaml. See docs/RECIPE_WORKFLOW.md.",
+        "note": (
+            "Entry is valid; land it via a reviewed PR to training/mcp/recipes.yaml. "
+            "See training/mcp/RECIPE_WORKFLOW.md."
+        ),
     }
 
 
@@ -399,10 +410,17 @@ def submit_job(
                 detail={"idempotency_key": idempotency_key},
             )
             return {"ok": True, "job_id": existing["job_id"], "status": existing["status"], "idempotent": True}
-    # Plan binding.
+    # Plan binding. When a plan_hash is supplied (and not force), the *approved*
+    # plan is the authority: the caller's recipe/inputs/overrides must either be
+    # omitted or repeat exactly what was approved, and the recomputed plan below
+    # must still hash to the same value.
+    #
+    # Without this check a caller could plan a harmless dry run, show that to
+    # the operator, and then submit the same plan_hash with a different override
+    # — so the reviewed artifact never described the work that actually ran.
     cached = None
     if plan_hash:
-        cached = db.get_cached_plan(s.db_path, plan_hash)
+        cached = db.get_cached_plan(s.db_path, plan_hash, max_age_seconds=s.plan_ttl_seconds)
         if cached is None and not force:
             audit(
                 "submit.rejected",
@@ -412,22 +430,47 @@ def submit_job(
                 detail={"reason": "plan_hash not found or expired"},
             )
             return {"ok": False, "error": "plan_hash not found or expired; re-run plan_job"}
-    if cached is not None:
-        if recipe is None:
-            recipe = cached["recipe_id"]
-        if inputs is None:
-            inputs = cached["spec"].get("inputs", {})
-        if overrides is None:
-            overrides = cached["spec"].get("overrides", {})
-        if not force and recipe != cached["recipe_id"]:
+    if cached is not None and not force:
+        approved = cached["spec"]
+        mismatched = [
+            name
+            for name, supplied, approved_value in (
+                ("recipe", recipe, cached["recipe_id"]),
+                ("inputs", inputs, approved.get("inputs", {})),
+                ("overrides", overrides, approved.get("overrides", {})),
+            )
+            if supplied is not None and supplied != approved_value
+        ]
+        if mismatched:
             audit(
                 "submit.rejected",
                 actor=requested_by,
-                recipe_id=recipe,
+                recipe_id=recipe or cached["recipe_id"],
                 plan_hash=plan_hash,
-                detail={"reason": "plan_hash does not match recipe", "cached_recipe": cached["recipe_id"]},
+                detail={
+                    "reason": "submitted spec differs from the approved plan",
+                    "fields": mismatched,
+                },
             )
-            return {"ok": False, "error": "plan_hash does not match recipe"}
+            return {
+                "ok": False,
+                "error": f"submitted {', '.join(mismatched)} differ from the approved plan; re-run plan_job",
+            }
+    if cached is not None:
+        if force:
+            # force=true is the explicit escape hatch: the caller's spec wins,
+            # defaulting to the cached plan only where they said nothing.
+            if recipe is None:
+                recipe = cached["recipe_id"]
+            if inputs is None:
+                inputs = cached["spec"].get("inputs", {})
+            if overrides is None:
+                overrides = cached["spec"].get("overrides", {})
+        else:
+            # Bound submit: run exactly the approved spec, never the caller's.
+            recipe = cached["recipe_id"]
+            inputs = cached["spec"].get("inputs", {})
+            overrides = cached["spec"].get("overrides", {})
     if recipe is None:
         audit("submit.rejected", actor=requested_by, detail={"reason": "recipe required"})
         return {"ok": False, "error": "recipe required (or a valid plan_hash)"}
@@ -449,17 +492,38 @@ def submit_job(
     running = db.list_jobs(s.db_path, status="running")
     queued = db.list_jobs(s.db_path, status="queued")
     active_count = len(running) + len(queued)
-    if active_count >= s.max_concurrent_jobs and s.max_concurrent_jobs > 0:
-        # Single-flight per backend (runner.py) already serializes execution;
-        # the job is queued rather than rejected so a burst still runs, one
-        # at a time. The daily/monthly caps below are the hard stop.
-        pass
+    if s.max_concurrent_jobs > 0 and active_count >= s.max_concurrent_jobs:
+        # RUNBOOK documents this cap as "reject a submit that would exceed it",
+        # and it is the only guard on how many jobs an agent can have in flight
+        # at once. It used to be a bare `pass`, so the cap was advertised in
+        # `health.budget_caps` but never enforced.
+        audit(
+            "submit.rejected",
+            actor=requested_by,
+            recipe_id=recipe,
+            plan_hash=planned["plan_hash"],
+            detail={
+                "reason": "max concurrent jobs reached",
+                "cap": s.max_concurrent_jobs,
+                "active_count": active_count,
+            },
+        )
+        return {
+            "ok": False,
+            "error": (
+                f"max concurrent jobs reached ({s.max_concurrent_jobs}); wait for a running job to finish or cancel one"
+            ),
+        }
     # daily job cap — counts jobs a human or agent actually asked the control
     # plane to launch. Rows discovered by `import_history`/`sync_jobs` carry the
     # `import` actor and are excluded: a single backfill sweep would otherwise
     # consume the whole cap and block every real submit until midnight.
-    all_jobs = db.list_jobs(s.db_path, limit=500)
-    today_count = count_toward_daily_cap(all_jobs)
+    #
+    # Read through `db.cap_rows` rather than `db.list_jobs`, which pages at 500
+    # rows: a bounded scan would silently under-count once the registry grows
+    # past one page and let the cap be exceeded.
+    now_utc = datetime.now(UTC)
+    today_count = count_toward_daily_cap(db.cap_rows(s.db_path, since=now_utc.date().isoformat()))
     if today_count >= s.daily_job_cap:
         audit(
             "submit.rejected",
@@ -469,9 +533,18 @@ def submit_job(
             detail={"reason": "daily job cap reached", "cap": s.daily_job_cap, "today_count": today_count},
         )
         return {"ok": False, "error": f"daily job cap reached ({s.daily_job_cap})"}
-    # monthly cost cap
-    active_cost = sum(float(j.get("cost_estimate") or 0) for j in running + queued)
-    if active_cost + cost > s.monthly_cost_cap_usd:
+    # monthly cost cap — the month's real spend, not just what is active right
+    # now. Summing only running+queued rows let a month of sequential jobs each
+    # pass the check while the accumulated cost sailed past the cap. Imported
+    # history is excluded for the same reason as the daily cap: it was not
+    # launched (or paid for) by this control plane.
+    month_start = now_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat(timespec="seconds")
+    month_spend = sum(
+        float(j.get("cost_estimate") or 0)
+        for j in db.cap_rows(s.db_path, since=month_start)
+        if j.get("requested_by") not in sync.NON_REQUESTING_ACTORS
+    )
+    if month_spend + cost > s.monthly_cost_cap_usd:
         audit(
             "submit.rejected",
             actor=requested_by,
@@ -480,7 +553,7 @@ def submit_job(
             detail={
                 "reason": "monthly cost cap would be exceeded",
                 "cap": s.monthly_cost_cap_usd,
-                "active_cost": active_cost,
+                "month_spend": month_spend,
                 "new_cost": cost,
             },
         )

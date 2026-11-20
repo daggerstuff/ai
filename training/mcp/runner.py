@@ -15,16 +15,21 @@ import subprocess
 import sys
 import threading
 import time
+from pathlib import Path
 from typing import Any
 
 from training.mcp import db, foresight
-from training.mcp.config import Settings
+from training.mcp.config import AI_ROOT, WORKSPACE_ROOT, Settings
 
 # Single-flight locks per backend kind.
 _LOCKS: dict[str, threading.Lock] = {}
 _LOCKS_GUARD = threading.Lock()
 _PROCESSES: dict[str, subprocess.Popen[bytes]] = {}
 _PROCESSES_GUARD = threading.Lock()
+#: Jobs an operator cancelled while they were still queued (waiting for the
+#: single-flight slot). cancel() records the id here *before* touching the
+#: registry so the waiting thread cannot resurrect the job by spawning it.
+_CANCELLED: set[str] = set()
 
 #: Statuses a job can never leave. The reconciler and cancel() both use this
 #: to avoid resurrecting or re-terminating a job that already finished.
@@ -70,6 +75,28 @@ _JOB_SECRET_ALLOWLIST = (
 )
 
 
+def _first_existing(*candidates: Path) -> Path:
+    """Return the first candidate that exists, else the first candidate.
+
+    Recipe commands are written to be run from the repository root the
+    training scripts themselves assume (``AI_ROOT.parent`` — the workspace,
+    which owns ``docs/training/execution-*/``). The interpreter is resolved to
+    the service venv, so no candidate needs to be on ``sys.path``; the value
+    only has to exist on disk and be stable.
+    """
+    for candidate in candidates:
+        if candidate.is_dir():
+            return candidate
+    return candidates[0]
+
+
+#: Working directory for spawned jobs: the workspace root, not the `ai`
+#: submodule. Training recipes reference ``docs/training/execution-*/`` and
+#: those manifests live in the workspace, so a job started from ``ai/`` cannot
+#: resolve the relative ``launch_config`` the agent tools send.
+JOB_CWD = _first_existing(WORKSPACE_ROOT, AI_ROOT)
+
+
 def _build_env(settings: Settings) -> dict[str, str]:
     """Build a minimal, credential-scoped env for a job subprocess.
 
@@ -81,10 +108,14 @@ def _build_env(settings: Settings) -> dict[str, str]:
         value = settings.env.get(name)
         if value:
             env[name] = value
-    # Ensure python can import the training module from the ai root.
-    ai_root = str(settings.db_path.parents[2])  # ai/training/mcp/state -> ai
+    # Ensure python can import ``training`` even without the editable install.
+    # The scripts live under the `ai` submodule, so that is the path that
+    # matters — not the cwd.
+    paths = [str(AI_ROOT)]
     existing = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = ai_root if not existing else ai_root + os.pathsep + existing
+    if existing:
+        paths.append(existing)
+    env["PYTHONPATH"] = os.pathsep.join(paths)
     return env
 
 
@@ -177,6 +208,21 @@ def _record_terminal_outcome(settings: Settings, job_id: str) -> None:
         )
 
 
+def _is_cancelled(job_id: str) -> bool:
+    with _PROCESSES_GUARD:
+        return job_id in _CANCELLED
+
+
+def _mark_cancelled(job_id: str) -> None:
+    with _PROCESSES_GUARD:
+        _CANCELLED.add(job_id)
+
+
+def _forget_cancelled(job_id: str) -> None:
+    with _PROCESSES_GUARD:
+        _CANCELLED.discard(job_id)
+
+
 def _resolve_interpreter(command: str) -> str:
     """Run recipe commands in the MCP's own interpreter.
 
@@ -216,10 +262,21 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                     "stage": "failed",
                     "backend_id": job_row.get("backend_id"),
                     "error": "single-flight timeout",
+                    "finished_at": db.now(),
                 },
             )
+            _record_terminal_outcome(settings, job_id)
             return
         try:
+            # A queued job can be cancelled while it waits for the slot.
+            # cancel() registers the id in _CANCELLED before it writes the
+            # terminal row, so a cancel that lands during the wait must win:
+            # spawning here would overwrite the operator's cancellation with
+            # `submitted`/`running` and eventually report `succeeded` for work
+            # that was explicitly stopped.
+            if _is_cancelled(job_id):
+                _record_terminal_outcome(settings, job_id)
+                return
             db.upsert_job(
                 settings.db_path,
                 {
@@ -244,7 +301,9 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
                 with open(log_path, "w") as lf:
                     proc = subprocess.Popen(
                         cmd_list,
-                        cwd=str(settings.db_path.parents[2]),  # ai root
+                        # The workspace root, not `ai/`: every recipe entrypoint
+                        # resolves docs/training/... relative to AI_ROOT.parent.
+                        cwd=str(JOB_CWD),
                         env=env,
                         stdout=lf,
                         stderr=subprocess.STDOUT,
@@ -288,12 +347,18 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
             )
             _monitor(settings, job_id, proc, log_path)
         finally:
+            _forget_cancelled(job_id)
             lock.release()
 
     threading.Thread(target=_run, daemon=True).start()
 
 
 def cancel(settings: Settings, job_id: str) -> bool:
+    # Register the cancellation BEFORE inspecting anything: a job still waiting
+    # for the single-flight slot has no entry in _PROCESSES, so without this
+    # the waiting thread would spawn it moments later and overwrite the
+    # `cancelled` row with `succeeded`.
+    _mark_cancelled(job_id)
     with _PROCESSES_GUARD:
         proc = _PROCESSES.get(job_id)
     if proc is not None:
@@ -307,8 +372,13 @@ def cancel(settings: Settings, job_id: str) -> bool:
             pass
     job = db.get_job(settings.db_path, job_id)
     if job is None:
+        _forget_cancelled(job_id)
         return False
     if job.get("status") in TERMINAL_STATUSES:
+        # Already over — do not leave a stale marker that would block a
+        # re-submitted job that happened to reuse the id (ids are unique, but
+        # the marker set is process-global and long-lived).
+        _forget_cancelled(job_id)
         return False
     db.upsert_job(
         settings.db_path,

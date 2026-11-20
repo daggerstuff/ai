@@ -8,6 +8,7 @@ plan/submit binding, the audit log, and the eval gate's fail-closed behaviour.
 from __future__ import annotations
 
 import json
+import os
 import sys
 import threading
 from datetime import UTC, datetime, timedelta
@@ -19,7 +20,17 @@ AI_ROOT = Path(__file__).resolve().parents[3]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from training.mcp import backends, db, foresight, plan, recipes, runner, sync  # noqa: E402
+from training.mcp import (  # noqa: E402
+    backends,
+    config as mcp_config,
+    db,
+    foresight,
+    plan,
+    recipes,
+    runner,
+    server,
+    sync,
+)
 from training.mcp.config import IMPORT_ACTOR, Settings  # noqa: E402
 from training.mcp.server import count_toward_daily_cap  # noqa: E402
 
@@ -733,3 +744,404 @@ def test_spawn_failure_lands_in_a_terminal_state(db_path, monkeypatch):
     assert final["status"] == "failed"
     assert "spawn failed" in (final["error"] or "")
     assert final["finished_at"] is not None
+
+
+# --- audit fixes (PIX-5000 deep audit) ---------------------------------------
+#
+# Each test below pins a defect found by running the control plane end to end
+# rather than reading it: a guard that was advertised but absent, a value that
+# silently pointed somewhere else, or a state machine that could be talked out
+# of its terminal state.
+
+
+#: ai/training/mcp/runner.py acquires the per-backend lock with this bound.
+_SINGLE_FLIGHT_TIMEOUT = 300
+
+
+class ImmediateThread:
+    """Run a job body on the calling thread so assertions are deterministic."""
+
+    def __init__(self, target=None, **_kw):
+        self._target = target
+
+    def start(self):
+        self._target()
+
+
+def test_boolean_override_flag_is_derived_from_its_name(tmp_path):
+    """A bool override must not hardcode `--dry-run`.
+
+    The old codec turned *every* truthy bool into the literal ``--dry-run``, so
+    a recipe with two boolean overrides rendered the same flag twice and the
+    other one silently vanished.
+    """
+    registry = tmp_path / "recipes.yaml"
+    registry.write_text(
+        """
+recipes:
+  - id: multi-flag-v1
+    kind: curate_dataset
+    description: Two boolean overrides.
+    backend: local
+    entrypoint: "python -m training.thing <verbose> <dry_run>"
+    cost_class: cpu-minute
+    est_cost_usd: 0
+    inputs: {}
+    overrides:
+      verbose: {type: boolean, default: false}
+      dry_run: {type: boolean, default: false}
+    outputs: {}
+"""
+    )
+    found = {r.id: r for r in recipes.load_recipes(registry)}
+    recipe = found["multi-flag-v1"]
+    command = plan._resolve_command(recipe, {}, {"verbose": True, "dry_run": True})
+    assert command == "python -m training.thing --verbose --dry-run"
+    # A falsy bool omits the flag entirely, leaving no stray placeholder.
+    assert plan._resolve_command(recipe, {}, {"verbose": False, "dry_run": False}) == "python -m training.thing"
+    # `flag:` in the override spec overrides the derived name.
+    recipe.overrides["verbose"]["flag"] = "--loud"
+    assert (
+        plan._resolve_command(recipe, {}, {"verbose": True, "dry_run": True})
+        == "python -m training.thing --loud --dry-run"
+    )
+
+
+def test_plan_cache_expires_and_prunes(db_path: Path):
+    """A plan approved long ago must not stay submittable forever.
+
+    The rejection message said "not found or expired" while nothing expired.
+    """
+    db.cache_plan(db_path, "hash-fresh", "eval-crisis-v2", {"inputs": {"tag": "t"}, "overrides": {}})
+    assert db.get_cached_plan(db_path, "hash-fresh", max_age_seconds=3600) is not None
+    # An unparseable timestamp fails closed (treated as ancient).
+    assert db._age_seconds("not-a-date") == float("inf")
+    assert db._age_seconds(None) == float("inf")
+    assert db.prune_plans(db_path, max_age_seconds=3600) == 0
+    # Age the row past its TTL: it disappears from the lookup and from the table.
+    conn = db._conn(db_path)
+    conn.execute(
+        "UPDATE plan_cache SET created_at = ? WHERE plan_hash = ?", ("2020-01-01T00:00:00+00:00", "hash-fresh")
+    )
+    conn.commit()
+    assert db.get_cached_plan(db_path, "hash-fresh", max_age_seconds=3600) is None
+    assert db.prune_plans(db_path, max_age_seconds=3600) == 1
+    assert db.get_cached_plan(db_path, "hash-fresh") is None
+
+
+def test_cap_rows_is_unpaged_while_list_jobs_clamps(db_path: Path):
+    """Budget checks must see every row, not one 500-row page."""
+    page_size = 500
+    row_count = page_size + 1
+    rows_per_job_cost = 1.5
+    for index in range(row_count):
+        db.upsert_job(
+            db_path,
+            {
+                "job_id": f"job-cap-{index:04d}",
+                "kind": "eval_paired",
+                "source": "local",
+                "name": "cap",
+                "status": "succeeded",
+                "requested_by": "tester",
+                "created_at": "2026-11-20T09:00:00+00:00",
+                "cost_estimate": str(rows_per_job_cost),
+            },
+        )
+    assert len(db.list_jobs(db_path, limit=page_size)) == page_size
+    rows = db.cap_rows(db_path, since="2026-11-20")
+    assert len(rows) == row_count
+    assert db.cap_rows(db_path, since="2026-11-21") == []
+    assert sum(float(r["cost_estimate"]) for r in rows) == row_count * rows_per_job_cost
+
+
+def test_registry_files_are_owner_only(tmp_path):
+    """The registry holds job specs and the audit trail; not world-readable."""
+    path = tmp_path / "state" / "jobs.db"
+    file_mode = 0o600
+    dir_mode = 0o700
+    db.upsert_job(
+        path, {"job_id": "job-mode", "kind": "eval_paired", "source": "local", "name": "m", "status": "queued"}
+    )
+    assert (path.stat().st_mode & 0o777) == file_mode
+    assert (path.parent.stat().st_mode & 0o777) == dir_mode
+    for sidecar in (path.with_name("jobs.db-wal"), path.with_name("jobs.db-shm")):
+        if sidecar.exists():
+            assert (sidecar.stat().st_mode & 0o777) == file_mode
+
+
+def test_schema_version_is_recorded(tmp_path):
+    """`_migrate` must stamp PRAGMA user_version so operators can tell the schema."""
+    path = tmp_path / "state" / "jobs.db"
+    db.upsert_job(
+        path, {"job_id": "job-ver", "kind": "eval_paired", "source": "local", "name": "v", "status": "queued"}
+    )
+    version = db._conn(path).execute("PRAGMA user_version").fetchone()[0]
+    assert version == db.SCHEMA_VERSION
+    # Re-running the migration is idempotent.
+    db._migrate(db._conn(path))
+    assert db._conn(path).execute("PRAGMA user_version").fetchone()[0] == db.SCHEMA_VERSION
+
+
+def test_job_cwd_and_pythonpath_point_at_real_directories():
+    """The spawn cwd/PYTHONPATH were off by one directory.
+
+    `parents[2]` of the registry path lands on `ai/training`, not `ai`, so a
+    recipe's cwd-relative path (the launch config) never resolved.
+    """
+    assert runner.JOB_CWD == mcp_config.WORKSPACE_ROOT
+    assert runner.JOB_CWD.is_dir()
+    env = runner._build_env(_settings(Path("/tmp") / "x" / "state" / "jobs.db"))
+    assert str(mcp_config.AI_ROOT) in (env.get("PYTHONPATH") or "")
+
+
+def test_build_env_does_not_leak_unlisted_secrets(monkeypatch):
+    """Job subprocesses get only the allowlisted variables."""
+    monkeypatch.setenv("TOTALLY_UNRELATED_SECRET", "leak-me")
+    monkeypatch.setenv("PATH", os.environ.get("PATH", "/usr/bin"))
+    env = runner._build_env(
+        _settings(
+            Path("/tmp") / "y" / "state" / "jobs.db",
+            env={"WANDB_API_KEY": "allowed", "UNRELATED_DOTENV_SECRET": "leak-me-too"},
+        )
+    )
+    assert "TOTALLY_UNRELATED_SECRET" not in env
+    assert "UNRELATED_DOTENV_SECRET" not in env
+    assert env["WANDB_API_KEY"] == "allowed"
+    assert "PATH" in env
+
+
+def test_cancel_before_spawn_prevents_the_run(db_path, monkeypatch):
+    """Cancelling a queued job must stop it, not be overwritten by `succeeded`.
+
+    The submit thread acquired the per-backend lock before writing `submitted`;
+    cancel saw no live process, wrote `cancelled`, and the thread then spawned
+    and the monitor overwrote it with `succeeded`.
+    """
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-cancelrace", "kind": "eval_paired", "source": "local", "name": "r", "status": "queued"},
+    )
+    row = db.get_job(db_path, "job-cancelrace")
+    spawned: list[str] = []
+
+    def fake_popen(*_a, **_k):  # pragma: no cover - must not be reached
+        spawned.append("popen")
+        raise AssertionError("a cancelled job must not spawn")
+
+    monkeypatch.setattr(runner.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+
+    # Simulate cancel arriving while the thread waits for the backend lock.
+    acquired = threading.Event()
+
+    class SlowLock:
+        def acquire(self, timeout=None):
+            # The runner must bound its wait; an unbounded wait would strand
+            # every queued job behind one hung backend.
+            assert timeout == _SINGLE_FLIGHT_TIMEOUT
+            acquired.set()
+            return True
+
+        def release(self):
+            pass
+
+    monkeypatch.setattr(runner, "_lock_for", lambda _backend: SlowLock())
+    monkeypatch.setattr(runner.threading, "Thread", ImmediateThread)
+    runner._mark_cancelled("job-cancelrace")
+    runner.submit(settings, "job-cancelrace", row, "python -m training.build_v30_release", "local")
+    assert acquired.is_set()
+    assert spawned == []
+    assert db.get_job(db_path, "job-cancelrace")["status"] == "queued"
+    runner._forget_cancelled("job-cancelrace")
+
+
+def test_single_flight_timeout_records_a_finished_row(db_path, monkeypatch):
+    """The single-flight timeout path must complete the row, not leave it open."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-sf", "kind": "eval_paired", "source": "local", "name": "r", "status": "queued"},
+    )
+    row = db.get_job(db_path, "job-sf")
+    recorded: list[str] = []
+
+    class BusyLock:
+        def acquire(self, timeout=None):
+            assert timeout == _SINGLE_FLIGHT_TIMEOUT
+            return False
+
+        def release(self):
+            pass
+
+    monkeypatch.setattr(runner, "_lock_for", lambda _backend: BusyLock())
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda _s, job_id: recorded.append(job_id))
+    monkeypatch.setattr(runner.threading, "Thread", ImmediateThread)
+    runner.submit(settings, "job-sf", row, "python -m training.build_v30_release", "local")
+    final = db.get_job(db_path, "job-sf")
+    assert final["status"] == "failed"
+    assert "single-flight timeout" in (final["error"] or "")
+    assert final["finished_at"] is not None
+    assert recorded == ["job-sf"]
+
+
+def test_train_recipe_and_docs_agree_with_the_real_entrypoints():
+    """Every launching recipe must pass --execute; docs must point at real files."""
+    for recipe in recipes.load_recipes():
+        if recipe.kind in {"train_sft", "eval_paired"}:
+            assert "--execute" in recipe.entrypoint, recipe.id
+    here = Path(__file__).resolve().parents[3] / "training" / "mcp"
+    for name in ("RECIPE_WORKFLOW.md", "MULTI_NODE_DECISION.md"):
+        assert (here / name).is_file()
+
+
+# --- submit_job guards (the defects an operator would actually hit) ---------
+
+
+def _server_settings(tmp_path, **overrides):
+    """A real Settings pointed at a temp registry, with no backends configured."""
+    env = {
+        "TRAINING_MCP_MAX_CONCURRENT_JOBS": str(overrides.get("max_concurrent_jobs", 1)),
+        "TRAINING_MCP_DAILY_JOB_CAP": str(overrides.get("daily_job_cap", 5)),
+        "TRAINING_MCP_MONTHLY_COST_CAP_USD": str(overrides.get("monthly_cost_cap_usd", 100.0)),
+    }
+    return Settings(host="127.0.0.1", port=8766, db_path=tmp_path / "jobs.db", env=env)
+
+
+@pytest.fixture
+def server_env(tmp_path, monkeypatch):
+    """Wire the server module at a temp registry and stub the spawn."""
+    cfg = _server_settings(tmp_path)
+    monkeypatch.setattr(server, "settings", lambda: cfg)
+    spawned: list[tuple[str, str, str]] = []
+    monkeypatch.setattr(
+        server.runner,
+        "submit",
+        lambda _s, job_id, _row, command, backend: spawned.append((job_id, command, backend)),
+    )
+    return server, cfg, spawned
+
+
+def test_submit_rejects_a_spec_that_differs_from_the_approved_plan(server_env):
+    """The plan hash must bind the *spec*, not just the recipe name.
+
+    The old check compared only `recipe`; a caller could plan a harmless dry run,
+    show it to an operator, and submit the same hash with `dry_run: false` so
+    different work ran than the one that was approved.
+    """
+    server, _cfg, spawned = server_env
+    planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
+    assert planned["ok"] is True
+    approved_hash = planned["plan_hash"]
+    assert "--dry-run" in planned["command"]
+
+    tampered = server.submit_job(
+        plan_hash=approved_hash,
+        recipe="curate-sft-v30",
+        inputs={"corpus": "x"},
+        overrides={"dry_run": False},
+        requested_by="attacker",
+    )
+    assert tampered["ok"] is False
+    assert "differ from the approved plan" in tampered["error"]
+    assert "overrides" in tampered["error"]
+    assert spawned == []
+    rejections = db.list_audit(_cfg.db_path, action="submit.rejected")
+    assert rejections
+    assert rejections[0]["detail"]["reason"] == "submitted spec differs from the approved plan"
+    assert rejections[0]["detail"]["fields"] == ["overrides"]
+
+
+def test_submit_runs_the_approved_spec_even_when_the_caller_repeats_it(server_env):
+    """A matching submit succeeds and launches the approved command."""
+    server, _cfg, spawned = server_env
+    planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
+    result = server.submit_job(
+        plan_hash=planned["plan_hash"],
+        recipe="curate-sft-v30",
+        inputs={"corpus": "x"},
+        overrides={"dry_run": True},
+        requested_by="operator",
+    )
+    assert result["ok"] is True
+    assert len(spawned) == 1
+    _job_id, command, backend = spawned[0]
+    assert "--dry-run" in command
+    assert backend == "local"
+
+
+def test_submit_rejects_a_plan_older_than_its_ttl(server_env):
+    """An approval must expire, or an old hash stays submittable forever."""
+    server, cfg, spawned = server_env
+    planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
+    conn = db._conn(cfg.db_path)
+    conn.execute("UPDATE plan_cache SET created_at = ?", ("2020-01-01T00:00:00+00:00",))
+    conn.commit()
+    result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
+    assert result["ok"] is False
+    assert "not found or expired" in result["error"]
+    assert spawned == []
+
+
+def test_submit_enforces_the_concurrency_cap(server_env):
+    """`max_concurrent_jobs` was audited nowhere and enforced nowhere."""
+    server, cfg, spawned = server_env
+    db.upsert_job(
+        cfg.db_path,
+        {"job_id": "job-busy", "kind": "eval_paired", "source": "local", "name": "b", "status": "running"},
+    )
+    planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
+    result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
+    assert result["ok"] is False
+    assert "max concurrent jobs reached" in result["error"]
+    assert spawned == []
+    rejection = db.list_audit(cfg.db_path, action="submit.rejected")[0]
+    assert rejection["detail"] == {"reason": "max concurrent jobs reached", "cap": 1, "active_count": 1}
+
+
+def test_submit_monthly_cap_counts_the_whole_month(server_env):
+    """A month of sequential jobs must accumulate, not each pass individually."""
+    server, cfg, spawned = server_env
+    # One succeeded job earlier this month already spent $99 of the $100 cap.
+    month_start = datetime.now(UTC).replace(day=1, hour=1, minute=0, second=0, microsecond=0)
+    db.upsert_job(
+        cfg.db_path,
+        {
+            "job_id": "job-spent",
+            "kind": "eval_paired",
+            "source": "local",
+            "name": "s",
+            "status": "succeeded",
+            "requested_by": "operator",
+            "created_at": month_start.isoformat(timespec="seconds"),
+            "cost_estimate": "99.0",
+        },
+    )
+    planned = server.plan_job("eval-crisis-v2", {"tag": "t"}, None, "operator")
+    assert planned["est_cost_usd"] > 1.0
+    result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
+    assert result["ok"] is False
+    assert "monthly cost cap would be exceeded" in result["error"]
+    assert spawned == []
+
+
+def test_submit_daily_cap_ignores_imported_rows(server_env):
+    """Imported history must not consume the day's launch budget."""
+    server, cfg, _spawned = server_env
+    for index in range(30):
+        db.upsert_job(
+            cfg.db_path,
+            {
+                "job_id": f"job-import-{index}",
+                "kind": "eval_paired",
+                "source": "wandb",
+                "name": "i",
+                "status": "succeeded",
+                "requested_by": IMPORT_ACTOR,
+                "created_at": f"{datetime.now(UTC).date().isoformat()}T01:00:00+00:00",
+            },
+        )
+    planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
+    result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
+    assert result["ok"] is True, result

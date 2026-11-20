@@ -1,6 +1,10 @@
 [Unit]
 Description=Pixelated training-infra MCP (PIX-5000)
 After=network-online.target
+# A crash loop must not restart forever: the MCP holds single-flight locks, and
+# an unbounded restart cycle makes failures hard to observe.
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
