@@ -1,0 +1,33 @@
+pipelines/data_processing/journal/mcp/resources/__init__.py
+  s_7d4811cf1b0ba7::t_a2fcce96bca7f8 32
+cli/tests/__init__.py
+  s_7d4811cf1b0ba7::t_a2fcce96bca7f8 165,169-177,180
+tools/scripts/tests/__init__.py
+  s_7d4811cf1b0ba7::t_a2fcce96bca7f8 165,169-177,180
+sourcing/journal/mcp/prompts/__init__.py
+  s_7d4811cf1b0ba7::t_a2fcce96bca7f8 23
+pipelines/data_processing/journal/mcp/prompts/__init__.py
+  s_7d4811cf1b0ba7::t_a2fcce96bca7f8 23
+sourcing/journal/mcp/resources/__init__.py
+  s_7d4811cf1b0ba7::t_a2fcce96bca7f8 32
+memory/__init__.py
+  s_7d4811cf1b0ba7::t_09198f64fe03f3 7
+research/__init__.py
+  s_7d4811cf1b0ba7::t_09198f64fe03f3 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d0aeb902a042d66ad6504880eff1ac4ffcee2f24",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
