@@ -194,10 +194,11 @@ if st is not None:
         )
     )
     @settings(max_examples=20)
-    def test_p95_at_least_mean(pairs):
+    def test_p95_stays_within_the_response_length_range(pairs):
         samples = [{"prompt": p, "response": r} for p, r in pairs]
         m = _compute_metrics(samples)
-        assert m["response_length_p95"] >= m["response_length_mean"]
+        word_counts = [len(r.split()) for _, r in pairs]
+        assert min(word_counts) <= m["response_length_p95"] <= max(word_counts)
 
     @given(
         st.lists(
