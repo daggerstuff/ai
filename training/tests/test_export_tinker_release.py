@@ -215,6 +215,49 @@ def test_datum_is_dropped_when_it_exceeds_the_token_budget() -> None:
     assert tinker.build_datum(tokenizer, payload, max_tokens=2) is None
 
 
+def test_export_trims_oldest_turns_instead_of_dropping_the_row(tmp_path: Path) -> None:
+    tokenizer = StubTokenizer()
+    history: list[dict[str, Any]] = []
+    for index in range(6):
+        history.append({"role": "user", "content": f"older prompt {index} " + "x " * 40})
+        history.append({"role": "assistant", "content": f"older reply {index} " + "y " * 40})
+    history.append({"role": "user", "content": CLIENT_PROMPT})
+    history.append({"role": "assistant", "content": ASSISTANT_REPLY})
+    manifest_path = write_manifest(tmp_path, [{"messages": history}])
+    full_ids, _ = tinker.build_tokens(tokenizer, history)
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=tokenizer,
+        max_tokens=len(full_ids) - 1,
+    )
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_left_truncated"] == 1
+    assert result.counts["datums_skipped_too_long"] == 0
+    assert "Call 988 now." in tokenizer.decode(result.rows[0].target_ids)
+
+
+def test_export_still_drops_a_row_that_cannot_fit_after_truncation(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        [
+            {
+                "messages": [
+                    {"role": "user", "content": CLIENT_PROMPT},
+                    {"role": "assistant", "content": ASSISTANT_REPLY},
+                ]
+            }
+        ],
+    )
+
+    result = tinker.export(manifest_path, tmp_path / "out", tokenizer=StubTokenizer(), max_tokens=2)
+
+    assert result.counts["datums"] == 0
+    assert result.counts["datums_skipped_too_long"] == 1
+
+
 def write_manifest(tmp_path: Path, rows: list[dict[str, Any]]) -> Path:
     train_path = tmp_path / "train.jsonl"
     with train_path.open("w", encoding="utf-8") as handle:

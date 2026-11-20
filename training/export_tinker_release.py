@@ -221,6 +221,37 @@ def build_tokens(
     return ids, weights
 
 
+MIN_FINAL_EXCHANGE_MESSAGES = 2
+
+
+def trim_to_budget(
+    tokenizer: Any,
+    messages: list[dict[str, Any]],
+    max_tokens: int,
+    *,
+    end_token: str = DEFAULT_END_TOKEN,
+    template_kwargs: Mapping[str, Any] | None = None,
+) -> tuple[list[dict[str, Any]], list[int], list[int], bool]:
+    ids, weights = build_tokens(
+        tokenizer,
+        messages,
+        end_token=end_token,
+        template_kwargs=template_kwargs,
+    )
+    original_length = len(messages)
+    while len(ids) > max_tokens and len(messages) > MIN_FINAL_EXCHANGE_MESSAGES:
+        messages = messages[1:]
+        while len(messages) > MIN_FINAL_EXCHANGE_MESSAGES and messages[0]["role"] != "user":
+            messages = messages[1:]
+        ids, weights = build_tokens(
+            tokenizer,
+            messages,
+            end_token=end_token,
+            template_kwargs=template_kwargs,
+        )
+    return messages, ids, weights, len(messages) < original_length
+
+
 def build_datum(
     tokenizer: Any,
     messages: list[dict[str, Any]],
@@ -317,6 +348,101 @@ def _verified_selection(
     return selections, counts, source_train_sha256
 
 
+def tokenize_selections(
+    selections: list[Selection],
+    tokenizer: Any,
+    *,
+    max_tokens: int,
+    end_token: str,
+    template_kwargs: Mapping[str, Any] | None,
+) -> tuple[list[Datum], dict[str, int]]:
+    trimmed_opening = 0
+    trimmed_history = 0
+    skipped_too_long = 0
+    skipped_empty = 0
+    rows: list[Datum] = []
+    for selection in selections:
+        if selection.payload is None:
+            raise ValueError("selected train row has no payload")
+        messages = selection.payload["messages"]
+        if messages[0]["role"] == "assistant":
+            messages = messages[1:]
+            trimmed_opening += 1
+            if not messages:
+                skipped_empty += 1
+                continue
+        messages, ids, weights, trimmed = trim_to_budget(
+            tokenizer,
+            messages,
+            max_tokens,
+            end_token=end_token,
+            template_kwargs=template_kwargs,
+        )
+        if trimmed:
+            trimmed_history += 1
+        targets = weights[1:]
+        if len(ids) < MIN_DATUM_TOKENS or not any(targets):
+            skipped_empty += 1
+            continue
+        if len(ids) > max_tokens:
+            skipped_too_long += 1
+            continue
+        rows.append(Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets))
+    return rows, {
+        "datums_trimmed_opening": trimmed_opening,
+        "datums_left_truncated": trimmed_history,
+        "datums_skipped_too_long": skipped_too_long,
+        "datums_skipped_no_targets": skipped_empty,
+    }
+
+
+def write_export(
+    out_dir: Path,
+    *,
+    base_model: str,
+    tokenizer: Any,
+    end_token: str,
+    template_kwargs: Mapping[str, Any] | None,
+    manifest_path: Path,
+    manifest_bytes: bytes,
+    manifest: Mapping[str, Any],
+    source_train_sha256: str,
+    rows: list[Datum],
+    counts: Mapping[str, int],
+    source_rows: int,
+    max_tokens: int,
+) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "tinker-sft-train.jsonl"
+    tmp = path.with_name(path.name + ".tmp")
+    with tmp.open("w", encoding="utf-8") as handle:
+        for datum in rows:
+            handle.write(datum.line())
+            handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp, path)
+    record = {
+        "schema": DATASET_SCHEMA,
+        "base_model": base_model,
+        "tokenizer": getattr(tokenizer, "name_or_path", base_model),
+        "end_token": end_token,
+        "template_kwargs": dict(template_kwargs or {}),
+        "source_manifest": str(manifest_path),
+        "source_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
+        "source_release_id": manifest.get("release_id"),
+        "source_train_sha256": source_train_sha256,
+        "path": str(path),
+        "sha256": _sha256(path),
+        "bytes": path.stat().st_size,
+        "datums": len(rows),
+        "source_rows": source_rows,
+        "counts": dict(counts),
+        "max_tokens": max_tokens,
+    }
+    (out_dir / "tinker-dataset.json").write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def export(
     manifest_path: Path,
     out_dir: Path,
@@ -348,77 +474,34 @@ def export(
         # separately from the model the trainer will load.
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_model or base_model, fast=True)
 
-    trimmed_opening = 0
-    skipped_too_long = 0
-    skipped_empty = 0
-    for selection in selections:
-        if selection.payload is None:
-            raise ValueError("selected train row has no payload")
-        messages = selection.payload["messages"]
-        if messages[0]["role"] == "assistant":
-            # Arc sessions open on the therapist's line. Dropping that turn
-            # leaves the client disclosure it was answering, so the rest of the
-            # session still trains; keeping it would train an unprompted
-            # opening, which is not a behaviour the eval measures.
-            messages = messages[1:]
-            trimmed_opening += 1
-            if not messages:
-                skipped_empty += 1
-                continue
-        ids, weights = build_tokens(
-            tokenizer,
-            messages,
-            end_token=end_token,
-            template_kwargs=template_kwargs,
-        )
-        targets = weights[1:]
-        if len(ids) < MIN_DATUM_TOKENS or not any(targets):
-            skipped_empty += 1
-            continue
-        if len(ids) > max_tokens:
-            skipped_too_long += 1
-            continue
-        result.rows.append(Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets))
-
+    rows, token_counts = tokenize_selections(
+        selections,
+        tokenizer,
+        max_tokens=max_tokens,
+        end_token=end_token,
+        template_kwargs=template_kwargs,
+    )
+    result.rows.extend(rows)
+    result.counts.update(token_counts)
     result.counts["datums"] = len(result.rows)
-    result.counts["datums_trimmed_opening"] = trimmed_opening
-    result.counts["datums_skipped_too_long"] = skipped_too_long
-    result.counts["datums_skipped_no_targets"] = skipped_empty
     result.counts["trained_tokens"] = sum(datum.trained_tokens for datum in result.rows)
     result.counts["total_tokens"] = sum(len(datum.input_ids) for datum in result.rows)
 
     if not dry_run:
-        out_dir.mkdir(parents=True, exist_ok=True)
-        path = out_dir / "tinker-sft-train.jsonl"
-        tmp = path.with_name(path.name + ".tmp")
-        with tmp.open("w", encoding="utf-8") as handle:
-            for datum in result.rows:
-                handle.write(datum.line())
-                handle.write("\n")
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(tmp, path)
-
-        record = {
-            "schema": DATASET_SCHEMA,
-            "base_model": base_model,
-            "tokenizer": getattr(tokenizer, "name_or_path", base_model),
-            "end_token": end_token,
-            "template_kwargs": dict(template_kwargs or {}),
-            "source_manifest": str(manifest_path),
-            "source_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
-            "source_release_id": manifest.get("release_id"),
-            "source_train_sha256": source_train_sha256,
-            "path": str(path),
-            "sha256": _sha256(path),
-            "bytes": path.stat().st_size,
-            "datums": len(result.rows),
-            "source_rows": result.source_rows,
-            "counts": dict(result.counts),
-            "max_tokens": max_tokens,
-        }
-        (out_dir / "tinker-dataset.json").write_text(
-            json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        write_export(
+            out_dir,
+            base_model=base_model,
+            tokenizer=tokenizer,
+            end_token=end_token,
+            template_kwargs=template_kwargs,
+            manifest_path=manifest_path,
+            manifest_bytes=manifest_bytes,
+            manifest=manifest,
+            source_train_sha256=source_train_sha256,
+            rows=result.rows,
+            counts=result.counts,
+            source_rows=result.source_rows,
+            max_tokens=max_tokens,
         )
     return result
 
