@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from .foresight_local_adapter import memory_record_from_storage, parse_context_payload
 from .foresight_local_domain import resolve_category_for_update, resolve_user_id_from_record
 

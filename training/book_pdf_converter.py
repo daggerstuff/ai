@@ -30,6 +30,8 @@ try:
     import mobi
 except ModuleNotFoundError:
     mobi = None  # type: ignore[assignment]
+from typing import Any
+
 import requests
 import yaml
 from bs4 import BeautifulSoup

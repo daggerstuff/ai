@@ -7,6 +7,7 @@ Tests core functionality without database dependencies.
 import json
 import os
 import sys
+import unittest
 from datetime import UTC, datetime
 
 from .datetime import datetime

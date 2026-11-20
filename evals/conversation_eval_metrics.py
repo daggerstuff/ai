@@ -272,6 +272,8 @@ class ErrorTaxonomy(str, Enum):
 import logging
 from pathlib import Path
 
+from transformers import AutoModel, AutoTokenizer
+
 from ai.evals.diagnosis_arena import (
     BenchmarkArtifactStore,
     ClinicalCase,

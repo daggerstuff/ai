@@ -5,6 +5,7 @@ Quick test to verify the Docker PostgreSQL container is working.
 """
 
 import logging
+import unittest
 
 import psycopg2
 
