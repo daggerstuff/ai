@@ -1,0 +1,173 @@
+training/reconstruct_missing_plans.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 405-406,411
+tools/DataDesigner/packages/data-designer/src/data_designer/cli/controllers/generation_controller.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 71,113,116,142,145,208,227,256,264,306
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/column_generators/utils/prompt_renderer.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 82
+inference/api/techdeck_integration/communication/graceful_degradation.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 243
+sourcing/journal/api/auth/rbac.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 123,128
+scripts/devops/model-registry.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 17-18,49-50
+security/fastapi_auth_middleware.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 236
+sourcing/journal/api/routers/integration.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 76,81,130,135,167,172
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/misc.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 31
+sourcing/research_system/source_discovery/base_client.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 262,274
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/sampling_gen/data_sources/sources.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 343,346
+inference/deployment/production/export_to_ready_packages.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 273-274
+sourcing/journal/api/routers/training_global.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 50
+pipelines/data_processing/journal/api/routers/progress.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 59,64,93,98,223,235
+inference/api/techdeck_integration/integration/bias_detection.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 280
+inference/api/embedding_agent/app.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 208,214,258,264,309,315,354
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/secret_resolver.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 35-36,43,46
+sourcing/journal/mcp/server.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 901
+tools/DataDesigner/packages/data-designer/src/data_designer/cli/controllers/plugin_catalog_controller.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 210,241,276,304,330,360,363,374,382,399,418,439,745
+pipelines/data_processing/journal/api/routers/acquisition.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 75,80,128,133,164,169,205,210
+sourcing/journal/api/routers/acquisition.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 75,80,128,133,164,169,205,210
+sourcing/journal/mcp/auth/authentication.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 188,192-193,197,202,208,274,279
+infrastructure/production/export_to_ready_packages.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 273-274
+sourcing/journal/api/routers/sessions.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 72,107,112,142,147,184,189,209,214
+sourcing/journal/api/routers/discovery.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 79,84,138,143,180,185
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/sampling_gen/data_sources/base.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 116
+tools/DataDesigner/packages/data-designer-config/src/data_designer/plugins/plugin.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 56,59,68-69,130-131,174-175
+pipelines/data_processing/journal/api/routers/evaluation.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 79,84,135,140,174,179,222,227
+sourcing/journal/api/middleware/auth.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 82
+pipelines/data_processing/journal/mcp/resources/sessions.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 78,82,88
+tools/utilities/torch_proxy.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 33
+sourcing/journal/mcp/utils/async_execution.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 156,163,165,177
+sourcing/journal/api/routers/training.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 121,161,280,308
+pipelines/data_processing/journal/mcp/auth/authentication.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 188,192-193,197,202,208,274,279
+pipelines/data_processing/journal/api/routers/sessions.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 72,107,112,142,147,184,189,209,214
+training/train_optimized.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 75
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/io_helpers.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 61
+pipelines/data_processing/journal/api/routers/training_global.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 50
+memory/letta_client.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 59
+pipelines/data_processing/journal/api/dependencies.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 65
+utils/torch_proxy.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 33
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/type_helpers.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 100-101
+pipelines/data_processing/journal/api/auth/rbac.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 123,128
+pipelines/data_processing/journal/api/routers/reports.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 60,65,113,118,149,154
+sourcing/journal/mcp/resources/progress.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 78,82,88,171,175,181
+pipelines/data_processing/journal/api/middleware/auth.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 82
+api/techdeck_integration/communication/graceful_degradation.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 243
+research/letta_client.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 59
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/sampler_params.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 123-124
+sourcing/journal/api/dependencies.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 65
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/visualization.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 213-214
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/model_provider.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 52-53,107-108
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/sampling_gen/entities/phone_number.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 47-48
+tools/scripts/devops/model-registry.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 17-18,49-50
+pipelines/data_processing/journal/mcp/server.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 901
+sourcing/journal/api/routers/evaluation.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 79,84,135,140,174,179,222,227
+tools/DataDesigner/packages/data-designer/src/data_designer/cli/commands/agent.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 55,58
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/validators/local_callable.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 29
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/processing/ginja/environment.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 393-396,512,514
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/resources/seed_reader.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 754-755
+pipelines/data_processing/journal/api/routers/integration.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 76,81,130,135,167,172
+pipelines/data_processing/journal/mcp/resources/progress.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 78,82,88,171,175,181
+tools/DataDesigner/packages/data-designer/src/data_designer/integrations/huggingface/client.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 492,502
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/config_builder.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 351,355
+sourcing/journal/api/routers/progress.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 59,64,93,98,223,235
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/processors.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 110
+tools/scripts/fastapi_auth_middleware.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 236
+pipelines/data_processing/journal/api/routers/training.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 121,161,280,308
+api/embedding_agent/app.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 208,214,258,264,309,315,354
+api/techdeck_integration/integration/bias_detection.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 280
+pipelines/data_processing/journal/mcp/resources/metrics.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 90,94,100
+sourcing/journal/api/routers/reports.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 60,65,113,118,149,154
+pipelines/data_processing/journal/mcp/utils/async_execution.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 156,163,165,177
+pipelines/data_processing/journal/api/routers/discovery.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 79,84,138,143,180,185
+sourcing/journal/mcp/resources/metrics.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 90,94,100
+sourcing/journal/mcp/resources/sessions.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 78,82,88
+pipelines/data_processing/research_system/source_discovery/base_client.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 262,274
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/validators/python.py
+  s_7d4811cf1b0ba7::t_0573045fa54ff9 211
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b9d24b40a3b18ca04ef1936a2c4360da003b483",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
