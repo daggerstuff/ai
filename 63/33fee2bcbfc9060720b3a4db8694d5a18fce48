@@ -1,0 +1,20 @@
+tests/training/mcp/test_foresight.py
+  s_7d4811cf1b0ba7::t_7338a85d9d8e4f 53
+  s_7d4811cf1b0ba7::t_907b6d2a8e3430 1-52,54-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6333fee2bcbfc9060720b3a4db8694d5a18fce48",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
