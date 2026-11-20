@@ -264,8 +264,9 @@ def _row_passed(row: dict[str, Any]) -> bool | None:
     reading scores 1.000 for both arms on real data and cannot gate anything.
     A top-level ``passed`` is honoured first so other result shapes still work.
     """
-    if isinstance(row.get("passed"), bool):
-        return row["passed"]
+    passed = row.get("passed")
+    if isinstance(passed, bool):
+        return passed
     metrics = row.get("state_metrics")
     if not isinstance(metrics, list):
         return None
