@@ -62,7 +62,7 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid token: {e!s}",
             headers={"WWW-Authenticate": "Bearer"},
-        )
+        ) from e
 
 
 def get_optional_user(

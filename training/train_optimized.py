@@ -72,7 +72,7 @@ def analyze_dataset(dataset_path: str | None = None, s3_path: str | None = None)
             raise FileNotFoundError(
                 f"Dataset not found. Provide dataset_path or s3_path, "
                 f"or ensure training_dataset.json exists in S3. Error: {e}"
-            )
+            ) from e
 
     texts = [conv["text"] for conv in data["conversations"]]
 

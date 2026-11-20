@@ -340,7 +340,7 @@ def _validate_scipy_distribution(dist_name: str, dist_params: dict) -> None:
         )
     try:
         getattr(lazy.scipy.stats, dist_name)(**dist_params)
-    except Exception:
+    except Exception as exc:
         raise InvalidSamplerParamsError(
             f"Distribution parameters {dist_params} are not a valid for distribution '{dist_name}'"
-        )
+        ) from exc

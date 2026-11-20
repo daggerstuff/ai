@@ -14,8 +14,8 @@ def _load_manifest() -> dict[str, Any]:
     try:
         with open(REGISTRY_PATH) as f:
             return json.load(f)
-    except json.JSONDecodeError:
-        raise SystemExit(1)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(1) from exc
 
 
 def _save_manifest(manifest: dict[str, Any]) -> None:
@@ -46,8 +46,8 @@ def cmd_tag(args: Any) -> None:
     if getattr(args, "metrics", None):
         try:
             checkpoint["metrics"] = json.loads(args.metrics)
-        except json.JSONDecodeError:
-            raise SystemExit(1)
+        except json.JSONDecodeError as exc:
+            raise SystemExit(1) from exc
 
     manifest["checkpoints"].append(checkpoint)
 

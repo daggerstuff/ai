@@ -107,5 +107,5 @@ class SchemaTransformProcessorConfig(ProcessorConfig):
             json.dumps(v)
         except TypeError as e:
             if "not JSON serializable" in str(e):
-                raise InvalidConfigError("Template must be JSON serializable")
+                raise InvalidConfigError("Template must be JSON serializable") from e
         return v

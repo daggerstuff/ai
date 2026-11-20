@@ -52,7 +52,7 @@ def _run(get_data: Callable[[], Any], format_text: Callable[[Any], str]) -> None
         typer.echo(format_text(data))
     except AgentIntrospectionError as exc:
         typer.echo(f"Error [{exc.code}]: {exc.message}", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc
     except Exception as exc:
         typer.echo(f"Error [internal_error]: {exc}", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from exc

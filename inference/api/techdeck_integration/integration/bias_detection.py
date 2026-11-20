@@ -277,7 +277,7 @@ class BiasDetectionClient:
                     continue
                 raise ServiceUnavailableError(
                     f"Failed to connect to bias detection service after {self.max_retries} retries: {e!s}"
-                )
+                ) from e
 
         raise ServiceUnavailableError("All retry attempts exhausted")
 

@@ -270,8 +270,8 @@ class DatasetExporter:
 
             self.logger.info(f"Acquired lock: {self._lock_file}")
 
-        except OSError:
-            raise RuntimeError(f"Export already in progress for {self.config.dataset_name}")
+        except OSError as exc:
+            raise RuntimeError(f"Export already in progress for {self.config.dataset_name}") from exc
 
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum of file."""

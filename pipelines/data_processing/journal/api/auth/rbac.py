@@ -120,12 +120,12 @@ def require_role(user: dict[str, Any] | None, required_role: str) -> None:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Role '{required_role}' required, but user has role '{role}'",
             )
-    except ValueError:
+    except ValueError as exc:
         # Role not in hierarchy, deny access
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Invalid role: {role}",
-        )
+        ) from exc
 
 
 def require_permission(user: dict[str, Any] | None, permission: str) -> None:

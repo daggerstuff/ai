@@ -56,7 +56,7 @@ def retry_on_failure(max_retries=MAX_RETRIES, delay=RETRY_DELAY, backoff=RETRY_B
                         current_delay *= backoff
                     else:
                         logger.error(f"All {max_retries} attempts failed: {e}")
-                        raise last_exception or Exception("Unknown error")
+                        raise last_exception or Exception("Unknown error") from e
 
         return wrapper
 

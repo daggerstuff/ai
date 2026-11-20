@@ -402,13 +402,13 @@ async def call_llm(
                     try:
                         dec = json.JSONDecoder()
                         data, _ = dec.raw_decode(body.strip())
-                    except Exception:
-                        raise RuntimeError(f"Bad JSON response: {body[:800]!r}")
+                    except Exception as exc:
+                        raise RuntimeError(f"Bad JSON response: {body[:800]!r}") from exc
                 # Extract content
                 try:
                     content = data["choices"][0]["message"]["content"]
                 except (KeyError, IndexError, TypeError) as e:
-                    raise RuntimeError(f"Unexpected response shape: {body[:800]!r} ({e})")
+                    raise RuntimeError(f"Unexpected response shape: {body[:800]!r} ({e})") from e
                 if not content or not content.strip():
                     raise RuntimeError(f"Empty content: {body[:800]!r}")
                 return _extract_json(content)

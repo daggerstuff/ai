@@ -72,12 +72,12 @@ async def initiate_acquisition(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to initiate acquisition: {e!s}",
-        )
+        ) from e
 
 
 @router.get("", response_model=AcquisitionListResponse)
@@ -125,12 +125,12 @@ async def list_acquisitions(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list acquisitions: {e!s}",
-        )
+        ) from e
 
 
 @router.get("/{acquisition_id}", response_model=AcquisitionResponse)
@@ -161,12 +161,12 @@ async def get_acquisition(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get acquisition: {e!s}",
-        )
+        ) from e
 
 
 @router.put("/{acquisition_id}", response_model=AcquisitionResponse)
@@ -202,9 +202,9 @@ async def update_acquisition(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update acquisition: {e!s}",
-        )
+        ) from e

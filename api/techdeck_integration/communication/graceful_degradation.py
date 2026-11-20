@@ -240,7 +240,7 @@ class GracefulDegradationManager:
 
         except Exception as e:
             self.logger.error(f"Fallback execution failed for service {service_name}: {e}")
-            raise ServiceUnavailableError(f"Fallback failed for service {service_name}: {e!s}")
+            raise ServiceUnavailableError(f"Fallback failed for service {service_name}: {e!s}") from e
 
     async def _execute_degradation_strategy(self, service_name: str, context: dict[str, Any] | None) -> Any:
         """Execute predefined degradation strategy."""

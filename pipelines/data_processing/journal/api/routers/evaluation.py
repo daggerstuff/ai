@@ -76,12 +76,12 @@ async def initiate_evaluation(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to initiate evaluation: {e!s}",
-        )
+        ) from e
 
 
 @router.get("", response_model=EvaluationListResponse)
@@ -132,12 +132,12 @@ async def list_evaluations(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list evaluations: {e!s}",
-        )
+        ) from e
 
 
 @router.get("/{evaluation_id}", response_model=EvaluationResponse)
@@ -171,12 +171,12 @@ async def get_evaluation(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get evaluation: {e!s}",
-        )
+        ) from e
 
 
 @router.put("/{evaluation_id}", response_model=EvaluationResponse)
@@ -219,9 +219,9 @@ async def update_evaluation(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update evaluation: {e!s}",
-        )
+        ) from e
