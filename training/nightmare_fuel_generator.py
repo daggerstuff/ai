@@ -47,6 +47,15 @@ import pandas as pd
 
 from training.cliche_gate import reject_reason_for_record
 from training.generation_backend import ModerateGuard, RateLimitError, chat_completion
+from training.nightmare_judge_receipts import (
+    Candidate,
+    JudgeEvidenceError,
+    JudgeReceipts,
+    current_recipe,
+    judge_with_receipts,
+)
+from training.nightmare_records import GateAcceptedSession
+from training.nightmare_recovery import CheckpointIdentity, pending_indices
 
 DEFAULT_NUM_CASES = int(os.environ.get("NF_NUM_CASES", "5"))
 DEFAULT_CONCURRENCY = int(os.environ.get("NF_CONCURRENCY", "5"))
@@ -593,6 +602,8 @@ async def _generate_case(
         flat = "\n".join([f"{m['role']}: {m['content']}" for m in session_data["messages"]])
         return {
             "id": str(uuid.uuid4()),
+            "case_index": case_index,
+            "requested_cases": total_cases,
             "scenario": scenario,
             "raw_content": flat,
             "messages": session_data["messages"],
@@ -625,10 +636,11 @@ async def generate_cases_async(
     timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
 
     resolved_skip_ids: set[str] = skip_ids or set()
+    checkpoint_records = checkpoint.load_existing_records() if checkpoint is not None and resolved_skip_ids else []
+    identities = tuple(CheckpointIdentity.model_validate(record) for record in checkpoint_records)
+    remaining = list(pending_indices(num_cases, identities, frozenset(resolved_skip_ids)))
     if resolved_skip_ids:
         print(f"[checkpoint] resuming — {len(resolved_skip_ids)} record(s) already present")
-
-    pending_records: list[dict] = []
 
     num_unwinnable = int(num_cases * unwinnable_ratio)
     unwinnable_indices: set[int] = set()
@@ -646,9 +658,7 @@ async def generate_cases_async(
     ]
 
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        remaining = list(range(num_cases))
         survivors: list[dict] = []
-        total_cases = num_cases
         while remaining:
             batch_size = controller.current_batch_size
             batch_indices = remaining[:batch_size]
@@ -670,7 +680,7 @@ async def generate_cases_async(
                     session,
                     semaphore,
                     idx,
-                    total_cases,
+                    num_cases,
                     token_counter=token_counter,
                     unwinnable=idx in unwinnable_indices,
                     horror_category=horror_categories[idx % len(horror_categories)],
@@ -762,10 +772,6 @@ def get_judge_prompt():
 
 
 def _export_survivors(final_df: pd.DataFrame) -> None:
-    if final_df.empty:
-        print("\nAll sessions FAILED the strict clinical gate! No data exported.")
-        return
-
     out_path = "ai/training/output/nightmare_fuel/synthetic_chatml.jsonl"
     with open(out_path, "w") as f:
         for _, row in final_df.iterrows():
@@ -778,46 +784,6 @@ def _export_survivors(final_df: pd.DataFrame) -> None:
     )
 
 
-async def _run_clinical_gate(prep_file: str) -> pd.DataFrame:
-    import asyncio as _asyncio
-
-    print("\n[Gate 1] Clinical Validity Judge (local)...")
-    df = pd.read_json(prep_file, lines=True)
-    if df.empty:
-        return df
-
-    judge_prompt = get_judge_prompt()
-    semaphore = _asyncio.Semaphore(5)
-    timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
-
-    async with aiohttp.ClientSession(timeout=timeout) as http_session:
-
-        async def _score_row(row: dict) -> int:
-            prompt = judge_prompt.format(raw_content=row.get("raw_content", ""))
-            async with semaphore:
-                try:
-                    result = await _chat_completion(
-                        http_session,
-                        [{"role": "user", "content": prompt}],
-                        temperature=0.3,
-                    )
-                    match = re.search(r"(\d)", result.strip())
-                    return int(match.group(1)) if match else 1
-                except Exception:
-                    return -1
-
-        tasks = [_score_row(row.to_dict()) for _, row in df.iterrows()]
-        scores = await _asyncio.gather(*tasks)
-
-    df["score"] = scores
-    outage_count = (df["score"] == -1).sum()
-    if outage_count:
-        print(f"[Gate 1] WARNING: {outage_count}/{len(df)} rows failed due to outage")
-    filtered = df.loc[df["score"] >= 4].reset_index(drop=True)
-    print(f"[Gate 1] {len(filtered)}/{len(df)} sessions passed (score >= 4)")
-    return pd.DataFrame(filtered)
-
-
 async def _run_clinical_gate_async(sessions: list[dict]) -> pd.DataFrame:
     """Judge sessions directly via Cloudflare Workers AI — no DataFlow dependency.
 
@@ -826,8 +792,6 @@ async def _run_clinical_gate_async(sessions: list[dict]) -> pd.DataFrame:
     ``rejected.jsonl``.
     """
     print(f"\n[Gate] Judging {len(sessions)} sessions via direct LLM call...")
-
-    import re as _re
 
     timeout = aiohttp.ClientTimeout(total=120)
     async with aiohttp.ClientSession(timeout=timeout) as session:
@@ -843,13 +807,12 @@ async def _run_clinical_gate_async(sessions: list[dict]) -> pd.DataFrame:
                     {"role": "system", "content": get_judge_prompt()},
                     {"role": "user", "content": raw[:20000]},
                 ]
-                try:
-                    score_str = await _chat_completion(session, messages, temperature=0.0, max_retries=2)
-                except Exception as e:
-                    score_str = f"1 (judge error: {e})"
+                score_str = await _chat_completion(session, messages, temperature=0.0, max_retries=2)
 
-            m = _re.search(r"(\d)", score_str)
-            score_num = int(m.group(1)) if m else 0
+            match = re.fullmatch(r"\s*([1-5])(?:\s*\([^\n]*\))?\s*", score_str)
+            if match is None:
+                raise JudgeEvidenceError("final judge returned an invalid score; no rejection decision was recorded")
+            score_num = int(match.group(1))
             if score_num >= 4:
                 survivors.append({**sess, "score": score_str})
             else:
@@ -917,6 +880,8 @@ async def _judge_cases_async(sessions: list[dict]) -> pd.DataFrame:
         accept_threshold=accept_threshold,
     )
     result = await pipeline.run(_gen())
+    if result.metrics.errors or result.metrics.evaluated != len(sessions):
+        raise JudgeEvidenceError("async final judge did not evaluate every candidate")
 
     print(
         f"\n[AsyncJudge] generated={result.metrics.generated} "
@@ -950,13 +915,12 @@ async def main_async(  # noqa: PLR0913
     checkpoint_interval_seconds: float = DEFAULT_CHECKPOINT_INTERVAL_SECONDS,
     resume: bool = True,
     category: str = "default",
-) -> None:
+) -> tuple[GateAcceptedSession, ...]:
     print("=======================================")
     print("   Nightmare Fuel Synthetic Generator")
     print("=======================================")
 
     os.makedirs("ai/training/output/nightmare_fuel", exist_ok=True)
-    os.makedirs("./nf_cache", exist_ok=True)
 
     checkpoint = CheckpointManager(
         checkpoint_dir,
@@ -978,23 +942,30 @@ async def main_async(  # noqa: PLR0913
     else:
         run_skip_ids = set()
 
+    recovered_sessions = checkpoint.load_existing_records() if resume else []
     sessions = await generate_cases_async(
         num_cases=num_cases,
         concurrency=concurrency,
         checkpoint=checkpoint,
         skip_ids=run_skip_ids,
     )
+    sessions = [*recovered_sessions, *sessions]
 
     use_async_judge = os.environ.get("NF_USE_ASYNC_JUDGE", "0") == "1"
-    if use_async_judge:
-        final_df = await _judge_cases_async(sessions)
-    elif sessions:
-        final_df = await _run_clinical_gate_async(sessions)
-    else:
-        prep_file = "./nf_cache/nf_step0.jsonl"
-        pd.DataFrame(sessions).to_json(prep_file, orient="records", lines=True)
-        final_df = await _run_clinical_gate(prep_file)
+    recipe = current_recipe(async_judge=use_async_judge, prompt=get_judge_prompt())
+    receipts = JudgeReceipts(Path(checkpoint_dir) / "judge-receipts", recipe)
+
+    async def judge_pending(pending: tuple[Candidate, ...]) -> tuple[str, ...]:
+        records = [candidate.model_dump(mode="json", exclude_unset=True) for candidate in pending]
+        frame = await _judge_cases_async(records) if use_async_judge else await _run_clinical_gate_async(records)
+        return tuple(Candidate.model_validate(row).id for row in frame.to_dict(orient="records"))
+
+    candidates = tuple(Candidate.model_validate(record) for record in sessions)
+    survivors = await judge_with_receipts(candidates, receipts, judge_pending)
+    final_df = pd.DataFrame([candidate.model_dump(mode="json", exclude_unset=True) for candidate in survivors])
+    accepted = tuple(GateAcceptedSession(scenario=row.scenario, messages=row.messages) for row in survivors)
     _export_survivors(final_df)
+    return accepted
 
 
 def main() -> None:

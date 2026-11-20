@@ -233,6 +233,14 @@ ignore = []
     "PLR0912",
     "E501",
 ]
+"training/mcp/*.py" = [
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+    "PLR0917",
+    "ARG001",
+]
 "inference/api/dataset_api.py" = [
     "B008",
     "ARG001",

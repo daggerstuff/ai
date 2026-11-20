@@ -90,12 +90,31 @@ def test_collator_masks_the_prompt_and_pads_with_ignore_index() -> None:
     rows = [datum(5, trained=2), datum(4, trained=1)]
     batch = kernel.build_collator(pad_id=0)(rows)
 
-    assert batch["input_ids"].shape == (2, 5)
-    assert batch["attention_mask"].tolist() == [[1, 1, 1, 1, 1], [1, 1, 1, 1, 0]]
+    assert batch["input_ids"].shape == (2, 6)
+    assert batch["attention_mask"].tolist() == [[1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 0]]
     assert batch["labels"].tolist() == [
-        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 3, 4],
-        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 3, kernel.IGNORE_INDEX],
+        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 3, 4, 5],
+        [kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 3, 4, kernel.IGNORE_INDEX],
     ]
+
+
+def test_collator_preserves_the_final_export_target() -> None:
+    row = {"input_ids": [11, 12, 13], "target_ids": [12, 13, 99], "weights": [0, 1, 1]}
+
+    batch = kernel.build_collator(pad_id=0)([row])
+    shifted_labels = batch["labels"][0, 1:]
+    trained = shifted_labels[shifted_labels != kernel.IGNORE_INDEX].tolist()
+
+    assert trained == [13, 99]
+
+
+def test_collator_keeps_the_existing_input_shape_for_an_unweighted_tail() -> None:
+    row = {"input_ids": [11, 12, 13], "target_ids": [12, 13, 99], "weights": [0, 1, 0]}
+
+    batch = kernel.build_collator(pad_id=0)([row])
+
+    assert batch["input_ids"].tolist() == [[11, 12, 13]]
+    assert batch["labels"].tolist() == [[kernel.IGNORE_INDEX, kernel.IGNORE_INDEX, 13]]
 
 
 def test_labels_predict_the_token_at_their_own_position() -> None:
@@ -104,8 +123,9 @@ def test_labels_predict_the_token_at_their_own_position() -> None:
     labels = kernel.build_collator(pad_id=0)([row])["labels"][0].tolist()
 
     trained = [index for index, value in enumerate(labels) if value != kernel.IGNORE_INDEX]
-    assert trained == [4, 5]
-    assert [labels[index] for index in trained] == [row["input_ids"][index] for index in trained]
+    assert trained == [4, 5, 6]
+    sequence = [*row["input_ids"], row["target_ids"][-1]]
+    assert [labels[index] for index in trained] == [sequence[index] for index in trained]
 
 
 def test_lr_schedule_peaks_at_warmup_and_lands_on_the_floor() -> None:

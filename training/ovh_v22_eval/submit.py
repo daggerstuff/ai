@@ -44,7 +44,7 @@ DEFAULT_SPLITS = ("dev", "sealed")
 # Suite revision of the graded case files. v1's sealed split is a byte-identical
 # copy of dev, so a v1 run measures one twelve-case set twice; v2 keeps the dev
 # prompts and gives sealed its own held-out prompts.
-DEFAULT_SUITE = "v1"
+DEFAULT_SUITE = "v2"
 # Prefix on every run id inside a job, so a stored result says which adapter set
 # produced it.
 DEFAULT_RUN_LABEL = "ovh-v22"

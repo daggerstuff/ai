@@ -1,68 +1,73 @@
 #!/usr/bin/env python3
-"""Run and export Nightmare Fuel adversarial clinical scenarios into Master Gold ChatML."""
+"""Generate and append final-model-accepted synthetic research sessions."""
 
-import os
 import json
-import asyncio
 import logging
+import os
 from pathlib import Path
 
+import anyio
+
 from training.nightmare_fuel_generator import main_async
+from training.nightmare_recovery import existing_session_digests, session_digest
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("run_nf")
 
 _AI_ROOT = Path(__file__).resolve().parent.parent
 CHECKPOINT_DIR = str(_AI_ROOT / "training" / "output" / "nightmare_fuel" / "checkpoints")
-SURVIVORS_FILE = str(_AI_ROOT / "training" / "output" / "nightmare_fuel" / "survivors.jsonl")
 OUT_MASTER = str(_AI_ROOT / "data" / "curated" / "sft_chatml" / "train_master_gold.jsonl")
 
-async def run():
-    logger.info("Starting Nightmare Fuel Generation & Dual-Judge Gating...")
-    await main_async(
+
+async def run() -> None:
+    logger.info("Starting synthetic generation and final model-judge gating")
+    master = Path(OUT_MASTER)
+    existing = existing_session_digests(master)
+    accepted = await main_async(
         num_cases=20,
         concurrency=2,
         checkpoint_dir=CHECKPOINT_DIR,
         checkpoint_interval=5,
         checkpoint_interval_seconds=15,
         resume=True,
-        category="nightmare_adversarial"
+        category="nightmare_adversarial",
     )
-    
-    # Check output
-    records_file = Path(CHECKPOINT_DIR) / "records.jsonl"
-    if records_file.exists():
-        count = sum(1 for line in open(records_file) if line.strip())
-        logger.info("Nightmare Fuel Checkpointed Records: %d", count)
-        
-        # Format into ChatML and append to train_master_gold.jsonl
-        appended = 0
-        with open(records_file, "r", encoding="utf-8") as fin, open(OUT_MASTER, "a", encoding="utf-8") as fout:
-            for line in fin:
-                if not line.strip(): continue
-                data = json.loads(line)
-                messages = data.get("messages", [])
-                if not messages and "transcript" in data:
-                    continue
-                record = {
-                    "messages": messages,
-                    "source": "empathy_nightmare_fuel",
-                    "task_type": "adversarial_crisis_deescalation",
-                    "tier": "T1_GOLD",
-                    "diagnostic_tag": "acute_crisis_and_rupture",
-                    "demographic_tags": [],
-                    "linguistic_style": "clinical_high_duress",
-                    "clinical_reviewed": True,
-                    "mi_quality": "high",
-                    "provenance": {
-                        "scenario": data.get("scenario", "adversarial_clinical_nightmare"),
-                        "generator": "nightmare_fuel_generator",
-                        "dual_judge_validated": True
-                    }
-                }
-                fout.write(json.dumps(record, ensure_ascii=False) + "\n")
-                appended += 1
-        logger.info("Successfully appended %d Nightmare Fuel records to %s", appended, OUT_MASTER)
+    # Checkpoints precede the final judge and cannot substitute for its output.
+    if not accepted:
+        logger.info("No sessions passed the final model judge; nothing appended")
+        return
+    appended = 0
+    with master.open("ab+") as handle:
+        for session in accepted:
+            digest = session_digest(session.messages)
+            if digest in existing:
+                continue
+            record = {
+                "messages": [message.model_dump() for message in session.messages],
+                "source": "empathy_nightmare_fuel",
+                "task_type": "adversarial_crisis_deescalation",
+                "tier": "T3_BRONZE",
+                "diagnostic_tag": "acute_crisis_and_rupture",
+                "demographic_tags": [],
+                "linguistic_style": "clinical_high_duress",
+                "clinical_reviewed": False,
+                "mi_quality": "unassessed",
+                "provenance": {
+                    "scenario": session.scenario,
+                    "generator": "nightmare_fuel_generator",
+                    "validation_method": "generator_final_model_judge",
+                    "review_status": "unreviewed_synthetic",
+                },
+            }
+            if handle.tell() and appended == 0:
+                handle.seek(-1, os.SEEK_END)
+                if handle.read(1) != b"\n":
+                    handle.write(b"\n")
+            handle.write((json.dumps(record, ensure_ascii=False) + "\n").encode())
+            existing.add(digest)
+            appended += 1
+    logger.info("Appended %d final-model-accepted synthetic sessions", appended)
+
 
 if __name__ == "__main__":
-    asyncio.run(run())
+    anyio.run(run)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -222,12 +223,71 @@ def write_manifest(tmp_path: Path, rows: list[dict[str, Any]]) -> Path:
         json.dumps(
             {
                 "release_id": "stub-release",
-                "partitions": {"train": {"path": str(train_path), "sha256": "0" * 64}},
+                "partitions": {
+                    "train": {"path": str(train_path), "sha256": hashlib.sha256(train_path.read_bytes()).hexdigest()}
+                },
             }
         ),
         encoding="utf-8",
     )
     return manifest_path
+
+
+@pytest.mark.parametrize("dry_run", [True, False])
+@pytest.mark.parametrize("identity_problem", ["changed_payload", "missing_hash", "invalid_hash"])
+def test_export_rejects_unverified_train_inputs(tmp_path: Path, dry_run: bool, identity_problem: str) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    manifest = json.loads(manifest_path.read_text())
+    if identity_problem == "changed_payload":
+        train_path = Path(manifest["partitions"]["train"]["path"])
+        train_path.write_text(train_path.read_text().replace("Fictional input", "Different input"))
+    elif identity_problem == "missing_hash":
+        del manifest["partitions"]["train"]["sha256"]
+    else:
+        manifest["partitions"]["train"]["sha256"] = "invalid"
+    manifest_path.write_text(json.dumps(manifest))
+    out = tmp_path / "out"
+
+    with pytest.raises(ValueError, match=r"train.*SHA-256"):
+        tinker.export(manifest_path, out, tokenizer=StubTokenizer(), dry_run=dry_run)
+
+    assert not out.exists()
+
+
+def test_export_receipt_binds_observed_train_and_manifest(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    out = tmp_path / "out"
+
+    tinker.export(manifest_path, out, tokenizer=StubTokenizer())
+
+    record = json.loads((out / "tinker-dataset.json").read_bytes())
+    assert record["source_train_sha256"] == hashlib.sha256((tmp_path / "train.jsonl").read_bytes()).hexdigest()
+    assert record["source_manifest_sha256"] == hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+
+
+def test_export_rejects_train_changes_during_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    original_select = tinker.select_for_export
+    train_path = tmp_path / "train.jsonl"
+
+    def mutate_after_select(*args: Any, **kwargs: Any) -> Any:
+        result = original_select(*args, **kwargs)
+        train_path.write_text(train_path.read_text().replace("Fictional input", "Different input"))
+        return result
+
+    monkeypatch.setattr(tinker, "select_for_export", mutate_after_select)
+    out = tmp_path / "out"
+
+    with pytest.raises(ValueError, match=r"train.*SHA-256"):
+        tinker.export(manifest_path, out, tokenizer=StubTokenizer())
+
+    assert not out.exists()
 
 
 def test_export_trims_a_therapist_opening_turn_instead_of_dropping_the_row(
@@ -358,7 +418,9 @@ def write_manifest_with_sources(tmp_path: Path, rows: list[dict[str, Any]], sour
         json.dumps(
             {
                 "release_id": "stub-release",
-                "partitions": {"train": {"path": str(train_path), "sha256": "0" * 64}},
+                "partitions": {
+                    "train": {"path": str(train_path), "sha256": hashlib.sha256(train_path.read_bytes()).hexdigest()}
+                },
                 "scope": {"appended_rows_by_source": sources},
             }
         ),

@@ -26,6 +26,7 @@ from __future__ import annotations
 import argparse
 import base64
 import gzip
+import hashlib
 import json
 import mimetypes
 import os
@@ -33,6 +34,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -128,8 +130,8 @@ def upload_dir(
 ) -> list[str]:
     """Mirror a local directory under ``prefix``. Returns the uploaded keys.
 
-    ``skip_unchanged`` compares against the objects already under ``prefix`` and
-    uploads only what is missing or has a different size. The input bundle holds
+    ``skip_unchanged`` compares size and SHA-256 metadata against stored objects.
+    Legacy objects without a checksum are refreshed. The input bundle holds
     two 344 MB adapters, so re-sending them on every submit is not free.
     """
     s3 = s3_client if s3_client is not None else client(env_file=env_file)
@@ -142,9 +144,15 @@ def upload_dir(
         if not path.is_file() or _skip(path.relative_to(source)):
             continue
         key = f"{base}/{path.relative_to(source).as_posix()}" if base else path.relative_to(source).as_posix()
-        if skip_unchanged and existing.get(key) == path.stat().st_size:
-            continue
-        s3.put_object(Bucket=bucket, Key=key, Body=path.read_bytes(), ContentType=content_type(path))
+        payload = path.read_bytes()
+        checksum = hashlib.sha256(payload).hexdigest()
+        if skip_unchanged and existing.get(key) == len(payload):
+            metadata = s3.head_object(Bucket=bucket, Key=key).get("Metadata", {})
+            if metadata.get("sha256") == checksum:
+                continue
+        s3.put_object(
+            Bucket=bucket, Key=key, Body=payload, ContentType=content_type(path), Metadata={"sha256": checksum}
+        )
         uploaded.append(key)
     return uploaded
 
@@ -281,28 +289,47 @@ def decode_map(text: str) -> dict[str, Any]:
     return decoded
 
 
-def run_dir_uploads(run_dir: Path, urls: dict[str, str]) -> list[tuple[Path, str]]:
+def run_dir_uploads(run_dir: Path, urls: dict[str, str], *, run_root: Path | None = None) -> list[tuple[Path, str]]:
     """Pair each file in ``run_dir`` with the URL signed for it, if any.
 
     The map is keyed ``<run-dir-name>/<file-name>``, i.e. relative to the run
-    root, so the same map works wherever the job wrote the directory.
+    root, so the same map works wherever the job wrote the directory. Nested
+    output prefixes require ``run_root`` to preserve the complete relative path.
     """
     pairs: list[tuple[Path, str]] = []
+    relative_run = run_dir.relative_to(run_root).as_posix() if run_root is not None else run_dir.name
     for path in sorted(run_dir.iterdir()):
         if not path.is_file():
             continue
-        url = urls.get(f"{run_dir.name}/{path.name}")
+        url = urls.get(f"{relative_run}/{path.name}")
         if url:
             pairs.append((path, url))
     return pairs
 
 
-def upload_run(run_dir: Path, urls: dict[str, str]) -> list[str]:
+@dataclass(frozen=True, slots=True)
+class RunUploadError(RuntimeError):
+    """The signed map cannot preserve the requested run."""
+
+    run: str
+    missing: tuple[str, ...]
+
+    def __str__(self) -> str:
+        return f"cannot upload {self.run}: missing signed results {self.missing or ('no matching upload URLs',)}"
+
+
+def upload_run(run_dir: Path, urls: dict[str, str], *, run_root: Path | None = None) -> list[str]:
     """PUT every signed file in a finished run directory. Returns the keys sent."""
+    relative_run = run_dir.relative_to(run_root).as_posix() if run_root is not None else run_dir.name
+    pairs = run_dir_uploads(run_dir, urls, run_root=run_root)
+    expected = {key for key in urls if key.startswith(f"{relative_run}/")}
+    found = {f"{relative_run}/{path.name}" for path, _ in pairs}
+    if not expected or expected != found:
+        raise RunUploadError(run_dir.name, tuple(sorted(expected - found)))
     sent: list[str] = []
-    for path, url in run_dir_uploads(run_dir, urls):
+    for path, url in pairs:
         put_file(url, path)
-        sent.append(f"{run_dir.name}/{path.name}")
+        sent.append(f"{relative_run}/{path.name}")
     return sent
 
 
@@ -352,6 +379,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     upload_run_parser = sub.add_parser("upload-run", help="PUT a finished run dir using R2_MAP_B64")
     upload_run_parser.add_argument("--run-dir", type=Path, required=True)
+    upload_run_parser.add_argument("--run-root", type=Path, default=None)
     return parser
 
 
@@ -374,7 +402,7 @@ def main(argv: list[str] | None = None) -> int:
             # must not fail the job that produced the results.
             sys.stderr.write(f"{error}; results stay in the log only\n")
             return 2
-        sent = upload_run(args.run_dir, urls)
+        sent = upload_run(args.run_dir, urls, run_root=args.run_root)
         sys.stdout.write(json.dumps({"run": args.run_dir.name, "uploaded": sent}, sort_keys=True) + "\n")
         return 0
 

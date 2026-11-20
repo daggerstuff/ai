@@ -153,15 +153,20 @@ def build_collator(pad_id: int) -> Callable[[list[dict[str, Any]]], dict[str, to
 
     ``target_ids[i]`` is ``input_ids[i + 1]``, so the label at position ``i`` is
     ``input_ids[i]`` masked by ``weights[i - 1]``. Passing ``target_ids`` straight
-    through would make the model predict one token too far ahead.
+    through would make the model predict one token too far ahead. Restore the
+    final target token when weighted so Trainer preserves every loss weight.
+    An unweighted tail retains the original input shape for recipe continuity.
     """
 
     def collate(batch: list[dict[str, Any]]) -> dict[str, torch.Tensor]:
-        width = max(len(row["input_ids"]) for row in batch)
+        width = max(len(row["input_ids"]) + int(bool(row["weights"][-1])) for row in batch)
         input_ids, labels, attention = [], [], []
         for row in batch:
             ids = list(row["input_ids"])
-            weights = [0, *list(row["weights"])[:-1]]
+            weights = [0, *row["weights"][:-1]]
+            if row["weights"][-1]:
+                ids.append(row["target_ids"][-1])
+                weights.append(row["weights"][-1])
             pad = width - len(ids)
             input_ids.append(ids + [pad_id] * pad)
             labels.append([t if w else IGNORE_INDEX for t, w in zip(ids, weights, strict=True)] + [IGNORE_INDEX] * pad)

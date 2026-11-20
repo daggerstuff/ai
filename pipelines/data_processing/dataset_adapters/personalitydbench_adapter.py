@@ -13,7 +13,7 @@ JSON files in the raw directory.
 
 Output task_type:
   - PRISMA entries           → symptom_classification
-  - PersonaDSteering entries → therapy_response_generation
+  - PersonaDSteering entries → patient_simulation
 """
 
 from __future__ import annotations
@@ -137,7 +137,7 @@ class PersonalityDBenchAdapter(BaseDatasetAdapter):
         prompt = entry.get("prompt", "").strip()
         response = entry.get("response", "").strip()
         persona = entry.get("persona", "").strip()
-        if not prompt:
+        if not prompt or not response:
             return None
         system_content = f"You are simulating a persona with {diagnostic_tag or 'a personality disorder'} traits. Respond consistently with the persona profile."
         if persona:
@@ -148,16 +148,14 @@ class PersonalityDBenchAdapter(BaseDatasetAdapter):
         ]
         if response:
             messages.append({"role": "assistant", "content": response})
-        elif diagnostic_tag:
-            messages.append({"role": "assistant", "content": diagnostic_tag})
         return {
             "messages": messages,
             "source": "personalitydbench",
-            "task_type": "therapy_response_generation",
+            "task_type": "patient_simulation",
             "diagnostic_tag": diagnostic_tag,
             "demographic_tags": [],
             "linguistic_style": "mixed",
-            "clinical_reviewed": True,
+            "clinical_reviewed": False,
             "component": "steering",
             "pd_label": entry.get("pd_label", ""),
             "provenance": PersonalityDBenchAdapter._build_provenance_static(),

@@ -167,7 +167,8 @@ def _fake_repo(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
     cases = tmp_path / "cases"
     cases.mkdir()
     for split in submit.DEFAULT_SPLITS:
-        (cases / f"scenario-crisis-{split}-v1.jsonl").write_text("{}\n")
+        for suite in ("v1", "v2"):
+            (cases / f"scenario-crisis-{split}-{suite}.jsonl").write_text("{}\n")
 
     adapters = {}
     for label in submit.DEFAULT_LABELS:
@@ -187,7 +188,7 @@ def test_stage_lays_out_exactly_what_the_launcher_reads(tmp_path: Path, monkeypa
 
     staged = tmp_path / "stage"
     assert (staged / "code" / "launch.sh").is_file()
-    assert (staged / "data" / "scenario-crisis-sealed-v1.jsonl").is_file()
+    assert (staged / "data" / "scenario-crisis-sealed-v2.jsonl").is_file()
     assert (staged / "adapters" / "nf4" / "adapter_config.json").is_file()
     assert len(copied) == len(submit.CODE_FILES) + 1 + len(submit.DEFAULT_SPLITS) + len(adapters)
 

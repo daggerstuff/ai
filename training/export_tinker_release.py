@@ -302,6 +302,21 @@ def select_for_export(
     return selections, counts
 
 
+def _verified_selection(
+    manifest: Mapping[str, Any],
+    train_path: Path,
+    options: SelectionOptions | None,
+    limit: int | None,
+) -> tuple[list[Selection], Counter[str], str]:
+    source_train_sha256 = _sha256(train_path)
+    if source_train_sha256 != manifest["partitions"]["train"].get("sha256"):
+        raise ValueError("train payload SHA-256 does not match the release manifest")
+    selections, counts = select_for_export(manifest, train_path, options, limit)
+    if _sha256(train_path) != source_train_sha256:
+        raise ValueError("train payload SHA-256 changed during selection")
+    return selections, counts, source_train_sha256
+
+
 def export(
     manifest_path: Path,
     out_dir: Path,
@@ -317,13 +332,13 @@ def export(
     dry_run: bool = False,
 ) -> Export:
     """Tokenize the selected train rows and write the datum file."""
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    train = manifest["partitions"]["train"]
+    manifest_bytes = manifest_path.read_bytes()
+    manifest = json.loads(manifest_bytes)
     train_path = Path(manifest["partitions"]["train"]["path"])
     if not train_path.is_absolute():
         train_path = ROOT / train_path
 
-    selections, counts = select_for_export(manifest, train_path, options, limit)
+    selections, counts, source_train_sha256 = _verified_selection(manifest, train_path, options, limit)
     result = Export(counts=counts, source_rows=len(selections))
 
     if tokenizer is None:
@@ -337,6 +352,8 @@ def export(
     skipped_too_long = 0
     skipped_empty = 0
     for selection in selections:
+        if selection.payload is None:
+            raise ValueError("selected train row has no payload")
         messages = selection.payload["messages"]
         if messages[0]["role"] == "assistant":
             # Arc sessions open on the therapist's line. Dropping that turn
@@ -389,8 +406,9 @@ def export(
             "end_token": end_token,
             "template_kwargs": dict(template_kwargs or {}),
             "source_manifest": str(manifest_path),
+            "source_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
             "source_release_id": manifest.get("release_id"),
-            "source_train_sha256": train.get("sha256"),
+            "source_train_sha256": source_train_sha256,
             "path": str(path),
             "sha256": _sha256(path),
             "bytes": path.stat().st_size,
@@ -433,7 +451,7 @@ def _summary(result: Export) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     """Run the export from the command line."""
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(description=(__doc__ or "Tokenize a research SFT release.").splitlines()[0])
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--base-model", default=DEFAULT_BASE_MODEL)

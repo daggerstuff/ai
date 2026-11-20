@@ -101,7 +101,7 @@ class TestPersonalityDBenchAdapter:
     def test_convert_steering(self, adapter, sample_entries):
         records = adapter.convert_to_chatml(sample_entries)
         steering = [r for r in records if r["component"] == "steering"][0]
-        assert steering["task_type"] == "therapy_response_generation"
+        assert steering["task_type"] == "patient_simulation"
         assert steering["diagnostic_tag"] == "narcissistic_personality_disorder"
         assert steering["messages"][-1]["role"] == "assistant"
 

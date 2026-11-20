@@ -100,15 +100,19 @@ except ImportError as e:
 
 # System prompts per task type — preserves source/clinical context
 SYSTEM_PROMPTS: dict[str, str] = {
+    "text_classification": (
+        "Classify the provided text using the source task labels. Return the requested "
+        "category and available annotations without inventing a diagnosis or therapeutic advice."
+    ),
     "therapy_response_generation": (
         "You are Pixelated Empathy, an evidence-based clinical AI assistant trained in "
         "motivational interviewing, CBT, DBT, and ACT. Respond therapeutically with "
         "empathic reflection, open questions, and validation. Never give medical advice."
     ),
     "symptom_classification": (
-        "You are Pixelated Empathy, a clinical AI assistant. Classify the user's "
-        "symptoms and respond with supportive guidance. Do not diagnose — encourage "
-        "professional evaluation when indicated."
+        "Classify the provided text using the source task's symptom categories. "
+        "Return the requested label rather than a therapy response. A source "
+        "category is not a clinical diagnosis."
     ),
     "severity_estimation": (
         "You are Pixelated Empathy, a clinical AI assistant. Estimate symptom "
@@ -396,9 +400,17 @@ def to_chatml(record: dict[str, Any], tier: str, system_prompt: str | None = Non
 
     if not any(m["role"] == "user" for m in messages) or not any(m["role"] == "assistant" for m in messages):
         return {}
+    if record.get("task_type") == "patient_simulation" and not any(m["role"] == "system" for m in messages):
+        return {}
 
     # Ensure system prompt is present
-    if system_prompt:
+    task_type = record.get("task_type")
+    preserve_source_instruction = task_type in {"text_classification", "symptom_classification"} and any(
+        m["role"] == "system" for m in messages
+    )
+    if task_type in {"text_classification", "symptom_classification"} and not preserve_source_instruction:
+        system_prompt = system_prompt or SYSTEM_PROMPTS[task_type]
+    if system_prompt and task_type != "patient_simulation" and not preserve_source_instruction:
         if not messages or messages[0].get("role") != "system":
             messages = [{"role": "system", "content": system_prompt}] + messages
         else:
@@ -414,6 +426,7 @@ def to_chatml(record: dict[str, Any], tier: str, system_prompt: str | None = Non
         "linguistic_style": record.get("linguistic_style"),
         "clinical_reviewed": record.get("clinical_reviewed", False),
         "mi_quality": record.get("mi_quality", ""),
+        "provenance": record.get("provenance", {}),
     }
 
 
@@ -428,6 +441,8 @@ def to_alpaca(record: dict[str, Any], tier: str) -> dict[str, Any] | None:
         return None
 
     system_msg = next((m.get("content", "") for m in messages if m.get("role") == "system"), "")
+    if record.get("task_type") == "patient_simulation" and not system_msg:
+        return None
     user_msg = non_system[0].get("content", "")
     assistant_msg = non_system[1].get("content", "")
 
@@ -435,7 +450,12 @@ def to_alpaca(record: dict[str, Any], tier: str) -> dict[str, Any] | None:
         return None
 
     return {
-        "instruction": system_msg or "Respond to the following mental health query.",
+        "instruction": system_msg
+        or (
+            SYSTEM_PROMPTS[record["task_type"]]
+            if record.get("task_type") in {"text_classification", "symptom_classification"}
+            else "Respond to the following mental health query."
+        ),
         "input": user_msg,
         "output": assistant_msg,
         "task_type": record.get("task_type", ""),
@@ -445,6 +465,7 @@ def to_alpaca(record: dict[str, Any], tier: str) -> dict[str, Any] | None:
         "demographic_tags": record.get("demographic_tags", []),
         "linguistic_style": record.get("linguistic_style"),
         "clinical_reviewed": record.get("clinical_reviewed", False),
+        "provenance": record.get("provenance", {}),
     }
 
 
@@ -464,6 +485,7 @@ def to_chatml_from_alpaca(alpaca_record: dict[str, Any]) -> dict[str, Any]:
         "demographic_tags": alpaca_record.get("demographic_tags", []),
         "linguistic_style": alpaca_record.get("linguistic_style"),
         "clinical_reviewed": alpaca_record.get("clinical_reviewed", False),
+        "provenance": alpaca_record.get("provenance", {}),
     }
 
 
