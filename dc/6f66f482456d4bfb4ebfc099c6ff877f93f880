@@ -1,0 +1,120 @@
+api/techdeck_integration/communication/error_recovery.py
+  s_7d4811cf1b0ba7::t_cadd4825c34985 14,22-24
+  s_7d4811cf1b0ba7::t_23862497cc77f2 25
+inference/api/techdeck_integration/routes/analytics.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 14
+lab/tests/test_safety_filtering_integration.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 378
+  s_7d4811cf1b0ba7::t_fb65b26984752c 18
+api/techdeck_integration/routes/validation.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 21
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 14
+tools/scripts/test_docker_postgres.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 17,69
+api/techdeck_integration/routes/standardization.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 15
+api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  s_7d4811cf1b0ba7::t_7fe0ed53ca3966 23
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 71-73,75-81
+memory/manager_factory.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 5
+tests/test_safety_filtering_integration.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 16-22,378
+tools/scripts/exceptions.py
+  s_7d4811cf1b0ba7::t_9cdb030d4b2f1c 19-20
+  s_7d4811cf1b0ba7::t_b6e32f4560d77a 21-22
+tools/scripts/config.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 17-18
+tests/test_performance_large_datasets.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 428,430
+api/techdeck_integration/routes/analytics.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 14
+api/techdeck_integration/routes/system.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 16
+core/pipelines/privacy_content_gates.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 64,703
+api/techdeck_integration/communication/state_manager.py
+  s_7d4811cf1b0ba7::t_cadd4825c34985 12
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 23-26
+lab/tests/test_performance_large_datasets.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 417,419
+qa/reports/launch_interactive_dashboards.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 3,5
+  s_7d4811cf1b0ba7::t_fb65b26984752c 11
+  s_7d4811cf1b0ba7::t_d12553f16487d3 12
+qa/reports/test_quality_trend_analysis.py
+  s_7d4811cf1b0ba7::t_7fe0ed53ca3966 12
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 22,108
+inference/api/techdeck_integration/routes/system.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 16
+research/manager_factory.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 5
+qa/reports/interactive_dashboard_system.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 18,23
+  s_7d4811cf1b0ba7::t_37006258e7c598 24
+tools/utilities/pipelines/privacy_content_gates.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 64,703
+sourcing/journal/mcp/utils/error_handling.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 303
+dataset_pipeline/scripts/run_safety_pass.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 86,88
+research/experiments/tests/test_performance_large_datasets.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 420,422
+  s_7d4811cf1b0ba7::t_fb65b26984752c 30
+research/experiments/tests/test_safety_filtering_integration.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 378
+  s_7d4811cf1b0ba7::t_fb65b26984752c 18
+tools/utilities/core/pipelines/privacy_content_gates.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 64,703
+pipelines/data_processing/journal/mcp/utils/error_handling.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 303
+cli/config.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 17-18
+inference/api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  s_7d4811cf1b0ba7::t_fb65b26984752c 23-28
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 83-91,93
+qa/testing/test_safety_filtering_integration.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 378
+  s_7d4811cf1b0ba7::t_fb65b26984752c 18
+inference/api/techdeck_integration/routes/validation.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 14
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 21
+pkg_mera/core/pipelines/privacy_content_gates.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 64,703
+inference/api/techdeck_integration/communication/state_manager.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 12,23-25
+  s_7d4811cf1b0ba7::t_6deaaf71d37bbb 26
+inference/api/techdeck_integration/communication/error_recovery.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 14,25-27
+  s_7d4811cf1b0ba7::t_92baef558a2de4 28
+monitoring/test_quality_trend_analysis.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 22,108
+  s_7d4811cf1b0ba7::t_7fe0ed53ca3966 12
+pipelines/data_processing/scripts/run_safety_pass.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 86,88
+qa/testing/test_performance_large_datasets.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 431,433
+  s_7d4811cf1b0ba7::t_fb65b26984752c 30
+tools/utilities/rare_disease/knowledge_base.py
+  s_7d4811cf1b0ba7::t_12ab9c830bb8d1 16
+api/techdeck_integration/error_handling/custom_errors.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 232-235
+inference/api/techdeck_integration/routes/standardization.py
+  s_7d4811cf1b0ba7::t_c07ab3d4e1e487 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc6f66f482456d4bfb4ebfc099c6ff877f93f880",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
