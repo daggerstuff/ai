@@ -254,6 +254,27 @@ def r2_list_eval_tags(settings: Settings) -> list[str]:
     return sorted(tags)
 
 
+def _row_passed(row: dict[str, Any]) -> bool | None:
+    """Return whether one results row passed, or None when it carries no grade.
+
+    Real ``results.jsonl`` rows have no top-level ``passed`` field: the graded
+    signal lives in ``state_metrics``, a list of
+    ``{"type", "passed", "validity"}`` checks. A case counts as passed only when
+    it has at least one check and every check passed — the "any check passed"
+    reading scores 1.000 for both arms on real data and cannot gate anything.
+    A top-level ``passed`` is honoured first so other result shapes still work.
+    """
+    if isinstance(row.get("passed"), bool):
+        return row["passed"]
+    metrics = row.get("state_metrics")
+    if not isinstance(metrics, list):
+        return None
+    checks = [m["passed"] for m in metrics if isinstance(m, dict) and isinstance(m.get("passed"), bool)]
+    if not checks:
+        return None
+    return all(checks)
+
+
 def _parse_results_body(body: bytes) -> dict[str, Any]:
     """Parse a results.jsonl body into preview + per-arm pass rates."""
     lines = [ln for ln in body.decode("utf-8", "replace").splitlines() if ln.strip()]
@@ -268,18 +289,18 @@ def _parse_results_body(body: bytes) -> dict[str, Any]:
         "results_rows": len(parsed),
     }
     by_arm: dict[str, dict[str, int]] = {}
-    has_passed = False
+    graded_rows = 0
     for row in parsed:
-        if "passed" not in row:
+        verdict = _row_passed(row)
+        if verdict is None:
             continue
-        has_passed = True
+        graded_rows += 1
         arm = str(row.get("arm_id", "unknown"))
         slot = by_arm.setdefault(arm, {"total": 0, "passed": 0})
-        arm_slot = slot
-        arm_slot["total"] += 1
-        if row.get("passed") is True:
-            arm_slot["passed"] += 1
-    if has_passed and by_arm:
+        slot["total"] += 1
+        if verdict:
+            slot["passed"] += 1
+    if graded_rows and by_arm:
         rates = {arm: (s["passed"] / s["total"] if s["total"] else 0.0) for arm, s in by_arm.items()}
         out["arm_pass_rates"] = {
             arm: {"passed": by_arm[arm]["passed"], "total": by_arm[arm]["total"], "rate": rates[arm]} for arm in by_arm
@@ -344,10 +365,25 @@ def evaluate_gate(
     """
     reasons: list[str] = []
     per_run: dict[str, Any] = {}
-    if not summary or summary.get("error"):
+    if not summary:
         return {
             "passed": False,
-            "reasons": [f"eval summary unavailable: {(summary or {}).get('error', 'no data')}"],
+            "reasons": ["eval summary unavailable: no data"],
+            "runs": {},
+            "min_delta": min_delta,
+            "min_pass_rate": min_pass_rate,
+        }
+    # ``server._guard`` wraps a backend call as {"ok": ..., "result": ...}, and
+    # the eval_gate tool passes that straight through. Unwrap so a successful
+    # fetch is read as data instead of being reported as "no eval runs found",
+    # which blocked every promotion regardless of the real results.
+    inner = summary.get("result") if summary.get("ok") is True else None
+    if isinstance(inner, dict):
+        summary = inner
+    if summary.get("error"):
+        return {
+            "passed": False,
+            "reasons": [f"eval summary unavailable: {summary['error']}"],
             "runs": {},
             "min_delta": min_delta,
             "min_pass_rate": min_pass_rate,
@@ -358,7 +394,13 @@ def evaluate_gate(
     for run_name, run in runs.items():
         rates = run.get("arm_pass_rates")
         if not rates:
-            per_run[run_name] = {"passed": False, "reason": "no graded results (arm_pass_rates null)"}
+            per_run[run_name] = {
+                "passed": False,
+                "sft_rate": None,
+                "base_rate": None,
+                "delta": run.get("delta_sft_minus_base"),
+                "reasons": ["no graded results (arm_pass_rates null)"],
+            }
             reasons.append(f"{run_name}: no graded results")
             continue
         sft = (rates.get("sft") or {}).get("rate")

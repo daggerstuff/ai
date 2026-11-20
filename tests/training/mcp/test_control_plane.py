@@ -7,6 +7,7 @@ plan/submit binding, the audit log, and the eval gate's fail-closed behaviour.
 
 from __future__ import annotations
 
+import json
 import sys
 import threading
 from datetime import UTC, datetime, timedelta
@@ -402,6 +403,72 @@ def test_gate_fails_when_any_run_fails():
     assert verdict["passed"] is False
     assert verdict["runs"]["run-ok"]["passed"] is True
     assert verdict["runs"]["run-bad"]["passed"] is False
+
+
+def test_gate_unwraps_the_guard_envelope_from_the_server_tool():
+    """``server.eval_gate`` passes ``_guard``'s envelope straight through.
+
+    Reading ``runs`` only at the top level made every verdict report
+    "no eval runs found under the tag", permanently blocking all promotions
+    no matter what the real eval data said.
+    """
+    wrapped = {"ok": True, "result": _summary(0.9, 0.2)}
+    verdict = backends.evaluate_gate(wrapped, min_delta=0.5, min_pass_rate=0.8)
+    assert verdict["passed"] is True, verdict
+    assert verdict["runs"]["run-1"]["sft_rate"] == pytest.approx(0.9)
+
+
+def test_gate_reports_backend_errors_inside_a_guard_envelope():
+    wrapped = {"ok": True, "result": {"error": "r2_not_configured"}}
+    verdict = backends.evaluate_gate(wrapped)
+    assert verdict["passed"] is False
+    assert any("r2_not_configured" in r for r in verdict["reasons"])
+
+
+# --- real R2 results.jsonl grading ------------------------------------------
+
+
+def _result_row(arm: str, checks: list[bool | None]) -> str:
+    metrics = [{"type": "response_omits", "passed": c} for c in checks if c is not None]
+    return json.dumps({"arm_id": arm, "status": "success", "state_metrics": metrics, "response": "x"})
+
+
+def test_results_parser_grades_from_state_metrics_not_a_top_level_field():
+    """Real rows carry no top-level ``passed``; the grade lives in state_metrics."""
+    body = "\n".join(
+        [
+            _result_row("base", [True, True, False, False]),
+            _result_row("base", [False, False]),
+            _result_row("sft", [True, True, True, True]),
+            _result_row("sft", [True, True]),
+        ]
+    ).encode()
+    parsed = backends._parse_results_body(body)
+    rates = parsed["arm_pass_rates"]
+    assert rates["base"] == {"passed": 0, "total": 2, "rate": 0.0}
+    assert rates["sft"] == {"passed": 2, "total": 2, "rate": 1.0}
+    assert parsed["delta_sft_minus_base"] == pytest.approx(1.0)
+
+
+def test_results_parser_requires_every_check_to_pass():
+    """Any-check-pass scores 1.0 for both arms on real data and gates nothing."""
+    body = "\n".join([_result_row("base", [True, False]), _result_row("sft", [True, False])]).encode()
+    parsed = backends._parse_results_body(body)
+    assert parsed["arm_pass_rates"]["base"]["rate"] == 0.0
+    assert parsed["arm_pass_rates"]["sft"]["rate"] == 0.0
+
+
+def test_results_parser_honours_an_explicit_top_level_passed():
+    row = json.dumps({"arm_id": "sft", "passed": True, "state_metrics": [{"passed": False}]})
+    parsed = backends._parse_results_body(row.encode())
+    assert parsed["arm_pass_rates"]["sft"]["rate"] == 1.0
+
+
+def test_results_parser_reports_no_grades_when_metrics_are_absent():
+    row = json.dumps({"arm_id": "sft", "state_metrics": [], "response": "x"})
+    parsed = backends._parse_results_body(row.encode())
+    assert parsed["arm_pass_rates"] is None
+    assert "raw outputs only" in parsed["note"]
 
 
 # --- runner lifecycle (finished_at, cancel-vs-monitor, task4) ----------------
