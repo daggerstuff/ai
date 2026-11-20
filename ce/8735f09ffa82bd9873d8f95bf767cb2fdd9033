@@ -1,0 +1,22 @@
+tests/training/mcp/test_control_plane.py
+  h_07d84030f79d30 408-431
+training/mcp/README.md
+  h_07d84030f79d30 65-67
+training/mcp/RUNBOOK.md
+  h_07d84030f79d30 115-116,204-237
+training/mcp/config.py
+  h_07d84030f79d30 97-111
+training/mcp/server.py
+  h_07d84030f79d30 691,696-700,703-704,706,711-717
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ce8735f09ffa82bd9873d8f95bf767cb2fdd9033",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
