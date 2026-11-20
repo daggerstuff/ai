@@ -104,8 +104,13 @@ def _conn(db_path: Path) -> sqlite3.Connection:
     return conn
 
 
-def _now() -> str:
+def now() -> str:
+    """UTC timestamp in the registry's canonical format (second resolution)."""
     return datetime.now(UTC).isoformat(timespec="seconds")
+
+
+# Backwards-compatible private alias used inside this module.
+_now = now
 
 
 def new_job_id(prefix: str) -> str:

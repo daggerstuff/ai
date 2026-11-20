@@ -16,7 +16,7 @@ import threading
 import time
 from typing import Any
 
-from training.mcp import db
+from training.mcp import db, foresight
 from training.mcp.config import Settings
 
 # Single-flight locks per backend kind.
@@ -24,6 +24,10 @@ _LOCKS: dict[str, threading.Lock] = {}
 _LOCKS_GUARD = threading.Lock()
 _PROCESSES: dict[str, subprocess.Popen[bytes]] = {}
 _PROCESSES_GUARD = threading.Lock()
+
+#: Statuses a job can never leave. The reconciler and cancel() both use this
+#: to avoid resurrecting or re-terminating a job that already finished.
+TERMINAL_STATUSES = frozenset({"succeeded", "failed", "cancelled"})
 
 
 def _lock_for(backend: str) -> threading.Lock:
@@ -96,6 +100,12 @@ def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _lo
     job = db.get_job(settings.db_path, job_id)
     if job is None:
         return
+    # A cancel() already wrote the terminal row; don't overwrite it with a
+    # process-exit status (terminate() gives a non-zero rc).
+    if job.get("status") == "cancelled":
+        with _PROCESSES_GUARD:
+            _PROCESSES.pop(job_id, None)
+        return
     # Determine terminal status.
     if rc == 0:
         new_status = "succeeded"
@@ -131,11 +141,39 @@ def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _lo
             "stage": new_status,
             "backend_id": job.get("backend_id"),
             "error": error,
-            "finished_at": None,
+            # Terminal rows must carry finished_at so provenance and duration
+            # queries work; it also gates the "is this job over" checks.
+            "finished_at": db.now(),
         },
     )
+    _record_terminal_outcome(settings, job_id)
     with _PROCESSES_GUARD:
         _PROCESSES.pop(job_id, None)
+
+
+def _record_terminal_outcome(settings: Settings, job_id: str) -> None:
+    """Write the terminal job outcome to Foresight (best-effort, epic criterion).
+
+    Doing it here rather than agent-side means a job nobody polls still leaves
+    a provenance record for ``promote_to_*`` to find. Foresight being down must
+    never change the job's result, so failures are swallowed.
+    """
+    if not settings.foresight_enabled:
+        return
+    with contextlib.suppress(Exception):
+        job = db.get_job(settings.db_path, job_id)
+        if job is None or job.get("status") not in TERMINAL_STATUSES:
+            return
+        outcome = foresight.store_terminal_memory(settings, job)
+        db.write_audit(
+            settings.db_path,
+            action="foresight.terminal",
+            actor="mcp",
+            job_id=job_id,
+            recipe_id=job.get("name"),
+            plan_hash=job.get("plan_hash"),
+            detail={"stored": outcome.get("stored"), "error": outcome.get("error")},
+        )
 
 
 def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: str, backend: str) -> None:
@@ -226,6 +264,8 @@ def cancel(settings: Settings, job_id: str) -> bool:
     job = db.get_job(settings.db_path, job_id)
     if job is None:
         return False
+    if job.get("status") in TERMINAL_STATUSES:
+        return False
     db.upsert_job(
         settings.db_path,
         {
@@ -237,10 +277,12 @@ def cancel(settings: Settings, job_id: str) -> bool:
             "stage": "cancelled",
             "backend_id": job.get("backend_id"),
             "error": "cancelled by operator",
+            "finished_at": db.now(),
         },
     )
     # Best-effort backend cancel for ovhai.
     if job.get("source") == "ovhai" and job.get("backend_id"):
         with contextlib.suppress(Exception):
             subprocess.run(["ovhai", "job", "stop", job["backend_id"]], capture_output=True, timeout=30, check=False)
+    _record_terminal_outcome(settings, job_id)
     return True

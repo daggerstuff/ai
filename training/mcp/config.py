@@ -89,6 +89,15 @@ class Settings:
         return self.env.get("TRAINING_MCP_ALLOW_REMOTE", "").lower() in {"1", "true", "yes"}
 
     @property
+    def foresight_url(self) -> str:
+        return self.env.get("FORESIGHT_URL", "http://127.0.0.1:8764/mcp")
+
+    @property
+    def foresight_enabled(self) -> bool:
+        """Write terminal-state provenance to Foresight (epic acceptance criterion)."""
+        return self.env.get("TRAINING_MCP_FORESIGHT", "1").lower() not in {"0", "false", "no", "off"}
+
+    @property
     def binding_is_loopback(self) -> bool:
         return self.host in {"127.0.0.1", "localhost", "::1", "0:0:0:0:0:0:0:1"}
 

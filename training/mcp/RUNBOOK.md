@@ -106,12 +106,15 @@ spec (recipe, inputs, overrides, command, cost) that a human or agent saw.
 | --------------------------- | ----------------------------------------------------------------------------------- |
 | Check service health        | `health` tool, or `systemctl --user status training-infra-mcp.service`               |
 | Reconcile backend state     | `sync_jobs` (runs automatically every 60s via the lifespan reconciler)               |
+| Import historical runs      | `import_history(rows=[...])`, or `include_backends=true` for W&B/R2 history          |
 | List running/queued jobs    | `list_jobs(status="running")`                                                       |
 | Show one job                | `get_job(job_id)`                                                                   |
-| OVH job logs                | `get_job_logs(job_id, tail=200)` (OVH jobs only)                                     |
+| Job logs                    | `get_job_logs(job_id, tail=200)` — captured subprocess log, else live OVH logs       |
+| Job metrics                 | `job_metrics(job_id)` — accepts a registry id; queued jobs report no metrics yet     |
 | Cancel a job                | `cancel_job(job_id)` — terminates the subprocess and best-effort stops the OVH job   |
 | Eval results for a tag      | `eval_results(tag)` / `list_eval_tags()` / `eval_gate(tag, min_delta, min_pass_rate)` |
 | Who asked for what          | `list_audit(action="submit", limit=50)` — actor, spec_hash, plan_hash, remote_addr   |
+| Provenance lookup           | Foresight `search_memories` for tags `training_job_outcome` / `job:<id>`             |
 
 ---
 
@@ -141,11 +144,14 @@ reason. Read it with `list_audit(action="submit.rejected")`:
 ### A job is stuck `running`
 
 1. `get_job(job_id)` — compare `backend_state` with `status`.
-2. `sync_jobs` to refresh from OVH.
-3. `get_job_logs(job_id)` for OVH jobs; otherwise read
-   `ai/training/mcp/state/logs/<job_id>.log`.
-4. `cancel_job(job_id)` if it must stop; the reconciler will write the terminal
-   state.
+2. `sync_jobs` to refresh from the backends. If the backend no longer lists the
+   job, reconcile marks it `failed` with `error: backend_lost`.
+3. `get_job_logs(job_id)` — serves the captured subprocess log when present,
+   otherwise live OVH logs (the file also lives at
+   `ai/training/mcp/state/logs/<job_id>.log`).
+4. `job_metrics(job_id)` — W&B metrics once the run has started.
+5. `cancel_job(job_id)` if it must stop; the terminal state is written once and
+   the monitor will not overwrite it.
 
 ### Agents cannot reach the MCP
 

@@ -16,7 +16,8 @@ AI_ROOT = Path(__file__).resolve().parents[3]
 if str(AI_ROOT) not in sys.path:
     sys.path.insert(0, str(AI_ROOT))
 
-from training.mcp import backends, db, plan, recipes  # noqa: E402
+from training.mcp import backends, db, foresight, plan, recipes, runner, sync  # noqa: E402
+from training.mcp.config import Settings  # noqa: E402
 
 VALID_ENTRY = {
     "id": "eval-draft-v1",
@@ -298,3 +299,166 @@ def test_gate_fails_when_any_run_fails():
     assert verdict["passed"] is False
     assert verdict["runs"]["run-ok"]["passed"] is True
     assert verdict["runs"]["run-bad"]["passed"] is False
+
+
+# --- runner lifecycle (finished_at, cancel-vs-monitor, task4) ----------------
+
+
+def _settings(db_path, env=None):
+    return Settings(host="127.0.0.1", port=8766, db_path=db_path, env=env or {})
+
+
+def test_terminal_rows_carry_finished_at(db_path):
+    """A terminal transition must set finished_at; it was always null before."""
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-t1", "kind": "build_release", "source": "local", "name": "r", "status": "queued"},
+    )
+    assert db.get_job(db_path, "job-t1")["finished_at"] is None
+
+    terminal = db.get_job(db_path, "job-t1")
+    runner._record_terminal_outcome(_settings(db_path), "job-t1")
+    db.upsert_job(
+        db_path,
+        {
+            "job_id": "job-t1",
+            "kind": terminal["kind"],
+            "source": terminal["source"],
+            "name": terminal["name"],
+            "status": "succeeded",
+            "stage": "succeeded",
+            "error": None,
+            "finished_at": db.now(),
+        },
+    )
+    assert db.get_job(db_path, "job-t1")["finished_at"] is not None
+
+
+def test_cancel_is_refused_for_terminal_jobs(db_path):
+    """cancel() must not resurrect or re-terminate a finished job."""
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-done", "kind": "build_release", "source": "local", "status": "succeeded"},
+    )
+    assert runner.cancel(_settings(db_path), "job-done") is False
+    assert db.get_job(db_path, "job-done")["status"] == "succeeded"
+
+
+def test_cancel_marks_finished_at(db_path):
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-live", "kind": "build_release", "source": "local", "status": "running"},
+    )
+    assert runner.cancel(_settings(db_path), "job-live") is True
+    job = db.get_job(db_path, "job-live")
+    assert job["status"] == "cancelled"
+    assert job["finished_at"] is not None
+
+
+def test_monitor_preserves_operator_cancel(db_path, monkeypatch):
+    """The monitor must not rewrite a cancel() as 'failed'."""
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-c", "kind": "build_release", "source": "local", "status": "cancelled"},
+    )
+
+    class _Proc:
+        returncode = -15
+
+        def wait(self, *_args, **_kwargs):
+            return self.returncode
+
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda *_a, **_k: None)
+    runner._monitor(settings, "job-c", _Proc(), "/tmp/whatever.log")
+    assert db.get_job(db_path, "job-c")["status"] == "cancelled"
+
+
+# --- sync: lost-backend reconciliation (PIX-5012) --------------------------
+
+
+def test_reconcile_marks_vanished_backend_job_failed(db_path):
+    db.upsert_job(
+        db_path,
+        {
+            "job_id": "ovh-gone",
+            "kind": "eval_paired",
+            "source": "ovhai",
+            "status": "running",
+            "backend_id": "uuid-gone",
+        },
+    )
+    result = sync.reconcile_lost_backends(_settings(db_path), seen={"ovhai": set()})
+    job = db.get_job(db_path, "ovh-gone")
+    assert job["status"] == "failed"
+    assert job["error"] == "backend_lost"
+    assert job["finished_at"] is not None
+    assert result["lost"] == 1
+
+
+def test_reconcile_keeps_live_and_skips_unknown_sources(db_path):
+    db.upsert_job(
+        db_path,
+        {"job_id": "ovh-live", "kind": "eval_paired", "source": "ovhai", "status": "running", "backend_id": "u1"},
+    )
+    db.upsert_job(
+        db_path,
+        {"job_id": "wandb-x", "kind": "train_sft", "source": "wandb", "status": "running", "backend_id": "r1"},
+    )
+    result = sync.reconcile_lost_backends(_settings(db_path), seen={"ovhai": {"u1"}})
+    assert db.get_job(db_path, "ovh-live")["status"] == "running"
+    # wandb was not queried, so it must not be called lost
+    assert db.get_job(db_path, "wandb-x")["status"] == "running"
+    assert result["lost"] == 0
+
+
+def test_reconcile_ignores_terminal_rows(db_path):
+    db.upsert_job(
+        db_path,
+        {"job_id": "ovh-done", "kind": "eval_paired", "source": "ovhai", "status": "succeeded", "backend_id": "u9"},
+    )
+    result = sync.reconcile_lost_backends(_settings(db_path), seen={"ovhai": set()})
+    assert db.get_job(db_path, "ovh-done")["status"] == "succeeded"
+    assert result["lost"] == 0
+
+
+# --- sync: historical import (P0.10) ---------------------------------------
+
+
+def test_import_manual_rows_validates_required_fields(db_path):
+    result = sync.import_manual_rows(
+        _settings(db_path),
+        [
+            {"job_id": "hist-1", "kind": "train_sft", "status": "succeeded", "name": "v29"},
+            {"job_id": "hist-2", "kind": "train_sft"},
+        ],
+    )
+    assert result["imported"] == 1
+    assert result["rejected"] == [{"index": 1, "missing": ["status"]}]
+    job = db.get_job(db_path, "hist-1")
+    assert job["source"] == "manual"
+    assert job["requested_by"] == "import"
+
+
+def test_normalize_wandb_run_maps_states():
+    assert backends.normalize_wandb_run({"id": "abc", "state": "finished"})["status"] == "succeeded"
+    assert backends.normalize_wandb_run({"id": "abc", "state": "crashed"})["status"] == "failed"
+    assert backends.normalize_wandb_run({"id": "abc", "state": "running"})["status"] == "running"
+    row = backends.normalize_wandb_run({"id": "abc", "state": "finished", "name": "sft-v30"})
+    assert row["job_id"] == "wandb-abc"
+    assert row["source"] == "wandb"
+
+
+# --- foresight payload (PIX-5000 provenance) --------------------------------
+
+
+def test_foresight_payload_is_best_effort_on_bad_url(db_path):
+    settings = _settings(db_path, {"FORESIGHT_URL": "http://127.0.0.1:1/mcp"})
+    outcome = foresight.store_terminal_memory(settings, {"job_id": "j", "status": "succeeded"})
+    assert outcome["stored"] is False
+    assert "error" in outcome
+
+
+def test_foresight_disabled_by_config(db_path):
+    assert _settings(db_path, {"TRAINING_MCP_FORESIGHT": "0"}).foresight_enabled is False
+    assert _settings(db_path).foresight_enabled is True

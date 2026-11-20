@@ -174,11 +174,14 @@ def _health_probe() -> dict[str, Any]:
 
     return {
         "service": "pixelated-training-infra",
-        "phase": 3,
+        "phase": 4,
         "read_only": False,
         "audit": True,
         "eval_gate": True,
         "recipe_validation": True,
+        "historical_import": True,
+        "reconciler": {"active": True, "lost_backend": True},
+        "foresight": {"enabled": s.foresight_enabled, "url": s.foresight_url},
         "budget_caps": {
             "max_concurrent_jobs": s.max_concurrent_jobs,
             "daily_job_cap": s.daily_job_cap,
@@ -256,8 +259,49 @@ def validate_recipe(entry: dict[str, Any]) -> dict[str, Any]:
 
 @mcp.tool
 def sync_jobs() -> dict[str, Any]:
-    """Reconcile live backends (ovhai job list) into the job registry."""
+    """Reconcile every backend into the registry, then mark lost jobs.
+
+    Imports recent ovhai jobs, W&B runs, and R2 eval tags; a registry row still
+    ``running`` whose backend job is no longer listed becomes ``failed`` with
+    ``error: backend_lost`` (PIX-5012). A backend that is unconfigured or whose
+    listing failed is skipped, so an unreachable backend never looks like a
+    vanished job.
+    """
     return {"ok": True, "result": sync.sync_all(settings())}
+
+
+@mcp.tool
+def import_history(
+    rows: list[dict[str, Any]] | None = None,
+    include_backends: bool = False,
+) -> dict[str, Any]:
+    """Seed the registry from historical records (P0.10).
+
+    Two sources:
+    * ``rows`` — operator-supplied manual log entries. Each needs at minimum
+      ``job_id``, ``kind``, and ``status``; the rest of the registry fields are
+      accepted as-is (``spec``, ``artifact_refs``, ``cost_estimate``, …).
+    * ``include_backends`` — additionally import what W&B/R2 can enumerate.
+      R2 contributes one terminal ``succeeded`` row per ``evals/<tag>/`` tag,
+      which is what makes pre-control-plane evals visible and lets
+      ``eval_results`` line up with a registry row.
+
+    ``ovhai`` is always imported by ``sync_jobs``; this tool exists for the
+    history those listings cannot reconstruct. Idempotent: rows are upserted.
+    """
+    s = settings()
+    results: dict[str, Any] = {}
+    if rows:
+        results["manual"] = sync.import_manual_rows(s, rows)
+    if include_backends:
+        for name, fn in (("wandb", sync.sync_wandb), ("r2", sync.sync_r2_evals)):
+            try:
+                results[name] = fn(s)
+            except Exception as exc:
+                results[name] = {"error": f"{type(exc).__name__}: {exc}"}
+    if not rows and not include_backends:
+        return {"ok": False, "error": "nothing to import: pass rows and/or include_backends=true"}
+    return {"ok": True, "result": results}
 
 
 @mcp.tool
@@ -532,19 +576,76 @@ def security_status() -> dict[str, Any]:
 
 @mcp.tool
 def get_job_logs(job_id: str, tail: int = 200) -> dict[str, Any]:
-    """Fetch a tail of backend logs for a job (ovhai jobs only in Phase 0)."""
+    """Fetch a tail of logs for a job.
+
+    Local/subprocess jobs read the captured ``state/logs/<job_id>.log`` that
+    the runner wrote; backend jobs (ovhai) are queried live. The MCP-owned
+    capture is preferred when present because it is the same stream the
+    subprocess actually produced.
+    """
     job = db.get_job(settings().db_path, job_id)
     if job is None:
         return {"ok": False, "error": f"unknown job: {job_id}"}
-    if job.get("source") != "ovhai" or not job.get("backend_id"):
-        return {"ok": False, "error": "logs only available for ovhai jobs in Phase 0"}
-    return {"ok": True, "logs": backends.ovhai_job_logs(job["backend_id"], tail=tail)}
+    captured = _read_captured_log(job_id, tail=tail)
+    if captured is not None:
+        return {"ok": True, "job_id": job_id, "source": "captured", "logs": captured}
+    if job.get("source") == "ovhai" and job.get("backend_id"):
+        return {
+            "ok": True,
+            "job_id": job_id,
+            "source": "ovhai",
+            "logs": backends.ovhai_job_logs(job["backend_id"], tail=tail),
+        }
+    return {
+        "ok": False,
+        "error": "no captured log and no backend log source for this job "
+        "(job has not started, or its backend is not log-addressable)",
+    }
+
+
+def _read_captured_log(job_id: str, *, tail: int) -> str | None:
+    """Return the last ``tail`` lines of a captured job log, if any."""
+    if "/" in job_id or "\\" in job_id or job_id.startswith("."):
+        return None
+    path = settings().db_path.parent / "logs" / f"{job_id}.log"
+    if not path.is_file():
+        return None
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return None
+    limit = max(1, min(tail, 5000))
+    return "\n".join(lines[-limit:])
 
 
 @mcp.tool
-def job_metrics(run_id: str) -> dict[str, Any]:
-    """W&B metric summary for a run id (from wandb_runs or a train job)."""
-    return _guard(backends.wandb_run_metrics, settings(), run_id)
+def job_metrics(job_id: str) -> dict[str, Any]:
+    """W&B metric summary for a registry job (PIX-5010).
+
+    Accepts a registry ``job_id`` and resolves the W&B run id from the row's
+    ``backend_id``/``backend_ids`` — falling back to treating the argument as a
+    bare W&B run id for hand-launched runs. Unknown jobs and unconfigured W&B
+    return a real error rather than an ``ok: true`` wrapper hiding one.
+    """
+    s = settings()
+    job = db.get_job(s.db_path, job_id)
+    run_id = job_id
+    if job is not None:
+        candidates = [job.get("backend_id"), *(job.get("backend_ids") or [])]
+        run_id = next((str(c) for c in candidates if c), job_id)
+        if job.get("status") in {"planned", "queued", "staging", "submitted"}:
+            return {
+                "ok": True,
+                "job_id": job_id,
+                "run_id": run_id or None,
+                "status": job["status"],
+                "metrics": None,
+                "note": "job has not started; W&B metrics are unavailable while queued",
+            }
+    metrics = backends.wandb_run_metrics(s, run_id)
+    if isinstance(metrics, dict) and metrics.get("error"):
+        return {"ok": False, "job_id": job_id, "run_id": run_id, "error": metrics["error"]}
+    return {"ok": True, "job_id": job_id, "run_id": run_id, "metrics": metrics}
 
 
 @mcp.tool

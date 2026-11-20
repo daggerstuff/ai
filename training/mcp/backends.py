@@ -160,6 +160,40 @@ def wandb_runs(settings: Settings, *, limit: int = 20) -> list[dict[str, Any]]:
     return out
 
 
+def normalize_wandb_run(run: dict[str, Any]) -> dict[str, Any]:
+    """Convert one ``wandb_runs`` entry into a registry job dict.
+
+    Hand-launched W&B runs have no plan/spec hash — they are imported as
+    provenance rows so ``list_jobs`` and provenance lookups see them.
+    """
+    state = str(run.get("state") or "unknown").lower()
+    status = {
+        "finished": "succeeded",
+        "crashed": "failed",
+        "failed": "failed",
+        "killed": "cancelled",
+        "running": "running",
+        "pending": "queued",
+    }.get(state, "unknown")
+    run_id = str(run.get("id") or "")
+    return {
+        "job_id": f"wandb-{run_id}",
+        "kind": "train_sft",
+        "source": "wandb",
+        "name": run.get("name") or run_id,
+        "status": status,
+        "stage": status,
+        "backend_id": run_id,
+        "backend_ids": [run_id],
+        "backend_state": state,
+        "spec": {"url": run.get("url"), "tags": run.get("tags") or []},
+        "artifacts": {"wandb_url": run.get("url")},
+        "cost_class": "gpu-day",
+        "requested_by": "import",
+        "error": None,
+    }
+
+
 def wandb_run_metrics(settings: Settings, run_id: str, *, max_points: int = 50) -> dict[str, Any]:
     """Metric summary for one W&B run: last values per key + sample history."""
     if not wandb_configured(settings):
