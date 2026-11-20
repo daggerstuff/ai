@@ -108,18 +108,20 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
     (stage_dir / "data" / "scenario-crisis-dev-v1.jsonl").write_text("{}\n")
 
     monkeypatch.setattr(
-        submit.r2_sync,
+        r2_sync,
         "client",
         lambda **_: FakeS3(("inputs/v22/code/launch.sh", "inputs/v22/data/scenario-crisis-dev-v1.jsonl")),
     )
-    monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
-    monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
+    monkeypatch.setattr(r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
+    monkeypatch.setattr(r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
 
     report = submit.submit(tag="v23", stage_dir=stage_dir, restage=False)
 
+    command = report["command"]
+    assert isinstance(command, list)
     env = dict(
         entry.split("=", 1)
-        for entry in report["command"]
+        for entry in command
         if isinstance(entry, str) and "=" in entry and not entry.startswith("--")
     )
     plan = r2_sync.decode_map(env["R2_MAP_B64"])
@@ -148,9 +150,9 @@ def test_submit_refuses_to_launch_when_an_input_did_not_land(tmp_path: Path, mon
     (stage_dir / "adapters" / "sft").mkdir(parents=True)
     (stage_dir / "adapters" / "sft" / "adapter_config.json").write_text("{}\n")
 
-    monkeypatch.setattr(submit.r2_sync, "client", lambda **_: FakeS3(("inputs/v22/code/launch.sh",)))
-    monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
-    monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
+    monkeypatch.setattr(r2_sync, "client", lambda **_: FakeS3(("inputs/v22/code/launch.sh",)))
+    monkeypatch.setattr(r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
+    monkeypatch.setattr(r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
 
     with pytest.raises(SystemExit, match=r"adapters/sft/adapter_config\.json"):
         submit.submit(tag="v28", stage_dir=stage_dir, restage=False)

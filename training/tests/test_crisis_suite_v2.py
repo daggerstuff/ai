@@ -27,8 +27,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-
-import pytest
+from typing import Any, cast
 
 from qa.validation.therapy_bench import (
     generate_crisis_capability_v1 as rubric_v1,
@@ -45,29 +44,29 @@ def cases_file(split: str, version: str = "v2") -> Path:
     return rubric.ROOT / f"scenario-crisis-{split}-{version}.jsonl"
 
 
-def shipped(split: str, version: str = "v2") -> list[dict]:
+def shipped(split: str, version: str = "v2") -> list[dict[str, Any]]:
     text = cases_file(split, version).read_text(encoding="utf-8")
     return [json.loads(line) for line in text.splitlines() if line.strip()]
 
 
-def generated(split: str) -> list[dict]:
+def generated(split: str) -> list[dict[str, Any]]:
     return rubric.cases_for(split)
 
 
-def manifest() -> dict:
-    return json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+def manifest() -> dict[str, Any]:
+    return cast("dict[str, Any]", json.loads(MANIFEST_PATH.read_text(encoding="utf-8")))
 
 
-def by_id(rows: list[dict]) -> dict[str, dict]:
+def by_id(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     return {row["id"]: row for row in rows}
 
 
-def omitted_terms(row: dict) -> set[str]:
+def omitted_terms(row: dict[str, Any]) -> set[str]:
     return {check["term"] for check in row["state_checks"] if check["type"] == "response_omits"}
 
 
-def variant(row: dict) -> str:
-    return row["id"].split("-", 1)[1]
+def variant(row: dict[str, Any]) -> str:
+    return str(row["id"]).split("-", 1)[1]
 
 
 def test_the_dev_split_still_is_the_v1_split() -> None:
@@ -123,39 +122,40 @@ def test_the_sealed_split_discloses_the_same_nine_categories() -> None:
         assert len(shipped(split)) - len(crisis) == CONTROL_CASES, split
 
 
-@pytest.mark.parametrize("split", SPLITS)
-def test_every_crisis_case_demands_escalation(split: str) -> None:
-    for row in shipped(split):
-        if row["scenario"] != "crisis":
-            continue
-        assert row["state_checks"][0]["type"] == "response_contains_any", row["id"]
-        assert row["state_checks"][1]["type"] == "response_contains_any", row["id"]
-        assert row["state_checks"][1]["terms"], row["id"]
+def test_every_crisis_case_demands_escalation() -> None:
+    for split in SPLITS:
+        for row in shipped(split):
+            if row["scenario"] != "crisis":
+                continue
+            assert row["state_checks"][0]["type"] == "response_contains_any", row["id"]
+            assert row["state_checks"][1]["type"] == "response_contains_any", row["id"]
+            assert row["state_checks"][1]["terms"], row["id"]
 
 
-@pytest.mark.parametrize("split", SPLITS)
-def test_control_cases_never_demand_escalation(split: str) -> None:
+def test_control_cases_never_demand_escalation() -> None:
     # Over-triggering is the control family's whole point.
-    for row in shipped(split):
-        if row["scenario"] != "control":
-            continue
-        assert not any(check["type"] == "response_contains_any" for check in row["state_checks"]), row["id"]
+    for split in SPLITS:
+        for row in shipped(split):
+            if row["scenario"] != "control":
+                continue
+            assert not any(check["type"] == "response_contains_any" for check in row["state_checks"]), row["id"]
 
 
-@pytest.mark.parametrize("split", SPLITS)
-def test_the_shipped_jsonl_is_what_the_generator_emits(split: str) -> None:
-    assert shipped(split) == generated(split), f"{split} fixture drifted from the generator; regenerate it"
+def test_the_shipped_jsonl_is_what_the_generator_emits() -> None:
+    for split in SPLITS:
+        assert shipped(split) == generated(split), f"{split} fixture drifted from the generator; regenerate it"
 
 
-@pytest.mark.parametrize("split", SPLITS)
-def test_the_manifest_pins_the_shipped_files(split: str) -> None:
-    entry = manifest()[split]
-    rows = shipped(split)
-    assert entry["path"] == cases_file(split).name
-    assert entry["case_count"] == len(rows)
-    assert entry["case_ids"] == [row["id"] for row in rows]
-    assert entry["group_ids"] == [row["group_id"] for row in rows]
-    assert entry["cases_sha256"] == hashlib.sha256(cases_file(split).read_bytes()).hexdigest()
+def test_the_manifest_pins_the_shipped_files() -> None:
+    data = manifest()
+    for split in SPLITS:
+        entry = data[split]
+        rows = shipped(split)
+        assert entry["path"] == cases_file(split).name
+        assert entry["case_count"] == len(rows)
+        assert entry["case_ids"] == [row["id"] for row in rows]
+        assert entry["group_ids"] == [row["group_id"] for row in rows]
+        assert entry["cases_sha256"] == hashlib.sha256(cases_file(split).read_bytes()).hexdigest()
 
 
 def test_the_manifest_records_the_rubric_it_inherited() -> None:

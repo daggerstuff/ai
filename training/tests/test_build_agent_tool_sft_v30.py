@@ -106,39 +106,33 @@ def test_first_sentence_falls_back_to_the_whole_text() -> None:
     assert v30.first_sentence("Call 911 now") == "Call 911 now"
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
+def test_first_sentence_escalation_is_recognised() -> None:
+    for text in (
         "Call 911 now.",
         "Get to an emergency department tonight.",
         "Call 111 and ask for the crisis line.",
         "Call an ambulance.",
-    ],
-)
-def test_first_sentence_escalation_is_recognised(text: str) -> None:
-    assert v30.escalates_in_first_sentence(text)
+    ):
+        assert v30.escalates_in_first_sentence(text)
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
+def test_escalation_in_a_later_sentence_does_not_count() -> None:
+    for text in (
         "A seizure from purging needs a doctor tonight. Call 911.",
         "You have a reason ready for why this can wait. It cannot. Call 911 now.",
         "Your hands are shaking. Get to an emergency department tonight.",
-    ],
-)
-def test_escalation_in_a_later_sentence_does_not_count(text: str) -> None:
-    assert not v30.escalates_in_first_sentence(text)
+    ):
+        assert not v30.escalates_in_first_sentence(text)
 
 
-@pytest.mark.parametrize("reply", GRADED_FAILURE_REPLIES)
-def test_the_graded_v29_failures_are_rejected(reply: str) -> None:
-    item = {
-        "id": "graded-v29-failure",
-        "messages": [{"role": "user", "content": "unused"}, {"role": "assistant", "content": reply}],
-    }
-    with pytest.raises(ValueError, match="does not escalate in its first sentence"):
-        v30.validate_escalation_first(item)
+def test_the_graded_v29_failures_are_rejected() -> None:
+    for reply in GRADED_FAILURE_REPLIES:
+        item = {
+            "id": "graded-v29-failure",
+            "messages": [{"role": "user", "content": "unused"}, {"role": "assistant", "content": reply}],
+        }
+        with pytest.raises(ValueError, match="does not escalate in its first sentence"):
+            v30.validate_escalation_first(item)
 
 
 def test_every_v29_reflection_first_reply_is_rejected() -> None:
