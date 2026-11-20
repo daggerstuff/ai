@@ -1,0 +1,16 @@
+training/consolidate_arc_corpus.py
+  h_07d84030f79d30 195-197
+training/tests/test_consolidate_arc_corpus.py
+  h_07d84030f79d30 167-169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "059eb8462e0a75384d45edc632c8d95d8c241160",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
