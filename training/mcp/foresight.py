@@ -45,7 +45,8 @@ def _initialize(client: httpx.Client, url: str) -> str | None:
         headers={"Accept": "application/json, text/event-stream", "Content-Type": "application/json"},
     )
     resp.raise_for_status()
-    return resp.headers.get("mcp-session-id")
+    session_id = resp.headers.get("mcp-session-id")
+    return session_id if isinstance(session_id, str) else None
 
 
 def _parse_sse(body: str) -> dict[str, Any] | None:
@@ -57,13 +58,16 @@ def _parse_sse(body: str) -> dict[str, Any] | None:
             with_suppress = line[5:].strip()
             if with_suppress:
                 try:
-                    return json.loads(with_suppress)
+                    payload = json.loads(with_suppress)
                 except json.JSONDecodeError:
                     continue
+                if isinstance(payload, dict):
+                    return payload
     try:
-        return json.loads(body)
+        payload = json.loads(body)
     except json.JSONDecodeError:
         return None
+    return payload if isinstance(payload, dict) else None
 
 
 def store_terminal_memory(settings: Any, job: dict[str, Any]) -> dict[str, Any]:
