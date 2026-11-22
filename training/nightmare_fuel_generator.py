@@ -504,12 +504,23 @@ def generate_nightmare_scenario(
 
 
 def _parse_transcript(transcript: str, scenario: str) -> dict:
+    """Split ``Role: content`` lines into turns, dropping bare speaker labels.
+
+    An empty turn passes the length check in ``_generate_case`` and the cliché
+    gate, is checkpointed, and then fails ``GeneratedMessage.content``
+    (``min_length=1``) when ``main_async`` validates the checkpoint - which makes
+    every later resume fail on the same persisted record.
+    """
     messages = []
     for line in transcript.split("\n"):
         if line.startswith("Patient:"):
-            messages.append({"role": "user", "content": line.replace("Patient:", "").strip()})
+            content = line.replace("Patient:", "").strip()
+            if content:
+                messages.append({"role": "user", "content": content})
         elif line.startswith("Therapist:"):
-            messages.append({"role": "assistant", "content": line.replace("Therapist:", "").strip()})
+            content = line.replace("Therapist:", "").strip()
+            if content:
+                messages.append({"role": "assistant", "content": content})
     return {"scenario": scenario, "messages": messages}
 
 

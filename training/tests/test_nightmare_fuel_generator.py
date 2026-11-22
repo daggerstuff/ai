@@ -35,6 +35,16 @@ class TestParseTranscript:
             {"role": "user", "content": "You don't understand me."},
         ]
 
+    def test_parse_transcript_drops_bare_speaker_turns(self):
+        """A bare label is not a turn: empty content fails GeneratedMessage."""
+        transcript = "Patient:\nTherapist: \nPatient: I don't want to talk.\nTherapist: I'm here."
+        parsed = nfg._parse_transcript(transcript, "scenario")
+        assert parsed["messages"] == [
+            {"role": "user", "content": "I don't want to talk."},
+            {"role": "assistant", "content": "I'm here."},
+        ]
+        assert nfg._parse_transcript("Patient:\nTherapist:", "scenario")["messages"] == []
+
 
 class TestAsyncGeneration:
     @pytest.mark.asyncio
