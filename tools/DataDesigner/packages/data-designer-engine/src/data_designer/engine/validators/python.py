@@ -208,7 +208,7 @@ class PythonValidator(BaseValidator):
         try:
             diagnostics = json.loads(ruff_output)
         except json.JSONDecodeError as e:
-            raise RuntimeError(f"Failed to parse ruff JSON output: {e}")
+            raise RuntimeError(f"Failed to parse ruff JSON output: {e}") from e
 
         if not diagnostics:
             return processed  # no errors or warnings

@@ -51,8 +51,6 @@ class TestWaitForJobFailureSemantics:
             return_value={"status": "failed", "progress": None},
         ):
             # Short timeout + short poll means a single call must short-circuit.
-            result = api.wait_for_job(
-                "job-123", poll_interval=1, timeout=5
-            )
+            result = api.wait_for_job("job-123", poll_interval=1, timeout=5)
 
         assert result == {"status": "failed", "progress": None}

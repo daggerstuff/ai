@@ -120,8 +120,8 @@ class DatetimeSamplerParams(ConfigBase):
     def _validate_param_is_datetime(cls, value: str) -> str:
         try:
             lazy.pd.to_datetime(value)
-        except ValueError:
-            raise ValueError(f"Invalid datetime format: {value}")
+        except ValueError as exc:
+            raise ValueError(f"Invalid datetime format: {value}") from exc
         return value
 
 

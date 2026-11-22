@@ -56,12 +56,12 @@ async def get_progress(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get progress: {e!s}",
-        )
+        ) from e
 
 
 @router.get("/metrics", response_model=ProgressMetricsResponse)
@@ -90,12 +90,12 @@ async def get_progress_metrics(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get progress metrics: {e!s}",
-        )
+        ) from e
 
 
 async def generate_progress_events(
@@ -220,7 +220,7 @@ async def stream_progress_events(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
 
     # Authenticate if token provided in query params
     if token:
@@ -232,7 +232,7 @@ async def stream_progress_events(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Invalid token: {e!s}",
-            )
+            ) from e
 
     # Create SSE stream
     return StreamingResponse(

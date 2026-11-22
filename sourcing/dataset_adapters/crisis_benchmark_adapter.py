@@ -126,7 +126,7 @@ class CrisisBenchmarkAdapter(BaseDatasetAdapter):
                         item = json.loads(line)
                         if isinstance(item, dict):
                             records.append({**item, "_source_file": path.name})
-            except (OSError, json.JSONDecodeError):
+            except OSError, json.JSONDecodeError:
                 continue
 
         for path in sorted(self._raw_dir.glob("*.csv")):
@@ -175,7 +175,7 @@ class CrisisBenchmarkAdapter(BaseDatasetAdapter):
             if isinstance(evaluation_scores, str):
                 try:
                     evaluation_scores = json.loads(evaluation_scores)
-                except (json.JSONDecodeError, ValueError):
+                except json.JSONDecodeError, ValueError:
                     evaluation_scores = {}
             if not isinstance(evaluation_scores, dict):
                 evaluation_scores = {}

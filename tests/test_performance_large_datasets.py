@@ -425,9 +425,9 @@ class TestScalabilityLimits(PerformanceTestBase):
                 }
             )
 
-            def process_dataset():
+            def process_dataset(frame=df):
                 # Simulate processing operations
-                return df.groupby(df.index // 1000).agg({"word_count": "mean", "quality_score": ["mean", "std"]})
+                return frame.groupby(frame.index // 1000).agg({"word_count": "mean", "quality_score": ["mean", "std"]})
 
             perf_metrics = self.measure_performance(process_dataset)
 

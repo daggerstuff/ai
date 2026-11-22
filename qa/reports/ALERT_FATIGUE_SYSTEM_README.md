@@ -115,6 +115,7 @@ Once started, access the dashboard at:
 import asyncio
 from alert_fatigue_prevention import AlertFatiguePreventionSystem
 
+
 async def process_alerts():
     # Initialize system
     afp = AlertFatiguePreventionSystem()
@@ -125,7 +126,7 @@ async def process_alerts():
         "message": "CPU usage is 87% on server-01",
         "priority": "medium",
         "source": "monitoring",
-        "metadata": {"server": "server-01", "cpu_usage": 87}
+        "metadata": {"server": "server-01", "cpu_usage": 87},
     }
 
     result = await afp.process_alert(alert)
@@ -134,6 +135,7 @@ async def process_alerts():
     print(f"Actions taken: {result['actions_taken']}")
     print(f"Should notify: {result['should_notify']}")
     print(f"Group count: {result['group_count']}")
+
 
 # Run the example
 asyncio.run(process_alerts())
@@ -144,23 +146,25 @@ asyncio.run(process_alerts())
 ```python
 from intelligent_grouping import IntelligentGroupingEngine
 
+
 async def test_grouping():
     engine = IntelligentGroupingEngine()
 
     alerts = [
         {"title": "CPU Alert", "message": "High CPU on server-01", "priority": "medium"},
         {"title": "CPU Alert", "message": "High CPU on server-02", "priority": "medium"},
-        {"title": "Memory Alert", "message": "High memory usage", "priority": "high"}
+        {"title": "Memory Alert", "message": "High memory usage", "priority": "high"},
     ]
 
     # Test different algorithms
-    algorithms = ['similarity_clustering', 'pattern_matching', 'hybrid_approach']
+    algorithms = ["similarity_clustering", "pattern_matching", "hybrid_approach"]
 
     for algorithm in algorithms:
         groups = await engine.suggest_groups(alerts, algorithm)
         quality = await engine.evaluate_grouping_quality(alerts, groups)
 
         print(f"{algorithm}: {len(groups)} groups, quality: {quality['silhouette_score']:.3f}")
+
 
 asyncio.run(test_grouping())
 ```
@@ -175,12 +179,9 @@ custom_rule = FatigueRule(
     rule_id="custom_suppression",
     name="Custom High Frequency Suppression",
     description="Suppress alerts with more than 10 occurrences in 5 minutes",
-    conditions={
-        "alerts_per_minute": {">=": 2},
-        "time_window_minutes": 5
-    },
+    conditions={"alerts_per_minute": {">=": 2}, "time_window_minutes": 5},
     actions=["suppress", "escalate_summary"],
-    priority=20
+    priority=20,
 )
 
 # Add to system
@@ -258,11 +259,11 @@ The system includes pre-configured rules:
 
 ```python
 grouping_config = {
-    "time_window_minutes": 5,        # Time window for grouping
-    "similarity_threshold": 0.8,     # Minimum similarity for grouping
-    "max_group_size": 100,          # Maximum alerts per group
+    "time_window_minutes": 5,  # Time window for grouping
+    "similarity_threshold": 0.8,  # Minimum similarity for grouping
+    "max_group_size": 100,  # Maximum alerts per group
     "escalation_thresholds": [10, 50, 100],  # Escalation levels
-    "suppression_window_minutes": 60  # Suppression cooldown period
+    "suppression_window_minutes": 60,  # Suppression cooldown period
 }
 ```
 
@@ -368,6 +369,7 @@ python3 test_alert_fatigue.py
 # Integration with existing alert system
 from alert_fatigue_prevention import AlertFatiguePreventionSystem
 
+
 class MonitoringIntegration:
     def __init__(self):
         self.afp = AlertFatiguePreventionSystem()
@@ -377,7 +379,7 @@ class MonitoringIntegration:
         result = await self.afp.process_alert(alert_data)
 
         # Only send notification if not suppressed
-        if result['should_notify']:
+        if result["should_notify"]:
             await self.send_notification(alert_data, result)
 
         return result
@@ -389,22 +391,23 @@ class MonitoringIntegration:
 # Integration with notification integrations
 from notification_integrations import NotificationManager
 
+
 async def integrated_alerting(alert_data):
     # Process through fatigue prevention first
     afp_result = await afp.process_alert(alert_data)
 
-    if afp_result['should_notify']:
+    if afp_result["should_notify"]:
         # Send through notification system
         notification_manager = NotificationManager()
         await notification_manager.send_alert(
-            title=alert_data['title'],
-            message=alert_data['message'],
-            priority=alert_data['priority'],
+            title=alert_data["title"],
+            message=alert_data["message"],
+            priority=alert_data["priority"],
             metadata={
-                **alert_data.get('metadata', {}),
-                'group_id': afp_result['group_id'],
-                'group_count': afp_result['group_count']
-            }
+                **alert_data.get("metadata", {}),
+                "group_id": afp_result["group_id"],
+                "group_count": afp_result["group_count"],
+            },
         )
 ```
 

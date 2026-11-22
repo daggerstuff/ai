@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any
 
 import torch
-import wandb
 from datasets import Dataset
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import (
@@ -21,6 +20,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+import wandb
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -69,9 +70,7 @@ class KAN28EnhancedTrainer:
             r=self.config.get("lora_config", {}).get("lora_r", 16),
             lora_alpha=self.config.get("lora_config", {}).get("lora_alpha", 32),
             lora_dropout=self.config.get("lora_config", {}).get("lora_dropout", 0.1),
-            target_modules=self.config.get("lora_config", {}).get(
-                "lora_target_modules", ["q_proj", "v_proj"]
-            ),
+            target_modules=self.config.get("lora_config", {}).get("lora_target_modules", ["q_proj", "v_proj"]),
         )
 
         self.model = get_peft_model(self.model, lora_config)
@@ -167,7 +166,9 @@ class KAN28EnhancedTrainer:
                 component_info = f" [Components: {', '.join(components)}]"
 
         # Format as conversation
-        formatted_text = f"<|im_start|>user\n{client}<|im_end|>\n<|im_start|>assistant\n{therapist}{component_info}<|im_end|>"
+        formatted_text = (
+            f"<|im_start|>user\n{client}<|im_end|>\n<|im_start|>assistant\n{therapist}{component_info}<|im_end|>"
+        )
 
         return {"text": formatted_text}
 
@@ -205,16 +206,10 @@ class KAN28EnhancedTrainer:
             max_grad_norm=self.config.get("max_grad_norm", 1.0),
             # H100 optimizations
             bf16=self.config.get("h100_optimizations", {}).get("bf16", True),
-            gradient_checkpointing=self.config.get("h100_optimizations", {}).get(
-                "gradient_checkpointing", True
-            ),
+            gradient_checkpointing=self.config.get("h100_optimizations", {}).get("gradient_checkpointing", True),
             optim=self.config.get("h100_optimizations", {}).get("optim", "adamw_torch_fused"),
-            dataloader_num_workers=self.config.get("h100_optimizations", {}).get(
-                "dataloader_num_workers", 4
-            ),
-            dataloader_pin_memory=self.config.get("h100_optimizations", {}).get(
-                "dataloader_pin_memory", True
-            ),
+            dataloader_num_workers=self.config.get("h100_optimizations", {}).get("dataloader_num_workers", 4),
+            dataloader_pin_memory=self.config.get("h100_optimizations", {}).get("dataloader_pin_memory", True),
             group_by_length=self.config.get("h100_optimizations", {}).get("group_by_length", True),
             # Logging and checkpoints
             logging_steps=self.config.get("logging", {}).get("logging_steps", 10),

@@ -40,6 +40,7 @@ def s3_path_to_rclone(s3_path: str, remote_name: str | None = None) -> str:
         remote_name = os.getenv("RCLONE_REMOTE_NAME", "HetznerS3")
     if s3_path.startswith("s3://"):
         import re
+
         bucket = os.getenv("HETZNER_S3_BUCKET", "pixeldata")
         return re.sub(r"^s3://[^/]+/", f"{remote_name}:{bucket}/", s3_path)
     return s3_path

@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 # Optional import for PipelineOrchestrator
 try:
-    from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
-        PipelineOrchestrator,
-    )
     from ai.pipelines.data_processing.journal.models.dataset_models import (
         AcquiredDataset as AcquiredDatasetModel,
         DatasetEvaluation as DatasetEvaluationModel,
         IntegrationPlan as IntegrationPlanModel,
+    )
+    from ai.pipelines.orchestrator.orchestration.pipeline_orchestrator import (
+        PipelineOrchestrator,
     )
 
     PIPELINE_ORCHESTRATOR_AVAILABLE = True

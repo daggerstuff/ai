@@ -143,7 +143,9 @@ def extract_response(text: str) -> str:
         out = t.strip()
 
     # strip speaker labels / prompt-echo prefixes
-    out = re.sub(r"^(?:Final string|Final selection|Final Version|Final answer|Choice)\s*[:*]*\s*", "", out, flags=re.IGNORECASE).strip()
+    out = re.sub(
+        r"^(?:Final string|Final selection|Final Version|Final answer|Choice)\s*[:*]*\s*", "", out, flags=re.IGNORECASE
+    ).strip()
     out = re.sub(r"^(?:Therapist|Clinician|Assistant)\s*:\s*", "", out, flags=re.IGNORECASE).strip()
     # dedup exact sentence-level duplication
     if len(out) % 2 == 0 and len(out) >= 20:
@@ -186,7 +188,9 @@ async def call_therapist(
     t0 = time.monotonic()
     for tries_left in range(3):
         try:
-            async with session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=timeout_s)) as resp:
+            async with session.post(
+                url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=timeout_s)
+            ) as resp:
                 if resp.status == 429 or resp.status in (502, 503, 504):
                     await asyncio.sleep(4 * (tries_left + 1))
                     continue

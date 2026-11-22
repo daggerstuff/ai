@@ -94,9 +94,7 @@ def main() -> int:
             config = json.loads(args.config.read_text(encoding="utf-8"))
             sft_arm = next(arm for arm in config["arms"] if arm["id"] == "sft")
             sft_arm["model"] = checkpoint_model
-            config["run_id"] = (
-                f"{state['release_id']}-step{trained_checkpoint['step']}-vs-base-2048-512"
-            )
+            config["run_id"] = f"{state['release_id']}-step{trained_checkpoint['step']}-vs-base-2048-512"
             args.results_dir.mkdir(parents=True, exist_ok=True)
             run_config = args.results_dir / "run-config.json"
             run_config.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")

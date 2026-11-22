@@ -48,10 +48,7 @@ print(result.is_usable())  # True
 from ai.pipelines.data_processing.journal.compliance import PrivacyVerifier
 
 verifier = PrivacyVerifier()
-assessment = verifier.verify_privacy(
-    source_id="dataset-1",
-    dataset_sample="Sample text from dataset..."
-)
+assessment = verifier.verify_privacy(source_id="dataset-1", dataset_sample="Sample text from dataset...")
 print(assessment.pii_detected)  # True/False
 print(assessment.compliance_score)  # 0.0-1.0
 ```

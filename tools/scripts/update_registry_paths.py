@@ -5,10 +5,9 @@ Maps old stage-based paths to actual backup structure.
 """
 
 import json
-from pathlib import Path
 from typing import Any
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
 
+from path_utils import AI_DIR
 
 OLD_TO_NEW_PATHS = {
     "training/v1/stage1_foundation": "datasets/training_v3/stage1_foundation",

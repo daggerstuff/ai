@@ -81,9 +81,7 @@ class FlagStore:
         sqlite_path: str | None = None,
     ):
         self._database_url = database_url if database_url is not None else os.environ.get("DATABASE_URL", "")
-        self._sqlite_path = sqlite_path or os.path.join(
-            os.path.expanduser("~"), ".pixelated", "flag_store.db"
-        )
+        self._sqlite_path = sqlite_path or os.path.join(os.path.expanduser("~"), ".pixelated", "flag_store.db")
         self._pg = _is_postgres_url(self._database_url) if self._database_url else False
         self._conn: Any = None
         self._connect()

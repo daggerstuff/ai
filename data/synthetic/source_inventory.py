@@ -149,6 +149,7 @@ _FOCUS_LANES = {
     "policy": (("policy", "benchmark"), "policy"),
 }
 
+
 def _apply_seed_policy(source: CorpusSource) -> CorpusSource:
     """Adjudicate sources with a resolvable local fallback.
 
@@ -168,9 +169,7 @@ def _apply_seed_policy(source: CorpusSource) -> CorpusSource:
     if source.source_type == "dpo_pairs":
         allowed, default = _FOCUS_LANES["policy"]
     else:
-        allowed, default = _FOCUS_LANES.get(
-            source.focus or "", (("simulation",), "simulation")
-        )
+        allowed, default = _FOCUS_LANES.get(source.focus or "", (("simulation",), "simulation"))
     return replace(
         source,
         inventory_decision="keep",
@@ -180,6 +179,7 @@ def _apply_seed_policy(source: CorpusSource) -> CorpusSource:
         license_status="proprietary" if seed else "review_required",
         benchmark_role="holdout_eligible" if not seed else source.benchmark_role,
     )
+
 
 def discover_approved_sources(registry_path: Path) -> tuple[CorpusSource, ...]:
     """Return sources currently marked ``keep`` with a resolvable lane + locator.

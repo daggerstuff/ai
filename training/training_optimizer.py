@@ -12,7 +12,6 @@ estimate -> TrainingArguments) is stable and unit-testable without a GPU.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 
 from transformers import TrainingArguments
@@ -110,9 +109,7 @@ def optimize_for_dataset(
         priority=priority,
     )
 
-    estimated_hours = _estimate_hours(
-        num_samples, avg_tokens_per_sample, num_epochs, tokens_per_sec
-    )
+    estimated_hours = _estimate_hours(num_samples, avg_tokens_per_sample, num_epochs, tokens_per_sec)
 
     recommended_adjustments: dict[str, float] = {}
     fits_in_window = estimated_hours <= max_hours

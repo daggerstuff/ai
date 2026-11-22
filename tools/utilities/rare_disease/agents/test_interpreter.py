@@ -3,16 +3,12 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import Any
 
 from ..types import (
     Evidence,
-    KnowledgeMatch,
     OrganSystem,
     PatientCase,
-    TestFinding,
-    TestResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -25,27 +21,28 @@ class TestInterpreterAgent:
     def __init__(self, knowledge_base: Any) -> None:
         self._kb = knowledge_base
 
-    def interpret(
-        self, case: PatientCase, prior_differential: list[Any]
-    ) -> dict[str, Any]:
+    def interpret(self, case: PatientCase, prior_differential: list[Any]) -> dict[str, Any]:
         """Interpret test results and update the differential."""
         evidence: list[Evidence] = []
         broad_differential = len(prior_differential) > 5
 
         for result in case.test_results:
             for finding in result.findings:
-                matches = self._kb.search_by_organ_system(
-                    finding.organ_systems[0] if finding.organ_systems else OrganSystem.NERVOUS,
-                    top_k=5,
-                ) if finding.organ_systems else []
+                matches = (
+                    self._kb.search_by_organ_system(
+                        finding.organ_systems[0] if finding.organ_systems else OrganSystem.NERVOUS,
+                        top_k=5,
+                    )
+                    if finding.organ_systems
+                    else []
+                )
                 for match in matches:
                     weight = 0.7 if finding.is_abnormal else 0.2
                     evidence.append(
                         Evidence(
                             source="lab",
                             content=(
-                                f"Finding: {finding.test_name} = {finding.value}"
-                                f" (abnormal={finding.is_abnormal})"
+                                f"Finding: {finding.test_name} = {finding.value} (abnormal={finding.is_abnormal})"
                             ),
                             weight=weight,
                             disease_id=match.disease_id,
@@ -61,9 +58,7 @@ class TestInterpreterAgent:
         updated_scores: dict[str, float] = {}
         for ev in evidence:
             if ev.disease_id:
-                updated_scores[ev.disease_id] = (
-                    updated_scores.get(ev.disease_id, 0.0) + ev.weight
-                )
+                updated_scores[ev.disease_id] = updated_scores.get(ev.disease_id, 0.0) + ev.weight
 
         return {
             "evidence": evidence,

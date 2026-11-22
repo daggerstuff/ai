@@ -50,44 +50,120 @@ FAMILIES: tuple[str, ...] = (
 # classification, so a record's own labels win over body-text co-occurrence.
 FAMILY_KEYWORDS: dict[str, tuple[str, ...]] = {
     "ambiguous crisis language": (
-        "suicid", "self-harm", "self harm", "kill myself", "end my life", "give up",
-        "death", "crisis", "overdose", "hopeless", "harm myself",
+        "suicid",
+        "self-harm",
+        "self harm",
+        "kill myself",
+        "end my life",
+        "give up",
+        "death",
+        "crisis",
+        "overdose",
+        "hopeless",
+        "harm myself",
     ),
     "delusion or paranoia": (
-        "paranoi", "delusion", "persecut", "monitoring", "watching me", "conspir",
-        "following me", "psychotic", "psychosis", "hallucin",
+        "paranoi",
+        "delusion",
+        "persecut",
+        "monitoring",
+        "watching me",
+        "conspir",
+        "following me",
+        "psychotic",
+        "psychosis",
+        "hallucin",
     ),
     "coercion or abuse": (
-        "abuse", "coerc", "traffick", "domestic violence", "entrap", "gaslight",
-        "sexual assault", "sexual trauma", "ritual abuse", "control",
+        "abuse",
+        "coerc",
+        "traffick",
+        "domestic violence",
+        "entrap",
+        "gaslight",
+        "sexual assault",
+        "sexual trauma",
+        "ritual abuse",
+        "control",
     ),
     "substance use": (
-        "substance", "relapse", "intoxicat", "alcohol", "opioid", "drug", "withdraw",
-        "craving", "addiction", "drinking",
+        "substance",
+        "relapse",
+        "intoxicat",
+        "alcohol",
+        "opioid",
+        "drug",
+        "withdraw",
+        "craving",
+        "addiction",
+        "drinking",
     ),
     "medical uncertainty": (
-        "medical", "diagnosis", "medication", "refus", "bradycardia", "refeeding",
-        "somatic", "symptom", "hospital", "eating disorder",
+        "medical",
+        "diagnosis",
+        "medication",
+        "refus",
+        "bradycardia",
+        "refeeding",
+        "somatic",
+        "symptom",
+        "hospital",
+        "eating disorder",
     ),
     "minor or dependent person": (
-        "minor", "child", "dependent", "cps", "mandated report", "adolescent",
-        "teen", "guardian", "custody",
+        "minor",
+        "child",
+        "dependent",
+        "cps",
+        "mandated report",
+        "adolescent",
+        "teen",
+        "guardian",
+        "custody",
     ),
     "therapeutic rupture": (
-        "rupture", "alliance", "quit therapy", "idealiz", "devalu", "splitting",
-        "transference", "threat to leave", "borderline",
+        "rupture",
+        "alliance",
+        "quit therapy",
+        "idealiz",
+        "devalu",
+        "splitting",
+        "transference",
+        "threat to leave",
+        "borderline",
     ),
     "cultural or identity conflict": (
-        "cultural", "religious", "identity", "lgbtq", "faith", "belief", "immigrant",
-        "ethnic", "extremism",
+        "cultural",
+        "religious",
+        "identity",
+        "lgbtq",
+        "faith",
+        "belief",
+        "immigrant",
+        "ethnic",
+        "extremism",
     ),
     "boundary testing": (
-        "boundary", "malinger", "manipulat", "prescription", "extortion", "sign-off",
-        "disability doc", "dual relationship", "advance",
+        "boundary",
+        "malinger",
+        "manipulat",
+        "prescription",
+        "extortion",
+        "sign-off",
+        "disability doc",
+        "dual relationship",
+        "advance",
     ),
     "multi-problem complexity": (
-        "multiple", "comorbid", "co-morbid", "intersecting", "complex", "polysubstance",
-        "dual diagnosis", "multi-problem", "everything at once",
+        "multiple",
+        "comorbid",
+        "co-morbid",
+        "intersecting",
+        "complex",
+        "polysubstance",
+        "dual diagnosis",
+        "multi-problem",
+        "everything at once",
     ),
 }
 
@@ -101,26 +177,68 @@ PLACEHOLDER_MARKERS: tuple[str, ...] = (
 # Cloud assets to stream. ``kind`` selects the parser; ``remote``/``bucket`` select
 # the rclone remote (S3Streamer with an empty prefix builds ``remote:bucket/key``).
 ASSETS: list[dict[str, str]] = [
-    {"name": "edge_integration_plan", "kind": "md", "remote": "gdrive", "bucket": "pixeldata",
-     "key": "archive/chad_drive_imported/datasets_3/consolidated/edge_cases/EDGE_CASE_INTEGRATION_PLAN.md"},
-    {"name": "stage3_edge_stress_test", "kind": "jsonl", "remote": "gdrive", "bucket": "pixeldata",
-     "key": "staged_datasets/stage3_edge_stress_test.jsonl"},
-    {"name": "master_stage3_edge_stress_test", "kind": "jsonl", "remote": "gdrive", "bucket": "pixeldata",
-     "key": "training_data_consolidated/final/MASTER_stage3_edge_stress_test.jsonl"},
-    {"name": "nightmare_scenarios_batch", "kind": "jsonl", "remote": "gdrive", "bucket": "pixeldata",
-     "key": "datasets/training_v2/stage3_edge_crisis/nightmare_scenarios_batch_241.jsonl"},
-    {"name": "clinical_redteam", "kind": "jsonl", "remote": "whitebat", "bucket": "whitebat",
-     "key": "training/ai-data/raw/clinical_redteam/clinical_redteam.jsonl"},
-    {"name": "clinical_redteam_conversations", "kind": "csv", "remote": "whitebat", "bucket": "whitebat",
-     "key": "training/ai-data/raw/clinical_redteam/raw/conversations.csv"},
-    {"name": "safety_dpo_pairs_10k", "kind": "jsonl", "remote": "gdrive", "bucket": "pixeldata",
-     "key": "training/v1/stage3_stress_test/processed/safety_dpo_pairs_10k.jsonl"},
+    {
+        "name": "edge_integration_plan",
+        "kind": "md",
+        "remote": "gdrive",
+        "bucket": "pixeldata",
+        "key": "archive/chad_drive_imported/datasets_3/consolidated/edge_cases/EDGE_CASE_INTEGRATION_PLAN.md",
+    },
+    {
+        "name": "stage3_edge_stress_test",
+        "kind": "jsonl",
+        "remote": "gdrive",
+        "bucket": "pixeldata",
+        "key": "staged_datasets/stage3_edge_stress_test.jsonl",
+    },
+    {
+        "name": "master_stage3_edge_stress_test",
+        "kind": "jsonl",
+        "remote": "gdrive",
+        "bucket": "pixeldata",
+        "key": "training_data_consolidated/final/MASTER_stage3_edge_stress_test.jsonl",
+    },
+    {
+        "name": "nightmare_scenarios_batch",
+        "kind": "jsonl",
+        "remote": "gdrive",
+        "bucket": "pixeldata",
+        "key": "datasets/training_v2/stage3_edge_crisis/nightmare_scenarios_batch_241.jsonl",
+    },
+    {
+        "name": "clinical_redteam",
+        "kind": "jsonl",
+        "remote": "whitebat",
+        "bucket": "whitebat",
+        "key": "training/ai-data/raw/clinical_redteam/clinical_redteam.jsonl",
+    },
+    {
+        "name": "clinical_redteam_conversations",
+        "kind": "csv",
+        "remote": "whitebat",
+        "bucket": "whitebat",
+        "key": "training/ai-data/raw/clinical_redteam/raw/conversations.csv",
+    },
+    {
+        "name": "safety_dpo_pairs_10k",
+        "kind": "jsonl",
+        "remote": "gdrive",
+        "bucket": "pixeldata",
+        "key": "training/v1/stage3_stress_test/processed/safety_dpo_pairs_10k.jsonl",
+    },
 ]
 
 ROLE_MAP = {
-    "therapist": "assistant", "assistant": "assistant", "clinician": "assistant",
-    "counselor": "assistant", "sys": "system", "system": "system",
-    "patient": "user", "user": "user", "client": "user", "speaker": "user",
+    "therapist": "assistant",
+    "assistant": "assistant",
+    "clinician": "assistant",
+    "counselor": "assistant",
+    "sys": "system",
+    "system": "system",
+    "patient": "user",
+    "user": "user",
+    "client": "user",
+    "speaker": "user",
 }
 
 MIN_MESSAGES = 2
@@ -202,8 +320,7 @@ def _extract_messages(raw: dict) -> list[dict[str, str]]:
 
 def _classification_text(raw: dict, messages: list[dict[str, str]]) -> str:
     labels = " ".join(
-        str(raw.get(k) or "")
-        for k in ("category", "diagnostic_tag", "scenario_type", "task_type", "intensity")
+        str(raw.get(k) or "") for k in ("category", "diagnostic_tag", "scenario_type", "task_type", "intensity")
     )
     tags = raw.get("tags")
     if isinstance(tags, list):
@@ -293,8 +410,14 @@ def _emit(manifest_path: Path, record: dict) -> None:
 
 
 def reconcile(assets: list[dict[str, str]], master_hashes: set[str], *, limit: int | None, manifest_path: Path) -> dict:
-    summary: dict[str, Any] = {"assets": {}, "families": dict.fromkeys(FAMILIES, 0), "unmapped": 0,
-                               "new": 0, "duplicates": 0, "placeholders": 0}
+    summary: dict[str, Any] = {
+        "assets": {},
+        "families": dict.fromkeys(FAMILIES, 0),
+        "unmapped": 0,
+        "new": 0,
+        "duplicates": 0,
+        "placeholders": 0,
+    }
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     if manifest_path.exists():
         manifest_path.unlink()
@@ -333,8 +456,14 @@ def reconcile(assets: list[dict[str, str]], master_hashes: set[str], *, limit: i
                 summary["unmapped"] += 1
             _emit(manifest_path, scenario)
         summary["assets"][name] = asset_stat
-        logger.info("%s: scanned=%d new=%d dup=%d placeholder=%d", name,
-                    asset_stat["scanned"], asset_stat["new"], asset_stat["duplicates"], asset_stat["placeholders"])
+        logger.info(
+            "%s: scanned=%d new=%d dup=%d placeholder=%d",
+            name,
+            asset_stat["scanned"],
+            asset_stat["new"],
+            asset_stat["duplicates"],
+            asset_stat["placeholders"],
+        )
     return summary
 
 

@@ -9,6 +9,7 @@ MODEL = "ornith:9b"
 # Local-model chat completions are slow; give them a generous but bounded window.
 OLLAMA_TIMEOUT = 120
 
+
 def generate_patient_profile():
     print("Generating Patient Profile...")
     prompt = (
@@ -21,6 +22,7 @@ def generate_patient_profile():
     payload = {"model": MODEL, "messages": [{"role": "user", "content": prompt}], "temperature": 0.8}
     resp = requests.post(OLLAMA_URL, json=payload, headers={"Authorization": "Bearer dummy"}, timeout=OLLAMA_TIMEOUT)
     return resp.json()["choices"][0]["message"]["content"]
+
 
 def simulate_session(profile, session_number, previous_summaries="None"):
     print(f"Simulating Session {session_number}...")
@@ -65,6 +67,7 @@ def simulate_session(profile, session_number, previous_summaries="None"):
 
     return messages, summary
 
+
 def main():
     print("=======================================")
     print("   Long-Running Therapy SDG Pipeline")
@@ -75,27 +78,25 @@ def main():
 
     # Generate 3 patients, with 3 sessions each
     for i in range(3):
-        print(f"\n--- Generating Patient Cohort {i+1}/3 ---")
+        print(f"\n--- Generating Patient Cohort {i + 1}/3 ---")
         profile = generate_patient_profile()
 
         patient_timeline = []
         previous_summaries = ""
 
-        for session_num in range(1, 4): # Sessions 1, 2, 3
+        for session_num in range(1, 4):  # Sessions 1, 2, 3
             messages, summary = simulate_session(profile, session_num, previous_summaries or "None")
 
             # Inject a system prompt that gives the therapist access to its "Clinical Notes"
             system_prompt = (
                 "You are Pixelated Empathy. You are currently in Session " + str(session_num) + " with this patient. "
-                "Here are your clinical notes from previous sessions:\n" + (previous_summaries or "No previous sessions.")
+                "Here are your clinical notes from previous sessions:\n"
+                + (previous_summaries or "No previous sessions.")
             )
 
             messages.insert(0, {"role": "system", "content": system_prompt})
 
-            patient_timeline.append({
-                "session_number": session_num,
-                "messages": messages
-            })
+            patient_timeline.append({"session_number": session_num, "messages": messages})
 
             previous_summaries += f"\nSession {session_num} Summary: {summary}\n"
 
@@ -106,6 +107,7 @@ def main():
                 f.write(json.dumps(session) + "\n")
 
         print(f"Long-running context (3 sessions) successfully exported for patient to {out_path}!")
+
 
 if __name__ == "__main__":
     main()

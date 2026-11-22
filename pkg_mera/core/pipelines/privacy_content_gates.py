@@ -61,7 +61,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 
-from .crisis_intervention_detector import CrisisInterventionDetector
+from .crisis_intervention_detector import CrisisInterventionDetector, CrisisInterventionResult
 from .processing.pii_scrubber import PiiScrubber, PiiScrubberConfig
 
 # Optional import for review queue (PIX-250) - only used if available
@@ -700,7 +700,7 @@ class PrivacyContentGates:
 
     def _collect_crisis_findings(
         self,
-        crisis_result: CrisisInterventionResult,  # type: ignore[name-defined]
+        crisis_result: CrisisInterventionResult,
     ) -> list[CrisisFinding]:
         if crisis_result.score == 0.0:
             return []

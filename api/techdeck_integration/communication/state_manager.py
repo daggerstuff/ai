@@ -9,7 +9,7 @@ import json
 import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ai.api.techdeck_integration.error_handling.custom_errors import (
     ResourceNotFoundError,
@@ -19,6 +19,10 @@ from ai.api.techdeck_integration.error_handling.custom_errors import (
 from ai.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.api.techdeck_integration.utils.logger import get_request_logger
 from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_state_data
+
+if TYPE_CHECKING:
+    from ai.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext
+
 
 
 @dataclass

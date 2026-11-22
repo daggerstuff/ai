@@ -8,6 +8,7 @@ therapist training and supervisor evaluation.
 """
 
 import logging
+import statistics
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 

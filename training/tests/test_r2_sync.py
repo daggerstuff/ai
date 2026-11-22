@@ -7,6 +7,7 @@ carries the URLs into the job, and the plain-HTTP PUT that uses them.
 
 from __future__ import annotations
 
+import hashlib
 import io
 import urllib.error
 from pathlib import Path
@@ -25,11 +26,16 @@ class FakeS3:
         self.puts: list[dict[str, Any]] = []
         self.list_calls: list[dict[str, Any]] = []
         self.presigned: list[tuple[str, dict[str, Any], int]] = []
+        self.metadata: dict[str, dict[str, str]] = {}
 
     def put_object(self, **kwargs: Any) -> dict[str, Any]:
         self.puts.append(kwargs)
         self.objects[kwargs["Key"]] = kwargs["Body"]
+        self.metadata[kwargs["Key"]] = kwargs.get("Metadata", {})
         return {}
+
+    def head_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
+        return {"Metadata": self.metadata.get(Key, {})}
 
     def get_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
         return {"Body": io.BytesIO(self.objects[Key])}
@@ -68,6 +74,30 @@ def test_upload_dir_mirrors_the_tree_and_skips_bytecode(tmp_path: Path) -> None:
     types = {put["Key"]: put["ContentType"] for put in s3.puts}
     assert types["evals/v22/tag/run/results.jsonl"] == "application/x-ndjson"
     assert types["evals/v22/tag/run/manifest.json"] == "application/json"
+
+
+@pytest.mark.parametrize("stored", [b"old!", b"new!"])
+def test_upload_skip_unchanged_compares_content(tmp_path: Path, stored: bytes) -> None:
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "launch.sh").write_bytes(b"new!")
+    key = "inputs/code/launch.sh"
+    s3 = FakeS3({key: stored})
+    s3.metadata[key] = {"sha256": hashlib.sha256(stored).hexdigest()}
+
+    uploaded = r2_sync.upload_dir(source, bucket="training", prefix="inputs/code", s3_client=s3, skip_unchanged=True)
+
+    assert s3.objects[key] == b"new!"
+    assert uploaded == ([] if stored == b"new!" else [key])
+
+
+def test_upload_refreshes_legacy_objects_without_a_checksum(tmp_path: Path) -> None:
+    (tmp_path / "launch.sh").write_bytes(b"new!")
+    s3 = FakeS3({"inputs/launch.sh": b"old!"})
+
+    r2_sync.upload_dir(tmp_path, bucket="training", prefix="inputs", s3_client=s3, skip_unchanged=True)
+
+    assert s3.objects["inputs/launch.sh"] == b"new!"
 
 
 def test_download_prefix_follows_pagination_and_mirrors_keys(tmp_path: Path) -> None:
@@ -177,6 +207,21 @@ def test_upload_run_sends_only_the_files_that_were_signed(tmp_path: Path, monkey
     assert sent[0][1].name == "results.jsonl"
 
 
+@pytest.mark.parametrize("urls", [{}, {"other-run/results.jsonl": "https://r2.test/result"}])
+def test_upload_run_rejects_a_map_that_cannot_store_the_run(tmp_path: Path, urls: dict[str, str]) -> None:
+    (tmp_path / "results.jsonl").write_text("{}\n")
+
+    with pytest.raises(r2_sync.RunUploadError):
+        r2_sync.upload_run(tmp_path, urls)
+
+
+def test_upload_run_rejects_missing_signed_results(tmp_path: Path) -> None:
+    urls = {f"{tmp_path.name}/results.jsonl": "https://r2.test/result"}
+
+    with pytest.raises(r2_sync.RunUploadError):
+        r2_sync.upload_run(tmp_path, urls)
+
+
 def test_credentials_explain_what_is_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     for name in r2_sync.REQUIRED_ENV:
         monkeypatch.delenv(name, raising=False)
@@ -202,22 +247,26 @@ def test_credentials_strip_the_quotes_a_dotenv_file_keeps(tmp_path: Path, monkey
     assert settings["R2_BUCKET"] == "training"
 
 
-def test_the_upload_run_command_needs_no_credential(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("prefix", ["", "evals/v30/v2"])
+def test_the_upload_run_command_needs_no_credential(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, prefix: str
+) -> None:
     """The job side of the contract: a map in the environment is all it takes."""
-    run = tmp_path / "eval-bf16-dev"
-    run.mkdir()
+    run_name = f"{prefix}eval-bf16-dev"
+    run = tmp_path / run_name
+    run.mkdir(parents=True)
     (run / "results.jsonl").write_text('{"case_id": "dev-crisis-suicide-plan"}\n')
     (run / "manifest.json").write_text("{}")
     for name in r2_sync.REQUIRED_ENV:
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv(
         "R2_MAP_B64",
-        r2_sync.encode_map({"upload": {"eval-bf16-dev/results.jsonl": "https://r2.example/one"}}),
+        r2_sync.encode_map({"upload": {f"{run_name}/results.jsonl": "https://r2.example/one"}}),
     )
     sent: list[str] = []
     monkeypatch.setattr(r2_sync, "put_file", lambda _url, _path: sent.append(_url) or 200)
 
-    assert r2_sync.main(["upload-run", "--run-dir", str(run)]) == 0
+    assert r2_sync.main(["upload-run", "--run-dir", str(run), "--run-root", str(tmp_path)]) == 0
     assert sent == ["https://r2.example/one"]
 
 

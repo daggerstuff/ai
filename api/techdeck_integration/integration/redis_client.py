@@ -128,7 +128,7 @@ class RedisClient:
             # Try to deserialize JSON
             try:
                 return json.loads(value)
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 return value
 
         except (ConnectionError, TimeoutError) as e:

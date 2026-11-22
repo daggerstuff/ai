@@ -9,8 +9,8 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
 
+from path_utils import AI_DIR
 
 
 def create_enhanced_dataset_entry(original_entry: dict[str, Any]) -> dict[str, Any]:

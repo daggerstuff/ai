@@ -4,6 +4,7 @@ Cleans up /home/vivi/pixelated/ai/data/ by removing files that are:
 - Old pipeline artifacts, configs, score CSVs
 - Anything not raw source material worth keeping for future runs
 """
+
 import glob
 import os
 import shutil
@@ -20,25 +21,26 @@ KEEP_PREFIXES = [
 DELETE_PATTERNS = [
     "**/*_processed*.jsonl",
     "**/*_processed*.json",
-    "**/*_nemo.jsonl",          # nemo exports — already in S3
-    "**/*_review.csv",          # review metadata, not training data
-    "**/*_clinical_scores.csv", # scoring metadata
-    "**/nemo_export/**",        # entire nemo export directory
-    "**/staged_datasets/**",    # old staged outputs — in S3
-    "**/compress/**",           # compressed/temp processing artifacts
-    "**/joiner/**",             # planning docs, not datasets
+    "**/*_nemo.jsonl",  # nemo exports — already in S3
+    "**/*_review.csv",  # review metadata, not training data
+    "**/*_clinical_scores.csv",  # scoring metadata
+    "**/nemo_export/**",  # entire nemo export directory
+    "**/staged_datasets/**",  # old staged outputs — in S3
+    "**/compress/**",  # compressed/temp processing artifacts
+    "**/joiner/**",  # planning docs, not datasets
 ]
+
 
 def should_keep_folder(folder_name):
     lower = folder_name.lower()
     # Keep raw voice persona folders — they are the unique source material
     return "voice" in lower
 
+
 def clean():
     deleted_files = 0
     deleted_bytes = 0
     kept_files = 0
-
 
     # 1. Delete by pattern
     for pattern in DELETE_PATTERNS:
@@ -70,11 +72,7 @@ def clean():
         # Remove entire non-voice folders that are pipeline artifacts
         artifact_dirs = ["nemo_export", "staged_datasets", "compress", "joiner"]
         if folder in artifact_dirs:
-            size = sum(
-                os.path.getsize(os.path.join(dp, f))
-                for dp, _, files in os.walk(entry.path)
-                for f in files
-            )
+            size = sum(os.path.getsize(os.path.join(dp, f)) for dp, _, files in os.walk(entry.path) for f in files)
             shutil.rmtree(entry.path)
             deleted_bytes += size
             continue

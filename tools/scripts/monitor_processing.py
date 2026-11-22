@@ -20,7 +20,7 @@ def check_processing_status():
             text=True,
         )
         return len(result.stdout.strip()) > 0
-    except:
+    except Exception:
         return False
 
 
@@ -41,7 +41,7 @@ def check_output_progress():
                 data = json.load(f)
                 if isinstance(data, list):
                     total_conversations += len(data)
-        except:
+        except Exception:
             continue
 
     return {

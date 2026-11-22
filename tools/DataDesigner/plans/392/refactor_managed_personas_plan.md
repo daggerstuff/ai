@@ -19,6 +19,7 @@ DATASETS_ROOT = "datasets"
 THREADS = 1
 MEMORY_LIMIT = "2 gb"
 
+
 class PersonReader(ABC):
     """Provides duckdb access to managed datasets (e.g., person name data).
 
@@ -86,6 +87,7 @@ class S3PersonReader(PersonReader):
     def get_dataset_uri(self, locale):
         # Client controls full URI — no DATASETS_ROOT or .parquet assumption
         return f"s3://my-bucket/person-data/{locale}"
+
 
 designer = DataDesigner(person_reader=S3PersonReader())
 ```

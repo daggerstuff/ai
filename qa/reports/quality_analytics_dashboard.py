@@ -12,6 +12,7 @@ import sqlite3
 import warnings
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -19,7 +20,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

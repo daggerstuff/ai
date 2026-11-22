@@ -305,7 +305,7 @@ class ChannelProcessor:
         """Coerce unknown input types into a non-negative integer."""
         try:
             return int(value)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return 0
 
     def _parse_iso8601(self, value):

@@ -259,7 +259,7 @@ class BaseAPIClient:
                 self._stats["errors"] += 1
                 raise RateLimitError(
                     f"Rate limit exceeded for {self.service_name}", status_code=429, response=e.response
-                )
+                ) from e
 
             # Retry on server errors
             if e.response and 500 <= e.response.status_code < 600:
@@ -271,7 +271,7 @@ class BaseAPIClient:
                 f"{self.service_name} request failed: {e}",
                 status_code=e.response.status_code if e.response else None,
                 response=e.response,
-            )
+            ) from e
 
         except requests.RequestException as e:
             return self._retry_request(endpoint, params, method, use_cache, cache_ttl, attempt, e)

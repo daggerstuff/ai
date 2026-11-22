@@ -211,19 +211,23 @@ class TestVerifyChatML:
         assert not _verify_chatml(rec)
 
     def test_inst_boundary_valid(self):
-        rec = {"messages": [
-            {"role": "user", "content": "[INST] Hello [/INST]"},
-            {"role": "assistant", "content": "Hi"},
-        ]}
+        rec = {
+            "messages": [
+                {"role": "user", "content": "[INST] Hello [/INST]"},
+                {"role": "assistant", "content": "Hi"},
+            ]
+        }
         assert _verify_chatml(rec)
 
     def test_inst_without_close_tag_still_valid(self):
         # The boundary check only rejects [/INST] that doesn't match the regex;
         # [INST] without [/INST] is not rejected (no [/INST] to validate).
-        rec = {"messages": [
-            {"role": "user", "content": "[INST] Hello without closing"},
-            {"role": "assistant", "content": "Hi"},
-        ]}
+        rec = {
+            "messages": [
+                {"role": "user", "content": "[INST] Hello without closing"},
+                {"role": "assistant", "content": "Hi"},
+            ]
+        }
         assert _verify_chatml(rec)
 
 
@@ -264,11 +268,13 @@ class TestNormalizeToV7:
         assert normalized["messages"][0]["content"] == DEFAULT_SYSTEM_PROMPT
 
     def test_enrich_defaults(self):
-        rec = {"messages": [
-            {"role": "system", "content": "sys"},
-            {"role": "user", "content": "Hi"},
-            {"role": "assistant", "content": "Hello"},
-        ]}
+        rec = {
+            "messages": [
+                {"role": "system", "content": "sys"},
+                {"role": "user", "content": "Hi"},
+                {"role": "assistant", "content": "Hello"},
+            ]
+        }
         normalized, _ = _normalize(rec)
         assert normalized["diagnostic_tag"] is None
         assert normalized["demographic_tags"] == []
@@ -276,20 +282,26 @@ class TestNormalizeToV7:
         assert normalized["clinical_reviewed"] is False
 
     def test_enrich_fixes_invalid_linguistic_style(self):
-        rec = {"messages": [
-            {"role": "system", "content": "sys"},
-            {"role": "user", "content": "Hi"},
-            {"role": "assistant", "content": "Hello"},
-        ], "linguistic_style": "invalid"}
+        rec = {
+            "messages": [
+                {"role": "system", "content": "sys"},
+                {"role": "user", "content": "Hi"},
+                {"role": "assistant", "content": "Hello"},
+            ],
+            "linguistic_style": "invalid",
+        }
         normalized, _ = _normalize(rec)
         assert normalized["linguistic_style"] == "mixed"
 
     def test_enrich_fixes_invalid_task_type(self):
-        rec = {"messages": [
-            {"role": "system", "content": "sys"},
-            {"role": "user", "content": "Hi"},
-            {"role": "assistant", "content": "Hello"},
-        ], "task_type": "nonexistent"}
+        rec = {
+            "messages": [
+                {"role": "system", "content": "sys"},
+                {"role": "user", "content": "Hi"},
+                {"role": "assistant", "content": "Hello"},
+            ],
+            "task_type": "nonexistent",
+        }
         normalized, _ = _normalize(rec)
         assert normalized["task_type"] == "therapy_response_generation"
 

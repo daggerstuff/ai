@@ -78,6 +78,7 @@ DEFAULT_VALIDATION = "validate the emotional experience without assuming its cau
 
 # ─── Helpers ──────────────────────────────────────────────────────────
 
+
 def _generate_reverie_id(source_memory_id: str, timestamp: int) -> str:
     hash_val = 0
     for c in source_memory_id:
@@ -132,6 +133,7 @@ def _determine_initial_phase(resonance_score: float) -> ReveriePhase:
 
 
 # ─── LatentSurfacer ───────────────────────────────────────────────────
+
 
 class LatentSurfacer:
     """Transforms FishhookMatch[] into ReverieVector[].
@@ -269,7 +271,4 @@ class LatentSurfacer:
         )
 
     def is_faded(self, reverie: ReverieVector) -> bool:
-        return (
-            reverie.phase == ReveriePhase.FADING
-            and reverie.resonance_score < self.config.fading_threshold
-        )
+        return reverie.phase == ReveriePhase.FADING and reverie.resonance_score < self.config.fading_threshold

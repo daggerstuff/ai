@@ -148,7 +148,7 @@ source = DatasetSource(
     open_access=True,
     data_availability="available",
     discovery_date=datetime.now(),
-    discovery_method="pubmed_search"
+    discovery_method="pubmed_search",
 )
 
 # Validate the source
@@ -171,7 +171,7 @@ evaluation = DatasetEvaluation(
     priority_tier="high",
     evaluation_date=datetime.now(),
     evaluator="researcher_name",
-    competitive_advantages=["Unique crisis intervention data"]
+    competitive_advantages=["Unique crisis intervention data"],
 )
 
 # Calculate overall score

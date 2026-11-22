@@ -21,7 +21,6 @@ from plotly.subplots import make_subplots
 
 # Import our quality comparator
 from quality_comparator import (
-
     BenchmarkAnalysis,
     ComparisonReport,
     QualityComparator,

@@ -79,7 +79,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Invalid token: {e!s}",
                 headers={"WWW-Authenticate": "Bearer"},
-            )
+            ) from e
 
         # Continue to next middleware/handler
         return await call_next(request)

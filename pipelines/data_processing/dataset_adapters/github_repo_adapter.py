@@ -366,19 +366,8 @@ def _json_to_chatml_records(
             for turn in turns:
                 if not isinstance(turn, dict):
                     continue
-                speaker = str(
-                    turn.get("speaker")
-                    or turn.get("from")
-                    or turn.get("role")
-                    or ""
-                ).lower()
-                utterance = (
-                    turn.get("utterance")
-                    or turn.get("value")
-                    or turn.get("text")
-                    or turn.get("content")
-                    or ""
-                )
+                speaker = str(turn.get("speaker") or turn.get("from") or turn.get("role") or "").lower()
+                utterance = turn.get("utterance") or turn.get("value") or turn.get("text") or turn.get("content") or ""
                 utterance = str(utterance).strip()
                 if not utterance:
                     continue
@@ -587,9 +576,7 @@ class GitHubRepoAdapter(BaseDatasetAdapter):
             # Scan raw dir for downloaded files
             for f in self._raw_dir.iterdir():
                 if f.is_file() and _is_data_file(f.name):
-                    self._file_list.append(
-                        {"path": f.name, "local_file": f.name, "size": f.stat().st_size, "sha": ""}
-                    )
+                    self._file_list.append({"path": f.name, "local_file": f.name, "size": f.stat().st_size, "sha": ""})
 
         records: list[dict[str, Any]] = []
         for file_info in self._file_list:
@@ -626,7 +613,7 @@ class GitHubRepoAdapter(BaseDatasetAdapter):
                             "file_info": file_info,
                         }
                     )
-                except (json.JSONDecodeError, Exception):
+                except json.JSONDecodeError, Exception:
                     continue
 
         return records

@@ -35,7 +35,6 @@ STAGING_DIR = "_staging"
 SYNC_MANIFEST = "_sync_manifest.json"
 
 
-
 @dataclass
 class SyncFile:
     """Metadata for a single file in the sync set."""
@@ -195,7 +194,10 @@ class S3AtomicSync:
 
         logger.info(
             "Phase 1: %d files to sync (%s → %s/%s)",
-            len(local_files), local_dir, self.remote, s3_prefix,
+            len(local_files),
+            local_dir,
+            self.remote,
+            s3_prefix,
         )
 
         # Phase 2: Upload to staging
@@ -231,7 +233,9 @@ class S3AtomicSync:
         report.completed_at = datetime.now(UTC).isoformat()
         logger.info(
             "Sync complete: %d files promoted to %s/%s",
-            report.files_promoted, self.remote, final_prefix,
+            report.files_promoted,
+            self.remote,
+            final_prefix,
         )
         return report
 
@@ -369,6 +373,7 @@ class S3AtomicSync:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="S3 atomic swap sync for V7 MASTER dataset")

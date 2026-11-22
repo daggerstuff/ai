@@ -72,7 +72,7 @@ class OpenAIBenchmarkPipeline:
         return self._results
 
     def summarize(self) -> Leaderboard:
-        """Return a ranked leaderboard across systems (best format per system). """
+        """Return a ranked leaderboard across systems (best format per system)."""
         entries: list[SystemEvaluation] = []
         for label in self.systems:
             summaries = [s for (l, _), (_, s) in self._results.items() if l == label]

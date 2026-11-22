@@ -74,7 +74,7 @@ def iter_raw_records(input_path: Path) -> Iterator[dict[str, Any]]:
                     raw = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                yield _normalize(raw, input_path, None)
+                yield _normalize(raw, input_path)
     elif suffix == ".json":
         with input_path.open("r", encoding="utf-8") as fh:
             try:
@@ -83,9 +83,9 @@ def iter_raw_records(input_path: Path) -> Iterator[dict[str, Any]]:
                 return
         if isinstance(data, list):
             for item in data:
-                yield _normalize(item, input_path, converter)
+                yield _normalize(item, input_path)
         elif isinstance(data, dict):
-            yield _normalize(data, input_path, converter)
+            yield _normalize(data, input_path)
     elif suffix == ".csv":
         # Lightweight CSV handling: read with csv.DictReader, treat each row
         # as a raw record. Real hackathon CSVs vary; this is a best-effort path.
@@ -103,7 +103,7 @@ def iter_raw_records(input_path: Path) -> Iterator[dict[str, Any]]:
                 }
 
 
-def _normalize(raw: Any, source: Path, converter: ChatMLConverter) -> dict[str, Any]:
+def _normalize(raw: Any, source: Path) -> dict[str, Any]:
     """
     Normalize a raw JSON object to the shape extract_everything.py expects:
     {"raw_data": ..., "metadata": {...}}. If it's already a ChatML record

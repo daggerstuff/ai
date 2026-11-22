@@ -6,7 +6,7 @@ celery_app = Celery(
     "orchestration",
     broker=os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0"),
     backend=os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0"),
-    include=["orchestration.tasks.simulation"]
+    include=["orchestration.tasks.simulation"],
 )
 
 celery_app.conf.update(

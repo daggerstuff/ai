@@ -301,7 +301,6 @@ class StateMachine:
         elif self.state.phase == ConversationPhase.ENGAGING:
             self.state.resistance_level = max(0.0, self.state.resistance_level - 0.04)
 
-
     def _modulate_probabilities(
         self,
         candidates: list[StateTransition],

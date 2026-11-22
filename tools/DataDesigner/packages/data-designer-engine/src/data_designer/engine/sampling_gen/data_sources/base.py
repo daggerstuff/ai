@@ -113,7 +113,7 @@ class DatetimeFormatMixin:
             try:
                 lazy.pd.to_datetime(lazy.pd.to_datetime("2012-12-21").strftime(convert_to))
             except Exception as e:
-                raise ValueError(f"Invalid datetime format: {convert_to}. {e}")
+                raise ValueError(f"Invalid datetime format: {convert_to}. {e}") from e
 
 
 ###########################################################

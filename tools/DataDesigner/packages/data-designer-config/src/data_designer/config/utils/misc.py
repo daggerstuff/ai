@@ -28,7 +28,7 @@ def template_error_handler():
             "For more information on writing Jinja2 templates, "
             "refer to https://jinja.palletsprojects.com/en/stable/templates"
         )
-        raise UserJinjaTemplateSyntaxError(exception_string)
+        raise UserJinjaTemplateSyntaxError(exception_string) from exception
     except Exception:
         raise
 

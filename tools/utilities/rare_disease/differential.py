@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
+from .state import RareDiseaseState
 from .types import (
     DifferentialEntry,
-    DiseaseRarity,
     Evidence,
-    OrganSystem,
     PatientCase,
 )
-from .state import RareDiseaseState
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +25,7 @@ class DifferentialDiagnosisManager:
     floor: float = DEFAULT_FLOOR
     prune_after: int = PRUNE_WINDOW
 
-    def initialise(
-        self, case: PatientCase, candidates: list[DifferentialEntry]
-    ) -> RareDiseaseState:
+    def initialise(self, case: PatientCase, candidates: list[DifferentialEntry]) -> RareDiseaseState:
         """Create an initial state from candidates (flat prior)."""
         n = len(candidates)
         prior = 1.0 / n if n else 0.0

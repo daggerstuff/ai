@@ -76,12 +76,8 @@ class TestScopeMetadata:
         assert scope_metadata(visibility="org") == {"visibility": "org"}
 
     def test_object_form_matches_kwargs_form(self) -> None:
-        via_object = scope_metadata(
-            RetainScope(org_id="org-1", session_id="sess-1", visibility="private")
-        )
-        via_kwargs = scope_metadata(
-            org_id="org-1", session_id="sess-1", visibility="private"
-        )
+        via_object = scope_metadata(RetainScope(org_id="org-1", session_id="sess-1", visibility="private"))
+        via_kwargs = scope_metadata(org_id="org-1", session_id="sess-1", visibility="private")
         assert via_object == via_kwargs
 
     def test_route_shape_accepts_header_kwargs(self) -> None:
@@ -111,9 +107,7 @@ def memory_store(monkeypatch: pytest.MonkeyPatch) -> dict:
     if not hasattr(dream_consolidation, "_dream_cycles"):
         # The module defines _dream_cycles only when REDIS_URL is unset at
         # import time; create it for the process-local path under test.
-        monkeypatch.setattr(
-            dream_consolidation, "_dream_cycles", store, raising=False
-        )
+        monkeypatch.setattr(dream_consolidation, "_dream_cycles", store, raising=False)
     else:
         monkeypatch.setattr(dream_consolidation, "_dream_cycles", store)
     return store
@@ -127,9 +121,7 @@ def flask_app():
 
 
 class TestListActiveUsers:
-    def test_whitelist_wins_over_redis(
-        self, monkeypatch: pytest.MonkeyPatch, flask_app
-    ) -> None:
+    def test_whitelist_wins_over_redis(self, monkeypatch: pytest.MonkeyPatch, flask_app) -> None:
         monkeypatch.setenv("DREAM_USER_WHITELIST", "user-a, user-b ,,user-c")
         fake_redis = MagicMock()
         fake_redis.smembers.return_value = {"redis-user"}
@@ -141,9 +133,7 @@ class TestListActiveUsers:
         assert body["source"] == "whitelist"
         fake_redis.smembers.assert_not_called()
 
-    def test_redis_source_lists_dream_users(
-        self, monkeypatch: pytest.MonkeyPatch, flask_app
-    ) -> None:
+    def test_redis_source_lists_dream_users(self, monkeypatch: pytest.MonkeyPatch, flask_app) -> None:
         monkeypatch.delenv("DREAM_USER_WHITELIST", raising=False)
         fake_redis = MagicMock()
         fake_redis.smembers.return_value = {"user-1", "user-2"}
@@ -154,9 +144,7 @@ class TestListActiveUsers:
         assert body["source"] == "redis"
         assert body["users"] == ["user-1", "user-2"]
 
-    def test_memory_source_from_user_keys(
-        self, memory_store: dict, flask_app
-    ) -> None:
+    def test_memory_source_from_user_keys(self, memory_store: dict, flask_app) -> None:
         memory_store["dream:user:u-1"] = []
         memory_store["dream:user:u-2"] = ["dream-1"]
 
@@ -165,26 +153,20 @@ class TestListActiveUsers:
         assert body["source"] == "memory"
         assert body["users"] == ["u-1", "u-2"]
 
-    def test_memory_source_from_dream_records(
-        self, memory_store: dict, flask_app
-    ) -> None:
+    def test_memory_source_from_dream_records(self, memory_store: dict, flask_app) -> None:
         memory_store["dream-1"] = {"user_id": "u-9", "status": "completed"}
 
         body = flask_app.test_client().get("/api/dream/users").get_json()
         assert body["users"] == ["u-9"]
 
-    def test_memory_source_deduplicates(
-        self, memory_store: dict, flask_app
-    ) -> None:
+    def test_memory_source_deduplicates(self, memory_store: dict, flask_app) -> None:
         memory_store["dream:user:u-1"] = ["dream-1"]
         memory_store["dream-2"] = {"user_id": "u-1"}
 
         body = flask_app.test_client().get("/api/dream/users").get_json()
         assert body["users"] == ["u-1"]
 
-    def test_no_longer_reports_not_implemented(
-        self, flask_app
-    ) -> None:
+    def test_no_longer_reports_not_implemented(self, flask_app) -> None:
         body = flask_app.test_client().get("/api/dream/users").get_json()
         assert "not yet implemented" not in body["message"]
 
@@ -208,9 +190,7 @@ class TestDreamUserWhitelist:
 # ---------------------------------------------------------------------------
 
 
-def _stub_transformers(
-    monkeypatch: pytest.MonkeyPatch, stub_pipeline: MagicMock
-) -> None:
+def _stub_transformers(monkeypatch: pytest.MonkeyPatch, stub_pipeline: MagicMock) -> None:
     fake_transformers = types.ModuleType("transformers")
     fake_transformers.pipeline = MagicMock(return_value=stub_pipeline)
     fake_transformers.AutoFeatureExtractor = MagicMock()
@@ -218,9 +198,7 @@ def _stub_transformers(
     monkeypatch.setitem(sys.modules, "transformers", fake_transformers)
 
 
-def _stub_transformers_factory(
-    monkeypatch: pytest.MonkeyPatch, pipeline_factory: MagicMock
-) -> None:
+def _stub_transformers_factory(monkeypatch: pytest.MonkeyPatch, pipeline_factory: MagicMock) -> None:
     """Stub where the pipeline factory itself raises (load-time failure)."""
     fake_transformers = types.ModuleType("transformers")
     fake_transformers.pipeline = pipeline_factory
@@ -243,9 +221,7 @@ class TestTextToSpeechGenerator:
         assert len(audio) > MIN_TTS_SAMPLES
         assert float(result["audio_duration_s"]) > MIN_TTS_DURATION_S
 
-    def test_synthesize_returns_audio_and_metadata(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_synthesize_returns_audio_and_metadata(self, monkeypatch: pytest.MonkeyPatch) -> None:
         stub = MagicMock(
             return_value={
                 "audio": np.array([0.1, -0.2, 0.3], dtype=np.float32),
@@ -256,11 +232,7 @@ class TestTextToSpeechGenerator:
         monkeypatch.setenv("TTS_MODEL", "stub/tts-model")
         generator = TextToSpeechGenerator(device="cpu")
 
-        result = anyio.run(
-            lambda: generator.synthesize(
-                "All right.", "session-1", emotional_state={"valence": 0.6}
-            )
-        )
+        result = anyio.run(lambda: generator.synthesize("All right.", "session-1", emotional_state={"valence": 0.6}))
 
         assert result["status"] == "success"
         assert result["audio"].shape == (3,)
@@ -277,22 +249,16 @@ class TestTextToSpeechGenerator:
         result = anyio.run(lambda: generator.synthesize("", "session-1"))
         assert result == {"error": "Empty text"}
 
-    def test_model_load_failure_degrades_gracefully(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_model_load_failure_degrades_gracefully(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # The factory itself raises — surfacing the failure at load time
-        _stub_transformers_factory(
-            monkeypatch, MagicMock(side_effect=RuntimeError("weights missing"))
-        )
+        _stub_transformers_factory(monkeypatch, MagicMock(side_effect=RuntimeError("weights missing")))
         generator = TextToSpeechGenerator(device="cpu")
 
         result = anyio.run(lambda: generator.synthesize("Text.", "session-1"))
         assert result["status"] == "unavailable"
         assert "failed to load" in result["reason"]
 
-    def test_synthesis_failure_returns_error(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_synthesis_failure_returns_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # The pipeline constructs but raises at synthesis (call) time
         failing_synth = MagicMock(side_effect=RuntimeError("weights missing"))
         _stub_transformers(monkeypatch, failing_synth)
@@ -301,9 +267,7 @@ class TestTextToSpeechGenerator:
         result = anyio.run(lambda: generator.synthesize("Text.", "session-1"))
         assert result == {"error": "weights missing"}
 
-    def test_output_dir_writes_wav(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path
-    ) -> None:
+    def test_output_dir_writes_wav(self, monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
         stub = MagicMock(
             return_value={
                 "audio": np.zeros(TTS_TEST_SAMPLES, dtype=np.float32),
@@ -324,9 +288,7 @@ class TestTextToSpeechGenerator:
 
     def test_env_model_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("TTS_MODEL", "custom/tts")
-        stub_pipeline = MagicMock(
-            return_value={"audio": [0.0], "sampling_rate": MMS_SAMPLING_RATE}
-        )
+        stub_pipeline = MagicMock(return_value={"audio": [0.0], "sampling_rate": MMS_SAMPLING_RATE})
         _stub_transformers(monkeypatch, stub_pipeline)
 
         generator = TextToSpeechGenerator()

@@ -32,7 +32,7 @@ class TestHelperFunctions:
 
     def test_compute_mae(self):
         assert _compute_mae([1.0, 2.0, 3.0], [1.0, 2.0, 3.0]) == 0.0
-        assert _compute_mae([1.0, 2.0, 3.0], [1.0, 2.0, 4.0]) == pytest.approx(1/3)
+        assert _compute_mae([1.0, 2.0, 3.0], [1.0, 2.0, 4.0]) == pytest.approx(1 / 3)
         assert _compute_mae([0.0, 0.0], [1.0, 1.0]) == 1.0
         assert _compute_mae([], []) == 0.0
 
@@ -54,7 +54,10 @@ class TestHelperFunctions:
         assert _compute_spearman([1.0, 2.0], [2.0, 1.0]) == pytest.approx(-1.0)
 
     def test_find_longest_prefix(self):
-        assert _find_longest_prefix("couples_therapy_official_CouplesTherapyOfficial_The_Evolution") == "couples_therapy_official"
+        assert (
+            _find_longest_prefix("couples_therapy_official_CouplesTherapyOfficial_The_Evolution")
+            == "couples_therapy_official"
+        )
         assert _find_longest_prefix("tim_fletcher_TimFletcher_26_Signs") == "tim_fletcher"
         assert _find_longest_prefix("therapy_in_a_nutshell_TherapyinaNutshellPodcast_When") == "therapy_in_a_nutshell"
         assert _find_longest_prefix("random_unknown_id") is None
@@ -258,6 +261,7 @@ class TestMissingCsvHandling:
         original_files = CSV_FILES[:]
         # Patch to use a non-existent file
         import training.benchmark as bm
+
         bm.CSV_FILES = ["nonexistent_file.csv"]
 
         with pytest.raises(FileNotFoundError) as exc_info:

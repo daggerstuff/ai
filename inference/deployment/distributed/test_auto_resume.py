@@ -12,6 +12,7 @@ import tempfile
 import time
 import uuid
 from datetime import UTC, datetime
+from typing import Any, Dict
 
 from auto_resume_engine import (
     AutoResumeEngine,

@@ -164,7 +164,9 @@ def test_gold_record_metadata_from_plan() -> None:
     assert rec["source"] == "arc_corpus_pilot_07"
     assert rec["task_type"] == TASK_TYPE
     assert TASK_TYPE == "long_session_arc"
-    assert rec["tier"] == "T1_GOLD"
+    assert rec["tier"] == "T2_SILVER"
+    assert rec["clinical_reviewed"] is False
+    assert rec["mi_quality"] == "unassessed"
     assert rec["family"] == FAMILY
     assert FAMILY == "arc_corpus"
     assert rec["diagnostic_tag"] == "boundary testing"

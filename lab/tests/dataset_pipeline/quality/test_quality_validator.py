@@ -1,7 +1,7 @@
 import unittest
 
-from ai.pkg_mera.core.pipelines.schemas.conversation_schema import Conversation
 from ai.pkg_mera.core.pipelines.quality.quality_validator import QualityValidator
+from ai.pkg_mera.core.pipelines.schemas.conversation_schema import Conversation
 
 
 class TestQualityValidator(unittest.TestCase):

@@ -56,7 +56,7 @@ def _default_concurrency() -> int:
     raw = os.getenv("NF_EVAL_CONCURRENCY", "4")
     try:
         n = int(raw)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return 4
     return max(1, min(64, n))
 
@@ -70,7 +70,7 @@ def _default_accept_threshold() -> float:
         return ClinicalValidityJudge.ACCEPT_THRESHOLD
     try:
         return max(0.0, min(1.0, float(raw)))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return ClinicalValidityJudge.ACCEPT_THRESHOLD
 
 

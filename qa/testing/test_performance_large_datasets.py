@@ -5,8 +5,6 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 
-
-
 #!/usr/bin/env python3
 """
 Performance Tests for Large Dataset Processing
@@ -29,11 +27,12 @@ import tempfile
 import time
 import unittest
 import warnings
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import psutil
-from pathlib import Path
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 warnings.simplefilter("default")
@@ -429,9 +428,9 @@ class TestScalabilityLimits(PerformanceTestBase):
                 }
             )
 
-            def process_dataset():
+            def process_dataset(frame=df):
                 # Simulate processing operations
-                return df.groupby(df.index // 1000).agg({"word_count": "mean", "quality_score": ["mean", "std"]})
+                return frame.groupby(frame.index // 1000).agg({"word_count": "mean", "quality_score": ["mean", "std"]})
 
             perf_metrics = self.measure_performance(process_dataset)
 

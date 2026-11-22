@@ -168,7 +168,7 @@ class LettaPIIMiddleware:
         try:
             filtered_dict = json.loads(filtered)
             return {**kwargs, **filtered_dict}
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             # If we can't parse filtered content, return original kwargs
             logger.warning(f"Could not reconstruct kwargs from filtered content: {filtered[:100]}...")
             return kwargs

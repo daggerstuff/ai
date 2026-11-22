@@ -19,7 +19,6 @@ from ..monitoring.observability import observability
 from .enhanced_safety_filter import (
     EnhancedSafetyFilter,
     SafetyCategory,
-    SafetyCheckResult,
     SafetyLevel,
 )
 
@@ -77,16 +76,10 @@ class InferenceSafetyFilter:
         self.safety_filter = EnhancedSafetyFilter(safety_level)
         self.filter_mode = filter_mode
         self.logger = logging.getLogger(__name__)
-        self.traceability_manager = None
         self.blocked_content_count = 0
         self.filtered_content_count = 0
         self.total_requests = 0
         self.last_filtered_content = None
-
-    def set_traceability_manager(self, traceability_manager: "TraceabilityManager"):
-        """Set the traceability manager for tracking filtered content"""
-        self.traceability_manager = traceability_manager
-        self.logger.info("Traceability manager set for inference safety filter")
 
     def set_safety_level(self, safety_level: SafetyLevel):
         """Update the safety level"""
@@ -192,15 +185,7 @@ class InferenceSafetyFilter:
                 "timestamp": datetime.now(UTC).isoformat(),
             }
 
-        # Create traceability record if traceability manager is available
         traceability_info = None
-        if self.traceability_manager and model_info:
-            try:
-                traceability_info = self._create_traceability_record(
-                    content, filtered_content, safety_result, model_info
-                )
-            except Exception as e:
-                self.logger.warning(f"Failed to create traceability record: {e}")
 
         # Log the safety check result
         self.logger.info(
@@ -282,43 +267,6 @@ class InferenceSafetyFilter:
             },
             receipt_root_hash=receipt_root_hash,
         )
-
-    def _create_traceability_record(
-        self,
-        original_content: str,
-        filtered_content: str,
-        safety_result: SafetyCheckResult,
-        model_info: dict[str, Any],
-    ) -> dict[str, Any]:
-        """Create traceability record for filtered content"""
-        if not self.traceability_manager:
-            return None
-
-        # Create traceability record for the safety filtering event
-        record_id = f"safety_filter_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(original_content.encode()).hexdigest()[:8]}"
-
-        return {
-            "record_id": record_id,
-            "type": "safety_filtering",
-            "original_content_hash": hashlib.sha256(original_content.encode()).hexdigest(),
-            "filtered_content_hash": hashlib.sha256(filtered_content.encode()).hexdigest(),
-            "is_safe": safety_result.is_safe,
-            "content_filtered": original_content != filtered_content,
-            "safety_score": safety_result.overall_score,
-            "flagged_categories": [cat.value for cat in safety_result.flagged_categories],
-            "confidence": safety_result.confidence,
-            "explanation": safety_result.explanation,
-            "model_info": model_info,
-            "timestamp": datetime.now(UTC).isoformat(),
-            "metadata": {
-                "filter_mode": self.filter_mode.value,
-                "safety_level": self.safety_filter.safety_level.value,
-                "processing_time_ms": (time.time() - time.time()) * 1000,  # This would be filled in properly
-            },
-        }
-
-        # In a real implementation, you'd store this in the traceability system
-        # For now, we'll just return the data structure
 
     def get_filtering_statistics(self) -> dict[str, Any]:
         """Get statistics about content filtering"""

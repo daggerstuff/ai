@@ -50,15 +50,12 @@ Each `__trace` column value is a `list[dict]` of ChatML-style messages:
 {
     "role": "system" | "user" | "assistant" | "tool",
     "content": [{"type": "text", "text": "..."}],
-    "reasoning_content": str | None,       # assistant only
-    "tool_calls": [                        # assistant only
-        {
-            "id": "...",
-            "type": "function",
-            "function": {"name": "...", "arguments": "..."}
-        }
-    ] | None,
-    "tool_call_id": str | None,            # tool role only
+    "reasoning_content": str | None,  # assistant only
+    "tool_calls": [  # assistant only
+        {"id": "...", "type": "function", "function": {"name": "...", "arguments": "..."}}
+    ]
+    | None,
+    "tool_call_id": str | None,  # tool role only
 }
 ```
 
@@ -90,14 +87,17 @@ class TraceToolCallFunction(TypedDict):
     name: str
     arguments: str
 
+
 class TraceToolCall(TypedDict):
     id: str
     type: str
     function: TraceToolCallFunction
 
+
 class TraceContentBlock(TypedDict):
     type: str
     text: str
+
 
 class TraceMessage(TypedDict, total=False):
     role: Required[Literal["system", "user", "assistant", "tool"]]
@@ -154,6 +154,7 @@ Same guard pattern as `_display_image_if_in_notebook`:
 ```python
 try:
     from IPython.display import HTML, display
+
     get_ipython()
 except (ImportError, NameError):
     return False
@@ -217,9 +218,7 @@ if include_traces:
                 if side_col.endswith(TRACE_COLUMN_POSTFIX) and side_col in record:
                     traces: list[TraceMessage] = record[side_col]
                     if isinstance(traces, list) and len(traces) > 0:
-                        render_list.append(
-                            pad_console_element(trace_renderer.render_rich(traces, side_col))
-                        )
+                        render_list.append(pad_console_element(trace_renderer.render_rich(traces, side_col)))
                         traces_to_display_later.append((side_col, traces))
 ```
 

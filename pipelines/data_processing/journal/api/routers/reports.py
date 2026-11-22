@@ -57,12 +57,12 @@ async def generate_report(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate report: {e!s}",
-        )
+        ) from e
 
 
 @router.get("", response_model=ReportListResponse)
@@ -110,12 +110,12 @@ async def list_reports(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list reports: {e!s}",
-        )
+        ) from e
 
 
 @router.get("/{report_id}", response_model=ReportResponse)
@@ -146,9 +146,9 @@ async def get_report(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get report: {e!s}",
-        )
+        ) from e

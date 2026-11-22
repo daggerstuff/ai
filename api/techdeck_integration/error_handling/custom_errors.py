@@ -229,6 +229,10 @@ class PipelineExecutionError(PipelineError):
     pass
 
 
+class ProgressTrackingError(PipelineError):
+    pass
+
+
 # Backwards-compatible State Management error expected by state manager
 class StateManagementError(TechDeckBaseError):
     """Errors related to state management and persistence."""
@@ -516,13 +520,22 @@ class SystemError(TechDeckBaseError):
 class PipelineNotFoundError(ResourceNotFoundError):
     """Raised when a requested pipeline configuration or execution is not found."""
 
-    def __init__(self, message: str, resource_type: str | None = "pipeline", resource_id: str | None = None, details: dict[str, Any] | None = None, **kwargs):
+    def __init__(
+        self,
+        message: str,
+        resource_type: str | None = "pipeline",
+        resource_id: str | None = None,
+        details: dict[str, Any] | None = None,
+        **kwargs,
+    ):
         merged_details = dict(details or {})
         if resource_type:
             merged_details.setdefault("resource_type", resource_type)
         if resource_id:
             merged_details.setdefault("resource_id", resource_id)
-        super().__init__(message=message, resource_type=resource_type, resource_id=resource_id, details=merged_details, **kwargs)
+        super().__init__(
+            message=message, resource_type=resource_type, resource_id=resource_id, details=merged_details, **kwargs
+        )
         self.error_code = "PIPELINE_NOT_FOUND"
 
 

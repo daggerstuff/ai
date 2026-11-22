@@ -23,6 +23,19 @@ import requests
 
 from cli.config import CLIConfig
 
+CLI_LOGGER_NAME = "pixelated-ai-cli"
+
+
+def get_logger(name: str) -> logging.Logger:
+    """Return the CLI logger for ``name``.
+
+    Modules grab a logger at import time, before ``setup_logging`` has run, so
+    this returns a child of the CLI logger rather than configuring anything:
+    once ``setup_logging`` installs handlers on the parent, every child
+    inherits them.
+    """
+    return logging.getLogger(f"{CLI_LOGGER_NAME}.{name}")
+
 
 def setup_logging(level: str = "INFO", config: CLIConfig | None = None) -> logging.Logger:
     """
@@ -36,7 +49,7 @@ def setup_logging(level: str = "INFO", config: CLIConfig | None = None) -> loggi
         Configured logger instance
     """
     # Create logger
-    logger = logging.getLogger("pixelated-ai-cli")
+    logger = logging.getLogger(CLI_LOGGER_NAME)
     logger.setLevel(getattr(logging, level.upper()))
 
     # Clear existing handlers
@@ -82,7 +95,7 @@ def validate_environment() -> bool:
     Raises:
         ValueError: If critical environment issues are found
     """
-    logger = logging.getLogger("pixelated-ai-cli")
+    logger = logging.getLogger(CLI_LOGGER_NAME)
 
     try:
         # Check Python version
@@ -223,7 +236,7 @@ def validate_jwt_token(token: str) -> dict[str, Any]:
 
         # Basic validation
         if "exp" not in payload:
-            logger = logging.getLogger("pixelated-ai-cli")
+            logger = logging.getLogger(CLI_LOGGER_NAME)
             logger.warning("JWT token missing expiration")
 
         return {
@@ -251,7 +264,7 @@ def check_api_health(base_url: str, timeout: int = 10) -> dict[str, Any]:
     Returns:
         Dictionary with health status information
     """
-    logger = logging.getLogger("pixelated-ai-cli")
+    logger = logging.getLogger(CLI_LOGGER_NAME)
 
     try:
         health_url = f"{base_url.rstrip('/')}/health"
@@ -365,7 +378,7 @@ def safe_json_loads(json_str: str, default: Any = None) -> Any:
     """
     try:
         return json.loads(json_str)
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         return default
 
 

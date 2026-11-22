@@ -129,7 +129,7 @@ class SIMVAILAdapter(BaseDatasetAdapter):
                 try:
                     with open(transcript_file, encoding="utf-8") as f:
                         transcript = json.load(f)
-                except (json.JSONDecodeError, OSError):
+                except json.JSONDecodeError, OSError:
                     continue
                 transcript["_target_model"] = target_model
                 transcript["_source_file"] = str(transcript_file.relative_to(repo_dir))

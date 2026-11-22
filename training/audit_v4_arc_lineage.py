@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import shutil
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -51,10 +50,7 @@ def write_private_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
 
 
 def jsonl_bytes(rows: list[dict[str, Any]]) -> bytes:
-    return b"".join(
-        (json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8")
-        for row in rows
-    )
+    return b"".join((json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n").encode("utf-8") for row in rows)
 
 
 def main() -> None:
@@ -101,7 +97,10 @@ def main() -> None:
             candidate_count += 1
             rowref = release_rows[row_number - 1]
             row_hash = sha256(raw.rstrip(b"\n"))
-            if rowref.get("candidate_row_number_1based") != row_number or rowref.get("candidate_row_sha256") != row_hash:
+            if (
+                rowref.get("candidate_row_number_1based") != row_number
+                or rowref.get("candidate_row_sha256") != row_hash
+            ):
                 raise RuntimeError(f"v4 candidate rowref mismatch at row {row_number}")
 
             arc_id = str(provenance.get("arc_id"))
@@ -205,11 +204,25 @@ def main() -> None:
         write_private_jsonl(SIDECAR, output_rows)
         REPORT.write_bytes(expected_report)
         REPORT.chmod(0o600)
-    print(json.dumps({k: report[k] for k in (
-        "candidate_arc_rows", "exact_canonical_message_matches", "missing_or_ambiguous_keys",
-        "message_projection_mismatches", "machine_audit_verdict_counts", "unique_arc_ids",
-        "split_counts", "private_archive_snapshot_sha256", "private_rowref_sidecar_sha256",
-    )}, indent=2))
+    print(
+        json.dumps(
+            {
+                k: report[k]
+                for k in (
+                    "candidate_arc_rows",
+                    "exact_canonical_message_matches",
+                    "missing_or_ambiguous_keys",
+                    "message_projection_mismatches",
+                    "machine_audit_verdict_counts",
+                    "unique_arc_ids",
+                    "split_counts",
+                    "private_archive_snapshot_sha256",
+                    "private_rowref_sidecar_sha256",
+                )
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

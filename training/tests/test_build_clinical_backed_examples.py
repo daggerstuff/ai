@@ -1,12 +1,16 @@
-"""Tests for the pure functions in build_clinical_backed_examples (no network)."""
+"""Tests for clinical-backed example normalization and consolidation (no network)."""
 
+import json
 from pathlib import Path
 
+import pytest
+
+from training import consolidate_distilled_corpus as consolidation
 from training.build_clinical_backed_examples import (
     STAGE1,
     STAGE2,
-    _EmitState,
     _book_stage,
+    _EmitState,
     _is_dpo,
     _process,
     normalize_benchmark_record,
@@ -39,19 +43,54 @@ def test_normalize_book_record_builds_chatml(tmp_path):
     record = normalize_book_record(item, tmp_path / "Complex PTSD.jsonl")
     assert record is not None
     assert record["stage"] == STAGE2
-    assert record["tier"] == "T1_GOLD"
+    assert record["tier"] == "T3_BRONZE"
+    assert record["clinical_reviewed"] is False
+    assert record["provenance"]["review_status"] == "unreviewed_synthetic"
     assert record["source"] == "clinical_book"
     assert [m["role"] for m in record["messages"]] == ["system", "user", "assistant"]
-    assert record["sha256"] and record["sha1"]
+    assert record["sha256"]
+    assert record["sha1"]
 
 
 def test_normalize_book_record_skips_empty(tmp_path):
     assert normalize_book_record({"instruction": "", "output": ""}, tmp_path / "x.jsonl") is None
 
 
+def test_consolidated_book_pairs_require_review_and_preserve_the_base(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    books = tmp_path / "books"
+    books.mkdir()
+    (books / "synthetic.jsonl").write_text(
+        json.dumps({"instruction": "Synthetic prompt.", "output": "Synthetic reply."}) + "\n\n"
+    )
+    personas = tmp_path / "personas"
+    personas.mkdir()
+    base = tmp_path / "base.jsonl"
+    base_row = {"messages": [], "source": "existing", "clinical_reviewed": True}
+    base.write_text(json.dumps(base_row) + "\n")
+    output = tmp_path / "consolidated.jsonl"
+    monkeypatch.setattr(consolidation, "BOOKS_DIR", books)
+    monkeypatch.setattr(consolidation, "PERSONAS_DIR", personas)
+    monkeypatch.setattr(consolidation, "MASTER_TRAIN", base)
+    monkeypatch.setattr(consolidation, "CONSOLIDATED_OUT", output)
+
+    consolidation.main()
+
+    generated, retained = [json.loads(line) for line in output.read_text().splitlines()]
+    assert generated["clinical_reviewed"] is False
+    assert generated["tier"] == "T3_BRONZE"
+    assert generated["mi_quality"] == "unassessed"
+    assert retained == base_row
+
+
 def test_normalize_dpo_record_promotes_chosen():
-    raw = {"prompt": "I'm scared.", "chosen": "What's one thing you can control right now?",
-           "rejected": "It sounds like you're scared.", "metadata": {"domain": "identity"}}
+    raw = {
+        "prompt": "I'm scared.",
+        "chosen": "What's one thing you can control right now?",
+        "rejected": "It sounds like you're scared.",
+        "metadata": {"domain": "identity"},
+    }
     record = normalize_benchmark_record("safety_dpo_pairs_10k", raw)
     assert record is not None
     assert record["stage"] == STAGE1
@@ -77,16 +116,28 @@ def test_normalize_chatml_record_preserves_metadata():
     assert record["tier"] == "benchmark"
     assert record["persona_name"] == "Liam"
     assert record["provenance"] == {"k": "v"}
-    assert record["sha256"] and record["sha1"]
+    assert record["sha256"]
+    assert record["sha1"]
 
 
 def test_process_gates_sycophantic_assistant(tmp_path):
     out = tmp_path / "staging.jsonl"
     reject = tmp_path / "rejections.jsonl"
-    state = _EmitState(seen=set(), out_path=out, reject_path=reject, summary={
-        "books": 0, "benchmark": 0, "emitted": 0, "rejected": 0,
-        "duplicates": 0, "placeholders": 0, "stage1": 0, "stage2": 0,
-    })
+    state = _EmitState(
+        seen=set(),
+        out_path=out,
+        reject_path=reject,
+        summary={
+            "books": 0,
+            "benchmark": 0,
+            "emitted": 0,
+            "rejected": 0,
+            "duplicates": 0,
+            "placeholders": 0,
+            "stage1": 0,
+            "stage2": 0,
+        },
+    )
     record = {
         "messages": [
             {"role": "user", "content": "I feel awful."},
@@ -107,10 +158,21 @@ def test_process_gates_sycophantic_assistant(tmp_path):
 def test_process_dedups_and_emits(tmp_path):
     out = tmp_path / "staging.jsonl"
     reject = tmp_path / "rejections.jsonl"
-    state = _EmitState(seen={"abc"}, out_path=out, reject_path=reject, summary={
-        "books": 0, "benchmark": 0, "emitted": 0, "rejected": 0,
-        "duplicates": 0, "placeholders": 0, "stage1": 0, "stage2": 0,
-    })
+    state = _EmitState(
+        seen={"abc"},
+        out_path=out,
+        reject_path=reject,
+        summary={
+            "books": 0,
+            "benchmark": 0,
+            "emitted": 0,
+            "rejected": 0,
+            "duplicates": 0,
+            "placeholders": 0,
+            "stage1": 0,
+            "stage2": 0,
+        },
+    )
     record = {
         "messages": [
             {"role": "user", "content": "hi"},

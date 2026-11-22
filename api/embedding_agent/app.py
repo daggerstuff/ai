@@ -205,13 +205,13 @@ async def embed_text(request: EmbeddingRequest) -> EmbeddingResponse:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         logger.error(f"Error in embed_text: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to generate embedding",
-        )
+        ) from e
 
 
 @embedding_router.post(
@@ -255,13 +255,13 @@ async def embed_batch(request: BatchEmbeddingRequest) -> BatchEmbeddingResponse:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         logger.error(f"Error in embed_batch: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to generate batch embeddings",
-        )
+        ) from e
 
 
 @embedding_router.post(
@@ -306,13 +306,13 @@ async def search_similar(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
     except Exception as e:
         logger.error(f"Error in search_similar: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to perform similarity search",
-        )
+        ) from e
 
 
 # Knowledge management endpoints
@@ -351,7 +351,7 @@ async def load_knowledge() -> dict[str, Any]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to load knowledge base",
-        )
+        ) from e
 
 
 # Cache management endpoints

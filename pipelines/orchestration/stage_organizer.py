@@ -324,9 +324,7 @@ def enforce_quotas(
     # Unused capacity from under-represented AND missing configured stages
     # is redistributable to over-target stages.
     remaining_slack = sum(
-        max(0, targets.get(stage, 0) - len(records))
-        for stage, records in stage_records.items()
-        if stage in targets
+        max(0, targets.get(stage, 0) - len(records)) for stage, records in stage_records.items() if stage in targets
     )
     # Missing configured stages contribute their full target as slack.
     for stage in configs:

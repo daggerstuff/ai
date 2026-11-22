@@ -49,8 +49,8 @@ class ModelProviderRegistry(BaseModel):
     def get_provider(self, name: str) -> ModelProvider:
         try:
             return self._providers_dict[name]
-        except KeyError:
-            raise UnknownProviderError(f"No provider named {name!r} registered")
+        except KeyError as exc:
+            raise UnknownProviderError(f"No provider named {name!r} registered") from exc
 
 
 def resolve_model_provider_registry(model_providers: list[ModelProvider]) -> ModelProviderRegistry:
@@ -104,8 +104,8 @@ class MCPProviderRegistry(BaseModel):
         """
         try:
             return self._providers_dict[name]
-        except KeyError:
-            raise UnknownProviderError(f"No MCP provider named {name!r} registered")
+        except KeyError as exc:
+            raise UnknownProviderError(f"No MCP provider named {name!r} registered") from exc
 
     def is_empty(self) -> bool:
         """Check if the registry has no providers."""

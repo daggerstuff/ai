@@ -26,6 +26,8 @@ _PAL_FRAMEWORK = str(Path(__file__).resolve().parents[2] / "data" / "synthetic" 
 if _PAL_FRAMEWORK not in sys.path:
     sys.path.insert(0, _PAL_FRAMEWORK)
 
+import os
+
 from ai.inference.api.pixel_inference_service import (
     ConversationMessage,
     PixelInferenceEngine,

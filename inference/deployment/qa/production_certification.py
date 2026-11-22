@@ -125,7 +125,7 @@ class ProductionCertifier:
     """Main production certification system"""
 
     def __init__(self):
-        self.cert_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/production_certification")
+        self.cert_path = _PROJECT_ROOT / "ai" / "inference/deployment/qa/production_certification"
         self.cert_path.mkdir(parents=True, exist_ok=True)
 
         self.certification_checks: list[CertificationCheck] = []

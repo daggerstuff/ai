@@ -269,7 +269,7 @@ def _get_user_latest_dream(user_id: str) -> tuple[str, dict[str, Any]] | None:
                         # Parse ISO timestamp
                         dt = datetime.fromisoformat(dream_time.replace("Z", "+00:00"))
                         dream_time = dt.timestamp()
-                    except:
+                    except Exception:
                         dream_time = 0
                 elif not isinstance(dream_time, (int, float)):
                     dream_time = 0
@@ -308,7 +308,7 @@ def _get_user_latest_dream(user_id: str) -> tuple[str, dict[str, Any]] | None:
                         # Parse ISO timestamp
                         dt = datetime.fromisoformat(dream_time.replace("Z", "+00:00"))
                         dream_time = dt.timestamp()
-                    except:
+                    except Exception:
                         dream_time = 0
                 elif not isinstance(dream_time, (int, float)):
                     dream_time = 0
@@ -620,9 +620,7 @@ def list_active_users():
                 "success": True,
                 "users": whitelist,
                 "source": "whitelist",
-                "message": (
-                    f"Whitelisted {len(whitelist)} users via DREAM_USER_WHITELIST."
-                ),
+                "message": (f"Whitelisted {len(whitelist)} users via DREAM_USER_WHITELIST."),
             }
         )
 
@@ -638,9 +636,7 @@ def list_active_users():
                     "success": True,
                     "users": users_list,
                     "source": "redis",
-                    "message": (
-                        f"Found {len(users_list)} users with dream records in Redis."
-                    ),
+                    "message": (f"Found {len(users_list)} users with dream records in Redis."),
                 }
             )
         except Exception as e:

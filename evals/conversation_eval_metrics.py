@@ -261,6 +261,7 @@ class ErrorTaxonomy(str, Enum):
     CONFIRMATION = "confirmation"
     OVERCONFIDENCE = "overconfidence"
 
+
 # ---------------------------------------------------------------------------
 # DiagnosisArena clinical diagnostic evaluation module — canonical surface
 # now lives in ``ai.evals.diagnosis_arena``. This file re-exports the public
@@ -270,6 +271,8 @@ class ErrorTaxonomy(str, Enum):
 # ---------------------------------------------------------------------------
 import logging
 from pathlib import Path
+
+from transformers import AutoModel, AutoTokenizer
 
 from ai.evals.diagnosis_arena import (
     BenchmarkArtifactStore,
@@ -308,7 +311,6 @@ __all__ = [
     "ClinicalCase",
     "ClinicalDiagnosisJudge",
     "DiagnosisArenaBenchmark",
-
     "Difficulty",
     "ErrorTaxonomy",
     "EvaluationReport",

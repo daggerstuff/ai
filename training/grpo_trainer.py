@@ -17,7 +17,6 @@ try:
     from .shared_config import (
         add_lora_args,
         build_lora_config,
-        log_token_length_distribution,
         shared_qlora_config,
     )
 except ModuleNotFoundError:
@@ -25,7 +24,6 @@ except ModuleNotFoundError:
         from ai.training.shared_config import (
             add_lora_args,
             build_lora_config,
-            log_token_length_distribution,
             shared_qlora_config,
         )
     except ModuleNotFoundError:
@@ -39,28 +37,69 @@ logger = logging.getLogger("grpo_trainer")
 
 from training.clinical_validity_scorer import ClinicalValidityScorer
 
-CRISIS_RESOURCES: frozenset[str] = frozenset({
-    "988", "741741", "findahelpline", "911", "999", "112",
-    "suicide prevention lifeline", "crisis text line",
-    "national suicide prevention", "emergency services",
-    "crisis hotline", "suicide hotline",
-})
+CRISIS_RESOURCES: frozenset[str] = frozenset(
+    {
+        "988",
+        "741741",
+        "findahelpline",
+        "911",
+        "999",
+        "112",
+        "suicide prevention lifeline",
+        "crisis text line",
+        "national suicide prevention",
+        "emergency services",
+        "crisis hotline",
+        "suicide hotline",
+    }
+)
 
-CRISIS_KEYWORDS: frozenset[str] = frozenset({
-    "i want to die", "i want to kill myself", "i want to die tonight",
-    "kill myself", "suicide", "end my life",
-    "quiero morir", "quiero suicidarme", "je veux mourir",
-    "quero morrer", "ich will sterben",
-    "no reason to live", "mejor muerto", "me tuer",
-})
+CRISIS_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "i want to die",
+        "i want to kill myself",
+        "i want to die tonight",
+        "kill myself",
+        "suicide",
+        "end my life",
+        "quiero morir",
+        "quiero suicidarme",
+        "je veux mourir",
+        "quero morrer",
+        "ich will sterben",
+        "no reason to live",
+        "mejor muerto",
+        "me tuer",
+    }
+)
 
-EMPATHY_KEYWORDS: frozenset[str] = frozenset({
-    "understand", "hear you", "feeling", "empathy", "compassion",
-    "validate", "valid", "support", "care", "sorry you",
-    "that sounds", "difficult", "struggling", "pain", "hurt",
-    "not alone", "here for you", "listen", "safe space",
-    "your feelings", "matters", "important", "brave",
-})
+EMPATHY_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "understand",
+        "hear you",
+        "feeling",
+        "empathy",
+        "compassion",
+        "validate",
+        "valid",
+        "support",
+        "care",
+        "sorry you",
+        "that sounds",
+        "difficult",
+        "struggling",
+        "pain",
+        "hurt",
+        "not alone",
+        "here for you",
+        "listen",
+        "safe space",
+        "your feelings",
+        "matters",
+        "important",
+        "brave",
+    }
+)
 
 
 def _safety_score(response: str) -> float:
@@ -144,14 +183,16 @@ def filter_by_threshold(
     for prompt, response in zip(prompts, responses, strict=False):
         composite = score(prompt, response, empathy_weight, crisis_weight, clinical_weight)
         if composite >= threshold:
-            kept.append({
-                "prompt": prompt,
-                "response": response,
-                "composite_score": composite,
-                "empathy_score": _empathy_score(response),
-                "crisis_score": _crisis_score(prompt, response),
-                "clinical_validity_score": _clinical_validity_score(response),
-            })
+            kept.append(
+                {
+                    "prompt": prompt,
+                    "response": response,
+                    "composite_score": composite,
+                    "empathy_score": _empathy_score(response),
+                    "crisis_score": _crisis_score(prompt, response),
+                    "clinical_validity_score": _clinical_validity_score(response),
+                }
+            )
     return kept
 
 
@@ -185,7 +226,9 @@ def run_grpo(args: argparse.Namespace) -> None:
 
     logger.info(
         "Reward weights: empathy=%.2f, crisis=%.2f, clinical=%.2f, threshold=%.2f",
-        args.empathy_weight, args.crisis_weight, args.clinical_validity_weight,
+        args.empathy_weight,
+        args.crisis_weight,
+        args.clinical_validity_weight,
         args.min_reward_threshold,
     )
 

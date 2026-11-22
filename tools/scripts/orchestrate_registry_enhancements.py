@@ -11,8 +11,8 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
 
+from path_utils import AI_DIR
 
 
 class DatasetRegistryOrchestrator:

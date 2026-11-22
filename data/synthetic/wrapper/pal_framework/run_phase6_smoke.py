@@ -142,10 +142,7 @@ def _build_sft_jsonl(path: Path, n: int) -> int:
             response = RESPONSES_CHOSEN[i % len(RESPONSES_CHOSEN)]
             example = build_sft_example(persona, dialogue, response, max_tokens=MAX_TOKENS)
             fout.write(
-                json.dumps(
-                    {"messages": example.messages, "metadata": example.metadata}, ensure_ascii=False
-                )
-                + "\n"
+                json.dumps({"messages": example.messages, "metadata": example.metadata}, ensure_ascii=False) + "\n"
             )
             count += 1
             i += 1
@@ -165,9 +162,7 @@ def _build_dpo_jsonl(path: Path, n: int) -> int:
             chosen_text = RESPONSES_CHOSEN[i % len(RESPONSES_CHOSEN)]
             rejected_text = RESPONSES_REJECTED[i % len(RESPONSES_REJECTED)]
             # build_dpo_pair takes persona dict (renders to NL internally)
-            pair = build_dpo_pair(
-                persona, dialogue, chosen_text, rejected_text, max_tokens=MAX_TOKENS
-            )
+            pair = build_dpo_pair(persona, dialogue, chosen_text, rejected_text, max_tokens=MAX_TOKENS)
             fout.write(
                 json.dumps(
                     {
@@ -297,9 +292,7 @@ def run_sft(model_id: str, sft_jsonl: Path, output_dir: Path) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # DPO (plain LoRA, no QLoRA — CPU-compatible)
 # ---------------------------------------------------------------------------
-def run_dpo(
-    model_id: str, base_checkpoint: Path, dpo_jsonl: Path, output_dir: Path
-) -> dict[str, Any]:
+def run_dpo(model_id: str, base_checkpoint: Path, dpo_jsonl: Path, output_dir: Path) -> dict[str, Any]:
     """Run DPO with TRL DPOTrainer + LoRA on CPU. Base model = SFT checkpoint."""
     from datasets import Dataset  # noqa: PLC0415
     from peft import LoraConfig  # noqa: PLC0415
@@ -515,11 +508,7 @@ def run_inference_and_cscore(
         try:
             result = wrapper_on.infer(dialogue)
             elapsed = time.time() - t0
-            records_on.append(
-                _build_records_for_cscore(
-                    result.selection.persona_string, result.generation.response
-                )
-            )
+            records_on.append(_build_records_for_cscore(result.selection.persona_string, result.generation.response))
             latencies_on.append(elapsed)
             if elapsed > budget_seconds:
                 latency_budget_ok = False
@@ -627,9 +616,7 @@ def main() -> int:
         report.error = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
 
     # Render report
-    report_path = (
-        repo_root / "training_corpus" / "wrapper" / "pal_framework" / "phase6_smoke_results.json"
-    )
+    report_path = repo_root / "training_corpus" / "wrapper" / "pal_framework" / "phase6_smoke_results.json"
     report_dict = {
         "tiny_model": report.tiny_model,
         "sft": report.sft,

@@ -95,8 +95,7 @@ class HierarchicalEmbedder:
                     vec[j] += 0.5 * _sign(word, self.dim) * self.weight[j]
         return _l2norm(vec)
 
-    def encode_condition(self, hierarchy: TherapeuticConceptHierarchy,
-                         condition_node_id: str) -> list[float]:
+    def encode_condition(self, hierarchy: TherapeuticConceptHierarchy, condition_node_id: str) -> list[float]:
         node = hierarchy.get(condition_node_id)
         if node is None:
             return [0.0] * self.dim
@@ -109,9 +108,9 @@ class HierarchicalEmbedder:
                 extra.extend(anc.descriptors)
         return self.encode_node(node, extra=tuple(extra))
 
-    def encode_presentation(self, presentation: PatientPresentation,
-                            hierarchy: TherapeuticConceptHierarchy
-                            | None = None) -> list[float]:
+    def encode_presentation(
+        self, presentation: PatientPresentation, hierarchy: TherapeuticConceptHierarchy | None = None
+    ) -> list[float]:
         """Encode a patient presentation (its findings) to one vector.
 
         The vector is the L2-mean of per-finding encodings, so retrieval can
@@ -212,8 +211,7 @@ class NegativeSampler:
                 return anc
         return None
 
-    def sample(self, anchor_id: str, all_ids: list[str],
-               difficulty: NegativeDifficulty, k: int = 16) -> list[str]:
+    def sample(self, anchor_id: str, all_ids: list[str], difficulty: NegativeDifficulty, k: int = 16) -> list[str]:
         """Return up to *k* negatives of *difficulty* for *anchor*."""
         out: list[str] = []
         for cid in all_ids:
@@ -260,11 +258,19 @@ class HierarchicalContrastiveTrainer:
     handful of epochs on the test taxonomy.
     """
 
-    def __init__(self, hierarchy: TherapeuticConceptHierarchy, *,
-                 dim: int = 256, temperature: float = 0.5,
-                 lr: float = 0.05, epochs: int = 8,
-                 cls_weight: float = 0.5, hier_weight: float = 0.5,
-                 neg_per_anchor: int = 16, seed: int = 0) -> None:
+    def __init__(
+        self,
+        hierarchy: TherapeuticConceptHierarchy,
+        *,
+        dim: int = 256,
+        temperature: float = 0.5,
+        lr: float = 0.05,
+        epochs: int = 8,
+        cls_weight: float = 0.5,
+        hier_weight: float = 0.5,
+        neg_per_anchor: int = 16,
+        seed: int = 0,
+    ) -> None:
         self.hierarchy = hierarchy
         self.dim = dim
         self.temperature = temperature
@@ -279,21 +285,20 @@ class HierarchicalContrastiveTrainer:
     def fit(self, condition_node_ids: list[str] | None = None) -> ContrastiveTrainResult:
         """Fit and return the embedder. Trains on CONDITION-level nodes by default."""
         ids = condition_node_ids or [
-            n.node_id for n in self.hierarchy.nodes.values()
-            if n.level == ConceptLevel.CONDITION
+            n.node_id for n in self.hierarchy.nodes.values() if n.level == ConceptLevel.CONDITION
         ]
         embedder = HierarchicalEmbedder(dim=self.dim)
-        all_level_ids = [
-            n.node_id for n in self.hierarchy.nodes.values() if n.node_id != self.hierarchy.root_id
-        ]
+        all_level_ids = [n.node_id for n in self.hierarchy.nodes.values() if n.node_id != self.hierarchy.root_id]
         losses: list[float] = []
         n_samples = 0
         # Precompute category centroids for the hierarchy-preservation term.
         self._category_centroids: dict[str, list[float]] = {
-            cid: self._centroid([embedder.encode_condition(self.hierarchy, c)
-                                 for c in self.hierarchy.children_of(cid)])
-            for cid in [n.node_id for n in self.hierarchy.nodes.values()
-                        if n.level == ConceptLevel.CATEGORY and n.node_id != self.hierarchy.root_id]
+            cid: self._centroid([embedder.encode_condition(self.hierarchy, c) for c in self.hierarchy.children_of(cid)])
+            for cid in [
+                n.node_id
+                for n in self.hierarchy.nodes.values()
+                if n.level == ConceptLevel.CATEGORY and n.node_id != self.hierarchy.root_id
+            ]
         }
 
         for _ in range(self.epochs):
@@ -314,9 +319,7 @@ class HierarchicalContrastiveTrainer:
                     (NegativeDifficulty.MEDIUM, 0.7),
                     (NegativeDifficulty.HARD, 0.4),
                 ):
-                    for nid in self.sampler.sample(
-                        anchor_id, all_level_ids, diff, k=self.neg_per_anchor
-                    ):
+                    for nid in self.sampler.sample(anchor_id, all_level_ids, diff, k=self.neg_per_anchor):
                         negatives.append((embedder.encode_condition(self.hierarchy, nid), margin))
                 if not negatives:
                     continue
@@ -332,10 +335,12 @@ class HierarchicalContrastiveTrainer:
 
                 # Closed-form update: grow positive-shared buckets, shrink negative-shared ones.
                 anchor_tokens = set(self._anchor_tokens(anchor))
-                pos_tokens = set(self._node_tokens(self.hierarchy.get(anchor.parent_id or self.hierarchy.root_id) or anchor))
-                for t in (anchor_tokens | pos_tokens):
+                pos_tokens = set(
+                    self._node_tokens(self.hierarchy.get(anchor.parent_id or self.hierarchy.root_id) or anchor)
+                )
+                for t in anchor_tokens | pos_tokens:
                     idx = _stable_index(t, self.dim)
-                    embedder.weight[idx] *= (1.0 + self.lr)
+                    embedder.weight[idx] *= 1.0 + self.lr
                 for _, margin in negatives:
                     for tok in self._negative_tokens(anchor_id):
                         idx = _stable_index(tok, self.dim)
@@ -354,7 +359,7 @@ class HierarchicalContrastiveTrainer:
                     if hier_loss > 0:
                         for tok in self._anchor_tokens(anchor):
                             idx = _stable_index(tok, self.dim)
-                            embedder.weight[idx] *= (1.0 + self.lr * self.hier_weight * hier_loss)
+                            embedder.weight[idx] *= 1.0 + self.lr * self.hier_weight * hier_loss
             losses.append(epoch_loss / max(1, len(ids)))
         return ContrastiveTrainResult(embedder=embedder, losses=losses, n_samples=n_samples)
 
@@ -433,8 +438,7 @@ class _UniformSampler:
 
     hierarchy: TherapeuticConceptHierarchy
 
-    def sample(self, anchor_id: str, all_ids: list[str],
-               difficulty: NegativeDifficulty, k: int = 16) -> list[str]:
+    def sample(self, anchor_id: str, all_ids: list[str], difficulty: NegativeDifficulty, k: int = 16) -> list[str]:
         # Deterministic stride across the id list — "random" but reproducible.
         out: list[str] = []
         step = max(1, len(all_ids) // max(1, k * 3))

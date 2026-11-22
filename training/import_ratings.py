@@ -127,17 +127,19 @@ def main() -> int:
             "safety": means["safety"],
         }
         overall = round(sum(PART_WEIGHTS[i] * means[k] for i, k in enumerate(PART_KEYS)), 4)
-        rows.append({
-            "id": sid,
-            "source": "clinician-rated",
-            "conversation": sample.get("conversation", []),
-            "human_scores": five,
-            "human_scores_3part": means,
-            "overall_quality": overall,
-            "human_bin": _bin_of(overall),
-            "provenance": f"human-rated n={len(rater_ids)}",
-            "n_raters": len(rater_ids),
-        })
+        rows.append(
+            {
+                "id": sid,
+                "source": "clinician-rated",
+                "conversation": sample.get("conversation", []),
+                "human_scores": five,
+                "human_scores_3part": means,
+                "overall_quality": overall,
+                "human_bin": _bin_of(overall),
+                "provenance": f"human-rated n={len(rater_ids)}",
+                "n_raters": len(rater_ids),
+            }
+        )
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

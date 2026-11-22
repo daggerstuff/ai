@@ -47,4 +47,4 @@ async def get_pipeline_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get pipeline status: {e!s}",
-        )
+        ) from e

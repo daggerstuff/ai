@@ -61,7 +61,18 @@ JUDGE_K = int(os.environ.get("NF_JUDGE_K", "3"))
 JUDGE_CONCURRENCY = int(os.environ.get("NF_JUDGE_CONCURRENCY", "2"))
 CIRCUIT_BREAKER_THRESHOLD = int(os.environ.get("NF_JUDGE_ABORT_AFTER", "15"))
 
-INFRA_PREFIXES = ("http_429", "http_408", "http_500", "http_502", "http_503", "http_504", "http_402", "transport_error", "json_parse_error", "empty_judge_output")
+INFRA_PREFIXES = (
+    "http_429",
+    "http_408",
+    "http_500",
+    "http_502",
+    "http_503",
+    "http_504",
+    "http_402",
+    "transport_error",
+    "json_parse_error",
+    "empty_judge_output",
+)
 
 
 def _is_infra_failure(reason: str) -> bool:
@@ -215,7 +226,9 @@ def write_report(verdicts: list[dict[str, Any]], total_records: int) -> None:
 
     by_src: dict[str, list[dict[str, Any]]] = {}
     for v in verdicts:
-        src = (v.get("source") or ("nightmare_fuel_predefined" if v["key"].startswith("nf:") else "edge")).split("clinical_edge_case_")[-1]
+        src = (v.get("source") or ("nightmare_fuel_predefined" if v["key"].startswith("nf:") else "edge")).split(
+            "clinical_edge_case_"
+        )[-1]
         by_src.setdefault(src, []).append(v)
 
     lines = [
@@ -284,7 +297,10 @@ async def main_async(limit: int | None) -> None:
             while not stop.is_set():
                 await asyncio.sleep(60)
                 try:
-                    run.log({k: v for k, v in state.items() if k != "abort"} | {"elapsed_s": round(time.monotonic() - t_start, 1)})
+                    run.log(
+                        {k: v for k, v in state.items() if k != "abort"}
+                        | {"elapsed_s": round(time.monotonic() - t_start, 1)}
+                    )
                 except Exception:
                     pass
 
@@ -299,10 +315,19 @@ async def main_async(limit: int | None) -> None:
         except Exception as exc:
             logger.exception("judging %s crashed: %s", key, exc)
             verdict = {
-                "key": key, "infra_failed": True, "accepted": False, "needs_human_review": True,
-                "reason": f"worker_exception: {exc}", "primary_quality": 0.0, "secondary_quality": 0.0,
-                "self_consistency_consistent": False, "primary_run_scores": [], "primary_dim_scores": {},
-                "secondary_dim_scores": {}, "attempts": 0, "latency_s": 0.0,
+                "key": key,
+                "infra_failed": True,
+                "accepted": False,
+                "needs_human_review": True,
+                "reason": f"worker_exception: {exc}",
+                "primary_quality": 0.0,
+                "secondary_quality": 0.0,
+                "self_consistency_consistent": False,
+                "primary_run_scores": [],
+                "primary_dim_scores": {},
+                "secondary_dim_scores": {},
+                "attempts": 0,
+                "latency_s": 0.0,
             }
         async with write_lock:
             with OUT_JUDGED.open("a", encoding="utf-8") as f:
@@ -337,7 +362,10 @@ async def main_async(limit: int | None) -> None:
         stop.set()
         await metrics_task
         try:
-            run.log({k: v for k, v in state.items() if k != "abort"} | {"elapsed_s": round(time.monotonic() - t_start, 1)}, commit=True)
+            run.log(
+                {k: v for k, v in state.items() if k != "abort"} | {"elapsed_s": round(time.monotonic() - t_start, 1)},
+                commit=True,
+            )
             run.finish()
         except Exception:
             pass
@@ -355,7 +383,10 @@ async def main_async(limit: int | None) -> None:
     write_report(all_verdicts, len(records))
     print(f"[judge] report -> {OUT_REPORT}", flush=True)
     if state["abort"]:
-        print(f"[judge] ABORTED after {CIRCUIT_BREAKER_THRESHOLD} consecutive infra failures — checkpoint preserved; rerun to resume", flush=True)
+        print(
+            f"[judge] ABORTED after {CIRCUIT_BREAKER_THRESHOLD} consecutive infra failures — checkpoint preserved; rerun to resume",
+            flush=True,
+        )
         raise SystemExit(2)
 
 
@@ -366,7 +397,11 @@ def main() -> None:
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     if args.report_only:
-        verdicts = [json.loads(l) for l in OUT_JUDGED.read_text(encoding="utf-8").splitlines() if l.strip()] if OUT_JUDGED.exists() else []
+        verdicts = (
+            [json.loads(l) for l in OUT_JUDGED.read_text(encoding="utf-8").splitlines() if l.strip()]
+            if OUT_JUDGED.exists()
+            else []
+        )
         write_report(verdicts, len([l for l in IN_GENERATED.read_text(encoding="utf-8").splitlines() if l.strip()]))
         print(f"[judge] report -> {OUT_REPORT}", flush=True)
         return

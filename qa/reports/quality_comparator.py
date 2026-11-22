@@ -11,13 +11,13 @@ import sqlite3
 import warnings
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.stats import mannwhitneyu
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

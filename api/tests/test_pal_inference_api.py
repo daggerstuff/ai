@@ -296,10 +296,12 @@ class TestStubClients:
 
 class TestLoadCandidatePersonas:
     def test_loads_from_env(self) -> None:
-        personas = json.dumps([
-            {"demographics": {"age": 25}, "healthcare_behavior": {}},
-            {"demographics": {"age": 50}, "healthcare_behavior": {}},
-        ])
+        personas = json.dumps(
+            [
+                {"demographics": {"age": 25}, "healthcare_behavior": {}},
+                {"demographics": {"age": 50}, "healthcare_behavior": {}},
+            ]
+        )
         with patch.dict(os.environ, {"PAL_CANDIDATE_PERSONAS": personas}, clear=False):
             result = _load_candidate_personas()
             assert len(result) == 2

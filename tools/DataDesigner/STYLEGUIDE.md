@@ -62,9 +62,11 @@ def compile_config(config: DataDesignerConfig, provider: ResourceProvider) -> Da
         ConfigValidationError: If the configuration is invalid after compilation.
     """
 
+
 # Good - one-liner for simple functions
 def get_column_names(config: DataDesignerConfig) -> list[str]:
     """Return the names of all columns in the config."""
+
 
 # Bad - restates the signature
 def get_column_names(config: DataDesignerConfig) -> list[str]:
@@ -90,12 +92,16 @@ Type annotations are REQUIRED for all code in this project. This is strictly enf
 def process_items(items: list[str], max_count: int | None = None) -> dict[str, int]:
     return {item: len(item) for item in items}
 
+
 # Avoid - missing type annotations
 def process_items(items, max_count=None):
     return {item: len(item) for item in items}
 
+
 # Avoid - old-style typing
 from typing import List, Dict, Optional
+
+
 def process_items(items: List[str], max_count: Optional[int] = None) -> Dict[str, int]:
     return {item: len(item) for item in items}
 ```
@@ -122,12 +128,15 @@ from .config_builder import DataDesignerConfigBuilder
 # Good - imports at module level
 from pathlib import Path
 
+
 def process_file(filename: str) -> None:
     path = Path(filename)
+
 
 # Bad - import inside function
 def process_file(filename: str) -> None:
     from pathlib import Path
+
     path = Path(filename)
 ```
 
@@ -209,15 +218,19 @@ from data_designer.lazy_heavy_imports import pd
 if TYPE_CHECKING:
     import pandas as pd
 
+
 def load_data(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
+
 
 # CORRECT - Standard library NOT in TYPE_CHECKING
 from pathlib import Path
 from typing import Any
 
+
 def process_file(path: Path) -> Any:
     return path.read_text()
+
 
 # CORRECT - Internal type-only import
 from typing import TYPE_CHECKING
@@ -225,8 +238,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from data_designer.engine.models.facade import ModelFacade
 
+
 def get_model(model: ModelFacade) -> str:
     return model.name
+
 
 # INCORRECT - Pydantic field type in TYPE_CHECKING
 from typing import TYPE_CHECKING
@@ -234,11 +249,14 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from data_designer.config.models import ModelConfig  # Wrong!
 
+
 class MyConfig(BaseModel):
     model: ModelConfig  # Pydantic needs this at runtime!
 
+
 # CORRECT - Pydantic field type at runtime
 from data_designer.config.models import ModelConfig
+
 
 class MyConfig(BaseModel):
     model: ModelConfig
@@ -265,9 +283,10 @@ class DatasetGenerator:
     def generate_dataset(self, config: dict[str, str]) -> list[dict[str, str]]:
         pass
 
+
 # Bad
 class dataset_generator:  # Should be PascalCase
-    maxRetries = 3        # Should be UPPER_SNAKE_CASE
+    maxRetries = 3  # Should be UPPER_SNAKE_CASE
 
     def GenerateDataset(self, Config):  # Should be snake_case
         pass
@@ -384,6 +403,7 @@ except httpx.HTTPStatusError as exc:
        items.append(item)
        return items
 
+
    # Good
    def add_item(item: str, items: list[str] | None = None) -> list[str]:
        if items is None:
@@ -399,11 +419,14 @@ except httpx.HTTPStatusError as exc:
    from pathlib import Path
    from typing import Any  # Not used
 
+
    def process() -> None:
        pass
 
+
    # Good
    from pathlib import Path
+
 
    def process() -> None:
        pass
@@ -441,6 +464,7 @@ except httpx.HTTPStatusError as exc:
            return "yes"
        else:
            return "no"
+
 
    # Good
    def get_value(condition: bool) -> str:

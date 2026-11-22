@@ -104,7 +104,6 @@ class TopicThemeAnalyzer:
                 "total_conversations_analyzed": len(conversations),
             }
 
-
         except Exception:
             return {}
 

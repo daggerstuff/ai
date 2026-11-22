@@ -19,10 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import wandb_sft_g04 as g04
 
-_CONFIG_PATH = (
-    Path(__file__).resolve().parents[3]
-    / "docs/training/execution-2026-10-21/v6-launch-config.json"
-)
+_CONFIG_PATH = Path(__file__).resolve().parents[3] / "docs/training/execution-2026-10-21/v6-launch-config.json"
 
 
 def _load_config() -> dict[str, object]:

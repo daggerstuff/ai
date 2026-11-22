@@ -66,9 +66,7 @@ class FineTuningConfig:
     lora_r: int = 16
     lora_alpha: int = 32
     lora_dropout: float = 0.1
-    lora_target_modules: list[str] = field(
-        default_factory=lambda: ["q_proj", "k_proj", "v_proj", "o_proj"]
-    )
+    lora_target_modules: list[str] = field(default_factory=lambda: ["q_proj", "k_proj", "v_proj", "o_proj"])
 
     # Training settings
     epochs: int = 3
@@ -124,9 +122,7 @@ class MemoryAugmentedDataset(Dataset):
         # Load examples
         self.examples = self._load_examples()
 
-        logger.info(
-            f"Loaded {len(self.examples)} examples from {self.file_path}"
-        )
+        logger.info(f"Loaded {len(self.examples)} examples from {self.file_path}")
 
     def _load_examples(self) -> list[dict[str, Any]]:
         """Load examples from JSONL file."""
@@ -221,11 +217,7 @@ class MemoryAwareDataCollator:
         # Pad sequences
         max_length = max(f["input_ids"].shape[0] for f in features)
 
-        input_ids = torch.full(
-            (len(features), max_length),
-            self.pad_token_id,
-            dtype=torch.long
-        )
+        input_ids = torch.full((len(features), max_length), self.pad_token_id, dtype=torch.long)
         attention_mask = torch.zeros((len(features), max_length), dtype=torch.long)
         labels = torch.full((len(features), max_length), -100, dtype=torch.long)
 
@@ -287,10 +279,7 @@ class MemoryAugmentedTrainer(Trainer):
 
         # Track memory recall metrics
         if example_types:
-            memory_examples = [
-                t for t in example_types
-                if "memory" in t
-            ]
+            memory_examples = [t for t in example_types if "memory" in t]
             recall_rate = len(memory_examples) / len(example_types)
             self.metrics_history["memory_recall"].append(recall_rate)
 
@@ -328,9 +317,7 @@ def load_finetuning_dataset(
         )
     else:
         # Split off a portion of training data for validation
-        logger.warning(
-            "No validation data found. Using 10% of training data for validation."
-        )
+        logger.warning("No validation data found. Using 10% of training data for validation.")
         val_size = max(1, len(train_dataset) // 10)
         train_size = len(train_dataset) - val_size
 
@@ -405,9 +392,7 @@ def train(
     model, tokenizer = create_peft_model(config)
 
     # Load datasets
-    train_dataset, val_dataset = load_finetuning_dataset(
-        dataset_dir, tokenizer, config
-    )
+    train_dataset, val_dataset = load_finetuning_dataset(dataset_dir, tokenizer, config)
 
     # Create data collator
     data_collator = MemoryAwareDataCollator(
@@ -481,9 +466,7 @@ def main():
     """CLI entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Fine-tune model with memory-augmented dataset"
-    )
+    parser = argparse.ArgumentParser(description="Fine-tune model with memory-augmented dataset")
 
     # Dataset arguments
     parser.add_argument(
@@ -658,6 +641,7 @@ def main():
     except Exception as e:
         logger.error(f"Training failed: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

@@ -35,6 +35,7 @@ SAMPLE_COUNT = 4
 # Helpers (mirroring test_dual_judge_report_out.py patterns)
 # ---------------------------------------------------------------------------
 
+
 def make_mock_aiohttp_response(content: str) -> MagicMock:
     """Create a mock aiohttp response object with status 200."""
     resp = MagicMock()
@@ -42,6 +43,7 @@ def make_mock_aiohttp_response(content: str) -> MagicMock:
     resp.text = AsyncMock(return_value="")
     resp.json = AsyncMock(return_value={"choices": [{"message": {"content": content}}]})
     return resp
+
 
 class _AsyncCM:
     """Minimal async context manager wrapping a value."""
@@ -55,6 +57,7 @@ class _AsyncCM:
     async def __aexit__(self, *args: Any) -> bool:
         return False
 
+
 def make_judge_json_response(quality: float) -> str:
     """Produce the JSON string a judge model would return."""
     return json.dumps(
@@ -65,6 +68,7 @@ def make_judge_json_response(quality: float) -> str:
             "reasoning": "test verdict",
         }
     )
+
 
 def _write_golden(tmp_path: Path, n: int = SAMPLE_COUNT) -> Path:
     """Write a small golden calibration JSONL with distinct human scores."""
@@ -85,6 +89,7 @@ def _write_golden(tmp_path: Path, n: int = SAMPLE_COUNT) -> Path:
     path.write_text("\n".join(json.dumps(s) for s in samples) + "\n", encoding="utf-8")
     return path
 
+
 def _counting_post_factory(counter: list[int]) -> Any:
     """Mock post that increments a shared counter and scores like the human."""
 
@@ -98,12 +103,14 @@ def _counting_post_factory(counter: list[int]) -> Any:
 
     return _post
 
+
 def _mock_session(post_side_effect: Any) -> MagicMock:
     """Create a mock aiohttp.ClientSession with the given post side_effect."""
     session = MagicMock()
     session.post = MagicMock(side_effect=post_side_effect)
     session.close = AsyncMock()
     return session
+
 
 @contextmanager
 def _generic_transport(session: MagicMock) -> Iterator[None]:
@@ -115,9 +122,11 @@ def _generic_transport(session: MagicMock) -> Iterator[None]:
     ):
         yield
 
+
 # ---------------------------------------------------------------------------
 # Tests: DUAL_JUDGE_CHECKPOINT durability + resume
 # ===========================================================================
+
 
 class TestCheckpoint:
     """Verify checkpoint writes and resume behavior on the live path."""
@@ -166,9 +175,7 @@ class TestCheckpoint:
             }
             for i in range(2)
         ]
-        ckpt_path.write_text(
-            "\n".join(json.dumps(r) for r in pre_rows) + "\n", encoding="utf-8"
-        )
+        ckpt_path.write_text("\n".join(json.dumps(r) for r in pre_rows) + "\n", encoding="utf-8")
 
         counter: list[int] = []
         env = {"DUAL_JUDGE_CHECKPOINT": str(ckpt_path)}

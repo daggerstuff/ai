@@ -17,9 +17,7 @@ except ImportError:
         "  uv pip install -r requirements-voice.txt"
     ) from None
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("TranscriptionPipeline")
 
 
@@ -50,9 +48,7 @@ def _assign_roles_by_duration(result: dict[str, Any]) -> dict[str, str]:
 
 class DiarizedTranscriptionPipeline:
     def __init__(self, device=None, compute_type="float16", hf_token=None, batch_size=16):
-        self.device = (
-            device if device is not None else ("cuda" if torch.cuda.is_available() else "cpu")
-        )
+        self.device = device if device is not None else ("cuda" if torch.cuda.is_available() else "cpu")
         self.compute_type = compute_type if self.device == "cuda" else "int8"
         self.hf_token = hf_token or os.environ.get("HF_TOKEN")
         self.batch_size = batch_size
@@ -61,9 +57,7 @@ class DiarizedTranscriptionPipeline:
         self.model = whisperx.load_model("large-v2", self.device, compute_type=self.compute_type)
 
         logger.info("Loading alignment model...")
-        self.model_a, self.metadata = whisperx.load_align_model(
-            language_code="en", device=self.device
-        )
+        self.model_a, self.metadata = whisperx.load_align_model(language_code="en", device=self.device)
 
         logger.info("Loading diarization model...")
         self.diarize_model = DiarizationPipeline(token=self.hf_token, device=self.device)

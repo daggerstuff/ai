@@ -166,7 +166,7 @@ class PipelineService:
 
             return config_record
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error retrieving pipeline configuration: {e}")
@@ -241,7 +241,7 @@ class PipelineService:
 
             return config_record
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error updating pipeline configuration: {e}")
@@ -281,7 +281,7 @@ class PipelineService:
 
             return True
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error deleting pipeline configuration: {e}")
@@ -424,7 +424,7 @@ class PipelineService:
 
             return execution_record
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error starting pipeline execution: {e}")
@@ -464,7 +464,7 @@ class PipelineService:
 
             return execution_record
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error getting execution status: {e}")
@@ -516,7 +516,7 @@ class PipelineService:
 
             return True
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error cancelling execution: {e}")
@@ -634,7 +634,7 @@ class PipelineService:
             logs = execution_record.get("logs", [])
             return logs[-limit:] if limit > 0 else logs
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error getting execution logs: {e}")
@@ -1011,7 +1011,7 @@ class PipelineService:
 
             return validation_results
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error validating pipeline configuration: {e}")

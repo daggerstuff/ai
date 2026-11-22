@@ -12,9 +12,7 @@ class QueueItemCreate(BaseModel):
 
     sample_text: str = Field(..., description="The text of the sample to review")
     original_score: float = Field(..., ge=0.0, le=1.0, description="Original clinical validity score")
-    per_dimension_scores: dict[str, float] = Field(
-        ..., description="Per-dimension scores as a dictionary"
-    )
+    per_dimension_scores: dict[str, float] = Field(..., description="Per-dimension scores as a dictionary")
     routing_reason: str = Field(..., description="Reason why this item needs review")
 
     @field_validator("per_dimension_scores")

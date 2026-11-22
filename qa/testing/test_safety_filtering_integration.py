@@ -13,7 +13,13 @@ from unittest.mock import patch
 
 # Import our modules
 from ai.inference.inference_api import UserTier, api_key_manager, app, safety_filtered_endpoint
-from ai.qa.validation.enhanced_safety_filter import CrisisDetectionResult, EnhancedSafetyFilter, SafetyCheckResult, SafetyLevel
+from ai.qa.validation.enhanced_safety_filter import (
+    CrisisDetectionResult,
+    CrisisInterventionSystem,
+    EnhancedSafetyFilter,
+    SafetyCheckResult,
+    SafetyLevel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -369,6 +375,7 @@ class TestSafetyFilteredInferenceAPI(unittest.TestCase):
         assert crisis_result.urgency_level in ["low", "medium", "high", "immediate"]
 
         # Test crisis handling
+        crisis_intervention_system = CrisisInterventionSystem(self.safety_filter)
         crisis_response = crisis_intervention_system.handle_crisis_detection(
             crisis_result, user_context={"user_id": "test_user"}, content=crisis_content
         )
@@ -516,7 +523,6 @@ def run_safety_filtering_tests():
             pass
 
     return result.wasSuccessful()
-
 
 
 if __name__ == "__main__":

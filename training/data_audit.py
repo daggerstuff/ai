@@ -131,7 +131,10 @@ def run_audit(args: argparse.Namespace) -> None:
         if status in {"missing", "partial"}:
             logger.warning(
                 "Category %s: %d samples (below threshold of %d) — status: %s",
-                cat, c, threshold, status,
+                cat,
+                c,
+                threshold,
+                status,
             )
         categories[cat] = {
             "name": cat,
@@ -168,7 +171,11 @@ def run_audit(args: argparse.Namespace) -> None:
 
     logger.info(
         "Audit complete: %d categories (%d covered, %d partial, %d missing), %d total samples",
-        len(categories), covered, partial, missing, total_samples,
+        len(categories),
+        covered,
+        partial,
+        missing,
+        total_samples,
     )
 
 

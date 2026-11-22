@@ -8,13 +8,17 @@ including health checks, configuration management, and system status.
 import logging
 import os
 import platform
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
-from ai.inference.api.techdeck_integration.auth.decorators import require_auth, require_role
-from ai.inference.api.techdeck_integration.error_handling.custom_errors import SystemError, ValidationError
+from ai.inference.api.techdeck_integration.auth.middleware import require_auth, require_role
+from ai.inference.api.techdeck_integration.error_handling.custom_errors import (
+    AnalyticsError,
+    SystemError,
+    ValidationError,
+)
 from ai.inference.api.techdeck_integration.integration.redis_client import RedisClient
 from ai.inference.api.techdeck_integration.utils.logger import get_request_logger
 from ai.inference.api.techdeck_integration.utils.validation import sanitize_input

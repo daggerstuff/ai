@@ -133,7 +133,6 @@ class RecordFilter(Protocol):
     def __call__(self, record: dict[str, Any]) -> FilterResult: ...
 
 
-
 # ---------------------------------------------------------------------------
 # Helpers — reused by both the streaming chain and the functional primitives.
 # ---------------------------------------------------------------------------
@@ -362,9 +361,7 @@ class LanguageFilter:
     _MODEL_DIR = os.path.join(tempfile.gettempdir(), "fasttext_models")
     _MODEL_PATH = os.path.join(_MODEL_DIR, "lid.176.bin")
 
-    def __init__(
-        self, model: Any | None = None, accepted_langs: frozenset[str] | None = None
-    ) -> None:
+    def __init__(self, model: Any | None = None, accepted_langs: frozenset[str] | None = None) -> None:
         self._model = model
         self._accepted_langs = accepted_langs or frozenset({"en"})
         self._loaded = model is not None
@@ -536,25 +533,19 @@ class PIIFilter:
                     reason="pii_redacted_regex",
                     metadata={"pii_found": True, "redaction_method": "regex", "hits": hits},
                 )
-            return FilterResult(
-                passed=True, reason="", metadata={"pii_found": False, "analyzer_unavailable": True}
-            )
+            return FilterResult(passed=True, reason="", metadata={"pii_found": False, "analyzer_unavailable": True})
 
         try:
             results = analyzer.analyze(text=text, entities=self._entities, language="en")
         except Exception as e:
             logger.warning("Presidio analysis failed: %s", e)
-            return FilterResult(
-                passed=True, reason="", metadata={"pii_found": False, "analyzer_error": str(e)}
-            )
+            return FilterResult(passed=True, reason="", metadata={"pii_found": False, "analyzer_error": str(e)})
 
         if not results:
             return FilterResult(passed=True, reason="", metadata={"pii_found": False})
 
         # Check confidence levels
-        high_confidence = [
-            r for r in results if getattr(r, "score", 0) >= self.PII_CONFIDENCE_THRESHOLD
-        ]
+        high_confidence = [r for r in results if getattr(r, "score", 0) >= self.PII_CONFIDENCE_THRESHOLD]
         borderline = [r for r in results if getattr(r, "score", 0) < self.PII_CONFIDENCE_THRESHOLD]
 
         # High-confidence PII → attempt deterministic regex redaction first,
@@ -566,15 +557,11 @@ class PIIFilter:
             hits = _redact_record_inplace(record)
             if hits > 0:
                 try:
-                    re_results = analyzer.analyze(
-                        text=_extract_text(record), entities=self._entities, language="en"
-                    )
+                    re_results = analyzer.analyze(text=_extract_text(record), entities=self._entities, language="en")
                 except Exception as e:
                     logger.warning("Presidio re-analysis failed: %s", e)
                     re_results = []
-                still_high = [
-                    r for r in re_results if getattr(r, "score", 0) >= self.PII_CONFIDENCE_THRESHOLD
-                ]
+                still_high = [r for r in re_results if getattr(r, "score", 0) >= self.PII_CONFIDENCE_THRESHOLD]
                 if not still_high:
                     return FilterResult(
                         passed=True,
@@ -677,24 +664,12 @@ class ToxicityFilter:
                     results = model.predict(text)
                     # Map: toxicity, severe_toxicity, obscene, identity_attack, insult, threat
                     for key, val in results.items():
-                        score = (
-                            float(val)
-                            if isinstance(val, (int, float))
-                            else float(val[0])
-                            if val
-                            else 0.0
-                        )
+                        score = float(val) if isinstance(val, (int, float)) else float(val[0]) if val else 0.0
                         all_scores.setdefault(key, []).append(score)
                 else:
                     results = model.predict(text)
                     for key, val in results.items():
-                        score = (
-                            float(val)
-                            if isinstance(val, (int, float))
-                            else float(val[0])
-                            if val
-                            else 0.0
-                        )
+                        score = float(val) if isinstance(val, (int, float)) else float(val[0]) if val else 0.0
                         all_scores.setdefault(key, []).append(score)
             except Exception as e:
                 logger.warning("Detoxify model '%s' prediction failed: %s", name, e)
@@ -783,9 +758,7 @@ class DedupFilter:
                 os.chmod(db_dir, 0o700)
                 self._db_path = os.path.join(db_dir, "stage1_dedup.db")
             except OSError:
-                self._db_path = os.path.join(
-                    tempfile.gettempdir(), f"stage1_dedup_{os.getpid()}.db"
-                )
+                self._db_path = os.path.join(tempfile.gettempdir(), f"stage1_dedup_{os.getpid()}.db")
         self._db: sqlite3.Connection | None = None
         self._init_db()
 
@@ -847,9 +820,7 @@ class DedupFilter:
             self._minhash_set: dict[str, MinHash] = {}
             self._lsh_initialized = True
         except ImportError:
-            logger.warning(
-                "datasketch not installed — near-dedup will use token-set Jaccard fallback"
-            )
+            logger.warning("datasketch not installed — near-dedup will use token-set Jaccard fallback")
             self._lsh = None
             self._token_sets: list[tuple[frozenset[str], str]] = []
             self._lsh_initialized = False
@@ -931,9 +902,7 @@ class DedupFilter:
         self._seen_hashes.add(chash)
         self._store_hash(chash, simhash_val)
 
-        return FilterResult(
-            passed=True, reason="", metadata={"dedup": "unique", "content_hash": chash[:16]}
-        )
+        return FilterResult(passed=True, reason="", metadata={"dedup": "unique", "content_hash": chash[:16]})
 
     def close(self) -> None:
         """Close the dedup store connection."""
@@ -1135,6 +1104,7 @@ class Stage1FilterChain:
 # ``NearDuplicateIndex`` for intra-run dedup, and ``run_stage1_on_record``
 # that runs language → PII(transform) → toxicity → dedup on one record.
 # ---------------------------------------------------------------------------
+
 
 class FilterVerdict(Enum):
     """Pass/fail verdict for the per-record SDG Stage 1 gate."""

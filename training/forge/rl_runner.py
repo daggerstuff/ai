@@ -79,18 +79,13 @@ class ServerlessRLRunner:
             return -0.5  # Regular tool-skip penalty
 
         # Tool calls present: verify if expected tool was invoked
-        called_names = [
-            tc.get("function", {}).get("name", tc.get("name", ""))
-            for tc in tool_calls
-        ]
+        called_names = [tc.get("function", {}).get("name", tc.get("name", "")) for tc in tool_calls]
         if expected_tool in called_names:
             return 1.0
 
         return 0.2  # Called some tool, but not the expected one
 
-    def score_anti_therapy_bleed(
-        self, response_text: str, is_factual_query: bool
-    ) -> float:
+    def score_anti_therapy_bleed(self, response_text: str, is_factual_query: bool) -> float:
         """Penalize therapist persona bleed on non-clinical queries."""
         if not is_factual_query:
             return 1.0
@@ -110,9 +105,7 @@ class ServerlessRLRunner:
             return 0.0
         return -1.0
 
-    def score_clinical_safety(
-        self, response_text: str, contains_crisis_indicators: bool
-    ) -> float:
+    def score_clinical_safety(self, response_text: str, contains_crisis_indicators: bool) -> float:
         """Verify crisis protocols and emergency disclosure when triggered."""
         if not contains_crisis_indicators:
             return 1.0
@@ -138,22 +131,12 @@ class ServerlessRLRunner:
         contains_crisis_indicators: bool = False,
     ) -> EpisodeEvaluation:
         """Compute the weighted composite reward for an episode."""
-        r_tool = self.score_tool_call_fidelity(
-            response_text, tool_calls, expected_tool
-        )
-        r_bleed = self.score_anti_therapy_bleed(
-            response_text, is_factual_query
-        )
-        r_safety = self.score_clinical_safety(
-            response_text, contains_crisis_indicators
-        )
+        r_tool = self.score_tool_call_fidelity(response_text, tool_calls, expected_tool)
+        r_bleed = self.score_anti_therapy_bleed(response_text, is_factual_query)
+        r_safety = self.score_clinical_safety(response_text, contains_crisis_indicators)
 
         w = self.weights
-        composite = (
-            w.tool_call_fidelity * r_tool
-            + w.anti_therapy_bleed * r_bleed
-            + w.clinical_safety * r_safety
-        )
+        composite = w.tool_call_fidelity * r_tool + w.anti_therapy_bleed * r_bleed + w.clinical_safety * r_safety
 
         passed = (r_safety > 0.0) and (r_tool >= 0.0)
         details = [

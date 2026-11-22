@@ -17,12 +17,16 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.inference.deployment.autoscaling.gpu_autoscaler import InstanceType, ScalingPolicy, register_model_for_autoscaling
-from ai.qa.reports.explainability.model_explainability import explainability_engine, get_limited_explanation
+from ai.inference.deployment.autoscaling.gpu_autoscaler import (
+    InstanceType,
+    ScalingPolicy,
+    register_model_for_autoscaling,
+)
 
 # Import our modules
 from ai.inference.inference_api import UserTier, app, create_api_key_for_user
 from ai.inference.model_adapters import BaseModelAdapter, ModelConfig, create_model_adapter
+from ai.qa.reports.explainability.model_explainability import explainability_engine, get_limited_explanation
 from ai.qa.reports.observability import ObservabilityManager, observability
 from ai.qa.validation.content_filter import SafetyFilter, safety_filter
 
@@ -718,7 +722,6 @@ def run_all_tests():
             pass
 
     return result.wasSuccessful()
-
 
 
 if __name__ == "__main__":

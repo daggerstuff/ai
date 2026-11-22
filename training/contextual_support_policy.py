@@ -1758,7 +1758,7 @@ class ContextualSupportTransport:
                 continue
             try:
                 result = json.loads(message.get("content", ""))
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 result = {}
             return index, result if isinstance(result, dict) else {}
         return None, {}
@@ -1837,7 +1837,7 @@ class ContextualSupportTransport:
                 continue
             try:
                 arguments = json.loads(raw_arguments)
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 continue
             if not isinstance(arguments, dict) or arguments.get("note") != "None":
                 continue
@@ -1862,7 +1862,7 @@ class ContextualSupportTransport:
                 continue
             try:
                 result = json.loads(message.get("content", ""))
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 continue
             slots = result.get("slots") if isinstance(result, dict) else None
             if isinstance(slots, list):
@@ -1876,7 +1876,7 @@ class ContextualSupportTransport:
                 continue
             try:
                 result = json.loads(message.get("content", ""))
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 return True, None
             slots = result.get("slots") if isinstance(result, dict) else None
             if not isinstance(slots, list):
@@ -1898,7 +1898,7 @@ class ContextualSupportTransport:
                     continue
                 try:
                     arguments = json.loads(function.get("arguments", "{}"))
-                except (json.JSONDecodeError, TypeError):
+                except json.JSONDecodeError, TypeError:
                     return None
                 return arguments if isinstance(arguments, dict) else None
         return None
@@ -1918,7 +1918,7 @@ class ContextualSupportTransport:
             return None
         try:
             result = json.loads(message.get("content", ""))
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             result = {}
         if isinstance(result, dict) and isinstance(result.get("date"), str) and result["date"] != date:
             return None
@@ -2126,7 +2126,7 @@ class ContextualSupportTransport:
         call = copy.deepcopy(call)
         try:
             arguments = json.loads(call.get("arguments", "{}"))
-        except (json.JSONDecodeError, TypeError):
+        except json.JSONDecodeError, TypeError:
             arguments = {}
         user_text = "\n".join(user_messages)
         canonical_arguments = {"slot_id": selected["id"], "consent": True}
@@ -2604,7 +2604,7 @@ class ContextualSupportTransport:
         entry["router_estimated_cost_usd"] = (usage["prompt_tokens"] * 0.1 + usage["completion_tokens"] * 0.3) / 1e6
         try:
             value = json.loads(result["response"])
-        except (ValueError, KeyError, TypeError):
+        except ValueError, KeyError, TypeError:
             self._record(entry)
             raise
         if (

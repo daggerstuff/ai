@@ -345,9 +345,7 @@ def test_the_purge_does_not_depend_on_row_order(monkeypatch: Any, tmp_path: Path
     purged_reversed, _ = plan_purge(monkeypatch, tmp_path, list(reversed(rows)), splits)
 
     def surviving(lines: list[dict[str, Any]], purged: dict[int, str]) -> set[str]:
-        return {
-            v14.canonical_hash(project(row)) for number, row in enumerate(lines, start=1) if number not in purged
-        }
+        return {v14.canonical_hash(project(row)) for number, row in enumerate(lines, start=1) if number not in purged}
 
     assert surviving(rows, purged_forward) == surviving(list(reversed(rows)), purged_reversed)
     assert len(surviving(rows, purged_forward)) == CAP

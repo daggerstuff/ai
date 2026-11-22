@@ -204,13 +204,15 @@ class HierarchyAwareMemoryStore:
             cluster_memories = [memories[i] for i in mem_indices]
             # Simple summary: most common words
             all_text = " ".join(m.content for m in cluster_memories)
-            clusters.append({
-                "cluster_id": f"{node_id}_cluster_{cluster_idx}",
-                "node_id": node_id,
-                "memory_count": len(cluster_memories),
-                "sample_memories": [m.memory_id for m in cluster_memories[:3]],
-                "summary_text": all_text[:200],
-            })
+            clusters.append(
+                {
+                    "cluster_id": f"{node_id}_cluster_{cluster_idx}",
+                    "node_id": node_id,
+                    "memory_count": len(cluster_memories),
+                    "sample_memories": [m.memory_id for m in cluster_memories[:3]],
+                    "summary_text": all_text[:200],
+                }
+            )
 
         return clusters
 

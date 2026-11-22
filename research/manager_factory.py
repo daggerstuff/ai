@@ -2,6 +2,7 @@ import logging
 import os
 
 from .base import BaseMemoryManager
+from .dream_manager import DreamManager
 from .local_memory_settings import resolve_local_memory_settings, resolve_memory_provider
 
 logger = logging.getLogger("MemoryManagerFactory")

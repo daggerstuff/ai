@@ -56,9 +56,9 @@ workflow.add_stage("judged", config_judge)  # defaults to previous stage's outpu
 
 results = workflow.run()
 
-results["personas"].load_dataset()       # stage 1 output
+results["personas"].load_dataset()  # stage 1 output
 results["conversations"].load_dataset()  # stage 2 output
-results["judged"].load_dataset()         # final output
+results["judged"].load_dataset()  # final output
 ```
 
 `name` is required and is the durable identity for artifact lookup and resume. Reusing the same name across Python sessions lets `workflow.run(resume=ResumeMode.IF_POSSIBLE)` find the previous `workflow-metadata.json`.
@@ -76,9 +76,8 @@ For interactive use where a full composite workflow is overkill, a `to_config_bu
 result = data_designer.create(config_personas, num_records=100)
 
 # Stage 2 - just grab the result and keep going
-config_convos = (
-    result.to_config_builder(columns=["name", "age", "background"])  # optional column selection
-    .add_column(name="conversation", column_type="llm_text", prompt="...")
+config_convos = result.to_config_builder(columns=["name", "age", "background"]).add_column(  # optional column selection
+    name="conversation", column_type="llm_text", prompt="..."
 )
 result_2 = data_designer.create(config_convos, num_records=1000)
 ```
@@ -124,6 +123,7 @@ def filter_high_quality(stage_output_path: Path) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     df.to_parquet(out / "data.parquet")
     return out
+
 
 workflow = data_designer.compose_workflow(name="filter-enrich")
 workflow.add_stage(
@@ -305,14 +305,20 @@ config_personas = (
     DataDesignerConfigBuilder()
     .add_column(name="name", column_type="sampler", sampler_type="person_name")
     .add_column(name="age", column_type="sampler", sampler_type="uniform_int", params=...)
-    .add_column(name="background", column_type="llm_text", prompt="Write a short background for {{ name }}, age {{ age }}.")
+    .add_column(
+        name="background", column_type="llm_text", prompt="Write a short background for {{ name }}, age {{ age }}."
+    )
 )
 
 # Stage 2: 1000 conversations (each persona used ~10 times via seed cycling)
 config_convos = (
     DataDesignerConfigBuilder()
     .add_column(name="topic", column_type="llm_text", prompt="Generate a conversation topic for {{ name }}...")
-    .add_column(name="conversation", column_type="llm_text", prompt="Write a conversation between {{ name }} and an assistant about {{ topic }}...")
+    .add_column(
+        name="conversation",
+        column_type="llm_text",
+        prompt="Write a conversation between {{ name }} and an assistant about {{ topic }}...",
+    )
 )
 
 data_designer = DataDesigner()
@@ -330,6 +336,7 @@ Generate candidates, use a between-stage callback to filter, then enrich survivo
 config_gen = ...  # generates rows with a quality_score column
 config_enrich = ...  # adds detailed analysis columns
 
+
 def keep_high_quality(stage_output_path: Path) -> Path:
     df = pd.read_parquet(stage_output_path / "parquet-files")
     df = df[df["quality_score"] > 0.8]
@@ -337,6 +344,7 @@ def keep_high_quality(stage_output_path: Path) -> Path:
     out.mkdir(parents=True, exist_ok=True)
     df.to_parquet(out / "data.parquet")
     return out
+
 
 workflow = data_designer.compose_workflow(name="filter-enrich")
 workflow.add_stage(
@@ -382,9 +390,8 @@ result = data_designer.create(config_personas, num_records=50)
 result.load_dataset()  # inspect, looks good
 
 # Chain into next step
-config_2 = (
-    result.to_config_builder(columns=["name", "background"])
-    .add_column(name="question", column_type="llm_text", prompt="...")
+config_2 = result.to_config_builder(columns=["name", "background"]).add_column(
+    name="question", column_type="llm_text", prompt="..."
 )
 result_2 = data_designer.create(config_2, num_records=200)  # explode: 50 -> 200
 ```
@@ -469,11 +476,7 @@ workflow.add_stage("enriched", config_enrich)
 The same config should also work outside workflows when the user supplies a seed directly:
 
 ```python
-config = (
-    DataDesignerConfigBuilder()
-    .with_seed_dataset(LocalFileSeedSource(path="data/*.parquet"))
-    .add_processor(...)
-)
+config = DataDesignerConfigBuilder().with_seed_dataset(LocalFileSeedSource(path="data/*.parquet")).add_processor(...)
 result = data_designer.create(config)
 ```
 

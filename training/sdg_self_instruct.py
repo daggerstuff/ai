@@ -54,9 +54,7 @@ def _content_hash(record: dict[str, Any]) -> str:
     """Hash record content for dedup."""
     import hashlib
 
-    text_blob = "||".join(
-        f"{m.get('role', '')}:{m.get('content', '')}" for m in record.get("messages", [])
-    )
+    text_blob = "||".join(f"{m.get('role', '')}:{m.get('content', '')}" for m in record.get("messages", []))
     return hashlib.sha256(text_blob.encode("utf-8")).hexdigest()[:16]
 
 
@@ -235,9 +233,7 @@ def build_parser() -> Any:
     """
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Self-Instruct SDG expansion (PIX-4345)"
-    )
+    parser = argparse.ArgumentParser(description="Self-Instruct SDG expansion (PIX-4345)")
     parser.add_argument(
         "--seeds-path",
         type=str,

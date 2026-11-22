@@ -192,7 +192,7 @@ def _collect_metric_values(
             continue
         try:
             float(aggregate)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             continue
         pairs[metric_name] = (float(aggregate), [])
     return pairs

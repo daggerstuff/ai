@@ -18,6 +18,7 @@ Run (from ai/):
 No paths = training/arc_plans/*.json.
 Exit: 0 clean, 1 errors (or warnings under --strict), 2 usage error.
 """
+
 import argparse
 import json
 import math
@@ -27,7 +28,7 @@ from pathlib import Path
 from typing import Any, TypeGuard
 
 _HERE = Path(__file__).resolve()
-_TRAIN_DIR = _HERE.parents[0]   # ai/training
+_TRAIN_DIR = _HERE.parents[0]  # ai/training
 PLANS_DIR = _TRAIN_DIR / "arc_plans"
 
 # Rule thresholds.
@@ -42,15 +43,31 @@ MIN_SURFACE_TURN = 3
 MIN_PRESSURE_TYPES = 2
 SET_LEVEL_COVERAGE = 0.1
 
-REQUIRED_KEYS = {"arc_id", "title", "seed", "client", "sessions", "timeline",
-                 "surface_subject", "real_subject", "beats", "ending", "era_jitter"}
-BEAT_TYPES = {
-    "safety", "misstatement", "pressure_false_comfort", "pressure_true_verdict",
-    "pressure_unanswerable", "caving_attempt", "disclosure_gate",
-    "third_party_leverage", "disclosure_limits_framing",
+REQUIRED_KEYS = {
+    "arc_id",
+    "title",
+    "seed",
+    "client",
+    "sessions",
+    "timeline",
+    "surface_subject",
+    "real_subject",
+    "beats",
+    "ending",
+    "era_jitter",
 }
-PRESSURE_TYPES = {"pressure_false_comfort", "pressure_true_verdict",
-                  "pressure_unanswerable"}
+BEAT_TYPES = {
+    "safety",
+    "misstatement",
+    "pressure_false_comfort",
+    "pressure_true_verdict",
+    "pressure_unanswerable",
+    "caving_attempt",
+    "disclosure_gate",
+    "third_party_leverage",
+    "disclosure_limits_framing",
+}
+PRESSURE_TYPES = {"pressure_false_comfort", "pressure_true_verdict", "pressure_unanswerable"}
 # Non-misstatement beats carry one of these as their body text.
 BEAT_BODY_KEYS = {
     "safety": "setup",
@@ -78,15 +95,38 @@ DIAG_RE = re.compile(
     r"|fibromyalgia|multiple sclerosis)\b",
 )
 UNTOLD_MARKERS = (
-    "untold", "background only", "background fact", "never mentioned",
-    "not mentioned", "hidden from", "must never", "not told", "hasn't told",
-    "has not told", "hasn't disclosed", "has not disclosed",
-    "will not mention", "not stated", "unknown to the therapist",
-    "client will not", "client won't",
+    "untold",
+    "background only",
+    "background fact",
+    "never mentioned",
+    "not mentioned",
+    "hidden from",
+    "must never",
+    "not told",
+    "hasn't told",
+    "has not told",
+    "hasn't disclosed",
+    "has not disclosed",
+    "will not mention",
+    "not stated",
+    "unknown to the therapist",
+    "client will not",
+    "client won't",
 )
 TOLD_VERBS = (
-    "tells", "told", "said", "says", "reports", "reported", "discloses",
-    "disclosed", "admits", "admitted", "describes", "described", "mentions",
+    "tells",
+    "told",
+    "said",
+    "says",
+    "reports",
+    "reported",
+    "discloses",
+    "disclosed",
+    "admits",
+    "admitted",
+    "describes",
+    "described",
+    "mentions",
     "mentioned",
 )
 CRISIS_RE = re.compile(
@@ -161,8 +201,9 @@ def _check_client(aid: str, p: dict[str, Any], errors: list[str]) -> None:
         _check_untold_diagnostics(aid, client["notes"], errors)
 
 
-def _check_session_item(aid: str, i: int, s: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
-                        msgs: list[tuple[str, str]]) -> tuple[int, Any]:
+def _check_session_item(
+    aid: str, i: int, s: dict[str, Any], sess_by_n: dict[int, dict[str, Any]], msgs: list[tuple[str, str]]
+) -> tuple[int, Any]:
     """Lints one session entry. Appends (severity, message) to msgs; returns
     (turns, n)."""
     n = s.get("n")
@@ -175,23 +216,24 @@ def _check_session_item(aid: str, i: int, s: dict[str, Any], sess_by_n: dict[int
     sess_by_n[n] = s
     t = s.get("turns")
     if not _is_int(t) or not (SESSION_TURNS_MIN <= t <= SESSION_TURNS_MAX):
-        msgs.append(("error", f"{aid}: session {n} turns must be an int in "
-                              f"[{SESSION_TURNS_MIN}, {SESSION_TURNS_MAX}] "
-                              f"(got {t!r})"))
+        msgs.append(
+            (
+                "error",
+                f"{aid}: session {n} turns must be an int in [{SESSION_TURNS_MIN}, {SESSION_TURNS_MAX}] (got {t!r})",
+            )
+        )
     if i == 0 and s.get("gap_before") is not None:
-        msgs.append(("warn", f"{aid}: session 1 has gap_before "
-                             f"{s['gap_before']!r} (should be null)"))
+        msgs.append(("warn", f"{aid}: session 1 has gap_before {s['gap_before']!r} (should be null)"))
     if i > 0 and not isinstance(s.get("gap_before"), str):
-        msgs.append(("warn", f"{aid}: session {n} gap_before should be a "
-                             f"string like 'one week'"))
+        msgs.append(("warn", f"{aid}: session {n} gap_before should be a string like 'one week'"))
     if not isinstance(s.get("focus"), str) or not s["focus"].strip():
-        msgs.append(("error", f"{aid}: session {n} focus must be a non-empty "
-                              f"string"))
+        msgs.append(("error", f"{aid}: session {n} focus must be a non-empty string"))
     return (t if _is_int(t) else 0), n
 
 
-def _check_sessions(aid: str, p: dict[str, Any], errors: list[str],
-                    warnings: list[str]) -> tuple[dict[int, dict[str, Any]], int]:
+def _check_sessions(
+    aid: str, p: dict[str, Any], errors: list[str], warnings: list[str]
+) -> tuple[dict[int, dict[str, Any]], int]:
     """Returns (sessions by n, total turns)."""
     sess_by_n: dict[int, dict[str, Any]] = {}
     total = 0
@@ -213,20 +255,18 @@ def _check_sessions(aid: str, p: dict[str, Any], errors: list[str],
     if ids != list(range(1, len(ids) + 1)):
         errors.append(f"{aid}: session numbering broken: {ids}")
     if not (TOTAL_TURNS_MIN <= total <= TOTAL_TURNS_MAX):
-        errors.append(f"{aid}: total turns {total} outside "
-                      f"[{TOTAL_TURNS_MIN}, {TOTAL_TURNS_MAX}]")
+        errors.append(f"{aid}: total turns {total} outside [{TOTAL_TURNS_MIN}, {TOTAL_TURNS_MAX}]")
     if len(sessions) < MIN_SESSIONS:
-        warnings.append(f"{aid}: single-session arc (multi-session is the "
-                        f"spec target; cross-session memory unit unavailable)")
+        warnings.append(
+            f"{aid}: single-session arc (multi-session is the spec target; cross-session memory unit unavailable)"
+        )
     return sess_by_n, total
 
 
-def _check_timeline(aid: str, p: dict[str, Any], errors: list[str],
-                    warnings: list[str]) -> None:
+def _check_timeline(aid: str, p: dict[str, Any], errors: list[str], warnings: list[str]) -> None:
     tl = p["timeline"]
     if not isinstance(tl, list) or len(tl) < MIN_TIMELINE_EVENTS:
-        errors.append(f"{aid}: timeline must be a list with >= "
-                      f"{MIN_TIMELINE_EVENTS} events")
+        errors.append(f"{aid}: timeline must be a list with >= {MIN_TIMELINE_EVENTS} events")
         return
     prev_key: float | None = None
     non_told = 0
@@ -236,54 +276,44 @@ def _check_timeline(aid: str, p: dict[str, Any], errors: list[str],
             continue
         anchor, prov, event = ev.get("anchor"), ev.get("provenance"), ev.get("event")
         if not isinstance(event, str) or not event.strip():
-            errors.append(f"{aid}: timeline[{i}] event must be a non-empty "
-                          f"string")
+            errors.append(f"{aid}: timeline[{i}] event must be a non-empty string")
         if prov not in PROVENANCES:
-            errors.append(f"{aid}: timeline[{i}] provenance {prov!r} not in "
-                          f"told/claim/untold")
+            errors.append(f"{aid}: timeline[{i}] provenance {prov!r} not in told/claim/untold")
         else:
             non_told += 0 if prov == "told" else 1
         if not isinstance(anchor, str) or not _ANCHOR_RE.fullmatch(anchor):
-            errors.append(f"{aid}: timeline[{i}] anchor {anchor!r} must be "
-                          f"'now' or -<n><y|m|w|d>")
+            errors.append(f"{aid}: timeline[{i}] anchor {anchor!r} must be 'now' or -<n><y|m|w|d>")
             continue
         key = _anchor_sort_key(anchor)
         if prev_key is not None and key < prev_key:
-            errors.append(f"{aid}: timeline anchor {anchor!r} is before the "
-                          f"previous event")
+            errors.append(f"{aid}: timeline anchor {anchor!r} is before the previous event")
         prev_key = key
     last = tl[-1]
     if isinstance(last, dict) and last.get("anchor") != "now":
         errors.append(f"{aid}: timeline must end at anchor 'now'")
     if non_told == 0:
-        warnings.append(f"{aid}: no claim/untold timeline events (no "
-                        f"world-truth tension)")
+        warnings.append(f"{aid}: no claim/untold timeline events (no world-truth tension)")
 
 
-def _check_subjects(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
-                    errors: list[str]) -> None:
+def _check_subjects(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]], errors: list[str]) -> None:
     if not isinstance(p["surface_subject"], str) or not p["surface_subject"].strip():
         errors.append(f"{aid}: surface_subject must be a non-empty string")
     rs = p["real_subject"]
-    if (not isinstance(rs, dict) or not isinstance(rs.get("content"), str)
-            or not rs["content"].strip()):
-        errors.append(f"{aid}: real_subject.content must be a non-empty "
-                      f"string")
+    if not isinstance(rs, dict) or not isinstance(rs.get("content"), str) or not rs["content"].strip():
+        errors.append(f"{aid}: real_subject.content must be a non-empty string")
         return
     sat, sess_n = rs.get("surfaces_around_turn"), rs.get("session")
     if not _is_int(sat) or sat < MIN_SURFACE_TURN:
-        errors.append(f"{aid}: real_subject.surfaces_around_turn must be an "
-                      f"int >= {MIN_SURFACE_TURN}")
+        errors.append(f"{aid}: real_subject.surfaces_around_turn must be an int >= {MIN_SURFACE_TURN}")
     if not _is_int(sess_n) or sess_n not in sess_by_n:
-        errors.append(f"{aid}: real_subject.session {sess_n!r} is not a "
-                      f"valid session")
+        errors.append(f"{aid}: real_subject.session {sess_n!r} is not a valid session")
     elif _is_int(sat) and sat > sess_by_n[sess_n].get("turns", 0):
-        errors.append(f"{aid}: real_subject surfaces at turn {sat} but "
-                      f"session {sess_n} budget is {sess_by_n[sess_n]['turns']}")
+        errors.append(
+            f"{aid}: real_subject surfaces at turn {sat} but session {sess_n} budget is {sess_by_n[sess_n]['turns']}"
+        )
 
 
-def _check_beat(aid: str, i: int, b: dict[str, Any],
-                sess_by_n: dict[int, dict[str, Any]]) -> _BeatResult:
+def _check_beat(aid: str, i: int, b: dict[str, Any], sess_by_n: dict[int, dict[str, Any]]) -> _BeatResult:
     """Lints one beat. Returns (errors, positions, known_type)."""
     errors: list[str] = []
     if not isinstance(b, dict):
@@ -293,31 +323,27 @@ def _check_beat(aid: str, i: int, b: dict[str, Any],
         return [f"{aid}: beat {i + 1} unknown type {btype!r}"], [], False
     rr = b.get("required_response")
     if not isinstance(rr, str) or not rr.strip():
-        errors.append(f"{aid}: beat {i + 1} ({btype}) required_response "
-                      f"must be a non-empty string")
+        errors.append(f"{aid}: beat {i + 1} ({btype}) required_response must be a non-empty string")
     if btype == "misstatement":
         errors, positions = _check_misstatement(aid, i, b, sess_by_n)
     else:
         positions = []
         body_key = BEAT_BODY_KEYS[btype]
         if not isinstance(b.get(body_key), str) or not b[body_key].strip():
-            errors.append(f"{aid}: beat {i + 1} ({btype}) {body_key} must "
-                          f"be a non-empty string")
+            errors.append(f"{aid}: beat {i + 1} ({btype}) {body_key} must be a non-empty string")
         sref, tref = b.get("session"), b.get("turn")
         if not _is_int(sref) or sref not in sess_by_n:
-            errors.append(f"{aid}: beat {i + 1} ({btype}) session "
-                          f"{sref!r} invalid")
+            errors.append(f"{aid}: beat {i + 1} ({btype}) session {sref!r} invalid")
         elif not _is_int(tref) or tref > sess_by_n[sref]["turns"]:
-            errors.append(f"{aid}: beat {i + 1} ({btype}) turn {tref} "
-                          f"exceeds session {sref} budget "
-                          f"{sess_by_n[sref]['turns']}")
+            errors.append(
+                f"{aid}: beat {i + 1} ({btype}) turn {tref} exceeds session {sref} budget {sess_by_n[sref]['turns']}"
+            )
         else:
             positions.append((sref, tref))
     return errors, positions, True
 
 
-def _check_beats(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
-                 errors: list[str]) -> set[str]:
+def _check_beats(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]], errors: list[str]) -> set[str]:
     """Extends errors for the beats block; returns the beat types seen."""
     btypes: set[str] = set()
     positions: list[tuple[int, int]] = []
@@ -334,58 +360,50 @@ def _check_beats(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any
     seen: set[tuple[int, int]] = set()
     for pos in positions:
         if pos in seen:
-            errors.append(f"{aid}: two beats collide at session {pos[0]} "
-                          f"turn {pos[1]}")
+            errors.append(f"{aid}: two beats collide at session {pos[0]} turn {pos[1]}")
         seen.add(pos)
     if not (btypes & {"safety", "caving_attempt"}):
         errors.append(f"{aid}: no safety or caving_attempt beat")
     if "misstatement" not in btypes:
         errors.append(f"{aid}: no misstatement beat")
     if len(btypes & PRESSURE_TYPES) < MIN_PRESSURE_TYPES:
-        errors.append(f"{aid}: needs at least {MIN_PRESSURE_TYPES} distinct "
-                      f"pressure beat types")
+        errors.append(f"{aid}: needs at least {MIN_PRESSURE_TYPES} distinct pressure beat types")
     has_cross_ms = any(
-        _is_int(b.get("plant_session")) and _is_int(b.get("revise_session"))
+        _is_int(b.get("plant_session"))
+        and _is_int(b.get("revise_session"))
         and b["plant_session"] != b["revise_session"]
-        for b in beats if isinstance(b, dict) and b.get("type") == "misstatement"
+        for b in beats
+        if isinstance(b, dict) and b.get("type") == "misstatement"
     )
-    if ("misstatement" in btypes and not has_cross_ms
-            and len(sess_by_n) > 1):
-        errors.append(f"{aid}: multi-session arc with no cross-session "
-                      f"misstatement (plant and revise must span the session "
-                      f"gap)")
+    if "misstatement" in btypes and not has_cross_ms and len(sess_by_n) > 1:
+        errors.append(
+            f"{aid}: multi-session arc with no cross-session misstatement (plant and revise must span the session gap)"
+        )
     return btypes
 
 
-def _check_misstatement(aid: str, i: int, b: dict[str, Any],
-                        sess_by_n: dict[int, dict[str, Any]]) -> _MsResult:
+def _check_misstatement(aid: str, i: int, b: dict[str, Any], sess_by_n: dict[int, dict[str, Any]]) -> _MsResult:
     """Lints one misstatement beat. Returns (errors, plant/revise positions)."""
     errors: list[str] = []
     positions: list[tuple[int, int]] = []
     for k in ("original", "revision"):
         if not isinstance(b.get(k), str) or not b[k].strip():
-            errors.append(f"{aid}: beat {i + 1} (misstatement) {k} must be a "
-                          f"non-empty string")
+            errors.append(f"{aid}: beat {i + 1} (misstatement) {k} must be a non-empty string")
     ps, pt = b.get("plant_session"), b.get("plant_turn")
     rsn, rt = b.get("revise_session"), b.get("revise_turn")
     for sref, tref, lbl in ((ps, pt, "plant"), (rsn, rt, "revise")):
         if not _is_int(sref) or sref not in sess_by_n:
-            errors.append(f"{aid}: beat {i + 1} (misstatement) {lbl}_session "
-                          f"{sref!r} invalid")
+            errors.append(f"{aid}: beat {i + 1} (misstatement) {lbl}_session {sref!r} invalid")
         elif not _is_int(tref) or tref > sess_by_n[sref]["turns"]:
-            errors.append(f"{aid}: beat {i + 1} (misstatement) {lbl} turn "
-                          f"{tref} exceeds session budget")
+            errors.append(f"{aid}: beat {i + 1} (misstatement) {lbl} turn {tref} exceeds session budget")
         else:
             positions.append((sref, tref))
-    if (_is_int(ps) and _is_int(pt) and _is_int(rsn) and _is_int(rt)
-            and (ps, pt) >= (rsn, rt)):
-        errors.append(f"{aid}: beat {i + 1} misstatement plant (s{ps}t{pt}) "
-                      f"not before revise (s{rsn}t{rt})")
+    if _is_int(ps) and _is_int(pt) and _is_int(rsn) and _is_int(rt) and (ps, pt) >= (rsn, rt):
+        errors.append(f"{aid}: beat {i + 1} misstatement plant (s{ps}t{pt}) not before revise (s{rsn}t{rt})")
     return errors, positions
 
 
-def _check_ending(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]],
-                  errors: list[str]) -> None:
+def _check_ending(aid: str, p: dict[str, Any], sess_by_n: dict[int, dict[str, Any]], errors: list[str]) -> None:
     end = p["ending"]
     if not isinstance(end, dict):
         errors.append(f"{aid}: ending must be an object")
@@ -425,9 +443,11 @@ def _check_calendar(aid: str, p: dict[str, Any], errors: list[str]) -> None:
     reproduce verbatim or near-verbatim (beat quotes, setup, demand, notes,
     focus, timeline events, ending requirement)."""
     targets: list[tuple[str, str]] = []
-    for where, path in (("client.notes", ("client", "notes")),
-                        ("surface_subject", ("surface_subject",)),
-                        ("ending.requirement", ("ending", "requirement"))):
+    for where, path in (
+        ("client.notes", ("client", "notes")),
+        ("surface_subject", ("surface_subject",)),
+        ("ending.requirement", ("ending", "requirement")),
+    ):
         text = _text_at(p, list(path))
         if text:
             targets.append((where, text))
@@ -440,8 +460,7 @@ def _check_calendar(aid: str, p: dict[str, Any], errors: list[str]) -> None:
         if text:
             targets.append((f"timeline[{i}].event", text))
     for i, b in enumerate(p.get("beats") or []):
-        for k in ("setup", "demand", "original", "revision",
-                  "required_response"):
+        for k in ("setup", "demand", "original", "revision", "required_response"):
             text = _text_at(b, [k])
             if text:
                 targets.append((f"beats[{i}].{k}", text))
@@ -455,20 +474,16 @@ def _check_calendar(aid: str, p: dict[str, Any], errors: list[str]) -> None:
             )
 
 
-def _check_crisis_coverage(aid: str, p: dict[str, Any], btypes: set[str],
-                           warnings: list[str]) -> None:
+def _check_crisis_coverage(aid: str, p: dict[str, Any], btypes: set[str], warnings: list[str]) -> None:
     beats = p["beats"] if isinstance(p.get("beats"), list) else []
     sessions = p["sessions"] if isinstance(p.get("sessions"), list) else []
     crisis_text = " ".join(
         [p["surface_subject"] if isinstance(p.get("surface_subject"), str) else ""]
-        + [s.get("focus", "") for s in sessions if isinstance(s, dict)
-           and isinstance(s.get("focus"), str)]
-        + [str(b.get(k, "")) for b in beats if isinstance(b, dict)
-           for k in ("setup", "demand", "original")]
+        + [s.get("focus", "") for s in sessions if isinstance(s, dict) and isinstance(s.get("focus"), str)]
+        + [str(b.get(k, "")) for b in beats if isinstance(b, dict) for k in ("setup", "demand", "original")]
     )
     if CRISIS_RE.search(crisis_text) and "safety" not in btypes:
-        warnings.append(f"{aid}: crisis language present but no safety beat "
-                        f"— the writer has no assessment target")
+        warnings.append(f"{aid}: crisis language present but no safety beat — the writer has no assessment target")
 
 
 def lint_plan(p: dict[str, Any]) -> tuple[list[str], list[str]]:
@@ -498,8 +513,9 @@ def lint_plan(p: dict[str, Any]) -> tuple[list[str], list[str]]:
     return errors, warnings
 
 
-def lint_batch(plans: list[dict[str, Any]], paths: list[Path] | None = None,
-               set_level: bool = True) -> tuple[list[str], list[str]]:
+def lint_batch(
+    plans: list[dict[str, Any]], paths: list[Path] | None = None, set_level: bool = True
+) -> tuple[list[str], list[str]]:
     """Per-plan lint over every plan plus batch-level rules (duplicate
     arc_ids, filename/arc_id mismatches, duplicate names/jitter seeds,
     set-level pressure-type coverage). `paths` (same length as `plans`)
@@ -518,18 +534,21 @@ def lint_batch(plans: list[dict[str, Any]], paths: list[Path] | None = None,
     if paths:
         for path, p in zip(paths, plans, strict=True):
             if isinstance(p, dict) and p.get("arc_id") and path.stem != p["arc_id"]:
-                errors.append(f"{path.name}: filename stem {path.stem!r} "
-                              f"!= arc_id {p['arc_id']!r}")
+                errors.append(f"{path.name}: filename stem {path.stem!r} != arc_id {p['arc_id']!r}")
 
-    names = [p["client"]["name"] for p in plans if isinstance(p, dict)
-             and isinstance(p.get("client"), dict)
-             and isinstance(p["client"].get("name"), str)]
+    names = [
+        p["client"]["name"]
+        for p in plans
+        if isinstance(p, dict) and isinstance(p.get("client"), dict) and isinstance(p["client"].get("name"), str)
+    ]
     dup_names = sorted({n for n in names if names.count(n) > 1})
     if dup_names:
         warnings.append(f"batch: duplicate client name: {dup_names}")
-    seeds = [p["era_jitter"]["seed"] for p in plans if isinstance(p, dict)
-             and isinstance(p.get("era_jitter"), dict)
-             and _is_int(p["era_jitter"].get("seed"))]
+    seeds = [
+        p["era_jitter"]["seed"]
+        for p in plans
+        if isinstance(p, dict) and isinstance(p.get("era_jitter"), dict) and _is_int(p["era_jitter"].get("seed"))
+    ]
     dup_seeds = sorted({s for s in seeds if seeds.count(s) > 1})
     if dup_seeds:
         warnings.append(f"batch: duplicate era_jitter.seed: {dup_seeds}")
@@ -538,18 +557,18 @@ def lint_batch(plans: list[dict[str, Any]], paths: list[Path] | None = None,
         need = max(1, math.ceil(SET_LEVEL_COVERAGE * len(plans)))
         for ptype in sorted(PRESSURE_TYPES):
             got = sum(
-                1 for p in plans
-                if isinstance(p, dict) and isinstance(p.get("beats"), list)
-                and any(isinstance(b, dict) and b.get("type") == ptype
-                        for b in p["beats"]))
+                1
+                for p in plans
+                if isinstance(p, dict)
+                and isinstance(p.get("beats"), list)
+                and any(isinstance(b, dict) and b.get("type") == ptype for b in p["beats"])
+            )
             if got < need:
-                errors.append(f"batch: {ptype} appears in {got}/{len(plans)} "
-                              f"plans (need >= {need})")
+                errors.append(f"batch: {ptype} appears in {got}/{len(plans)} plans (need >= {need})")
     return errors, warnings
 
 
-def _report_plan(f: Path, p: dict[str, Any], e: list[str], w: list[str],
-                 strict: bool) -> int:
+def _report_plan(f: Path, p: dict[str, Any], e: list[str], w: list[str], strict: bool) -> int:
     """Prints one plan's verdict; returns 1 when it counts as passing."""
     if e or (strict and w):
         print(f"FAIL  {f.name}")
@@ -560,21 +579,19 @@ def _report_plan(f: Path, p: dict[str, Any], e: list[str], w: list[str],
         return 0
     s = p.get("sessions") or []
     turns = sum(x.get("turns", 0) for x in s if isinstance(x, dict))
-    print(f"OK    {p.get('arc_id', f.name)}  "
-          f"({len(s)} sessions, {turns} turns, {len(p.get('beats', []))} beats)"
-          + (f"  [{len(w)} warning(s)]" if w else ""))
+    print(
+        f"OK    {p.get('arc_id', f.name)}  "
+        f"({len(s)} sessions, {turns} turns, {len(p.get('beats', []))} beats)"
+        + (f"  [{len(w)} warning(s)]" if w else "")
+    )
     return 1
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(
-        description="Lint arc plan JSON files (schema, provenance, anti-patterns).")
-    ap.add_argument("paths", nargs="*",
-                    help="plan .json files or directories (default: arc_plans/)")
-    ap.add_argument("--strict", action="store_true",
-                    help="treat warnings as failures")
-    ap.add_argument("--no-set-level", action="store_true",
-                    help="skip batch set-level coverage rules")
+    ap = argparse.ArgumentParser(description="Lint arc plan JSON files (schema, provenance, anti-patterns).")
+    ap.add_argument("paths", nargs="*", help="plan .json files or directories (default: arc_plans/)")
+    ap.add_argument("--strict", action="store_true", help="treat warnings as failures")
+    ap.add_argument("--no-set-level", action="store_true", help="skip batch set-level coverage rules")
     args = ap.parse_args(argv)
 
     files: list[Path] = []
@@ -588,8 +605,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"error: {raw} is not a file or directory", file=sys.stderr)
             return 2
     if not files:
-        print(f"error: no plan .json files found under "
-              f"{args.paths or PLANS_DIR}", file=sys.stderr)
+        print(f"error: no plan .json files found under {args.paths or PLANS_DIR}", file=sys.stderr)
         return 2
 
     plans: list[dict[str, Any]] = []
@@ -601,8 +617,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
     per_plan = [(f, p, *lint_plan(p)) for f, p in zip(files, plans, strict=True)]
-    n_pass = sum(_report_plan(f, p, e, w, args.strict)
-                 for f, p, e, w in per_plan)
+    n_pass = sum(_report_plan(f, p, e, w, args.strict) for f, p, e, w in per_plan)
 
     # lint_batch re-runs lint_plan per plan in the same order, so everything
     # past the per-plan prefix is batch-level.
@@ -615,8 +630,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  WARN:  {m}")
 
     total_e, total_w = len(e_all), len(w_all)
-    print(f"\n{len(plans)} plans, {n_pass} passed, {total_e} errors, "
-          f"{total_w} warnings")
+    print(f"\n{len(plans)} plans, {n_pass} passed, {total_e} errors, {total_w} warnings")
     if total_e or (args.strict and total_w):
         return 1
     return 0

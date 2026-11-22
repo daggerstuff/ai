@@ -898,7 +898,7 @@ class MCPServer:
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
                 f"Authentication failed: {e!s}",
-            )
+            ) from e
 
     async def _check_rate_limit(self, request: MCPRequest) -> None:
         """

@@ -472,7 +472,7 @@ class AutomatedQualityChecker:
         try:
             conversations_json = json.loads(conversation.get("conversations_json", "[]"))
             structure_valid = len(conversations_json) >= self.quality_rules["required_conversation_turns"]
-        except:
+        except Exception:
             structure_valid = False
         results["individual_checks"]["structure"] = structure_valid
 
@@ -514,7 +514,7 @@ class AutomatedQualityChecker:
             ]
 
             return sum(quality_indicators) / len(quality_indicators)
-        except:
+        except Exception:
             return 0.0
 
     def _assess_empathy_automated(self, conversation: dict[str, Any]) -> float:
@@ -531,7 +531,7 @@ class AutomatedQualityChecker:
             # Normalize by text length
             word_count = len(full_text.split())
             return min(1.0, empathy_count / max(1, word_count / 20))
-        except:
+        except Exception:
             return 0.0
 
     def _assess_professionalism_automated(self, conversation: dict[str, Any]) -> float:
@@ -550,7 +550,7 @@ class AutomatedQualityChecker:
             ]
 
             return sum(professional_indicators) / len(professional_indicators)
-        except:
+        except Exception:
             return 0.0
 
 

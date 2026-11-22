@@ -551,14 +551,14 @@ class FilterSourcesTool(MCPTool):
                 try:
                     start_dt = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
                     filtered = [s for s in filtered if s.publication_date >= start_dt]
-                except (ValueError, AttributeError):
+                except ValueError, AttributeError:
                     logger.warning(f"Invalid start_date format: {start_date}")
 
             if end_date:
                 try:
                     end_dt = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
                     filtered = [s for s in filtered if s.publication_date <= end_dt]
-                except (ValueError, AttributeError):
+                except ValueError, AttributeError:
                     logger.warning(f"Invalid end_date format: {end_date}")
 
         return filtered

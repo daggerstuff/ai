@@ -208,7 +208,7 @@ class BiasDetectionIntegration:
 
             return bias_metrics
 
-        except (ValidationError, BiasDetectionError):
+        except ValidationError, BiasDetectionError:
             raise
         except Exception as e:
             self.logger.error(f"Bias analysis failed for stage {stage_name}: {e}")

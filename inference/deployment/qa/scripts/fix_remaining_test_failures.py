@@ -9,10 +9,9 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parents[5]
 
 
-
 def fix_safety_ethics_validator():
     """Fix safety ethics validator test failures."""
-    test_file = (_PROJECT_ROOT / "ai" / "tests/test_safety_ethics_validator_working.py")
+    test_file = _PROJECT_ROOT / "ai" / "tests/test_safety_ethics_validator_working.py"
 
     with open(test_file) as f:
         content = f.read()
@@ -99,7 +98,7 @@ def fix_safety_ethics_validator():
 
 def fix_clinical_accuracy_validator():
     """Fix clinical accuracy validator test failures."""
-    test_file = (_PROJECT_ROOT / "ai" / "tests/test_clinical_accuracy_validator_working.py")
+    test_file = _PROJECT_ROOT / "ai" / "tests/test_clinical_accuracy_validator_working.py"
 
     with open(test_file) as f:
         content = f.read()
@@ -200,7 +199,7 @@ def fix_clinical_accuracy_validator():
 
 def fix_crisis_intervention_detector():
     """Fix crisis intervention detector test failures."""
-    test_file = (_PROJECT_ROOT / "ai" / "tests/test_crisis_intervention_detector_working.py")
+    test_file = _PROJECT_ROOT / "ai" / "tests/test_crisis_intervention_detector_working.py"
 
     with open(test_file) as f:
         content = f.read()
@@ -233,7 +232,7 @@ def fix_crisis_intervention_detector():
 
 def fix_therapeutic_response_generator():
     """Fix therapeutic response generator test failures."""
-    test_file = (_PROJECT_ROOT / "ai" / "tests/test_therapeutic_response_generator_working.py")
+    test_file = _PROJECT_ROOT / "ai" / "tests/test_therapeutic_response_generator_working.py"
 
     with open(test_file) as f:
         content = f.read()

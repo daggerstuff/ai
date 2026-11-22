@@ -154,10 +154,7 @@ from ai.training.feedback_loop import FeedbackLoop
 loop = FeedbackLoop()
 
 # Run complete feedback loop
-report = loop.run(
-    evaluation_report_path="./evaluation_report.json",
-    output_dir="./feedback/actions"
-)
+report = loop.run(evaluation_report_path="./evaluation_report.json", output_dir="./feedback/actions")
 
 # Access results
 print(f"Failure patterns: {len(report.failure_patterns)}")
@@ -293,6 +290,7 @@ mappings = mapper.map(failure_patterns)
 
 ```python
 import logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("feedback_loop")
 

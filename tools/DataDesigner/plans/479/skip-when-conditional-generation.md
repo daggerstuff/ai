@@ -151,13 +151,11 @@ class SkipConfig(ConfigBase):
     """
 
     when: str = Field(
-        description="Jinja2 expression (including {{ }} delimiters); "
-        "when truthy, skip generation for this row.",
+        description="Jinja2 expression (including {{ }} delimiters); when truthy, skip generation for this row.",
     )
     value: bool | int | float | str | None = Field(
         default=None,
-        description="Value to write for skipped cells. "
-        "Defaults to None (becomes NaN/pd.NA in DataFrame).",
+        description="Value to write for skipped cells. Defaults to None (becomes NaN/pd.NA in DataFrame).",
     )
 
     @field_validator("when")
@@ -165,13 +163,14 @@ class SkipConfig(ConfigBase):
     def _validate_when_syntax(cls, v: str) -> str:
         from jinja2 import meta
         from jinja2.sandbox import ImmutableSandboxedEnvironment
+
         env = ImmutableSandboxedEnvironment()
         ast = env.parse(v)
         if not meta.find_undeclared_variables(ast):
             raise ValueError(
                 f"skip.when expression {v!r} does not reference any columns. "
                 "Expressions must use Jinja2 delimiters, e.g. "
-                '\'{{ in_stock == 0 }}\' not \'in_stock == 0\'.'
+                "'{{ in_stock == 0 }}' not 'in_stock == 0'."
             )
         return v
 
@@ -184,6 +183,7 @@ class SkipConfig(ConfigBase):
         """
         from jinja2 import meta
         from jinja2.sandbox import ImmutableSandboxedEnvironment
+
         env = ImmutableSandboxedEnvironment()
         ast = env.parse(self.when)
         return list(meta.find_undeclared_variables(ast))
@@ -291,6 +291,7 @@ class NativeSandboxedEnvironment(SandboxedEnvironment, NativeEnvironment):
     UndefinedError instead of silently returning a truthy Undefined object
     (which would cause every row to be skipped on a typo).
     """
+
     pass
 
 
@@ -303,6 +304,7 @@ def evaluate_skip_when(expression: str, record: dict) -> bool:
     and async engines get identical behavior: on eval failure, log a
     warning and return True (fail-safe skip).
     """
+
 
 def should_skip_by_propagation(
     required_columns: list[str],
@@ -321,9 +323,11 @@ def should_skip_by_propagation(
 ```python
 _env = NativeSandboxedEnvironment(undefined=StrictUndefined)
 
+
 @lru_cache(maxsize=64)
 def _compile_skip_template(expression: str) -> Template:
     return _env.from_string(expression)
+
 
 def evaluate_skip_when(expression: str, record: dict) -> bool:
     try:
@@ -332,8 +336,7 @@ def evaluate_skip_when(expression: str, record: dict) -> bool:
         return bool(result)
     except Exception:
         logger.warning(
-            "skip.when evaluation failed for expression %r; "
-            "treating as truthy (row will be skipped)",
+            "skip.when evaluation failed for expression %r; treating as truthy (row will be skipped)",
             expression,
             exc_info=True,
         )
@@ -359,8 +362,10 @@ Keep the magic string and all read/write/strip logic for record-inline skip meta
 ```python
 SKIPPED_COLUMNS_RECORD_KEY: Final[str] = "__skipped__"
 
+
 def get_skipped_column_names(record: dict) -> set[str]:
     """Return a copy of skipped producer column names for this row (empty if unset)."""
+
 
 def apply_skip_to_record(
     record: dict,
@@ -371,8 +376,10 @@ def apply_skip_to_record(
 ) -> None:
     """Mutate *record* in place: provenance, primary cell value, side effects cleared."""
 
+
 def strip_skip_metadata_for_dataframe_row(record: dict) -> dict:
     """Shallow copy of *record* without skip provenance — safe for pd.DataFrame(rows)."""
+
 
 def strip_skip_metadata_from_records(records: Sequence[dict]) -> list[dict]:
     """Map strip_skip_metadata_for_dataframe_row over *records* (list comp or comprehension)."""
@@ -397,9 +404,7 @@ Skip evaluation in the sync engine must be wired into two dispatch paths: `_fan_
 Add a private method on `DatasetBuilder` that centralizes the skip decision for one cell. Propagation and expression gating are evaluated independently:
 
 ```python
-def _should_skip_cell(
-    self, column_name: str, record: dict
-) -> bool:
+def _should_skip_cell(self, column_name: str, record: dict) -> bool:
     skipped_cols = get_skipped_column_names(record)
 
     # 1. Propagation — independent of SkipConfig
@@ -424,9 +429,7 @@ def _should_skip_cell(
 When a cell is skipped, write provenance and the skip value into the record in-place. The skip value comes from `SkipConfig.value` if the column has one, otherwise `None` (propagation-only skips always use `None`):
 
 ```python
-def _write_skip_to_record(
-    self, column_name: str, record: dict
-) -> None:
+def _write_skip_to_record(self, column_name: str, record: dict) -> None:
     skip_config = self._graph.get_skip_config(column_name)
     skip_value = skip_config.value if skip_config is not None else None
     apply_skip_to_record(
@@ -479,9 +482,7 @@ def _run_full_column_generator(self, generator: ColumnGenerator) -> None:
     active_records = [r for i, r in enumerate(batch) if i not in skip_indices]
 
     if active_records:
-        active_df = lazy.pd.DataFrame(
-            strip_skip_metadata_from_records(active_records)
-        )
+        active_df = lazy.pd.DataFrame(strip_skip_metadata_from_records(active_records))
         result_df = generator.generate(active_df)
         result_records = result_df.to_dict(orient="records")
 
@@ -498,7 +499,9 @@ def _run_full_column_generator(self, generator: ColumnGenerator) -> None:
     allow_resize = getattr(generator.config, "allow_resize", False)
     self._log_resize_if_changed(
         self._column_display_name(generator.config),
-        original_count, len(batch), allow_resize,
+        original_count,
+        len(batch),
+        allow_resize,
     )
     self.batch_manager.replace_buffer(batch, allow_resize=allow_resize)
 ```
@@ -576,6 +579,7 @@ In `get_dataframe()` (line 68-72), build rows with the shared helper:
 ```python
 from data_designer.engine.dataset_builders.utils.skip_provenance import strip_skip_metadata_from_records
 
+
 def get_dataframe(self, row_group: int) -> pd.DataFrame:
     dropped = self._dropped.get(row_group, set())
     raw = [row for i, row in enumerate(self._buffers[row_group]) if i not in dropped]
@@ -598,7 +602,7 @@ def get_current_batch(self, *, as_dataframe: bool = False) -> pd.DataFrame | lis
 Also in `write()` (line 172), which converts `self._buffer` to a DataFrame for parquet serialization:
 
 ```python
-dataframe=lazy.pd.DataFrame(strip_skip_metadata_from_records(self._buffer)),
+dataframe = (lazy.pd.DataFrame(strip_skip_metadata_from_records(self._buffer)),)
 ```
 
 The `__skipped__` key remains on **in-memory record dicts** during generation for propagation. It is stripped when building **DataFrames** for `get_dataframe()` / `get_current_batch(as_dataframe=True)` / `write()` so it never appears as a Parquet column.

@@ -34,13 +34,13 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from pipelines.data_processing.processors.toxicity_detector import (
-    HeuristicToxicityDetector,
-    ToxicityResult,
-)
 from ai.tools.utilities.pipelines.processing.pii_scrubber import (
     PiiScrubber,
     PiiScrubberConfig,
+)
+from pipelines.data_processing.processors.toxicity_detector import (
+    HeuristicToxicityDetector,
+    ToxicityResult,
 )
 
 logger = logging.getLogger(__name__)

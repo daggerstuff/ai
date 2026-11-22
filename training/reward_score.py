@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Phase 27 reward scoring and safety gating."""
+
 from __future__ import annotations
 
 from collections.abc import Sequence

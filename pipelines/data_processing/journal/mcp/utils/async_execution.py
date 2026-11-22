@@ -153,16 +153,16 @@ class AsyncToolExecutor:
 
                 return result
 
-            except TimeoutError:
+            except TimeoutError as exc:
                 # Cancel operation on timeout
                 await self.cancel_operation(operation_id)
                 raise MCPError(
                     MCPErrorCode.TOOL_TIMEOUT,
                     f"Operation {operation_id} timed out after {timeout} seconds",
                     {"operation_id": operation_id, "timeout": timeout},
-                )
+                ) from exc
 
-            except OperationCancelledError:
+            except OperationCancelledError as exc:
                 await self._send_progress_update(
                     operation_id,
                     session_id or "unknown",
@@ -174,7 +174,7 @@ class AsyncToolExecutor:
                     MCPErrorCode.TOOL_EXECUTION_ERROR,
                     f"Operation {operation_id} was cancelled",
                     {"operation_id": operation_id},
-                )
+                ) from exc
 
         except MCPError:
             # Re-raise MCP errors

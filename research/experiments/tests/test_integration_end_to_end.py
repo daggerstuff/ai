@@ -21,9 +21,9 @@ import tempfile
 import unittest
 import warnings
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pandas as pd
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
@@ -180,7 +180,7 @@ class TestEndToEndDataFlow(unittest.TestCase):
                                 text_parts.append(f"{role}: {content}")
                     return "\n".join(text_parts)
                 return str(conversations)
-            except (json.JSONDecodeError, TypeError):
+            except json.JSONDecodeError, TypeError:
                 return json_str
 
         df["conversation_text"] = df["conversations_json"].apply(extract_text_from_json)

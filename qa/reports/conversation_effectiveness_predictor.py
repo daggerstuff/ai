@@ -18,6 +18,7 @@ import traceback
 import warnings
 from collections import Counter
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -29,7 +30,6 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing import StandardScaler
 from textstat import flesch_kincaid_grade, flesch_reading_ease
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
@@ -124,7 +124,7 @@ class ConversationEffectivenessPredictor:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str
 
     def _extract_effectiveness_features(self, conversations: pd.DataFrame) -> pd.DataFrame:
@@ -144,7 +144,7 @@ class ConversationEffectivenessPredictor:
             try:
                 flesch_score = flesch_reading_ease(text)
                 fk_grade = flesch_kincaid_grade(text)
-            except:
+            except Exception:
                 flesch_score = 50
                 fk_grade = 8
 
@@ -272,7 +272,7 @@ class ConversationEffectivenessPredictor:
             try:
                 flesch_score = flesch_reading_ease(text)
                 clarity_score = max(0, min(100, flesch_score))
-            except:
+            except Exception:
                 clarity_score = 50
 
             # 3. Empathy score

@@ -16,16 +16,12 @@ from training.forge.client import CoreWeaveForgeClient
 from training.forge.config import ForgeConfig
 from training.forge.rl_runner import RewardWeights, ServerlessRLRunner
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("train_rl_serverless")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Launch and manage CoreWeave Forge Serverless RL jobs"
-    )
+    parser = argparse.ArgumentParser(description="Launch and manage CoreWeave Forge Serverless RL jobs")
     parser.add_argument(
         "--model-id",
         type=str,

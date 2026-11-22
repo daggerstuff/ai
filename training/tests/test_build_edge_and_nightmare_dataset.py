@@ -6,7 +6,7 @@ from __future__ import annotations
 import ast
 import io
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -37,6 +37,25 @@ _MATRIX_SIZE = _NUM_EDGE_FAMILIES * len(DIFFICULTY_LEVELS) * len(AMBIGUITY_TYPES
 # present (standalone CI checkout), the parity test is skipped — the sets
 # were verified equal at fix time (2026-10-03).
 _NEEDS_DESIGNER_CONFIG = _DESIGNER_EDGE_CASES.exists()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("nightmare", [True, False])
+async def test_generated_records_do_not_claim_clinical_review(monkeypatch: pytest.MonkeyPatch, nightmare: bool) -> None:
+    pair = [{"role": "user", "content": "A fictional prompt."}, {"role": "assistant", "content": "A fictional reply."}]
+    messages = pair * bmod._MIN_MESSAGES
+    monkeypatch.setattr(bmod, "_generate_transcript_turns", AsyncMock(return_value=messages))
+
+    if nightmare:
+        record = await bmod.generate_nightmare_scenario_turn(None, {"title": "Synthetic scenario"})
+    else:
+        record = await bmod.generate_edge_case_turn(None, build_edge_case_matrix()[0], 0)
+
+    assert record is not None
+    assert record["clinical_reviewed"] is False
+    assert record["mi_quality"] == "unassessed"
+    assert record["tier"] == "T3_BRONZE"
+    assert record["provenance"]["review_status"] == "unreviewed_synthetic"
 
 
 def _designer_families() -> list[str]:

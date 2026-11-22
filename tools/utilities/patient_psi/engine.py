@@ -20,7 +20,6 @@ from ai.tools.utilities.platform.patient_psi.state_machine import (
     ConversationPhase,
     ConversationState,
     StateMachine,
-    StateTransition,
 )
 from ai.tools.utilities.platform.patient_psi.styles import ConversationalStyle, StyleRegistry
 

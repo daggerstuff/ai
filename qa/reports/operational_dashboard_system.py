@@ -3,8 +3,6 @@
 from datetime import datetime, timedelta, timezone
 
 
-
-
 # flake8: max-complexity=200
 # flake8: noqa
 # flake8: noqa
@@ -25,6 +23,7 @@ import json
 import os
 import warnings
 from pathlib import Path
+
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 from typing import Any
 import logging
@@ -49,9 +48,15 @@ class OperationalDashboardSystem:
             "topic_analyzer": str(_PROJECT_ROOT / "ai" / "monitoring" / "topic_theme_analyzer.py"),
             "complexity_analyzer": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_complexity_analyzer.py"),
             "quality_pattern": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_quality_pattern_analyzer.py"),
-            "diversity_coverage": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_diversity_coverage_analyzer.py"),
-            "effectiveness_predictor": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_effectiveness_predictor.py"),
-            "recommendation_optimizer": str(_PROJECT_ROOT / "ai" / "monitoring" / "conversation_recommendation_optimizer.py"),
+            "diversity_coverage": str(
+                _PROJECT_ROOT / "ai" / "monitoring" / "conversation_diversity_coverage_analyzer.py"
+            ),
+            "effectiveness_predictor": str(
+                _PROJECT_ROOT / "ai" / "monitoring" / "conversation_effectiveness_predictor.py"
+            ),
+            "recommendation_optimizer": str(
+                _PROJECT_ROOT / "ai" / "monitoring" / "conversation_recommendation_optimizer.py"
+            ),
             "performance_impact": str(_PROJECT_ROOT / "ai" / "monitoring" / "dataset_performance_impact_analyzer.py"),
         }
         self._ensure_directories()

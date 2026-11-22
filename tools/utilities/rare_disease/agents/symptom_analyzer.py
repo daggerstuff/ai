@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
 from typing import Any
 
 from ..types import (
-    KnowledgeMatch,
-    OrganSystem,
     PatientCase,
     Symptom,
 )
@@ -32,9 +29,7 @@ class SymptomAnalyzerAgent:
         for symptom in case.symptoms:
             matches = self._kb.search_by_symptom(symptom, top_k=10)
             for match in matches:
-                matrix[match.disease_id] = (
-                    matrix.get(match.disease_id, 0.0) + match.score
-                )
+                matrix[match.disease_id] = matrix.get(match.disease_id, 0.0) + match.score
                 if match.score > 0.7:
                     disease = self._kb.get_disease(match.disease_id)
                     if disease:

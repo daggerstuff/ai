@@ -59,7 +59,7 @@ class LightningStudioSetup:
                     env_info["gpu_available"] = True
                     env_info["gpu_type"] = gpu_info[0] if gpu_info else "Unknown"
                     env_info["memory_available"] = gpu_info[1] if len(gpu_info) > 1 else "Unknown"
-            except:
+            except Exception:
                 pass
 
             # Check CUDA version
@@ -67,7 +67,7 @@ class LightningStudioSetup:
                 result = subprocess.run(["nvcc", "--version"], capture_output=True, text=True)
                 if "release" in result.stdout:
                     env_info["cuda_version"] = result.stdout.split("release ")[1].split(",")[0]
-            except:
+            except Exception:
                 pass
 
             # Check PyTorch
@@ -75,14 +75,14 @@ class LightningStudioSetup:
                 env_info["pytorch_available"] = True
                 env_info["pytorch_version"] = torch.__version__
                 env_info["cuda_available_pytorch"] = torch.cuda.is_available()
-            except:
+            except Exception:
                 pass
 
             # Check Lightning
             try:
                 env_info["lightning_available"] = True
                 env_info["lightning_version"] = lightning.__version__
-            except:
+            except Exception:
                 pass
 
         except Exception as e:

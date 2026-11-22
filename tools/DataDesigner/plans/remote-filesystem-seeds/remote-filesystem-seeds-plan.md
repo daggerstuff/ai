@@ -123,9 +123,7 @@ Existing remote tabular reader (unchanged), for contrast:
 
 ```python
 # Reads a single parquet/csv file (or wildcard) as a table via duckdb.
-builder.with_seed_dataset(
-    FilesetFileSeedSource(path="default/my-seeds#data/train.parquet")
-)
+builder.with_seed_dataset(FilesetFileSeedSource(path="default/my-seeds#data/train.parquet"))
 ```
 
 New, enabled by this RFC:
@@ -216,6 +214,7 @@ class FileSystemProvider(Protocol):
     local disk; hosts can inject one backed by a remote object store, a fileset
     service, etc.
     """
+
     def create_context(self, *, runtime_path: str) -> SeedReaderFileSystemContext: ...
 
     # Authors the precise, backend-specific existence error. See A3 Layer 2.
@@ -406,6 +405,7 @@ The `FileSystemProvider` protocol (A1) gains one method for this:
 ```python
 # data_designer/engine/resources/seed_reader.py  (upstream)
 
+
 class FileSystemProvider(Protocol):
     def create_context(self, *, runtime_path: str) -> SeedReaderFileSystemContext: ...
     def ensure_root_exists(self, *, runtime_path: str) -> None: ...
@@ -434,6 +434,7 @@ through — `_get_filesystem_context` (`seed_reader.py:494`) — *before*
 ```python
 # FileSystemSeedReader._get_filesystem_context  (upstream)
 
+
 def _get_filesystem_context(self) -> SeedReaderFileSystemContext:
     self._ensure_attached()
     context = getattr(self, "_filesystem_context", None)
@@ -451,6 +452,7 @@ raises (`filesystem.py:503-526`) into a friendly `SeedReaderError`:
 ```python
 # data_designer_nemo/fileset_filesystem_provider.py  (NeMo side)
 
+
 class FilesetFileSystemProvider:
     def __init__(
         self,
@@ -464,7 +466,7 @@ class FilesetFileSystemProvider:
 
     def create_context(self, *, runtime_path: str) -> SeedReaderFileSystemContext:
         fs = FilesetFileSystem(self._sdk)
-        root = build_fileset_ref(runtime_path, ...)        # "<ws>/<fs>#<fragment>"
+        root = build_fileset_ref(runtime_path, ...)  # "<ws>/<fs>#<fragment>"
         rooted = DirFileSystem(path=root, fs=fs)
         return SeedReaderFileSystemContext(fs=rooted, root_path=PurePosixPath(root))
 
@@ -480,9 +482,7 @@ class FilesetFileSystemProvider:
         if not fs.exists(ref):
             if not fs.exists(f"{workspace}/{fileset}"):
                 raise SeedReaderError(f"🛑 Fileset '{workspace}/{fileset}' not found.")
-            raise SeedReaderError(
-                f"🛑 Path '{fragment}' not found in fileset '{workspace}/{fileset}'."
-            )
+            raise SeedReaderError(f"🛑 Path '{fragment}' not found in fileset '{workspace}/{fileset}'.")
 ```
 
 So `directory` / `file_contents` running remotely get the fileset-specific
@@ -574,7 +574,7 @@ class RemoteDataDesignerContext:
         )
         return [
             HuggingFaceSeedReader(),
-            FilesetFileSeedReader(self._sdk),          # keep: single-file/duckdb path
+            FilesetFileSeedReader(self._sdk),  # keep: single-file/duckdb path
             DirectorySeedReader(fs_provider=provider),
             FileContentsSeedReader(fs_provider=provider),
         ]

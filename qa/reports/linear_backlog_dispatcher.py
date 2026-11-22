@@ -60,7 +60,7 @@ class LinearBacklogDispatcher:
             return {}
         try:
             return json.loads(self.state_path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
+        except json.JSONDecodeError, OSError:
             return {}
 
     def _save_issue_state(self, state: dict[str, str]) -> None:

@@ -51,8 +51,7 @@ FAMILY_SPLITS = {"train": range(192), "validation": range(192, 216), "test": ran
 # Near-variant of the eval system prompt: same semantics, different bytes so
 # verify_evaluation_separation does not flag exact prompt reuse.
 EVAL_SYSTEM_PROMPT = (
-    "You are a helpful assistant for a fictional software workspace. "
-    "Follow the user's request and any available tools."
+    "You are a helpful assistant for a fictional software workspace. Follow the user's request and any available tools."
 )
 SYSTEM_PROMPTS = v3.SYSTEM_PROMPTS + [EVAL_SYSTEM_PROMPT]
 
@@ -249,7 +248,12 @@ def make_citation(index: int) -> dict[str, Any]:
     elif variant == "distractor":
         s = src(0, suffix_pair[0])
         d_id = f"{prefix}-Z"
-        d = {"id": d_id, "title": "Unrelated listing", "topic": "unrelated", "content": f"An unrelated entry, not about {topic}."}
+        d = {
+            "id": d_id,
+            "title": "Unrelated listing",
+            "topic": "unrelated",
+            "content": f"An unrelated entry, not about {topic}.",
+        }
         search_reply = {
             "status": "ok",
             "sources": [

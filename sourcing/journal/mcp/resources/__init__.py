@@ -19,12 +19,18 @@ from ai.sourcing.journal.mcp.resources.sessions import SessionStateResource
 logger = logging.getLogger(__name__)
 
 __all__ = [
+    "Dict",
+    "List",
     "MCPResource",
+    "Optional",
     "ProgressHistoryResource",
     "ProgressMetricsResource",
     "ResourceRegistry",
     "SessionMetricsResource",
     "SessionStateResource",
+    "fnmatch",
+    "logger",
+    "logging",
 ]
 
 

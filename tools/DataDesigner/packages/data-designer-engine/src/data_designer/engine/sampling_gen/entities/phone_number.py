@@ -44,8 +44,8 @@ def get_area_code(zip_prefix: str | None = None) -> str:
     if len(zip_prefix) == 5:
         try:
             return str(area_code_map[zip_prefix])
-        except KeyError:
-            raise ValueError(f"ZIP code {zip_prefix} not found.")
+        except KeyError as exc:
+            raise ValueError(f"ZIP code {zip_prefix} not found.") from exc
     matching_zipcodes = [[z, c] for z, c in population_map.items() if z.startswith(zip_prefix)]
     zipcodes, weights = zip(*matching_zipcodes)
     if not zipcodes:

@@ -300,7 +300,7 @@ class MCPErrorHandler:
         # Log additional context for critical errors
         if severity == ErrorSeverity.CRITICAL:
             logger.critical(
-                f"Critical error detected: {error_type} - {message}",
+                f"Critical error detected: {type(error).__name__} - {message}",
                 extra=log_data,
             )
 

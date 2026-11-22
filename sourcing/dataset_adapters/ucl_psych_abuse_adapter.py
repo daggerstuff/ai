@@ -135,7 +135,7 @@ class UCLPsychAbuseAdapter(BaseDatasetAdapter):
                 posts[post_id]["annotator_labels"][cat].append(val)
 
         records: list[dict[str, Any]] = []
-        for post_id, post in posts.items():
+        for post in posts.values():
             text = post["text"]
             subreddit = post["subreddit"]
 
@@ -174,7 +174,7 @@ class UCLPsychAbuseAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": "psychological_abuse",
                 "demographic_tags": [],
                 "linguistic_style": "informal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "subreddit": subreddit,
                 "confirmed_abuse_categories": confirmed_abuse,
                 "provenance": self._build_provenance(

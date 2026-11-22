@@ -195,7 +195,9 @@ class NoteDraftingService:
             RuntimeError: If the NIM endpoint is not configured or all retries fail.
         """
         if not self._settings.is_configured:
-            raise RuntimeError("NIM endpoint is not configured (NOTE_DRAFTING_NIM_URL or NOTE_DRAFTING_NIM_API_KEY missing).")
+            raise RuntimeError(
+                "NIM endpoint is not configured (NOTE_DRAFTING_NIM_URL or NOTE_DRAFTING_NIM_API_KEY missing)."
+            )
 
         system_prompt, user_prompt = _build_prompt(request)
 
@@ -301,7 +303,9 @@ class NoteDraftingService:
                 logger.warning("nim:http_error attempt=%d/%d err=%s", attempt, self._settings.nim_max_retries, str(exc))
             except (KeyError, IndexError, RuntimeError) as exc:
                 last_error = f"Response parse error: {exc} (attempt {attempt})."
-                logger.warning("nim:parse_error attempt=%d/%d err=%s", attempt, self._settings.nim_max_retries, str(exc))
+                logger.warning(
+                    "nim:parse_error attempt=%d/%d err=%s", attempt, self._settings.nim_max_retries, str(exc)
+                )
 
             # Exponential backoff between retries
             if attempt < self._settings.nim_max_retries:

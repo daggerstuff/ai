@@ -263,7 +263,9 @@ def _load_state(path: Path, task_id: str, payload_sha: str) -> dict[str, Any]:
 def _verify_remote_access(api: g04.TrainingAPI, api_key: str, model_id: str) -> None:
     g04.verify_private_project(g04.ENTITY, g04.PROJECT, api_key)
     response = api.request("GET", "/preview/base-models")
-    models = response if isinstance(response, list) else response.get("models", response.get("data", {}).get("models", []))
+    models = (
+        response if isinstance(response, list) else response.get("models", response.get("data", {}).get("models", []))
+    )
     ids = {item if isinstance(item, str) else item.get("id") or item.get("model_id") for item in models}
     if model_id not in ids:
         raise ToolSFTError("selected base model is absent from W&B's authenticated training catalog")
@@ -310,7 +312,9 @@ def execute(
 
         run = None
         try:
-            run = wandb.init(entity=g04.ENTITY, project=g04.PROJECT, job_type="agent-tool-sft-data-upload", mode="online")
+            run = wandb.init(
+                entity=g04.ENTITY, project=g04.PROJECT, job_type="agent-tool-sft-data-upload", mode="online"
+            )
             artifact = wandb.Artifact(
                 f"agent-tool-sft-{task_id[:12]}",
                 type="dataset",
@@ -387,7 +391,12 @@ def execute(
         if str(state["last_status"]).lower() in {"succeeded", "failed", "cancelled", "canceled"}:
             break
         time.sleep(interval)
-    return {"task_id": task_id, "phase": state.get("phase"), "training_job_id": state.get("training_job_id"), "state_path": str(state_path)}
+    return {
+        "task_id": task_id,
+        "phase": state.get("phase"),
+        "training_job_id": state.get("training_job_id"),
+        "state_path": str(state_path),
+    }
 
 
 def main(argv: list[str] | None = None) -> int:

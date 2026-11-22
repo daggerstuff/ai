@@ -79,7 +79,7 @@ class RecordBasedPromptRenderer(WithJinja2UserTemplateRendering):
             if self._error_message_context is not None:
                 error_msg += f"\n{json.dumps(self._error_message_context, indent=2)}"
             logger.error(f"🛑 {error_msg}")
-            raise PromptTemplateRenderError(f"{exc!s} {error_msg}")
+            raise PromptTemplateRenderError(f"{exc!s} {error_msg}") from exc
 
 
 def create_response_recipe(

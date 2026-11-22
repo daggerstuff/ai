@@ -67,9 +67,7 @@ class JITTriggerEngine:
 
         return self._evaluate(flag.clinician_id)
 
-    def rolling_window(
-        self, clinician_id: str, *, now: datetime | None = None
-    ) -> list[CaseFlag]:
+    def rolling_window(self, clinician_id: str, *, now: datetime | None = None) -> list[CaseFlag]:
         """Return flags for a clinician within the rolling window.
 
         Args:
@@ -78,10 +76,7 @@ class JITTriggerEngine:
         """
         now = now or datetime.now(UTC)
         cutoff = now - timedelta(days=self._window_days)
-        return [
-            f for f in self._flags_by_clinician.get(clinician_id, [])
-            if f.timestamp >= cutoff
-        ]
+        return [f for f in self._flags_by_clinician.get(clinician_id, []) if f.timestamp >= cutoff]
 
     def _evaluate(self, clinician_id: str) -> TriggerDecision | None:
         """Check whether a clinician has enough recent flags to trigger."""
@@ -125,8 +120,7 @@ class JITTriggerEngine:
         for clinician_id in list(self._flags_by_clinician.keys()):
             before = len(self._flags_by_clinician[clinician_id])
             self._flags_by_clinician[clinician_id] = [
-                f for f in self._flags_by_clinician[clinician_id]
-                if f.timestamp >= cutoff
+                f for f in self._flags_by_clinician[clinician_id] if f.timestamp >= cutoff
             ]
             purged += before - len(self._flags_by_clinician[clinician_id])
 

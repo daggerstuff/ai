@@ -306,6 +306,7 @@ class ThrottleConfig(ConfigBase):
     success_window: int = Field(default=DEFAULT_SUCCESS_WINDOW, ge=1)
     cooldown_seconds: float = Field(default=DEFAULT_COOLDOWN_SECONDS, gt=0.0)
 
+
 class RunConfig(ConfigBase):
     # ... existing fields ...
     throttle: ThrottleConfig = Field(default_factory=ThrottleConfig)
@@ -541,10 +542,7 @@ capacity so it cannot exceed what the throttle system can service:
 ```python
 def get_aggregate_max_parallel_requests(self) -> int:
     """Sum of max_parallel_requests across all registered model configs."""
-    return sum(
-        mc.inference_parameters.max_parallel_requests
-        for mc in self._model_configs.values()
-    )
+    return sum(mc.inference_parameters.max_parallel_requests for mc in self._model_configs.values())
 ```
 
 ```python

@@ -135,9 +135,7 @@ def convert_vtt_to_text(vtt_path: Path) -> str:
     for line in lines:
         line = line.strip()
         # Skip VTT metadata, timestamps, and empty lines
-        if (
-            line.startswith(("WEBVTT", "Kind:", "Language:", "<c.", "</c>")) or "-->" in line or not line
-        ):
+        if line.startswith(("WEBVTT", "Kind:", "Language:", "<c.", "</c>")) or "-->" in line or not line:
             continue
         # Remove VTT tags like <c.hand> etc
         line = re.sub(r"<[^>]+>", "", line)

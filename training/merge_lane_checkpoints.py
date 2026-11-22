@@ -48,10 +48,10 @@ def append_rows(path: Path, rows: list[dict[str, Any]]) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--lane-prefix", required=True,
-                    help="lane file prefix, e.g. laneW (files <prefix>_sessions_checkpoint.jsonl)")
-    ap.add_argument("--dry-run", action="store_true",
-                    help="report what would be appended without writing")
+    ap.add_argument(
+        "--lane-prefix", required=True, help="lane file prefix, e.g. laneW (files <prefix>_sessions_checkpoint.jsonl)"
+    )
+    ap.add_argument("--dry-run", action="store_true", help="report what would be appended without writing")
     args = ap.parse_args()
 
     lane_ckpt_path = OUT_DIR / f"{args.lane_prefix}_sessions_checkpoint.jsonl"

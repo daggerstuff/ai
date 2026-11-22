@@ -14,6 +14,8 @@ Output task_type: therapy_response_generation
 from __future__ import annotations
 
 import csv
+import urllib.request
+from contextlib import suppress
 from typing import Any
 
 from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
@@ -43,8 +45,6 @@ class AnnoMIAdapter(BaseDatasetAdapter):
 
     def download(self) -> None:
         """Download AnnoMI CSV files from GitHub."""
-        import urllib.request
-
         for filename, url in [
             ("AnnoMI-simple.csv", _SIMPLE_URL),
             ("AnnoMI-full.csv", _FULL_URL),
@@ -52,10 +52,8 @@ class AnnoMIAdapter(BaseDatasetAdapter):
             target = self._raw_dir / filename
             if target.exists():
                 continue
-            try:
+            with suppress(Exception):
                 urllib.request.urlretrieve(url, target)
-            except Exception:
-                pass
 
     def extract(self) -> list[dict[str, Any]]:
         """Extract utterances from CSV files."""
@@ -139,7 +137,7 @@ class AnnoMIAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": diagnostic_tag,
                 "demographic_tags": [],
                 "linguistic_style": "mixed",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "transcript_id": tid,
                 "mi_quality": mi_qualities[0] if mi_qualities else None,
                 "therapist_behaviours": list(set(therapist_behaviours)),

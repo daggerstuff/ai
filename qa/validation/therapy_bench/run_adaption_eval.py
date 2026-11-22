@@ -40,13 +40,7 @@ from .therapy_bench import TherapyBench
 
 _AI_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_ADAPTER = (
-    _AI_ROOT
-    / "training"
-    / "output"
-    / "arc_corpus"
-    / "export"
-    / "fireworks_pilot_v1"
-    / "adaption_run1_qwen36_lora"
+    _AI_ROOT / "training" / "output" / "arc_corpus" / "export" / "fireworks_pilot_v1" / "adaption_run1_qwen36_lora"
 )
 _DEFAULT_QUESTIONS = _AI_ROOT / "research" / "experiments" / "evals" / "golden_questions.json"
 
@@ -117,9 +111,7 @@ def main(argv: list[str] | None = None) -> int:
         description="TherapyBench A/B for the Adaption run-1 Qwen3.6-35B-A3B LoRA checkpoint"
     )
     parser.add_argument("--questions", default=str(_DEFAULT_QUESTIONS), help="golden questions JSON")
-    parser.add_argument(
-        "--results-dir", default=str(_DEFAULT_ADAPTER.parent / "eval_run1"), help="output directory"
-    )
+    parser.add_argument("--results-dir", default=str(_DEFAULT_ADAPTER.parent / "eval_run1"), help="output directory")
     parser.add_argument("--modes", default="base,adapter", help="comma list of: base,adapter,stub")
     parser.add_argument("--base", default=DEFAULT_BASE_MODEL_ID, help="base model repo id")
     parser.add_argument("--adapter-path", default=str(_DEFAULT_ADAPTER), help="run-1 checkpoint dir")
@@ -151,9 +143,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.limit is not None and args.limit > 0:
             bench.golden_questions = bench.golden_questions[: args.limit]
         bench.run_benchmark(model)
-        persisted = json.loads(
-            (results_dir / mode / "results.json").read_text(encoding="utf-8")
-        )
+        persisted = json.loads((results_dir / mode / "results.json").read_text(encoding="utf-8"))
         metadata = persisted["run_metadata"]
         summary[mode] = {
             "mean_empath": metadata["mean_empath"],

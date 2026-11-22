@@ -478,7 +478,7 @@ class EnterpriseSafetyAccuracyValidator:
                         prediction = await model_predictor(scenario.conversation_text)
                         if prediction == scenario.expected_detection:
                             correct += 1
-                    except:
+                    except Exception:
                         pass  # Count as incorrect
 
                 accuracy = (correct / total) * 100 if total > 0 else 0
@@ -502,7 +502,7 @@ class EnterpriseSafetyAccuracyValidator:
                         prediction = await model_predictor(scenario.conversation_text)
                         if prediction == scenario.expected_detection:
                             correct += 1
-                    except:
+                    except Exception:
                         pass  # Count as incorrect
 
                 accuracy = (correct / total) * 100 if total > 0 else 0
@@ -528,7 +528,7 @@ class EnterpriseSafetyAccuracyValidator:
                 prediction = await model_predictor(case_text)
                 if prediction == expected:
                     passed += 1
-            except:
+            except Exception:
                 pass
 
         return passed

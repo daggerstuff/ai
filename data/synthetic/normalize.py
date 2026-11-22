@@ -208,7 +208,7 @@ def _copy_scalar_attributes(raw: dict[str, Any]) -> dict[str, Any]:
 def _sanitize_attribute_value(value: Any) -> Any:
     try:
         return json.loads(json.dumps(value))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return None
 
 

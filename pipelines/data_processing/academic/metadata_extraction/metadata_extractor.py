@@ -119,7 +119,9 @@ class MetadataExtractor:
             metadata.keywords = [k.strip() for k in re.split(r"[;,]", kw_text) if k.strip()]
 
         # Abstract — text between "Abstract" and the next section
-        abstract_match = re.search(r"Abstract\s*[:\n]\s*(.+?)(?:\n\n|\nIntroduction|\n1\.\s|\Z)", text, re.IGNORECASE | re.DOTALL)
+        abstract_match = re.search(
+            r"Abstract\s*[:\n]\s*(.+?)(?:\n\n|\nIntroduction|\n1\.\s|\Z)", text, re.IGNORECASE | re.DOTALL
+        )
         if abstract_match:
             metadata.abstract = abstract_match.group(1).strip()[:2000]
 

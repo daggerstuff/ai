@@ -12,7 +12,7 @@ from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
-from ai.api.techdeck_integration.auth.decorators import require_auth
+from ai.api.techdeck_integration.auth.middleware import require_auth
 from ai.api.techdeck_integration.error_handling.custom_errors import (
     ResourceNotFoundError,
     StandardizationError,
@@ -122,7 +122,7 @@ def get_schema(schema_id: str):
             }
         ), 200
 
-    except (ValidationError, ResourceNotFoundError):
+    except ValidationError, ResourceNotFoundError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving schema {schema_id}: {e}")
@@ -204,7 +204,7 @@ def validate_data():
             }
         ), 200
 
-    except (ValidationError, ResourceNotFoundError):
+    except ValidationError, ResourceNotFoundError:
         raise
     except Exception as e:
         request_logger.error(f"Error validating data: {e}")
@@ -284,7 +284,7 @@ def transform_data():
             }
         ), 200
 
-    except (ValidationError, ResourceNotFoundError):
+    except ValidationError, ResourceNotFoundError:
         raise
     except Exception as e:
         request_logger.error(f"Error transforming data: {e}")
@@ -404,7 +404,7 @@ def batch_transform_data():
             }
         ), 200
 
-    except (ValidationError, ResourceNotFoundError):
+    except ValidationError, ResourceNotFoundError:
         raise
     except Exception as e:
         request_logger.error(f"Error in batch transformation: {e}")
@@ -463,7 +463,7 @@ def get_schema_stats(schema_id: str):
             }
         ), 200
 
-    except (ValidationError, ResourceNotFoundError):
+    except ValidationError, ResourceNotFoundError:
         raise
     except Exception as e:
         request_logger.error(f"Error retrieving schema statistics {schema_id}: {e}")
@@ -854,7 +854,7 @@ def _is_valid_date(date_string: str) -> bool:
     try:
         datetime.fromisoformat(date_string.replace("Z", "+00:00"))
         return True
-    except (ValueError, AttributeError):
+    except ValueError, AttributeError:
         return False
 
 
@@ -876,5 +876,5 @@ def _format_date(date_string: str) -> str:
     try:
         dt = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
         return dt.isoformat()
-    except (ValueError, AttributeError):
+    except ValueError, AttributeError:
         return date_string

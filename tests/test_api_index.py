@@ -183,11 +183,12 @@ def test_reflect_cors_rejected_by_default(monkeypatch) -> None:
         headers={
             "Origin": "https://attacker.com",
             "Access-Control-Request-Method": "POST",
-        }
+        },
     )
 
     # Should be rejected (400) because the origin is not allowed
     assert response.status_code == 400
+
 
 def test_reflect_cors_allowed_when_configured(monkeypatch) -> None:
     # Configure an allowed origin
@@ -217,7 +218,7 @@ def test_reflect_cors_allowed_when_configured(monkeypatch) -> None:
         headers={
             "Origin": "https://app.pixelatedempathy.com",
             "Access-Control-Request-Method": "POST",
-        }
+        },
     )
 
     # Should be allowed (200)

@@ -185,27 +185,27 @@ class JWTAuth(AuthenticationHandler):
                 self.config.jwt_secret,
                 algorithms=[self.config.jwt_algorithm],
             )
-        except ExpiredSignatureError:
+        except ExpiredSignatureError as exc:
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
                 "JWT token has expired",
-            )
-        except DecodeError:
+            ) from exc
+        except DecodeError as exc:
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
                 "Invalid JWT token format",
-            )
+            ) from exc
         except InvalidTokenError as e:
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
                 f"Invalid JWT token: {e!s}",
-            )
+            ) from e
         except Exception as e:
             logger.exception("Unexpected error during JWT authentication")
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
                 f"JWT authentication failed: {e!s}",
-            )
+            ) from e
 
         # Extract user information from payload
         user_id = payload.get("sub") or payload.get("user_id")
@@ -271,12 +271,12 @@ class CompositeAuth(AuthenticationHandler):
         # Try JWT authentication
         try:
             return await self.jwt_auth.authenticate(request)
-        except MCPError:
+        except MCPError as exc:
             # Both methods failed
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
                 "Authentication failed: API key or JWT token required",
-            )
+            ) from exc
 
 
 def create_auth_handler(config: AuthConfig) -> AuthenticationHandler | None:

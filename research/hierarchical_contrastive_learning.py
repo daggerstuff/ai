@@ -112,6 +112,7 @@ class HierarchicalContrastiveLearner(nn.Module):
 # Loss functions
 # ------------------------------------------------------------------
 
+
 def hierarchical_contrastive_loss(
     anchors: torch.Tensor,
     positives: torch.Tensor,
@@ -145,9 +146,7 @@ def hierarchical_contrastive_loss(
         negative_weights = [1.0] * len(negatives)
 
     # Weighted combination of negative similarities
-    weighted_neg = torch.stack(
-        [w * sim for w, sim in zip(negative_weights, neg_sims)], dim=1
-    ).sum(dim=1)  # (B,)
+    weighted_neg = torch.stack([w * sim for w, sim in zip(negative_weights, neg_sims)], dim=1).sum(dim=1)  # (B,)
 
     # Denominator: exp(pos) + sum(exp(neg))
     denominator = torch.exp(pos_sim) + torch.exp(weighted_neg)
@@ -192,9 +191,7 @@ def hierarchy_preservation_loss(
                 d_ik = hierarchy_distances[i] + hierarchy_distances[k]
                 if d_ij < d_ik:
                     # j should be closer to i than k is
-                    loss_ij = F.relu(
-                        dist_matrix[i, j] - dist_matrix[i, k] + margin
-                    )
+                    loss_ij = F.relu(dist_matrix[i, j] - dist_matrix[i, k] + margin)
                     losses.append(loss_ij)
 
     if not losses:
@@ -205,6 +202,7 @@ def hierarchy_preservation_loss(
 # ------------------------------------------------------------------
 # Dataset
 # ------------------------------------------------------------------
+
 
 class HierarchicalConceptDataset(Dataset):
     """
@@ -267,18 +265,15 @@ class HierarchicalConceptDataset(Dataset):
 # Trainer
 # ------------------------------------------------------------------
 
+
 class HCLTrainer:
     """Trainer for the Hierarchical Contrastive Learning module."""
 
     def __init__(self, model: HierarchicalContrastiveLearner, config: HCLConfig):
         self.model = model.to(config.device)
         self.config = config
-        self.optimizer = torch.optim.AdamW(
-            model.parameters(), lr=config.learning_rate, weight_decay=1e-5
-        )
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            self.optimizer, T_max=config.epochs
-        )
+        self.optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate, weight_decay=1e-5)
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=config.epochs)
 
     def train_epoch(self, dataloader: DataLoader) -> dict[str, float]:
         self.model.train()
@@ -372,6 +367,7 @@ class HCLTrainer:
 # ------------------------------------------------------------------
 # Inference helpers
 # ------------------------------------------------------------------
+
 
 def encode_condition(
     hierarchy: TherapeuticConceptHierarchy,

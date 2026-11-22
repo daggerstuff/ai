@@ -69,7 +69,7 @@ run_split() {
   python -m training.local_paired_eval \
     --base-model Qwen/Qwen3-8B \
     --adapter "$adapter" \
-    --cases "$ROOT/data/scenario-crisis-${split}-${CRISIS_SUITE_VERSION:-v1}.jsonl" \
+    --cases "$ROOT/data/scenario-crisis-${split}-${CRISIS_SUITE_VERSION:-v2}.jsonl" \
     --results-dir "$OUT_ROOT/${OUT_PREFIX}eval-${label}-${split}" \
     --run-id "${RUN_LABEL}-${label}-${split}" \
     --device cuda \
@@ -139,7 +139,7 @@ PY
 # that summarize() already printed are a complete copy of every reply.
 push_results() {
   local run_dir="$1"
-  if python -m training.launch.r2_sync upload-run --run-dir "$run_dir"; then
+  if python -m training.launch.r2_sync upload-run --run-dir "$run_dir" --run-root "$OUT_ROOT"; then
     return 0
   fi
   echo "WARN R2 upload failed for $run_dir; the stdout RECORD lines are the only copy" >&2
