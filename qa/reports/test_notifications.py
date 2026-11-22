@@ -9,7 +9,7 @@ import os
 import sys
 from datetime import UTC, datetime
 
-from notification_integrations import (
+from ai.qa.reports.notification_integrations import (
     NotificationChannel,
     NotificationManager,
     NotificationPriority,

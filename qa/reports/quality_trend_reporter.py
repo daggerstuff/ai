@@ -20,7 +20,7 @@ import plotly.graph_objects as go
 from jinja2 import Environment, select_autoescape
 
 # Import our trend analyzer
-from quality_trend_analyzer import (
+from ai.qa.reports.quality_trend_analyzer import (
     QualityTrendAnalyzer,
     QualityTrendReport,
     TrendAnalysis,

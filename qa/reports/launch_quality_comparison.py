@@ -20,8 +20,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
-from quality_comparator import QualityComparator
-from quality_comparison_reporter import QualityComparisonReporter
+from ai.qa.reports.quality_comparator import QualityComparator
+from ai.qa.reports.quality_comparison_reporter import QualityComparisonReporter
 
 # Configure logging
 logging.basicConfig(

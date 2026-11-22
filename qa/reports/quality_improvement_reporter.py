@@ -21,7 +21,7 @@ from jinja2 import Environment, select_autoescape
 from plotly.subplots import make_subplots
 
 # Import our improvement tracker
-from quality_improvement_tracker import (
+from ai.monitoring.quality_improvement_tracker import (
     ImprovementAnalysis,
     ImprovementReport,
     QualityImprovementTracker,

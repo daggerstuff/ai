@@ -20,13 +20,13 @@ import plotly.graph_objects as go
 from jinja2 import Environment, select_autoescape
 
 # Import our distribution components
-from quality_distribution_analyzer import (
+from ai.qa.reports.quality_distribution_analyzer import (
     DistributionStatistics,
     QualityDistributionAnalysis,
     QualityDistributionAnalyzer,
     QualityDistributionReport,
 )
-from quality_distribution_comparator import QualityDistributionComparator
+from ai.qa.reports.quality_distribution_comparator import QualityDistributionComparator
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 

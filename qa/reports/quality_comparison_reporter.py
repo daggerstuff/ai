@@ -20,7 +20,7 @@ from jinja2 import Environment, select_autoescape
 from plotly.subplots import make_subplots
 
 # Import our quality comparator
-from quality_comparator import (
+from ai.qa.reports.quality_comparator import (
     BenchmarkAnalysis,
     ComparisonReport,
     QualityComparator,

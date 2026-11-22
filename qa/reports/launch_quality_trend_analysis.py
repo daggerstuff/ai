@@ -13,8 +13,8 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from quality_trend_analyzer import QualityTrendAnalyzer
-from quality_trend_reporter import QualityTrendReporter
+from ai.qa.reports.quality_trend_analyzer import QualityTrendAnalyzer
+from ai.qa.reports.quality_trend_reporter import QualityTrendReporter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

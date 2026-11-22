@@ -15,7 +15,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from notification_integrations import (
+from ai.qa.reports.notification_integrations import (
     NotificationManager,
     NotificationPriority,
 )

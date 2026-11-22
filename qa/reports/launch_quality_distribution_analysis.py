@@ -13,9 +13,9 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from quality_distribution_analyzer import QualityDistributionAnalyzer
-from quality_distribution_comparator import QualityDistributionComparator
-from quality_distribution_reporter import QualityDistributionReporter
+from ai.qa.reports.quality_distribution_analyzer import QualityDistributionAnalyzer
+from ai.qa.reports.quality_distribution_comparator import QualityDistributionComparator
+from ai.qa.reports.quality_distribution_reporter import QualityDistributionReporter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")

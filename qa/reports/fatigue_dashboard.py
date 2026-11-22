@@ -14,9 +14,10 @@ from typing import Any
 
 import plotly.graph_objs as go
 import plotly.utils
-from alert_fatigue_prevention import AlertFatiguePreventionSystem, FatigueRule
 from flask import Flask, jsonify, render_template_string, request
-from intelligent_grouping import IntelligentGroupingEngine
+
+from ai.qa.reports.alert_fatigue_prevention import AlertFatiguePreventionSystem, FatigueRule
+from ai.qa.reports.intelligent_grouping import IntelligentGroupingEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

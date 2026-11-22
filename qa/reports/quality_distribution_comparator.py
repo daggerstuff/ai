@@ -12,15 +12,15 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from scipy import stats
+from scipy.stats import kruskal, mannwhitneyu
 
 # Import our distribution analyzer
-from quality_distribution_analyzer import (
+from ai.qa.reports.quality_distribution_analyzer import (
     ComparativeDistributionAnalysis,
     QualityDistributionAnalysis,
     QualityDistributionAnalyzer,
 )
-from scipy import stats
-from scipy.stats import kruskal, mannwhitneyu
 
 # Suppress warnings
 warnings.simplefilter("default")

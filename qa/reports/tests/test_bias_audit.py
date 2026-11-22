@@ -11,8 +11,8 @@ def test_auditor_initialization():
 
 def test_demographic_bias_detection():
     examples = [
-        {"input": "text", "age_group": "young", "gender": "male", "score": 0.9},
-        {"input": "text", "age_group": "old", "gender": "female", "score": 0.5},
+        {"input": "text", "demographic_tags": ["age_young", "gender_male"], "score": 0.9},
+        {"input": "text", "demographic_tags": ["age_old", "gender_female"], "score": 0.5},
     ]
 
     def inference_fn(ex):
@@ -26,8 +26,8 @@ def test_demographic_bias_detection():
 
 def test_no_bias_when_equal():
     examples = [
-        {"input": "text", "age_group": "young", "score": 0.7},
-        {"input": "text", "age_group": "old", "score": 0.7},
+        {"input": "text", "demographic_tags": ["age_young"], "score": 0.7},
+        {"input": "text", "demographic_tags": ["age_old"], "score": 0.7},
     ]
 
     def inference_fn(ex):

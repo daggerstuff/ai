@@ -10,7 +10,7 @@ import sys
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
-from notification_integrations import (
+from ai.qa.reports.notification_integrations import (
     NotificationChannel,
     NotificationManager,
     NotificationPriority,
@@ -18,15 +18,15 @@ from notification_integrations import (
 
 
 @patch(
-    "notification_integrations.WebhookNotifier.send_notification",
+    "ai.qa.reports.notification_integrations.WebhookNotifier.send_notification",
     new_callable=AsyncMock,
 )
 @patch(
-    "notification_integrations.PagerDutyNotifier.send_notification",
+    "ai.qa.reports.notification_integrations.PagerDutyNotifier.send_notification",
     new_callable=AsyncMock,
 )
-@patch("notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock)
-@patch("notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
+@patch("ai.qa.reports.notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock)
+@patch("ai.qa.reports.notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
 async def test_individual_channels(mock_email, mock_slack, mock_pagerduty, mock_webhook):
     """Test each notification channel individually"""
     mock_email.return_value = True
@@ -89,15 +89,15 @@ async def test_individual_channels(mock_email, mock_slack, mock_pagerduty, mock_
 
 
 @patch(
-    "notification_integrations.WebhookNotifier.send_notification",
+    "ai.qa.reports.notification_integrations.WebhookNotifier.send_notification",
     new_callable=AsyncMock,
 )
 @patch(
-    "notification_integrations.PagerDutyNotifier.send_notification",
+    "ai.qa.reports.notification_integrations.PagerDutyNotifier.send_notification",
     new_callable=AsyncMock,
 )
-@patch("notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock)
-@patch("notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
+@patch("ai.qa.reports.notification_integrations.SlackNotifier.send_notification", new_callable=AsyncMock)
+@patch("ai.qa.reports.notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
 async def test_priority_levels(mock_email, mock_slack, mock_pagerduty, mock_webhook):
     """Test different priority levels with appropriate channel routing"""
     mock_email.return_value = True
@@ -149,7 +149,7 @@ async def test_priority_levels(mock_email, mock_slack, mock_pagerduty, mock_webh
             pass
 
 
-@patch("notification_integrations.NotificationManager.send_alert", new_callable=AsyncMock)
+@patch("ai.qa.reports.notification_integrations.NotificationManager.send_alert", new_callable=AsyncMock)
 async def test_concurrent_notifications(mock_send_alert):
     """Test sending multiple notifications concurrently"""
     mock_send_alert.return_value = {
@@ -191,7 +191,7 @@ async def test_concurrent_notifications(mock_send_alert):
             pass
 
 
-@patch("notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
+@patch("ai.qa.reports.notification_integrations.EmailNotifier.send_notification", new_callable=AsyncMock)
 async def test_error_handling(mock_email):
     """Test error handling with invalid configurations"""
     mock_email.return_value = False
@@ -212,7 +212,7 @@ async def test_error_handling(mock_email):
 
 
 @patch(
-    "notification_integrations.NotificationManager.send_notification",
+    "ai.qa.reports.notification_integrations.NotificationManager.send_notification",
     new_callable=AsyncMock,
 )
 async def test_alert_grouping(mock_send_notification):
