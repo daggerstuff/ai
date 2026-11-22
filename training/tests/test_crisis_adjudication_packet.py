@@ -12,6 +12,7 @@ from training.launch import crisis_adjudication_packet as cap
 EXPECTED_ITEMS = 4
 EXPECTED_PROBES = 2
 EXPECTED_PERFECT_SCORE = 2.0
+MEETS = 2
 
 
 def _write(path: Path, rows: list[dict]) -> Path:
@@ -114,3 +115,120 @@ def test_summarize_rejects_out_of_range_scores(tmp_path: Path) -> None:
     sheet_path.write_text(json.dumps(sheet))
     with pytest.raises(SystemExit):
         cap.summarize(sheet_path, out / "key.json", out / "summary.json", allow_partial=True)
+
+
+def _completed(tmp_path: Path) -> tuple[Path, Path, dict]:
+    cases, results = _cases(tmp_path), _results(tmp_path)
+    out = tmp_path / "out"
+    cap.build(cases, results, out, ("base", "sft"), seed=7)
+    key_path = out / "key.json"
+    key = json.loads(key_path.read_text())
+    sheet_path = out / "response-sheet.json"
+    sheet = json.loads(sheet_path.read_text())
+    for entry in sheet["entries"]:
+        arm = key["mapping"][str(entry["case_number"])][entry["item"]]
+        entry["scores"] = dict.fromkeys(cap.DIMENSIONS, 2 if arm == "sft" else 0)
+    sheet_path.write_text(json.dumps(sheet))
+    return sheet_path, key_path, sheet
+
+
+def test_build_requires_two_unique_arms(tmp_path: Path) -> None:
+    cases, results = _cases(tmp_path), _results(tmp_path)
+    for arms in ((), ("base",), ("base", "base")):
+        with pytest.raises(ValueError, match="two unique arm"):
+            cap.build(cases, results, tmp_path / "out", arms, seed=7)
+
+
+def test_build_refuses_to_overwrite_completed_scores(tmp_path: Path) -> None:
+    cases, results = _cases(tmp_path), _results(tmp_path)
+    out = tmp_path / "out"
+    cap.build(cases, results, out, ("base", "sft"), seed=7)
+    sheet_path = out / "response-sheet.json"
+    sheet = json.loads(sheet_path.read_text())
+    sheet["entries"][0]["scores"]["register"] = MEETS
+    sheet_path.write_text(json.dumps(sheet))
+
+    with pytest.raises(ValueError, match="already holds"):
+        cap.build(cases, results, out, ("base", "sft"), seed=7)
+    assert json.loads(sheet_path.read_text())["entries"][0]["scores"]["register"] == MEETS
+
+
+def test_build_may_rebuild_over_a_blank_sheet(tmp_path: Path) -> None:
+    cases, results = _cases(tmp_path), _results(tmp_path)
+    out = tmp_path / "out"
+    first = cap.build(cases, results, out, ("base", "sft"), seed=7)
+    second = cap.build(cases, results, out, ("base", "sft"), seed=7)
+    assert first == second
+
+
+def test_build_reads_a_prompt_field_when_messages_are_absent(tmp_path: Path) -> None:
+    cases_path = _write(
+        tmp_path / "cases.jsonl",
+        [{"id": "case-p", "prompt": "my landlord raised the rent again"}],
+    )
+    results = _write(
+        tmp_path / "results.jsonl",
+        [
+            {
+                "case_id": "case-p",
+                "arm_id": arm,
+                "status": "success",
+                "response": f"reply from {arm}",
+            }
+            for arm in ("base", "sft")
+        ],
+    )
+    out = tmp_path / "out"
+    cap.build(cases_path, results, out, ("base", "sft"), seed=7)
+    assert "my landlord raised the rent again" in (out / "packet.md").read_text()
+
+
+def test_summarize_rejects_a_blank_sheet_without_allow_partial(tmp_path: Path) -> None:
+    cases, results = _cases(tmp_path), _results(tmp_path)
+    out = tmp_path / "out"
+    cap.build(cases, results, out, ("base", "sft"), seed=7)
+    with pytest.raises(SystemExit, match="unfilled"):
+        cap.summarize(out / "response-sheet.json", out / "key.json", out / "summary.json")
+    report = cap.summarize(out / "response-sheet.json", out / "key.json", out / "summary.json", allow_partial=True)
+    assert report["entries_scored"] == 0
+    assert report["arms"]["sft"]["correctness"]["n"] == 0
+
+
+def test_summarize_counts_only_scored_entries(tmp_path: Path) -> None:
+    sheet_path, key_path, sheet = _completed(tmp_path)
+    for dim in cap.DIMENSIONS:
+        sheet["entries"][0]["scores"][dim] = None
+    sheet_path.write_text(json.dumps(sheet))
+    report = cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json", allow_partial=True)
+    assert report["entries_scored"] == len(sheet["entries"]) - 1
+
+
+def test_summarize_rejects_a_sheet_from_another_packet(tmp_path: Path) -> None:
+    sheet_path, key_path, sheet = _completed(tmp_path)
+    sheet["packet_id"] = "0000000000000000"
+    sheet_path.write_text(json.dumps(sheet))
+    with pytest.raises(SystemExit, match="does not belong"):
+        cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")
+
+
+def test_summarize_rejects_unknown_dimensions_and_extra_entries(tmp_path: Path) -> None:
+    sheet_path, key_path, sheet = _completed(tmp_path)
+    sheet["entries"][0]["scores"]["vibes"] = 2
+    sheet_path.write_text(json.dumps(sheet))
+    with pytest.raises(SystemExit, match="unknown dimensions"):
+        cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")
+
+    sheet["entries"][0]["scores"].pop("vibes")
+    sheet["entries"].append({"case_number": 99, "item": "A", "scores": dict.fromkeys(cap.DIMENSIONS, 2), "notes": ""})
+    sheet_path.write_text(json.dumps(sheet))
+    with pytest.raises(SystemExit, match="outside the key"):
+        cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")
+
+
+def test_summarize_rejects_boolean_and_float_scores(tmp_path: Path) -> None:
+    sheet_path, key_path, sheet = _completed(tmp_path)
+    for bad in (True, 1.0):
+        sheet["entries"][0]["scores"]["register"] = bad
+        sheet_path.write_text(json.dumps(sheet))
+        with pytest.raises(SystemExit, match="is not 0/1/2/null"):
+            cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json", allow_partial=True)
