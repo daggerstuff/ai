@@ -148,16 +148,20 @@ def apply(source: Path, out: Path, plan: RestorePlan) -> Restored:
 def load_experiment(experiment: Experiment) -> tuple[RestorePlan, Receipt]:
     if experiment.source_receipt.exists() is False:
         raise RepairInputError("source export receipt is missing")
-    if _sha256(experiment.source_receipt) != experiment.source_receipt_sha256:
+    # Hash the bytes that are parsed, so a file that changes between the check
+    # and the read cannot be validated as one thing and applied as another.
+    receipt_bytes = experiment.source_receipt.read_bytes()
+    plan_bytes = experiment.restore_plan.read_bytes()
+    if hashlib.sha256(receipt_bytes).hexdigest() != experiment.source_receipt_sha256:
         raise RepairInputError("source export receipt differs from the experiment")
-    if _sha256(experiment.restore_plan) != experiment.restore_plan_sha256:
+    if hashlib.sha256(plan_bytes).hexdigest() != experiment.restore_plan_sha256:
         raise RepairInputError("restore plan differs from the experiment")
     if not experiment.original_train.exists():
         raise RepairInputError("original train split is missing")
     if not experiment.restored_train.exists():
         raise RepairInputError("restored train split is missing")
-    plan = RestorePlan.model_validate_json(experiment.restore_plan.read_bytes())
-    receipt = Receipt.model_validate_json(experiment.source_receipt.read_bytes())
+    plan = RestorePlan.model_validate_json(plan_bytes)
+    receipt = Receipt.model_validate_json(receipt_bytes)
     if receipt.source_train_sha256 != plan.source_train_sha256:
         raise RepairInputError("the source export and the restore plan bind different training corpora")
     if _sha256(receipt.path) != receipt.sha256:
@@ -185,8 +189,12 @@ def _datum_for(messages: list[dict], receipt: Receipt) -> Datum:
 def retokenize(experiment: Experiment, plan: RestorePlan, receipt: Receipt) -> Retokenized:
     """Rebuild only the restored rows; carry every other datum over byte-exact."""
     repairs = {row.row_number: row for row in plan.rows}
+    if len(repairs) != len(plan.rows):
+        raise RepairInputError("duplicate row_number in restore plan")
+    instruction = plan.checked_instruction()
     replacements: dict[str, bytes] = {}
     source_hash, restored_hash = hashlib.sha256(), hashlib.sha256()
+
     def line_count(path: Path) -> int:
         with path.open("rb") as handle:
             return sum(1 for _ in handle)
@@ -195,9 +203,7 @@ def retokenize(experiment: Experiment, plan: RestorePlan, receipt: Receipt) -> R
     if original_lines != restored_lines:
         raise RepairInputError(f"restored corpus has {restored_lines} rows; the source has {original_lines}")
     with experiment.original_train.open("rb") as src, experiment.restored_train.open("rb") as restored_stream:
-        for number, (original_raw, restored_raw) in enumerate(
-            zip(src, restored_stream, strict=True), start=1
-        ):
+        for number, (original_raw, restored_raw) in enumerate(zip(src, restored_stream, strict=True), start=1):
             source_hash.update(original_raw)
             restored_hash.update(restored_raw)
             if number not in repairs:
@@ -209,7 +215,10 @@ def retokenize(experiment: Experiment, plan: RestorePlan, receipt: Receipt) -> R
                 raise RepairInputError(f"source row differs from plan at {number}")
             original_payload = Payload.model_validate_json(original_raw)
             restored_payload = Payload.model_validate_json(restored_raw)
-            if list(restored_payload.messages)[1:] != [dict(m) for m in original_payload.messages]:
+            expected_messages = restore_messages(list(original_payload.messages), instruction)
+            if list(restored_payload.messages) != list(expected_messages) or restored_payload.model_dump(
+                exclude={"messages"}
+            ) != original_payload.model_dump(exclude={"messages"}):
                 raise RepairInputError(f"restored row {number} changes more than the prepended system message")
             before = _datum_for(list(original_payload.messages), receipt)
             after = _datum_for(list(restored_payload.messages), receipt)
@@ -270,9 +279,10 @@ def main() -> None:
     @app.command("apply")
     def apply_cmd(source: Path, plan: Path, out: Path):
         """Write the restored corpus after hash verification."""
-        specification = RestorePlan.model_validate_json(plan.read_bytes())
+        plan_bytes = plan.read_bytes()
+        specification = RestorePlan.model_validate_json(plan_bytes)
         result = apply(source, out, specification)
-        receipt = {**result.model_dump(), "plan_sha256": hashlib.sha256(plan.read_bytes()).hexdigest()}
+        receipt = {**result.model_dump(), "plan_sha256": hashlib.sha256(plan_bytes).hexdigest()}
         out.with_suffix(".receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
         typer.echo(f"{result.changed_rows} rows restored; {result.rows} rows preserved")
 

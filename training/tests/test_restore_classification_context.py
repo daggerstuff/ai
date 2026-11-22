@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -15,7 +16,9 @@ from training.restore_classification_context import (
     RestoreRow,
     apply,
     export,
+    load_experiment,
     restore_messages,
+    retokenize,
 )
 from training.tests.test_export_tinker_release import StubTokenizer
 
@@ -111,9 +114,7 @@ def test_apply_prepends_the_instruction_and_preserves_every_other_byte(tmp_path:
         review_state="agent_research_not_clinically_adjudicated",
         clinical_reviewed=False,
         rows=(
-            RestoreRow(
-                row_number=2, row_sha256=hashlib.sha256(raw[1]).hexdigest(), selected_line=2, candidate_row=99
-            ),
+            RestoreRow(row_number=2, row_sha256=hashlib.sha256(raw[1]).hexdigest(), selected_line=2, candidate_row=99),
         ),
     )
 
@@ -143,19 +144,19 @@ def test_apply_refuses_to_double_restore(tmp_path: Path) -> None:
         review_state="agent_research_not_clinically_adjudicated",
         clinical_reviewed=False,
         rows=(
-            RestoreRow(
-                row_number=1, row_sha256=hashlib.sha256(raw[0]).hexdigest(), selected_line=1, candidate_row=1
-            ),
+            RestoreRow(row_number=1, row_sha256=hashlib.sha256(raw[0]).hexdigest(), selected_line=1, candidate_row=1),
         ),
     )
     first = tmp_path / "restored.jsonl"
     apply(source, first, plan)
     restored_line = first.read_bytes().splitlines(keepends=True)[0]
     # rebuild a plan bound to the restored corpus; the row now carries a system message
-    double = plan.model_copy(update={
-        "source_train_sha256": hashlib.sha256(first.read_bytes()).hexdigest(),
-        "rows": (plan.rows[0].model_copy(update={"row_sha256": hashlib.sha256(restored_line).hexdigest()}),),
-    })
+    double = plan.model_copy(
+        update={
+            "source_train_sha256": hashlib.sha256(first.read_bytes()).hexdigest(),
+            "rows": (plan.rows[0].model_copy(update={"row_sha256": hashlib.sha256(restored_line).hexdigest()}),),
+        }
+    )
     with pytest.raises(RepairInputError, match="already carries a system message"):
         apply(first, tmp_path / "twice.jsonl", double)
 
@@ -209,3 +210,43 @@ def test_export_refuses_to_overwrite_existing_output(tmp_path: Path, monkeypatch
 
     with pytest.raises(FileExistsError):
         export(specification, out)
+
+
+def _rewrite_restored(experiment: Experiment, mutate: Callable[[list[dict]], None]) -> None:
+    rows = [json.loads(line) for line in experiment.restored_train.read_bytes().splitlines()]
+    mutate(rows)
+    experiment.restored_train.write_bytes(b"".join((json.dumps(row) + "\n").encode() for row in rows))
+
+
+def test_export_rejects_a_different_prepended_instruction(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    specification, experiment, _, _ = fixture(tmp_path, monkeypatch)
+
+    def replace_instruction(rows: list[dict]) -> None:
+        rows[1]["messages"][0]["content"] = "A different instruction."
+
+    _rewrite_restored(experiment, replace_instruction)
+
+    with pytest.raises(RepairInputError, match="changes more than the prepended system message"):
+        export(specification, tmp_path / "out")
+    assert not (tmp_path / "out").exists()
+
+
+def test_export_rejects_changed_row_metadata(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    specification, experiment, _, _ = fixture(tmp_path, monkeypatch)
+
+    def add_metadata(rows: list[dict]) -> None:
+        rows[1]["candidate_row"] = 12345
+
+    _rewrite_restored(experiment, add_metadata)
+
+    with pytest.raises(RepairInputError, match="changes more than the prepended system message"):
+        export(specification, tmp_path / "out")
+
+
+def test_retokenize_rejects_duplicate_plan_rows(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _, experiment, _, _ = fixture(tmp_path, monkeypatch)
+    plan, receipt = load_experiment(experiment)
+    duplicated = plan.model_copy(update={"rows": (*plan.rows, plan.rows[0])})
+
+    with pytest.raises(RepairInputError, match="duplicate row_number"):
+        retokenize(experiment, duplicated, receipt)
