@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -65,6 +66,45 @@ def test_strip_stops_cuts_at_the_first_marker_and_trims() -> None:
     assert local.strip_stops("a reply", ["<|im_end|>"]) == "a reply"
 
 
+def test_the_cli_can_score_an_adapter_on_the_base_it_was_trained_on(tmp_path: Path, monkeypatch: Any) -> None:
+    seen: list[bool] = []
+
+    class Recorder(EchoTransport):
+        def __init__(self, *args: Any, load_in_4bit: bool = False) -> None:
+            seen.append(load_in_4bit)
+            super().__init__()
+
+    monkeypatch.setattr(local, "LocalChatTransport", Recorder)
+
+    def run(extra: list[str]) -> int:
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            [
+                "local_paired_eval",
+                "--base-model",
+                "Qwen/Qwen3-8B",
+                "--adapter",
+                "/adapters/nf4",
+                "--cases",
+                str(DEV_CASES),
+                "--results-dir",
+                str(tmp_path / f"results-{len(seen)}"),
+                "--arm",
+                "base",
+                *extra,
+            ],
+        )
+        return local.main()
+
+    assert run([]) == 0
+    assert run(["--load-in-4bit"]) == 0
+
+    # The NF4 adapter was fitted against a 4-bit base, so the flag has to reach
+    # the loader instead of being accepted and dropped on the floor.
+    assert seen == [False, True]
+
+
 def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> None:
     config_path = tmp_path / "config.json"
     config_path.write_text(
@@ -81,10 +121,8 @@ def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> Non
 
     result = paired_eval.run_paired(request, transport=transport)
 
-    cases = paired_eval.load_cases(DEV_CASES)
-
     assert result["status"] == "complete"
-    assert result["success_count"] == len(cases) * 2  # every dev case scored on both arms
+    assert result["success_count"] == 24  # 12 dev cases scored on both arms
     assert {arm for arm, _ in transport.calls} == {"base", "sft"}
     records = [json.loads(line) for line in (tmp_path / "results" / "results.jsonl").read_text().splitlines()]
     crisis = [record for record in records if record["scenario"] == "crisis"]

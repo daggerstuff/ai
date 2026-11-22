@@ -42,18 +42,20 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
 import os
 import sys
 from collections import Counter
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
-from training.export_fireworks_release import SelectionOptions, select_rows
+from training.export_fireworks_release import Selection, SelectionOptions, select_rows
 
 ROOT = Path(__file__).resolve().parents[2]
+CRISIS_SOURCE_PREFIX = "crisis_direct_"
 DEFAULT_MANIFEST = ROOT / "docs/training/execution-2026-11-10/wandb-full-corpus-current-master-20261110-v19.json"
 DEFAULT_OUT_DIR = ROOT / "ai/training/output/tinker"
 
@@ -241,6 +243,65 @@ def build_datum(
     return Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:])
 
 
+def crisis_reply_surface(manifest: Mapping[str, Any]) -> frozenset[str]:
+    """Return every assistant reply the release appended as a crisis-family row.
+
+    The appended rows carry only ``messages``, so once they are in the train
+    split nothing distinguishes them from the general corpus: their replies
+    contain the routing vocabulary, which sends them into the capped routing
+    pool, and the rest land in the hash-sampled filler pool. That kept about a
+    quarter of the family. The manifest still names the builder that produced
+    the rows, and that builder's ``collect_rows()`` is the authoritative
+    surface, so the keep set is derived rather than restated here.
+    """
+    sources = (manifest.get("scope") or {}).get("appended_rows_by_source") or {}
+    tags = sorted(name[len(CRISIS_SOURCE_PREFIX) :] for name in sources if name.startswith(CRISIS_SOURCE_PREFIX))
+    if not tags:
+        # A manifest that predates the crisis family has nothing to keep whole.
+        return frozenset()
+    replies: set[str] = set()
+    for tag in tags:
+        module_name = f"training.build_agent_tool_sft_{tag}"
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError as error:
+            raise ValueError(f"{module_name} is not importable: {error}") from error
+        for rows in module.collect_rows().values():
+            for row in rows:
+                replies.update(
+                    message["content"]
+                    for message in row["messages"]
+                    if message.get("role") == "assistant" and message.get("content")
+                )
+    return frozenset(replies)
+
+
+def select_for_export(
+    manifest: Mapping[str, Any],
+    train_path: Path,
+    options: SelectionOptions | None,
+    limit: int | None,
+) -> tuple[list[Selection], Counter[str]]:
+    """Select the rows to tokenize, keeping the crisis family whole.
+
+    The crisis family is split between the capped routing pool and the
+    hash-sampled filler pool, so which quarter of it survives a rebuild is an
+    accident of the row's serialized bytes. Deriving the keep set from the
+    release's own appended source and selecting it before either pool means the
+    graded rows train every time instead of a different subset each release.
+    """
+    if options is None:
+        options = SelectionOptions()
+    if options.keep_replies is None:
+        options = replace(options, keep_replies=crisis_reply_surface(manifest))
+    selections, counts = select_rows(train_path, options)
+    if limit is not None:
+        # Smoke exports only: a truncated selection still exercises the real
+        # tokenizer and template, but its counts are not a release figure.
+        selections = selections[:limit]
+    return selections, counts
+
+
 def export(
     manifest_path: Path,
     out_dir: Path,
@@ -262,11 +323,7 @@ def export(
     if not train_path.is_absolute():
         train_path = ROOT / train_path
 
-    selections, counts = select_rows(train_path, options or SelectionOptions())
-    if limit is not None:
-        # Smoke exports only: a truncated selection still exercises the real
-        # tokenizer and template, but its counts are not a release figure.
-        selections = selections[:limit]
+    selections, counts = select_for_export(manifest, train_path, options, limit)
     result = Export(counts=counts, source_rows=len(selections))
 
     if tokenizer is None:

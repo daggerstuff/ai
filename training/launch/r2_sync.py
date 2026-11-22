@@ -37,12 +37,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-# boto3 is a declared core dependency (pyproject.toml, [project].dependencies),
-# not an optional extra, so it is imported eagerly: the module either imports or
-# it fails immediately, never halfway through a job.
-import boto3
-from botocore.config import Config
-
 REQUIRED_ENV = ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT")
 DEFAULT_BUCKET_ENV = "R2_BUCKET"
 DEFAULT_BUCKET = "training"
@@ -95,7 +89,16 @@ def credentials(*, env_file: Path | None = None) -> dict[str, str]:
 
 
 def client(*, env_file: Path | None = None) -> Any:
-    """A boto3 S3 client pointed at R2."""
+    """A boto3 S3 client pointed at R2.
+
+    boto3 is imported lazily: the GPU image runs this module for the
+    stdlib-only put-file/fetch-file path and has no SDK installed, so an
+    eager import would break result upload from the job even before
+    credentials are ever needed.
+    """
+    import boto3
+    from botocore.config import Config
+
     settings = credentials(env_file=env_file)
     return boto3.client(
         "s3",

@@ -102,6 +102,13 @@ class SelectionOptions:
     turn sits late in a long arc, so a row longer than the training context is
     paid for in full and teaches nothing. ``sample_max_chars`` keeps the filler
     sample cheap, and ``routing_cap`` bounds the expensive risk rows.
+
+    ``keep_replies`` is a hand-written surface that must reach the dataset whole.
+    The crisis family is written as one disclosure and one reply, and its replies
+    share the routing vocabulary, so without this set the family is split between
+    the capped routing pool and the hash-sampled filler pool and only a fraction
+    of it survives. Because the filler sample is keyed on the row's serialized
+    bytes, that fraction also moves every time a release is rebuilt.
     """
 
     seed: int = DEFAULT_SEED
@@ -110,6 +117,7 @@ class SelectionOptions:
     max_chars: int = DEFAULT_MAX_CHARS
     sample_max_chars: int = DEFAULT_SAMPLE_MAX_CHARS
     include_tool_rows: bool = False
+    keep_replies: frozenset[str] | None = None
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -153,11 +161,19 @@ def _sample_key(line: str, seed: int) -> str:
     return hashlib.sha256(f"{seed}:{line}".encode()).hexdigest()
 
 
+def carries_keep_reply(row: dict[str, Any], keep_replies: frozenset[str]) -> bool:
+    """Return whether any assistant turn in the row is a keep-set surface."""
+    return any(
+        message.get("content") in keep_replies for message in row["messages"] if message.get("role") == "assistant"
+    )
+
+
 def select_rows(
     train_path: Path,
     options: SelectionOptions,
 ) -> tuple[list[Selection], Counter[str]]:
     """Select the rows to export and count them by reason."""
+    family: list[Selection] = []
     routing: list[Selection] = []
     acute: list[Selection] = []
     filler: list[Selection] = []
@@ -170,6 +186,16 @@ def select_rows(
                 counts["tool_rows_excluded"] += 1
                 continue
             selection = _write_payload(Selection(row_number=row_number), row)
+            if options.keep_replies and carries_keep_reply(row, options.keep_replies):
+                # Uncapped and checked first: a keep-set row is the reason the
+                # release exists, so neither the routing cap nor the filler
+                # sample may decide whether it is trained on.
+                if selection.chars > options.max_chars:
+                    counts["crisis_too_long_excluded"] += 1
+                    continue
+                selection.reasons = ["crisis_family"]
+                family.append(selection)
+                continue
             if selection.chars > options.max_chars:
                 counts["too_long_excluded"] += 1
                 continue
@@ -181,11 +207,14 @@ def select_rows(
             elif selection.chars <= options.sample_max_chars:
                 filler.append(selection)
 
-    kept = acute + _lowest_by_hash(routing, options.routing_cap, options.seed, "routing")
+    kept = list(family)
+    kept.extend(acute)
+    kept.extend(_lowest_by_hash(routing, options.routing_cap, options.seed, "routing"))
     sampled = _lowest_by_hash(filler, options.chat_sample, options.seed, "sample")
     kept.extend(sampled)
     kept.sort(key=lambda selection: selection.row_number)
 
+    counts["crisis_rows"] = len(family)
     counts["routing_rows"] = len(routing)
     counts["routing_kept"] = sum(1 for selection in kept if "routing" in selection.reasons)
     counts["acute_client_rows"] = len(acute)

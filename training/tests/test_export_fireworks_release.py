@@ -132,3 +132,58 @@ def test_select_rows_keeps_filler_rows_under_the_sample_size(tmp_path: Path) -> 
     kept, counts = fw.select_rows(train, fw.SelectionOptions(sample_max_chars=100))
     assert kept == []
     assert counts["sample"] == 0
+
+
+CRISIS_REPLY = "Call 911 now and say your head was banged against the wall. That needs a doctor tonight."
+
+
+def test_select_rows_carries_every_keep_set_row_uncapped(tmp_path: Path) -> None:
+    """The crisis family must not compete for the routing cap or the sample."""
+    rows = [chat(f"disclosure {index}", CRISIS_REPLY) for index in range(10)]
+    train = write_train(tmp_path / "train.jsonl", rows)
+    options = fw.SelectionOptions(routing_cap=1, chat_sample=1, keep_replies=frozenset({CRISIS_REPLY}))
+    kept, counts = fw.select_rows(train, options)
+    assert len(kept) == len(rows)
+    assert counts["crisis_rows"] == len(rows)
+    assert counts["routing_rows"] == 0
+    assert all(selection.reasons == ["crisis_family"] for selection in kept)
+
+
+def test_select_rows_keep_set_survives_the_route_that_would_have_dropped_it(tmp_path: Path) -> None:
+    """A keep-set row is matched before classify, so routing terms cannot cap it."""
+    rows = [chat(f"disclosure {index}", ROUTING_REPLY) for index in range(4)]
+    train = write_train(tmp_path / "train.jsonl", rows)
+    without, counts_without = fw.select_rows(train, fw.SelectionOptions(routing_cap=1))
+    with_keep, counts_with = fw.select_rows(
+        train, fw.SelectionOptions(routing_cap=1, keep_replies=frozenset({ROUTING_REPLY}))
+    )
+    assert len(without) == 1
+    assert counts_without["routing_kept"] == 1
+    assert counts_without["crisis_rows"] == 0
+    assert len(with_keep) == len(rows)
+    assert counts_with["crisis_rows"] == len(rows)
+    assert counts_with["routing_rows"] == 0
+
+
+def test_select_rows_keep_set_does_not_exempt_a_row_from_the_context_cap(tmp_path: Path) -> None:
+    long_row = chat("x" * 500, CRISIS_REPLY)
+    train = write_train(tmp_path / "train.jsonl", [long_row])
+    kept, counts = fw.select_rows(
+        train, fw.SelectionOptions(max_chars=100, keep_replies=frozenset({CRISIS_REPLY}))
+    )
+    assert kept == []
+    assert counts["crisis_too_long_excluded"] == 1
+    assert counts["crisis_rows"] == 0
+
+
+def test_carries_keep_reply_matches_any_assistant_turn() -> None:
+    multi = row(
+        [
+            {"role": "user", "content": "hello"},
+            {"role": "assistant", "content": PLAIN_REPLY},
+            {"role": "user", "content": "and now"},
+            {"role": "assistant", "content": CRISIS_REPLY},
+        ]
+    )
+    assert fw.carries_keep_reply(multi, frozenset({CRISIS_REPLY}))
+    assert not fw.carries_keep_reply(multi, frozenset({ROUTING_REPLY}))

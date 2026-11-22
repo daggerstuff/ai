@@ -212,6 +212,8 @@ training/*
 !training/ovh_v22_qwen3_8b/*.sh
 !training/ovh_v22_eval/
 !training/ovh_v22_eval/*.sh
+!training/ovh_v23_qwen3_8b/
+!training/ovh_v23_qwen3_8b/*.sh
 !training/**/*.py
 !training/**/*.pyi
 !training/annotation/
@@ -263,6 +265,7 @@ training/tests/*
 !training/tests/test_kaggle_v22_qwen3_8b.py
 !training/tests/test_local_paired_eval.py
 !training/tests/test_strict_crisis_gate.py
+!training/tests/test_recover_eval_records.py
 !training/tests/test_build_v18_release.py
 !training/tests/test_rescore_eval_run.py
 !training/tests/test_crisis_register.py
@@ -277,6 +280,27 @@ training/tests/*
 !training/tests/test_export_adaption_release.py
 !training/tests/test_adaption_dataset_upload.py
 !training/tests/test_rewrite_arc_risk_turns.py
+!training/tests/test_r2_sync.py
+!training/tests/test_ovh_eval_submit.py
+!training/tests/test_ovh_train_submit.py
+!training/tests/test_build_agent_tool_sft_v23.py
+!training/tests/test_build_v23_release.py
+!training/tests/test_crisis_suite_fixtures.py
+!training/tests/test_build_agent_tool_sft_v24.py
+!training/tests/test_build_v24_release.py
+!training/tests/test_build_agent_tool_sft_v25.py
+!training/tests/test_build_v25_release.py
+!training/tests/test_build_agent_tool_sft_v26.py
+!training/tests/test_build_v26_release.py
+!training/tests/test_build_agent_tool_sft_v27.py
+!training/tests/test_build_v27_release.py
+!training/tests/test_build_agent_tool_sft_v28.py
+!training/tests/test_build_v28_release.py
+!training/tests/test_build_agent_tool_sft_v29.py
+!training/tests/test_build_v29_release.py
+!training/tests/test_build_agent_tool_sft_v30.py
+!training/tests/test_build_v30_release.py
+!training/tests/test_crisis_suite_v2.py
 # Track golden calibration data for LLM quality judge
 training/data/*
 !training/data/golden_judge_calib.jsonl
@@ -359,7 +383,16 @@ monitoring/**/*.png
 # Provisioned review-bot / agent configs (environment tooling, not source)
 .coderabbit.yaml
 .cursor/
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.opencode/
+.superpowers/
+.squad/
 .greptile/
 .pr_agent.toml
 .sourcery.yaml
 cubic.yaml
+.DS_Store
