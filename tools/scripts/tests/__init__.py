@@ -156,7 +156,6 @@ profiles:
     path.write_text(content)
     return path
 
-
 __all__ = [
     "Any",
     "AuthManager",

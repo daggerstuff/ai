@@ -329,6 +329,24 @@ def import_config(_ctx, file: str, profile: str | None, overwrite: bool):
 
 
 @config_group.command()
+@click.option("--profile", help="Configuration profile to use")
+@click.pass_context
+def profiles(_ctx, profile: str | None):
+    """List the available configuration profiles."""
+    config = get_config(profile)
+    available = config.list_profiles()
+
+    if not available:
+        click.echo("No configuration profiles found.")
+        return
+
+    active = config.profile
+    click.echo("Available profiles:")
+    for name in available:
+        marker = "*" if name == active else " "
+        click.echo(f" {marker} {name}")
+
+@config_group.command()
 @click.pass_context
 def env_info(_ctx):
     """Display environment information and requirements."""

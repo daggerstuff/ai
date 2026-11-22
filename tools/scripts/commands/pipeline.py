@@ -14,6 +14,7 @@ import click
 
 from tools.scripts.auth import AuthManager
 from tools.scripts.config import get_config
+from tools.scripts.pipeline import PipelineManager
 from tools.scripts.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
@@ -772,3 +773,12 @@ def _save_pipeline_info(pipeline_id: str, _pipeline_info: dict[str, Any]) -> Non
     """Save pipeline information for later reference."""
     # This would save to a local cache or config file
     logger.info(f"Saved pipeline info for {pipeline_id}")
+
+@pipeline_group.command()
+@click.option("--pipeline-id", "-p", help="Pipeline execution to inspect")
+@click.pass_context
+def status(_ctx, pipeline_id: str | None):
+    """Show the status of pipeline executions."""
+    config_obj = get_config()
+    manager = PipelineManager(config_obj, AuthManager(config_obj))
+    click.echo(manager.get_status(pipeline_id))

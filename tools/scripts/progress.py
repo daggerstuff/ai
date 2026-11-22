@@ -62,7 +62,7 @@ class ProgressReport:
     total_steps: int
     completed_steps: int = 0
     failed_steps: int = 0
-    start_time: datetime = field(default_factory=datetime.now)
+    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     end_time: datetime | None = None
     steps: list[ProgressStep] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -117,6 +117,7 @@ class ProgressTracker:
         status: ProgressStatus,
         description: str | None = None,
         error: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Update the status of a specific step"""
         with self._lock:
@@ -133,6 +134,8 @@ class ProgressTracker:
 
             # Update step status
             step.status = status
+            if metadata:
+                step.metadata.update(metadata)
             if status == ProgressStatus.RUNNING and step.start_time is None:
                 step.start_time = datetime.now(UTC)
             elif status in [ProgressStatus.COMPLETED, ProgressStatus.FAILED, ProgressStatus.CANCELLED]:
@@ -219,7 +222,9 @@ class ProgressTracker:
         """Track file processing with progress bar"""
         operation_id = self.track_operation(operation_name, len(files))
 
-        with self.create_progress_bar(len(files), f"Processing {len(files)} files") as (progress, task_id):
+        progress, task_id = self.create_progress_bar(len(files), f"Processing {len(files)} files")
+
+        with progress:
             for i, file_path in enumerate(files):
                 self.update_step(operation_id, f"file_{i}", ProgressStatus.RUNNING, f"Processing {file_path}")
 

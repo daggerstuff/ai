@@ -37,7 +37,7 @@ class TestAuthManager:
             "token_type": "Bearer",
         }
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             result = auth_manager.login("testuser", "testpass")
 
             assert result is True
@@ -54,7 +54,7 @@ class TestAuthManager:
         mock_response.status_code = 401
         mock_response.text = "Invalid credentials"
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             with pytest.raises(CLIAuthError) as exc_info:
                 auth_manager.login("invaliduser", "invalidpass")
 
@@ -64,7 +64,7 @@ class TestAuthManager:
         """Test login failure due to network error"""
         auth_manager = AuthManager(mock_config)
 
-        with patch("cli.auth.requests.post", side_effect=Exception("Network error")):
+        with patch("tools.scripts.auth.requests.post", side_effect=Exception("Network error")):
             with pytest.raises(CLIAuthError) as exc_info:
                 auth_manager.login("testuser", "testpass")
 
@@ -113,7 +113,7 @@ class TestAuthManager:
             "expires_in": 3600,
         }
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             result = auth_manager.refresh_token()
 
             assert result is True
@@ -139,7 +139,7 @@ class TestAuthManager:
         mock_response.status_code = 401
         mock_response.text = "Invalid refresh token"
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             with pytest.raises(CLIAuthError) as exc_info:
                 auth_manager.refresh_token()
 
@@ -175,7 +175,7 @@ class TestAuthManager:
         mock_response = Mock()
         mock_response.status_code = 401
 
-        with patch("cli.auth.requests.get", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.get", return_value=mock_response):
             is_valid = auth_manager.validate_token()
 
             assert is_valid is False
@@ -191,7 +191,7 @@ class TestAuthManager:
             "roles": ["user", "admin"],
         }
 
-        with patch("cli.auth.requests.get", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.get", return_value=mock_response):
             user_info = mock_auth_manager.get_user_info()
 
             assert user_info["username"] == "testuser"
@@ -214,7 +214,7 @@ class TestAuthManager:
         mock_response.status_code = 200
         mock_response.json.return_value = {"roles": ["user", "admin"]}
 
-        with patch("cli.auth.requests.get", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.get", return_value=mock_response):
             has_admin = mock_auth_manager.has_role("admin")
             has_user = mock_auth_manager.has_role("user")
 
@@ -228,14 +228,19 @@ class TestAuthManager:
         mock_response.status_code = 200
         mock_response.json.return_value = {"roles": ["user"]}
 
-        with patch("cli.auth.requests.get", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.get", return_value=mock_response):
             has_admin = mock_auth_manager.has_role("admin")
 
             assert has_admin is False
 
     def test_get_status_authenticated(self, mock_auth_manager):
         """Test getting authentication status when authenticated"""
-        status = mock_auth_manager.get_status()
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"username": "testuser", "roles": ["user"]}
+
+        with patch("tools.scripts.auth.requests.get", return_value=mock_response):
+            status = mock_auth_manager.get_status()
 
         assert "Authenticated" in status
         assert "testuser" in status
@@ -254,7 +259,7 @@ class TestAuthManager:
         mock_response = Mock()
         mock_response.status_code = 200
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             result = mock_auth_manager.change_password("oldpass", "newpass")
 
             assert result is True
@@ -266,7 +271,7 @@ class TestAuthManager:
         mock_response.status_code = 400
         mock_response.text = "Invalid old password"
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             with pytest.raises(CLIAuthError) as exc_info:
                 mock_auth_manager.change_password("wrongold", "newpass")
 
@@ -282,7 +287,7 @@ class TestAuthManager:
             "backup_codes": ["code1", "code2", "code3"],
         }
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             mfa_data = mock_auth_manager.enable_mfa()
 
             assert "qr_code" in mfa_data
@@ -295,7 +300,7 @@ class TestAuthManager:
         mock_response = Mock()
         mock_response.status_code = 200
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             result = mock_auth_manager.disable_mfa("current_password")
 
             assert result is True
@@ -313,7 +318,7 @@ class TestAuthManager:
             "expires_in": 3600,
         }
 
-        with patch("cli.auth.requests.post", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.post", return_value=mock_response):
             result = auth_manager.verify_mfa("123456")
 
             assert result is True
@@ -335,7 +340,7 @@ class TestAuthManager:
             ]
         }
 
-        with patch("cli.auth.requests.get", return_value=mock_response):
+        with patch("tools.scripts.auth.requests.get", return_value=mock_response):
             history = mock_auth_manager.get_auth_history()
 
             assert len(history) == 1

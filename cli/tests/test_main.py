@@ -153,10 +153,10 @@ max_retries: 5
             result = runner.invoke(cli, ["web-frontend", "--help"])
 
             assert result.exit_code == 0
-            assert "Web Frontend Commands" in result.output
-            assert "start" in result.output
-            assert "stop" in result.output
-            assert "status" in result.output
+            assert "Web-based interface commands" in result.output
+            assert "launch" in result.output
+            assert "session" in result.output
+            assert "upload" in result.output
 
     def test_cli_interface_commands(self):
         """Test CLI interface command group"""
@@ -166,7 +166,7 @@ max_retries: 5
             result = runner.invoke(cli, ["cli-interface", "--help"])
 
             assert result.exit_code == 0
-            assert "CLI Interface Commands" in result.output
+            assert "Direct CLI operations" in result.output
             assert "pipeline" in result.output
             assert "data" in result.output
             assert "batch" in result.output
@@ -179,7 +179,7 @@ max_retries: 5
             result = runner.invoke(cli, ["mcp-connect", "--help"])
 
             assert result.exit_code == 0
-            assert "MCP Connect Commands" in result.output
+            assert "MCP agent connection and management commands" in result.output
             assert "agent" in result.output
             assert "execute" in result.output
             assert "list" in result.output
@@ -192,10 +192,10 @@ max_retries: 5
             result = runner.invoke(cli, ["pipeline", "--help"])
 
             assert result.exit_code == 0
-            assert "Pipeline Management Commands" in result.output
-            assert "start" in result.output
-            assert "stop" in result.output
-            assert "status" in result.output
+            assert "Pipeline management commands" in result.output
+            assert "launch" in result.output
+            assert "session" in result.output
+            assert "upload" in result.output
             assert "monitor" in result.output
 
     def test_config_commands(self):
@@ -206,7 +206,7 @@ max_retries: 5
             result = runner.invoke(cli, ["config", "--help"])
 
             assert result.exit_code == 0
-            assert "Configuration Management Commands" in result.output
+            assert "Configuration management commands" in result.output
             assert "show" in result.output
             assert "set" in result.output
             assert "profiles" in result.output
@@ -219,7 +219,7 @@ max_retries: 5
             result = runner.invoke(cli, ["auth", "--help"])
 
             assert result.exit_code == 0
-            assert "Authentication Commands" in result.output
+            assert "Authentication and user management commands" in result.output
             assert "login" in result.output
             assert "logout" in result.output
             assert "status" in result.output
@@ -322,7 +322,7 @@ max_retries: 5
             result = runner.invoke(cli, ["--invalid-flag", "version"])
 
             assert result.exit_code == 2
-            assert "no such option" in result.output
+            assert "No such option" in result.output
 
     def test_cli_context_passing(self):
         """Test that CLI context is properly passed to subcommands"""

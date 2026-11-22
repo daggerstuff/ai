@@ -107,15 +107,15 @@ max_retries: 5
 
         with runner.isolated_filesystem():
             # Mock successful system checks
-            with patch("cli.main.validate_environment") as mock_validate:
+            with patch("tools.scripts.main.validate_environment") as mock_validate:
                 mock_validate.return_value = None
 
-                with patch("cli.main.AuthManager") as mock_auth_class:
+                with patch("tools.scripts.main.AuthManager") as mock_auth_class:
                     mock_auth = MagicMock()
                     mock_auth.get_status.return_value = "Authenticated as testuser"
                     mock_auth_class.return_value = mock_auth
 
-                with patch("cli.main.PipelineManager") as mock_pipeline_class:
+                with patch("tools.scripts.main.PipelineManager") as mock_pipeline_class:
                     mock_pipeline = MagicMock()
                     mock_pipeline.get_status.return_value = "Running"
                     mock_pipeline.check_api_health.return_value = "Healthy"
@@ -137,7 +137,7 @@ max_retries: 5
 
         with runner.isolated_filesystem():
             # Mock failed system check
-            with patch("cli.main.validate_environment") as mock_validate:
+            with patch("tools.scripts.main.validate_environment") as mock_validate:
                 mock_validate.side_effect = Exception("Environment validation failed")
 
                 result = runner.invoke(cli, ["status"])
@@ -153,10 +153,10 @@ max_retries: 5
             result = runner.invoke(cli, ["web-frontend", "--help"])
 
             assert result.exit_code == 0
-            assert "Web Frontend Commands" in result.output
-            assert "start" in result.output
-            assert "stop" in result.output
-            assert "status" in result.output
+            assert "Web-based interface commands" in result.output
+            assert "launch" in result.output
+            assert "session" in result.output
+            assert "upload" in result.output
 
     def test_cli_interface_commands(self):
         """Test CLI interface command group"""
@@ -166,7 +166,7 @@ max_retries: 5
             result = runner.invoke(cli, ["cli-interface", "--help"])
 
             assert result.exit_code == 0
-            assert "CLI Interface Commands" in result.output
+            assert "Direct CLI operations" in result.output
             assert "pipeline" in result.output
             assert "data" in result.output
             assert "batch" in result.output
@@ -179,7 +179,7 @@ max_retries: 5
             result = runner.invoke(cli, ["mcp-connect", "--help"])
 
             assert result.exit_code == 0
-            assert "MCP Connect Commands" in result.output
+            assert "MCP agent connection and management commands" in result.output
             assert "agent" in result.output
             assert "execute" in result.output
             assert "list" in result.output
@@ -192,10 +192,10 @@ max_retries: 5
             result = runner.invoke(cli, ["pipeline", "--help"])
 
             assert result.exit_code == 0
-            assert "Pipeline Management Commands" in result.output
-            assert "start" in result.output
-            assert "stop" in result.output
-            assert "status" in result.output
+            assert "Pipeline management commands" in result.output
+            assert "launch" in result.output
+            assert "session" in result.output
+            assert "upload" in result.output
             assert "monitor" in result.output
 
     def test_config_commands(self):
@@ -206,7 +206,7 @@ max_retries: 5
             result = runner.invoke(cli, ["config", "--help"])
 
             assert result.exit_code == 0
-            assert "Configuration Management Commands" in result.output
+            assert "Configuration management commands" in result.output
             assert "show" in result.output
             assert "set" in result.output
             assert "profiles" in result.output
@@ -219,7 +219,7 @@ max_retries: 5
             result = runner.invoke(cli, ["auth", "--help"])
 
             assert result.exit_code == 0
-            assert "Authentication Commands" in result.output
+            assert "Authentication and user management commands" in result.output
             assert "login" in result.output
             assert "logout" in result.output
             assert "status" in result.output
@@ -254,7 +254,7 @@ max_retries: 5
 
         with runner.isolated_filesystem():
             # Mock environment validation failure
-            with patch("cli.main.validate_environment") as mock_validate:
+            with patch("tools.scripts.main.validate_environment") as mock_validate:
                 mock_validate.side_effect = Exception("Missing required environment variables")
 
                 result = runner.invoke(cli, ["version"])
@@ -322,7 +322,7 @@ max_retries: 5
             result = runner.invoke(cli, ["--invalid-flag", "version"])
 
             assert result.exit_code == 2
-            assert "no such option" in result.output
+            assert "No such option" in result.output
 
     def test_cli_context_passing(self):
         """Test that CLI context is properly passed to subcommands"""
@@ -360,9 +360,9 @@ timeout: 45
         with runner.isolated_filesystem():
             # Mock all the managers
             with (
-                patch("cli.main.AuthManager") as mock_auth_class,
-                patch("cli.main.PipelineManager") as mock_pipeline_class,
-                patch("cli.main.ProgressTracker") as mock_progress_class,
+                patch("tools.scripts.main.AuthManager") as mock_auth_class,
+                patch("tools.scripts.main.PipelineManager") as mock_pipeline_class,
+                patch("tools.scripts.main.ProgressTracker") as mock_progress_class,
             ):
                 # Configure mocks
                 mock_auth = MagicMock()
@@ -411,8 +411,8 @@ class TestCLIIntegration:
                 "roles": ["user"],
             }
 
-            with patch("cli.auth.requests.post", return_value=login_response):
-                with patch("cli.auth.requests.get", return_value=user_info_response):
+            with patch("tools.scripts.auth.requests.post", return_value=login_response):
+                with patch("tools.scripts.auth.requests.get", return_value=user_info_response):
                     # Test login
                     result = runner.invoke(
                         cli,
@@ -464,10 +464,10 @@ class TestCLIIntegration:
 
             with (
                 patch(
-                    "cli.pipeline.requests.post",
+                    "tools.scripts.pipeline.requests.post",
                     side_effect=[start_response, stop_response],
                 ),
-                patch("cli.pipeline.requests.get", return_value=status_response),
+                patch("tools.scripts.pipeline.requests.get", return_value=status_response),
             ):
                 # Test pipeline start
                 result = runner.invoke(cli, ["pipeline", "start", "--config", "test-config.yaml"])
@@ -520,7 +520,7 @@ class TestCLIIntegration:
 
             # First call fails, second succeeds (retry mechanism)
             with patch(
-                "cli.pipeline.requests.post",
+                "tools.scripts.pipeline.requests.post",
                 side_effect=[fail_response, success_response],
             ):
                 result = runner.invoke(cli, ["pipeline", "start", "--config", "test-config.yaml"])
@@ -563,7 +563,7 @@ class TestCLIPerformance:
                 "pages": 10,
             }
 
-            with patch("cli.pipeline.requests.get", return_value=large_response):
+            with patch("tools.scripts.pipeline.requests.get", return_value=large_response):
                 result = runner.invoke(cli, ["pipeline", "list"])
 
                 assert result.exit_code == 0
@@ -596,7 +596,7 @@ class TestCLIPerformance:
                 response.json.return_value = {"status": "completed"}
                 return response
 
-            with patch("cli.pipeline.requests.get", side_effect=slow_response):
+            with patch("tools.scripts.pipeline.requests.get", side_effect=slow_response):
                 result = runner.invoke(cli, ["pipeline", "status", "--id", "slow-pipeline"])
 
                 assert result.exit_code == 0

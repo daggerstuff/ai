@@ -13,12 +13,15 @@ from typing import Any
 import requests
 
 from .config import CLIConfig
+from .exceptions import CLIAuthError
 from .utils import validate_jwt_token
 
 logger = logging.getLogger("pixelated-ai-cli")
 
+HTTP_OK = 200
 
-class AuthenticationError(Exception):
+
+class AuthenticationError(CLIAuthError):
     """Custom exception for authentication errors"""
 
 
@@ -38,6 +41,9 @@ class AuthManager:
         """
         self.config = config
         self._token_info: dict[str, Any] | None = None
+        self._access_token: str | None = None
+        self._refresh_token: str | None = None
+        self._token_expiry: float | None = None
         self._session = requests.Session()
 
         # Configure session
@@ -49,9 +55,69 @@ class AuthManager:
             }
         )
 
-        # Load existing token if available
-        if config.auth.jwt_token:
-            self._load_token_info()
+        self._adopt_config_tokens()
+
+    def _adopt_config_tokens(self) -> None:
+        """Seed the in-memory token state from a previously saved configuration."""
+        if not self.config.auth.jwt_token:
+            return
+
+        self._access_token = self.config.auth.jwt_token
+        self._refresh_token = self.config.auth.refresh_token or None
+        self._token_expiry = self._parse_expiry(self.config.auth.token_expiry)
+        self._load_token_info()
+
+    @staticmethod
+    def _parse_expiry(value: str | None) -> float | None:
+        """Convert a stored ISO-8601 expiry into an epoch timestamp."""
+        if not value:
+            return None
+        try:
+            parsed = datetime.fromisoformat(value)
+        except (TypeError, ValueError):
+            logger.warning("Stored token expiry is not a valid timestamp: %r", value)
+            return None
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=UTC)
+        return parsed.timestamp()
+
+    def _store_tokens(
+        self,
+        access_token: str,
+        refresh_token: str | None,
+        expires_in: float,
+    ) -> None:
+        """Record freshly issued tokens in memory and in the saved configuration."""
+        self._access_token = access_token
+        if refresh_token:
+            self._refresh_token = refresh_token
+        self._token_expiry = time.time() + float(expires_in)
+
+        self.config.auth.jwt_token = access_token
+        self.config.auth.refresh_token = self._refresh_token
+        self.config.auth.token_expiry = datetime.fromtimestamp(self._token_expiry, UTC).isoformat()
+
+        self._load_token_info()
+        self.config.save_configuration()
+
+    def _clear_tokens(self) -> None:
+        """Drop every trace of the current session, in memory and on disk."""
+        self._access_token = None
+        self._refresh_token = None
+        self._token_expiry = None
+        self._token_info = None
+
+        self.config.auth.jwt_token = None
+        self.config.auth.refresh_token = None
+        self.config.auth.token_expiry = None
+
+    def is_authenticated(self) -> bool:
+        """Whether a usable access token is currently held."""
+        return bool(self._access_token) and not self.is_token_expired()
+
+    def login(self, username: str, password: str, client_id: str | None = None) -> bool:
+        """Authenticate with a username and password; alias over ``authenticate``."""
+        return self.authenticate(username, password, client_id=client_id)
 
     def authenticate(self, username: str, password: str, client_id: str | None = None) -> bool:
         """
@@ -85,9 +151,12 @@ class AuthManager:
             auth_url = f"{self.config.api.base_url.rstrip('/')}/auth/token"
 
             logger.debug(f"Authenticating to {auth_url}")
-            response = self._session.post(auth_url, json=auth_data)
+            try:
+                response = requests.post(auth_url, json=auth_data, timeout=self.config.api.timeout)
+            except Exception as e:
+                raise AuthenticationError(f"Network error during authentication: {e}") from e
 
-            if response.status_code == 200:
+            if response.status_code == HTTP_OK:
                 auth_response = response.json()
 
                 # Extract tokens
@@ -98,20 +167,7 @@ class AuthManager:
                 if not access_token:
                     raise AuthenticationError("No access token in response")
 
-                # Store tokens
-                self.config.auth.jwt_token = access_token
-                if refresh_token:
-                    self.config.auth.refresh_token = refresh_token
-
-                # Calculate expiry
-                expiry_time = datetime.now(UTC) + timedelta(seconds=expires_in)
-                self.config.auth.token_expiry = expiry_time.isoformat()
-
-                # Load token info
-                self._load_token_info()
-
-                # Save configuration
-                self.config.save_configuration()
+                self._store_tokens(access_token, refresh_token, expires_in)
 
                 logger.info(f"Authentication successful for user: {username}")
                 return True
@@ -128,6 +184,8 @@ class AuthManager:
 
             raise AuthenticationError(error_msg)
 
+        except AuthenticationError:
+            raise
         except requests.exceptions.RequestException as e:
             raise AuthenticationError(f"Network error during authentication: {e}") from e
         except Exception as e:
@@ -143,91 +201,62 @@ class AuthManager:
         Raises:
             AuthenticationError: If refresh fails
         """
-        if not self.config.auth.refresh_token:
+        if not self._refresh_token:
             raise AuthenticationError("No refresh token available")
 
+        refresh_data = {
+            "refresh_token": self._refresh_token,
+            "grant_type": "refresh_token",
+        }
+
+        if self.config.auth.client_id:
+            refresh_data["client_id"] = self.config.auth.client_id
+        if self.config.auth.client_secret:
+            refresh_data["client_secret"] = self.config.auth.client_secret
+
+        auth_url = f"{self.config.api.base_url.rstrip('/')}/auth/refresh"
+
+        logger.debug("Refreshing access token")
         try:
-            refresh_data = {
-                "refresh_token": self.config.auth.refresh_token,
-                "grant_type": "refresh_token",
-            }
+            response = requests.post(auth_url, json=refresh_data, timeout=self.config.api.timeout)
+        except Exception as e:
+            raise AuthenticationError(f"Network error during token refresh: {e}") from e
 
-            if self.config.auth.client_id:
-                refresh_data["client_id"] = self.config.auth.client_id
-
-            auth_url = f"{self.config.api.base_url.rstrip('/')}/auth/refresh"
-
-            logger.debug("Refreshing access token")
-            response = self._session.post(auth_url, json=refresh_data)
-
-            if response.status_code == 200:
-                auth_response = response.json()
-
-                access_token = auth_response.get("access_token")
-                new_refresh_token = auth_response.get("refresh_token")
-                expires_in = auth_response.get("expires_in", 3600)
-
-                if not access_token:
-                    raise AuthenticationError("No access token in refresh response")
-
-                # Update tokens
-                self.config.auth.jwt_token = access_token
-                if new_refresh_token:
-                    self.config.auth.refresh_token = new_refresh_token
-
-                # Update expiry
-                expiry_time = datetime.now(UTC) + timedelta(seconds=expires_in)
-                self.config.auth.token_expiry = expiry_time.isoformat()
-
-                # Reload token info
-                self._load_token_info()
-
-                # Save configuration
-                self.config.save_configuration()
-
-                logger.info("Token refresh successful")
-                return True
-
+        if response.status_code != HTTP_OK:
             raise AuthenticationError(f"Token refresh failed: HTTP {response.status_code}")
 
-        except requests.exceptions.RequestException as e:
-            raise AuthenticationError(f"Network error during token refresh: {e}") from e
-        except Exception as e:
-            raise AuthenticationError(f"Token refresh failed: {e}") from e
+        auth_response = response.json()
+        access_token = auth_response.get("access_token")
+        if not access_token:
+            raise AuthenticationError("No access token in refresh response")
+
+        self._store_tokens(
+            access_token,
+            auth_response.get("refresh_token"),
+            auth_response.get("expires_in", 3600),
+        )
+
+        logger.info("Token refresh successful")
+        return True
 
     def validate_token(self) -> bool:
         """
         Validate the current JWT token
 
         Returns:
-            True if token is valid and not expired
-
-        Raises:
-            TokenExpiredError: If token is expired
-            AuthenticationError: If token is invalid
+            True if a token is held and has not expired
         """
-        if not self.config.auth.jwt_token:
-            raise AuthenticationError("No JWT token available")
+        if not self._access_token:
+            return False
 
-        try:
-            # Check if token is expired
-            if self.is_token_expired():
-                raise TokenExpiredError("JWT token has expired")
+        if self.is_token_expired():
+            logger.debug("JWT token has expired")
+            return False
 
-            # Validate token format and signature
-            token_info = validate_jwt_token(self.config.auth.jwt_token)
+        if not self._token_info:
+            self._load_token_info()
 
-            # Additional validation can be added here
-            # For example, check issuer, audience, etc.
-
-            self._token_info = token_info
-            logger.debug("JWT token validation successful")
-            return True
-
-        except ValueError as e:
-            raise AuthenticationError(f"Invalid JWT token: {e}") from e
-        except Exception as e:
-            raise AuthenticationError(f"Token validation failed: {e}") from e
+        return True
 
     def is_token_expired(self) -> bool:
         """
@@ -236,56 +265,37 @@ class AuthManager:
         Returns:
             True if token is expired or about to expire (within 5 minutes)
         """
-        if not self.config.auth.token_expiry:
+        expiry = self._token_expiry
+        if expiry is None:
+            expiry = self._parse_expiry(self.config.auth.token_expiry)
+
+        if expiry is None:
             return True  # Consider expired if no expiry time
 
-        try:
-            expiry_time = datetime.fromisoformat(self.config.auth.token_expiry)
-            now = datetime.now(UTC)
-
-            # Consider token expired if it expires within 5 minutes
-            buffer_minutes = 5
-            buffer_time = expiry_time - timedelta(minutes=buffer_minutes)
-
-            return now >= buffer_time
-
-        except Exception as e:
-            logger.warning(f"Error checking token expiry: {e}")
-            return True  # Consider expired on error
+        buffer_minutes = 5
+        return time.time() >= expiry - timedelta(minutes=buffer_minutes).total_seconds()
 
     def get_auth_headers(self) -> dict[str, str]:
         """
         Get authentication headers for API requests
 
         Returns:
-            Dictionary with Authorization header
-
-        Raises:
-            AuthenticationError: If no valid token available
+            Dictionary with the Authorization header, empty when not authenticated
         """
-        if not self.config.auth.jwt_token:
-            raise AuthenticationError("No JWT token available")
+        if not self.is_authenticated():
+            return {}
 
-        # Validate token before using
-        if self.is_token_expired():
-            try:
-                self.refresh_token()
-            except AuthenticationError:
-                raise TokenExpiredError("JWT token expired and refresh failed") from None
-
-        return {"Authorization": f"Bearer {self.config.auth.jwt_token}"}
+        return {"Authorization": f"Bearer {self._access_token}"}
 
     def logout(self) -> None:
         """
         Logout and clear authentication tokens
         """
         try:
-            # Optional: Call logout endpoint
-            if self.config.auth.jwt_token:
+            if self.is_authenticated():
                 logout_url = f"{self.config.api.base_url.rstrip('/')}/auth/logout"
                 try:
-                    headers = self.get_auth_headers()
-                    self._session.post(logout_url, headers=headers, timeout=10)
+                    requests.post(logout_url, headers=self.get_auth_headers(), timeout=10)
                 except Exception as e:
                     logger.warning(f"Logout endpoint call failed: {e}")
 
@@ -293,43 +303,56 @@ class AuthManager:
             logger.warning(f"Error during logout: {e}")
 
         finally:
-            # Clear tokens
-            self.config.auth.jwt_token = None
-            self.config.auth.refresh_token = None
-            self.config.auth.token_expiry = None
-            self._token_info = None
-
-            # Save configuration
+            self._clear_tokens()
             self.config.save_configuration()
-
             logger.info("Logout completed")
 
-    def get_user_info(self) -> dict[str, Any] | None:
+    def get_user_info(self) -> dict[str, Any]:
         """
-        Get user information from JWT token
+        Get user information for the authenticated session
 
         Returns:
-            User information dictionary or None if not available
+            User information dictionary
+
+        Raises:
+            AuthenticationError: If not authenticated or the lookup fails
+        """
+        if not self.is_authenticated():
+            raise AuthenticationError("Not authenticated")
+
+        url = f"{self.config.api.base_url.rstrip('/')}/auth/userinfo"
+        try:
+            response = requests.get(url, headers=self.get_auth_headers(), timeout=self.config.api.timeout)
+        except Exception as e:
+            raise AuthenticationError(f"Failed to fetch user information: {e}") from e
+
+        if response.status_code == HTTP_OK:
+            payload = response.json()
+            if isinstance(payload, dict):
+                return payload
+            raise AuthenticationError("User information response was not an object")
+
+        raise AuthenticationError(f"Failed to fetch user information: HTTP {response.status_code}")
+
+    def get_token_info(self) -> dict[str, Any]:
+        """
+        Get information about the current token
+
+        Returns:
+            Dictionary describing the held token and its remaining lifetime
         """
         if not self._token_info:
-            try:
-                self.validate_token()
-            except AuthenticationError:
-                return None
+            self._load_token_info()
 
-        if self._token_info and "payload" in self._token_info:
-            payload = self._token_info["payload"]
-            return {
-                "user_id": payload.get("sub"),
-                "username": payload.get("username"),
-                "email": payload.get("email"),
-                "roles": payload.get("roles", []),
-                "permissions": payload.get("permissions", []),
-                "issued_at": payload.get("iat"),
-                "expires_at": payload.get("exp"),
-            }
-
-        return None
+        remaining = self.get_token_remaining_time()
+        return {
+            "authenticated": self.is_authenticated(),
+            "access_token": self._access_token,
+            "refresh_token": self._refresh_token,
+            "expires_at": self._token_expiry,
+            "expires_in": remaining,
+            "payload": (self._token_info or {}).get("payload"),
+        }
 
     def has_permission(self, permission: str) -> bool:
         """
@@ -341,11 +364,12 @@ class AuthManager:
         Returns:
             True if user has permission
         """
-        user_info = self.get_user_info()
-        if not user_info:
+        try:
+            user_info = self.get_user_info()
+        except AuthenticationError:
             return False
 
-        permissions = user_info.get("permissions", [])
+        permissions = user_info.get("permissions") or []
         return permission in permissions
 
     def has_role(self, role: str) -> bool:
@@ -358,11 +382,12 @@ class AuthManager:
         Returns:
             True if user has role
         """
-        user_info = self.get_user_info()
-        if not user_info:
+        try:
+            user_info = self.get_user_info()
+        except AuthenticationError:
             return False
 
-        roles = user_info.get("roles", [])
+        roles = user_info.get("roles") or []
         return role in roles
 
     def get_status(self) -> str:
@@ -372,35 +397,225 @@ class AuthManager:
         Returns:
             Status string
         """
-        if not self.config.auth.jwt_token:
+        if not self._access_token:
             return "Not authenticated"
 
+        if self.is_token_expired():
+            return "Token expired"
+
         try:
-            if self.is_token_expired():
-                return "Token expired"
-
-            self.validate_token()
             user_info = self.get_user_info()
-
-            if user_info:
-                username = user_info.get("username") or user_info.get("email") or "Unknown"
-                return f"Authenticated as {username}"
-            return "Authenticated (user info unavailable)"
-
         except AuthenticationError as e:
-            return f"Authentication error: {e!s}"
+            return f"Authenticated (user info unavailable: {e!s})"
+
+        username = user_info.get("username") or user_info.get("email")
+        if username:
+            return f"Authenticated as {username}"
+        return "Authenticated"
+
+    def change_password(self, old_password: str, new_password: str) -> bool:
+        """
+        Change the password of the authenticated user
+
+        Args:
+            old_password: Current password
+            new_password: Replacement password
+
+        Returns:
+            True if the password was changed
+
+        Raises:
+            AuthenticationError: If not authenticated or the change is rejected
+        """
+        if not self.is_authenticated():
+            raise AuthenticationError("Not authenticated")
+
+        url = f"{self.config.api.base_url.rstrip('/')}/auth/change-password"
+        body = {"old_password": old_password, "new_password": new_password}
+
+        try:
+            response = requests.post(
+                url,
+                json=body,
+                headers=self.get_auth_headers(),
+                timeout=self.config.api.timeout,
+            )
         except Exception as e:
-            logger.error(f"Error getting auth status: {e}")
-            return "Authentication status unknown"
+            raise AuthenticationError(f"Network error during password change: {e}") from e
+
+        if response.status_code == HTTP_OK:
+            logger.info("Password change successful")
+            return True
+
+        raise AuthenticationError(f"Password change failed: HTTP {response.status_code}")
+
+    def enable_mfa(self) -> dict[str, Any]:
+        """
+        Begin multi-factor authentication enrolment for the current user
+
+        Returns:
+            Enrolment payload with the provisioning QR code and backup codes
+
+        Raises:
+            AuthenticationError: If not authenticated or enrolment fails
+        """
+        if not self.is_authenticated():
+            raise AuthenticationError("Not authenticated")
+
+        url = f"{self.config.api.base_url.rstrip('/')}/auth/mfa/enable"
+        try:
+            response = requests.post(url, headers=self.get_auth_headers(), timeout=self.config.api.timeout)
+        except Exception as e:
+            raise AuthenticationError(f"Network error during MFA setup: {e}") from e
+
+        if response.status_code == HTTP_OK:
+            payload = response.json()
+            if not isinstance(payload, dict):
+                raise AuthenticationError("MFA setup response was not an object")
+            return payload
+
+        raise AuthenticationError(f"MFA setup failed: HTTP {response.status_code}")
+
+    def setup_mfa(self, email: str | None = None) -> dict[str, Any]:
+        """
+        Enrol the current user in multi-factor authentication
+
+        Args:
+            email: Optional address the enrolment should be associated with
+
+        Returns:
+            Enrolment payload with the provisioning QR code and backup codes
+        """
+        if email:
+            logger.debug("Requesting MFA enrolment for %s", email)
+        return self.enable_mfa()
+
+    def disable_mfa(self, password: str | None = None) -> bool:
+        """
+        Turn multi-factor authentication off for the current user
+
+        Args:
+            password: Current password, when the server requires re-authentication
+
+        Returns:
+            True if MFA was disabled
+
+        Raises:
+            AuthenticationError: If not authenticated or the request is rejected
+        """
+        if not self.is_authenticated():
+            raise AuthenticationError("Not authenticated")
+
+        url = f"{self.config.api.base_url.rstrip('/')}/auth/mfa/disable"
+        body: dict[str, Any] = {}
+        if password:
+            body["password"] = password
+
+        try:
+            response = requests.post(
+                url,
+                json=body,
+                headers=self.get_auth_headers(),
+                timeout=self.config.api.timeout,
+            )
+        except Exception as e:
+            raise AuthenticationError(f"Network error while disabling MFA: {e}") from e
+
+        if response.status_code == HTTP_OK:
+            logger.info("MFA disabled")
+            return True
+
+        raise AuthenticationError(f"Failed to disable MFA: HTTP {response.status_code}")
+
+    def verify_mfa(self, code: str) -> bool:
+        """
+        Complete an MFA challenge and adopt the tokens it issues
+
+        Args:
+            code: One-time code from the authenticator
+
+        Returns:
+            True if the challenge was accepted
+
+        Raises:
+            AuthenticationError: If the code is rejected
+        """
+        url = f"{self.config.api.base_url.rstrip('/')}/auth/mfa/verify"
+        try:
+            response = requests.post(
+                url,
+                json={"code": code},
+                timeout=self.config.api.timeout,
+            )
+        except Exception as e:
+            raise AuthenticationError(f"Network error during MFA verification: {e}") from e
+
+        if response.status_code != HTTP_OK:
+            raise AuthenticationError(f"MFA verification failed: HTTP {response.status_code}")
+
+        payload = response.json()
+        access_token = payload.get("access_token")
+        if not access_token:
+            raise AuthenticationError("No access token in MFA verification response")
+
+        self._store_tokens(
+            access_token,
+            payload.get("refresh_token"),
+            payload.get("expires_in", 3600),
+        )
+
+        logger.info("MFA verification successful")
+        return True
+
+    def get_auth_history(self, days: int = 30) -> list[dict[str, Any]]:
+        """
+        Fetch the recent authentication events for the current user
+
+        Args:
+            days: How far back to look
+
+        Returns:
+            Authentication events, newest first
+
+        Raises:
+            AuthenticationError: If not authenticated or the lookup fails
+        """
+        if not self.is_authenticated():
+            raise AuthenticationError("Not authenticated")
+
+        url = f"{self.config.api.base_url.rstrip('/')}/auth/history"
+        try:
+            response = requests.get(
+                url,
+                params={"days": days},
+                headers=self.get_auth_headers(),
+                timeout=self.config.api.timeout,
+            )
+        except Exception as e:
+            raise AuthenticationError(f"Failed to fetch authentication history: {e}") from e
+
+        if response.status_code != HTTP_OK:
+            raise AuthenticationError(f"Failed to fetch authentication history: HTTP {response.status_code}")
+
+        payload = response.json()
+        history = payload.get("history") if isinstance(payload, dict) else payload
+        if not isinstance(history, list):
+            raise AuthenticationError("Authentication history response was not a list")
+
+        return history
+
+    def save_credentials(self) -> None:
+        """Persist the current token state to the configured credentials file."""
+        self.config.save_configuration()
 
     def _load_token_info(self) -> None:
         """Load and validate token information"""
-        if not self.config.auth.jwt_token:
+        if not self._access_token:
             self._token_info = None
             return
 
         try:
-            self._token_info = validate_jwt_token(self.config.auth.jwt_token)
+            self._token_info = validate_jwt_token(self._access_token)
             logger.debug("Token information loaded successfully")
         except Exception as e:
             logger.warning(f"Failed to load token info: {e}")
@@ -503,47 +718,6 @@ def require_auth(auth_manager: AuthManager):
 
     return decorator
 
-
-def login(self, username: str, password: str) -> dict[str, Any]:
-    """Alias for authenticate() — authenticates and returns user info."""
-    self.authenticate(username, password)
-    return {"status": "authenticated", "user": username}
-
-
-def revoke(self) -> None:
-    """Revoke session — alias for logout."""
-    self.logout()
-
-
-AuthManager.login = login
-AuthManager.revoke = revoke
-
-AuthManager._access_token = property(
-    lambda self: self.config.auth.jwt_token, lambda self, v: setattr(self.config.auth, "jwt_token", v)
-)
-AuthManager._refresh_token = property(
-    lambda self: self.config.auth.refresh_token, lambda self, v: setattr(self.config.auth, "refresh_token", v)
-)
-
-
-def _get_token_expiry(self):
-    if not self.config.auth.token_expiry:
-        return 0.0
-    try:
-        from datetime import datetime
-
-        return datetime.fromisoformat(self.config.auth.token_expiry).timestamp()
-    except Exception:
-        return 0.0
-
-
-def _set_token_expiry(self, value: float) -> None:
-    from datetime import UTC, datetime
-
-    self.config.auth.token_expiry = datetime.fromtimestamp(value, tz=UTC).isoformat()
-
-
-AuthManager._token_expiry = property(_get_token_expiry, _set_token_expiry)
 
 
 class TokenManager:

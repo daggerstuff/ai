@@ -235,7 +235,12 @@ class TestAuthManager:
 
     def test_get_status_authenticated(self, mock_auth_manager):
         """Test getting authentication status when authenticated"""
-        status = mock_auth_manager.get_status()
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"username": "testuser", "roles": ["user"]}
+
+        with patch("cli.auth.requests.get", return_value=mock_response):
+            status = mock_auth_manager.get_status()
 
         assert "Authenticated" in status
         assert "testuser" in status

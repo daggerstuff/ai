@@ -10,7 +10,7 @@ from pathlib import Path
 
 import click
 
-from tools.scripts.auth import AuthManager
+from tools.scripts.auth import AuthenticationError, AuthManager
 from tools.scripts.config import get_config
 from tools.scripts.utils import get_logger, setup_logging
 
@@ -38,36 +38,32 @@ def login(_ctx, username: str, password: str, profile: str | None):
 
         click.echo(f"🔐 Logging in as {username}...")
 
-        # Attempt login
-        login_result = auth_manager.login(username, password)
+        auth_manager.login(username, password)
 
-        if login_result["success"]:
-            click.echo("✅ Login successful!")
+        click.echo("✅ Login successful!")
 
-            # Display user information
-            user_info = login_result.get("user", {})
-            click.echo(f"👤 Welcome, {user_info.get('name', username)}!")
+        try:
+            user_info = auth_manager.get_user_info()
+        except AuthenticationError:
+            user_info = {}
 
-            if user_info.get("role"):
-                click.echo(f"🎭 Role: {user_info['role']}")
+        if user_info:
+            display_name = user_info.get("username") or user_info.get("name") or username
+            click.echo(f"👤 Welcome, {display_name}!")
+            roles = user_info.get("roles") or []
+            if roles:
+                click.echo(f"🎭 Roles: {', '.join(str(role) for role in roles)}")
 
-            # Display token information
-            token_info = login_result.get("token_info", {})
-            if token_info.get("expires_in"):
-                expires_hours = token_info["expires_in"] / 3600
-                click.echo(f"⏰ Token expires in: {expires_hours:.1f} hours")
+        token_info = auth_manager.get_token_info()
+        expires_in = token_info.get("expires_in")
+        if expires_in:
+            click.echo(f"⏰ Token expires in: {expires_in / 3600:.1f} hours")
 
-            # Save login information
-            auth_manager.save_credentials()
+        auth_manager.save_credentials()
 
-            click.echo("💾 Credentials saved securely")
+        click.echo("💾 Credentials saved securely")
 
-        else:
-            error_msg = login_result.get("error", "Login failed")
-            click.echo(f"❌ Login failed: {error_msg}", err=True)
-            raise click.Abort()
-
-    except Exception as e:
+    except AuthenticationError as e:
         logger.error(f"Login failed: {e}")
         click.echo(f"❌ Login failed: {e}", err=True)
         raise click.Abort() from e
@@ -190,27 +186,19 @@ def refresh(_ctx, profile: str | None):
 
         click.echo("🔄 Refreshing authentication token...")
 
-        refresh_result = auth_manager.refresh_token()
+        auth_manager.refresh_token()
 
-        if refresh_result["success"]:
-            click.echo("✅ Token refreshed successfully!")
+        click.echo("✅ Token refreshed successfully!")
 
-            token_info = refresh_result.get("token_info", {})
-            if token_info.get("expires_in"):
-                expires_hours = token_info["expires_in"] / 3600
-                click.echo(f"⏰ New token expires in: {expires_hours:.1f} hours")
+        token_info = auth_manager.get_token_info()
+        expires_in = token_info.get("expires_in")
+        if expires_in:
+            click.echo(f"⏰ New token expires in: {expires_in / 3600:.1f} hours")
 
-        else:
-            error_msg = refresh_result.get("error", "Token refresh failed")
-            click.echo(f"❌ Token refresh failed: {error_msg}", err=True)
-
-            # If refresh fails, user might need to login again
-            if "invalid" in error_msg.lower() or "expired" in error_msg.lower():
-                click.echo("💡 Please try logging in again with: pixelated auth login")
-
-    except Exception as e:
+    except AuthenticationError as e:
         logger.error(f"Token refresh failed: {e}")
         click.echo(f"❌ Token refresh failed: {e}", err=True)
+        click.echo("💡 Please try logging in again with: pixelated auth login")
         raise click.Abort() from e
 
 
@@ -316,15 +304,10 @@ def change_password(_ctx, profile: str | None, old_password: str, new_password: 
 
         click.echo("🔑 Changing password...")
 
-        result = auth_manager.change_password(old_password, new_password)
+        auth_manager.change_password(old_password, new_password)
 
-        if result["success"]:
-            click.echo("✅ Password changed successfully!")
-            click.echo("💡 You may need to login again with your new password")
-
-        else:
-            error_msg = result.get("error", "Password change failed")
-            click.echo(f"❌ Password change failed: {error_msg}", err=True)
+        click.echo("✅ Password changed successfully!")
+        click.echo("💡 You may need to login again with your new password")
 
     except Exception as e:
         logger.error(f"Password change failed: {e}")
@@ -349,13 +332,11 @@ def history(_ctx, profile: str | None, days: int):
         click.echo(f"📜 Authentication History (last {days} days)")
         click.echo("-" * 50)
 
-        history_data = auth_manager.get_auth_history(days)
+        events = auth_manager.get_auth_history(days)
 
-        if not history_data or not history_data.get("events"):
+        if not events:
             click.echo("No authentication events found")
             return
-
-        events = history_data["events"]
 
         for event in events:
             timestamp = event.get("timestamp", "Unknown")
@@ -405,27 +386,24 @@ def setup_mfa(_ctx, profile: str | None, email: str):
 
         setup_result = auth_manager.setup_mfa(email)
 
-        if setup_result["success"]:
-            click.echo("✅ MFA setup successful!")
+        click.echo("✅ MFA setup successful!")
 
-            if setup_result.get("backup_codes"):
-                click.echo("\n🔑 Backup Codes (save these securely):")
-                for i, code in enumerate(setup_result["backup_codes"], 1):
-                    click.echo(f"  {i}. {code}")
+        backup_codes = setup_result.get("backup_codes") or []
+        if backup_codes:
+            click.echo("\n🔑 Backup Codes (save these securely):")
+            for i, code in enumerate(backup_codes, 1):
+                click.echo(f"  {i}. {code}")
 
-                click.echo("\n⚠️  Important: Save these backup codes in a secure location!")
-                click.echo("   You can use them if you lose access to your MFA device.")
+            click.echo("\n⚠️  Important: Save these backup codes in a secure location!")
+            click.echo("   You can use them if you lose access to your MFA device.")
 
-            if setup_result.get("qr_code"):
-                click.echo("\n📱 QR Code:")
-                click.echo("  Scan this QR code with your authenticator app:")
-                click.echo(f"  {setup_result['qr_code']}")
+        qr_code = setup_result.get("qr_code")
+        if qr_code:
+            click.echo("\n📱 QR Code:")
+            click.echo("  Scan this QR code with your authenticator app:")
+            click.echo(f"  {qr_code}")
 
-        else:
-            error_msg = setup_result.get("error", "MFA setup failed")
-            click.echo(f"❌ MFA setup failed: {error_msg}", err=True)
-
-    except Exception as e:
+    except AuthenticationError as e:
         logger.error(f"MFA setup failed: {e}")
         click.echo(f"❌ MFA setup failed: {e}", err=True)
         raise click.Abort() from e
@@ -449,15 +427,10 @@ def verify_mfa(_ctx, profile: str | None):
 
         click.echo("🔍 Verifying MFA code...")
 
-        verify_result = auth_manager.verify_mfa(mfa_code)
+        auth_manager.verify_mfa(mfa_code)
 
-        if verify_result["success"]:
-            click.echo("✅ MFA verification successful!")
-            click.echo("🔐 Your MFA is properly configured and working")
-
-        else:
-            error_msg = verify_result.get("error", "MFA verification failed")
-            click.echo(f"❌ MFA verification failed: {error_msg}", err=True)
+        click.echo("✅ MFA verification successful!")
+        click.echo("🔐 Your MFA is properly configured and working")
 
     except Exception as e:
         logger.error(f"MFA verification failed: {e}")
@@ -484,15 +457,10 @@ def disable_mfa(_ctx, profile: str | None):
 
         click.echo("🔓 Disabling MFA...")
 
-        disable_result = auth_manager.disable_mfa()
+        auth_manager.disable_mfa()
 
-        if disable_result["success"]:
-            click.echo("✅ MFA disabled successfully!")
-            click.echo("⚠️  Your account is now less secure. Consider re-enabling MFA.")
-
-        else:
-            error_msg = disable_result.get("error", "MFA disable failed")
-            click.echo(f"❌ MFA disable failed: {error_msg}", err=True)
+        click.echo("✅ MFA disabled successfully!")
+        click.echo("⚠️  Your account is now less secure. Consider re-enabling MFA.")
 
     except Exception as e:
         logger.error(f"MFA disable failed: {e}")
