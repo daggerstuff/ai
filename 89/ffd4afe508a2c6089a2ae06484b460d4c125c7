@@ -1,0 +1,37 @@
+cli/tests/test_main.py
+  s_7d4811cf1b0ba7::t_ed9d2cd2b6ed21 196-198
+cli/commands/pipeline.py
+  s_7d4811cf1b0ba7::t_7c6fbc6f7e8df3 778-779,781,783,785-799
+tools/scripts/commands/pipeline.py
+  s_7d4811cf1b0ba7::t_eaa247d1790812 778-779,781,783,785-799
+cli/commands/auth.py
+  s_7d4811cf1b0ba7::t_5dbda0e3e2d740 134,137-139,143-146
+tools/scripts/commands/auth.py
+  s_300e345e99e201::t_f43e5bc39bfc17 134,137-139,143-146
+tools/scripts/tests/test_main.py
+  s_7d4811cf1b0ba7::t_ed9d2cd2b6ed21 196-198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "89ffd4afe508a2c6089a2ae06484b460d4c125c7",
+  "prompts": {},
+  "sessions": {
+    "s_300e345e99e201": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "granite-clam",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
