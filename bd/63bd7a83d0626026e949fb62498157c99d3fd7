@@ -1,0 +1,61 @@
+monitoring/quality_analytics_dashboard_v2.py
+  s_7d4811cf1b0ba7::t_5fe3414817db3d 233-235,310,375-377,484-486,526-528,645
+  s_7d4811cf1b0ba7::t_6056eacbe0cfe3 288
+  s_7d4811cf1b0ba7::t_da14da28e3590f 65-78,290
+  s_7d4811cf1b0ba7::t_6d2812e80ed52d 347
+  s_7d4811cf1b0ba7::t_dbc4be20488473 18,42-43,45,144-149,246,299,505,662
+  s_7d4811cf1b0ba7::t_36ec6da5265c03 44,500
+  s_7d4811cf1b0ba7::t_c2405b680a1645 1-17,19-41,46-64,79-143,150-232,236-245,247-287,289,291-298,300-309,311-322,326-346,348-374,378-483,487-499,501-504,506-525,529-644,646-661,663-667
+  s_7d4811cf1b0ba7::t_0753d56891de26 323-325
+cli/config.py
+  s_7d4811cf1b0ba7::t_c304b8d9e97c9b 15,53,69-72,79-80,91-97,105-109
+  s_7d4811cf1b0ba7::t_72bb06ed73b548 73-78
+  s_7d4811cf1b0ba7::t_ef8a760b9d1eff 251-253
+  s_7d4811cf1b0ba7::t_79ff543e6dd370 40-43,231,236-239,243,322,335-342,357-359,362-365,367-370,373,377-407,409-413,418-420,483-484,486,489,491-492,494-495,497,502-503,507,514
+  s_7d4811cf1b0ba7::t_5e571ca2514ea3 173
+  s_7d4811cf1b0ba7::t_8711ce82a82bc3 38-39,142-154,183-207,216,328-332,366
+  s_7d4811cf1b0ba7::t_36632991be35e5 110,155,254,333
+tools/scripts/config.py
+  s_7d4811cf1b0ba7::t_062229754ddab5 15,40-43,53,69-80,91-97,105-109,231,236-239,243,322,335-342,357-359,362-365,367-370,373,377-407,409-413,418-420,483-484,486,489,491-492,494-495,497,502-503,507,514
+  s_7d4811cf1b0ba7::t_e03c2c062003a4 38-39,142-155,173,183-207,216,251-254,328-332,366
+  s_7d4811cf1b0ba7::t_16fabf44314ed5 110,333
+tools/scripts/commands/config.py
+  s_7d4811cf1b0ba7::t_8711ce82a82bc3 56,187,207,249,496
+cli/commands/auth.py
+  s_7d4811cf1b0ba7::t_8711ce82a82bc3 131
+cli/utils.py
+  s_7d4811cf1b0ba7::t_79c4388d6218f4 40,45-46,52-54
+monitoring/clinical_validity_dashboard.py
+  s_7d4811cf1b0ba7::t_2a70f89d7a7c85 1-17,19-44,49-100,107-163,165-198,200-227,229-246,248-276,281-286,291-320,324-336,338-358,362-410,416-425,427-452,454-458
+  s_7d4811cf1b0ba7::t_dbc4be20488473 18,45-48,101-106,247,321-323,337,453
+  s_7d4811cf1b0ba7::t_5fe3414817db3d 199,277-280,287-290,359-361,411-415
+  s_7d4811cf1b0ba7::t_6d2812e80ed52d 164,228,426
+monitoring/test_quality_analytics_dashboard_v2.py
+  s_7d4811cf1b0ba7::t_ffd032f9e36f13 387
+tools/scripts/commands/auth.py
+  s_7d4811cf1b0ba7::t_8711ce82a82bc3 131
+cli/main.py
+  s_7d4811cf1b0ba7::t_adb6e65d65784e 109-111
+cli/commands/config.py
+  s_7d4811cf1b0ba7::t_8711ce82a82bc3 56,187,207,249,496
+tools/scripts/utils.py
+  s_7d4811cf1b0ba7::t_79c4388d6218f4 40,45-46,52-54
+tools/scripts/main.py
+  s_7d4811cf1b0ba7::t_adb6e65d65784e 109-111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bd63bd7a83d0626026e949fb62498157c99d3fd7",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
