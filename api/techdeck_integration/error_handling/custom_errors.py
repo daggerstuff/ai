@@ -230,7 +230,17 @@ class PipelineExecutionError(PipelineError):
 
 
 class ProgressTrackingError(PipelineError):
-    pass
+    """Progress-tracking failures, distinguishable from other pipeline errors."""
+
+    def __init__(
+        self,
+        message: str,
+        pipeline_id: str | None = None,
+        stage: str | None = None,
+        **kwargs,
+    ):
+        super().__init__(message=message, pipeline_id=pipeline_id, stage=stage, **kwargs)
+        self.error_code = "PROGRESS_TRACKING_ERROR"
 
 
 # Backwards-compatible State Management error expected by state manager
