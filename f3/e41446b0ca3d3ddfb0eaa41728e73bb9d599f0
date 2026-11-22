@@ -1,0 +1,38 @@
+training/launch/crisis_dimension_report.py
+  h_07d84030f79d30 1-323
+training/tests/test_crisis_target_audit.py
+  h_07d84030f79d30 119-158
+training/export_tinker_release.py
+  h_07d84030f79d30 29-33,78-83,365,397-398,410-415,431-432,461-462,477,489-490,504,529-530,556-557,562-582,603-608,618-623,630-632,634-639,657,674
+training/tests/test_crisis_dimension_report.py
+  h_07d84030f79d30 1-180
+training/tests/test_crisis_adjudication_packet.py
+  h_07d84030f79d30 1-116
+training/export_fireworks_release.py
+  h_07d84030f79d30 64-79,128-131,135-138,142-153,192-205,234-236,242,248,256,276,281,283
+training/launch/crisis_adjudication_packet.py
+  h_07d84030f79d30 1-295
+training/tests/test_export_fireworks_release.py
+  h_07d84030f79d30 74-86,123-150
+qa/validation/therapy_bench/paired_eval.py
+  h_07d84030f79d30 112,526,574,707
+training/tests/test_export_tinker_release.py
+  h_07d84030f79d30 255-291,351-363,563-579
+training/crisis_target_audit.py
+  h_07d84030f79d30 22-27,98,137-142,144-154,156-158
+training/restore_classification_context.py
+  h_07d84030f79d30 1-289
+training/tests/test_restore_classification_context.py
+  h_07d84030f79d30 1-211
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3e41446b0ca3d3ddfb0eaa41728e73bb9d599f0",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
