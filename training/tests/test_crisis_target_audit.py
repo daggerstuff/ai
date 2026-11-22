@@ -246,6 +246,7 @@ def test_export_review_reports_a_flagged_target_lost_to_trimming(
     assert result.trimmed_target_lines == (1,)
     assert result.present_selected_lines == ()
     assert result.unmatched_selected_lines == ()
+    assert result.ambiguous_digest_lines == ()
     assert result.excluded_by_length == 0
 
 
@@ -267,15 +268,14 @@ def test_export_review_still_counts_a_trimmed_row_missing_from_the_export(
     assert result.unmatched_selected_lines == (1,)
 
 
-def test_export_review_consumes_one_exported_copy_per_source_row(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_export_review_reports_a_shared_datum_as_ambiguous(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     source = tmp_path / "selected.jsonl"
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": "I want to die."},
         {"role": "assistant", "weight": 1, "content": "Tell me more."},
     ]
-    source.write_text((json.dumps({"messages": messages}) + "\n") * 2)
+    tool_row = {"messages": messages, "tools": [{"type": "function", "function": {"name": "lookup"}}]}
+    source.write_text(json.dumps(tool_row) + "\n" + json.dumps({"messages": messages}) + "\n")
     tokenizer = StubTokenizer()
     ids, weights = build_tokens(tokenizer, messages)
     datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:])
@@ -300,8 +300,9 @@ def test_export_review_consumes_one_exported_copy_per_source_row(
     monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
     result = audit_export(source, receipt, audit(source))
 
-    assert result.present_selected_lines == (1,)
-    assert result.unmatched_selected_lines == (2,)
+    assert result.ambiguous_digest_lines == (1, 2)
+    assert result.present_selected_lines == ()
+    assert result.unmatched_selected_lines == ()
 
 
 def test_export_review_rejects_a_changed_training_file(tmp_path: Path) -> None:

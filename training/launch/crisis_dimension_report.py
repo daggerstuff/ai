@@ -142,9 +142,13 @@ CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;]")
 
-# Only a pronoun-led subordinate clause reads as an aside; a prepositional
+# A subordinate clause reads as an aside whatever its subject; a prepositional
 # phrase inside a contrast ("though with support,") is the new clause itself.
-ASIDE_SUBJECT: Final[re.Pattern[str]] = re.compile(r"^(?:i|we|you|it|they|he|she|there)\b")
+CLAUSE_LEAD_PREPOSITION: Final[re.Pattern[str]] = re.compile(
+    r"^(?:with|without|in|on|at|for|from|by|about|after|before|during|through|under|over|"
+    r"despite|per|as|like|unlike|since|until|among|between|across|against|towards?|within|"
+    r"beyond|except|regarding|concerning)\b"
+)
 
 
 def _is_aside(text: str, after: int, claim_start: int) -> bool:
@@ -152,7 +156,7 @@ def _is_aside(text: str, after: int, claim_start: int) -> bool:
     comma = text.find(",", after, claim_start)
     if comma == -1 or SENTENCE_END.search(text, after, comma) is not None:
         return False
-    return ASIDE_SUBJECT.match(text[after:comma].strip()) is not None
+    return CLAUSE_LEAD_PREPOSITION.match(text[after:comma].strip()) is None
 
 
 def _clause_start(text: str, claim_start: int) -> int:

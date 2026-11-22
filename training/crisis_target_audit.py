@@ -106,8 +106,38 @@ class ExportReview(BaseModel):
     candidate_selected_rows: int
     present_selected_lines: tuple[int, ...]
     trimmed_target_lines: tuple[int, ...]
+    ambiguous_digest_lines: tuple[int, ...]
     excluded_by_length: int
     unmatched_selected_lines: tuple[int, ...]
+
+
+def _attribute(
+    exported: Counter[str], candidates: dict[int, tuple[str, bool]]
+) -> tuple[list[int], list[int], list[int], list[int]]:
+    """Attribute exported copies to candidate rows, or report them ambiguous.
+
+    A digest shared by more candidate rows than the export holds copies cannot
+    be tied to a particular source line, so those lines are reported as
+    ambiguous rather than credited to whichever row was read first.
+    """
+    by_digest: dict[str, list[int]] = {}
+    for line_number, (digest, _) in candidates.items():
+        by_digest.setdefault(digest, []).append(line_number)
+    present: list[int] = []
+    trimmed: list[int] = []
+    ambiguous: list[int] = []
+    unmatched: list[int] = []
+    for digest, lines in by_digest.items():
+        available = exported[digest]
+        if available <= 0:
+            unmatched.extend(lines)
+        elif available < len(lines):
+            ambiguous.extend(lines)
+        else:
+            exported[digest] -= len(lines)
+            for line_number in lines:
+                (trimmed if candidates[line_number][1] else present).append(line_number)
+    return present, trimmed, ambiguous, unmatched
 
 
 def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
@@ -127,9 +157,8 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
     findings_by_line: dict[int, list[Finding]] = {}
     for finding in report.findings:
         findings_by_line.setdefault(finding.line, []).append(finding)
-    present: list[int] = []
     unmatched: list[int] = []
-    trimmed_targets: list[int] = []
+    candidates: dict[int, tuple[str, bool]] = {}
     excluded = 0
     with source.open("rb") as handle:
         for line_number, raw in enumerate(handle, start=1):
@@ -165,22 +194,16 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
                 excluded += 1
                 continue
             datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets)
-            digest = hashlib.sha256(datum.line().encode()).hexdigest()
-            if exported[digest] <= 0:
-                unmatched.append(line_number)
-                continue
-            exported[digest] -= 1
-            if targets_lost:
-                trimmed_targets.append(line_number)
-            else:
-                present.append(line_number)
+            candidates[line_number] = (hashlib.sha256(datum.line().encode()).hexdigest(), targets_lost)
+    present, trimmed_targets, ambiguous, unmatched_digests = _attribute(exported, candidates)
     return ExportReview(
         dataset_sha256=checksum,
         candidate_selected_rows=len(wanted),
-        present_selected_lines=tuple(present),
-        trimmed_target_lines=tuple(trimmed_targets),
+        present_selected_lines=tuple(sorted(present)),
+        trimmed_target_lines=tuple(sorted(trimmed_targets)),
+        ambiguous_digest_lines=tuple(sorted(ambiguous)),
         excluded_by_length=excluded,
-        unmatched_selected_lines=tuple(unmatched),
+        unmatched_selected_lines=tuple(sorted([*unmatched, *unmatched_digests])),
     )
 
 
@@ -251,6 +274,7 @@ def main(source: Path, out: Path, dataset: Path | None = None) -> None:
         typer.echo(
             f"{len(presence.present_selected_lines)} candidate rows matched the exact export; "
             f"{len(presence.trimmed_target_lines)} lost their flagged reply to trimming; "
+            f"{len(presence.ambiguous_digest_lines)} share a datum with another candidate; "
             f"{presence.excluded_by_length} exceed length; {len(presence.unmatched_selected_lines)} unmatched"
         )
 
