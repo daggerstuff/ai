@@ -11,6 +11,7 @@ import json
 import os
 import sys
 import threading
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -591,6 +592,45 @@ def test_monitor_preserves_operator_cancel(db_path, monkeypatch):
 # --- sync: lost-backend reconciliation (PIX-5012) --------------------------
 
 
+def test_monitor_loses_a_cancel_that_lands_during_collecting(db_path, monkeypatch):
+    """cancel() runs on the request thread and must win over the monitor.
+
+    The monitor reads the row before its half-second collecting window, so a
+    cancel that lands inside that window used to be overwritten with `failed`.
+    """
+    settings = _settings(db_path)
+    db.upsert_job(
+        db_path,
+        {"job_id": "job-race", "kind": "build_release", "source": "local", "status": "running"},
+    )
+    recorded: list[str] = []
+    monkeypatch.setattr(runner, "_record_terminal_outcome", lambda _s, job_id: recorded.append(job_id))
+
+    class _Proc:
+        returncode = -15
+
+        def wait(self, *_args, **_kwargs):
+            return self.returncode
+
+        def terminate(self):
+            return None
+
+    def _cancel_during_collecting(_seconds):
+        runner.cancel(settings, "job-race")
+
+    monkeypatch.setattr(runner.time, "sleep", _cancel_during_collecting)
+    try:
+        runner._monitor(settings, "job-race", _Proc(), "/tmp/whatever.log")
+    finally:
+        runner._forget_cancelled("job-race")
+
+    job = db.get_job(db_path, "job-race")
+    assert job["status"] == "cancelled"
+    assert job["error"] == "cancelled by operator"
+    assert job["finished_at"] is not None
+    assert recorded == ["job-race"]
+
+
 def test_reconcile_marks_vanished_backend_job_failed(db_path):
     db.upsert_job(
         db_path,
@@ -1093,6 +1133,55 @@ def test_submit_accepts_a_repeat_of_the_callers_own_overrides(server_env):
     result = server.submit_job(
         plan_hash=planned["plan_hash"],
         recipe="train-sft-latest",
+        inputs={"launch_config": "c"},
+        overrides={},
+        requested_by="operator",
+    )
+    assert result["ok"] is True, result
+    assert len(spawned) == 1
+
+
+def test_submit_rejects_a_recipe_changed_after_approval(server_env, monkeypatch):
+    """The recomputed plan must reproduce the approved hash, not merely parse."""
+    server, cfg, spawned = server_env
+    planned = server.plan_job("train-sft-latest", {"launch_config": "c"}, {}, "operator")
+    assert planned["ok"] is True
+
+    drifted = [
+        replace(recipe, entrypoint=recipe.entrypoint.replace("wandb_sft_v15_execute", "wandb_sft_v16_execute"))
+        if recipe.id == "train-sft-latest"
+        else recipe
+        for recipe in recipes.load_recipes()
+    ]
+    monkeypatch.setattr(recipes, "load_recipes", lambda: drifted)
+
+    result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
+    assert result["ok"] is False
+    assert "changed since this plan was approved" in result["error"]
+    assert spawned == []
+    rejections = db.list_audit(cfg.db_path, action="submit.rejected")
+    assert rejections[0]["detail"]["reason"] == "plan changed since approval"
+
+
+def test_submit_accepts_a_repeat_after_a_recipe_default_changed(server_env, monkeypatch):
+    """A registry default must not turn a faithful repeat into a tampered spec."""
+    server, _cfg, spawned = server_env
+    planned = server.plan_job("train-sft-latest", {"launch_config": "c"}, {}, "operator")
+    assert planned["spec"]["overrides"] == {"epochs": 3}
+
+    drifted = [
+        replace(
+            recipe,
+            overrides={**recipe.overrides, "epochs": {**recipe.overrides["epochs"], "default": 4}},
+        )
+        if recipe.id == "train-sft-latest"
+        else recipe
+        for recipe in recipes.load_recipes()
+    ]
+    monkeypatch.setattr(recipes, "load_recipes", lambda: drifted)
+
+    result = server.submit_job(
+        plan_hash=planned["plan_hash"],
         inputs={"launch_config": "c"},
         overrides={},
         requested_by="operator",

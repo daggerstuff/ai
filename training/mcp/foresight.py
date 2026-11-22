@@ -46,7 +46,19 @@ def _initialize(client: httpx.Client, url: str) -> str | None:
     )
     resp.raise_for_status()
     session_id = resp.headers.get("mcp-session-id")
-    return session_id if isinstance(session_id, str) else None
+    session_id = session_id if isinstance(session_id, str) else None
+    # The MCP lifecycle requires notifications/initialized after a successful
+    # initialize and before any other request; strict servers (FastMCP) reject
+    # tools/call until they see it. It is a notification: no id, no response body.
+    headers = {"Accept": "application/json, text/event-stream", "Content-Type": "application/json"}
+    if session_id:
+        headers["mcp-session-id"] = session_id
+    client.post(
+        url,
+        json={"jsonrpc": "2.0", "method": "notifications/initialized"},
+        headers=headers,
+    ).raise_for_status()
+    return session_id
 
 
 def _parse_sse(body: str) -> dict[str, Any] | None:

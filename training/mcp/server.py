@@ -432,23 +432,31 @@ def submit_job(
             return {"ok": False, "error": "plan_hash not found or expired; re-run plan_job"}
     if cached is not None and not force:
         approved = cached["spec"]
-        # The cached spec records overrides with the recipe's defaults filled in,
-        # so the caller's dict is expanded the same way first: a faithful repeat
-        # of what was planned must not read as a tampered spec.
-        submitted_overrides = overrides
-        if overrides is not None:
-            approved_recipe = next((r for r in recipes.load_recipes() if r.id == cached["recipe_id"]), None)
-            if approved_recipe is not None:
-                submitted_overrides = plan.effective_overrides(approved_recipe, overrides)
+        # The cached spec records overrides with the recipe's defaults filled
+        # in. Compare only the keys the caller supplied against the approved
+        # values: a faithful repeat that omits defaults must pass, while any
+        # supplied key whose value differs is a tampered spec. Expanding the
+        # caller's dict from the live registry would judge that repeat against a
+        # recipe that may have changed since approval (and could raise outside
+        # the error boundary below).
+        approved_overrides = approved.get("overrides") or {}
         mismatched = [
             name
             for name, supplied, approved_value in (
                 ("recipe", recipe, cached["recipe_id"]),
                 ("inputs", inputs, approved.get("inputs", {})),
-                ("overrides", submitted_overrides, approved.get("overrides", {})),
             )
             if supplied is not None and supplied != approved_value
         ]
+        changed_overrides: list[str] = []
+        if overrides is not None:
+            changed_overrides = sorted(
+                name
+                for name, value in overrides.items()
+                if name not in approved_overrides or value != approved_overrides[name]
+            )
+            if changed_overrides:
+                mismatched.append("overrides")
         if mismatched:
             audit(
                 "submit.rejected",
@@ -458,6 +466,7 @@ def submit_job(
                 detail={
                     "reason": "submitted spec differs from the approved plan",
                     "fields": mismatched,
+                    "overrides": changed_overrides,
                 },
             )
             return {
@@ -495,6 +504,25 @@ def submit_job(
         audit("submit.rejected", actor=requested_by, recipe_id=recipe, detail={"reason": str(exc)})
         return {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
     spec = planned["spec"]
+    if cached is not None and not force and planned["plan_hash"] != cached["plan_hash"]:
+        # The approved plan is the authority: recomputing it from the live
+        # registry must reproduce the same hash. A recipe edited inside the TTL
+        # would otherwise launch commands the operator never reviewed.
+        audit(
+            "submit.rejected",
+            actor=requested_by,
+            recipe_id=spec["recipe_id"],
+            plan_hash=plan_hash,
+            detail={
+                "reason": "plan changed since approval",
+                "approved_plan_hash": cached["plan_hash"],
+                "recomputed_plan_hash": planned["plan_hash"],
+            },
+        )
+        return {
+            "ok": False,
+            "error": "the recipe changed since this plan was approved; re-run plan_job for a fresh approval",
+        }
     cost = float(planned["est_cost_usd"] or 0.0)
     # Budget caps.
     running = db.list_jobs(s.db_path, status="running")

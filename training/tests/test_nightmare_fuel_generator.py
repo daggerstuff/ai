@@ -45,6 +45,14 @@ class TestParseTranscript:
         ]
         assert nfg._parse_transcript("Patient:\nTherapist:", "scenario")["messages"] == []
 
+    def test_parse_transcript_rejects_a_dialogue_that_opens_with_the_therapist(self):
+        transcript = "Therapist: I'm here.\nPatient: Don't be."
+        assert nfg._parse_transcript(transcript, "scenario")["messages"] == []
+
+    def test_parse_transcript_rejects_consecutive_same_role_turns(self):
+        transcript = "Patient: a\nPatient:\nPatient: b\nTherapist: c"
+        assert nfg._parse_transcript(transcript, "scenario")["messages"] == []
+
 
 class TestAsyncGeneration:
     @pytest.mark.asyncio

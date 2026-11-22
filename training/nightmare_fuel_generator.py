@@ -510,6 +510,12 @@ def _parse_transcript(transcript: str, scenario: str) -> dict:
     gate, is checkpointed, and then fails ``GeneratedMessage.content``
     (``min_length=1``) when ``main_async`` validates the checkpoint - which makes
     every later resume fail on the same persisted record.
+
+    Dropping a bare label can still leave a malformed dialogue: when the model
+    opens with ``Therapist:`` the first turn is an assistant turn, and two
+    patient lines separated by a bare ``Patient:`` become consecutive ``user``
+    turns. Either shape trains on a conversation the judge never saw, so the
+    whole transcript is rejected instead of exported.
     """
     messages = []
     for line in transcript.split("\n"):
@@ -521,6 +527,11 @@ def _parse_transcript(transcript: str, scenario: str) -> dict:
             content = line.replace("Therapist:", "").strip()
             if content:
                 messages.append({"role": "assistant", "content": content})
+    expected_role = "user"
+    for message in messages:
+        if message["role"] != expected_role:
+            return {"scenario": scenario, "messages": []}
+        expected_role = "assistant" if expected_role == "user" else "user"
     return {"scenario": scenario, "messages": messages}
 
 

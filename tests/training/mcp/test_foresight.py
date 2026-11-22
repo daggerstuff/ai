@@ -89,6 +89,7 @@ def test_store_terminal_memory_forwards_the_session_and_the_job_facts(monkeypatc
         _Client(
             [
                 _Response(session_id="session-7"),
+                _Response(),
                 _Response(text='{"result": {"ok": true}}'),
             ]
         ),
@@ -98,9 +99,15 @@ def test_store_terminal_memory_forwards_the_session_and_the_job_facts(monkeypatc
     report = foresight.store_terminal_memory(_Settings(), job)
 
     assert report["stored"] is True
-    assert [call["json"]["method"] for call in client.calls] == ["initialize", "tools/call"]
+    assert [call["json"]["method"] for call in client.calls] == [
+        "initialize",
+        "notifications/initialized",
+        "tools/call",
+    ]
+    assert "id" not in client.calls[1]["json"]
     assert client.calls[1]["headers"]["mcp-session-id"] == "session-7"
-    params = client.calls[1]["json"]["params"]
+    assert client.calls[2]["headers"]["mcp-session-id"] == "session-7"
+    params = client.calls[2]["json"]["params"]
     assert params["name"] == "manage_memories"
     options = params["arguments"]["params"]["options"]
     assert options["action"] == "store"
@@ -115,7 +122,7 @@ def test_store_terminal_memory_forwards_the_session_and_the_job_facts(monkeypatc
 
 
 def test_store_terminal_memory_fails_closed_on_a_jsonrpc_error(monkeypatch: pytest.MonkeyPatch) -> None:
-    _install(monkeypatch, _Client([_Response(), _Response(text='{"error": {"message": "boom"}}')]))
+    _install(monkeypatch, _Client([_Response(), _Response(), _Response(text='{"error": {"message": "boom"}}')]))
 
     report = foresight.store_terminal_memory(_Settings(), {"job_id": "job-1", "status": "failed"})
 
@@ -126,7 +133,13 @@ def test_store_terminal_memory_fails_closed_on_a_jsonrpc_error(monkeypatch: pyte
 def test_store_terminal_memory_fails_closed_on_a_tool_level_error(monkeypatch: pytest.MonkeyPatch) -> None:
     _install(
         monkeypatch,
-        _Client([_Response(), _Response(text='{"result": {"isError": true, "content": [{"text": "rejected"}]}}')]),
+        _Client(
+            [
+                _Response(),
+                _Response(),
+                _Response(text='{"result": {"isError": true, "content": [{"text": "rejected"}]}}'),
+            ]
+        ),
     )
 
     report = foresight.store_terminal_memory(_Settings(), {"job_id": "job-2", "status": "failed"})

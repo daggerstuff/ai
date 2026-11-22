@@ -131,12 +131,13 @@ def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _lo
     rc = proc.returncode
     job = db.get_job(settings.db_path, job_id)
     if job is None:
+        _drop_process(job_id)
         return
     # A cancel() already wrote the terminal row; don't overwrite it with a
-    # process-exit status (terminate() gives a non-zero rc).
-    if job.get("status") == "cancelled":
-        with _PROCESSES_GUARD:
-            _PROCESSES.pop(job_id, None)
+    # process-exit status (terminate() gives a non-zero rc). The marker covers
+    # the window between cancel() registering the id and writing its row.
+    if _is_cancelled(job_id) or job.get("status") == "cancelled":
+        _drop_process(job_id)
         return
     # Determine terminal status.
     if rc == 0:
@@ -148,39 +149,29 @@ def _monitor(settings: Settings, job_id: str, proc: subprocess.Popen[bytes], _lo
     else:
         new_status = "failed"
         error = f"process exited with code {rc}"
-    # Collecting phase: briefly mark collecting then terminal.
-    db.upsert_job(
-        settings.db_path,
-        {
-            "job_id": job_id,
-            "kind": job["kind"],
-            "source": job["source"],
-            "name": job.get("name"),
-            "status": "collecting",
-            "stage": "collecting",
-            "backend_id": job.get("backend_id"),
-        },
-    )
+    # Collecting phase: briefly mark collecting then terminal. Both writes are
+    # conditional on the row not being cancelled yet, because cancel() runs on
+    # the request thread and can land inside this window: the monitor read the
+    # row before it, so an unconditional write here resurrected the operator's
+    # cancellation as a failure.
+    if not db.transition_job(settings.db_path, job_id, status="collecting", stage="collecting"):
+        _drop_process(job_id)
+        return
     time.sleep(0.5)
-    db.upsert_job(
+    if not db.transition_job(
         settings.db_path,
-        {
-            "job_id": job_id,
-            "kind": job["kind"],
-            "source": job["source"],
-            "name": job.get("name"),
-            "status": new_status,
-            "stage": new_status,
-            "backend_id": job.get("backend_id"),
-            "error": error,
-            # Terminal rows must carry finished_at so provenance and duration
-            # queries work; it also gates the "is this job over" checks.
-            "finished_at": db.now(),
-        },
-    )
+        job_id,
+        status=new_status,
+        stage=new_status,
+        error=error,
+        # Terminal rows must carry finished_at so provenance and duration
+        # queries work; it also gates the "is this job over" checks.
+        finished_at=db.now(),
+    ):
+        _drop_process(job_id)
+        return
     _record_terminal_outcome(settings, job_id)
-    with _PROCESSES_GUARD:
-        _PROCESSES.pop(job_id, None)
+    _drop_process(job_id)
 
 
 def _record_terminal_outcome(settings: Settings, job_id: str) -> None:
@@ -206,6 +197,11 @@ def _record_terminal_outcome(settings: Settings, job_id: str) -> None:
             plan_hash=job.get("plan_hash"),
             detail={"stored": outcome.get("stored"), "error": outcome.get("error")},
         )
+
+
+def _drop_process(job_id: str) -> None:
+    with _PROCESSES_GUARD:
+        _PROCESSES.pop(job_id, None)
 
 
 def _is_cancelled(job_id: str) -> bool:

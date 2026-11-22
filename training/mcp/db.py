@@ -207,6 +207,40 @@ def upsert_job(db_path: Path, job: dict[str, Any]) -> None:
     conn.commit()
 
 
+def transition_job(
+    db_path: Path,
+    job_id: str,
+    *,
+    status: str,
+    stage: str | None = None,
+    error: str | None = None,
+    finished_at: str | None = None,
+) -> bool:
+    """Move a job to ``status`` unless an operator already cancelled it.
+
+    The guard is part of the UPDATE rather than a read-then-write: ``cancel()``
+    runs on the MCP request thread while the subprocess monitor writes from its
+    own thread, so a monitor that read ``running`` before the cancel landed must
+    not overwrite the terminal ``cancelled`` row with a process-exit status.
+    Returns False when the row was already cancelled (nothing was written).
+    """
+    conn = _conn(db_path)
+    cursor = conn.execute(
+        """
+        UPDATE jobs SET
+            status = ?,
+            stage = COALESCE(?, stage),
+            error = ?,
+            finished_at = COALESCE(?, finished_at),
+            updated_at = ?
+        WHERE job_id = ? AND status <> 'cancelled'
+        """,
+        (status, stage, error, finished_at, _now(), job_id),
+    )
+    conn.commit()
+    return cursor.rowcount > 0
+
+
 def get_job(db_path: Path, job_id: str) -> dict[str, Any] | None:
     row = _conn(db_path).execute("SELECT * FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
     return _row_to_dict(row) if row else None
