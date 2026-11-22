@@ -11,10 +11,9 @@ import time
 from datetime import UTC, datetime
 
 import torch
+import wandb
 from datasets import Dataset
 from transformers import AutoTokenizer, Trainer
-
-import wandb
 
 try:
     from ai.models.moe_architecture import MoEConfig, create_therapeutic_moe_model

@@ -199,6 +199,7 @@ def build_model(base_model: str, *, rank: int, alpha: float, torch: Any) -> Any:
 
 def _wandb_run(plan: Plan, name: str) -> Any:
     import wandb
+
     from training.launch.log_eval_tracking import ENTITY, PROJECT
 
     return wandb.init(

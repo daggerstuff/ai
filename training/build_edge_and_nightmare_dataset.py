@@ -22,9 +22,8 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
-from dotenv import load_dotenv
-
 import wandb
+from dotenv import load_dotenv
 
 # Cwd-independent bootstrap (same convention as generate_arc_corpus.py): make
 # ai/ importable and load the repo .env so backend/model selection is

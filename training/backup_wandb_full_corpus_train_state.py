@@ -12,9 +12,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import wandb
 from wandb.sdk.artifacts.artifact_file_cache import get_artifact_file_cache
 
-import wandb
 from training.backup_wandb_full_corpus_lora import (
     DEFAULT_BACKUP_ROOT,
     backup_artifact,

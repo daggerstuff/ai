@@ -3,9 +3,8 @@ import os
 from typing import Any
 
 import art
-from art.utils.sft import train_sft_from_file
-
 import wandb
+from art.utils.sft import train_sft_from_file
 
 
 def required_config(run: Any, key: str) -> Any:

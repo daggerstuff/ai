@@ -222,6 +222,7 @@ def _wandb_run(plan: Plan, name: str) -> Any:
     if not os.environ.get("WANDB_API_KEY"):
         return None
     import wandb
+
     from training.launch.log_eval_tracking import ENTITY, PROJECT
 
     return wandb.init(
