@@ -1,0 +1,57 @@
+qa/reports/launch_quality_trend_analysis.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 16-17
+qa/reports/test_clinical_validity_dashboard.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 16
+qa/reports/launch_quality_distribution_analysis.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 16-18
+qa/reports/monitoring_notification_bridge.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 18
+qa/reports/tests/test_bias_audit.py
+  s_7d4811cf1b0ba7::t_4ed51488ec20eb 29-30
+  s_7d4811cf1b0ba7::t_316de704de4b70 14-15
+qa/reports/quality_distribution_comparator.py
+  s_7d4811cf1b0ba7::t_e8a110e99f7fad 15-16
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 19
+qa/reports/launch_quality_improvement_tracking.py
+  s_7d4811cf1b0ba7::t_13a97ccb25a0f9 16
+  s_7d4811cf1b0ba7::t_e8a110e99f7fad 17
+qa/reports/test_notifications.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 12
+qa/reports/test_notifications_mocked.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 13
+  s_7d4811cf1b0ba7::t_f1defb7d0193aa 21,25,28-29,92,96,99-100,152,194,215
+qa/reports/quality_distribution_reporter.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 23,29
+qa/reports/quality_trend_reporter.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 23
+qa/reports/test_alert_fatigue.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 16,20
+qa/reports/quality_comparison_reporter.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 23
+qa/reports/test_quality_analytics_dashboard_v2.py
+  s_7d4811cf1b0ba7::t_e8a110e99f7fad 27
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 28
+qa/reports/fatigue_dashboard.py
+  s_7d4811cf1b0ba7::t_e8a110e99f7fad 18-19
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 20
+qa/reports/quality_improvement_reporter.py
+  s_7d4811cf1b0ba7::t_13a97ccb25a0f9 24
+qa/reports/launch_quality_comparison.py
+  s_7d4811cf1b0ba7::t_97b594f4f7ef16 23-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "11a0fd6af523b932a5a4dda19a16aa9e48d8e09c",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
