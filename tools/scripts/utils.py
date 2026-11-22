@@ -37,17 +37,21 @@ def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(f"{CLI_LOGGER_NAME}.{name}")
 
 
-def setup_logging(level: str = "INFO", config: CLIConfig | None = None) -> logging.Logger:
+def setup_logging(level: str | bool = "INFO", config: CLIConfig | None = None) -> logging.Logger:
     """
     Setup logging configuration for the CLI
 
     Args:
-        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        level: Logging level name (DEBUG, INFO, WARNING, ERROR, CRITICAL), or a
+            verbosity flag, which every command group passes from ``--verbose``.
         config: Optional CLIConfig for advanced logging settings
 
     Returns:
         Configured logger instance
     """
+    if isinstance(level, bool):
+        level = "DEBUG" if level else "INFO"
+
     # Create logger
     logger = logging.getLogger(CLI_LOGGER_NAME)
     logger.setLevel(getattr(logging, level.upper()))

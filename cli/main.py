@@ -106,8 +106,9 @@ def cli(
 
     # Initialize managers
     try:
-        ctx.obj["auth_manager"] = AuthManager(config)
-        ctx.obj["pipeline_manager"] = PipelineManager(config)
+        auth_manager = AuthManager(config)
+        ctx.obj["auth_manager"] = auth_manager
+        ctx.obj["pipeline_manager"] = PipelineManager(config, auth_manager)
         ctx.obj["progress_tracker"] = ProgressTracker(config)
     except Exception as e:
         click.echo(f"Failed to initialize managers: {e}", err=True)

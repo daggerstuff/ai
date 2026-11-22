@@ -53,7 +53,7 @@ def show(_ctx, profile: str | None, show_all: bool, decrypt: bool):
             # Show specific profile or current
             config = get_config(profile)
 
-            click.echo(f"⚙️  Configuration Profile: {config.profile_name}")
+            click.echo(f"⚙️  Configuration Profile: {config.profile}")
             click.echo("-" * 50)
 
             # Display API configuration
@@ -184,7 +184,7 @@ def copy(_ctx, from_profile: str, to_profile: str, overwrite: bool):
             pass
 
         # Create copy
-        source_config.profile_name = to_profile
+        source_config.profile = to_profile
         save_config(source_config)
 
         click.echo(f"✅ Configuration copied from '{from_profile}' to '{to_profile}'")
@@ -204,7 +204,7 @@ def validate(_ctx, profile: str | None, strict: bool):
     try:
         config = get_config(profile)
 
-        click.echo(f"🔍 Validating configuration profile: {config.profile_name}")
+        click.echo(f"🔍 Validating configuration profile: {config.profile}")
 
         validation_result = _validate_config(config, strict)
 
@@ -246,7 +246,7 @@ def export(_ctx, profile: str | None, output: str, format: str, include_secrets:
     try:
         config = get_config(profile)
 
-        click.echo(f"📤 Exporting configuration profile: {config.profile_name}")
+        click.echo(f"📤 Exporting configuration profile: {config.profile}")
         click.echo(f"📁 Output: {output}")
         click.echo(f"📊 Format: {format}")
 
@@ -493,7 +493,7 @@ def _validate_config(config: CLIConfig, strict: bool) -> dict[str, Any]:
 def _prepare_export_data(config: CLIConfig, include_secrets: bool) -> dict[str, Any]:
     """Prepare configuration data for export."""
     data = {
-        "profile_name": config.profile_name,
+        "profile_name": config.profile,
         "api": {"base_url": config.api.base_url, "timeout": config.api.timeout, "max_retries": config.api.max_retries},
         "logging": {
             "level": config.logging.level,

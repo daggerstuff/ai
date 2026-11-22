@@ -384,7 +384,7 @@ class TestQualityAnalyticsDashboard(unittest.TestCase):
         """Test data caching functionality."""
         # First load
         start_time = datetime.now(UTC)
-        df1 = self.dashboard.load_quality_data()
+        df1 = self.dashboard.load_quality_data(force_refresh=True)
         first_load_time = (datetime.now(UTC) - start_time).total_seconds()
 
         # Second load (should be cached)

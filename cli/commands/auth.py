@@ -128,7 +128,7 @@ def status(_ctx, profile: str | None):
         config = get_config(profile)
         auth_manager = AuthManager(config)
 
-        click.echo(f"🔍 Authentication Status (Profile: {config.profile_name})")
+        click.echo(f"🔍 Authentication Status (Profile: {config.profile})")
         click.echo("-" * 50)
 
         if auth_manager.is_authenticated():

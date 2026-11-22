@@ -12,7 +12,7 @@ from typing import Any
 
 import yaml
 from cryptography.fernet import Fernet
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from tools.scripts.exceptions import CLIConfigError
 
@@ -35,6 +35,12 @@ yaml.Loader.add_constructor("!merge", override_constructor)
 
 logger = logging.getLogger(__name__)
 
+MEGABYTE = 1024 * 1024
+
+ENCRYPTED_PREFIX = "encrypted_"
+
+SENSITIVE_AUTH_FIELDS = ("jwt_token", "refresh_token", "client_secret")
+
 
 class APIConfig(BaseModel):
     """API configuration settings"""
@@ -44,6 +50,7 @@ class APIConfig(BaseModel):
     max_retries: int = Field(default=3, description="Maximum number of retries")
     retry_delay: float = Field(default=1.0, description="Delay between retries in seconds")
     verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
+    rate_limit: int = Field(default=100, description="Rate limit per minute")
 
     @field_validator("timeout")
     @classmethod
@@ -59,6 +66,18 @@ class APIConfig(BaseModel):
             raise ValueError("Max retries must be non-negative")
         return v
 
+    def validate(self) -> bool:
+        """Validate the section and report success, matching the section contract."""
+        if not self.base_url.startswith(("http://", "https://")):
+            raise ValueError(f"Invalid URL: {self.base_url}")
+        if self.timeout <= 0:
+            raise ValueError("Timeout must be positive")
+        if self.max_retries < 0:
+            raise ValueError("Max retries must be non-negative")
+        if self.rate_limit <= 0:
+            raise ValueError("Rate limit must be positive")
+        return True
+
 
 class AuthConfig(BaseModel):
     """Authentication configuration settings"""
@@ -69,12 +88,25 @@ class AuthConfig(BaseModel):
     client_id: str | None = Field(default=None, description="OAuth client ID")
     client_secret: str | None = Field(default=None, description="OAuth client secret")
     auth_url: str = Field(default="http://localhost:8000/auth", description="Authentication endpoint")
+    token_url: str = Field(default="http://localhost:8000/auth/token", description="Token endpoint")
+
+    @model_validator(mode="after")
+    def validate_client_pair(self):
+        if (self.client_id is None) != (self.client_secret is None):
+            raise ValueError("client_id and client_secret must be provided together")
+        return self
 
     @field_validator("jwt_token", "refresh_token", "client_secret")
     @classmethod
     def validate_sensitive_data(cls, v):
         # Ensure sensitive data is handled securely
         return v
+
+    def validate(self) -> bool:
+        """Validate the section and report success, matching the section contract."""
+        if (self.client_id is None) != (self.client_secret is None):
+            raise ValueError("client_id and client_secret must be provided together")
+        return True
 
 
 class PipelineConfig(BaseModel):
@@ -107,6 +139,20 @@ class LoggingConfig(BaseModel):
     max_file_size: int = Field(default=10485760, description="Maximum log file size in bytes")
     backup_count: int = Field(default=5, description="Number of backup log files")
 
+    @property
+    def file(self) -> str | None:
+        """Alias for ``file_path``, the name the config commands display."""
+        return self.file_path
+
+    @file.setter
+    def file(self, value: str | None) -> None:
+        self.file_path = value
+
+    @property
+    def max_size_mb(self) -> float:
+        """The file size cap in megabytes, for display."""
+        return self.max_file_size / MEGABYTE
+
     @field_validator("level")
     @classmethod
     def validate_log_level(cls, v):
@@ -124,6 +170,7 @@ class SecurityConfig(BaseModel):
     validate_inputs: bool = Field(default=True, description="Validate all inputs")
     sanitize_outputs: bool = Field(default=True, description="Sanitize outputs")
     rate_limit: int = Field(default=100, description="Rate limit per minute")
+    validate_certificates: bool = Field(default=True, description="Validate TLS certificates")
 
     @field_validator("rate_limit")
     @classmethod
@@ -131,6 +178,31 @@ class SecurityConfig(BaseModel):
         if v <= 0:
             raise ValueError("Rate limit must be positive")
         return v
+
+
+class UploadConfig(BaseModel):
+    """Upload limits for the web frontend commands"""
+
+    max_file_size_mb: int = Field(default=50, description="Maximum upload size in megabytes")
+    allowed_types: list[str] = Field(
+        default_factory=lambda: ["csv", "json", "jsonl", "txt", "parquet"],
+        description="File extensions accepted by the uploader",
+    )
+
+    @field_validator("max_file_size_mb")
+    @classmethod
+    def validate_max_file_size(cls, v):
+        if v <= 0:
+            raise ValueError("Max file size must be positive")
+        return v
+
+    def validate(self) -> bool:
+        """Validate the section and report success, matching the section contract."""
+        if self.max_file_size_mb <= 0:
+            raise ValueError("Max file size must be positive")
+        if not self.allowed_types:
+            raise ValueError("At least one allowed type is required")
+        return True
 
 
 class CLIConfig(BaseModel):
@@ -141,6 +213,7 @@ class CLIConfig(BaseModel):
     pipeline: PipelineConfig = Field(default_factory=PipelineConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
+    upload: UploadConfig = Field(default_factory=UploadConfig)
 
     class Config:
         """Pydantic configuration"""
@@ -155,21 +228,29 @@ class CLIConfig(BaseModel):
         self._profile = profile
         self._config_dir = Path.home() / ".pixelated-ai"
         self._encryption_key = None
+        self._cipher = None
 
         # Ensure config directory exists
         self._config_dir.mkdir(exist_ok=True)
 
+        # Setup encryption before loading so stored secrets can be decrypted
+        if self.security.encrypt_credentials:
+            self._setup_encryption()
+
         # Load configuration
         self._load_configuration()
 
-        # Setup encryption if enabled
-        if self.security.encrypt_credentials:
+        if self.security.encrypt_credentials and self._cipher is None:
             self._setup_encryption()
 
     @property
     def profile(self) -> str:
         """Get current profile name"""
         return self._profile
+
+    @profile.setter
+    def profile(self, value: str) -> None:
+        self._profile = value
 
     @property
     def config_dir(self) -> Path:
@@ -238,67 +319,105 @@ class CLIConfig(BaseModel):
 
     def save(self, encrypt: bool = False) -> None:
         """Save configuration to file."""
-        self.save_configuration(profile=None)
+        self.save_configuration(profile=None, encrypt=encrypt)
 
     def validate(self) -> bool:
         """Validate auth configuration."""
         return self.auth is not None
 
+    def reset_to_defaults(self) -> None:
+        """Restore every section to its model defaults, keeping the profile."""
+        for name, field in type(self).model_fields.items():
+            if name in {"api", "auth", "pipeline", "logging", "security", "upload"}:
+                setattr(self, name, field.default_factory())
+
     def _load_configuration(self) -> None:
-        """Load configuration from files and environment variables"""
-        # Load from default locations
+        """Load the configuration file, its profile block and the environment.
+
+        Precedence, lowest to highest: model defaults, the file's top-level keys,
+        the file's ``profiles.<profile>`` block, then ``PIXELATED_*`` environment
+        variables. A file that cannot be parsed or that carries an invalid value
+        raises :class:`CLIConfigError` instead of silently falling back to the
+        defaults, which is how a typo in a config file used to be lost.
+        """
         config_sources = []
 
-        # 1. Load from specified config file
         if self._config_file and self._config_file.exists():
             config_sources.append(self._config_file)
 
-        # 2. Load from profile-specific config
         profile_config = self._config_dir / f"config.{self._profile}.yaml"
         if profile_config.exists():
             config_sources.append(profile_config)
 
-        # 3. Load from default config
         default_config = self._config_dir / "config.yaml"
         if default_config.exists():
             config_sources.append(default_config)
 
-        # Load configuration from files
         for config_file in config_sources:
-            try:
-                self._load_from_file(config_file)
-                logger.info(f"Loaded configuration from {config_file}")
-                break  # Use first valid config file
-            except Exception as e:
-                logger.warning(f"Failed to load config from {config_file}: {e}")
+            self._load_from_file(config_file)
+            logger.info(f"Loaded configuration from {config_file}")
+            break
 
-        # Override with environment variables
         self._load_from_env()
+        self._validate_loaded()
+
+    def _validate_loaded(self) -> None:
+        """Reject a loaded configuration that violates the section contracts."""
+        for section in (self.api, self.auth, self.upload):
+            try:
+                section.validate()
+            except ValueError as error:
+                raise CLIConfigError(f"Invalid configuration: {error}") from error
 
     def _load_from_file(self, config_file: Path) -> None:
-        """Load configuration from YAML file"""
+        """Load configuration from a YAML file, applying the selected profile."""
         try:
             with open(config_file) as f:
                 config_data = yaml.safe_load(f)
+        except (OSError, yaml.YAMLError) as error:
+            raise CLIConfigError(f"Invalid configuration file {config_file}: {error}") from error
 
-            if config_data:
-                # Update configuration with file data
-                for section, values in config_data.items():
-                    if not hasattr(self, section):
-                        continue
-                    if isinstance(values, dict):
-                        section_obj = getattr(self, section)
-                        for key, value in values.items():
-                            if hasattr(section_obj, key):
-                                setattr(section_obj, key, value)
-                    else:
-                        setattr(self, section, values)
-        except Exception as e:
-            raise ValueError(f"Invalid configuration file {config_file}: {e}") from e
+        if not config_data:
+            return
+        if not isinstance(config_data, dict):
+            raise CLIConfigError(f"Configuration file {config_file} must contain a mapping")
+
+        profiles = config_data.get("profiles") or {}
+        if not isinstance(profiles, dict):
+            raise CLIConfigError(f"Configuration file {config_file} has a malformed profiles block")
+        selected = profiles.get(self._profile) or {}
+        if not isinstance(selected, dict):
+            raise CLIConfigError(f"Configuration file {config_file} has a malformed {self._profile} profile")
+
+        merged = {key: value for key, value in config_data.items() if key != "profiles"}
+        merged.update(selected)
+
+        for section, values in merged.items():
+            if not hasattr(self, section):
+                continue
+            if isinstance(values, dict):
+                section_obj = getattr(self, section)
+                for key, value in values.items():
+                    if hasattr(section_obj, key):
+                        setattr(section_obj, key, self._decode(value))
+            else:
+                try:
+                    setattr(self, section, self._decode(values))
+                except (ValueError, TypeError) as error:
+                    raise CLIConfigError(f"Invalid value for {section} in {config_file}: {error}") from error
+
+    def _decode(self, value: Any) -> Any:
+        """Decrypt a value written by :meth:`save_configuration`."""
+        if isinstance(value, str) and value.startswith(ENCRYPTED_PREFIX):
+            return self.decrypt_value(value)
+        return value
 
     def _load_from_env(self) -> None:
         """Load configuration from environment variables"""
         env_mappings = {
+            "PIXELATED_API_BASE_URL": ("api", "base_url"),
+            "PIXELATED_TIMEOUT": ("api", "timeout"),
+            "PIXELATED_MAX_RETRIES": ("api", "max_retries"),
             "PIXELATED_API_URL": ("api", "base_url"),
             "PIXELATED_API_TIMEOUT": ("api", "timeout"),
             "PIXELATED_JWT_TOKEN": ("auth", "jwt_token"),
@@ -361,38 +480,38 @@ class CLIConfig(BaseModel):
         self._encryption_key = key
         self._cipher = Fernet(key)
 
-    def save_configuration(self, profile: str | None = None) -> None:
-        """Save current configuration to file"""
+    def save_configuration(self, profile: str | None = None, encrypt: bool = False) -> None:
+        """Save current configuration, preferring the file it was loaded from."""
         profile = profile or self._profile
-        config_file = self._config_dir / f"config.{profile}.yaml"
+        config_file = self._config_file or (self._config_dir / f"config.{profile}.yaml")
 
         try:
-            config_dict = self.dict()
+            config_dict = self.model_dump()
 
-            # Encrypt sensitive data if enabled
-            if self.security.encrypt_credentials and self._cipher:
-                for field in ["jwt_token", "refresh_token", "client_secret"]:
+            if encrypt and self._cipher:
+                for field in SENSITIVE_AUTH_FIELDS:
                     if value := config_dict["auth"].get(field):
-                        encrypted_value = self._cipher.encrypt(value.encode()).decode()
-                        config_dict["auth"][field] = f"encrypted:{encrypted_value}"
+                        token = self._cipher.encrypt(str(value).encode()).decode()
+                        config_dict["auth"][field] = f"{ENCRYPTED_PREFIX}{token}"
 
+            config_file.parent.mkdir(parents=True, exist_ok=True)
             with open(config_file, "w") as f:
                 yaml.dump(config_dict, f, default_flow_style=False, indent=2)
 
             logger.info(f"Configuration saved to {config_file}")
-        except Exception as e:
-            raise ValueError(f"Failed to save configuration: {e}") from e
+        except OSError as error:
+            raise CLIConfigError(f"Failed to save configuration: {error}") from error
 
     def decrypt_value(self, encrypted_value: str) -> str:
         """Decrypt an encrypted value"""
-        if not encrypted_value.startswith("encrypted:"):
+        if not encrypted_value.startswith(ENCRYPTED_PREFIX):
             return encrypted_value
 
         if not self._cipher:
             raise ValueError("Encryption not initialized")
 
         try:
-            encrypted_data = encrypted_value[10:].encode()  # Remove "encrypted:" prefix
+            encrypted_data = encrypted_value[len(ENCRYPTED_PREFIX) :].encode()
             decrypted_data = self._cipher.decrypt(encrypted_data)
             return decrypted_data.decode()
         except Exception as e:
