@@ -1,0 +1,31 @@
+training/tests/test_crisis_dimension_report.py
+  s_7d4811cf1b0ba7::t_8af43607e17049 7,12,19,22,36,42,53
+training/tests/test_crisis_adjudication_packet.py
+  s_7d4811cf1b0ba7::t_dd67724b40f96d 7,18,42
+training/tests/test_restore_classification_context.py
+  s_7d4811cf1b0ba7::t_56a9cd91fef7b1 39
+training/restore_classification_context.py
+  s_7d4811cf1b0ba7::t_1b9fe7105fb2cd 278-279
+  s_7d4811cf1b0ba7::t_a087a94910d52e 23,89,169,173,229
+  s_7d4811cf1b0ba7::t_4a7bf5e1ef854e 267-273,275-277,281-284
+training/launch/crisis_adjudication_packet.py
+  s_7d4811cf1b0ba7::t_7b5d131550d022 27,106-107,116-117,211-213,220
+  s_7d4811cf1b0ba7::t_514aaab5dbd42f 294-295
+  s_7d4811cf1b0ba7::t_48039d0d1e4456 296-297
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6ae4908178eabc52f6c92859733ecf8ee64fbda0",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
