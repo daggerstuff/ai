@@ -20,7 +20,7 @@ import os
 import tempfile
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import typer
 from pydantic import BaseModel, ConfigDict, Field
@@ -86,7 +86,7 @@ class Restored(BaseModel):
     review_state: Literal["agent_research_not_clinically_adjudicated"]
 
 
-def restore_messages(messages: list[dict], instruction: str) -> tuple[dict, ...]:
+def restore_messages(messages: list[dict[str, Any]], instruction: str) -> tuple[dict[str, Any], ...]:
     """Prepend the source system instruction; refuse rows that already carry one."""
     if any(message.get("role") == "system" for message in messages):
         raise RepairInputError("row already carries a system message; refusing to double-restore")
@@ -166,11 +166,11 @@ def load_experiment(experiment: Experiment) -> tuple[RestorePlan, Receipt]:
 
 
 @lru_cache(maxsize=1)
-def _tokenizer(name: str):
+def _tokenizer(name: str) -> Any:
     return AutoTokenizer.from_pretrained(name, fast=True, local_files_only=True)
 
 
-def _datum_for(messages: list[dict], receipt: Receipt) -> Datum:
+def _datum_for(messages: list[dict[str, Any]], receipt: Receipt) -> Datum:
     plain = messages
     if plain and plain[0].get("role") == "assistant":
         plain = plain[1:]
@@ -226,7 +226,7 @@ def retokenize(experiment: Experiment, plan: RestorePlan, receipt: Receipt) -> R
     return Retokenized(replacements=replacements, repaired_train_sha256=restored_hash.hexdigest())
 
 
-def export(experiment_path: Path, out: Path):
+def export(experiment_path: Path, out: Path) -> Receipt:
     """Publish the restored-context export after every identity check passes."""
     if out.exists():
         raise FileExistsError(out)
@@ -264,24 +264,24 @@ def export(experiment_path: Path, out: Path):
     return record
 
 
+def apply_cmd(source: Path, plan: Path, out: Path) -> None:
+    """Write the restored corpus after hash verification."""
+    specification = RestorePlan.model_validate_json(plan.read_bytes())
+    result = apply(source, out, specification)
+    receipt = {**result.model_dump(), "plan_sha256": hashlib.sha256(plan.read_bytes()).hexdigest()}
+    out.with_suffix(".receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
+    typer.echo(f"{result.changed_rows} rows restored; {result.rows} rows preserved")
+
+def export_cmd(experiment: Path, out: Path) -> None:
+    """Retokenize the restored rows into a separately bound export."""
+    receipt = export(experiment, out)
+    changed = (receipt.model_extra or {})["changed_datums"]
+    typer.echo(f"{receipt.datums} datums retained in original order; {changed} datums restored")
+
 def main() -> None:
     app = typer.Typer(add_completion=False, no_args_is_help=True)
-
-    @app.command("apply")
-    def apply_cmd(source: Path, plan: Path, out: Path):
-        """Write the restored corpus after hash verification."""
-        specification = RestorePlan.model_validate_json(plan.read_bytes())
-        result = apply(source, out, specification)
-        receipt = {**result.model_dump(), "plan_sha256": hashlib.sha256(plan.read_bytes()).hexdigest()}
-        out.with_suffix(".receipt.json").write_text(json.dumps(receipt, indent=2) + "\n")
-        typer.echo(f"{result.changed_rows} rows restored; {result.rows} rows preserved")
-
-    @app.command("export")
-    def export_cmd(experiment: Path, out: Path):
-        """Retokenize the restored rows into a separately bound export."""
-        receipt = export(experiment, out)
-        typer.echo(f"{receipt.datums} datums retained in original order; {receipt.changed_datums} datums restored")
-
+    app.command("apply")(apply_cmd)
+    app.command("export")(export_cmd)
     app()
 
 

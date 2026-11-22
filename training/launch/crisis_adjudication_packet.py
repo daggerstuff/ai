@@ -24,7 +24,7 @@ from __future__ import annotations
 import json
 import random
 from pathlib import Path
-from typing import Annotated, Final
+from typing import Annotated, Any, Final
 
 import typer
 from pydantic import BaseModel, ConfigDict
@@ -103,8 +103,8 @@ class AdjudicationSheet(BaseModel):
     entries: tuple[AdjudicationEntry, ...]
 
 
-def _load_cases(cases_path: Path) -> list[dict]:
-    cases: list[dict] = []
+def _load_cases(cases_path: Path) -> list[dict[str, Any]]:
+    cases: list[dict[str, Any]] = []
     for line in cases_path.read_text().splitlines():
         if line.strip():
             cases.append(json.loads(line))
@@ -113,8 +113,8 @@ def _load_cases(cases_path: Path) -> list[dict]:
     return cases
 
 
-def _load_results(results_path: Path) -> dict[tuple[str, str], dict]:
-    results: dict[tuple[str, str], dict] = {}
+def _load_results(results_path: Path) -> dict[tuple[str, str], dict[str, Any]]:
+    results: dict[tuple[str, str], dict[str, Any]] = {}
     for line in results_path.read_text().splitlines():
         if not line.strip():
             continue
@@ -208,14 +208,16 @@ def build(cases_path: Path, results_path: Path, out_dir: Path, arms: tuple[str, 
     )
 
 
-def summarize(sheet_path: Path, key_path: Path, out_path: Path, allow_partial: bool = False) -> dict:
+def summarize(
+    sheet_path: Path, key_path: Path, out_path: Path, allow_partial: bool = False
+) -> dict[str, Any]:
     sheet = json.loads(sheet_path.read_text())
     key = json.loads(key_path.read_text())
     mapping = key["mapping"]
     arms = key["arms"]
     entries = sheet.get("entries", [])
     expected = {(int(case), item) for case, items in mapping.items() for item in items}
-    seen: dict[tuple[int, str], dict] = {}
+    seen: dict[tuple[int, str], dict[str, Any]] = {}
     invalid: list[str] = []
     for entry in entries:
         ident = (entry.get("case_number"), entry.get("item"))
@@ -260,7 +262,6 @@ def summarize(sheet_path: Path, key_path: Path, out_path: Path, allow_partial: b
 app = typer.Typer(help="Build and score blinded crisis-reply adjudication packets.")
 
 
-@app.command("build")
 def build_cmd(
     cases: Annotated[Path, typer.Argument(help="v2 crisis suite JSONL (dev split).")],
     results: Annotated[Path, typer.Argument(help="recorded results JSONL with case/arm/response.")],
@@ -279,7 +280,6 @@ def build_cmd(
     typer.echo(summary.model_dump_json(indent=2))
 
 
-@app.command("summarize")
 def summarize_cmd(
     sheet: Annotated[Path, typer.Argument(help="completed response-sheet.json")],
     key: Annotated[Path, typer.Argument(help="sealed key.json from build")],
@@ -289,6 +289,10 @@ def summarize_cmd(
     """Score a completed sheet against the sealed key."""
     report = summarize(sheet, key, out, allow_partial)
     typer.echo(json.dumps(report, indent=2))
+
+
+app.command("build")(build_cmd)
+app.command("summarize")(summarize_cmd)
 
 
 if __name__ == "__main__":

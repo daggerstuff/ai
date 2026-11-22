@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -14,7 +15,7 @@ EXPECTED_PROBES = 2
 EXPECTED_PERFECT_SCORE = 2.0
 
 
-def _write(path: Path, rows: list[dict]) -> Path:
+def _write(path: Path, rows: list[dict[str, Any]]) -> Path:
     path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
     return path
 
@@ -38,7 +39,7 @@ def _cases(tmp_path: Path) -> Path:
 
 
 def _results(tmp_path: Path) -> Path:
-    rows = []
+    rows: list[dict[str, Any]] = []
     for case_id in ("case-a", "case-b"):
         for arm in ("base", "sft"):
             rows.append(

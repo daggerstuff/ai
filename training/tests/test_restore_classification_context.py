@@ -36,7 +36,7 @@ def _raw_rows() -> list[bytes]:
     return [(json.dumps(row) + "\n").encode() for row in ROWS]
 
 
-def fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Experiment, bytes, list[dict]]:
+def fixture(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Experiment, bytes, list[bytes]]:
     raw = _raw_rows()
     source = tmp_path / "source.jsonl"
     source.write_bytes(b"".join(raw))
