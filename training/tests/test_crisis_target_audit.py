@@ -156,6 +156,45 @@ def test_export_review_matches_a_row_the_export_trimmed(tmp_path: Path, monkeypa
     assert result.excluded_by_length == 0
 
 
+def test_export_review_honors_a_zero_final_exchange_budget(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = tmp_path / "selected.jsonl"
+    history: list[dict[str, Any]] = [
+        {"role": "user", "content": "older prompt " + "x " * 40},
+        {"role": "assistant", "weight": 1, "content": "older reply"},
+    ]
+    final: list[dict[str, Any]] = [
+        {"role": "user", "content": "I want to die."},
+        {"role": "assistant", "weight": 1, "content": "Tell me more."},
+    ]
+    source.write_text(json.dumps({"messages": history + final}) + "\n")
+    tokenizer = StubTokenizer()
+    ids, _ = build_tokens(tokenizer, final)
+    exported = tmp_path / "datums.jsonl"
+    exported.write_text("")
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text(
+        json.dumps(
+            {
+                "path": str(exported),
+                "sha256": hashlib.sha256(exported.read_bytes()).hexdigest(),
+                "tokenizer": "test",
+                "max_tokens": len(ids) - 1,
+                "max_final_exchange_tokens": 0,
+                "end_token": "<|im_end|>",
+            }
+        )
+    )
+
+    def load_tokenizer(_name: str, **_options: bool) -> StubTokenizer:
+        return tokenizer
+
+    monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
+    result = audit_export(source, receipt, audit(source))
+
+    assert result.excluded_by_length == 1
+    assert result.present_selected_lines == ()
+
+
 def test_export_review_reports_a_flagged_target_lost_to_trimming(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

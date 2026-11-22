@@ -125,8 +125,11 @@ def audit(
     surface = crisis_reply_surface(manifest)
     manifest_sha = _sha256_file(manifest_path)
     max_tokens = int(receipt.get("max_tokens", 512))
-    # Receipts written before the final-exchange budget existed fall back to it.
-    final_exchange_tokens = int(receipt.get("max_final_exchange_tokens", max_tokens))
+    # Receipts written before the final-exchange budget existed carry no value,
+    # and a repaired receipt may serialize it as null; both fall back to the
+    # history budget rather than failing the audit.
+    stored_final = receipt.get("max_final_exchange_tokens")
+    final_exchange_tokens = max_tokens if stored_final is None else int(stored_final)
     end_token = str(receipt.get("end_token", "<|im_end|>"))
     template_kwargs = dict(receipt.get("template_kwargs") or {})
 

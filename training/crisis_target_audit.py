@@ -158,9 +158,10 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
             if len(ids) < MIN_DATUM_TOKENS or not any(targets):
                 unmatched.append(line_number)
                 continue
+            stored_final = dataset.max_final_exchange_tokens
             limits = TokenLimits(
                 max_tokens=dataset.max_tokens,
-                final_exchange_tokens=dataset.max_final_exchange_tokens or dataset.max_tokens,
+                final_exchange_tokens=dataset.max_tokens if stored_final is None else stored_final,
             )
             if len(ids) > limits.budget(trimmed=trimmed, message_count=len(messages)):
                 excluded += 1

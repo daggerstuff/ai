@@ -118,32 +118,47 @@ def _stub_trim(trimmed: bool) -> Any:
     return trim
 
 
-@pytest.mark.parametrize("trimmed", [True, False])
-def test_default_tokenize_applies_the_final_exchange_budget_only_after_trimming(
-    monkeypatch: pytest.MonkeyPatch, trimmed: bool
+@pytest.mark.parametrize(
+    ("trimmed", "max_tokens", "final_exchange_tokens", "kept"),
+    [
+        (True, 10, 1000, True),
+        (True, 1000, 10, False),
+        (False, 10, 1000, True),
+        (False, 1000, 10, True),
+        (False, 10, 10, False),
+    ],
+)
+def test_default_tokenize_uses_the_shared_budget_rule(
+    monkeypatch: pytest.MonkeyPatch,
+    trimmed: bool,
+    max_tokens: int,
+    final_exchange_tokens: int,
+    kept: bool,
 ) -> None:
     monkeypatch.setattr(survival, "trim_to_budget", _stub_trim(trimmed))
     row = {"messages": [{"role": "user", "content": "a"}, {"role": "assistant", "content": "b"}]}
 
-    kept = survival.default_tokenize(
+    datum = survival.default_tokenize(
         None,
         row,
-        TokenLimits(max_tokens=10, final_exchange_tokens=1000),
+        TokenLimits(max_tokens=max_tokens, final_exchange_tokens=final_exchange_tokens),
         end_token="<|im_end|>",
         template_kwargs={},
     )
 
-    assert (kept is not None) is trimmed
+    assert (datum is not None) is kept
 
 
-@pytest.mark.parametrize(("stored", "expected"), [(None, 512), (777, 777)])
+@pytest.mark.parametrize(("stored", "expected"), [("absent", 512), ("null", 512), (777, 777)])
 def test_audit_reads_the_final_exchange_budget_from_the_receipt(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, stored: int | None, expected: int
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, stored: int | str, expected: int
 ) -> None:
     paths = _fixture(tmp_path)
     receipt = json.loads(paths["receipt"].read_text())
-    if stored is None:
+    if stored == "absent":
         receipt.pop("max_final_exchange_tokens", None)
+    elif stored == "null":
+        receipt["max_final_exchange_tokens"] = None
     else:
         receipt["max_final_exchange_tokens"] = stored
     paths["receipt"].write_text(json.dumps(receipt), encoding="utf-8")

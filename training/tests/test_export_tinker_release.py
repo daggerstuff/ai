@@ -279,6 +279,23 @@ def test_export_keeps_a_final_exchange_that_exceeds_the_history_budget(tmp_path:
     assert result.counts["datums_skipped_too_long"] == 0
 
 
+def test_export_keeps_a_standalone_exchange_under_a_larger_final_exchange_budget(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", CLIENT_PROMPT), ("assistant", ASSISTANT_REPLY))}]
+    )
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=10,
+        final_exchange_tokens=1000,
+    )
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_skipped_too_long"] == 0
+
+
 def test_export_keeps_an_untrimmed_two_message_row_past_the_final_exchange_budget(tmp_path: Path) -> None:
     manifest_path = write_manifest(
         tmp_path, [{"messages": messages(("user", CLIENT_PROMPT), ("assistant", ASSISTANT_REPLY))}]

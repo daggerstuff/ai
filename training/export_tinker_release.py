@@ -243,15 +243,17 @@ class TokenLimits:
     def budget(self, *, trimmed: bool, message_count: int) -> int:
         """Return the budget for a row after left-trimming.
 
-        The final-exchange budget is the window a trimmed row is reduced to, so
-        it applies only when trimming actually produced that exchange. A row
-        that arrived with two messages keeps the full budget, otherwise a long
-        single-exchange row is dropped for exceeding a window it never
-        exceeded.
+        A trimmed row is bounded by the final-exchange window it was reduced
+        to. A row that arrived as a single exchange keeps the larger of the two
+        budgets: it never had history trimmed away, so it must not be dropped
+        for exceeding a window it never exceeded, and a final-exchange
+        allowance above ``max_tokens`` still applies to it.
         """
-        if trimmed and message_count == MIN_FINAL_EXCHANGE_MESSAGES:
+        if message_count != MIN_FINAL_EXCHANGE_MESSAGES:
+            return self.max_tokens
+        if trimmed:
             return self.final_exchange_tokens
-        return self.max_tokens
+        return max(self.max_tokens, self.final_exchange_tokens)
 
 
 def trim_to_budget(
