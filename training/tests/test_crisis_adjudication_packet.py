@@ -242,9 +242,11 @@ def test_summarize_rejects_a_sheet_from_another_packet(tmp_path: Path) -> None:
 def test_summarize_accepts_a_legacy_pair_without_a_packet_id(tmp_path: Path) -> None:
     sheet_path, key_path, sheet = _completed(tmp_path)
     sheet.pop("packet_id")
+    sheet["schema_version"] = "crisis-adjudication-sheet-v1"
     sheet_path.write_text(json.dumps(sheet))
     key = json.loads(key_path.read_text())
     key.pop("packet_id")
+    key["schema_version"] = "crisis-adjudication-key-v1"
     key_path.write_text(json.dumps(key))
 
     report = cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")

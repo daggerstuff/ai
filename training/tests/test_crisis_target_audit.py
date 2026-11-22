@@ -178,7 +178,7 @@ def test_export_review_honors_a_zero_final_exchange_budget(tmp_path: Path, monke
                 "path": str(exported),
                 "sha256": hashlib.sha256(exported.read_bytes()).hexdigest(),
                 "tokenizer": "test",
-                "max_tokens": len(ids) - 1,
+                "max_tokens": len(ids),
                 "max_final_exchange_tokens": 0,
                 "end_token": "<|im_end|>",
             }
@@ -265,6 +265,43 @@ def test_export_review_still_counts_a_trimmed_row_missing_from_the_export(
 
     assert result.trimmed_target_lines == ()
     assert result.unmatched_selected_lines == (1,)
+
+
+def test_export_review_consumes_one_exported_copy_per_source_row(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "selected.jsonl"
+    messages: list[dict[str, Any]] = [
+        {"role": "user", "content": "I want to die."},
+        {"role": "assistant", "weight": 1, "content": "Tell me more."},
+    ]
+    source.write_text((json.dumps({"messages": messages}) + "\n") * 2)
+    tokenizer = StubTokenizer()
+    ids, weights = build_tokens(tokenizer, messages)
+    datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:])
+    exported = tmp_path / "datums.jsonl"
+    exported.write_text(datum.line() + "\n")
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text(
+        json.dumps(
+            {
+                "path": str(exported),
+                "sha256": hashlib.sha256(exported.read_bytes()).hexdigest(),
+                "tokenizer": "test",
+                "max_tokens": 512,
+                "end_token": "<|im_end|>",
+            }
+        )
+    )
+
+    def load_tokenizer(_name: str, **_options: bool) -> StubTokenizer:
+        return tokenizer
+
+    monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
+    result = audit_export(source, receipt, audit(source))
+
+    assert result.present_selected_lines == (1,)
+    assert result.unmatched_selected_lines == (2,)
 
 
 def test_export_review_rejects_a_changed_training_file(tmp_path: Path) -> None:

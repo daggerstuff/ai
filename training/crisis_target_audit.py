@@ -121,7 +121,7 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
     checksum = hashlib.sha256(payload).hexdigest()
     if checksum != dataset.sha256:
         raise ExportIdentityError(dataset.path)
-    exported = {hashlib.sha256(line).hexdigest() for line in payload.splitlines() if line.strip()}
+    exported = Counter(hashlib.sha256(line).hexdigest() for line in payload.splitlines() if line.strip())
     tokenizer = AutoTokenizer.from_pretrained(dataset.tokenizer, fast=True, local_files_only=True)
     wanted = {finding.line for finding in report.findings}
     findings_by_line: dict[int, list[Finding]] = {}
@@ -165,9 +165,12 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
                 excluded += 1
                 continue
             datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets)
-            if hashlib.sha256(datum.line().encode()).hexdigest() not in exported:
+            digest = hashlib.sha256(datum.line().encode()).hexdigest()
+            if exported[digest] <= 0:
                 unmatched.append(line_number)
-            elif targets_lost:
+                continue
+            exported[digest] -= 1
+            if targets_lost:
                 trimmed_targets.append(line_number)
             else:
                 present.append(line_number)
