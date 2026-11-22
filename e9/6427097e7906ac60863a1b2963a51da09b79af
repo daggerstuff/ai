@@ -1,0 +1,118 @@
+tools/scripts/tests/test_auth.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 10-11
+tools/scripts/tests/test_config.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 9-10
+monitoring/test_quality_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 14-15
+memory/prioritization_service.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 9
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 8
+qa/reports/test_quality_distribution_analysis.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 15-16
+tools/scripts/commands/auth.py
+  s_7d4811cf1b0ba7::t_b0f9b82a902816 13-14
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 15
+cli/utils.py
+  s_7d4811cf1b0ba7::t_5859f124a7d430 26-38,52,98,239,267
+qa/reports/api_monitor.py
+  s_7d4811cf1b0ba7::t_1cc554bba8a7a0 41-43,47
+tools/scripts/tests/__init__.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 21-24
+  s_7d4811cf1b0ba7::t_cfa1a5ef9760a5 159
+monitoring/observability.py
+  s_7d4811cf1b0ba7::t_44c12ae849af40 1-680
+qa/reports/test_quality_comparison.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 15-16
+tools/scripts/commands/pipeline.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 17
+  s_7d4811cf1b0ba7::t_b0f9b82a902816 15-16
+monitoring/safety_monitor_integration.py
+  s_7d4811cf1b0ba7::t_1cc554bba8a7a0 35-37,41
+tools/scripts/auth.py
+  s_7d4811cf1b0ba7::t_a83a38bbfb3c63 565-566,571
+  s_7d4811cf1b0ba7::t_cfa1a5ef9760a5 607,615
+  s_7d4811cf1b0ba7::t_a2d5335db655f8 9,550,552-555,557-564,567,570,573,576,579-589,591-595,597,601,603-606,608-609,611-612,614,616
+inference/api/techdeck_integration/utils/validation.py
+  s_7d4811cf1b0ba7::t_c40caf5b18d728 12,701-788,790-794,796-805
+  s_7d4811cf1b0ba7::t_cfa1a5ef9760a5 789,795
+  s_7d4811cf1b0ba7::t_1cc554bba8a7a0 806-832
+qa/reports/observability.py
+  s_7d4811cf1b0ba7::t_44c12ae849af40 1,3-5,7,9-12
+monitoring/test_quality_distribution_analysis.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 15-16
+tools/scripts/commands/config.py
+  s_7d4811cf1b0ba7::t_b0f9b82a902816 18
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 19
+tools/scripts/tests/conftest.py
+  s_7d4811cf1b0ba7::t_c1a02c1c299056 1-24
+tools/scripts/commands/cli_interface.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 17
+  s_7d4811cf1b0ba7::t_b0f9b82a902816 15-16
+cli/config.py
+  s_7d4811cf1b0ba7::t_e9c09b249e133b 287-289,294-295
+  s_7d4811cf1b0ba7::t_c4b95ac28544bd 15,48-50,55-57,73-75,90-92,110-112,128-130,518-520,525-527
+qa/reports/test_quality_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 14-15
+qa/reports/test_quality_improvement_tracking.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 16-17
+cli/auth.py
+  s_7d4811cf1b0ba7::t_cfa1a5ef9760a5 607,615
+  s_7d4811cf1b0ba7::t_a83a38bbfb3c63 565-566,571
+  s_7d4811cf1b0ba7::t_a2d5335db655f8 9,549-564,567-570,572-606,608-614,616-618,623
+tools/scripts/utils.py
+  s_7d4811cf1b0ba7::t_5859f124a7d430 26-38,52,98,239,267
+research/prioritization_service.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 8
+  s_7d4811cf1b0ba7::t_296671993b86d1 9
+monitoring/test_quality_improvement_tracking.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 16-17
+tools/scripts/commands/mcp_connect.py
+  s_7d4811cf1b0ba7::t_b0f9b82a902816 14-15
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 16
+tools/scripts/commands/web_frontend.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 19
+  s_7d4811cf1b0ba7::t_b0f9b82a902816 17-18
+monitoring/test_section_5_6_2_integration.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 15-16
+tools/scripts/tests/test_main.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 12
+  s_7d4811cf1b0ba7::t_9b8d6a196765bd 11
+data/synthetic/wrapper/expansion_authoring.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 11
+qa/reports/test_section_5_6_2_integration.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 15-16
+tools/scripts/config.py
+  s_7d4811cf1b0ba7::t_c4b95ac28544bd 15,48-50,55-57,73-75,90-92,110-112,128-130,518-520,525-527
+  s_7d4811cf1b0ba7::t_ef23f4426a48c4 287-289,294-295
+api/techdeck_integration/utils/validation.py
+  s_7d4811cf1b0ba7::t_1cc554bba8a7a0 806-832
+  s_7d4811cf1b0ba7::t_c40caf5b18d728 12,701-788,790-794,796-805
+  s_7d4811cf1b0ba7::t_cfa1a5ef9760a5 789,795
+cli/exceptions.py
+  s_7d4811cf1b0ba7::t_316fcb7b06b9db 19-22
+qa/reports/alert_escalation.py
+  s_7d4811cf1b0ba7::t_1cc554bba8a7a0 17,517
+  s_7d4811cf1b0ba7::t_4ed2d6a810755f 18,542
+cli/tests/conftest.py
+  s_7d4811cf1b0ba7::t_c1a02c1c299056 1-24
+monitoring/test_quality_comparison.py
+  s_7d4811cf1b0ba7::t_296671993b86d1 15-16
+tools/scripts/tests/test_progress.py
+  s_7d4811cf1b0ba7::t_4930fd369ec9e3 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e96427097e7906ac60863a1b2963a51da09b79af",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
