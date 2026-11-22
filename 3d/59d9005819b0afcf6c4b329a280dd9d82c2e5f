@@ -1,0 +1,126 @@
+.gitignore
+  h_07d84030f79d30 215-216,268,283-303,386-393,398
+pyproject.toml
+  h_07d84030f79d30 511-514,531-545,548-555
+qa/validation/therapy_bench/generate_crisis_capability_v1.py
+  h_07d84030f79d30 16-23,25,151-172,178,182-184,187-188,200-206,215,240,247,254,261,270,277,284,301-311,351,357-358,360-361,369-371
+qa/validation/therapy_bench/generate_crisis_capability_v2.py
+  h_07d84030f79d30 1-466
+training/build_agent_tool_sft_v23.py
+  h_07d84030f79d30 1-373
+training/build_agent_tool_sft_v24.py
+  h_07d84030f79d30 1-384
+training/build_agent_tool_sft_v25.py
+  h_07d84030f79d30 1-506
+training/build_agent_tool_sft_v26.py
+  h_07d84030f79d30 1-720
+training/build_agent_tool_sft_v27.py
+  h_07d84030f79d30 1-1227
+training/build_agent_tool_sft_v28.py
+  h_07d84030f79d30 1-1237
+training/build_agent_tool_sft_v29.py
+  h_07d84030f79d30 1-1364
+training/build_agent_tool_sft_v30.py
+  h_07d84030f79d30 1-347
+training/build_v23_release.py
+  h_07d84030f79d30 1-290
+training/build_v24_release.py
+  h_07d84030f79d30 1-285
+training/build_v25_release.py
+  h_07d84030f79d30 1-292
+training/build_v26_release.py
+  h_07d84030f79d30 1-303
+training/build_v27_release.py
+  h_07d84030f79d30 1-322
+training/build_v28_release.py
+  h_07d84030f79d30 1-298
+training/build_v29_release.py
+  h_07d84030f79d30 1-334
+training/build_v30_release.py
+  h_07d84030f79d30 1-320
+training/export_fireworks_release.py
+  h_07d84030f79d30 105-111,120,164-170,176,189-198,210-212,217
+training/export_tinker_release.py
+  h_07d84030f79d30 45,51,55,58,246-304,326
+training/launch/r2_sync.py
+  h_07d84030f79d30 92-101
+training/launch/recover_eval_records.py
+  h_07d84030f79d30 1-87
+training/local_paired_eval.py
+  h_07d84030f79d30 95-96,107-135,198-202,226
+training/ovh_v22_eval/launch.sh
+  h_07d84030f79d30 30-31,36,39,42,72,74,149-159,162
+training/ovh_v22_eval/submit.py
+  h_07d84030f79d30 1-379
+training/ovh_v22_qwen3_8b/run_ovh.py
+  h_07d84030f79d30 17,29-30,32,34-43
+training/ovh_v23_qwen3_8b/launch.sh
+  h_07d84030f79d30 1-37
+training/ovh_v23_qwen3_8b/submit.py
+  h_07d84030f79d30 1-348
+training/strict_crisis_gate.py
+  h_07d84030f79d30 19,182-183,256-300,352-361,363-366,368,370,390-400,418-421,430-432
+training/tests/test_build_agent_tool_sft_v23.py
+  h_07d84030f79d30 1-254
+training/tests/test_build_agent_tool_sft_v24.py
+  h_07d84030f79d30 1-252
+training/tests/test_build_agent_tool_sft_v25.py
+  h_07d84030f79d30 1-272
+training/tests/test_build_agent_tool_sft_v26.py
+  h_07d84030f79d30 1-300
+training/tests/test_build_agent_tool_sft_v27.py
+  h_07d84030f79d30 1-466
+training/tests/test_build_agent_tool_sft_v28.py
+  h_07d84030f79d30 1-553
+training/tests/test_build_agent_tool_sft_v29.py
+  h_07d84030f79d30 1-692
+training/tests/test_build_agent_tool_sft_v30.py
+  h_07d84030f79d30 1-251
+training/tests/test_build_v23_release.py
+  h_07d84030f79d30 1-185
+training/tests/test_build_v24_release.py
+  h_07d84030f79d30 1-194
+training/tests/test_build_v25_release.py
+  h_07d84030f79d30 1-225
+training/tests/test_build_v26_release.py
+  h_07d84030f79d30 1-265
+training/tests/test_build_v27_release.py
+  h_07d84030f79d30 1-337
+training/tests/test_build_v28_release.py
+  h_07d84030f79d30 1-363
+training/tests/test_build_v29_release.py
+  h_07d84030f79d30 1-399
+training/tests/test_build_v30_release.py
+  h_07d84030f79d30 1-304
+training/tests/test_crisis_suite_fixtures.py
+  h_07d84030f79d30 1-108
+training/tests/test_crisis_suite_v2.py
+  h_07d84030f79d30 1-234
+training/tests/test_export_fireworks_release.py
+  h_07d84030f79d30 135-189
+training/tests/test_export_tinker_release.py
+  h_07d84030f79d30 10-11,325-439
+training/tests/test_local_paired_eval.py
+  h_07d84030f79d30 6,69-107,125
+training/tests/test_ovh_eval_submit.py
+  h_07d84030f79d30 1-267
+training/tests/test_ovh_train_submit.py
+  h_07d84030f79d30 1-73
+training/tests/test_r2_sync.py
+  h_07d84030f79d30 34-35,52-54,92,124,130-131,133-134,142,144-145,147,162,172,218,233,235
+training/tests/test_recover_eval_records.py
+  h_07d84030f79d30 1-71
+training/tests/test_strict_crisis_gate.py
+  h_07d84030f79d30 157-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d59d9005819b0afcf6c4b329a280dd9d82c2e5f",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
