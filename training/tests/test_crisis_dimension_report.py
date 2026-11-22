@@ -140,6 +140,9 @@ def test_negated_certainty_phrase_passes_the_uncertainty_probe(tmp_path: Path) -
         ("You'll be fine.", False),
         ("I can\u2019t promise everything will be fine.", True),
         ("I can't promise when things will change, but you'll be fine.", False),
+        ("I can\u2019t promise when this will end\u2014but everything will be okay.", False),
+        ("I can't promise that, though I wish I could, everything will be okay.", True),
+        ("I can't promise that, though you'll be fine.", False),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:
