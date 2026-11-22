@@ -567,5 +567,8 @@ known-first-party = [
     "ai",
     "src",
 ]
+known-third-party = [
+    "wandb",
+]
 combine-as-imports = true
 force-single-line = false
