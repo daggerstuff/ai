@@ -13,13 +13,14 @@ from typing import Any
 import requests
 
 from cli.config import CLIConfig
+from cli.exceptions import CLIAuthError
 from cli.utils import validate_jwt_token
 
 logger = logging.getLogger("pixelated-ai-cli")
 
 
-class AuthenticationError(Exception):
-    """Custom exception for authentication errors"""
+class AuthenticationError(CLIAuthError):
+    """Authentication failure, catchable as either the CLI or the auth type."""
 
 
 class TokenExpiredError(AuthenticationError):
