@@ -9,6 +9,7 @@ import json
 import logging
 import sqlite3
 import statistics
+import sys
 import threading
 from collections import Counter, defaultdict
 from collections.abc import Mapping
@@ -604,9 +605,9 @@ def main():
             pass
 
     elif args.command == "report":
-        aggregator.generate_report(args.batch_id, args.output)
+        report_content = aggregator.generate_report(args.batch_id, args.output)
         if not args.output:
-            pass
+            sys.stdout.write(report_content + "\n")
 
     elif args.command == "list":
         aggregator.get_all_batches()
