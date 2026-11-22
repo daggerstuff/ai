@@ -1,0 +1,41 @@
+training/export_tinker_release.py
+  s_7d4811cf1b0ba7::t_b967eba01c381c 397-398
+  s_2d5856da696824::t_d594170c83be55 490
+  s_2d5856da696824::t_aad0b804c719c6 489
+training/tests/test_export_tinker_release.py
+  s_7d4811cf1b0ba7::t_a377c82df9f73d 563-577
+  s_7d4811cf1b0ba7::t_811909c41d3cc8 578-579
+training/export_fireworks_release.py
+  s_7d4811cf1b0ba7::t_f930c9c4024ab9 242
+  s_7d4811cf1b0ba7::t_1572a31564f762 64-79,128-131,135-138,142-153,192-205,234-236,248,256,276,281,283
+training/tests/test_export_fireworks_release.py
+  s_7d4811cf1b0ba7::t_a377c82df9f73d 78-79,123-147
+  s_7d4811cf1b0ba7::t_a350ddd5871c83 75-77
+  s_7d4811cf1b0ba7::t_a6ab404ade2a7d 80-82
+  s_7d4811cf1b0ba7::t_f8d3044dec0716 148-150
+  s_7d4811cf1b0ba7::t_6a72aa8cee7c0a 74,83-86
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d60c41e993ca4b2c90f701884907ba58f71f035e",
+  "prompts": {},
+  "sessions": {
+    "s_2d5856da696824": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f291-fcb0-7ec0-bd62-b77d02388594",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
