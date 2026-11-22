@@ -45,14 +45,49 @@ def recover(lines: Iterable[str]) -> dict[str, list[dict[str, Any]]]:
         # A run that died mid-summary still has readable replies, so keep them
         # rather than dropping the only copy.
         runs.setdefault(UNATTRIBUTED, []).extend(buffered)
-    return runs
+    return {run: dedupe(records) for run, records in runs.items()}
+
+
+def dedupe(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the last record per ``(case_id, arm_id)``, at its first position.
+
+    A resumable evaluation re-emits a case it already graded, and the log then
+    holds the earlier failed attempt beside the later verdict. The strict gate
+    would count both, so the newest record for a case wins and keeps the slot
+    the case first occupied.
+    """
+    latest: dict[tuple[Any, Any], dict[str, Any]] = {}
+    for record in records:
+        latest[(record.get("case_id"), record.get("arm_id"))] = record
+    seen: set[tuple[Any, Any]] = set()
+    ordered: list[dict[str, Any]] = []
+    for record in records:
+        key = (record.get("case_id"), record.get("arm_id"))
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(latest[key])
+    return ordered
+
+
+def run_directory(out_root: Path, run: str) -> Path:
+    """The directory a run names inside ``out_root``, refusing any escape.
+
+    ``run`` comes from the job log, and a value like ``../../etc`` would write
+    ``results.jsonl`` outside the directory the operator asked for.
+    """
+    root = out_root.resolve()
+    directory = (root / run).resolve()
+    if directory == root or not directory.is_relative_to(root):
+        raise ValueError(f"run {run!r} resolves outside {root}")
+    return directory
 
 
 def write_runs(runs: dict[str, list[dict[str, Any]]], out_root: Path) -> dict[str, dict[str, int]]:
     """Write ``<out_root>/<run>/results.jsonl`` and return per-run pass counts."""
     counts: dict[str, dict[str, int]] = {}
     for run, records in runs.items():
-        directory = out_root / run
+        directory = run_directory(out_root, run)
         directory.mkdir(parents=True, exist_ok=True)
         with (directory / "results.jsonl").open("w", encoding="utf-8") as handle:
             for record in records:

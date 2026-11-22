@@ -26,7 +26,11 @@ from pathlib import Path
 from typing import Any, Protocol
 from urllib.parse import urlsplit
 
-_CONFIG_KEYS = {"schema_version", "run_id", "decoding", "pricing", "arms"}
+_CONFIG_KEYS = {"schema_version", "run_id", "loader", "decoding", "pricing", "arms"}
+# How the arms must be loaded. Recorded in the config so the two arms cannot be
+# scored under a different quantisation or compute dtype than the one the run
+# record names.
+_LOADER_KEYS = {"load_in_4bit", "dtype"}
 _DECODING_REQUIRED_KEYS = {"temperature", "max_tokens", "stop"}
 _DECODING_OPTIONAL_KEYS = {"chat_template_kwargs", "response_format"}
 _PRICING_KEYS = {
@@ -247,6 +251,7 @@ def load_config(path: Path) -> dict[str, Any]:
         raise EvaluationInputError("Only config schema_version 1 is supported")
     if not isinstance(config["run_id"], str) or not config["run_id"].strip():
         raise EvaluationInputError("run_id must be a nonempty string")
+    _validate_loader(config["loader"])
     _validate_decoding(config["decoding"])
     _validate_pricing(config["pricing"])
     arms = config["arms"]
@@ -317,6 +322,15 @@ def _validate_arm(arm: Any) -> None:
         raise EvaluationInputError("api_key_env must be an uppercase environment variable name")
     if "project" in arm and (not isinstance(arm["project"], str) or not arm["project"].strip()):
         raise EvaluationInputError("project must be a nonempty string when supplied")
+
+
+def _validate_loader(loader: Any) -> None:
+    if not isinstance(loader, dict) or set(loader) != _LOADER_KEYS:
+        raise EvaluationInputError(f"loader keys must be exactly {sorted(_LOADER_KEYS)}")
+    if not isinstance(loader["load_in_4bit"], bool):
+        raise EvaluationInputError("loader.load_in_4bit must be a boolean")
+    if not isinstance(loader["dtype"], str) or not loader["dtype"].strip():
+        raise EvaluationInputError("loader.dtype must be a nonempty string")
 
 
 def _validate_pricing(pricing: Any) -> None:
@@ -703,11 +717,7 @@ def _check_tool_arguments(
     check: dict[str, Any], _response: str, _state: dict[str, Any], trace: list[dict[str, Any]]
 ) -> bool:
     try:
-        arguments = [
-            json.loads(item["arguments"])
-            for item in trace
-            if item["name"] == check["tool_name"]
-        ]
+        arguments = [json.loads(item["arguments"]) for item in trace if item["name"] == check["tool_name"]]
     except (json.JSONDecodeError, TypeError):
         return False
     return arguments == check["arguments"]
@@ -908,8 +918,7 @@ def _tool_book_navigator_slot(args: dict[str, Any], state: dict[str, Any]) -> tu
             elif not isinstance(appointments, list):
                 status, result = "error", {"status": "error", "booked": False, "code": "invalid_appointment_state"}
             elif any(
-                isinstance(appointment, dict) and appointment.get("slot_id") == slot_id
-                for appointment in appointments
+                isinstance(appointment, dict) and appointment.get("slot_id") == slot_id for appointment in appointments
             ):
                 status, result = "ok", {"status": "booked", "slot": slot, "duplicate": True}
             else:

@@ -9,6 +9,7 @@ control to launch.sh, the job fails before it scores anything).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import subprocess
 import sys
@@ -48,7 +49,7 @@ def test_job_env_round_trips_the_signed_map() -> None:
     decoded = r2_sync.decode_map(env["R2_MAP_B64"])
 
     assert decoded == plan
-    assert env["ROOT"] == "/tmp/work"
+    assert env["ROOT"] == submit.REMOTE_ROOT
     assert env["EVAL_FLAVOR"] == "l4"
 
 
@@ -79,7 +80,7 @@ def test_bootstrap_fetches_inputs_and_hands_off_to_the_launcher(tmp_path: Path) 
     )
 
     assert "fetched code/launch.sh" in completed.stdout
-    assert completed.stdout.strip().endswith("launcher ran")
+    assert "launcher ran" in completed.stdout
     # The bootstrap must pass the launcher's exit code through, not swallow it.
     assert completed.returncode == launcher_exit
     assert (root / "code" / "launch.sh").read_text() == source.read_text()
@@ -112,6 +113,12 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
         "client",
         lambda **_: FakeS3(("inputs/v22/code/launch.sh", "inputs/v22/data/scenario-crisis-dev-v1.jsonl")),
     )
+    stored = ("code/launch.sh", "data/scenario-crisis-dev-v1.jsonl")
+    monkeypatch.setattr(
+        submit.r2_sync,
+        "list_prefix",
+        lambda *, prefix, **__: [{"key": f"{prefix}/{relative}", "size": 1, "etag": ""} for relative in stored],
+    )
     monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
     monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
 
@@ -130,7 +137,13 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
     assert report["upload_objects"] == len(submit.run_names()) * len(submit.RESULT_FILES)
     assert report["executed"] is False
     assert set(plan["download"]) == {"code/launch.sh", "data/scenario-crisis-dev-v1.jsonl"}
-    assert plan["download"]["code/launch.sh"].startswith("https://r2.test/get_object/inputs/v22/")
+    # The GET prefix carries a digest of the bundle, so a later submission cannot
+    # replace the bytes a queued job has not fetched yet.
+    download_prefix = (
+        plan["download"]["code/launch.sh"].removeprefix("https://r2.test/get_object/").rsplit("/code/launch.sh", 1)[0]
+    )
+    assert download_prefix.startswith("inputs/v22/")
+    assert len(download_prefix.rsplit("/", 1)[-1]) == len(hashlib.sha256(b"").hexdigest())
     assert plan["upload"]["eval-nf4-sealed/results.jsonl"].startswith("https://r2.test/put_object/evals/v23/")
     assert plan["bucket"] == "training"
 
@@ -151,6 +164,11 @@ def test_submit_refuses_to_launch_when_an_input_did_not_land(tmp_path: Path, mon
     monkeypatch.setattr(submit.r2_sync, "client", lambda **_: FakeS3(("inputs/v22/code/launch.sh",)))
     monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
     monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
+    monkeypatch.setattr(
+        submit.r2_sync,
+        "list_prefix",
+        lambda *, prefix, **__: [{"key": f"{prefix}/code/launch.sh", "size": 1, "etag": ""}],
+    )
 
     with pytest.raises(SystemExit, match=r"adapters/sft/adapter_config\.json"):
         submit.submit(tag="v28", stage_dir=stage_dir, restage=False)

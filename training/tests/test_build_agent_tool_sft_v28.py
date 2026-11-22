@@ -220,8 +220,8 @@ def test_cluster_tokens_are_matched_case_insensitively() -> None:
 def test_normalise_expands_the_common_contractions() -> None:
     assert v28.normalise("I wasn't around") == "i was not around"
     assert v28.normalise("I won't be here") == "i will not be here"
-    assert v28.normalise("I can't keep going") == "i can not keep going"
-    assert v28.normalise("I cannot do it") == "i can not do it"
+    assert v28.normalise("I can't keep going") == "i cannot keep going"
+    assert v28.normalise("I cannot do it") == "i cannot do it"
     assert v28.normalise("I'm done") == "i am done"
     assert v28.normalise("they're gone") == "they are gone"
     assert v28.normalise("I'll be gone") == "i will be gone"

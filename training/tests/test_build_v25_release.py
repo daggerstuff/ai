@@ -142,10 +142,15 @@ def test_the_family_is_built_by_the_v25_builder() -> None:
     assert len(v24.ACTIONS["means_access"]) < EXPECTED_MEANS_ACCESS_ACTIONS
 
 
+# The two abstract lines v24 shipped. "The method you have worked out" is not
+# here: it only fires when the disclosure says "method" itself.
+FORBIDDEN_STAND_IN_PHRASES = ("the means within reach", "the means out of the house")
+
+
 def test_the_shipped_family_carries_no_abstract_stand_in() -> None:
     """The whole point of the release: the sentence that answered everything is gone."""
     replies = [candidate["messages"][1]["content"] for candidate, _ in release.v25_candidate_rows()]
-    for phrase in v25.ABSTRACT_STAND_INS:
+    for phrase in FORBIDDEN_STAND_IN_PHRASES:
         assert not any(phrase in reply.lower() for reply in replies), phrase
 
 

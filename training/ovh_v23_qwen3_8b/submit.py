@@ -11,17 +11,19 @@ enters the container.
 Usage::
 
     python -m training.ovh_v23_qwen3_8b.submit stage            # copy the bundle to /tmp/ovh-v23
-    python -m training.ovh_v23_qwen3_8b.submit run --dry-run    # show the ovhai command
-    python -m training.ovh_v23_qwen3_8b.submit run --execute    # upload, presign, launch
+    python -m training.ovh_v23_qwen3_8b.submit run --tag v23-l40s            # print the command
+    python -m training.ovh_v23_qwen3_8b.submit run --tag v23-l40s --execute  # upload and launch
     python -m training.ovh_v23_qwen3_8b.submit collect --tag v23-l40s
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from training.launch import r2_sync
@@ -33,7 +35,10 @@ DEFAULT_IMAGE = "pytorch/pytorch:2.11.0-cuda12.6-cudnn9-runtime"
 # 46 GB L40S available, and the v22 run took 584 s of train time on one.
 DEFAULT_FLAVOR = "l40s-1-gpu"
 DEFAULT_TIMEOUT = "2h"
-DEFAULT_STAGE_DIR = Path("/tmp/ovh-v23")
+DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-v23"
+# Where the container unpacks the bundle. Not a host path: the job sets ROOT to
+# this, and the bootstrap falls back to it when the variable is missing.
+REMOTE_ROOT = "/work"
 DEFAULT_EXPORT_DIR = AI_ROOT / "training/output/ovh-v23-qwen3-8b"
 DEFAULT_RUN_NAME = "ovh-wandb-full-corpus-current-master-20261110-v23-bf16"
 
@@ -59,13 +64,16 @@ ADAPTER_FILES = (
 )
 RESULT_FILES = (*(f"adapter-final/{name}" for name in ADAPTER_FILES), "ovh-run.json")
 
+# What a printed job argv shows in place of the presigned map.
+REDACTED_MAP = "<redacted: presigned map>"
+
 # Runs inside the container. Kept to the standard library: the image has no
 # boto3, and the only thing it needs is HTTP.
 BOOTSTRAP = """\
-import base64, gzip, json, os, pathlib, shutil, subprocess, sys, urllib.request
+import base64, gzip, hashlib, json, os, pathlib, shutil, subprocess, sys, time, urllib.request
 
 plan = json.loads(gzip.decompress(base64.urlsafe_b64decode(os.environ["R2_MAP_B64"].encode())))
-root = pathlib.Path(os.environ.get("ROOT", "/tmp/work"))
+root = pathlib.Path(os.environ.get("ROOT", "/work"))
 sizes = plan.get("sizes", {})
 downloads = plan.get("download", {})
 print(f"bootstrap: {len(downloads)} objects into {root}", flush=True)
@@ -80,6 +88,17 @@ for relative, url in sorted(downloads.items()):
         shutil.copyfileobj(response, handle)
     print(f"  fetched {relative} {target.stat().st_size} bytes", flush=True)
 
+# The map signs keys, not object versions: a reused prefix could hand this job
+# another submission's bytes, so verify what actually landed before training.
+for relative, digest in sorted(plan.get("sha256", {}).items()):
+    hasher = hashlib.sha256()
+    with (root / relative).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            hasher.update(chunk)
+    if hasher.hexdigest() != digest:
+        print(f"bootstrap: digest mismatch for {relative}", flush=True)
+        raise SystemExit(1)
+
 code = subprocess.call(["bash", str(root / "code" / "launch.sh")])
 print(f"bootstrap: launcher exited {code}", flush=True)
 
@@ -91,21 +110,28 @@ for relative, url in sorted(plan.get("upload", {}).items()):
         failed.append(relative)
         continue
     payload = source.read_bytes()
-    request = urllib.request.Request(
-        url,
-        data=payload,
-        method="PUT",
-        headers={
-            "Content-Type": "application/octet-stream",
-            "Content-Length": str(len(payload)),
-            "User-Agent": "pixelated-empathy-r2-sync/1.0",
-        },
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=900) as response:
-            print(f"  uploaded {relative} {len(payload)} bytes -> {response.status}", flush=True)
-    except Exception as error:
-        print(f"  upload failed {relative}: {error}", flush=True)
+    last = None
+    for attempt in range(3):
+        request = urllib.request.Request(
+            url,
+            data=payload,
+            method="PUT",
+            headers={
+                "Content-Type": "application/octet-stream",
+                "Content-Length": str(len(payload)),
+                "User-Agent": "pixelated-empathy-r2-sync/1.0",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=900) as response:
+                print(f"  uploaded {relative} {len(payload)} bytes -> {response.status}", flush=True)
+                break
+        except Exception as error:
+            last = error
+            if attempt < 2:
+                time.sleep(2.0 * (attempt + 1))
+    else:
+        print(f"  upload failed {relative}: {last}", flush=True)
         failed.append(relative)
 
 if failed:
@@ -116,6 +142,19 @@ raise SystemExit(code if not failed else 1)
 
 def stage(destination: Path = DEFAULT_STAGE_DIR, *, export_dir: Path = DEFAULT_EXPORT_DIR) -> list[str]:
     """Copy the trainer, the launcher and the export into one tree."""
+    # ``rmtree`` below erases whatever is already there, so a stage directory
+    # holding the export or a trainer file would delete an input it is about to
+    # copy, and the run would fail on a file that exists only in the argument.
+    resolved = destination.resolve()
+    sources = [
+        *CODE_FILES.values(),
+        *[export_dir / name for name in EXPORT_FILES],
+        Path(__file__).with_name("launch.sh"),
+    ]
+    for source in sources:
+        source_resolved = source.resolve()
+        if resolved == source_resolved or resolved in source_resolved.parents:
+            raise SystemExit(f"refusing to stage into {destination}: it contains {source}")
     if destination.exists():
         shutil.rmtree(destination)
     copied: list[str] = []
@@ -148,6 +187,15 @@ def staged_files(stage_dir: Path) -> list[str]:
     return sorted(path.relative_to(stage_dir).as_posix() for path in stage_dir.rglob("*") if path.is_file())
 
 
+def _digest(path: Path) -> str:
+    """sha256 of a staged file, so the job can prove it fetched these bytes."""
+    hasher = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
 def result_keys(tag: str) -> dict[str, str]:
     """``out-relative path -> r2 key`` for every file the run produces."""
     return {relative: f"runs/{tag}/{relative}" for relative in RESULT_FILES}
@@ -159,7 +207,7 @@ def build_job_env(
     env = [
         f"R2_MAP_B64={r2_sync.encode_map(plan)}",
         f"BOOTSTRAP={BOOTSTRAP}",
-        "ROOT=/tmp/work",
+        f"ROOT={REMOTE_ROOT}",
         f"RUN_NAME={run_name}",
         f"TRAIN_FLAVOR={flavor}",
     ]
@@ -190,12 +238,23 @@ def build_command(*, image: str, name: str, flavor: str, gpu: int, timeout: str,
     return argv
 
 
+def redact_command(argv: list[str]) -> list[str]:
+    """The job argv with the presigned map replaced, so it is safe to print."""
+    redacted: list[str] = []
+    for entry in argv:
+        if entry.startswith("R2_MAP_B64="):
+            redacted.append(f"R2_MAP_B64={REDACTED_MAP}")
+        else:
+            redacted.append(entry)
+    return redacted
+
+
 def submit(
     *,
     tag: str,
     stage_dir: Path = DEFAULT_STAGE_DIR,
     export_dir: Path = DEFAULT_EXPORT_DIR,
-    inputs_prefix: str = "inputs/v23",
+    inputs_prefix: str | None = None,
     run_name: str = DEFAULT_RUN_NAME,
     image: str = DEFAULT_IMAGE,
     flavor: str = DEFAULT_FLAVOR,
@@ -208,16 +267,23 @@ def submit(
 ) -> dict[str, object]:
     """Upload the bundle, sign the map, and launch (or print) the job."""
     staged = stage(stage_dir, export_dir=export_dir) if restage else staged_files(stage_dir)
+    # Each tag owns its input prefix: presigned GETs sign a key, not an object
+    # version, so a shared prefix lets a later submission swap a queued job's
+    # bytes. Override only when the caller owns that key space.
+    prefix = inputs_prefix or f"inputs/v23/{tag}"
 
     s3 = r2_sync.client()
     bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
-    uploaded = r2_sync.upload_dir(stage_dir, bucket=bucket, prefix=inputs_prefix, s3_client=s3, skip_unchanged=True)
+    # No skip_unchanged: equal size is not equal content, and re-sending a few
+    # code and export files is cheaper than training on stale bytes.
+    uploaded = r2_sync.upload_dir(stage_dir, bucket=bucket, prefix=prefix, s3_client=s3)
 
     download_urls = r2_sync.presign(
-        [f"{inputs_prefix}/{relative}" for relative in staged], bucket=bucket, method="get", s3_client=s3
+        [f"{prefix}/{relative}" for relative in staged], bucket=bucket, method="get", s3_client=s3
     )
-    download = {relative: download_urls[f"{inputs_prefix}/{relative}"] for relative in staged}
+    download = {relative: download_urls[f"{prefix}/{relative}"] for relative in staged}
     sizes = {relative: (stage_dir / relative).stat().st_size for relative in staged}
+    digests = {relative: _digest(stage_dir / relative) for relative in staged}
 
     keys = result_keys(tag)
     upload = {
@@ -226,29 +292,37 @@ def submit(
     }
 
     job_name = name or f"v23-train-{tag}"
-    plan: dict[str, object] = {"tag": tag, "bucket": bucket, "download": download, "sizes": sizes, "upload": upload}
+    plan: dict[str, object] = {
+        "tag": tag,
+        "bucket": bucket,
+        "download": download,
+        "sizes": sizes,
+        "sha256": digests,
+        "upload": upload,
+    }
     env = build_job_env(plan=plan, run_name=run_name, flavor=flavor, overrides=overrides)
     argv = build_command(image=image, name=job_name, flavor=flavor, gpu=gpu, timeout=timeout, env=env)
+    encoded_map = next(entry.removeprefix("R2_MAP_B64=") for entry in env if entry.startswith("R2_MAP_B64="))
 
     result: dict[str, object] = {
         "tag": tag,
         "job_name": job_name,
         "bucket": bucket,
-        "inputs_prefix": inputs_prefix,
+        "inputs_prefix": prefix,
         "staged": len(staged),
         "uploaded_inputs": len(uploaded),
         "download_objects": len(download),
         "upload_objects": len(upload),
-        "map_bytes": len(r2_sync.encode_map(plan)),
-        "command": argv,
+        "map_bytes": len(encoded_map),
+        "command": redact_command(argv),
         "executed": False,
     }
     if execute:
         completed = subprocess.run(argv, check=False, capture_output=True, text=True)
         result["executed"] = True
         result["returncode"] = completed.returncode
-        result["stdout"] = completed.stdout.strip()
-        result["stderr"] = completed.stderr.strip()
+        result["stdout"] = completed.stdout.replace(encoded_map, REDACTED_MAP).strip()
+        result["stderr"] = completed.stderr.replace(encoded_map, REDACTED_MAP).strip()
     return result
 
 
@@ -282,7 +356,11 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--tag", required=True)
     run_parser.add_argument("--stage-dir", type=Path, default=DEFAULT_STAGE_DIR)
     run_parser.add_argument("--export-dir", type=Path, default=DEFAULT_EXPORT_DIR)
-    run_parser.add_argument("--inputs-prefix", default="inputs/v23")
+    run_parser.add_argument(
+        "--inputs-prefix",
+        default=None,
+        help="r2 prefix for the staged bundle; defaults to inputs/v23/<tag>, unique per tag",
+    )
     run_parser.add_argument("--run-name", default=DEFAULT_RUN_NAME)
     run_parser.add_argument("--image", default=DEFAULT_IMAGE)
     run_parser.add_argument("--flavor", default=DEFAULT_FLAVOR)

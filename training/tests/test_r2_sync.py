@@ -7,6 +7,7 @@ carries the URLs into the job, and the plain-HTTP PUT that uses them.
 
 from __future__ import annotations
 
+import hashlib
 import io
 import urllib.error
 from pathlib import Path
@@ -18,10 +19,16 @@ from training.launch import r2_sync
 
 
 class FakeS3:
-    """Records every call and serves a paged listing like the real client."""
+    """Records every call and serves a paged listing like the real client.
 
-    def __init__(self, objects: dict[str, bytes] | None = None) -> None:
+    ``etags`` overrides a key's listing ETag. That is how a multipart upload
+    looks on the wire: ``"<md5-of-part-md5s>-<part-count>"``, quoted like the
+    real client, rather than the object's MD5.
+    """
+
+    def __init__(self, objects: dict[str, bytes] | None = None, *, etags: dict[str, str] | None = None) -> None:
         self.objects = objects or {}
+        self.etags = etags or {}
         self.puts: list[dict[str, Any]] = []
         self.list_calls: list[dict[str, Any]] = []
         self.presigned: list[tuple[str, dict[str, Any], int]] = []
@@ -41,8 +48,17 @@ class FakeS3:
         # One object per page, so the pagination branch is exercised.
         start = int(kwargs.get("ContinuationToken", "0"))
         page = keys[start : start + 1]
+        contents = [
+            {
+                "Key": key,
+                "Size": len(self.objects[key]),
+                "ETag": self.etags.get(key)
+                or f'"{hashlib.md5(self.objects[key], usedforsecurity=False).hexdigest()}"',
+            }
+            for key in page
+        ]
         response: dict[str, Any] = {
-            "Contents": [{"Key": key, "Size": len(self.objects[key])} for key in page],
+            "Contents": contents,
             "IsTruncated": start + 1 < len(keys),
         }
         if response["IsTruncated"]:
@@ -68,6 +84,56 @@ def test_upload_dir_mirrors_the_tree_and_skips_bytecode(tmp_path: Path) -> None:
     types = {put["Key"]: put["ContentType"] for put in s3.puts}
     assert types["evals/v22/tag/run/results.jsonl"] == "application/x-ndjson"
     assert types["evals/v22/tag/run/manifest.json"] == "application/json"
+
+
+def test_skip_unchanged_leaves_an_identical_object_alone_and_sends_the_rest(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "results.jsonl").write_text('{"a": 1}\n')
+    (run / "manifest.json").write_text("{}")
+    prefix = "evals/v22/tag/run"
+    s3 = FakeS3({f"{prefix}/results.jsonl": b'{"a": 1}\n'})
+
+    keys = r2_sync.upload_dir(run, bucket="training", prefix=prefix, s3_client=s3, skip_unchanged=True)
+
+    assert keys == [f"{prefix}/manifest.json"]
+    assert [put["Key"] for put in s3.puts] == [f"{prefix}/manifest.json"]
+
+
+def test_skip_unchanged_uploads_a_same_size_file_whose_bytes_changed(tmp_path: Path) -> None:
+    """Size is not identity: a rebuilt adapter can keep its byte count.
+
+    This is the case the digest comparison exists for. With a size-only check the
+    job would score the previous bundle while believing it shipped the new one.
+    """
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "adapter.bin").write_bytes(b"fresh weights")
+    key = "evals/v22/tag/run/adapter.bin"
+    s3 = FakeS3({key: b"stale weights"})  # same length, different bytes
+
+    keys = r2_sync.upload_dir(run, bucket="training", prefix="evals/v22/tag/run", s3_client=s3, skip_unchanged=True)
+
+    assert keys == [key]
+    assert s3.puts[0]["Body"] == b"fresh weights"
+
+
+def test_skip_unchanged_reuploads_an_object_with_a_multipart_etag(tmp_path: Path) -> None:
+    """A multipart ETag is not the object's MD5, so the digest cannot be verified.
+
+    R2 returns ``<md5-of-part-md5s>-<part-count>`` for a multipart PUT, which
+    never equals the local file's MD5. The object is re-sent rather than trusted.
+    """
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "adapter.bin").write_bytes(b"fresh weights")
+    key = "evals/v22/tag/run/adapter.bin"
+    part_digest = hashlib.md5(b"part", usedforsecurity=False).hexdigest()
+    s3 = FakeS3({key: b"fresh weights"}, etags={key: f'"{part_digest}-2"'})
+
+    keys = r2_sync.upload_dir(run, bucket="training", prefix="evals/v22/tag/run", s3_client=s3, skip_unchanged=True)
+
+    assert keys == [key]
 
 
 def test_download_prefix_follows_pagination_and_mirrors_keys(tmp_path: Path) -> None:

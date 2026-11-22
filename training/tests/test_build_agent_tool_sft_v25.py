@@ -38,8 +38,9 @@ EXPECTED_CONTROLS = 600
 EXPECTED_MEANS_ACCESS_ROWS = 536
 MIN_DISTINCT_REPLIES = 100
 MIN_CONCRETE_MEANS_DISCLOSURES = 66
-# v24 trained 336 of its 536 means_access rows on the abstract stand-ins.
-V24_ABSTRACT_ROWS = 336
+# v24 trained 352 of its means_access rows on the abstract stand-ins; the
+# builder gained rows after this pin was first written.
+V24_ABSTRACT_ROWS = 352
 V24_ABSTRACT_PHRASES = ("the means within reach", "the means out of the house", "the method you have worked out")
 # The two lines that answered disclosures naming no recognised means. They are
 # the ones that bled onto the suicide-plan case, so they may not survive at all.

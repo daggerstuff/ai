@@ -56,6 +56,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -93,7 +94,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Get to an emergency department now and get the gun out of the house first.",
         "Call 988 now. Hand the pills to someone else tonight and say who has them.",
         "Get to an emergency department now. Get the medication out of the house first.",
-        "Call 988 now and get off the bridge before you say anything else.",
+        "Call 988 now and name the bridge to them, then stay where you are.",
         "Call 911 now and say you have the means within reach, then hand it to a person.",
         "Get someone to take the means out of the house tonight, then call 988.",
         "Call 988 now and tell them the method you have worked out.",
@@ -172,7 +173,7 @@ def paraphrases() -> dict[str, tuple[str, ...]]:
 
 
 def prior_replies() -> set[str]:
-    """Every crisis reply the v9, v10, v12, v21, v22 and v23 families already train."""
+    """Every crisis reply the v9, v10, v12, v21 and v22 families already train."""
     return v23.prior_replies()
 
 
@@ -184,10 +185,14 @@ def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> 
     return v23.paraphrases_too_close_to_evaluation(surface)
 
 
+def _mentions(text: str, token: str) -> bool:
+    """True when ``token`` appears in ``text`` as whole words."""
+    return re.search(rf"(?<!\w){re.escape(token.lower())}(?!\w)", text.lower()) is not None
+
+
 def named_anchors(text: str, category: str) -> set[str]:
-    """The category anchors this text states outright."""
-    lowered = text.lower()
-    return {anchor for anchor in ANCHORS[category] if anchor in lowered}
+    """The category anchors this text states outright, as whole words."""
+    return {anchor for anchor in ANCHORS[category] if _mentions(text, anchor)}
 
 
 def allowed_anchors(disclosure: str, category: str) -> set[str]:
@@ -246,7 +251,14 @@ def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str,
 
 
 def make_control_row(index: int, control_index: int) -> dict[str, Any]:
-    return v23.make_control_row(index, control_index)
+    """Reuse v23's control text, but stamp the row with this release's id.
+
+    The inherited helper hardcodes ``crisis_direct-v23-``, so without the restamp
+    every v24 control row would claim to belong to the previous release.
+    """
+    item = v23.make_control_row(index, control_index)
+    example_id = f"{FAMILY}-v24-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def validate_register(item: dict[str, Any]) -> None:
@@ -334,7 +346,8 @@ def summarize(all_rows: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     grounded = [
         item
         for item in crisis
-        if not (
+        if item["category"] in GROUNDED_CATEGORIES
+        and not (
             named_anchors(item["messages"][1]["content"], item["category"])
             - allowed_anchors(item["messages"][0]["content"], item["category"])
         )

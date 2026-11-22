@@ -26,7 +26,7 @@ def test_the_env_carries_the_run_name_and_the_flavor() -> None:
 
     assert env["RUN_NAME"] == "run-name"
     assert env["TRAIN_FLAVOR"] == "l4-1-gpu"
-    assert env["ROOT"] == "/tmp/work"
+    assert env["ROOT"] == submit.REMOTE_ROOT
 
 
 def test_the_env_round_trips_the_signed_map() -> None:

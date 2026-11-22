@@ -23,7 +23,7 @@ cause is a coverage hole, and it is measured rather than guessed:
 v25 closes the hole three ways. The anchor vocabulary gains 17 entries (pistol,
 tablets, painkillers, paracetamol, insulin, antifreeze, rope, ligature, length of
 hose, blade, knife, railway, quarry, roof, coast, height, car park). The action
-surface grows from 8 to 23, each naming exactly one means. The 5 disclosures that
+surface grows from 8 to 24, each naming exactly one means. The 5 disclosures that
 named nothing at all are rewritten to name one. A disclosure with no recognised
 means is no longer answered with an abstract stand-in: every v25 row names a
 concrete means the person gave, and "the means within reach" / "the means out of
@@ -209,7 +209,7 @@ def stamp_release_identity(
 
 
 class _Release(prev._Release):
-    """v24's pipeline with the 23-action grounded v25 crisis family in place of v24's."""
+    """v24's pipeline with the 24-action grounded v25 crisis family in place of v24's."""
 
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)

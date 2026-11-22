@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from contextlib import nullcontext
 from pathlib import Path
@@ -27,6 +28,12 @@ LOCAL_PROVIDER = "local-transformers"
 LOCAL_API_KEY_ENV = "LOCAL_PAIRED_EVAL"
 DEFAULT_MAX_NEW_TOKENS = 512
 DEFAULT_STOPS = ["<|im_end|>", "<|endoftext|>"]
+# The v22 adapters were trained against an NF4 base with float16 compute, so
+# scoring them in another dtype measures arithmetic the adapter never saw.
+V22_TRAINING_DTYPE = "float16"
+# The hub revision the base weights are pinned to; an operator pins a commit
+# through the environment, and "main" keeps the unpinned behaviour otherwise.
+DEFAULT_BASE_REVISION = os.environ.get("BASE_MODEL_REVISION", "main")
 
 
 def build_config(
@@ -35,11 +42,17 @@ def build_config(
     adapter: str | None,
     max_new_tokens: int,
     enable_thinking: bool,
+    load_in_4bit: bool,
+    dtype: str,
 ) -> dict[str, Any]:
     """Build the two-arm config the shared loader validates."""
     return {
         "schema_version": CONFIG_SCHEMA_VERSION,
         "run_id": run_id,
+        # Loading settings change what the model computes, so they are part of
+        # the hashed identity: a resume under another loading mode must not
+        # inherit replies produced by this one.
+        "loader": {"load_in_4bit": load_in_4bit, "dtype": dtype},
         "decoding": {
             "temperature": 0,
             "max_tokens": max_new_tokens,
@@ -94,12 +107,13 @@ class LocalChatTransport:
         enable_thinking: bool,
         *,
         load_in_4bit: bool = False,
+        base_model_revision: str = DEFAULT_BASE_REVISION,
     ) -> None:
         import torch
         from transformers import AutoModelForCausalLM, AutoTokenizer
 
         self.torch = torch
-        self.tokenizer = AutoTokenizer.from_pretrained(base_model)
+        self.tokenizer = AutoTokenizer.from_pretrained(base_model, revision=base_model_revision)
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
         self.tokenizer.padding_side = "left"
@@ -109,25 +123,36 @@ class LocalChatTransport:
             # An adapter trained against a 4-bit base was never fitted to the
             # full-precision weights, so serving it on bf16 measures transfer
             # rather than the model that was actually trained.
-            if device == "cpu":
+            if not device.startswith("cuda"):
                 raise ValueError("--load-in-4bit needs a CUDA device")
+            # The quantized compute dtype is not a free knob: the adapter was
+            # trained in V22_TRAINING_DTYPE, so reject a different request
+            # instead of scoring it with arithmetic the adapter never saw.
+            if dtype != V22_TRAINING_DTYPE:
+                raise ValueError(
+                    f"--load-in-4bit scores the v22 base in its training dtype "
+                    f"{V22_TRAINING_DTYPE}; pass --dtype {V22_TRAINING_DTYPE}"
+                )
             from transformers import BitsAndBytesConfig
 
             self.model = AutoModelForCausalLM.from_pretrained(
                 base_model,
                 device_map={"": device},
+                revision=base_model_revision,
                 quantization_config=BitsAndBytesConfig(
                     load_in_4bit=True,
                     bnb_4bit_quant_type="nf4",
                     bnb_4bit_use_double_quant=True,
-                    bnb_4bit_compute_dtype=getattr(torch, dtype),
+                    bnb_4bit_compute_dtype=getattr(torch, V22_TRAINING_DTYPE),
                 ),
+                dtype=getattr(torch, dtype),
                 attn_implementation="sdpa",
             )
         else:
             self.model = AutoModelForCausalLM.from_pretrained(
                 base_model,
                 device_map=None if device == "cpu" else {"": device},
+                revision=base_model_revision,
                 dtype=getattr(torch, dtype),
                 attn_implementation="sdpa",
             )
@@ -192,6 +217,7 @@ def main() -> int:
     parser.add_argument("--run-id", default=None)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--dtype", default="bfloat16")
+    parser.add_argument("--base-model-revision", default=DEFAULT_BASE_REVISION)
     parser.add_argument("--max-new-tokens", type=int, default=DEFAULT_MAX_NEW_TOKENS)
     parser.add_argument("--max-cases", type=int, default=None)
     parser.add_argument("--enable-thinking", action="store_true")
@@ -213,6 +239,8 @@ def main() -> int:
         str(args.adapter) if args.adapter else None,
         args.max_new_tokens,
         args.enable_thinking,
+        args.load_in_4bit,
+        args.dtype,
     )
     config_path = results_dir / "config.json"
     config_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
@@ -224,6 +252,7 @@ def main() -> int:
         args.dtype,
         args.enable_thinking,
         load_in_4bit=args.load_in_4bit,
+        base_model_revision=args.base_model_revision,
     )
     request = paired_eval.RunRequest(
         args.cases,

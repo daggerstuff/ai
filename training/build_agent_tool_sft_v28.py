@@ -38,8 +38,10 @@ sentences, and the same disclosure landed in a different pool depending on
 whether the person used an apostrophe. The ``not_stopping`` cluster carries the
 token ``don't really want to stop``, which could never match a disclosure
 written ``do not really want to stop``. Text and tokens now pass through
-``normalise`` first: curly apostrophes become straight ones, ``won't``,
-``can't``, ``cannot`` and every ``n't`` expand, and ``'re``/``'ve``/``'ll``/``'m``
+``normalise`` first: curly apostrophes become straight ones, every ``n't``
+expands to ``not`` (``won't`` and ``shan't`` to their full forms), ``can't`` and
+``cannot`` resolve to the single token ``cannot`` — so the expansion never
+leaves a bare ``not`` for an anchor to match — and ``'re``/``'ve``/``'ll``/``'m``
 resolve to their full forms. The shipped surface happened not to use
 contractions, so this changes no pool today — it removes the class of bug, and
 the two passive-ideation stances in the evaluation prompt above are now both
@@ -71,12 +73,14 @@ import build_agent_tool_sft_v9 as v9
 # one import per audience.
 if TYPE_CHECKING:
     import training.build_agent_tool_sft_v26 as v26
+    import training.build_agent_tool_sft_v27 as v27
 else:
     import build_agent_tool_sft_v26 as v26
+    import build_agent_tool_sft_v27 as v27
 
 RELEASE_ID = "pixelated-agent-tool-sft-2026-11-10-v28"
 FAMILY = v26.FAMILY
-DEFAULT_OUTPUT = v26.DEFAULT_OUTPUT
+DEFAULT_OUTPUT = v26.ROOT / "docs/training/agent-tool-sft-2026-11-10-v28"
 SHAPES_PER_DISCLOSURE = v26.SHAPES_PER_DISCLOSURE
 DIRECT_SHAPES = v26.DIRECT_SHAPES
 ESCALATION_TERMS = v26.ESCALATION_TERMS
@@ -743,7 +747,8 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Get out of the house and call 911 from a phone he cannot take. Tell them he controls your phone.",
     ),
     "medical_collapse": (
-        "Get to an emergency department now. Five days without keeping food down needs fluids and a doctor tonight.",
+        "Get to an emergency department now. Eating almost nothing needs fluids and a doctor "
+        "tonight.",
         "Call 911 now and tell them about the purge. Purging this much is a medical emergency, and the "
         "electrolytes get checked tonight.",
         "Call 911 now. You blacked out and that needs a doctor tonight, not a lie down.",
@@ -797,6 +802,14 @@ def _cluster_tokens(category: str) -> tuple[str, ...]:
     return tuple(token for tokens in ANCHOR_GROUPS[category].values() for token in tokens)
 
 
+# One vocabulary, one table. v27 declares which word forms name each anchor —
+# its inflections and the aliases the corpus uses — and the later releases read
+# it from there. A copy per release is how the pool matcher and the grounding
+# validator drifted apart in the first place.
+_family_forms = v27._family_forms
+_canonical = v27._canonical
+
+
 # The seven clustered categories need every cluster token to be a recognised
 # anchor, or ``validate_surface_row`` would reject the replies that name them.
 ANCHORS: dict[str, tuple[str, ...]] = {
@@ -805,6 +818,22 @@ ANCHORS: dict[str, tuple[str, ...]] = {
         category: tuple(sorted(set(v26.ANCHORS[category]) | set(_cluster_tokens(category))))
         for category in CLUSTERED_CATEGORIES
     },
+}
+
+# Word-boundary matching needs the inflected forms the shipped surface uses
+# spelled out: v26's recent_attempt list carries the dictionary forms ("pill",
+# "tablet", "hang", "swallow") while its replies say "pills", "tablets",
+# "hanging", "swallowed". ANCHORS stays the inherited vocabulary so the snapshot
+# test can prove inheritance untouched; MATCH_ANCHORS is what the matcher and the
+# grounding validator read.
+MATCH_ANCHORS: dict[str, tuple[str, ...]] = {
+    category: tuple(sorted({form for anchor in anchors for form in _family_forms(anchor)}))
+    for category, anchors in ANCHORS.items()
+}
+
+INFLECTED_ANCHORS: dict[str, tuple[str, ...]] = {
+    category: tuple(form for form in MATCH_ANCHORS[category] if form not in ANCHORS[category])
+    for category in MATCH_ANCHORS
 }
 
 GROUNDED_CATEGORIES: tuple[str, ...] = (*v26.GROUNDED_CATEGORIES, *CLUSTERED_CATEGORIES)
@@ -860,10 +889,9 @@ _APOSTROPHES = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'", "\u00
 
 _CONTRACTIONS = (
     ("won't", "will not"),
-    ("can't", "can not"),
+    ("can't", "cannot"),
     ("shan't", "shall not"),
     ("ain't", "is not"),
-    ("cannot", "can not"),
     ("n't", " not"),
     ("'re", " are"),
     ("'ve", " have"),
@@ -900,9 +928,8 @@ def clusters(text: str, category: str) -> frozenset[str]:
 
 
 def named_anchors(text: str, category: str) -> frozenset[str]:
-    """The anchors a sentence contains, using v26's substring semantics."""
-    lowered = text.lower()
-    return frozenset(anchor for anchor in ANCHORS[category] if anchor in lowered)
+    """The anchors a sentence contains, matched as whole words."""
+    return frozenset(anchor for anchor in MATCH_ANCHORS[category] if _mentions(text, anchor))
 
 
 def concrete_clusters(text: str, category: str) -> frozenset[str]:
@@ -914,7 +941,28 @@ def concrete_anchors(disclosure: str, category: str) -> frozenset[str]:
     """The concrete things or signs a disclosure names."""
     if category in CLUSTERED_CATEGORIES:
         return concrete_clusters(disclosure, category)
-    return frozenset(v26.concrete_anchors(disclosure, category))
+    return named_anchors(disclosure, category) - set(v26.ABSTRACT_ANCHORS.get(category, ()))
+
+
+def _grounded_pool(disclosure: str, category: str) -> tuple[str, ...]:
+    """v26's subset rule, read through the word-boundary matcher.
+
+    v26 matched anchors as substrings, so "scared" carried "car" and "shotgun"
+    carried "gun" into a pool whose replies ``validate_grounded`` — word-boundary
+    — then rejected. Selection and validation have to read the same anchors, or
+    the builder picks a reply it refuses to ship.
+    """
+    allowed = _canonical(named_anchors(disclosure, category))
+    concrete = bool(concrete_anchors(disclosure, category))
+    pool = tuple(
+        action
+        for action in ACTIONS[category]
+        if _canonical(named_anchors(action, category)) <= allowed
+        and (not concrete or bool(concrete_anchors(action, category)))
+    )
+    if not pool:
+        raise ValueError(f"{category}: no action answers {disclosure!r} without inventing an anchor")
+    return pool
 
 
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
@@ -928,7 +976,9 @@ def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     ignoring the pills they set aside is the same failure in a quieter form.
     """
     if category not in CLUSTERED_CATEGORIES:
-        return v26.action_pool(disclosure, category)
+        if category not in GROUNDED_CATEGORIES:
+            return ACTIONS[category]
+        return _grounded_pool(disclosure, category)
     allowed = concrete_clusters(disclosure, category)
     pool = tuple(
         action
@@ -969,7 +1019,10 @@ CrisisCase = v26.CrisisCase
 
 
 def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str, Any]:
-    return v26.make_crisis_row(index, case, shape_index)
+    """v26's row, stamped with this release's id as the control wrapper stamps v23's."""
+    item = v26.make_crisis_row(index, case, shape_index)
+    example_id = f"{FAMILY}-v28-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def make_control_row(index: int, control_index: int) -> dict[str, Any]:
@@ -1024,7 +1077,7 @@ def validate_grounded(item: dict[str, Any]) -> None:
     named = named_anchors(reply, category)
     if not named:
         raise ValueError(f"{item['id']} ({category}) names no anchor: {reply!r}")
-    invented = named - named_anchors(disclosure, category)
+    invented = _canonical(named) - _canonical(named_anchors(disclosure, category))
     if invented:
         raise ValueError(f"{item['id']} ({category}) names an anchor the disclosure never gave: {sorted(invented)}")
 
@@ -1072,7 +1125,7 @@ def _crisis_rows(
     index = 0
     for category, severity, _, _ in v9.CRISIS_GROUPS:
         actions = ACTIONS[category]
-        anchors = ANCHORS[category]
+        anchors = MATCH_ANCHORS[category]
         for disclosure in surface[category]:
             pool = action_pool(disclosure, category)
             if category in GROUNDED_CATEGORIES and not concrete_anchors(disclosure, category):

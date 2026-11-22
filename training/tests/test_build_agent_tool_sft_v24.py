@@ -177,10 +177,17 @@ def test_grounding_closes_the_v23_defect() -> None:
 
     def grounded_pairs(module) -> tuple[int, int]:
         anchors = module.ANCHORS["means_access"]
+
+        def names(text: str) -> set[str]:
+            matcher = getattr(module, "named_anchors", None)
+            if matcher is not None:
+                return set(matcher(text, "means_access"))
+            return {anchor for anchor in anchors if anchor in text.lower()}
+
         generic = getattr(module, "GENERIC_ANCHORS", {}).get("means_access", ())
         grounded = total = 0
         for disclosure in module.paraphrases()["means_access"]:
-            given = {anchor for anchor in anchors if anchor in disclosure.lower()}
+            given = names(disclosure)
             allowed = given or set(generic)
             pool = (
                 module.action_pool(disclosure, "means_access")
@@ -189,7 +196,7 @@ def test_grounding_closes_the_v23_defect() -> None:
             )
             for action in pool:
                 total += 1
-                named = {anchor for anchor in anchors if anchor in action.lower()}
+                named = names(action)
                 grounded += named <= allowed
         return grounded, total
 

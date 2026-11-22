@@ -370,12 +370,15 @@ def test_the_rewritten_disclosures_now_name_a_cluster() -> None:
         assert v27.concrete_clusters(replacement, category), (category, replacement)
 
 
-def test_only_the_widened_categories_name_a_cluster_the_disclosure_did_not() -> None:
-    # A warning clause ("a seizure from purging or not eating") is legitimate and
-    # must not be counted as invention; these are the only two places it appears.
+def test_only_psychosis_names_a_cluster_the_disclosure_did_not() -> None:
+    # A warning clause is legitimate and must not be counted as invention. v27's
+    # only one is the psychosis target clause; the eating-disorder warning ("a
+    # seizure from purging or not eating") arrives in v28, so medical_collapse
+    # widens nothing here. Its bare "A seizure needs a doctor tonight" names only
+    # the seizure cluster, which is not concrete, so no pool ever offers it.
     for category in v27.CLUSTERED_CATEGORIES:
         widened = summary()[f"{category}_widened_cluster_rows"]
-        if category in {"medical_collapse", "psychosis_risk_other"}:
+        if category == "psychosis_risk_other":
             assert widened > 0, category
         else:
             assert widened == 0, category
