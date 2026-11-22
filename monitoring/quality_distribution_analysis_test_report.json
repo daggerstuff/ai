@@ -1,7 +1,7 @@
 {
   "test_suite": "Quality Distribution Analysis System",
   "task": "5.6.2.3",
-  "timestamp": "2026-11-22T08:18:45.558314+00:00",
+  "timestamp": "2026-11-22T08:31:18.930702+00:00",
   "results": {
     "total_tests": 10,
     "passed_tests": 10,
@@ -24,12 +24,12 @@
   "distribution_analysis_sample": {
     "sample_size": 290,
     "distribution_type": "skewed_left",
-    "mean": 0.7043319127975536,
-    "median": 0.7170497781283296,
-    "std_dev": 0.1724347477382063,
-    "skewness": -0.6327823686457191,
-    "kurtosis": 0.06634529815550971,
-    "outliers_count": 4,
+    "mean": 0.695235572033251,
+    "median": 0.7262491417886432,
+    "std_dev": 0.17800684906538647,
+    "skewness": -0.6595916718365089,
+    "kurtosis": -0.2411866555454809,
+    "outliers_count": 2,
     "normality_tests_count": 3
   },
   "comparative_analysis_sample": {

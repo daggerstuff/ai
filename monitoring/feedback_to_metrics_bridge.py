@@ -17,6 +17,7 @@ except ``validation_gap``, which is an absolute count and accumulates
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -51,6 +52,7 @@ DOMAIN_TO_METRICS: dict[str, list[str]] = {
 }
 
 VALIDATION_GAP_SCALE = 100.0
+CLI_ARGUMENT_COUNT = 2
 REQUIRED_REPORT_KEYS = frozenset({"failure_patterns", "interventions"})
 
 
@@ -187,9 +189,7 @@ def transform_feedback_to_metrics(report_path: str | Path) -> FeedbackMetricsMap
 
 def _main() -> None:
     """Print the transformed mapping for one report path."""
-    import sys
-
-    if len(sys.argv) != 2:
+    if len(sys.argv) != CLI_ARGUMENT_COUNT:
         print("usage: feedback_to_metrics_bridge.py <feedback_report.json>")
         raise SystemExit(2)
 

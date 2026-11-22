@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import plotly.graph_objects as go
+
 from .quality_trend_analyzer import (
     Anomaly,
     Prediction,
@@ -17,6 +19,8 @@ from .quality_trend_analyzer import (
 )
 
 DEFAULT_OUTPUT_DIR = Path("reports") / "quality_trends"
+LOW_FORECAST_THRESHOLD = 0.7
+SEASONAL_STRENGTH_FLOOR = 0.05
 
 
 @dataclass
@@ -135,13 +139,13 @@ class QualityTrendReporter:
                 f"Investigate {anomaly.period}: quality was {anomaly.value:.3f} against an expected "
                 f"{anomaly.expected:.3f} ({anomaly.direction}, z={anomaly.z_score:+.2f})."
             )
-        if predictions and predictions[-1].predicted < 0.7:
+        if predictions and predictions[-1].predicted < LOW_FORECAST_THRESHOLD:
             items.append(
                 f"The forecast falls to {predictions[-1].predicted:.3f}; "
                 "schedule an intervention before it drops further."
             )
         for pattern in seasonal:
-            if pattern.strength > 0.05:
+            if pattern.strength > SEASONAL_STRENGTH_FLOOR:
                 items.append(
                     f"Account for the {pattern.period_type} effect when scheduling evaluations "
                     f"({pattern.trough} runs lowest)."
@@ -180,7 +184,6 @@ class QualityTrendReporter:
 
     def create_trend_visualizations(self, report: TrendReport) -> dict[str, dict[str, Any]]:
         """Build plotly figures for the trend report and return them as dicts."""
-        import plotly.graph_objects as go
 
         figures: dict[str, dict[str, Any]] = {}
         trend = report.trend

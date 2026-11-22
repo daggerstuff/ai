@@ -21,6 +21,8 @@ from .quality_metrics_store import load_quality_frame
 
 DEFAULT_FREQUENCY = "W"
 MIN_PERIODS_FOR_TREND = 3
+SIGNIFICANCE_ALPHA = 0.05
+MIN_OBSERVATIONS_PER_PERIOD = 2
 
 
 @dataclass(frozen=True)
@@ -134,7 +136,7 @@ class QualityTrendAnalyzer:
             slope=slope,
             r_squared=float(regression.rvalue**2),
             p_value=p_value,
-            significant=p_value < 0.05,
+            significant=p_value < SIGNIFICANCE_ALPHA,
             start_mean=float(values[0]),
             end_mean=float(values[-1]),
             change=float(values[-1] - values[0]),
@@ -241,7 +243,7 @@ class QualityTrendAnalyzer:
                 continue
             working["period"] = extractor(working["created_at"].dt)
             grouped = working.groupby("period")[metric].agg(["mean", "count"])
-            grouped = grouped[grouped["count"] >= 2]
+            grouped = grouped[grouped["count"] >= MIN_OBSERVATIONS_PER_PERIOD]
             if grouped.empty:
                 continue
             means = {str(name): float(row["mean"]) for name, row in grouped.iterrows()}

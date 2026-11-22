@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import plotly.graph_objects as go
+
 from .quality_distribution_analyzer import DistributionAnalysis, QualityDistributionAnalyzer
 from .quality_distribution_comparator import DistributionComparison, QualityDistributionComparator
 
@@ -186,7 +188,6 @@ class QualityDistributionReporter:
 
     def create_distribution_visualizations(self, report: DistributionReport) -> dict[str, dict[str, Any]]:
         """Build plotly figures for the distribution report and return them as dicts."""
-        import plotly.graph_objects as go
 
         figures: dict[str, dict[str, Any]] = {}
         overall = report.overall_distribution

@@ -15,6 +15,8 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 from .quality_metrics_store import load_quality_frame
 
@@ -39,6 +41,9 @@ COLOR_SCHEMES: dict[str, Any] = {
 }
 
 OUTLIER_IQR_FACTOR = 1.5
+MIN_SAMPLES_FOR_ANOMALIES = 4
+MIN_TREND_POINTS = 2
+TREND_DELTA = 0.02
 DEFAULT_CACHE_DURATION = 300
 NO_DATA_MESSAGE = "No quality data available for analysis"
 
@@ -168,7 +173,7 @@ class QualityAnalyticsDashboard:
 
     def _detect_anomalies(self, frame: pd.DataFrame) -> list[dict[str, Any]]:
         scores = frame["overall_quality"].dropna()
-        if scores.size < 4:
+        if scores.size < MIN_SAMPLES_FOR_ANOMALIES:
             return []
         q1, _, q3 = scores.quantile([0.25, 0.5, 0.75]).to_numpy(dtype=float)
         spread = q3 - q1
@@ -228,13 +233,13 @@ class QualityAnalyticsDashboard:
                 f"{len(analytics.anomalies)} conversation(s) fall outside the interquartile fence; "
                 "inspect them for label or generation defects."
             )
-        if len(analytics.trend_data) >= 2:
+        if len(analytics.trend_data) >= MIN_TREND_POINTS:
             first = analytics.trend_data[0]["quality"]
             last = analytics.trend_data[-1]["quality"]
             delta = last - first
-            if delta > 0.02:
+            if delta > TREND_DELTA:
                 items.append(f"Daily mean quality rose {delta:+.3f} across the window; the trend is improving.")
-            elif delta < -0.02:
+            elif delta < -TREND_DELTA:
                 items.append(f"Daily mean quality fell {delta:+.3f} across the window; investigate the regression.")
         if not items:
             items.append(f"Quality is stable at {analytics.average_quality:.3f}; no action is required this cycle.")
@@ -242,8 +247,6 @@ class QualityAnalyticsDashboard:
 
     def create_quality_overview_chart(self, analytics: QualityAnalytics) -> Any:
         """Band distribution plus tier means as one two-row figure."""
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
 
         figure = make_subplots(
             rows=1,
@@ -282,7 +285,6 @@ class QualityAnalyticsDashboard:
 
     def create_detailed_quality_heatmap(self, frame: pd.DataFrame) -> Any:
         """Component-by-tier heatmap of mean scores."""
-        import plotly.graph_objects as go
 
         components = [
             "therapeutic_accuracy",
@@ -315,7 +317,6 @@ class QualityAnalyticsDashboard:
 
     def create_anomaly_detection_chart(self, analytics: QualityAnalytics) -> Any:
         """Trend line with the anomalous conversations marked."""
-        import plotly.graph_objects as go
 
         figure = go.Figure()
         if not analytics.trend_data and not analytics.anomalies:

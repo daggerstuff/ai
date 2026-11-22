@@ -10,6 +10,7 @@ endpoints say so instead of inventing figures.
 from __future__ import annotations
 
 import json
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -244,8 +245,6 @@ new Chart(document.getElementById("tiers"), {{
 
 def main() -> None:
     """Serve the dashboard with the database path from the environment."""
-    import os
-
     system = InteractiveDashboardSystem(db_path=os.environ.get("QUALITY_DB_PATH"))
     system.setup_flask_routes()
     system.app.run(host=os.environ.get("DASHBOARD_HOST", "127.0.0.1"), port=5000, debug=False)

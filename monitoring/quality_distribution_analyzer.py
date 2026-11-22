@@ -17,6 +17,14 @@ from scipy import stats as scipy_stats
 from .quality_metrics_store import load_quality_frame
 
 OUTLIER_IQR_FACTOR = 1.5
+NORMALITY_ALPHA = 0.05
+SKEW_THRESHOLD = 0.5
+FLAT_KURTOSIS = -1.0
+HEAVY_TAILED_KURTOSIS = 1.0
+MIN_SAMPLES_FOR_SKEW = 3
+MIN_SAMPLES_FOR_KURTOSIS = 4
+MIN_SAMPLES_FOR_DAGOSTINO = 8
+MIN_SAMPLES_FOR_OUTLIERS = 4
 
 
 @dataclass(frozen=True)
@@ -75,15 +83,15 @@ def _classify(statistics: DistributionStatistics, normality_tests: list[Normalit
     if statistics.count == 0:
         return "empty"
     normal_verdicts = [test.is_normal for test in normality_tests]
-    if normal_verdicts and all(normal_verdicts) and abs(statistics.skewness) < 0.5:
+    if normal_verdicts and all(normal_verdicts) and abs(statistics.skewness) < SKEW_THRESHOLD:
         return "normal"
-    if statistics.skewness >= 0.5:
+    if statistics.skewness >= SKEW_THRESHOLD:
         return "skewed_right"
-    if statistics.skewness <= -0.5:
+    if statistics.skewness <= -SKEW_THRESHOLD:
         return "skewed_left"
-    if statistics.kurtosis <= -1.0:
+    if statistics.kurtosis <= FLAT_KURTOSIS:
         return "flat"
-    if statistics.kurtosis >= 1.0:
+    if statistics.kurtosis >= HEAVY_TAILED_KURTOSIS:
         return "heavy_tailed"
     return "non_normal"
 
@@ -99,15 +107,15 @@ def _statistics(values: np.ndarray) -> DistributionStatistics:
         q1=float(quartiles[0]),
         median=float(quartiles[1]),
         q3=float(quartiles[2]),
-        skewness=float(scipy_stats.skew(values)) if values.size > 2 else 0.0,
-        kurtosis=float(scipy_stats.kurtosis(values)) if values.size > 3 else 0.0,
+        skewness=float(scipy_stats.skew(values)) if values.size > MIN_SAMPLES_FOR_SKEW else 0.0,
+        kurtosis=float(scipy_stats.kurtosis(values)) if values.size > MIN_SAMPLES_FOR_KURTOSIS else 0.0,
         iqr=float(quartiles[2] - quartiles[0]),
     )
 
 
 def _normality_tests(values: np.ndarray) -> list[NormalityTest]:
     tests: list[NormalityTest] = []
-    if values.size < 3:
+    if values.size < MIN_SAMPLES_FOR_SKEW:
         return tests
 
     shapiro = scipy_stats.shapiro(values)
@@ -116,23 +124,23 @@ def _normality_tests(values: np.ndarray) -> list[NormalityTest]:
             test_name="shapiro_wilk",
             statistic=float(shapiro.statistic),
             p_value=float(shapiro.pvalue),
-            is_normal=bool(shapiro.pvalue >= 0.05),
+            is_normal=bool(shapiro.pvalue >= NORMALITY_ALPHA),
             interpretation="Shapiro-Wilk rejects normality at p < 0.05"
-            if shapiro.pvalue < 0.05
+            if shapiro.pvalue < NORMALITY_ALPHA
             else "Shapiro-Wilk finds no evidence against normality",
         )
     )
 
-    if values.size >= 8:
+    if values.size >= MIN_SAMPLES_FOR_DAGOSTINO:
         dagostino = scipy_stats.normaltest(values)
         tests.append(
             NormalityTest(
                 test_name="dagostino_pearson",
                 statistic=float(dagostino.statistic),
                 p_value=float(dagostino.pvalue),
-                is_normal=bool(dagostino.pvalue >= 0.05),
+                is_normal=bool(dagostino.pvalue >= NORMALITY_ALPHA),
                 interpretation="Skew and kurtosis differ from a normal distribution"
-                if dagostino.pvalue < 0.05
+                if dagostino.pvalue < NORMALITY_ALPHA
                 else "Skew and kurtosis match a normal distribution",
             )
         )
@@ -144,9 +152,9 @@ def _normality_tests(values: np.ndarray) -> list[NormalityTest]:
             test_name="kolmogorov_smirnov",
             statistic=float(kolmogorov.statistic),
             p_value=float(kolmogorov.pvalue),
-            is_normal=bool(kolmogorov.pvalue >= 0.05),
+            is_normal=bool(kolmogorov.pvalue >= NORMALITY_ALPHA),
             interpretation="Empirical CDF departs from the normal CDF"
-            if kolmogorov.pvalue < 0.05
+            if kolmogorov.pvalue < NORMALITY_ALPHA
             else "Empirical CDF matches the normal CDF",
         )
     )
@@ -193,7 +201,7 @@ class QualityDistributionAnalyzer:
     ) -> list[OutlierRecord]:
         """Flag values outside the median +/- factor * IQR fence."""
         cleaned = pd.Series(values).dropna()
-        if cleaned.size < 4:
+        if cleaned.size < MIN_SAMPLES_FOR_OUTLIERS:
             return []
         q1, median, q3 = cleaned.quantile([0.25, 0.5, 0.75]).to_numpy(dtype=float)
         spread = q3 - q1

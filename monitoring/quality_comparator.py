@@ -22,6 +22,7 @@ from .quality_metrics_store import COMPONENT_COLUMNS, SCORE_COLUMNS, load_qualit
 
 DEFAULT_TARGET_QUALITY = 0.80
 SIGNIFICANCE_LEVEL = 0.05
+MIN_GROUP_SAMPLES = 2
 
 
 @dataclass(frozen=True)
@@ -110,7 +111,7 @@ def _group_statistics(series: pd.Series, label: str) -> GroupStatistics:
 
 def _cohens_d(sample_a: np.ndarray, sample_b: np.ndarray) -> float:
     """Pooled-standard-deviation effect size; 0.0 when a group is degenerate."""
-    if sample_a.size < 2 or sample_b.size < 2:
+    if sample_a.size < MIN_GROUP_SAMPLES or sample_b.size < MIN_GROUP_SAMPLES:
         return 0.0
     pooled_variance = ((sample_a.size - 1) * sample_a.var(ddof=1) + (sample_b.size - 1) * sample_b.var(ddof=1)) / (
         sample_a.size + sample_b.size - 2
@@ -122,7 +123,7 @@ def _cohens_d(sample_a: np.ndarray, sample_b: np.ndarray) -> float:
 
 def _difference_interval(sample_a: np.ndarray, sample_b: np.ndarray, confidence: float = 0.95) -> tuple[float, float]:
     """Welch interval on the difference of means; (0, 0) when undefined."""
-    if sample_a.size < 2 or sample_b.size < 2:
+    if sample_a.size < MIN_GROUP_SAMPLES or sample_b.size < MIN_GROUP_SAMPLES:
         return (0.0, 0.0)
     difference = sample_a.mean() - sample_b.mean()
     variance_a = sample_a.var(ddof=1) / sample_a.size
@@ -139,7 +140,7 @@ def _difference_interval(sample_a: np.ndarray, sample_b: np.ndarray, confidence:
 
 
 def _p_value(sample_a: np.ndarray, sample_b: np.ndarray) -> float:
-    if sample_a.size < 2 or sample_b.size < 2:
+    if sample_a.size < MIN_GROUP_SAMPLES or sample_b.size < MIN_GROUP_SAMPLES:
         return 1.0
     result = scipy_stats.ttest_ind(sample_a, sample_b, equal_var=False, nan_policy="omit")
     statistic = float(result.pvalue)

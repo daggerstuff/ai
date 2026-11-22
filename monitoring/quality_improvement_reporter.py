@@ -8,6 +8,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+import plotly.graph_objects as go
+
 from .quality_improvement_tracker import (
     Intervention,
     InterventionImpact,
@@ -173,7 +175,6 @@ class QualityImprovementReporter:
 
     def create_improvement_visualizations(self, report: ImprovementReport) -> dict[str, dict[str, Any]]:
         """Build plotly figures for the improvement report and return them as dicts."""
-        import plotly.graph_objects as go
 
         figures: dict[str, dict[str, Any]] = {}
 

@@ -13,6 +13,10 @@ from scipy import stats as scipy_stats
 from .quality_distribution_analyzer import QualityDistributionAnalyzer
 from .quality_metrics_store import COMPONENT_COLUMNS
 
+MIN_GROUP_SAMPLES = 2
+SIGNIFICANCE_ALPHA = 0.05
+STRONG_CORRELATION = 0.7
+
 
 @dataclass(frozen=True)
 class GroupDistribution:
@@ -67,7 +71,7 @@ class QualityDistributionComparator:
         for group_a, group_b in combinations(groups, 2):
             sample_a = frame.loc[frame["tier"] == group_a.name, metric].dropna().to_numpy(dtype=float)
             sample_b = frame.loc[frame["tier"] == group_b.name, metric].dropna().to_numpy(dtype=float)
-            if sample_a.size < 2 or sample_b.size < 2:
+            if sample_a.size < MIN_GROUP_SAMPLES or sample_b.size < MIN_GROUP_SAMPLES:
                 continue
             welch = scipy_stats.ttest_ind(sample_a, sample_b, equal_var=False, nan_policy="omit")
             levene = scipy_stats.levene(sample_a, sample_b)
@@ -78,25 +82,25 @@ class QualityDistributionComparator:
                     "difference": float(sample_a.mean() - sample_b.mean()),
                     "welch_t": float(welch.statistic),
                     "p_value": float(welch.pvalue) if np.isfinite(welch.pvalue) else 1.0,
-                    "significant": bool(np.isfinite(welch.pvalue) and welch.pvalue < 0.05),
+                    "significant": bool(np.isfinite(welch.pvalue) and welch.pvalue < SIGNIFICANCE_ALPHA),
                     "levene_statistic": float(levene.statistic),
                     "levene_p_value": float(levene.pvalue) if np.isfinite(levene.pvalue) else 1.0,
                 }
             )
 
         variance_test: dict[str, Any] = {}
-        if len(groups) >= 2:
+        if len(groups) >= MIN_GROUP_SAMPLES:
             samples = [
                 frame.loc[frame["tier"] == group.name, metric].dropna().to_numpy(dtype=float) for group in groups
             ]
-            samples = [sample for sample in samples if sample.size >= 2]
-            if len(samples) >= 2:
+            samples = [sample for sample in samples if sample.size >= MIN_GROUP_SAMPLES]
+            if len(samples) >= MIN_GROUP_SAMPLES:
                 bartlett = scipy_stats.bartlett(*samples)
                 variance_test = {
                     "test": "bartlett",
                     "statistic": float(bartlett.statistic),
                     "p_value": float(bartlett.pvalue) if np.isfinite(bartlett.pvalue) else 1.0,
-                    "equal_variance": bool(np.isfinite(bartlett.pvalue) and bartlett.pvalue >= 0.05),
+                    "equal_variance": bool(np.isfinite(bartlett.pvalue) and bartlett.pvalue >= SIGNIFICANCE_ALPHA),
                 }
 
         return DistributionComparison(
@@ -111,10 +115,12 @@ class QualityDistributionComparator:
             if component in frame.columns and frame[component].dropna().size > 0
         ]
         samples = [
-            frame[group.name].dropna().to_numpy(dtype=float) for group in groups if frame[group.name].dropna().size >= 2
+            frame[group.name].dropna().to_numpy(dtype=float)
+            for group in groups
+            if frame[group.name].dropna().size >= MIN_GROUP_SAMPLES
         ]
         tests: list[dict[str, Any]] = []
-        if len(samples) >= 2:
+        if len(samples) >= MIN_GROUP_SAMPLES:
             anova = scipy_stats.f_oneway(*samples)
             kruskal = scipy_stats.kruskal(*samples)
             tests.append(
@@ -122,7 +128,7 @@ class QualityDistributionComparator:
                     "test": "one_way_anova",
                     "statistic": float(anova.statistic),
                     "p_value": float(anova.pvalue) if np.isfinite(anova.pvalue) else 1.0,
-                    "significant": bool(np.isfinite(anova.pvalue) and anova.pvalue < 0.05),
+                    "significant": bool(np.isfinite(anova.pvalue) and anova.pvalue < SIGNIFICANCE_ALPHA),
                 }
             )
             tests.append(
@@ -130,7 +136,7 @@ class QualityDistributionComparator:
                     "test": "kruskal_wallis",
                     "statistic": float(kruskal.statistic),
                     "p_value": float(kruskal.pvalue) if np.isfinite(kruskal.pvalue) else 1.0,
-                    "significant": bool(np.isfinite(kruskal.pvalue) and kruskal.pvalue < 0.05),
+                    "significant": bool(np.isfinite(kruskal.pvalue) and kruskal.pvalue < SIGNIFICANCE_ALPHA),
                 }
             )
         return DistributionComparison(
@@ -140,7 +146,7 @@ class QualityDistributionComparator:
     def calculate_correlation_analysis(self, frame: pd.DataFrame, min_abs_correlation: float = 0.3) -> dict[str, Any]:
         """Correlate every metric pair and surface the strongest relationships."""
         columns = [column for column in (*COMPONENT_COLUMNS, "overall_quality") if column in frame.columns]
-        if len(columns) < 2:
+        if len(columns) < MIN_GROUP_SAMPLES:
             return {"correlation_matrix": {}, "strongest_correlations": []}
 
         matrix = frame[columns].corr(method="pearson")
@@ -155,7 +161,7 @@ class QualityDistributionComparator:
                         "metric_a": column_a,
                         "metric_b": column_b,
                         "correlation": float(value),
-                        "strength": "strong" if abs(value) >= 0.7 else "moderate",
+                        "strength": "strong" if abs(value) >= STRONG_CORRELATION else "moderate",
                         "direction": "positive" if value > 0 else "negative",
                     }
                 )

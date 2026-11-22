@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import plotly.graph_objects as go
 
 from .quality_comparator import (
     BenchmarkAnalysis,
@@ -24,6 +25,7 @@ from .quality_comparator import (
 )
 
 DEFAULT_OUTPUT_DIR = Path("reports") / "quality_comparison"
+LARGE_EFFECT = 0.5
 
 
 @dataclass
@@ -249,7 +251,6 @@ class QualityComparisonReporter:
 
     def create_comparison_visualizations(self, report: ComparisonReport) -> dict[str, dict[str, Any]]:
         """Build plotly figures for the report and return them as dicts."""
-        import plotly.graph_objects as go
 
         figures: dict[str, dict[str, Any]] = {}
 
