@@ -1,0 +1,73 @@
+cli/tests/conftest.py
+  s_7d4811cf1b0ba7::t_45f6d340380f29 25-36
+tools/scripts/tests/conftest.py
+  s_7d4811cf1b0ba7::t_45f6d340380f29 25-36
+cli/config.py
+  s_7d4811cf1b0ba7::t_45f6d340380f29 229
+tools/scripts/commands/pipeline.py
+  s_7d4811cf1b0ba7::t_31d39199338d0b 134
+  s_7d4811cf1b0ba7::t_db2ccb4d9ec412 777
+tools/scripts/commands/config.py
+  s_7d4811cf1b0ba7::t_b7030704f56a1a 97-98,100-107,112-114
+  s_7d4811cf1b0ba7::t_db2ccb4d9ec412 361
+cli/tests/test_main.py
+  s_300e345e99e201::t_703775651286c9 465,489,506,528
+  s_7d4811cf1b0ba7::t_5369f6822dbb66 466,529
+  s_7d4811cf1b0ba7::t_db2ccb4d9ec412 477-479,535-537
+  s_7d4811cf1b0ba7::t_b1607743bb1867 467,530,578
+  s_7d4811cf1b0ba7::t_409794251ae48e 474
+tools/scripts/pipeline.py
+  s_7d4811cf1b0ba7::t_b7030704f56a1a 11,19-20,47-53,55-66,145,153,171
+  s_7d4811cf1b0ba7::t_e9494aaa1398e5 54
+tools/scripts/tests/test_main.py
+  s_300e345e99e201::t_703775651286c9 465,489,506,528
+  s_7d4811cf1b0ba7::t_5369f6822dbb66 466,529
+  s_7d4811cf1b0ba7::t_db2ccb4d9ec412 477-479,535-537
+  s_7d4811cf1b0ba7::t_b1607743bb1867 467,530,578
+  s_7d4811cf1b0ba7::t_c281883bcf203b 474
+cli/main.py
+  s_7d4811cf1b0ba7::t_8345438368fc7b 100-101
+  s_7d4811cf1b0ba7::t_9aefc06366d2f7 38
+cli/commands/config.py
+  s_7d4811cf1b0ba7::t_0210024d06725c 97-98,100-107,112-113
+  s_7d4811cf1b0ba7::t_db2ccb4d9ec412 361
+  s_7d4811cf1b0ba7::t_3a6f8e7a717daf 114
+cli/commands/pipeline.py
+  s_7d4811cf1b0ba7::t_31d39199338d0b 134
+  s_7d4811cf1b0ba7::t_db2ccb4d9ec412 777
+tools/scripts/main.py
+  s_7d4811cf1b0ba7::t_d9771f1cdb4b8b 38
+  s_7d4811cf1b0ba7::t_8345438368fc7b 100-101
+tools/scripts/config.py
+  s_7d4811cf1b0ba7::t_45f6d340380f29 229
+cli/pipeline.py
+  s_7d4811cf1b0ba7::t_fe292b194eea34 47-53,55-66
+  s_7d4811cf1b0ba7::t_59258dd628f1c5 171
+  s_7d4811cf1b0ba7::t_a3aaa41f5953ab 11
+  s_7d4811cf1b0ba7::t_aafc3de1071542 145,153
+  s_7d4811cf1b0ba7::t_d4f9fb8c68cf38 19-20,54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a0ad87455f490cb1198bf57d5b5658e3d5ce0a37",
+  "prompts": {},
+  "sessions": {
+    "s_300e345e99e201": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "granite-clam",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    },
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
