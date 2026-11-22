@@ -35,7 +35,7 @@ from .utils import print_banner, setup_logging, validate_environment
 @click.option(
     "--config-file",
     "-c",
-    type=click.Path(exists=True, path_type=Path),
+    type=click.Path(path_type=Path),
     help="Path to configuration file",
 )
 @click.option(
@@ -97,6 +97,8 @@ def cli(
 
     # Initialize configuration
     try:
+        if config_file is not None and not Path(config_file).exists():
+            raise FileNotFoundError(f"Configuration file {config_file} does not exist")
         config = CLIConfig(config_file=config_file, profile=profile)
         ctx.obj["config"] = config
         ctx.obj["logger"] = logger

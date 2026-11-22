@@ -462,15 +462,21 @@ class TestCLIIntegration:
             stop_response = MagicMock()
             stop_response.status_code = 200
 
+            Path("test-config.yaml").write_text('{"name": "test-pipeline", "steps": []}')
+            Path("test-input.json").write_text("{}")
+
             with (
                 patch(
                     "tools.scripts.pipeline.requests.post",
                     side_effect=[start_response, stop_response],
                 ),
                 patch("tools.scripts.pipeline.requests.get", return_value=status_response),
+                patch("tools.scripts.auth.AuthManager.is_authenticated", return_value=True),
             ):
                 # Test pipeline start
-                result = runner.invoke(cli, ["pipeline", "start", "--config", "test-config.yaml"])
+                result = runner.invoke(
+                    cli, ["pipeline", "start", "--config", "test-config.yaml", "--input", "test-input.json"]
+                )
                 assert result.exit_code == 0
 
                 # Test pipeline status
@@ -480,7 +486,7 @@ class TestCLIIntegration:
                 assert "75" in result.output
 
                 # Test pipeline stop
-                result = runner.invoke(cli, ["pipeline", "stop", "--id", "test-pipeline-123"])
+                result = runner.invoke(cli, ["pipeline", "stop", "--id", "test-pipeline-123", "--force"])
                 assert result.exit_code == 0
 
     def test_configuration_management(self):
@@ -497,7 +503,7 @@ class TestCLIIntegration:
             assert result.exit_code == 0
 
             # Test config profiles list
-            result = runner.invoke(cli, ["config", "profiles", "list"])
+            result = runner.invoke(cli, ["config", "profiles"])
             assert result.exit_code == 0
 
             # Test config validation
@@ -519,11 +525,16 @@ class TestCLIIntegration:
             success_response.json.return_value = {"status": "success"}
 
             # First call fails, second succeeds (retry mechanism)
+            Path("test-config.yaml").write_text('{"name": "test-pipeline", "steps": []}')
+            Path("test-input.json").write_text("{}")
+
             with patch(
                 "tools.scripts.pipeline.requests.post",
                 side_effect=[fail_response, success_response],
             ):
-                result = runner.invoke(cli, ["pipeline", "start", "--config", "test-config.yaml"])
+                result = runner.invoke(
+                    cli, ["pipeline", "start", "--config", "test-config.yaml", "--input", "test-input.json"]
+                )
 
                 # Should succeed on retry
                 assert result.exit_code == 0
@@ -564,7 +575,7 @@ class TestCLIPerformance:
             }
 
             with patch("tools.scripts.pipeline.requests.get", return_value=large_response):
-                result = runner.invoke(cli, ["pipeline", "list"])
+                result = runner.invoke(cli, ["pipeline", "list-executions"])
 
                 assert result.exit_code == 0
                 # Should handle large output without issues

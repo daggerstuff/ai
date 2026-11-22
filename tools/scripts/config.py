@@ -226,7 +226,7 @@ class CLIConfig(BaseModel):
         super().__init__()
         self._config_file = config_file
         self._profile = profile
-        self._config_dir = Path.home() / ".pixelated-ai"
+        self._config_dir = Path(os.environ.get("PIXELATED_CONFIG_DIR") or (Path.home() / ".pixelated-ai"))
         self._encryption_key = None
         self._cipher = None
 

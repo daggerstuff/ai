@@ -8,12 +8,15 @@ for training and inference workflows.
 from __future__ import annotations
 
 import logging
+import time
 from enum import StrEnum
 from typing import Any
 
 import requests
 
 logger = logging.getLogger(__name__)
+
+HTTP_SERVER_ERROR = 500
 
 
 class PipelineStatus(StrEnum):
@@ -40,6 +43,26 @@ class PipelineManager:
     @property
     def _base_url(self) -> str:
         return f"{self._config.api_base_url}/pipelines"
+
+    def _post_with_retry(self, url: str, **kwargs) -> requests.Response:
+        """POST, retrying server-side failures under the configured policy."""
+        attempts = max(1, int(self._config.api.max_retries))
+        delay = float(self._config.api.retry_delay)
+
+        response = requests.post(url, **kwargs)
+        for attempt in range(1, attempts):
+            if response.status_code < HTTP_SERVER_ERROR:
+                return response
+            logger.warning(
+                "Pipeline request to %s answered HTTP %s; retry %s/%s",
+                url,
+                response.status_code,
+                attempt,
+                attempts - 1,
+            )
+            time.sleep(delay * attempt)
+            response = requests.post(url, **kwargs)
+        return response
 
     def get_status(self, pipeline_id: str | None = None) -> str:
         """Get pipeline status. Returns overall status if no ID given."""
@@ -119,7 +142,7 @@ class PipelineManager:
             "description": description or "",
         }
         try:
-            response = requests.post(
+            response = self._post_with_retry(
                 self._base_url,
                 headers=self._auth.get_auth_headers(),
                 json=payload,
@@ -127,7 +150,7 @@ class PipelineManager:
             )
             response.raise_for_status()
             pipeline = response.json()
-            self._pipeline_cache[pipeline["id"]] = pipeline
+            self._pipeline_cache[pipeline.get("id", name)] = pipeline
             return pipeline
         except requests.RequestException as e:
             raise PipelineError(f"Failed to create pipeline: {e}") from e
@@ -145,7 +168,7 @@ class PipelineManager:
             )
             if response.status_code == 200:
                 pipeline = response.json()
-                self._pipeline_cache[pipeline["id"]] = pipeline
+                self._pipeline_cache[pipeline.get("id", pipeline_id)] = pipeline
                 return pipeline
             return None
         except requests.RequestException:

@@ -94,11 +94,23 @@ def show(_ctx, profile: str | None, show_all: bool, decrypt: bool):
 @click.option("--profile", "-p", help="Profile to edit (creates new if not exists)")
 @click.option("--set", "set_values", multiple=True, help="Set configuration value (key=value)")
 @click.option("--interactive", "-i", is_flag=True, help="Interactive configuration mode")
+@click.argument("key", required=False)
+@click.argument("value", required=False)
 @click.pass_context
-def set(_ctx, profile: str | None, set_values: tuple, interactive: bool):
+def set(
+    _ctx,
+    profile: str | None,
+    set_values: tuple,
+    interactive: bool,
+    key: str | None,
+    value: str | None,
+):
     """Set configuration values."""
     try:
         config = get_config(profile)
+
+        if key and value is not None:
+            set_values = (*set_values, f"{key}={value}")
 
         if interactive:
             _interactive_config(config)
@@ -345,6 +357,7 @@ def profiles(_ctx, profile: str | None):
     for name in available:
         marker = "*" if name == active else " "
         click.echo(f" {marker} {name}")
+
 
 @config_group.command()
 @click.pass_context

@@ -131,7 +131,7 @@ def start(
 
 
 @pipeline_group.command()
-@click.option("--pipeline-id", help="Specific pipeline to stop")
+@click.option("--pipeline-id", "--id", help="Specific pipeline to stop")
 @click.option("--all", "stop_all", is_flag=True, help="Stop all running pipelines")
 @click.option("--force", is_flag=True, help="Force stop without confirmation")
 @click.pass_context
@@ -773,6 +773,7 @@ def _save_pipeline_info(pipeline_id: str, _pipeline_info: dict[str, Any]) -> Non
     """Save pipeline information for later reference."""
     # This would save to a local cache or config file
     logger.info(f"Saved pipeline info for {pipeline_id}")
+
 
 @pipeline_group.command()
 @click.option("--pipeline-id", "--id", "-p", help="Pipeline execution to inspect")

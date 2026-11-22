@@ -22,3 +22,15 @@ __all__ = [
     "mock_progress_tracker",
     "temp_config_dir",
 ]
+
+import pytest
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _isolated_cli_config_dir(tmp_path_factory):
+    """Keep every CLI test off the real ``~/.pixelated-ai`` directory."""
+    config_dir = tmp_path_factory.mktemp("cli-config")
+    patcher = pytest.MonkeyPatch()
+    patcher.setenv("PIXELATED_CONFIG_DIR", str(config_dir))
+    yield config_dir
+    patcher.undo()
