@@ -37,8 +37,10 @@ DEFAULT_FLAVOR = "l40s-1-gpu"
 DEFAULT_TIMEOUT = "2h"
 DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-v23"
 # Where the container unpacks the bundle. Not a host path: the job sets ROOT to
-# this, and the bootstrap falls back to it when the variable is missing.
-REMOTE_ROOT = "/work"
+# this, and the bootstrap falls back to it when the variable is missing. A job
+# with no volume gets a read-only image filesystem, so this has to be under
+# /tmp; the launchers default to the same directory.
+REMOTE_ROOT = "/tmp/work"
 DEFAULT_EXPORT_DIR = AI_ROOT / "training/output/ovh-v23-qwen3-8b"
 DEFAULT_RUN_NAME = "ovh-wandb-full-corpus-current-master-20261110-v23-bf16"
 
@@ -73,7 +75,7 @@ BOOTSTRAP = """\
 import base64, gzip, hashlib, json, os, pathlib, shutil, subprocess, sys, time, urllib.request
 
 plan = json.loads(gzip.decompress(base64.urlsafe_b64decode(os.environ["R2_MAP_B64"].encode())))
-root = pathlib.Path(os.environ.get("ROOT", "/work"))
+root = pathlib.Path(os.environ.get("ROOT", "/tmp/work"))
 sizes = plan.get("sizes", {})
 downloads = plan.get("download", {})
 print(f"bootstrap: {len(downloads)} objects into {root}", flush=True)
@@ -269,8 +271,10 @@ def submit(
     staged = stage(stage_dir, export_dir=export_dir) if restage else staged_files(stage_dir)
     # Each tag owns its input prefix: presigned GETs sign a key, not an object
     # version, so a shared prefix lets a later submission swap a queued job's
-    # bytes. Override only when the caller owns that key space.
-    prefix = inputs_prefix or f"inputs/v23/{tag}"
+    # bytes. Override only when the caller owns that key space. The prefix is
+    # normalised the way ``upload_dir`` normalises it, so the signed GETs name
+    # the same keys the upload wrote.
+    prefix = (inputs_prefix or f"inputs/v23/{tag}").strip("/")
 
     s3 = r2_sync.client()
     bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]

@@ -220,6 +220,11 @@ def test_cluster_tokens_are_matched_case_insensitively() -> None:
     # A capitalised token silently never matched before this was pinned.
     assert v27._mentions("what i am going to do", "What I am going to do")
     assert v27._mentions("i know how and when", "how and when")
+    # The same gap on the other side: a capitalised word in the sentence was
+    # dropped, so a disclosure that said "PILLS" named no anchor at all.
+    assert v27._mentions("PILLS", "pills")
+    assert v27.named_anchors("PILLS", "suicide_plan") == v27.named_anchors("pills", "suicide_plan")
+    assert v27.named_anchors("PILLS", "suicide_plan")
 
 
 def test_the_subset_rule_drops_every_action_that_names_an_unshared_cluster() -> None:
@@ -374,8 +379,10 @@ def test_only_psychosis_names_a_cluster_the_disclosure_did_not() -> None:
     # A warning clause is legitimate and must not be counted as invention. v27's
     # only one is the psychosis target clause; the eating-disorder warning ("a
     # seizure from purging or not eating") arrives in v28, so medical_collapse
-    # widens nothing here. Its bare "A seizure needs a doctor tonight" names only
-    # the seizure cluster, which is not concrete, so no pool ever offers it.
+    # widens nothing here. Its bare "A seizure needs a doctor tonight" names the
+    # seizure cluster, which is concrete, so the subset rule is what drops it:
+    # the disclosure names purge and never names a seizure, and a concrete
+    # cluster the disclosure did not name is exactly what the pool refuses.
     for category in v27.CLUSTERED_CATEGORIES:
         widened = summary()[f"{category}_widened_cluster_rows"]
         if category == "psychosis_risk_other":

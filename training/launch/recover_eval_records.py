@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
@@ -89,7 +90,15 @@ def write_runs(runs: dict[str, list[dict[str, Any]]], out_root: Path) -> dict[st
     for run, records in runs.items():
         directory = run_directory(out_root, run)
         directory.mkdir(parents=True, exist_ok=True)
-        with (directory / "results.jsonl").open("w", encoding="utf-8") as handle:
+        # ``run_directory`` confines the directory, but a symlink already named
+        # ``results.jsonl`` inside it would still redirect the write outside
+        # ``out_root``. O_NOFOLLOW refuses that instead of following it.
+        descriptor = os.open(
+            directory / "results.jsonl",
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW,
+            0o644,
+        )
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
             for record in records:
                 handle.write(json.dumps(record, ensure_ascii=False) + "\n")
         arms: dict[str, int] = {}

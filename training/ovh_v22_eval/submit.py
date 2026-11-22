@@ -37,8 +37,10 @@ DEFAULT_FLAVOR = "l4-1-gpu"
 DEFAULT_TIMEOUT = "2h"
 DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-eval"
 # Where the container unpacks the bundle. Not a host path: the job sets ROOT to
-# this, and the bootstrap falls back to it when the variable is missing.
-REMOTE_ROOT = "/work"
+# this, and the bootstrap falls back to it when the variable is missing. A job
+# with no volume gets a read-only image filesystem, so this has to be under
+# /tmp; the launchers default to the same directory.
+REMOTE_ROOT = "/tmp/work"
 # 344 MB each: kept out of the repo, staged from the training output directory.
 DEFAULT_ADAPTERS = {
     "bf16": AI_ROOT / "training/output/ovh-v22-qwen3-8b/adapter-final",
@@ -75,7 +77,7 @@ BOOTSTRAP = """\
 import base64, gzip, json, os, pathlib, shutil, subprocess, sys, urllib.request
 
 plan = json.loads(gzip.decompress(base64.urlsafe_b64decode(os.environ["R2_MAP_B64"].encode())))
-root = pathlib.Path(os.environ.get("ROOT", "/work"))
+root = pathlib.Path(os.environ.get("ROOT", "/tmp/work"))
 downloads = plan.get("download", {})
 print(f"bootstrap: {len(downloads)} objects into {root}", flush=True)
 for relative, url in sorted(downloads.items()):

@@ -317,7 +317,10 @@ class JudgeClient:
         self._cache[key] = verdict
         if self._cache_path is not None:
             self._cache_path.parent.mkdir(parents=True, exist_ok=True)
-            tmp_path = self._cache_path.with_name(self._cache_path.name + ".tmp")
+            # Two graders sharing a cache path also shared "<cache>.tmp", so
+            # whichever replaced the cache first made the other's os.replace
+            # raise FileNotFoundError after its judge call had already paid.
+            tmp_path = self._cache_path.with_name(f"{self._cache_path.name}.{os.getpid()}.tmp")
             tmp_path.write_text(json.dumps(self._cache, indent=2, sort_keys=True) + "\n")
             # A half-written cache is unreadable to the next run, so the file is
             # only ever replaced whole.

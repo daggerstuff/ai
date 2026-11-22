@@ -927,17 +927,16 @@ REPLACED_PARAPHRASES: dict[str, str] = {
 
 
 def _mentions(text: str, token: str) -> bool:
-    """True when ``token`` appears in ``text`` as whole words."""
-    return re.search(rf"\b{re.escape(token.lower())}\b", text) is not None
+    """True when ``token`` appears in ``text`` as whole words, case-insensitively."""
+    return re.search(rf"\b{re.escape(token.lower())}\b", text.lower()) is not None
 
 
 def clusters(text: str, category: str) -> frozenset[str]:
     """The anchor clusters a sentence names, by word-boundary token match."""
     if category not in ANCHOR_GROUPS:
         return frozenset()
-    lowered = text.lower()
     return frozenset(
-        name for name, tokens in ANCHOR_GROUPS[category].items() if any(_mentions(lowered, token) for token in tokens)
+        name for name, tokens in ANCHOR_GROUPS[category].items() if any(_mentions(text, token) for token in tokens)
     )
 
 
