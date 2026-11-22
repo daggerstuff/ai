@@ -1,0 +1,47 @@
+training/backup_wandb_full_corpus_lora.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 18
+training/build_edge_and_nightmare_dataset.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 26
+training/train_moe_h100.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 16
+training/fireworks_sft_release.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 225
+training/backup_wandb_full_corpus_train_state.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 15
+training/cpu_sft_release.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 202
+training/mcp/backends.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 19
+training/tinker_sft_release.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 359
+training/train_enhanced.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 14
+training/tests/test_wandb_checkpoint_backup.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 9
+training/train_optimized.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 14
+training/watch_wandb_full_corpus_final.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 17
+training/launch/arc_sft_launch.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 7
+training/tests/test_dual_model_checkpoint_mirror.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 12
+training/backup_dual_model_sft_checkpoints.py
+  s_7d4811cf1b0ba7::t_984d9ffcfff79b 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a097c012fe30727030032f11839f4a2babb1ca09",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
