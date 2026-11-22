@@ -18,3 +18,10 @@ __pycache__/
 
 # The real environment file holds backend secrets and the service token.
 .env
+
+# `!*` above also re-includes these names, and this file is read after the root
+# rules that ignore them (`**/credentials*.yaml`, `**/secrets*.yaml`), so the
+# exclusion has to be repeated here or an operator's credential file would be
+# committed.
+credentials*.yaml
+secrets*.yaml

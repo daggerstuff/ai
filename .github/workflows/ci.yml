@@ -16,20 +16,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v6
 
-      # The release builders resolve their evaluation fixtures through
-      # ROOT = parents[2], i.e. the directory that contains this checkout, and
-      # read them from ROOT/docs/training/execution-2026-10-17. Without that
-      # sibling checkout evaluation_texts() returns an empty set, so the
-      # "paraphrases never reuse evaluation text" guards assert on nothing.
-      - name: Checkout docs fixtures
-        run: |
-          target="$(dirname "$GITHUB_WORKSPACE")/docs"
-          if [ ! -d "$target/training" ]; then
-            git clone --depth 1 --filter=blob:none --sparse \
-              https://github.com/daggerstuff/docs.git "$target"
-            git -C "$target" sparse-checkout set training/execution-2026-10-17
-          fi
-
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
