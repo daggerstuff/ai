@@ -151,9 +151,7 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
             )
             dropped += retained - len(messages)
             flagged = findings_by_line.get(line_number, [])
-            if flagged and all(finding.assistant_turn < dropped for finding in flagged):
-                trimmed_targets.append(line_number)
-                continue
+            targets_lost = bool(flagged) and all(finding.assistant_turn < dropped for finding in flagged)
             targets = weights[1:]
             if len(ids) < MIN_DATUM_TOKENS or not any(targets):
                 unmatched.append(line_number)
@@ -167,10 +165,12 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
                 excluded += 1
                 continue
             datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets)
-            if hashlib.sha256(datum.line().encode()).hexdigest() in exported:
-                present.append(line_number)
-            else:
+            if hashlib.sha256(datum.line().encode()).hexdigest() not in exported:
                 unmatched.append(line_number)
+            elif targets_lost:
+                trimmed_targets.append(line_number)
+            else:
+                present.append(line_number)
     return ExportReview(
         dataset_sha256=checksum,
         candidate_selected_rows=len(wanted),

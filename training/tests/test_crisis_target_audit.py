@@ -195,9 +195,14 @@ def test_export_review_honors_a_zero_final_exchange_budget(tmp_path: Path, monke
     assert result.present_selected_lines == ()
 
 
-def test_export_review_reports_a_flagged_target_lost_to_trimming(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def _flagged_trim_review(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    exported: bool,
+    final_exchange_tokens: int,
+) -> Any:
+    """Review a row whose only flagged reply is removed by trimming."""
     source = tmp_path / "selected.jsonl"
     messages: list[dict[str, Any]] = [
         {"role": "user", "content": "I want to die. " + "x " * 40},
@@ -210,17 +215,17 @@ def test_export_review_reports_a_flagged_target_lost_to_trimming(
     final = messages[2:]
     ids, weights = build_tokens(tokenizer, final)
     datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:])
-    exported = tmp_path / "datums.jsonl"
-    exported.write_text(datum.line() + "\n")
+    exported_path = tmp_path / "datums.jsonl"
+    exported_path.write_text(datum.line() + "\n" if exported else "")
     receipt = tmp_path / "receipt.json"
     receipt.write_text(
         json.dumps(
             {
-                "path": str(exported),
-                "sha256": hashlib.sha256(exported.read_bytes()).hexdigest(),
+                "path": str(exported_path),
+                "sha256": hashlib.sha256(exported_path.read_bytes()).hexdigest(),
                 "tokenizer": "test",
                 "max_tokens": len(ids) - 1,
-                "max_final_exchange_tokens": 1024,
+                "max_final_exchange_tokens": final_exchange_tokens,
                 "end_token": "<|im_end|>",
             }
         )
@@ -230,11 +235,36 @@ def test_export_review_reports_a_flagged_target_lost_to_trimming(
         return tokenizer
 
     monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
-    result = audit_export(source, receipt, audit(source))
+    return audit_export(source, receipt, audit(source))
+
+
+def test_export_review_reports_a_flagged_target_lost_to_trimming(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result = _flagged_trim_review(tmp_path, monkeypatch, exported=True, final_exchange_tokens=1024)
 
     assert result.trimmed_target_lines == (1,)
     assert result.present_selected_lines == ()
     assert result.unmatched_selected_lines == ()
+    assert result.excluded_by_length == 0
+
+
+def test_export_review_still_counts_a_trimmed_row_dropped_by_length(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result = _flagged_trim_review(tmp_path, monkeypatch, exported=True, final_exchange_tokens=1)
+
+    assert result.trimmed_target_lines == ()
+    assert result.excluded_by_length == 1
+
+
+def test_export_review_still_counts_a_trimmed_row_missing_from_the_export(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result = _flagged_trim_review(tmp_path, monkeypatch, exported=False, final_exchange_tokens=1024)
+
+    assert result.trimmed_target_lines == ()
+    assert result.unmatched_selected_lines == (1,)
 
 
 def test_export_review_rejects_a_changed_training_file(tmp_path: Path) -> None:
