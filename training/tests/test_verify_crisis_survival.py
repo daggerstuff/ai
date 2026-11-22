@@ -10,8 +10,9 @@ from typing import Any
 
 import pytest
 
+from training import verify_crisis_survival as survival
 from training.build_agent_tool_sft_v12 import collect_rows as v12_rows
-from training.export_tinker_release import CRISIS_SOURCE_PREFIX, Datum
+from training.export_tinker_release import CRISIS_SOURCE_PREFIX, Datum, TokenLimits
 from training.verify_crisis_survival import audit, crisis_row_numbers
 
 
@@ -108,6 +109,63 @@ def test_audit_reports_rows_dropped_by_the_token_budget(tmp_path: Path) -> None:
     assert report["result"] == "fail"
     assert report["dropped_rows"] == [1]
     assert report["crisis_datums_expected"] == 0
+
+
+def _stub_trim(trimmed: bool) -> Any:
+    def trim(_tokenizer: Any, messages: list[dict[str, Any]], _max_tokens: int, **_: Any) -> tuple[Any, ...]:
+        return messages, list(range(20)), [0, 1] + [1] * 18, trimmed
+
+    return trim
+
+
+@pytest.mark.parametrize("trimmed", [True, False])
+def test_default_tokenize_applies_the_final_exchange_budget_only_after_trimming(
+    monkeypatch: pytest.MonkeyPatch, trimmed: bool
+) -> None:
+    monkeypatch.setattr(survival, "trim_to_budget", _stub_trim(trimmed))
+    row = {"messages": [{"role": "user", "content": "a"}, {"role": "assistant", "content": "b"}]}
+
+    kept = survival.default_tokenize(
+        None,
+        row,
+        TokenLimits(max_tokens=10, final_exchange_tokens=1000),
+        end_token="<|im_end|>",
+        template_kwargs={},
+    )
+
+    assert (kept is not None) is trimmed
+
+
+@pytest.mark.parametrize(("stored", "expected"), [(None, 512), (777, 777)])
+def test_audit_reads_the_final_exchange_budget_from_the_receipt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, stored: int | None, expected: int
+) -> None:
+    paths = _fixture(tmp_path)
+    receipt = json.loads(paths["receipt"].read_text())
+    if stored is None:
+        receipt.pop("max_final_exchange_tokens", None)
+    else:
+        receipt["max_final_exchange_tokens"] = stored
+    paths["receipt"].write_text(json.dumps(receipt), encoding="utf-8")
+    seen: dict[str, Any] = {}
+    monkeypatch.setattr(survival.AutoTokenizer, "from_pretrained", lambda *_args, **_kwargs: None)
+
+    def fake_tokenize(_tokenizer: Any, _row: Mapping[str, Any], limits: Any, **kwargs: Any) -> Datum:
+        seen.update(kwargs)
+        seen["limits"] = limits
+        return _datum()
+
+    monkeypatch.setattr(survival, "default_tokenize", fake_tokenize)
+
+    report = audit(
+        train_path=paths["train"],
+        export_path=paths["export"],
+        receipt_path=paths["receipt"],
+        manifest_path=paths["manifest"],
+    )
+
+    assert report["result"] == "pass"
+    assert seen["limits"].final_exchange_tokens == expected
 
 
 def test_audit_rejects_an_export_that_does_not_match_its_receipt(tmp_path: Path) -> None:

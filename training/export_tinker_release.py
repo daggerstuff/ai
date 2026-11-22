@@ -233,6 +233,27 @@ def build_tokens(
 MIN_FINAL_EXCHANGE_MESSAGES = 2
 
 
+@dataclass(frozen=True)
+class TokenLimits:
+    """The two token budgets a row is checked against."""
+
+    max_tokens: int
+    final_exchange_tokens: int
+
+    def budget(self, *, trimmed: bool, message_count: int) -> int:
+        """Return the budget for a row after left-trimming.
+
+        The final-exchange budget is the window a trimmed row is reduced to, so
+        it applies only when trimming actually produced that exchange. A row
+        that arrived with two messages keeps the full budget, otherwise a long
+        single-exchange row is dropped for exceeding a window it never
+        exceeded.
+        """
+        if trimmed and message_count == MIN_FINAL_EXCHANGE_MESSAGES:
+            return self.final_exchange_tokens
+        return self.max_tokens
+
+
 def trim_to_budget(
     tokenizer: Any,
     messages: list[dict[str, Any]],
@@ -331,7 +352,7 @@ def select_for_export(
     graded rows train every time instead of a different subset each release.
     """
     if options is None:
-        options = SelectionOptions()
+        options = SelectionOptions.full_corpus()
     if options.keep_replies is None:
         options = replace(options, keep_replies=crisis_reply_surface(manifest))
     selections, counts = select_rows(train_path, options)
@@ -394,8 +415,8 @@ def tokenize_selections(
         if len(ids) < MIN_DATUM_TOKENS or not any(targets):
             skipped_empty += 1
             continue
-        budget = final_exchange_tokens if len(messages) == MIN_FINAL_EXCHANGE_MESSAGES else max_tokens
-        if len(ids) > budget:
+        limits = TokenLimits(max_tokens=max_tokens, final_exchange_tokens=final_exchange_tokens)
+        if len(ids) > limits.budget(trimmed=trimmed, message_count=len(messages)):
             skipped_too_long += 1
             continue
         rows.append(Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets))
@@ -486,7 +507,7 @@ def export(
     if not train_path.is_absolute():
         train_path = ROOT / train_path
 
-    resolved = options if options is not None else SelectionOptions()
+    resolved = options if options is not None else SelectionOptions.full_corpus()
     selections, counts, source_train_sha256 = _verified_selection(manifest, train_path, resolved, limit)
     result = Export(counts=counts, source_rows=len(selections))
 
@@ -563,17 +584,23 @@ def selection_options(
     selection: str,
     *,
     seed: int,
-    chat_sample: int,
-    routing_cap: int,
+    chat_sample: int | None,
+    routing_cap: int | None,
     include_tool_rows: bool,
 ) -> SelectionOptions:
-    """Return the row selection the export runs with."""
+    """Return the row selection the export runs with.
+
+    A cap is only meaningful for the narrow sample, so passing one with the
+    full partition is an error rather than a silently ignored argument.
+    """
     if selection == "full":
+        if chat_sample is not None or routing_cap is not None:
+            raise ValueError("chat_sample and routing_cap require the narrow selection")
         return SelectionOptions.full_corpus(seed=seed, include_tool_rows=include_tool_rows)
     return SelectionOptions(
         seed=seed,
-        chat_sample=chat_sample,
-        routing_cap=routing_cap,
+        chat_sample=SelectionOptions.chat_sample if chat_sample is None else chat_sample,
+        routing_cap=SelectionOptions.routing_cap if routing_cap is None else routing_cap,
         include_tool_rows=include_tool_rows,
     )
 
@@ -613,8 +640,18 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="tokenize only the first N selected rows (smoke exports)",
     )
     parser.add_argument("--seed", type=int, default=SelectionOptions.seed)
-    parser.add_argument("--chat-sample", type=int, default=SelectionOptions.chat_sample)
-    parser.add_argument("--routing-cap", type=int, default=SelectionOptions.routing_cap)
+    parser.add_argument(
+        "--chat-sample",
+        type=int,
+        default=None,
+        help="cap the filler sample (narrow selection only)",
+    )
+    parser.add_argument(
+        "--routing-cap",
+        type=int,
+        default=None,
+        help="cap the routing pool (narrow selection only)",
+    )
     parser.add_argument(
         "--selection",
         choices=("full", "narrow"),
@@ -627,6 +664,8 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     template_kwargs = json.loads(args.template_kwargs)
     if not isinstance(template_kwargs, dict):
         parser.error("--template-kwargs must be a JSON object")
+    if args.selection == "full" and (args.chat_sample is not None or args.routing_cap is not None):
+        parser.error("--chat-sample and --routing-cap require --selection narrow")
     args.template_kwargs = template_kwargs
     return args
 

@@ -21,8 +21,8 @@ from transformers import AutoTokenizer
 
 from training.export_tinker_release import (
     MIN_DATUM_TOKENS,
-    MIN_FINAL_EXCHANGE_MESSAGES,
     Datum,
+    TokenLimits,
     trim_to_budget,
 )
 from training.strict_crisis_gate import ESCALATION_TERMS
@@ -134,7 +134,7 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
             messages = [message.model_dump() for message in conversation.messages]
             if messages[0]["role"] == "assistant":
                 messages = messages[1:]
-            messages, ids, weights, _trimmed = trim_to_budget(
+            messages, ids, weights, trimmed = trim_to_budget(
                 tokenizer,
                 messages,
                 dataset.max_tokens,
@@ -145,13 +145,11 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
             if len(ids) < MIN_DATUM_TOKENS or not any(targets):
                 unmatched.append(line_number)
                 continue
-            final_budget = dataset.max_final_exchange_tokens
-            budget = (
-                final_budget
-                if final_budget is not None and len(messages) == MIN_FINAL_EXCHANGE_MESSAGES
-                else dataset.max_tokens
+            limits = TokenLimits(
+                max_tokens=dataset.max_tokens,
+                final_exchange_tokens=dataset.max_final_exchange_tokens or dataset.max_tokens,
             )
-            if len(ids) > budget:
+            if len(ids) > limits.budget(trimmed=trimmed, message_count=len(messages)):
                 excluded += 1
                 continue
             datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets)

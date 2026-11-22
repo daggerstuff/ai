@@ -265,14 +265,35 @@ def test_export_still_drops_a_row_that_cannot_fit_after_truncation(tmp_path: Pat
 
 
 def test_export_keeps_a_final_exchange_that_exceeds_the_history_budget(tmp_path: Path) -> None:
-    manifest_path = write_manifest(
-        tmp_path,
-        [{"messages": messages(("user", " ".join(["detail"] * 40)), ("assistant", ASSISTANT_REPLY))}],
-    )
+    history = [
+        {"role": "user", "content": "older prompt " + "x " * 40},
+        {"role": "assistant", "content": "older reply " + "y " * 40},
+    ]
+    final = messages(("user", " ".join(["detail"] * 40)), ("assistant", ASSISTANT_REPLY))
+    manifest_path = write_manifest(tmp_path, [{"messages": history + final}])
 
     result = tinker.export(manifest_path, tmp_path / "out", tokenizer=StubTokenizer(), max_tokens=10)
 
     assert result.counts["datums"] == 1
+    assert result.counts["datums_left_truncated"] == 1
+    assert result.counts["datums_skipped_too_long"] == 0
+
+
+def test_export_keeps_an_untrimmed_two_message_row_past_the_final_exchange_budget(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", CLIENT_PROMPT), ("assistant", ASSISTANT_REPLY))}]
+    )
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=100,
+        final_exchange_tokens=3,
+    )
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_left_truncated"] == 0
     assert result.counts["datums_skipped_too_long"] == 0
 
 
@@ -348,7 +369,7 @@ def test_export_receipt_binds_observed_train_and_manifest(tmp_path: Path) -> Non
     record = json.loads((out / "tinker-dataset.json").read_bytes())
     assert record["source_train_sha256"] == hashlib.sha256((tmp_path / "train.jsonl").read_bytes()).hexdigest()
     assert record["source_manifest_sha256"] == hashlib.sha256(manifest_path.read_bytes()).hexdigest()
-    assert record["selection_mode"] == "narrow"
+    assert record["selection_mode"] == "full_corpus"
 
 
 def test_export_receipt_records_the_full_corpus_selection(tmp_path: Path) -> None:
@@ -561,16 +582,41 @@ def test_crisis_reply_surface_fails_loudly_on_a_missing_builder(monkeypatch: Any
 
 
 def test_full_selection_keeps_the_whole_partition() -> None:
-    options = tinker.selection_options("full", seed=1, chat_sample=10, routing_cap=5, include_tool_rows=False)
+    options = tinker.selection_options("full", seed=1, chat_sample=None, routing_cap=None, include_tool_rows=False)
     assert options.chat_sample is None
     assert options.routing_cap is None
     assert options.max_chars is None
     assert options.sample_max_chars is None
 
 
+def test_full_selection_rejects_explicit_caps() -> None:
+    with pytest.raises(ValueError, match="narrow"):
+        tinker.selection_options("full", seed=1, chat_sample=10, routing_cap=None, include_tool_rows=False)
+    with pytest.raises(ValueError, match="narrow"):
+        tinker.selection_options("full", seed=1, chat_sample=None, routing_cap=5, include_tool_rows=False)
+
+
 def test_narrow_selection_keeps_the_probe_caps() -> None:
     options = tinker.selection_options("narrow", seed=1, chat_sample=10, routing_cap=5, include_tool_rows=False)
     assert (options.chat_sample, options.routing_cap) == (10, 5)
+
+
+def test_narrow_selection_defaults_to_the_probe_caps() -> None:
+    options = tinker.selection_options("narrow", seed=1, chat_sample=None, routing_cap=None, include_tool_rows=False)
+    assert (options.chat_sample, options.routing_cap) == (
+        SelectionOptions.chat_sample,
+        SelectionOptions.routing_cap,
+    )
+
+
+def test_export_parser_rejects_caps_with_the_full_selection() -> None:
+    with pytest.raises(SystemExit):
+        tinker._parse_args(["--chat-sample", "0"])
+    with pytest.raises(SystemExit):
+        tinker._parse_args(["--routing-cap", "1"])
+
+    args = tinker._parse_args(["--selection", "narrow", "--chat-sample", "0", "--routing-cap", "1"])
+    assert (args.chat_sample, args.routing_cap) == (0, 1)
 
 
 def test_export_parser_defaults_to_the_full_partition() -> None:
