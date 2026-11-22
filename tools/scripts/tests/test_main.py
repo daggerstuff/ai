@@ -193,9 +193,9 @@ max_retries: 5
 
             assert result.exit_code == 0
             assert "Pipeline management commands" in result.output
-            assert "launch" in result.output
-            assert "session" in result.output
-            assert "upload" in result.output
+            assert "start" in result.output
+            assert "stop" in result.output
+            assert "status" in result.output
             assert "monitor" in result.output
 
     def test_config_commands(self):

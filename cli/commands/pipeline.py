@@ -775,10 +775,25 @@ def _save_pipeline_info(pipeline_id: str, _pipeline_info: dict[str, Any]) -> Non
     logger.info(f"Saved pipeline info for {pipeline_id}")
 
 @pipeline_group.command()
-@click.option("--pipeline-id", "-p", help="Pipeline execution to inspect")
+@click.option("--pipeline-id", "--id", "-p", help="Pipeline execution to inspect")
+@click.option("--profile", help="Configuration profile to use")
 @click.pass_context
-def status(_ctx, pipeline_id: str | None):
+def status(_ctx, pipeline_id: str | None, profile: str | None):
     """Show the status of pipeline executions."""
-    config_obj = get_config()
+    config_obj = get_config(profile)
     manager = PipelineManager(config_obj, AuthManager(config_obj))
-    click.echo(manager.get_status(pipeline_id))
+
+    if not pipeline_id:
+        click.echo(manager.get_status())
+        return
+
+    pipeline = manager.get_pipeline(pipeline_id)
+    if not pipeline:
+        click.echo(f"❌ Pipeline {pipeline_id} not found", err=True)
+        raise click.Abort()
+
+    click.echo(f"📊 Pipeline: {pipeline.get('id', pipeline_id)}")
+    click.echo(f"   Status: {pipeline.get('status', 'unknown')}")
+    progress = pipeline.get("progress")
+    if progress is not None:
+        click.echo(f"   Progress: {progress}%")

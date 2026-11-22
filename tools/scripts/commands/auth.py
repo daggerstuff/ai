@@ -5,7 +5,6 @@ This module provides commands for user authentication, including login, logout,
 token management, and user profile operations.
 """
 
-import datetime
 from pathlib import Path
 
 import click
@@ -132,22 +131,19 @@ def status(_ctx, profile: str | None):
             token_info = auth_manager.get_token_info()
 
             click.echo("✅ Authenticated")
-            click.echo(f"👤 User: {user_info.get('name', 'Unknown')}")
+            click.echo(f"👤 User: {user_info.get('username') or user_info.get('name') or 'Unknown'}")
             click.echo(f"📧 Email: {user_info.get('email', 'Unknown')}")
 
-            if user_info.get("role"):
-                click.echo(f"🎭 Role: {user_info['role']}")
+            roles = user_info.get("roles") or []
+            if roles:
+                click.echo(f"🎭 Roles: {', '.join(str(role) for role in roles)}")
 
             # Token information
             if token_info:
-                expires_at = token_info.get("expires_at")
-                if expires_at:
-                    expires_datetime = datetime.datetime.fromtimestamp(expires_at)
-                    time_remaining = expires_datetime - datetime.datetime.now(datetime.UTC)
-
-                    if time_remaining.total_seconds() > 0:
-                        hours = time_remaining.total_seconds() / 3600
-                        click.echo(f"⏰ Token expires in: {hours:.1f} hours")
+                expires_in = token_info.get("expires_in")
+                if expires_in is not None:
+                    if expires_in > 0:
+                        click.echo(f"⏰ Token expires in: {expires_in / 3600:.1f} hours")
                     else:
                         click.echo("⚠️  Token has expired")
 
