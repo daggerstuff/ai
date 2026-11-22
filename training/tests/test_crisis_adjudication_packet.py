@@ -13,6 +13,12 @@ EXPECTED_ITEMS = 4
 EXPECTED_PROBES = 2
 EXPECTED_PERFECT_SCORE = 2.0
 MEETS = 2
+REPLY_TOKENS = {
+    ("case-a", "base"): "reply-token-alpha",
+    ("case-a", "sft"): "reply-token-beta",
+    ("case-b", "base"): "reply-token-gamma",
+    ("case-b", "sft"): "reply-token-delta",
+}
 
 
 def _write(path: Path, rows: list[dict]) -> Path:
@@ -39,20 +45,33 @@ def _cases(tmp_path: Path) -> Path:
 
 
 def _results(tmp_path: Path) -> Path:
-    rows = []
-    for case_id in ("case-a", "case-b"):
-        for arm in ("base", "sft"):
-            rows.append(
-                {
-                    "case_id": case_id,
-                    "arm_id": arm,
-                    "status": "success",
-                    "passed": True,
-                    "failed_checks": [],
-                    "response": f"A fixed reply body number {abs(hash((case_id, arm))) % 1000}.",
-                }
-            )
+    rows = [
+        {
+            "case_id": case_id,
+            "arm_id": arm,
+            "status": "success",
+            "passed": True,
+            "failed_checks": [],
+            "response": REPLY_TOKENS[(case_id, arm)],
+        }
+        for case_id in ("case-a", "case-b")
+        for arm in ("base", "sft")
+    ]
     return _write(tmp_path / "results.jsonl", rows)
+
+
+def _packet_items(packet: str) -> dict[int, dict[str, str]]:
+    """Return each case's item letter to the response shown for it in packet.md."""
+    items: dict[int, dict[str, str]] = {}
+    for block in packet.split("## Case ")[1:]:
+        lines = block.splitlines()
+        number = int(lines[0])
+        items[number] = {
+            lines[index].rsplit(" ", 1)[1]: lines[index + 2].strip()
+            for index, line in enumerate(lines)
+            if line.startswith("### Item ")
+        }
+    return items
 
 
 def test_build_anonymizes_and_roundtrips(tmp_path: Path) -> None:
@@ -70,6 +89,12 @@ def test_build_anonymizes_and_roundtrips(tmp_path: Path) -> None:
     sheet = json.loads((out / "response-sheet.json").read_text())
     assert len(sheet["entries"]) == EXPECTED_ITEMS
     assert all(set(e["scores"]) == set(cap.DIMENSIONS) for e in sheet["entries"])
+    for number, shown in _packet_items(packet).items():
+        source = key["source_case_ids"][str(number)]
+        assert set(shown) == {"A", "B"}
+        assert len(set(shown.values())) == len(shown)
+        for letter, response in shown.items():
+            assert response == REPLY_TOKENS[(source, key["mapping"][str(number)][letter])]
 
 
 def test_build_is_deterministic_per_seed(tmp_path: Path) -> None:
@@ -223,6 +248,14 @@ def test_summarize_rejects_unknown_dimensions_and_extra_entries(tmp_path: Path) 
     sheet_path.write_text(json.dumps(sheet))
     with pytest.raises(SystemExit, match="outside the key"):
         cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")
+
+
+def test_summarize_creates_a_missing_output_directory(tmp_path: Path) -> None:
+    sheet_path, key_path, _ = _completed(tmp_path)
+    out = tmp_path / "reports" / "nested" / "summary.json"
+    report = cap.summarize(sheet_path, key_path, out)
+    assert out.exists()
+    assert report["cases"] == EXPECTED_PROBES
 
 
 def test_summarize_rejects_boolean_and_float_scores(tmp_path: Path) -> None:
