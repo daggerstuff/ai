@@ -23,7 +23,7 @@ import pytest
 import training.build_agent_tool_sft_v21 as v21
 import training.build_agent_tool_sft_v22 as v22
 import training.build_agent_tool_sft_v23 as v23
-from ai.qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
+from qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
 
 MESSAGES_PER_ROW = 2
 EXPECTED_ACTIONS_PER_CATEGORY = 8

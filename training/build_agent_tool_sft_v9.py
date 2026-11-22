@@ -43,7 +43,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_agent_tool_sft as base
 import build_agent_tool_sft_v5 as v5
 
-from ai.qa.validation.therapy_bench.generate_crisis_capability_v1 import (
+from qa.validation.therapy_bench.generate_crisis_capability_v1 import (
     DISMISSAL,
     HOTLINE_TERMS,
 )
