@@ -11,14 +11,19 @@ import sqlite3
 import statistics
 import threading
 from collections import Counter, defaultdict
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from collections.abc import Mapping
 from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
+# Quality-score bucket boundaries for the distribution report.
+QUALITY_EXCELLENT_THRESHOLD = 0.9
+QUALITY_GOOD_THRESHOLD = 0.7
+QUALITY_FAIR_THRESHOLD = 0.5
 
 
 @dataclass
@@ -45,7 +50,7 @@ class AggregatedResult:
 class ResultAggregator:
     """Aggregates quality validation results"""
 
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: str | None = None):
         self.db_path = db_path or "quality_results.db"
         self.results_cache: dict[str, list[dict[str, Any]]] = defaultdict(list)
         self.lock = threading.Lock()
@@ -268,11 +273,11 @@ class ResultAggregator:
 
         for result in results:
             score = result.get("quality_score", 0.0)
-            if score >= 0.9:
+            if score >= QUALITY_EXCELLENT_THRESHOLD:
                 distribution["excellent"] += 1
-            elif score >= 0.7:
+            elif score >= QUALITY_GOOD_THRESHOLD:
                 distribution["good"] += 1
-            elif score >= 0.5:
+            elif score >= QUALITY_FAIR_THRESHOLD:
                 distribution["fair"] += 1
             else:
                 distribution["poor"] += 1
@@ -480,7 +485,7 @@ class ResultAggregator:
             logger.error(f"Failed to get all batches: {e}")
             return []
 
-    def generate_report(self, batch_id: str, output_file: str = None) -> str:
+    def generate_report(self, batch_id: str, output_file: str | None = None) -> str:
         """Generate a detailed report for a batch"""
         aggregated = self.get_batch_summary(batch_id)
 
