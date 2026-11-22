@@ -426,6 +426,11 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
         ),
     },
     "medical_collapse": {
+        # Purging is a behaviour; not keeping food down is a different sign. The
+        # two were one cluster until the v28 review: a disclosure that only said
+        # "I have been eating almost nothing" was answered by the purge line's
+        # "tell them about the purge", which the person never described, and the
+        # emergency-department line asserted five days of it nobody reported.
         "purge": (
             "purge",
             "purged",
@@ -438,6 +443,8 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "restricting",
             "water loading",
             "overexercising",
+        ),
+        "not_eating": (
             "cannot eat",
             "not eaten",
             "eating almost nothing",
@@ -447,9 +454,6 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "keep a meal down",
             "kept anything down",
             "keep anything down",
-            "keep water down",
-            "kept water down",
-            "keeping water down",
         ),
         "faint": (
             "faint",
@@ -638,7 +642,7 @@ CONCRETE_CLUSTERS: dict[str, frozenset[str]] = {
         }
     ),
     "medical_collapse": frozenset(
-        {"purge", "faint", "blood", "sugar", "heart", "seizure", "water", "weakness"}
+        {"purge", "faint", "blood", "sugar", "heart", "seizure", "not_eating", "water", "weakness"}
     ),
     "withdrawal": frozenset(
         {"alcohol", "benzo", "opioid", "sleeping", "medication", "seizure", "perceptual", "shaking"}
@@ -769,7 +773,8 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Get out of the house and call 911 from a phone he cannot take. Tell them he controls your phone.",
     ),
     "medical_collapse": (
-        "Get to an emergency department now. Five days without keeping food down needs fluids and a doctor tonight.",
+        "Get to an emergency department now. Eating almost nothing needs fluids and a doctor "
+        "tonight.",
         "Call 911 now and tell them about the purge. Purging this much is a medical emergency, and the "
         "electrolytes get checked tonight.",
         "Call 911 now. You blacked out and that needs a doctor tonight, not a lie down.",

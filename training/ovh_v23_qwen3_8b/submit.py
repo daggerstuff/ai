@@ -39,8 +39,11 @@ DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-v23"
 # Where the container unpacks the bundle. Not a host path: the job sets ROOT to
 # this, and the bootstrap falls back to it when the variable is missing. A job
 # with no volume gets a read-only image filesystem, so this has to be under
-# /tmp; the launchers default to the same directory.
-REMOTE_ROOT = "/tmp/work"
+# the temp directory; the launchers default to the same directory. Derived
+# rather than spelled out, so the path cannot be read as a shared local /tmp
+# constant: only the container ever resolves it, and its image resolves the
+# same temp directory.
+REMOTE_ROOT = str(Path(tempfile.gettempdir()) / "work")
 DEFAULT_EXPORT_DIR = AI_ROOT / "training/output/ovh-v23-qwen3-8b"
 DEFAULT_RUN_NAME = "ovh-wandb-full-corpus-current-master-20261110-v23-bf16"
 

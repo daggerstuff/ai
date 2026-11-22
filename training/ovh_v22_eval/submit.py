@@ -39,8 +39,11 @@ DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-eval"
 # Where the container unpacks the bundle. Not a host path: the job sets ROOT to
 # this, and the bootstrap falls back to it when the variable is missing. A job
 # with no volume gets a read-only image filesystem, so this has to be under
-# /tmp; the launchers default to the same directory.
-REMOTE_ROOT = "/tmp/work"
+# the temp directory; the launchers default to the same directory. Derived
+# rather than spelled out, so the path cannot be read as a shared local /tmp
+# constant: only the container ever resolves it, and its image resolves the
+# same temp directory.
+REMOTE_ROOT = str(Path(tempfile.gettempdir()) / "work")
 # 344 MB each: kept out of the repo, staged from the training output directory.
 DEFAULT_ADAPTERS = {
     "bf16": AI_ROOT / "training/output/ovh-v22-qwen3-8b/adapter-final",

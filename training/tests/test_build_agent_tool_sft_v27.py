@@ -184,7 +184,7 @@ def test_the_assault_clusters_name_the_mechanism_of_injury() -> None:
 
 
 def test_the_medical_collapse_clusters_separate_the_causes() -> None:
-    for cluster in ("purge", "faint", "blood", "sugar", "heart", "water", "weakness"):
+    for cluster in ("purge", "not_eating", "faint", "blood", "sugar", "heart", "seizure", "water", "weakness"):
         assert cluster in v27.ANCHOR_GROUPS["medical_collapse"]
 
 

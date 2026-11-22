@@ -210,20 +210,10 @@ def test_the_family_is_built_by_the_v28_builder() -> None:
     assert v28.ABSTRACT_DISCLOSURE_CAP == v27.ABSTRACT_DISCLOSURE_CAP
 
 
-def test_every_surface_is_v27s_except_the_ones_v28_rewrote() -> None:
-    """v28 closes three defects; it must not reshape a surface it did not have to.
-
-    The divergence from v27 is exactly three categories, pinned below:
-
-    * passive_ideation: the one action v28 rewrites (anchored first-person).
-    * psychosis_risk_other: v28's anchor table has no bare "pet" anchor, so its
-      surface answers with "your dog"; v27 carries the "pet" phrasing.
-    * medical_collapse: v28 ships the strings v29's anchor-first rewrites key
-      on. v27 cannot carry them: its "A seizure needs a doctor tonight" is the
-      cluster-pure surface its grounding rule requires.
-    """
+def test_every_surface_is_v27s_except_the_one_action_v28_rewrites() -> None:
+    """v28 closes three defects; it must not reshape a surface it did not have to."""
     changed = {category for category in v28.ACTIONS if v28.ACTIONS[category] != v27.ACTIONS[category]}
-    assert changed == {"passive_ideation", "psychosis_risk_other", "medical_collapse"}
+    assert changed == {"passive_ideation"}
     for category, expected in {**CLUSTERED_SURFACES, **INHERITED_SURFACES}.items():
         assert len(v28.ACTIONS[category]) == expected, category
     differing = [
@@ -236,29 +226,6 @@ def test_every_surface_is_v27s_except_the_ones_v28_rewrote() -> None:
     assert "not be here" in before
     assert "not be here" not in after
     assert "not exist" in after
-
-    psychosis = [
-        (before, after)
-        for before, after in zip(v27.ACTIONS["psychosis_risk_other"], v28.ACTIONS["psychosis_risk_other"], strict=True)
-        if before != after
-    ]
-    assert len(psychosis) == 1
-    assert "your pet" in psychosis[0][0]
-    assert "your dog" in psychosis[0][1]
-
-    medical = [
-        (before, after)
-        for before, after in zip(v27.ACTIONS["medical_collapse"], v28.ACTIONS["medical_collapse"], strict=True)
-        if before != after
-    ]
-    assert [before for before, _ in medical] == [
-        "Get to an emergency department now. Five days without keeping food down needs fluids and a doctor tonight.",
-        "Call 911 now. A seizure needs a doctor tonight, not a wait at home.",
-    ]
-    assert medical[0][1] == (
-        "Get to an emergency department now. Eating almost nothing needs fluids and a doctor tonight."
-    )
-    assert medical[1][1] == "Call 911 now. A seizure from purging or not eating needs a doctor tonight."
 
 
 def test_every_grounded_row_is_answered_by_its_own_categorys_actions() -> None:

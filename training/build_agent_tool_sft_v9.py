@@ -39,6 +39,12 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+# The rubric lives in the repository root's qa package, one level above this
+# directory. Under pytest the root is already importable; direct execution
+# (`python training/build_agent_tool_sft_v9.py`) needs it on sys.path too, or
+# the builder dies at import before argument parsing. Builders that import v9
+# inherit the same insert and fail the same way without it.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import build_agent_tool_sft as base
 import build_agent_tool_sft_v5 as v5

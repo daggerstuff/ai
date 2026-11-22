@@ -326,7 +326,7 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "my child",
             "the baby",
         ),
-        "pet": ("dog", "cat", "the dog", "the cat", "puppy", "kitten"),
+        "pet": ("pet", "pets", "dog", "cat", "the dog", "the cat", "puppy", "kitten"),
         "public": (
             "stranger",
             "strangers",
@@ -406,6 +406,10 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
         ),
     },
     "medical_collapse": {
+        # Purging is a behaviour; not keeping food down is a different sign. The
+        # two were one cluster until this review: a disclosure that only said "I
+        # have been eating almost nothing" was answered by the purge line's
+        # "tell them about the purge", which the person never described.
         "purge": (
             "purge",
             "purged",
@@ -418,6 +422,8 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "restricting",
             "water loading",
             "overexercising",
+        ),
+        "not_eating": (
             "cannot eat",
             "not eaten",
             "eating almost nothing",
@@ -427,9 +433,6 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "keep a meal down",
             "kept anything down",
             "keep anything down",
-            "keep water down",
-            "kept water down",
-            "keeping water down",
         ),
         "faint": (
             "faint",
@@ -617,7 +620,9 @@ CONCRETE_CLUSTERS: dict[str, frozenset[str]] = {
             "control",
         }
     ),
-    "medical_collapse": frozenset({"purge", "faint", "blood", "sugar", "heart", "water", "weakness"}),
+    "medical_collapse": frozenset(
+        {"purge", "faint", "blood", "sugar", "heart", "seizure", "not_eating", "water", "weakness"}
+    ),
     "withdrawal": frozenset(
         {"alcohol", "benzo", "opioid", "sleeping", "medication", "seizure", "perceptual", "shaking"}
     ),
@@ -704,7 +709,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
     "psychosis_risk_other": (
         "Call 911 now and say you are hearing voices telling you to hurt someone. They need to come to you tonight.",
         "Call 911 now and tell them what the voice keeps saying. Stay where someone can see you until they arrive.",
-        "Call 911 now and tell them the voice has picked your dog. Keep the dog away from you until they arrive.",
+        "Call 911 now and tell them the voice has picked your pet. Keep the pet away from you until they arrive.",
         "Call 911 now and say out loud that you are afraid you will hurt someone tonight. They will come to you.",
         "Get out of the building and call 911 from somewhere the person you named cannot reach you. A "
         "voice telling you to hurt him is the risk tonight.",
@@ -758,7 +763,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Call 911 now. A blood sugar that low needs treating tonight, and you should not be alone while it is.",
         "Call 911 now. A heart that flutters and will not hold you up needs a doctor tonight.",
         "Get to an emergency department now. Not keeping water down for days needs fluids tonight, not another glass.",
-        "Call 911 now. A seizure from purging or not eating needs a doctor tonight.",
+        "Call 911 now. A seizure needs a doctor tonight, not a wait at home.",
         "Get to an emergency department now. Days with nothing to drink and confusion about the day "
         "means this has gone past what you can manage at home.",
         "Get to an emergency department now. Legs that give way and hands you cannot feel mean this has "

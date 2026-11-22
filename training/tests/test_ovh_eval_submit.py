@@ -13,6 +13,7 @@ import hashlib
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -49,7 +50,7 @@ def test_job_env_round_trips_the_signed_map() -> None:
     decoded = r2_sync.decode_map(env["R2_MAP_B64"])
 
     assert decoded == plan
-    assert env["ROOT"] == "/tmp/work"
+    assert env["ROOT"] == str(Path(tempfile.gettempdir()) / "work")
     assert env["EVAL_FLAVOR"] == "l4"
 
 

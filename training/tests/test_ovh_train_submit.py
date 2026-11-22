@@ -8,6 +8,9 @@ recipe) and an empty value (ovhai rejects the whole job spec).
 
 from __future__ import annotations
 
+import tempfile
+from pathlib import Path
+
 import pytest
 
 from training.launch import r2_sync
@@ -26,7 +29,7 @@ def test_the_env_carries_the_run_name_and_the_flavor() -> None:
 
     assert env["RUN_NAME"] == "run-name"
     assert env["TRAIN_FLAVOR"] == "l4-1-gpu"
-    assert env["ROOT"] == "/tmp/work"
+    assert env["ROOT"] == str(Path(tempfile.gettempdir()) / "work")
 
 
 def test_the_env_round_trips_the_signed_map() -> None:
