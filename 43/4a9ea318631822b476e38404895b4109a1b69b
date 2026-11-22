@@ -1,0 +1,14 @@
+training/tests/test_build_v28_release.py
+  h_07d84030f79d30 213-224,226,240-262
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "434a9ea318631822b476e38404895b4109a1b69b",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
