@@ -1,0 +1,142 @@
+monitoring/quality_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_9ab7653ce6cd9d 1-90,92-96,104-114,117-130,132-180,182-188,190-191,193-239,241-346,348-366,368-370
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 91,240,347
+  s_7d4811cf1b0ba7::t_b5b12cf90f5901 97-103,115-116
+  s_7d4811cf1b0ba7::t_abb85c6514f29d 181,189,192
+  s_7d4811cf1b0ba7::t_4c06d829f74744 131,367
+qa/reports/model_adapters.py
+  s_7d4811cf1b0ba7::t_5b1c807b8f48e9 1-50,52-133,135-150
+  s_7d4811cf1b0ba7::t_457d12a4aba422 134
+  s_7d4811cf1b0ba7::t_00eacbcc0a2a5b 51
+monitoring/quality_distribution_analysis_test_report.json
+  s_7d4811cf1b0ba7::t_6d8425f3293e90 4,27-32
+  s_7d4811cf1b0ba7::t_80db90cb887bf6 1-3,5-26,33-41
+monitoring/alert_fatigue_prevention.py
+  s_7d4811cf1b0ba7::t_c950d3287307b3 1-756
+monitoring/linear_backlog_dispatcher.py
+  s_7d4811cf1b0ba7::t_c950d3287307b3 1-386
+monitoring/performance_gap_backlog_converter.py
+  s_7d4811cf1b0ba7::t_c950d3287307b3 1-408
+monitoring/quality_metrics_store.py
+  s_7d4811cf1b0ba7::t_e5e02d233869b2 85-86,92-93
+  s_7d4811cf1b0ba7::t_b9310700ffd1d6 1-84,87-91,94-119
+monitoring/quality_improvement_reporter.py
+  s_7d4811cf1b0ba7::t_c8b48d75995dc2 32-46
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 113
+  s_7d4811cf1b0ba7::t_29391cffa11d73 1-31,47-112,114-225
+monitoring/quality_trend_analysis_simple_test_report.json
+  s_7d4811cf1b0ba7::t_6d8425f3293e90 4
+  s_7d4811cf1b0ba7::t_ee16eb2851c0f8 1-3,5-19
+monitoring/quality_comparison_reporter.py
+  s_7d4811cf1b0ba7::t_d9ab3734f67336 68
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 234
+  s_7d4811cf1b0ba7::t_1b17391921002f 1-41,43-67,69-100,102-107,109,139-233,235,243-307
+  s_7d4811cf1b0ba7::t_bcf94e4ae17b1e 108,110-138
+  s_7d4811cf1b0ba7::t_77e278a575e022 42
+  s_7d4811cf1b0ba7::t_4c06d829f74744 101,236-242
+monitoring/quality_comparison_test_report.json
+  s_7d4811cf1b0ba7::t_6d8425f3293e90 4
+  s_7d4811cf1b0ba7::t_ee16eb2851c0f8 1-3,5-39
+monitoring/quality_distribution_comparator.py
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 61,64,90,140
+  s_7d4811cf1b0ba7::t_dde0e00f4be641 1-60,62-63,65-89,91-135,139,141-168
+  s_7d4811cf1b0ba7::t_4c06d829f74744 136-138
+qa/reports/test_quality_improvement_tracking.py
+  s_7d4811cf1b0ba7::t_3fc86a57045c4b 21
+  s_7d4811cf1b0ba7::t_27d205d24e6ec9 22
+monitoring/__init__.py
+  s_7d4811cf1b0ba7::t_849a78c7be6775 1
+monitoring/feedback_linear_bridge.py
+  s_7d4811cf1b0ba7::t_c950d3287307b3 1-196
+monitoring/quality_distribution_analyzer.py
+  s_7d4811cf1b0ba7::t_6d1bec655feb59 1-66,68-70,89-177,181-183,187-215
+  s_7d4811cf1b0ba7::t_7133171f2b5c62 67,71-72,74-88
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 73,178
+  s_7d4811cf1b0ba7::t_991c699bc9f393 179-180,184-186
+qa/__init__.py
+  s_7d4811cf1b0ba7::t_849a78c7be6775 1
+monitoring/notification_integrations.py
+  s_7d4811cf1b0ba7::t_c950d3287307b3 1-592
+monitoring/test_alert_fatigue.py
+  s_7d4811cf1b0ba7::t_c950d3287307b3 16
+  s_7d4811cf1b0ba7::t_66773e32054bbf 20
+monitoring/intelligent_grouping.py
+  s_7d4811cf1b0ba7::t_66773e32054bbf 1-643
+monitoring/bias_audit.py
+  s_7d4811cf1b0ba7::t_83014801b39f45 196-198,204,211-219
+  s_7d4811cf1b0ba7::t_e65731bb5f6c54 1-28,40-195,199-203,205-210,220-373
+  s_7d4811cf1b0ba7::t_c155a578decfe1 29-39
+monitoring/quality_trend_analyzer.py
+  s_7d4811cf1b0ba7::t_d6f200828d8f2b 1-277
+monitoring/quality_improvement_tracker.py
+  s_7d4811cf1b0ba7::t_4e262b8779fb2d 1-11,13-21,23-83,86-95,97-122,124-191,193-250,257-270,272-282,328-343,345-347,349-357,360-362
+  s_7d4811cf1b0ba7::t_135f5b23c0494a 12
+  s_7d4811cf1b0ba7::t_e9cb8f077d48a0 283-327,344,348,358-359
+  s_7d4811cf1b0ba7::t_c117271f1ae4c5 84-85
+  s_7d4811cf1b0ba7::t_b15e9b12da2538 251-256
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 192,271
+  s_7d4811cf1b0ba7::t_b924bc0bed415a 22
+  s_7d4811cf1b0ba7::t_cae72740f67b38 96
+  s_7d4811cf1b0ba7::t_7db8c610839cff 123
+monitoring/section_5_6_2_integration_test_report.json
+  s_7d4811cf1b0ba7::t_240bd7bace4255 35
+  s_7d4811cf1b0ba7::t_6d8425f3293e90 4
+monitoring/test_notifications.py
+  s_7d4811cf1b0ba7::t_9cb93fb8cc8229 20
+  s_7d4811cf1b0ba7::t_edff92f2a64cda 12
+  s_7d4811cf1b0ba7::t_c950d3287307b3 14
+  s_7d4811cf1b0ba7::t_e4bc434b5b93c3 13,21
+qa/reports/__init__.py
+  s_7d4811cf1b0ba7::t_849a78c7be6775 1
+safety/__init__.py
+  s_7d4811cf1b0ba7::t_849a78c7be6775 1
+monitoring/quality_distribution_reporter.py
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 74-83,124,129,195
+  s_7d4811cf1b0ba7::t_a9c444f3f86587 1-73,84-97,99-123,125-128,130-194,196-244
+  s_7d4811cf1b0ba7::t_4c06d829f74744 98
+monitoring/quality_improvement_tracking_test_report.json
+  s_7d4811cf1b0ba7::t_6d8425f3293e90 4,25
+  s_7d4811cf1b0ba7::t_2e0ecf0c4a3367 1-3,5-24,26-39
+monitoring/interactive_dashboard_system.py
+  s_7d4811cf1b0ba7::t_084b425e323311 1-62,64-82,95,97-237,239-255
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 63,83-94,96,238
+monitoring/linear_backlog_action_builder.py
+  s_7d4811cf1b0ba7::t_c950d3287307b3 1-129
+monitoring/test_notifications_mocked.py
+  s_7d4811cf1b0ba7::t_edff92f2a64cda 13
+  s_7d4811cf1b0ba7::t_9cb93fb8cc8229 21
+  s_7d4811cf1b0ba7::t_66773e32054bbf 25,29,32-33,96,100,103-104,156,198,219
+  s_7d4811cf1b0ba7::t_c950d3287307b3 15
+  s_7d4811cf1b0ba7::t_d2915cc6935396 14,22
+inference/api/main.py
+  s_7d4811cf1b0ba7::t_27cdd6e951713c 13-15
+monitoring/feedback_to_metrics_bridge.py
+  s_7d4811cf1b0ba7::t_5ec22ed1670a2b 1-201
+monitoring/quality_analytics_dashboard_test_report.json
+  s_7d4811cf1b0ba7::t_a2492407f561f1 1-38
+monitoring/quality_trend_reporter.py
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 111,224
+  s_7d4811cf1b0ba7::t_433bad8600d716 1-76,78-109,113-223,225-233
+  s_7d4811cf1b0ba7::t_4c06d829f74744 77,110,112
+monitoring/quality_comparator.py
+  s_7d4811cf1b0ba7::t_08dec2d702709d 1-114,118-122,124-213,215-297
+  s_7d4811cf1b0ba7::t_026ceb803cdcc7 115-117,123,214
+qa/reports/test_section_5_6_2_integration.py
+  s_7d4811cf1b0ba7::t_27d205d24e6ec9 20-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "09aab4f87867b793d12eb0f2237f60c3063dfd93",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
