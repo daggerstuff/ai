@@ -57,14 +57,23 @@ def _validate_overrides(recipe: recipes.Recipe, overrides: dict[str, Any]) -> li
         elif otype == "str":
             if not isinstance(value, str):
                 raise PlanError(f"override '{name}' must be string")
-        elif otype == "bool":
-            if not isinstance(value, bool):
-                raise PlanError(f"override '{name}' must be a boolean")
-    # Defaults for missing non-locked overrides.
-    for name, spec in recipe.overrides.items():
-        if name not in (overrides or {}) and "default" in spec and not spec.get("locked"):
-            overrides[name] = spec["default"]
+        elif otype == "bool" and not isinstance(value, bool):
+            raise PlanError(f"override '{name}' must be a boolean")
     return warnings
+
+
+def effective_overrides(recipe: recipes.Recipe, overrides: dict[str, Any] | None) -> dict[str, Any]:
+    """The overrides a plan records: the caller's values plus every recipe default.
+
+    ``plan_job`` stores this expanded dict in the spec, so a submit that repeats
+    only the keys the caller supplied has to expand the same way before it can be
+    compared with the approved plan.
+    """
+    expanded = dict(overrides or {})
+    for name, spec in recipe.overrides.items():
+        if name not in expanded and "default" in spec:
+            expanded[name] = spec["default"]
+    return expanded
 
 
 def _bool_flag(recipe: recipes.Recipe, name: str) -> str:
@@ -125,11 +134,7 @@ def plan_job(
 
     warnings = _validate_inputs(recipe, inputs)
     warnings += _validate_overrides(recipe, overrides)
-
-    # Locked defaults (e.g. derived learning_rate).
-    for name, spec in recipe.overrides.items():
-        if spec.get("locked") and "default" in spec and name not in overrides:
-            overrides[name] = spec["default"]
+    overrides = effective_overrides(recipe, overrides)
 
     command = _resolve_command(recipe, inputs, overrides)
     if "<" in command and ">" in command:
@@ -139,6 +144,12 @@ def plan_job(
             warnings.append(
                 f"input '{name}' is recorded in the spec but not passed to the entrypoint; "
                 "the recipe reads it from its own defaults"
+            )
+    for name in overrides:
+        if f"<{name}>" not in recipe.entrypoint:
+            warnings.append(
+                f"override '{name}' is recorded in the spec but not passed to the entrypoint; "
+                "the value does not change the command"
             )
     if recipe.kind == "eval_paired" and not recipe.invariants.get("r2_only"):
         warnings.append("eval recipe missing r2_only invariant")

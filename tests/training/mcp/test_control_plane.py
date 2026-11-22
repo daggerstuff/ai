@@ -343,6 +343,15 @@ def test_unconsumed_recipe_inputs_are_warned_about(db_path: Path):
             )
 
 
+def test_unconsumed_recipe_overrides_are_warned_about(db_path: Path):
+    """An override the command never receives must be visible, not silently dropped."""
+    settings = _FakeSettings(db_path)
+    planned = plan.plan_job(settings, "train-sft-latest", {"launch_config": "c"}, {"epochs": 5})
+    assert planned["spec"]["overrides"] == {"epochs": 5}
+    assert "<epochs>" not in planned["recipe"]["entrypoint"]
+    assert any("override 'epochs' is recorded in the spec" in w for w in planned["warnings"]), planned["warnings"]
+
+
 def test_dry_run_override_rejects_non_boolean(db_path: Path):
     settings = _FakeSettings(db_path)
     with pytest.raises(plan.PlanError, match="must be a boolean"):
@@ -1069,6 +1078,27 @@ def test_submit_runs_the_approved_spec_even_when_the_caller_repeats_it(server_en
     _job_id, command, backend = spawned[0]
     assert "--dry-run" in command
     assert backend == "local"
+
+
+def test_submit_accepts_a_repeat_of_the_callers_own_overrides(server_env):
+    """The cached spec carries recipe defaults, so the same submit must expand too.
+
+    plan_job records `epochs` (a declared default) even when the caller passed no
+    overrides; re-submitting that empty dict then compared {} against
+    {"epochs": 3} and was rejected as a tampered spec.
+    """
+    server, _cfg, spawned = server_env
+    planned = server.plan_job("train-sft-latest", {"launch_config": "c"}, {}, "operator")
+    assert planned["spec"]["overrides"] == {"epochs": 3}
+    result = server.submit_job(
+        plan_hash=planned["plan_hash"],
+        recipe="train-sft-latest",
+        inputs={"launch_config": "c"},
+        overrides={},
+        requested_by="operator",
+    )
+    assert result["ok"] is True, result
+    assert len(spawned) == 1
 
 
 def test_submit_rejects_a_plan_older_than_its_ttl(server_env):

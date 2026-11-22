@@ -432,12 +432,20 @@ def submit_job(
             return {"ok": False, "error": "plan_hash not found or expired; re-run plan_job"}
     if cached is not None and not force:
         approved = cached["spec"]
+        # The cached spec records overrides with the recipe's defaults filled in,
+        # so the caller's dict is expanded the same way first: a faithful repeat
+        # of what was planned must not read as a tampered spec.
+        submitted_overrides = overrides
+        if overrides is not None:
+            approved_recipe = next((r for r in recipes.load_recipes() if r.id == cached["recipe_id"]), None)
+            if approved_recipe is not None:
+                submitted_overrides = plan.effective_overrides(approved_recipe, overrides)
         mismatched = [
             name
             for name, supplied, approved_value in (
                 ("recipe", recipe, cached["recipe_id"]),
                 ("inputs", inputs, approved.get("inputs", {})),
-                ("overrides", overrides, approved.get("overrides", {})),
+                ("overrides", submitted_overrides, approved.get("overrides", {})),
             )
             if supplied is not None and supplied != approved_value
         ]
