@@ -1,0 +1,59 @@
+monitoring/quality_comparison_reporter.py
+  s_7d4811cf1b0ba7::t_83772f35485ff6 17
+  s_7d4811cf1b0ba7::t_b51f7b6edbb4b3 28
+monitoring/quality_distribution_comparator.py
+  s_7d4811cf1b0ba7::t_efd489029eedd3 16-19,74,96-97,123,149,164
+  s_7d4811cf1b0ba7::t_9ef8e2671ddf68 85,92,103,131,139
+  s_7d4811cf1b0ba7::t_474f8479bfee1c 118-120
+monitoring/interactive_dashboard_system.py
+  s_7d4811cf1b0ba7::t_b126430fbe5359 13
+monitoring/quality_distribution_analyzer.py
+  s_7d4811cf1b0ba7::t_13f170790163e6 20-27,86,88,90,92,94,110-111,118,127,129,134,141,143,155,157,204
+monitoring/quality_distribution_reporter.py
+  s_7d4811cf1b0ba7::t_83772f35485ff6 11-12
+monitoring/section_5_6_2_integration_test_report.json
+  s_7d4811cf1b0ba7::t_6dd40ab08fcf29 4
+monitoring/quality_improvement_tracking_test_report.json
+  s_7d4811cf1b0ba7::t_6dd40ab08fcf29 4,25
+monitoring/quality_improvement_reporter.py
+  s_7d4811cf1b0ba7::t_37bcdbbb1a8def 11
+  s_7d4811cf1b0ba7::t_7830f03190a6d6 12
+monitoring/feedback_to_metrics_bridge.py
+  s_7d4811cf1b0ba7::t_b126430fbe5359 20
+  s_7d4811cf1b0ba7::t_b51f7b6edbb4b3 55,192
+monitoring/quality_trend_analysis_simple_test_report.json
+  s_7d4811cf1b0ba7::t_6dd40ab08fcf29 4
+monitoring/quality_comparator.py
+  s_7d4811cf1b0ba7::t_f3adc0aae3750e 25
+  s_7d4811cf1b0ba7::t_98b4d3ec52cba5 114,126,143
+monitoring/quality_distribution_analysis_test_report.json
+  s_7d4811cf1b0ba7::t_6dd40ab08fcf29 4,27-32
+monitoring/quality_comparison_test_report.json
+  s_7d4811cf1b0ba7::t_6dd40ab08fcf29 4
+monitoring/quality_analytics_dashboard_test_report.json
+  s_7d4811cf1b0ba7::t_6dd40ab08fcf29 4
+monitoring/quality_trend_reporter.py
+  s_7d4811cf1b0ba7::t_962e1f17644559 11-12
+  s_7d4811cf1b0ba7::t_9e7b8335edcf68 22-23,142,148
+monitoring/quality_analytics_dashboard.py
+  s_7d4811cf1b0ba7::t_40ee9551a545ec 44-46,176,236,240,242
+  s_7d4811cf1b0ba7::t_b3b872cf31f448 18-19
+monitoring/quality_trend_analyzer.py
+  s_7d4811cf1b0ba7::t_9e7b8335edcf68 24-25,139,246
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e5c87ada86dc6c423047854b1bb5a5ad81e41cf",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
