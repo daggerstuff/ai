@@ -1,0 +1,20 @@
+training/launch/crisis_adjudication_packet.py
+  h_07d84030f79d30 1-295
+training/launch/crisis_dimension_report.py
+  h_07d84030f79d30 1-323
+training/tests/test_crisis_adjudication_packet.py
+  h_07d84030f79d30 1-116
+training/tests/test_crisis_dimension_report.py
+  h_07d84030f79d30 1-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "321780f04f4d61d88439821b6be562d76402a18e",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
