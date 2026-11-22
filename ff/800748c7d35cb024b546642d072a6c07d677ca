@@ -1,0 +1,1932 @@
+.gitignore
+  h_07d84030f79d30 215-216,217-219,234,272,287-307,308-319,398,403-410,415
+pyproject.toml
+  h_07d84030f79d30 236-243,519-522,539-553,556-563
+qa/validation/therapy_bench/generate_crisis_capability_v1.py
+  h_07d84030f79d30 16-23,25,115-131,168-189,195,199-201,204-205,217-223,232,257,264,271,278,287,294,301,318-328,368,374-375,377-378,386-388
+qa/validation/therapy_bench/generate_crisis_capability_v2.py
+  h_07d84030f79d30 1-72,73-85,86-479
+training/build_agent_tool_sft_v23.py
+  h_07d84030f79d30 1-373
+training/build_agent_tool_sft_v24.py
+  h_07d84030f79d30 1-384
+training/build_agent_tool_sft_v25.py
+  h_07d84030f79d30 1-506
+training/build_agent_tool_sft_v26.py
+  h_07d84030f79d30 1-720
+training/build_agent_tool_sft_v27.py
+  h_07d84030f79d30 1-1227
+training/build_agent_tool_sft_v28.py
+  h_07d84030f79d30 1-1237
+training/build_agent_tool_sft_v29.py
+  h_07d84030f79d30 1-1364
+training/build_agent_tool_sft_v30.py
+  h_07d84030f79d30 1-347
+training/build_v23_release.py
+  h_07d84030f79d30 1-290
+training/build_v24_release.py
+  h_07d84030f79d30 1-285
+training/build_v25_release.py
+  h_07d84030f79d30 1-292
+training/build_v26_release.py
+  h_07d84030f79d30 1-303
+training/build_v27_release.py
+  h_07d84030f79d30 1-322
+training/build_v28_release.py
+  h_07d84030f79d30 1-298
+training/build_v29_release.py
+  h_07d84030f79d30 1-334
+training/build_v30_release.py
+  h_07d84030f79d30 1-320
+training/export_fireworks_release.py
+  h_07d84030f79d30 64-79,121-127,128-131,135-138,140,142-153,192-205,210-216,222,234-236,238-241,242,243-247,248,256,259-261,266,276,281,283
+training/export_tinker_release.py
+  h_07d84030f79d30 29-33,48,54,58,61,78-83,233-263,286-344,345-364,365,366-396,397-398,399-409,410-415,416-430,431-432,433-460,461-462,463-466,477,483-484,489-490,500-503,504,505-509,515-528,529-530,556-557,562-582,583,603-608,618-623,630-632,634-639,657,674
+training/launch/r2_sync.py
+  h_07d84030f79d30 29,38,94-103,139-140,157-165,299,303-304,307,311,317-328,330-335,337,339,389,416
+training/launch/recover_eval_records.py
+  h_07d84030f79d30 1-87
+training/local_paired_eval.py
+  h_07d84030f79d30 95-96,107-135,198-202,226
+training/ovh_v22_eval/launch.sh
+  h_07d84030f79d30 30-31,36,39,42,72,74,142,149-159,162
+training/ovh_v22_eval/submit.py
+  h_07d84030f79d30 1-46,47,48-379
+training/ovh_v22_qwen3_8b/run_ovh.py
+  h_07d84030f79d30 17,29-30,32,34-43
+training/ovh_v23_qwen3_8b/launch.sh
+  h_07d84030f79d30 1-37
+training/ovh_v23_qwen3_8b/submit.py
+  h_07d84030f79d30 1-348
+training/strict_crisis_gate.py
+  h_07d84030f79d30 19,182-183,256-300,352-361,363-366,368,370,390-400,418-421,430-432
+training/tests/test_build_agent_tool_sft_v23.py
+  h_07d84030f79d30 1-254
+training/tests/test_build_agent_tool_sft_v24.py
+  h_07d84030f79d30 1-252
+training/tests/test_build_agent_tool_sft_v25.py
+  h_07d84030f79d30 1-272
+training/tests/test_build_agent_tool_sft_v26.py
+  h_07d84030f79d30 1-300
+training/tests/test_build_agent_tool_sft_v27.py
+  h_07d84030f79d30 1-466
+training/tests/test_build_agent_tool_sft_v28.py
+  h_07d84030f79d30 1-553
+training/tests/test_build_agent_tool_sft_v29.py
+  h_07d84030f79d30 1-692
+training/tests/test_build_agent_tool_sft_v30.py
+  h_07d84030f79d30 1-34,35,36-38,39-53,54,55-86,87-88,89-107,108-109,110-113,114-115,116-117,118-119,120-122,123-124,125-126,127-134,135-144,145,146-168,169-171,172-246
+training/tests/test_build_v23_release.py
+  h_07d84030f79d30 1-185
+training/tests/test_build_v24_release.py
+  h_07d84030f79d30 1-194
+training/tests/test_build_v25_release.py
+  h_07d84030f79d30 1-225
+training/tests/test_build_v26_release.py
+  h_07d84030f79d30 1-265
+training/tests/test_build_v27_release.py
+  h_07d84030f79d30 1-337
+training/tests/test_build_v28_release.py
+  h_07d84030f79d30 1-363
+training/tests/test_build_v29_release.py
+  h_07d84030f79d30 1-399
+training/tests/test_build_v30_release.py
+  h_07d84030f79d30 1-304
+training/tests/test_crisis_suite_fixtures.py
+  h_07d84030f79d30 1-108
+training/tests/test_crisis_suite_v2.py
+  h_07d84030f79d30 1-29,30,31-46,47,48-51,52,53-55,56-57,58-59,60,61-63,64,65-67,68-69,70-124,125-132,133-134,135,136,137-158,159-234
+training/tests/test_export_fireworks_release.py
+  h_07d84030f79d30 74-86,123-150,176-211,212,213-228
+training/tests/test_export_tinker_release.py
+  h_07d84030f79d30 5-6,12-13,15,218-254,255-291,292-296,307-309,317-350,351-363,364-386,479-514,515-517,518-542,543,544-556,557,558-562,563-579,580-605,606,607-612
+training/tests/test_local_paired_eval.py
+  h_07d84030f79d30 6,69-107,125
+training/tests/test_ovh_eval_submit.py
+  h_07d84030f79d30 1-110,111,112-114,115-116,117-119,120-121,122-123,124,125-152,153-155,156-171,172-173,174-192,193,194-270
+training/tests/test_ovh_train_submit.py
+  h_07d84030f79d30 1-73
+training/tests/test_r2_sync.py
+  h_07d84030f79d30 10,29,34,37-39,40-41,58-60,79-102,122,154,160-161,163-164,172,174-175,177,192,202,210-224,250-253,255-257,264,267,269,282,284
+training/tests/test_recover_eval_records.py
+  h_07d84030f79d30 1-71
+training/tests/test_strict_crisis_gate.py
+  h_07d84030f79d30 157-215
+.github/workflows/ci.yml
+  h_07d84030f79d30 19-32,53
+annotation/api/main.py
+  h_07d84030f79d30 44
+annotation/api/models.py
+  h_07d84030f79d30 18
+annotation/api/schemas.py
+  h_07d84030f79d30 15
+annotation/scripts/create_real_batch.py
+  h_07d84030f79d30 9-10
+annotation/scripts/lazy_loading.md
+  h_07d84030f79d30 18,22-25,28,31,71-72,77-81,84
+annotation_api/main.py
+  h_07d84030f79d30 44
+annotation_api/models.py
+  h_07d84030f79d30 18
+annotation_api/schemas.py
+  h_07d84030f79d30 15
+api/dataset_api.py
+  h_07d84030f79d30 26-28
+api/embedding_agent/app.py
+  h_07d84030f79d30 208,214,258,264,309,315,354
+api/pal_inference_service.py
+  h_07d84030f79d30 83-84,96,118,273
+api/techdeck_integration/communication/bias_integration.py
+  h_07d84030f79d30 211
+api/techdeck_integration/communication/error_recovery.py
+  h_07d84030f79d30 14,22-25
+api/techdeck_integration/communication/graceful_degradation.py
+  h_07d84030f79d30 243
+api/techdeck_integration/communication/pipeline_coordinator.py
+  h_07d84030f79d30 776,835
+api/techdeck_integration/communication/progress_tracker.py
+  h_07d84030f79d30 10,81-82,84,144,190,245,257,269,305,310,344,358,455,464,474,482,491,506-507,568,598,614,631,654,664,681,687,710,751,769-770,778,844,927,948,979,991,1011,1031,1059,1070,1075,1079
+api/techdeck_integration/communication/state_manager.py
+  h_07d84030f79d30 12,23-26
+api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  h_07d84030f79d30 23,71-73,75-81
+api/techdeck_integration/error_handling/custom_errors.py
+  h_07d84030f79d30 232-235,523-530,536-538
+api/techdeck_integration/integration/bias_detection.py
+  h_07d84030f79d30 280
+api/techdeck_integration/integration/pipeline_orchestrator.py
+  h_07d84030f79d30 518,563
+api/techdeck_integration/integration/redis_client.py
+  h_07d84030f79d30 131
+api/techdeck_integration/routes/analytics.py
+  h_07d84030f79d30 14,560
+api/techdeck_integration/routes/standardization.py
+  h_07d84030f79d30 15,125,207,287,407,466,857,879
+api/techdeck_integration/routes/system.py
+  h_07d84030f79d30 11,16-17
+api/techdeck_integration/routes/validation.py
+  h_07d84030f79d30 14,21,106,185,345,932
+api/techdeck_integration/services/dataset_service.py
+  h_07d84030f79d30 160,222,266,395,456,509
+api/techdeck_integration/services/pipeline_service.py
+  h_07d84030f79d30 169,244,284,427,467,519,637,1014
+api/techdeck_integration/utils/file_handler.py
+  h_07d84030f79d30 90
+api/techdeck_integration/utils/validation.py
+  h_07d84030f79d30 12,701-832
+api/test_pixel_inference.py
+  h_07d84030f79d30 29-30
+api/test_pixel_inference_pal.py
+  h_07d84030f79d30 299-301
+api/tests/test_pal_inference_api.py
+  h_07d84030f79d30 299-304
+archive/legacy_tests/research/dataset_pipeline/quality/test_quality_validator.py
+  h_07d84030f79d30 4
+benchmarks/tests/test_benchmark.py
+  h_07d84030f79d30 35,57-60,264
+cli/auth.py
+  h_07d84030f79d30 9,126,549-618,623
+cli/commands/auth.py
+  h_07d84030f79d30 9
+cli/config.py
+  h_07d84030f79d30 15-17,48-50,55-57,73-75,90-92,110-112,128-130,287-289,294-295,518-520,525-527
+cli/exceptions.py
+  h_07d84030f79d30 19-22
+cli/tests/__init__.py
+  h_07d84030f79d30 158-182
+cli/tests/conftest.py
+  h_07d84030f79d30 1-24
+cli/utils.py
+  h_07d84030f79d30 26-38,52,98,239,267,381
+config/production/enterprise_config/INTEGRATION_GUIDE.md
+  h_07d84030f79d30 10,25,31,56,100
+configs/dataset_registry.json
+  h_07d84030f79d30 4,55,453,455,457-458,460,462-463,3232-3233,3235,3532-3533,3535,3796-3797,3799,3960
+configs/envs/production/enterprise_config/INTEGRATION_GUIDE.md
+  h_07d84030f79d30 10,25,31,56,100
+configs/flag_store.py
+  h_07d84030f79d30 84
+configs/jit_trigger_engine.py
+  h_07d84030f79d30 70,79,123
+core/pipelines/human_review_queue.py
+  h_07d84030f79d30 630
+core/pipelines/inference/candidate_retrieval.py
+  h_07d84030f79d30 133,174,203-207,272,279-285
+core/pipelines/inference/evidence_scoring.py
+  h_07d84030f79d30 20,106,116,138,161,225,295
+core/pipelines/privacy_content_gates.py
+  h_07d84030f79d30 64,703
+core/pipelines/processing/run_master_slicer.py
+  h_07d84030f79d30 4,9
+core/pipelines/processing/slicer_fast.py
+  h_07d84030f79d30 10,25-33,46,87,92
+core/pipelines/processing/slicer_s3_streaming.py
+  h_07d84030f79d30 24,35,51,58-59,67,91,114,119
+core/pipelines/processing/stage_slicer_enhanced.py
+  h_07d84030f79d30 385
+core/pipelines/quality/conversation_quality_pattern_analyzer.py
+  h_07d84030f79d30 53,252,281,321,409,440-443,480,501,637,659,661,677-697,716,719,934-943,997,1006,1037,1050,1057,1075-1090,1099-1129,1131,1143-1155,1164-1175,1210-1221,1232-1244,1248,1283-1295,1303-1311,1315,1326-1336,1351-1359,1367-1388,1393,1402-1412,1419-1428,1438-1446,1451-1467,1470-1482
+core/pipelines/sourcing/crisis_expansion.py
+  h_07d84030f79d30 481,654
+core/utils/s3_dataset_loader.py
+  h_07d84030f79d30 218-224
+core/utils/transcript_corrector.py
+  h_07d84030f79d30 30
+data/synthetic/assets/empathy_nightmare_fuel/generate.py
+  h_07d84030f79d30 165,2901
+data/synthetic/normalize.py
+  h_07d84030f79d30 211
+data/synthetic/source_inventory.py
+  h_07d84030f79d30 152,172,183
+data/synthetic/wrapper/expansion_authoring.py
+  h_07d84030f79d30 11,16,212,475,560-562,567-569,677
+data/synthetic/wrapper/pal_framework/generate_dpo_pairs.py
+  h_07d84030f79d30 109
+data/synthetic/wrapper/pal_framework/meddies_adapter.py
+  h_07d84030f79d30 58
+data/synthetic/wrapper/pal_framework/meddies_synthesizer.py
+  h_07d84030f79d30 401
+data/synthetic/wrapper/pal_framework/meddies_to_pal.py
+  h_07d84030f79d30 30
+data/synthetic/wrapper/pal_framework/run_phase6_smoke.py
+  h_07d84030f79d30 145,165,295,511,619
+data/synthetic/wrapper/pal_framework/test_pal_pipeline_integration.py
+  h_07d84030f79d30 293,653-657,812-820,831-838,869,1039,1101
+dataset_pipeline/extractors/book_extractor.py
+  h_07d84030f79d30 27,77,85-86
+dataset_pipeline/extractors/dataset_loader.py
+  h_07d84030f79d30 15,31,40,58
+dataset_pipeline/extractors/test_streamer.py
+  h_07d84030f79d30 17
+dataset_pipeline/orchestration/clean_local_data.py
+  h_07d84030f79d30 7,24-30,33,39,75
+dataset_pipeline/orchestration/compile_dataset.py
+  h_07d84030f79d30 116,246,251
+dataset_pipeline/orchestration/consolidate_v7.py
+  h_07d84030f79d30 178,363
+dataset_pipeline/orchestration/test_consolidate_v7.py
+  h_07d84030f79d30 214-219,225-230,271-277,285-292,297-304
+dataset_pipeline/processors/chatml_converter.py
+  h_07d84030f79d30 23,55-66,94-95,101-105,110-111,113-114,116-117,123-126
+dataset_pipeline/processors/integrity_test.py
+  h_07d84030f79d30 49,101,132,158,164,167,215-224,295,298-301,307-310,328-329,331-332,338-339,341-342,385
+dataset_pipeline/processors/test_integrity.py
+  h_07d84030f79d30 294-297,301-304,307-310
+dataset_pipeline/scripts/run_safety_pass.py
+  h_07d84030f79d30 77,86,88,106
+dataset_pipeline/scripts/test_s3_atomic_sync.py
+  h_07d84030f79d30 26,64,83,117,145,150-152,170,185,263-264,268-269,297-299,336-338,366-367,408,439,482,514,524-526,542-544,557,560-572
+ehr/note_drafting/phi.py
+  h_07d84030f79d30 17,20,23,26,55-65,69
+ehr/note_drafting/service.py
+  h_07d84030f79d30 198-200,306-308
+ehr/risk_stratification/models.py
+  h_07d84030f79d30 27,41,81-82,116,118-120,122-123
+ehr/risk_stratification/phi.py
+  h_07d84030f79d30 41-42
+ehr/risk_stratification/service.py
+  h_07d84030f79d30 65,89,100,153,216,247
+evals/conversation_eval_metrics.py
+  h_07d84030f79d30 264,275-276
+evals/cross_condition_transfer.py
+  h_07d84030f79d30 132,138,196,222
+evals/diagnosis_arena/judge.py
+  h_07d84030f79d30 223-234
+evals/diagnosis_arena/leaderboard.py
+  h_07d84030f79d30 41-43,71,84,134-136
+evals/diagnosis_arena/openai_judge.py
+  h_07d84030f79d30 79,117,124-129,165,208-214,281
+evals/diagnosis_arena/pipeline.py
+  h_07d84030f79d30 75
+evals/therapy_bench/therapy_bench.py
+  h_07d84030f79d30 362
+inference/api/embedding_agent/app.py
+  h_07d84030f79d30 208,214,258,264,309,315,354
+inference/api/emotions_service.py
+  h_07d84030f79d30 141
+inference/api/main.py
+  h_07d84030f79d30 44
+inference/api/memory/memory_manager.py
+  h_07d84030f79d30 278,301
+inference/api/pal_inference_service.py
+  h_07d84030f79d30 83-84,96,118,273
+inference/api/techdeck_integration/communication/bias_integration.py
+  h_07d84030f79d30 211
+inference/api/techdeck_integration/communication/error_recovery.py
+  h_07d84030f79d30 14,16-19,25-28
+inference/api/techdeck_integration/communication/graceful_degradation.py
+  h_07d84030f79d30 243
+inference/api/techdeck_integration/communication/performance_monitor.py
+  h_07d84030f79d30 14-17
+inference/api/techdeck_integration/communication/pipeline_coordinator.py
+  h_07d84030f79d30 776,835
+inference/api/techdeck_integration/communication/progress_tracker.py
+  h_07d84030f79d30 10,81-82,84,144,190,245,257,269,305,310,344,358,455,464,474,482,491,506-507,568,598,614,631,654,664,681,687,710,751,769-770,778,844,927,948,979,991,1011,1031,1059,1070,1075,1079
+inference/api/techdeck_integration/communication/state_manager.py
+  h_07d84030f79d30 12,23-26
+inference/api/techdeck_integration/communication/tests/conftest.py
+  h_07d84030f79d30 21-28
+inference/api/techdeck_integration/communication/tests/test_pipeline_communication.py
+  h_07d84030f79d30 23-28,31-34,38-42,83-91,93
+inference/api/techdeck_integration/error_handling/custom_errors.py
+  h_07d84030f79d30 231,524-531,537-539
+inference/api/techdeck_integration/integration/bias_detection.py
+  h_07d84030f79d30 280
+inference/api/techdeck_integration/integration/pipeline_orchestrator.py
+  h_07d84030f79d30 518,563
+inference/api/techdeck_integration/integration/redis_client.py
+  h_07d84030f79d30 131
+inference/api/techdeck_integration/routes/analytics.py
+  h_07d84030f79d30 14,560
+inference/api/techdeck_integration/routes/standardization.py
+  h_07d84030f79d30 15,125,207,287,407,466,857,879
+inference/api/techdeck_integration/routes/system.py
+  h_07d84030f79d30 11,16-21
+inference/api/techdeck_integration/routes/validation.py
+  h_07d84030f79d30 14,21,106,185,345,932
+inference/api/techdeck_integration/services/dataset_service.py
+  h_07d84030f79d30 160,222,266,395,456,509
+inference/api/techdeck_integration/services/pipeline_service.py
+  h_07d84030f79d30 169,244,284,427,467,519,637,1014
+inference/api/techdeck_integration/utils/file_handler.py
+  h_07d84030f79d30 90
+inference/api/techdeck_integration/utils/validation.py
+  h_07d84030f79d30 12,701-832
+inference/api/test_pixel_inference.py
+  h_07d84030f79d30 29-30
+inference/api/test_pixel_inference_pal.py
+  h_07d84030f79d30 257-259
+inference/api/tests/test_pal_inference_api.py
+  h_07d84030f79d30 299-304
+inference/deployment/config/config_tracker.py
+  h_07d84030f79d30 95-100,532,551
+inference/deployment/config/error_handler.py
+  h_07d84030f79d30 249,527-529
+inference/deployment/database/conversation_schema.py
+  h_07d84030f79d30 512
+inference/deployment/database/dal/cached_repository.py
+  h_07d84030f79d30 78,112,132
+inference/deployment/distributed/CHECKPOINT_SYSTEM_README.md
+  h_07d84030f79d30 108,119,130-131,142,151,161,179,191,200,210,220,231,240,245,254,257,278,295-296,299,305,407,451,464,477,482,493-494,505,512,521,533
+inference/deployment/distributed/checkpoint_system.py
+  h_07d84030f79d30 121-123
+inference/deployment/distributed/error_recovery.py
+  h_07d84030f79d30 129-131
+inference/deployment/distributed/partial_result_recovery.py
+  h_07d84030f79d30 72-75,172-174
+inference/deployment/distributed/quality_validator.py
+  h_07d84030f79d30 34
+inference/deployment/distributed/result_aggregator.py
+  h_07d84030f79d30 14
+inference/deployment/distributed/resume_orchestrator.py
+  h_07d84030f79d30 525
+inference/deployment/distributed/test_auto_resume.py
+  h_07d84030f79d30 15
+inference/deployment/integration/crisis_intervention_system.py
+  h_07d84030f79d30 677-679
+inference/deployment/production/export_to_ready_packages.py
+  h_07d84030f79d30 273-274,328,332
+inference/deployment/qa/clinical_safety_certifier.py
+  h_07d84030f79d30 39-42,141
+inference/deployment/qa/enterprise_validator.py
+  h_07d84030f79d30 599
+inference/deployment/qa/performance_validation_suite.py
+  h_07d84030f79d30 45-48,374
+inference/deployment/qa/production_certification.py
+  h_07d84030f79d30 128
+inference/deployment/qa/safety_accuracy_validator.py
+  h_07d84030f79d30 150,506,563
+inference/deployment/qa/safety_accuracy_validator_simple.py
+  h_07d84030f79d30 481,505,531
+inference/deployment/qa/scripts/fix_remaining_test_failures.py
+  h_07d84030f79d30 14,101,202,235
+inference/deployment/qa/validation_quality_assurance/clinical_standards_validator.py
+  h_07d84030f79d30 199
+inference/deployment/qa/validation_quality_assurance/manual_review_system.py
+  h_07d84030f79d30 502-504
+inference/deployment/qa/validation_quality_assurance/quality_assurance_workflows.py
+  h_07d84030f79d30 134-160
+inference/deployment/qa/validation_quality_assurance/validation_quality_assurance_system.py
+  h_07d84030f79d30 14
+inference/deployment/s3/s3_dataset_loader.py
+  h_07d84030f79d30 103,112
+inference/services/database.py
+  h_07d84030f79d30 59
+inference/services/dream/consolidation.py
+  h_07d84030f79d30 272,311,623,639
+inference/services/ingestion/gate.py
+  h_07d84030f79d30 22
+infrastructure/config/config_tracker.py
+  h_07d84030f79d30 95-100,532,551
+infrastructure/config/error_handler.py
+  h_07d84030f79d30 249,527-529
+infrastructure/database/dal/cached_repository.py
+  h_07d84030f79d30 78,112,132
+infrastructure/distributed/CHECKPOINT_SYSTEM_README.md
+  h_07d84030f79d30 108,119,130-131,142,151,161,179,191,200,210,220,231,240,245,254,257,278,295-296,299,305,407,451,464,477,482,493-494,505,512,521,533
+infrastructure/distributed/error_recovery.py
+  h_07d84030f79d30 129-131
+infrastructure/distributed/partial_result_recovery.py
+  h_07d84030f79d30 166-168
+infrastructure/distributed/quality_validator.py
+  h_07d84030f79d30 34
+infrastructure/distributed/result_aggregator.py
+  h_07d84030f79d30 14
+infrastructure/distributed/resume_orchestrator.py
+  h_07d84030f79d30 525
+infrastructure/distributed/test_auto_resume.py
+  h_07d84030f79d30 15
+infrastructure/integration/crisis_intervention_system.py
+  h_07d84030f79d30 677-679
+infrastructure/ovh/client.py
+  h_07d84030f79d30 108
+infrastructure/production/export_to_ready_packages.py
+  h_07d84030f79d30 273-274,328,332
+infrastructure/qa/safety_accuracy_validator_simple.py
+  h_07d84030f79d30 481,505,531
+infrastructure/qa/validation_quality_assurance/clinical_standards_validator.py
+  h_07d84030f79d30 199
+infrastructure/qa/validation_quality_assurance/manual_review_system.py
+  h_07d84030f79d30 502-504
+infrastructure/qa/validation_quality_assurance/quality_assurance_workflows.py
+  h_07d84030f79d30 134-160
+infrastructure/s3/s3_dataset_loader.py
+  h_07d84030f79d30 103,112
+lab/evals/therapy_bench/therapy_bench.py
+  h_07d84030f79d30 362
+lab/explainability/model_explainability.py
+  h_07d84030f79d30 11,722
+lab/tests/comprehensive_test_suite.py
+  h_07d84030f79d30 175-177,181
+lab/tests/dataset_pipeline/quality/test_quality_validator.py
+  h_07d84030f79d30 4
+lab/tests/test_integration_end_to_end.py
+  h_07d84030f79d30 179
+lab/tests/test_performance_large_datasets.py
+  h_07d84030f79d30 417,419
+lab/tests/test_processing_components.py
+  h_07d84030f79d30 195,423
+lab/tests/test_safety_filtering_integration.py
+  h_07d84030f79d30 18,378
+lab/tests/validation_quality_assurance_system.py
+  h_07d84030f79d30 475,517,534,553
+memory/DREAM_REFLECTION_GUIDE.md
+  h_07d84030f79d30 70-71,235-237
+memory/__init__.py
+  h_07d84030f79d30 7
+memory/fine_tuning/__init__.py
+  h_07d84030f79d30 11-28
+memory/hierarchical_contrastive_learning.py
+  h_07d84030f79d30 115,149,194,206,268,275-276,371
+memory/hierarchy_aware_memory.py
+  h_07d84030f79d30 207-215
+memory/letta_client.py
+  h_07d84030f79d30 2,33,35,41,59-60,62,65,69,96,98,107,131,171,196,231,253,273,306,310,318
+memory/letta_code_client.py
+  h_07d84030f79d30 191
+memory/letta_pii_middleware.py
+  h_07d84030f79d30 171
+memory/local_foresight_memory_update.py
+  h_07d84030f79d30 3-4
+memory/manager_factory.py
+  h_07d84030f79d30 5
+memory/nvidia_llm_callback.py
+  h_07d84030f79d30 81-88,107-111
+memory/prioritization_service.py
+  h_07d84030f79d30 8-9
+memory/reflection/__init__.py
+  h_07d84030f79d30 13-37
+memory/reverie/__init__.py
+  h_07d84030f79d30 17-34
+memory/reverie/latent_surfacer.py
+  h_07d84030f79d30 81,137,274
+memory/subconscious_readme.md
+  h_07d84030f79d30 17
+memory/therapeutic_concept_hierarchy.py
+  h_07d84030f79d30 91,246,273,282-284,287,296-297,301,374
+models/artifacts/multimodal_fusion.py
+  h_07d84030f79d30 425
+models/base/cnn_feature_extractor.py
+  h_07d84030f79d30 68,114,249,257,262,303
+models/base/resnet_emotional_memory.py
+  h_07d84030f79d30 202,216,223,291,355,443
+models/moe_architecture.py
+  h_07d84030f79d30 7-9,13,20,39,60-62,65,69,73,88,107-109,127,148,157,160,184,187,191,195,204,239,245-250,259,266,270-275,282,290,303,307-309,312,319,328,334,341,345,350,357,379
+models/therapeutic_progress_tracker.py
+  h_07d84030f79d30 10-13,18,28,38,52,72,84,95,125,143,146,158,161,172,175-178,188-189,196-213,223-224,229-239,249-250,256-258,268-269,274-283,289-293,299,303,307,310,313,322-339,348,352,354,362-373,378,392,403-404,417-428,466,469,474-475,482-484,491-499,504,531,550-552,568-572,600,607,613-616,633,654,665
+monitoring/explainability/model_explainability.py
+  h_07d84030f79d30 11,722
+monitoring/observability.py
+  h_07d84030f79d30 1-680
+monitoring/safety_monitor_integration.py
+  h_07d84030f79d30 35-37,41
+monitoring/test_quality_analytics_dashboard.py
+  h_07d84030f79d30 14-15
+monitoring/test_quality_comparison.py
+  h_07d84030f79d30 15-16
+monitoring/test_quality_distribution_analysis.py
+  h_07d84030f79d30 15-16
+monitoring/test_quality_improvement_tracking.py
+  h_07d84030f79d30 16-17
+monitoring/test_quality_trend_analysis.py
+  h_07d84030f79d30 10,12,22,108
+monitoring/test_section_5_6_2_integration.py
+  h_07d84030f79d30 15-16
+orchestration/celery_app.py
+  h_07d84030f79d30 9
+orchestration/core/state_machine.py
+  h_07d84030f79d30 11,21,44,55,71
+orchestration/safety/guards.py
+  h_07d84030f79d30 12,20,22-24,30,41,43,57,82
+pipelines/data_processing/academic/README.md
+  h_07d84030f79d30 137,149
+pipelines/data_processing/academic/THERAPY_DATASET_GUIDE.md
+  h_07d84030f79d30 29,44,70-88,101,118,122,131,149,184-185,205,249,258,269,289-295
+pipelines/data_processing/academic/anonymization/anonymizer.py
+  h_07d84030f79d30 24-26,78-84,87-91,110-116
+pipelines/data_processing/academic/metadata_extraction/metadata_extractor.py
+  h_07d84030f79d30 122-124
+pipelines/data_processing/dataset_adapters/ace_nlp_adapter.py
+  h_07d84030f79d30 82
+pipelines/data_processing/dataset_adapters/addiction_stories_adapter.py
+  h_07d84030f79d30 9,37,79,101,110-112,123,127
+pipelines/data_processing/dataset_adapters/annomi_adapter.py
+  h_07d84030f79d30 17-18,55,140
+pipelines/data_processing/dataset_adapters/bbrd_adapter.py
+  h_07d84030f79d30 101,129
+pipelines/data_processing/dataset_adapters/bopd_adapter.py
+  h_07d84030f79d30 14,25-27,146-149,162,182,184
+pipelines/data_processing/dataset_adapters/clinical_redteam_adapter.py
+  h_07d84030f79d30 21,30-31,153,161,190,208
+pipelines/data_processing/dataset_adapters/crisis_benchmark_adapter.py
+  h_07d84030f79d30 129,178
+pipelines/data_processing/dataset_adapters/daic_woz_adapter.py
+  h_07d84030f79d30 19-20,25-30,96-97,189,234,236-239
+pipelines/data_processing/dataset_adapters/dmtcorpus_adapter.py
+  h_07d84030f79d30 96
+pipelines/data_processing/dataset_adapters/dsm_vector_space_adapter.py
+  h_07d84030f79d30 71
+pipelines/data_processing/dataset_adapters/empath_adapter.py
+  h_07d84030f79d30 52
+pipelines/data_processing/dataset_adapters/github_repo_adapter.py
+  h_07d84030f79d30 369-370,579,616
+pipelines/data_processing/dataset_adapters/kaggle_therapy_adapter.py
+  h_07d84030f79d30 35,39
+pipelines/data_processing/dataset_adapters/kokorochat_adapter.py
+  h_07d84030f79d30 69
+pipelines/data_processing/dataset_adapters/mental_health_multiagent_adapter.py
+  h_07d84030f79d30 66
+pipelines/data_processing/dataset_adapters/mhsafeeval_adapter.py
+  h_07d84030f79d30 81,152
+pipelines/data_processing/dataset_adapters/mit_psychosis_adapter.py
+  h_07d84030f79d30 76,108
+pipelines/data_processing/dataset_adapters/ml_bpd_adapter.py
+  h_07d84030f79d30 15,24-29,124,126,128,158,180,182
+pipelines/data_processing/dataset_adapters/personalitydbench_adapter.py
+  h_07d84030f79d30 16,114-117,132,143,145-148,160,164
+pipelines/data_processing/dataset_adapters/psy_insight_adapter.py
+  h_07d84030f79d30 68
+pipelines/data_processing/dataset_adapters/psycheval_adapter.py
+  h_07d84030f79d30 103
+pipelines/data_processing/dataset_adapters/sim_vail_adapter.py
+  h_07d84030f79d30 132
+pipelines/data_processing/dataset_adapters/ucl_psych_abuse_adapter.py
+  h_07d84030f79d30 138,177
+pipelines/data_processing/extractors/book_extractor.py
+  h_07d84030f79d30 27,77,85-86
+pipelines/data_processing/extractors/dataset_loader.py
+  h_07d84030f79d30 15,31,40,58
+pipelines/data_processing/extractors/s3_streamer.py
+  h_07d84030f79d30 61
+pipelines/data_processing/extractors/test_streamer.py
+  h_07d84030f79d30 17
+pipelines/data_processing/journal/api/auth/rbac.py
+  h_07d84030f79d30 123,128
+pipelines/data_processing/journal/api/config.py
+  h_07d84030f79d30 9-10,12,60
+pipelines/data_processing/journal/api/dependencies.py
+  h_07d84030f79d30 65
+pipelines/data_processing/journal/api/middleware/auth.py
+  h_07d84030f79d30 82
+pipelines/data_processing/journal/api/models/acquisition.py
+  h_07d84030f79d30 26,35
+pipelines/data_processing/journal/api/models/common.py
+  h_07d84030f79d30 56-60
+pipelines/data_processing/journal/api/models/evaluation.py
+  h_07d84030f79d30 32
+pipelines/data_processing/journal/api/models/progress.py
+  h_07d84030f79d30 48
+pipelines/data_processing/journal/api/routers/acquisition.py
+  h_07d84030f79d30 75,80,128,133,164,169,205,210
+pipelines/data_processing/journal/api/routers/discovery.py
+  h_07d84030f79d30 79,84,138,143,180,185
+pipelines/data_processing/journal/api/routers/evaluation.py
+  h_07d84030f79d30 79,84,135,140,174,179,222,227
+pipelines/data_processing/journal/api/routers/integration.py
+  h_07d84030f79d30 76,81,130,135,167,172
+pipelines/data_processing/journal/api/routers/progress.py
+  h_07d84030f79d30 59,64,93,98,223,235
+pipelines/data_processing/journal/api/routers/reports.py
+  h_07d84030f79d30 60,65,113,118,149,154
+pipelines/data_processing/journal/api/routers/sessions.py
+  h_07d84030f79d30 72,107,112,142,147,184,189,209,214
+pipelines/data_processing/journal/api/routers/training.py
+  h_07d84030f79d30 121,161,280,308
+pipelines/data_processing/journal/api/routers/training_global.py
+  h_07d84030f79d30 50
+pipelines/data_processing/journal/api/services/command_handler_service.py
+  h_07d84030f79d30 8
+pipelines/data_processing/journal/api/services/training_pipeline_service.py
+  h_07d84030f79d30 22-24
+pipelines/data_processing/journal/cli/config.py
+  h_07d84030f79d30 87
+pipelines/data_processing/journal/compliance/README.md
+  h_07d84030f79d30 51
+pipelines/data_processing/journal/compliance/license_checker.py
+  h_07d84030f79d30 453-455
+pipelines/data_processing/journal/discovery/doaj_client.py
+  h_07d84030f79d30 302
+pipelines/data_processing/journal/discovery/metadata_parser.py
+  h_07d84030f79d30 156
+pipelines/data_processing/journal/discovery/pubmed_client.py
+  h_07d84030f79d30 339
+pipelines/data_processing/journal/discovery/repository_clients.py
+  h_07d84030f79d30 183,358,543
+pipelines/data_processing/journal/integration/README.md
+  h_07d84030f79d30 163,168
+pipelines/data_processing/journal/integration/integration_planning_engine.py
+  h_07d84030f79d30 91,103,133,171,203,223,244,259,313,368,380,402,425-427,431-432,498,512,527,529,700,704,746,749,751,787,937,942
+pipelines/data_processing/journal/mcp/auth/authentication.py
+  h_07d84030f79d30 188,192-193,197,202,208,274,279
+pipelines/data_processing/journal/mcp/prompts/__init__.py
+  h_07d84030f79d30 16-18,20,22-24
+pipelines/data_processing/journal/mcp/resources/__init__.py
+  h_07d84030f79d30 22-23,25,31-33
+pipelines/data_processing/journal/mcp/resources/metrics.py
+  h_07d84030f79d30 90,94,100
+pipelines/data_processing/journal/mcp/resources/progress.py
+  h_07d84030f79d30 78,82,88,171,175,181
+pipelines/data_processing/journal/mcp/resources/sessions.py
+  h_07d84030f79d30 78,82,88
+pipelines/data_processing/journal/mcp/server.py
+  h_07d84030f79d30 901
+pipelines/data_processing/journal/mcp/tools/discovery.py
+  h_07d84030f79d30 554,561
+pipelines/data_processing/journal/mcp/utils/async_execution.py
+  h_07d84030f79d30 156,163,165,177
+pipelines/data_processing/journal/mcp/utils/error_handling.py
+  h_07d84030f79d30 303
+pipelines/data_processing/journal/mcp/utils/security.py
+  h_07d84030f79d30 270
+pipelines/data_processing/orchestration/clean_local_data.py
+  h_07d84030f79d30 7,28-34,37,43,79
+pipelines/data_processing/orchestration/compile_dataset.py
+  h_07d84030f79d30 116,246,251
+pipelines/data_processing/orchestration/consolidate_v7.py
+  h_07d84030f79d30 178,363
+pipelines/data_processing/orchestration/extract_everything.py
+  h_07d84030f79d30 10,18
+pipelines/data_processing/orchestration/test_consolidate_v7.py
+  h_07d84030f79d30 214-219,225-230,271-277,285-292,297-304
+pipelines/data_processing/processors/chatml_converter.py
+  h_07d84030f79d30 23,55-66,94-95,101-105,110-111,113-114,116-117,123-126
+pipelines/data_processing/processors/integrity_test.py
+  h_07d84030f79d30 49,101,132,158,164,167,215-224,295,298-301,307-310,328-329,331-332,338-339,341-342,385
+pipelines/data_processing/processors/safety_processors.py
+  h_07d84030f79d30 41-44
+pipelines/data_processing/processors/test_integrity.py
+  h_07d84030f79d30 294-297,301-304,307-310
+pipelines/data_processing/research_system/README.md
+  h_07d84030f79d30 151,174
+pipelines/data_processing/research_system/source_discovery/base_client.py
+  h_07d84030f79d30 262,274
+pipelines/data_processing/research_system/source_discovery/doaj_client.py
+  h_07d84030f79d30 80
+pipelines/data_processing/research_system/source_discovery/pubmed_client.py
+  h_07d84030f79d30 378
+pipelines/data_processing/research_system/source_discovery/repository_clients.py
+  h_07d84030f79d30 117,278,456
+pipelines/data_processing/run_public_web_pilot.py
+  h_07d84030f79d30 408-415
+pipelines/data_processing/scripts/fix_integrity.py
+  h_07d84030f79d30 95
+pipelines/data_processing/scripts/run_safety_pass.py
+  h_07d84030f79d30 77,86,88,106
+pipelines/data_processing/scripts/s3_atomic_sync.py
+  h_07d84030f79d30 197-200,236-238,377
+pipelines/data_processing/scripts/test_s3_atomic_sync.py
+  h_07d84030f79d30 26,64,83,117,145,150-152,170,185,263-264,268-269,297-299,336-338,366-367,408,439,482,514,524-526,542-544,557,560-572
+pipelines/data_processing/sourcing/processors/__init__.py
+  h_07d84030f79d30 10-20
+pipelines/data_processing/sourcing/processors/pii_stripper.py
+  h_07d84030f79d30 47-53,55-61,114-120
+pipelines/data_processing/sourcing/processors/safety_processor.py
+  h_07d84030f79d30 20-29
+pipelines/data_processing/sourcing/processors/toxicity_filter.py
+  h_07d84030f79d30 27-37,42-51,55-63,67-78,82-90,94-99,154,191-199,222
+pipelines/data_processing/sourcing/scripts/run_deslop.py
+  h_07d84030f79d30 20-22
+pipelines/data_processing/sourcing/scripts/run_safety_scan.py
+  h_07d84030f79d30 91,128-129
+pipelines/data_processing/tests/test_bbrd_adapter.py
+  h_07d84030f79d30 78
+pipelines/data_processing/tests/test_clinical_redteam_adapter.py
+  h_07d84030f79d30 17,20-24,180,183,201,206,248-249,295
+pipelines/data_processing/tests/test_github_repo_adapter.py
+  h_07d84030f79d30 72-75,185-189,201-205,216-220,234-238,248-252,262-266,276-280,334-336
+pipelines/data_processing/tests/test_kaggle_therapy_adapter.py
+  h_07d84030f79d30 23-26,43,139-144
+pipelines/data_processing/tests/test_ml_bpd_adapter.py
+  h_07d84030f79d30 13-14,161,167,175,234,238
+pipelines/data_processing/tests/test_personalitydbench_adapter.py
+  h_07d84030f79d30 13-15,92,97,102,106-107,126
+pipelines/data_processing/utils/converters.py
+  h_07d84030f79d30 12-13,121-125,137,141-144,147,201-205,217,221-224,227
+pipelines/data_processing/youtube/README.md
+  h_07d84030f79d30 150-151
+pipelines/data_processing/youtube/__init__.py
+  h_07d84030f79d30 40,42
+pipelines/data_processing/youtube/api.py
+  h_07d84030f79d30 365,369,373
+pipelines/data_processing/youtube/processor.py
+  h_07d84030f79d30 308
+pipelines/model_training/celery_app.py
+  h_07d84030f79d30 9
+pipelines/model_training/core/state_machine.py
+  h_07d84030f79d30 11,21,44,55,71
+pipelines/model_training/safety/guards.py
+  h_07d84030f79d30 12,20,22-24,30,41,43,57,82
+pipelines/orchestration/stage_organizer.py
+  h_07d84030f79d30 327
+pipelines/orchestrator/main_orchestrator.py
+  h_07d84030f79d30 13,63
+pipelines/orchestrator/streaming/real_time_processor.py
+  h_07d84030f79d30 110
+pipelines/voice/audio_ingestion.py
+  h_07d84030f79d30 15,130,262,293,298
+pipelines/voice/feature_extraction.py
+  h_07d84030f79d30 12,70,114,134,144
+pipelines/voice/pair_generation.py
+  h_07d84030f79d30 9,28,124
+pipelines/voice/transcription.py
+  h_07d84030f79d30 20,51,60
+pkg_mera/core/pipelines/acquisition_rubric.py
+  h_07d84030f79d30 477-479
+pkg_mera/core/pipelines/clinical_accuracy_validator.py
+  h_07d84030f79d30 26-40,43-55,59-69,72-88,92-105
+pkg_mera/core/pipelines/human_review_queue.py
+  h_07d84030f79d30 630
+pkg_mera/core/pipelines/inference/candidate_retrieval.py
+  h_07d84030f79d30 133,174,203-207,272,279-285
+pkg_mera/core/pipelines/inference/evidence_scoring.py
+  h_07d84030f79d30 106,116,138,161,225,295
+pkg_mera/core/pipelines/privacy_content_gates.py
+  h_07d84030f79d30 64,703
+pkg_mera/core/pipelines/processing/clean.py
+  h_07d84030f79d30 174
+pkg_mera/core/pipelines/processing/pii_scrubber.py
+  h_07d84030f79d30 165,309
+pkg_mera/core/pipelines/processing/run_master_slicer.py
+  h_07d84030f79d30 4,9
+pkg_mera/core/pipelines/processing/slicer_fast.py
+  h_07d84030f79d30 10,25-33,46,87,92
+pkg_mera/core/pipelines/processing/slicer_s3_streaming.py
+  h_07d84030f79d30 24,35,51,58-59,67,91,114,119
+pkg_mera/core/pipelines/processing/stage_slicer_enhanced.py
+  h_07d84030f79d30 385
+pkg_mera/core/pipelines/quality/conversation_quality_pattern_analyzer.py
+  h_07d84030f79d30 53,252,281,321,409,440-443,480,501,637,659,661,677-697,716,719,943-952,1006,1015,1046,1059,1066,1084-1099,1108-1138,1140,1152-1164,1173-1184,1219-1230,1241-1253,1257,1292-1304,1312-1320,1324,1335-1345,1360-1368,1376-1397,1402,1411-1421,1428-1437,1447-1455,1460-1476,1479-1491,1497-1541,1543,1548-1562,1565-1578
+pkg_mera/core/pipelines/sourcing/crisis_expansion.py
+  h_07d84030f79d30 483-485,653,700-710,727,729-738
+pkg_mera/core/pipelines/test_packaging.py
+  h_07d84030f79d30 132
+pkg_mera/core/utils/s3_dataset_loader.py
+  h_07d84030f79d30 218-224
+pkg_mera/core/utils/transcript_corrector.py
+  h_07d84030f79d30 30
+pkg_mera/platform/deep_rare/agents/test_interpreter.py
+  h_07d84030f79d30 134
+pkg_mera/platform/mera/contrastive.py
+  h_07d84030f79d30 98,111-113,214,261-273,288,291,296-301,322,338-341,343,362,441
+pkg_mera/platform/mera/hierarchy.py
+  h_07d84030f79d30 215,229-237,283-285,290-303,306-326,337-339,343-349,351-353,358-387,389-391,394-400,412-421,424-430,448-453,492-498,503-516,518-524,527-533,543-549,557-563,571-577,584-590,621-630,638-647,654-663
+pkg_mera/platform/mera/memorize.py
+  h_07d84030f79d30 39,43,57,62-63,72,99,118,133,136
+pkg_mera/platform/mera/pipeline.py
+  h_07d84030f79d30 28
+pkg_mera/platform/mera/rank.py
+  h_07d84030f79d30 68,98,100
+prompts/patient_psi/test_patient_psi_prompt.py
+  h_07d84030f79d30 8
+qa/reports/ALERT_FATIGUE_SYSTEM_README.md
+  h_07d84030f79d30 118,129,139,149,156,160,168,182,184,262-264,266,372,382,394,399,403-405,407-410
+qa/reports/NOTIFICATION_SYSTEM_README.md
+  h_07d84030f79d30 95,104,111,126,135,152,226,260-262,271-272,274,340-341,348,404
+qa/reports/alert_escalation.py
+  h_07d84030f79d30 17-18,517,542
+qa/reports/alert_fatigue_prevention.py
+  h_07d84030f79d30 18
+qa/reports/api_monitor.py
+  h_07d84030f79d30 32,41-43,47,264-266
+qa/reports/clinical_validity_dashboard.py
+  h_07d84030f79d30 11
+qa/reports/conversation_diversity_coverage_analyzer.py
+  h_07d84030f79d30 22,117
+qa/reports/conversation_effectiveness_predictor.py
+  h_07d84030f79d30 21,127,147,275
+qa/reports/conversation_quality_pattern_analyzer.py
+  h_07d84030f79d30 21,127,143
+qa/reports/conversation_recommendation_optimizer.py
+  h_07d84030f79d30 22,127,180,235,282,358
+qa/reports/dashboard_web_launcher.py
+  h_07d84030f79d30 16
+qa/reports/dataset_performance_impact_analyzer.py
+  h_07d84030f79d30 21,143,157
+qa/reports/explainability/model_explainability.py
+  h_07d84030f79d30 11,722
+qa/reports/health_check.py
+  h_07d84030f79d30 1031,1098
+qa/reports/interactive_dashboard_system.py
+  h_07d84030f79d30 18,23
+qa/reports/launch_interactive_dashboards.py
+  h_07d84030f79d30 3,5,10-12
+qa/reports/launch_quality_distribution_analysis.py
+  h_07d84030f79d30 65
+qa/reports/launch_quality_improvement_tracking.py
+  h_07d84030f79d30 62
+qa/reports/launch_quality_trend_analysis.py
+  h_07d84030f79d30 63
+qa/reports/linear_backlog_dispatcher.py
+  h_07d84030f79d30 63
+qa/reports/monitoring_notification_bridge.py
+  h_07d84030f79d30 15
+qa/reports/observability.py
+  h_07d84030f79d30 1,3-5,7,9-12
+qa/reports/operational_dashboard_system.py
+  h_07d84030f79d30 26,51-59
+qa/reports/post_launch_monitor.py
+  h_07d84030f79d30 647
+qa/reports/quality_analytics_dashboard.py
+  h_07d84030f79d30 15
+qa/reports/quality_audit_system.py
+  h_07d84030f79d30 83-84,139,196,204,256,259,426,466
+qa/reports/quality_comparator.py
+  h_07d84030f79d30 14
+qa/reports/quality_comparison_system.py
+  h_07d84030f79d30 173,183
+qa/reports/quality_distribution_analyzer.py
+  h_07d84030f79d30 261,269,475
+qa/reports/quality_distribution_analyzer_fixed.py
+  h_07d84030f79d30 232,245
+qa/reports/quality_trend_analyzer.py
+  h_07d84030f79d30 416,428
+qa/reports/quality_trend_analyzer_fixed.py
+  h_07d84030f79d30 459,471
+qa/reports/safety_monitor_integration.py
+  h_07d84030f79d30 41-44,121
+qa/reports/test_quality_analytics_dashboard.py
+  h_07d84030f79d30 14-15
+qa/reports/test_quality_comparison.py
+  h_07d84030f79d30 15-16
+qa/reports/test_quality_distribution_analysis.py
+  h_07d84030f79d30 15-16
+qa/reports/test_quality_improvement_tracking.py
+  h_07d84030f79d30 16-17
+qa/reports/test_quality_trend_analysis.py
+  h_07d84030f79d30 10,12,22,108
+qa/reports/test_section_5_6_2_integration.py
+  h_07d84030f79d30 15-16
+qa/testing/api/test_wait_for_job_failure.py
+  h_07d84030f79d30 54
+qa/testing/comprehensive_test_suite.py
+  h_07d84030f79d30 175-177,181
+qa/testing/legacy_tests/api_tests/test_dataset_api_validation.py
+  h_07d84030f79d30 11,19
+qa/testing/legacy_tests/dataset_pipeline/extractors/test_book_extractor.py
+  h_07d84030f79d30 21,45,52,71,87,97,102-106,111-120,136,138-141,151
+qa/testing/legacy_tests/dataset_pipeline/quality/test_conversation_quality_pattern_analyzer.py
+  h_07d84030f79d30 60,65,138,140,262-264,266,279,451-453,487,506,508,517,533,541,547,549-551,554-555,562-563,565-566,577,589-591,594-595,607,623-624,626-627,636,654,660,662-663,675,686,778,808
+qa/testing/legacy_tests/dataset_pipeline/quality/test_quality_validator.py
+  h_07d84030f79d30 4
+qa/testing/legacy_tests/infrastructure/database/test_conversation_schema.py
+  h_07d84030f79d30 16
+qa/testing/legacy_tests/pkg_mera/test_ccd_integration.py
+  h_07d84030f79d30 463
+qa/testing/legacy_tests/pkg_mera/test_ccd_schema.py
+  h_07d84030f79d30 102-105,168-171,293-295
+qa/testing/legacy_tests/pkg_mera/test_mera.py
+  h_07d84030f79d30 136-138
+qa/testing/legacy_tests/pkg_mera/test_s3_dataset_loader.py
+  h_07d84030f79d30 50,110,129,153,190,194,200,206
+qa/testing/test_api_index.py
+  h_07d84030f79d30 186,192,221
+qa/testing/test_comprehensive_validation.py
+  h_07d84030f79d30 19
+qa/testing/test_defense_endpoint.py
+  h_07d84030f79d30 2
+qa/testing/test_defense_mechanisms.py
+  h_07d84030f79d30 13
+qa/testing/test_emotions_service.py
+  h_07d84030f79d30 96,129,151
+qa/testing/test_inference_integration.py
+  h_07d84030f79d30 20-24,29
+qa/testing/test_input_guard_integration.py
+  h_07d84030f79d30 12
+qa/testing/test_integration_end_to_end.py
+  h_07d84030f79d30 23
+qa/testing/test_orchestration.py
+  h_07d84030f79d30 7-8,23,26-27,44,54,62
+qa/testing/test_performance_large_datasets.py
+  h_07d84030f79d30 30,35,431,433
+qa/testing/test_pix4382_modules.py
+  h_07d84030f79d30 79-80,110,124,136,147,156,162,169,193,201,224,235,252,254,261,270,291
+qa/testing/test_processing_components.py
+  h_07d84030f79d30 25,30,198,426
+qa/testing/test_quality_audit_lineage.py
+  h_07d84030f79d30 215,228,242,249,256,267
+qa/testing/test_safety_filtering_integration.py
+  h_07d84030f79d30 16-22,378
+qa/testing/test_vertical_fidelity_stack.py
+  h_07d84030f79d30 15
+qa/testing/utils/test_youtube_curation.py
+  h_07d84030f79d30 174
+qa/testing/validation_quality_assurance_system.py
+  h_07d84030f79d30 23,479,521,538,557
+qa/validation/conversation_eval_metrics.py
+  h_07d84030f79d30 264,275-276
+qa/validation/cross_condition_transfer.py
+  h_07d84030f79d30 132,138,196,222
+qa/validation/diagnosis_arena/judge.py
+  h_07d84030f79d30 223-234
+qa/validation/diagnosis_arena/leaderboard.py
+  h_07d84030f79d30 41-43,71,84,134-136
+qa/validation/diagnosis_arena/openai_judge.py
+  h_07d84030f79d30 79,117,124-129,165,208-214,281
+qa/validation/diagnosis_arena/pipeline.py
+  h_07d84030f79d30 75
+qa/validation/tests/test_adaption_lora_model.py
+  h_07d84030f79d30 51,133
+qa/validation/therapy_bench/adaption_lora_model.py
+  h_07d84030f79d30 49,85,94,186,201,241,246,271,279,291,321
+qa/validation/therapy_bench/paired_eval.py
+  h_07d84030f79d30 112,526,574,706,707,907
+qa/validation/therapy_bench/run_adaption_eval.py
+  h_07d84030f79d30 43,114,146
+qa/validation/therapy_bench/therapy_bench.py
+  h_07d84030f79d30 369
+receipts/persistence.py
+  h_07d84030f79d30 16,124-126,129-132
+research/DREAM_REFLECTION_GUIDE.md
+  h_07d84030f79d30 70-71,235-237
+research/__init__.py
+  h_07d84030f79d30 7
+research/consolidation/test_rem_dream.py
+  h_07d84030f79d30 117
+research/experiments/evals/therapy_bench/therapy_bench.py
+  h_07d84030f79d30 362
+research/experiments/explainability/model_explainability.py
+  h_07d84030f79d30 11,722
+research/experiments/test_defense_endpoint.py
+  h_07d84030f79d30 2
+research/experiments/tests/comprehensive_test_suite.py
+  h_07d84030f79d30 175-177,181
+research/experiments/tests/dataset_pipeline/quality/test_quality_validator.py
+  h_07d84030f79d30 4
+research/experiments/tests/safety/test_hackathon_safety_processor.py
+  h_07d84030f79d30 20-23
+research/experiments/tests/test_comprehensive_validation.py
+  h_07d84030f79d30 19
+research/experiments/tests/test_defense_mechanisms.py
+  h_07d84030f79d30 13
+research/experiments/tests/test_integration_end_to_end.py
+  h_07d84030f79d30 24,183
+research/experiments/tests/test_performance_large_datasets.py
+  h_07d84030f79d30 30,35,420,422
+research/experiments/tests/test_processing_components.py
+  h_07d84030f79d30 25,30,198,426
+research/experiments/tests/test_production_validation.py
+  h_07d84030f79d30 19,30,41,46,51
+research/experiments/tests/test_safety_filtering_integration.py
+  h_07d84030f79d30 12,19,31-35,384
+research/experiments/tests/validation_quality_assurance_system.py
+  h_07d84030f79d30 23,479,521,538,557
+research/fine_tuning/__init__.py
+  h_07d84030f79d30 11-28
+research/hierarchical_contrastive_learning.py
+  h_07d84030f79d30 115,149,194,206,268,275-276,371
+research/hierarchy_aware_memory.py
+  h_07d84030f79d30 207-215
+research/letta_client.py
+  h_07d84030f79d30 2,33,35,41,59-60,62,65,69,96,98,107,131,171,196,231,253,273,306,310,318
+research/letta_code_client.py
+  h_07d84030f79d30 191
+research/letta_pii_middleware.py
+  h_07d84030f79d30 171
+research/local_foresight_memory_update.py
+  h_07d84030f79d30 3-4
+research/manager_factory.py
+  h_07d84030f79d30 5
+research/nvidia_llm_callback.py
+  h_07d84030f79d30 81-88,107-111
+research/prioritization_service.py
+  h_07d84030f79d30 8-9
+research/reflection/__init__.py
+  h_07d84030f79d30 13-37
+research/reflection_analysis.py
+  h_07d84030f79d30 9
+research/reverie/__init__.py
+  h_07d84030f79d30 17-34
+research/reverie/latent_surfacer.py
+  h_07d84030f79d30 81,137,274
+research/subconscious_readme.md
+  h_07d84030f79d30 17
+research/test_dream_reflection_integration.py
+  h_07d84030f79d30 48
+research/therapeutic_concept_hierarchy.py
+  h_07d84030f79d30 91,246,273,282-284,287,296-297,301,374
+scripts/devops/model-registry.py
+  h_07d84030f79d30 17-18,49-50
+security/fastapi_auth_middleware.py
+  h_07d84030f79d30 236
+services/dream/consolidation.py
+  h_07d84030f79d30 259,298
+sourcing/academic/README.md
+  h_07d84030f79d30 137,149
+sourcing/academic/THERAPY_DATASET_GUIDE.md
+  h_07d84030f79d30 29,44,70-88,101,118,122,131,149,184-185,205,249,258,269,289-295
+sourcing/academic/anonymization/anonymizer.py
+  h_07d84030f79d30 24-26,78-84,87-91,110-116
+sourcing/academic/metadata_extraction/metadata_extractor.py
+  h_07d84030f79d30 122-124
+sourcing/dataset_adapters/ace_nlp_adapter.py
+  h_07d84030f79d30 82
+sourcing/dataset_adapters/addiction_stories_adapter.py
+  h_07d84030f79d30 9,37,79,101,110-112,123,127
+sourcing/dataset_adapters/annomi_adapter.py
+  h_07d84030f79d30 17-18,55,140
+sourcing/dataset_adapters/bbrd_adapter.py
+  h_07d84030f79d30 111,127-128,130,132,134,136
+sourcing/dataset_adapters/bopd_adapter.py
+  h_07d84030f79d30 14,25-27,146-149,162,182,184
+sourcing/dataset_adapters/clinical_redteam_adapter.py
+  h_07d84030f79d30 21,30-31,153,161,190,208
+sourcing/dataset_adapters/crisis_benchmark_adapter.py
+  h_07d84030f79d30 129,178
+sourcing/dataset_adapters/daic_woz_adapter.py
+  h_07d84030f79d30 19-20,25-30,96-97,189,234,236-239
+sourcing/dataset_adapters/dmtcorpus_adapter.py
+  h_07d84030f79d30 96
+sourcing/dataset_adapters/dsm_vector_space_adapter.py
+  h_07d84030f79d30 71
+sourcing/dataset_adapters/empath_adapter.py
+  h_07d84030f79d30 52
+sourcing/dataset_adapters/github_repo_adapter.py
+  h_07d84030f79d30 369-370,579,616
+sourcing/dataset_adapters/kaggle_therapy_adapter.py
+  h_07d84030f79d30 35,39
+sourcing/dataset_adapters/kokorochat_adapter.py
+  h_07d84030f79d30 69
+sourcing/dataset_adapters/mental_health_multiagent_adapter.py
+  h_07d84030f79d30 66
+sourcing/dataset_adapters/mhsafeeval_adapter.py
+  h_07d84030f79d30 81,152
+sourcing/dataset_adapters/mit_psychosis_adapter.py
+  h_07d84030f79d30 76,108
+sourcing/dataset_adapters/ml_bpd_adapter.py
+  h_07d84030f79d30 15,24-29,124,126,128,158,180,182
+sourcing/dataset_adapters/personalitydbench_adapter.py
+  h_07d84030f79d30 16,114-117,132,143,145-148,160,164
+sourcing/dataset_adapters/psy_insight_adapter.py
+  h_07d84030f79d30 68
+sourcing/dataset_adapters/psycheval_adapter.py
+  h_07d84030f79d30 103
+sourcing/dataset_adapters/sim_vail_adapter.py
+  h_07d84030f79d30 132
+sourcing/dataset_adapters/ucl_psych_abuse_adapter.py
+  h_07d84030f79d30 138,177
+sourcing/journal/api/auth/rbac.py
+  h_07d84030f79d30 123,128
+sourcing/journal/api/dependencies.py
+  h_07d84030f79d30 65
+sourcing/journal/api/middleware/auth.py
+  h_07d84030f79d30 82
+sourcing/journal/api/models/acquisition.py
+  h_07d84030f79d30 26,35
+sourcing/journal/api/models/common.py
+  h_07d84030f79d30 56-60
+sourcing/journal/api/models/evaluation.py
+  h_07d84030f79d30 32
+sourcing/journal/api/models/progress.py
+  h_07d84030f79d30 48
+sourcing/journal/api/routers/acquisition.py
+  h_07d84030f79d30 75,80,128,133,164,169,205,210
+sourcing/journal/api/routers/discovery.py
+  h_07d84030f79d30 79,84,138,143,180,185
+sourcing/journal/api/routers/evaluation.py
+  h_07d84030f79d30 79,84,135,140,174,179,222,227
+sourcing/journal/api/routers/integration.py
+  h_07d84030f79d30 76,81,130,135,167,172
+sourcing/journal/api/routers/progress.py
+  h_07d84030f79d30 59,64,93,98,223,235
+sourcing/journal/api/routers/reports.py
+  h_07d84030f79d30 60,65,113,118,149,154
+sourcing/journal/api/routers/sessions.py
+  h_07d84030f79d30 72,107,112,142,147,184,189,209,214
+sourcing/journal/api/routers/training.py
+  h_07d84030f79d30 121,161,280,308
+sourcing/journal/api/routers/training_global.py
+  h_07d84030f79d30 50
+sourcing/journal/api/services/command_handler_service.py
+  h_07d84030f79d30 8
+sourcing/journal/compliance/README.md
+  h_07d84030f79d30 51
+sourcing/journal/compliance/license_checker.py
+  h_07d84030f79d30 453-455
+sourcing/journal/discovery/doaj_client.py
+  h_07d84030f79d30 302
+sourcing/journal/discovery/metadata_parser.py
+  h_07d84030f79d30 156
+sourcing/journal/discovery/pubmed_client.py
+  h_07d84030f79d30 339
+sourcing/journal/discovery/repository_clients.py
+  h_07d84030f79d30 183,358,543
+sourcing/journal/integration/README.md
+  h_07d84030f79d30 163,168
+sourcing/journal/integration/integration_planning_engine.py
+  h_07d84030f79d30 91,103,133,171,203,223,244,259,313,368,380,402,425-427,431-432,498,512,527,529,700,704,746,749,751,787,939,944
+sourcing/journal/mcp/auth/authentication.py
+  h_07d84030f79d30 188,192-193,197,202,208,274,279
+sourcing/journal/mcp/prompts/__init__.py
+  h_07d84030f79d30 16-18,20,22-24
+sourcing/journal/mcp/resources/__init__.py
+  h_07d84030f79d30 22-23,25,31-33
+sourcing/journal/mcp/resources/metrics.py
+  h_07d84030f79d30 90,94,100
+sourcing/journal/mcp/resources/progress.py
+  h_07d84030f79d30 78,82,88,171,175,181
+sourcing/journal/mcp/resources/sessions.py
+  h_07d84030f79d30 78,82,88
+sourcing/journal/mcp/server.py
+  h_07d84030f79d30 901
+sourcing/journal/mcp/tools/discovery.py
+  h_07d84030f79d30 554,561
+sourcing/journal/mcp/utils/async_execution.py
+  h_07d84030f79d30 156,163,165,177
+sourcing/journal/mcp/utils/error_handling.py
+  h_07d84030f79d30 303
+sourcing/journal/mcp/utils/security.py
+  h_07d84030f79d30 270
+sourcing/processors/pii_stripper.py
+  h_07d84030f79d30 47-53,55-61,114-120
+sourcing/processors/toxicity_filter.py
+  h_07d84030f79d30 27-37,42-51,55-63,67-78,82-90,94-99,154,191-199,222
+sourcing/research_system/README.md
+  h_07d84030f79d30 151,174
+sourcing/research_system/source_discovery/base_client.py
+  h_07d84030f79d30 262,274
+sourcing/research_system/source_discovery/doaj_client.py
+  h_07d84030f79d30 80
+sourcing/research_system/source_discovery/pubmed_client.py
+  h_07d84030f79d30 378
+sourcing/research_system/source_discovery/repository_clients.py
+  h_07d84030f79d30 117,278,456
+sourcing/scripts/run_safety_scan.py
+  h_07d84030f79d30 91,128-129
+sourcing/tests/test_bbrd_adapter.py
+  h_07d84030f79d30 13-14,63,69,78,101
+sourcing/tests/test_clinical_redteam_adapter.py
+  h_07d84030f79d30 17,20-24,180,183,201,206,248-249,295
+sourcing/tests/test_github_repo_adapter.py
+  h_07d84030f79d30 72-75,185-189,201-205,216-220,234-238,248-252,262-266,276-280,334-336
+sourcing/tests/test_kaggle_therapy_adapter.py
+  h_07d84030f79d30 23-26,43,139-144
+sourcing/tests/test_ml_bpd_adapter.py
+  h_07d84030f79d30 13-14,161,167,175,234,238
+sourcing/tests/test_personalitydbench_adapter.py
+  h_07d84030f79d30 13-15,92,97,102,106-107,126
+sourcing/utils/converters.py
+  h_07d84030f79d30 12-13,121-125,137,141-144,147,201-205,217,221-224,227
+tests/api/test_wait_for_job_failure.py
+  h_07d84030f79d30 54
+tests/api_tests/test_dataset_api_validation.py
+  h_07d84030f79d30 11,19
+tests/comprehensive_test_suite.py
+  h_07d84030f79d30 175-177,181
+tests/dataset_pipeline/extractors/test_book_extractor.py
+  h_07d84030f79d30 21,45,52,71,87,97,102-106,111-120,136,138-141,151
+tests/dataset_pipeline/quality/test_conversation_quality_pattern_analyzer.py
+  h_07d84030f79d30 60,65,138,140,262-264,266,279,451-453,487,506,508,517,533,541,547,549-551,554-555,562-563,565-566,577,589-591,594-595,607,623-624,626-627,636,654,660,662-663,675,686,778,808
+tests/dataset_pipeline/quality/test_quality_validator.py
+  h_07d84030f79d30 4
+tests/infrastructure/database/test_conversation_schema.py
+  h_07d84030f79d30 16
+tests/test_api_index.py
+  h_07d84030f79d30 186,192,221
+tests/test_ccd_integration.py
+  h_07d84030f79d30 458
+tests/test_ccd_schema.py
+  h_07d84030f79d30 102-105,168-171,293-295
+tests/test_mera.py
+  h_07d84030f79d30 136-138
+tests/test_orchestration.py
+  h_07d84030f79d30 7-8,23,26-27,44,54,62
+tests/test_performance_large_datasets.py
+  h_07d84030f79d30 428,430
+tests/test_processing_components.py
+  h_07d84030f79d30 195,423
+tests/test_safety_filtering_integration.py
+  h_07d84030f79d30 16-22,378
+tests/training/mcp/test_control_plane.py
+  h_07d84030f79d30 1-1147
+tests/training/mcp/test_foresight.py
+  h_07d84030f79d30 1-145
+tests/utils/test_s3_dataset_loader.py
+  h_07d84030f79d30 50,110,129,153,190,194,200,206
+tests/utils/test_youtube_curation.py
+  h_07d84030f79d30 174
+tests/validation_quality_assurance_system.py
+  h_07d84030f79d30 475,517,534,553
+tools/DataDesigner/STYLEGUIDE.md
+  h_07d84030f79d30 65,70,95,100,103-104,131,135,139,221,225,230,234,241,245,252,256,260,286,289,406,422,426,430,468
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/config_builder.py
+  h_07d84030f79d30 351,355
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/processors.py
+  h_07d84030f79d30 110
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/sampler_params.py
+  h_07d84030f79d30 123-124
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/io_helpers.py
+  h_07d84030f79d30 61
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/misc.py
+  h_07d84030f79d30 31
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/type_helpers.py
+  h_07d84030f79d30 100-101
+tools/DataDesigner/packages/data-designer-config/src/data_designer/config/utils/visualization.py
+  h_07d84030f79d30 213-214
+tools/DataDesigner/packages/data-designer-config/src/data_designer/plugins/plugin.py
+  h_07d84030f79d30 56,59,68-69,130-131,174-175
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/column_generators/utils/prompt_renderer.py
+  h_07d84030f79d30 82
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/model_provider.py
+  h_07d84030f79d30 52-53,107-108
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/processing/ginja/environment.py
+  h_07d84030f79d30 393-396,512,514
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/resources/seed_reader.py
+  h_07d84030f79d30 754-755
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/sampling_gen/data_sources/base.py
+  h_07d84030f79d30 116
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/sampling_gen/data_sources/sources.py
+  h_07d84030f79d30 343,346
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/sampling_gen/entities/phone_number.py
+  h_07d84030f79d30 47-48
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/secret_resolver.py
+  h_07d84030f79d30 35-36,43,46
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/validators/local_callable.py
+  h_07d84030f79d30 29
+tools/DataDesigner/packages/data-designer-engine/src/data_designer/engine/validators/python.py
+  h_07d84030f79d30 211
+tools/DataDesigner/packages/data-designer-engine/tests/engine/models/clients/test_anthropic.py
+  h_07d84030f79d30 11
+tools/DataDesigner/packages/data-designer-engine/tests/engine/models/clients/test_native_http_clients.py
+  h_07d84030f79d30 11
+tools/DataDesigner/packages/data-designer-engine/tests/engine/models/clients/test_openai_compatible.py
+  h_07d84030f79d30 10
+tools/DataDesigner/packages/data-designer/src/data_designer/cli/commands/agent.py
+  h_07d84030f79d30 55,58
+tools/DataDesigner/packages/data-designer/src/data_designer/cli/controllers/generation_controller.py
+  h_07d84030f79d30 71,113,116,142,145,208,227,256,264,306
+tools/DataDesigner/packages/data-designer/src/data_designer/cli/controllers/plugin_catalog_controller.py
+  h_07d84030f79d30 210,241,276,304,330,360,363,374,382,399,418,439,745
+tools/DataDesigner/packages/data-designer/src/data_designer/integrations/huggingface/client.py
+  h_07d84030f79d30 492,502
+tools/DataDesigner/plans/343/model-facade-overhaul-plan-step-1.md
+  h_07d84030f79d30 434,836,848,873,910
+tools/DataDesigner/plans/343/model-facade-overhaul-pr-6-architecture-notes.md
+  h_07d84030f79d30 309,545
+tools/DataDesigner/plans/346/code-sketches.md
+  h_07d84030f79d30 12-13,15,95,123-126,149,158
+tools/DataDesigner/plans/392/refactor_managed_personas_plan.md
+  h_07d84030f79d30 22,91
+tools/DataDesigner/plans/396/trace-visualization.md
+  h_07d84030f79d30 53-58,90,96,101,157,221
+tools/DataDesigner/plans/479/skip-when-conditional-generation.md
+  h_07d84030f79d30 154,158,166,173,186,294,308,326,331,339,365,369,379,383,407,432,485,502-504,582,605
+tools/DataDesigner/plans/790/engine-native-record-selection.md
+  h_07d84030f79d30 183
+tools/DataDesigner/plans/check-models/check-models-plan.md
+  h_07d84030f79d30 113,130,136
+tools/DataDesigner/plans/remote-filesystem-seeds/remote-filesystem-seeds-plan.md
+  h_07d84030f79d30 126,217,408,437,455,469,485,577
+tools/DataDesigner/plans/workflow-chaining/workflow-chaining.md
+  h_07d84030f79d30 59,61,79-80,127,308-310,317-321,339,348,393-394,479
+tools/DataDesigner/skills/data-designer/references/person-sampling.md
+  h_07d84030f79d30 20-26,29-43
+tools/generators/abliterated_crisis_generator.py
+  h_07d84030f79d30 421-425
+tools/scripts/auth.py
+  h_07d84030f79d30 9,126,550,552-555,557-567,570-571,573,576,579-589,591-597,601,603-609,611-612,614-616
+tools/scripts/bottleneck_resolution_orchestrator.py
+  h_07d84030f79d30 65,73,81,85,93
+tools/scripts/clean_final_dataset.py
+  h_07d84030f79d30 81-84
+tools/scripts/commands/auth.py
+  h_07d84030f79d30 9,13-15
+tools/scripts/commands/cli_interface.py
+  h_07d84030f79d30 15-17
+tools/scripts/commands/config.py
+  h_07d84030f79d30 18-19
+tools/scripts/commands/mcp_connect.py
+  h_07d84030f79d30 14-16
+tools/scripts/commands/pipeline.py
+  h_07d84030f79d30 15-17
+tools/scripts/commands/web_frontend.py
+  h_07d84030f79d30 17-19
+tools/scripts/config.py
+  h_07d84030f79d30 15-17,48-50,55-57,73-75,90-92,110-112,128-130,287-289,294-295,518-520,525-527
+tools/scripts/dataset_deduplication.py
+  h_07d84030f79d30 15
+tools/scripts/dataset_deduplication_rclone.py
+  h_07d84030f79d30 16
+tools/scripts/dataset_quality_scorer.py
+  h_07d84030f79d30 13
+tools/scripts/dataset_quality_scorer_rclone.py
+  h_07d84030f79d30 14
+tools/scripts/dataset_sync_verification.py
+  h_07d84030f79d30 14
+tools/scripts/dataset_sync_verification_rclone.py
+  h_07d84030f79d30 14
+tools/scripts/dataset_usage_tracker.py
+  h_07d84030f79d30 6,15,47,226,238,282,315,317-318,352-353
+tools/scripts/dataset_validation.py
+  h_07d84030f79d30 16
+tools/scripts/dataset_validation_rclone.py
+  h_07d84030f79d30 14,184-186
+tools/scripts/devops/model-registry.py
+  h_07d84030f79d30 17-18,49-50
+tools/scripts/emergency_s3_migration.py
+  h_07d84030f79d30 6
+tools/scripts/enhance_dataset_registry.py
+  h_07d84030f79d30 13
+tools/scripts/exceptions.py
+  h_07d84030f79d30 19-22
+tools/scripts/fastapi_auth_middleware.py
+  h_07d84030f79d30 236
+tools/scripts/fixed_refined_agent.py
+  h_07d84030f79d30 11-12
+tools/scripts/full_ai_sweep_s3.py
+  h_07d84030f79d30 7
+tools/scripts/lightning_studio_setup.py
+  h_07d84030f79d30 62,70,78,85
+tools/scripts/monitor_processing.py
+  h_07d84030f79d30 23,44
+tools/scripts/monitor_sweep.py
+  h_07d84030f79d30 8
+tools/scripts/orchestrate_registry_enhancements.py
+  h_07d84030f79d30 15
+tools/scripts/prepare_finetuning_dataset_guide.md
+  h_07d84030f79d30 188-189,199
+tools/scripts/process_all_datasets.py
+  h_07d84030f79d30 16
+tools/scripts/process_priority_5.py
+  h_07d84030f79d30 14-21
+tools/scripts/rclone_boto3_shim.py
+  h_07d84030f79d30 72,78,90
+tools/scripts/rclone_dataset_accessor.py
+  h_07d84030f79d30 43
+tools/scripts/safety_monitoring_system.py
+  h_07d84030f79d30 304-308
+tools/scripts/security_config_validator.py
+  h_07d84030f79d30 7
+tools/scripts/setup_production_database.py
+  h_07d84030f79d30 143-145
+tools/scripts/test_docker_postgres.py
+  h_07d84030f79d30 8,17,69
+tools/scripts/tests/__init__.py
+  h_07d84030f79d30 21-24,158-183
+tools/scripts/tests/conftest.py
+  h_07d84030f79d30 1-24
+tools/scripts/tests/test_auth.py
+  h_07d84030f79d30 10-11
+tools/scripts/tests/test_config.py
+  h_07d84030f79d30 9-10
+tools/scripts/tests/test_main.py
+  h_07d84030f79d30 11-12
+tools/scripts/tests/test_progress.py
+  h_07d84030f79d30 8
+tools/scripts/update_domains.py
+  h_07d84030f79d30 8
+tools/scripts/update_registry_paths.py
+  h_07d84030f79d30 10
+tools/scripts/utils.py
+  h_07d84030f79d30 26-38,52,98,239,267,381
+tools/utilities/common/llm_client.py
+  h_07d84030f79d30 96,99,296
+tools/utilities/core/pipelines/acquisition_rubric.py
+  h_07d84030f79d30 477-479
+tools/utilities/core/pipelines/clinical_accuracy_validator.py
+  h_07d84030f79d30 26-40,43-55,59-69,72-88,92-105
+tools/utilities/core/pipelines/human_review_queue.py
+  h_07d84030f79d30 630
+tools/utilities/core/pipelines/inference/candidate_retrieval.py
+  h_07d84030f79d30 133,174,203-207,272,279-285
+tools/utilities/core/pipelines/inference/evidence_scoring.py
+  h_07d84030f79d30 106,116,138,161,225,295
+tools/utilities/core/pipelines/privacy_content_gates.py
+  h_07d84030f79d30 64,703
+tools/utilities/core/pipelines/processing/clean.py
+  h_07d84030f79d30 174
+tools/utilities/core/pipelines/processing/pii_scrubber.py
+  h_07d84030f79d30 165,309
+tools/utilities/core/pipelines/processing/stage_slicer_enhanced.py
+  h_07d84030f79d30 385
+tools/utilities/core/pipelines/quality/conversation_quality_pattern_analyzer.py
+  h_07d84030f79d30 53,252,281,321,409,440-443,480,501,637,659,661,677-697,716,719,943-952,1006,1015,1046,1059,1066,1084-1099,1108-1138,1140,1152-1164,1173-1184,1219-1230,1241-1253,1257,1292-1304,1312-1320,1324,1335-1345,1360-1368,1376-1397,1402,1411-1421,1428-1437,1447-1455,1460-1476,1479-1491,1497-1541,1543,1548-1562,1565-1578
+tools/utilities/core/pipelines/sourcing/crisis_expansion.py
+  h_07d84030f79d30 483-485,653,700-710,727,729-738
+tools/utilities/core/pipelines/test_packaging.py
+  h_07d84030f79d30 132
+tools/utilities/core/utils/s3_dataset_loader.py
+  h_07d84030f79d30 218-224
+tools/utilities/core/utils/transcript_corrector.py
+  h_07d84030f79d30 30
+tools/utilities/pipelines/human_review_queue.py
+  h_07d84030f79d30 630
+tools/utilities/pipelines/inference/candidate_retrieval.py
+  h_07d84030f79d30 133,174,203-207,272,279-285
+tools/utilities/pipelines/inference/evidence_scoring.py
+  h_07d84030f79d30 20,106,116,138,161,225,295
+tools/utilities/pipelines/privacy_content_gates.py
+  h_07d84030f79d30 64,703
+tools/utilities/pipelines/processing/quality_validator.py
+  h_07d84030f79d30 7-10
+tools/utilities/pipelines/processing/stage_slicer_enhanced.py
+  h_07d84030f79d30 385
+tools/utilities/pipelines/quality/conversation_quality_pattern_analyzer.py
+  h_07d84030f79d30 53,252,281,321,409,440-443,480,501,637,659,661,677-697,716,719,934-943,997,1006,1037,1050,1057,1075-1090,1099-1129,1131,1143-1155,1164-1175,1210-1221,1232-1244,1248,1283-1295,1303-1311,1315,1326-1336,1351-1359,1367-1388,1393,1402-1412,1419-1428,1438-1446,1451-1467,1470-1482
+tools/utilities/pipelines/sourcing/crisis_expansion.py
+  h_07d84030f79d30 481,654
+tools/utilities/pixelated_empathy_platform.py
+  h_07d84030f79d30 11
+tools/utilities/platform/deep_rare/agents/test_interpreter.py
+  h_07d84030f79d30 134
+tools/utilities/platform/mental_ift_orchestrator.py
+  h_07d84030f79d30 27
+tools/utilities/platform/mera/contrastive.py
+  h_07d84030f79d30 98,111-113,214,261-273,288,291,296-301,322,338-341,343,362,441
+tools/utilities/platform/mera/hierarchy.py
+  h_07d84030f79d30 215,229-237,283-285,290-303,306-326,337-339,343-349,351-353,358-387,389-391,394-400,412-421,424-430,448-453,492-498,503-516,518-524,527-533,543-549,557-563,571-577,584-590,621-630,638-647,654-663
+tools/utilities/platform/mera/memorize.py
+  h_07d84030f79d30 39,43,57,62-63,72,99,118,133,136
+tools/utilities/platform/mera/pipeline.py
+  h_07d84030f79d30 28
+tools/utilities/platform/mera/rank.py
+  h_07d84030f79d30 68,98,100
+tools/utilities/rare_disease/agents/literature_matcher.py
+  h_07d84030f79d30 55
+tools/utilities/rare_disease/agents/symptom_analyzer.py
+  h_07d84030f79d30 32
+tools/utilities/rare_disease/agents/test_interpreter.py
+  h_07d84030f79d30 24,31-38,45,61
+tools/utilities/rare_disease/differential.py
+  h_07d84030f79d30 6,8,28
+tools/utilities/rare_disease/evaluation.py
+  h_07d84030f79d30 44-45
+tools/utilities/rare_disease/knowledge_base.py
+  h_07d84030f79d30 13,26,32,38,41,86,119,136,149
+tools/utilities/rare_disease/orchestrator.py
+  h_07d84030f79d30 10,116-128
+tools/utilities/rare_disease/pipeline.py
+  h_07d84030f79d30 6,50,53
+tools/utilities/text_segmentation.py
+  h_07d84030f79d30 47,65-66,69
+tools/utilities/torch_proxy.py
+  h_07d84030f79d30 33
+tools/utilities/ui/conversation_interface_components.py
+  h_07d84030f79d30 11
+tools/utilities/utils/s3_dataset_loader.py
+  h_07d84030f79d30 218-224
+tools/utilities/utils/transcript_corrector.py
+  h_07d84030f79d30 30
+training/FEEDBACK_LOOP_GUIDE.md
+  h_07d84030f79d30 157,293
+training/ab_test_validity_gating.py
+  h_07d84030f79d30 195
+training/adjudicate_flags.py
+  h_07d84030f79d30 156,159-169,220-227,282,289-336,465,490,497,508,521-522,528-542,568-575,638,663,667-669,673-674,696
+training/adjudicate_reaudit.py
+  h_07d84030f79d30 3,10-15
+training/adjudicate_shard.py
+  h_07d84030f79d30 9
+training/annotation/iaa.py
+  h_07d84030f79d30 120,122,152,198,321,329,340,351,361,364,366,371-372,417,421,425,429,516,553,562,600
+training/apply_research_target_repairs.py
+  h_07d84030f79d30 1-157
+training/audit_v4_arc_lineage.py
+  h_07d84030f79d30 53,100-103,207-225
+training/backup_v10_checkpoints.py
+  h_07d84030f79d30 11,13-14,17-20,26-27,34,37-38,42,44,47-49,51,53,56-57,59,61-64,66-67,69,71-72
+training/backup_v5_checkpoints.py
+  h_07d84030f79d30 10,12-13,16-18,24-25,30,34-36,38,40,43-44,46,48-51,53,55
+training/backup_v6_checkpoints.py
+  h_07d84030f79d30 11,13-14,17-20,26-27,34,37-38,42,44,47-49,51,53,56-57,59,61-64,66-67,69,71-72
+training/backup_v7_checkpoints.py
+  h_07d84030f79d30 11,13-14,17-20,26-27,34,37-38,42,44,47-49,51,53,56-57,59,61-64,66-67,69,71-72
+training/backup_v8_checkpoints.py
+  h_07d84030f79d30 11,13-14,17-20,26-27,34,37-38,42,44,47-49,51,53,56-57,59,61-64,66-67,69,71-72
+training/backup_v9_checkpoints.py
+  h_07d84030f79d30 11,13-14,17-20,26-27,34,37-38,42,44,47-49,51,53,56-57,59,61-64,66-67,69,71-72
+training/batch_yt_transcripts.py
+  h_07d84030f79d30 138
+training/book_pdf_converter.py
+  h_07d84030f79d30 33-34,94,233,347,351,362,388,430,695,702
+training/build_agent_tool_prompt_disjoint_eval.py
+  h_07d84030f79d30 153
+training/build_agent_tool_sft.py
+  h_07d84030f79d30 522-524
+training/build_agent_tool_sft_v3.py
+  h_07d84030f79d30 215-220,243-245,285-290,317-322,371-388,494-496
+training/build_agent_tool_sft_v4.py
+  h_07d84030f79d30 233-235,255-260,265-270,273-281,284-289,295-303,308-314,343-345,387-390,433-435
+training/build_agent_tool_sft_v5.py
+  h_07d84030f79d30 54,251-256
+training/build_agent_tool_sft_v6.py
+  h_07d84030f79d30 127-132,221
+training/build_agent_tool_sft_v7.py
+  h_07d84030f79d30 74
+training/build_arc_dpo.py
+  h_07d84030f79d30 139
+training/build_arc_plans.py
+  h_07d84030f79d30 19,36-38,46,141,156,171-176,180-185,187,237,240-244,256-257,259-263,285-289,300,320-323,337,340,344,349,361-363,367,373,383,389,414,419-420,424-430,434,448-450,455,459,466,474,478,481-485,492,500-505,512,517-525,545,550-556,561-578,586-587,592,594-598,600,606-618,620,626-630,633-638,641-653,656,662-668
+training/build_clinical_backed_examples.py
+  h_07d84030f79d30 57-74,79-93,143,148,152,216-227,299-308
+training/build_crisis_benchmark_ablation.py
+  h_07d84030f79d30 29,115,222,281
+training/build_edge_and_nightmare_dataset.py
+  h_07d84030f79d30 252,259,262,284,464,469-470,473,483,499,507-508,515,583,593,642
+training/build_full_candidate_release.py
+  h_07d84030f79d30 276
+training/build_full_candidate_release_v4_driver.py
+  h_07d84030f79d30 29,48-55
+training/build_pilot_arc_plans.py
+  h_07d84030f79d30 15,23-31,35,56-57,59-65,67-78,86-90,92-146,148-152,161-175,177-188,197-201,203-261,263-267,276-290,292-303,307-311,315-319,321-379,381-385,394-408,410-427,436-440,442-493,495-499,508-522,524-535,540-544,548-552,554-605,607-611,620-621,623-629,631-642,651-655,657-708,710-714,723-724,726-732,734-739,743-747,752-756,758-795,797-801,810-824,826-837,842-846,850-854,856-907,909-913,922-936,938-955,959-963,968-972,974-1018,1020-1024,1033-1034,1036-1042,1044-1055,1064-1068,1070-1121,1123-1127,1131,1138-1150,1177-1179,1187-1189,1191-1193
+training/build_v18_release.py
+  h_07d84030f79d30 179-181
+training/build_vera_mh_golden.py
+  h_07d84030f79d30 85-93,157-178
+training/build_wandb_shuffled_full_corpus_variant.py
+  h_07d84030f79d30 23
+training/cliche_gate.py
+  h_07d84030f79d30 103,113
+training/clinical_safety_checker.py
+  h_07d84030f79d30 76,81,83
+training/clinical_validity_judge.py
+  h_07d84030f79d30 233,243,336,416,418
+training/clinical_validity_judge_async.py
+  h_07d84030f79d30 59,73
+training/consolidate_arc_corpus.py
+  h_07d84030f79d30 195-197
+training/consolidate_distilled_corpus.py
+  h_07d84030f79d30 8,16-23,29-30,36,38,44-45,68,72-73,77,84,87,94,97-98,101,108
+training/contextual_support_policy.py
+  h_07d84030f79d30 1761,1840,1865,1879,1901,1921,2129,2607
+training/create_test_epub.py
+  h_07d84030f79d30 29
+training/crisis_target_audit.py
+  h_07d84030f79d30 1-21,22-27,28-97,98,99-136,137-142,143,144-154,155,156-158,159-242
+training/curate_pipeline.py
+  h_07d84030f79d30 103-106,113-115,313,323,399-400,403-409,425,440-441,449-454,464,484,630,671
+training/data_audit.py
+  h_07d84030f79d30 134-137,174-178
+training/data_versioning.py
+  h_07d84030f79d30 45,112
+training/dataloader_callback.py
+  h_07d84030f79d30 6,17,29-30,37-39,45-47,53-54
+training/dataset_analytics.py
+  h_07d84030f79d30 17,32,34-35,51,57-59,67-69,83
+training/dataset_evaluator.py
+  h_07d84030f79d30 12,44,46-47,64,73,80,99
+training/dataset_splitter_stratified.py
+  h_07d84030f79d30 110,113,152,254,257,259,267,310-314,346,356
+training/dedup_normalize.py
+  h_07d84030f79d30 169
+training/distill_model.py
+  h_07d84030f79d30 51,91,135-137,143-150,164,191,246,319-326,344-351,387-392,461,494-496
+training/domain_augmentation.py
+  h_07d84030f79d30 9,287
+training/dual_judge.py
+  h_07d84030f79d30 79,85,276,310,579,593-608,701-713,811,841,848,936,940,971,1042,1051,1068,1078,1098,1179
+training/eval_audit_models.py
+  h_07d84030f79d30 60,64-66,70,72,87-88,111-113,127-136,201,209-211,217-222,228,230-232,237-238,260,277,282-293,302,308-311,313-318
+training/eval_boulesis_vs_ornith.py
+  h_07d84030f79d30 84,146,268-275,301,342,374,413-415,433-436,496,507,596,607,616-633,668-671,690
+training/eval_clef.py
+  h_07d84030f79d30 288
+training/evaluate_finetuned_model.py
+  h_07d84030f79d30 23,212,214,216,218,220,244,272,369-376,380,404-409,413-416,438
+training/export_adaption_run2.py
+  h_07d84030f79d30 79-82,108,110-112,126-129
+training/export_research_target_repairs.py
+  h_07d84030f79d30 1-181
+training/featherless_keys.py
+  h_07d84030f79d30 33
+training/feedback_loop.py
+  h_07d84030f79d30 38,47,277,366,368,456,553-554,567,602,611,614,625
+training/finetune_model.py
+  h_07d84030f79d30 69,125,220,282,320,395,469,644
+training/forge/client.py
+  h_07d84030f79d30 23,112,135,153,167,174,207,266,271,315
+training/forge/config.py
+  h_07d84030f79d30 28,32,41,49
+training/forge/quota_optimizer.py
+  h_07d84030f79d30 65,103,110-111,119,126
+training/forge/rl_runner.py
+  h_07d84030f79d30 82,88,108,134-136,139
+training/generalized_sdg_pipeline.py
+  h_07d84030f79d30 16,27,52-55,59,69,97-99,108-110,113-115,121,130-133
+training/generate_arc_corpus.py
+  h_07d84030f79d30 1018
+training/grpo_trainer.py
+  h_07d84030f79d30 40-102,186-195,229-231
+training/import_ratings.py
+  h_07d84030f79d30 130-142
+training/ingest_router.py
+  h_07d84030f79d30 129,143,788,867,915,991,1028,1037,1050,1061,1138-1139,1150
+training/judge_edge_and_nightmare.py
+  h_07d84030f79d30 64-75,229-231,300-303,318-330,365-368,386-389,400-404
+training/kaggle_v22_qwen3_8b/train.py
+  h_07d84030f79d30 156-158,162,166-169
+training/launch/arc_sft_launch.py
+  h_07d84030f79d30 8-9
+training/launch/crisis_eval_diagnostics.py
+  h_07d84030f79d30 1-192
+training/launch/wandb_agent_tool_sft.py
+  h_07d84030f79d30 266-268,315-317,394-399
+training/launch/wandb_sft_g04.py
+  h_07d84030f79d30 552,582
+training/launch/wandb_sft_upload_v4.py
+  h_07d84030f79d30 78
+training/launch/wandb_sft_v10_execute.py
+  h_07d84030f79d30 87,110,117,140,159
+training/launch/wandb_sft_v12_execute.py
+  h_07d84030f79d30 87,110,117,140,159
+training/launch/wandb_sft_v13_execute.py
+  h_07d84030f79d30 88,111,118,141,160
+training/launch/wandb_sft_v6.py
+  h_07d84030f79d30 22
+training/launch/wandb_sft_v6_execute.py
+  h_07d84030f79d30 109,116,139
+training/launch/wandb_sft_v7_execute.py
+  h_07d84030f79d30 114,121,144
+training/launch/wandb_sft_v8_execute.py
+  h_07d84030f79d30 87,110,117,140,159
+training/lint_arc_plans.py
+  h_07d84030f79d30 21,31,46-58,60-68,70,98-114,117-129,204-206,219-224,226,228,230,234-236,258,260-262,266,269,279,281,285,289,295,298,302-303,307,309,311-313,316,326,333,336,338-340,346,363,370,372-373,375-376,378-381,385,391,396,398,401-402,406,446-450,463,477,482-483,486,516-518,537,539-543,547-551,560-565,567,571,582-586,591-594,608,620,633
+training/llm_quality_judge.py
+  h_07d84030f79d30 273,276,285,295,455,539-540,542,556-557,593-594,621,623,678,706,717,719
+training/long_running_pipeline.py
+  h_07d84030f79d30 12,26,70,81,87,93-94,99,111
+training/mcp/.env.example
+  h_07d84030f79d30 1-56
+training/mcp/.gitignore
+  h_07d84030f79d30 1-20
+training/mcp/MULTI_NODE_DECISION.md
+  h_07d84030f79d30 1-65
+training/mcp/README.md
+  h_07d84030f79d30 1-77
+training/mcp/RECIPE_WORKFLOW.md
+  h_07d84030f79d30 1-111
+training/mcp/RUNBOOK.md
+  h_07d84030f79d30 1-250
+training/mcp/__init__.py
+  h_07d84030f79d30 1-6
+training/mcp/__main__.py
+  h_07d84030f79d30 1-6
+training/mcp/backends.py
+  h_07d84030f79d30 1-442
+training/mcp/config.py
+  h_07d84030f79d30 1-157
+training/mcp/db.py
+  h_07d84030f79d30 1-400
+training/mcp/deploy/training-infra-mcp.service
+  h_07d84030f79d30 1-19
+training/mcp/foresight.py
+  h_07d84030f79d30 1-147
+training/mcp/plan.py
+  h_07d84030f79d30 1-180
+training/mcp/recipes.py
+  h_07d84030f79d30 1-194
+training/mcp/recipes.yaml
+  h_07d84030f79d30 1-132
+training/mcp/runner.py
+  h_07d84030f79d30 1-402
+training/mcp/server.py
+  h_07d84030f79d30 1-803
+training/mcp/sync.py
+  h_07d84030f79d30 1-212
+training/mental_health_eval.py
+  h_07d84030f79d30 47-64,144-160,168-178
+training/mental_health_instruction_dataset.py
+  h_07d84030f79d30 384
+training/mental_ift_trainer.py
+  h_07d84030f79d30 23,246-248,250-252
+training/merge_lane_checkpoints.py
+  h_07d84030f79d30 51-54
+training/multilingual_safety_checker.py
+  h_07d84030f79d30 44,55,137,142,144
+training/nightmare_fuel_generator.py
+  h_07d84030f79d30 50-58,260,605-606,639-641,683,810,812-815,883-884,918,945,952,955-966,968
+training/nightmare_judge_receipts.py
+  h_07d84030f79d30 1-157
+training/nightmare_records.py
+  h_07d84030f79d30 1-17
+training/nightmare_recovery.py
+  h_07d84030f79d30 1-75
+training/ollama_judge.py
+  h_07d84030f79d30 2,118
+training/orpo_trainer.py
+  h_07d84030f79d30 393
+training/parse_transcripts.py
+  h_07d84030f79d30 34-57,66-110,115-117,125-128,139-163
+training/pixelated_production_pilot.py
+  h_07d84030f79d30 254
+training/probe_arc_bakeoff.py
+  h_07d84030f79d30 13,26-28,48-52,54-55,63-64,103-105,112,131-140,159,171-173,249-255,257-263
+training/probe_arc_writer.py
+  h_07d84030f79d30 12,24-26,46-50,52-53,62-63,102-104,111,168
+training/probe_new_judges.py
+  h_07d84030f79d30 7,52-65,67,79-86
+training/probe_secondary_judge.py
+  h_07d84030f79d30 76-79,110-122,124,126-131,141-148
+training/prune_adapter.py
+  h_07d84030f79d30 75,91,211,262-266,319,374,492-494
+training/quantize_model.py
+  h_07d84030f79d30 52,103,149,201,249-250,279,331,347,474-476,479-481
+training/reconstruct_missing_plans.py
+  h_07d84030f79d30 38,75-90,405-406,411,482,571,670,692-707,724-731,749,753,768,790-805,828,831,928,1006-1012,1018,1023,1053-1057,1066,1157,1162-1164,1173,1175-1186,1265-1268,1285,1296-1298,1346,1366-1371,1386,1439-1446,1466-1471,1505,1523-1536,1540,1543,1565,1567,1578-1580,1587-1591,1593-1594,1600-1602,1621-1629,1631,1633-1635,1646,1698-1699,1714-1722,1730-1731,1733-1734,1742-1748,1751-1758,1773-1780,1782,1795-1808,1844-1851,1854-1864,1870,1878,1893-1897,1918,1924,1931-1935,1937-1945,1974,1976,1980,1994,2002,2007,2014-2016,2018-2029,2031,2034-2044,2046-2053,2055-2056,2058-2059,2061-2085,2088-2089,2091-2102,2106-2119
+training/release_manifest.py
+  h_07d84030f79d30 87,89,119,263-264
+training/repair_full_candidate_rows.py
+  h_07d84030f79d30 354,438-441
+training/reward_score.py
+  h_07d84030f79d30 3
+training/run_nightmare_fuel_distillation.py
+  h_07d84030f79d30 2,6,9-10,12,21-26,33,35-70,73
+training/sample_corpus_slice.py
+  h_07d84030f79d30 37-38,60,96
+training/scripts/sprint8/fsdp2_trial.py
+  h_07d84030f79d30 145,157
+training/scripts/sprint8/hsdp_cp_trial.py
+  h_07d84030f79d30 205
+training/scripts/sprint8/megatron_trial.py
+  h_07d84030f79d30 148,270-272
+training/scripts/sprint8/moe_ep_trial.py
+  h_07d84030f79d30 264-270,375-381
+training/scripts/train_rl_serverless.py
+  h_07d84030f79d30 19,24
+training/scripts/train_sft_serverless.py
+  h_07d84030f79d30 19,24
+training/sdg_back_translation.py
+  h_07d84030f79d30 72,203,324-326,367,394
+training/sdg_paraphrase.py
+  h_07d84030f79d30 8,37-38,59,78,150
+training/sdg_pipeline.py
+  h_07d84030f79d30 1049,1077,1951
+training/sdg_self_instruct.py
+  h_07d84030f79d30 57,236
+training/stage1_filters.py
+  h_07d84030f79d30 364,536,542,548,560,564,667,672,761,823,905,1108
+training/stream_staged_edge_assets.py
+  h_07d84030f79d30 53-63,66-75,78-87,90-99,102-111,114-122,125-133,136-144,147-155,158-166,180-228,232-241,323,413-420,459-466
+training/synth_qc_gate.py
+  h_07d84030f79d30 14,55-57,73-76
+training/test_backslide_ornith.py
+  h_07d84030f79d30 146-148,191-193
+training/test_featherless_model.py
+  h_07d84030f79d30 45,143,164,205,225-232
+training/tests/test_adapter_target_roles.py
+  h_07d84030f79d30 1-138
+training/tests/test_apply_research_target_repairs.py
+  h_07d84030f79d30 1-98
+training/tests/test_build_arc_dpo.py
+  h_07d84030f79d30 189,194
+training/tests/test_build_clinical_backed_examples.py
+  h_07d84030f79d30 1,3,6-8,13,46-48,51-52,59-86,88-93,119-120,126-140,161-175,197
+training/tests/test_build_edge_and_nightmare_dataset.py
+  h_07d84030f79d30 9,42-60
+training/tests/test_build_v16_release.py
+  h_07d84030f79d30 348
+training/tests/test_clinical_validity_judge_async.py
+  h_07d84030f79d30 255
+training/tests/test_consolidate_arc_corpus.py
+  h_07d84030f79d30 167-169
+training/tests/test_converter_role_boundaries.py
+  h_07d84030f79d30 1-82
+training/tests/test_coreweave_forge.py
+  h_07d84030f79d30 49,51,55,78,93,98,108,124,134,142,243,245
+training/tests/test_crisis_eval_diagnostics.py
+  h_07d84030f79d30 1-106
+training/tests/test_crisis_target_audit.py
+  h_07d84030f79d30 1-118,119-158,159-178
+training/tests/test_dual_judge_checkpoint.py
+  h_07d84030f79d30 38,47,60,72,92,106,114,125,130,178
+training/tests/test_dual_judge_report_out.py
+  h_07d84030f79d30 39,48,56,69,81,101,115,126,131,196,224,256,265,320
+training/tests/test_dual_model_checkpoint_mirror.py
+  h_07d84030f79d30 1-130
+training/tests/test_export_adaption_release.py
+  h_07d84030f79d30 116,179
+training/tests/test_export_research_target_repairs.py
+  h_07d84030f79d30 1-157
+training/tests/test_iaa.py
+  h_07d84030f79d30 187,403,431-434,460-462,580,599-604,639-650
+training/tests/test_kaggle_v22_qwen3_8b.py
+  h_07d84030f79d30 93-94,96-97,101-119,126-128
+training/tests/test_mental_health_eval.py
+  h_07d84030f79d30 19-26,105-106,134-135,170-171,205,208-209
+training/tests/test_nightmare_final_export.py
+  h_07d84030f79d30 1-117
+training/tests/test_nightmare_judge_receipts.py
+  h_07d84030f79d30 1-160
+training/tests/test_nightmare_recovery.py
+  h_07d84030f79d30 1-97
+training/tests/test_orpo_integration.py
+  h_07d84030f79d30 219,245,248-276,282-283,285,324-336,355-366,385-394
+training/tests/test_orpo_trainer.py
+  h_07d84030f79d30 43,108,113,119-128,136-145,150-161,167-176,182-191,197-206,212-223,228-239,244-253,258-268,273-282,287-297,302-311,316-327,332-341,346-359,365-374,379-394,401-411,416-426,432-445,454,459,469
+training/tests/test_post_training_optimization.py
+  h_07d84030f79d30 76,101,120,182,196,219,226-238,251-262,266,271,304,321,328-342,355-369,378,390,395,421,445,449,452,459-472
+training/tests/test_verify_crisis_survival.py
+  h_07d84030f79d30 1-133
+training/tests/test_wandb_checkpoint_backup.py
+  h_07d84030f79d30 49,98
+training/tests/test_youtube_persona_distiller.py
+  h_07d84030f79d30 5-7,10,20-41,90,94
+training/tiebreak_hr.py
+  h_07d84030f79d30 144,152,156,160,202-208,260-262,296-298,334-340,492-497
+training/train_enhanced.py
+  h_07d84030f79d30 24-25,73,169-171,209,211-212
+training/train_moe_h100.py
+  h_07d84030f79d30 19-20,182-183,403,408,432,467,481-482,504,516,533
+training/train_optimized.py
+  h_07d84030f79d30 17-18,27,35-37,59,69,77,93,125,139,146-157,174,177,183-189,201,205,219,239-246
+training/training_optimizer.py
+  h_07d84030f79d30 112,159
+training/transcript_fetcher.py
+  h_07d84030f79d30 20,78,87-92,117-121,123-130,145,316-318,329,337-338,340-347,350-352,418,422,434-436,441,446,452,455,461,463-464,466,540
+training/update_notebook.py
+  h_07d84030f79d30 63,77,100-101,110-111,122-123,130-131,135-137,140,146
+training/utils/ngc_resources.py
+  h_07d84030f79d30 10
+training/utils/s3_dataset_loader.py
+  h_07d84030f79d30 39
+training/validate_campaign_adapter.py
+  h_07d84030f79d30 76
+training/verify_crisis_survival.py
+  h_07d84030f79d30 1-232
+training/watch_wandb_full_corpus_checkpoint.py
+  h_07d84030f79d30 97
+training/watch_wandb_full_corpus_final.py
+  h_07d84030f79d30 35,44,59
+training/youtube_ingestion.py
+  h_07d84030f79d30 78,89-131,141
+training/youtube_persona_distiller.py
+  h_07d84030f79d30 19,60-61,98-99,138,182,209-210,241,243-246,249-265,267,280-281,334-336,345,349-350,355,364,373-375
+training/youtube_selenium_fetcher.py
+  h_07d84030f79d30 26,85,114-116,162,228,234,237,239-241,317
+training/youtube_stealth_fetcher.py
+  h_07d84030f79d30 29,88,120-122,168,190-192,230,236,239,241-243,319
+training/youtube_transcript_fetcher.py
+  h_07d84030f79d30 25,34,93,156-158,211,217,220,226,228-229,310
+triggers/flag_store.py
+  h_07d84030f79d30 84
+triggers/jit_trigger_engine.py
+  h_07d84030f79d30 70,79,123
+utils/common/llm_client.py
+  h_07d84030f79d30 285
+utils/text_segmentation.py
+  h_07d84030f79d30 47,65-66,69
+utils/torch_proxy.py
+  h_07d84030f79d30 33
+training/launch/crisis_dimension_report.py
+  h_07d84030f79d30 1-323
+training/tests/test_crisis_dimension_report.py
+  h_07d84030f79d30 1-180
+training/tests/test_crisis_adjudication_packet.py
+  h_07d84030f79d30 1-116
+training/launch/crisis_adjudication_packet.py
+  h_07d84030f79d30 1-295
+training/restore_classification_context.py
+  h_07d84030f79d30 1-289
+training/tests/test_restore_classification_context.py
+  h_07d84030f79d30 1-211
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ff800748c7d35cb024b546642d072a6c07d677ca",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
