@@ -14,9 +14,9 @@ from typing import Any
 
 import click
 
-from .auth import AuthManager
-from .config import get_config
-from .utils import (
+from tools.scripts.auth import AuthManager
+from tools.scripts.config import get_config
+from tools.scripts.utils import (
     check_api_health,
     format_file_size,
     get_logger,

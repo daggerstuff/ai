@@ -18,10 +18,10 @@ from typing import Any, Dict
 import pytest
 from click.testing import CliRunner
 
-from .auth import AuthManager
-from .config import CLIConfig
-from .pipeline import PipelineManager
-from .progress import ProgressTracker
+from tools.scripts.auth import AuthManager
+from tools.scripts.config import CLIConfig
+from tools.scripts.pipeline import PipelineManager
+from tools.scripts.progress import ProgressTracker
 
 # Test configuration
 TEST_CONFIG = {
@@ -155,6 +155,7 @@ profiles:
 """
     path.write_text(content)
     return path
+
 
 __all__ = [
     "Any",

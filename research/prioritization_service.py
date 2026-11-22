@@ -5,7 +5,8 @@
 
 from __future__ import annotations
 
-from .acquisition_rubric import AcquisitionScore
+from core.pipelines.acquisition_rubric import AcquisitionScore
+
 from .reprioritization_engine import EvidenceItem, ReprioritizationEngine
 
 

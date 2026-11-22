@@ -38,10 +38,13 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 # Configure logging
+_LOG_DIR = _PROJECT_ROOT / "ai" / "logs"
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "api_monitoring.log")), logging.StreamHandler()],
+    handlers=[logging.FileHandler(_LOG_DIR / "api_monitoring.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 

@@ -12,12 +12,11 @@ import shutil
 import sqlite3
 import sys
 import tempfile
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import numpy as np
 
-from .datetime import datetime, timedelta
-from .pathlib import Path
 from .quality_comparator import QualityComparator
 from .quality_comparison_reporter import QualityComparisonReporter
 

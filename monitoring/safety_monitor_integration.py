@@ -32,10 +32,13 @@ from typing import Any
 import numpy as np
 
 # Configure logging
+_LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("/home/vivi/pixelated/ai/logs/safety_monitoring.log"), logging.StreamHandler()],
+    handlers=[logging.FileHandler(_LOG_DIR / "safety_monitoring.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 

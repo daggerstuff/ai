@@ -10,9 +10,9 @@ from pathlib import Path
 
 import click
 
-from .auth import AuthManager
-from .config import get_config
-from .utils import get_logger, setup_logging
+from tools.scripts.auth import AuthManager
+from tools.scripts.config import get_config
+from tools.scripts.utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 

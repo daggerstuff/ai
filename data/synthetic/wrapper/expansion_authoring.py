@@ -8,7 +8,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from .expansion_drafts import (
+from ..expansion_drafts import (
     DEFAULT_WAVE5_EXPANSION_DRAFT_PACK_PATH,
     ensure_default_expansion_draft_pack_materialized,
 )
