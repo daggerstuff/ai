@@ -105,6 +105,7 @@ class ExportReview(BaseModel):
     dataset_sha256: str
     candidate_selected_rows: int
     present_selected_lines: tuple[int, ...]
+    trimmed_target_lines: tuple[int, ...]
     excluded_by_length: int
     unmatched_selected_lines: tuple[int, ...]
 
@@ -123,8 +124,12 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
     exported = {hashlib.sha256(line).hexdigest() for line in payload.splitlines() if line.strip()}
     tokenizer = AutoTokenizer.from_pretrained(dataset.tokenizer, fast=True, local_files_only=True)
     wanted = {finding.line for finding in report.findings}
+    findings_by_line: dict[int, list[Finding]] = {}
+    for finding in report.findings:
+        findings_by_line.setdefault(finding.line, []).append(finding)
     present: list[int] = []
     unmatched: list[int] = []
+    trimmed_targets: list[int] = []
     excluded = 0
     with source.open("rb") as handle:
         for line_number, raw in enumerate(handle, start=1):
@@ -132,8 +137,11 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
                 continue
             conversation = Conversation.model_validate_json(raw)
             messages = [message.model_dump() for message in conversation.messages]
+            dropped = 0
             if messages[0]["role"] == "assistant":
                 messages = messages[1:]
+                dropped = 1
+            retained = len(messages)
             messages, ids, weights, trimmed = trim_to_budget(
                 tokenizer,
                 messages,
@@ -141,6 +149,11 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
                 end_token=dataset.end_token,
                 template_kwargs=dataset.template_kwargs,
             )
+            dropped += retained - len(messages)
+            flagged = findings_by_line.get(line_number, [])
+            if flagged and all(finding.assistant_turn < dropped for finding in flagged):
+                trimmed_targets.append(line_number)
+                continue
             targets = weights[1:]
             if len(ids) < MIN_DATUM_TOKENS or not any(targets):
                 unmatched.append(line_number)
@@ -161,6 +174,7 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
         dataset_sha256=checksum,
         candidate_selected_rows=len(wanted),
         present_selected_lines=tuple(present),
+        trimmed_target_lines=tuple(trimmed_targets),
         excluded_by_length=excluded,
         unmatched_selected_lines=tuple(unmatched),
     )
@@ -232,6 +246,7 @@ def main(source: Path, out: Path, dataset: Path | None = None) -> None:
         out.with_suffix(".export.json").write_text(presence.model_dump_json(indent=2) + "\n")
         typer.echo(
             f"{len(presence.present_selected_lines)} candidate rows matched the exact export; "
+            f"{len(presence.trimmed_target_lines)} lost their flagged reply to trimming; "
             f"{presence.excluded_by_length} exceed length; {len(presence.unmatched_selected_lines)} unmatched"
         )
 

@@ -345,6 +345,7 @@ def export(
             "acute_client_rows": counts["acute_client_rows"],
             "sampled_rows": counts["sample"],
             "tool_rows_excluded": counts["tool_rows_excluded"],
+            "label_rows_excluded": counts["label_rows_excluded"],
             "too_long_excluded": counts["too_long_excluded"],
             "seed": resolved.seed,
             "chat_sample": resolved.chat_sample,
