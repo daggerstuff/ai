@@ -38,6 +38,12 @@ The changes are therefore replacements, not additions:
   with ``strict_crisis_gate.structural_violations`` and the build raises if any
   row would fail. A regression in the surface cannot reach the training set
   again.
+* **Actions are grounded per disclosure.** The rotation v22 grew from hands
+  every disclosure the whole category table, so a reply could pair a faint with
+  a blackout the person never reported. An action now only answers a disclosure
+  whose anchors it shares, matched as whole words; a disclosure that names no
+  category anchor keeps the full surface, because every action names an anchor
+  and the alternative would be refusing to answer.
 
 Register rules, anchors, frames and control corpus are inherited from v22
 unchanged. Rows are train-only, user/assistant, empty tool catalog.
@@ -47,6 +53,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -196,9 +203,41 @@ def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> 
     return v22.paraphrases_too_close_to_evaluation(surface)
 
 
+def _mentions(text: str, token: str) -> bool:
+    """True when ``token`` appears in ``text`` as whole words."""
+    return re.search(rf"(?<!\w){re.escape(token.lower())}(?!\w)", text.lower()) is not None
+
+
+def named_anchors(text: str, category: str) -> set[str]:
+    """The category anchors this text states outright, as whole words."""
+    return {anchor for anchor in ANCHORS[category] if _mentions(text, anchor)}
+
+
+def allowed_anchors(disclosure: str, category: str) -> set[str]:
+    """The anchors a reply to this disclosure may name: exactly what it gave."""
+    return named_anchors(disclosure, category)
+
+
+def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
+    """The actions that name only anchors this disclosure carries.
+
+    The global rotation this builder grew from handed every disclosure the whole
+    category table, so a reply could introduce a concrete fact -- a blackout, a
+    bridge, a substance -- the person never gave. A disclosure that names no
+    category anchor keeps the full surface: every action names an anchor, so no
+    stricter pool exists, and refusing to answer is worse than the inherited
+    distribution.
+    """
+    allowed = allowed_anchors(disclosure, category)
+    if not allowed:
+        return ACTIONS[category]
+    pool = tuple(action for action in ACTIONS[category] if named_anchors(action, category) <= allowed)
+    return pool or ACTIONS[category]
+
+
 @dataclass(frozen=True)
 class CrisisCase:
-    """One paraphrased disclosure and the action variants its category carries."""
+    """One paraphrased disclosure and the actions it may be answered with."""
 
     category: str
     severity: str
@@ -287,7 +326,7 @@ def collect_rows() -> dict[str, list[dict[str, Any]]]:
         actions = ACTIONS[category]
         anchors = ANCHORS[category]
         for disclosure in surface[category]:
-            case = CrisisCase(category, severity, disclosure, actions)
+            case = CrisisCase(category, severity, disclosure, action_pool(disclosure, category))
             for shape_index in range(SHAPES_PER_DISCLOSURE):
                 item = make_crisis_row(index, case, shape_index)
                 validate_surface_row(item, actions, anchors)

@@ -34,10 +34,13 @@ EXPECTED_CONTROLS = 600
 EXPECTED_MEANS_ACCESS_ROWS = 536
 MIN_DISTINCT_REPLIES = 100
 NEW_MEANS_DISCLOSURES = 16
-# v23 paired a means_access disclosure with an action naming a means it never
-# gave in 366 of 408 cases; only 10 pairs were grounded.
+# v23 grounds each disclosure before rotating since the per-disclosure pool
+# landed: the 10 pairs that sit in subset pools are grounded, and the 41
+# disclosures that name no anchor the surface can answer keep the full
+# eight-action fallback, so 328 pairs there still pair a disclosure with an
+# action naming a means it never gave.
 V23_GROUNDED_PAIRS = 10
-V23_TOTAL_PAIRS = 408
+V23_TOTAL_PAIRS = 338
 GROUNDED_CATEGORIES = ("means_access",)
 TIME_CUES = (
     "last night",

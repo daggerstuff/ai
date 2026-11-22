@@ -211,7 +211,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
     "overdose_taken": (
         "Call 911 now and tell them how much paracetamol you took and when.",
         "Call 911 now and say how many painkillers you swallowed and how long ago.",
-        "Call 911 now. Iron tablets keep damaging the gut for hours after the packet is empty.",
+        "Call 911 now and say how many iron tablets you took and when.",
         "Call 911 now and say how many sleeping tablets you took. Do not lie down again.",
         "Call 911 now and tell them about the sleeping pills before you go back to sleep.",
         "Call 911 now and say how much cough syrup you drank and what you took with it.",
