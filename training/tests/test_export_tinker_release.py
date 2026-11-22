@@ -252,7 +252,43 @@ def test_export_still_drops_a_row_that_cannot_fit_after_truncation(tmp_path: Pat
         ],
     )
 
-    result = tinker.export(manifest_path, tmp_path / "out", tokenizer=StubTokenizer(), max_tokens=2)
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=2,
+        final_exchange_tokens=2,
+    )
+
+    assert result.counts["datums"] == 0
+    assert result.counts["datums_skipped_too_long"] == 1
+
+
+def test_export_keeps_a_final_exchange_that_exceeds_the_history_budget(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        [{"messages": messages(("user", " ".join(["detail"] * 40)), ("assistant", ASSISTANT_REPLY))}],
+    )
+
+    result = tinker.export(manifest_path, tmp_path / "out", tokenizer=StubTokenizer(), max_tokens=10)
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_skipped_too_long"] == 0
+
+
+def test_export_drops_a_final_exchange_over_its_own_budget(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        [{"messages": messages(("user", " ".join(["detail"] * 40)), ("assistant", ASSISTANT_REPLY))}],
+    )
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=10,
+        final_exchange_tokens=10,
+    )
 
     assert result.counts["datums"] == 0
     assert result.counts["datums_skipped_too_long"] == 1
@@ -312,6 +348,19 @@ def test_export_receipt_binds_observed_train_and_manifest(tmp_path: Path) -> Non
     record = json.loads((out / "tinker-dataset.json").read_bytes())
     assert record["source_train_sha256"] == hashlib.sha256((tmp_path / "train.jsonl").read_bytes()).hexdigest()
     assert record["source_manifest_sha256"] == hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    assert record["selection_mode"] == "narrow"
+
+
+def test_export_receipt_records_the_full_corpus_selection(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    out = tmp_path / "out"
+
+    tinker.export(manifest_path, out, tokenizer=StubTokenizer(), options=SelectionOptions.full_corpus())
+
+    record = json.loads((out / "tinker-dataset.json").read_bytes())
+    assert record["selection_mode"] == "full_corpus"
 
 
 def test_export_rejects_train_changes_during_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -509,6 +558,23 @@ def test_crisis_reply_surface_fails_loudly_on_a_missing_builder(monkeypatch: Any
 
     with pytest.raises(ValueError, match=r"training\.build_agent_tool_sft_v99 is not importable"):
         tinker.crisis_reply_surface({"scope": {"appended_rows_by_source": {"crisis_direct_v99": 1}}})
+
+
+def test_full_selection_keeps_the_whole_partition() -> None:
+    options = tinker.selection_options("full", seed=1, chat_sample=10, routing_cap=5, include_tool_rows=False)
+    assert options.chat_sample is None
+    assert options.routing_cap is None
+    assert options.max_chars is None
+    assert options.sample_max_chars is None
+
+
+def test_narrow_selection_keeps_the_probe_caps() -> None:
+    options = tinker.selection_options("narrow", seed=1, chat_sample=10, routing_cap=5, include_tool_rows=False)
+    assert (options.chat_sample, options.routing_cap) == (10, 5)
+
+
+def test_export_parser_defaults_to_the_full_partition() -> None:
+    assert tinker._parse_args([]).selection == "full"
 
 
 def test_export_keeps_the_crisis_family_whole_under_a_routing_cap(tmp_path: Path, monkeypatch: Any) -> None:

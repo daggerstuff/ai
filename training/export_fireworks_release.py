@@ -61,6 +61,22 @@ ROUTING_TERMS = (
     "urgent care",
 )
 
+BARE_LABEL_TARGETS = frozenset(
+    {
+        "anxiety",
+        "bipolar",
+        "bpd",
+        "depression",
+        "mental illness",
+        "mentalillness",
+        "mild",
+        "minimal",
+        "moderate",
+        "schizophrenia",
+        "severe",
+    }
+)
+
 ACUTE_TERMS = (
     "kill myself",
     "killing myself",
@@ -109,15 +125,31 @@ class SelectionOptions:
     the capped routing pool and the hash-sampled filler pool and only a fraction
     of it survives. Because the filler sample is keyed on the row's serialized
     bytes, that fraction also moves every time a release is rebuilt.
+
+    A ``None`` cap means the pool is kept whole. Those caps are the Fireworks
+    probe's cost bounds, not the training corpus, so the Tinker export selects
+    ``full_corpus()`` and trains every row the tokenizer can carry.
     """
 
     seed: int = DEFAULT_SEED
-    chat_sample: int = DEFAULT_CHAT_SAMPLE
-    routing_cap: int = DEFAULT_ROUTING_CAP
-    max_chars: int = DEFAULT_MAX_CHARS
-    sample_max_chars: int = DEFAULT_SAMPLE_MAX_CHARS
+    chat_sample: int | None = DEFAULT_CHAT_SAMPLE
+    routing_cap: int | None = DEFAULT_ROUTING_CAP
+    max_chars: int | None = DEFAULT_MAX_CHARS
+    sample_max_chars: int | None = DEFAULT_SAMPLE_MAX_CHARS
     include_tool_rows: bool = False
     keep_replies: frozenset[str] | None = None
+
+    @classmethod
+    def full_corpus(cls, *, seed: int = DEFAULT_SEED, include_tool_rows: bool = False) -> SelectionOptions:
+        """Return the uncapped selection: every chat row the tokenizer can train."""
+        return cls(
+            seed=seed,
+            chat_sample=None,
+            routing_cap=None,
+            max_chars=None,
+            sample_max_chars=None,
+            include_tool_rows=include_tool_rows,
+        )
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -157,6 +189,20 @@ def classify(row: dict[str, Any]) -> list[str]:
     return reasons
 
 
+def is_bare_label_row(row: dict[str, Any]) -> bool:
+    """Return whether every assistant turn is a class label rather than a reply.
+
+    Classification corpora were rendered as one user turn plus the class name,
+    so the assistant slot holds ``bipolar`` or ``moderate``; training on that
+    teaches the model to diagnose from a story. The released corpus is frozen,
+    so the export is where such a row is refused.
+    """
+    assistants = [message for message in row["messages"] if message.get("role") == "assistant"]
+    return bool(assistants) and all(
+        (message.get("content") or "").strip().lower() in BARE_LABEL_TARGETS for message in assistants
+    )
+
+
 def _sample_key(line: str, seed: int) -> str:
     return hashlib.sha256(f"{seed}:{line}".encode()).hexdigest()
 
@@ -185,18 +231,21 @@ def select_rows(
             if "tools" in row and not options.include_tool_rows:
                 counts["tool_rows_excluded"] += 1
                 continue
+            if is_bare_label_row(row):
+                counts["label_rows_excluded"] += 1
+                continue
             selection = _write_payload(Selection(row_number=row_number), row)
             if options.keep_replies and carries_keep_reply(row, options.keep_replies):
                 # Uncapped and checked first: a keep-set row is the reason the
                 # release exists, so neither the routing cap nor the filler
                 # sample may decide whether it is trained on.
-                if selection.chars > options.max_chars:
+                if options.max_chars is not None and selection.chars > options.max_chars:
                     counts["crisis_too_long_excluded"] += 1
                     continue
                 selection.reasons = ["crisis_family"]
                 family.append(selection)
                 continue
-            if selection.chars > options.max_chars:
+            if options.max_chars is not None and selection.chars > options.max_chars:
                 counts["too_long_excluded"] += 1
                 continue
             reasons = classify(row)
@@ -204,7 +253,7 @@ def select_rows(
                 routing.append(selection)
             elif "acute_client" in reasons:
                 acute.append(selection)
-            elif selection.chars <= options.sample_max_chars:
+            elif options.sample_max_chars is None or selection.chars <= options.sample_max_chars:
                 filler.append(selection)
 
     kept = list(family)
@@ -224,14 +273,14 @@ def select_rows(
 
 def _lowest_by_hash(
     pool: list[Selection],
-    limit: int,
+    limit: int | None,
     seed: int,
     reason: str,
 ) -> list[Selection]:
     """Take the lowest-hash rows from a pool so the choice ignores file order."""
-    if limit <= 0:
+    if limit is not None and limit <= 0:
         return []
-    chosen = sorted(pool, key=lambda selection: _sample_key(selection.line, seed))[:limit]
+    chosen = pool if limit is None else sorted(pool, key=lambda selection: _sample_key(selection.line, seed))[:limit]
     for selection in chosen:
         selection.reasons = [reason]
     return chosen

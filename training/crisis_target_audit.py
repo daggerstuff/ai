@@ -19,7 +19,12 @@ import typer
 from pydantic import BaseModel, ConfigDict
 from transformers import AutoTokenizer
 
-from training.export_tinker_release import Datum, build_tokens
+from training.export_tinker_release import (
+    MIN_DATUM_TOKENS,
+    MIN_FINAL_EXCHANGE_MESSAGES,
+    Datum,
+    trim_to_budget,
+)
 from training.strict_crisis_gate import ESCALATION_TERMS
 
 GROUPS: Final = {
@@ -90,6 +95,7 @@ class Dataset(BaseModel):
     max_tokens: int
     end_token: str
     template_kwargs: dict[str, str | bool | int | float] = {}
+    max_final_exchange_tokens: int | None = None
 
 
 class ExportReview(BaseModel):
@@ -128,13 +134,28 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
             messages = [message.model_dump() for message in conversation.messages]
             if messages[0]["role"] == "assistant":
                 messages = messages[1:]
-            ids, weights = build_tokens(
-                tokenizer, messages, end_token=dataset.end_token, template_kwargs=dataset.template_kwargs
+            messages, ids, weights, _trimmed = trim_to_budget(
+                tokenizer,
+                messages,
+                dataset.max_tokens,
+                end_token=dataset.end_token,
+                template_kwargs=dataset.template_kwargs,
             )
-            datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:])
-            if len(ids) > dataset.max_tokens:
+            targets = weights[1:]
+            if len(ids) < MIN_DATUM_TOKENS or not any(targets):
+                unmatched.append(line_number)
+                continue
+            final_budget = dataset.max_final_exchange_tokens
+            budget = (
+                final_budget
+                if final_budget is not None and len(messages) == MIN_FINAL_EXCHANGE_MESSAGES
+                else dataset.max_tokens
+            )
+            if len(ids) > budget:
                 excluded += 1
-            elif hashlib.sha256(datum.line().encode()).hexdigest() in exported:
+                continue
+            datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=targets)
+            if hashlib.sha256(datum.line().encode()).hexdigest() in exported:
                 present.append(line_number)
             else:
                 unmatched.append(line_number)
