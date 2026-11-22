@@ -387,10 +387,6 @@ class ResultAggregator:
                 worker_stats[worker_id]["total_processing_time"] = sum(data["processing_times"])
 
         return dict(worker_stats)
-                worker_stats[worker_id]["avg_processing_time"] = statistics.mean(data["processing_times"])
-                worker_stats[worker_id]["total_processing_time"] = sum(data["processing_times"])
-
-        return dict(worker_stats)
 
     def _store_aggregated_result(self, aggregated: AggregatedResult):
         """Store aggregated result in database"""
