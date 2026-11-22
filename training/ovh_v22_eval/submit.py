@@ -138,7 +138,11 @@ def stage(
     # ``rmtree`` below erases whatever is already there, so a stage directory
     # that holds one of the sources would delete the input it is about to copy.
     resolved = destination.resolve()
-    for source in [AI_ROOT, CASES_DIR, *adapters.values()]:
+    # The submitter's own module directory is a source too: `--stage-dir
+    # training/ovh_v22_eval` sits below AI_ROOT, so the AI_ROOT guard alone
+    # would let rmtree delete the tree that holds launch.sh.
+    module_dir = Path(__file__).resolve().parent
+    for source in [AI_ROOT, CASES_DIR, module_dir, *adapters.values()]:
         source_resolved = source.resolve()
         if resolved == source_resolved or resolved in source_resolved.parents:
             raise SystemExit(f"refusing to stage into {destination}: it contains {source}")
@@ -289,7 +293,12 @@ def submit(
         # silently skipped.
         raise SystemExit("--out-prefix must not contain a path separator")
     adapters = DEFAULT_ADAPTERS if adapters is None else adapters
-    staged = stage(stage_dir, adapters=adapters, suite=suite) if restage else staged_files(stage_dir)
+    if restage:
+        stage(stage_dir, adapters=adapters, suite=suite)
+    # `stage` returns top-level entries, and a nested adapter bundle comes back
+    # as its directory: the digest and the download map need the files below it,
+    # not the directory, or `_file_digest` raises IsADirectoryError.
+    staged = staged_files(stage_dir)
     inputs_prefix = f"{inputs_prefix.strip('/')}/{bundle_digest(stage_dir, staged)}"
 
     s3 = r2_sync.client()
