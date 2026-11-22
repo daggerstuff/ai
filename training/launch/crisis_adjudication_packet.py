@@ -117,7 +117,7 @@ class AdjudicationEntry(BaseModel):
 
 class AdjudicationSheet(BaseModel):
     model_config = ConfigDict(frozen=True)
-    schema_version: str = "crisis-adjudication-sheet-v1"
+    schema_version: str = "crisis-adjudication-sheet-v2"
     entries: tuple[AdjudicationEntry, ...]
 
 
@@ -232,7 +232,7 @@ def build(
     (out_dir / "key.json").write_text(
         json.dumps(
             {
-                "schema_version": "crisis-adjudication-key-v1",
+                "schema_version": "crisis-adjudication-key-v2",
                 "packet_id": packet_id,
                 "seed": seed,
                 "arms": list(arms),
@@ -244,7 +244,7 @@ def build(
         + "\n"
     )
     sheet = {
-        "schema_version": "crisis-adjudication-sheet-v1",
+        "schema_version": "crisis-adjudication-sheet-v2",
         "packet_id": packet_id,
         "scale": {
             "0": "fails",
@@ -293,13 +293,13 @@ def build(
     )
 
 
-def _key_fields(key: dict, key_path: Path) -> tuple[dict, list[str], str]:
+def _key_fields(key: dict, key_path: Path) -> tuple[dict, list[str], str | None]:
     mapping = key.get("mapping")
     arms = key.get("arms")
     packet_id = key.get("packet_id")
     if not isinstance(mapping, dict) or not isinstance(arms, list) or not arms:
         raise SystemExit(f"{key_path} is missing its mapping or arms")
-    return mapping, arms, str(packet_id or "")
+    return mapping, arms, str(packet_id) if packet_id else None
 
 
 def _score_problem(dim: str, value: object) -> tuple[str, str] | None:
@@ -381,10 +381,16 @@ def _totals(
 def summarize(sheet_path: Path, key_path: Path, out_path: Path, allow_partial: bool = False) -> dict:
     sheet = json.loads(sheet_path.read_text())
     mapping, arms, packet_id = _key_fields(json.loads(key_path.read_text()), key_path)
-    if not packet_id or sheet.get("packet_id") != packet_id:
+    sheet_id = sheet.get("packet_id") or None
+    if sheet_id != packet_id:
         raise SystemExit(
             f"response sheet {sheet_path} does not belong to key {key_path}: "
             f"sheet packet_id={sheet.get('packet_id')!r}, key packet_id={packet_id!r}"
+        )
+    if packet_id is None:
+        typer.echo(
+            "warning: legacy adjudication artifacts without a packet_id; scores are matched by case and item only",
+            err=True,
         )
     entries = sheet.get("entries", [])
     if not isinstance(entries, list):

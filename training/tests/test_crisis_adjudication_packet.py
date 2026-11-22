@@ -89,7 +89,10 @@ def test_build_anonymizes_and_roundtrips(tmp_path: Path) -> None:
     sheet = json.loads((out / "response-sheet.json").read_text())
     assert len(sheet["entries"]) == EXPECTED_ITEMS
     assert all(set(e["scores"]) == set(cap.DIMENSIONS) for e in sheet["entries"])
-    for number, shown in _packet_items(packet).items():
+    items_by_case = _packet_items(packet)
+    assert set(items_by_case) == {int(case) for case in key["mapping"]}
+    assert sum(len(items) for items in items_by_case.values()) == EXPECTED_ITEMS
+    for number, shown in items_by_case.items():
         source = key["source_case_ids"][str(number)]
         assert set(shown) == {"A", "B"}
         assert len(set(shown.values())) == len(shown)
@@ -232,6 +235,29 @@ def test_summarize_rejects_a_sheet_from_another_packet(tmp_path: Path) -> None:
     sheet_path, key_path, sheet = _completed(tmp_path)
     sheet["packet_id"] = "0000000000000000"
     sheet_path.write_text(json.dumps(sheet))
+    with pytest.raises(SystemExit, match="does not belong"):
+        cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")
+
+
+def test_summarize_accepts_a_legacy_pair_without_a_packet_id(tmp_path: Path) -> None:
+    sheet_path, key_path, sheet = _completed(tmp_path)
+    sheet.pop("packet_id")
+    sheet_path.write_text(json.dumps(sheet))
+    key = json.loads(key_path.read_text())
+    key.pop("packet_id")
+    key_path.write_text(json.dumps(key))
+
+    report = cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")
+
+    assert report["packet_id"] is None
+    assert report["entries_scored"] == len(sheet["entries"])
+
+
+def test_summarize_rejects_a_legacy_sheet_against_a_keyed_key(tmp_path: Path) -> None:
+    sheet_path, key_path, sheet = _completed(tmp_path)
+    sheet.pop("packet_id")
+    sheet_path.write_text(json.dumps(sheet))
+
     with pytest.raises(SystemExit, match="does not belong"):
         cap.summarize(sheet_path, key_path, sheet_path.parent / "summary.json")
 
