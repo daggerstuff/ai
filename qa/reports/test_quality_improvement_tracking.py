@@ -18,8 +18,9 @@ from pathlib import Path
 
 import numpy as np
 
+from ai.monitoring.quality_improvement_tracker import QualityImprovementTracker
+
 from .quality_improvement_reporter import QualityImprovementReporter
-from .quality_improvement_tracker import QualityImprovementTracker
 
 # Add the monitoring directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

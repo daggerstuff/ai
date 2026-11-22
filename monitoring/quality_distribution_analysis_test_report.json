@@ -1,0 +1,41 @@
+{
+  "test_suite": "Quality Distribution Analysis System",
+  "task": "5.6.2.3",
+  "timestamp": "2026-11-22T08:18:45.558314+00:00",
+  "results": {
+    "total_tests": 10,
+    "passed_tests": 10,
+    "failed_tests": 0,
+    "test_details": [
+      "\u2705 Data Loading: PASSED (290 records)",
+      "\u2705 Distribution Analysis: PASSED",
+      "\u2705 Statistical Calculations: PASSED",
+      "\u2705 Normality Tests: PASSED",
+      "\u2705 Outlier Detection: PASSED",
+      "\u2705 Tier Comparison: PASSED",
+      "\u2705 Component Comparison: PASSED",
+      "\u2705 Correlation Analysis: PASSED",
+      "\u2705 Report Generation: PASSED",
+      "\u2705 Visualization Creation: PASSED"
+    ]
+  },
+  "success_rate": 100.0,
+  "status": "PASSED",
+  "distribution_analysis_sample": {
+    "sample_size": 290,
+    "distribution_type": "skewed_left",
+    "mean": 0.7043319127975536,
+    "median": 0.7170497781283296,
+    "std_dev": 0.1724347477382063,
+    "skewness": -0.6327823686457191,
+    "kurtosis": 0.06634529815550971,
+    "outliers_count": 4,
+    "normality_tests_count": 3
+  },
+  "comparative_analysis_sample": {
+    "tier_groups": 3,
+    "tier_statistical_tests": 3,
+    "component_groups": 7,
+    "correlation_components": 0
+  }
+}

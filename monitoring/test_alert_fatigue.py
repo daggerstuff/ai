@@ -13,11 +13,11 @@ import tempfile
 import time
 from datetime import UTC, datetime, timedelta
 
-from alert_fatigue_prevention import (
+from .alert_fatigue_prevention import (
     AlertFatiguePreventionSystem,
     FatigueRule,
 )
-from intelligent_grouping import IntelligentGroupingEngine
+from .intelligent_grouping import IntelligentGroupingEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

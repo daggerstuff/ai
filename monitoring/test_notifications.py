@@ -9,11 +9,15 @@ import os
 import sys
 from datetime import UTC, datetime
 
-from notification_integrations import (
+import pytest
+
+from .notification_integrations import (
     NotificationChannel,
     NotificationManager,
     NotificationPriority,
 )
+
+pytestmark = pytest.mark.asyncio
 
 
 async def test_individual_channels():

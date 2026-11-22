@@ -17,6 +17,8 @@ from pathlib import Path
 
 import numpy as np
 
+from ai.monitoring.quality_improvement_tracker import QualityImprovementTracker
+
 from .quality_analytics_dashboard import QualityAnalyticsDashboard
 from .quality_comparator import QualityComparator
 from .quality_comparison_reporter import QualityComparisonReporter
@@ -24,7 +26,6 @@ from .quality_distribution_analyzer import QualityDistributionAnalyzer
 from .quality_distribution_comparator import QualityDistributionComparator
 from .quality_distribution_reporter import QualityDistributionReporter
 from .quality_improvement_reporter import QualityImprovementReporter
-from .quality_improvement_tracker import QualityImprovementTracker
 from .quality_trend_analyzer import QualityTrendAnalyzer
 
 # Add the monitoring directory to the path

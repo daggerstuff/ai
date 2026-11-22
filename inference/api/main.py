@@ -10,9 +10,9 @@ import uvicorn
 from fastapi import FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import DATABASE_URL, get_db_session, init_db
-from .models import PromotionAudit, QueueItem, QueueItemStatus, Review
-from .schemas import (
+from ai.annotation.api.database import DATABASE_URL, get_db_session, init_db
+from ai.annotation.api.models import PromotionAudit, QueueItem, QueueItemStatus, Review
+from ai.annotation.api.schemas import (
     HealthResponse,
     PromotionRequest,
     PromotionResponse,
