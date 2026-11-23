@@ -201,10 +201,16 @@ CORRELATIVE_BOTH: Final[re.Pattern[str]] = re.compile(
 EMPHATIC_ASSERTION: Final[re.Pattern[str]] = re.compile(
     r"\s*\b(?:i|we|you|they|he|she|it)\b\s+(?:do|did)\s+(?:know|think|believe|promise|guarantee)\b"
 )
-PAIR_CONJUNCT_AND: Final[re.Pattern[str]] = re.compile(r"\band\b")
+PAIR_CONJUNCT_AND: Final[re.Pattern[str]] = re.compile(r"(?<![\w\-\u2010\u2011])and(?![\w\-\u2010\u2011])")
 CLAUSE_SHAPE: Final[re.Pattern[str]] = re.compile(
     r"\b(?:is|are|was|were|will|would|has|have|had|can|could|do|does|did|should|must|may|might)\b"
 )
+
+# A dash or ellipsis right after a reporting verb - or after its "that" - is a
+# hesitation inside the clause, not its end; a balanced dash pair encloses an
+# aside the same way.
+THAT_TAIL: Final[re.Pattern[str]] = re.compile(r"\bthat[\s,;]*$")
+DASH_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|[\u2014\u2013\u2026]")
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d)")
 
@@ -241,18 +247,38 @@ def _is_aside(text: str, after: int, claim_start: int) -> bool:
     return CLAUSE_LEAD_PREPOSITION.match(head) is None and CLAUSE_LEAD_CONDITIONAL.match(head) is None
 
 
+def _pair_override(segment: str) -> bool:
+    """Return whether a determiner-led "both" pair spans the current "and"."""
+    pair = CORRELATIVE_BOTH.search(segment)
+    if pair is None:
+        return False
+    inner = segment[pair.end() :]
+    nested = PAIR_CONJUNCT_AND.search(inner)
+    return nested is None or CLAUSE_SHAPE.search(inner[: nested.start()]) is not None
+
+
 def _clause_start(text: str, claim_start: int) -> int:
     """Return where the clause governing a claim at ``claim_start`` begins."""
     start = 0
+    aside_until = 0
     # Scan the whole text and stop past the claim: a lookahead that proves a
     # boundary introduces a new subject reads past ``claim_start``, which
     # ``endpos`` would hide from it.
     for boundary in CLAUSE_BOUNDARY.finditer(text):
         if boundary.end() > claim_start:
             break
+        if boundary.end() <= aside_until:
+            continue
         group = boundary.group()
         head = group.lstrip(" ,;")
         bare = group[0] not in ",;"
+        if head.rstrip() in {"\u2014", "\u2013", "\u2026", "-"} and (
+            REPORTING_VERB_TAIL.search(text[: boundary.start()]) or THAT_TAIL.search(text[: boundary.start()])
+        ):
+            closing = DASH_PAUSE.search(text, boundary.end(), claim_start)
+            if closing is not None:
+                aside_until = closing.end()
+            continue
         if head.startswith("though") and _is_aside(text, boundary.end(), claim_start):
             continue
         if (
@@ -264,14 +290,7 @@ def _clause_start(text: str, claim_start: int) -> int:
             continue
         if bare and head == "and" and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
             continuation = text[boundary.end() : claim_start]
-            segment = text[start : boundary.start()]
-            pair = CORRELATIVE_BOTH.search(segment)
-            override = pair is not None
-            if override:
-                inner = segment[pair.end() :]
-                nested = PAIR_CONJUNCT_AND.search(inner)
-                if nested is not None and CLAUSE_SHAPE.search(inner[: nested.start()]) is None:
-                    override = False
+            override = _pair_override(text[start : boundary.start()])
             if (override and EMPHATIC_ASSERTION.match(continuation) is None) or (
                 AFFIRMATIVE_GOVERNER.match(continuation) is None
             ):
@@ -373,18 +392,20 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int) -> bo
     """Return whether a negation cue in the clause governs the claim."""
     for cue in NEGATION_PATTERNS:
         for match in cue.finditer(lowered, clause_start, claim_start):
-            if (
-                match.group() in GENERIC_NEGATION_CUES
-                and "," in lowered[match.end() : claim_start]
-                and (
-                    NEGATED_STANCE.match(lowered[match.end() : claim_start]) is None
-                    or RESUMED_COMPLEMENT.search(lowered[match.end() : claim_start]) is None
-                )
-            ):
+            if match.group() in GENERIC_NEGATION_CUES and "," in lowered[match.end() : claim_start]:
                 # A bare word cannot cross a comma into an independent clause,
                 # unless it negates a stance phrase whose "that" complement
-                # resumes after the aside ("I'm not sure, ..., that ...").
-                continue
+                # resumes after the aside - and the aside carries no
+                # affirmative correction of its own ("I do not think, I know,
+                # that ...").
+                run_up = lowered[match.end() : claim_start]
+                resumed = RESUMED_COMPLEMENT.search(run_up)
+                if (
+                    resumed is None
+                    or NEGATED_STANCE.match(run_up) is None
+                    or AFFIRMATIVE_GOVERNER.search(run_up[: resumed.start()]) is not None
+                ):
+                    continue
             return True
     return False
 
