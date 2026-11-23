@@ -1,0 +1,32 @@
+pkg_mera/core/pipelines/processing/clean.py
+  s_7d4811cf1b0ba7::t_735af4b203d090 122-134
+  s_7d4811cf1b0ba7::t_e216eee99c7665 37,154-158,181-192
+  s_7d4811cf1b0ba7::t_42533ae09bc674 38
+tests/api_tests/test_api_comprehensive.py
+  s_7d4811cf1b0ba7::t_bd2a30d0ab3fc9 108-111,114-123
+  s_7d4811cf1b0ba7::t_55a5dded81438c 112-113
+pkg_mera/core/pipelines/ingestion.py
+  s_7d4811cf1b0ba7::t_3b4b9eb011cc43 90-91,94,113
+pkg_mera/core/pipelines/data_augmentation.py
+  s_7d4811cf1b0ba7::t_3b4b9eb011cc43 61,154-164
+pkg_mera/core/pipelines/unsloth_finetune.py
+  s_7d4811cf1b0ba7::t_e216eee99c7665 7,12-13,15-18,20-49,121
+tests/api/test_api_comprehensive.py
+  s_7d4811cf1b0ba7::t_bd2a30d0ab3fc9 28-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0b5096ffa42a9c8cdbd7850c60d52ed3b58bed4a",
+  "prompts": {},
+  "sessions": {
+    "s_7d4811cf1b0ba7": {
+      "agent_id": {
+        "tool": "droid",
+        "id": "fa4a58ec-9e06-45bf-9ce6-8aa28e8d919e",
+        "model": "custom:9Router-cf-deepseek-v4.1-flash-1017"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
