@@ -19,7 +19,7 @@ class DefensePrediction:
     confidence: float
     probabilities: list[float]
     maturity_score: float | None
-    raw_logits: list[float] = field(repr=False)
+    raw_logits: list[float] = field(default_factory=list, repr=False)
 
 
 class FocalLoss(nn.Module):

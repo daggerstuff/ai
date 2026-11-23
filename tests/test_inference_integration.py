@@ -17,14 +17,16 @@ from unittest.mock import patch
 
 import pytest
 
-from ai.autoscaling.gpu_autoscaler import InstanceType, ScalingPolicy, register_model_for_autoscaling
-from ai.explainability.model_explainability import explainability_engine, get_limited_explanation
+from inference.deployment.autoscaling.gpu_autoscaler import InstanceType, ScalingPolicy, register_model_for_autoscaling
+
+pytest.importorskip("shap", reason="explainability integration test needs the optional shap extra")
 
 # Import our modules
 from ai.inference.inference_api import UserTier, app, create_api_key_for_user
 from ai.inference.model_adapters import BaseModelAdapter, ModelConfig, create_model_adapter
 from ai.monitoring.observability import ObservabilityManager, observability
 from ai.safety.content_filter import SafetyFilter, safety_filter
+from monitoring.explainability.model_explainability import explainability_engine, get_limited_explanation
 
 logger = logging.getLogger(__name__)
 
