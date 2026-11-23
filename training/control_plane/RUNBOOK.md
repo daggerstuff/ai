@@ -210,7 +210,7 @@ reason. Read it with `list_audit(action="submit.rejected")`:
 | Variable                                | Default | Effect                                    |
 | --------------------------------------- | ------- | ----------------------------------------- |
 | `TRAINING_MCP_MAX_CONCURRENT_JOBS`      | `1`     | Reject a submit that would exceed it       |
-| `TRAINING_MCP_SINGLE_FLIGHT_WAIT_SECONDS` | `300`  | Wait for the job slot before failing       |
+| `TRAINING_MCP_SINGLE_FLIGHT_WAIT_SECONDS` | `300`  | How long a queued job waits for the single-flight slot before failing with `single-flight timeout` (not the concurrency cap itself) |
 | `TRAINING_MCP_DAILY_JOB_CAP`            | `5`     | Reject after this many jobs in a UTC day   |
 | `TRAINING_MCP_MONTHLY_COST_CAP_USD`     | `100.0` | Reject when committed cost would exceed it |
 

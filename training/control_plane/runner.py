@@ -139,19 +139,24 @@ def _timeout_seconds(spec: dict[str, Any] | None) -> float | None:
 
 
 _OVHAI_JOB_NAME = re.compile(r'"job_name":\s*"([^"]+)"')
+_OVHAI_JOB_NAME_MARKER = re.compile(r"^ovhai_job_name=(\S+)\s*$", re.MULTILINE)
 
 
 def _ovhai_job_name(log_path: str) -> str | None:
     """The remote job name the launcher printed, if the log carries one.
 
-    The ovh eval launcher prints its report JSON - including the remote job's
-    ``--name`` - to the redirected stdout, so the log is the one place the
-    remote identity is capturable.
+    The ovhai launchers print ``ovhai_job_name=<name>`` to stdout *before* the
+    remote job is submitted, and their report JSON - which also carries the
+    name - once the remote run finishes; both land in the redirected log, so
+    the remote identity is capturable from the moment the job can exist.
     """
     try:
         text = Path(log_path).read_text(encoding="utf-8", errors="replace")
     except OSError:
         return None
+    marker = _OVHAI_JOB_NAME_MARKER.search(text)
+    if marker:
+        return marker.group(1).strip()
     match = _OVHAI_JOB_NAME.search(text)
     return match.group(1).strip() if match else None
 
@@ -194,7 +199,7 @@ def _monitor(
         # the launcher started.
         backend_id = _ovhai_job_name(log_path)
         if backend_id:
-            db.upsert_job(settings.db_path, {**job, "backend_id": backend_id})
+            db.set_backend_id(settings.db_path, job_id, backend_id)
     # Determine terminal status.
     if rc == 0:
         new_status = "succeeded"
@@ -457,6 +462,38 @@ def submit(settings: Settings, job_id: str, job_row: dict[str, Any], command: st
     threading.Thread(target=_run, daemon=True).start()
 
 
+def _stop_ovhai_job(backend_id: str) -> bool:
+    """Stop a remote ovhai job; True when the CLI reports success."""
+    try:
+        proc = subprocess.run(
+            ["ovhai", "job", "stop", backend_id],
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+    except Exception:
+        return False
+    return proc.returncode == 0
+
+
+def _schedule_ovhai_stop_retry(backend_id: str) -> None:
+    """Retry `ovhai job stop` in the background for a just-submitted job.
+
+    The launcher prints the remote name just before the ovhai CLI registers the
+    job, so a stop issued in the same instant can race creation. Bounded
+    retries (3 attempts, 5s apart) cover that window without blocking the
+    request thread; the daemon thread dies with the process.
+    """
+
+    def _retry() -> None:
+        for _ in range(3):
+            time.sleep(5)
+            if _stop_ovhai_job(backend_id):
+                return
+
+    threading.Thread(target=_retry, name=f"ovhai-stop-retry-{backend_id}", daemon=True).start()
+
+
 def cancel(settings: Settings, job_id: str) -> bool:
     # Register the cancellation BEFORE inspecting anything: a job still waiting
     # for the single-flight slot has no entry in _PROCESSES, so without this
@@ -483,22 +520,23 @@ def cancel(settings: Settings, job_id: str) -> bool:
     if not db.mark_job_terminal(settings.db_path, job_id, status="cancelled", error="cancelled by operator"):
         _forget_cancelled(job_id)
         return False
-    # Best-effort backend cancel for ovhai. _monitor only publishes the
-    # remote job name once the wrapper exits, so a cancel that lands while
-    # the job is still running would find no backend_id on the row; read the
-    # name the launcher logged instead so the remote job is stopped too.
+    # Best-effort backend cancel for ovhai. The launcher publishes the remote
+    # name *before* the job is submitted (``ovhai_job_name=`` on stdout), so the
+    # log carries the name for the whole lifetime of the run; read it and
+    # persist it with a terminal-safe write (the row is already terminal here).
     backend_id = job.get("backend_id")
     if job.get("source") == "ovhai" and not backend_id:
         log_path = settings.db_path.parent / "logs" / f"{job_id}.log"
         backend_id = _ovhai_job_name(str(log_path))
         if backend_id:
-            # Persist the discovered name so provenance and any later cancel
-            # see it without re-parsing the log.
             with contextlib.suppress(Exception):
-                db.upsert_job(settings.db_path, {**job, "backend_id": backend_id})
+                db.set_backend_id(settings.db_path, job_id, backend_id)
     if job.get("source") == "ovhai" and backend_id:
-        with contextlib.suppress(Exception):
-            subprocess.run(["ovhai", "job", "stop", backend_id], capture_output=True, timeout=30, check=False)
+        if not _stop_ovhai_job(backend_id):
+            # The ovhai CLI may not have registered the job yet when the
+            # launcher prints the name ahead of submission; retry in the
+            # background so a cancel that lands in that window is not lost.
+            _schedule_ovhai_stop_retry(backend_id)
     _record_terminal_outcome(settings, job_id)
     # The row is terminal; a job with no runner thread (an imported row)
     # would otherwise leave its marker in the process-global set forever.

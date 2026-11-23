@@ -292,6 +292,15 @@ def test_a_loader_block_is_validated_when_present(tmp_path: Path) -> None:
             paired_eval.load_config(config_path)
 
 
+def test_resume_rejects_a_run_under_changed_scorer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    results = tmp_path / "results"
+    run((cases_path, config_path, results), FakeTransport(), RunnerOptions("base"))
+    monkeypatch.setattr(paired_eval, "_scorer_fingerprint", lambda: "0" * 64)
+    with pytest.raises(EvaluationInputError, match="identity changed"):
+        run((cases_path, config_path, results), FakeTransport(), RunnerOptions("base"))
+
+
 def test_resume_rejects_a_run_under_another_base_revision(tmp_path: Path) -> None:
     cases_path, config_path = write_inputs(tmp_path)
     results = tmp_path / "results"

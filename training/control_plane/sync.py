@@ -139,9 +139,12 @@ def import_manual_rows(settings: Settings, rows: list[dict[str, Any]]) -> dict[s
             continue
         cost = normalized.get("cost_estimate")
         if cost is not None:
+            if isinstance(cost, bool):
+                rejected.append({"index": index, "invalid": "cost_estimate"})
+                continue
             try:
                 parsed = float(cost)
-            except (TypeError, ValueError):
+            except (TypeError, ValueError, OverflowError):
                 rejected.append({"index": index, "invalid": "cost_estimate"})
                 continue
             if not math.isfinite(parsed) or parsed < 0:

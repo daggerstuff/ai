@@ -59,12 +59,31 @@ def merged_env() -> dict[str, str]:
     return env
 
 
+def _single_flight_wait_seconds(env: dict[str, str]) -> int:
+    raw = env.get("TRAINING_MCP_SINGLE_FLIGHT_WAIT_SECONDS", "300")
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"TRAINING_MCP_SINGLE_FLIGHT_WAIT_SECONDS must be a non-negative integer, got {raw!r}"
+        ) from None
+    if value < 0:
+        raise ValueError(
+            f"TRAINING_MCP_SINGLE_FLIGHT_WAIT_SECONDS must be a non-negative integer, got {raw!r}"
+        )
+    return value
+
+
 @dataclass(frozen=True)
 class Settings:
     host: str
     port: int
     db_path: Path
     env: dict[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        # Fail fast at load rather than inside a worker thread.
+        _single_flight_wait_seconds(self.env)
 
     @property
     def wandb_api_key(self) -> str:
@@ -94,7 +113,7 @@ class Settings:
         cap admits same-backend jobs concurrently, and the wait then needs to
         tolerate more than one waiter ahead of the queue.
         """
-        return int(self.env.get("TRAINING_MCP_SINGLE_FLIGHT_WAIT_SECONDS", "300"))
+        return _single_flight_wait_seconds(self.env)
 
     @property
     def daily_job_cap(self) -> int:

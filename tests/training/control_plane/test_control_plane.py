@@ -1256,7 +1256,7 @@ def test_submit_enforces_the_concurrency_cap(server_env):
     server, cfg, spawned = server_env
     db.upsert_job(
         cfg.db_path,
-        {"job_id": "job-busy", "kind": "eval_paired", "source": "local", "name": "b", "status": "running"},
+        {"job_id": "job-busy", "kind": "eval_paired", "source": "local", "name": "b", "status": "running", "cost_estimate": 0.0},
     )
     planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
     result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")
@@ -1531,7 +1531,7 @@ def test_submit_counts_every_in_flight_phase_against_the_cap(server_env, status)
     server, cfg, spawned = server_env
     db.upsert_job(
         cfg.db_path,
-        {"job_id": "job-phase", "kind": "eval_paired", "source": "local", "name": "b", "status": status},
+        {"job_id": "job-phase", "kind": "eval_paired", "source": "local", "name": "b", "status": status, "cost_estimate": 0.0},
     )
     planned = server.plan_job("curate-sft-v30", {"corpus": "x"}, {"dry_run": True}, "operator")
     result = server.submit_job(plan_hash=planned["plan_hash"], requested_by="operator")

@@ -361,6 +361,9 @@ def submit(
         "executed": False,
     }
     if execute:
+        # Publish the remote name before the job is submitted so a
+        # cancel racing the launch can still target it (training/mcp/runner.py).
+        print(f"ovhai_job_name={job_name}", flush=True)
         completed = subprocess.run(argv, check=False, capture_output=True, text=True)
         result["executed"] = True
         result["returncode"] = completed.returncode

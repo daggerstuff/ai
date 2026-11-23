@@ -34,24 +34,31 @@ _HEALTH_TTL_S = 60.0
 _RECONCILE_INTERVAL_S = 60.0
 
 
+class UntrustedCostError(ValueError):
+    """A registry row that must count toward the cap carries no trustworthy cost."""
+
+
 def _finite_cost(value: object) -> float:
     """Coerce a stored cost to a non-negative finite float.
 
-    Rows imported before cost validation existed may carry arbitrary values;
-    an unparseable or non-finite estimate must not crash the cap check or
-    poison the running total (nan comparisons are always False, so a nan sum
-    would silently disable the cap).
+    Raises UntrustedCostError when the value is missing, unparseable,
+    non-finite or negative: treating it as zero would let an unknown legacy
+    spend sail past the cap, so the cap check fails closed instead.
     """
-    if isinstance(value, int | float):
+    if isinstance(value, bool):
+        raise UntrustedCostError(f"boolean cost_estimate {value!r} is not a spend")
+    if isinstance(value, (int, float)):
         parsed = float(value)
     elif isinstance(value, str):
         try:
             parsed = float(value)
         except ValueError:
-            return 0.0
+            raise UntrustedCostError(f"unparseable cost_estimate {value!r}") from None
     else:
-        return 0.0
-    return parsed if math.isfinite(parsed) and parsed >= 0 else 0.0
+        raise UntrustedCostError(f"missing cost_estimate ({type(value).__name__})")
+    if not math.isfinite(parsed) or parsed < 0:
+        raise UntrustedCostError(f"non-finite or negative cost_estimate {value!r}")
+    return parsed
 
 
 def settings() -> Settings:
@@ -579,11 +586,21 @@ def submit_job(
     # history is excluded for the same reason as the daily cap: it was not
     # launched (or paid for) by this control plane.
     month_start = now_utc.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat(timespec="seconds")
-    month_spend = sum(
-        _finite_cost(j.get("cost_estimate"))
-        for j in db.cap_rows(s.db_path, since=month_start)
-        if j.get("requested_by") not in sync.NON_REQUESTING_ACTORS
-    )
+    try:
+        month_spend = sum(
+            _finite_cost(j.get("cost_estimate"))
+            for j in db.cap_rows(s.db_path, since=month_start)
+            if j.get("requested_by") not in sync.NON_REQUESTING_ACTORS
+        )
+    except UntrustedCostError as exc:
+        audit(
+            "submit.rejected",
+            actor=requested_by,
+            recipe_id=recipe,
+            plan_hash=planned["plan_hash"],
+            detail={"reason": "untrusted cost in ledger", "error": str(exc)},
+        )
+        return {"ok": False, "error": f"monthly spend cannot be verified ({exc}); refusing to submit"}
     if month_spend + cost > s.monthly_cost_cap_usd:
         audit(
             "submit.rejected",
