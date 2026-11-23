@@ -207,6 +207,8 @@ CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
     + _STANCE_IM
 )
 _RESUMED_VERBS: Final[str] = r"sure|certain|confident|convinced|think|believe|promise|say|know|tell|guarantee"
+_RESUMED_OBJECTS: Final[str] = "you|us|them|me|him|her|it"
+
 _RESUMED_VERB_ALTERNATIVE: Final[re.Pattern[str]] = re.compile(rf"\s*(?:{_RESUMED_VERBS})\b")
 # A negator in front of an inverted subject and modal ("nor can I promise",
 # "neither do I think", "nor need I promise") negates the stance verb itself,
@@ -217,7 +219,7 @@ NEGATIVE_INVERSION: Final[re.Pattern[str]] = re.compile(
     r"|ought|have|has|had|am|is|are|was|were)\b\s*$"
 )
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
-    rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:{_RESUMED_VERBS})\s+)"
+    rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:{_RESUMED_VERBS})\s+(?:(?:{_RESUMED_OBJECTS})\s+)?)"
     r"(?:that|if|whether)\b"
     r"(?:\s*,([^,.;!?\u2014\u2013]{1,200}),)?\s*,?\s*$"
 )
@@ -249,6 +251,23 @@ CLAUSE_SHAPE: Final[re.Pattern[str]] = re.compile(
 THAT_TAIL: Final[re.Pattern[str]] = re.compile(r"\bthat[\s,;]*$")
 DASH_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|\.\.\.|[\u2014\u2013\u2026]")
 _ELLIPSIS_OPENER: Final[re.Pattern[str]] = re.compile(r"\.\.\.|[\u2026]")
+
+
+def _ellipsis_run_end(text: str, index: int, limit: int) -> int:
+    """Return the end of the whole dot run that starts at ``index``.
+
+    ``_ELLIPSIS_OPENER`` matches three dots, so a four- or five-dot closing run
+    leaves the rest of the run behind. Those leftover dots are the same
+    ellipsis, not a clause boundary of their own: reading them as a boundary
+    would reset the clause start past the pause and drop a negation that
+    governs the claim. An ellipsis character swallows its own run.
+    """
+    end = index
+    while end < limit and text[end] == ".":
+        end += 1
+    return end
+
+
 DASH_ONLY_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|[\u2014\u2013]")
 _PAUSE_HEADS: Final = frozenset({"\u2014", "\u2013", "\u2026", "-", "..."})
 
@@ -579,7 +598,10 @@ def _clause_start(
                 text, pause_end, limit
             )
             if closing is not None:
-                aside_until = closing.end()
+                # The leftover dots of a four- or five-dot closing run belong to the
+                # same ellipsis: an aside that stops at the first three leaves a dot
+                # boundary behind, which would reset the clause and drop the negation.
+                aside_until = _ellipsis_run_end(text, closing.end(), limit)
                 asides.append((boundary.end(), closing.start()))
             continue
         if head.startswith("though"):

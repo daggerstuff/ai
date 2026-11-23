@@ -538,3 +538,19 @@ def test_six_dots_are_one_pause_not_an_empty_aside() -> None:
     six_dots = "I can't promise...... well, maybe... that everything will be okay."
     assert cdr._certainty_claim_omitted(three_dots) is True
     assert cdr._certainty_claim_omitted(six_dots) is True
+
+
+def test_long_closing_ellipsis_keeps_the_disclaimer_scope() -> None:
+    """A closing ellipsis of four or more dots is one pause, like an opener."""
+    for count in (3, 4, 5, 6):
+        text = f"I can't promise... well, maybe{'.' * count} that you'll be okay."
+        assert cdr._certainty_claim_omitted(text) is True, count
+
+
+def test_an_object_pronoun_before_the_complementizer_keeps_the_disclaimer() -> None:
+    """An object pronoun before the complementizer resumes the cue's complement."""
+    for text in (
+        "I can't promise, and no one can tell you that everything will be okay.",
+        "I can't promise, and no one can tell them that everything will be okay.",
+    ):
+        assert cdr._certainty_claim_omitted(text) is True, text
