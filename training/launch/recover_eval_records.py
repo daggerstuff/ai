@@ -92,10 +92,14 @@ def write_runs(runs: dict[str, list[dict[str, Any]]], out_root: Path) -> dict[st
         directory.mkdir(parents=True, exist_ok=True)
         # ``run_directory`` confines the directory, but a symlink already named
         # ``results.jsonl`` inside it would still redirect the write outside
-        # ``out_root``. O_NOFOLLOW refuses that instead of following it.
+        # ``out_root``. O_NOFOLLOW refuses that instead of following it. The
+        # constant is POSIX-only: where the platform does not define it the
+        # flag is 0 and the write proceeds without the guard rather than
+        # crashing the recovery CLI.
+        nofollow = getattr(os, "O_NOFOLLOW", 0)
         descriptor = os.open(
             directory / "results.jsonl",
-            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW,
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | nofollow,
             0o644,
         )
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:

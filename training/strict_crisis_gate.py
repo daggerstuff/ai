@@ -321,7 +321,19 @@ class JudgeClient:
             # whichever replaced the cache first made the other's os.replace
             # raise FileNotFoundError after its judge call had already paid.
             tmp_path = self._cache_path.with_name(f"{self._cache_path.name}.{os.getpid()}.tmp")
-            tmp_path.write_text(json.dumps(self._cache, indent=2, sort_keys=True) + "\n")
+            # Both graders started from the same snapshot, so writing
+            # ``self._cache`` whole would erase whatever the other graded in
+            # the meantime. Re-read the live file and merge: the verdicts made
+            # here win, the other grader's entries survive to the next run.
+            merged: dict[str, dict[str, Any]] = dict(self._cache)
+            if self._cache_path.exists():
+                try:
+                    stored = json.loads(self._cache_path.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    stored = {}
+                if isinstance(stored, dict):
+                    merged.update({k: v for k, v in stored.items() if k not in self._cache})
+            tmp_path.write_text(json.dumps(merged, indent=2, sort_keys=True) + "\n")
             # A half-written cache is unreadable to the next run, so the file is
             # only ever replaced whole.
             os.replace(tmp_path, self._cache_path)
