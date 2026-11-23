@@ -166,7 +166,7 @@ NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(_phrase_pattern(cu
 # "that"/"both"/"if"/"whether" complement ("..., and no one can, that
 # everything will be okay").
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
-    r"[.!?;\u2029]|(?<!\d):(?!\d)|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
+    r"[.!?;\u2029]|(?<!\d):|:(?!\d)|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
     r"|,\s*(?:and|so)\b"
     r"|\s+yet(?=\s+(?:i|we|you|they|he|she|it)\b)"
     r"|\s+(?:and|so)(?=\s+(?:i|we|you|they|he|she|it|everything|nothing|there)\b)"
@@ -189,7 +189,11 @@ COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"|\bno\s+(?:guarantee|promise)\b.*\b(?:that|both|if|whether)\b"
 )
 
-SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):(?!\d)")
+# An explicit "both ... and" correlative marks coordination inside a
+# complement even when the second conjunct opens with a belief verb.
+CORRELATIVE_BOTH: Final[re.Pattern[str]] = re.compile(r"\bboth\b")
+
+SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d)")
 
 # A subordinate clause reads as an aside whatever its subject; a prepositional
 # phrase inside a contrast ("though with support,") is the new clause itself.
@@ -247,7 +251,10 @@ def _clause_start(text: str, claim_start: int) -> int:
             continue
         if bare and head == "and" and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
             continuation = text[boundary.end() : claim_start]
-            if AFFIRMATIVE_GOVERNER.match(continuation) is None:
+            if (
+                CORRELATIVE_BOTH.search(text[start : boundary.start()])
+                or AFFIRMATIVE_GOVERNER.match(continuation) is None
+            ):
                 continue
         if not bare and head in {"and", "so"}:
             segment = text[boundary.end() : claim_start]
