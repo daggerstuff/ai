@@ -76,6 +76,19 @@ except ImportError:  # direct script execution
     )
     from scenario_fixtures import make_case, write_jsonl
 
+# The v1 register vocabulary v2 inherits verbatim. Listed so the inheritance is
+# a declared part of this module's surface rather than an incidental re-export:
+# a caller comparing v2 against v1 has to be able to read both sides.
+__all__ = [
+    "CODDLING",
+    "DISMISSAL",
+    "MEDICAL_ESCALATION",
+    "NO_SYSTEM",
+    "PAMPHLET",
+    "PSYCH_ESCALATION",
+    "RISK_TO_OTHER_ESCALATION",
+]
+
 GENERATOR = Path(__file__)
 V1_GENERATOR = GENERATOR.with_name("generate_crisis_capability_v1.py")
 PROJECT_ROOT = GENERATOR.resolve().parents[4]

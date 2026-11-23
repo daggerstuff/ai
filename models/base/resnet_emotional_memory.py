@@ -199,9 +199,7 @@ class EmotionalMemoryPool(nn.Module):
         key = key.view(batch_size, self.memory_size, self.memory_heads, self.head_dim)
         key = key.transpose(1, 2)
 
-        value = value.view(
-            batch_size, self.memory_size, self.memory_heads, self.head_dim
-        )
+        value = value.view(batch_size, self.memory_size, self.memory_heads, self.head_dim)
         value = value.transpose(1, 2)
 
         attention_scores = torch.matmul(query, key.transpose(-2, -1))
@@ -215,18 +213,14 @@ class EmotionalMemoryPool(nn.Module):
         memory_output = self.output_proj(memory_output)
 
         context_summary = x.mean(dim=1, keepdim=True)
-        update_input = torch.cat(
-            [context_summary.expand(-1, self.memory_size, -1), memory], dim=-1
-        )
+        update_input = torch.cat([context_summary.expand(-1, self.memory_size, -1), memory], dim=-1)
         update_gate = torch.sigmoid(self.memory_update_gate(update_input))
 
         erase_gate = torch.sigmoid(self.memory_erase_gate(context_summary))
         erase_gate = erase_gate.expand(-1, self.memory_size, -1)
 
         decay = torch.sigmoid(self.temporal_decay)
-        new_memory = decay * memory * (
-            1 - erase_gate
-        ) + update_gate * context_summary.expand(-1, self.memory_size, -1)
+        new_memory = decay * memory * (1 - erase_gate) + update_gate * context_summary.expand(-1, self.memory_size, -1)
 
         memory_for_output = new_memory.mean(dim=1, keepdim=True)
         memory_contribution = memory_for_output.expand(-1, seq_len, -1)
@@ -294,9 +288,7 @@ class HumanContextLayer(nn.Module):
         if attention_mask is not None:
             key_padding_mask = attention_mask == 0
 
-        attn_output, _ = self.attention(
-            x, x, x, key_padding_mask=key_padding_mask, need_weights=False
-        )
+        attn_output, _ = self.attention(x, x, x, key_padding_mask=key_padding_mask, need_weights=False)
         gate_input = torch.cat([x, attn_output], dim=-1)
         gate = torch.sigmoid(self.context_gate(gate_input))
         attn_output = gate * attn_output
@@ -360,9 +352,7 @@ class ResNetEmotionalMemory(nn.Module):
             total_blocks = config.num_resnet_blocks
             self.stochastic_depths = nn.ModuleList(
                 [
-                    StochasticDepth(
-                        drop_prob=config.stochastic_depth_prob * (i / total_blocks)
-                    )
+                    StochasticDepth(drop_prob=config.stochastic_depth_prob * (i / total_blocks))
                     for i in range(total_blocks)
                 ]
             )
@@ -450,9 +440,7 @@ class ResNetEmotionalMemory(nn.Module):
         x = self.output_norm(x)
 
         mask_expanded = attention_mask.unsqueeze(-1).float()
-        pooled = (x * mask_expanded).sum(dim=1) / mask_expanded.sum(dim=1).clamp(
-            min=1e-9
-        )
+        pooled = (x * mask_expanded).sum(dim=1) / mask_expanded.sum(dim=1).clamp(min=1e-9)
         pooled = self.pooler(pooled)
 
         vad = self.vad_head(pooled)

@@ -8,12 +8,14 @@ os.environ["AUTH_SECRET_KEY"] = "test-secret-key"
 
 from inference.api.dataset_api import validate_identifier  # noqa: I001
 
+
 def test_validate_identifier_valid():
     assert validate_identifier("valid_id_123") == "valid_id_123"
     assert validate_identifier("VALID_123") == "VALID_123"
     assert validate_identifier("valid") == "valid"
     assert validate_identifier("_valid_") == "_valid_"
     assert validate_identifier("12345") == "12345"
+
 
 def test_validate_identifier_invalid():
     invalid_ids = [

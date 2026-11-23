@@ -14,24 +14,16 @@ from typing import Final
 # --- Regex patterns for PHI detection ---
 
 # Phone numbers: (XXX) XXX-XXXX or XXX-XXX-XXXX
-_PHONE_PATTERN: Final[re.Pattern[str]] = re.compile(
-    r"\(?\b\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
-)
+_PHONE_PATTERN: Final[re.Pattern[str]] = re.compile(r"\(?\b\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
 
 # Email addresses
-_EMAIL_PATTERN: Final[re.Pattern[str]] = re.compile(
-    r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-)
+_EMAIL_PATTERN: Final[re.Pattern[str]] = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
 
 # SSN: XXX-XX-XXXX
-_SSN_PATTERN: Final[re.Pattern[str]] = re.compile(
-    r"\b\d{3}-\d{2}-\d{4}\b"
-)
+_SSN_PATTERN: Final[re.Pattern[str]] = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
 
 # Dates in common formats: MM/DD/YYYY, YYYY-MM-DD
-_DATE_PATTERN: Final[re.Pattern[str]] = re.compile(
-    r"\b(?:\d{1,2}/\d{1,2}/\d{2,4}|\d{4}-\d{2}-\d{2})\b"
-)
+_DATE_PATTERN: Final[re.Pattern[str]] = re.compile(r"\b(?:\d{1,2}/\d{1,2}/\d{2,4}|\d{4}-\d{2}-\d{2})\b")
 
 # MRN-like patterns: letters + digits, 6-12 chars, prefixed by MRN/MRN:
 _MRN_PATTERN: Final[re.Pattern[str]] = re.compile(
@@ -60,23 +52,21 @@ def sanitize_for_logging(text: str) -> str:
     Returns:
         Sanitized text safe for log output.
     """
-    return (
-        _ADDRESS_PATTERN.sub(
-            "[REDACTED-ADDRESS]",
-            _MRN_PATTERN.sub(
-                "[REDACTED-MRN]",
-                _DATE_PATTERN.sub(
-                    "[REDACTED-DATE]",
-                    _SSN_PATTERN.sub(
-                        "[REDACTED-SSN]",
-                        _EMAIL_PATTERN.sub(
-                            "[REDACTED-EMAIL]",
-                            _PHONE_PATTERN.sub("[REDACTED-PHONE]", text),
-                        ),
+    return _ADDRESS_PATTERN.sub(
+        "[REDACTED-ADDRESS]",
+        _MRN_PATTERN.sub(
+            "[REDACTED-MRN]",
+            _DATE_PATTERN.sub(
+                "[REDACTED-DATE]",
+                _SSN_PATTERN.sub(
+                    "[REDACTED-SSN]",
+                    _EMAIL_PATTERN.sub(
+                        "[REDACTED-EMAIL]",
+                        _PHONE_PATTERN.sub("[REDACTED-PHONE]", text),
                     ),
                 ),
             ),
-        )
+        ),
     )
 
 

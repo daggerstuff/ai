@@ -76,8 +76,10 @@ def main() -> int:
     print(f"arc-family rows: {len(slice_rows)}")
 
     violations, empty_flags, risk_flags, assistant_turns = _ledger_precheck(slice_rows)
-    print(f"ledger precheck: assistant_turns={assistant_turns} hard_violations={violations} "
-          f"empty_value_flags={len(empty_flags)} risk_grammar_flags={len(risk_flags)}")
+    print(
+        f"ledger precheck: assistant_turns={assistant_turns} hard_violations={violations} "
+        f"empty_value_flags={len(empty_flags)} risk_grammar_flags={len(risk_flags)}"
+    )
     if violations:
         print("FAIL: ledger contract violations — corpus not exportable")
         return 1
@@ -103,10 +105,11 @@ def main() -> int:
     print(f"emitted dialogues + manifest -> {args.out_dir}")
 
     issues, emitted, total_chars, turns, empty2, risk2 = _validate_structure(args.out_dir, census)
-    print(f"structure scan: chars={total_chars} assistant_turns={turns} "
-          f"empty_flags={empty2} risk_flags={risk2}")
+    print(f"structure scan: chars={total_chars} assistant_turns={turns} empty_flags={empty2} risk_flags={risk2}")
     issues += _validate_lineage(
-        args.out_dir, emitted, dict(slice_rows),
+        args.out_dir,
+        emitted,
+        dict(slice_rows),
         expected_rows=len(slice_rows),
     )
 
@@ -120,8 +123,10 @@ def main() -> int:
         f.flush()
     print(f"unrolled train datums: {len(datums)} -> {unrolled_path}")
     if len(datums) < RUN1_FLOOR_DATUMS:
-        print(f"WARNING: {len(datums)} datums is below the 10,000 Adaption floor for "
-              "Qwen3.6-35B-A3B — recommend_hyperparams will not validate without augmentation")
+        print(
+            f"WARNING: {len(datums)} datums is below the 10,000 Adaption floor for "
+            "Qwen3.6-35B-A3B — recommend_hyperparams will not validate without augmentation"
+        )
 
     identity = {
         "snapshot": "adaption_run2_v1",

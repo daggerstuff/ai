@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
-from typing import Any
 
 from .state import RareDiseaseState  # noqa: F401 — re-exported by __init__
 from .types import (
-    DiseaseRarity,
     KnowledgeMatch,
     OrganSystem,
     RareDisease,
     Symptom,
+    SymptomSeverity,
 )
 
 
@@ -25,30 +23,22 @@ class RareDiseaseKnowledgeBase:
     def search_by_gene(self, gene: str, top_k: int = 10) -> list[KnowledgeMatch]:
         raise NotImplementedError
 
-    def search_by_organ_system(
-        self, system: OrganSystem, top_k: int = 10
-    ) -> list[KnowledgeMatch]:
+    def search_by_organ_system(self, system: OrganSystem, top_k: int = 10) -> list[KnowledgeMatch]:
         raise NotImplementedError
 
     def get_disease(self, disease_id: str) -> RareDisease | None:
         raise NotImplementedError
 
-    def hybrid_search(
-        self, query: str, top_k: int = 10
-    ) -> list[tuple[RareDisease, float, str]]:
+    def hybrid_search(self, query: str, top_k: int = 10) -> list[tuple[RareDisease, float, str]]:
         """Combine semantic + keyword + structured retrieval."""
         keyword_hits = self._keyword_search(query, top_k)
         structured_hits = self._structured_search(query, top_k)
         return self._merge(keyword_hits, structured_hits, top_k)
 
-    def _keyword_search(
-        self, query: str, top_k: int
-    ) -> list[tuple[RareDisease, float, str]]:
+    def _keyword_search(self, query: str, top_k: int) -> list[tuple[RareDisease, float, str]]:
         raise NotImplementedError
 
-    def _structured_search(
-        self, query: str, top_k: int
-    ) -> list[tuple[RareDisease, float, str]]:
+    def _structured_search(self, query: str, top_k: int) -> list[tuple[RareDisease, float, str]]:
         raise NotImplementedError
 
     def _merge(
@@ -93,9 +83,7 @@ class InMemoryRareDiseaseKnowledgeBase(RareDiseaseKnowledgeBase):
     #  RareDiseaseKnowledgeBase interface                                  #
     # ------------------------------------------------------------------ #
 
-    def search_by_symptom(
-        self, symptom: Symptom, top_k: int = 10
-    ) -> list[KnowledgeMatch]:
+    def search_by_symptom(self, symptom: Symptom, top_k: int = 10) -> list[KnowledgeMatch]:
         matches: list[KnowledgeMatch] = []
         for disease in self._diseases.values():
             score = self._symptom_overlap(symptom, disease)
@@ -128,9 +116,7 @@ class InMemoryRareDiseaseKnowledgeBase(RareDiseaseKnowledgeBase):
         results.sort(key=lambda m: m.score, reverse=True)
         return results[:top_k]
 
-    def search_by_organ_system(
-        self, system: OrganSystem, top_k: int = 10
-    ) -> list[KnowledgeMatch]:
+    def search_by_organ_system(self, system: OrganSystem, top_k: int = 10) -> list[KnowledgeMatch]:
         results = []
         for disease in self._diseases.values():
             if system in disease.organ_systems:
@@ -147,9 +133,7 @@ class InMemoryRareDiseaseKnowledgeBase(RareDiseaseKnowledgeBase):
     def get_disease(self, disease_id: str) -> RareDisease | None:
         return self._diseases.get(disease_id)
 
-    def _keyword_search(
-        self, query: str, top_k: int
-    ) -> list[tuple[RareDisease, float, str]]:
+    def _keyword_search(self, query: str, top_k: int) -> list[tuple[RareDisease, float, str]]:
         tokens = self._tokenize(query)
         scores: dict[str, float] = {}
         for token in tokens:
@@ -162,9 +146,7 @@ class InMemoryRareDiseaseKnowledgeBase(RareDiseaseKnowledgeBase):
             if did in self._diseases
         ]
 
-    def _structured_search(
-        self, query: str, top_k: int
-    ) -> list[tuple[RareDisease, float, str]]:
+    def _structured_search(self, query: str, top_k: int) -> list[tuple[RareDisease, float, str]]:
         q = query.lower()
         results: list[tuple[RareDisease, float, str]] = []
         for disease in self._diseases.values():

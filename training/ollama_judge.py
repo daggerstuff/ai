@@ -1,4 +1,5 @@
 """Judge rejected nightmare fuel records via Ollama in batches."""
+
 import asyncio
 import json
 import os
@@ -114,7 +115,7 @@ async def main():
 
     async with aiohttp.ClientSession() as session:
         for i in range(0, len(to_retry), BATCH_SIZE):
-            batch = to_retry[i:i + BATCH_SIZE]
+            batch = to_retry[i : i + BATCH_SIZE]
             batch_num += 1
             print(f"\n--- Batch {batch_num} ({len(batch)} records) ---")
             results = await judge_batch(session, batch)

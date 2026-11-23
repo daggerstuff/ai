@@ -49,7 +49,7 @@ import argparse
 import json
 import logging
 import sys
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -100,6 +100,7 @@ class QuantizationStats:
 # AWQ quantization
 # ---------------------------------------------------------------------------
 
+
 def quantize_awq(
     model_path: str,
     out_dir: Path,
@@ -144,6 +145,7 @@ def quantize_awq(
 # ---------------------------------------------------------------------------
 # GPTQ quantization
 # ---------------------------------------------------------------------------
+
 
 def quantize_gptq(
     model_path: str,
@@ -196,6 +198,7 @@ def quantize_gptq(
 # GGUF quantization (llama.cpp)
 # ---------------------------------------------------------------------------
 
+
 def quantize_gguf(
     model_path: str,
     out_dir: Path,
@@ -243,7 +246,8 @@ def quantize_gguf(
             str(convert_script),
             model_path,
             str(gguf_f16),
-            "--outtype", "f16",
+            "--outtype",
+            "f16",
         ],
         check=True,
     )
@@ -271,6 +275,7 @@ def quantize_gguf(
 # ---------------------------------------------------------------------------
 # Latency benchmark
 # ---------------------------------------------------------------------------
+
 
 def benchmark_latency(
     model_path: str,
@@ -323,6 +328,7 @@ def benchmark_latency(
 # File size helpers
 # ---------------------------------------------------------------------------
 
+
 def _dir_size_mb(path: Path) -> float:
     """Total size of all files in a directory (or single file) in MB."""
     if path.is_file():
@@ -337,6 +343,7 @@ def _dir_size_mb(path: Path) -> float:
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -464,10 +471,14 @@ def main() -> int:
     report_path = out_dir / "quantize_report.json"
     report_path.write_text(json.dumps(stats.to_dict(), indent=2) + "\n", encoding="utf-8")
     print(f"[quantize] report written to {report_path}")
-    print(f"[quantize] {args.method}: {original_size:.1f} MB → {quantized_size:.1f} MB ({compression_ratio:.1f}x compression)")
+    print(
+        f"[quantize] {args.method}: {original_size:.1f} MB → {quantized_size:.1f} MB ({compression_ratio:.1f}x compression)"
+    )
 
     if stats.speedup is not None:
-        print(f"[quantize] latency: {stats.latency_quantized_tps:.1f} tps (baseline: {stats.latency_baseline_tps:.1f} tps, {stats.speedup:.2f}x speedup)")
+        print(
+            f"[quantize] latency: {stats.latency_quantized_tps:.1f} tps (baseline: {stats.latency_baseline_tps:.1f} tps, {stats.speedup:.2f}x speedup)"
+        )
 
     return 0
 

@@ -751,8 +751,8 @@ class SeedReaderRegistry:
         seed_type = seed_dataset_source.seed_type
         try:
             return self._readers[seed_type]
-        except KeyError:
-            raise SeedReaderError(f"No reader found for seed_type {seed_type!r}")
+        except KeyError as exc:
+            raise SeedReaderError(f"No reader found for seed_type {seed_type!r}") from exc
 
 
 def _build_metadata_record(

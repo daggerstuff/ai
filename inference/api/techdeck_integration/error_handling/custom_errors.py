@@ -228,9 +228,20 @@ class PipelineError(TechDeckBaseError):
 class PipelineExecutionError(PipelineError):
     pass
 
+
 # Backwards-compatible Progress Tracking error expected by progress_tracker
 class ProgressTrackingError(PipelineError):
-    pass
+    """Progress-tracking failures, distinguishable from other pipeline errors."""
+
+    def __init__(
+        self,
+        message: str,
+        pipeline_id: str | None = None,
+        stage: str | None = None,
+        **kwargs,
+    ):
+        super().__init__(message=message, pipeline_id=pipeline_id, stage=stage, **kwargs)
+        self.error_code = "PROGRESS_TRACKING_ERROR"
 
 
 # Backwards-compatible State Management error expected by state manager
@@ -520,13 +531,22 @@ class SystemError(TechDeckBaseError):
 class PipelineNotFoundError(ResourceNotFoundError):
     """Raised when a requested pipeline configuration or execution is not found."""
 
-    def __init__(self, message: str, resource_type: str | None = "pipeline", resource_id: str | None = None, details: dict[str, Any] | None = None, **kwargs):
+    def __init__(
+        self,
+        message: str,
+        resource_type: str | None = "pipeline",
+        resource_id: str | None = None,
+        details: dict[str, Any] | None = None,
+        **kwargs,
+    ):
         merged_details = dict(details or {})
         if resource_type:
             merged_details.setdefault("resource_type", resource_type)
         if resource_id:
             merged_details.setdefault("resource_id", resource_id)
-        super().__init__(message=message, resource_type=resource_type, resource_id=resource_id, details=merged_details, **kwargs)
+        super().__init__(
+            message=message, resource_type=resource_type, resource_id=resource_id, details=merged_details, **kwargs
+        )
         self.error_code = "PIPELINE_NOT_FOUND"
 
 

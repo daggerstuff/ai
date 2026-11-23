@@ -6,6 +6,7 @@ Usage: adjudicate_shard.py <shard_id> <arc1,arc2,...>
 Runs adjudicate_flags.main() with --arcs <list> --last 0, redirecting all
 outputs to a per-shard directory so parallel shards never interleave writes.
 """
+
 import sys
 from pathlib import Path
 

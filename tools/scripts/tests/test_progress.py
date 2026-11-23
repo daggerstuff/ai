@@ -5,7 +5,7 @@ Tests for progress tracking and indicators.
 import threading
 import time
 
-from .progress import (
+from tools.scripts.progress import (
     ProgressReport,
     ProgressStatus,
     ProgressStep,

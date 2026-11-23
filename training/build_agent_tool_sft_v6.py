@@ -124,7 +124,12 @@ def make_citation(index: int) -> dict[str, Any]:
     elif variant == "distractor":
         s = src(0, suffix_pair[0])
         d_id = f"{prefix}-Z"
-        d = {"id": d_id, "title": "Unrelated listing", "topic": "unrelated", "content": f"An unrelated entry, not about {topic}."}
+        d = {
+            "id": d_id,
+            "title": "Unrelated listing",
+            "topic": "unrelated",
+            "content": f"An unrelated entry, not about {topic}.",
+        }
         search_reply = {
             "status": "ok",
             "sources": [
@@ -213,9 +218,7 @@ def build(output: Path) -> dict[str, Any]:
                 if "name" not in message:
                     raise ValueError(f"tool message missing name in {item['id']}")
                 parsed = json.loads(message["content"])
-                if message["content"] != json.dumps(
-                    parsed, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-                ):
+                if message["content"] != json.dumps(parsed, ensure_ascii=False, sort_keys=True, separators=(",", ":")):
                     raise ValueError(f"tool content is not canonical in {item['id']}")
 
     output.mkdir(parents=True, exist_ok=True)

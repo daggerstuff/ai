@@ -7,10 +7,10 @@ Tests core functionality without database dependencies.
 import json
 import os
 import sys
+import unittest
 from datetime import UTC, datetime
+from pathlib import Path
 
-from .datetime import datetime
-from .pathlib import Path
 from .quality_trend_analyzer import QualityTrendAnalyzer
 from .quality_trend_reporter import QualityTrendReporter
 
@@ -19,7 +19,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
 class TestModule(unittest.TestCase):
-    def test_imports_and_initialization():
+    def test_imports_and_initialization(self):
         """Test that all components can be imported and initialized."""
         test_results = {
             "total_tests": 0,
@@ -105,7 +105,7 @@ class TestModule(unittest.TestCase):
 def main():
     """Run the simple test suite."""
 
-    test_results = test_imports_and_initialization()
+    test_results = TestModule().test_imports_and_initialization()
 
     # Generate test report
     success_rate = (test_results["passed_tests"] / test_results["total_tests"]) * 100

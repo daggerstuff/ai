@@ -4,6 +4,7 @@ Known-bad (must score LOW):  nf_025 (fabricated shared trauma), nf_074 (tumor
 speculation + coercive ultimatum). Known-good (must score HIGH): nf_090
 (exonerated, GLM re-probe median 0.92).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -48,20 +49,22 @@ async def main() -> None:
                 assert pair is not None, key
                 reference, candidate = pair
                 print(f"=== {key} | old: prim={stored['primary_quality']} sec={stored['secondary_quality']}")
-                runs = await asyncio.gather(*(
-                    _call_judge_model(
-                        session,
-                        url=url,
-                        model=model,
-                        candidate_content=candidate,
-                        reference_content=reference,
-                        headers=headers,
-                        timeout=TIMEOUT_S,
-                        max_tokens=MAX_TOKENS,
-                        force_json=True,
+                runs = await asyncio.gather(
+                    *(
+                        _call_judge_model(
+                            session,
+                            url=url,
+                            model=model,
+                            candidate_content=candidate,
+                            reference_content=reference,
+                            headers=headers,
+                            timeout=TIMEOUT_S,
+                            max_tokens=MAX_TOKENS,
+                            force_json=True,
+                        )
+                        for _ in range(K)
                     )
-                    for _ in range(K)
-                ))
+                )
                 entry = {"model": model, "slot": slot, "key": key, "runs": []}
                 scores = []
                 for i, v in enumerate(runs, 1):
@@ -73,12 +76,14 @@ async def main() -> None:
                     print(f"  run{i}: q={v.quality_score:.3f} reject={v.reject_reason[:90]!r}")
                     print(f"        dims={ {k: round(x, 2) for k, x in v.dim_scores.items()} }")
                     print(f"        reasoning: {v.reasoning[:500]}")
-                    entry["runs"].append({
-                        "quality_score": v.quality_score,
-                        "reject_reason": v.reject_reason,
-                        "dim_scores": v.dim_scores,
-                        "reasoning": v.reasoning,
-                    })
+                    entry["runs"].append(
+                        {
+                            "quality_score": v.quality_score,
+                            "reject_reason": v.reject_reason,
+                            "dim_scores": v.dim_scores,
+                            "reasoning": v.reasoning,
+                        }
+                    )
                 if scores:
                     entry["median"] = sorted(scores)[len(scores) // 2]
                 results.append(entry)

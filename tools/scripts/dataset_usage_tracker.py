@@ -3,6 +3,7 @@
 Dataset usage analytics tracking script that monitors access patterns,
 training job correlations, and data freshness.
 """
+
 import argparse
 import json
 from dataclasses import asdict, dataclass
@@ -11,9 +12,8 @@ from pathlib import Path
 from typing import Any
 
 from botocore.exceptions import ClientError
+from path_utils import AI_DIR
 from s3_client_helper import get_s3_client
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
-
 
 
 @dataclass
@@ -44,9 +44,7 @@ class DatasetUsageTracker:
 
     def __init__(self, registry_path: Path, analytics_dir: Path | None = None):
         self.registry_path = registry_path
-        self.analytics_dir = (
-            analytics_dir or Path.home() / ".cache" / "dataset_analytics"
-        )
+        self.analytics_dir = analytics_dir or Path.home() / ".cache" / "dataset_analytics"
         self.analytics_dir.mkdir(parents=True, exist_ok=True)
         self.s3_client = get_s3_client()
 
@@ -225,8 +223,7 @@ class DatasetUsageTracker:
         recent_jobs = [
             job
             for job in training_jobs
-            if datetime.fromisoformat(job["timestamp"].rstrip("Z"))
-            > datetime.now(UTC) - timedelta(days=30)
+            if datetime.fromisoformat(job["timestamp"].rstrip("Z")) > datetime.now(UTC) - timedelta(days=30)
         ]
 
         return {
@@ -238,9 +235,7 @@ class DatasetUsageTracker:
             "last_training_job": training_jobs[-1] if training_jobs else None,
         }
 
-    def update_registry_usage_metrics(
-        self, limit: int | None = None
-    ) -> dict[str, Any]:
+    def update_registry_usage_metrics(self, limit: int | None = None) -> dict[str, Any]:
         """
         Update usage metrics in registry for all datasets.
 
@@ -284,9 +279,7 @@ class DatasetUsageTracker:
                 if isinstance(section_data, dict):
                     for dataset_name, dataset_entry in section_data.items():
                         if isinstance(dataset_entry, dict) and "path" in dataset_entry:
-                            datasets_to_update.append(
-                                (f"{section_name}.{dataset_name}", dataset_entry)
-                            )
+                            datasets_to_update.append((f"{section_name}.{dataset_name}", dataset_entry))
 
         if limit:
             datasets_to_update = datasets_to_update[:limit]
@@ -319,17 +312,10 @@ class DatasetUsageTracker:
 
                 # Update registry
                 if len(parts) == 3:
-                    if (
-                        "usage_analytics"
-                        not in registry["datasets"][parts[1]][parts[2]]
-                    ):
+                    if "usage_analytics" not in registry["datasets"][parts[1]][parts[2]]:
                         registry["datasets"][parts[1]][parts[2]]["usage_analytics"] = {}
-                    registry["datasets"][parts[1]][parts[2]]["usage_analytics"] = (
-                        usage_analytics
-                    )
-                    registry["datasets"][parts[1]][parts[2]]["quality_metrics"] = (
-                        quality_metrics
-                    )
+                    registry["datasets"][parts[1]][parts[2]]["usage_analytics"] = usage_analytics
+                    registry["datasets"][parts[1]][parts[2]]["quality_metrics"] = quality_metrics
                 elif len(parts) == 2:
                     if "usage_analytics" not in registry[parts[0]][parts[1]]:
                         registry[parts[0]][parts[1]]["usage_analytics"] = {}
@@ -363,21 +349,15 @@ def main():
         default="update",
         help="Action to perform",
     )
-    parser.add_argument(
-        "--dataset", type=str, help="Dataset name (for access/job actions)"
-    )
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Maximum number of datasets to update"
-    )
+    parser.add_argument("--dataset", type=str, help="Dataset name (for access/job actions)")
+    parser.add_argument("--limit", type=int, default=None, help="Maximum number of datasets to update")
 
     args = parser.parse_args()
 
     tracker = DatasetUsageTracker(args.registry)
 
     if args.action == "update":
-
         tracker.update_registry_usage_metrics(limit=args.limit)
-
 
     elif args.action == "access":
         if not args.dataset:

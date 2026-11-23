@@ -20,10 +20,7 @@ class ChatMLConverter:
 
         messages = []
         # Always inject system prompt first
-        messages.append({
-            "role": "system",
-            "content": self.default_system_prompt
-        })
+        messages.append({"role": "system", "content": self.default_system_prompt})
 
         if source_family == "voice_training":
             # Input format is usually {'conversation': [...]} or {'messages': [...]}
@@ -55,14 +52,18 @@ class ChatMLConverter:
             text = raw.get("text", "")
             book_name = metadata.get("book_name", "Clinical Text")
 
-            messages.append({
-                "role": "user",
-                "content": f"Please process and store this clinical knowledge from {book_name}:\n\n{text}"
-            })
-            messages.append({
-                "role": "assistant",
-                "content": "I have integrated this clinical knowledge and will apply it in therapeutic contexts."
-            })
+            messages.append(
+                {
+                    "role": "user",
+                    "content": f"Please process and store this clinical knowledge from {book_name}:\n\n{text}",
+                }
+            )
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": "I have integrated this clinical knowledge and will apply it in therapeutic contexts.",
+                }
+            )
 
         elif source_family == "reasoning_enhancement":
             # Formats: {"Context": "...", "Response": "..."} or {"text": [{"role": "user", "content": "..."}, ...]}
@@ -90,37 +91,36 @@ class ChatMLConverter:
         # 2. Look for 'instruction' and 'output' (Alpaca style)
         elif "instruction" in raw and "output" in raw:
             user_msg = raw["instruction"]
-            if raw.get("input"): user_msg += "\n" + raw["input"]
+            if raw.get("input"):
+                user_msg += "\n" + raw["input"]
             messages.append({"role": "user", "content": str(user_msg)})
             messages.append({"role": "assistant", "content": str(raw["output"])})
 
         # 3. Look for 'messages' or 'conversation' or 'text' list
         elif "messages" in raw or "conversation" in raw or ("text" in raw and isinstance(raw["text"], list)):
-            conv = raw.get("messages", []) or raw.get("conversation", []) or (raw.get("text", []) if isinstance(raw.get("text"), list) else [])
+            conv = (
+                raw.get("messages", [])
+                or raw.get("conversation", [])
+                or (raw.get("text", []) if isinstance(raw.get("text"), list) else [])
+            )
             for turn in conv:
                 role = turn.get("role", turn.get("from", "user"))
                 content = turn.get("content", turn.get("value", ""))
 
-                if role in ["client", "user", "human"]: role = "user"
+                if role in ["client", "user", "human"]:
+                    role = "user"
                 elif role in ["therapist", "assistant", "ai", "system", "gpt"]:
-                    if role == "system": continue
+                    if role == "system":
+                        continue
                     role = "assistant"
-                else: role = "user"
+                else:
+                    role = "user"
 
                 messages.append({"role": role, "content": str(content)})
 
         # 4. Total fallback stringification
         else:
-            messages.append({
-                "role": "user",
-                "content": str(raw)
-            })
-            messages.append({
-                "role": "assistant",
-                "content": "Acknowledged."
-            })
+            messages.append({"role": "user", "content": str(raw)})
+            messages.append({"role": "assistant", "content": "Acknowledged."})
 
-        return {
-            "messages": messages,
-            "metadata": metadata
-        }
+        return {"messages": messages, "metadata": metadata}

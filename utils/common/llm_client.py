@@ -282,7 +282,7 @@ class LLMClient:
             base_estimate = self._estimated_tokens(prompt, system_prompt, {})
             try:
                 schema_budget = max(len(json.dumps(schema)) // 4, 256)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 schema_budget = 0
             acquired = self.rate_limiter.acquire(
                 provider=self.provider,

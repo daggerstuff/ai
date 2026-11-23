@@ -26,5 +26,6 @@ def create_test_epub(path):
     # Write EPUB
     epub.write_epub(path, book)
 
+
 if __name__ == "__main__":
     create_test_epub("ai/training/test_data/books/test_clinical_book.epub")

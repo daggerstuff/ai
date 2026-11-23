@@ -422,9 +422,7 @@ class TextToSpeechGenerator:
             logger.error(f"TTS synthesis failed: {e!s}")
             return {"error": str(e)}
 
-    def _write_wav(
-        self, session_id: str, audio: np.ndarray, sampling_rate: int
-    ) -> Path | None:
+    def _write_wav(self, session_id: str, audio: np.ndarray, sampling_rate: int) -> Path | None:
         """Persist audio as a 16-bit PCM WAV when TTS_OUTPUT_DIR is set."""
         if not self.output_dir:
             return None

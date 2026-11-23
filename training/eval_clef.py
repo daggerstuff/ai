@@ -285,9 +285,7 @@ def _max_present(row: dict[str, Any], gt_cats: list[str]) -> float | None:
     return max(vals) if vals else None
 
 
-def score(
-    rows: list[dict[str, Any]], probes: list[dict[str, Any]], threshold: float
-) -> dict[str, Any]:
+def score(rows: list[dict[str, Any]], probes: list[dict[str, Any]], threshold: float) -> dict[str, Any]:
     if not rows:
         return {"probes": 0, "valid": 0, "note": "no completed probes"}
 

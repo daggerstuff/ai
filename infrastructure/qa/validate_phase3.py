@@ -68,12 +68,8 @@ class Phase3Validator:
             try:
                 from safety_accuracy_validator import (
                     CrisisDetectionSimulator,
-                    CrisisType,
                     SafetyAccuracyValidator,
-                    SafetyLevel,
                     SafetyTestSuite,
-                    ValidationResult,
-                    safety_validator,
                 )
 
                 score += 10
@@ -212,9 +208,6 @@ class Phase3Validator:
                     CertificationLevel,
                     ClinicalRequirementsFramework,
                     ClinicalSafetyCertifier,
-                    ClinicalStandard,
-                    SafetyProtocol,
-                    clinical_certifier,
                 )
 
                 score += 10
@@ -359,7 +352,6 @@ class Phase3Validator:
                     MonitoringStatus,
                     SafetyMetricsCollector,
                     SafetyMonitoringIntegration,
-                    safety_monitor,
                 )
 
                 score += 10

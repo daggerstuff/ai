@@ -773,7 +773,7 @@ class PipelineCoordinator:
                 "last_updated": execution_state.get("last_updated"),
             }
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             self.logger.error(f"Error getting execution status: {e}")
@@ -832,7 +832,7 @@ class PipelineCoordinator:
 
             return True
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             self.logger.error(f"Error cancelling execution {execution_id}: {e}")

@@ -25,9 +25,7 @@ class MeraPipeline:
         self.rank = RankStage(self.hierarchy, self.embedder, self.config)
 
     def run(self, presentation: PatientPresentation) -> MeraResult:
-        candidates = self.memorize.retrieve(
-            presentation, top_k=self.config.top_k_retrieval
-        )
+        candidates = self.memorize.retrieve(presentation, top_k=self.config.top_k_retrieval)
         ranked = self.rank.rank(presentation, candidates)
         return MeraResult(
             case_id=presentation.case_id,

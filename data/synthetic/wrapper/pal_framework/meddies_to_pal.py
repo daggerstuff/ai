@@ -27,6 +27,7 @@ def format_persona(meddies_record: dict[str, Any]) -> str:
     )
     return description
 
+
 def process_file(input_path: str, output_path: str) -> None:
     """Process a JSONL file of Meddies records and output formatted PAL strings."""
     with open(input_path, encoding="utf-8") as fin, open(output_path, "w", encoding="utf-8") as fout:

@@ -11,9 +11,9 @@ import sqlite3
 import statistics
 import threading
 from collections import Counter, defaultdict
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
-from collections.abc import Mapping
 from typing import Any
 
 # Configure logging
@@ -383,10 +383,6 @@ class ResultAggregator:
                 worker_stats[worker_id]["avg_quality_score"] = statistics.mean(data["quality_scores"])
 
             if data["processing_times"]:
-                worker_stats[worker_id]["avg_processing_time"] = statistics.mean(data["processing_times"])
-                worker_stats[worker_id]["total_processing_time"] = sum(data["processing_times"])
-
-        return dict(worker_stats)
                 worker_stats[worker_id]["avg_processing_time"] = statistics.mean(data["processing_times"])
                 worker_stats[worker_id]["total_processing_time"] = sum(data["processing_times"])
 

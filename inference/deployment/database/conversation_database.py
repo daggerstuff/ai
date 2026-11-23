@@ -25,7 +25,6 @@ from typing import Any, Protocol, TypeVar, cast
 
 # Schema imports
 from ai.inference.deployment.database.database.conversation_schema import (
-
     ConversationSchema,
     ConversationTier,
     ProcessingStatus,

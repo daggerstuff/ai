@@ -75,9 +75,7 @@ def upload(directory: Path, artifact_name: str) -> str:
             run.finish()
 
 
-artifact = g04.make_training_artifact(
-    payload, manifest, config, WORK_DIR / manifest["release_id"] / ARM
-)
+artifact = g04.make_training_artifact(payload, manifest, config, WORK_DIR / manifest["release_id"] / ARM)
 plan = g04.TrainingPlan(manifest, payload, config, artifact, task_id)
 request = g04.ExecutionRequest(
     manifest_path=MANIFEST,

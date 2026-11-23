@@ -65,10 +65,7 @@ class PositionalEncoding(nn.Module):
 
         pe: torch.Tensor = torch.zeros(max_len, embedding_dim)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(
-            torch.arange(0, embedding_dim, 2).float()
-            * (-math.log(10000.0) / embedding_dim)
-        )
+        div_term = torch.exp(torch.arange(0, embedding_dim, 2).float() * (-math.log(10000.0) / embedding_dim))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0)
@@ -114,9 +111,7 @@ class MultiScaleConvLayer(nn.Module):
             for k in kernel_sizes
         )
 
-        self.batch_norms = nn.ModuleList(
-            nn.BatchNorm1d(num_filters) for _ in kernel_sizes
-        )
+        self.batch_norms = nn.ModuleList(nn.BatchNorm1d(num_filters) for _ in kernel_sizes)
 
         self.dropout = nn.Dropout(dropout)
 
@@ -251,9 +246,7 @@ class HierarchicalAggregator(nn.Module):
 
         self.output_layer = nn.Linear(input_dim * 3, input_dim)
 
-    def forward(
-        self, x: torch.Tensor, attention_mask: Optional[torch.Tensor] = None
-    ) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, attention_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         token_weights = F.softmax(self.token_attention(x), dim=1)
         token_features = (x * token_weights).sum(dim=1)
 
@@ -261,16 +254,12 @@ class HierarchicalAggregator(nn.Module):
         if attention_mask is not None:
             key_padding_mask = attention_mask == 0
 
-        phrase_features, _ = self.phrase_attention(
-            x, x, x, key_padding_mask=key_padding_mask
-        )
+        phrase_features, _ = self.phrase_attention(x, x, x, key_padding_mask=key_padding_mask)
         phrase_features = phrase_features.mean(dim=1)
 
         sequence_features = self.sequence_pool(x.mean(dim=1))
 
-        combined = torch.cat(
-            [token_features, phrase_features, sequence_features], dim=-1
-        )
+        combined = torch.cat([token_features, phrase_features, sequence_features], dim=-1)
         return self.output_layer(combined)
 
 
@@ -311,9 +300,7 @@ class CNNFeatureExtractor(nn.Module):
             dropout=config.dropout,
         )
 
-        self.input_projection = nn.Linear(
-            self.multi_scale_conv.output_dim, config.hidden_size
-        )
+        self.input_projection = nn.Linear(self.multi_scale_conv.output_dim, config.hidden_size)
 
         if config.enable_micro_rhythm:
             self.micro_rhythm = MicroRhythmLayer(

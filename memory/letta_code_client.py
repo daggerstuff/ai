@@ -188,7 +188,7 @@ class LettaCodeClient:
                 api_key = api_key or config_data.get("api_key")
                 agent_id = agent_id or config_data.get("agent_id")
                 base_url = base_url or config_data.get("base_url", DEFAULT_BASE_URL)
-            except (json.JSONDecodeError, KeyError):
+            except json.JSONDecodeError, KeyError:
                 pass
 
         return LettaCodeConfig(

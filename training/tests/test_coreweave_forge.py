@@ -46,21 +46,13 @@ def test_forge_config_smart_routing() -> None:
         }
     )
 
-    artifact_model = (
-        "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline:v1"
-    )
+    artifact_model = "wandb-artifact:///wutang/pixelated-empathy-kan28/arc-sft-baseline:v1"
     assert config.is_artifact_uri(artifact_model) is True
-    assert (
-        config.resolve_inference_endpoint(artifact_model)
-        == f"{config.training_api_base}/chat/completions"
-    )
+    assert config.resolve_inference_endpoint(artifact_model) == f"{config.training_api_base}/chat/completions"
 
     base_model = "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B"
     assert config.is_artifact_uri(base_model) is False
-    assert (
-        config.resolve_inference_endpoint(base_model)
-        == f"{config.inference_api_base}/chat/completions"
-    )
+    assert config.resolve_inference_endpoint(base_model) == f"{config.inference_api_base}/chat/completions"
 
 
 # ─── Client Tests ──────────────────────────────────────────────────
@@ -83,9 +75,7 @@ class _MockResponse:
 
 def test_client_get_base_models() -> None:
     def mock_opener(_req: Any, **_kwargs: Any) -> _MockResponse:
-        return _MockResponse(
-            b'{"models": [{"id": "model-1"}, {"id": "model-2"}]}'
-        )
+        return _MockResponse(b'{"models": [{"id": "model-1"}, {"id": "model-2"}]}')
 
     client = CoreWeaveForgeClient(opener=mock_opener)
     models = client.get_base_models()
@@ -100,16 +90,12 @@ def test_client_create_model_and_job() -> None:
         if "/preview/sft-training-jobs" in req.full_url:
             return _MockResponse(b'{"id": "test-job-uuid-456"}')
         if "/preview/training-jobs/test-job-uuid-456" in req.full_url:
-            return _MockResponse(
-                b'{"id": "test-job-uuid-456", "status": "completed"}'
-            )
+            return _MockResponse(b'{"id": "test-job-uuid-456", "status": "completed"}')
         return _MockResponse(b"{}")
 
     client = CoreWeaveForgeClient(opener=mock_opener)
 
-    model_resp = client.create_model(
-        "test-model", "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B"
-    )
+    model_resp = client.create_model("test-model", "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B")
     assert model_resp["id"] == "test-model-uuid-123"
 
     job_resp = client.create_sft_job(
@@ -119,9 +105,7 @@ def test_client_create_model_and_job() -> None:
     )
     assert job_resp["id"] == "test-job-uuid-456"
 
-    status = client.poll_job_until_complete(
-        "test-job-uuid-456", poll_interval=0.01, max_timeout=1.0
-    )
+    status = client.poll_job_until_complete("test-job-uuid-456", poll_interval=0.01, max_timeout=1.0)
     assert status["status"] == "completed"
 
 
@@ -137,9 +121,7 @@ def test_client_chat_completion_smart_routing() -> None:
 
     def mock_opener(req: Any, **_kwargs: Any) -> _MockResponse:
         routed_urls.append(req.full_url)
-        return _MockResponse(
-            b'{"choices": [{"message": {"role": "assistant", "content": "Hello!"}}]}'
-        )
+        return _MockResponse(b'{"choices": [{"message": {"role": "assistant", "content": "Hello!"}}]}')
 
     client = CoreWeaveForgeClient(opener=mock_opener)
 
@@ -149,10 +131,7 @@ def test_client_chat_completion_smart_routing() -> None:
         messages=[{"role": "user", "content": "Hi"}],
     )
     assert "choices" in base_res
-    assert (
-        routed_urls[-1]
-        == f"{client.config.inference_api_base}/chat/completions"
-    )
+    assert routed_urls[-1] == f"{client.config.inference_api_base}/chat/completions"
 
     # 2. Checkpoint artifact
     artifact_res = client.chat_completion(
@@ -160,9 +139,7 @@ def test_client_chat_completion_smart_routing() -> None:
         messages=[{"role": "user", "content": "Hi"}],
     )
     assert "choices" in artifact_res
-    assert (
-        routed_urls[-1] == f"{client.config.training_api_base}/chat/completions"
-    )
+    assert routed_urls[-1] == f"{client.config.training_api_base}/chat/completions"
 
 
 # ─── Serverless RL Runner Tests ────────────────────────────────────
@@ -263,14 +240,9 @@ def test_quota_optimizer_classification_and_audit(tmp_path: Path) -> None:
     optimizer = StorageQuotaOptimizer()
 
     # Create 25 mock versions (each 1 GB = 1024^3 bytes)
-    mock_versions = [
-        {"name": "arc-sft-ckpt", "version": f"v{i}", "size_bytes": 1024**3}
-        for i in range(25)
-    ]
+    mock_versions = [{"name": "arc-sft-ckpt", "version": f"v{i}", "size_bytes": 1024**3} for i in range(25)]
 
-    report = optimizer.generate_audit_report(
-        mock_versions, keep_every_n=10, keep_last_n=3
-    )
+    report = optimizer.generate_audit_report(mock_versions, keep_every_n=10, keep_last_n=3)
 
     assert report.total_storage_gb == EXPECTED_STORAGE_GB
     assert report.quota_limit_gb == EXPECTED_QUOTA_GB

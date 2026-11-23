@@ -68,7 +68,7 @@ class GenerationController:
             results = data_designer.preview(config_builder, num_records=num_records)
         except Exception as e:
             print_error(f"Preview generation failed: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         if results.dataset is None or len(results.dataset) == 0:
             print_error("No records were generated.")
@@ -110,10 +110,10 @@ class GenerationController:
             data_designer.validate(config_builder)
         except InvalidConfigError as e:
             print_error(f"Configuration is invalid: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
         except Exception as e:
             print_error(f"Validation failed: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         print_success("Configuration is valid")
 
@@ -139,10 +139,10 @@ class GenerationController:
             data_designer.check_models(config_builder)
         except DataDesignerError as e:
             print_error(f"Model health check failed ({type(e).__name__}): {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
         except Exception as e:
             print_error(f"Model health check failed: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         print_success("All models and tools responded successfully")
 
@@ -205,7 +205,7 @@ class GenerationController:
             )
         except Exception as e:
             print_error(f"Dataset creation failed: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
         actual_record_count = results.count_records()
 
@@ -224,7 +224,7 @@ class GenerationController:
             except Exception as e:
                 export_path.unlink(missing_ok=True)
                 print_error(f"Export failed: {e}")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from e
             console.print(f"  Exported to:       [bold]{export_path}[/bold]")
 
         console.print()
@@ -253,7 +253,7 @@ class GenerationController:
             return load_config_builder(config_source, script_params)
         except ConfigLoadError as e:
             print_error(str(e))
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     def _load_run_config(self, run_config_source: str) -> RunConfig:
         """Load a runtime configuration, exiting on failure."""
@@ -261,7 +261,7 @@ class GenerationController:
             return load_run_config(run_config_source)
         except ConfigLoadError as e:
             print_error(str(e))
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     def _save_preview_results(
         self,
@@ -303,7 +303,7 @@ class GenerationController:
             logger.info(f"{LOG_INDENT}Browser path: {sample_records_dir / PAGER_FILENAME}")
         except OSError as e:
             print_error(f"Failed to save preview results: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from e
 
     def _display_record_with_header(
         self, results: PreviewResults, index: int, total: int, display_width: int = DEFAULT_DISPLAY_WIDTH

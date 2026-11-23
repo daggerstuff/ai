@@ -19,12 +19,18 @@ from ai.pipelines.data_processing.journal.mcp.resources.sessions import SessionS
 logger = logging.getLogger(__name__)
 
 __all__ = [
+    "Dict",
+    "List",
     "MCPResource",
+    "Optional",
     "ProgressHistoryResource",
     "ProgressMetricsResource",
     "ResourceRegistry",
     "SessionMetricsResource",
     "SessionStateResource",
+    "fnmatch",
+    "logger",
+    "logging",
 ]
 
 

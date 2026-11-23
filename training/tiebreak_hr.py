@@ -141,8 +141,7 @@ def tiebreak_decide(
         if flags:
             return (
                 "tiebreak_manual",
-                f"top-two agree at {b:.3f} >= {ACCEPT_THRESHOLD} "
-                f"but safety flags present: {', '.join(flags)}",
+                f"top-two agree at {b:.3f} >= {ACCEPT_THRESHOLD} but safety flags present: {', '.join(flags)}",
             )
         return "tiebreak_accept", f"top-two agree at {b:.3f} >= {ACCEPT_THRESHOLD}, no safety flags"
     if b - c <= DUAL_CONSISTENCY_DIFF_MAX:
@@ -150,18 +149,15 @@ def tiebreak_decide(
         if b >= ACCEPT_THRESHOLD:
             return (
                 "tiebreak_manual",
-                f"lower pair agrees at {c:.3f}-{b:.3f} "
-                f"but top judge {a:.3f} is high outlier; human decides",
+                f"lower pair agrees at {c:.3f}-{b:.3f} but top judge {a:.3f} is high outlier; human decides",
             )
         return (
             "tiebreak_reject",
-            f"lower pair agrees at {c:.3f}-{b:.3f}, consensus {b:.3f} below "
-            f"threshold (top judge {a:.3f} alone above)",
+            f"lower pair agrees at {c:.3f}-{b:.3f}, consensus {b:.3f} below threshold (top judge {a:.3f} alone above)",
         )
     return (
         "tiebreak_contested",
-        f"no pair of 3 judges agrees within {DUAL_CONSISTENCY_DIFF_MAX} "
-        f"(scores {a:.3f}/{b:.3f}/{c:.3f})",
+        f"no pair of 3 judges agrees within {DUAL_CONSISTENCY_DIFF_MAX} (scores {a:.3f}/{b:.3f}/{c:.3f})",
     )
 
 
@@ -203,7 +199,13 @@ async def _call_third_with_retry(
         )
         if not _is_infra_failure(verdict.reject_reason):
             return verdict, attempts
-        logger.warning("third judge %s failed (attempt %d/%d): %s — retrying", model, attempt, TIEBREAK_ATTEMPTS, verdict.reject_reason[:120])
+        logger.warning(
+            "third judge %s failed (attempt %d/%d): %s — retrying",
+            model,
+            attempt,
+            TIEBREAK_ATTEMPTS,
+            verdict.reject_reason[:120],
+        )
         await asyncio.sleep(min(5.0 * (2 ** (attempt - 1)), 60.0))
     return verdict, attempts
 
@@ -255,7 +257,9 @@ async def _tiebreak_one(
     )
     primary_q, secondary_q, primary_reason, secondary_reason = _row_quality(row)
     verdict_name, reason = tiebreak_decide(
-        primary_q, secondary_q, third_q,
+        primary_q,
+        secondary_q,
+        third_q,
         [primary_reason, secondary_reason, verdict.reject_reason],
     )
     row.update(tiebreak_verdict=verdict_name, tiebreak_reason=reason)
@@ -289,7 +293,9 @@ async def main_async(limit: int | None, probe: bool) -> None:
 
     settled: dict[str, dict[str, Any]] = {}
     for row in _load_jsonl(OUT_V3):
-        if row.get("tiebreak_verdict") in TIEBREAK_SETTLED and not _is_infra_failure(row.get("tiebreak_reason", "") or ""):
+        if row.get("tiebreak_verdict") in TIEBREAK_SETTLED and not _is_infra_failure(
+            row.get("tiebreak_reason", "") or ""
+        ):
             settled[row["key"]] = row
     pending = [r for r in hr_rows if r["key"] not in settled]
     missing = [r["key"] for r in pending if r["key"] not in generated]
@@ -325,8 +331,13 @@ async def main_async(limit: int | None, probe: bool) -> None:
                 else:
                     logger.info(
                         "[%3d/%d] %s p=%s s=%s t=%s -> %s",
-                        done, len(pending), row["key"],
-                        row["primary_quality"], row["secondary_quality"], row["third_quality"], row["tiebreak_verdict"],
+                        done,
+                        len(pending),
+                        row["key"],
+                        row["primary_quality"],
+                        row["secondary_quality"],
+                        row["third_quality"],
+                        row["tiebreak_verdict"],
                     )
                 if wandb_run and done % 10 == 0:
                     wandb_run.log({"tiebreak_progress": done, "tiebreak_total": len(pending)})
@@ -478,8 +489,12 @@ def readjudicate() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, default=None, help="Tie-break only first N pending HR rows (smoke test)")
-    parser.add_argument("--probe", action="store_true", help="Judge only the first pending HR row and print the verdict")
-    parser.add_argument("--readjudicate", action="store_true", help="Re-derive verdicts from stored scores, no LLM calls")
+    parser.add_argument(
+        "--probe", action="store_true", help="Judge only the first pending HR row and print the verdict"
+    )
+    parser.add_argument(
+        "--readjudicate", action="store_true", help="Re-derive verdicts from stored scores, no LLM calls"
+    )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     if args.readjudicate:

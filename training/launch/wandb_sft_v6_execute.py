@@ -106,18 +106,14 @@ def _dry_run(args: argparse.Namespace, campaign: Campaign) -> int:
     return 0
 
 
-def _artifact_uploader(
-    manifest: dict[str, Any], payload: g04.Payload, api_key: str
-) -> Callable[[Path, str], str]:
+def _artifact_uploader(manifest: dict[str, Any], payload: g04.Payload, api_key: str) -> Callable[[Path, str], str]:
     wandb = importlib.import_module("wandb")
     os.environ["WANDB_API_KEY"] = api_key
 
     def upload(directory: Path, artifact_name: str) -> str:
         run = None
         try:
-            run = wandb.init(
-                entity=g04.ENTITY, project=g04.PROJECT, job_type="sft-data-upload", mode="online"
-            )
+            run = wandb.init(entity=g04.ENTITY, project=g04.PROJECT, job_type="sft-data-upload", mode="online")
             artifact = wandb.Artifact(
                 artifact_name,
                 type="dataset",
@@ -140,6 +136,7 @@ def _artifact_uploader(
         finally:
             if run is not None:
                 run.finish()
+
     return upload
 
 

@@ -229,7 +229,7 @@ class QualityDistributionAnalyzer:
                 _shapiro_stat, shapiro_p = stats.shapiro(test_values)
                 if shapiro_p > 0.05:
                     return "normal"
-            except:
+            except Exception:
                 pass
 
             # Check skewness for distribution type
@@ -242,7 +242,7 @@ class QualityDistributionAnalyzer:
                 if skewness < -1:
                     return "left_skewed"
                 return "moderately_skewed"
-            except:
+            except Exception:
                 return "unknown"
 
         except Exception:

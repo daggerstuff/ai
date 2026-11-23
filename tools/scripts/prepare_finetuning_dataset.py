@@ -211,7 +211,6 @@ class Anonymizer:
         # Replace URLs
         return self._replace_pattern(result, self.PATTERNS["url"], "<URL>")
 
-
     def _replace_pattern(self, text: str, pattern: re.Pattern, placeholder: str) -> str:
         """Replace all matches of a pattern with a placeholder."""
         matches = pattern.findall(text)
@@ -890,7 +889,6 @@ class FineTuningDatasetPreparer:
         logger.info("Splitting and saving dataset")
         splits = self.split_dataset(examples)
         return self.save_dataset(splits)
-
 
 
 def main():

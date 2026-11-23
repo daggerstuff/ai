@@ -75,17 +75,17 @@ class SessionStateResource(MCPResource):
             content = self.format_content(state_dict)
             return {"contents": [content]}
 
-        except KeyError:
+        except KeyError as exc:
             raise MCPError(
                 MCPErrorCode.RESOURCE_NOT_FOUND,
                 f"Session {session_id} not found",
-            )
+            ) from exc
         except Exception as e:
             logger.exception(f"Error reading session state for session {session_id}")
             raise MCPError(
                 JSONRPCErrorCode.INTERNAL_ERROR,
                 f"Failed to read session state: {e!s}",
-            )
+            ) from e
 
     def validate_uri(self, uri: str) -> bool:
         """

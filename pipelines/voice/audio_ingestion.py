@@ -12,9 +12,7 @@ import soundfile as sf
 import yt_dlp
 from faster_whisper import WhisperModel
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("AudioIngestion")
 
 # Fixed full-scale reference for float audio in [-1.0, 1.0].
@@ -129,11 +127,7 @@ class AudioDownloader:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = typing.cast(dict[str, typing.Any], ydl.extract_info(channel_url, download=False))
             if info and "entries" in info:
-                return [
-                    str(entry["url"])
-                    for entry in info["entries"]
-                    if isinstance(entry, dict) and entry.get("url")
-                ]
+                return [str(entry["url"]) for entry in info["entries"] if isinstance(entry, dict) and entry.get("url")]
             return []
 
 
@@ -265,9 +259,7 @@ class AudioIngestionPipeline:
                 return False
 
             logger.info(f"Segmenting {video_id}")
-            chunks_created = self.segmenter.process_and_segment(
-                qc_results["y"], qc_results["sr"], video_id
-            )
+            chunks_created = self.segmenter.process_and_segment(qc_results["y"], qc_results["sr"], video_id)
 
             self.registry.update_status(
                 video_id,
@@ -298,16 +290,12 @@ class AudioIngestionPipeline:
 
         success_count = 0
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-            future_to_url = {
-                executor.submit(self.process_single_video, url): url for url in video_urls
-            }
+            future_to_url = {executor.submit(self.process_single_video, url): url for url in video_urls}
             for future in as_completed(future_to_url):
                 if future.result():
                     success_count += 1
 
-        logger.info(
-            f"Channel ingestion complete. Successfully processed {success_count}/{len(video_urls)} videos."
-        )
+        logger.info(f"Channel ingestion complete. Successfully processed {success_count}/{len(video_urls)} videos.")
         return success_count
 
 

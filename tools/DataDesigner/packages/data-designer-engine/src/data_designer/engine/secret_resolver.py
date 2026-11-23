@@ -32,18 +32,18 @@ class SecretsFileResolver(SecretResolver):
     def resolve(self, secret: str) -> str:
         try:
             return self._secrets[secret]
-        except KeyError:
-            raise SecretResolutionError(f"No secret found in secrets file with key {secret!r}")
+        except KeyError as exc:
+            raise SecretResolutionError(f"No secret found in secrets file with key {secret!r}") from exc
 
 
 class EnvironmentResolver(SecretResolver):
     def resolve(self, secret: str) -> str:
         try:
             return os.environ[secret]
-        except KeyError:
+        except KeyError as exc:
             raise SecretResolutionError(
                 f"Environment variable with name {secret!r} is required but not set. Please set it in your environment and try again."
-            )
+            ) from exc
 
 
 class PlaintextResolver(SecretResolver):

@@ -109,7 +109,6 @@ class QualityPerformanceOptimizer:
                 success_criteria=success_criteria,
             )
 
-
         except Exception:
             return OptimizationPlan(
                 plan_id="ERROR",

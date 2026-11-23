@@ -362,15 +362,15 @@ class YouTubeChannelHunter:
 
         try:
             subscribers = int(payload.get("subscriberCount", payload.get("subscribers", 0) or 0))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             subscribers = 0
         try:
             videos = int(payload.get("videoCount", payload.get("video_count", 0) or 0))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             videos = 0
         try:
             views = int(payload.get("viewCount", payload.get("total_views", 0) or 0))
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             views = 0
 
         published_at = payload.get("publishedAt")

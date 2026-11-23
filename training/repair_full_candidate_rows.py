@@ -351,12 +351,7 @@ async def generate_source_continuations(repairs: list[dict[str, Any]], progress_
     progress_lock = asyncio.Lock()
     async with aiohttp.ClientSession(timeout=timeout) as session:
         context = GenerationContext(session, semaphore, token, progress_path, completed, progress_lock)
-        await asyncio.gather(
-            *(
-                generate_continuation(context, repair)
-                for repair in pending
-            )
-        )
+        await asyncio.gather(*(generate_continuation(context, repair) for repair in pending))
 
 
 def book_source_repairs() -> list[dict[str, Any]]:
@@ -440,9 +435,10 @@ def main() -> None:
     progress_path = args.output_dir / "row_repairs.progress.jsonl"
     asyncio.run(generate_source_continuations(repairs, progress_path))
     repairs.sort(key=lambda repair: repair["candidate_row_number_1based"])
-    if len(repairs) != EXPECTED_REPAIR_COUNT or len(
-        {repair["candidate_row_number_1based"] for repair in repairs}
-    ) != EXPECTED_REPAIR_COUNT:
+    if (
+        len(repairs) != EXPECTED_REPAIR_COUNT
+        or len({repair["candidate_row_number_1based"] for repair in repairs}) != EXPECTED_REPAIR_COUNT
+    ):
         raise ValueError(f"expected exactly {EXPECTED_REPAIR_COUNT} unique repair targets, got {len(repairs)}")
     args.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     repair_path = args.output_dir / "row_repairs.jsonl"

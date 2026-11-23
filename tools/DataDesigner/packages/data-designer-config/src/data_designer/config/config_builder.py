@@ -348,11 +348,11 @@ class DataDesignerConfigBuilder:
                 )
             try:
                 constraint_type = ConstraintType(constraint_type)
-            except Exception:
+            except Exception as exc:
                 raise BuilderConfigurationError(
                     f"🛑 Invalid constraint type: {constraint_type}. Valid options are: "
                     f"{', '.join([t.value for t in ConstraintType])}"
-                )
+                ) from exc
             if constraint_type == ConstraintType.SCALAR_INEQUALITY:
                 constraint = ScalarInequalityConstraint(**kwargs)
             elif constraint_type == ConstraintType.COLUMN_INEQUALITY:

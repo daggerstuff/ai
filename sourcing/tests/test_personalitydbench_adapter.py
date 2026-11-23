@@ -10,6 +10,9 @@ import pytest
 
 from ai.sourcing.dataset_adapters.personalitydbench_adapter import PersonalityDBenchAdapter
 
+_EXPECTED_ENTRY_COUNT = 3
+_EXPECTED_RECORD_COUNT = 2
+
 
 @pytest.fixture
 def adapter(tmp_path):
@@ -86,22 +89,22 @@ class TestPersonalityDBenchAdapter:
     def test_extract_returns_entries(self, adapter, sample_entries_raw):
         _write_json(adapter._raw_dir / "prisma_data.json", sample_entries_raw)
         entries = adapter.extract()
-        assert len(entries) == 3
+        assert len(entries) == _EXPECTED_ENTRY_COUNT
         assert entries[0]["type"] == "prisma"
 
     def test_convert_prisma(self, adapter, sample_entries):
         records = adapter.convert_to_chatml(sample_entries)
-        assert len(records) == 2
+        assert len(records) == _EXPECTED_RECORD_COUNT
         prisma = records[0]
         assert prisma["task_type"] == "symptom_classification"
         assert prisma["diagnostic_tag"] == "borderline_personality_disorder"
         assert prisma["component"] == "prisma"
-        assert prisma["clinical_reviewed"] is True
+        assert prisma["clinical_reviewed"] is False
 
     def test_convert_steering(self, adapter, sample_entries):
         records = adapter.convert_to_chatml(sample_entries)
-        steering = [r for r in records if r["component"] == "steering"][0]
-        assert steering["task_type"] == "therapy_response_generation"
+        steering = next(r for r in records if r["component"] == "steering")
+        assert steering["task_type"] == "patient_simulation"
         assert steering["diagnostic_tag"] == "narcissistic_personality_disorder"
         assert steering["messages"][-1]["role"] == "assistant"
 
@@ -120,6 +123,6 @@ class TestPersonalityDBenchAdapter:
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 2
+        assert len(lines) == _EXPECTED_RECORD_COUNT
         record = json.loads(lines[0])
         assert record["source"] == "personalitydbench"

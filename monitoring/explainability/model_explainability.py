@@ -8,7 +8,7 @@ import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -719,7 +719,7 @@ class ExplainabilityEngine:
                         try:
                             importance = self._gradient_based_importance(model, tokenizer, sample_text, predicted_class)
                             feature_importances.append(importance.importance_scores)
-                        except:
+                        except Exception:
                             pass
 
             except Exception as e:

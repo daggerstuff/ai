@@ -390,9 +390,7 @@ def run_orpo(args: argparse.Namespace) -> None:
 
     callbacks = []
     if args.early_stopping_patience > 0:
-        callbacks.append(
-            EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)
-        )
+        callbacks.append(EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience))
         logger.info("Early stopping enabled (patience=%d)", args.early_stopping_patience)
 
     if callbacks:

@@ -34,8 +34,6 @@ _LOW_THRESHOLD = 0.35
 _HIGH_THRESHOLD = 0.7
 
 
-
-
 def _classify_difficulty(difficulty: float) -> _DifficultyLevel:
     """Map a 0-1 float difficulty to a categorical level."""
     if difficulty < _LOW_THRESHOLD:

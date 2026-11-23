@@ -202,7 +202,7 @@ def apply_hsdp_sharding(model: Any, mesh: Any, cfg: HSDPCPTrialConfig) -> tuple[
         for child in model.children():
             try:
                 fully_shard(child, mesh=mesh, reshard_after_forward=cfg.context_length > 32_768)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 pass
         fully_shard(model, mesh=mesh, reshard_after_forward=cfg.context_length > 32_768)
         return True, f"HSDP fully_shard applied mesh={mesh.mesh_dim_names}"

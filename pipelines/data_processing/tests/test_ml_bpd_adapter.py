@@ -10,6 +10,8 @@ import pytest
 
 from ai.pipelines.data_processing.dataset_adapters.ml_bpd_adapter import MLBPDAdapter
 
+_EXPECTED_RECORD_COUNT = 2
+
 _CSV_FIELDS = [
     "GPO.",
     "EXP.",
@@ -156,13 +158,13 @@ class TestMLBPDAdapter:
     def test_extract_returns_records(self, adapter, sample_csv_rows_raw):
         _make_repo(adapter, sample_csv_rows_raw)
         records = adapter.extract()
-        assert len(records) == 2
+        assert len(records) == _EXPECTED_RECORD_COUNT
         assert records[0]["Edad"] == "28"
         assert records[0]["_source_file"] == "training_noSession.csv"
 
     def test_convert_basic(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
-        assert len(records) == 2
+        assert len(records) == _EXPECTED_RECORD_COUNT
         rec = records[0]
         assert rec["source"] == "ml_bpd"
         assert rec["task_type"] == "severity_estimation"
@@ -170,7 +172,7 @@ class TestMLBPDAdapter:
         assert rec["messages"][0]["role"] == "system"
         assert rec["messages"][1]["role"] == "user"
         assert rec["messages"][2]["role"] == "assistant"
-        assert rec["clinical_reviewed"] is True
+        assert rec["clinical_reviewed"] is False
         assert "gender_female" in rec["demographic_tags"]
         assert "age_26_45" in rec["demographic_tags"]
 
@@ -229,10 +231,10 @@ class TestMLBPDAdapter:
 
     def test_full_run(self, adapter, sample_csv_rows_raw, monkeypatch):
         _make_repo(adapter, sample_csv_rows_raw)
-        monkeypatch.setattr("subprocess.run", lambda *a, **kw: None)
+        monkeypatch.setattr("subprocess.run", lambda *_a, **_kw: None)
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 2
+        assert len(lines) == _EXPECTED_RECORD_COUNT
         record = json.loads(lines[0])
         assert record["source"] == "ml_bpd"

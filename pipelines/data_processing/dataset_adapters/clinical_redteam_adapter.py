@@ -18,6 +18,7 @@ import io
 import os
 import urllib.request
 import zipfile
+from contextlib import suppress
 from typing import Any
 
 from ai.pipelines.data_processing.dataset_adapters.adapter_factory import register_adapter
@@ -25,6 +26,8 @@ from ai.pipelines.data_processing.dataset_adapters.base_adapter import BaseDatas
 
 _SOURCE_URL = "https://arxiv.org/abs/2602.19948"
 _KAGGLE_DATASET = "steeni/ai-psychotherapy-eval"
+
+_MIN_MESSAGES = 2
 
 # CSV files in the Kaggle dataset
 _CSV_FILES = [
@@ -147,7 +150,7 @@ class ClinicalRedTeamAdapter(BaseDatasetAdapter):
             system_content = self._build_system(persona=persona)
             messages: list[dict[str, str]] = [{"role": "system", "content": system_content}]
 
-            for i, turn in enumerate(turns):
+            for turn in turns:
                 speaker = str(turn.get("speaker", "")).lower()
                 text = (turn.get("message") or "").strip()
                 if not text:
@@ -155,7 +158,7 @@ class ClinicalRedTeamAdapter(BaseDatasetAdapter):
                 role = self._map_role(speaker)
                 messages.append({"role": role, "content": text})
 
-            if len(messages) < 2:
+            if len(messages) < _MIN_MESSAGES:
                 continue
 
             # Ensure both user + assistant present (synthetic counterpart if needed)
@@ -184,10 +187,8 @@ class ClinicalRedTeamAdapter(BaseDatasetAdapter):
             ]:
                 val = persona.get(key)
                 if val:
-                    try:
+                    with suppress(ValueError, TypeError):
                         intensity_scores[key] = float(val)
-                    except (ValueError, TypeError):
-                        pass
 
             demographic_tags: list[str] = []
             subtype = persona.get("subtype_name")
@@ -204,7 +205,7 @@ class ClinicalRedTeamAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": "aud",
                 "demographic_tags": demographic_tags,
                 "linguistic_style": "formal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "pairing_id": session.get("pairing_id"),
                 "session_id": session.get("session_id"),
                 "therapist_id": session.get("therapist_id"),

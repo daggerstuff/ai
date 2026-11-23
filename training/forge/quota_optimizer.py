@@ -62,10 +62,7 @@ class StorageQuotaOptimizer:
             key=lambda x: int(
                 x.get("step", 0)
                 or (
-                    x.get("version", "v0")
-                    .lstrip("v")
-                    .split("-")[0]
-                    .split(":")[0]
+                    x.get("version", "v0").lstrip("v").split("-")[0].split(":")[0]
                     if x.get("version", "").lstrip("v").isdigit()
                     else 0
                 )
@@ -103,21 +100,15 @@ class StorageQuotaOptimizer:
         keep_last_n: int = 3,
     ) -> QuotaAuditReport:
         """Audit artifact storage against the quota and produce prune recommendations."""
-        classified = self.classify_versions(
-            artifact_versions, keep_every_n, keep_last_n
-        )
+        classified = self.classify_versions(artifact_versions, keep_every_n, keep_last_n)
 
         total_bytes = sum(v.size_bytes for v in classified)
         total_gb = total_bytes / (1024**3)
         quota_gb = self.config.storage_quota_gb
         util_pct = (total_gb / quota_gb) * 100.0 if quota_gb > 0 else 0.0
 
-        prune_candidates = [
-            f"{v.name}:{v.version}" for v in classified if not v.is_milestone
-        ]
-        reclaimable_bytes = sum(
-            v.size_bytes for v in classified if not v.is_milestone
-        )
+        prune_candidates = [f"{v.name}:{v.version}" for v in classified if not v.is_milestone]
+        reclaimable_bytes = sum(v.size_bytes for v in classified if not v.is_milestone)
         reclaimable_gb = reclaimable_bytes / (1024**3)
 
         return QuotaAuditReport(
@@ -125,17 +116,14 @@ class StorageQuotaOptimizer:
             total_storage_gb=round(total_gb, 2),
             quota_limit_gb=quota_gb,
             utilization_pct=round(util_pct, 2),
-            is_over_warning_threshold=util_pct
-            >= self.config.storage_warn_threshold_pct,
+            is_over_warning_threshold=util_pct >= self.config.storage_warn_threshold_pct,
             retained_versions_count=len(classified) - len(prune_candidates),
             prune_candidates_count=len(prune_candidates),
             estimated_reclaimable_gb=round(reclaimable_gb, 2),
             prune_candidates=prune_candidates,
         )
 
-    def write_prune_plan(
-        self, report: QuotaAuditReport, output_path: Path
-    ) -> None:
+    def write_prune_plan(self, report: QuotaAuditReport, output_path: Path) -> None:
         """Save the audit report and pruning plan to disk."""
         data = {
             "quota_limit_gb": report.quota_limit_gb,

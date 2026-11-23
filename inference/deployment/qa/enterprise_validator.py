@@ -596,7 +596,7 @@ class EnterpriseValidator:
     """Main enterprise validation system"""
 
     def __init__(self):
-        self.validation_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/validation_results")
+        self.validation_path = _PROJECT_ROOT / "ai" / "inference/deployment/qa/validation_results"
         self.validation_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize validators

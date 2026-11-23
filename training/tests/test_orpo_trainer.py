@@ -40,6 +40,7 @@ LORA_ALPHA = 64
 # save_metrics
 # ---------------------------------------------------------------------------
 
+
 class TestSaveMetrics:
     """``save_metrics`` writes a JSON report with method, beta, and metrics."""
 
@@ -104,20 +105,27 @@ class TestSaveMetrics:
         assert raw.endswith("\n")
         json.loads(raw)  # Should not raise
 
+
 # ---------------------------------------------------------------------------
 # build_parser
 # ---------------------------------------------------------------------------
+
 
 class TestBuildParser:
     """``build_parser`` produces an argparse parser with ORPO-specific args."""
 
     def test_required_args(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "data.jsonl",
-            "--base_model_checkpoint", "Qwen/Qwen2.5-32B",
-            "--output_dir", "out/",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "data.jsonl",
+                "--base_model_checkpoint",
+                "Qwen/Qwen2.5-32B",
+                "--output_dir",
+                "out/",
+            ]
+        )
         assert args.data_path == "data.jsonl"
         assert args.base_model_checkpoint == "Qwen/Qwen2.5-32B"
         assert args.output_dir == "out/"
@@ -125,163 +133,316 @@ class TestBuildParser:
     def test_beta_default(self):
         """Appendix C specifies beta=0.1 as the default."""
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.beta == DEFAULT_BETA
 
     def test_beta_override(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--beta", str(BETA_OVERRIDE),
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--beta",
+                str(BETA_OVERRIDE),
+            ]
+        )
         assert args.beta == BETA_OVERRIDE
 
     def test_learning_rate_default(self):
         """ORPO uses a lower learning rate than SFT (5e-6 vs 2e-5)."""
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.learning_rate == DEFAULT_LR == LR_OVERRIDE
 
     def test_warmup_ratio_default(self):
         """Appendix C: warmup_ratio 0.1."""
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.warmup_ratio == DEFAULT_WARMUP_RATIO
 
     def test_lr_scheduler_default(self):
         """Appendix C: cosine schedule."""
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.lr_scheduler_type == "cosine"
 
     @pytest.mark.parametrize("sched", ["cosine", "linear", "constant", "constant_with_warmup"])
     def test_lr_scheduler_choices(self, sched):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--lr_scheduler_type", sched,
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--lr_scheduler_type",
+                sched,
+            ]
+        )
         assert args.lr_scheduler_type == sched
 
     def test_deepspeed_arg(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--deepspeed", "ai/training/configs/ds_config_zero3.json",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--deepspeed",
+                "ai/training/configs/ds_config_zero3.json",
+            ]
+        )
         assert args.deepspeed == "ai/training/configs/ds_config_zero3.json"
 
     def test_deepspeed_default_none(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.deepspeed is None
 
     def test_gradient_checkpointing_flag(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--gradient_checkpointing",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--gradient_checkpointing",
+            ]
+        )
         assert args.gradient_checkpointing is True
 
     def test_gradient_checkpointing_default_false(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.gradient_checkpointing is False
 
     def test_flash_attention_flag(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--flash_attention",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--flash_attention",
+            ]
+        )
         assert args.flash_attention is True
 
     def test_early_stopping_patience_default(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.early_stopping_patience == 0
 
     def test_early_stopping_patience_override(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--early_stopping_patience", str(PATIENCE_OVERRIDE),
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--early_stopping_patience",
+                str(PATIENCE_OVERRIDE),
+            ]
+        )
         assert args.early_stopping_patience == PATIENCE_OVERRIDE
 
     def test_eval_strategy_default_no(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.eval_strategy == "no"
 
     def test_eval_strategy_steps(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--eval_strategy", "steps", "--eval_steps", str(EVAL_STEPS),
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--eval_strategy",
+                "steps",
+                "--eval_steps",
+                str(EVAL_STEPS),
+            ]
+        )
         assert args.eval_strategy == "steps"
         assert args.eval_steps == EVAL_STEPS
 
     def test_save_total_limit_default(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+            ]
+        )
         assert args.save_total_limit == SAVE_TOTAL_LIMIT
 
     def test_wandb_args(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--wandb_project", "pixelated-empathy-orpo",
-            "--wandb_entity", "team",
-            "--wandb_run_name", "orpo-run-1",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--wandb_project",
+                "pixelated-empathy-orpo",
+                "--wandb_entity",
+                "team",
+                "--wandb_run_name",
+                "orpo-run-1",
+            ]
+        )
         assert args.wandb_project == "pixelated-empathy-orpo"
         assert args.wandb_entity == "team"
         assert args.wandb_run_name == "orpo-run-1"
 
     def test_use_dora_flag(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--use_dora",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--use_dora",
+            ]
+        )
         assert args.use_dora is True
 
     def test_use_vera_flag(self):
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--use_vera",
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--use_vera",
+            ]
+        )
         assert args.use_vera is True
 
     def test_lora_args_inherited(self):
         """LoRA args from ``shared_config.add_lora_args`` are present."""
         parser = build_parser()
-        args = parser.parse_args([
-            "--data_path", "d", "--base_model_checkpoint", "m", "--output_dir", "o",
-            "--lora_r", str(LORA_R), "--lora_alpha", str(LORA_ALPHA),
-        ])
+        args = parser.parse_args(
+            [
+                "--data_path",
+                "d",
+                "--base_model_checkpoint",
+                "m",
+                "--output_dir",
+                "o",
+                "--lora_r",
+                str(LORA_R),
+                "--lora_alpha",
+                str(LORA_ALPHA),
+            ]
+        )
         assert args.lora_r == LORA_R
         assert args.lora_alpha == LORA_ALPHA
 
@@ -290,9 +451,11 @@ class TestBuildParser:
         with pytest.raises(SystemExit):
             parser.parse_args(["--data_path", "d"])
 
+
 # ---------------------------------------------------------------------------
 # Import surface — verify ORPO trainer reuses DPO components
 # ---------------------------------------------------------------------------
+
 
 def _import_from_dpo_deps(module: str, name: str):
     """Import ``name`` preferring ``training.*``, falling back to
@@ -302,6 +465,7 @@ def _import_from_dpo_deps(module: str, name: str):
     except ImportError:
         module_obj = __import__(f"ai.training.{module}", fromlist=[name])
     return getattr(module_obj, name)
+
 
 class TestImportSurface:
     """Verify the ORPO trainer reuses DPO components correctly."""

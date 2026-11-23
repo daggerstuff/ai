@@ -11,6 +11,7 @@ Per blueprint:
 
 Usage: import synth_qc_gate from this module; call gate_synthetic_record().
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -51,7 +52,9 @@ def gate_synthetic_record(
     dup_note = f"max_dup_vs_natural={SYNTH_QC_THRESH['max_dup_vs_natural']}"
 
     # Gate 5: synthetic-style artifact check (heuristic)
-    content_blob = " ".join(str(m.get("content", "")) for m in record.get("messages", []) if isinstance(m.get("content"), str))
+    content_blob = " ".join(
+        str(m.get("content", "")) for m in record.get("messages", []) if isinstance(m.get("content"), str)
+    )
     lowered = content_blob.lower()
     # Over-formality markers
     over_formal_words = ["furthermore", "moreover", "notwithstanding", "consequently"]
@@ -67,7 +70,10 @@ def gate_synthetic_record(
     if not artifact_passed:
         # Per §B.5.5: synthetic artifacts need second judge / human review
         # We pass the gate but attach a review flag
-        return True, f"passed_with_flag artifact_score={artifact_score:.2f} (needs_human_review) {synth_note} {dup_note}"
+        return (
+            True,
+            f"passed_with_flag artifact_score={artifact_score:.2f} (needs_human_review) {synth_note} {dup_note}",
+        )
 
     return True, f"passed {synth_note} {dup_note} quality={quality}"
 

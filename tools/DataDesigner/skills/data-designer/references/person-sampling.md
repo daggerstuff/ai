@@ -17,20 +17,30 @@ The sampled person column is a nested dict. You can keep it as-is in the final d
 
 ```python
 # Keep the full person dict in the output
-config_builder.add_column(dd.SamplerColumnConfig(
-    name="person", sampler_type="person",
-    params=dd.PersonSamplerParams(locale="en_US"),
-))
+config_builder.add_column(
+    dd.SamplerColumnConfig(
+        name="person",
+        sampler_type="person",
+        params=dd.PersonSamplerParams(locale="en_US"),
+    )
+)
 
 # Or drop it and extract specific fields
-config_builder.add_column(dd.SamplerColumnConfig(
-    name="person", sampler_type="person",
-    params=dd.PersonSamplerParams(locale="en_US"), drop=True,
-))
-config_builder.add_column(dd.ExpressionColumnConfig(
-    name="full_name",
-    expr="{{ person.first_name }} {{ person.last_name }}", dtype="str",
-))
+config_builder.add_column(
+    dd.SamplerColumnConfig(
+        name="person",
+        sampler_type="person",
+        params=dd.PersonSamplerParams(locale="en_US"),
+        drop=True,
+    )
+)
+config_builder.add_column(
+    dd.ExpressionColumnConfig(
+        name="full_name",
+        expr="{{ person.first_name }} {{ person.last_name }}",
+        dtype="str",
+    )
+)
 ```
 
 Set `with_synthetic_personas=True` when the dataset benefits from personality traits, interests, cultural background, or detailed persona descriptions (e.g., for realistic user simulation or persona-driven prompting). This option is only available with `"person"` — `"person_from_faker"` does not support it.

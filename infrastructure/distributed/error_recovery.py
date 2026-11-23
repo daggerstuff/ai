@@ -126,7 +126,9 @@ class ErrorRecoveryManager:
 
         # Check retryable exceptions
         if config.retryable_exceptions:
-            return any(isinstance(exception, exc_type) for exc_type in config.retryable_exceptions)  # Not in retryable list
+            return any(
+                isinstance(exception, exc_type) for exc_type in config.retryable_exceptions
+            )  # Not in retryable list
 
         # Default retryable errors
         retryable_types = (

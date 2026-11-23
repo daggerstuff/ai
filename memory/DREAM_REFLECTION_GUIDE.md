@@ -67,10 +67,8 @@ from ai.memory.dream_manager import DreamManager
 
 async with DreamManager() as dream_manager:
     # Start full dream cycle
-    result = await dream_manager.start_dream_cycle(
-        user_id="user_123"
-    )
-    
+    result = await dream_manager.start_dream_cycle(user_id="user_123")
+
     # Check status
     status = await dream_manager.get_dream_status(result.dream_id)
 ```
@@ -234,9 +232,9 @@ T+190s: Reflection completes
 
 ```python
 config = DreamManagerConfig(
-    nrem_duration=300,    # 5 minutes
-    rem_duration=600,     # 10 minutes
-    post_dream_delay=300, # 5 minutes
+    nrem_duration=300,  # 5 minutes
+    rem_duration=600,  # 10 minutes
+    post_dream_delay=300,  # 5 minutes
 )
 ```
 

@@ -258,7 +258,7 @@ class QualityDistributionAnalyzer:
                 ks_stat, ks_p = stats.kstest(values_array, "expon")
                 if ks_p > 0.05:
                     return "exponential"
-            except:
+            except Exception:
                 pass
 
             # Test for uniform
@@ -266,7 +266,7 @@ class QualityDistributionAnalyzer:
                 _ks_stat, ks_p = stats.kstest(values_array, "uniform")
                 if ks_p > 0.05:
                     return "uniform"
-            except:
+            except Exception:
                 pass
 
             # Check skewness for distribution type
@@ -472,7 +472,7 @@ class QualityDistributionAnalyzer:
                         kde = gaussian_kde(analysis.values)
                         x_range = np.linspace(min(analysis.values), max(analysis.values), 100)
                         ax.plot(x_range, kde(x_range), "r-", linewidth=2, label="KDE")
-                    except:
+                    except Exception:
                         pass
 
                     # Add statistics

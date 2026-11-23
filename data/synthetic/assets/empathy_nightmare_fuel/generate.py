@@ -162,9 +162,7 @@ def _tensions(triggers):
     return result[:3]
 
 
-def build(
-    sid, title, desc, fm, triggers, sev, patient, clinician, pressures, sources=None
-):
+def build(sid, title, desc, fm, triggers, sev, patient, clinician, pressures, sources=None):
     """Build a full scenario dict from compact input."""
     return {
         "scenario_id": sid,
@@ -2900,9 +2898,7 @@ S = [
 
 
 def main():
-    output_path = (
-        Path(__file__).parent / "output" / "nightmare_fuel" / "scenarios.jsonl"
-    )
+    output_path = Path(__file__).parent / "output" / "nightmare_fuel" / "scenarios.jsonl"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     valid = []

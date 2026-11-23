@@ -42,7 +42,10 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "performance_validation.log")), logging.StreamHandler()],
+    handlers=[
+        logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "performance_validation.log")),
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -368,7 +371,7 @@ class PerformanceValidationSuite:
     """Main performance validation and load testing suite"""
 
     def __init__(self):
-        self.results_path = (_PROJECT_ROOT / "ai" / "inference/deployment/qa/performance_results")
+        self.results_path = _PROJECT_ROOT / "ai" / "inference/deployment/qa/performance_results"
         self.results_path.mkdir(parents=True, exist_ok=True)
 
         self.load_test_executor = LoadTestExecutor()

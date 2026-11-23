@@ -47,9 +47,7 @@ def test_s3_dataset_loader_stream_jsonl(loader, mock_s3_client, mock_body):
     assert len(results) == 2
     assert results[0] == {"foo": "bar"}
     assert results[1] == {"baz": "qux"}
-    mock_s3_client.get_object.assert_called_once_with(
-        Bucket="test-bucket", Key="test-key.jsonl"
-    )
+    mock_s3_client.get_object.assert_called_once_with(Bucket="test-bucket", Key="test-key.jsonl")
 
 
 def test_s3_dataset_loader_stream_jsonl_empty_lines(loader, mock_s3_client, mock_body):
@@ -109,9 +107,7 @@ def test_s3_dataset_loader_s3_prefix(loader, mock_s3_client, mock_body):
 
     list(loader.stream_jsonl("unused", "s3://test-bucket/test-key.jsonl"))
 
-    mock_s3_client.get_object.assert_called_once_with(
-        Bucket="test-bucket", Key="test-key.jsonl"
-    )
+    mock_s3_client.get_object.assert_called_once_with(Bucket="test-bucket", Key="test-key.jsonl")
 
 
 def test_s3_dataset_loader_ensure_client_lazy_init(loader):
@@ -130,9 +126,7 @@ def test_s3_dataset_loader_load_json(loader, mock_s3_client, mock_body):
     result = loader.load_json("test-bucket", "test-key.json")
 
     assert result == {"hello": "world"}
-    mock_s3_client.get_object.assert_called_once_with(
-        Bucket="test-bucket", Key="test-key.json"
-    )
+    mock_s3_client.get_object.assert_called_once_with(Bucket="test-bucket", Key="test-key.json")
 
 
 def test_s3_dataset_loader_stream_json_array(loader, mock_s3_client, mock_body):
@@ -156,9 +150,7 @@ def test_s3_dataset_loader_stream_json_dispatches_to_jsonl(loader, mock_s3_clien
 
     assert len(results) == 1
     assert results[0] == {"foo": "bar"}
-    mock_s3_client.get_object.assert_called_once_with(
-        Bucket="test-bucket", Key="test-key.jsonl"
-    )
+    mock_s3_client.get_object.assert_called_once_with(Bucket="test-bucket", Key="test-key.jsonl")
 
 
 def test_s3_dataset_loader_stream_json_dispatches_to_json_array(loader, mock_s3_client, mock_body):
@@ -195,31 +187,23 @@ def test_s3_dataset_loader_download_file(loader, mock_s3_client, mock_body):
         assert result is True
         assert Path(tmp.name).read_text() == '{"downloaded": true}'
 
-    mock_s3_client.get_object.assert_called_once_with(
-        Bucket="test-bucket", Key="test-key.json"
-    )
+    mock_s3_client.get_object.assert_called_once_with(Bucket="test-bucket", Key="test-key.json")
 
 
 def test_s3_dataset_loader_list_datasets(loader, mock_s3_client):
-    mock_s3_client.list_objects_v2.return_value = {
-        "Contents": [{"Key": "a.jsonl"}, {"Key": "b.jsonl"}]
-    }
+    mock_s3_client.list_objects_v2.return_value = {"Contents": [{"Key": "a.jsonl"}, {"Key": "b.jsonl"}]}
     loader._client = mock_s3_client
 
     results = loader.list_datasets("test-bucket", prefix="datasets/")
 
     assert results == ["a.jsonl", "b.jsonl"]
-    mock_s3_client.list_objects_v2.assert_called_once_with(
-        Bucket="test-bucket", Prefix="datasets/"
-    )
+    mock_s3_client.list_objects_v2.assert_called_once_with(Bucket="test-bucket", Prefix="datasets/")
 
 
 def test_s3_dataset_loader_object_exists_true(loader, mock_s3_client):
     loader._client = mock_s3_client
     assert loader.object_exists("test-bucket", "test-key.json") is True
-    mock_s3_client.head_object.assert_called_once_with(
-        Bucket="test-bucket", Key="test-key.json"
-    )
+    mock_s3_client.head_object.assert_called_once_with(Bucket="test-bucket", Key="test-key.json")
 
 
 def test_s3_dataset_loader_object_exists_false(loader, mock_s3_client):

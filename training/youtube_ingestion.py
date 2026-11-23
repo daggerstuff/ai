@@ -75,7 +75,7 @@ def _load_compiled_hashes(compiled_path: Path) -> set[str]:
                 msgs = record.get("messages", [])
                 combined = " ".join(m.get("content", "") for m in msgs)
                 hashes.add(_content_hash(combined.lower().strip()))
-            except (json.JSONDecodeError, KeyError):
+            except json.JSONDecodeError, KeyError:
                 continue
     logger.info("Loaded %d content hashes from compiled dataset", len(hashes))
     return hashes
@@ -86,14 +86,49 @@ def _word_count(text: str) -> int:
 
 
 # Common English abbreviations ending with period that should not trigger sentence splits
-_ABBREVIATIONS: frozenset[str] = frozenset({
-    "e.g.", "i.e.", "etc.", "vs.", "viz.", "al.",
-    "Dr.", "Mr.", "Ms.", "Mrs.", "Prof.", "Sr.", "Jr.",
-    "St.", "Ave.", "Blvd.", "Dept.", "Est.",
-    "Jan.", "Feb.", "Mar.", "Apr.", "Jun.", "Jul.", "Aug.", "Sep.", "Oct.", "Nov.", "Dec.",
-    "approx.", "dept.", "ed.", "esp.", "ex.", "govt.",
-    "no.", "vol.", "p.", "pp.",
-})
+_ABBREVIATIONS: frozenset[str] = frozenset(
+    {
+        "e.g.",
+        "i.e.",
+        "etc.",
+        "vs.",
+        "viz.",
+        "al.",
+        "Dr.",
+        "Mr.",
+        "Ms.",
+        "Mrs.",
+        "Prof.",
+        "Sr.",
+        "Jr.",
+        "St.",
+        "Ave.",
+        "Blvd.",
+        "Dept.",
+        "Est.",
+        "Jan.",
+        "Feb.",
+        "Mar.",
+        "Apr.",
+        "Jun.",
+        "Jul.",
+        "Aug.",
+        "Sep.",
+        "Oct.",
+        "Nov.",
+        "Dec.",
+        "approx.",
+        "dept.",
+        "ed.",
+        "esp.",
+        "ex.",
+        "govt.",
+        "no.",
+        "vol.",
+        "p.",
+        "pp.",
+    }
+)
 
 
 def _split_sentences(text: str) -> list[str]:
@@ -103,9 +138,7 @@ def _split_sentences(text: str) -> list[str]:
     sentences = [s.strip() for s in sentences if s.strip()]
     merged = []
     for s in sentences:
-        if merged and any(
-            s.lstrip().startswith(abbr[0].upper()) for abbr in _ABBREVIATIONS
-        ):
+        if merged and any(s.lstrip().startswith(abbr[0].upper()) for abbr in _ABBREVIATIONS):
             last_word = merged[-1].split()[-1] if merged[-1].split() else ""
             if last_word.lower().rstrip(".") in {a.rstrip(".").lower() for a in _ABBREVIATIONS}:
                 merged[-1] = f"{merged[-1]} {s}"

@@ -10,6 +10,8 @@ import pytest
 
 from ai.sourcing.dataset_adapters.bbrd_adapter import BBRDAdapter
 
+_EXPECTED_RECORD_COUNT = 3
+
 _CSV_FIELDS = ["user_id", "post_text", "label", "timestamp"]
 
 
@@ -58,13 +60,13 @@ class TestBBRDAdapter:
     def test_extract_returns_records(self, adapter, sample_csv_rows_raw):
         _write_csv(adapter._raw_dir / "bbrd_posts.csv", sample_csv_rows_raw)
         records = adapter.extract()
-        assert len(records) == 3
+        assert len(records) == _EXPECTED_RECORD_COUNT
         assert records[0]["user_id"] == "user1"
         assert records[0]["_source_file"] == "bbrd_posts"
 
     def test_convert_basic(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
-        assert len(records) == 3
+        assert len(records) == _EXPECTED_RECORD_COUNT
         rec = records[0]
         assert rec["source"] == "bbrd"
         assert rec["task_type"] == "symptom_classification"
@@ -73,7 +75,7 @@ class TestBBRDAdapter:
         assert rec["messages"][1]["role"] == "user"
         assert rec["messages"][2]["role"] == "assistant"
         assert rec["linguistic_style"] == "informal"
-        assert rec["clinical_reviewed"] is True
+        assert rec["clinical_reviewed"] is False
 
     def test_convert_maps_labels(self, adapter, sample_records):
         records = adapter.convert_to_chatml(sample_records)
@@ -96,6 +98,6 @@ class TestBBRDAdapter:
         output_path = adapter.run()
         assert output_path.exists()
         lines = output_path.read_text(encoding="utf-8").strip().split("\n")
-        assert len(lines) == 3
+        assert len(lines) == _EXPECTED_RECORD_COUNT
         record = json.loads(lines[0])
         assert record["source"] == "bbrd"

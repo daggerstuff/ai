@@ -398,7 +398,7 @@ def _call_rejected_with_dialogue(
 
     try:
         params = list(inspect.signature(fn).parameters.values())
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return fn(record)
     positional = [
         p for p in params if p.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)

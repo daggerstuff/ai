@@ -9,9 +9,7 @@ import transformers
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("FeatureExtraction")
 
 
@@ -69,9 +67,7 @@ class FeatureExtractor:
             try:
                 emp_result = cast(
                     dict[str, Any],
-                    self.empathy_classifier(
-                        text, candidate_labels=["empathetic", "neutral", "dismissive"]
-                    ),
+                    self.empathy_classifier(text, candidate_labels=["empathetic", "neutral", "dismissive"]),
                 )
                 labels_list = cast(list[str], emp_result["labels"])
                 scores_list = cast(list[float], emp_result["scores"])
@@ -115,9 +111,7 @@ class PersonalityClusterer:
 
     def fit_predict(self, segments: list[dict[str, Any]]) -> list[int]:
         if len(segments) < self.n_clusters:
-            logger.warning(
-                f"Not enough segments to cluster. Found {len(segments)}, need at least {self.n_clusters}."
-            )
+            logger.warning(f"Not enough segments to cluster. Found {len(segments)}, need at least {self.n_clusters}.")
             return [-1] * len(segments)
 
         x_data = np.array([self._extract_feature_vector(s) for s in segments])
@@ -137,9 +131,7 @@ class PersonalityClusterer:
         current_centroids = self.kmeans.cluster_centers_
         # Compute drift as the norm of the difference between sorted centroids
         # Sorting is a naive way to align clusters if labels shifted, though bipartite matching is better
-        drift = np.linalg.norm(
-            np.sort(current_centroids, axis=0) - np.sort(self.reference_centroids, axis=0)
-        )
+        drift = np.linalg.norm(np.sort(current_centroids, axis=0) - np.sort(self.reference_centroids, axis=0))
 
         if drift > 1.0:  # Arbitrary threshold for flagging significant drift
             logger.warning(f"Significant cluster drift detected! Score: {drift:.2f}")
@@ -149,9 +141,7 @@ class PersonalityClusterer:
 
 
 class FeatureExtractionPipeline:
-    def __init__(
-        self, input_dir: str = "ai/data/transcripts", output_dir: str = "ai/data/features"
-    ):
+    def __init__(self, input_dir: str = "ai/data/transcripts", output_dir: str = "ai/data/features"):
         self.input_dir = Path(input_dir)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)

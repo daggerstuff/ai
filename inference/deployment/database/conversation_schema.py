@@ -509,7 +509,7 @@ if __name__ == "__main__":
     storage = designer.estimate_storage_requirements()
 
     # Save schema to file
-    schema_file = (_PROJECT_ROOT / "ai" / "database/conversation_schema.sql")
+    schema_file = _PROJECT_ROOT / "ai" / "database/conversation_schema.sql"
     schema_file.parent.mkdir(parents=True, exist_ok=True)
 
     with open(schema_file, "w") as f:

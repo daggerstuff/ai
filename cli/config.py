@@ -12,7 +12,9 @@ from typing import Any
 
 import yaml
 from cryptography.fernet import Fernet
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
+
+from cli.exceptions import CLIConfigError
 
 
 # Register custom YAML tags used by NVIDIA NeMo Microservices Platform
@@ -43,14 +45,16 @@ class APIConfig(BaseModel):
     retry_delay: float = Field(default=1.0, description="Delay between retries in seconds")
     verify_ssl: bool = Field(default=True, description="Verify SSL certificates")
 
-    @validator("timeout")
-    def validate_timeout(self, v):
+    @field_validator("timeout")
+    @classmethod
+    def validate_timeout(cls, v):
         if v <= 0:
             raise ValueError("Timeout must be positive")
         return v
 
-    @validator("max_retries")
-    def validate_retries(self, v):
+    @field_validator("max_retries")
+    @classmethod
+    def validate_retries(cls, v):
         if v < 0:
             raise ValueError("Max retries must be non-negative")
         return v
@@ -66,8 +70,9 @@ class AuthConfig(BaseModel):
     client_secret: str | None = Field(default=None, description="OAuth client secret")
     auth_url: str = Field(default="http://localhost:8000/auth", description="Authentication endpoint")
 
-    @validator("jwt_token", "refresh_token", "client_secret")
-    def validate_sensitive_data(self, v):
+    @field_validator("jwt_token", "refresh_token", "client_secret")
+    @classmethod
+    def validate_sensitive_data(cls, v):
         # Ensure sensitive data is handled securely
         return v
 
@@ -82,8 +87,9 @@ class PipelineConfig(BaseModel):
     enable_fhe_encryption: bool = Field(default=True, description="Enable FHE encryption")
     audit_logging: bool = Field(default=True, description="Enable audit logging")
 
-    @validator("default_timeout", "max_concurrent_jobs", "checkpoint_interval")
-    def validate_positive_values(self, v):
+    @field_validator("default_timeout", "max_concurrent_jobs", "checkpoint_interval")
+    @classmethod
+    def validate_positive_values(cls, v):
         if v <= 0:
             raise ValueError("Value must be positive")
         return v
@@ -101,8 +107,9 @@ class LoggingConfig(BaseModel):
     max_file_size: int = Field(default=10485760, description="Maximum log file size in bytes")
     backup_count: int = Field(default=5, description="Number of backup log files")
 
-    @validator("level")
-    def validate_log_level(self, v):
+    @field_validator("level")
+    @classmethod
+    def validate_log_level(cls, v):
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
         if v.upper() not in valid_levels:
             raise ValueError(f"Invalid log level. Must be one of: {valid_levels}")
@@ -118,8 +125,9 @@ class SecurityConfig(BaseModel):
     sanitize_outputs: bool = Field(default=True, description="Sanitize outputs")
     rate_limit: int = Field(default=100, description="Rate limit per minute")
 
-    @validator("rate_limit")
-    def validate_rate_limit(self, v):
+    @field_validator("rate_limit")
+    @classmethod
+    def validate_rate_limit(cls, v):
         if v <= 0:
             raise ValueError("Rate limit must be positive")
         return v
@@ -204,15 +212,6 @@ class CLIConfig(BaseModel):
     def log_level(self, value: str) -> None:
         self.logging.level = value
 
-    @property
-    def auth(self) -> AuthConfig:
-        """Get auth configuration"""
-        return self._auth
-
-    @auth.setter
-    def auth(self, value: AuthConfig) -> None:
-        self._auth = value
-
     def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
         return {
@@ -285,11 +284,15 @@ class CLIConfig(BaseModel):
             if config_data:
                 # Update configuration with file data
                 for section, values in config_data.items():
-                    if hasattr(self, section):
+                    if not hasattr(self, section):
+                        continue
+                    if isinstance(values, dict):
                         section_obj = getattr(self, section)
                         for key, value in values.items():
                             if hasattr(section_obj, key):
                                 setattr(section_obj, key, value)
+                    else:
+                        setattr(self, section, values)
         except Exception as e:
             raise ValueError(f"Invalid configuration file {config_file}: {e}") from e
 
@@ -512,14 +515,16 @@ class ConfigProfile(BaseModel):
     timeout: int = Field(default=30, description="Request timeout")
     max_retries: int = Field(default=3, description="Max retries")
 
-    @validator("name")
-    def validate_name(self, v):
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
         if not v or not v.strip():
             raise ValueError("Profile name cannot be empty")
         return v
 
-    @validator("api_base_url")
-    def validate_url(self, v):
+    @field_validator("api_base_url")
+    @classmethod
+    def validate_url(cls, v):
         if v and not (v.startswith(("http://", "https://"))):
             raise ValueError(f"Invalid URL: {v}")
         return v

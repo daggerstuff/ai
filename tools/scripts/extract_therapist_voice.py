@@ -676,7 +676,6 @@ def list_channels():
             pass
 
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 #  CLI
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -755,7 +754,6 @@ def main(argv: list[str] | None = None):
             with open(report_file, "w", encoding="utf-8") as f:
                 f.write(report)
             logger.info("Saved quality report: %s", report_file)
-
 
     elif args.channel:
         ck = resolve_channel_key(args.channel)

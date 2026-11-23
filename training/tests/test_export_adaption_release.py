@@ -113,9 +113,7 @@ def _write_fixture(tmp_path: Path) -> tuple[Path, Path]:
             "tools": [{"name": "memory_write"}],
         },
     ]
-    train_path.write_text(
-        "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8"
-    )
+    train_path.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(
         json.dumps(
@@ -178,9 +176,7 @@ def test_export_fails_when_the_train_partition_is_missing(tmp_path: Path) -> Non
         json.dumps(
             {
                 "release_id": "test-release-v99",
-                "partitions": {
-                    "train": {"path": str(tmp_path / "nope.jsonl"), "sha256": "0" * 64, "row_count": 0}
-                },
+                "partitions": {"train": {"path": str(tmp_path / "nope.jsonl"), "sha256": "0" * 64, "row_count": 0}},
             }
         ),
         encoding="utf-8",

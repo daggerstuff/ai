@@ -145,9 +145,7 @@ def _make_col_parallel_linear_cls() -> type:
     import torch
     from torch import nn
 
-    def _linear_init(
-        self: Any, in_features: int, out_features: int, tp_size: int, bias: bool = False
-    ) -> None:
+    def _linear_init(self: Any, in_features: int, out_features: int, tp_size: int, bias: bool = False) -> None:
         nn.Module.__init__(self)
         self.tp_size = tp_size
         assert out_features % tp_size == 0, f"out_features={out_features} must be divisible by tp_size={tp_size}"
@@ -269,7 +267,9 @@ def init_wandb(cfg: MegatronTrialConfig) -> tuple[Any, str]:
         return None, f"wandb init failed: {e} (stdout fallback)"
 
 
-def _timed_train_steps(model_or_stages: Any, cfg: MegatronTrialConfig, is_pp: bool, optimizer: Any) -> tuple[float, float]:
+def _timed_train_steps(
+    model_or_stages: Any, cfg: MegatronTrialConfig, is_pp: bool, optimizer: Any
+) -> tuple[float, float]:
     """Run cfg.train_steps, return (total_time_s, last_loss)."""
     import torch
 

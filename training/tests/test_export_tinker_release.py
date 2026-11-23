@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -10,6 +11,7 @@ from typing import Any
 import pytest
 
 from training import export_fireworks_release as fireworks, export_tinker_release as tinker
+from training.export_fireworks_release import SelectionOptions
 
 TOKEN_RE = re.compile(r"\S+")
 ASSISTANT_REPLY = "Call 988 now."
@@ -212,6 +214,123 @@ def test_datum_is_dropped_when_it_exceeds_the_token_budget() -> None:
     assert tinker.build_datum(tokenizer, payload, max_tokens=2) is None
 
 
+def test_export_trims_oldest_turns_instead_of_dropping_the_row(tmp_path: Path) -> None:
+    tokenizer = StubTokenizer()
+    history: list[dict[str, Any]] = []
+    for index in range(6):
+        history.append({"role": "user", "content": f"older prompt {index} " + "x " * 40})
+        history.append({"role": "assistant", "content": f"older reply {index} " + "y " * 40})
+    history.append({"role": "user", "content": CLIENT_PROMPT})
+    history.append({"role": "assistant", "content": ASSISTANT_REPLY})
+    manifest_path = write_manifest(tmp_path, [{"messages": history}])
+    full_ids, _ = tinker.build_tokens(tokenizer, history)
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=tokenizer,
+        max_tokens=len(full_ids) - 1,
+    )
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_left_truncated"] == 1
+    assert result.counts["datums_skipped_too_long"] == 0
+    assert "Call 988 now." in tokenizer.decode(result.rows[0].target_ids)
+
+
+def test_export_still_drops_a_row_that_cannot_fit_after_truncation(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        [
+            {
+                "messages": [
+                    {"role": "user", "content": CLIENT_PROMPT},
+                    {"role": "assistant", "content": ASSISTANT_REPLY},
+                ]
+            }
+        ],
+    )
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=2,
+        final_exchange_tokens=2,
+    )
+
+    assert result.counts["datums"] == 0
+    assert result.counts["datums_skipped_too_long"] == 1
+
+
+def test_export_keeps_a_final_exchange_that_exceeds_the_history_budget(tmp_path: Path) -> None:
+    history = [
+        {"role": "user", "content": "older prompt " + "x " * 40},
+        {"role": "assistant", "content": "older reply " + "y " * 40},
+    ]
+    final = messages(("user", " ".join(["detail"] * 40)), ("assistant", ASSISTANT_REPLY))
+    manifest_path = write_manifest(tmp_path, [{"messages": history + final}])
+
+    result = tinker.export(manifest_path, tmp_path / "out", tokenizer=StubTokenizer(), max_tokens=10)
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_left_truncated"] == 1
+    assert result.counts["datums_skipped_too_long"] == 0
+
+
+def test_export_keeps_a_standalone_exchange_under_a_larger_final_exchange_budget(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", CLIENT_PROMPT), ("assistant", ASSISTANT_REPLY))}]
+    )
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=10,
+        final_exchange_tokens=1000,
+    )
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_skipped_too_long"] == 0
+
+
+def test_export_keeps_an_untrimmed_two_message_row_past_the_final_exchange_budget(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", CLIENT_PROMPT), ("assistant", ASSISTANT_REPLY))}]
+    )
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=100,
+        final_exchange_tokens=3,
+    )
+
+    assert result.counts["datums"] == 1
+    assert result.counts["datums_left_truncated"] == 0
+    assert result.counts["datums_skipped_too_long"] == 0
+
+
+def test_export_drops_a_final_exchange_over_its_own_budget(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path,
+        [{"messages": messages(("user", " ".join(["detail"] * 40)), ("assistant", ASSISTANT_REPLY))}],
+    )
+
+    result = tinker.export(
+        manifest_path,
+        tmp_path / "out",
+        tokenizer=StubTokenizer(),
+        max_tokens=10,
+        final_exchange_tokens=10,
+    )
+
+    assert result.counts["datums"] == 0
+    assert result.counts["datums_skipped_too_long"] == 1
+
+
 def write_manifest(tmp_path: Path, rows: list[dict[str, Any]]) -> Path:
     train_path = tmp_path / "train.jsonl"
     with train_path.open("w", encoding="utf-8") as handle:
@@ -222,12 +341,84 @@ def write_manifest(tmp_path: Path, rows: list[dict[str, Any]]) -> Path:
         json.dumps(
             {
                 "release_id": "stub-release",
-                "partitions": {"train": {"path": str(train_path), "sha256": "0" * 64}},
+                "partitions": {
+                    "train": {"path": str(train_path), "sha256": hashlib.sha256(train_path.read_bytes()).hexdigest()}
+                },
             }
         ),
         encoding="utf-8",
     )
     return manifest_path
+
+
+@pytest.mark.parametrize("dry_run", [True, False])
+@pytest.mark.parametrize("identity_problem", ["changed_payload", "missing_hash", "invalid_hash"])
+def test_export_rejects_unverified_train_inputs(tmp_path: Path, dry_run: bool, identity_problem: str) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    manifest = json.loads(manifest_path.read_text())
+    if identity_problem == "changed_payload":
+        train_path = Path(manifest["partitions"]["train"]["path"])
+        train_path.write_text(train_path.read_text().replace("Fictional input", "Different input"))
+    elif identity_problem == "missing_hash":
+        del manifest["partitions"]["train"]["sha256"]
+    else:
+        manifest["partitions"]["train"]["sha256"] = "invalid"
+    manifest_path.write_text(json.dumps(manifest))
+    out = tmp_path / "out"
+
+    with pytest.raises(ValueError, match=r"train.*SHA-256"):
+        tinker.export(manifest_path, out, tokenizer=StubTokenizer(), dry_run=dry_run)
+
+    assert not out.exists()
+
+
+def test_export_receipt_binds_observed_train_and_manifest(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    out = tmp_path / "out"
+
+    tinker.export(manifest_path, out, tokenizer=StubTokenizer())
+
+    record = json.loads((out / "tinker-dataset.json").read_bytes())
+    assert record["source_train_sha256"] == hashlib.sha256((tmp_path / "train.jsonl").read_bytes()).hexdigest()
+    assert record["source_manifest_sha256"] == hashlib.sha256(manifest_path.read_bytes()).hexdigest()
+    assert record["selection_mode"] == "full_corpus"
+
+
+def test_export_receipt_records_the_full_corpus_selection(tmp_path: Path) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    out = tmp_path / "out"
+
+    tinker.export(manifest_path, out, tokenizer=StubTokenizer(), options=SelectionOptions.full_corpus())
+
+    record = json.loads((out / "tinker-dataset.json").read_bytes())
+    assert record["selection_mode"] == "full_corpus"
+
+
+def test_export_rejects_train_changes_during_selection(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    manifest_path = write_manifest(
+        tmp_path, [{"messages": messages(("user", "Fictional input."), ("assistant", "Fictional answer."))}]
+    )
+    original_select = tinker.select_for_export
+    train_path = tmp_path / "train.jsonl"
+
+    def mutate_after_select(*args: Any, **kwargs: Any) -> Any:
+        result = original_select(*args, **kwargs)
+        train_path.write_text(train_path.read_text().replace("Fictional input", "Different input"))
+        return result
+
+    monkeypatch.setattr(tinker, "select_for_export", mutate_after_select)
+    out = tmp_path / "out"
+
+    with pytest.raises(ValueError, match=r"train.*SHA-256"):
+        tinker.export(manifest_path, out, tokenizer=StubTokenizer())
+
+    assert not out.exists()
 
 
 def test_export_trims_a_therapist_opening_turn_instead_of_dropping_the_row(
@@ -358,7 +549,9 @@ def write_manifest_with_sources(tmp_path: Path, rows: list[dict[str, Any]], sour
         json.dumps(
             {
                 "release_id": "stub-release",
-                "partitions": {"train": {"path": str(train_path), "sha256": "0" * 64}},
+                "partitions": {
+                    "train": {"path": str(train_path), "sha256": hashlib.sha256(train_path.read_bytes()).hexdigest()}
+                },
                 "scope": {"appended_rows_by_source": sources},
             }
         ),
@@ -404,6 +597,48 @@ def test_crisis_reply_surface_fails_loudly_on_a_missing_builder(monkeypatch: Any
         tinker.crisis_reply_surface({"scope": {"appended_rows_by_source": {"crisis_direct_v99": 1}}})
 
 
+def test_full_selection_keeps_the_whole_partition() -> None:
+    options = tinker.selection_options("full", seed=1, chat_sample=None, routing_cap=None, include_tool_rows=False)
+    assert options.chat_sample is None
+    assert options.routing_cap is None
+    assert options.max_chars is None
+    assert options.sample_max_chars is None
+
+
+def test_full_selection_rejects_explicit_caps() -> None:
+    with pytest.raises(ValueError, match="narrow"):
+        tinker.selection_options("full", seed=1, chat_sample=10, routing_cap=None, include_tool_rows=False)
+    with pytest.raises(ValueError, match="narrow"):
+        tinker.selection_options("full", seed=1, chat_sample=None, routing_cap=5, include_tool_rows=False)
+
+
+def test_narrow_selection_keeps_the_probe_caps() -> None:
+    options = tinker.selection_options("narrow", seed=1, chat_sample=10, routing_cap=5, include_tool_rows=False)
+    assert (options.chat_sample, options.routing_cap) == (10, 5)
+
+
+def test_narrow_selection_defaults_to_the_probe_caps() -> None:
+    options = tinker.selection_options("narrow", seed=1, chat_sample=None, routing_cap=None, include_tool_rows=False)
+    assert (options.chat_sample, options.routing_cap) == (
+        SelectionOptions.chat_sample,
+        SelectionOptions.routing_cap,
+    )
+
+
+def test_export_parser_rejects_caps_with_the_full_selection() -> None:
+    with pytest.raises(SystemExit):
+        tinker._parse_args(["--chat-sample", "0"])
+    with pytest.raises(SystemExit):
+        tinker._parse_args(["--routing-cap", "1"])
+
+    args = tinker._parse_args(["--selection", "narrow", "--chat-sample", "0", "--routing-cap", "1"])
+    assert (args.chat_sample, args.routing_cap) == (0, 1)
+
+
+def test_export_parser_defaults_to_the_full_partition() -> None:
+    assert tinker._parse_args([]).selection == "full"
+
+
 def test_export_keeps_the_crisis_family_whole_under_a_routing_cap(tmp_path: Path, monkeypatch: Any) -> None:
     """The regression: the family used to compete for the capped routing pool."""
     rows = [
@@ -430,7 +665,7 @@ def test_export_keeps_the_crisis_family_whole_under_a_routing_cap(tmp_path: Path
         manifest_path,
         tmp_path / "out",
         tokenizer=StubTokenizer(),
-        options=tinker.SelectionOptions(routing_cap=0),
+        options=SelectionOptions(routing_cap=0),
     )
 
     assert result.counts["crisis_rows"] == CRISIS_ROWS

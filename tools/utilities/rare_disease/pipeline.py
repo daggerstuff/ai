@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .differential import DifferentialDiagnosisManager
 from .orchestrator import ControllerOrchestrator
-from .state import RareDiseaseState
 from .types import (
-    DifferentialEntry,
     PatientCase,
 )
 
@@ -49,10 +47,10 @@ class RareDiseasePipeline:
 
 def build_default_pipeline() -> RareDiseasePipeline:
     """Construct a ready-to-use pipeline with in-memory components."""
-    from .knowledge_base import InMemoryRareDiseaseKnowledgeBase
+    from .agents.literature_matcher import LiteratureMatcherAgent
     from .agents.symptom_analyzer import SymptomAnalyzerAgent
     from .agents.test_interpreter import TestInterpreterAgent
-    from .agents.literature_matcher import LiteratureMatcherAgent
+    from .knowledge_base import InMemoryRareDiseaseKnowledgeBase
 
     kb = InMemoryRareDiseaseKnowledgeBase()
     symptom_agent = SymptomAnalyzerAgent(kb)

@@ -5,6 +5,7 @@ This module provides a service layer that wraps CommandHandler functionality
 for use by API endpoints.
 """
 
+import asyncio
 import logging
 from datetime import UTC, datetime
 from pathlib import Path

@@ -126,9 +126,7 @@ class ManifestEntry:
 
             src_labels = source_host.split(".")
             tgt_labels = target_host.split(".")
-            return (
-                len(tgt_labels) > len(src_labels) and tgt_labels[-len(src_labels) :] == src_labels
-            )
+            return len(tgt_labels) > len(src_labels) and tgt_labels[-len(src_labels) :] == src_labels
         except Exception:
             return False
 
@@ -142,9 +140,7 @@ def load_source_manifest(manifest_path: Path | str) -> dict[str, ManifestEntry]:
 
     path = Path(manifest_path)
     if not path.exists():
-        logger.warning(
-            "Source manifest not found at %s — license gate defaults to NOASSERTION", path
-        )
+        logger.warning("Source manifest not found at %s — license gate defaults to NOASSERTION", path)
         return {}
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     entries: dict[str, ManifestEntry] = {}
@@ -789,11 +785,7 @@ class APIExtractor:
                     "metadata": {
                         "api_item_id": str(item_id),
                         "api_page": page,
-                        **{
-                            k: v
-                            for k, v in item.items()
-                            if k not in (self._config.text_field, "id")
-                        },
+                        **{k: v for k, v in item.items() if k not in (self._config.text_field, "id")},
                     },
                     "id_override": str(item_id),
                 }
@@ -872,9 +864,7 @@ class YouTubeExtractor:
         if transcript_fetcher is None:
             return 0
         try:
-            metadata = transcript_fetcher._fetch_video_metadata(
-                f"https://www.youtube.com/watch?v={video_id}"
-            )
+            metadata = transcript_fetcher._fetch_video_metadata(f"https://www.youtube.com/watch?v={video_id}")
             return int(metadata.get("duration", 0))
         except Exception:  # pragma: no cover - yt-dlp availability varies in tests
             return 0
@@ -922,9 +912,7 @@ class YouTubeExtractor:
                     },
                 }
 
-            raw_text = transcript_fetcher._clean_subtitle(
-                output_path.read_text(encoding="utf-8", errors="replace")
-            )
+            raw_text = transcript_fetcher._clean_subtitle(output_path.read_text(encoding="utf-8", errors="replace"))
             duration = self._fetch_duration(video_id)
             return {
                 "source_url": source_url,
@@ -1000,9 +988,7 @@ class IngestRouter:
     def _get_shard_writer(self, source_type: str) -> ShardWriter:
         if source_type not in self._shard_writers:
             output_dir = self._raw_output_dir / source_type
-            self._shard_writers[source_type] = ShardWriter(
-                output_dir, source_type, self._shard_size
-            )
+            self._shard_writers[source_type] = ShardWriter(output_dir, source_type, self._shard_size)
         return self._shard_writers[source_type]
 
     async def _emit(
@@ -1039,9 +1025,7 @@ class IngestRouter:
         if not result.get("raw_text"):
             logger.info("No text extracted from web URL %s — skipping", source_url)
             return 0
-        emitted = await self._emit(
-            "web", result["source_url"], result["raw_text"], result.get("metadata")
-        )
+        emitted = await self._emit("web", result["source_url"], result["raw_text"], result.get("metadata"))
         return 1 if emitted else 0
 
     async def _process_document(self, source_ref: str) -> int:
@@ -1050,9 +1034,7 @@ class IngestRouter:
         if not result.get("raw_text"):
             logger.info("No text extracted from document %s — skipping", source_ref)
             return 0
-        emitted = await self._emit(
-            "document", result["source_url"], result["raw_text"], result.get("metadata")
-        )
+        emitted = await self._emit("document", result["source_url"], result["raw_text"], result.get("metadata"))
         return 1 if emitted else 0
 
     async def _process_api(self, source_url: str) -> int:
@@ -1065,9 +1047,7 @@ class IngestRouter:
             if not item.get("raw_text"):
                 continue
             record_id = item.pop("id_override", None)
-            emitted = await self._emit(
-                "api", item["source_url"], item["raw_text"], item.get("metadata"), record_id
-            )
+            emitted = await self._emit("api", item["source_url"], item["raw_text"], item.get("metadata"), record_id)
             if emitted:
                 count += 1
         return count
@@ -1078,9 +1058,7 @@ class IngestRouter:
         if not result.get("raw_text"):
             logger.info("No transcript for YouTube video %s — skipping", source_url)
             return 0
-        emitted = await self._emit(
-            "youtube", result["source_url"], result["raw_text"], result.get("metadata")
-        )
+        emitted = await self._emit("youtube", result["source_url"], result["raw_text"], result.get("metadata"))
         return 1 if emitted else 0
 
     async def ingest(self, sources: Sequence[Mapping[str, str]]) -> dict[str, int]:
@@ -1157,12 +1135,8 @@ def main() -> None:  # pragma: no cover
     import argparse
 
     parser = argparse.ArgumentParser(description="Ingest router — Stage 0 of the curation pipeline")
-    parser.add_argument(
-        "--manifest", default=DEFAULT_MANIFEST_PATH, help="Path to source manifest YAML"
-    )
-    parser.add_argument(
-        "--output-dir", default=str(DEFAULT_RAW_OUTPUT_DIR), help="Raw output directory"
-    )
+    parser.add_argument("--manifest", default=DEFAULT_MANIFEST_PATH, help="Path to source manifest YAML")
+    parser.add_argument("--output-dir", default=str(DEFAULT_RAW_OUTPUT_DIR), help="Raw output directory")
     parser.add_argument("--shard-size", type=int, default=SHARD_SIZE, help="Records per shard")
     parser.add_argument("--sources-file", help="JSON file with list of source dicts")
     parser.add_argument(
@@ -1173,9 +1147,7 @@ def main() -> None:  # pragma: no cover
     parser.add_argument("--source-url", help="Source URL (used with --source-type)")
     args = parser.parse_args()
 
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
     if args.sources_file:
         sources = json.loads(Path(args.sources_file).read_text(encoding="utf-8"))

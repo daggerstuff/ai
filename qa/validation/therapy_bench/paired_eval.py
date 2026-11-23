@@ -786,6 +786,11 @@ def _check_response_enum(
 _APOSTROPHE_FOLD = str.maketrans({"\u2018": "'", "\u2019": "'"})
 
 
+def fold_apostrophes(text: str) -> str:
+    """Fold typographic apostrophes to the straight form the rubric terms use."""
+    return text.translate(_APOSTROPHE_FOLD)
+
+
 def _mentions(term: str, response: str) -> bool:
     """Whether ``response`` mentions ``term`` as a word of its own.
 
@@ -795,8 +800,8 @@ def _mentions(term: str, response: str) -> bool:
     matches deliberate stems ("hallucinat" for "hallucinating"), which a right
     boundary would reject.
     """
-    needle = term.casefold().translate(_APOSTROPHE_FOLD)
-    haystack = response.casefold().translate(_APOSTROPHE_FOLD)
+    needle = fold_apostrophes(term.casefold())
+    haystack = fold_apostrophes(response.casefold())
     return re.search(r"(?<!\w)" + re.escape(needle), haystack) is not None
 
 

@@ -1,0 +1,27 @@
+# The training-infra MCP is a tracked island inside an otherwise ignored
+# `training/` tree: the repository root's .gitignore ignores `training/*` and
+# re-allows this package with a handful of negation rules (lines ~203-226).
+# If any of those rules is ever reordered or dropped, `recipes.yaml`, the
+# deploy unit and these docs would silently stop being tracked — a change that
+# is invisible in a diff of the control plane itself.
+#
+# This file makes the package self-protecting: `!*` re-includes everything
+# under this directory regardless of the parent rules, then the two ignores
+# below exclude the genuinely-local state.
+!*
+
+# Runtime state: the SQLite registry, its WAL sidecars and captured job logs.
+# Never commit these.
+state/
+__pycache__/
+*.pyc
+
+# The real environment file holds backend secrets and the service token.
+.env
+
+# `!*` above also re-includes these names, and this file is read after the root
+# rules that ignore them (`**/credentials*.yaml`, `**/secrets*.yaml`), so the
+# exclusion has to be repeated here or an operator's credential file would be
+# committed.
+credentials*.yaml
+secrets*.yaml

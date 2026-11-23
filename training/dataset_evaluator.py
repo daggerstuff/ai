@@ -9,6 +9,7 @@ import requests
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "https://ollama.pixelated.love")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "ornith:9b")
 
+
 def evaluate_pair(instruction: str, output: str) -> int:
     system_prompt = (
         "You are an expert dataset curator for a therapeutic LLM. "
@@ -40,13 +41,10 @@ def evaluate_pair(instruction: str, output: str) -> int:
         print(f"Error querying LLM: {e}")
     return 0
 
+
 def format_chatml(instruction: str, output: str) -> dict:
-    return {
-        "messages": [
-            {"role": "user", "content": instruction},
-            {"role": "assistant", "content": output}
-        ]
-    }
+    return {"messages": [{"role": "user", "content": instruction}, {"role": "assistant", "content": output}]}
+
 
 def main():
     base_dir = Path("ai/training/output/books/clean")
@@ -63,7 +61,7 @@ def main():
     print(f"Running LLM Evaluator on a sample of 10 pairs from: {test_file.name}")
     print("=" * 60)
 
-    with open(test_file, encoding='utf-8') as f:
+    with open(test_file, encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()][:10]
 
     good_pairs = []
@@ -72,14 +70,14 @@ def main():
     for i, line in enumerate(lines):
         try:
             pair = json.loads(line)
-        except:
+        except Exception:
             continue
 
         inst = pair.get("instruction", "")
         out = pair.get("output", "")
 
         score = evaluate_pair(inst, out)
-        print(f"Pair {i+1}: Score {score}/5")
+        print(f"Pair {i + 1}: Score {score}/5")
         print(f"  User: {inst[:60]}...")
         print(f"  Asst: {out[:60]}...")
 
@@ -97,6 +95,7 @@ def main():
         print("\nExample of a FAILED pair:")
         print(f"Instruction: {bad_pairs[0]['instruction']}")
         print(f"Output: {bad_pairs[0]['output']}")
+
 
 if __name__ == "__main__":
     main()

@@ -252,9 +252,7 @@ class TestAsyncJudgePipeline:
 
     @pytest.mark.asyncio
     async def test_run_tracks_generation_throughput_separately_from_eval(self, mock_nemo_config, judge_response):
-        candidates = _candidate_iter(
-            [(f"case-{i}", "CBT reframing exercise.") for i in range(THROUGHPUT_CANDIDATES)]
-        )
+        candidates = _candidate_iter([(f"case-{i}", "CBT reframing exercise.") for i in range(THROUGHPUT_CANDIDATES)])
         pipeline = AsyncJudgePipeline(nemo_config=mock_nemo_config, max_workers=1, accept_threshold=0.6)
         with patch("training.sdg_pipeline._call_nemo", return_value=judge_response):
             result = await pipeline.run(candidates)

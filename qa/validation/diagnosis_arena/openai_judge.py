@@ -76,7 +76,7 @@ def _build_judge_prompt(case, response) -> str:
         "Score with a single tier and dimension scores 0.0-1.0.\n"
         "Tier: identical | relevant | irrelevant\n"
         "Dimensions: hypothesis_generation, evidence_interpretation, differential_diagnosis, final_diagnosis\n\n"
-        "Respond as JSON: {\"tier\": ..., \"dimensions\": {\"name\": score, ...}, \"notes\": \"...\"}"
+        'Respond as JSON: {"tier": ..., "dimensions": {"name": score, ...}, "notes": "..."}'
     )
 
 
@@ -114,14 +114,19 @@ def _score_for(value) -> float:
             return 0.5
     try:
         return max(0.0, min(1.0, float(value)))
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return 0.5
 
 
 def _normalize_dimension_scores(raw: dict) -> tuple:
     out = []
     for name in DIAGNOSTIC_DIMENSIONS:
-        out.append((name, _score_for(raw.get(name, 0.0)),))
+        out.append(
+            (
+                name,
+                _score_for(raw.get(name, 0.0)),
+            )
+        )
     return tuple(out)
 
 
@@ -157,9 +162,7 @@ async def _single_judgment(
         response_id=response.response_id,
         case_id=case.case_id,
         tier=tier,
-        dimensions=tuple(
-            (name, dim_scores.get(name, 0.0), "") for name in DIAGNOSTIC_DIMENSIONS
-        ),
+        dimensions=tuple((name, dim_scores.get(name, 0.0), "") for name in DIAGNOSTIC_DIMENSIONS),
         judge_model=model,
         notes=str(parsed.get("notes", ""))[:500],
     )
@@ -202,7 +205,13 @@ def _majority_dimensions(votes: Sequence[Judgment]) -> tuple:
                 if dim.name == name:
                     values.append(dim.score)
                     break
-        out.append((name, sum(values) / len(values) if values else 0.0, f"mean across {len(values)} votes",))
+        out.append(
+            (
+                name,
+                sum(values) / len(values) if values else 0.0,
+                f"mean across {len(values)} votes",
+            )
+        )
     return tuple(out)
 
 
@@ -269,9 +278,7 @@ class OpenAIDiagnosisJudge(Judge):
             tier=_majority_tier(votes),
             dimensions=_majority_dimensions(votes),
             judge_model=self.judge_model,
-            notes=(
-                f"n={len(votes)} votes, mode={_majority_tier(votes).value}"
-            ),
+            notes=(f"n={len(votes)} votes, mode={_majority_tier(votes).value}"),
         )
 
 

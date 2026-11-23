@@ -216,9 +216,7 @@ class TestORPOIntegration:
         assert metrics_path.exists(), "orpo_metrics.json not written"
         return json.loads(metrics_path.read_text(encoding="utf-8"))
 
-    def _prepare_test_paths(
-        self, tmp_path: Path, name: str, num_samples: int = VARIANT_SAMPLES
-    ) -> tuple[Path, Path]:
+    def _prepare_test_paths(self, tmp_path: Path, name: str, num_samples: int = VARIANT_SAMPLES) -> tuple[Path, Path]:
         """Create the JSONL dataset and output dir for a test run.
 
         Returns ``(data_path, output_dir)`` so callers can wire them into
@@ -244,35 +242,47 @@ class TestORPOIntegration:
             {"train_runtime": 120.0, "train_samples_per_second": E2E_EXPECTED_SPS},
         )
         with self._mocked_orpo(instances) as (trainer_instance, entered):
-            data_path, output_dir = self._prepare_test_paths(
-                tmp_path, "preference", E2E_SAMPLES
-            )
+            data_path, output_dir = self._prepare_test_paths(tmp_path, "preference", E2E_SAMPLES)
 
             orpo = _fresh_orpo_module()
-            args = orpo.build_parser().parse_args([
-                "--data_path", str(data_path),
-                "--base_model_checkpoint", "mock-model",
-                "--output_dir", str(output_dir),
-                "--beta", str(E2E_BETA),
-                "--max_seq_length", str(E2E_MAX_SEQ_LENGTH),
-                "--batch_size", str(E2E_BATCH_SIZE),
-                "--learning_rate", str(E2E_LEARNING_RATE),
-                "--epochs", "1",
-                "--logging_steps", str(E2E_LOGGING_STEPS),
-                "--warmup_ratio", str(E2E_WARMUP_RATIO),
-                "--lr_scheduler_type", "cosine",
-                "--gradient_checkpointing",
-                "--deepspeed", DS_CONFIG_PATH,
-            ])
+            args = orpo.build_parser().parse_args(
+                [
+                    "--data_path",
+                    str(data_path),
+                    "--base_model_checkpoint",
+                    "mock-model",
+                    "--output_dir",
+                    str(output_dir),
+                    "--beta",
+                    str(E2E_BETA),
+                    "--max_seq_length",
+                    str(E2E_MAX_SEQ_LENGTH),
+                    "--batch_size",
+                    str(E2E_BATCH_SIZE),
+                    "--learning_rate",
+                    str(E2E_LEARNING_RATE),
+                    "--epochs",
+                    "1",
+                    "--logging_steps",
+                    str(E2E_LOGGING_STEPS),
+                    "--warmup_ratio",
+                    str(E2E_WARMUP_RATIO),
+                    "--lr_scheduler_type",
+                    "cosine",
+                    "--gradient_checkpointing",
+                    "--deepspeed",
+                    DS_CONFIG_PATH,
+                ]
+            )
 
             log_capture = self._run_orpo_with_logs(orpo, args)
 
         # Checkpoint saved — verify final adapter files exist
         final_model_dir = output_dir / "final_model"
-        assert (final_model_dir / "adapter_config.json").exists(), \
-            "Final model adapter_config.json not saved"
-        assert (final_model_dir / "adapter_model.safetensors").exists(), \
+        assert (final_model_dir / "adapter_config.json").exists(), "Final model adapter_config.json not saved"
+        assert (final_model_dir / "adapter_model.safetensors").exists(), (
             "Final model adapter_model.safetensors not saved"
+        )
 
         # Metrics JSON — verify structure and values
         report = self._load_metrics_report(output_dir)
@@ -311,13 +321,19 @@ class TestORPOIntegration:
             data_path, output_dir = self._prepare_test_paths(tmp_path, "dora")
 
             orpo = _fresh_orpo_module()
-            args = orpo.build_parser().parse_args([
-                "--data_path", str(data_path),
-                "--base_model_checkpoint", "mock-model",
-                "--output_dir", str(output_dir),
-                "--beta", str(E2E_BETA),
-                "--use_dora",
-            ])
+            args = orpo.build_parser().parse_args(
+                [
+                    "--data_path",
+                    str(data_path),
+                    "--base_model_checkpoint",
+                    "mock-model",
+                    "--output_dir",
+                    str(output_dir),
+                    "--beta",
+                    str(E2E_BETA),
+                    "--use_dora",
+                ]
+            )
 
             log_capture = self._run_orpo_with_logs(orpo, args)
 
@@ -336,12 +352,18 @@ class TestORPOIntegration:
             data_path, output_dir = self._prepare_test_paths(tmp_path, "no_ds")
 
             orpo = _fresh_orpo_module()
-            args = orpo.build_parser().parse_args([
-                "--data_path", str(data_path),
-                "--base_model_checkpoint", "mock-model",
-                "--output_dir", str(output_dir),
-                "--beta", str(BETA_OVERRIDE_SMALL),
-            ])
+            args = orpo.build_parser().parse_args(
+                [
+                    "--data_path",
+                    str(data_path),
+                    "--base_model_checkpoint",
+                    "mock-model",
+                    "--output_dir",
+                    str(output_dir),
+                    "--beta",
+                    str(BETA_OVERRIDE_SMALL),
+                ]
+            )
 
             orpo.run_orpo(args)
 
@@ -360,11 +382,16 @@ class TestORPOIntegration:
             data_path, output_dir = self._prepare_test_paths(tmp_path, "sps")
 
             orpo = _fresh_orpo_module()
-            args = orpo.build_parser().parse_args([
-                "--data_path", str(data_path),
-                "--base_model_checkpoint", "mock-model",
-                "--output_dir", str(output_dir),
-            ])
+            args = orpo.build_parser().parse_args(
+                [
+                    "--data_path",
+                    str(data_path),
+                    "--base_model_checkpoint",
+                    "mock-model",
+                    "--output_dir",
+                    str(output_dir),
+                ]
+            )
 
             orpo.run_orpo(args)
 

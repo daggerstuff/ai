@@ -270,8 +270,8 @@ class DatasetExporter:
 
             self.logger.info(f"Acquired lock: {self._lock_file}")
 
-        except OSError:
-            raise RuntimeError(f"Export already in progress for {self.config.dataset_name}")
+        except OSError as exc:
+            raise RuntimeError(f"Export already in progress for {self.config.dataset_name}") from exc
 
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum of file."""
@@ -325,9 +325,11 @@ class DatasetExporter:
         encoding = None if self.config.compress_output else "utf-8"
 
         if self.config.compress_output and self.config.compression_format == "gzip":
+
             def open_func():
                 return gzip.open(output_path, mode, encoding=encoding)
         else:
+
             def open_func():
                 return open(output_path, mode, encoding=encoding)
 

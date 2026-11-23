@@ -36,6 +36,7 @@ SAMPLE_COUNT = 4
 # Helpers (mirroring test_dual_judge.py patterns)
 # ---------------------------------------------------------------------------
 
+
 def make_mock_aiohttp_response(content: str) -> MagicMock:
     """Create a mock aiohttp response object with status 200."""
     resp = MagicMock()
@@ -44,12 +45,14 @@ def make_mock_aiohttp_response(content: str) -> MagicMock:
     resp.json = AsyncMock(return_value={"choices": [{"message": {"content": content}}]})
     return resp
 
+
 def make_mock_session(post_side_effect: Any) -> MagicMock:
     """Create a mock aiohttp.ClientSession with the given post side_effect."""
     session = MagicMock()
     session.post = MagicMock(side_effect=post_side_effect)
     session.close = AsyncMock()
     return session
+
 
 class _AsyncCM:
     """Minimal async context manager wrapping a value."""
@@ -63,6 +66,7 @@ class _AsyncCM:
     async def __aexit__(self, *args: Any) -> bool:
         return False
 
+
 def make_judge_json_response(quality: float) -> str:
     """Produce the JSON string a judge model would return."""
     return json.dumps(
@@ -73,6 +77,7 @@ def make_judge_json_response(quality: float) -> str:
             "reasoning": "test verdict",
         }
     )
+
 
 def _write_golden(tmp_path: Path, n: int = SAMPLE_COUNT) -> Path:
     """Write a small golden calibration JSONL with distinct human scores."""
@@ -93,6 +98,7 @@ def _write_golden(tmp_path: Path, n: int = SAMPLE_COUNT) -> Path:
     path.write_text("\n".join(json.dumps(s) for s in samples) + "\n", encoding="utf-8")
     return path
 
+
 def _variable_quality_post(*_args: Any, **kwargs: Any) -> _AsyncCM:
     """Mock post whose judge score matches the golden sample's quality.
 
@@ -106,6 +112,7 @@ def _variable_quality_post(*_args: Any, **kwargs: Any) -> _AsyncCM:
     quality = 0.2 + 0.2 * int(match.group(1))
     return _AsyncCM(make_mock_aiohttp_response(make_judge_json_response(quality)))
 
+
 @contextmanager
 def _generic_transport() -> Iterator[None]:
     """Force the generic judge transport (never the Cloudflare REST path).
@@ -116,9 +123,11 @@ def _generic_transport() -> Iterator[None]:
     with patch.dict(os.environ, {"CLOUDFLARE_ACCOUNT_ID": "", "CLOUDFLARE_API_TOKEN": ""}):
         yield
 
+
 # ---------------------------------------------------------------------------
 # Tests: --report-out persistence on the live calibration path
 # ===========================================================================
+
 
 class TestReportOut:
     """Verify --report-out writes the full calibration report to JSON."""
@@ -184,7 +193,7 @@ class TestReportOut:
         # Stdout behavior intact: the original summary report shape is printed
         # (after the per-sample progress lines, which carry no braces)
         stdout = capsys.readouterr().out
-        summary: dict[str, Any] = json.loads(stdout[stdout.index("{"):])
+        summary: dict[str, Any] = json.loads(stdout[stdout.index("{") :])
         assert summary["golden_samples"] == SAMPLE_COUNT
         assert summary["metrics"]["pearson_r"] == pytest.approx(1.0, abs=0.001)
         assert summary["gate"]["passed"] is True
@@ -212,7 +221,7 @@ class TestReportOut:
         assert rc == 0
         assert not report_path.exists()
         stdout = capsys.readouterr().out
-        summary: dict[str, Any] = json.loads(stdout[stdout.index("{"):])
+        summary: dict[str, Any] = json.loads(stdout[stdout.index("{") :])
         assert summary["verdict"] == "PASSED"
 
     def test_report_out_records_failed_gate(self, tmp_path: Path) -> None:
@@ -244,6 +253,7 @@ class TestReportOut:
         assert detail["gate"]["passed"] is False
         assert detail["metrics"]["pearson_r"] < CALIB_PEARSON_MIN
 
+
 def _offset_golden_post(*_args: Any, **kwargs: Any) -> _AsyncCM:
     """Mock post whose judge score is the golden sample's human score + 0.1."""
     payload = kwargs["json"]
@@ -251,6 +261,7 @@ def _offset_golden_post(*_args: Any, **kwargs: Any) -> _AsyncCM:
     assert match is not None, "mock post called with unexpected candidate content"
     human_quality = 0.55 if int(match.group(1)) % 2 == 0 else 0.59
     return _AsyncCM(make_mock_aiohttp_response(make_judge_json_response(human_quality + 0.1)))
+
 
 class TestGateUsesOffsetCalibratedKappa:
     """The PASS/FAIL verdict must use the offset-calibrated kappa (the
@@ -306,5 +317,5 @@ class TestGateUsesOffsetCalibratedKappa:
         assert detail["gate"]["passed"] is True
         assert detail["verdict"] == "PASSED"
         stdout = capsys.readouterr().out
-        summary: dict[str, Any] = json.loads(stdout[stdout.index("{"):])
+        summary: dict[str, Any] = json.loads(stdout[stdout.index("{") :])
         assert summary["gate"]["passed"] is True

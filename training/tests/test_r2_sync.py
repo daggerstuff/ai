@@ -52,8 +52,7 @@ class FakeS3:
             {
                 "Key": key,
                 "Size": len(self.objects[key]),
-                "ETag": self.etags.get(key)
-                or f'"{hashlib.md5(self.objects[key], usedforsecurity=False).hexdigest()}"',
+                "ETag": self.etags.get(key) or f'"{hashlib.md5(self.objects[key], usedforsecurity=False).hexdigest()}"',
             }
             for key in page
         ]

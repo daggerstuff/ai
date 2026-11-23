@@ -38,7 +38,10 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "safety_monitoring.log")), logging.StreamHandler()],
+    handlers=[
+        logging.FileHandler(str(_PROJECT_ROOT / "ai" / "logs" / "safety_monitoring.log")),
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
@@ -115,7 +118,7 @@ class SafetyMonitor:
     """Real-time safety monitoring system"""
 
     def __init__(self):
-        self.monitoring_path = (_PROJECT_ROOT / "ai" / "monitoring")
+        self.monitoring_path = _PROJECT_ROOT / "ai" / "monitoring"
         self.monitoring_path.mkdir(parents=True, exist_ok=True)
 
         self.active_sessions: dict[str, SafetyMetrics] = {}

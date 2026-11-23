@@ -15,13 +15,12 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 
 from ai.api.techdeck_integration.communication.bias_integration import BiasDetectionIntegration, BiasMetrics
-from ai.api.techdeck_integration.communication.communication.event_bus import EventBus
 from ai.api.techdeck_integration.communication.error_recovery import (
     ErrorRecoveryManager,
     RecoveryResult,
     RecoveryStrategy,
 )
-from ai.api.techdeck_integration.communication.event_bus import EventBus, EventMessage, EventType
+from ai.api.techdeck_integration.communication.event_bus import EventBus, EventHandler, EventMessage, EventType
 from ai.api.techdeck_integration.communication.graceful_degradation import GracefulDegradationManager
 from ai.api.techdeck_integration.communication.performance_monitor import PerformanceMonitor
 from ai.api.techdeck_integration.communication.pipeline_coordinator import PipelineContext, PipelineCoordinator
@@ -69,13 +68,17 @@ class TestEventBus:
         handler_called = False
         received_event = None
 
-        async def test_handler(event: EventMessage) -> dict[str, Any]:
-            nonlocal handler_called, received_event
-            handler_called = True
-            received_event = event
-            return {"handled": True}
+        class RecordingHandler(EventHandler):
+            def __init__(self):
+                super().__init__("test_handler", [EventType.PROGRESS_UPDATE.value])
 
-        event_bus.register_handler(MockHandler(test_handler))
+            async def _process_event(self, event: EventMessage) -> dict[str, Any]:
+                nonlocal handler_called, received_event
+                handler_called = True
+                received_event = event
+                return {"handled": True}
+
+        event_bus.register_handler(RecordingHandler())
 
         event = EventMessage(
             event_type=EventType.PROGRESS_UPDATE.value, execution_id="test_execution_123", payload={"progress": 50.0}

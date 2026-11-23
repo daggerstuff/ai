@@ -58,9 +58,7 @@ class S3Streamer:
             cmd.append("--recursive")
         cmd.append(self._path(prefix))
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        keys: list[str] = [
-            prefix + line for line in result.stdout.strip().split("\n") if line
-        ]
+        keys: list[str] = [prefix + line for line in result.stdout.strip().split("\n") if line]
         return keys
 
     def _cat_proc(self, key: str) -> subprocess.Popen:

@@ -65,7 +65,6 @@ def test_data_normalizer_canonicalizes_record_shape() -> None:
     assert record["metadata"] == {"topic_tags": ["synthetic"], "quality_score": 0.9}
 
 
-def test_normalization_pipeline_writes_duplicate_evidence(tmp_path) -> None:
 def test_normalization_pipeline_writes_duplicate_evidence(tmp_path: Path) -> None:
     input_record_count = 2
     input_path = tmp_path / "source.jsonl"

@@ -5,13 +5,12 @@ from pathlib import Path
 
 import boto3
 from dotenv import load_dotenv
+from path_utils import WORKSPACE_ROOT
 from rich import box
 from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 from rich.text import Text
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
-
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"

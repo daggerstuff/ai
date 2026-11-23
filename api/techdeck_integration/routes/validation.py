@@ -11,13 +11,14 @@ from typing import Any
 
 from flask import Blueprint, g, jsonify, request
 
-from ai.api.techdeck_integration.auth.decorators import require_auth
+from ai.api.techdeck_integration.auth.middleware import require_auth
 from ai.api.techdeck_integration.error_handling.custom_errors import (
     BiasDetectionError,
     ResourceNotFoundError,
     ValidationError,
 )
 from ai.api.techdeck_integration.integration.redis_client import RedisClient
+from ai.api.techdeck_integration.routes.analytics import _get_dataset_context
 from ai.api.techdeck_integration.utils.logger import get_request_logger
 from ai.api.techdeck_integration.utils.validation import sanitize_input, validate_validation_request
 
@@ -102,7 +103,7 @@ def quality_check():
             }
         ), 200
 
-    except (ValidationError, ResourceNotFoundError):
+    except ValidationError, ResourceNotFoundError:
         raise
     except Exception as e:
         request_logger.error(f"Error performing quality check: {e}")
@@ -181,7 +182,7 @@ def bias_detection():
             }
         ), 200
 
-    except (ValidationError, BiasDetectionError):
+    except ValidationError, BiasDetectionError:
         raise
     except Exception as e:
         request_logger.error(f"Error performing bias detection: {e}")
@@ -341,7 +342,7 @@ def schema_validation():
             }
         ), 200
 
-    except (ValidationError, ResourceNotFoundError):
+    except ValidationError, ResourceNotFoundError:
         raise
     except Exception as e:
         request_logger.error(f"Error performing schema validation: {e}")
@@ -928,5 +929,5 @@ def _is_valid_date_format(date_string: str) -> bool:
     try:
         datetime.fromisoformat(date_string.replace("Z", "+00:00"))
         return True
-    except (ValueError, AttributeError):
+    except ValueError, AttributeError:
         return False

@@ -1,12 +1,10 @@
 import os
 import sys
 import time
-from pathlib import Path
 
 import boto3
 from dotenv import load_dotenv
-from path_utils import WORKSPACE_ROOT, AI_DIR, DATA_DIR
-
+from path_utils import WORKSPACE_ROOT
 
 # --- Configuration ---
 BUCKET_NAME = "pixel-data"

@@ -157,7 +157,7 @@ class DatasetService:
 
             return dataset_record
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error retrieving dataset: {e}")
@@ -219,7 +219,7 @@ class DatasetService:
 
             return dataset_record
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error updating dataset: {e}")
@@ -263,7 +263,7 @@ class DatasetService:
 
             return True
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error deleting dataset: {e}")
@@ -392,7 +392,7 @@ class DatasetService:
 
             return dataset_record
 
-        except (ResourceNotFoundError, ValidationError, FileProcessingError):
+        except ResourceNotFoundError, ValidationError, FileProcessingError:
             raise
         except Exception as e:
             request_logger.error(f"Error uploading file to dataset: {e}")
@@ -453,7 +453,7 @@ class DatasetService:
 
             return validation_results
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error validating dataset: {e}")
@@ -506,7 +506,7 @@ class DatasetService:
 
             return statistics
 
-        except (ResourceNotFoundError, ValidationError):
+        except ResourceNotFoundError, ValidationError:
             raise
         except Exception as e:
             request_logger.error(f"Error getting dataset statistics: {e}")

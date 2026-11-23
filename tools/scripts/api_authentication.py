@@ -481,7 +481,6 @@ if __name__ == "__main__":
         expires_in_days=30,
     )
 
-
     # Test authentication
     authenticated_user = auth_system.authenticate_user(
         "admin", os.environ.get("ADMIN_PASSWORD", secrets.token_urlsafe(16))
@@ -503,7 +502,6 @@ if __name__ == "__main__":
     passed_tests = sum(test_results.values())
     total_tests = len(test_results)
     security_score = (passed_tests / total_tests) * 100
-
 
     if security_score >= 90:
         pass

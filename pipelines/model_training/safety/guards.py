@@ -9,6 +9,7 @@ PHI_PATTERNS = [
     # Add more as needed
 ]
 
+
 def _apply_phi_scrubbing(text: str) -> str:
     """Apply PHI scrubbing patterns to the given text."""
     sanitized = text
@@ -16,12 +17,16 @@ def _apply_phi_scrubbing(text: str) -> str:
         sanitized = pattern.sub(replacement, sanitized)
     return sanitized
 
+
 class SafetyGuardResult:
-    def __init__(self, passed: bool, sanitized_text: str, message: str | None = None, metadata: dict[str, Any] | None = None):
+    def __init__(
+        self, passed: bool, sanitized_text: str, message: str | None = None, metadata: dict[str, Any] | None = None
+    ):
         self.passed = passed
         self.sanitized_text = sanitized_text
         self.message = message
         self.metadata = metadata or {}
+
 
 class InputGuard:
     def __init__(self, config: dict[str, Any] | None = None):
@@ -33,13 +38,9 @@ class InputGuard:
         # Simple intent recognition
         intent = self._detect_intent(sanitized)
 
-        passed = True # For now, always pass unless critical PHI found that can't be sanitized?
+        passed = True  # For now, always pass unless critical PHI found that can't be sanitized?
 
-        return SafetyGuardResult(
-            passed=passed,
-            sanitized_text=sanitized,
-            metadata={"intent": intent}
-        )
+        return SafetyGuardResult(passed=passed, sanitized_text=sanitized, metadata={"intent": intent})
 
     def _detect_intent(self, text: str) -> str:
         text = text.lower()
@@ -52,6 +53,7 @@ class InputGuard:
         if any(kw in text for kw in ["pain", "hurt", "discomfort"]):
             return "address_pain"
         return "general_talk"
+
 
 class OutputGuard:
     def __init__(self, persona_definition: dict[str, Any], config: dict[str, Any] | None = None):
@@ -77,10 +79,7 @@ class OutputGuard:
             passed=passed,
             sanitized_text=sanitized,
             message=message,
-            metadata={
-                "alignment_passed": alignment_passed,
-                "accuracy_passed": accuracy_passed
-            }
+            metadata={"alignment_passed": alignment_passed, "accuracy_passed": accuracy_passed},
         )
 
     def _check_persona_alignment(self, text: str) -> tuple[bool, str]:

@@ -32,8 +32,7 @@ JOBS: dict[str, dict[str, Any]] = {
         "config": ROOT / "docs/training/execution-2026-10-18/inference-configs/"
         "wandb-full-corpus-v1-vs-base-2048-512.json",
         "resume_artifact": "arc-sft-baseline-8ce8354c67ef-sft-resume",
-        "results": ROOT / "docs/training/execution-2026-10-18/results/"
-        "wandb-full-corpus-v1-final-paired",
+        "results": ROOT / "docs/training/execution-2026-10-18/results/wandb-full-corpus-v1-final-paired",
     },
     "v2": {
         "job_id": "f914f0fb-f892-4e1a-8291-8cea3757274e",
@@ -42,8 +41,7 @@ JOBS: dict[str, dict[str, Any]] = {
         "config": ROOT / "docs/training/execution-2026-10-18/inference-configs/"
         "wandb-full-corpus-v2-vs-base-2048-512.json",
         "resume_artifact": "arc-sft-baseline-556695bfd5c4-sft-resume",
-        "results": ROOT / "docs/training/execution-2026-10-18/results/"
-        "wandb-full-corpus-v2-final-paired",
+        "results": ROOT / "docs/training/execution-2026-10-18/results/wandb-full-corpus-v2-final-paired",
     },
 }
 
@@ -58,11 +56,7 @@ def atomic_json(path: Path, value: dict[str, Any]) -> None:
 
 def latest_resume_artifact(api: wandb.Api, name: str) -> dict[str, Any] | None:
     collection = next(
-        (
-            item
-            for item in api.artifact_collections(f"{ENTITY}/{PROJECT}", "lora", per_page=100)
-            if item.name == name
-        ),
+        (item for item in api.artifact_collections(f"{ENTITY}/{PROJECT}", "lora", per_page=100) if item.name == name),
         None,
     )
     if collection is None:

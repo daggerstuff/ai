@@ -9,6 +9,8 @@ from typing import Any
 
 # Extended task types beyond MentalHealthTaskType enum
 TASK_TYPES = {
+    "text_classification",
+    "patient_simulation",
     "symptom_classification",
     "severity_estimation",
     "therapy_response_generation",
@@ -116,6 +118,11 @@ def json_conversation_to_chatml(
     Returns:
         List of ChatML records.
     """
+    normalized_user = user_role.strip().casefold()
+    normalized_assistant = assistant_role.strip().casefold()
+    if not normalized_user or not normalized_assistant or normalized_user == normalized_assistant:
+        raise ValueError("user_role and assistant_role must be distinct non-empty speaker values")
+    roles = {normalized_user: "user", normalized_assistant: "assistant"}
     records: list[dict[str, Any]] = []
     for conv in conversations:
         turns = conv.get("dialog") or conv.get("turns") or conv.get("conversation") or []
@@ -127,14 +134,17 @@ def json_conversation_to_chatml(
             messages.append({"role": "system", "content": system_prompt})
 
         for turn in turns:
-            speaker = str(turn.get(speaker_key, "")).lower()
+            speaker = str(turn.get(speaker_key, "")).strip().casefold()
             utterance = (turn.get(utterance_key) or turn.get("text") or "").strip()
             if not utterance:
                 continue
-            role = "user" if speaker == user_role else "assistant"
+            role = roles.get(speaker)
+            if role is None:
+                messages.clear()
+                break
             messages.append({"role": role, "content": utterance})
 
-        if len(messages) < 2:
+        if not {"user", "assistant"}.issubset(message["role"] for message in messages):
             continue
 
         record: dict[str, Any] = {
@@ -188,6 +198,11 @@ def sharegpt_to_chatml(
     Returns:
         List of ChatML records.
     """
+    normalized_user = user_role.strip().casefold()
+    normalized_assistant = assistant_role.strip().casefold()
+    if not normalized_user or not normalized_assistant or normalized_user == normalized_assistant:
+        raise ValueError("user_role and assistant_role must be distinct non-empty speaker values")
+    roles = {normalized_user: "user", normalized_assistant: "assistant"}
     records: list[dict[str, Any]] = []
     for conv in conversations:
         turns = conv.get(turns_key, [])
@@ -199,14 +214,17 @@ def sharegpt_to_chatml(
             messages.append({"role": "system", "content": system_prompt})
 
         for turn in turns:
-            speaker = str(turn.get(from_key, "")).lower()
+            speaker = str(turn.get(from_key, "")).strip().casefold()
             utterance = (turn.get(value_key) or "").strip()
             if not utterance:
                 continue
-            role = "user" if speaker == user_role else "assistant"
+            role = roles.get(speaker)
+            if role is None:
+                messages.clear()
+                break
             messages.append({"role": role, "content": utterance})
 
-        if len(messages) < 2:
+        if not {"user", "assistant"}.issubset(message["role"] for message in messages):
             continue
 
         record: dict[str, Any] = {

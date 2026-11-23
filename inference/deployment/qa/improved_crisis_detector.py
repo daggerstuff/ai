@@ -427,6 +427,5 @@ async def test_improved_detector():
     return (correct / total) * 100
 
 
-
 if __name__ == "__main__":
     asyncio.run(test_improved_detector())

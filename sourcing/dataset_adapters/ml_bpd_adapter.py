@@ -12,6 +12,7 @@ Output task_type: severity_estimation
 from __future__ import annotations
 
 import csv
+import subprocess
 from typing import Any
 
 from ai.sourcing.dataset_adapters.adapter_factory import register_adapter
@@ -19,6 +20,12 @@ from ai.sourcing.dataset_adapters.base_adapter import BaseDatasetAdapter
 
 _SOURCE_URL = "https://github.com/saidejp/machine_learning_BPD"
 _GIT_CLONE_URL = "https://github.com/saidejp/machine_learning_BPD.git"
+
+_BDI_MILD_MIN = 14
+_BDI_MODERATE_MIN = 20
+_BDI_SEVERE_MIN = 29
+_AGE_YOUNG_ADULT_MAX = 25
+_AGE_ADULT_MAX = 45
 
 # Actual CSV files in the repo
 _CSV_FILES = [
@@ -60,8 +67,6 @@ class MLBPDAdapter(BaseDatasetAdapter):
         if repo_dir.exists():
             return
         try:
-            import subprocess
-
             subprocess.run(
                 ["git", "clone", "--depth", "1", _GIT_CLONE_URL, str(repo_dir)],
                 check=True,
@@ -116,11 +121,11 @@ class MLBPDAdapter(BaseDatasetAdapter):
             if bdi:
                 try:
                     bdi_val = int(bdi)
-                    if bdi_val >= 29:
+                    if bdi_val >= _BDI_SEVERE_MIN:
                         outcome = "severe"
-                    elif bdi_val >= 20:
+                    elif bdi_val >= _BDI_MODERATE_MIN:
                         outcome = "moderate"
-                    elif bdi_val >= 14:
+                    elif bdi_val >= _BDI_MILD_MIN:
                         outcome = "mild"
                     else:
                         outcome = "minimal"
@@ -150,7 +155,7 @@ class MLBPDAdapter(BaseDatasetAdapter):
                 "diagnostic_tag": "borderline_personality_disorder",
                 "demographic_tags": self._extract_demographics(row),
                 "linguistic_style": "formal",
-                "clinical_reviewed": True,
+                "clinical_reviewed": False,
                 "bis11_score": bis,
                 "bdi_score": bdi,
                 "bai_score": bai,
@@ -172,9 +177,9 @@ class MLBPDAdapter(BaseDatasetAdapter):
         if age:
             try:
                 a = int(age)
-                if a <= 25:
+                if a <= _AGE_YOUNG_ADULT_MAX:
                     tags.append("age_18_25")
-                elif a <= 45:
+                elif a <= _AGE_ADULT_MAX:
                     tags.append("age_26_45")
                 else:
                     tags.append("age_46_plus")

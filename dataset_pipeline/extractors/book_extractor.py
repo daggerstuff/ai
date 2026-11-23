@@ -24,7 +24,7 @@ class BookExtractor:
         """Splits text into word chunks."""
         words = text.split()
         for i in range(0, len(words), chunk_size):
-            yield " ".join(words[i:i+chunk_size])
+            yield " ".join(words[i : i + chunk_size])
 
     def extract_pdf(self, filepath):
         text = ""
@@ -74,7 +74,7 @@ class BookExtractor:
                 # Chunk and yield
                 for i, chunk in enumerate(self.chunk_text(text)):
                     if len(chunk.strip()) < 50:
-                        continue # Skip very small/empty chunks
+                        continue  # Skip very small/empty chunks
 
                     yield {
                         "raw_data": {"text": chunk},
@@ -82,8 +82,8 @@ class BookExtractor:
                             "source_family": "psychology_knowledge",
                             "category": "therapeutic_books",
                             "book_name": book_name,
-                            "chunk_index": i
-                        }
+                            "chunk_index": i,
+                        },
                     }
 
             finally:

@@ -34,9 +34,8 @@ def _read_lines(path: Path) -> list[str]:
     with path.open(encoding="utf-8") as f:
         return [line for line in f if line.strip()]
 
-def sample_slice(
-    specs: list[tuple[Path, int]], seed: int, max_messages: int = 0
-) -> list[dict[str, Any]]:
+
+def sample_slice(specs: list[tuple[Path, int]], seed: int, max_messages: int = 0) -> list[dict[str, Any]]:
     """Read each input, seeded-shuffle it, and take the requested count."""
     rng = random.Random(seed)
     records: list[dict[str, Any]] = []
@@ -57,6 +56,7 @@ def sample_slice(
             taken += 1
         print(f"  {path}: sampled {taken}/{len(lines)} rows", file=sys.stderr)
     return records
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Deterministic corpus slice sampler")
@@ -92,6 +92,7 @@ def main() -> int:
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
     print(f"Wrote {len(records)} rows to {out_path}", file=sys.stderr)
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

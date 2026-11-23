@@ -390,10 +390,10 @@ class UserTemplateSandboxEnvironment(ImmutableSandboxedEnvironment):
         try:
             template = self.from_string(user_template)
             rendered_text = template.render(record)
-        except SecurityError:
-            raise UserTemplateError("Non-permitted operations in Jinja template.")
-        except OverflowError:
-            raise UserTemplateError("Template too large.")
+        except SecurityError as exc:
+            raise UserTemplateError("Non-permitted operations in Jinja template.") from exc
+        except OverflowError as exc:
+            raise UserTemplateError("Template too large.") from exc
         except UndefinedError as exception:
             # Raised when a chain like ``{{ a.b.c }}`` hits a missing
             # intermediate. Convert into the actionable EmptyTemplateRenderError
@@ -509,9 +509,9 @@ def sanitize_user_exceptions(func):
             ## UserTemplateError, so they must be caught before the generic
             ## ``UserTemplateError`` clause below.
             raise exception
-        except (UserTemplateError, TemplateSyntaxError):
+        except (UserTemplateError, TemplateSyntaxError) as exc:
             ## All other details are wrapped in a generic error message
-            raise UserTemplateError(USER_PROMPT_TEMPLATE_ERROR_MESSAGE)
+            raise UserTemplateError(USER_PROMPT_TEMPLATE_ERROR_MESSAGE) from exc
 
     return wrapper
 

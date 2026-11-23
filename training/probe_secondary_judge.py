@@ -73,8 +73,10 @@ def load_records(keys: list[str]) -> dict[str, dict]:
             key = f"nf:{prov.get('scenario_id')}"
         else:
             key = "edge:{d}:{f}:{diff}:{a}:{v}".format(
-                d=prov.get("domain", "?"), f=prov.get("family", "?"),
-                diff=prov.get("difficulty", "?"), a=prov.get("ambiguity", "?"),
+                d=prov.get("domain", "?"),
+                f=prov.get("family", "?"),
+                diff=prov.get("difficulty", "?"),
+                a=prov.get("ambiguity", "?"),
                 v=r.get("variation", "?"),
             )
         gen[key] = r
@@ -105,22 +107,28 @@ async def main() -> None:
             assert pair is not None, key
             reference, candidate = pair
             print(f"=== {key} | stored: primary={verdict['primary_quality']} secondary={verdict['secondary_quality']}")
-            runs = await asyncio.gather(*(
-                _call_judge_model(
-                    session,
-                    url=sec_url,
-                    model=SECONDARY_MODEL,
-                    candidate_content=candidate,
-                    reference_content=reference,
-                    headers=sec_headers,
-                    timeout=180,
-                    max_tokens=2048,
+            runs = await asyncio.gather(
+                *(
+                    _call_judge_model(
+                        session,
+                        url=sec_url,
+                        model=SECONDARY_MODEL,
+                        candidate_content=candidate,
+                        reference_content=reference,
+                        headers=sec_headers,
+                        timeout=180,
+                        max_tokens=2048,
+                    )
+                    for _ in range(args.k)
                 )
-                for _ in range(args.k)
-            ))
+            )
             run_scores: list[float] = []
-            entry = {"key": key, "stored_primary": verdict["primary_quality"],
-                     "stored_secondary": verdict["secondary_quality"], "runs": []}
+            entry = {
+                "key": key,
+                "stored_primary": verdict["primary_quality"],
+                "stored_secondary": verdict["secondary_quality"],
+                "runs": [],
+            }
             for i, v in enumerate(runs, 1):
                 if not isinstance(v, JudgeVerdict):
                     print(f"  run{i}: NON-VERDICT {v}")
@@ -130,12 +138,14 @@ async def main() -> None:
                 print(f"  run{i}: q={v.quality_score:.3f} reject={v.reject_reason[:80]!r}")
                 print(f"        dims={ {k: round(x, 2) for k, x in v.dim_scores.items()} }")
                 print(f"        reasoning: {v.reasoning[:600]}")
-                entry["runs"].append({
-                    "quality_score": v.quality_score,
-                    "reject_reason": v.reject_reason,
-                    "dim_scores": v.dim_scores,
-                    "reasoning": v.reasoning,
-                })
+                entry["runs"].append(
+                    {
+                        "quality_score": v.quality_score,
+                        "reject_reason": v.reject_reason,
+                        "dim_scores": v.dim_scores,
+                        "reasoning": v.reasoning,
+                    }
+                )
             if run_scores:
                 srt = sorted(run_scores)
                 med = srt[len(srt) // 2] if len(srt) % 2 else (srt[len(srt) // 2 - 1] + srt[len(srt) // 2]) / 2

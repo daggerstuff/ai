@@ -73,7 +73,7 @@ class MITPsychosisAdapter(BaseDatasetAdapter):
                 continue
             try:
                 data = json.loads(json_path.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError):
+            except json.JSONDecodeError, OSError:
                 continue
 
             scen = data.get("scenario", {})
@@ -105,7 +105,7 @@ class MITPsychosisAdapter(BaseDatasetAdapter):
                 try:
                     scen_idx = int(row.get("scenario_idx", 0))
                     msg_idx = int(row.get("message_idx", 0))
-                except (ValueError, TypeError):
+                except ValueError, TypeError:
                     continue
 
                 patient_input = scenario_lookup.get((scen_idx, msg_idx), "")

@@ -105,6 +105,7 @@ print(f'System health: {health[\"status\"]} (score: {health[\"health_score\"]})'
 import asyncio
 from checkpoint_utils import setup_checkpoint_system
 
+
 async def process_with_checkpoints():
     # Initialize system
     manager, monitor = setup_checkpoint_system()
@@ -115,10 +116,7 @@ async def process_with_checkpoints():
         task_id = "batch_processing"
 
         state = manager.register_process(
-            process_id=process_id,
-            task_id=task_id,
-            total_steps=100,
-            description="Processing large dataset"
+            process_id=process_id, task_id=task_id, total_steps=100, description="Processing large dataset"
         )
 
         print(f"Registered process: {process_id}")
@@ -129,12 +127,8 @@ async def process_with_checkpoints():
             manager.update_process_progress(
                 process_id=process_id,
                 completed_steps=step,
-                current_step=f"Processing batch {step//10 + 1}",
-                metadata={
-                    "current_batch": step//10 + 1,
-                    "items_processed": step * 10,
-                    "memory_usage": "45%"
-                }
+                current_step=f"Processing batch {step // 10 + 1}",
+                metadata={"current_batch": step // 10 + 1, "items_processed": step * 10, "memory_usage": "45%"},
             )
 
             print(f"Progress: {step}% - {state.current_step}")
@@ -145,11 +139,7 @@ async def process_with_checkpoints():
         # Complete the process
         final_checkpoint = manager.complete_process(
             process_id=process_id,
-            final_data={
-                "result": "success",
-                "total_items": 1000,
-                "processing_time": "50 seconds"
-            }
+            final_data={"result": "success", "total_items": 1000, "processing_time": "50 seconds"},
         )
 
         print(f"Process completed with checkpoint: {final_checkpoint}")
@@ -157,6 +147,7 @@ async def process_with_checkpoints():
     finally:
         manager.stop_background_tasks()
         monitor.stop_monitoring()
+
 
 # Run the example
 asyncio.run(process_with_checkpoints())
@@ -166,6 +157,7 @@ asyncio.run(process_with_checkpoints())
 
 ```python
 from checkpoint_system import CheckpointManager
+
 
 async def recover_interrupted_process():
     manager = CheckpointManager()
@@ -184,9 +176,7 @@ async def recover_interrupted_process():
 
         for step in range(recovered_state.completed_steps + 1, recovered_state.total_steps + 1):
             manager.update_process_progress(
-                process_id=process_id,
-                completed_steps=step,
-                current_step=f"Resumed processing step {step}"
+                process_id=process_id, completed_steps=step, current_step=f"Resumed processing step {step}"
             )
 
             await asyncio.sleep(0.1)  # Simulate work
@@ -198,6 +188,7 @@ async def recover_interrupted_process():
     else:
         print("No checkpoint found for recovery")
 
+
 asyncio.run(recover_interrupted_process())
 ```
 
@@ -205,6 +196,7 @@ asyncio.run(recover_interrupted_process())
 
 ```python
 from checkpoint_system import CheckpointManager, CheckpointType
+
 
 async def create_custom_checkpoints():
     manager = CheckpointManager()
@@ -215,7 +207,7 @@ async def create_custom_checkpoints():
         "loss": 0.0234,
         "accuracy": 0.9876,
         "weights": "model_weights_epoch_15.pkl",
-        "optimizer_state": "optimizer_state_epoch_15.pkl"
+        "optimizer_state": "optimizer_state_epoch_15.pkl",
     }
 
     model_checkpoint = manager.create_checkpoint(
@@ -225,7 +217,7 @@ async def create_custom_checkpoints():
         data=model_state,
         description="Model checkpoint at epoch 15",
         tags=["training", "epoch_15", "high_accuracy"],
-        ttl_hours=168  # Keep for 1 week
+        ttl_hours=168,  # Keep for 1 week
     )
 
     print(f"Created model checkpoint: {model_checkpoint}")
@@ -236,10 +228,7 @@ async def create_custom_checkpoints():
         "processed_items": 5000,
         "failed_items": 23,
         "current_position": "item_5023",
-        "batch_metadata": {
-            "start_time": "2024-08-27T00:00:00Z",
-            "estimated_completion": "2024-08-27T02:30:00Z"
-        }
+        "batch_metadata": {"start_time": "2024-08-27T00:00:00Z", "estimated_completion": "2024-08-27T02:30:00Z"},
     }
 
     batch_checkpoint = manager.create_checkpoint(
@@ -248,10 +237,11 @@ async def create_custom_checkpoints():
         checkpoint_type=CheckpointType.BATCH_PROGRESS,
         data=batch_state,
         description="Batch processing checkpoint",
-        tags=["batch", "daily_processing"]
+        tags=["batch", "daily_processing"],
     )
 
     print(f"Created batch checkpoint: {batch_checkpoint}")
+
 
 asyncio.run(create_custom_checkpoints())
 ```
@@ -261,13 +251,10 @@ asyncio.run(create_custom_checkpoints())
 ```python
 from checkpoint_utils import CheckpointOptimizer, CheckpointConfig
 
+
 def optimize_checkpoint_storage():
     # Create configuration
-    config = CheckpointConfig(
-        max_storage_size_gb=5.0,
-        compression_enabled=True,
-        backup_enabled=True
-    )
+    config = CheckpointConfig(max_storage_size_gb=5.0, compression_enabled=True, backup_enabled=True)
 
     # Initialize optimizer
     optimizer = CheckpointOptimizer(config)
@@ -288,6 +275,7 @@ def optimize_checkpoint_storage():
     print(f"  Storage efficiency: {analysis['storage_efficiency']}")
     print(f"  Recommendations: {analysis['recommendations']}")
 
+
 optimize_checkpoint_storage()
 ```
 
@@ -302,23 +290,19 @@ config = CheckpointConfig(
     # Storage settings
     storage_path="/path/to/checkpoints",
     max_storage_size_gb=10.0,
-
     # Timing settings
     auto_checkpoint_interval=300,  # 5 minutes
-    cleanup_interval=3600,         # 1 hour
-    default_ttl_hours=24,          # 24 hours
-
+    cleanup_interval=3600,  # 1 hour
+    default_ttl_hours=24,  # 24 hours
     # Optimization settings
     compression_enabled=True,
-    encryption_enabled=False,      # Future feature
-
+    encryption_enabled=False,  # Future feature
     # Backup settings
     backup_enabled=True,
     backup_path="/path/to/backups",
-
     # Monitoring settings
     monitoring_enabled=True,
-    performance_tracking=True
+    performance_tracking=True,
 )
 ```
 
@@ -420,7 +404,7 @@ print(f"  Active checkpoints: {stats['storage']['status_counts']['active']}")
 print(f"  Completed checkpoints: {stats['storage']['status_counts']['completed']}")
 
 print(f"\nActive Processes: {stats['active_processes']}")
-for pid, details in stats['process_details'].items():
+for pid, details in stats["process_details"].items():
     print(f"  {pid}: {details['progress']:.1f}% - {details['current_step']}")
 ```
 
@@ -464,6 +448,7 @@ for pid, details in stats['process_details'].items():
 from checkpoint_system import CheckpointManager
 from distributed_processing import ProcessingPipeline
 
+
 class CheckpointedPipeline(ProcessingPipeline):
     def __init__(self):
         super().__init__()
@@ -476,7 +461,7 @@ class CheckpointedPipeline(ProcessingPipeline):
             process_id=process_id,
             task_id="batch_processing",
             total_steps=len(data),
-            description=f"Processing batch {batch_id}"
+            description=f"Processing batch {batch_id}",
         )
 
         try:
@@ -489,13 +474,12 @@ class CheckpointedPipeline(ProcessingPipeline):
                     process_id=process_id,
                     completed_steps=i + 1,
                     current_step=f"Processed item {i + 1}",
-                    metadata={"item_id": item.id, "result": result}
+                    metadata={"item_id": item.id, "result": result},
                 )
 
             # Complete processing
             final_checkpoint = self.checkpoint_manager.complete_process(
-                process_id=process_id,
-                final_data={"batch_id": batch_id, "items_processed": len(data)}
+                process_id=process_id, final_data={"batch_id": batch_id, "items_processed": len(data)}
             )
 
             return final_checkpoint
@@ -506,12 +490,8 @@ class CheckpointedPipeline(ProcessingPipeline):
                 process_id=process_id,
                 task_id="batch_processing",
                 checkpoint_type=CheckpointType.PROCESSING_STATE,
-                data={
-                    "error": str(e),
-                    "failed_at_step": i,
-                    "partial_results": results[:i]
-                },
-                description=f"Error checkpoint for batch {batch_id}"
+                data={"error": str(e), "failed_at_step": i, "partial_results": results[:i]},
+                description=f"Error checkpoint for batch {batch_id}",
             )
             raise
 ```
@@ -522,15 +502,14 @@ class CheckpointedPipeline(ProcessingPipeline):
 # Integration with monitoring
 from monitoring.notification_integrations import NotificationManager
 
+
 class CheckpointMonitoringIntegration:
     def __init__(self, checkpoint_monitor, notification_manager):
         self.checkpoint_monitor = checkpoint_monitor
         self.notification_manager = notification_manager
 
         # Register callbacks for checkpoint events
-        checkpoint_monitor.manager.add_checkpoint_callback(
-            "created", self.on_checkpoint_created
-        )
+        checkpoint_monitor.manager.add_checkpoint_callback("created", self.on_checkpoint_created)
 
     async def on_checkpoint_created(self, checkpoint_id, event_type, metadata):
         # Send notification for critical checkpoints
@@ -539,7 +518,7 @@ class CheckpointMonitoringIntegration:
                 title="Model Checkpoint Created",
                 message=f"Model checkpoint {checkpoint_id} created for {metadata.description}",
                 priority=NotificationPriority.LOW,
-                metadata={"checkpoint_id": checkpoint_id}
+                metadata={"checkpoint_id": checkpoint_id},
             )
 
     async def monitor_health(self):
@@ -551,7 +530,7 @@ class CheckpointMonitoringIntegration:
                 title="Checkpoint System Critical",
                 message=f"Checkpoint system health critical: {health_report['issues']}",
                 priority=NotificationPriority.HIGH,
-                metadata=health_report
+                metadata=health_report,
             )
 ```
 

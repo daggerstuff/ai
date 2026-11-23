@@ -93,7 +93,7 @@ class DMTCorpusAdapter(BaseDatasetAdapter):
             try:
                 with open(path, encoding="utf-8") as f:
                     data = json.load(f)
-            except (OSError, json.JSONDecodeError):
+            except OSError, json.JSONDecodeError:
                 continue
             if isinstance(data, list):
                 for item in data:

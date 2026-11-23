@@ -88,9 +88,7 @@ class SchemaMapping:
         if not self.pipeline_field:
             errors.append("pipeline_field is required")
         if self.transformation_type not in ["direct", "transform", "combine", "extract"]:
-            errors.append(
-                "transformation_type must be one of: direct, transform, combine, extract"
-            )
+            errors.append("transformation_type must be one of: direct, transform, combine, extract")
         return errors
 
 
@@ -102,9 +100,7 @@ class IntegrationPlanningEngine:
         self.pipeline_schema = pipeline_schema or TRAINING_PIPELINE_SCHEMA
         logger.info("Initialized Integration Planning Engine")
 
-    def analyze_dataset_structure(
-        self, dataset: AcquiredDataset
-    ) -> DatasetStructure:
+    def analyze_dataset_structure(self, dataset: AcquiredDataset) -> DatasetStructure:
         """
         Analyze the structure of an acquired dataset.
 
@@ -134,9 +130,7 @@ class IntegrationPlanningEngine:
             if dataset_format == "csv":
                 structure = self._analyze_csv_structure(dataset.storage_path)
             elif dataset_format in ["json", "jsonl"]:
-                structure = self._analyze_json_structure(
-                    dataset.storage_path, dataset_format
-                )
+                structure = self._analyze_json_structure(dataset.storage_path, dataset_format)
             elif dataset_format == "parquet":
                 structure = self._analyze_parquet_structure(dataset.storage_path)
             elif dataset_format == "xml":
@@ -174,9 +168,7 @@ class IntegrationPlanningEngine:
                 # Check for missing values
                 missing_pct = df_sample[col].isna().sum() / len(df_sample)
                 if missing_pct > 0.5:
-                    quality_issues.append(
-                        f"Column '{col}' has {missing_pct:.1%} missing values"
-                    )
+                    quality_issues.append(f"Column '{col}' has {missing_pct:.1%} missing values")
 
                 # Store distribution info for numeric columns
                 if pd.api.types.is_numeric_dtype(df_sample[col]):
@@ -208,9 +200,7 @@ class IntegrationPlanningEngine:
             logger.error(f"Error analyzing CSV structure: {e}")
             raise
 
-    def _analyze_json_structure(
-        self, file_path: str, format_type: str
-    ) -> DatasetStructure:
+    def _analyze_json_structure(self, file_path: str, format_type: str) -> DatasetStructure:
         """Analyze JSON/JSONL file structure."""
         try:
             schema = {}
@@ -230,7 +220,7 @@ class IntegrationPlanningEngine:
                             record = json.loads(line)
                             sample_records.append(record)
                         except json.JSONDecodeError:
-                            quality_issues.append(f"Invalid JSON on line {i+1}")
+                            quality_issues.append(f"Invalid JSON on line {i + 1}")
             else:
                 # Read entire JSON file (could be array or object)
                 with open(file_path, encoding="utf-8") as f:
@@ -251,9 +241,7 @@ class IntegrationPlanningEngine:
                 all_fields.update(self._extract_fields(record, nested_structures))
 
             for field in all_fields:
-                values = [
-                    self._get_nested_value(record, field) for record in sample_records
-                ]
+                values = [self._get_nested_value(record, field) for record in sample_records]
                 values = [v for v in values if v is not None]
 
                 if values:
@@ -268,9 +256,7 @@ class IntegrationPlanningEngine:
                         type_counts[t] = type_counts.get(t, 0) + 1
 
                     if len(type_counts) > 1:
-                        quality_issues.append(
-                            f"Field '{field}' has inconsistent types: {type_counts}"
-                        )
+                        quality_issues.append(f"Field '{field}' has inconsistent types: {type_counts}")
 
                     # Store distribution
                     if isinstance(values[0], (int, float)):
@@ -324,9 +310,7 @@ class IntegrationPlanningEngine:
                     col = df_sample[field_name]
                     missing_pct = col.isna().sum() / len(df_sample)
                     if missing_pct > 0.5:
-                        quality_issues.append(
-                            f"Column '{field_name}' has {missing_pct:.1%} missing values"
-                        )
+                        quality_issues.append(f"Column '{field_name}' has {missing_pct:.1%} missing values")
 
                     if pd.api.types.is_numeric_dtype(col):
                         field_distributions[field_name] = {
@@ -381,9 +365,7 @@ class IntegrationPlanningEngine:
             sample_size=0,
         )
 
-    def _extract_fields(
-        self, obj: Any, nested_structures: list[str], prefix: str = ""
-    ) -> list[str]:
+    def _extract_fields(self, obj: Any, nested_structures: list[str], prefix: str = "") -> list[str]:
         """Recursively extract all field names from a nested structure."""
         fields = []
         if isinstance(obj, dict):
@@ -395,9 +377,7 @@ class IntegrationPlanningEngine:
                     fields.extend(self._extract_fields(value, nested_structures, field_name))
         elif isinstance(obj, list) and obj:
             # Analyze first item in list
-            fields.extend(
-                self._extract_fields(obj[0], nested_structures, f"{prefix}[0]")
-            )
+            fields.extend(self._extract_fields(obj[0], nested_structures, f"{prefix}[0]"))
         return fields
 
     def _get_nested_value(self, obj: Any, field_path: str) -> Any:
@@ -419,9 +399,7 @@ class IntegrationPlanningEngine:
                 return None
         return current
 
-    def create_schema_mapping(
-        self, structure: DatasetStructure, target_format: str = "chatml"
-    ) -> list[SchemaMapping]:
+    def create_schema_mapping(self, structure: DatasetStructure, target_format: str = "chatml") -> list[SchemaMapping]:
         """
         Create schema mapping from dataset fields to training pipeline fields.
 
@@ -444,14 +422,14 @@ class IntegrationPlanningEngine:
 
             # Try to identify conversation fields
             conversation_field_candidates = [
-                f for f in dataset_fields if any(
-                    keyword in f.lower()
-                    for keyword in ["message", "text", "content", "dialogue", "conversation"]
-                )
+                f
+                for f in dataset_fields
+                if any(keyword in f.lower() for keyword in ["message", "text", "content", "dialogue", "conversation"])
             ]
 
             role_field_candidates = [
-                f for f in dataset_fields
+                f
+                for f in dataset_fields
                 if any(keyword in f.lower() for keyword in ["role", "speaker", "author", "sender"])
             ]
 
@@ -517,8 +495,7 @@ class IntegrationPlanningEngine:
 
             # Map turns field
             turns_candidates = [
-                f for f in dataset_fields
-                if any(keyword in f.lower() for keyword in ["turn", "utterance", "exchange"])
+                f for f in dataset_fields if any(keyword in f.lower() for keyword in ["turn", "utterance", "exchange"])
             ]
             if turns_candidates:
                 mappings.append(
@@ -532,8 +509,7 @@ class IntegrationPlanningEngine:
 
             # Map speaker_id
             speaker_candidates = [
-                f for f in dataset_fields
-                if any(keyword in f.lower() for keyword in ["speaker", "role", "author"])
+                f for f in dataset_fields if any(keyword in f.lower() for keyword in ["speaker", "role", "author"])
             ]
             if speaker_candidates:
                 mappings.append(
@@ -548,13 +524,9 @@ class IntegrationPlanningEngine:
         # Identify missing required fields
         mapped_pipeline_fields = {m.pipeline_field for m in mappings}
         if target_format == "chatml":
-            missing_fields = [
-                f for f in required_pipeline_fields if f not in mapped_pipeline_fields
-            ]
+            missing_fields = [f for f in required_pipeline_fields if f not in mapped_pipeline_fields]
         else:
-            missing_fields = [
-                f for f in required_fields if f not in mapped_pipeline_fields
-            ]
+            missing_fields = [f for f in required_fields if f not in mapped_pipeline_fields]
 
         for missing_field in missing_fields:
             mappings.append(
@@ -725,16 +697,11 @@ class IntegrationPlanningEngine:
 
         estimated_hours = int(estimated_hours)
 
-        logger.info(
-            f"Complexity estimation: {complexity_level} ({complexity_score} points, "
-            f"~{estimated_hours} hours)"
-        )
+        logger.info(f"Complexity estimation: {complexity_level} ({complexity_score} points, ~{estimated_hours} hours)")
 
         return complexity_level, estimated_hours
 
-    def create_integration_plan(
-        self, dataset: AcquiredDataset, target_format: str = "chatml"
-    ) -> IntegrationPlan:
+    def create_integration_plan(self, dataset: AcquiredDataset, target_format: str = "chatml") -> IntegrationPlan:
         """
         Create a complete integration plan for a dataset.
 
@@ -776,18 +743,12 @@ class IntegrationPlanningEngine:
         transformation_specs = self.create_transformation_specs(structure, mappings)
 
         # Estimate complexity
-        complexity, estimated_hours = self.estimate_complexity(
-            structure, mappings, transformation_specs
-        )
+        complexity, estimated_hours = self.estimate_complexity(structure, mappings, transformation_specs)
 
         # Build integration plan
-        schema_mapping_dict = {
-            m.dataset_field: m.pipeline_field for m in mappings if m.dataset_field
-        }
+        schema_mapping_dict = {m.dataset_field: m.pipeline_field for m in mappings if m.dataset_field}
 
-        required_transformations = [
-            spec.transformation_type for spec in transformation_specs
-        ]
+        required_transformations = [spec.transformation_type for spec in transformation_specs]
 
         preprocessing_steps = [
             f"1. Analyze {structure.format} structure",
@@ -823,9 +784,7 @@ class IntegrationPlanningEngine:
         logger.info(f"Integration plan created: {complexity} complexity, {estimated_hours}h effort")
         return plan
 
-    def generate_preprocessing_script(
-        self, plan: IntegrationPlan, output_path: str
-    ) -> str:
+    def generate_preprocessing_script(self, plan: IntegrationPlan, output_path: str) -> str:
         """
         Generate a Python preprocessing script for dataset integration.
 
@@ -977,18 +936,13 @@ if __name__ == "__main__":
                 missing_critical.append(field)
 
         if missing_critical:
-            logger.warning(
-                f"Missing critical fields: {missing_critical} - integration may not be feasible"
-            )
+            logger.warning(f"Missing critical fields: {missing_critical} - integration may not be feasible")
             return False
 
         # Check complexity is reasonable
         if plan.complexity == "high" and plan.estimated_effort_hours > 40:
-            logger.warning(
-                f"Very high complexity ({plan.estimated_effort_hours}h) - may not be feasible"
-            )
+            logger.warning(f"Very high complexity ({plan.estimated_effort_hours}h) - may not be feasible")
             return False
 
         logger.info("Integration plan is feasible")
         return True
-

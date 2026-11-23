@@ -22,6 +22,7 @@ try:
         TranscriptsDisabled,
         VideoUnavailable,
     )
+
     YOUTUBE_API_AVAILABLE = True
 except ImportError:
     YOUTUBE_API_AVAILABLE = False
@@ -30,7 +31,7 @@ except ImportError:
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("youtube_transcript_fetcher")
 
@@ -89,7 +90,7 @@ def extract_video_id(url: str) -> str | None:
 def sanitize_filename(text: str) -> str:
     """Sanitize text for use as filename."""
     # Remove or replace problematic characters
-    text = re.sub(r'[<>:\"/\\\\|?*\\x00-\\x1f]', "_", text)
+    text = re.sub(r"[<>:\"/\\\\|?*\\x00-\\x1f]", "_", text)
     # Remove leading/trailing spaces and dots
     text = text.strip(" .")
     # Limit length
@@ -152,7 +153,9 @@ def fetch_transcript(video_id: str, language_priority: list[str] | None = None) 
                 transcript = available_transcripts[0]
                 transcript_data = transcript.fetch()
                 text = " ".join([entry["text"] for entry in transcript_data])
-                logger.info(f"Successfully fetched transcript for {video_id} ({transcript.language_code}) via {transcript.type}")
+                logger.info(
+                    f"Successfully fetched transcript for {video_id} ({transcript.language_code}) via {transcript.type}"
+                )
                 return text
         except Exception as e3:
             logger.debug(f"No transcripts found for {video_id}: {e3}")
@@ -205,37 +208,25 @@ def main():
         "--playlists-file",
         type=str,
         default="ai/docs/youtube_playlists.txt",
-        help="Path to YouTube playlists file containing URLs"
+        help="Path to YouTube playlists file containing URLs",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
         default="training/data/transcripts",
-        help="Base directory for storing transcripts (will create channel subdirs)"
+        help="Base directory for storing transcripts (will create channel subdirs)",
     )
     parser.add_argument(
-        "--channel-name",
-        type=str,
-        default="YouTube_Mix",
-        help="Channel name to use for organizing transcripts"
+        "--channel-name", type=str, default="YouTube_Mix", help="Channel name to use for organizing transcripts"
     )
     parser.add_argument(
         "--language",
         type=str,
         default="en",
-        help="Preferred language for transcripts (comma-separated list: en,de,etc.)"
+        help="Preferred language for transcripts (comma-separated list: en,de,etc.)",
     )
-    parser.add_argument(
-        "--max-videos",
-        type=int,
-        default=0,
-        help="Maximum number of videos to process (0 for all)"
-    )
-    parser.add_argument(
-        "--skip-existing",
-        action="store_true",
-        help="Skip videos that already have transcript files"
-    )
+    parser.add_argument("--max-videos", type=int, default=0, help="Maximum number of videos to process (0 for all)")
+    parser.add_argument("--skip-existing", action="store_true", help="Skip videos that already have transcript files")
 
     args = parser.parse_args()
 
@@ -316,7 +307,7 @@ def main():
         "skipped_existing": skipped,
         "output_directory": str(output_dir),
         "languages_attempted": languages,
-        "method": "youtube-transcript-api"
+        "method": "youtube-transcript-api",
     }
 
     manifest_path = output_dir / "manifest.json"

@@ -93,14 +93,10 @@ class OpenAIDriver(LLMDriver):
     ):
 
         self.api_key = (
-            api_key
-            if api_key is not None
-            else os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
+            api_key if api_key is not None else os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
         )
         self.base_url = (
-            base_url
-            if base_url is not None
-            else os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+            base_url if base_url is not None else os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
         )
         self.model = model or os.environ.get("LLM_MODEL", "mistralai/mistral-medium-3.5-128b")
 
@@ -297,7 +293,7 @@ class LLMClient:
             base_estimate = self._estimated_tokens(prompt, system_prompt, {})
             try:
                 schema_budget = max(len(json.dumps(schema)) // 4, 256)
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 schema_budget = 0
             acquired = self.rate_limiter.acquire(
                 provider=self.provider,

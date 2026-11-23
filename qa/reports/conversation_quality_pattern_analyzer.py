@@ -18,13 +18,13 @@ import traceback
 import warnings
 from collections import Counter, defaultdict
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from textstat import flesch_kincaid_grade, flesch_reading_ease
-from pathlib import Path
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
@@ -124,7 +124,7 @@ class ConversationQualityPatternAnalyzer:
                         text_parts.append(str(turn))
                 return "\n".join(text_parts)
             return str(conversations)
-        except:
+        except Exception:
             return json_str  # Return original if parsing fails
 
     def _analyze_response_quality(self, conversations: pd.DataFrame) -> dict[str, Any]:
@@ -140,7 +140,7 @@ class ConversationQualityPatternAnalyzer:
             try:
                 flesch_score = flesch_reading_ease(text)
                 fk_grade = flesch_kincaid_grade(text)
-            except:
+            except Exception:
                 flesch_score = 50  # Default moderate score
                 fk_grade = 8
 

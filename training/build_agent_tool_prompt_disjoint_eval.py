@@ -150,8 +150,7 @@ def sha256(text: str) -> str:
 
 def main() -> None:
     train_prompts = {
-        sha256(json.loads(line)["messages"][1]["content"])
-        for line in TRAIN.read_text(encoding="utf-8").splitlines()
+        sha256(json.loads(line)["messages"][1]["content"]) for line in TRAIN.read_text(encoding="utf-8").splitlines()
     }
     cases = [json.loads(line) for line in SOURCE.read_text(encoding="utf-8").splitlines()]
     prompts: set[str] = set()

@@ -23,6 +23,7 @@ from dataset_pipeline.scripts.s3_atomic_sync import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def make_report() -> SyncReport:
     return SyncReport()
 
@@ -60,6 +61,7 @@ def mock_list_remote(files: dict[str, int]) -> str:
 # SyncFile
 # ---------------------------------------------------------------------------
 
+
 class TestSyncFile:
     def test_defaults(self) -> None:
         f = SyncFile(name="shard_0000.jsonl", local_size=1024)
@@ -77,6 +79,7 @@ class TestSyncFile:
 # ---------------------------------------------------------------------------
 # SyncReport
 # ---------------------------------------------------------------------------
+
 
 class TestSyncReport:
     def test_defaults(self) -> None:
@@ -111,6 +114,7 @@ class TestSyncReport:
 # S3AtomicSync._run
 # ---------------------------------------------------------------------------
 
+
 class TestRun:
     def test_dry_run(self) -> None:
         syncer = make_syncer(dry_run=True)
@@ -138,11 +142,14 @@ class TestRun:
 # S3AtomicSync._list_remote
 # ---------------------------------------------------------------------------
 
+
 class TestListRemote:
     @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
     def test_normal(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(
-            0, "1024 shard_0000.jsonl\n2048 shard_0001.jsonl\n", "",
+            0,
+            "1024 shard_0000.jsonl\n2048 shard_0001.jsonl\n",
+            "",
         )
         syncer = make_syncer()
         files = syncer._list_remote("ai/v7")
@@ -160,6 +167,7 @@ class TestListRemote:
 # S3AtomicSync._remote_path
 # ---------------------------------------------------------------------------
 
+
 class TestRemotePath:
     def test_basic(self) -> None:
         syncer = make_syncer()
@@ -173,6 +181,7 @@ class TestRemotePath:
 # ---------------------------------------------------------------------------
 # S3AtomicSync.sync — full flow
 # ---------------------------------------------------------------------------
+
 
 class TestSync:
     def test_missing_local_dir(self, tmp_path: Path) -> None:
@@ -251,11 +260,13 @@ class TestSync:
                 if call_count[0] <= 4:
                     return FakeCompletedProcess(
                         0,
-                        "100 shard_0000.jsonl\n100 shard_0001.jsonl\n", "",
+                        "100 shard_0000.jsonl\n100 shard_0001.jsonl\n",
+                        "",
                     )
                 return FakeCompletedProcess(
                     0,
-                    "100 shard_0000.jsonl\n100 shard_0001.jsonl\n", "",
+                    "100 shard_0000.jsonl\n100 shard_0001.jsonl\n",
+                    "",
                 )
             if cmd[0] == "rclone" and cmd[1] == "purge":
                 return FakeCompletedProcess(0, "", "")
@@ -283,7 +294,9 @@ class TestSync:
                 return FakeCompletedProcess(0, "", "")
             if cmd[0] == "rclone" and cmd[1] == "lsf":
                 return FakeCompletedProcess(
-                    0, "100 manifest.json\n100 shard_0000.jsonl\n", "",
+                    0,
+                    "100 manifest.json\n100 shard_0000.jsonl\n",
+                    "",
                 )
             if cmd[0] == "rclone" and cmd[1] == "purge":
                 return FakeCompletedProcess(0, "", "")
@@ -320,7 +333,9 @@ class TestSync:
                 return FakeCompletedProcess(1, "", "promote error")
             if cmd[0] == "rclone" and cmd[1] == "lsf":
                 return FakeCompletedProcess(
-                    0, "100 shard_0000.jsonl\n100 shard_0001.jsonl\n", "",
+                    0,
+                    "100 shard_0000.jsonl\n100 shard_0001.jsonl\n",
+                    "",
                 )
             if cmd[0] == "rclone" and cmd[1] == "purge":
                 return FakeCompletedProcess(0, "", "")
@@ -348,7 +363,8 @@ class TestSync:
                 # Stale check: has old file + new file
                 return FakeCompletedProcess(
                     0,
-                    "100 shard_0000.jsonl\n100 old_shard.jsonl\n", "",
+                    "100 shard_0000.jsonl\n100 old_shard.jsonl\n",
+                    "",
                 )
             if cmd[0] == "rclone" and cmd[1] == "deletefile":
                 return FakeCompletedProcess(0, "", "")
@@ -389,6 +405,7 @@ class TestSync:
 # S3AtomicSync._upload_to_staging
 # ---------------------------------------------------------------------------
 
+
 class TestUploadToStaging:
     @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
     def test_success(self, mock_run: MagicMock, tmp_path: Path) -> None:
@@ -418,6 +435,7 @@ class TestUploadToStaging:
 # ---------------------------------------------------------------------------
 # S3AtomicSync._verify_staging
 # ---------------------------------------------------------------------------
+
 
 class TestVerifyStaging:
     @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
@@ -461,6 +479,7 @@ class TestVerifyStaging:
 # S3AtomicSync._promote
 # ---------------------------------------------------------------------------
 
+
 class TestPromote:
     @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
     def test_success(self, mock_run: MagicMock) -> None:
@@ -492,6 +511,7 @@ class TestPromote:
 # S3AtomicSync._purge_stale_files
 # ---------------------------------------------------------------------------
 
+
 class TestPurgeStale:
     @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
     def test_removes_stale(self, mock_run: MagicMock) -> None:
@@ -501,7 +521,9 @@ class TestPurgeStale:
             call_count[0] += 1
             if cmd[0] == "rclone" and cmd[1] == "lsf":
                 return FakeCompletedProcess(
-                    0, "100 new.jsonl\n100 old.jsonl\n", "",
+                    0,
+                    "100 new.jsonl\n100 old.jsonl\n",
+                    "",
                 )
             if cmd[0] == "rclone" and cmd[1] == "deletefile":
                 return FakeCompletedProcess(0, "", "")
@@ -517,7 +539,9 @@ class TestPurgeStale:
     @patch("dataset_pipeline.scripts.s3_atomic_sync.subprocess.run")
     def test_keeps_manifest(self, mock_run: MagicMock) -> None:
         mock_run.return_value = FakeCompletedProcess(
-            0, "100 new.jsonl\n100 _sync_manifest.json\n", "",
+            0,
+            "100 new.jsonl\n100 _sync_manifest.json\n",
+            "",
         )
         syncer = make_syncer()
         report = make_report()
@@ -530,12 +554,21 @@ class TestPurgeStale:
 # CLI main
 # ---------------------------------------------------------------------------
 
+
 class TestCli:
     def test_missing_dir(self, tmp_path: Path) -> None:
-        with pytest.raises(SystemExit) as exc_info, patch("sys.argv", [
-            "s3_atomic_sync",
-            "--local_dir", str(tmp_path / "nope"),
-            "--s3_prefix", "ai/v7",
-        ]):
+        with (
+            pytest.raises(SystemExit) as exc_info,
+            patch(
+                "sys.argv",
+                [
+                    "s3_atomic_sync",
+                    "--local_dir",
+                    str(tmp_path / "nope"),
+                    "--s3_prefix",
+                    "ai/v7",
+                ],
+            ),
+        ):
             main()
         assert exc_info.value.code == 1

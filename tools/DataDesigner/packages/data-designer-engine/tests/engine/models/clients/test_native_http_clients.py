@@ -8,12 +8,12 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from qa.testing.engine.models.clients.conftest import mock_httpx_response
 
 from data_designer.engine.models.clients.adapters.anthropic import AnthropicClient
 from data_designer.engine.models.clients.adapters.http_model_client import ClientConcurrencyMode
 from data_designer.engine.models.clients.adapters.openai_compatible import OpenAICompatibleClient
 from data_designer.engine.models.clients.types import ChatCompletionRequest
-from qa.testing.engine.models.clients.conftest import mock_httpx_response
 
 _OPENAI_PROVIDER = "test-provider"
 _OPENAI_MODEL = "gpt-test"

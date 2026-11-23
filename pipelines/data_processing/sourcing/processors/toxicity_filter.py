@@ -24,35 +24,79 @@ from typing import Any
 
 _HATE_SPEECH = [
     # Derogatory slurs and hate-group references
-    "kike", "spic", "chink", "wetback", "towelhead", "raghead",
-    "tranny", "shemale", "lynch", "genocide", "ethnic cleansing",
+    "kike",
+    "spic",
+    "chink",
+    "wetback",
+    "towelhead",
+    "raghead",
+    "tranny",
+    "shemale",
+    "lynch",
+    "genocide",
+    "ethnic cleansing",
     "go back to your country",
 ]
 
 _PROFANITY_HIGH = [
-    "fuck", "fucking", "fucked", "motherfucker", "cunt",
-    "asshole", "bastard", "dickhead", "piss off", "dipshit",
+    "fuck",
+    "fucking",
+    "fucked",
+    "motherfucker",
+    "cunt",
+    "asshole",
+    "bastard",
+    "dickhead",
+    "piss off",
+    "dipshit",
 ]
 
 _PROFANITY_MEDIUM = [
-    "shit", "bullshit", "bitch", "damn", "crap", "piss",
-    "jackass", "douche", "screw you",
+    "shit",
+    "bullshit",
+    "bitch",
+    "damn",
+    "crap",
+    "piss",
+    "jackass",
+    "douche",
+    "screw you",
 ]
 
 _SELF_HARM = [
-    "kill myself", "end my life", "want to die", "suicide",
-    "cut myself", "hurt myself", "harm myself",
-    "overdose", "pills to end it", "no reason to live",
-    "better off dead", "can't go on",
+    "kill myself",
+    "end my life",
+    "want to die",
+    "suicide",
+    "cut myself",
+    "hurt myself",
+    "harm myself",
+    "overdose",
+    "pills to end it",
+    "no reason to live",
+    "better off dead",
+    "can't go on",
 ]
 
 _VIOLENCE = [
-    "kill you", "murder", "stab", "shoot you", "beat you",
-    "strangle", "torture", "mutilate", "decapitate",
+    "kill you",
+    "murder",
+    "stab",
+    "shoot you",
+    "beat you",
+    "strangle",
+    "torture",
+    "mutilate",
+    "decapitate",
 ]
 
 _SEXUAL_NONCLINICAL = [
-    "porn", "xxx", "hookup", "nudes", "dick pic", "sexting",
+    "porn",
+    "xxx",
+    "hookup",
+    "nudes",
+    "dick pic",
+    "sexting",
 ]
 
 # Severity weights per category
@@ -107,9 +151,7 @@ class ToxicityReport:
             self.flagged_records += 1
         self.total_hits += len(result.hits)
         for hit in result.hits:
-            self.by_category[hit.category] = (
-                self.by_category.get(hit.category, 0) + 1
-            )
+            self.by_category[hit.category] = self.by_category.get(hit.category, 0) + 1
 
 
 # ---------------------------------------------------------------------------
@@ -146,13 +188,15 @@ def _find_keyword_hits(
             ctx_start = max(0, idx - 50)
             ctx_end = min(len(text), idx + len(kw) + 50)
             context = text[ctx_start:ctx_end]
-            hits.append(ToxicityHit(
-                category=category,
-                keyword=kw,
-                context=context,
-                message_index=message_index,
-                role=role,
-            ))
+            hits.append(
+                ToxicityHit(
+                    category=category,
+                    keyword=kw,
+                    context=context,
+                    message_index=message_index,
+                    role=role,
+                )
+            )
             start = idx + len(kw)
     return hits
 
@@ -175,7 +219,7 @@ def _compute_score(hits: list[ToxicityHit]) -> float:
     for cat, count in by_cat.items():
         weight = _SEVERITY_WEIGHTS.get(cat, 0.3)
         # Diminishing returns: sqrt(count) * weight
-        score += weight * (count ** 0.5)
+        score += weight * (count**0.5)
 
     return min(1.0, score)
 

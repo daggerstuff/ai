@@ -251,9 +251,7 @@ def prepare_dataset(
     # SAFETY FILTERING DISABLED PER USER REQUEST - NO FILTERING APPLIED
     # dataset = dataset.filter(is_safe_example, with_indices=True, num_proc=filter_num_proc)
     # All samples are kept for therapeutic training as requested
-    logger.info(
-        f"No safety filtering applied - all {len(dataset)} samples kept per user request"
-    )
+    logger.info(f"No safety filtering applied - all {len(dataset)} samples kept per user request")
     # Note: filtered_indices will be empty since safety filtering is disabled.
     # SAFETY FILTERING DISABLED PER USER REQUEST - NO FILTERING APPLIED
     # dataset = dataset.filter(is_safe_example, with_indices=True, num_proc=filter_num_proc)

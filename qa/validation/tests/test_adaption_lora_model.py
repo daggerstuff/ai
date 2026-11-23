@@ -48,9 +48,7 @@ class _FakeRenderer:
     def apply_chat_template(self, messages: list[dict[str, str]], **kwargs: Any) -> str:
         assert kwargs.get("add_generation_prompt") is True
         assert kwargs.get("tokenize") is False
-        rendered = "".join(
-            f"<|im_start|>{m['role']}\n{m['content']}<|im_end|>\n" for m in messages
-        )
+        rendered = "".join(f"<|im_start|>{m['role']}\n{m['content']}<|im_end|>\n" for m in messages)
         rendered += "<|im_start|>assistant\n"
         if not self.with_thinking:
             return rendered
@@ -132,9 +130,7 @@ def test_runner_stub_mode_end_to_end(tmp_path: Any) -> None:
     golden.write_text(json.dumps(GOLDEN_MINI), encoding="utf-8")
     results = tmp_path / "results"
 
-    exit_code = run_adaption_eval.main(
-        ["--modes", "stub", "--questions", str(golden), "--results-dir", str(results)]
-    )
+    exit_code = run_adaption_eval.main(["--modes", "stub", "--questions", str(golden), "--results-dir", str(results)])
 
     assert exit_code == 0
     persisted = json.loads((results / "stub" / "results.json").read_text(encoding="utf-8"))

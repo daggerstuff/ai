@@ -291,17 +291,23 @@ class TestFormatReport:
         report = IntegrityReport(total_records=5, passed=False, errors=2, warnings=1)
         report.violations = [
             IntegrityViolation(
-                severity="error", check="role_validity",
-                message="Invalid role 'admin'", record_index=3,
+                severity="error",
+                check="role_validity",
+                message="Invalid role 'admin'",
+                record_index=3,
                 shard_file="shard_0000.jsonl",
             ),
             IntegrityViolation(
-                severity="error", check="token_limits",
-                message="Message exceeds 4096 tokens", record_index=1,
+                severity="error",
+                check="token_limits",
+                message="Message exceeds 4096 tokens",
+                record_index=1,
             ),
             IntegrityViolation(
-                severity="warning", check="v7_metadata",
-                message="Missing source", record_index=2,
+                severity="warning",
+                check="v7_metadata",
+                message="Missing source",
+                record_index=2,
             ),
         ]
         text = format_report(report)

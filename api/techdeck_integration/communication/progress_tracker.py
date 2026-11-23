@@ -7,7 +7,7 @@ real-time updates, and HIPAA++ compliant data handling for the six-stage pipelin
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from ai.api.techdeck_integration.error_handling.custom_errors import (
@@ -78,16 +78,10 @@ class ProgressTracker:
         self.logger = get_request_logger()
 
         # Configuration
-        self.progress_update_interval = self.config.get(
-            "progress_update_interval", 1.0
-        )  # seconds
-        self.websocket_heartbeat_timeout = self.config.get(
-            "websocket_heartbeat_timeout", 30.0
-        )  # seconds
+        self.progress_update_interval = self.config.get("progress_update_interval", 1.0)  # seconds
+        self.websocket_heartbeat_timeout = self.config.get("websocket_heartbeat_timeout", 30.0)  # seconds
         self.progress_retention_hours = self.config.get("progress_retention_hours", 24)
-        self.enable_real_time_updates = self.config.get(
-            "enable_real_time_updates", True
-        )
+        self.enable_real_time_updates = self.config.get("enable_real_time_updates", True)
 
         # Redis key prefixes
         self.progress_prefix = "pipeline:progress:"
@@ -147,9 +141,7 @@ class ProgressTracker:
                 "current_stage": "initialization",
                 "overall_progress": 0.0,
                 "stage_progress": {},
-                "estimated_total_duration": self._estimate_total_duration(
-                    dataset_count, execution_mode
-                ),
+                "estimated_total_duration": self._estimate_total_duration(dataset_count, execution_mode),
                 "status": "initialized",
                 "last_updated": datetime.now(UTC).isoformat(),
             }
@@ -195,9 +187,7 @@ class ProgressTracker:
                     "Pipeline execution initialized",
                 )
 
-            self.logger.info(
-                f"Progress tracking initialized for execution {execution_id}"
-            )
+            self.logger.info(f"Progress tracking initialized for execution {execution_id}")
 
             return progress_config
 
@@ -252,9 +242,7 @@ class ProgressTracker:
             # Retrieve current progress
             progress_config = await self.get_progress(execution_id)
             if not progress_config:
-                raise ResourceNotFoundError(
-                    f"Progress tracking not found for execution {execution_id}"
-                )
+                raise ResourceNotFoundError(f"Progress tracking not found for execution {execution_id}")
 
             # Update stage progress
             stage_progress = progress_config["stage_progress"][stage_name]
@@ -266,9 +254,7 @@ class ProgressTracker:
                 stage_progress["end_time"] = datetime.now(UTC).isoformat()
                 if stage_progress["start_time"]:
                     start_time = datetime.fromisoformat(stage_progress["start_time"])
-                    stage_progress["duration_seconds"] = (
-                        datetime.now(UTC) - start_time
-                    ).total_seconds()
+                    stage_progress["duration_seconds"] = (datetime.now(UTC) - start_time).total_seconds()
 
             stage_progress["status"] = status
             stage_progress["progress_percent"] = progress_percent
@@ -280,9 +266,7 @@ class ProgressTracker:
                 stage_progress["total_operations"] = total_operations
 
             # Calculate overall progress
-            progress_config["overall_progress"] = self._calculate_overall_progress(
-                progress_config["stage_progress"]
-            )
+            progress_config["overall_progress"] = self._calculate_overall_progress(progress_config["stage_progress"])
 
             # Update current stage if this is the active stage
             if status == "started":
@@ -318,13 +302,12 @@ class ProgressTracker:
             await self._notify_subscribers(execution_id, stage_name, progress_config)
 
             self.logger.info(
-                f"Stage {stage_name} progress updated for execution {execution_id}: "
-                f"{progress_percent:.1f}% - {message}"
+                f"Stage {stage_name} progress updated for execution {execution_id}: {progress_percent:.1f}% - {message}"
             )
 
             return progress_config
 
-        except (ValidationError, ResourceNotFoundError):
+        except ValidationError, ResourceNotFoundError:
             raise
         except Exception as e:
             self.logger.error(f"Failed to update stage progress: {e}")
@@ -358,9 +341,7 @@ class ProgressTracker:
             # Retrieve current progress
             progress_config = await self.get_progress(execution_id)
             if not progress_config:
-                raise ResourceNotFoundError(
-                    f"Progress tracking not found for execution {execution_id}"
-                )
+                raise ResourceNotFoundError(f"Progress tracking not found for execution {execution_id}")
 
             # Update operation progress
             stage_progress = progress_config["stage_progress"][stage_name]
@@ -374,9 +355,7 @@ class ProgressTracker:
                 ) * (operation_progress / 100.0)
 
             # Update overall progress
-            progress_config["overall_progress"] = self._calculate_overall_progress(
-                progress_config["stage_progress"]
-            )
+            progress_config["overall_progress"] = self._calculate_overall_progress(progress_config["stage_progress"])
 
             progress_config["last_updated"] = datetime.now(UTC).isoformat()
 
@@ -473,9 +452,7 @@ class ProgressTracker:
             # Get basic progress
             progress_config = await self.get_progress(execution_id)
             if not progress_config:
-                raise ResourceNotFoundError(
-                    f"Progress not found for execution {execution_id}"
-                )
+                raise ResourceNotFoundError(f"Progress not found for execution {execution_id}")
 
             # Get pipeline state for additional details
             pipeline_state = await self.state_manager.get_pipeline_state(execution_id)
@@ -484,9 +461,7 @@ class ProgressTracker:
             stage_states = await self.state_manager.get_all_stage_states(execution_id)
 
             # Calculate estimates
-            estimates = self._calculate_completion_estimates(
-                progress_config, stage_states
-            )
+            estimates = self._calculate_completion_estimates(progress_config, stage_states)
 
             # Create detailed progress
             detailed_progress = {
@@ -496,9 +471,7 @@ class ProgressTracker:
                 "status": progress_config["status"],
                 "start_time": progress_config["start_time"],
                 "estimated_completion": estimates.get("estimated_completion"),
-                "estimated_remaining_seconds": estimates.get(
-                    "estimated_remaining_seconds"
-                ),
+                "estimated_remaining_seconds": estimates.get("estimated_remaining_seconds"),
                 "stage_details": {},
                 "quality_metrics": {},
                 "performance_metrics": {},
@@ -506,9 +479,7 @@ class ProgressTracker:
 
             # Add stage details
             for stage_name, stage_progress in progress_config["stage_progress"].items():
-                stage_state = next(
-                    (ss for ss in stage_states if ss.stage_name == stage_name), None
-                )
+                stage_state = next((ss for ss in stage_states if ss.stage_name == stage_name), None)
 
                 detailed_progress["stage_details"][stage_name] = {
                     "status": stage_progress["status"],
@@ -517,9 +488,7 @@ class ProgressTracker:
                     "end_time": stage_progress.get("end_time"),
                     "duration_seconds": stage_progress.get("duration_seconds"),
                     "current_operation": stage_progress.get("current_operation"),
-                    "operations_completed": stage_progress.get(
-                        "operations_completed", 0
-                    ),
+                    "operations_completed": stage_progress.get("operations_completed", 0),
                     "total_operations": stage_progress.get("total_operations", 0),
                     "error_count": stage_progress.get("error_count", 0),
                     "retry_count": stage_progress.get("retry_count", 0),
@@ -534,8 +503,8 @@ class ProgressTracker:
                 }
 
             # Add performance metrics
-            detailed_progress["performance_metrics"] = (
-                self._calculate_performance_metrics(progress_config, stage_states)
+            detailed_progress["performance_metrics"] = self._calculate_performance_metrics(
+                progress_config, stage_states
             )
 
             return detailed_progress
@@ -596,9 +565,7 @@ class ProgressTracker:
             if execution_id:
                 await self.subscribe_to_execution(connection_id, execution_id)
 
-            self.logger.info(
-                f"WebSocket connection registered: {connection_id} for user {user_id}"
-            )
+            self.logger.info(f"WebSocket connection registered: {connection_id} for user {user_id}")
 
             return True
 
@@ -628,9 +595,7 @@ class ProgressTracker:
 
                 # Unsubscribe from all executions
                 if connection.execution_id:
-                    await self.unsubscribe_from_execution(
-                        connection_id, connection.execution_id
-                    )
+                    await self.unsubscribe_from_execution(connection_id, connection.execution_id)
 
                 del self.active_connections[connection_id]
 
@@ -646,9 +611,7 @@ class ProgressTracker:
             self.logger.error(f"Failed to unregister WebSocket connection: {e}")
             raise ProgressTrackingError(f"WebSocket unregistration failed: {e!s}") from e
 
-    async def subscribe_to_execution(
-        self, connection_id: str, execution_id: str
-    ) -> bool:
+    async def subscribe_to_execution(self, connection_id: str, execution_id: str) -> bool:
         """
         Subscribe WebSocket connection to execution progress.
 
@@ -665,9 +628,7 @@ class ProgressTracker:
         try:
             # Validate connection exists
             if connection_id not in self.active_connections:
-                raise ResourceNotFoundError(
-                    f"WebSocket connection not found: {connection_id}"
-                )
+                raise ResourceNotFoundError(f"WebSocket connection not found: {connection_id}")
 
             # Update connection
             connection = self.active_connections[connection_id]
@@ -690,9 +651,7 @@ class ProgressTracker:
                 json.dumps(connection_dict, default=str),
             )
 
-            self.logger.info(
-                f"WebSocket connection {connection_id} subscribed to execution {execution_id}"
-            )
+            self.logger.info(f"WebSocket connection {connection_id} subscribed to execution {execution_id}")
 
             return True
 
@@ -702,9 +661,7 @@ class ProgressTracker:
             self.logger.error(f"Failed to subscribe to execution: {e}")
             raise ProgressTrackingError(f"Execution subscription failed: {e!s}") from e
 
-    async def unsubscribe_from_execution(
-        self, connection_id: str, execution_id: str
-    ) -> bool:
+    async def unsubscribe_from_execution(self, connection_id: str, execution_id: str) -> bool:
         """
         Unsubscribe WebSocket connection from execution progress.
 
@@ -721,17 +678,13 @@ class ProgressTracker:
         try:
             # Remove from execution subscribers
             if execution_id in self.active_executions:
-                self.active_executions[execution_id]["subscribers"].discard(
-                    connection_id
-                )
+                self.active_executions[execution_id]["subscribers"].discard(connection_id)
 
                 # Clean up if no more subscribers
                 if not self.active_executions[execution_id]["subscribers"]:
                     del self.active_executions[execution_id]
 
-            self.logger.info(
-                f"WebSocket connection {connection_id} unsubscribed from execution {execution_id}"
-            )
+            self.logger.info(f"WebSocket connection {connection_id} unsubscribed from execution {execution_id}")
 
             return True
 
@@ -754,9 +707,7 @@ class ProgressTracker:
         """
         try:
             if connection_id not in self.active_connections:
-                raise ResourceNotFoundError(
-                    f"WebSocket connection not found: {connection_id}"
-                )
+                raise ResourceNotFoundError(f"WebSocket connection not found: {connection_id}")
 
             connection = self.active_connections[connection_id]
             connection.last_heartbeat = datetime.now(UTC)
@@ -797,9 +748,7 @@ class ProgressTracker:
             # Check active connections
             connections_to_remove = []
             for connection_id, connection in self.active_connections.items():
-                time_since_heartbeat = (
-                    current_time - connection.last_heartbeat
-                ).total_seconds()
+                time_since_heartbeat = (current_time - connection.last_heartbeat).total_seconds()
 
                 if time_since_heartbeat > self.websocket_heartbeat_timeout:
                     connections_to_remove.append(connection_id)
@@ -817,12 +766,8 @@ class ProgressTracker:
                 connection_data = await self.redis_client.get(key)
                 if connection_data:
                     connection_dict = json.loads(connection_data)
-                    last_heartbeat = datetime.fromisoformat(
-                        connection_dict["last_heartbeat"]
-                    )
-                    time_since_heartbeat = (
-                        current_time - last_heartbeat
-                    ).total_seconds()
+                    last_heartbeat = datetime.fromisoformat(connection_dict["last_heartbeat"])
+                    time_since_heartbeat = (current_time - last_heartbeat).total_seconds()
 
                     if time_since_heartbeat > self.websocket_heartbeat_timeout:
                         connection_id = connection_dict["connection_id"]
@@ -830,9 +775,7 @@ class ProgressTracker:
                         stale_count += 1
 
             if stale_count > 0:
-                self.logger.info(
-                    f"Cleaned up {stale_count} stale WebSocket connections"
-                )
+                self.logger.info(f"Cleaned up {stale_count} stale WebSocket connections")
 
             return stale_count
 
@@ -898,9 +841,7 @@ class ProgressTracker:
         except Exception as e:
             self.logger.error(f"Failed to publish operation event: {e}")
 
-    async def _notify_subscribers(
-        self, execution_id: str, stage_name: str, progress_config: dict[str, Any]
-    ) -> None:
+    async def _notify_subscribers(self, execution_id: str, stage_name: str, progress_config: dict[str, Any]) -> None:
         """Notify WebSocket subscribers of progress updates."""
         try:
             if execution_id not in self.active_executions:
@@ -983,9 +924,7 @@ class ProgressTracker:
                 estimated_total_seconds = elapsed_seconds / overall_progress
                 remaining_seconds = estimated_total_seconds - elapsed_seconds
 
-                estimated_completion = current_time + timedelta(
-                    seconds=remaining_seconds
-                )
+                estimated_completion = current_time + timedelta(seconds=remaining_seconds)
 
                 return {
                     "estimated_completion": estimated_completion.isoformat(),
@@ -1006,9 +945,7 @@ class ProgressTracker:
                 "estimated_total_duration_seconds": None,
             }
 
-    def _estimate_total_duration(
-        self, dataset_count: int, execution_mode: str
-    ) -> float:
+    def _estimate_total_duration(self, dataset_count: int, execution_mode: str) -> float:
         """Estimate total pipeline duration in seconds."""
         try:
             # Base duration estimates per stage (in seconds)
@@ -1039,9 +976,7 @@ class ProgressTracker:
                 },
             }
 
-            mode_durations = base_durations.get(
-                execution_mode, base_durations["standard"]
-            )
+            mode_durations = base_durations.get(execution_mode, base_durations["standard"])
             base_total = sum(mode_durations.values())
 
             # Adjust for dataset count (linear scaling up to a point)
@@ -1053,9 +988,7 @@ class ProgressTracker:
             self.logger.error(f"Error estimating total duration: {e}")
             return 600.0  # Default 10 minutes
 
-    def _get_stage_result_summary(
-        self, stage_state: Any | None
-    ) -> dict[str, Any] | None:
+    def _get_stage_result_summary(self, stage_state: Any | None) -> dict[str, Any] | None:
         """Get summary of stage execution results."""
         if not stage_state or not stage_state.result:
             return None
@@ -1075,9 +1008,7 @@ class ProgressTracker:
                 summary["checks_passed"] = result.get("checks_passed")
             elif stage_state.stage_name == "processing":
                 summary["processed_records"] = result.get("processed_records")
-                summary["processing_time_seconds"] = result.get(
-                    "processing_time_seconds"
-                )
+                summary["processing_time_seconds"] = result.get("processing_time_seconds")
             elif stage_state.stage_name == "quality":
                 summary["quality_score"] = result.get("quality_score")
                 summary["assessment_results"] = result.get("assessment_results")
@@ -1097,9 +1028,7 @@ class ProgressTracker:
         try:
             for stage_state in stage_states:
                 if stage_state.result and "quality_score" in stage_state.result:
-                    quality_scores[stage_state.stage_name] = stage_state.result[
-                        "quality_score"
-                    ]
+                    quality_scores[stage_state.stage_name] = stage_state.result["quality_score"]
 
             return quality_scores
 
@@ -1127,9 +1056,7 @@ class ProgressTracker:
                 if stage_state.status == "completed":
                     metrics["stages_completed"] += 1
                     if stage_state.duration_seconds:
-                        metrics["total_stage_duration_seconds"] += (
-                            stage_state.duration_seconds
-                        )
+                        metrics["total_stage_duration_seconds"] += stage_state.duration_seconds
                 elif stage_state.status == "failed":
                     metrics["stages_failed"] += 1
 
@@ -1140,21 +1067,16 @@ class ProgressTracker:
                     and not stage_state.end_time
                 ):
                     stage_start = datetime.fromisoformat(stage_state.start_time)
-                    metrics["current_stage_duration_seconds"] = (
-                        current_time - stage_start
-                    ).total_seconds()
+                    metrics["current_stage_duration_seconds"] = (current_time - stage_start).total_seconds()
 
             # Calculate averages
             if metrics["stages_completed"] > 0:
                 metrics["average_stage_duration_seconds"] = (
-                    metrics["total_stage_duration_seconds"]
-                    / metrics["stages_completed"]
+                    metrics["total_stage_duration_seconds"] / metrics["stages_completed"]
                 )
 
             # Add overall metrics
-            metrics["total_elapsed_seconds"] = (
-                current_time - start_time
-            ).total_seconds()
+            metrics["total_elapsed_seconds"] = (current_time - start_time).total_seconds()
             metrics["overall_progress_percent"] = progress_config["overall_progress"]
 
             return metrics

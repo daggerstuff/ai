@@ -171,8 +171,7 @@ def test_curate_youtube_output_writes_curated_dataset_and_report(tmp_path: Path)
     input_dir = tmp_path / "youtube_output"
     input_dir.mkdir()
     (input_dir / "trusted.jsonl").write_text(
-        json.dumps(_record(channel="Heidi Priebe", title="10 Survival Lies You May Tell If You Have CPTSD.txt"))
-        + "\n",
+        json.dumps(_record(channel="Heidi Priebe", title="10 Survival Lies You May Tell If You Have CPTSD.txt")) + "\n",
         encoding="utf-8",
     )
     (input_dir / "mixed.jsonl").write_text(

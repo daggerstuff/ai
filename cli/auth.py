@@ -6,19 +6,21 @@ credential storage with HIPAA++ compliance.
 """
 
 import logging
+import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import requests
 
 from cli.config import CLIConfig
+from cli.exceptions import CLIAuthError
 from cli.utils import validate_jwt_token
 
 logger = logging.getLogger("pixelated-ai-cli")
 
 
-class AuthenticationError(Exception):
-    """Custom exception for authentication errors"""
+class AuthenticationError(CLIAuthError):
+    """Authentication failure, catchable as either the CLI or the auth type."""
 
 
 class TokenExpiredError(AuthenticationError):
@@ -122,7 +124,7 @@ class AuthManager:
                     error_msg += f" - {error_data['error']}"
                 if "error_description" in error_data:
                     error_msg += f": {error_data['error_description']}"
-            except:
+            except Exception:
                 pass
 
             raise AuthenticationError(error_msg)
@@ -545,9 +547,80 @@ def _set_token_expiry(self, value: float) -> None:
 AuthManager._token_expiry = property(_get_token_expiry, _set_token_expiry)
 
 
+class TokenManager:
+    """Tracks the lifetime of an issued access/refresh token pair.
+
+    ``AuthManager`` owns credentials and the login flow; this class owns what
+    happens to the pair afterwards, so a caller can ask whether the access
+    token is still usable without re-reading the config file.
+    """
+
+    def __init__(self) -> None:
+        self._access_token: str | None = None
+        self._refresh_token: str | None = None
+        self._token_expiry: float | None = None
+        self._issued_at: float | None = None
+
+    def set_tokens(self, access_token: str, refresh_token: str | None, expires_in: float) -> None:
+        """Record a freshly issued token pair and its lifetime in seconds."""
+        if expires_in < 0:
+            raise ValueError("expires_in must be non-negative")
+        issued_at = time.time()
+        self._access_token = access_token
+        self._refresh_token = refresh_token
+        self._issued_at = issued_at
+        self._token_expiry = issued_at + float(expires_in)
+
+    def get_access_token(self) -> str | None:
+        return self._access_token
+
+    def get_refresh_token(self) -> str | None:
+        return self._refresh_token
+
+    def is_token_expired(self) -> bool:
+        """True when no expiry is recorded or the recorded expiry has passed."""
+        if self._token_expiry is None:
+            return True
+        return time.time() > self._token_expiry
+
+    def get_token_age(self) -> float:
+        """Seconds since the pair was recorded, or 0.0 when none was."""
+        if self._issued_at is None:
+            return 0.0
+        return time.time() - self._issued_at
+
+    def get_time_until_expiry(self) -> float:
+        """Seconds until the access token expires, negative once it has."""
+        if self._token_expiry is None:
+            return 0.0
+        return self._token_expiry - time.time()
+
+    def clear_tokens(self) -> None:
+        self._access_token = None
+        self._refresh_token = None
+        self._token_expiry = None
+        self._issued_at = None
+
+    def validate_token_format(self, token: str) -> bool:
+        """True only for a decodable three-part JWT, not merely a dotted string."""
+        try:
+            validate_jwt_token(token)
+        except TypeError, ValueError:
+            return False
+        return True
+
+    def decode_token_payload(self, token: str) -> dict[str, Any] | None:
+        """Return the decoded JWT payload, or None when the token cannot be read."""
+        try:
+            return validate_jwt_token(token)["payload"]
+        except KeyError, TypeError, ValueError:
+            return None
+
+
 __all__ = [
     "AuthManager",
     "AuthenticationError",
     "TokenExpiredError",
+    "TokenManager",
     "require_auth",
 ]

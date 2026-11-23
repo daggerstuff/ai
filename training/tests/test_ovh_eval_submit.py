@@ -9,7 +9,6 @@ control to launch.sh, the job fails before it scores anything).
 from __future__ import annotations
 
 import argparse
-import hashlib
 import os
 import subprocess
 import sys
@@ -242,7 +241,7 @@ def test_stage_lays_out_exactly_what_the_launcher_reads(tmp_path: Path, monkeypa
     monkeypatch.setattr(submit, "CASES_DIR", cases)
     monkeypatch.setattr(submit, "DEFAULT_ADAPTERS", adapters)
 
-    copied = submit.stage(tmp_path / "stage")
+    copied = submit.stage(tmp_path / "stage", suite="v1")
 
     staged = tmp_path / "stage"
     assert (staged / "code" / "launch.sh").is_file()
@@ -258,7 +257,7 @@ def test_stage_refuses_to_run_without_an_adapter(tmp_path: Path, monkeypatch: py
     monkeypatch.setattr(submit, "DEFAULT_ADAPTERS", {"bf16": tmp_path / "missing"})
 
     with pytest.raises(SystemExit, match="adapter for bf16 is missing"):
-        submit.stage(tmp_path / "stage")
+        submit.stage(tmp_path / "stage", suite="v1")
 
 
 def test_stage_copies_only_the_adapters_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -266,7 +265,7 @@ def test_stage_copies_only_the_adapters_it_is_given(tmp_path: Path, monkeypatch:
     monkeypatch.setattr(submit, "AI_ROOT", tmp_path / "ai")
     monkeypatch.setattr(submit, "CASES_DIR", cases)
 
-    submit.stage(tmp_path / "stage", adapters={"v23": adapters["bf16"]})
+    submit.stage(tmp_path / "stage", adapters={"v23": adapters["bf16"]}, suite="v1")
 
     assert (tmp_path / "stage" / "adapters" / "v23" / "adapter_config.json").is_file()
     assert not (tmp_path / "stage" / "adapters" / "nf4").exists()

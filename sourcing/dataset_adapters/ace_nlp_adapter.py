@@ -79,7 +79,7 @@ class ACE_NLPAdapter(BaseDatasetAdapter):
             try:
                 with open(json_file, encoding="utf-8", errors="replace") as f:
                     data = json.load(f)
-            except (json.JSONDecodeError, OSError):
+            except json.JSONDecodeError, OSError:
                 continue
 
             # Handle both single-doc and multi-doc formats
