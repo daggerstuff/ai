@@ -88,7 +88,10 @@ def test_the_release_identity_moves_past_v25() -> None:
 def test_the_untouched_surface_is_inherited_from_v25() -> None:
     assert v26.CONTROL_TOPICS == v23.CONTROL_TOPICS
     assert v26.CONTROL_REPLIES == v23.CONTROL_REPLIES
-    assert v26.ANCHORS["means_access"] == v25.ANCHORS["means_access"]
+    # The means vocabulary is v25's plus the "shotgun" word form, which folds
+    # onto the inherited "gun" anchor; the inherited entries are unchanged.
+    assert v26.ANCHORS["means_access"][: len(v25.ANCHORS["means_access"])] == v25.ANCHORS["means_access"]
+    assert v26.ANCHOR_ALIASES["means_access"]["shotgun"] == "gun"
     assert v26.ACTIONS["means_access"] == v25.ACTIONS["means_access"]
     for category, variants in v26.ACTIONS.items():
         if category in GROUNDED_CATEGORIES:
@@ -140,10 +143,12 @@ def test_every_grounded_action_names_a_substance_or_a_method() -> None:
 
 def test_every_anchor_has_an_action_that_can_answer_it() -> None:
     for category in GROUNDED_CATEGORIES:
-        covered = {
-            anchor for action in v26.ACTIONS[category] for anchor in v26.ANCHORS[category] if anchor in action.lower()
-        }
-        orphaned = set(v26.ANCHORS[category]) - covered - set(v26.ABSTRACT_ANCHORS[category])
+        # An alias folds onto the anchor it names, so it is covered exactly
+        # when that anchor is covered.
+        aliases = v26.ANCHOR_ALIASES.get(category, {})
+        canonical = {aliases.get(anchor, anchor) for anchor in v26.ANCHORS[category]}
+        covered = {anchor for action in v26.ACTIONS[category] for anchor in v26.named_anchors(action, category)}
+        orphaned = canonical - covered - set(v26.ABSTRACT_ANCHORS[category])
         assert not orphaned, f"{category}: {sorted(orphaned)}"
 
 
