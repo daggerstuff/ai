@@ -218,8 +218,11 @@ NEGATIVE_INVERSION: Final[re.Pattern[str]] = re.compile(
     r"(?:can|could|do|does|did|will|would|shall|should|may|might|must|need|dare"
     r"|ought|have|has|had|am|is|are|was|were)\b\s*$"
 )
+# A cue phrase consumes its own stance verb ("I can't promise you that ..."
+# leaves the run-up starting at the pronoun), so the prefix alternative needs
+# the same optional object pronoun the verb alternative already takes.
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
-    rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:{_RESUMED_VERBS})\s+(?:(?:{_RESUMED_OBJECTS})\s+)?)"
+    rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*(?:(?:{_RESUMED_OBJECTS})\s+)?|\b(?:{_RESUMED_VERBS})\s+(?:(?:{_RESUMED_OBJECTS})\s+)?)"
     r"(?:that|if|whether)\b"
     r"(?:\s*,([^,.;!?\u2014\u2013]{1,200}),)?\s*,?\s*$"
 )

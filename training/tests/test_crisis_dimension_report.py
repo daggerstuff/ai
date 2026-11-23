@@ -550,6 +550,8 @@ def test_long_closing_ellipsis_keeps_the_disclaimer_scope() -> None:
 def test_an_object_pronoun_before_the_complementizer_keeps_the_disclaimer() -> None:
     """An object pronoun before the complementizer resumes the cue's complement."""
     for text in (
+        "I can't promise you that, with time, everything will be okay.",
+        "I can't promise us that, with support, everything will be fine.",
         "I can't promise, and no one can tell you that everything will be okay.",
         "I can't promise, and no one can tell them that everything will be okay.",
     ):
