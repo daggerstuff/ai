@@ -894,7 +894,7 @@ _QUESTION_OPENERS = frozenset(
         "would",
     }
 )
-_CLAUSE_END = re.compile(r"[.!?;\n]")
+_CLAUSE_END = re.compile(r"[.!?;\n\r\u2028\u2029]")
 _INDIRECT_QUESTION = re.compile(
     r"\b(?:wonder(?:ing)?|not sure|don't know|do not know|am not sure|is not sure|isn't sure|unsure)\b"
     r"[^.?!]*?\b(?:if|whether)\b",

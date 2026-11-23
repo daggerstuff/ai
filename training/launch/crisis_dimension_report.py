@@ -206,8 +206,10 @@ CORRECTION_GOVERNER: Final[re.Pattern[str]] = re.compile(
     + _CORRECTION_MARKER
     + _STANCE_IM
 )
+_RESUMED_VERBS: Final[str] = r"sure|certain|confident|convinced|think|believe|promise|say|know|tell|guarantee"
+_RESUMED_VERB_ALTERNATIVE: Final[re.Pattern[str]] = re.compile(rf"\s*(?:{_RESUMED_VERBS})\b")
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(
-    r"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:sure|certain|confident|convinced|think|believe|promise|say|know|tell|guarantee)\s+)"
+    rf"(?:(?:^|,|\b(?:and|or|but|nor)\b)\s*|\b(?:{_RESUMED_VERBS})\s+)"
     r"(?:that|if|whether)\b"
     r"(?:\s*,([^,.;!?\u2014\u2013]{1,200}),)?\s*,?\s*$"
 )
@@ -250,7 +252,10 @@ def _pause_scan_start(text: str, head: str, boundary_end: int) -> int:
     leftover dots are still part of the same pause, so a correction written
     right after them has to stay visible to the governor check.
     """
-    if head.rstrip() not in _PAUSE_HEADS:
+    # Only an ASCII ellipsis can leave unconsumed dots from the same run. A
+    # Unicode ellipsis is a complete character, so a period after it ends the
+    # sentence instead of extending the pause.
+    if head.rstrip() != "...":
         return boundary_end
     while boundary_end < len(text) and text[boundary_end] == ".":
         boundary_end += 1
@@ -386,6 +391,16 @@ def _resumed_complement(segment: str) -> re.Match[str] | None:
     match = RESUMED_COMPLEMENT.search(segment)
     if match is None:
         return None
+    # A stance verb that directly introduces the marker ("I can't promise, I
+    # think that ...") is affirmative unless its own stance is negated; it owns
+    # the complement instead of resuming the negated stance. A verb buried in
+    # an aside ("given what I know about your situation, that ...") does not.
+    verb = _RESUMED_VERB_ALTERNATIVE.match(match.group(0))
+    if verb is not None:
+        governed = segment[: match.start()] + match.group(0)[: verb.end()]
+        governor = AFFIRMATIVE_GOVERNER.search(governed)
+        if governor is not None and governor.end() == len(governed.rstrip()):
+            return None
     aside = match.group(1)
     if aside is not None and AFFIRMATIVE_GOVERNER.match(aside) is not None:
         return None
@@ -416,7 +431,13 @@ def _aside_span(text: str, boundary_start: int, after: int, claim_start: int, cl
         prefix = text[: after - len("though")]
         # Only the sentence holding the aside can give the reporting verb its
         # object: a "how" or "what" two sentences back cannot take it.
-        cut = max(prefix.rfind("."), prefix.rfind("!"), prefix.rfind("?"), prefix.rfind("\n"))
+        cut = max(
+            prefix.rfind("."),
+            prefix.rfind("!"),
+            prefix.rfind("?"),
+            prefix.rfind("\n"),
+            prefix.rfind("\u2029"),
+        )
         run_up = prefix[cut + 1 :]
         if REPORTING_VERB.search(run_up) is not None and RELATIVE_OBJECT.search(run_up) is not None:
             # The reporting verb already took a relative object ("I can't promise

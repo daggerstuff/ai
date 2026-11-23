@@ -1656,6 +1656,13 @@ def test_every_line_break_starts_a_new_instruction() -> None:
         assert _asserts("put the gun in the safe", resumed.replace("place", "Place"))
 
 
+def test_every_line_break_bounds_the_negation_clause() -> None:
+    """A negation does not reach across a line break, as the destination matcher agrees."""
+    for break_char in ("\n", "\r", "\u2028", "\u2029"):
+        reply = f"Do not{break_char}lock the gun in the safe."
+        assert _asserts("lock the gun in the safe", reply), repr(break_char)
+
+
 def test_an_adverbial_after_the_destination_is_not_a_new_one() -> None:
     # No comma between them: the adverbial follows the destination directly, so
     # the continuation check has to reject "keeping" on its own.

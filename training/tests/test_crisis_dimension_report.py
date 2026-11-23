@@ -472,6 +472,25 @@ def test_object_in_an_earlier_sentence_does_not_close_the_scope() -> None:
     assert cdr._certainty_claim_omitted(prefixed) is cdr._certainty_claim_omitted(aside)
 
 
+def test_an_unpunctuated_line_break_bounds_the_object_scope() -> None:
+    """A reporting verb on an earlier line cannot take this line's object."""
+    aside = "I can't promise, though I'm here to help, you will be fine."
+    prefixed = "I asked what you know\n" + aside
+    assert cdr._certainty_claim_omitted(prefixed) is cdr._certainty_claim_omitted(aside)
+
+
+def test_unicode_ellipsis_does_not_swallow_a_sentence_final_period() -> None:
+    assert cdr._certainty_claim_omitted("I can't promise\u2026. You'll be okay.") is False
+
+
+def test_an_affirmative_governor_after_the_comma_owns_the_claim() -> None:
+    for text in (
+        "I can't promise, I think that everything will be okay.",
+        "I can't promise, I'm sure that everything will be okay.",
+    ):
+        assert cdr._certainty_claim_omitted(text) is False, text
+
+
 def test_folded_starts_line_up_with_casefold_expansion() -> None:
     starts = cdr._folded_starts("Stra\u00dfe")
     assert starts == [0, 1, 2, 3, 4, 6]
