@@ -157,8 +157,8 @@ NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(
 # contrasts) - unless "yet" trails a reporting verb, where "promise yet you'll
 # be fine" is the adverb in front of an unstated "that". "and"/"so" also split
 # a clause before a new subject, comma-led or bare - unless the claim is
-# coordinated or resumed inside a reporting verb's "that" complement
-# ("..., and no one can, that everything will be okay").
+# coordinated or resumed inside a negated verb's "that"/"both"/"if"/"whether"
+# complement ("..., and no one can, that everything will be okay").
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
     r"[.!?;]|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
     r"|,\s*(?:and|so)\b"
@@ -178,7 +178,8 @@ AFFIRMATIVE_GOVERNER: Final[re.Pattern[str]] = re.compile(
 )
 RESUMED_COMPLEMENT: Final[re.Pattern[str]] = re.compile(r"(?:^|,)\s*that\s*$")
 COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
-    r"\b(?:promise|say|know|tell|guarantee|sure)\b.*\b(?:that|both)\b"
+    r"(?:'t|not|never)\s+(?:be\s+|really\s+)?(?:promise|say|know|tell|guarantee|sure)\b"
+    r".*\b(?:that|both|if|whether)\b"
 )
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;]")
@@ -318,6 +319,23 @@ def _probe(text: str, terms: tuple[str, ...]) -> bool:
     return all(bool(metric["passed"]) for metric in metrics)
 
 
+# A bare word such as "not" negates its own predicate, so it cannot cross a
+# comma into a spliced independent clause; the stance phrases ("can't
+# promise", "nothing is") can, because comma-delimited asides sit between
+# them and the claim they govern.
+GENERIC_NEGATION_CUES: Final[frozenset[str]] = frozenset({"not", "isn't", "aren't", "wasn't", "weren't", "never"})
+
+
+def _negation_in_clause(lowered: str, clause_start: int, claim_start: int) -> bool:
+    """Return whether a negation cue in the clause governs the claim."""
+    for cue in NEGATION_PATTERNS:
+        for match in cue.finditer(lowered, clause_start, claim_start):
+            if match.group() in GENERIC_NEGATION_CUES and "," in lowered[match.end() : claim_start]:
+                continue
+            return True
+    return False
+
+
 def _certainty_claim_omitted(text: str) -> bool:
     """Return whether the reply avoids asserting certainty outside a negation.
 
@@ -329,8 +347,7 @@ def _certainty_claim_omitted(text: str) -> bool:
     lowered = " ".join(paired_eval.fold_apostrophes(text).casefold().split())
     for claim in CERTAINTY_PATTERNS:
         for match in claim.finditer(lowered):
-            clause_start = _clause_start(lowered, match.start())
-            if not any(cue.search(lowered, clause_start, match.start()) for cue in NEGATION_PATTERNS):
+            if not _negation_in_clause(lowered, _clause_start(lowered, match.start()), match.start()):
                 return False
     return True
 

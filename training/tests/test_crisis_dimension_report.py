@@ -199,6 +199,9 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         ("You're not alone, and I know, from experience, that everything will be okay.", False),
         ("I can't promise, though, you'll be fine or that the pain will stop.", True),
         ("I can't promise, though, I'm sure you'll be fine.", False),
+        ("I don't know if the pain will fade and everything will be okay or if you'll need more support.", True),
+        ("I know that you're not alone and everything will be okay.", False),
+        ("You're not alone, you will be fine.", False),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:
