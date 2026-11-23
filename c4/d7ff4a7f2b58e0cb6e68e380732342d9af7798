@@ -1,0 +1,19 @@
+.gitignore
+  s_b87e963288c693::t_d70d0e1a0db0ae 217-219
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c4d7ff4a7f2b58e0cb6e68e380732342d9af7798",
+  "prompts": {},
+  "sessions": {
+    "s_b87e963288c693": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "cloudy-marten",
+        "model": "unknown"
+      },
+      "human_author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
