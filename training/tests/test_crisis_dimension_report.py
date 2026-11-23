@@ -212,6 +212,9 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         ("I can't promise that by 10:30 you'll be fine.", True),
         ("I can't promise you'll feel better by 10:30: everything will be okay in the long run.", False),
         ("I can't promise that both the pain will fade and you believe everything will be okay.", True),
+        ("I can't promise that both options will work and I do know you'll be fine.", False),
+        ("I can't promise that both the pain and the swelling will fade and I do know you'll be fine.", False),
+        ("You're not alone, that you'll be okay.", False),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:

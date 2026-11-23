@@ -189,9 +189,13 @@ COMPLEMENT_COORDINATION: Final[re.Pattern[str]] = re.compile(
     r"|\bno\s+(?:guarantee|promise)\b.*\b(?:that|both|if|whether)\b"
 )
 
-# An explicit "both ... and" correlative marks coordination inside a
-# complement even when the second conjunct opens with a belief verb.
-CORRELATIVE_BOTH: Final[re.Pattern[str]] = re.compile(r"\bboth\b")
+# A determiner-led "both the ... and" pair whose "and" closes it marks
+# coordination inside a complement even when the second conjunct opens with a
+# belief verb; an emphatic "do know" assertion stays independent regardless.
+CORRELATIVE_BOTH: Final[re.Pattern[str]] = re.compile(r"\bboth\s+(?:the|this|that|these|those)\b")
+EMPHATIC_ASSERTION: Final[re.Pattern[str]] = re.compile(
+    r"\s*\b(?:i|we|you|they|he|she|it)\b\s+(?:do|did)\s+(?:know|think|believe|promise|guarantee)\b"
+)
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]|(?<!\d):|:(?!\d)")
 
@@ -251,9 +255,11 @@ def _clause_start(text: str, claim_start: int) -> int:
             continue
         if bare and head == "and" and COMPLEMENT_COORDINATION.search(text[start : boundary.start()]):
             continuation = text[boundary.end() : claim_start]
-            if (
-                CORRELATIVE_BOTH.search(text[start : boundary.start()])
-                or AFFIRMATIVE_GOVERNER.match(continuation) is None
+            segment = text[start : boundary.start()]
+            pair = CORRELATIVE_BOTH.search(segment)
+            override = pair is not None and " and " not in segment[pair.end() :]
+            if (override and EMPHATIC_ASSERTION.match(continuation) is None) or (
+                AFFIRMATIVE_GOVERNER.match(continuation) is None
             ):
                 continue
         if not bare and head in {"and", "so"}:
@@ -341,6 +347,10 @@ def _probe(text: str, terms: tuple[str, ...]) -> bool:
 # them and the claim they govern.
 GENERIC_NEGATION_CUES: Final[frozenset[str]] = frozenset({"not", "isn't", "aren't", "wasn't", "weren't", "never"})
 
+# A bare-word negation keeps its scope across a parenthetical only when it
+# negates one of these stance phrases ("I'm not sure, ..., that ...").
+NEGATED_STANCE: Final[re.Pattern[str]] = re.compile(r"\s*\b(?:sure|certain|confident|convinced)\b")
+
 
 def _negation_in_clause(lowered: str, clause_start: int, claim_start: int) -> bool:
     """Return whether a negation cue in the clause governs the claim."""
@@ -349,11 +359,14 @@ def _negation_in_clause(lowered: str, clause_start: int, claim_start: int) -> bo
             if (
                 match.group() in GENERIC_NEGATION_CUES
                 and "," in lowered[match.end() : claim_start]
-                and RESUMED_COMPLEMENT.search(lowered[match.end() : claim_start]) is None
+                and (
+                    NEGATED_STANCE.match(lowered[match.end() : claim_start]) is None
+                    or RESUMED_COMPLEMENT.search(lowered[match.end() : claim_start]) is None
+                )
             ):
                 # A bare word cannot cross a comma into an independent clause,
-                # unless the run-up resumes with the "that" complement the
-                # negated phrase still governs ("I'm not sure, ..., that ...").
+                # unless it negates a stance phrase whose "that" complement
+                # resumes after the aside ("I'm not sure, ..., that ...").
                 continue
             return True
     return False
