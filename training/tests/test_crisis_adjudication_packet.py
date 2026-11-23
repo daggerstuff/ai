@@ -109,6 +109,30 @@ def test_build_is_deterministic_per_seed(tmp_path: Path) -> None:
     assert first.cases == second.cases
 
 
+def test_build_keeps_the_latest_record_for_a_retried_case(tmp_path: Path) -> None:
+    cases = _cases(tmp_path)
+    rows = [
+        {
+            "case_id": case_id,
+            "arm_id": arm,
+            "status": "success",
+            "passed": True,
+            "failed_checks": [],
+            "response": REPLY_TOKENS[(case_id, arm)],
+        }
+        for case_id in ("case-a", "case-b")
+        for arm in ("base", "sft")
+    ]
+    results = _write(tmp_path / "results.jsonl", [*rows, {**rows[0], "response": "reply-token-retried"}])
+    out = tmp_path / "out"
+
+    cap.build(cases, results, out, ("base", "sft"), seed=7)
+
+    packet = (out / "packet.md").read_text()
+    assert "reply-token-retried" in packet
+    assert REPLY_TOKENS[("case-a", "base")] not in packet
+
+
 def test_summarize_scores_and_rejects_incomplete(tmp_path: Path) -> None:
     cases, results = _cases(tmp_path), _results(tmp_path)
     out = tmp_path / "out"

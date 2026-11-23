@@ -98,6 +98,14 @@ class Dataset(BaseModel):
     max_final_exchange_tokens: int | None = None
 
 
+class AmbiguousDigest(BaseModel):
+    """A digest more candidate rows share than the export holds copies of."""
+
+    model_config = ConfigDict(frozen=True)
+    lines: tuple[int, ...]
+    exported_copies: int
+
+
 class ExportReview(BaseModel):
     """Candidate rows whose exact datums occur in the verified training file."""
 
@@ -106,33 +114,34 @@ class ExportReview(BaseModel):
     candidate_selected_rows: int
     present_selected_lines: tuple[int, ...]
     trimmed_target_lines: tuple[int, ...]
-    ambiguous_digest_lines: tuple[int, ...]
+    ambiguous_digests: tuple[AmbiguousDigest, ...]
     excluded_by_length: int
     unmatched_selected_lines: tuple[int, ...]
 
 
 def _attribute(
     exported: Counter[str], candidates: dict[int, tuple[str, bool]]
-) -> tuple[list[int], list[int], list[int], list[int]]:
+) -> tuple[list[int], list[int], list[AmbiguousDigest], list[int]]:
     """Attribute exported copies to candidate rows, or report them ambiguous.
 
     A digest shared by more candidate rows than the export holds copies cannot
     be tied to a particular source line, so those lines are reported as
-    ambiguous rather than credited to whichever row was read first.
+    ambiguous, with the copy count the export verifiably holds, rather than
+    credited to whichever row was read first.
     """
     by_digest: dict[str, list[int]] = {}
     for line_number, (digest, _) in candidates.items():
         by_digest.setdefault(digest, []).append(line_number)
     present: list[int] = []
     trimmed: list[int] = []
-    ambiguous: list[int] = []
+    ambiguous: list[AmbiguousDigest] = []
     unmatched: list[int] = []
     for digest, lines in by_digest.items():
         available = exported[digest]
         if available <= 0:
             unmatched.extend(lines)
         elif available < len(lines):
-            ambiguous.extend(lines)
+            ambiguous.append(AmbiguousDigest(lines=tuple(sorted(lines)), exported_copies=available))
         else:
             exported[digest] -= len(lines)
             for line_number in lines:
@@ -201,7 +210,7 @@ def audit_export(source: Path, receipt: Path, report: Audit) -> ExportReview:
         candidate_selected_rows=len(wanted),
         present_selected_lines=tuple(sorted(present)),
         trimmed_target_lines=tuple(sorted(trimmed_targets)),
-        ambiguous_digest_lines=tuple(sorted(ambiguous)),
+        ambiguous_digests=tuple(sorted(ambiguous, key=lambda group: group.lines)),
         excluded_by_length=excluded,
         unmatched_selected_lines=tuple(sorted([*unmatched, *unmatched_digests])),
     )
@@ -274,7 +283,7 @@ def main(source: Path, out: Path, dataset: Path | None = None) -> None:
         typer.echo(
             f"{len(presence.present_selected_lines)} candidate rows matched the exact export; "
             f"{len(presence.trimmed_target_lines)} lost their flagged reply to trimming; "
-            f"{len(presence.ambiguous_digest_lines)} share a datum with another candidate; "
+            f"{sum(len(group.lines) for group in presence.ambiguous_digests)} share a datum with another candidate; "
             f"{presence.excluded_by_length} exceed length; {len(presence.unmatched_selected_lines)} unmatched"
         )
 

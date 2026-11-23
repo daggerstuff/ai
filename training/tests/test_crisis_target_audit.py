@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 from transformers import AutoTokenizer
 
-from training.crisis_target_audit import ExportIdentityError, audit, audit_export
+from training.crisis_target_audit import AmbiguousDigest, ExportIdentityError, audit, audit_export
 from training.export_tinker_release import Datum, build_tokens
 from training.tests.test_export_tinker_release import StubTokenizer
 
@@ -246,7 +246,7 @@ def test_export_review_reports_a_flagged_target_lost_to_trimming(
     assert result.trimmed_target_lines == (1,)
     assert result.present_selected_lines == ()
     assert result.unmatched_selected_lines == ()
-    assert result.ambiguous_digest_lines == ()
+    assert result.ambiguous_digests == ()
     assert result.excluded_by_length == 0
 
 
@@ -300,7 +300,47 @@ def test_export_review_reports_a_shared_datum_as_ambiguous(tmp_path: Path, monke
     monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
     result = audit_export(source, receipt, audit(source))
 
-    assert result.ambiguous_digest_lines == (1, 2)
+    assert result.ambiguous_digests == (AmbiguousDigest(lines=(1, 2), exported_copies=1),)
+    assert result.present_selected_lines == ()
+    assert result.unmatched_selected_lines == ()
+
+
+def test_export_review_reports_the_verified_count_for_ambiguous_digests(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "selected.jsonl"
+    messages: list[dict[str, Any]] = [
+        {"role": "user", "content": "I want to die."},
+        {"role": "assistant", "weight": 1, "content": "Tell me more."},
+    ]
+    tool_row = {"messages": messages, "tools": [{"type": "function", "function": {"name": "lookup"}}]}
+    plain_row = {"messages": messages}
+    source.write_text(json.dumps(tool_row) + "\n" + json.dumps(tool_row) + "\n" + json.dumps(plain_row) + "\n")
+    tokenizer = StubTokenizer()
+    ids, weights = build_tokens(tokenizer, messages)
+    datum = Datum(input_ids=ids[:-1], target_ids=ids[1:], weights=weights[1:])
+    exported = tmp_path / "datums.jsonl"
+    exported.write_text(datum.line() + "\n" + datum.line() + "\n")
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text(
+        json.dumps(
+            {
+                "path": str(exported),
+                "sha256": hashlib.sha256(exported.read_bytes()).hexdigest(),
+                "tokenizer": "test",
+                "max_tokens": 512,
+                "end_token": "<|im_end|>",
+            }
+        )
+    )
+
+    def load_tokenizer(_name: str, **_options: bool) -> StubTokenizer:
+        return tokenizer
+
+    monkeypatch.setattr(AutoTokenizer, "from_pretrained", load_tokenizer)
+    result = audit_export(source, receipt, audit(source))
+
+    assert result.ambiguous_digests == (AmbiguousDigest(lines=(1, 2, 3), exported_copies=2),)
     assert result.present_selected_lines == ()
     assert result.unmatched_selected_lines == ()
 

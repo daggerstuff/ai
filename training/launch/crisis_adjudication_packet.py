@@ -138,15 +138,13 @@ def _load_cases(cases_path: Path) -> list[dict]:
 
 
 def _load_results(results_path: Path) -> dict[tuple[str, str], dict]:
+    """Load the latest record per case and arm; a resumed run appends retries."""
     results: dict[tuple[str, str], dict] = {}
     for line in results_path.read_text().splitlines():
         if not line.strip():
             continue
         record = json.loads(line)
-        key = (record["case_id"], record["arm_id"])
-        if key in results:
-            raise ValueError(f"duplicate result for {key}")
-        results[key] = record
+        results[(record["case_id"], record["arm_id"])] = record
     return results
 
 
