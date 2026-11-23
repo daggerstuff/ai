@@ -7,11 +7,11 @@ import contextlib
 import io
 import shutil
 import tempfile
-import pytest
 import unittest
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from result_aggregator import ResultAggregator, main
 
 
@@ -37,7 +37,6 @@ class TestReportCommand(unittest.TestCase):
         self.temp_dir = Path(tempfile.mkdtemp())
         self.db_path = str(self.temp_dir / "results.db")
         self.batch_id = "batch-1"
-
         aggregator = ResultAggregator(self.db_path)
         aggregator.add_result(self.batch_id, make_result())
         aggregator.add_result(self.batch_id, make_result(success=False, quality_score=0.4, worker_id="worker-2"))
@@ -65,20 +64,41 @@ class TestReportCommand(unittest.TestCase):
         written = output_file.read_text()
         assert f"Quality Validation Report - Batch {self.batch_id}" in written
 
-    def test_report_for_missing_batch_prints_notice_to_stdout(self):
-        stdout = self._run_cli("--db-path", self.db_path, "report", "missing-batch")
-        assert "No data found for batch: missing-batch" in stdout
+    def test_report_for_missing_batch_writes_notice_to_stderr_and_exits_nonzero(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with (
+            mock.patch("sys.argv", ["result_aggregator", "--db-path", self.db_path, "report", "missing-batch"]),
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+            pytest.raises(SystemExit) as exit_info,
+        ):
+            main()
+        assert exit_info.value.code == 1
+        assert stdout.getvalue() == ""
+        assert "No data found for batch: missing-batch" in stderr.getvalue()
 
     def test_report_with_output_and_missing_batch_keeps_notice_off_stdout(self):
         output_file = self.temp_dir / "missing-batch.txt"
         stdout, stderr = io.StringIO(), io.StringIO()
-        with mock.patch("sys.argv", ["result_aggregator", "--db-path", self.db_path, "report", "missing-batch",
-                                     "--output", str(output_file)]), contextlib.redirect_stdout(stdout), \
-                contextlib.redirect_stderr(stderr):
-            with pytest.raises(SystemExit) as exit_info:
-                main()
+        with (
+            mock.patch(
+                "sys.argv",
+                [
+                    "result_aggregator",
+                    "--db-path",
+                    self.db_path,
+                    "report",
+                    "missing-batch",
+                    "--output",
+                    str(output_file),
+                ],
+            ),
+            contextlib.redirect_stdout(stdout),
+            contextlib.redirect_stderr(stderr),
+            pytest.raises(SystemExit) as exit_info,
+        ):
+            main()
         assert exit_info.value.code == 1
         assert stdout.getvalue() == ""
         assert "No data found for batch: missing-batch" in stderr.getvalue()
         assert not output_file.exists()
-

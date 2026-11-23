@@ -608,11 +608,10 @@ def main():
 
     elif args.command == "report":
         report_content = aggregator.generate_report(args.batch_id, args.output)
-        if args.output:
-            if report_content.startswith(MISSING_BATCH_NOTICE):
-                sys.stderr.write(report_content + "\n")
-                sys.exit(1)
-        else:
+        if report_content.startswith(MISSING_BATCH_NOTICE):
+            sys.stderr.write(report_content + "\n")
+            sys.exit(1)
+        if not args.output:
             sys.stdout.write(report_content + "\n")
 
     elif args.command == "list":
