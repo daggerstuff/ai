@@ -298,11 +298,12 @@ def allowed_anchors(disclosure: str, category: str) -> set[str]:
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     """The actions that name only means this disclosure carries.
 
-    Falls back to the whole surface when the category is not grounded, so the
-    nine categories v25 does not touch keep their v23 distribution exactly.
+    The nine categories v25 does not rework delegate to v24's pool, which
+    delegates to v23's grounding, so their rows keep the grounded distribution
+    - including v23's generic escalation instead of a full-table rotation.
     """
     if category not in GROUNDED_CATEGORIES:
-        return ACTIONS[category]
+        return v24.action_pool(disclosure, category)
     allowed = allowed_anchors(disclosure, category)
     concrete = concrete_anchors(disclosure, category)
     if concrete:

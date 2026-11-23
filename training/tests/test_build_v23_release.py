@@ -100,7 +100,10 @@ def test_v23_candidate_rows_are_clean_chat_rows() -> None:
         assert len(candidate["messages"]) == MESSAGES_PER_ROW
         assert candidate["messages"][0]["role"] == "user"
         assert candidate["messages"][1]["role"] == "assistant"
-        assert payload == v14.project_chat(candidate["messages"], Counter()), candidate["id"]
+        # The candidate carries only messages and source, so the identifying
+        # value in the failure output is the disclosure text, not an id key the
+        # candidate does not carry (a KeyError there would mask the mismatch).
+        assert payload == v14.project_chat(candidate["messages"], Counter()), candidate["messages"][0]["content"]
 
 
 def test_the_family_is_the_v23_builder_rows_verbatim() -> None:

@@ -502,11 +502,11 @@ def allowed_anchors(disclosure: str, category: str) -> set[str]:
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     """The actions that name only anchors this disclosure carries.
 
-    Falls back to the whole surface when the category is not grounded, so the
-    seven categories v26 does not touch keep their v25 distribution exactly.
+    The seven categories v26 does not rework delegate to v25's pool, so their
+    rows keep v25's grounded distribution - no full-table rotation survives.
     """
     if category not in GROUNDED_CATEGORIES:
-        return ACTIONS[category]
+        return v25.action_pool(disclosure, category)
     allowed = allowed_anchors(disclosure, category)
     concrete = concrete_anchors(disclosure, category)
     if concrete:

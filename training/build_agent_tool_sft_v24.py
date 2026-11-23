@@ -41,11 +41,10 @@ So the invariant is: **no ``means_access`` reply names a concrete means the
 disclosure did not give.** ``collect_rows`` enforces it per row and
 ``summarize`` reports how much of the category it covers.
 
-Grounding is applied to ``means_access`` only. The other nine categories still
-rotate over compound actions, so their invented-detail risk is unchanged and
-deliberately out of scope here: changing them at the same time would move nine
-passing cases for no measured benefit. The next lever is the same one-anchor
-rewrite applied category by category.
+Grounding is applied to ``means_access`` with the one-means actions; the other
+nine categories delegate to v23's grounded pool, so a v24 row for them is the
+row v23 already grounds - including v23's generic fallback, which replaced
+the full-table rotation that let a disclosure name pills it never gave.
 
 Everything else — frames, anchors, controls, the strict gate at build time, the
 action-first contract — is inherited from v23 unchanged. Rows are train-only,
@@ -208,11 +207,12 @@ def allowed_anchors(disclosure: str, category: str) -> set[str]:
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     """The actions that name only means this disclosure carries.
 
-    Falls back to the whole surface when the category is not grounded, so the
-    nine categories v24 does not touch keep their v23 distribution exactly.
+    The nine categories v24 does not rework delegate to v23's grounded pool, so
+    their rows are the rows v23 grounds; ``means_access`` keeps the one-means
+    rule with the abstract anchor fallback.
     """
     if category not in GROUNDED_CATEGORIES:
-        return ACTIONS[category]
+        return v23.action_pool(disclosure, category)
     allowed = allowed_anchors(disclosure, category)
     if not allowed:
         return ACTIONS[category]

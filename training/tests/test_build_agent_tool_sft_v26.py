@@ -94,6 +94,13 @@ def test_the_untouched_surface_is_inherited_from_v25() -> None:
         if category in GROUNDED_CATEGORIES:
             continue
         assert variants == v25.ACTIONS[category]
+        # The untouched categories also inherit v25's pool, so their rows keep
+        # the grounded distribution rather than a full-table rotation.
+        disclosure = v26.paraphrases()[category][0]
+        assert v26.action_pool(disclosure, category) == v25.action_pool(disclosure, category), (
+            category,
+            disclosure,
+        )
 
 
 def test_only_the_two_ungrounded_categories_grew_a_vocabulary() -> None:

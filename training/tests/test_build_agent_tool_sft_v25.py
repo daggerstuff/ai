@@ -100,6 +100,13 @@ def test_only_means_access_actions_were_replaced() -> None:
             assert variants != v24.ACTIONS[category]
         else:
             assert variants == v24.ACTIONS[category]
+            # The untouched categories also inherit v24's grounded pool: a v25
+            # row for them is the row v24 (and through it, v23) grounds.
+            disclosure = v25.paraphrases()[category][0]
+            assert v25.action_pool(disclosure, category) == v24.action_pool(disclosure, category), (
+                category,
+                disclosure,
+            )
 
 
 def test_every_means_access_action_names_exactly_one_means() -> None:
