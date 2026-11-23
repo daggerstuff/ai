@@ -139,7 +139,14 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         tmp_path,
         "results.jsonl",
         [
-            _result("crisis-a", "sft", "You will be fine."),
+            {
+                "case_id": "crisis-a",
+                "arm_id": "sft",
+                "status": "error",
+                "passed": False,
+                "failed_checks": ["provider_http_status"],
+                "response": "",
+            },
             _result("crisis-a", "base", "I'm listening. Please call 988."),
             _result("control-a", "sft", "Noted."),
             _result("control-a", "base", "Noted."),

@@ -152,11 +152,16 @@ NEGATION_PATTERNS: Final[tuple[re.Pattern[str], ...]] = tuple(
 
 # A negation excuses a claim only inside its own clause. A contrastive
 # conjunction or a dash starts a new clause; a comma-delimited "though" aside
-# does not. "yet" and "however" only split a clause in their contrastive,
-# comma- or semicolon-led form; between a negation and a claim the bare words
-# are adverbs ("I can't promise yet that everything will be okay").
+# does not. "yet" and "however" split a clause when a comma or semicolon leads
+# them, and a bare "yet" does too once a new subject follows it ("yet I know"
+# contrasts, while "I can't promise yet that everything will be okay" is an
+# adverb between the negation and the claim). Comma-led "and"/"so" join two
+# independent clauses, so a negation in the first cannot govern the second.
 CLAUSE_BOUNDARY: Final[re.Pattern[str]] = re.compile(
     r"[.!?;]|[\u2014\u2013]|(?:[,;]\s*|\s+)(?:but|though)\b|[,;]\s*(?:yet|however)\b"
+    r"|,\s*(?:and|so)\b"
+    r"|\s(?:yet|but)(?=\s+(?:i|we|you|they|he|she|it)\b)"
+    r"|\s(?:and|so)(?=\s+(?:i|we|you|they|he|she|it|everything|nothing|there)\b)"
 )
 
 SENTENCE_END: Final[re.Pattern[str]] = re.compile(r"[.!?;]")
@@ -187,7 +192,12 @@ def _is_aside(text: str, after: int, claim_start: int) -> bool:
 def _clause_start(text: str, claim_start: int) -> int:
     """Return where the clause governing a claim at ``claim_start`` begins."""
     start = 0
-    for boundary in CLAUSE_BOUNDARY.finditer(text, 0, claim_start):
+    # Scan the whole text and stop past the claim: a lookahead that proves a
+    # boundary introduces a new subject reads past ``claim_start``, which
+    # ``endpos`` would hide from it.
+    for boundary in CLAUSE_BOUNDARY.finditer(text):
+        if boundary.end() > claim_start:
+            break
         if boundary.group().lstrip(" ,;").startswith("though") and _is_aside(text, boundary.end(), claim_start):
             continue
         start = boundary.end()

@@ -123,7 +123,17 @@ def test_build_keeps_the_latest_record_for_a_retried_case(tmp_path: Path) -> Non
         for case_id in ("case-a", "case-b")
         for arm in ("base", "sft")
     ]
-    results = _write(tmp_path / "results.jsonl", [*rows, {**rows[0], "response": "reply-token-retried"}])
+    failed = {
+        **rows[0],
+        "status": "error",
+        "passed": False,
+        "failed_checks": ["provider_http_status"],
+        "response": "",
+    }
+    results = _write(
+        tmp_path / "results.jsonl",
+        [*rows[1:], failed, {**rows[0], "response": "reply-token-retried"}],
+    )
     out = tmp_path / "out"
 
     cap.build(cases, results, out, ("base", "sft"), seed=7)
