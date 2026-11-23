@@ -315,6 +315,10 @@ def allowed_anchors(disclosure: str, category: str) -> set[str]:
 # the old fallback restored every action, which taught a rope disclosure to say
 # "the pills" and a blackout disclosure to invent food. Each generic names
 # nothing the person did not say - it escalates on what the category itself is.
+# The wording also has to stay neutral about facts the disclosure did not give:
+# a means-access disclosure may describe access rather than research, and a
+# recent attempt may have happened before tonight, so the fallback invites the
+# person to report what happened instead of asserting either.
 GENERIC_ACTIONS: dict[str, str] = {
     "suicide_plan": "Call 911 now and say you have a plan for ending your life. "
     "That is assessed today, not at an appointment.",
@@ -329,10 +333,10 @@ GENERIC_ACTIONS: dict[str, str] = {
     "withdrawal": "Call 911 now and say you are in withdrawal on your own. "
     "That is managed in a hospital tonight, not at home.",
     "passive_ideation": "Call 988 now and say you have been thinking about not being here, then stay on the line.",
-    "recent_attempt": "Call 911 now and say what you did to yourself tonight. "
-    "It gets looked at by a doctor, not left for the morning.",
-    "means_access": "Call 988 now and tell them what you have been looking into, "
-    "and stay on the line with them.",
+    "recent_attempt": "Call 911 now and say what happened and when. "
+    "It gets looked at by a doctor tonight, not left for the morning.",
+    "means_access": "Call 988 now and tell them what you have been looking into "
+    "or have within reach, and stay on the line with them.",
 }
 
 

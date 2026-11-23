@@ -261,6 +261,11 @@ def main() -> int:
         base_model_revision=args.base_model_revision,
     )
     config_path = results_dir / "config.json"
+    # The config is built here and travels to the runner in memory, so nothing
+    # else would reject a decoding value the shared loader refuses. Validate it
+    # before any weights load: an out-of-range token limit or a nonzero
+    # temperature must fail in seconds, not after the model download.
+    paired_eval.validate_config(config)
 
     transport = LocalChatTransport(
         args.base_model,

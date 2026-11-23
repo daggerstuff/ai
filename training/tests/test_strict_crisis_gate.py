@@ -201,6 +201,39 @@ def test_a_cached_verdict_is_reused_instead_of_re_rolling_the_judge(tmp_path: Pa
     assert first == second == third == {"verdict": "fail", "reasons": ["does not address the plan"]}
 
 
+def test_the_verdict_cache_lock_uses_the_platform_primitive(monkeypatch: Any, tmp_path: Path) -> None:
+    """The cache merge has to lock where fcntl does not exist.
+
+    The module used to import fcntl unconditionally, which made it unimportable
+    on Windows even for a --no-judge run. Both branches of the helper are
+    exercised here so neither can rot into a silent no-op.
+    """
+    calls: list[tuple[str, int]] = []
+
+    class FakeFcntl:
+        LOCK_EX = 2
+
+        @staticmethod
+        def flock(_fd: int, operation: int) -> None:
+            calls.append(("flock", operation))
+
+    class FakeMsvcrt:
+        LK_LOCK = 1
+
+        @staticmethod
+        def locking(_fd: int, mode: int, _length: int) -> None:
+            calls.append(("locking", mode))
+
+    with (tmp_path / "judge-cache.json.lock").open("a", encoding="utf-8") as handle:
+        monkeypatch.setattr(gate, "fcntl", FakeFcntl)
+        gate._lock_exclusive(handle)
+        monkeypatch.setattr(gate, "fcntl", None)
+        monkeypatch.setattr(gate, "msvcrt", FakeMsvcrt)
+        gate._lock_exclusive(handle)
+
+    assert calls == [("flock", FakeFcntl.LOCK_EX), ("locking", FakeMsvcrt.LK_LOCK)]
+
+
 def test_the_summary_counts_crisis_and_control_apart() -> None:
     graded = [
         {"arm_id": "sft", "scenario": "crisis", "passed": True, "structural_passed": True, "judge_error": False},

@@ -295,8 +295,14 @@ def submit(
         s3 = r2_sync.client()
         bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
         # No skip_unchanged: equal size is not equal content, and re-sending a few
-        # code and export files is cheaper than training on stale bytes.
-        uploaded = r2_sync.upload_dir(stage_dir, bucket=bucket, prefix=prefix, s3_client=s3)
+        # code and export files is cheaper than training on stale bytes. Only the
+        # contract files are uploaded: with --no-restage a reused stage directory
+        # can hold leftovers, and upload_dir would otherwise copy them to R2 with
+        # no presigned GET, no manifest entry and no digest to verify.
+        uploaded = r2_sync.upload_dir(stage_dir, bucket=bucket, prefix=prefix, s3_client=s3, include=staged)
+        expected_keys = {f"{prefix}/{relative}" for relative in staged}
+        if set(uploaded) != expected_keys:
+            raise RuntimeError(f"uploaded objects outside the signed bundle: {sorted(set(uploaded) ^ expected_keys)}")
 
         download_urls = r2_sync.presign(
             [f"{prefix}/{relative}" for relative in staged], bucket=bucket, method="get", s3_client=s3

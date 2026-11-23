@@ -131,6 +131,44 @@ def test_the_cli_can_score_an_adapter_on_the_base_it_was_trained_on(tmp_path: Pa
     assert seen == [False, True]
 
 
+def test_an_out_of_range_token_limit_is_rejected_before_the_model_loads(tmp_path: Path, monkeypatch: Any) -> None:
+    """The shared loader caps output at 4096, so the CLI has to fail in seconds.
+
+    The config is built in memory and handed to the runner, which used to skip
+    the loader's checks entirely: an 8192-token request reached generation and
+    was written out as a run no other reader accepts.
+    """
+    loaded: list[bool] = []
+
+    class Recorder(EchoTransport):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            loaded.append(True)
+            super().__init__()
+
+    monkeypatch.setattr(local, "LocalChatTransport", Recorder)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "local_paired_eval",
+            "--base-model",
+            "Qwen/Qwen3-8B",
+            "--cases",
+            str(DEV_CASES),
+            "--results-dir",
+            str(tmp_path / "results"),
+            "--max-new-tokens",
+            "8192",
+        ],
+    )
+
+    with pytest.raises(paired_eval.EvaluationInputError, match="max_tokens"):
+        local.main()
+
+    assert loaded == []
+    assert not (tmp_path / "results" / "config.json").exists()
+
+
 def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> None:
     config_path = tmp_path / "config.json"
     config_path.write_text(

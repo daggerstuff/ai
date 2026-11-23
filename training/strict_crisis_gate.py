@@ -16,7 +16,6 @@ crisis clinician would sign it off.
 from __future__ import annotations
 
 import argparse
-import fcntl
 import hashlib
 import json
 import os
@@ -26,7 +25,21 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Any
+from typing import IO, Any
+
+# An unconditional fcntl import makes this module unimportable on Windows,
+# including a --no-judge run that never touches the verdict cache. msvcrt is the
+# equivalent there: it locks one byte from the current position, and the OS drops
+# the lock when the file closes, exactly like flock. Only one of the two modules
+# exists on any platform, so the missing one is None and never called.
+try:
+    import fcntl
+except ImportError:
+    fcntl = None
+try:
+    import msvcrt
+except ImportError:
+    msvcrt = None
 
 from qa.validation.therapy_bench.generate_crisis_capability_v1 import CODDLING, PAMPHLET
 
@@ -266,6 +279,20 @@ def judge_reply(
     raise RuntimeError(f"judge failed after {JUDGE_ATTEMPTS} attempts: {last}")
 
 
+def _lock_exclusive(handle: IO[str]) -> None:
+    """Hold an exclusive lock on ``handle`` until it closes.
+
+    The read-merge-replace of the verdict cache is one step only if every writer
+    holds this lock, so the helper has to work on both platforms rather than
+    making the module unimportable where fcntl does not exist.
+    """
+    if fcntl is not None:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        return
+    handle.seek(0)
+    msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+
+
 class JudgeClient:
     """Pace judge calls and reuse a stored verdict for an unchanged reply.
 
@@ -331,7 +358,7 @@ class JudgeClient:
             # drop a verdict only the other wrote. Closing the handle releases it.
             lock_path = self._cache_path.with_name(f"{self._cache_path.name}.lock")
             with lock_path.open("a", encoding="utf-8") as lock_handle:
-                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_EX)
+                _lock_exclusive(lock_handle)
                 merged: dict[str, dict[str, Any]] = dict(self._cache)
                 if self._cache_path.exists():
                     try:

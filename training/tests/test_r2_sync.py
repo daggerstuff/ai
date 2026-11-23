@@ -86,6 +86,28 @@ def test_upload_dir_mirrors_the_tree_and_skips_bytecode(tmp_path: Path) -> None:
     assert types["evals/v22/tag/run/manifest.json"] == "application/json"
 
 
+def test_upload_dir_include_restricts_the_mirror_to_the_signed_bundle(tmp_path: Path) -> None:
+    """A reused stage directory can hold leftovers; only the signed paths go up."""
+    stage = tmp_path / "stage"
+    (stage / "code").mkdir(parents=True)
+    (stage / "code" / "run_ovh.py").write_text("print('train')")
+    (stage / "code" / "notes.txt").write_text("leftover")
+    (stage / "data").mkdir()
+    (stage / "data" / "tinker-dataset.json").write_text("{}")
+    s3 = FakeS3()
+
+    keys = r2_sync.upload_dir(
+        stage,
+        bucket="training",
+        prefix="inputs/v23/tag",
+        s3_client=s3,
+        include=["code/run_ovh.py", "data/tinker-dataset.json"],
+    )
+
+    assert keys == ["inputs/v23/tag/code/run_ovh.py", "inputs/v23/tag/data/tinker-dataset.json"]
+    assert [put["Key"] for put in s3.puts] == keys
+
+
 def test_skip_unchanged_leaves_an_identical_object_alone_and_sends_the_rest(tmp_path: Path) -> None:
     run = tmp_path / "run"
     run.mkdir()

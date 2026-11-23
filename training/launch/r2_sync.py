@@ -34,8 +34,8 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Callable
-from pathlib import Path
+from collections.abc import Callable, Iterable
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 REQUIRED_ENV = ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT")
@@ -141,6 +141,7 @@ def upload_dir(
     prefix: str,
     s3_client: Any | None = None,
     skip_unchanged: bool = False,
+    include: Iterable[str] | None = None,
 ) -> list[str]:
     """Mirror a local directory under ``prefix``. Returns the uploaded keys.
 
@@ -152,12 +153,18 @@ def upload_dir(
     object's MD5, so an object stored that way is always re-sent. The input bundle
     holds two 344 MB adapters, so re-sending them on every submit is not free.
 
+    ``include`` restricts the mirror to a named set of source-relative paths, so
+    a caller that signs a fixed bundle cannot upload a leftover from a reused
+    directory: the object would land in the bucket without a presigned GET, a
+    manifest entry, or a digest.
+
     Callers that need a non-default ``env_file`` build the client with
     :func:`client` and pass it in: credentials are resolved in exactly one
     place, and nothing here reads the environment behind the caller's back.
     """
     s3 = s3_client if s3_client is not None else client()
     base = prefix.strip("/")
+    allowed = None if include is None else {PurePosixPath(relative).as_posix() for relative in include}
     existing: dict[str, tuple[int, str]] = {}
     if skip_unchanged:
         existing = {
@@ -168,7 +175,10 @@ def upload_dir(
     for path in sorted(source.rglob("*")):
         if not path.is_file() or _skip(path.relative_to(source)):
             continue
-        key = f"{base}/{path.relative_to(source).as_posix()}" if base else path.relative_to(source).as_posix()
+        relative = path.relative_to(source).as_posix()
+        if allowed is not None and relative not in allowed:
+            continue
+        key = f"{base}/{relative}" if base else relative
         if skip_unchanged:
             known = existing.get(key)
             if known is not None and known[0] == path.stat().st_size and known[1] == _file_md5(path):
