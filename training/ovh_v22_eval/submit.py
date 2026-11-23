@@ -10,20 +10,22 @@ the container, and nothing depends on the volume syncing at teardown.
 
 Usage::
 
-    python -m training.ovh_v22_eval.submit stage            # copy the bundle to /tmp/ovh-eval
-    python -m training.ovh_v22_eval.submit run --dry-run    # show the ovhai command
-    python -m training.ovh_v22_eval.submit run --execute    # upload, presign, launch
-    python -m training.ovh_v22_eval.submit collect --tag v23-l4a
+    python -m training.ovh_v22_eval.submit stage                    # bundle -> /tmp/ovh-eval
+    python -m training.ovh_v22_eval.submit run --tag v22-l4a        # print the ovhai command
+    python -m training.ovh_v22_eval.submit run --tag v22-l4a --execute
+    python -m training.ovh_v22_eval.submit collect --tag v22-l4a    # pull results back
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
 import sys
-from pathlib import Path
+import tempfile
+from pathlib import Path, PurePosixPath
 
 from training.launch import r2_sync
 
@@ -33,7 +35,15 @@ REPO_ROOT = AI_ROOT.parent
 DEFAULT_IMAGE = "pytorch/pytorch:2.11.0-cuda12.6-cudnn9-runtime"
 DEFAULT_FLAVOR = "l4-1-gpu"
 DEFAULT_TIMEOUT = "2h"
-DEFAULT_STAGE_DIR = Path("/tmp/ovh-eval")
+DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-eval"
+# Where the container unpacks the bundle. Not a host path: the job sets ROOT to
+# this, and the bootstrap falls back to it when the variable is missing. A job
+# with no volume gets a read-only image filesystem, so this has to be the
+# container's temp directory; the launchers default to the same directory.
+# Built from segments because it is a POSIX path inside the container: the
+# submitting host's own temp directory is irrelevant to it, whatever platform
+# the submission happens to run from.
+REMOTE_ROOT = str(PurePosixPath("/", "tmp", "work"))
 # 344 MB each: kept out of the repo, staged from the training output directory.
 DEFAULT_ADAPTERS = {
     "bf16": AI_ROOT / "training/output/ovh-v22-qwen3-8b/adapter-final",
@@ -67,7 +77,7 @@ CASES_DIR = REPO_ROOT / "docs/training/execution-2026-10-17"
 # Runs inside the container before anything else. Kept to the standard library:
 # the image has no boto3, and the only thing it needs is HTTP.
 BOOTSTRAP = """\
-import base64, gzip, json, os, pathlib, shutil, subprocess, sys, urllib.request
+import base64, gzip, json, os, pathlib, shutil, subprocess, sys, time, urllib.request
 
 plan = json.loads(gzip.decompress(base64.urlsafe_b64decode(os.environ["R2_MAP_B64"].encode())))
 root = pathlib.Path(os.environ.get("ROOT", "/tmp/work"))
@@ -83,7 +93,47 @@ for relative, url in sorted(downloads.items()):
     with urllib.request.urlopen(request, timeout=900) as response, target.open("wb") as handle:
         shutil.copyfileobj(response, handle)
     print(f"  fetched {relative} {target.stat().st_size} bytes", flush=True)
-raise SystemExit(subprocess.call(["bash", str(root / "code" / "launch.sh")]))
+status = subprocess.call(["bash", str(root / "code" / "launch.sh")])
+print(f"bootstrap: launcher exited {status}", flush=True)
+
+# The launcher stops at the first incomplete run, so whatever finished before
+# that still has to reach R2: one bad case must not also lose its siblings.
+out_root = pathlib.Path(os.environ.get("OUT_ROOT", "/tmp/out"))
+failed = []
+for relative, url in sorted(plan.get("upload", {}).items()):
+    source = out_root / relative
+    if not source.is_file():
+        print(f"  missing result {relative}", flush=True)
+        failed.append(relative)
+        continue
+    payload = source.read_bytes()
+    last = None
+    for attempt in range(3):
+        request = urllib.request.Request(
+            url,
+            data=payload,
+            method="PUT",
+            headers={
+                "Content-Type": "application/octet-stream",
+                "Content-Length": str(len(payload)),
+                "User-Agent": "pixelated-empathy-r2-sync/1.0",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=900) as response:
+                print(f"  uploaded {relative} {len(payload)} bytes -> {response.status}", flush=True)
+                break
+        except Exception as error:
+            last = error
+            if attempt < 2:
+                time.sleep(2.0 * (attempt + 1))
+    else:
+        print(f"  upload failed {relative}: {last}", flush=True)
+        failed.append(relative)
+
+if failed:
+    print(f"bootstrap: {len(failed)} results did not land: {failed}", flush=True)
+raise SystemExit(status if not failed else 1)
 """
 
 
@@ -97,6 +147,17 @@ def stage(
     /tmp last time.
     """
     adapters = DEFAULT_ADAPTERS if adapters is None else adapters
+    # ``rmtree`` below erases whatever is already there, so a stage directory
+    # that holds one of the sources would delete the input it is about to copy.
+    resolved = destination.resolve()
+    # The submitter's own module directory is a source too: `--stage-dir
+    # training/ovh_v22_eval` sits below AI_ROOT, so the AI_ROOT guard alone
+    # would let rmtree delete the tree that holds launch.sh.
+    module_dir = Path(__file__).resolve().parent
+    for source in [AI_ROOT, CASES_DIR, module_dir, *adapters.values()]:
+        source_resolved = source.resolve()
+        if resolved == source_resolved or resolved in source_resolved.parents:
+            raise SystemExit(f"refusing to stage into {destination}: it contains {source}")
     if destination.exists():
         shutil.rmtree(destination)
     copied: list[str] = []
@@ -144,6 +205,33 @@ def staged_files(stage_dir: Path) -> list[str]:
     return sorted(path.relative_to(stage_dir).as_posix() for path in stage_dir.rglob("*") if path.is_file())
 
 
+def _file_digest(path: Path) -> bytes:
+    """SHA-256 of one staged file, read in chunks so a 344 MB adapter stays off the heap."""
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.digest()
+
+
+def bundle_digest(stage_dir: Path, staged: list[str]) -> str:
+    """Content digest of a staged bundle, used as its input prefix.
+
+    A presigned GET names a key, not an object version: with a fixed prefix a
+    later submission could replace the bytes a queued job has not fetched yet,
+    and that job would score the wrong bundle under its own tag. Deriving the
+    prefix from the content makes each submission's keys immutable, and an
+    unchanged bundle reuses the objects already in the bucket.
+    """
+    digest = hashlib.sha256()
+    for relative in sorted(staged):
+        digest.update(relative.encode())
+        digest.update(b"\0")
+        digest.update(_file_digest(stage_dir / relative))
+        digest.update(b"\n")
+    return digest.hexdigest()
+
+
 def build_job_env(
     *,
     tag: str,
@@ -157,7 +245,7 @@ def build_job_env(
     env = [
         f"R2_MAP_B64={r2_sync.encode_map(plan)}",
         f"BOOTSTRAP={BOOTSTRAP}",
-        "ROOT=/tmp/work",
+        f"ROOT={REMOTE_ROOT}",
         "OUT_ROOT=/tmp/out",
         f"LABELS={' '.join(labels)}",
         f"RUN_LABEL={run_label}",
@@ -211,8 +299,21 @@ def submit(
     suite: str = DEFAULT_SUITE,
 ) -> dict[str, object]:
     """Upload the bundle, sign the map, and launch (or print) the job."""
+    if "/" in out_prefix or "\\" in out_prefix:
+        # The upload map is keyed by run-directory name, so a prefix carrying a
+        # separator signs keys the launcher never looks up and every upload is
+        # silently skipped.
+        raise SystemExit("--out-prefix must not contain a path separator")
     adapters = DEFAULT_ADAPTERS if adapters is None else adapters
-    staged = stage(stage_dir, adapters=adapters, suite=suite) if restage else staged_files(stage_dir)
+    if restage:
+        stage(stage_dir, adapters=adapters, suite=suite)
+    # `stage` returns top-level entries, and a nested adapter bundle comes back
+    # as its directory: the digest and the download map need the files below it,
+    # not the directory, or `_file_digest` raises IsADirectoryError. The skip
+    # filter keeps the list equal to what `upload_dir` really uploads, or the
+    # presence check below rejects a valid bundle over a stray __pycache__ file.
+    staged = [relative for relative in staged_files(stage_dir) if not r2_sync._skip(Path(relative))]
+    inputs_prefix = f"{inputs_prefix.strip('/')}/{bundle_digest(stage_dir, staged)}"
 
     s3 = r2_sync.client()
     bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
@@ -282,6 +383,8 @@ def _selected_adapters(parser: argparse.ArgumentParser, args: argparse.Namespace
     launcher never opens costs 344 MB of upload for nothing.
     """
     labels = tuple(item.strip() for item in args.labels.split(",") if item.strip())
+    if not labels:
+        parser.error("--labels must name at least one adapter label")
     adapters = dict(DEFAULT_ADAPTERS)
     for pair in args.adapter:
         label, separator, path = pair.partition("=")

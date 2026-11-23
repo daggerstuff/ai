@@ -15,6 +15,7 @@ the manifest must record the selection defect and the anchor-first fix.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -252,7 +253,12 @@ def test_every_grounded_action_opens_on_one_of_its_own_anchors() -> None:
     """The v28 losses shared one shape: a generic first clause. v29 bans it."""
     for category in v29.CLUSTERED_CATEGORIES:
         for action in v29.ACTIONS[category]:
-            assert v29.opens_on_anchor(action, category), (category, action)
+            first = re.split(r"[.!?]", action, maxsplit=1)[0]
+            assert v29.clusters(first, category), (category, action)
+    # The negative case: the pre-rewrite v28 shape opened on the routing frame
+    # alone, and an independently parsed first clause must not count as anchored.
+    generic = "Call 911 now. A seizure from purging or not eating needs a doctor tonight."
+    assert not v29.clusters(re.split(r"[.!?]", generic, maxsplit=1)[0], "medical_collapse")
 
 
 def test_the_anchor_first_rewrite_only_reorders_the_same_clusters() -> None:
@@ -382,13 +388,15 @@ def release_fixture(tmp_path: Path) -> release._Release:
 
 def test_summary_reports_the_v29_release(tmp_path: Path) -> None:
     fixture = release_fixture(tmp_path)
-    fixture.v29_rows = release.v29_candidate_rows()
+    fixture.append_addenda()
 
     summary = fixture.summary()
 
     assert summary["release_id"] == release.RELEASE_ID
     assert summary["appended_v29_rows"] == V29_ROWS
     assert "appended_v28_rows" not in summary
+    sources = [candidate["source"] for candidate, _ in fixture.v29_rows]
+    assert sources == [release.V29_SOURCE_LABEL] * V29_ROWS
 
 
 def test_the_release_is_not_the_v28_builder() -> None:

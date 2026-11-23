@@ -35,7 +35,6 @@ import time
 import urllib.error
 import urllib.request
 from collections.abc import Callable
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -126,6 +125,15 @@ def _skip(path: Path) -> bool:
     return any(part in SKIP_PARTS for part in path.parts) or path.suffix in SKIP_SUFFIXES
 
 
+def _file_md5(path: Path) -> str:
+    """MD5 hex of a file: what S3/R2 reports as the ETag of a single-part PUT."""
+    digest = hashlib.md5(usedforsecurity=False)
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def upload_dir(
     source: Path,
     *,
@@ -136,9 +144,13 @@ def upload_dir(
 ) -> list[str]:
     """Mirror a local directory under ``prefix``. Returns the uploaded keys.
 
-    ``skip_unchanged`` compares size and SHA-256 metadata against stored objects.
-    Legacy objects without a checksum are refreshed. The input bundle holds
-    two 344 MB adapters, so re-sending them on every submit is not free.
+    ``skip_unchanged`` compares against the objects already under ``prefix`` and
+    uploads only what is missing or whose size or MD5 digest differs. Size alone
+    is not enough: a rebuilt adapter or runner file can keep its byte count while
+    its contents change, and the job would then score the previous bundle. The
+    digest is only computed when the size matches; a multipart ETag is not the
+    object's MD5, so an object stored that way is always re-sent. The input bundle
+    holds two 344 MB adapters, so re-sending them on every submit is not free.
 
     Callers that need a non-default ``env_file`` build the client with
     :func:`client` and pass it in: credentials are resolved in exactly one
@@ -146,23 +158,22 @@ def upload_dir(
     """
     s3 = s3_client if s3_client is not None else client()
     base = prefix.strip("/")
-    existing: dict[str, int] = {}
+    existing: dict[str, tuple[int, str]] = {}
     if skip_unchanged:
-        existing = {entry["key"]: entry["size"] for entry in list_prefix(bucket=bucket, prefix=base, s3_client=s3)}
+        existing = {
+            entry["key"]: (entry["size"], entry["etag"])
+            for entry in list_prefix(bucket=bucket, prefix=base, s3_client=s3)
+        }
     uploaded: list[str] = []
     for path in sorted(source.rglob("*")):
         if not path.is_file() or _skip(path.relative_to(source)):
             continue
         key = f"{base}/{path.relative_to(source).as_posix()}" if base else path.relative_to(source).as_posix()
-        payload = path.read_bytes()
-        checksum = hashlib.sha256(payload).hexdigest()
-        if skip_unchanged and existing.get(key) == len(payload):
-            metadata = s3.head_object(Bucket=bucket, Key=key).get("Metadata", {})
-            if metadata.get("sha256") == checksum:
+        if skip_unchanged:
+            known = existing.get(key)
+            if known is not None and known[0] == path.stat().st_size and known[1] == _file_md5(path):
                 continue
-        s3.put_object(
-            Bucket=bucket, Key=key, Body=payload, ContentType=content_type(path), Metadata={"sha256": checksum}
-        )
+        s3.put_object(Bucket=bucket, Key=key, Body=path.read_bytes(), ContentType=content_type(path))
         uploaded.append(key)
     return uploaded
 
@@ -203,7 +214,7 @@ def list_prefix(
     prefix: str,
     s3_client: Any | None = None,
 ) -> list[dict[str, Any]]:
-    """Every object under ``prefix`` as ``{key, size}``."""
+    """Every object under ``prefix`` as ``{key, size, etag}``."""
     s3 = s3_client if s3_client is not None else client()
     base = prefix.strip("/")
     found: list[dict[str, Any]] = []
@@ -213,7 +224,10 @@ def list_prefix(
         if token:
             request["ContinuationToken"] = token
         page = s3.list_objects_v2(**request)
-        found += [{"key": entry["Key"], "size": entry["Size"]} for entry in page.get("Contents", [])]
+        found += [
+            {"key": entry["Key"], "size": entry["Size"], "etag": entry.get("ETag", "").strip('"')}
+            for entry in page.get("Contents", [])
+        ]
         if not page.get("IsTruncated"):
             return found
         token = page.get("NextContinuationToken")
@@ -296,47 +310,28 @@ def decode_map(text: str) -> dict[str, Any]:
     return decoded
 
 
-def run_dir_uploads(run_dir: Path, urls: dict[str, str], *, run_root: Path | None = None) -> list[tuple[Path, str]]:
+def run_dir_uploads(run_dir: Path, urls: dict[str, str]) -> list[tuple[Path, str]]:
     """Pair each file in ``run_dir`` with the URL signed for it, if any.
 
     The map is keyed ``<run-dir-name>/<file-name>``, i.e. relative to the run
-    root, so the same map works wherever the job wrote the directory. Nested
-    output prefixes require ``run_root`` to preserve the complete relative path.
+    root, so the same map works wherever the job wrote the directory.
     """
     pairs: list[tuple[Path, str]] = []
-    relative_run = run_dir.relative_to(run_root).as_posix() if run_root is not None else run_dir.name
     for path in sorted(run_dir.iterdir()):
         if not path.is_file():
             continue
-        url = urls.get(f"{relative_run}/{path.name}")
+        url = urls.get(f"{run_dir.name}/{path.name}")
         if url:
             pairs.append((path, url))
     return pairs
 
 
-@dataclass(frozen=True, slots=True)
-class RunUploadError(RuntimeError):
-    """The signed map cannot preserve the requested run."""
-
-    run: str
-    missing: tuple[str, ...]
-
-    def __str__(self) -> str:
-        return f"cannot upload {self.run}: missing signed results {self.missing or ('no matching upload URLs',)}"
-
-
-def upload_run(run_dir: Path, urls: dict[str, str], *, run_root: Path | None = None) -> list[str]:
+def upload_run(run_dir: Path, urls: dict[str, str]) -> list[str]:
     """PUT every signed file in a finished run directory. Returns the keys sent."""
-    relative_run = run_dir.relative_to(run_root).as_posix() if run_root is not None else run_dir.name
-    pairs = run_dir_uploads(run_dir, urls, run_root=run_root)
-    expected = {key for key in urls if key.startswith(f"{relative_run}/")}
-    found = {f"{relative_run}/{path.name}" for path, _ in pairs}
-    if not expected or expected != found:
-        raise RunUploadError(run_dir.name, tuple(sorted(expected - found)))
     sent: list[str] = []
-    for path, url in pairs:
+    for path, url in run_dir_uploads(run_dir, urls):
         put_file(url, path)
-        sent.append(f"{relative_run}/{path.name}")
+        sent.append(f"{run_dir.name}/{path.name}")
     return sent
 
 
@@ -386,7 +381,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     upload_run_parser = sub.add_parser("upload-run", help="PUT a finished run dir using R2_MAP_B64")
     upload_run_parser.add_argument("--run-dir", type=Path, required=True)
-    upload_run_parser.add_argument("--run-root", type=Path, default=None)
     return parser
 
 
@@ -413,7 +407,7 @@ def _run_upload_run(args: argparse.Namespace) -> int:
         # must not fail the job that produced the results.
         sys.stderr.write(f"{error}; results stay in the log only\n")
         return 2
-    sent = upload_run(args.run_dir, urls, run_root=args.run_root)
+    sent = upload_run(args.run_dir, urls)
     sys.stdout.write(json.dumps({"run": args.run_dir.name, "uploaded": sent}, sort_keys=True) + "\n")
     return 0
 

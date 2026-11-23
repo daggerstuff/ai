@@ -123,10 +123,6 @@ ANCHORS: dict[str, tuple[str, ...]] = {
 # themselves; never allowed to answer a disclosure that named a real means.
 ABSTRACT_ANCHORS: tuple[str, ...] = ("means", "method")
 
-# The sentences that made "the means" the category's default answer. They may
-# not survive into a v25 row at all.
-ABSTRACT_STAND_INS: tuple[str, ...] = ("the means within reach", "the means out of the house")
-
 # One means per action, one action per means the corpus carries. v24 had 8
 # actions and two of them were the abstract "the means" lines that dominated.
 REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
@@ -302,11 +298,12 @@ def allowed_anchors(disclosure: str, category: str) -> set[str]:
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     """The actions that name only means this disclosure carries.
 
-    Falls back to the whole surface when the category is not grounded, so the
-    nine categories v25 does not touch keep their v23 distribution exactly.
+    The nine categories v25 does not rework delegate to v24's pool, which
+    delegates to v23's grounding, so their rows keep the grounded distribution
+    - including v23's generic escalation instead of a full-table rotation.
     """
     if category not in GROUNDED_CATEGORIES:
-        return ACTIONS[category]
+        return v24.action_pool(disclosure, category)
     allowed = allowed_anchors(disclosure, category)
     concrete = concrete_anchors(disclosure, category)
     if concrete:
@@ -460,9 +457,7 @@ def summarize(all_rows: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     crisis = [item for item in rows if item["category"] != "control"]
     means = [item for item in rows if item["category"] == "means_access"]
     means_concrete = [item for item in means if concrete_anchors(item["messages"][0]["content"], "means_access")]
-    abstract_rows = [
-        item for item in means if any(phrase in item["messages"][1]["content"].lower() for phrase in ABSTRACT_STAND_INS)
-    ]
+    abstract_rows = [item for item in means if not concrete_anchors(item["messages"][0]["content"], "means_access")]
     return {
         "example_count": len(rows),
         "crisis_severity_counts": dict(sorted(severities.items())),

@@ -23,15 +23,15 @@ cause is a coverage hole, and it is measured rather than guessed:
 v25 closes the hole three ways. The anchor vocabulary gains 17 entries (pistol,
 tablets, painkillers, paracetamol, insulin, antifreeze, rope, ligature, length of
 hose, blade, knife, railway, quarry, roof, coast, height, car park). The action
-surface grows from 8 to 23, each naming exactly one means. The 5 disclosures that
+surface grows from 8 to 24, each naming exactly one means. The 5 disclosures that
 named nothing at all are rewritten to name one. A disclosure with no recognised
 means is no longer answered with an abstract stand-in: every v25 row names a
 concrete means the person gave, and "the means within reach" / "the means out of
 the house" appear in zero rows. "The method you have worked out" survives, because
 it only fires for disclosures that say "method" themselves.
 
-Grounding stays scoped to ``means_access``. The other nine categories keep v24's
-exact training distribution, so the comparison stays one variable. Everything
+Grounding stays scoped to ``means_access``. The other nine categories keep
+v24's grounded pools, so the comparison stays one variable. Everything
 else — frames, anchors, controls, the strict gate at build time, the action-first
 contract — is inherited unchanged.
 
@@ -90,10 +90,12 @@ LIMITATIONS_V25: tuple[str, ...] = (
     (
         "The v25 crisis-direct rows replace the v24 rows rather than adding to them, so the release still "
         "teaches one register per category. The family is 6,504 rows, 7.9% of train, against roughly 81,900 "
-        "corpus rows that answer a disclosure by reflecting on it. Grounding covers means_access only: the "
-        "other nine categories still rotate their eight actions across every disclosure of the category, so "
-        "a reply there can still name a detail the person never gave. That is the measured cause of the "
-        "remaining invented-detail risk, and it is untouched by this release on purpose."
+        "corpus rows that answer a disclosure by reflecting on it. Grounding covers means_access with "
+        "the 24-action rewrite, and the other nine categories inherit v24's per-disclosure pools rather "
+        "than rotating their eight actions: a reply there names only the anchors the disclosure carried, "
+        "or the category's escalation fallback when no specific action fits. The residual risk in the "
+        "nine categories is no longer invention but narrowing: a disclosure no specific action can "
+        "answer is answered by the generic alone, one line where the inherited surface had eight."
     ),
     (
         "The 600 control rows hold v25 at 9.8 escalations per ordinary reply. That ratio is the "
@@ -209,7 +211,9 @@ def stamp_release_identity(
 
 
 class _Release(prev._Release):
-    """v24's pipeline with the 23-action grounded v25 crisis family in place of v24's."""
+    """v24's pipeline with the 24-action grounded v25 crisis family in place of v24's."""
+
+    shuffle_seed = SHUFFLE_SEED
 
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)

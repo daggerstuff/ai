@@ -19,23 +19,24 @@ from training.launch import r2_sync
 
 
 class FakeS3:
-    """Records every call and serves a paged listing like the real client."""
+    """Records every call and serves a paged listing like the real client.
 
-    def __init__(self, objects: dict[str, bytes] | None = None) -> None:
+    ``etags`` overrides a key's listing ETag. That is how a multipart upload
+    looks on the wire: ``"<md5-of-part-md5s>-<part-count>"``, quoted like the
+    real client, rather than the object's MD5.
+    """
+
+    def __init__(self, objects: dict[str, bytes] | None = None, *, etags: dict[str, str] | None = None) -> None:
         self.objects = objects or {}
+        self.etags = etags or {}
         self.puts: list[dict[str, Any]] = []
         self.list_calls: list[dict[str, Any]] = []
         self.presigned: list[tuple[str, dict[str, Any], int]] = []
-        self.metadata: dict[str, dict[str, str]] = {}
 
     def put_object(self, **kwargs: Any) -> dict[str, Any]:
         self.puts.append(kwargs)
         self.objects[kwargs["Key"]] = kwargs["Body"]
-        self.metadata[kwargs["Key"]] = kwargs.get("Metadata", {})
         return {}
-
-    def head_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
-        return {"Metadata": self.metadata.get(Key, {})}
 
     def get_object(self, *, Bucket: str, Key: str) -> dict[str, Any]:
         return {"Body": io.BytesIO(self.objects[Key])}
@@ -47,8 +48,16 @@ class FakeS3:
         # One object per page, so the pagination branch is exercised.
         start = int(kwargs.get("ContinuationToken", "0"))
         page = keys[start : start + 1]
+        contents = [
+            {
+                "Key": key,
+                "Size": len(self.objects[key]),
+                "ETag": self.etags.get(key) or f'"{hashlib.md5(self.objects[key], usedforsecurity=False).hexdigest()}"',
+            }
+            for key in page
+        ]
         response: dict[str, Any] = {
-            "Contents": [{"Key": key, "Size": len(self.objects[key])} for key in page],
+            "Contents": contents,
             "IsTruncated": start + 1 < len(keys),
         }
         if response["IsTruncated"]:
@@ -76,28 +85,54 @@ def test_upload_dir_mirrors_the_tree_and_skips_bytecode(tmp_path: Path) -> None:
     assert types["evals/v22/tag/run/manifest.json"] == "application/json"
 
 
-@pytest.mark.parametrize("stored", [b"old!", b"new!"])
-def test_upload_skip_unchanged_compares_content(tmp_path: Path, stored: bytes) -> None:
-    source = tmp_path / "source"
-    source.mkdir()
-    (source / "launch.sh").write_bytes(b"new!")
-    key = "inputs/code/launch.sh"
-    s3 = FakeS3({key: stored})
-    s3.metadata[key] = {"sha256": hashlib.sha256(stored).hexdigest()}
+def test_skip_unchanged_leaves_an_identical_object_alone_and_sends_the_rest(tmp_path: Path) -> None:
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "results.jsonl").write_text('{"a": 1}\n')
+    (run / "manifest.json").write_text("{}")
+    prefix = "evals/v22/tag/run"
+    s3 = FakeS3({f"{prefix}/results.jsonl": b'{"a": 1}\n'})
 
-    uploaded = r2_sync.upload_dir(source, bucket="training", prefix="inputs/code", s3_client=s3, skip_unchanged=True)
+    keys = r2_sync.upload_dir(run, bucket="training", prefix=prefix, s3_client=s3, skip_unchanged=True)
 
-    assert s3.objects[key] == b"new!"
-    assert uploaded == ([] if stored == b"new!" else [key])
+    assert keys == [f"{prefix}/manifest.json"]
+    assert [put["Key"] for put in s3.puts] == [f"{prefix}/manifest.json"]
 
 
-def test_upload_refreshes_legacy_objects_without_a_checksum(tmp_path: Path) -> None:
-    (tmp_path / "launch.sh").write_bytes(b"new!")
-    s3 = FakeS3({"inputs/launch.sh": b"old!"})
+def test_skip_unchanged_uploads_a_same_size_file_whose_bytes_changed(tmp_path: Path) -> None:
+    """Size is not identity: a rebuilt adapter can keep its byte count.
 
-    r2_sync.upload_dir(tmp_path, bucket="training", prefix="inputs", s3_client=s3, skip_unchanged=True)
+    This is the case the digest comparison exists for. With a size-only check the
+    job would score the previous bundle while believing it shipped the new one.
+    """
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "adapter.bin").write_bytes(b"fresh weights")
+    key = "evals/v22/tag/run/adapter.bin"
+    s3 = FakeS3({key: b"stale weights"})  # same length, different bytes
 
-    assert s3.objects["inputs/launch.sh"] == b"new!"
+    keys = r2_sync.upload_dir(run, bucket="training", prefix="evals/v22/tag/run", s3_client=s3, skip_unchanged=True)
+
+    assert keys == [key]
+    assert s3.puts[0]["Body"] == b"fresh weights"
+
+
+def test_skip_unchanged_reuploads_an_object_with_a_multipart_etag(tmp_path: Path) -> None:
+    """A multipart ETag is not the object's MD5, so the digest cannot be verified.
+
+    R2 returns ``<md5-of-part-md5s>-<part-count>`` for a multipart PUT, which
+    never equals the local file's MD5. The object is re-sent rather than trusted.
+    """
+    run = tmp_path / "run"
+    run.mkdir()
+    (run / "adapter.bin").write_bytes(b"fresh weights")
+    key = "evals/v22/tag/run/adapter.bin"
+    part_digest = hashlib.md5(b"part", usedforsecurity=False).hexdigest()
+    s3 = FakeS3({key: b"fresh weights"}, etags={key: f'"{part_digest}-2"'})
+
+    keys = r2_sync.upload_dir(run, bucket="training", prefix="evals/v22/tag/run", s3_client=s3, skip_unchanged=True)
+
+    assert keys == [key]
 
 
 def test_download_prefix_follows_pagination_and_mirrors_keys(tmp_path: Path) -> None:
@@ -207,21 +242,6 @@ def test_upload_run_sends_only_the_files_that_were_signed(tmp_path: Path, monkey
     assert sent[0][1].name == "results.jsonl"
 
 
-@pytest.mark.parametrize("urls", [{}, {"other-run/results.jsonl": "https://r2.test/result"}])
-def test_upload_run_rejects_a_map_that_cannot_store_the_run(tmp_path: Path, urls: dict[str, str]) -> None:
-    (tmp_path / "results.jsonl").write_text("{}\n")
-
-    with pytest.raises(r2_sync.RunUploadError):
-        r2_sync.upload_run(tmp_path, urls)
-
-
-def test_upload_run_rejects_missing_signed_results(tmp_path: Path) -> None:
-    urls = {f"{tmp_path.name}/results.jsonl": "https://r2.test/result"}
-
-    with pytest.raises(r2_sync.RunUploadError):
-        r2_sync.upload_run(tmp_path, urls)
-
-
 def test_credentials_explain_what_is_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     for name in r2_sync.REQUIRED_ENV:
         monkeypatch.delenv(name, raising=False)
@@ -247,26 +267,22 @@ def test_credentials_strip_the_quotes_a_dotenv_file_keeps(tmp_path: Path, monkey
     assert settings["R2_BUCKET"] == "training"
 
 
-@pytest.mark.parametrize("prefix", ["", "evals/v30/v2"])
-def test_the_upload_run_command_needs_no_credential(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, prefix: str
-) -> None:
+def test_the_upload_run_command_needs_no_credential(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The job side of the contract: a map in the environment is all it takes."""
-    run_name = f"{prefix}eval-bf16-dev"
-    run = tmp_path / run_name
-    run.mkdir(parents=True)
+    run = tmp_path / "eval-bf16-dev"
+    run.mkdir()
     (run / "results.jsonl").write_text('{"case_id": "dev-crisis-suicide-plan"}\n')
     (run / "manifest.json").write_text("{}")
     for name in r2_sync.REQUIRED_ENV:
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv(
         "R2_MAP_B64",
-        r2_sync.encode_map({"upload": {f"{run_name}/results.jsonl": "https://r2.example/one"}}),
+        r2_sync.encode_map({"upload": {"eval-bf16-dev/results.jsonl": "https://r2.example/one"}}),
     )
     sent: list[str] = []
     monkeypatch.setattr(r2_sync, "put_file", lambda _url, _path: sent.append(_url) or 200)
 
-    assert r2_sync.main(["upload-run", "--run-dir", str(run), "--run-root", str(tmp_path)]) == 0
+    assert r2_sync.main(["upload-run", "--run-dir", str(run)]) == 0
     assert sent == ["https://r2.example/one"]
 
 

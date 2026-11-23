@@ -28,7 +28,7 @@ import training.build_agent_tool_sft_v23 as v23
 import training.build_agent_tool_sft_v24 as v24
 import training.build_agent_tool_sft_v25 as v25
 import training.strict_crisis_gate as gate
-from ai.qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
+from qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
 
 MESSAGES_PER_ROW = 2
 EXPECTED_ACTIONS_PER_CATEGORY = 8
@@ -38,8 +38,9 @@ EXPECTED_CONTROLS = 600
 EXPECTED_MEANS_ACCESS_ROWS = 536
 MIN_DISTINCT_REPLIES = 100
 MIN_CONCRETE_MEANS_DISCLOSURES = 66
-# v24 trained 336 of its 536 means_access rows on the abstract stand-ins.
-V24_ABSTRACT_ROWS = 336
+# v24 trained 352 of its means_access rows on the abstract stand-ins; the
+# builder gained rows after this pin was first written.
+V24_ABSTRACT_ROWS = 352
 V24_ABSTRACT_PHRASES = ("the means within reach", "the means out of the house", "the method you have worked out")
 # The two lines that answered disclosures naming no recognised means. They are
 # the ones that bled onto the suicide-plan case, so they may not survive at all.
@@ -99,6 +100,13 @@ def test_only_means_access_actions_were_replaced() -> None:
             assert variants != v24.ACTIONS[category]
         else:
             assert variants == v24.ACTIONS[category]
+            # The untouched categories also inherit v24's grounded pool: a v25
+            # row for them is the row v24 (and through it, v23) grounds.
+            disclosure = v25.paraphrases()[category][0]
+            assert v25.action_pool(disclosure, category) == v24.action_pool(disclosure, category), (
+                category,
+                disclosure,
+            )
 
 
 def test_every_means_access_action_names_exactly_one_means() -> None:

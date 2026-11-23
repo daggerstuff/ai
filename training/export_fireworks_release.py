@@ -30,11 +30,13 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib
 import json
 import os
 import sys
 from collections import Counter
-from dataclasses import dataclass, field
+from collections.abc import Mapping
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +49,7 @@ DEFAULT_ROUTING_CAP = 2_000
 DEFAULT_MAX_CHARS = 12_000
 DEFAULT_SAMPLE_MAX_CHARS = 2_000
 CHAR_PER_TOKEN = 4
+CRISIS_SOURCE_PREFIX = "crisis_direct_"
 
 ROUTING_TERMS = (
     "988",
@@ -168,6 +171,39 @@ def carries_keep_reply(row: dict[str, Any], keep_replies: frozenset[str]) -> boo
     )
 
 
+def crisis_reply_surface(manifest: Mapping[str, Any]) -> frozenset[str]:
+    """Return every assistant reply the release appended as a crisis-family row.
+
+    The appended rows carry only ``messages``, so once they are in the train
+    split nothing distinguishes them from the general corpus: their replies
+    contain the routing vocabulary, which sends them into the capped routing
+    pool, and the rest land in the hash-sampled filler pool. That kept about a
+    quarter of the family. The manifest still names the builder that produced
+    the rows, and that builder's ``collect_rows()`` is the authoritative
+    surface, so the keep set is derived rather than restated here.
+    """
+    sources = (manifest.get("scope") or {}).get("appended_rows_by_source") or {}
+    tags = sorted(name[len(CRISIS_SOURCE_PREFIX) :] for name in sources if name.startswith(CRISIS_SOURCE_PREFIX))
+    if not tags:
+        # A manifest that predates the crisis family has nothing to keep whole.
+        return frozenset()
+    replies: set[str] = set()
+    for tag in tags:
+        module_name = f"training.build_agent_tool_sft_{tag}"
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError as error:
+            raise ValueError(f"{module_name} is not importable: {error}") from error
+        for rows in module.collect_rows().values():
+            for row in rows:
+                replies.update(
+                    message["content"]
+                    for message in row["messages"]
+                    if message.get("role") == "assistant" and message.get("content")
+                )
+    return frozenset(replies)
+
+
 def select_rows(
     train_path: Path,
     options: SelectionOptions,
@@ -280,6 +316,11 @@ def export(
         raise FileNotFoundError(f"train partition not found: {train_path}")
 
     resolved = options or SelectionOptions()
+    if resolved.keep_replies is None:
+        # Re-derive the keep set from the manifest on every export: a caller that
+        # left it unset must still retain the crisis family whole, or the
+        # routing cap and filler sample decide which graded rows train.
+        resolved = replace(resolved, keep_replies=crisis_reply_surface(manifest))
     selections, counts = select_rows(train_path, resolved)
     if not selections:
         raise ValueError("selection produced no rows")
@@ -291,6 +332,8 @@ def export(
         "source_train_sha256": train["sha256"],
         "source_train_rows": train["row_count"],
         "selection": {
+            "crisis_rows_kept": counts["crisis_rows"],
+            "crisis_too_long_excluded": counts["crisis_too_long_excluded"],
             "routing_rows_available": counts["routing_rows"],
             "routing_rows_kept": counts["routing_kept"],
             "acute_client_rows": counts["acute_client_rows"],

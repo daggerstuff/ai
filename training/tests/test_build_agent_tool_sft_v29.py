@@ -187,7 +187,7 @@ def test_the_assault_clusters_name_the_mechanism_of_injury() -> None:
 
 
 def test_the_medical_collapse_clusters_separate_the_causes() -> None:
-    for cluster in ("purge", "faint", "blood", "sugar", "heart", "water", "weakness"):
+    for cluster in ("purge", "not_eating", "faint", "blood", "sugar", "heart", "seizure", "water", "weakness"):
         assert cluster in v29.ANCHOR_GROUPS["medical_collapse"]
 
 
@@ -228,8 +228,8 @@ def test_cluster_tokens_are_matched_case_insensitively() -> None:
 def test_normalise_expands_the_common_contractions() -> None:
     assert v29.normalise("I wasn't around") == "i was not around"
     assert v29.normalise("I won't be here") == "i will not be here"
-    assert v29.normalise("I can't keep going") == "i can not keep going"
-    assert v29.normalise("I cannot do it") == "i can not do it"
+    assert v29.normalise("I can't keep going") == "i cannot keep going"
+    assert v29.normalise("I cannot do it") == "i cannot do it"
     assert v29.normalise("I'm done") == "i am done"
     assert v29.normalise("they're gone") == "they are gone"
     assert v29.normalise("I'll be gone") == "i will be gone"
@@ -466,11 +466,13 @@ def test_the_rewritten_disclosures_now_name_a_cluster() -> None:
 
 
 def test_only_the_widened_categories_name_a_cluster_the_disclosure_did_not() -> None:
-    # A warning clause ("a seizure from purging or not eating") is legitimate and
-    # must not be counted as invention; these are the only two places it appears.
+    # The seizure surface no longer carries a causal warning clause ("a seizure
+    # from purging or not eating"), so medical_collapse widens nothing either:
+    # the only remaining widened rows are the psychosis warning clauses, which
+    # name the voices the disclosure paraphrased rather than a new means.
     for category in v29.CLUSTERED_CATEGORIES:
         widened = summary()[f"{category}_widened_cluster_rows"]
-        if category in {"medical_collapse", "psychosis_risk_other"}:
+        if category == "psychosis_risk_other":
             assert widened > 0, category
         else:
             assert widened == 0, category

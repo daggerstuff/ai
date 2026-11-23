@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections.abc import Iterable
 from pathlib import Path
@@ -45,16 +46,63 @@ def recover(lines: Iterable[str]) -> dict[str, list[dict[str, Any]]]:
         # A run that died mid-summary still has readable replies, so keep them
         # rather than dropping the only copy.
         runs.setdefault(UNATTRIBUTED, []).extend(buffered)
-    return runs
+    return {run: dedupe(records) for run, records in runs.items()}
+
+
+def dedupe(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep the last record per ``(case_id, arm_id)``, at its first position.
+
+    A resumable evaluation re-emits a case it already graded, and the log then
+    holds the earlier failed attempt beside the later verdict. The strict gate
+    would count both, so the newest record for a case wins and keeps the slot
+    the case first occupied.
+    """
+    latest: dict[tuple[Any, Any], dict[str, Any]] = {}
+    for record in records:
+        latest[(record.get("case_id"), record.get("arm_id"))] = record
+    seen: set[tuple[Any, Any]] = set()
+    ordered: list[dict[str, Any]] = []
+    for record in records:
+        key = (record.get("case_id"), record.get("arm_id"))
+        if key in seen:
+            continue
+        seen.add(key)
+        ordered.append(latest[key])
+    return ordered
+
+
+def run_directory(out_root: Path, run: str) -> Path:
+    """The directory a run names inside ``out_root``, refusing any escape.
+
+    ``run`` comes from the job log, and a value like ``../../etc`` would write
+    ``results.jsonl`` outside the directory the operator asked for.
+    """
+    root = out_root.resolve()
+    directory = (root / run).resolve()
+    if directory == root or not directory.is_relative_to(root):
+        raise ValueError(f"run {run!r} resolves outside {root}")
+    return directory
 
 
 def write_runs(runs: dict[str, list[dict[str, Any]]], out_root: Path) -> dict[str, dict[str, int]]:
     """Write ``<out_root>/<run>/results.jsonl`` and return per-run pass counts."""
     counts: dict[str, dict[str, int]] = {}
     for run, records in runs.items():
-        directory = out_root / run
+        directory = run_directory(out_root, run)
         directory.mkdir(parents=True, exist_ok=True)
-        with (directory / "results.jsonl").open("w", encoding="utf-8") as handle:
+        # ``run_directory`` confines the directory, but a symlink already named
+        # ``results.jsonl`` inside it would still redirect the write outside
+        # ``out_root``. O_NOFOLLOW refuses that instead of following it. The
+        # constant is POSIX-only: where the platform does not define it the
+        # flag is 0 and the write proceeds without the guard rather than
+        # crashing the recovery CLI.
+        nofollow = getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(
+            directory / "results.jsonl",
+            os.O_WRONLY | os.O_CREAT | os.O_TRUNC | nofollow,
+            0o644,
+        )
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
             for record in records:
                 handle.write(json.dumps(record, ensure_ascii=False) + "\n")
         arms: dict[str, int] = {}

@@ -9,6 +9,7 @@ must record the corrected size, the ratio it raised and the v21 revert it kept.
 
 from __future__ import annotations
 
+from collections import Counter
 from typing import Any
 
 import training.build_agent_tool_sft_v22 as v22
@@ -99,7 +100,10 @@ def test_v23_candidate_rows_are_clean_chat_rows() -> None:
         assert len(candidate["messages"]) == MESSAGES_PER_ROW
         assert candidate["messages"][0]["role"] == "user"
         assert candidate["messages"][1]["role"] == "assistant"
-        assert payload, "a v23 row must project to an assistant target"
+        # The candidate carries only messages and source, so the identifying
+        # value in the failure output is the disclosure text, not an id key the
+        # candidate does not carry (a KeyError there would mask the mismatch).
+        assert payload == v14.project_chat(candidate["messages"], Counter()), candidate["messages"][0]["content"]
 
 
 def test_the_family_is_the_v23_builder_rows_verbatim() -> None:

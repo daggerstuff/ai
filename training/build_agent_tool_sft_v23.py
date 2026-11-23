@@ -38,15 +38,28 @@ The changes are therefore replacements, not additions:
   with ``strict_crisis_gate.structural_violations`` and the build raises if any
   row would fail. A regression in the surface cannot reach the training set
   again.
+* **Actions are grounded per disclosure.** The rotation v22 grew from hands
+  every disclosure the whole category table, so a reply could pair a faint with
+  a blackout the person never reported. An action now only answers a disclosure
+  whose anchors it shares, matched as whole words over a vocabulary that
+  carries the inflected forms the recast surface actually uses ("fainted",
+  "purging", "not waking up"); the stem-only vocabulary matched nothing as
+  whole words, which left the two-sign actions answerable by every disclosure.
+  A disclosure no specific action can answer without naming something it never
+  gave falls to the category's generic escalation instead of the full table:
+  the old fallback is what taught a rope disclosure to say "the pills" and a
+  blackout disclosure to invent food.
 
-Register rules, anchors, frames and control corpus are inherited from v22
-unchanged. Rows are train-only, user/assistant, empty tool catalog.
+Register rules, frames and control corpus are inherited from v22 unchanged;
+the anchor vocabulary gains the inflected forms the recast surfaces use. Rows
+are train-only, user/assistant, empty tool catalog.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -73,23 +86,97 @@ ACTIONS_PER_CATEGORY = v22.ACTIONS_PER_CATEGORY
 
 DIRECT_SHAPES: tuple[str, ...] = v22.DIRECT_SHAPES
 FORBIDDEN_FILLER: tuple[str, ...] = v22.FORBIDDEN_FILLER
-ANCHORS: dict[str, tuple[str, ...]] = v22.ANCHORS
 CONTROL_TOPICS: tuple[str, ...] = v22.CONTROL_TOPICS
 CONTROL_REPLIES: tuple[str, ...] = v22.CONTROL_REPLIES
+
+# v22's vocabulary is a stem vocabulary ("eat", "purge", "faint"): the
+# inflected forms the recast actions and the disclosures actually use were
+# reachable only as substrings of those stems, which the whole-word matcher
+# correctly refuses. The two recast categories get the forms their surface
+# uses; every other category keeps v22's list untouched.
+ANCHOR_EXTENSIONS: dict[str, tuple[str, ...]] = {
+    "medical_collapse": (
+        "fainted",
+        "fainting",
+        "passed out",
+        "collapsed",
+        "black out",
+        "purged",
+        "purging",
+        "eating",
+        "not eaten",
+        "not eating",
+        "cannot eat",
+        "eating almost nothing",
+        "keeping food down",
+        "cannot keep food down",
+        "kept anything down",
+        "keep a meal down",
+        "kept a meal down",
+        "keep water down",
+        "kept water down",
+        "keeping water down",
+        "nothing to drink",
+        "anything to drink",
+        "heart",
+        "flutter",
+        "fluttering",
+        "flutters",
+        "blood sugar",
+        "laxatives",
+        "restricting",
+        "vomiting",
+        "threw up",
+    ),
+    "passive_ideation": ("decided", "not waking up"),
+}
+ANCHORS: dict[str, tuple[str, ...]] = {
+    category: (*anchors, *ANCHOR_EXTENSIONS.get(category, ()))
+    for category, anchors in v22.ANCHORS.items()
+}
+
+# Declared inflections: the whole-word matcher reports the spelling a sentence
+# used, so the inflected forms fold onto one representative before the subset
+# rule reads them - a disclosure that says "fainted" is answered by an action
+# that says "passed out", and neither is read as nothing.
+INFLECTION_FAMILIES: tuple[tuple[str, ...], ...] = (
+    ("faint", "fainted", "fainting", "passed out", "collapsed"),
+    ("purge", "purged", "purging"),
+    ("eat", "eating", "not eaten", "not eating", "cannot eat", "eating almost nothing"),
+    (
+        "keep food down",
+        "keeping food down",
+        "cannot keep food down",
+        "kept anything down",
+        "keep a meal down",
+        "kept a meal down",
+    ),
+    (
+        "keep water down",
+        "kept water down",
+        "keeping water down",
+        "cannot keep water down",
+        "nothing to drink",
+        "anything to drink",
+    ),
+    ("flutter", "fluttering", "flutters"),
+    ("not wake up", "not waking up"),
+)
+_ANCHOR_REPRESENTATIVE = {form: family[0] for family in INFLECTION_FAMILIES for form in family}
 
 # Whole-category replacements. Each tuple is the complete action surface for
 # that category, not an addendum: the v22 lines for these three categories are
 # either silent about escalation or state a finding the person never gave.
 REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
     "medical_collapse": (
-        "Call 911 now. You blacked out in the bathroom and that needs a doctor tonight.",
-        "Get to an emergency department now. Five days without keeping food down and a faint is not a rest.",
-        "Call an ambulance. You blacked out and you have not kept anything down for five days.",
-        "Get to an emergency department tonight and say you purge and you fainted.",
-        "Call 911 now. Purging in the bathroom until you black out is a medical emergency.",
-        "Go to an emergency department now and tell them what you have been eating and how often you purge.",
-        "Call an ambulance now. A blackout in the bathroom needs a doctor before you go home.",
-        "Get to an emergency department now. You fainted and you cannot keep food down.",
+        "Call 911 now. You blacked out and that needs a doctor tonight, not a lie down.",
+        "Call 911 now and tell them about the purge. Purging like this needs a doctor tonight.",
+        "Get to an emergency department now. You passed out, and that needs a doctor tonight.",
+        "Get to an emergency department now. Five days of this has gone past what you can manage at home.",
+        "Get to an emergency department now. Not keeping food down needs fluids and a doctor tonight.",
+        "Go to an emergency department now and tell them how little you have been eating. That needs a doctor tonight.",
+        "Call 911 now. A heart that will not hold you up needs a doctor tonight.",
+        "Get to an emergency department now. Not keeping water down needs fluids tonight, not another glass.",
     ),
     "passive_ideation": (
         "Call 988 now and say it out loud: you think people would be better off without you.",
@@ -98,17 +185,17 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Call 988 now. Thinking you are a burden is what that line answers, tonight.",
         "Call 911 if you have decided you will not wake up tomorrow, and say exactly that.",
         "Get to an emergency department tonight and say you feel you should not exist.",
-        "Call 988 now and say you cannot find a reason to live, then stay on the line.",
+        "Call 988 now and say you have been hoping you will not wake up, then stay on the line.",
         "Call an ambulance or 988 and say you have been thinking the world is better off without you.",
     ),
     "means_access": (
-        "Call 988 now and say you have a method and the means in the house, then hand the pills over.",
-        "Call 911 if you are holding the means right now. Put the gun down and step away before you call.",
-        "Get to an emergency department now and say you have a method worked out. Leave the medication behind.",
-        "Call 988 and say you have picked the bridge and the time, then get off the bridge.",
-        "Call 911 now and say you have the pills counted out. Hand the bottle to someone else.",
+        "Call 988 now and say the pills are in the house, then hand them to someone else tonight.",
+        "Call 911 now and say the gun is where you can reach it. Put it down and step away before you call.",
+        "Get to an emergency department now and say the medication is within reach. Leave it with someone before you go.",
+        "Call 988 now and tell them the bridge is what you have been thinking about, then stay on the line with them.",
+        "Call 911 now and say you can reach the pills, and hand the bottle to someone else.",
         "Get someone to take the gun and the medication out of the house tonight, then call 988.",
-        "Call 988 now and tell them you have a method and access to the means.",
+        "Call 988 now and tell them you have a method in mind and the thing you need for it.",
         "Get to an emergency department now and say you have a plan and the means to carry it out.",
     ),
 }
@@ -196,9 +283,71 @@ def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> 
     return v22.paraphrases_too_close_to_evaluation(surface)
 
 
+def _mentions(text: str, token: str) -> bool:
+    """True when ``token`` appears in ``text`` as whole words."""
+    return re.search(rf"(?<!\w){re.escape(token.lower())}(?!\w)", text.lower()) is not None
+
+
+def named_anchors(text: str, category: str) -> set[str]:
+    """The category anchors this text states outright, as whole words.
+
+    Inflected spellings fold onto their family's representative, so the subset
+    rule can read a disclosure that says "fainted" against a reply that says
+    "passed out".
+    """
+    stated = {anchor for anchor in ANCHORS[category] if _mentions(text, anchor)}
+    return {_ANCHOR_REPRESENTATIVE.get(anchor, anchor) for anchor in stated}
+
+
+def allowed_anchors(disclosure: str, category: str) -> set[str]:
+    """The anchors a reply to this disclosure may name: exactly what it gave."""
+    return named_anchors(disclosure, category)
+
+
+# A disclosure no specific action can answer without inventing an anchor is
+# answered with the category's generic escalation instead of the full table:
+# the old fallback restored every action, which taught a rope disclosure to say
+# "the pills" and a blackout disclosure to invent food. Each generic names
+# nothing the person did not say - it escalates on what the category itself is.
+GENERIC_ACTIONS: dict[str, str] = {
+    "suicide_plan": "Call 911 now and say you have a plan for ending your life. "
+    "That is assessed today, not at an appointment.",
+    "overdose_taken": "Call 911 now and say what you took and how much, and do not wait to see how it goes.",
+    "self_harm_active": "Get to an emergency department tonight and say you have been hurting yourself on purpose.",
+    "psychosis_risk_other": "Call 911 now and tell them you are afraid of what you might do to someone "
+    "tonight. They need to come to you.",
+    "assault_strangulation": "Call 911 now and tell them what happened to you tonight. "
+    "The police and a doctor both need to hear it.",
+    "medical_collapse": "Call 911 now and say what your body has been doing. "
+    "It needs a doctor tonight, not the morning.",
+    "withdrawal": "Call 911 now and say you are in withdrawal on your own. "
+    "That is managed in a hospital tonight, not at home.",
+    "passive_ideation": "Call 988 now and say you have been thinking about not being here, then stay on the line.",
+    "recent_attempt": "Call 911 now and say what you did to yourself and that you have not been checked. "
+    "Both get looked at tonight.",
+    "means_access": "Call 988 now and tell them there is something within reach you have been thinking about "
+    "using, and stay on the line with them.",
+}
+
+
+def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
+    """The actions that name only anchors this disclosure carries.
+
+    The global rotation this builder grew from handed every disclosure the whole
+    category table, so a reply could introduce a concrete fact -- a blackout, a
+    bridge, a substance -- the person never gave. A disclosure that names no
+    anchor any specific action can answer without inventing one falls to the
+    category's generic escalation rather than the full table: naming an object
+    the person never gave is the failure this rotation exists to prevent.
+    """
+    allowed = allowed_anchors(disclosure, category)
+    pool = tuple(action for action in ACTIONS[category] if named_anchors(action, category) <= allowed)
+    return pool or (GENERIC_ACTIONS[category],)
+
+
 @dataclass(frozen=True)
 class CrisisCase:
-    """One paraphrased disclosure and the action variants its category carries."""
+    """One paraphrased disclosure and the actions it may be answered with."""
 
     category: str
     severity: str
@@ -260,11 +409,15 @@ def validate_surface_row(item: dict[str, Any], actions: tuple[str, ...], anchors
     """The v9 crisis contract, the direct register, the anchors, and the ordering."""
     v9.validate_crisis_row(item)
     reply = item["messages"][1]["content"]
-    if not any(reply.startswith(action) for action in actions):
+    generic = GENERIC_ACTIONS.get(item["category"], "")
+    if not any(reply.startswith(action) for action in (*actions, generic)):
         raise ValueError(f"{item['id']}: reply does not open with one of the category actions")
     validate_register(item)
     lowered = reply.lower()
-    if not any(anchor in lowered for anchor in anchors):
+    # The generic escalation deliberately names no anchor: it exists for
+    # disclosures that gave none of the specific ones, so it is exempt from
+    # the naming check while every specific action still has to name one.
+    if not (any(anchor in lowered for anchor in anchors) or reply.startswith(generic)):
         raise ValueError(f"{item['id']}: reply names none of the category anchors {anchors}")
     if reply in prior_replies():
         raise ValueError(f"{item['id']}: reply duplicates a v9, v10, v12, v21 or v22 crisis reply")
@@ -287,7 +440,7 @@ def collect_rows() -> dict[str, list[dict[str, Any]]]:
         actions = ACTIONS[category]
         anchors = ANCHORS[category]
         for disclosure in surface[category]:
-            case = CrisisCase(category, severity, disclosure, actions)
+            case = CrisisCase(category, severity, disclosure, action_pool(disclosure, category))
             for shape_index in range(SHAPES_PER_DISCLOSURE):
                 item = make_crisis_row(index, case, shape_index)
                 validate_surface_row(item, actions, anchors)

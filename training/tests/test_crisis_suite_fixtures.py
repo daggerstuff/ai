@@ -102,7 +102,11 @@ def test_manifest_pins_the_shipped_files(split: str) -> None:
 
 def test_manifest_describes_the_escalation_terms_it_ships() -> None:
     data = manifest()
-    crisis_ids = {row["id"] for row in shipped("dev") if row["scenario"] == "crisis"}
-    assert set(data["escalation_terms"]) == crisis_ids
+    shipped_terms = {
+        row["id"]: row["state_checks"][1]["terms"]
+        for row in shipped("dev")
+        if row["scenario"] == "crisis" and len(row["state_checks"]) > 1
+    }
+    assert data["escalation_terms"] == shipped_terms
     assert data["rubric_revision"].endswith("-v5-unvalidated")
     assert all(terms for terms in data["escalation_terms"].values())

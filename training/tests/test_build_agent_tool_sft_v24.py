@@ -24,7 +24,7 @@ import training.build_agent_tool_sft_v21 as v21
 import training.build_agent_tool_sft_v23 as v23
 import training.build_agent_tool_sft_v24 as v24
 import training.strict_crisis_gate as gate
-from ai.qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
+from qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
 
 MESSAGES_PER_ROW = 2
 EXPECTED_ACTIONS_PER_CATEGORY = 8
@@ -34,10 +34,12 @@ EXPECTED_CONTROLS = 600
 EXPECTED_MEANS_ACCESS_ROWS = 536
 MIN_DISTINCT_REPLIES = 100
 NEW_MEANS_DISCLOSURES = 16
-# v23 paired a means_access disclosure with an action naming a means it never
-# gave in 366 of 408 cases; only 10 pairs were grounded.
-V23_GROUNDED_PAIRS = 10
-V23_TOTAL_PAIRS = 408
+# v23 now grounds every means_access disclosure: the one-object actions answer
+# the disclosures that name a means, and the ones that name none (a rope, a
+# quarry, a shotgun the vocabulary cannot see) fall to the anchor-free generic
+# escalation instead of the full table. Every pair is grounded.
+V23_GROUNDED_PAIRS = 54
+V23_TOTAL_PAIRS = 54
 GROUNDED_CATEGORIES = ("means_access",)
 TIME_CUES = (
     "last night",
@@ -103,11 +105,15 @@ def test_only_the_means_access_surface_is_replaced() -> None:
 
 
 def test_only_the_means_access_category_is_grounded() -> None:
-    """The other nine rotate exactly as in v23, so their behaviour cannot shift."""
+    """The other nine delegate to v23's grounded pool: a v24 row for them is
+    the row v23 grounds, never a full-table rotation."""
     assert v24.GROUNDED_CATEGORIES == GROUNDED_CATEGORIES
     for category in set(v24.ACTIONS) - set(GROUNDED_CATEGORIES):
-        disclosure = v24.paraphrases()[category][0]
-        assert v24.action_pool(disclosure, category) == v24.ACTIONS[category], category
+        for disclosure in v24.paraphrases()[category]:
+            assert v24.action_pool(disclosure, category) == v23.action_pool(disclosure, category), (
+                category,
+                disclosure,
+            )
 
 
 def test_every_action_is_imperative_anchor_bearing_and_escalating() -> None:
@@ -177,10 +183,17 @@ def test_grounding_closes_the_v23_defect() -> None:
 
     def grounded_pairs(module) -> tuple[int, int]:
         anchors = module.ANCHORS["means_access"]
+
+        def names(text: str) -> set[str]:
+            matcher = getattr(module, "named_anchors", None)
+            if matcher is not None:
+                return set(matcher(text, "means_access"))
+            return {anchor for anchor in anchors if anchor in text.lower()}
+
         generic = getattr(module, "GENERIC_ANCHORS", {}).get("means_access", ())
         grounded = total = 0
         for disclosure in module.paraphrases()["means_access"]:
-            given = {anchor for anchor in anchors if anchor in disclosure.lower()}
+            given = names(disclosure)
             allowed = given or set(generic)
             pool = (
                 module.action_pool(disclosure, "means_access")
@@ -189,7 +202,7 @@ def test_grounding_closes_the_v23_defect() -> None:
             )
             for action in pool:
                 total += 1
-                named = {anchor for anchor in anchors if anchor in action.lower()}
+                named = names(action)
                 grounded += named <= allowed
         return grounded, total
 

@@ -321,6 +321,11 @@ def stamp_release_identity(
 class _Release(v15._Release):
     """v15's build, with the held-out cap, the v11 and v12 addenda, and the v16 seed."""
 
+    # A class attribute so a release that declares its own seed shuffles with
+    # the seed its manifest claims; a release that does not override it keeps
+    # this one, exactly as before.
+    shuffle_seed = SHUFFLE_SEED
+
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)
         self.v11_rows: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
@@ -345,7 +350,7 @@ class _Release(v15._Release):
                 self.candidate_stream.close()
         self.verify_totals()
         # Deterministic train shuffle; validation and test keep candidate order.
-        random.Random(SHUFFLE_SEED).shuffle(self.payload_lines["train"])
+        random.Random(self.shuffle_seed).shuffle(self.payload_lines["train"])
         self.audit_duplicate_targets()
         self.verify_group_disjointness()
 

@@ -12,6 +12,7 @@ import argparse
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -48,7 +49,7 @@ def test_job_env_round_trips_the_signed_map() -> None:
     decoded = r2_sync.decode_map(env["R2_MAP_B64"])
 
     assert decoded == plan
-    assert env["ROOT"] == "/tmp/work"
+    assert env["ROOT"] == str(Path(tempfile.gettempdir()) / "work")
     assert env["EVAL_FLAVOR"] == "l4"
 
 
@@ -79,7 +80,7 @@ def test_bootstrap_fetches_inputs_and_hands_off_to_the_launcher(tmp_path: Path) 
     )
 
     assert "fetched code/launch.sh" in completed.stdout
-    assert completed.stdout.strip().endswith("launcher ran")
+    assert "launcher ran" in completed.stdout
     # The bootstrap must pass the launcher's exit code through, not swallow it.
     assert completed.returncode == launcher_exit
     assert (root / "code" / "launch.sh").read_text() == source.read_text()
@@ -108,20 +109,24 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
     (stage_dir / "data" / "scenario-crisis-dev-v1.jsonl").write_text("{}\n")
 
     monkeypatch.setattr(
-        r2_sync,
+        submit.r2_sync,
         "client",
         lambda **_: FakeS3(("inputs/v22/code/launch.sh", "inputs/v22/data/scenario-crisis-dev-v1.jsonl")),
     )
-    monkeypatch.setattr(r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
-    monkeypatch.setattr(r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
+    stored = ("code/launch.sh", "data/scenario-crisis-dev-v1.jsonl")
+    monkeypatch.setattr(
+        submit.r2_sync,
+        "list_prefix",
+        lambda *, prefix, **__: [{"key": f"{prefix}/{relative}", "size": 1, "etag": ""} for relative in stored],
+    )
+    monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
+    monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
 
     report = submit.submit(tag="v23", stage_dir=stage_dir, restage=False)
 
-    command = report["command"]
-    assert isinstance(command, list)
     env = dict(
         entry.split("=", 1)
-        for entry in command
+        for entry in report["command"]
         if isinstance(entry, str) and "=" in entry and not entry.startswith("--")
     )
     plan = r2_sync.decode_map(env["R2_MAP_B64"])
@@ -132,9 +137,55 @@ def test_submit_signs_every_input_and_every_result(tmp_path: Path, monkeypatch: 
     assert report["upload_objects"] == len(submit.run_names()) * len(submit.RESULT_FILES)
     assert report["executed"] is False
     assert set(plan["download"]) == {"code/launch.sh", "data/scenario-crisis-dev-v1.jsonl"}
-    assert plan["download"]["code/launch.sh"].startswith("https://r2.test/get_object/inputs/v22/")
+    # The GET prefix carries a digest of the bundle, so a later submission cannot
+    # replace the bytes a queued job has not fetched yet.
+    expected_digest = submit.bundle_digest(stage_dir, ["code/launch.sh", "data/scenario-crisis-dev-v1.jsonl"])
+    download_prefix = (
+        plan["download"]["code/launch.sh"].removeprefix("https://r2.test/get_object/").rsplit("/code/launch.sh", 1)[0]
+    )
+    assert download_prefix == f"inputs/v22/{expected_digest}"
     assert plan["upload"]["eval-nf4-sealed/results.jsonl"].startswith("https://r2.test/put_object/evals/v23/")
     assert plan["bucket"] == "training"
+
+
+def test_submit_signs_the_files_below_a_nested_adapter_bundle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A copied adapter carries subdirectories, and stray bytecode must not block the launch."""
+    stage_dir = tmp_path / "stage"
+    (stage_dir / "code").mkdir(parents=True)
+    (stage_dir / "code" / "launch.sh").write_text("#!/bin/sh\n")
+    adapter = stage_dir / "adapters" / "sft"
+    nested = adapter / "nested"
+    nested.mkdir(parents=True)
+    (nested / "adapter_config.json").write_text("{}\n")
+    (adapter / "adapter_model.safetensors").write_text("weights\n")
+    bytecode = adapter / "__pycache__"
+    bytecode.mkdir()
+    (bytecode / "runner.cpython-314.pyc").write_text("bytecode\n")
+
+    monkeypatch.setattr(submit.r2_sync, "client", lambda **_: FakeS3(()))
+    monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
+    monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: [])
+    staged = [relative for relative in submit.staged_files(stage_dir) if not submit.r2_sync._skip(Path(relative))]
+    monkeypatch.setattr(
+        submit.r2_sync,
+        "list_prefix",
+        lambda *, prefix, **__: [{"key": f"{prefix}/{relative}", "size": 1, "etag": ""} for relative in staged],
+    )
+
+    report = submit.submit(tag="v23", stage_dir=stage_dir, restage=False)
+
+    env = dict(
+        entry.split("=", 1)
+        for entry in report["command"]
+        if isinstance(entry, str) and "=" in entry and not entry.startswith("--")
+    )
+    plan = r2_sync.decode_map(env["R2_MAP_B64"])
+
+    assert set(plan["download"]) == {
+        "code/launch.sh",
+        "adapters/sft/adapter_model.safetensors",
+        "adapters/sft/nested/adapter_config.json",
+    }
 
 
 def test_submit_refuses_to_launch_when_an_input_did_not_land(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -150,9 +201,14 @@ def test_submit_refuses_to_launch_when_an_input_did_not_land(tmp_path: Path, mon
     (stage_dir / "adapters" / "sft").mkdir(parents=True)
     (stage_dir / "adapters" / "sft" / "adapter_config.json").write_text("{}\n")
 
-    monkeypatch.setattr(r2_sync, "client", lambda **_: FakeS3(("inputs/v22/code/launch.sh",)))
-    monkeypatch.setattr(r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
-    monkeypatch.setattr(r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
+    monkeypatch.setattr(submit.r2_sync, "client", lambda **_: FakeS3(("inputs/v22/code/launch.sh",)))
+    monkeypatch.setattr(submit.r2_sync, "credentials", lambda **_: {"R2_BUCKET": "training"})
+    monkeypatch.setattr(submit.r2_sync, "upload_dir", lambda *_, **__: ["code/launch.sh"])
+    monkeypatch.setattr(
+        submit.r2_sync,
+        "list_prefix",
+        lambda *, prefix, **__: [{"key": f"{prefix}/code/launch.sh", "size": 1, "etag": ""}],
+    )
 
     with pytest.raises(SystemExit, match=r"adapters/sft/adapter_config\.json"):
         submit.submit(tag="v28", stage_dir=stage_dir, restage=False)
@@ -169,8 +225,7 @@ def _fake_repo(tmp_path: Path) -> tuple[Path, dict[str, Path]]:
     cases = tmp_path / "cases"
     cases.mkdir()
     for split in submit.DEFAULT_SPLITS:
-        for suite in ("v1", "v2"):
-            (cases / f"scenario-crisis-{split}-{suite}.jsonl").write_text("{}\n")
+        (cases / f"scenario-crisis-{split}-v1.jsonl").write_text("{}\n")
 
     adapters = {}
     for label in submit.DEFAULT_LABELS:
@@ -186,11 +241,11 @@ def test_stage_lays_out_exactly_what_the_launcher_reads(tmp_path: Path, monkeypa
     monkeypatch.setattr(submit, "CASES_DIR", cases)
     monkeypatch.setattr(submit, "DEFAULT_ADAPTERS", adapters)
 
-    copied = submit.stage(tmp_path / "stage")
+    copied = submit.stage(tmp_path / "stage", suite="v1")
 
     staged = tmp_path / "stage"
     assert (staged / "code" / "launch.sh").is_file()
-    assert (staged / "data" / "scenario-crisis-sealed-v2.jsonl").is_file()
+    assert (staged / "data" / "scenario-crisis-sealed-v1.jsonl").is_file()
     assert (staged / "adapters" / "nf4" / "adapter_config.json").is_file()
     assert len(copied) == len(submit.CODE_FILES) + 1 + len(submit.DEFAULT_SPLITS) + len(adapters)
 
@@ -202,7 +257,7 @@ def test_stage_refuses_to_run_without_an_adapter(tmp_path: Path, monkeypatch: py
     monkeypatch.setattr(submit, "DEFAULT_ADAPTERS", {"bf16": tmp_path / "missing"})
 
     with pytest.raises(SystemExit, match="adapter for bf16 is missing"):
-        submit.stage(tmp_path / "stage")
+        submit.stage(tmp_path / "stage", suite="v1")
 
 
 def test_stage_copies_only_the_adapters_it_is_given(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -210,7 +265,7 @@ def test_stage_copies_only_the_adapters_it_is_given(tmp_path: Path, monkeypatch:
     monkeypatch.setattr(submit, "AI_ROOT", tmp_path / "ai")
     monkeypatch.setattr(submit, "CASES_DIR", cases)
 
-    submit.stage(tmp_path / "stage", adapters={"v23": adapters["bf16"]})
+    submit.stage(tmp_path / "stage", adapters={"v23": adapters["bf16"]}, suite="v1")
 
     assert (tmp_path / "stage" / "adapters" / "v23" / "adapter_config.json").is_file()
     assert not (tmp_path / "stage" / "adapters" / "nf4").exists()

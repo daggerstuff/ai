@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from qa.validation.therapy_bench import paired_eval
 from training import local_paired_eval as local
 
@@ -36,8 +38,18 @@ class EchoTransport:
         }
 
 
+def test_a_four_bit_request_is_rejected_before_any_weights_load() -> None:
+    local.validate_4bit_request(device="cuda:0", dtype="float16", load_in_4bit=True)
+    local.validate_4bit_request(device="cuda:0", dtype="bfloat16", load_in_4bit=False)
+    local.validate_4bit_request(device="cpu", dtype="bfloat16", load_in_4bit=False)
+    with pytest.raises(ValueError, match="--load-in-4bit needs a CUDA device"):
+        local.validate_4bit_request(device="cpu", dtype="float16", load_in_4bit=True)
+    with pytest.raises(ValueError, match="training dtype"):
+        local.validate_4bit_request(device="cuda:0", dtype="bfloat16", load_in_4bit=True)
+
+
 def test_the_generated_config_passes_the_shared_loader(tmp_path: Path) -> None:
-    config = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False)
+    config = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False, False, "bfloat16")
     path = tmp_path / "config.json"
     path.write_text(json.dumps(config), encoding="utf-8")
 
@@ -48,11 +60,24 @@ def test_the_generated_config_passes_the_shared_loader(tmp_path: Path) -> None:
     assert loaded["decoding"]["chat_template_kwargs"] == {"enable_thinking": False}
     assert loaded["pricing"]["require_finish_reason"] is True
     assert loaded["pricing"]["require_usage"] is False
+    assert loaded["loader"]["base_model_revision"] == "main"
+
+    pinned = local.build_config(
+        "run-1",
+        "Qwen/Qwen3-8B",
+        "/adapters/final",
+        512,
+        False,
+        False,
+        "bfloat16",
+        base_model_revision="v22-adapter-v6",
+    )
+    assert pinned["loader"]["base_model_revision"] == "v22-adapter-v6"
 
 
 def test_the_two_arms_share_the_base_model_and_differ_only_by_the_adapter() -> None:
-    with_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False)
-    without_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", None, 512, False)
+    with_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False, False, "bfloat16")
+    without_adapter = local.build_config("run-1", "Qwen/Qwen3-8B", None, 512, False, False, "bfloat16")
 
     assert [arm["id"] for arm in with_adapter["arms"]] == ["base", "sft"]
     assert [arm["model"] for arm in with_adapter["arms"]] == ["Qwen/Qwen3-8B", "/adapters/final"]
@@ -70,7 +95,8 @@ def test_the_cli_can_score_an_adapter_on_the_base_it_was_trained_on(tmp_path: Pa
     seen: list[bool] = []
 
     class Recorder(EchoTransport):
-        def __init__(self, *args: Any, load_in_4bit: bool = False) -> None:
+        def __init__(self, *args: Any, load_in_4bit: bool = False, base_model_revision: str | None = None) -> None:
+            assert base_model_revision is None or isinstance(base_model_revision, str)
             seen.append(load_in_4bit)
             super().__init__()
 
@@ -108,7 +134,7 @@ def test_the_cli_can_score_an_adapter_on_the_base_it_was_trained_on(tmp_path: Pa
 def test_a_transport_scores_the_real_dev_split_end_to_end(tmp_path: Path) -> None:
     config_path = tmp_path / "config.json"
     config_path.write_text(
-        json.dumps(local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False)),
+        json.dumps(local.build_config("run-1", "Qwen/Qwen3-8B", "/adapters/final", 512, False, False, "bfloat16")),
         encoding="utf-8",
     )
     transport = EchoTransport()

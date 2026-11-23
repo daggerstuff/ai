@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from training.launch import recover_eval_records as recover
 
 
@@ -69,3 +71,16 @@ def test_write_runs_writes_one_results_file_per_run_and_counts_passes(tmp_path: 
     written = (tmp_path / "eval-bf16-dev" / "results.jsonl").read_text().splitlines()
     assert len(written) == 3
     assert counts == {"eval-bf16-dev": {"base": 1, "sft": 1}}
+
+
+def test_write_runs_refuses_to_follow_a_results_symlink(tmp_path: Path) -> None:
+    outside = tmp_path / "outside.jsonl"
+    outside.write_text("keep\n")
+    run = tmp_path / "eval-bf16-dev"
+    run.mkdir()
+    (run / "results.jsonl").symlink_to(outside)
+
+    with pytest.raises(OSError, match="Errno 40"):
+        recover.write_runs({"eval-bf16-dev": [{"case_id": "a", "arm_id": "base", "passed": True}]}, tmp_path)
+
+    assert outside.read_text() == "keep\n"

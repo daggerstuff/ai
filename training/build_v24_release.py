@@ -85,10 +85,12 @@ LIMITATIONS_V24: tuple[str, ...] = (
     (
         "The v24 crisis-direct rows replace the v23 rows rather than adding to them, so the release still "
         "teaches one register per category. The family is 6,504 rows, 7.9% of train, against roughly 81,900 "
-        "corpus rows that answer a disclosure by reflecting on it. Grounding covers means_access only: the "
-        "other nine categories still rotate their eight actions across every disclosure of the category, so "
-        "a reply there can still name a detail the person never gave. That is the measured cause of the "
-        "remaining invented-detail risk, and it is untouched by this release on purpose."
+        "corpus rows that answer a disclosure by reflecting on it. Grounding covers means_access with a "
+        "one-anchor rewrite, and the other nine categories inherit v23's per-disclosure pools rather than "
+        "rotating their eight actions: a reply there names only the anchors the disclosure carried, or the "
+        "category's escalation fallback when no specific action fits. The residual risk in the nine "
+        "categories is no longer invention but narrowing: a disclosure no specific action can answer is "
+        "answered by the generic alone, one line where the inherited surface had eight."
     ),
     (
         "The 600 control rows hold the family at 9.8 escalations per ordinary reply. That ratio is the "
@@ -203,6 +205,8 @@ def stamp_release_identity(
 
 class _Release(prev._Release):
     """v23's pipeline with the grounded v24 crisis family in place of v23's."""
+
+    shuffle_seed = SHUFFLE_SEED
 
     def __init__(self, indexes: v14._Indexes, output: Path, dry_run: bool) -> None:
         super().__init__(indexes, output, dry_run)

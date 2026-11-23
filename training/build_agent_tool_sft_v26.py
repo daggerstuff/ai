@@ -65,6 +65,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -108,11 +109,14 @@ ESCALATION_TERMS: tuple[str, ...] = (
 
 # A reflection, then the action. The action keeps its imperative and its
 # escalation; what changes is that it is no longer the only sentence the family
-# ever trains.
+# ever trains. The reflection asserts nothing the disclosure did not say: the
+# first cut claimed the person had a reason for waiting, and an ingestion
+# disclosure that only said "I am not sure how many" was answered with a frame
+# about talking yourself into waiting.
 REFLECTIVE_SHAPES: tuple[str, ...] = (
-    "You have a reason ready for why this can wait. It cannot. {action}",
-    "Whatever you told yourself about why this is fine, it is not fine. {action}",
-    "You have talked yourself into waiting, and waiting is what makes this worse. {action}",
+    "Saying it out loud is the start. Acting on it is next. {action}",
+    "It is exactly as serious as it sounds. {action}",
+    "Nothing about tonight makes this smaller. {action}",
 )
 
 # v25's first five frames are the action followed by a closer. The three that
@@ -194,7 +198,16 @@ ANCHORS: dict[str, tuple[str, ...]] = {
     **v25.ANCHORS,
     "overdose_taken": OVERDOSE_ANCHORS,
     "recent_attempt": RECENT_ATTEMPT_ANCHORS,
+    # "shotgun" only ever matched the substring "gun" inside it. The
+    # word-start matcher needs it as its own entry, and it normalises onto
+    # the "gun" anchor below so the gun actions answer it exactly as they
+    # did under substring matching.
+    "means_access": (*v25.ANCHORS["means_access"], "shotgun"),
 }
+
+# A word form that is the thing itself, not a new thing: the anchor it folds
+# onto keeps the actions that already answer it reachable.
+ANCHOR_ALIASES: dict[str, dict[str, str]] = {"means_access": {"shotgun": "gun"}}
 
 ABSTRACT_ANCHORS: dict[str, tuple[str, ...]] = {
     "means_access": v25.ABSTRACT_ANCHORS,
@@ -211,7 +224,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
     "overdose_taken": (
         "Call 911 now and tell them how much paracetamol you took and when.",
         "Call 911 now and say how many painkillers you swallowed and how long ago.",
-        "Call 911 now. Iron tablets keep damaging the gut for hours after the packet is empty.",
+        "Call 911 now and say how many iron tablets you took and when.",
         "Call 911 now and say how many sleeping tablets you took. Do not lie down again.",
         "Call 911 now and tell them about the sleeping pills before you go back to sleep.",
         "Call 911 now and say how much cough syrup you drank and what you took with it.",
@@ -427,6 +440,25 @@ ABSTRACT_DISCLOSURE_CAP: dict[str, int] = {
 if set(REPLACED_ACTIONS) - set(ACTIONS):
     raise ValueError("a replacement was written for a category the family does not carry")
 
+
+def _mentions(text: str, token: str) -> bool:
+    """True when a word in ``text`` starts with ``token``.
+
+    v26 matched anchors as substrings, so "scared" carried "car" into a pool
+    whose grounding validator - reading the same substrings - then accepted it.
+    Matching at the word start keeps the inflections the vocabulary means to
+    cover ("swallowed" still carries "swallow") while "scared" can no longer
+    carry "car" in.
+    """
+    return re.search(rf"(?<!\w){re.escape(token.lower())}", text.lower()) is not None
+
+
+def named_anchors(text: str, category: str) -> set[str]:
+    """The category anchors this text states outright, as word starts."""
+    named = {anchor for anchor in ANCHORS[category] if _mentions(text, anchor)}
+    aliases = ANCHOR_ALIASES.get(category, {})
+    return {aliases.get(anchor, anchor) for anchor in named}
+
 for _category, _variants in ACTIONS.items():
     if len(set(_variants)) != len(_variants):
         raise ValueError(f"{_category}: duplicate action variant")
@@ -441,7 +473,7 @@ for _category, _variants in ACTIONS.items():
             raise ValueError(f"{_category}: action variant asks a question: {_variant[:60]}")
         if any(phrase in _variant.lower() for phrase in FORBIDDEN_FILLER):
             raise ValueError(f"{_category}: action variant softens the action: {_variant[:60]}")
-        if not any(anchor in _variant.lower() for anchor in ANCHORS[_category]):
+        if not named_anchors(_variant, _category):
             raise ValueError(f"{_category}: action variant names none of {ANCHORS[_category]}: {_variant[:60]}")
 
 for _category in GROUNDED_CATEGORIES:
@@ -449,8 +481,12 @@ for _category in GROUNDED_CATEGORIES:
     for _variant in ACTIONS[_category]:
         if not any(term in _variant.lower() for term in ESCALATION_TERMS):
             raise ValueError(f"{_category}: action variant carries no escalation: {_variant[:60]}")
-    _covered = {anchor for action in ACTIONS[_category] for anchor in ANCHORS[_category] if anchor in action.lower()}
-    _orphaned = sorted(set(ANCHORS[_category]) - _covered - _abstract)
+    # The comparison runs on canonical anchors: an alias folds onto the anchor
+    # it names, so it is covered exactly when that anchor is.
+    _alias = ANCHOR_ALIASES.get(_category, {})
+    _canonical = {_alias.get(anchor, anchor) for anchor in ANCHORS[_category]}
+    _covered = {anchor for action in ACTIONS[_category] for anchor in named_anchors(action, _category)}
+    _orphaned = sorted(_canonical - _covered - _abstract)
     if _orphaned:
         raise ValueError(f"{_category}: anchors with no action to answer them: {_orphaned}")
 
@@ -483,10 +519,7 @@ def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> 
     return v24.paraphrases_too_close_to_evaluation(surface)
 
 
-def named_anchors(text: str, category: str) -> set[str]:
-    """The category anchors this text states outright."""
-    lowered = text.lower()
-    return {anchor for anchor in ANCHORS[category] if anchor in lowered}
+
 
 
 def concrete_anchors(text: str, category: str) -> set[str]:
@@ -502,11 +535,11 @@ def allowed_anchors(disclosure: str, category: str) -> set[str]:
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     """The actions that name only anchors this disclosure carries.
 
-    Falls back to the whole surface when the category is not grounded, so the
-    seven categories v26 does not touch keep their v25 distribution exactly.
+    The seven categories v26 does not rework delegate to v25's pool, so their
+    rows keep v25's grounded distribution - no full-table rotation survives.
     """
     if category not in GROUNDED_CATEGORIES:
-        return ACTIONS[category]
+        return v25.action_pool(disclosure, category)
     allowed = allowed_anchors(disclosure, category)
     concrete = concrete_anchors(disclosure, category)
     if concrete:
@@ -575,11 +608,20 @@ def validate_surface_row(item: dict[str, Any], actions: tuple[str, ...], anchors
     """
     v9.validate_crisis_row(item)
     reply = item["messages"][1]["content"]
-    if not any(reply == shape.format(action=action) for shape in DIRECT_SHAPES for action in actions):
+    category = item["category"]
+    # The seven categories this release does not rework delegate to v25's pool,
+    # which reaches v23's generic escalation when no specific action fits. That
+    # generic is part of the inherited surface, so it has to validate too - and
+    # it names no anchor by construction, so the anchor-naming requirement
+    # applies to the specific actions alone.
+    inherited_generic = (v23.GENERIC_ACTIONS[category],) if category in v23.GENERIC_ACTIONS else ()
+    known = (*actions, *inherited_generic)
+    if not any(reply == shape.format(action=action) for shape in DIRECT_SHAPES for action in known):
         raise ValueError(f"{item['id']}: reply is not one of the category actions inside a known frame")
     validate_register(item)
     lowered = reply.lower()
-    if not any(anchor in lowered for anchor in anchors):
+    generic_reply = any(reply == shape.format(action=action) for shape in DIRECT_SHAPES for action in inherited_generic)
+    if not generic_reply and not any(anchor in lowered for anchor in anchors):
         raise ValueError(f"{item['id']}: reply names none of the category anchors {anchors}")
     if reply in prior_replies():
         raise ValueError(f"{item['id']}: reply duplicates a v9, v10 or v12 crisis reply")
@@ -686,7 +728,10 @@ def summarize(all_rows: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
         summary[f"{category}_abstract_rows"] = sum(
             1 for item in items if not concrete_anchors(item["messages"][0]["content"], category)
         )
-    summary["reflective_rows"] = sum(1 for item in crisis if not item["messages"][1]["content"].startswith("Call "))
+    reflective_leads = tuple(shape.split("{action}")[0] for shape in REFLECTIVE_SHAPES)
+    summary["reflective_rows"] = sum(
+        1 for item in crisis if item["messages"][1]["content"].startswith(reflective_leads)
+    )
     summary["gate_failures"] = 0
     return summary
 

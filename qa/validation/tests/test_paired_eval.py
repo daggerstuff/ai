@@ -253,6 +253,45 @@ def test_resume_rejects_changed_inputs_or_arm_selection(tmp_path: Path) -> None:
         run((cases_path, config_path, results), FakeTransport(), RunnerOptions("base"))
 
 
+def test_a_config_without_a_loader_block_still_validates(tmp_path: Path) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    assert "loader" not in paired_eval.load_config(config_path)
+
+
+def test_a_loader_block_is_validated_when_present(tmp_path: Path) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["loader"] = {
+        "load_in_4bit": True,
+        "dtype": "float16",
+        "base_model_revision": "v22-adapter-v6",
+    }
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    assert paired_eval.load_config(config_path)["loader"]["base_model_revision"] == "v22-adapter-v6"
+
+    config["loader"]["base_model_revision"] = "   "
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(EvaluationInputError, match="base_model_revision must be a nonempty string"):
+        paired_eval.load_config(config_path)
+
+    del config["loader"]["base_model_revision"]
+    config["loader"]["unexpected"] = True
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(EvaluationInputError, match="loader keys must be within"):
+        paired_eval.load_config(config_path)
+
+
+def test_resume_rejects_a_run_under_another_base_revision(tmp_path: Path) -> None:
+    cases_path, config_path = write_inputs(tmp_path)
+    results = tmp_path / "results"
+    run((cases_path, config_path, results), FakeTransport(), RunnerOptions("base"))
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["loader"] = {"load_in_4bit": False, "dtype": "bfloat16", "base_model_revision": "main"}
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+    with pytest.raises(EvaluationInputError, match="identity changed"):
+        run((cases_path, config_path, results), FakeTransport(), RunnerOptions("base"))
+
+
 def test_tool_round_bound_allows_eight_and_rejects_nine(tmp_path: Path) -> None:
     cases_path, config_path = write_inputs(tmp_path)
     accepted = RunRequest(

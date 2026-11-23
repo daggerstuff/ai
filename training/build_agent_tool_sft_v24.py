@@ -41,11 +41,10 @@ So the invariant is: **no ``means_access`` reply names a concrete means the
 disclosure did not give.** ``collect_rows`` enforces it per row and
 ``summarize`` reports how much of the category it covers.
 
-Grounding is applied to ``means_access`` only. The other nine categories still
-rotate over compound actions, so their invented-detail risk is unchanged and
-deliberately out of scope here: changing them at the same time would move nine
-passing cases for no measured benefit. The next lever is the same one-anchor
-rewrite applied category by category.
+Grounding is applied to ``means_access`` with the one-means actions; the other
+nine categories delegate to v23's grounded pool, so a v24 row for them is the
+row v23 already grounds - including v23's generic fallback, which replaced
+the full-table rotation that let a disclosure name pills it never gave.
 
 Everything else — frames, anchors, controls, the strict gate at build time, the
 action-first contract — is inherited from v23 unchanged. Rows are train-only,
@@ -56,6 +55,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -172,8 +172,15 @@ def paraphrases() -> dict[str, tuple[str, ...]]:
 
 
 def prior_replies() -> set[str]:
-    """Every crisis reply the v9, v10, v12, v21, v22 and v23 families already train."""
-    return v23.prior_replies()
+    """The pre-v23 families, plus the v23 replies this release replaces.
+
+    v24 retrains v23's other nine surfaces verbatim, so those replies are the
+    inheritance, not a duplication. The means_access surface is the one v24
+    rewrites, so a new means reply that byte-equals a v23 means reply is a
+    defect the duplicate guard has to be able to see.
+    """
+    replaced = {shape.format(action=action) for action in v23.ACTIONS["means_access"] for shape in DIRECT_SHAPES}
+    return v23.prior_replies() | replaced
 
 
 def v9_disclosures() -> set[str]:
@@ -184,10 +191,14 @@ def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> 
     return v23.paraphrases_too_close_to_evaluation(surface)
 
 
+def _mentions(text: str, token: str) -> bool:
+    """True when ``token`` appears in ``text`` as whole words."""
+    return re.search(rf"(?<!\w){re.escape(token.lower())}(?!\w)", text.lower()) is not None
+
+
 def named_anchors(text: str, category: str) -> set[str]:
-    """The category anchors this text states outright."""
-    lowered = text.lower()
-    return {anchor for anchor in ANCHORS[category] if anchor in lowered}
+    """The category anchors this text states outright, as whole words."""
+    return {anchor for anchor in ANCHORS[category] if _mentions(text, anchor)}
 
 
 def allowed_anchors(disclosure: str, category: str) -> set[str]:
@@ -203,11 +214,12 @@ def allowed_anchors(disclosure: str, category: str) -> set[str]:
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     """The actions that name only means this disclosure carries.
 
-    Falls back to the whole surface when the category is not grounded, so the
-    nine categories v24 does not touch keep their v23 distribution exactly.
+    The nine categories v24 does not rework delegate to v23's grounded pool, so
+    their rows are the rows v23 grounds; ``means_access`` keeps the one-means
+    rule with the abstract anchor fallback.
     """
     if category not in GROUNDED_CATEGORIES:
-        return ACTIONS[category]
+        return v23.action_pool(disclosure, category)
     allowed = allowed_anchors(disclosure, category)
     if not allowed:
         return ACTIONS[category]
@@ -246,7 +258,14 @@ def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str,
 
 
 def make_control_row(index: int, control_index: int) -> dict[str, Any]:
-    return v23.make_control_row(index, control_index)
+    """Reuse v23's control text, but stamp the row with this release's id.
+
+    The inherited helper hardcodes ``crisis_direct-v23-``, so without the restamp
+    every v24 control row would claim to belong to the previous release.
+    """
+    item = v23.make_control_row(index, control_index)
+    example_id = f"{FAMILY}-v24-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def validate_register(item: dict[str, Any]) -> None:
@@ -334,7 +353,8 @@ def summarize(all_rows: dict[str, list[dict[str, Any]]]) -> dict[str, Any]:
     grounded = [
         item
         for item in crisis
-        if not (
+        if item["category"] in GROUNDED_CATEGORIES
+        and not (
             named_anchors(item["messages"][1]["content"], item["category"])
             - allowed_anchors(item["messages"][0]["content"], item["category"])
         )

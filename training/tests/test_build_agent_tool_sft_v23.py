@@ -23,7 +23,7 @@ import pytest
 import training.build_agent_tool_sft_v21 as v21
 import training.build_agent_tool_sft_v22 as v22
 import training.build_agent_tool_sft_v23 as v23
-from ai.qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
+from qa.validation.therapy_bench import generate_crisis_capability_v1 as rubric
 
 MESSAGES_PER_ROW = 2
 EXPECTED_ACTIONS_PER_CATEGORY = 8
@@ -79,7 +79,17 @@ def test_the_frames_and_control_corpus_are_inherited_unchanged() -> None:
     assert v23.DIRECT_SHAPES == v22.DIRECT_SHAPES
     assert v23.CONTROL_TOPICS == v22.CONTROL_TOPICS
     assert v23.CONTROL_REPLIES == v22.CONTROL_REPLIES
-    assert v23.ANCHORS == v22.ANCHORS
+
+
+def test_the_anchor_vocabulary_extends_only_the_recast_categories() -> None:
+    """The recast surfaces use inflected forms the stem vocabulary could not
+    match as whole words; every other category keeps v22's list exactly."""
+    assert set(v23.ANCHOR_EXTENSIONS) == {"medical_collapse", "passive_ideation"}
+    for category, anchors in v22.ANCHORS.items():
+        if category in v23.ANCHOR_EXTENSIONS:
+            assert v23.ANCHORS[category] == (*anchors, *v23.ANCHOR_EXTENSIONS[category]), category
+        else:
+            assert v23.ANCHORS[category] == anchors, category
 
 
 def test_the_three_defective_categories_are_whole_replacements() -> None:
@@ -143,6 +153,88 @@ def test_the_gate_fails_v22s_export_and_passes_v23s() -> None:
     assert {category for category, _ in v22_failures} == {"passive_ideation", "means_access"}
     assert {violations for _, violations in v22_failures} == {("no escalation",)}
     assert gate_failures(rows()) == []
+
+
+def test_hoping_not_to_wake_up_gets_an_unconditional_route() -> None:
+    """The six wake-up disclosures must never be answered with only the
+    conditional 911 line: an applicable route has to sit in every emitted row."""
+    wake_ups = [d for d in v23.paraphrases()["passive_ideation"] if "wake up" in d or "waking up" in d]
+    assert len(wake_ups) >= 6
+    for disclosure in wake_ups:
+        pool = v23.action_pool(disclosure, "passive_ideation")
+        assert pool, disclosure
+        assert all("if you have decided" not in action for action in pool), (disclosure, pool)
+        assert any("988" in action for action in pool), (disclosure, pool)
+    emitted = {
+        item["messages"][1]["content"]
+        for item in crisis_rows(rows())
+        if item["messages"][0]["content"] in set(wake_ups)
+    }
+    assert emitted
+    assert all("988" in reply for reply in emitted)
+    assert not any("if you have decided" in reply for reply in emitted)
+
+
+def test_a_blackout_disclosure_is_not_answered_with_food_or_duration() -> None:
+    pool = v23.action_pool("I blacked out getting off the bus this afternoon.", "medical_collapse")
+    assert pool == ("Call 911 now. You blacked out and that needs a doctor tonight, not a lie down.",)
+    for action in v23.action_pool("I keep fainting when I stand up and I have not eaten in four days.", "medical_collapse"):
+        assert "food down" not in action and "five days" not in action, action
+
+
+def test_bridge_and_pills_disclosures_get_object_only_actions() -> None:
+    bridge_pool = v23.action_pool("I have been looking at the bridge near my house.", "means_access")
+    assert bridge_pool, "the bridge disclosure must be answerable"
+    for action in bridge_pool:
+        assert "picked" not in action, action
+        assert "get off the bridge" not in action, action
+    pills_pool = v23.action_pool("The pills are in my coat pocket and I have been carrying them.", "means_access")
+    for action in pills_pool:
+        assert "counted" not in action, action
+
+
+def test_a_medication_disclosure_never_draws_gun_or_pills_actions() -> None:
+    """A named anchor has to narrow the pool, not restore the whole table."""
+    disclosure = "I have been stockpiling my medication in a shoebox for a month."
+    named = v23.named_anchors(disclosure, "means_access")
+    assert named == {"medication"}, named
+    pool = v23.action_pool(disclosure, "means_access")
+    assert pool
+    for action in pool:
+        assert v23.named_anchors(action, "means_access") <= named, (action, pool)
+        assert "gun" not in action.lower() and "pills" not in action.lower(), action
+
+
+def test_the_fallback_is_the_generic_escalation_not_the_full_table() -> None:
+    """A rope disclosure names no anchor: the answer escalates on the category,
+    never on an object the person never gave."""
+    pool = v23.action_pool("I bought a length of rope from the hardware shop and it is under my bed.", "means_access")
+    assert pool == (v23.GENERIC_ACTIONS["means_access"],)
+    generic = v23.GENERIC_ACTIONS["means_access"]
+    assert v23.gate.structural_violations({"scenario": "crisis"}, generic) == [], generic
+    for category, action in v23.GENERIC_ACTIONS.items():
+        assert "?" not in action, (category, action)
+        assert v23.gate.structural_violations({"scenario": "crisis"}, action) == [], (category, action)
+
+
+def test_no_crisis_reply_names_an_anchor_its_disclosure_never_gave() -> None:
+    """The invariant the grounded pool exists for, checked on the emitted rows:
+    every specific reply names only anchors the disclosure itself named, and a
+    generic reply names none at all."""
+    offenders = []
+    for item in crisis_rows(rows()):
+        category = item["category"]
+        disclosure = item["messages"][0]["content"]
+        reply = item["messages"][1]["content"]
+        generic = v23.GENERIC_ACTIONS[category]
+        if reply.startswith(generic):
+            if v23.named_anchors(reply, category):
+                offenders.append((item["id"], "generic reply names an anchor", reply))
+            continue
+        invented = v23.named_anchors(reply, category) - v23.named_anchors(disclosure, category)
+        if invented:
+            offenders.append((item["id"], sorted(invented), reply))
+    assert offenders == []
 
 
 def test_the_build_refuses_a_row_the_gate_would_fail() -> None:

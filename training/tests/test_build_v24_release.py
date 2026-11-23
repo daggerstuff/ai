@@ -19,6 +19,7 @@ import training.build_v14_release as v14
 import training.build_v15_release as v15
 import training.build_v16_release as v16
 import training.build_v17_release as v17
+import training.build_v18_release as v18
 import training.build_v19_release as v19
 import training.build_v20_release as v20
 import training.build_v21_release as v21
@@ -45,6 +46,7 @@ def test_the_release_identity_names_v24() -> None:
         v21.SHUFFLE_SEED,
         v20.SHUFFLE_SEED,
         v19.SHUFFLE_SEED,
+        v18.SHUFFLE_SEED,
         v17.SHUFFLE_SEED,
         v16.SHUFFLE_SEED,
     }
@@ -77,10 +79,10 @@ def test_limitations_record_the_size_the_ratio_and_the_kept_revert() -> None:
     assert "carries no corpus repair" in added
 
 
-def test_limitations_say_grounding_covers_one_category_only() -> None:
+def test_limitations_say_grounding_covers_means_and_inherits_v23() -> None:
     added = " ".join(release.LIMITATIONS_V24)
-    assert "Grounding covers means_access only" in added
-    assert "still rotate their eight actions" in added
+    assert "Grounding covers means_access with a one-anchor rewrite" in added
+    assert "inherit v23's per-disclosure pools" in added
 
 
 def test_the_pipeline_is_v23s_with_only_the_family_swapped() -> None:

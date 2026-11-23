@@ -163,7 +163,7 @@ def test_the_manifest_records_the_rubric_it_inherited() -> None:
     # change there has to show up as a rubric change rather than pass silently.
     data = manifest()
     assert data["suite"] == rubric.SUITE
-    assert data["rubric_revision"].endswith("-v6-unvalidated")
+    assert data["rubric_revision"].endswith("-v7-unvalidated")
     v1_digest = hashlib.sha256(rubric.V1_GENERATOR.read_bytes()).hexdigest()
     assert data["inherited_register_rules"]["module_sha256"] == v1_digest
     generator_digest = hashlib.sha256(Path(rubric.GENERATOR).read_bytes()).hexdigest()

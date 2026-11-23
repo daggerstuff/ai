@@ -83,7 +83,7 @@ import re
 import sys
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -100,7 +100,7 @@ else:
 
 RELEASE_ID = "pixelated-agent-tool-sft-2026-11-10-v27"
 FAMILY = v26.FAMILY
-DEFAULT_OUTPUT = v26.DEFAULT_OUTPUT
+DEFAULT_OUTPUT = v26.DEFAULT_OUTPUT.with_name("agent-tool-sft-2026-11-10-v27")
 SHAPES_PER_DISCLOSURE = v26.SHAPES_PER_DISCLOSURE
 DIRECT_SHAPES = v26.DIRECT_SHAPES
 ESCALATION_TERMS = v26.ESCALATION_TERMS
@@ -346,7 +346,7 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "my child",
             "the baby",
         ),
-        "pet": ("dog", "cat", "the dog", "the cat", "puppy", "kitten"),
+        "pet": ("pet", "pets", "dog", "cat", "the dog", "the cat", "puppy", "kitten"),
         "public": (
             "stranger",
             "strangers",
@@ -426,6 +426,11 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
         ),
     },
     "medical_collapse": {
+        # Purging is a behaviour; not keeping food down is a different sign. The
+        # two were one cluster until the v28 review: a disclosure that only said
+        # "I have been eating almost nothing" was answered by the purge line's
+        # "tell them about the purge", which the person never described, and the
+        # emergency-department line asserted five days of it nobody reported.
         "purge": (
             "purge",
             "purged",
@@ -438,6 +443,8 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "restricting",
             "water loading",
             "overexercising",
+        ),
+        "not_eating": (
             "cannot eat",
             "not eaten",
             "eating almost nothing",
@@ -447,9 +454,6 @@ ANCHOR_GROUPS: dict[str, dict[str, tuple[str, ...]]] = {
             "keep a meal down",
             "kept anything down",
             "keep anything down",
-            "keep water down",
-            "kept water down",
-            "keeping water down",
         ),
         "faint": (
             "faint",
@@ -637,7 +641,9 @@ CONCRETE_CLUSTERS: dict[str, frozenset[str]] = {
             "control",
         }
     ),
-    "medical_collapse": frozenset({"purge", "faint", "blood", "sugar", "heart", "water", "weakness"}),
+    "medical_collapse": frozenset(
+        {"purge", "faint", "blood", "sugar", "heart", "seizure", "not_eating", "water", "weakness"}
+    ),
     "withdrawal": frozenset(
         {"alcohol", "benzo", "opioid", "sleeping", "medication", "seizure", "perceptual", "shaking"}
     ),
@@ -724,7 +730,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
     "psychosis_risk_other": (
         "Call 911 now and say you are hearing voices telling you to hurt someone. They need to come to you tonight.",
         "Call 911 now and tell them what the voice keeps saying. Stay where someone can see you until they arrive.",
-        "Call 911 now and tell them the voice has picked your dog. Keep the dog away from you until they arrive.",
+        "Call 911 now and tell them the voice has picked your pet. Keep the pet away from you until they arrive.",
         "Call 911 now and say out loud that you are afraid you will hurt someone tonight. They will come to you.",
         "Get out of the building and call 911 from somewhere the person you named cannot reach you. A "
         "voice telling you to hurt him is the risk tonight.",
@@ -767,7 +773,8 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Get out of the house and call 911 from a phone he cannot take. Tell them he controls your phone.",
     ),
     "medical_collapse": (
-        "Get to an emergency department now. Five days without keeping food down needs fluids and a doctor tonight.",
+        "Get to an emergency department now. Eating almost nothing needs fluids and a doctor "
+        "tonight.",
         "Call 911 now and tell them about the purge. Purging this much is a medical emergency, and the "
         "electrolytes get checked tonight.",
         "Call 911 now. You blacked out and that needs a doctor tonight, not a lie down.",
@@ -777,7 +784,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Call 911 now. A blood sugar that low needs treating tonight, and you should not be alone while it is.",
         "Call 911 now. A heart that flutters and will not hold you up needs a doctor tonight.",
         "Get to an emergency department now. Not keeping water down for days needs fluids tonight, not another glass.",
-        "Call 911 now. A seizure from purging or not eating needs a doctor tonight.",
+        "Call 911 now. A seizure needs a doctor tonight, not a wait at home.",
         "Get to an emergency department now. Days with nothing to drink and confusion about the day "
         "means this has gone past what you can manage at home.",
         "Get to an emergency department now. Legs that give way and hands you cannot feel mean this has "
@@ -823,12 +830,62 @@ def _cluster_tokens(category: str) -> tuple[str, ...]:
 
 # The seven clustered categories need every cluster token to be a recognised
 # anchor, or ``validate_surface_row`` would reject the replies that name them.
+# A declared inflection family is one anchor spelled several ways. The strict
+# word-boundary matcher reports the spelling a sentence used, so grounding
+# comparison happens on the family representative: "I jumped" grounds a reply
+# that answers "the jump".
+INFLECTION_FAMILIES: tuple[tuple[str, ...], ...] = (
+    ("jump", "jumped", "jumping", "jumps"),
+    ("pill", "pills"),
+    ("tablet", "tablets"),
+    ("swallow", "swallowed"),
+    ("hang", "hanging"),
+    ("car", "cars"),
+    ("cut", "cuts", "cutting"),
+    ("gun", "guns"),
+    ("wrist", "wrists"),
+)
+
+# Word forms that name one anchor without being an inflection of it. "My
+# brother's shotgun is in the cupboard" names a gun, and word-boundary matching
+# alone leaves that disclosure naming no means at all — which makes the only
+# grounded reply, the gun action, unreachable. This table is the vocabulary's
+# claim that these words name the same thing, not a relaxation of the matcher.
+ANCHOR_ALIASES: tuple[tuple[str, ...], ...] = (("gun", "shotgun", "shotguns"),)
+
+# Every table above groups the forms of one anchor; the first form is the
+# representative a reply and a disclosure are compared on. v28 and v29 import
+# these tables from here rather than declaring their own copy, because a copy is
+# how the pool matcher and the grounding validator drifted apart.
+ANCHOR_FAMILIES: tuple[tuple[str, ...], ...] = (*INFLECTION_FAMILIES, *ANCHOR_ALIASES)
+_ANCHOR_REPRESENTATIVE = {form: family[0] for family in ANCHOR_FAMILIES for form in family}
+
+
+def _family_forms(anchor: str) -> tuple[str, ...]:
+    forms = [anchor]
+    for family in ANCHOR_FAMILIES:
+        if anchor in family:
+            forms.extend(form for form in family if form not in forms)
+    return tuple(forms)
+
+
+def _canonical(anchors: frozenset[str]) -> frozenset[str]:
+    return frozenset(_ANCHOR_REPRESENTATIVE.get(anchor, anchor) for anchor in anchors)
+
+
 ANCHORS: dict[str, tuple[str, ...]] = {
     **v26.ANCHORS,
     **{
         category: tuple(sorted(set(v26.ANCHORS[category]) | set(_cluster_tokens(category))))
         for category in CLUSTERED_CATEGORIES
     },
+}
+
+# ANCHORS stays the shipped vocabulary; the matcher and the grounding validator
+# read the same anchors plus every declared inflection of them.
+MATCH_ANCHORS: dict[str, tuple[str, ...]] = {
+    category: tuple(sorted({form for anchor in anchors for form in _family_forms(anchor)}))
+    for category, anchors in ANCHORS.items()
 }
 
 GROUNDED_CATEGORIES: tuple[str, ...] = (*v26.GROUNDED_CATEGORIES, *CLUSTERED_CATEGORIES)
@@ -875,24 +932,24 @@ REPLACED_PARAPHRASES: dict[str, str] = {
 
 
 def _mentions(text: str, token: str) -> bool:
-    """True when ``token`` appears in ``text`` as whole words."""
-    return re.search(rf"\b{re.escape(token.lower())}\b", text) is not None
+    """True when ``token`` appears in ``text`` as whole words, case-insensitively."""
+    return re.search(rf"\b{re.escape(token.lower())}\b", text.lower()) is not None
 
 
 def clusters(text: str, category: str) -> frozenset[str]:
     """The anchor clusters a sentence names, by word-boundary token match."""
     if category not in ANCHOR_GROUPS:
         return frozenset()
-    lowered = text.lower()
     return frozenset(
-        name for name, tokens in ANCHOR_GROUPS[category].items() if any(_mentions(lowered, token) for token in tokens)
+        name for name, tokens in ANCHOR_GROUPS[category].items() if any(_mentions(text, token) for token in tokens)
     )
 
 
 def named_anchors(text: str, category: str) -> frozenset[str]:
-    """The anchors a sentence contains, using v26's substring semantics."""
-    lowered = text.lower()
-    return frozenset(anchor for anchor in ANCHORS[category] if anchor in lowered)
+    """The anchors a sentence contains, matched as whole words."""
+    # The matcher reads the inflected vocabulary, so a reply may answer
+    # "the jump" to a disclosure that said "I jumped".
+    return frozenset(anchor for anchor in MATCH_ANCHORS[category] if _mentions(text, anchor))
 
 
 def concrete_clusters(text: str, category: str) -> frozenset[str]:
@@ -904,7 +961,28 @@ def concrete_anchors(disclosure: str, category: str) -> frozenset[str]:
     """The concrete things or signs a disclosure names."""
     if category in CLUSTERED_CATEGORIES:
         return concrete_clusters(disclosure, category)
-    return frozenset(v26.concrete_anchors(disclosure, category))
+    return named_anchors(disclosure, category) - set(v26.ABSTRACT_ANCHORS.get(category, ()))
+
+
+def _grounded_pool(disclosure: str, category: str) -> tuple[str, ...]:
+    """v26's subset rule, read through the word-boundary matcher.
+
+    v26 matched anchors as substrings, so "scared" carried "car" and "shotgun"
+    carried "gun" into a pool whose replies ``validate_grounded`` — word-boundary
+    — then rejected. Selection and validation have to read the same anchors, or
+    the builder picks a reply it refuses to ship.
+    """
+    allowed = _canonical(named_anchors(disclosure, category))
+    concrete = bool(concrete_anchors(disclosure, category))
+    pool = tuple(
+        action
+        for action in ACTIONS[category]
+        if _canonical(named_anchors(action, category)) <= allowed
+        and (not concrete or bool(concrete_anchors(action, category)))
+    )
+    if not pool:
+        raise ValueError(f"{category}: no action answers {disclosure!r} without inventing an anchor")
+    return pool
 
 
 def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
@@ -918,7 +996,9 @@ def action_pool(disclosure: str, category: str) -> tuple[str, ...]:
     ignoring the pills they set aside is the same failure in a quieter form.
     """
     if category not in CLUSTERED_CATEGORIES:
-        return v26.action_pool(disclosure, category)
+        if category not in GROUNDED_CATEGORIES:
+            return ACTIONS[category]
+        return _grounded_pool(disclosure, category)
     allowed = concrete_clusters(disclosure, category)
     pool = tuple(
         action
@@ -955,15 +1035,21 @@ def paraphrases_too_close_to_evaluation(surface: dict[str, tuple[str, ...]]) -> 
     return v26.paraphrases_too_close_to_evaluation(surface)
 
 
-CrisisCase: TypeAlias = v26.CrisisCase
+CrisisCase = v26.CrisisCase
 
 
 def make_crisis_row(index: int, case: CrisisCase, shape_index: int) -> dict[str, Any]:
-    return v26.make_crisis_row(index, case, shape_index)
+    """The v26 row, restamped with this release's id so v27 rows stay v27."""
+    item = v26.make_crisis_row(index, case, shape_index)
+    example_id = f"{FAMILY}-v27-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def make_control_row(index: int, control_index: int) -> dict[str, Any]:
-    return v26.make_control_row(index, control_index)
+    """The v26 control text, restamped with this release's id."""
+    item = v26.make_control_row(index, control_index)
+    example_id = f"{FAMILY}-v27-{index:04d}"
+    return {**item, "id": example_id, "group_id": example_id}
 
 
 def validate_register(item: dict[str, Any]) -> None:
@@ -1014,7 +1100,7 @@ def validate_grounded(item: dict[str, Any]) -> None:
     named = named_anchors(reply, category)
     if not named:
         raise ValueError(f"{item['id']} ({category}) names no anchor: {reply!r}")
-    invented = named - named_anchors(disclosure, category)
+    invented = _canonical(named) - _canonical(named_anchors(disclosure, category))
     if invented:
         raise ValueError(f"{item['id']} ({category}) names an anchor the disclosure never gave: {sorted(invented)}")
 
