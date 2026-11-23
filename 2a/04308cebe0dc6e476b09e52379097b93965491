@@ -1,0 +1,16 @@
+training/launch/crisis_dimension_report.py
+  h_07d84030f79d30 182-188,190-191,197-198,200,227,231-255,270-271,274,280-282,287-320,333,339-344,346-347,365,367-368,374-378,383,390,472-475,492-498,503,526
+training/tests/test_crisis_dimension_report.py
+  h_07d84030f79d30 238-257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2a04308cebe0dc6e476b09e52379097b93965491",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
