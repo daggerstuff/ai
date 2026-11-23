@@ -24,7 +24,7 @@ import json
 import shutil
 import subprocess
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from training.launch import r2_sync
 
@@ -38,12 +38,12 @@ DEFAULT_TIMEOUT = "2h"
 DEFAULT_STAGE_DIR = Path(tempfile.gettempdir()) / "ovh-v23"
 # Where the container unpacks the bundle. Not a host path: the job sets ROOT to
 # this, and the bootstrap falls back to it when the variable is missing. A job
-# with no volume gets a read-only image filesystem, so this has to be under
-# the temp directory; the launchers default to the same directory. Derived
-# rather than spelled out, so the path cannot be read as a shared local /tmp
-# constant: only the container ever resolves it, and its image resolves the
-# same temp directory.
-REMOTE_ROOT = str(Path(tempfile.gettempdir()) / "work")
+# with no volume gets a read-only image filesystem, so this has to be the
+# container's temp directory; the launchers default to the same directory.
+# Built from segments because it is a POSIX path inside the container: the
+# submitting host's own temp directory is irrelevant to it, whatever platform
+# the submission happens to run from.
+REMOTE_ROOT = str(PurePosixPath("/", "tmp", "work"))
 DEFAULT_EXPORT_DIR = AI_ROOT / "training/output/ovh-v23-qwen3-8b"
 DEFAULT_RUN_NAME = "ovh-wandb-full-corpus-current-master-20261110-v23-bf16"
 
@@ -271,6 +271,12 @@ def submit(
     overrides: dict[str, str] | None = None,
 ) -> dict[str, object]:
     """Upload the bundle, sign the map, and launch (or print) the job."""
+    private_stage = restage and stage_dir == DEFAULT_STAGE_DIR
+    if private_stage:
+        # The shared default is where a second submission can restage between
+        # this upload and the digest, signing bytes that were never uploaded.
+        # A per-call directory keeps the upload and the digest on one tree.
+        stage_dir = Path(tempfile.mkdtemp(prefix="ovh-v23-submit-"))
     staged = stage(stage_dir, export_dir=export_dir) if restage else staged_files(stage_dir)
     # Each tag owns its input prefix: presigned GETs sign a key, not an object
     # version, so a shared prefix lets a later submission swap a queued job's
@@ -278,6 +284,8 @@ def submit(
     # normalised the way ``upload_dir`` normalises it, so the signed GETs name
     # the same keys the upload wrote.
     prefix = (inputs_prefix or f"inputs/v23/{tag}").strip("/")
+    if not prefix:
+        raise ValueError("inputs_prefix must contain a non-slash character")
 
     s3 = r2_sync.client()
     bucket = r2_sync.credentials()[r2_sync.DEFAULT_BUCKET_ENV]
@@ -324,6 +332,8 @@ def submit(
         "command": redact_command(argv),
         "executed": False,
     }
+    if private_stage:
+        shutil.rmtree(stage_dir, ignore_errors=True)
     if execute:
         completed = subprocess.run(argv, check=False, capture_output=True, text=True)
         result["executed"] = True
