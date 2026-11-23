@@ -17,11 +17,26 @@ __pycache__/
 *.pyc
 
 # The real environment file holds backend secrets and the service token.
-.env
 
 # `!*` above also re-includes these names, and this file is read after the root
-# rules that ignore them (`**/credentials*.yaml`, `**/secrets*.yaml`), so the
-# exclusion has to be repeated here or an operator's credential file would be
-# committed.
+# rules that ignore them, so the secret exclusions have to be repeated here or
+# an operator's credential file would be committed. Keep this list in sync
+# with the security section of the root .gitignore.
+.env
+.env.*
+!.env.example
+.envrc
+*.pem
+*.key
+access_key*
+api_key*
+auth*.json
+credentials*.json
 credentials*.yaml
+credentials*.yml
+private_key*
+secret_key*
+secrets*.json
 secrets*.yaml
+secrets*.yml
+token*.json

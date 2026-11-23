@@ -97,7 +97,7 @@ def _override_bounds_errors(name: str, spec: dict[str, Any]) -> list[str]:
         limit = spec[bound]
         if not isinstance(limit, numeric) or isinstance(limit, bool):
             return [f"override {name!r} {bound} must be {kind}"]
-        if not math.isfinite(limit):
+        if isinstance(limit, float) and not math.isfinite(limit):
             return [f"override {name!r} {bound} must be a finite number"]
         bounds[bound] = limit
     if "min" in bounds and "max" in bounds and bounds["min"] > bounds["max"]:

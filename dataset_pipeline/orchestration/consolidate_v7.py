@@ -64,6 +64,8 @@ _VALID_TASK_TYPES = {
     "personality_balancing",
     "psychology_knowledge",
     "mental_health_conversations",
+    "text_classification",
+    "patient_simulation",
 }
 
 _INST_BOUNDARY = re.compile(r"\[/INST\]")

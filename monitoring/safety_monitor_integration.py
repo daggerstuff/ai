@@ -32,24 +32,29 @@ from typing import Any
 import numpy as np
 
 # Configure logging. The file handler is best effort: a read-only root
-# filesystem must not turn importing this module into a PermissionError.
+# filesystem must not turn importing this module into a PermissionError, and a
+# pre-configured root logger makes basicConfig a no-op, so handlers are only
+# built (and the file opened) when they can actually be attached.
 _LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
-_handlers: list[logging.Handler] = [logging.StreamHandler()]
-_log_file_error: OSError | None = None
-try:
-    _LOG_DIR.mkdir(parents=True, exist_ok=True)
-    _handlers.insert(0, logging.FileHandler(_LOG_DIR / "safety_monitoring.log"))
-except OSError as error:
-    _log_file_error = error
+if logging.getLogger().handlers:
+    logger = logging.getLogger(__name__)
+else:
+    _handlers: list[logging.Handler] = [logging.StreamHandler()]
+    _log_file_error: OSError | None = None
+    try:
+        _LOG_DIR.mkdir(parents=True, exist_ok=True)
+        _handlers.insert(0, logging.FileHandler(_LOG_DIR / "safety_monitoring.log"))
+    except OSError as error:
+        _log_file_error = error
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=_handlers,
-)
-logger = logging.getLogger(__name__)
-if _log_file_error is not None:
-    logger.warning("file logging disabled (%s): %s", _LOG_DIR, _log_file_error)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=_handlers,
+    )
+    logger = logging.getLogger(__name__)
+    if _log_file_error is not None:
+        logger.warning("file logging disabled (%s): %s", _LOG_DIR, _log_file_error)
 
 
 class SafetyLevel(Enum):

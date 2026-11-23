@@ -51,6 +51,9 @@ def setup_logging(level: str = "INFO", config: CLIConfig | None = None) -> loggi
     # Create logger
     logger = logging.getLogger(CLI_LOGGER_NAME)
     logger.setLevel(getattr(logging, level.upper()))
+    # Do not bubble CLI records up to a configured root logger, or every line
+    # is printed twice.
+    logger.propagate = False
 
     # Clear existing handlers
     logger.handlers.clear()

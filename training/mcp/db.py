@@ -303,6 +303,41 @@ def mark_job_terminal(db_path: Path, job_id: str, *, status: str, error: str) ->
     return cursor.rowcount > 0
 
 
+def set_backend_id(db_path: Path, job_id: str, backend_id: str) -> bool:
+    """Record the backend's identifier on a row without writing its outcome.
+
+    ``upsert_job`` is terminal-guarded, so it silently drops the write once a
+    job is cancelled or finished — exactly when a late cancel discovers the
+    remote name and needs it recorded. This write touches only the identifiers:
+    it never flips status and never clears an outcome. Returns False when the
+    row does not exist.
+    """
+    backend_id = backend_id.strip()
+    if not backend_id:
+        return False
+    conn = _conn(db_path)
+    row = conn.execute("SELECT backend_id, backend_ids FROM jobs WHERE job_id = ?", (job_id,)).fetchone()
+    if row is None:
+        return False
+    ids: list[str] = []
+    raw = row["backend_ids"]
+    if raw:
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                ids = [str(item) for item in parsed]
+        except (json.JSONDecodeError, TypeError):
+            ids = [str(raw)]
+    if backend_id not in ids:
+        ids.append(backend_id)
+    conn.execute(
+        "UPDATE jobs SET backend_id = COALESCE(backend_id, ?), backend_ids = ?, updated_at = ? WHERE job_id = ?",
+        (backend_id, json.dumps(ids), _now(), job_id),
+    )
+    conn.commit()
+    return True
+
+
 def count_jobs(db_path: Path, *, in_flight: tuple[str, ...]) -> int:
     """Count rows in the given statuses with no page truncation."""
     placeholders = ", ".join("?" for _ in in_flight)
@@ -331,7 +366,17 @@ def admit_job_under_cap(
     try:
         # The same setup every other registry call applies, so a first-ever
         # admission does not leave a world-readable, non-WAL registry behind.
-        conn.execute("PRAGMA journal_mode=WAL")
+        # `journal_mode=WAL` takes a write lock, so it loses the race against
+        # a concurrent writer already inside BEGIN IMMEDIATE; busy_timeout
+        # below does not cover it. The mode persists for the file, so only
+        # set it when it is not already WAL and tolerate losing the race.
+        conn.execute("PRAGMA busy_timeout=30000")
+        current_mode = conn.execute("PRAGMA journal_mode").fetchone()
+        if current_mode and str(current_mode[0]).lower() != "wal":
+            try:
+                conn.execute("PRAGMA journal_mode=WAL")
+            except sqlite3.OperationalError:
+                pass
         conn.execute("PRAGMA foreign_keys=ON")
         conn.executescript(SCHEMA)
         _migrate(conn)

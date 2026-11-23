@@ -6,6 +6,7 @@ credential storage with HIPAA++ compliance.
 """
 
 import logging
+import math
 import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -563,6 +564,12 @@ class TokenManager:
 
     def set_tokens(self, access_token: str, refresh_token: str | None, expires_in: float) -> None:
         """Record a freshly issued token pair and its lifetime in seconds."""
+        try:
+            expires_in = float(expires_in)
+        except (TypeError, ValueError):
+            raise ValueError("expires_in must be a finite number") from None
+        if not math.isfinite(expires_in):
+            raise ValueError("expires_in must be a finite number")
         if expires_in < 0:
             raise ValueError("expires_in must be non-negative")
         issued_at = time.time()
