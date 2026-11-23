@@ -914,18 +914,28 @@ def _continues_on_the_next_line(text: str, offset: int) -> bool:
     return bool(rest) and rest[0] not in _LINE_BREAKS and rest[0].islower()
 
 
-def _clause_bounds(text: str, index: int, *, join_wrapped: bool = False) -> tuple[int, int]:
+def _clause_bounds(text: str, index: int, *, join_wrapped: bool = False, cased: str | None = None) -> tuple[int, int]:
     """The start and end of the clause holding ``index``.
 
     ``join_wrapped`` keeps a soft-wrapped line inside the clause, so the
     question, open-storage and move-back guards see the whole instruction a
-    reply wrapped. Negation does not join: a line break ends its scope.
+    reply wrapped. Negation does not join: a line break ends its scope. The
+    wrap is judged on ``cased`` - the reply before casefolding - when it is
+    given, because only the original capitalisation tells a soft wrap from a
+    new instruction and the casefolded ``text`` has erased it; the bounds
+    stay in the coordinates of ``text``. A ``\\r\\n`` pair is one break: the
+    ``\\n`` of it decides whether the line continues.
     """
     start = 0
     end = len(text)
+    probe = text if cased is None else cased
     for match in _CLAUSE_END.finditer(text):
-        if join_wrapped and match.group() in _LINE_BREAKS and _continues_on_the_next_line(text, match.end()):
+        if match.group() == "\r" and text.startswith("\n", match.end()):
             continue
+        if join_wrapped and match.group() in _LINE_BREAKS:
+            offset = match.end() if cased is None else _cased_offset(cased, match.end())
+            if _continues_on_the_next_line(probe, offset):
+                continue
         if match.end() <= index:
             start = match.end()
         else:
@@ -1099,7 +1109,7 @@ def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
         if _destination_continues(needle, haystack, cased, match.end()):
             continue
         clause_start, _ = _clause_bounds(haystack, match.start())
-        guard_start, guard_end = _clause_bounds(haystack, match.start(), join_wrapped=True)
+        guard_start, guard_end = _clause_bounds(haystack, match.start(), join_wrapped=True, cased=cased)
         if not allow_negated and _negated_before(haystack, match.start(), clause_start):
             continue
         if _is_question(haystack, guard_start, guard_end, match.start()):

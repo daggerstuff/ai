@@ -1674,6 +1674,28 @@ def test_a_soft_wrap_keeps_the_guards_that_read_the_sentence() -> None:
         assert not _asserts("take them back", move_back), repr(break_char)
 
 
+def test_a_capitalised_instruction_keeps_its_own_guards() -> None:
+    """A capitalised line is a new instruction even after an unpunctuated one."""
+    warning_then_lockbox = "Don't leave the pills somewhere unlocked\nPut the pills in the lockbox."
+    assert _asserts("put the pills in the lockbox", warning_then_lockbox)
+
+
+def test_the_wrap_decision_reads_the_original_capitalisation() -> None:
+    """A guard must not borrow a question from the next instruction."""
+    statement_then_question = "Do you keep the gun in the safe\nDon't ask who has the key?"
+    assert _asserts("keep the gun in the safe", statement_then_question)
+
+
+def test_a_crlf_pair_is_one_line_break_for_the_guards() -> None:
+    """A wrapped clause keeps its guards across a CRLF exactly as across a LF."""
+    question = "Do you think anyone would\r\nlock the gun in the safe?"
+    assert not _asserts("lock the gun in the safe", question)
+    storage = "Put the pills in the lockbox, but\r\nleave it unlocked"
+    assert not _asserts("lockbox", storage)
+    new_instruction = "Put the gun in the safe\r\nPlace the key with your mother."
+    assert _asserts("put the gun in the safe", new_instruction)
+
+
 def test_an_adverbial_after_the_destination_is_not_a_new_one() -> None:
     # No comma between them: the adverbial follows the destination directly, so
     # the continuation check has to reject "keeping" on its own.
