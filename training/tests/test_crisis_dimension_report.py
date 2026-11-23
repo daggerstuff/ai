@@ -374,3 +374,13 @@ def test_semicolon_ends_a_sentence_for_aside_scanning() -> None:
     stop = cdr._aside_sentence_end(text, 0, len(text))
     assert stop is not None
     assert text[stop] == ";"
+
+
+def test_sentence_final_abbreviation_still_ends_the_sentence() -> None:
+    text = "Take one now, etc. Then call - soon"
+    assert cdr._aside_sentence_end(text, 0, len(text)) == text.index(". Then")
+
+
+def test_mid_sentence_abbreviation_is_not_a_sentence_end() -> None:
+    text = "Take one, e.g. as needed, and call - soon"
+    assert cdr._aside_sentence_end(text, 0, len(text)) is None

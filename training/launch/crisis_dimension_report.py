@@ -248,11 +248,35 @@ def _inside_ellipsis(text: str, idx: int) -> bool:
     return run_end - run_start + 1 >= 3
 
 
+def _abbreviation_ends_sentence(text: str, final: int) -> bool:
+    """Whether the abbreviation ending at ``final`` closes the sentence it sits in."""
+    rest = text[final + 1 :]
+    stripped = rest.lstrip(" ")
+    if not stripped:
+        return True
+    return stripped[0].isupper() or stripped[0] in "\"'\u201c\u2018("
+
+
+def _mask_abbreviations(text: str) -> str:
+    """Blank abbreviation periods, keeping the one that ends a sentence."""
+    chars = list(text)
+    for start in range(len(text)):
+        for abbreviation in _ABBREVIATIONS:
+            length = len(abbreviation)
+            if text[start : start + length].casefold() != abbreviation:
+                continue
+            final = start + length - 1
+            keep_final = _abbreviation_ends_sentence(text, final)
+            for offset in range(length):
+                if offset == length - 1 and keep_final:
+                    continue
+                chars[start + offset] = "\x00"
+    return "".join(chars)
+
+
 def _aside_sentence_end(text: str, start: int, end: int) -> int | None:
     """Return the index of the next hard sentence end in [start, end), or None."""
-    masked = text
-    for abbreviation in _ABBREVIATIONS:
-        masked = masked.replace(abbreviation, "\x00" * len(abbreviation))
+    masked = _mask_abbreviations(text)
     for match in _HARD_END.finditer(masked, start, end):
         idx = match.start()
         if masked[idx] == "." and _inside_ellipsis(masked, idx):
