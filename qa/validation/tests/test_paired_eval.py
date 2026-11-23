@@ -1628,12 +1628,23 @@ def test_a_longer_destination_noun_is_not_the_shorter_one() -> None:
     assert _asserts("put the gun in the safe", "Put the gun in the safe and lock it.")
 
 
-def test_only_a_same_line_adjective_changes_the_destination() -> None:
+def test_a_capitalised_line_break_is_a_new_instruction() -> None:
     assert not _asserts("put the gun in the safe", "Put the gun in the safe house.")
     assert _asserts("put the gun in the safe", "Put the gun in the safe\nPlace the key with your mother.")
     assert _asserts("put the gun in the safe", "Put the gun in the safe box.")
     assert _asserts("put the gun in the safe", "Put the gun in the safe.")
 
 
+def test_a_wrapped_destination_still_names_the_longer_place() -> None:
+    """A soft wrap or a nonbreaking space does not turn the place into a new one."""
+    assert not _asserts("put the gun in the safe", "Put the gun in the safe\nplace you keep it.")
+    assert not _asserts("put the gun in the safe", "Put the gun in the safe\u00a0place you keep it.")
+    assert not _asserts("put the pills in the safe", "Put the pills in the safe\u202fplace you usually keep them.")
+    assert _asserts("put the gun in the safe", "Put the gun in the safe.\n\nPlace the key with your mother.")
+
+
 def test_an_adverbial_after_the_destination_is_not_a_new_one() -> None:
-    assert _asserts("put the pills in the safe", "Put the pills in the safe, keeping them out of reach.")
+    # No comma between them: the adverbial follows the destination directly, so
+    # the continuation check has to reject "keeping" on its own.
+    assert _asserts("put the pills in the safe", "Put the pills in the safe keeping them out of reach.")
+    assert not _asserts("put the pills in the safe", "Put the pills in the safe place you keep them.")

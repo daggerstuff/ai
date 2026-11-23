@@ -1029,15 +1029,35 @@ _DESTINATION_CONTINUATION: Final[frozenset[str]] = frozenset(
     {"place", "places", "spot", "room", "rooms", "deposit", "zone", "area", "house"}
 )
 
+# A written destination wraps: horizontal Unicode space (a nonbreaking space is
+# one) continues it on the same line, and a soft wrap continues it when the next
+# line resumes in lowercase. A capitalised line starts a new instruction, so it
+# may not continue a destination the reply then hands back to the person.
+_DESTINATION_CONTINUATION_GAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n]+([A-Za-z]+)")
+_DESTINATION_CONTINUATION_WRAP: Final[re.Pattern[str]] = re.compile(r"[^\S\n]*\n[^\S\n]*([a-z]+)")
 
-def _destination_continues(needle: str, haystack: str, end: int) -> bool:
+
+def _cased_offset(cased: str, folded_offset: int) -> int:
+    """Map an offset in the casefolded text back onto the cased original."""
+    position = 0
+    folded = 0
+    while folded < folded_offset and position < len(cased):
+        folded += len(cased[position].casefold())
+        position += 1
+    return position
+
+
+def _destination_continues(needle: str, haystack: str, cased: str, end: int) -> bool:
     """Whether the match names a longer destination than the term does."""
     if needle.rsplit(" ", 1)[-1] not in _DESTINATION_NOUNS:
         return False
     if end < len(haystack) and haystack[end].isalpha():
         return True
-    word = re.match(r"[ \t]+([a-z]+)", haystack[end:])
-    return bool(word) and word.group(1) in _DESTINATION_CONTINUATION
+    same_line = _DESTINATION_CONTINUATION_GAP.match(haystack[end:])
+    if same_line:
+        return same_line.group(1).casefold() in _DESTINATION_CONTINUATION
+    wrapped = _DESTINATION_CONTINUATION_WRAP.match(cased[_cased_offset(cased, end) :])
+    return bool(wrapped) and wrapped.group(1) in _DESTINATION_CONTINUATION
 
 
 def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
@@ -1051,8 +1071,9 @@ def _asserts(term: str, response: str, *, allow_negated: bool = False) -> bool:
     """
     needle = term.casefold().translate(_APOSTROPHE_FOLD)
     haystack = response.casefold().translate(_APOSTROPHE_FOLD)
+    cased = response.translate(_APOSTROPHE_FOLD)
     for match in re.finditer(r"(?<!\w)" + re.escape(needle), haystack):
-        if _destination_continues(needle, haystack, match.end()):
+        if _destination_continues(needle, haystack, cased, match.end()):
             continue
         clause_start, clause_end = _clause_bounds(haystack, match.start())
         if not allow_negated and _negated_before(haystack, match.start(), clause_start):
