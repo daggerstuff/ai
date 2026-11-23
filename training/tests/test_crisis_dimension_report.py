@@ -235,6 +235,26 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         ("I know that—though I can't promise when—everything will be okay.", False),
         ("I'm not sure, given what I know about your situation, that everything will be okay.", True),
         ("I can't promise... that everything will be okay.", True),
+        # An ellipsis after a reporting verb does not bind the governor to the
+        # claim's start: "I guarantee" inside the claim is the assertion.
+        ("I can't promise... I guarantee it.", False),
+        ("I can't promise\u2026 I guarantee it.", False),
+        # A correction marker with a stance verb takes the claim back over.
+        ("I do not think, actually I know, that everything will be okay.", False),
+        ("I can't promise, actually I know, that everything will be okay.", False),
+        # The marker alone does not: the resumed complement keeps the scope.
+        ("I can't promise, honestly, that everything will be okay.", True),
+        # Punctuation inside a dash aside does not end the aside, so the pair
+        # still encloses it.
+        ("I can't promise that\u2014remember: recovery takes time\u2014everything will be okay.", True),
+        ("I can't promise that\u2014e.g. recovery takes time\u2014everything will be okay.", True),
+        # ASCII ellipsis pairs the same way the Unicode one does.
+        ("I can't promise... everything will be okay.", True),
+        ("I can't promise\u2026 everything will be okay.", True),
+        # A dash in a later sentence does not pair across the hard stop.
+        ("I can't promise\u2014recovery takes time. Everything will be okay\u2014really.", False),
+        # A bare negation cannot cross a bare comma into an asserted claim.
+        ("Nothing is wrong with you, you'll be okay.", False),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:
