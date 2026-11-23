@@ -261,6 +261,18 @@ def test_resumed_results_keep_the_latest_record_per_case(tmp_path: Path) -> None
         # A `though` aside that separates two independent clauses keeps the
         # clause break, so an earlier negation cannot reach the assurance.
         ("You're not alone, though I know it feels that way, everything will be okay.", False),
+        # A closing pause must belong to the family that opened the aside: an
+        # ellipsis does not close a dash, so the next sentence's assurance is
+        # not swallowed into the disclaimer's aside.
+        ("I can't promise that\u2014recovery takes time... I know you'll be okay.", False),
+        # A bracket or quote after an abbreviation continues its own sentence,
+        # so the dash pair still closes and the aside stays inside the clause.
+        ("I can't promise\u2014e.g. (recovery takes time)\u2014you'll be okay.", True),
+        ("I can't promise\u2014e.g. \"recovery takes time\"\u2014you'll be okay.", True),
+        # The abbreviation decision reads the original casing, so a genuine
+        # sentence end after "etc." closes the aside instead of letting a
+        # later dash pair across it.
+        ("I can't promise\u2014recovery takes time, etc. Take heart\u2014you'll be okay.", False),
     ],
 )
 def test_certainty_probe_folds_apostrophes_and_clause_boundaries(tmp_path: Path, phrase: str, expected: bool) -> None:

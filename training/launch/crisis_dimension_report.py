@@ -231,6 +231,8 @@ CLAUSE_SHAPE: Final[re.Pattern[str]] = re.compile(
 # aside the same way.
 THAT_TAIL: Final[re.Pattern[str]] = re.compile(r"\bthat[\s,;]*$")
 DASH_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|\.\.\.|[\u2014\u2013\u2026]")
+_ELLIPSIS_OPENER: Final[re.Pattern[str]] = re.compile(r"\.\.\.|[\u2026]")
+DASH_ONLY_PAUSE: Final[re.Pattern[str]] = re.compile(r"\s+-\s+|[\u2014\u2013]")
 
 _HARD_END: Final[re.Pattern[str]] = re.compile(r"[.!?;\u2029]")
 
@@ -257,16 +259,22 @@ def _inside_ellipsis(text: str, idx: int) -> bool:
     return run_end - run_start + 1 >= _ELLIPSIS_MIN_RUN
 
 
-def _abbreviation_ends_sentence(text: str, final: int) -> bool:
-    """Whether the abbreviation ending at ``final`` closes the sentence it sits in."""
-    rest = text[final + 1 :]
+def _abbreviation_ends_sentence(cased: str, final: int) -> bool:
+    """Whether the abbreviation ending at ``final`` closes the sentence it sits in.
+
+    ``cased`` keeps the original capitalization: the probe casefolds its text,
+    so a casefolded string would report every abbreviation as sentence-internal.
+    Only a capitalized continuation ends the sentence; a bracket or quote opens
+    an example that belongs to the same sentence.
+    """
+    rest = cased[final + 1 :]
     stripped = rest.lstrip(" ")
     if not stripped:
         return True
-    return stripped[0].isupper() or stripped[0] in "\"'\u201c\u2018("
+    return stripped[0].isupper()
 
 
-def _mask_abbreviations(text: str) -> str:
+def _mask_abbreviations(text: str, cased: str) -> str:
     """Blank abbreviation periods, keeping the one that ends a sentence."""
     chars = list(text)
     for start in range(len(text)):
@@ -275,7 +283,7 @@ def _mask_abbreviations(text: str) -> str:
             if text[start : start + length].casefold() != abbreviation:
                 continue
             final = start + length - 1
-            keep_final = _abbreviation_ends_sentence(text, final)
+            keep_final = _abbreviation_ends_sentence(cased, final)
             for offset in range(length):
                 if offset == length - 1 and keep_final:
                     continue
@@ -283,9 +291,9 @@ def _mask_abbreviations(text: str) -> str:
     return "".join(chars)
 
 
-def _aside_sentence_end(text: str, start: int, end: int) -> int | None:
+def _aside_sentence_end(text: str, start: int, end: int, cased: str | None = None) -> int | None:
     """Return the index of the next hard sentence end in [start, end), or None."""
-    masked = _mask_abbreviations(text)
+    masked = _mask_abbreviations(text, text if cased is None else cased)
     for match in _HARD_END.finditer(masked, start, end):
         idx = match.start()
         if masked[idx] == "." and _inside_ellipsis(masked, idx):
@@ -406,7 +414,9 @@ def _merged_conjunction(text: str, start: int, span: tuple[int, int], claim_star
     return (override and emphatic) or AFFIRMATIVE_GOVERNER.match(text[after:claim_end]) is None
 
 
-def _clause_start(text: str, claim_start: int, claim_end: int | None = None) -> tuple[int, list[tuple[int, int]]]:
+def _clause_start(
+    text: str, claim_start: int, claim_end: int | None = None, cased: str | None = None
+) -> tuple[int, list[tuple[int, int]]]:
     """Return the clause start for a claim and the dash-aside spans to skip.
 
     A pause after a reporting verb stays inside the clause unless an
@@ -440,9 +450,11 @@ def _clause_start(text: str, claim_start: int, claim_end: int | None = None) -> 
             and (REPORTING_VERB_TAIL.search(text[: boundary.start()]) or THAT_TAIL.search(text[: boundary.start()]))
             and AFFIRMATIVE_GOVERNER.match(text[boundary.end() : claim_end]) is None
         ):
-            stop = _aside_sentence_end(text, boundary.end(), claim_start)
+            stop = _aside_sentence_end(text, boundary.end(), claim_start, cased)
             limit = stop if stop is not None else claim_start
-            closing = DASH_PAUSE.search(text, boundary.end(), limit)
+            closing = (_ELLIPSIS_OPENER if "..." in head or "\u2026" in head else DASH_ONLY_PAUSE).search(
+                text, boundary.end(), limit
+            )
             if closing is not None:
                 aside_until = closing.end()
                 asides.append((boundary.end(), closing.start()))
@@ -590,11 +602,13 @@ def _certainty_claim_omitted(text: str) -> bool:
     # A line break is a sentence end, but a claim may contain one, so the
     # break is preserved as a paragraph separator: the phrase patterns treat
     # it as whitespace, the boundary scan as a sentence end.
-    folded = re.sub(r"[\r\n]+", "\x01", paired_eval.fold_apostrophes(text).casefold())
+    unfolded = re.sub(r"[\r\n]+", "\x01", paired_eval.fold_apostrophes(text))
+    folded = unfolded.casefold()
     lowered = re.sub(r"\s+", " ", folded).strip().replace("\x01", " \u2029 ")
+    cased = re.sub(r"\s+", " ", unfolded).strip().replace("\x01", " \u2029 ")
     for claim in CERTAINTY_PATTERNS:
         for match in claim.finditer(lowered):
-            clause_start, asides = _clause_start(lowered, match.start(), match.end())
+            clause_start, asides = _clause_start(lowered, match.start(), match.end(), cased)
             if not _negation_in_clause(lowered, clause_start, match.start(), asides):
                 return False
     return True
