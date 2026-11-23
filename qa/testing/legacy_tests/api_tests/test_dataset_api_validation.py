@@ -1,10 +1,11 @@
 import os
+import secrets
 
 import pytest
 from fastapi import HTTPException
 
 # Set the secret key before importing from the API
-os.environ["AUTH_SECRET_KEY"] = "test-secret-key"
+os.environ["AUTH_SECRET_KEY"] = secrets.token_hex(32)
 
 from inference.api.dataset_api import validate_identifier  # noqa: I001
 

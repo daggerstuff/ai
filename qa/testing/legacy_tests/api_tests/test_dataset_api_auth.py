@@ -1,14 +1,13 @@
 import os
+import secrets
 
-os.environ["AUTH_SECRET_KEY"] = "test-secret-key"
+os.environ["AUTH_SECRET_KEY"] = secrets.token_hex(32)
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-
-os.environ["AUTH_SECRET_KEY"] = "test-secret"
 
 from inference.api.dataset_api import (
     app,

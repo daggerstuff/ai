@@ -16,7 +16,7 @@ from unittest import mock
 import pytest
 
 # TDD Anchor: Import the module under test (will fail if not implemented)
-import ai.qa.validation.safety.bias_privacy_hooks as hooks
+import ai.qa.validation.bias_privacy_hooks as hooks
 
 
 @pytest.fixture

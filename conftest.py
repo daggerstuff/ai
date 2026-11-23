@@ -9,6 +9,18 @@ import os
 os.environ.setdefault("AI_DISABLE_SAFETY_ML_MODELS", "1")
 os.environ.setdefault("BIAS_DETECTION_DISABLE_SENTRY", "1")
 
+# Auth fixtures validate AUTH_SECRET_KEY at import time and reject placeholder
+# values, so a per-run generated secret is supplied when the environment has
+# none. It is generated, never a literal.
+if not os.environ.get("AUTH_SECRET_KEY"):
+    import secrets
+
+    os.environ["AUTH_SECRET_KEY"] = secrets.token_hex(32)
+
+# The dataset API validates its DSN at import time. Tests patch the database
+# layer, so a loopback DSN that is never dialled is enough to import.
+os.environ.setdefault("DATABASE_URL", "postgresql://test:test@127.0.0.1:1/test")
+
 # CI fix: ignore broken test collections that fail on missing ai.tools imports
 # These are excluded via workflow ignores on staging, but workflow file cannot be updated
 # without `workflow` scope, so we enforce the same ignores via conftest collect_ignore.
