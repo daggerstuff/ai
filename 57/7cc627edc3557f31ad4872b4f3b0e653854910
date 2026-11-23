@@ -1,0 +1,18 @@
+qa/validation/therapy_bench/generate_crisis_capability_v2.py
+  h_07d84030f79d30 36-42,157-170,211,213-215,231-261,329-333
+qa/validation/therapy_bench/paired_eval.py
+  h_07d84030f79d30 811,813-822,851-855,878-881,889,891-893,896-928,931-932,934-939,942-943,945-949,954,958-960,969,975-976
+training/tests/test_crisis_suite_v2.py
+  h_07d84030f79d30 86-91,255-256,264-265
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "577cc627edc3557f31ad4872b4f3b0e653854910",
+  "prompts": {},
+  "humans": {
+    "h_07d84030f79d30": {
+      "author": "Dagger <dagger@pixelated.love>"
+    }
+  }
+}
