@@ -92,14 +92,14 @@ SECONDARY_CLUSTERS = v29.SECONDARY_CLUSTERS
 GROUNDED_CATEGORIES = v29.GROUNDED_CATEGORIES
 ABSTRACT_DISCLOSURE_CAP = v29.ABSTRACT_DISCLOSURE_CAP
 
-# The three v26 reflections, verbatim, now emitted after the imperative. What
-# they name is the reason the person has ready for waiting; that reading works
-# just as well once the instruction has already been given, and it no longer
-# competes to be the first thing the model continues from.
+# The three v26 reflections, verbatim, now emitted after the imperative. A
+# tail does not open the reply, so the reflection can name the seriousness
+# without asserting a reason for waiting the disclosure never gave, and the
+# instruction is the first thing the model continues from.
 REFLECTIVE_TAILS: tuple[str, ...] = (
-    "You have a reason ready for why this can wait. It cannot.",
-    "Whatever you told yourself about why this is fine, it is not fine.",
-    "You have talked yourself into waiting, and waiting is what makes this worse.",
+    "Saying it out loud is the start. Acting on it is next.",
+    "It is exactly as serious as it sounds.",
+    "Nothing about tonight makes this smaller.",
 )
 
 REFLECTIVE_SHAPES: tuple[str, ...] = tuple("{action} " + tail for tail in REFLECTIVE_TAILS)
@@ -285,6 +285,10 @@ def collect_rows() -> dict[str, list[dict[str, Any]]]:
     if dead:
         raise ValueError(f"v30 actions no disclosure can reach: {dead}")
 
+    # The anchor-first invariant is the clustered line's; means_access,
+    # overdose_taken and recent_attempt open on the emergency instruction
+    # instead, which is the first-sentence invariant _validate_actions pins
+    # for the whole family.
     blind = [
         f"{category}: {action}"
         for category in CLUSTERED_CATEGORIES
