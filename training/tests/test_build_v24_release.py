@@ -79,10 +79,10 @@ def test_limitations_record_the_size_the_ratio_and_the_kept_revert() -> None:
     assert "carries no corpus repair" in added
 
 
-def test_limitations_say_grounding_covers_one_category_only() -> None:
+def test_limitations_say_grounding_covers_means_and_inherits_v23() -> None:
     added = " ".join(release.LIMITATIONS_V24)
-    assert "Grounding covers means_access only" in added
-    assert "still rotate their eight actions" in added
+    assert "Grounding covers means_access with a one-anchor rewrite" in added
+    assert "inherit v23's per-disclosure pools" in added
 
 
 def test_the_pipeline_is_v23s_with_only_the_family_swapped() -> None:

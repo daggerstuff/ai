@@ -93,7 +93,7 @@ REPLACED_ACTIONS: dict[str, tuple[str, ...]] = {
         "Get to an emergency department now and get the gun out of the house first.",
         "Call 988 now. Hand the pills to someone else tonight and say who has them.",
         "Get to an emergency department now. Get the medication out of the house first.",
-        "Call 988 now and name the bridge to them, then stay where you are.",
+        "Call 988 now and get off the bridge before you say anything else.",
         "Call 911 now and say you have the means within reach, then hand it to a person.",
         "Get someone to take the means out of the house tonight, then call 988.",
         "Call 988 now and tell them the method you have worked out.",
@@ -172,8 +172,15 @@ def paraphrases() -> dict[str, tuple[str, ...]]:
 
 
 def prior_replies() -> set[str]:
-    """Every crisis reply the v9, v10, v12, v21 and v22 families already train."""
-    return v23.prior_replies()
+    """The pre-v23 families, plus the v23 replies this release replaces.
+
+    v24 retrains v23's other nine surfaces verbatim, so those replies are the
+    inheritance, not a duplication. The means_access surface is the one v24
+    rewrites, so a new means reply that byte-equals a v23 means reply is a
+    defect the duplicate guard has to be able to see.
+    """
+    replaced = {shape.format(action=action) for action in v23.ACTIONS["means_access"] for shape in DIRECT_SHAPES}
+    return v23.prior_replies() | replaced
 
 
 def v9_disclosures() -> set[str]:
